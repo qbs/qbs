@@ -84,7 +84,6 @@ signals:
     void finished();
     void stateChanged(ExecutorState);
     void progress(int jobsToDo, int jobCount, const QString &description);
-    void newProcessOutput(const Qbs::ProcessOutput &processOutput);
 
 protected slots:
     void onProcessError(QString errorString);
