@@ -66,6 +66,9 @@ public:
     void setCommandLine(const QString &commandLine);
     QString commandLine() const;
 
+    void setFilePaths(const QStringList &filePathList);
+    QStringList filePaths() const;
+
 private:
     QSharedDataPointer<ProcessOutputData> data;
 };

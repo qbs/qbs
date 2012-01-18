@@ -69,10 +69,10 @@ public:
 
 CommandExecutor::CommandExecutor(QObject *parent)
     : QObject(parent)
+    , m_transformer(0)
     , m_processCommand(0)
     , m_process(0)
     , m_mainThreadScriptEngine(0)
-    , m_transformer(0)
     , m_jsCommand(0)
     , m_jsFutureWatcher(0)
 {
@@ -95,6 +95,7 @@ void CommandExecutor::waitForFinished()
 
 void CommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)
 {
+    m_transformer = transformer;
     m_processCommand = 0;
     m_jsCommand = 0;
 
@@ -108,7 +109,6 @@ void CommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)
         return;
     case AbstractCommand::JavaScriptCommandType:
         m_jsCommand = static_cast<JavaScriptCommand*>(cmd);
-        m_transformer = transformer;
         startJavaScriptCommand();
         return;
     }
@@ -208,6 +208,18 @@ QByteArray CommandExecutor::filterProcessOutput(const QByteArray &output, const 
     return filteredOutput.toString().toLocal8Bit();
 }
 
+static QStringList filePathsFromInputArtifacts(Transformer *transformer)
+{
+    QStringList filePathList;
+
+    if (transformer) {
+        foreach (Artifact *artifact, transformer->inputs)
+            filePathList.append(artifact->fileName);
+    }
+
+    return filePathList;
+}
+
 void CommandExecutor::sendProcessOutput(bool logCommandLine)
 {
     QString commandLine = m_processCommand->program();
@@ -229,6 +241,7 @@ void CommandExecutor::sendProcessOutput(bool logCommandLine)
     processOutput.setCommandLine(commandLine);
     processOutput.setStandardOutput(processStdOut);
     processOutput.setStandardError(processStdErr);
+    processOutput.setFilePaths(filePathsFromInputArtifacts(m_transformer));
     Logger::instance().sendProcessOutput(processOutput);
 }
 

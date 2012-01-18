@@ -38,8 +38,10 @@
 
 #include "processoutput.h"
 #include <QSharedData>
+#include <QStringList>
 
 #include <QtDebug>
+
 
 namespace Qbs {
 
@@ -49,6 +51,7 @@ public:
     QByteArray standardOutput;
     QByteArray standardError;
     QString commandLine;
+    QStringList filePaths;
 };
 
 ProcessOutput::ProcessOutput()
@@ -101,6 +104,16 @@ void ProcessOutput::setCommandLine(const QString &commandLine)
 QString ProcessOutput::commandLine() const
 {
     return data->commandLine;
+}
+
+void ProcessOutput::setFilePaths(const QStringList &filePathList)
+{
+    data->filePaths = filePathList;
+}
+
+QStringList ProcessOutput::filePaths() const
+{
+    return data->filePaths;
 }
 
 QDataStream &operator<<(QDataStream &out, const ProcessOutput &processOutput)

@@ -87,6 +87,7 @@ private:
     void removeResponseFile();
 
 private:
+    Transformer *m_transformer;
     bool dryRun;
 
     // members for executing ProcessCommand
@@ -96,7 +97,6 @@ private:
     QScriptEngine *m_mainThreadScriptEngine;
 
     // members for executing JavaScriptCommand members
-    Transformer *m_transformer;
     JavaScriptCommand *m_jsCommand;
     JavaScriptCommandFutureWatcher *m_jsFutureWatcher;
 };
