@@ -109,53 +109,29 @@ void SourceProject::loadPlugins(const QStringList &pluginPaths)
 
 void SourceProject::loadProject(QFutureInterface<bool> &futureInterface,
                                 const QString projectFileName,
-                                const QList<QVariantMap> buildConfigs)
+                                const QList<QVariantMap> buildConfigurations)
 {
-    QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
-    if (platforms.isEmpty()) {
-        qbsFatal("no platforms configured. maybe you want to run 'qbs platforms probe' first.");
-        futureInterface.reportResult(false);
-        return;
-    }
-    if (buildConfigs.isEmpty()) {
+    if (buildConfigurations.isEmpty()) {
         qbsFatal("SourceProject::loadProject: no build configuration given.");
         futureInterface.reportResult(false);
         return;
     }
-    QList<qbs::Configuration::Ptr> configurations;
-    foreach (QVariantMap buildConfig, buildConfigs) {
-        if (!buildConfig.value("platform").isValid()) {
-            if (!d->settings->value("defaults/platform").isValid()) {
-                qbsFatal("SourceProject::loadProject: no platform given and no default set.");
-                continue;
-            }
-            buildConfig.insert("platform", d->settings->value("defaults/platform").toString());
-        }
-        Platform::Ptr platform = platforms.value(buildConfig.value("platform").toString());
-        if (platform.isNull()) {
-            qbsFatal("SourceProject::loadProject: unknown platform: %s", qPrintable(buildConfig.value("platform").toString()));
-            continue;
-        }
-        foreach (const QString &key, platform->settings.allKeys()) {
-            buildConfig.insert(QString(key).replace('/','.'),
-                    platform->settings.value(key));
-        }
 
-        if (!buildConfig.value("buildVariant").isValid()) {
+    QList<qbs::Configuration::Ptr> configurations;
+    foreach (QVariantMap buildConfiguation, buildConfigurations) {
+        if (!buildConfiguation.value("qbs.buildVariant").isValid()) {
             qbsFatal("SourceProject::loadProject: property 'buildVariant' missing in build configuration.");
             continue;
         }
+
         qbs::Configuration::Ptr configuration(new qbs::Configuration);
         configurations.append(configuration);
 
-        foreach (const QString &property, buildConfig.keys()) {
-            QStringList nameElements = property.split('.');
-            if (nameElements.count() == 1)
-                nameElements.prepend("qbs");
-            QVariantMap configValue = configuration->value();
-            qbs::setConfigProperty(configValue, nameElements, buildConfig.value(property));
-            configuration->setValue(configValue);
+        QVariantMap configurationMap = configuration->value();
+        foreach (const QString &property, buildConfiguation.keys()) {
+            qbs::setConfigProperty(configurationMap, property.split('.'), buildConfiguation.value(property));
         }
+        configuration->setValue(configurationMap);
     }
 
     qbs::Loader loader;
