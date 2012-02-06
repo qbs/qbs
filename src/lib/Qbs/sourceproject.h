@@ -52,6 +52,7 @@
 
 namespace qbs {
     class BuildProject;
+    class Loader;
 }
 
 
@@ -75,6 +76,9 @@ public:
     void loadProject(QFutureInterface<bool> &futureInterface,
                      const QString projectFileName,
                      const QList<QVariantMap> buildConfigs);
+
+    void loadBuildGraphs(const QString projectFileName);
+
     void storeBuildProjectsBuildGraph();
 
     void setBuildDirectoryRoot(const QString &buildDirectoryRoot);
@@ -84,8 +88,10 @@ public:
 
     QList<Qbs::Error> errors() const;
 
+
 private: // functions
     QList<QSharedPointer<qbs::BuildProject> > toInternalBuildProjectList(const QVector<Qbs::BuildProject> &buildProjects) const;
+    void loadBuildGraph(const QString &buildGraphPath, const qbs::FileTime &projectFileTimeStamp);
 
 private:
     QExplicitlySharedDataPointer<SourceProjectPrivate> d;

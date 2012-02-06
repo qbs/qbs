@@ -78,6 +78,26 @@ QVector<BuildProduct> BuildProject::buildProducts() const
     return buildProductList;
 }
 
+BuildProduct BuildProject::buildProductForName(const QString &name) const
+{
+    foreach (const qbs::BuildProduct::Ptr &internalBuildProduct, m_internalBuildProject->buildProducts()) {
+        if (internalBuildProduct->rProduct->name == name)
+            return Qbs::BuildProduct(internalBuildProduct);
+    }
+
+    return Qbs::BuildProduct();
+}
+
+bool BuildProject::hasBuildProductForName(const QString &name) const
+{
+    foreach (const qbs::BuildProduct::Ptr &internalBuildProduct, m_internalBuildProject->buildProducts()) {
+        if (internalBuildProduct->rProduct->name == name)
+            return true;
+    }
+
+    return false;
+}
+
 QString BuildProject::buildDirectory() const
 {
     return QString(m_internalBuildProject->buildGraph()->buildDirectoryRoot()
@@ -100,7 +120,7 @@ bool BuildProject::isValid() const
     return m_internalBuildProject.data();
 }
 
-QString BuildProject::qtSourcePath() const
+QString BuildProject::qtInstallPath() const
 {
     return qbs::getConfigProperty(m_internalBuildProject->resolvedProject()->configuration->value(),
                                   QStringList() << "qt/core" << "qtPath").toString();

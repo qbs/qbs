@@ -43,6 +43,24 @@
 
 namespace Qbs {
 
+SourceFile::SourceFile(const QString &fileNameArg, const QSet<QString> &tagsArg)
+    : fileName(fileNameArg), tags(tagsArg)
+{
+}
+
+QVector<SourceFile> BuildProduct::sourceFiles() const
+{
+    QVector<SourceFile> artifactList;
+    artifactList.reserve(m_internalBuildProduct->rProduct->sources.size());
+
+    if (m_internalBuildProduct) {
+        foreach (const qbs::SourceArtifact::Ptr &artifact, m_internalBuildProduct->rProduct->sources)
+            artifactList.append(SourceFile(artifact->absoluteFilePath, artifact->fileTags));
+    }
+
+    return artifactList;
+}
+
 BuildProduct::BuildProduct()
 {
 }
@@ -63,17 +81,14 @@ BuildProduct &BuildProduct::operator =(const BuildProduct &other)
     return *this;
 }
 
-QVector<SourceFile>  BuildProduct::sourceFiles() const
+bool BuildProduct::isValid() const
 {
-    QVector<SourceFile>  artifactList;
-    artifactList.reserve(m_internalBuildProduct->rProduct->sources.size());
+    return m_internalBuildProduct.data();
+}
 
-    if (m_internalBuildProduct) {
-        foreach (const qbs::SourceArtifact::Ptr &artifact, m_internalBuildProduct->rProduct->sources)
-            artifactList.append(SourceFile(artifact->absoluteFilePath, artifact->fileTags));
-    }
-
-    return artifactList;
+QString BuildProduct::name() const
+{
+    return m_internalBuildProduct->rProduct->name;
 }
 
 static QStringList findProjectIncludePathsRecursive(const QVariantMap &variantMap)
@@ -98,6 +113,20 @@ QStringList BuildProduct::projectIncludePaths() const
     return findProjectIncludePathsRecursive(m_internalBuildProduct->rProduct->configuration->value());
 }
 
+QString BuildProduct::executablePath() const
+{
+   return QString(m_internalBuildProduct->project->buildGraph()->buildDirectoryRoot()
+                  + m_internalBuildProduct->project->resolvedProject()->id
+                  + QLatin1String("/")
+                  + m_internalBuildProduct->rProduct->name);
+}
+
+bool BuildProduct::isExecutable() const
+{
+    static const QSet<QString> executableSet(QSet<QString>() << "application" << "applicationbundle");
+    return !m_internalBuildProduct->rProduct->fileTags.toSet().intersect(executableSet).isEmpty();
+}
+
 BuildProduct::BuildProduct(const QSharedPointer<qbs::BuildProduct> &internalBuildProduct)
     : m_internalBuildProduct(internalBuildProduct)
 {
@@ -111,11 +140,6 @@ QString BuildProduct::displayName() const
 QString BuildProduct::filePath() const
 {
      return m_internalBuildProduct->rProduct->qbsFile;
-}
-
-SourceFile::SourceFile(const QString &fileNameArg, const QSet<QString> &tagsArg)
-    : fileName(fileNameArg), tags(tagsArg)
-{
 }
 
 } // namespace Qbs

@@ -137,16 +137,8 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface,
     qbs::Loader loader;
     loader.setSearchPaths(d->searchPaths);
     d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
-    if (buildDirectoryRoot().isEmpty()) {
-        QByteArray buildDirectoryRootFromEnvironment = qgetenv("QBS_BUILD_ROOT_DIRECTORY");
-        if (buildDirectoryRootFromEnvironment.isEmpty()) {
-            d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
-        } else {
-            d->buildGraph->setOutputDirectoryRoot(buildDirectoryRootFromEnvironment);
-        }
-    } else {
-        d->buildGraph->setOutputDirectoryRoot(d->buildDirectoryRoot);
-    }
+
+    d->buildGraph->setOutputDirectoryRoot(QFileInfo(projectFileName).absoluteDir().path());
 
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 
@@ -201,6 +193,36 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface,
     futureInterface.reportResult(true);
 }
 
+static QStringList buildGraphFilePaths(const QDir &buildDirectory)
+{
+    QStringList filePathList;
+
+    QStringList nameFilters;
+    nameFilters.append("*.bg");
+
+    foreach (const QFileInfo &fileInfo, buildDirectory.entryInfoList(nameFilters, QDir::Files))
+        filePathList.append(fileInfo.absoluteFilePath());
+
+    return filePathList;
+}
+
+void SourceProject::loadBuildGraphs(const QString projectFileName)
+{
+    QDir buildDirectory = QFileInfo(projectFileName).absoluteDir();
+    QString projectRootPath = buildDirectory.path();
+
+    bool sucess = buildDirectory.cd(QLatin1String("build"));
+
+    if (sucess) {
+        d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
+        d->buildGraph->setOutputDirectoryRoot(projectRootPath);
+        const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
+
+        foreach (const QString &buildGraphFilePath, buildGraphFilePaths(buildDirectory))
+            loadBuildGraph(buildGraphFilePath, projectFileTimeStamp);
+    }
+}
+
 void SourceProject::storeBuildProjectsBuildGraph()
 {
     foreach (BuildProject buildProject, d->buildProjects)
@@ -225,6 +247,18 @@ QVector<BuildProject> SourceProject::buildProjects() const
 QList<Error> SourceProject::errors() const
 {
     return d->errors;
+}
+
+void SourceProject::loadBuildGraph(const QString &buildGraphPath, const qbs::FileTime &projectFileTimeStamp)
+{
+    try {
+        qbs::BuildProject::Ptr buildProject;
+        buildProject = qbs::BuildProject::loadBuildGraph(buildGraphPath, d->buildGraph.data(), projectFileTimeStamp, d->searchPaths);
+        d->buildProjects.append(BuildProject(buildProject));
+    } catch (qbs::Error &error) {
+        d->errors.append(Error(error));
+        return;
+    }
 }
 
 }

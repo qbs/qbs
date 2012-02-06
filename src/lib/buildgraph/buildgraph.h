@@ -96,8 +96,16 @@ public:
     BuildProject(BuildGraph *bg);
     ~BuildProject();
 
-    static BuildProject::Ptr load(BuildGraph *bg, const FileTime &minTimeStamp, Configuration::Ptr cfg, const QStringList &loaderSearchPaths);
+    static BuildProject::Ptr loadBuildGraph(const QString &buildGraphFilePath,
+                                            BuildGraph *buildGraph,
+                                            const FileTime &minTimeStamp,
+                                            const QStringList &loaderSearchPaths);
+    static BuildProject::Ptr load(BuildGraph *bg,
+                                  const FileTime &minTimeStamp,
+                                  Configuration::Ptr cfg,
+                                  const QStringList &loaderSearchPaths);
     void store();
+
 
     BuildGraph *buildGraph() const;
     ResolvedProject::Ptr resolvedProject() const;
@@ -109,6 +117,11 @@ public:
 private:
     static QString storedProjectFilePath(BuildGraph *bg, const QString &configId);
     static QStringList storedProjectFiles(BuildGraph *bg);
+    static BuildProject::Ptr restoreBuildGraph(const QString &buildGraphFilePath,
+                                               BuildGraph *buildGraph,
+                                               const FileTime &minTimeStamp,
+                                               Configuration::Ptr configuration,
+                                               const QStringList &loaderSearchPaths);
     void load(PersistentPool &pool, PersistentObjectData &data);
     void store(PersistentPool &pool, PersistentObjectData &data) const;
     void markDirty();

@@ -61,6 +61,8 @@ public:
     BuildProject &operator =(const BuildProject &other);
 
     QVector<BuildProduct> buildProducts() const;
+    BuildProduct buildProductForName(const QString &name) const;
+    bool hasBuildProductForName(const QString &name) const;
 
     QString buildDirectory() const;
     QString displayName() const;
@@ -69,7 +71,7 @@ public:
 
     bool isValid() const;
 
-    QString qtSourcePath() const;
+    QString qtInstallPath() const;
 
     QSharedPointer<qbs::BuildProject> internalBuildProject() const;
 

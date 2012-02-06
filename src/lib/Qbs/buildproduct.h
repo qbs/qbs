@@ -69,10 +69,16 @@ public:
     BuildProduct(const BuildProduct &other);
     BuildProduct &operator =(const BuildProduct &other);
 
+    bool isValid() const;
+
+    QString name() const;
     QString displayName() const;
     QString filePath() const;
     QVector<SourceFile> sourceFiles() const;
     QStringList projectIncludePaths() const;
+    QString executablePath() const;
+
+    bool isExecutable() const;
 
 private:  // functions
     BuildProduct(const QSharedPointer<qbs::BuildProduct> &internalBuildProduct);

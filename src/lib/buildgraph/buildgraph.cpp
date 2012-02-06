@@ -1129,50 +1129,26 @@ BuildProject::~BuildProject()
     qDeleteAll(m_dependencyArtifacts);
 }
 
-static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
+BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
+                                                         BuildGraph *bg,
+                                                         const FileTime &minTimeStamp,
+                                                         Configuration::Ptr cfg,
+                                                         const QStringList &loaderSearchPaths)
 {
-    QVariantMap::const_iterator it = userCfg.begin();
-    for (; it != userCfg.end(); ++it) {
-        if (it.value().type() == QVariant::Map) {
-            if (!isConfigCompatible(it.value().toMap(), projectCfg.value(it.key()).toMap()))
-                return false;
-        } else {
-            QVariant value = projectCfg.value(it.key());
-            if (!value.isNull() && value != it.value()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-BuildProject::Ptr BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp, Configuration::Ptr cfg, const QStringList &loaderSearchPaths)
-{
-    PersistentPool pool;
-    QString fileName;
-    QStringList bgFiles = storedProjectFiles(bg);
-    foreach (const QString &fn, bgFiles) {
-        if (!pool.load(fn, PersistentPool::LoadHeadData))
-            continue;
-        PersistentPool::HeadData headData = pool.headData();
-        if (isConfigCompatible(cfg->value(), headData.projectConfig)) {
-            fileName = fn;
-            break;
-        }
-    }
-    if (fileName.isNull()) {
+    if (buildGraphFilePath.isNull()) {
         qbsDebug() << "[BG] No stored build graph found that's compatible to the desired build configuration.";
         return BuildProject::Ptr();
     }
 
+    PersistentPool pool;
     BuildProject::Ptr project;
-    qbsDebug() << "[BG] trying to load: " << fileName;
-    FileInfo bgfi(fileName);
+    qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
+    FileInfo bgfi(buildGraphFilePath);
     if (!bgfi.exists()) {
         qbsDebug() << "[BG] stored build graph file does not exist";
         return project;
     }
-    if (!pool.load(fileName))
+    if (!pool.load(buildGraphFilePath))
         throw Error("Cannot load stored build graph.");
     project = BuildProject::Ptr(new BuildProject(bg));
     PersistentObjectData data = pool.getData(0);
@@ -1225,6 +1201,51 @@ BuildProject::Ptr BuildProject::load(BuildGraph *bg, const FileTime &minTimeStam
     }
 
     return project;
+}
+
+BuildProject::Ptr BuildProject::loadBuildGraph(const QString &buildGraphFilePath,
+                                               BuildGraph *buildGraph,
+                                               const FileTime &minTimeStamp,
+                                               const QStringList &loaderSearchPaths)
+{
+    static const qbs::Configuration::Ptr configuration(new qbs::Configuration);
+    return restoreBuildGraph(buildGraphFilePath, buildGraph, minTimeStamp, configuration, loaderSearchPaths);
+}
+
+static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
+{
+    QVariantMap::const_iterator it = userCfg.begin();
+    for (; it != userCfg.end(); ++it) {
+        if (it.value().type() == QVariant::Map) {
+            if (!isConfigCompatible(it.value().toMap(), projectCfg.value(it.key()).toMap()))
+                return false;
+        } else {
+            QVariant value = projectCfg.value(it.key());
+            if (!value.isNull() && value != it.value()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+BuildProject::Ptr BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp, Configuration::Ptr cfg, const QStringList &loaderSearchPaths)
+{
+    PersistentPool pool;
+    QString fileName;
+    QStringList bgFiles = storedProjectFiles(bg);
+    foreach (const QString &fn, bgFiles) {
+        if (!pool.load(fn, PersistentPool::LoadHeadData))
+            continue;
+        PersistentPool::HeadData headData = pool.headData();
+        if (isConfigCompatible(cfg->value(), headData.projectConfig)) {
+            fileName = fn;
+            break;
+        }
+    }
+
+
+    return restoreBuildGraph(fileName, bg, minTimeStamp, cfg, loaderSearchPaths);
 }
 
 void BuildProject::store()
