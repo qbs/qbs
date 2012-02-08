@@ -54,6 +54,7 @@
 #include <QtCore/QVariant>
 #include <QtScript/QScriptEngine>
 #include <QtCore/QFutureInterface>
+#include <QtCore/QThreadStorage>
 
 namespace qbs {
 
@@ -199,9 +200,10 @@ private:
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
     static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);
 
+    QScriptEngine *scriptEngine();
+
 private:
     QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
-    QScriptEngine m_scriptEngine;
     QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QString, QScriptProgram> m_scriptProgramCache;

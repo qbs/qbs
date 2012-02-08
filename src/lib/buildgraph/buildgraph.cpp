@@ -57,8 +57,12 @@
 #include <QtCore/QMutex>
 #include <QtScript/QScriptProgram>
 #include <QtScript/QScriptValueIterator>
+#include <QtCore/QCache>
 
 namespace qbs {
+
+static QThreadStorage<QCache<BuildGraph*, QScriptEngine> > s_scriptEngineThreadLocalStorage;
+
 
 BuildProduct::BuildProduct()
     : project(0)
@@ -86,8 +90,6 @@ const QList<Rule::Ptr> &BuildProduct::topSortedRules() const
 
 BuildGraph::BuildGraph()
 {
-    ProcessCommand::setupForJavaScript(&m_scriptEngine);
-    JavaScriptCommand::setupForJavaScript(&m_scriptEngine);
 }
 
 BuildGraph::~BuildGraph()
@@ -230,22 +232,22 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->fileName));
     }
 
-    QScriptValue modulesScriptValue = artifact->configuration->cachedScriptValue(&m_scriptEngine);
+    QScriptValue modulesScriptValue = artifact->configuration->cachedScriptValue(scriptEngine());
     if (!modulesScriptValue.isValid()) {
-        modulesScriptValue = m_scriptEngine.toScriptValue(artifact->configuration->value());
-        artifact->configuration->cacheScriptValue(&m_scriptEngine, modulesScriptValue);
+        modulesScriptValue = scriptEngine()->toScriptValue(artifact->configuration->value());
+        artifact->configuration->cacheScriptValue(scriptEngine(), modulesScriptValue);
     }
     modulesScriptValue = modulesScriptValue.property("modules");
 
     // expose per file properties we want to use in an Artifact within a Rule
-    QScriptValue scriptValue = m_scriptEngine.newObject();
+    QScriptValue scriptValue = scriptEngine()->newObject();
     scriptValue.setProperty("fileName", inFileName);
     scriptValue.setProperty("baseName", inBaseName);
     scriptValue.setProperty("completeBaseName", inCompleteBaseName);
     scriptValue.setProperty("baseDir", basedir);
     scriptValue.setProperty("modules", modulesScriptValue);
 
-    QScriptValue globalObj = m_scriptEngine.globalObject();
+    QScriptValue globalObj = scriptEngine()->globalObject();
     globalObj.setProperty("input", scriptValue);
 }
 
@@ -315,7 +317,7 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag,
                            Rule::Ptr rule)
 {
-    setupScriptEngineForProduct(&m_scriptEngine, product->rProduct, rule, this);
+    setupScriptEngineForProduct(scriptEngine(), product->rProduct, rule, this);
 
     if (rule->isMultiplexRule()) {
         // apply the rule once for a set of inputs
@@ -348,8 +350,8 @@ void BuildGraph::createOutputArtifact(
         QList<Artifact *> *outputArtifacts,
         QSharedPointer<Transformer> &transformer)
 {
-    QScriptValue scriptValue = m_scriptEngine.evaluate(ruleArtifact->fileScript);
-    if (scriptValue.isError() || m_scriptEngine.hasUncaughtException())
+    QScriptValue scriptValue = scriptEngine()->evaluate(ruleArtifact->fileScript);
+    if (scriptValue.isError() || scriptEngine()->hasUncaughtException())
         throw Error("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
@@ -492,7 +494,7 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
                 if (sbs1 != sbs2)
                     sbs1->sideBySideArtifacts.insert(sbs2);
 
-    transformer->setupInputs(&m_scriptEngine, m_scriptEngine.globalObject());
+    transformer->setupInputs(scriptEngine(), scriptEngine()->globalObject());
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
@@ -505,15 +507,15 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
         outputArtifact->configuration = Configuration::Ptr(new Configuration(*outputArtifact->configuration));
 
-        // ### clean m_scriptEngine first?
-        m_scriptEngine.globalObject().setProperty("fileName", m_scriptEngine.toScriptValue(outputArtifact->fileName), QScriptValue::ReadOnly);
-        m_scriptEngine.globalObject().setProperty("fileTags", toScriptValue(&m_scriptEngine, outputArtifact->fileTags), QScriptValue::ReadOnly);
+        // ### clean scriptEngine() first?
+        scriptEngine()->globalObject().setProperty("fileName", scriptEngine()->toScriptValue(outputArtifact->fileName), QScriptValue::ReadOnly);
+        scriptEngine()->globalObject().setProperty("fileTags", toScriptValue(scriptEngine(), outputArtifact->fileTags), QScriptValue::ReadOnly);
 
         QVariantMap artifactModulesCfg = outputArtifact->configuration->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
             const QStringList &name = ra->bindings.at(i).first;
             const QString &code = ra->bindings.at(i).second;
-            scriptValue = m_scriptEngine.evaluate(code);
+            scriptValue = scriptEngine()->evaluate(code);
             if (scriptValue.isError())
                 throw Error(QLatin1String("evaluating rule bindings: ") + scriptValue.toString());
             setConfigProperty(artifactModulesCfg, name, scriptValue.toVariant());
@@ -523,7 +525,7 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
         outputArtifact->configuration->setValue(outputArtifactConfiguration);
     }
 
-    transformer->setupOutputs(&m_scriptEngine, m_scriptEngine.globalObject());
+    transformer->setupOutputs(scriptEngine(), scriptEngine()->globalObject());
 
     // setup transform properties
     {
@@ -539,21 +541,21 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
             const QString &propertyName = it.key();
             QScriptValue sv;
             if (overriddenTransformProperties.contains(propertyName)) {
-                sv = m_scriptEngine.toScriptValue(overriddenTransformProperties.value(propertyName));
+                sv = scriptEngine()->toScriptValue(overriddenTransformProperties.value(propertyName));
             } else {
                 const QScriptProgram &myProgram = it.value();
-                sv = m_scriptEngine.evaluate(myProgram);
-                if (m_scriptEngine.hasUncaughtException()) {
+                sv = scriptEngine()->evaluate(myProgram);
+                if (scriptEngine()->hasUncaughtException()) {
                     CodeLocation errorLocation;
-                    errorLocation.fileName = m_scriptEngine.uncaughtExceptionBacktrace().join("\n");
-                    errorLocation.line = m_scriptEngine.uncaughtExceptionLineNumber();
-                    throw Error(QLatin1String("transform property evaluation: ") + m_scriptEngine.uncaughtException().toString(), errorLocation);
+                    errorLocation.fileName = scriptEngine()->uncaughtExceptionBacktrace().join("\n");
+                    errorLocation.line = scriptEngine()->uncaughtExceptionLineNumber();
+                    throw Error(QLatin1String("transform property evaluation: ") + scriptEngine()->uncaughtException().toString(), errorLocation);
                 } else if (sv.isError()) {
                     CodeLocation errorLocation(myProgram.fileName(), myProgram.firstLineNumber());
                     throw Error(QLatin1String("transform property evaluation: ") + sv.toString(), errorLocation);
                 }
             }
-            m_scriptEngine.globalObject().setProperty(propertyName, sv);
+            scriptEngine()->globalObject().setProperty(propertyName, sv);
         }
     }
 
@@ -568,9 +570,9 @@ void BuildGraph::createTransformerCommands(RuleScript::Ptr script, Transformer *
     if (scriptProgram.isNull())
         scriptProgram = QScriptProgram(script->script);
 
-    QScriptValue scriptValue = m_scriptEngine.evaluate(scriptProgram);
-    if (m_scriptEngine.hasUncaughtException())
-        throw Error("evaluating prepare script: " + m_scriptEngine.uncaughtException().toString(),
+    QScriptValue scriptValue = scriptEngine()->evaluate(scriptProgram);
+    if (scriptEngine()->hasUncaughtException())
+        throw Error("evaluating prepare script: " + scriptEngine()->uncaughtException().toString(),
                     script->location);
 
     QList<AbstractCommand*> commands;
@@ -835,9 +837,9 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
             transformer->rule->artifacts += ruleArtifact;
         }
-        setupScriptEngineForProduct(&m_scriptEngine, rProduct, transformer->rule, this);
-        transformer->setupInputs(&m_scriptEngine, m_scriptEngine.globalObject());
-        transformer->setupOutputs(&m_scriptEngine, m_scriptEngine.globalObject());
+        setupScriptEngineForProduct(scriptEngine(), rProduct, transformer->rule, this);
+        transformer->setupInputs(scriptEngine(), scriptEngine()->globalObject());
+        transformer->setupOutputs(scriptEngine(), scriptEngine()->globalObject());
         createTransformerCommands(rtrafo->transform, transformer.data());
         if (transformer->commands.isEmpty())
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
@@ -978,6 +980,18 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
             artifactsPerFileTag[fileTag] += input;
 
     applyRule(artifact->product, artifactsPerFileTag, rule);
+}
+
+QScriptEngine *BuildGraph::scriptEngine()
+{
+    if (!s_scriptEngineThreadLocalStorage.localData().contains(this)) {
+        s_scriptEngineThreadLocalStorage.localData().insert(this, new QScriptEngine);
+
+        ProcessCommand::setupForJavaScript(scriptEngine());
+        JavaScriptCommand::setupForJavaScript(scriptEngine());
+    }
+
+    return s_scriptEngineThreadLocalStorage.localData().object(this);
 }
 
 Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::Ptr sourceArtifact)
