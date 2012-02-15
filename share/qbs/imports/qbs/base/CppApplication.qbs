@@ -1,0 +1,4 @@
+Application {
+    Depends { name: "cpp" }
+}
+
