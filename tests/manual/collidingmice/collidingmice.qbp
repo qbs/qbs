@@ -1,0 +1,18 @@
+import qbs.base 1.0
+
+Project {
+    Application {
+        name : "CollidingMice"
+        destination: "bin"
+
+        Depends { name: "Qt.gui" }
+
+        files : [
+            "main.cpp",
+            "mouse.cpp",
+            "mouse.h",
+            "mice.qrc"
+        ]
+    }
+}
+

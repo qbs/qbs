@@ -1,0 +1,37 @@
+project     = "Qt Build System"
+description = "Qbs Manual"
+
+headerdirs = 
+sourcedirs = $SRCDIR
+imagedirs = $SRCDIR/images $SRCDIR/templates/images
+outputdir = $OUTDIR
+exampledirs = $SRCDIR
+indexes                 = qt.index
+
+include(compat.qdocconf)
+include(macros.qdocconf)
+include(qt-cpp-ignore.qdocconf)
+include(qt-defines.qdocconf)
+
+sources.fileextensions  = "qbs.qdoc"
+
+
+qhp.projects            = Qbs
+qhp.Qbs.file             = qbs.qhp
+qhp.Qbs.namespace        = com.nokia.qbs.$QTC_VERSION_TAG
+qhp.Qbs.virtualFolder    = doc
+qhp.Qbs.indexTitle       = Qt Build System
+qhp.Qbs.filterAttributes = qbs $QTC_VERSION
+qhp.Qbs.customFilters.Qbs.name = Qt Build System $QTC_VERSION
+qhp.Qbs.customFilters.Qbs.filterAttributes = qbs $QTC_VERSION
+qhp.Qbs.indexRoot        =
+
+qhp.Qbs.subprojects = manual
+qhp.Qbs.subprojects.manual.title = Qbs Manual
+qhp.Qbs.subprojects.manual.indexTitle = Qbs Manual
+qhp.Qbs.subprojects.manual.type = manual
+
+# Doxygen compatibility commands
+
+macro.see                       = "\\sa"
+macro.function                  = "\\fn"

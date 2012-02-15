@@ -1,0 +1,20 @@
+This is qbs; the "Qt Build Salvation".
+The main documentation is available as qdoc files in the doc subdirectory.
+
+
+1. Build Prerequisites
+======================
+
+For building qbs you need:
+
+ - a C++ compiler
+ - Qt >= 4.7
+
+
+2. Building qbs
+===============
+
+ - qmake -r
+ - make
+ - make docs
+

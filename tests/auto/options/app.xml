@@ -1,0 +1,5 @@
+<Project name='brickapp' >
+    <Product name='brick'>
+        <Using package="bricklib" />
+    </Product>
+</Project>

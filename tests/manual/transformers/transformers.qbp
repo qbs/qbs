@@ -1,0 +1,53 @@
+import qbs.base 1.0
+import qbs.fileinfo 1.0 as FileInfo
+
+Project {
+    Product {
+        name: "HelloWorld"
+        type: "application"
+        files: ["main.cpp"]
+
+        Depends { name: "cpp" }
+
+        Transformer {
+            // no inputs -> just a generator
+            Artifact {
+                fileName: "foo.txt"
+                fileTags: "text"
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating foo.txt";
+                cmd.highlight = "linker";
+                cmd.sourceCode = "File.remove(output.fileName);\n";
+                cmd.sourceCode += "var f = new TextFile(output.fileName, TextFile.WriteOnly);\n"
+                cmd.sourceCode += "f.write(\"Dear Sir/Madam,\\n\\n\");\n";
+                cmd.sourceCode += "f.write(\"this is a generated file.\\n\\n\\n\");\n";
+                cmd.sourceCode += "f.write(\"Best Regards and Mellow Greetings,\\nYour Build Tool.\\n\");\n";
+                cmd.sourceCode += "f.close();";
+                return cmd;
+            }
+        }
+
+        Transformer {
+            inputs: ["main.cpp"]    // will be taken from the source dir
+            Artifact {
+                fileName: "bar.txt"
+                fileTags: "text"
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating bar.txt";
+                cmd.highlight = "linker";
+                cmd.sourceCode = "File.remove(output.fileName);\n";
+                cmd.sourceCode += "var f = new TextFile(output.fileName, TextFile.WriteOnly)\n";
+                cmd.sourceCode += "f.write(\"Dear Sir/Madam,\\n\\n\");\n";
+                cmd.sourceCode += "f.write(\"this file was generated from \" + input.fileName + \".\\n\\n\\n\");\n";
+                cmd.sourceCode += "f.write(\"Best Regards and Mellow Greetings,\\nYour Build Tool.\\n\");";
+                cmd.sourceCode += "f.close();";
+                return cmd;
+            }
+        }
+    }
+}
+

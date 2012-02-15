@@ -1,0 +1,3 @@
+Product {
+    type: "staticlibrary"
+}

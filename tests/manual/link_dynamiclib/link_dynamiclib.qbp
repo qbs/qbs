@@ -1,0 +1,43 @@
+import qbs.base 1.0
+
+Project {
+    Application {
+        name : "HelloWorld"
+        destination: "bin"
+        Group {
+            files : [ "main.cpp" ]
+        }
+        Depends { name: "cpp" }
+        Depends { name: "lib1" }
+    }
+
+    DynamicLibrary {
+        name : "lib1"
+        destination: "bin"
+        Group {
+            files : [ "lib1.cpp" ]
+        }
+        Depends { name: "cpp" }
+        Depends { name: "lib2" }
+    }
+
+    DynamicLibrary {
+        name : "lib2"
+        destination: "bin"
+        Group {
+            files : [ "lib2.cpp" ]
+        }
+        Depends { name: "cpp" }
+        Depends { name: "lib3" }
+    }
+
+    DynamicLibrary {
+        name : "lib3"
+        destination: "bin"
+        Group {
+            files : [ "lib3.cpp" ]
+        }
+        Depends { name: "cpp" }
+    }
+}
+

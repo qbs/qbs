@@ -1,0 +1,325 @@
+/**************************************************************************
+**
+** This file is part of the Qt Build Suite
+**
+** Copyright (c) 2012 Nokia Corporation and/or its subsidiary(-ies).
+**
+** Contact: Nokia Corporation (info@qt.nokia.com)
+**
+**
+** GNU Lesser General Public License Usage
+**
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this file.
+** Please review the following information to ensure the GNU Lesser General
+** Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file.
+** Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**************************************************************************/
+
+#if defined(_MSC_VER) && _MSC_VER > 0
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include "logger.h"
+#include "logsink.h"
+
+#include <cstdarg>
+#include <stdio.h>
+
+#include <QtCore/QSet>
+#include <QtCore/QByteArray>
+#include <QtCore/QMutex>
+#include <QtCore/QVariant>
+
+
+namespace qbs {
+
+Logger &Logger::instance()
+{
+    static Logger instance;
+    return instance;
+}
+
+Logger::Logger()
+    : m_logSink(0)
+    , m_level(LoggerInfo)
+{
+}
+
+Logger::~Logger()
+{
+    delete m_logSink;
+}
+
+void Logger::setLogSink(ILogSink *logSink)
+{
+    m_logSink = logSink;
+}
+
+void Logger::sendProcessOutput(const ProcessOutput &processOutput)
+{
+    if (!m_logSink)
+        return;
+
+    m_logSink->processOutput(processOutput);
+}
+
+void Logger::setLevel(int level)
+{
+    m_level = static_cast<LoggerLevel>(qMin(level, int(LoggerMaxLevel)));
+}
+
+void Logger::setLevel(LoggerLevel level)
+{
+    m_level = level;
+}
+
+void Logger::print(LoggerLevel l, const LogMessage &message)
+{
+    if (!m_logSink)
+        return;
+    m_logSink->outputLogMessage(l, message);
+}
+
+LogWriter::LogWriter(LoggerLevel level)
+    : m_level(level)
+{}
+
+LogWriter::LogWriter(const LogWriter &other)
+    : m_level(other.m_level)
+    , m_logMessage(other.m_logMessage)
+{
+    other.m_logMessage.data.clear();
+}
+
+LogWriter::~LogWriter()
+{
+    if (!m_logMessage.data.isEmpty())
+        Logger::instance().print(m_level, m_logMessage);
+}
+
+const LogWriter &LogWriter::operator=(const LogWriter &other)
+{
+    m_level = other.m_level;
+    m_logMessage = other.m_logMessage;
+    other.m_logMessage.data.clear();
+
+    return *this;
+}
+
+void LogWriter::write(const char c)
+{
+    if (Logger::instance().level() >= m_level)
+        m_logMessage.data.append(c);
+}
+
+void LogWriter::write(const char *str)
+{
+    if (Logger::instance().level() >= m_level)
+        m_logMessage.data.append(str);
+}
+
+} // namespace qbs
+
+
+using namespace qbs;
+
+Q_GLOBAL_STATIC(QMutex, logMutex)
+Q_GLOBAL_STATIC(QByteArray, logByteArray)
+
+static void qbsLog_impl(LoggerLevel logLevel, const char *str, va_list vl)
+{
+    Logger &logger = Logger::instance();
+    if (logger.level() < logLevel)
+        return;
+    logMutex()->lock();
+    if (logByteArray()->isEmpty())
+        logByteArray()->resize(1024 * 1024);
+    vsnprintf(logByteArray()->data(), logByteArray()->size(), str, vl);
+    LogMessage msg;
+    msg.data = *logByteArray();
+    logMutex()->unlock();
+    logger.print(logLevel, msg);
+}
+
+void qbsLog(LoggerLevel logLevel, const char *str, ...)
+{
+    va_list vl;
+    va_start(vl, str);
+    qbsLog_impl(logLevel, str, vl);
+    va_end(vl);
+}
+
+#define DEFINE_QBS_LOG_FUNCTION(LogLevel) \
+    void qbs##LogLevel(const char *str, ...) \
+    { \
+        const LoggerLevel level = Logger##LogLevel; \
+        Logger &logger = Logger::instance(); \
+        if (logger.level() >= level) { \
+            va_list vl; \
+            va_start(vl, str); \
+            qbsLog_impl(level, str, vl); \
+            va_end(vl); \
+        } \
+    } \
+
+DEFINE_QBS_LOG_FUNCTION(Fatal)
+DEFINE_QBS_LOG_FUNCTION(Error)
+DEFINE_QBS_LOG_FUNCTION(Warning)
+DEFINE_QBS_LOG_FUNCTION(Info)
+DEFINE_QBS_LOG_FUNCTION(Debug)
+DEFINE_QBS_LOG_FUNCTION(Trace)
+
+LogWriter qbsLog(LoggerLevel level)
+{
+    return LogWriter(level);
+}
+
+LogWriter qbsFatal()
+{
+    return LogWriter(LoggerFatal);
+}
+
+LogWriter qbsError()
+{
+    return LogWriter(LoggerError);
+}
+
+LogWriter qbsWarning()
+{
+    return LogWriter(LoggerWarning);
+}
+
+LogWriter qbsInfo()
+{
+    return LogWriter(LoggerInfo);
+}
+
+LogWriter qbsDebug()
+{
+    return LogWriter(LoggerDebug);
+}
+
+LogWriter qbsTrace()
+{
+    return LogWriter(LoggerTrace);
+}
+
+LogWriter operator<<(LogWriter w, const char *str)
+{
+    w.write(str);
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, const QByteArray &byteArray)
+{
+    w.write(byteArray.data());
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, const QString &str)
+{
+    w.write(qPrintable(str));
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, const QStringList &strList)
+{
+    for (int i = 0; i < strList.size(); ++i) {
+        w << strList.at(i);
+        if (i != strList.size() - 1)
+            w.write(", ");
+    }
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, const QSet<QString> &strSet)
+{
+    bool firstLoop = true;
+    w.write('(');
+    foreach (const QString &str, strSet) {
+        if (firstLoop)
+            firstLoop = false;
+        else
+            w.write(", ");
+        w.write(qPrintable(str));
+    }
+    w.write(')');
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, const QVariant &variant)
+{
+    QString str = variant.typeName() + QLatin1String("(");
+    if (variant.type() == QVariant::List) {
+        bool firstLoop = true;
+        foreach (const QVariant &item, variant.toList()) {
+            str += item.toString();
+            if (firstLoop)
+                firstLoop = false;
+            else
+                str += QLatin1String(", ");
+        }
+    } else {
+        str += variant.toString();
+    }
+    str += QLatin1String(")");
+    w.write(qPrintable(str));
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, int n)
+{
+    return w << QString::number(n);
+}
+
+LogWriter operator<<(LogWriter w, qint64 n)
+{
+    return w << QString::number(n);
+}
+
+LogWriter operator<<(LogWriter w, bool b)
+{
+    return w << (b ? "true" : "false");
+}
+
+LogWriter operator<<(LogWriter w, LogOutputChannel channel)
+{
+    w.setOutputChannel(channel);
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, LogModifier modifier)
+{
+    switch (modifier) {
+    case DontPrintLogLevel:
+        w.setPrintLogLevel(false);
+        break;
+    }
+    return w;
+}
+
+LogWriter operator<<(LogWriter w, TextColor color)
+{
+    w.setTextColor(color);
+    return w;
+}
