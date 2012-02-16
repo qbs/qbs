@@ -113,13 +113,12 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel)
 {
     if (isAbsolute(rel))
         return rel;
-    if (rel == QLatin1String("."))
+    if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))
         return base;
 
     QString r = base;
-    if (!r.endsWith('/')) {
-        r.append('/');
-    }
+    if (!r.endsWith(QLatin1Char('/')))
+        r.append(QLatin1Char('/'));
     r.append(rel);
 
     return r;
