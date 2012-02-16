@@ -115,10 +115,17 @@ QStringList BuildProduct::projectIncludePaths() const
 
 QString BuildProduct::executablePath() const
 {
+   QString localPath = m_internalBuildProduct->rProduct->name;
+   QString destinationDirectory = m_internalBuildProduct->rProduct->destinationDirectory;
+
+   if (!destinationDirectory.isEmpty()) {
+       localPath.prepend(destinationDirectory + QLatin1String("/"));
+   }
+
    return QString(m_internalBuildProduct->project->buildGraph()->buildDirectoryRoot()
                   + m_internalBuildProduct->project->resolvedProject()->id
                   + QLatin1String("/")
-                  + m_internalBuildProduct->rProduct->name);
+                  + localPath);
 }
 
 bool BuildProduct::isExecutable() const
