@@ -51,7 +51,7 @@ namespace qbs {
 
 QString FileInfo::fileName(const QString &fp)
 {
-    int last = fp.lastIndexOf('/');
+    int last = fp.lastIndexOf(QLatin1Char('/'));
     if (last < 0)
         return fp;
     return fp.mid(last + 1);
@@ -60,7 +60,7 @@ QString FileInfo::fileName(const QString &fp)
 QString FileInfo::baseName(const QString &fp)
 {
     QString fn = fileName(fp);
-    int dot = fn.indexOf('.');
+    int dot = fn.indexOf(QLatin1Char('.'));
     if (dot < 0)
         return fp;
     return fn.mid(0, dot);
@@ -69,7 +69,7 @@ QString FileInfo::baseName(const QString &fp)
 QString FileInfo::completeBaseName(const QString &fp)
 {
     QString fn = fileName(fp);
-    int dot = fn.lastIndexOf('.');
+    int dot = fn.lastIndexOf(QLatin1Char('.'));
     if (dot < 0)
         return fp;
     return fn.mid(0, dot);
@@ -79,11 +79,11 @@ QString FileInfo::path(const QString &fp)
 {
     if (fp.isEmpty())
         return QString();
-    if (fp.at(fp.size() - 1) == '/')
+    if (fp.at(fp.size() - 1) == QLatin1Char('/'))
         return fp;
-    int last = fp.lastIndexOf('/');
+    int last = fp.lastIndexOf(QLatin1Char('/'));
     if (last < 0)
-        return ".";
+        return QLatin1String(".");
     return QDir::cleanPath(fp.mid(0, last));
 }
 
@@ -95,14 +95,18 @@ bool FileInfo::exists(const QString &fp)
 // from creator/src/shared/proparser/ioutils.cpp
 bool FileInfo::isAbsolute(const QString &path)
 {
-    if (path.startsWith(QLatin1Char('/')))
+    const int n = path.size();
+    if (n == 0)
+        return false;
+    const QChar at0 = path.at(0);
+    if (at0 == QLatin1Char('/'))
         return true;
 #ifdef Q_OS_WIN
-    if (path.startsWith(QLatin1Char('\\')))
+    if (at0 == QLatin1Char('\\'))
         return true;
     // Unlike QFileInfo, this won't accept a relative path with a drive letter.
     // Such paths result in a royal mess anyway ...
-    if (path.length() >= 3 && path.at(1) == QLatin1Char(':') && path.at(0).isLetter()
+    if (n >= 3 && path.at(1) == QLatin1Char(':') && at0.isLetter()
             && (path.at(2) == QLatin1Char('/') || path.at(2) == QLatin1Char('\\')))
         return true;
 #endif
