@@ -56,6 +56,8 @@
 #include <Shlobj.h>
 #endif
 
+#include <cstdio>
+
 void showUsage()
 {
     QTextStream s(stderr);
@@ -68,6 +70,7 @@ void showUsage()
         << "  config <name> [<key>] [<value>]    --  show or change configuration\n"
         << "  probe                              --  probe the current environment\n"
         << "                                         and construct qbs platforms for each compiler found\n"
+        << "  print-config-base-dir              --  prints the base dir of the platform configurations\n"
         ;
 }
 
@@ -88,16 +91,7 @@ int main(int argc, char **argv)
     qbs::Settings::Ptr settings = qbs::Settings::create();
     QString defaultPlatform = settings->value("defaults/platform").toString();
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_MAC)
-    QString localSettingsPath = QDir::homePath() + "/.config/Nokia/qbs/platforms/";
-#elif defined(Q_OS_WIN)
-    QString localSettingsPath;
-    wchar_t wszPath[MAX_PATH];
-    if (SHGetSpecialFolderPath(NULL, wszPath, CSIDL_APPDATA, TRUE))
-        localSettingsPath = QString::fromUtf16(wszPath) + "/qbs/platforms";
-#else
-#error port me!
-#endif
+    QString localSettingsPath = qbs::Platform::configBaseDir();
     QDir().mkpath(localSettingsPath);
 
     enum Action {
@@ -127,6 +121,9 @@ int main(int argc, char **argv)
             action = ConfigPlatform;
         } else if (cmd == "list" || cmd == "ls") {
             action = ListPlatform;
+        } else if (cmd == "print-config-base-dir") {
+            puts(qPrintable(QDir::toNativeSeparators(qbs::Platform::configBaseDir())));
+            return 0;
         } else {
             showUsage();
             return 3;

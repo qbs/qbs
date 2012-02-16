@@ -59,6 +59,19 @@ Platform::Platform(const QString &_name, const QString& configpath)
 
 QHash<QString, Platform::Ptr> Platform::platforms()
 {
+    QString localSettingsPath = configBaseDir();
+    QHash<QString, Platform::Ptr> targets;
+    QDirIterator i(localSettingsPath, QDir::Dirs | QDir::NoDotAndDotDot);
+    while (i.hasNext()) {
+        i.next();
+        Platform *t = new Platform(i.fileName(), i.filePath());
+        targets.insert(t->name, Platform::Ptr(t));
+    }
+    return targets;
+}
+
+QString Platform::configBaseDir()
+{
 #if defined(Q_OS_LINUX) || defined(Q_OS_MAC)
     QString localSettingsPath = QDir::homePath() + "/.config/Nokia/qbs/platforms/";
 #elif defined(Q_OS_WIN)
@@ -69,14 +82,7 @@ QHash<QString, Platform::Ptr> Platform::platforms()
 #else
 #error port me!
 #endif
-    QHash<QString, Platform::Ptr> targets;
-    QDirIterator i(localSettingsPath, QDir::Dirs | QDir::NoDotAndDotDot);
-    while (i.hasNext()) {
-        i.next();
-        Platform *t = new Platform(i.fileName(), i.filePath());
-        targets.insert(t->name, Platform::Ptr(t));
-    }
-    return targets;
+    return localSettingsPath;
 }
 
 } // namespace qbs
