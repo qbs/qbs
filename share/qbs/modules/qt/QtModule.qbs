@@ -11,9 +11,10 @@ Module {
     property string binPath: qtcore.binPath
     property string incPath: qtcore.incPath
     property string libPath: qtcore.libPath
+    property string qtLibInfix: qtcore.qtLibInfix
     property string qtModuleName: ''
     property string internalQtModuleName: 'Qt' + qtModuleName
     cpp.includePaths: [incPath + '/' + internalQtModuleName]
-    cpp.dynamicLibraries: [QtFunctions.getLibraryName(internalQtModuleName, qbs.targetOS, cpp.debugInformation)]
-    cpp.frameworks: [QtFunctions.getLibraryName(internalQtModuleName, qbs.targetOS, cpp.debugInformation)]
+    cpp.dynamicLibraries: [QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qbs.targetOS, cpp.debugInformation)]
+    cpp.frameworks: [QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qbs.targetOS, cpp.debugInformation)]
 }

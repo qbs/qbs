@@ -10,6 +10,7 @@ Module {
     property string qtVersionName: "default"
     property string configKey: "qt/" + qtVersionName + "/"
     property string qtNamespace: qbs.configurationValue(configKey + "namespace", undefined)
+    property string qtLibInfix: qbs.configurationValue(configKey + "libInfix", "")
     property string qtPath: qbs.configurationValue(configKey + "path", undefined)
     property string binPath: qtPath ? qtPath + "/bin" : qbs.configurationValue(configKey + "binPath", undefined)
     property string incPath: qtPath ? qtPath + "/include" : qbs.configurationValue(configKey + "incPath", undefined)
@@ -29,9 +30,9 @@ Module {
         product.buildDirectory + '/' + generatedFilesDir
     ]
     cpp.libraryPaths: [libPath]
-    cpp.dynamicLibraries: qbs.targetOS != 'mac' ? [QtFunctions.getLibraryName('QtCore', qbs.targetOS, cpp.debugInformation)] : []
+    cpp.dynamicLibraries: qbs.targetOS != 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, qbs.targetOS, cpp.debugInformation)] : []
     cpp.frameworkPaths: [libPath]
-    cpp.frameworks: [QtFunctions.getLibraryName('QtCore', qbs.targetOS, cpp.debugInformation)]
+    cpp.frameworks: [QtFunctions.getLibraryName('QtCore' + qtLibInfix, qbs.targetOS, cpp.debugInformation)]
     cpp.rpaths:  [libPath]
 
     setupBuildEnvironment: {
