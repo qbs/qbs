@@ -14,7 +14,7 @@ CppModule {
     property bool generateManifestFiles: true
     property string toolchainInstallPath: "UNKNOWN"
     property string windowsSDKPath: "UNKNOWN"
-    property string architecture: "x86"
+    property string architecture: qbs.architecture || "x86"
     property int responseFileThreshold: 32000
 
     setupBuildEnvironment: {
