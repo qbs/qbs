@@ -10,6 +10,7 @@ CppModule {
     property string toolchainPrefix
     property string toolchainInstallPath
     property string compilerName: 'g++'
+    property string sysroot
 
     property string compilerPath: {
         var path = ''
@@ -235,6 +236,8 @@ CppModule {
                 throw ("OK, now we got a problem... The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
             }
 
+            if (product.module.sysroot)
+                args.push('--sysroot=' + product.module.sysroot)
             for (var i in defines)
                 args.push('-D' + defines[i]);
             for (var i in includePaths)
