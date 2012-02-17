@@ -766,10 +766,9 @@ void Executor::finish()
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << TextColorGreen
                   << "Build done.";
     } else {
-        setError(tr("The following products could not be built: %1.").arg(unbuiltProductNames.join(", ")));
+        qbsError() << tr("The following products could not be built: %1.").arg(unbuiltProductNames.join(", "));
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << TextColorRed
                   << "Build failed.";
-        return;
     }
 
     setState(ExecutorIdle);
