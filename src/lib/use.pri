@@ -19,20 +19,18 @@ win32 {
     win32-msvc* {
         LIBS += /LIBPATH:$$QBSLIBDIR
         QBSCORELIB = $${QBSCORELIB}.lib
+        LIBS += Shell32.lib
+        POST_TARGETDEPS += $$QBSLIBDIR/$$QBSCORELIB
     } else {
         LIBS += -L$${QBSLIBDIR}
         QBSCORELIB = lib$${QBSCORELIB}
     }
-    QBSLIBS += $$QBSCORELIB
-    LIBS += Shell32.lib $$QBSLIBS
-    for(x, QBSLIBS): POST_TARGETDEPS+=$$QBSLIBDIR/$$x
+    LIBS += $$QBSCORELIB
 }
 
 INCLUDEPATH += \
     $$PWD \
     $$PWD/..
-
-
 
 DEPENDPATH += \
     $$PWD/buildgraph\

@@ -45,8 +45,11 @@
 #include <QtCore/QSettings>
 
 #ifdef Q_OS_WIN
-#include <qt_windows.h>
-#include <Shlobj.h>
+#   include <qt_windows.h>
+#   ifndef _WIN32_IE
+#       define _WIN32_IE 0x0400    // for MinGW
+#   endif
+#   include <Shlobj.h>
 #endif
 
 namespace qbs {
@@ -78,7 +81,7 @@ QString Platform::configBaseDir()
     QString localSettingsPath;
     wchar_t wszPath[MAX_PATH];
     if (SHGetSpecialFolderPath(NULL, wszPath, CSIDL_APPDATA, TRUE))
-        localSettingsPath = QString::fromUtf16(wszPath) + "/qbs/platforms";
+        localSettingsPath = QString::fromUtf16(reinterpret_cast<ushort*>(wszPath)) + "/qbs/platforms";
 #else
 #error port me!
 #endif

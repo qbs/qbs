@@ -39,6 +39,7 @@
 #define COLOREDOUTPUT_H
 
 #include <cstdio>
+#include <cstdarg>
 
 namespace qbs {
 
