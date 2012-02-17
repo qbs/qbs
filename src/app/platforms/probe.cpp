@@ -306,8 +306,7 @@ static int specific_probe(const QString &settingsPath,
 }
 
 #ifdef Q_OS_WIN
-static void msvc_probe(const QString &settingsPath,
-        QHash<QString, Platform*> &platforms)
+static void msvcProbe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
 {
     QTextStream qstdout(stdout);
 
@@ -347,24 +346,64 @@ static void msvc_probe(const QString &settingsPath,
         return;
     }
 
-    Platform *s = platforms.value(msvcVersion);
-    if (!s)
-       s = new Platform(msvcVersion, settingsPath + "/" + msvcVersion);
-
     QString vsInstallDir = vcInstallDir;
     idx = vsInstallDir.lastIndexOf("/");
     if (idx < 0)
         return;
     vsInstallDir.truncate(idx);
 
-    s->settings.setValue("targetOS", "windows");
-    s->settings.setValue("cpp/toolchainInstallPath", vsInstallDir);
-    s->settings.setValue("toolchain", "msvc");
-    s->settings.setValue("cpp/windowsSDKPath", winSDKPath);
-    platforms.insert(s->name, s);
+    Platform *platform = platforms.value(msvcVersion);
+    if (!platform) {
+       platform = new Platform(msvcVersion, settingsPath + "/" + msvcVersion);
+       platforms.insert(platform->name, platform);
+    }
+    platform->settings.setValue("targetOS", "windows");
+    platform->settings.setValue("cpp/toolchainInstallPath", vsInstallDir);
+    platform->settings.setValue("toolchain", "msvc");
+    platform->settings.setValue("cpp/windowsSDKPath", winSDKPath);
     qstdout << "Detected platform " << msvcVersion << " for " << clArch << ".\n";
     qstdout << "When building projects, the architecture can be chosen by passing\narchitecture:x86 or architecture:x86_64 to qbs.\n";
-    s->settings.sync();
+    platform->settings.sync();
+}
+
+static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
+{
+    QString mingwPath;
+    QString gccPath;
+    QByteArray envPath = qgetenv("PATH");
+    foreach (const QByteArray &dir, envPath.split(';')) {
+        QFileInfo fi(dir + "/gcc.exe");
+        if (fi.exists()) {
+            mingwPath = QFileInfo(dir + "/..").canonicalFilePath();
+            gccPath = fi.absoluteFilePath();
+            break;
+        }
+    }
+    if (gccPath.isEmpty())
+        return;
+    QProcess process;
+    process.start(gccPath, QStringList() << "-dumpmachine");
+    if (!process.waitForStarted()) {
+        fprintf(stderr, "Could not start \"gcc -dumpmachine\".\n");
+        return;
+    }
+    process.waitForFinished(-1);
+    QByteArray gccMachineName = process.readAll().trimmed();
+    if (gccMachineName != "mingw32" && gccMachineName != "mingw64") {
+        fprintf(stderr, "Detected gcc platform '%s' is not supported.\n", gccMachineName.data());
+        return;
+    }
+
+    Platform *platform = platforms.value(gccMachineName);
+    printf("Platform '%s' detected in '%s'.", gccMachineName.data(), qPrintable(QDir::toNativeSeparators(mingwPath)));
+    if (!platform) {
+       platform = new Platform(gccMachineName, settingsPath + "/" + gccMachineName);
+       platforms.insert(platform->name, platform);
+    }
+    platform->settings.setValue("targetOS", "windows");
+    platform->settings.setValue("cpp/toolchainInstallPath", QDir::toNativeSeparators(mingwPath));
+    platform->settings.setValue("toolchain", "mingw");
+    platform->settings.sync();
 }
 #endif
 
@@ -377,7 +416,8 @@ int probe (const QString &settingsPath,
 #ifdef Q_OS_WIN
     Q_UNUSED(prompt);
     Q_UNUSED(ask);
-    msvc_probe(settingsPath, platforms);
+    msvcProbe(settingsPath, platforms);
+    mingwProbe(settingsPath, platforms);
 #else
     QString cc = QString::fromLocal8Bit(qgetenv("CC"));
     if (cc.isEmpty()) {
@@ -389,5 +429,7 @@ int probe (const QString &settingsPath,
         specific_probe(settingsPath, platforms, ask, prompt, cc);
     }
 #endif
+    if (platforms.isEmpty())
+        fprintf(stderr, "Could not detect any platforms.\n");
     return 0;
 }

@@ -31,7 +31,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/lib" + product.name + ".so"
+            fileName: product.destinationDirectory + "/lib" + product.name + (product.modules.qbs.toolchain == "mingw" ? ".dll" : ".so")
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
@@ -144,7 +144,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + product.name
+            fileName: product.destinationDirectory + "/" + product.name + (product.modules.qbs.toolchain == "mingw" ? ".exe" : "")
             fileTags: ["application"]
         }
 
