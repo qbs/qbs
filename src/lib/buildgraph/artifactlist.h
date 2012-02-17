@@ -90,7 +90,7 @@ public:
         return m_data.empty();
     }
 
-    int count() const
+    size_t count() const
     {
         return m_data.size();
     }
