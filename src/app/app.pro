@@ -3,4 +3,4 @@ SUBDIRS =\
     qbs\
     graph \
     platforms \
-
+    setupmaddeplatforms
