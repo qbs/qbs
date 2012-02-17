@@ -111,8 +111,11 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface, QString
             continue;
         }
         foreach (const QString &key, platform->settings.allKeys()) {
-            buildCfg.insert(QString(key).replace('/','.'),
-                    platform->settings.value(key));
+            QString fixedKey = key;
+            int idx = fixedKey.lastIndexOf(QChar('/'));
+            if (idx > 0)
+                fixedKey[idx] = QChar('.');
+            buildCfg.insert(fixedKey, platform->settings.value(key));
         }
 
         if (!buildCfg.value("buildVariant").isValid()) {
