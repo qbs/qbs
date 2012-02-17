@@ -39,6 +39,7 @@
 #define ARTIFACTLIST_H
 
 #include <set>
+#include <cstddef>
 
 namespace qbs {
 
