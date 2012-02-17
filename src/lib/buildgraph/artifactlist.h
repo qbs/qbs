@@ -91,9 +91,9 @@ public:
         return m_data.empty();
     }
 
-    size_t count() const
+    int count() const
     {
-        return m_data.size();
+        return (int)m_data.size();
     }
 
     void reserve(int)
