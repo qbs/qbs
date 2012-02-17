@@ -312,9 +312,16 @@ enum EnvType
 static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, EnvType envType,
                                                  const QList<ResolvedModule::Ptr> &modules,
                                                  const Configuration::Ptr &productConfiguration,
+                                                 ResolvedProject *project,
                                                  const QProcessEnvironment &systemEnvironment)
 {
     QProcessEnvironment procenv = systemEnvironment;
+
+    // Copy the environment of the platform configuration to the process environment.
+    const QVariantMap platformEnv = project->configuration->value().value("environment").toMap();
+    for (QVariantMap::const_iterator it = platformEnv.constBegin(); it != platformEnv.constEnd(); ++it)
+        procenv.insert(it.key(), it.value().toString());
+
     QMap<QString, ResolvedModule*> moduleMap;
     foreach (ResolvedModule::Ptr module, modules)
         moduleMap.insert(module->name, module.data());
@@ -411,7 +418,7 @@ void ResolvedProduct::setupBuildEnvironment(QScriptEngine *scriptEngine, const Q
     if (!buildEnvironment.isEmpty())
         return;
 
-    buildEnvironment = getProcessEnvironment(scriptEngine, BuildEnv, modules, configuration, systemEnvironment);
+    buildEnvironment = getProcessEnvironment(scriptEngine, BuildEnv, modules, configuration, project, systemEnvironment);
 }
 
 void ResolvedProduct::setupRunEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const
@@ -419,7 +426,7 @@ void ResolvedProduct::setupRunEnvironment(QScriptEngine *scriptEngine, const QPr
     if (!runEnvironment.isEmpty())
         return;
 
-    runEnvironment = getProcessEnvironment(scriptEngine, RunEnv, modules, configuration, systemEnvironment);
+    runEnvironment = getProcessEnvironment(scriptEngine, RunEnv, modules, configuration, project, systemEnvironment);
 }
 
 void ResolvedProject::load(PersistentPool &pool, PersistentObjectData &data)

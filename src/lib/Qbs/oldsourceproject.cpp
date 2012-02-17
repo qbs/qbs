@@ -161,6 +161,11 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface, QString
                 qDebug() << "build graph took: " << timer.elapsed() << "ms";
             }
 
+            // copy the environment from the platform config into the project's config
+            QVariantMap projectCfg = bProject->resolvedProject()->configuration->value();
+            projectCfg.insert("environment", configure->value().value("environment"));
+            bProject->resolvedProject()->configuration->setValue(projectCfg);
+
             m_buildProjects.append(bProject);
 
             printf("for %s:\n", qPrintable(bProject->resolvedProject()->id));
