@@ -54,7 +54,6 @@
 #include <QtCore/QVariant>
 #include <QtScript/QScriptEngine>
 #include <QtCore/QFutureInterface>
-#include <QtCore/QThreadStorage>
 
 namespace qbs {
 
@@ -204,6 +203,7 @@ private:
 
 private:
     QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
+    QHash<QThread *, QScriptEngine *> m_scriptEnginePerThread;
     QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QString, QScriptProgram> m_scriptProgramCache;

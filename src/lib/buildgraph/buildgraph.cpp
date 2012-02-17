@@ -58,11 +58,9 @@
 #include <QtScript/QScriptProgram>
 #include <QtScript/QScriptValueIterator>
 #include <QtCore/QCache>
+#include <QtCore/QThread>
 
 namespace qbs {
-
-static QThreadStorage<QCache<BuildGraph*, QScriptEngine> > s_scriptEngineThreadLocalStorage;
-
 
 BuildProduct::BuildProduct()
     : project(0)
@@ -94,6 +92,7 @@ BuildGraph::BuildGraph()
 
 BuildGraph::~BuildGraph()
 {
+    qDeleteAll(m_scriptEnginePerThread.values());
 }
 
 static void internalDump(BuildProduct *product, Artifact *n, QByteArray indent)
@@ -984,14 +983,16 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
 
 QScriptEngine *BuildGraph::scriptEngine()
 {
-    if (!s_scriptEngineThreadLocalStorage.localData().contains(this)) {
-        s_scriptEngineThreadLocalStorage.localData().insert(this, new QScriptEngine);
+    QThread *const currentThread = QThread::currentThread();
+    QScriptEngine *engine = m_scriptEnginePerThread.value(currentThread);
+    if (!engine) {
+        engine = new QScriptEngine;
+        m_scriptEnginePerThread.insert(currentThread, engine);
 
-        ProcessCommand::setupForJavaScript(scriptEngine());
-        JavaScriptCommand::setupForJavaScript(scriptEngine());
+        ProcessCommand::setupForJavaScript(engine);
+        JavaScriptCommand::setupForJavaScript(engine);
     }
-
-    return s_scriptEngineThreadLocalStorage.localData().object(this);
+    return engine;
 }
 
 Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::Ptr sourceArtifact)
