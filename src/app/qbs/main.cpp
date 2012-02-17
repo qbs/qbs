@@ -222,6 +222,8 @@ int main(int argc, char *argv[])
                                                          sourceProject.buildProjects(), absoluteNamesChangedFiles, options.selectedProductNames());
     app.buildProjectFutureWatcher()->setFuture(buildProjectFuture);
     result = app.exec();
+    if (buildExecutor->state() == Qbs::BuildExecutor::ExecutorError)
+        return ExitCodeErrorExecutionFailed;
 
     // store the projects on disk
     try {
@@ -231,9 +233,6 @@ int main(int argc, char *argv[])
         qbsError() << e.toString();
         return ExitCodeErrorExecutionFailed;
     }
-
-    if (buildExecutor->state() == Qbs::BuildExecutor::ExecutorError)
-        return ExitCodeErrorBuildFailure;
 
     if (options.command() == qbs::CommandLineOptions::RunCommand) {
         qbs::BuildProject::Ptr project = sourceProject.buildProjects().first();
