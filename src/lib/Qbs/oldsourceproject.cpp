@@ -116,7 +116,6 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface, QString
             if (idx > 0)
                 fixedKey[idx] = QChar('.');
             buildCfg.insert(fixedKey, platform->settings.value(key));
-            qDebug() << fixedKey << platform->settings.value(key);
         }
 
         if (!buildCfg.value("buildVariant").isValid()) {
