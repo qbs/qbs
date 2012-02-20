@@ -42,6 +42,7 @@
 #include <QHash>
 #include <QList>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
@@ -71,7 +72,7 @@ private:
     void printUsage(bool error);
     void checkUsage();
     QStringList gatherMaddeTargetNames();
-    QByteArray runProcess(const QString &commandLine);
+    QByteArray runProcess(const QString &commandLine, const QProcessEnvironment &env);
     void handleProcessError(const QString &commandLine, const QString &message,
         const QByteArray &output);
     PlatformInfo gatherPlatformInfo(const QString &target);
@@ -107,7 +108,8 @@ void SetupMaddePlatforms::setup()
 
     const QString qbsPath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
     const QString commandLine = qbsPath + QLatin1String(" platforms print-config-base-dir");
-    const QString configBaseDir = QString::fromLocal8Bit(runProcess(commandLine)).trimmed();
+    const QString configBaseDir = QString::fromLocal8Bit(runProcess(commandLine,
+        QProcessEnvironment::systemEnvironment())).trimmed();
 
     m_stdout << translate("Writing platform info...") << endl;
     foreach (const PlatformInfo &pi, platforms)
@@ -144,10 +146,12 @@ void SetupMaddePlatforms::checkUsage()
     }
 }
 
-QByteArray SetupMaddePlatforms::runProcess(const QString &commandLine)
+QByteArray SetupMaddePlatforms::runProcess(const QString &commandLine,
+    const QProcessEnvironment &env)
 {
     QProcess proc;
     proc.setProcessChannelMode(QProcess::MergedChannels);
+    proc.setProcessEnvironment(env);
     proc.start(commandLine);
     if (!proc.waitForStarted())
         handleProcessError(commandLine, proc.errorString(), QByteArray());
@@ -180,8 +184,18 @@ void SetupMaddePlatforms::handleProcessError(const QString &commandLine, const Q
 
 QStringList SetupMaddePlatforms::gatherMaddeTargetNames()
 {
-    const QString madListCommandLine = m_maddeBinDir + QLatin1String("/mad list");
-    QByteArray madListOutput = runProcess(madListCommandLine).trimmed();
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString madListCommandLine = m_maddeBinDir + QLatin1String("/mad list");
+#ifdef Q_OS_WIN
+    const QString pathKey = QLatin1String("PATH");
+    const QString oldPath = env.value(pathKey);
+    QString newPath = m_maddeBinDir;
+    if (!oldPath.isEmpty())
+        newPath.append(QLatin1Char(';') + oldPath);
+    env.insert(pathKey, newPath);
+    madListCommandLine.prepend(m_maddeBinDir + QLatin1String("/sh.exe "));
+#endif
+    QByteArray madListOutput = runProcess(madListCommandLine, env).trimmed();
 
     QBuffer buf(&madListOutput);
     buf.open(QIODevice::ReadOnly);
