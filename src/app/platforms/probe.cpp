@@ -369,6 +369,7 @@ static void msvcProbe(const QString &settingsPath, QHash<QString, Platform*> &pl
 static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
 {
     QString mingwPath;
+    QString mingwBinPath;
     QString gccPath;
     QByteArray envPath = qgetenv("PATH");
     foreach (const QByteArray &dir, envPath.split(';')) {
@@ -376,6 +377,7 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &p
         if (fi.exists()) {
             mingwPath = QFileInfo(dir + "/..").canonicalFilePath();
             gccPath = fi.absoluteFilePath();
+            mingwBinPath = fi.absolutePath();
             break;
         }
     }
@@ -401,7 +403,7 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &p
        platforms.insert(platform->name, platform);
     }
     platform->settings.setValue("targetOS", "windows");
-    platform->settings.setValue("cpp/toolchainInstallPath", QDir::toNativeSeparators(mingwPath));
+    platform->settings.setValue("cpp/toolchainInstallPath", QDir::toNativeSeparators(mingwBinPath));
     platform->settings.setValue("toolchain", "mingw");
     platform->settings.sync();
 }
