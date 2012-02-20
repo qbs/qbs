@@ -1884,6 +1884,20 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
 
     // Products can have 'files' but not 'fileTags'
     QStringList files = group->scope->stringListValue("files");
+    if (isGroup && files.isEmpty()) {
+        // Yield an error if Group without files binding is encountered.
+        // An empty files value is OK but a binding must exist.
+        bool filesBindingFound = false;
+        const QStringList filesBindingName(QStringList() << "files");
+        foreach (LanguageObject *obj, group->objects) {
+            if (obj->bindings.contains(filesBindingName)) {
+                filesBindingFound = true;
+                break;
+            }
+        }
+        if (!filesBindingFound)
+            throw Error("Group without files is not allowed.", group->instantiatingObject()->prototypeLocation);
+    }
     if (isGroup) {
         QString prefix = group->scope->stringValue("prefix");
         if (!prefix.isEmpty())
