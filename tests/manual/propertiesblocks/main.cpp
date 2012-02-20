@@ -40,6 +40,9 @@
 #ifndef HAVE_MAIN_CPP
 #   error missing define HAVE_MAIN_CPP
 #endif
+#ifndef DEFINE_IN_PROPERTIES
+#   error missing define DEFINE_IN_PROPERTIES
+#endif
 
 int main()
 {

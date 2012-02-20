@@ -11,7 +11,7 @@ Product {
 
     Properties {
         condition: name == 'HelloWorld'
-        cpp.defines: ['SOMETHING']
+        cpp.defines: ['DEFINE_IN_PROPERTIES']
     }
 
     Properties {
