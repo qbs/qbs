@@ -262,9 +262,10 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
     }
 
     // eventually load defaults from configs
+    const QRegExp configPathSeparator(":|;");
     if (m_searchPaths.isEmpty())
-        m_searchPaths = configurationValue("paths/cubes", QVariant()).toStringList();
-    m_pluginPaths = configurationValue("paths/plugins", QVariant()).toStringList();
+        m_searchPaths = configurationValue("paths/cubes", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
+    m_pluginPaths = configurationValue("paths/plugins", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
 
     // fixup some defaults
     if (m_searchPaths.isEmpty())
