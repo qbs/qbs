@@ -145,12 +145,12 @@ static void closeScanner(void *ptr)
 
 static const char *nextUi(void *opaq, int *size, int *flags)
 {
-    Opaq *o= static_cast<Opaq *>(opaq);
+    Opaq *o = static_cast<Opaq *>(opaq);
     while (!o->xml->atEnd()) {
         o->xml->readNext();
         switch (o->xml->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if ( o->xml->name() == "include") {
+                if (o->xml->name() == "header") {
                     o->current = o->xml->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement).toUtf8();
                     *flags = SC_GLOBAL_INCLUDE_FLAG;
                     *size = o->current.size();
