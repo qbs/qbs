@@ -1011,8 +1011,6 @@ QString BuildGraph::resolveOutPath(const QString &path, BuildProduct *product) c
     QString result;
     QString buildDir = product->rProduct->buildDirectory;
     result = FileInfo::resolvePath(buildDir, path);
-
-    Q_ASSERT(result.startsWith(buildDir));
     result = QDir::cleanPath(result);
     return result;
 }
