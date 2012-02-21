@@ -134,6 +134,21 @@ bool BuildProduct::isExecutable() const
     return !m_internalBuildProduct->rProduct->fileTags.toSet().intersect(executableSet).isEmpty();
 }
 
+Private::ResolvedProduct BuildProduct::privateResolvedProject() const
+{
+    return Private::ResolvedProduct(m_internalBuildProduct->rProduct);
+}
+
+void BuildProduct::dump()
+{
+    qbs::BuildGraph().dump(m_internalBuildProduct);
+}
+
+QSharedPointer<qbs::BuildProduct> BuildProduct::internalBuildProduct() const
+{
+    return m_internalBuildProduct;
+}
+
 BuildProduct::BuildProduct(const QSharedPointer<qbs::BuildProduct> &internalBuildProduct)
     : m_internalBuildProduct(internalBuildProduct)
 {

@@ -39,12 +39,15 @@
 #ifndef QBS_QBSBUILDPRODUCT_H
 #define QBS_QBSBUILDPRODUCT_H
 
+#include "private/resolvedproduct.h"
+
 #include <QtCore/QSharedPointer>
 #include <QtCore/QStringList>
 #include <QtCore/QSet>
 
 namespace qbs {
     class BuildProduct;
+    class RunEnvironment;
 }
 
 namespace Qbs {
@@ -63,6 +66,8 @@ public:
 class BuildProduct
 {
     friend class BuildProject;
+    friend class qbs::RunEnvironment;
+
 public:
     BuildProduct();
     ~BuildProduct();
@@ -79,6 +84,12 @@ public:
     QString executablePath() const;
 
     bool isExecutable() const;
+
+    Private::ResolvedProduct privateResolvedProject() const;
+
+    void dump();
+
+    QSharedPointer<qbs::BuildProduct> internalBuildProduct() const;
 
 private:  // functions
     BuildProduct(const QSharedPointer<qbs::BuildProduct> &internalBuildProduct);

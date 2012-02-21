@@ -72,8 +72,12 @@ public:
     void setKeepGoingEnabled(bool enable);
     bool isKeepGoingEnabled() const;
 
-    void executeBuildProject(QFutureInterface<bool> &futureInterface, const BuildProject &buildProject);
-    void executeBuildProjects(QFutureInterface<bool> &futureInterface, const QList<QSharedPointer<qbs::BuildProject> > internalBuildProjects, QStringList changedFiles, QStringList selectedProductNames);
+    void executeBuildProject(QFutureInterface<bool> &futureInterface,
+                             const BuildProject &buildProject);
+    void executeBuildProjects(QFutureInterface<bool> &futureInterface,
+                              const QVector<BuildProject> buildProjects,
+                              QStringList changedFiles,
+                              QStringList selectedProductNames);
 
     ExecutorState state() const;
 

@@ -40,7 +40,7 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <tools/fileinfo.h>
-#include <Qbs/oldsourceproject.h>
+#include <Qbs/sourceproject.h>
 
 #include <cassert>
 
@@ -192,23 +192,24 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    qbs::SourceProject sourceProject(options.settings());
+    Qbs::SourceProject sourceProject;
+    sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    QFuture<bool> loadProjectFuture = QtConcurrent::run(&qbs::SourceProject::loadProject,
+    QFuture<bool> loadProjectFuture = QtConcurrent::run(&qbs::SourceProject::loadProjectCommandLine,
                                                         &sourceProject,
                                                         options.projectFileName(),
                                                         options.buildConfigurations());
     loadProjectFuture.waitForFinished();
-    foreach (const qbs::Error &error, sourceProject.errors()) {
+    foreach (const Qbs::Error &error, sourceProject.errors()) {
         qbsError() << error.toString();
         return 4;
     }
 
     QGraphicsScene scene;
-    foreach (qbs::BuildProject::Ptr t, sourceProject.buildProjects()) {
-        foreach (qbs::BuildProduct::Ptr p, t->buildProducts()) {
-            targetToScene(&scene, p.data());
+    foreach (const Qbs::BuildProject &buildProject, sourceProject.buildProjects()) {
+        foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
+            targetToScene(&scene, buildProduct.internalBuildProduct().data());
         }
     }
     QRectF sr = scene.sceneRect();

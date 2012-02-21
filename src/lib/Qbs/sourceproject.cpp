@@ -44,6 +44,7 @@
 #include <tools/platform.h>
 
 #include <QtCore/QDebug>
+#include <QtCore/QElapsedTimer>
 
 using namespace qbs;
 
@@ -87,6 +88,11 @@ SourceProject &SourceProject::operator =(const SourceProject &other)
     return *this;
 }
 
+void SourceProject::setSettings(const qbs::Settings::Ptr &setttings)
+{
+    d->settings = setttings;
+}
+
 void SourceProject::setSearchPaths(const QStringList &searchPaths)
 {
     d->searchPaths = searchPaths;
@@ -107,7 +113,7 @@ void SourceProject::loadPlugins(const QStringList &pluginPaths)
     qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
 
-void SourceProject::loadProject(QFutureInterface<bool> &futureInterface,
+void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
                                 const QString projectFileName,
                                 const QList<QVariantMap> buildConfigurations)
 {
@@ -172,16 +178,6 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface,
             }
 
             d->buildProjects.append(BuildProject(buildProject));
-
-            printf("for %s:\n", qPrintable(buildProject->resolvedProject()->id));
-            foreach (qbs::ResolvedProduct::Ptr p, buildProject->resolvedProject()->products) {
-                printf("  - [%s] %s as %s\n"
-                        ,qPrintable(p->fileTags.join(", "))
-                        ,qPrintable(p->name)
-                        ,qPrintable(p->project->id)
-                      );
-            }
-            printf("\n");
         }
 
     } catch (qbs::Error &error) {
@@ -191,6 +187,112 @@ void SourceProject::loadProject(QFutureInterface<bool> &futureInterface,
     }
 
     futureInterface.reportResult(true);
+}
+
+void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterface, QString projectFileName, QList<QVariantMap> buildConfigs)
+{
+    QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
+    if (platforms.isEmpty()) {
+        qbsFatal("no platforms configured. maybe you want to run 'qbs platforms probe' first.");
+        futureInterface.reportResult(false);
+        return;
+    }
+    if (buildConfigs.isEmpty()) {
+        qbsFatal("SourceProject::loadProject: no build configuration given.");
+        futureInterface.reportResult(false);
+        return;
+    }
+    QList<qbs::Configuration::Ptr> configurations;
+    foreach (QVariantMap buildCfg, buildConfigs) {
+        if (!buildCfg.value("platform").isValid()) {
+            if (!d->settings->value("defaults/platform").isValid()) {
+                qbsFatal("SourceProject::loadProject: no platform given and no default set.");
+                continue;
+            }
+            buildCfg.insert("platform", d->settings->value("defaults/platform").toString());
+        }
+        Platform::Ptr platform = platforms.value(buildCfg.value("platform").toString());
+        if (platform.isNull()) {
+            qbsFatal("SourceProject::loadProject: unknown platform: %s", qPrintable(buildCfg.value("platform").toString()));
+            continue;
+        }
+        foreach (const QString &key, platform->settings.allKeys()) {
+            QString fixedKey = key;
+            int idx = fixedKey.lastIndexOf(QChar('/'));
+            if (idx > 0)
+                fixedKey[idx] = QChar('.');
+            buildCfg.insert(fixedKey, platform->settings.value(key));
+        }
+
+        if (!buildCfg.value("buildVariant").isValid()) {
+            qbsFatal("SourceProject::loadProject: property 'buildVariant' missing in build configuration.");
+            continue;
+        }
+        qbs::Configuration::Ptr configure(new qbs::Configuration);
+        configurations.append(configure);
+
+        foreach (const QString &property, buildCfg.keys()) {
+            QStringList nameElements = property.split('.');
+            if (nameElements.count() == 1)
+                nameElements.prepend("qbs");
+            QVariantMap configValue = configure->value();
+            qbs::setConfigProperty(configValue, nameElements, buildCfg.value(property));
+            configure->setValue(configValue);
+        }
+    }
+
+    qbs::Loader loader;
+    loader.setSearchPaths(d->searchPaths);
+    d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
+    d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
+    const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
+
+    try {
+        foreach (const qbs::Configuration::Ptr &configure, configurations) {
+            qbs::BuildProject::Ptr bProject;
+            const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
+            bProject = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
+            if (!bProject) {
+                QElapsedTimer timer;
+                timer.start();
+                if (!loader.hasLoaded())
+                    loader.loadProject(projectFileName);
+                qbs::ResolvedProject::Ptr rProject = loader.resolveProject(buildDirectoryRoot, configure, futureInterface);
+                if (rProject->products.isEmpty())
+                    throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
+                qDebug() << "loading project took: " << timer.elapsed() << "ms";
+                timer.start();
+                bProject = d->buildGraph->resolveProject(rProject, futureInterface);
+                qDebug() << "build graph took: " << timer.elapsed() << "ms";
+            }
+
+            // copy the environment from the platform config into the project's config
+            QVariantMap projectCfg = bProject->resolvedProject()->configuration->value();
+            projectCfg.insert("environment", configure->value().value("environment"));
+            bProject->resolvedProject()->configuration->setValue(projectCfg);
+
+            d->buildProjects.append(bProject);
+
+            printf("for %s:\n", qPrintable(bProject->resolvedProject()->id));
+            foreach (qbs::ResolvedProduct::Ptr p, bProject->resolvedProject()->products) {
+                printf("  - [%s] %s as %s\n"
+                        ,qPrintable(p->fileTags.join(", "))
+                        ,qPrintable(p->name)
+                        ,qPrintable(p->project->id)
+                      );
+            }
+            printf("\n");
+        }
+
+    } catch (qbs::Error &e) {
+        d->errors.append(e);
+        futureInterface.reportResult(false);
+        return;
+    }
+
+    futureInterface.reportResult(true);
+
+
 }
 
 static QStringList buildGraphFilePaths(const QDir &buildDirectory)

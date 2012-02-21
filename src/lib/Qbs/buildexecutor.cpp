@@ -104,11 +104,22 @@ bool BuildExecutor::isKeepGoingEnabled() const
 
 void BuildExecutor::executeBuildProject(QFutureInterface<bool> &futureInterface, const BuildProject &buildProject)
 {
-    QList<qbs::BuildProject::Ptr> internalBuildProjects;
-    internalBuildProjects.append(buildProject.internalBuildProject());
+    QVector<BuildProject> buildProjects;
+    buildProjects.append(buildProject);
     QStringList changedFiles;   // ### populate
     QStringList selectedProductNames; // ### populate
-    executeBuildProjects(futureInterface, internalBuildProjects, changedFiles, selectedProductNames);
+    executeBuildProjects(futureInterface, buildProjects, changedFiles, selectedProductNames);
+}
+
+static QList<qbs::BuildProject::Ptr> toInternalBuildProjects(const QVector<Qbs::BuildProject > &buildProjects)
+{
+    QList<qbs::BuildProject::Ptr> internalBuildProjects;
+
+    foreach (const Qbs::BuildProject &buildProject, buildProjects) {
+        internalBuildProjects.append(buildProject.internalBuildProject());
+    }
+
+    return internalBuildProjects;
 }
 
 /*!
@@ -117,8 +128,10 @@ void BuildExecutor::executeBuildProject(QFutureInterface<bool> &futureInterface,
   Args:
   changedFiles - absolute file names of changed files (optional)
   */
-void BuildExecutor::executeBuildProjects(QFutureInterface<bool> &futureInterface, const QList<QSharedPointer<qbs::BuildProject> > internalBuildProjects,
-                                         QStringList changedFiles, QStringList selectedProductNames)
+void BuildExecutor::executeBuildProjects(QFutureInterface<bool> &futureInterface,
+                                         const QVector<Qbs::BuildProject> buildProjects,
+                                         QStringList changedFiles,
+                                         QStringList selectedProductNames)
 {
     QEventLoop eventLoop;
 
@@ -131,7 +144,7 @@ void BuildExecutor::executeBuildProjects(QFutureInterface<bool> &futureInterface
     QObject::connect(&executor, SIGNAL(finished()), &eventLoop, SLOT(quit()), Qt::QueuedConnection);
     QObject::connect(&executor, SIGNAL(error()), &eventLoop, SLOT(quit()), Qt::QueuedConnection);
 
-    executor.build(internalBuildProjects, changedFiles, selectedProductNames, futureInterface);
+    executor.build(toInternalBuildProjects(buildProjects), changedFiles, selectedProductNames, futureInterface);
 
     eventLoop.exec();
 

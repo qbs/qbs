@@ -42,7 +42,6 @@
 #include <tools/error.h>
 #include <tools/settings.h>
 #include <tools/fileinfo.h>
-#include <tools/runenvironment.h>
 #include <tools/scripttools.h>
 #include <tools/logger.h>
 

@@ -36,13 +36,13 @@
 **************************************************************************/
 
 #include "application.h"
-#include <Qbs/oldsourceproject.h>
+#include <Qbs/sourceproject.h>
+#include <Qbs/runenvironment.h>
 #include <Qbs/mainthreadcommunication.h>
 #include <tools/logger.h>
 #include <tools/options.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
-#include <tools/runenvironment.h>
 #include <tools/fakeconcurrent.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
@@ -179,29 +179,30 @@ int main(int argc, char *argv[])
         }
     }
 
-    qbs::SourceProject sourceProject(options.settings());
+    Qbs::SourceProject sourceProject;
+    sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    QFuture<bool> loadProjectFuture = qbs::FakeConcurrent::run(&qbs::SourceProject::loadProject,
+    QFuture<bool> loadProjectFuture = qbs::FakeConcurrent::run(&qbs::SourceProject::loadProjectCommandLine,
                                                                &sourceProject,
                                                                options.projectFileName(),
                                                                options.buildConfigurations());
     loadProjectFuture.waitForFinished();
-    foreach (const qbs::Error &error, sourceProject.errors()) {
+    foreach (const Qbs::Error &error, sourceProject.errors()) {
         qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
     }
 
     if (options.command() == qbs::CommandLineOptions::StartShellCommand) {
-        qbs::BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
-        qbs::BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
-        qbs::RunEnvironment run(buildProduct->rProduct);
+        Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
+        Qbs::BuildProduct buildProduct = buildProject.buildProducts().first();
+        Qbs::RunEnvironment run(buildProduct);
         return run.runShell();
     }
     if (options.isDumpGraphSet()) {
-        foreach (qbs::BuildProject::Ptr buildPrj, sourceProject.buildProjects())
-            foreach (qbs::BuildProduct::Ptr buildProduct, buildPrj->buildProducts())
-                qbs::BuildGraph().dump(buildProduct);
+        foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
+            foreach (Qbs::BuildProduct buildProduct, buildProject.buildProducts())
+                buildProduct.dump();
         return 0;
     }
 
@@ -227,59 +228,33 @@ int main(int argc, char *argv[])
 
     // store the projects on disk
     try {
-        foreach (qbs::BuildProject::Ptr project, sourceProject.buildProjects())
-            project->store();
+        foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
+            buildProject.storeBuildGraph();
     } catch (qbs::Error &e) {
         qbsError() << e.toString();
         return ExitCodeErrorExecutionFailed;
     }
 
     if (options.command() == qbs::CommandLineOptions::RunCommand) {
-        qbs::BuildProject::Ptr project = sourceProject.buildProjects().first();
-        qbs::BuildProduct::Ptr productToRun;
+        Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
+        Qbs::BuildProduct productToRun;
         QString productFileName;
-        QSet<QString> runnableFileTags;
-#ifdef Q_OS_MAC
-        runnableFileTags << "applicationbundle";
-#else
-        runnableFileTags << "application";
-#endif
-#ifdef Q_OS_MAC
-        bool openProduct = false;
-#endif // Q_OS_MAC
-        if (options.runTargetName().isEmpty()) {
-            foreach (qbs::BuildProduct::Ptr product, project->buildProducts()) {
-                foreach (qbs::Artifact *targetArtifact, product->targetArtifacts) {
-                    if (!targetArtifact->fileTags.intersect(runnableFileTags).isEmpty()) {
-                        productToRun = product;
-                        productFileName = targetArtifact->fileName;
-#ifdef Q_OS_MAC
-                        if (targetArtifact->fileTags.contains("applicationbundle"))
-                            openProduct = true;
-#endif // Q_OS_MAC
-                        break;
-                    }
-                }
-                if (productToRun)
-                    break;
-            }
-        } else {
-            foreach (qbs::BuildProduct::Ptr product, project->buildProducts()) {
-                if (product->rProduct->name == options.runTargetName()) {
-                    productToRun = product;
-                    foreach (qbs::Artifact *targetArtifact, product->targetArtifacts) {
-                        if (!targetArtifact->fileTags.intersect(runnableFileTags).isEmpty()) {
-                            productToRun = product;
-                            productFileName = targetArtifact->fileName;
-                            break;
-                        }
-                    }
+
+        foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
+            if (!options.runTargetName().isEmpty() && options.runTargetName() != buildProduct.name())
+                continue;
+
+            if (options.runTargetName().isEmpty() || options.runTargetName() == buildProduct.name()) {
+                if (buildProduct.isExecutable()) {
+                    productToRun = buildProduct;
+                    productFileName = buildProduct.executablePath();
                     break;
                 }
             }
         }
 
-        if (!productToRun) {
+
+        if (!productToRun.isValid()) {
             if (options.runTargetName().isEmpty())
                 qbsError() << QObject::tr("Can't find a suitable product to run.");
             else
@@ -287,15 +262,8 @@ int main(int argc, char *argv[])
             return ExitCodeErrorBuildFailure;
         }
 
-        qbs::RunEnvironment run(productToRun->rProduct);
-#ifdef Q_OS_MAC
-        if (openProduct) {
-            QStringList runArgs = options.runArgs();
-            QString appBundleName = productFileName; // TODO: make appBundleName be the app bundle dir
-            runArgs.prepend(appBundleName);
-            return run.runTarget("/usr/bin/open", runArgs);
-        }
-#endif // Q_OS_MAC
+        Qbs::RunEnvironment run(productToRun);
+
         return run.runTarget(productFileName, options.runArgs());
     }
 

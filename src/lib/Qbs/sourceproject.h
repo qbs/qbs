@@ -53,6 +53,7 @@
 namespace qbs {
     class BuildProject;
     class Loader;
+    class Settings;
 }
 
 
@@ -70,12 +71,17 @@ public:
     SourceProject(const SourceProject &other);
     SourceProject &operator=(const SourceProject &other);
 
-
+    void setSettings(const qbs::Settings::Ptr &setttings);
     void setSearchPaths(const QStringList &searchPaths);
     void loadPlugins(const QStringList &pluginPaths);
-    void loadProject(QFutureInterface<bool> &futureInterface,
+    void loadProjectIde(QFutureInterface<bool> &futureInterface,
                      const QString projectFileName,
                      const QList<QVariantMap> buildConfigs);
+    void loadProjectCommandLine(QFutureInterface<bool> &futureInterface,
+                     QString projectFileName,
+                     QList<QVariantMap> buildConfigs);
+
+
 
     void loadBuildGraphs(const QString projectFileName);
 

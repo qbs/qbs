@@ -11,7 +11,6 @@ HEADERS += \
     $$PWD/persistence.h \
     $$PWD/platform.h \
     $$PWD/scannerpluginmanager.h \
-    $$PWD/runenvironment.h \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
     $$PWD/coloredoutput.h \
@@ -26,7 +25,6 @@ SOURCES += \
     $$PWD/persistence.cpp \
     $$PWD/platform.cpp \
     $$PWD/scannerpluginmanager.cpp \
-    $$PWD/runenvironment.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
     $$PWD/coloredoutput.cpp
