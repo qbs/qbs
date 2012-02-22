@@ -68,8 +68,9 @@ CppModule {
                 '-shared'
             ]);
             for (var i in inputs.obj)
-            args.push(inputs.obj[i].fileName);
-
+                args.push(inputs.obj[i].fileName);
+            if (product.module.sysroot)
+                args.push('--sysroot=' + product.module.sysroot)
             var staticLibrariesI = [];
             for (i in inputs.staticlibrary) {
                 staticLibrariesI.push(inputs.staticlibrary[i].fileName);
@@ -160,6 +161,8 @@ CppModule {
             var args = Gcc.configFlags(product);
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].fileName)
+            if (product.module.sysroot)
+                args.push('--sysroot=' + product.module.sysroot)
             args.push('-Wl,-rpath,\$ORIGIN');
             args.push('-o');
             args.push(output.fileName);
