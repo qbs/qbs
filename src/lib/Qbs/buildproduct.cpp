@@ -115,14 +115,14 @@ QStringList BuildProduct::projectIncludePaths() const
 
 QString BuildProduct::executablePath() const
 {
-   QString localPath = m_internalBuildProduct->rProduct->name;
-   QString destinationDirectory = m_internalBuildProduct->rProduct->destinationDirectory;
+    QString localPath = m_internalBuildProduct->rProduct->name;
+    QString destinationDirectory = m_internalBuildProduct->rProduct->destinationDirectory;
 
-   if (!destinationDirectory.isEmpty()) {
-       localPath.prepend(destinationDirectory + QLatin1String("/"));
-   }
+    if (!destinationDirectory.isEmpty()) {
+        localPath.prepend(destinationDirectory + QLatin1String("/"));
+    }
 
-   return QString(m_internalBuildProduct->project->buildGraph()->buildDirectoryRoot()
+    return QString(m_internalBuildProduct->project->buildGraph()->buildDirectoryRoot()
                   + m_internalBuildProduct->project->resolvedProject()->id
                   + QLatin1String("/")
                   + localPath);
@@ -161,7 +161,7 @@ QString BuildProduct::displayName() const
 
 QString BuildProduct::filePath() const
 {
-     return m_internalBuildProduct->rProduct->qbsFile;
+    return m_internalBuildProduct->rProduct->qbsFile;
 }
 
 } // namespace Qbs
