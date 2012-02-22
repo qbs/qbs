@@ -92,6 +92,8 @@ int main(int argc, char **argv)
     QString defaultPlatform = settings->value("defaults/platform").toString();
 
     QString localSettingsPath = qbs::Platform::configBaseDir();
+    if (!localSettingsPath.endsWith(QLatin1Char('/')))
+        localSettingsPath.append(QLatin1Char('/'));
     QDir().mkpath(localSettingsPath);
 
     enum Action {

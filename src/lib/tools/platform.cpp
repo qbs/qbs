@@ -76,7 +76,7 @@ QHash<QString, Platform::Ptr> Platform::platforms()
 QString Platform::configBaseDir()
 {
 #if defined(Q_OS_LINUX) || defined(Q_OS_MAC)
-    QString localSettingsPath = QDir::homePath() + "/.config/Nokia/qbs/platforms/";
+    QString localSettingsPath = QDir::homePath() + "/.config/Nokia/qbs/platforms";
 #elif defined(Q_OS_WIN)
     QString localSettingsPath;
     wchar_t wszPath[MAX_PATH];
