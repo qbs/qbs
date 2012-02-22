@@ -19,12 +19,14 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "generating foo.txt";
                 cmd.highlight = "linker";
-                cmd.sourceCode = "File.remove(output.fileName);\n";
-                cmd.sourceCode += "var f = new TextFile(output.fileName, TextFile.WriteOnly);\n"
-                cmd.sourceCode += "f.write(\"Dear Sir/Madam,\\n\\n\");\n";
-                cmd.sourceCode += "f.write(\"this is a generated file.\\n\\n\\n\");\n";
-                cmd.sourceCode += "f.write(\"Best Regards and Mellow Greetings,\\nYour Build Tool.\\n\");\n";
-                cmd.sourceCode += "f.close();";
+                cmd.sourceCode = function () {
+                    File.remove(output.fileName);
+                    var f = new TextFile(output.fileName, TextFile.WriteOnly);
+                    f.write("Dear Sir/Madam,\n\n");
+                    f.write("this is a generated file.\n\n\n");
+                    f.write("Best Regards and Mellow Greetings,\nYour Build Tool.\n");
+                    f.close();
+                }
                 return cmd;
             }
         }
@@ -39,12 +41,15 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "generating bar.txt";
                 cmd.highlight = "linker";
-                cmd.sourceCode = "File.remove(output.fileName);\n";
-                cmd.sourceCode += "var f = new TextFile(output.fileName, TextFile.WriteOnly)\n";
-                cmd.sourceCode += "f.write(\"Dear Sir/Madam,\\n\\n\");\n";
-                cmd.sourceCode += "f.write(\"this file was generated from \" + input.fileName + \".\\n\\n\\n\");\n";
-                cmd.sourceCode += "f.write(\"Best Regards and Mellow Greetings,\\nYour Build Tool.\\n\");";
-                cmd.sourceCode += "f.close();";
+                cmd.inputFileName = input.fileName;
+                cmd.sourceCode = function() {
+                    File.remove(output.fileName);
+                    var f = new TextFile(output.fileName, TextFile.WriteOnly);
+                    f.write("Dear Sir/Madam,\n\n");
+                    f.write("this file was generated from " + inputFileName + ".\n\n\n");
+                    f.write("Best Regards and Mellow Greetings,\nYour Build Tool.\n");
+                    f.close();
+                }
                 return cmd;
             }
         }
