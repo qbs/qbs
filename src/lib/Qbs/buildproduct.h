@@ -62,6 +62,10 @@ public:
     QSet<QString> tags;
 };
 
+inline bool lessThanSourceFile(const SourceFile &first, const SourceFile &second)
+{
+    return first.fileName < second.fileName;
+}
 
 class BuildProduct
 {

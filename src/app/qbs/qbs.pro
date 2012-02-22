@@ -11,6 +11,7 @@ SOURCES += main.cpp \
     application.cpp
 HEADERS += \
     ctrlchandler.h \
-    application.h
+    application.h \
+    status.h
 
 include(../../lib/use.pri)

@@ -36,6 +36,8 @@
 **************************************************************************/
 
 #include "application.h"
+#include "status.h"
+
 #include <Qbs/sourceproject.h>
 #include <Qbs/runenvironment.h>
 #include <Qbs/mainthreadcommunication.h>
@@ -205,6 +207,9 @@ int main(int argc, char *argv[])
                 buildProduct.dump();
         return 0;
     }
+
+    if (options.command() == qbs::CommandLineOptions::StatusCommand)
+        return qbs::printStatus(options, sourceProject);
 
     // execute the build graph
     Qbs::BuildExecutor *buildExecutor = app.buildExecutor();

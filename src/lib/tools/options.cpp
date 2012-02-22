@@ -69,6 +69,8 @@ void CommandLineOptions::printHelp()
          "                     build project (default command)\n"
          "  clean  ........... remove all generated files\n"
          "  shell  ........... open a shell\n"
+         "  status [variant] [property:value]\n"
+         "                     list files that are (un)tracked by the project\n"
          "  run target [variant] [property:value] -- <args>\n"
          "                     run the specified target\n"
          "  config\n"
@@ -133,6 +135,8 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
             } else if (m_command == RunCommand && !firstPositionalEaten) {
                 m_runTargetName = arg;
                 firstPositionalEaten = true;
+            } else if (arg == QLatin1String("status")) {
+                m_command = StatusCommand;
             } else {
                 m_positional.append(arg);
             }

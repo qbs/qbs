@@ -58,7 +58,8 @@ public:
         CleanCommand,
         ConfigCommand,
         StartShellCommand,
-        RunCommand
+        RunCommand,
+        StatusCommand
     };
 
     static void printHelp();
