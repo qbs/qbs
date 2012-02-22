@@ -85,6 +85,7 @@ public:
     QString filePath() const;
     QVector<SourceFile> sourceFiles() const;
     QStringList projectIncludePaths() const;
+    QString executableSuffix() const;
     QString executablePath() const;
 
     bool isExecutable() const;

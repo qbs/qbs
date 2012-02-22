@@ -113,6 +113,16 @@ QStringList BuildProduct::projectIncludePaths() const
     return findProjectIncludePathsRecursive(m_internalBuildProduct->rProduct->configuration->value());
 }
 
+QString BuildProduct::executableSuffix() const
+{
+    QString targetOS = qbs::getConfigProperty(m_internalBuildProduct->rProduct->configuration->value(),
+                                              QStringList() << "modules" << "qbs" << "targetOS").toString();
+    QString suffix;
+    if (targetOS == QLatin1String("windows"))
+        suffix = QLatin1String(".exe");
+    return suffix;
+}
+
 QString BuildProduct::executablePath() const
 {
     QString localPath = m_internalBuildProduct->rProduct->name;
@@ -125,7 +135,8 @@ QString BuildProduct::executablePath() const
     return QString(m_internalBuildProduct->project->buildGraph()->buildDirectoryRoot()
                   + m_internalBuildProduct->project->resolvedProject()->id
                   + QLatin1String("/")
-                  + localPath);
+                  + localPath
+                  + executableSuffix());
 }
 
 bool BuildProduct::isExecutable() const
