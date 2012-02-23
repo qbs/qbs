@@ -234,7 +234,8 @@ CppModule {
             // ### what we actually need here is something like product.usedFileTags
             //     that contains all fileTags that have been used when applying the rules.
             if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
-                args.push('-fPIC');
+                if (product.modules.qbs.toolchain !== "mingw")
+                    args.push('-fPIC');
             } else if (product.type.indexOf('application') < 0) {
                 throw ("OK, now we got a problem... The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
             }
