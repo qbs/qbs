@@ -80,7 +80,6 @@ void Artifact::load(PersistentPool &pool, PersistentObjectData &data)
     configuration = pool.idLoadS<Configuration>(s);
     transformer = pool.idLoadS<Transformer>(s);
     s >> artifactType;
-    product = pool.idLoadS<BuildProduct>(s).data();
 }
 
 void Artifact::store(PersistentPool &pool, PersistentObjectData &data) const
@@ -91,7 +90,6 @@ void Artifact::store(PersistentPool &pool, PersistentObjectData &data) const
     s << pool.store(configuration);
     s << pool.store(transformer);
     s << artifactType;
-    s << pool.store(product);
 }
 
 } // namespace qbs

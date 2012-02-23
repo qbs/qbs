@@ -1058,6 +1058,8 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
         s >> key;
         artifacts.insert(key, pool.idLoad<Artifact>(s));
     }
+    foreach (Artifact *a, artifacts)
+        a->product = this;
 
     // edges
     for (i = count; --i >= 0;) {
