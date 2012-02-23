@@ -18,8 +18,6 @@ OTHER_FILES += \
     share/qbs/modules/cpp/*.* \
     share/qbs/modules/qbs/*.* \
     share/qbs/modules/qt/*.* \
-    share/qbs/modules/qt/core/*.* \
-    share/qbs/modules/qt/gui/*.* \
     doc/qbs.qdoc
 
 include(doc/doc.pri)
