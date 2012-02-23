@@ -67,7 +67,7 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
     clPath += 'cl.exe'
 
     for (var i in compilerFlags) {
-        args.push(i)
+        args.push(compilerFlags[i])
     }
 
     var cmd = new Command(clPath, args)
