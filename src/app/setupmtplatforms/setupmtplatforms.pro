@@ -1,7 +1,7 @@
 QT       += core
 QT       -= gui
 
-TARGET = qbs-setup-madde-platforms
+TARGET = qbs-setup-mt-platforms
 CONFIG   += console
 CONFIG   -= app_bundle
 DESTDIR = ../../../bin
