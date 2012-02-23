@@ -148,7 +148,7 @@ static int specific_probe(const QString &settingsPath,
 
     Platform *s = 0;
     foreach (Platform *p, platforms.values()) {
-        QString path = p->settings.value("ev/completeccpath").toString();
+        QString path = p->settings.value(Platform::internalKey() + "/completeccpath").toString();
         if (path == pathToGcc) {
             name = p->name;
             s = p;
@@ -187,7 +187,7 @@ static int specific_probe(const QString &settingsPath,
 
     if (isACrossCompiler && !cross.contains(compilerTriplet)) {
         if (s) {
-            compilerTriplet = s->settings.value("ev/target-triplet").toString();
+            compilerTriplet = s->settings.value(Platform::internalKey() + "/target-triplet").toString();
         } else {
             qDebug("==> detected %s (%s), but it doesn't seem to fit your cross target (%s)",
                     qPrintable(pathToGcc),
@@ -267,8 +267,8 @@ static int specific_probe(const QString &settingsPath,
     // fixme should be cpp.toolchain
     // also there is no toolchain:clang
     s->settings.setValue("toolchain", "gcc");
-    s->settings.setValue("ev/completeccpath", pathToGcc);
-    s->settings.setValue("ev/target-triplet", compilerTriplet);
+    s->settings.setValue(Platform::internalKey() + "/completeccpath", pathToGcc);
+    s->settings.setValue(Platform::internalKey() + "/target-triplet", compilerTriplet);
     s->settings.setValue("architecture", architecture);
     s->settings.setValue("endianness", endianness);
 

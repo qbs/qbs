@@ -88,4 +88,9 @@ QString Platform::configBaseDir()
     return localSettingsPath;
 }
 
+QString Platform::internalKey()
+{
+    return QLatin1String("qbs-internal");
+}
+
 } // namespace qbs

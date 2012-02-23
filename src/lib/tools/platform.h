@@ -53,6 +53,7 @@ public:
     QSettings settings;
     static QHash<QString, Platform::Ptr> platforms();
     static QString configBaseDir();
+    static QString internalKey();
 };
 
 } // namespace qbs
