@@ -289,7 +289,6 @@ static int specific_probe(const QString &settingsPath,
     }
     s->settings.setValue("cpp/toolchainInstallPath", pathToGccL.join("/"));
 
-    s->settings.setValue("environment/PATH", s->settings.value("cpp/toolchainInstallPath"));
     if (!cross.isEmpty())
         s->settings.setValue("environment/CROSS_COMPILE", cross);
     if (!cflags.isEmpty())
