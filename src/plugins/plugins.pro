@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = scanner script
+SUBDIRS = scanner

@@ -42,6 +42,8 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
 #include <tools/logger.h>
+#include <jsextensions/file.h>
+#include <jsextensions/textfile.h>
 
 #include <QtConcurrentRun>
 #include <QDebug>
@@ -306,19 +308,9 @@ public:
             scriptEngine = new QScriptEngine();
             m_scriptEnginesPerThread.insert(currentThread, scriptEngine);
 
-            // import script extension plugins
-            foreach (const QString &name, scriptEngine->availableExtensions()) {
-                if (!name.startsWith("qbs"))
-                    continue;
-                QScriptValue e = scriptEngine->importExtension(name);
-                if (e.isError()) {
-                    qbsWarning("JS thread %x, unable to load %s into QScriptEngine: %s",
-                               (void*)currentThread,
-                               qPrintable(name),
-                               qPrintable(e.toString()));
-                }
-                qbsDebug("JS thread %x, script plugin loaded: %s", (void*)currentThread, qPrintable(name));
-            }
+            QScriptValue extensionObject = scriptEngine->globalObject();
+            File::init(extensionObject, scriptEngine);
+            TextFile::init(extensionObject, scriptEngine);
         }
 
         QString trafoPtrStr = QString::number((qulonglong)transformer);
