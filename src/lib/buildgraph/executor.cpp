@@ -364,7 +364,8 @@ bool Executor::execute(Artifact *artifact)
     m_leaves.remove(artifact);
 
     if (!fileExists && artifact->artifactType == Artifact::SourceFile) {
-        setError(QString("Can't find source file '%1'.").arg(artifact->fileName));
+        QString msg = QLatin1String("Can't find source file '%1', referenced in '%2'.");
+        setError(msg.arg(artifact->fileName, artifact->product->rProduct->qbsFile));
         return true;
     }
 
