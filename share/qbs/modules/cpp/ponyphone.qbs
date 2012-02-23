@@ -11,7 +11,7 @@
 
 import qbs.base 1.0
 
-GenericGCC {
+UnixGCC {
     property string substitute: qbs.configurationValue('ponyphone/substitute')
 
     condition: qbs.hostOS == 'linux' && qbs.targetOS == 'linux' && qbs.toolchain == 'gcc' && qbs.platform == 'ponyphone'

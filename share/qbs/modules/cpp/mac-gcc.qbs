@@ -1,6 +1,6 @@
 import qbs.base 1.0
 
-GenericGCC {
+UnixGCC {
     condition: qbs.hostOS == 'mac' && qbs.targetOS == 'mac' && qbs.toolchain == 'gcc'
 
     Rule {

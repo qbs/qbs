@@ -17,6 +17,12 @@ Module {
     property paths frameworkPaths
     property var compilerFlags
     property string compilerPath
+    property string staticLibraryPrefix
+    property string dynamicLibraryPrefix
+    property string executablePrefix
+    property string staticLibrarySuffix
+    property string dynamicLibrarySuffix
+    property string executableSuffix
     // ### same separation in msvc?
     property var dynamicLibraries // list of names, will be linked with -lname
     property var staticLibraries // list of static library files

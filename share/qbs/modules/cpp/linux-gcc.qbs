@@ -1,6 +1,6 @@
 import qbs.base 1.0
 
-GenericGCC {
+UnixGCC {
     condition: qbs.targetOS == 'linux' && qbs.toolchain == 'gcc'
 }
 

@@ -32,7 +32,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/lib" + product.name + (product.modules.qbs.toolchain == "mingw" ? ".dll" : ".so")
+            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.name + product.module.dynamicLibrarySuffix
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
@@ -104,7 +104,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/lib" + product.name + ".a"
+            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.name + product.module.staticLibrarySuffix
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
                 var result = []
@@ -146,7 +146,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + product.name + (product.modules.qbs.toolchain == "mingw" ? ".exe" : "")
+            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.name + product.module.executableSuffix
             fileTags: ["application"]
         }
 

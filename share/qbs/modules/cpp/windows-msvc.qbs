@@ -16,6 +16,13 @@ CppModule {
     property string windowsSDKPath: "UNKNOWN"
     property string architecture: qbs.architecture || "x86"
     property int responseFileThreshold: 32000
+    staticLibraryPrefix: ""
+    dynamicLibraryPrefix: ""
+    executablePrefix: ""
+    staticLibrarySuffix: ".lib"
+    dynamicLibrarySuffix: ".dll"
+    executableSuffix: ".exe"
+    property string dynamicLibraryImportSuffix: "_imp.lib"
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("INCLUDE", ";", true)
@@ -110,7 +117,7 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + product.name + ".exe"
+            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.name + product.module.executableSuffix
         }
 
         TransformProperties {
@@ -132,12 +139,12 @@ CppModule {
 
         Artifact {
             fileTags: ["dynamiclibrary"]
-            fileName: product.destinationDirectory + "/" + product.name + ".dll"
+            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.name + product.module.dynamicLibrarySuffix
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
-            fileName: product.destinationDirectory + "/" + product.name + "_imp.lib"
+            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.name + product.module.dynamicLibraryImportSuffix
         }
 
         TransformProperties {
@@ -159,7 +166,7 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + product.name + ".lib"
+            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.name + product.module.staticLibrarySuffix
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {
