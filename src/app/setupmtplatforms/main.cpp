@@ -42,6 +42,7 @@
 #include <QFileInfo>
 
 #include <iostream>
+#include <cstdlib>
 
 namespace qbs {
 

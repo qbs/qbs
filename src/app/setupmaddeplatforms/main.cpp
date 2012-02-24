@@ -43,6 +43,7 @@
 #include <QProcessEnvironment>
 
 #include <iostream>
+#include <cstdlib>
 
 namespace qbs {
 
