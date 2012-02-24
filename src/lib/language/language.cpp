@@ -274,6 +274,8 @@ QList<ResolvedModule*> topSortModules(const QHash<ResolvedModule*, QList<Resolve
 {
     QList<ResolvedModule*> result;
     foreach (ResolvedModule *m, modules) {
+        if (m->name.isNull())
+            continue;
         result.append(topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames));
         if (!seenModuleNames.contains(m->name)) {
             seenModuleNames.insert(m->name);
