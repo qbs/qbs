@@ -813,8 +813,6 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             Artifact *artifact = product->artifacts.value(inputFileName);
             if (!artifact)
                 throw Error(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
-            if (artifact->fileTags.isEmpty())
-                artifact->fileTags += "unknown";
             inputArtifacts += artifact;
         }
         QSharedPointer<Transformer> transformer(new Transformer);

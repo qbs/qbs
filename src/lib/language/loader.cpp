@@ -1548,6 +1548,17 @@ int Loader::productCount(Configuration::Ptr userProperties)
     return referencedProducts.count() + productChildrenCount;
 }
 
+static void applyFileTaggers(const SourceArtifact::Ptr &artifact, const ResolvedProduct::Ptr &product)
+{
+    if (artifact->fileTags.isEmpty()) {
+        artifact->fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
+        if (artifact->fileTags.isEmpty())
+            artifact->fileTags.insert(QLatin1String("unknown-file-tag"));
+        if (qbsLogLevel(LoggerTrace))
+            qbsTrace() << "[LDR] adding file tags " << artifact->fileTags << " to " << FileInfo::fileName(artifact->absoluteFilePath);
+    }
+}
+
 ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                                             Configuration::Ptr userProperties,
                                             QFutureInterface<bool> &futureInterface,
@@ -1636,17 +1647,18 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
             }
         }
 
-        // Apply file taggers and merge duplicate artifacts.
+        // Apply file taggers.
+        foreach (const SourceArtifact::Ptr &artifact, rproduct->sources)
+            applyFileTaggers(artifact, rproduct);
+        foreach (const ResolvedTransformer::Ptr &transformer, rproduct->transformers)
+            foreach (const SourceArtifact::Ptr &artifact, transformer->outputs)
+                applyFileTaggers(artifact, rproduct);
+
+        // Merge duplicate artifacts.
         QHash<QString, SourceArtifact::Ptr> uniqueArtifacts;
         foreach (const SourceArtifact::Ptr &artifact, rproduct->sources) {
-            if (artifact->fileTags.isEmpty()) {
-                artifact->fileTags = rproduct->fileTagsForFileName(artifact->absoluteFilePath);
-                if (!artifact->fileTags.isEmpty() && qbsLogLevel(LoggerTrace))
-                    qbsTrace() << "[LDR] adding file tags " << artifact->fileTags << " to " << FileInfo::fileName(artifact->absoluteFilePath);
-            }
             SourceArtifact::Ptr existing = uniqueArtifacts.value(artifact->absoluteFilePath);
             if (existing) {
-
                 // if an artifact is in the product and in a group, prefer the group configuration
                 if (existing->configuration == rproduct->configuration) {
                     existing->configuration = artifact->configuration;
