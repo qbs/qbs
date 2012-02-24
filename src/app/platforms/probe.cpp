@@ -366,7 +366,6 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &p
 int probe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
 {
 #ifdef Q_OS_WIN
-    Q_UNUSED(ask);
     msvcProbe(settingsPath, platforms);
     mingwProbe(settingsPath, platforms);
 #else
