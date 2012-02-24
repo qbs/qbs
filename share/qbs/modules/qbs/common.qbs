@@ -15,6 +15,7 @@ Module {
     property string architecture: null
     property string endianness: null
     property string installDir: '.'
+    property string sysroot
 
     PropertyOptions {
         name: "buildVariant"

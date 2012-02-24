@@ -10,7 +10,7 @@ CppModule {
     property string toolchainPrefix
     property string toolchainInstallPath
     property string compilerName: 'g++'
-    property string sysroot
+    property string sysroot: qbs.sysroot
 
     property string compilerPath: {
         var path = ''
