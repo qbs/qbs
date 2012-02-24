@@ -70,8 +70,6 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
 
 static int specific_probe(const QString &settingsPath,
         QHash<QString, Platform*> &platforms,
-        int (* ask)(const QString &msg, const QString &choices),
-        QString ( *prompt)(const QString &msg),
         QString cc,
                           bool printComfortingMessage = false
         )
@@ -99,8 +97,6 @@ static int specific_probe(const QString &settingsPath,
 
     QString name;
     QString sysroot;
-
-    bool isACrossCompiler = false;
 
     QString uname = qsystem("uname", QStringList() << "-m").simplified();
 
@@ -178,44 +174,6 @@ static int specific_probe(const QString &settingsPath,
     QStringList pathToGccL = pathToGcc.split('/');
     QString compilerName = pathToGccL.takeLast().replace(cc, cxx);
 
-    if (architecture != arch) {
-        isACrossCompiler = true;
-    }
-    if (!cross.isEmpty()) {
-        isACrossCompiler = true;
-    }
-
-    if (isACrossCompiler && !cross.contains(compilerTriplet)) {
-        if (s) {
-            compilerTriplet = s->settings.value(Platform::internalKey() + "/target-triplet").toString();
-        } else {
-            qDebug("==> detected %s (%s), but it doesn't seem to fit your cross target (%s)",
-                    qPrintable(pathToGcc),
-                    qPrintable(compilerTriplet),
-                    qPrintable(cross)
-                  );
-            if (ask("    assume this compiler produces "+cross+" and carry on?", "ny") == 0)
-                return 2;
-
-            compilerTriplet = cross;
-        }
-        compilerTripletl = compilerTriplet.split('-');
-        architecture = compilerTripletl.at(0);
-    }
-
-    if (
-            (isACrossCompiler) &&
-            (!cflags.contains("--sysroot"))
-       ) {
-        qDebug("==> detected cross compiler %s (%s), but CFLAGS don't contain a --syroot option "
-             "\n    If you did not want to cross-compiler, or you are in a chroot that is not arch %s,"
-             "\n    try overriding uname -m by setting ARCH=%s in the environment and/or unset CROSS_COMPILE"
-             "\n    ",
-                qPrintable(pathToGcc), qPrintable(compilerTriplet), qPrintable(arch), qPrintable(architecture));
-        return 3;
-    } else {
-    }
-
     if (cflags.contains("--sysroot")) {
         QStringList flagl = cflags.split(' ');
 
@@ -231,10 +189,7 @@ static int specific_probe(const QString &settingsPath,
         }
     }
 
-
-
     qstdout << "==> " << (s?"reconfiguring " + name :"detected")
-            << " " << (isACrossCompiler ? "cross compiler" :  "native compiler")
             << " " << pathToGcc << "\n"
             << "     triplet:  " << compilerTriplet << "\n"
             << "     arch:     " << architecture << "\n"
@@ -259,8 +214,8 @@ static int specific_probe(const QString &settingsPath,
     qstdout  << flush;
 
     if (!s) {
-        while (name.isEmpty())
-            name =  prompt("give a name to this platform:");
+        if (name.isEmpty())
+            name = toolchainType;
        s =  new Platform(name, settingsPath + "/" + name);
     }
 
@@ -408,14 +363,9 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &p
 }
 #endif
 
-int probe (const QString &settingsPath,
-        QHash<QString, Platform*> &platforms,
-        int (* ask)(const QString &msg, const QString &choices),
-        QString ( *prompt)(const QString &msg)
-        )
+int probe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
 {
 #ifdef Q_OS_WIN
-    Q_UNUSED(prompt);
     Q_UNUSED(ask);
     msvcProbe(settingsPath, platforms);
     mingwProbe(settingsPath, platforms);
@@ -423,11 +373,11 @@ int probe (const QString &settingsPath,
     QString cc = QString::fromLocal8Bit(qgetenv("CC"));
     if (cc.isEmpty()) {
         bool somethingFound = false;
-        if (specific_probe(settingsPath, platforms, ask, prompt, "gcc") == 0)
+        if (specific_probe(settingsPath, platforms, "gcc") == 0)
             somethingFound = true;
-        specific_probe(settingsPath, platforms, ask, prompt, "clang", somethingFound);
+        specific_probe(settingsPath, platforms, "clang", somethingFound);
     } else {
-        specific_probe(settingsPath, platforms, ask, prompt, cc);
+        specific_probe(settingsPath, platforms, cc);
     }
 #endif
     if (platforms.isEmpty())

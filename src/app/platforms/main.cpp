@@ -74,14 +74,7 @@ void showUsage()
         ;
 }
 
-static int ask(const QString &msg, const QString &choices);
-static QString prompt(const QString &msg);
-
-int probe (const QString &settingsPath,
-        QHash<QString, qbs::Platform*> &platforms,
-        int (* ask)(const QString &msg, const QString &choices),
-        QString ( *prompt)(const QString &msg)
-        );
+int probe(const QString &settingsPath, QHash<QString, qbs::Platform*> &platforms);
 
 int main(int argc, char **argv)
 {
@@ -227,72 +220,10 @@ int main(int argc, char **argv)
 
     } else if (action == ProbePlatform) {
         bool firstRun = targets.isEmpty();
-        probe(localSettingsPath, targets, ask, prompt);
+        probe(localSettingsPath, targets);
         if (firstRun && !targets.isEmpty()) {
             settings->setValue(qbs::Settings::Global, "defaults/platform", targets.values().at(0)->name);
         }
     }
     return 0;
-}
-
-
-static int ask(const QString &msg, const QString &choices)
-{
-#ifdef Q_OS_UNIX
-    termios stored_settings;
-    tcgetattr(0, &stored_settings);
-    termios new_settings = stored_settings;
-    new_settings.c_lflag &= (~ICANON);
-    new_settings.c_lflag &= (~ECHO); // don't echo the character
-    // apply the new settings
-    tcsetattr(0, TCSANOW, &new_settings);
-#endif
-
-    setvbuf ( stdin , NULL , _IONBF , 0 );
-
-
-    QTextStream qstdout(stdout);
-    qstdout << msg << " (";
-
-    QHash<QChar, int> cs;
-
-    for (int i = 0; i < choices.count(); i++) {
-        QChar c = choices.at(i);
-        cs.insert(c.toLower(), i);
-        if (i == 0)
-            qstdout  << c.toUpper();
-        else
-            qstdout  << c.toLower();
-        if (i != choices.count() -1)
-            qstdout  << "/";
-    }
-    qstdout  << ") " << flush;
-
-    while (true) {
-        QChar i = QChar(getc(stdin)).toLower();
-        if (i == '\n' || i == '\r') {
-#ifdef Q_OS_UNIX
-            tcsetattr(0, TCSANOW, &stored_settings);
-#endif
-            qstdout  << choices.at(0).toUpper() << "\n" << flush;
-            return 0;
-        }
-        if (cs.contains(i)) {
-#ifdef Q_OS_UNIX
-            tcsetattr(0, TCSANOW, &stored_settings);
-#endif
-            qstdout  << i << "\n" << flush;
-            return cs.value(i);
-        }
-    }
-}
-
-static QString prompt(const QString &msg)
-{
-    QTextStream qstdout(stdout);
-    qstdout << msg << " "<< flush;
-    QTextStream qstdin(stdin);
-    QString s;
-    qstdin >> s;
-    return s;
 }

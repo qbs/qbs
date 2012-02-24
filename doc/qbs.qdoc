@@ -210,9 +210,11 @@
     qbs platforms probe
     \endcode
 
-    You will be prompted to enter a name for a new platform.
-    For your desktop build environment choose "desktop".
-    This will be used as default build platform.
+    The platform prober will automatically choose a name for the detected
+    platforms. You can list the detected platforms by running
+    \code
+    qbs platforms list
+    \endcode
 
     Now you should be ready to build your first project with qbs.
     Go into qbs/tests/manual/hello and type
