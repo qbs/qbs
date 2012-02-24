@@ -110,6 +110,7 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
         const QSet<QString> &fileTags = output->fileTags;
+        Q_ASSERT(!fileTags.isEmpty());
         QScriptValue outputsForFileTag = scriptValue.property(*fileTags.begin());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
         targetScriptValue.setProperty("output", outputScriptValue, QScriptValue::ReadOnly);
