@@ -1091,7 +1091,12 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
     // other data
     rProduct = pool.idLoadS<ResolvedProduct>(s);
     loadContainer(targetArtifacts, s, pool);
-    loadContainer(usings, s, pool);
+
+    s >> count;
+    usings.clear();
+    usings.reserve(count);
+    for (; --count >= 0;)
+        usings += pool.idLoadS<BuildProduct>(s).data();
 }
 
 void BuildProduct::store(PersistentPool &pool, PersistentObjectData &data) const
