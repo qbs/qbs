@@ -252,7 +252,12 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
 
 void BuildGraph::applyRules(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag)
 {
-    foreach (Rule::Ptr rule, product->topSortedRules())
+    const QList<Rule::Ptr> &topSortedRules = product->topSortedRules();
+    if (topSortedRules.isEmpty()) {
+        QString msg = QLatin1String("The rules generated no artifacts for product '%1'. Most probably the product's type is invalid.");
+        throw Error(msg.arg(product->rProduct->name));
+    }
+    foreach (Rule::Ptr rule, topSortedRules)
         applyRule(product, artifactsPerFileTag, rule);
 }
 
@@ -851,11 +856,6 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
         foreach (Artifact *artifact, artifactsPerFileTag.value(product->rProduct->fileTags.at(i)))
             if (artifact->artifactType == Artifact::Generated)
                 productArtifactCandidates += artifact;
-
-    if (productArtifactCandidates.isEmpty()) {
-        // this should already be catched in the rule graph
-        throw Error("The impossible happenend! The rules generate no product.");
-    }
 
     foreach (Artifact *productArtifact, productArtifactCandidates) {
         product->targetArtifacts.insert(productArtifact);
