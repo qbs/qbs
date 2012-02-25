@@ -84,14 +84,14 @@ void Configuration::store(PersistentPool &, PersistentObjectData &data) const
 void FileTagger::load(PersistentPool &pool, PersistentObjectData &data)
 {
     QDataStream s(data);
-    artifactExpression = pool.idLoadString(s);
+    artifactExpression.setPattern(pool.idLoadString(s));
     fileTags = pool.idLoadStringList(s);
 }
 
 void FileTagger::store(PersistentPool &pool, PersistentObjectData &data) const
 {
     QDataStream s(&data, QIODevice::WriteOnly);
-    s << pool.storeString(artifactExpression);
+    s << pool.storeString(artifactExpression.pattern());
     s << pool.storeStringList(fileTags);
 }
 

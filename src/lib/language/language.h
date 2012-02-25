@@ -90,11 +90,16 @@ private:
     static QMutex m_scriptValueCacheMutex;
 };
 
-struct FileTagger : public qbs::PersistentObject
+class FileTagger : public qbs::PersistentObject
 {
+public:
     typedef QSharedPointer<FileTagger> Ptr;
-    QString artifactExpression;
+    QRegExp artifactExpression;
     QStringList fileTags;
+
+    FileTagger()
+        : artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
+    {}
 
 private:
     void load(qbs::PersistentPool &, qbs::PersistentObjectData &data);

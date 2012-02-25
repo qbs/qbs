@@ -2001,7 +2001,7 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
         const uint hashPrototypeName = qHash(object->prototype);
         if (hashPrototypeName == hashName_FileTagger) {
             FileTagger::Ptr fileTagger(new FileTagger);
-            fileTagger->artifactExpression = object->scope->stringValue("pattern");
+            fileTagger->artifactExpression.setPattern(object->scope->stringValue("pattern"));
             fileTagger->fileTags = object->scope->stringListValue("fileTags");
             rproduct->fileTaggers.insert(fileTagger);
         } else if (hashPrototypeName == hashName_Rule) {

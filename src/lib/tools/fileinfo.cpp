@@ -128,12 +128,33 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel)
     return r;
 }
 
-bool FileInfo::globMatches(const QString &pattern, const QString &subject)
+// QString doesn't have endsWith operator with QStringRef,
+// so we have to write own implementation.
+// It's really faster than call of QString::mid
+static bool fastStringEndsWith(const QString &fileName, const QStringRef &pattern)
 {
-    // ### the QRegExp wildcard matcher is slow!
-    //QRegExp rex(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
-    //return rex.exactMatch(subject);
-    return subject.endsWith(pattern.mid(1), Qt::CaseInsensitive);
+    if (fileName.size() < pattern.size())
+        return false;
+    return fileName.midRef(fileName.size() - pattern.size(), pattern.size())
+            .compare(pattern, Qt::CaseInsensitive) == 0;
+}
+
+bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
+{
+    const QString pattern = regexp.pattern();
+    // May be it's simple wildcard, i.e. "*.cpp"?
+    if (pattern.startsWith(QLatin1Char('*'))) {
+        for (int i = 1; i < pattern.size(); ++i) {
+            const QChar ch = pattern.at(i);
+            if (ch == QLatin1Char('*') || ch == QLatin1Char('?')
+                    || ch == QLatin1Char(']') || ch == QLatin1Char('[')) {
+                return regexp.exactMatch(fileName);
+            }
+        }
+        // Yes, it's rather simple to just check the extension
+        return fastStringEndsWith(fileName, pattern.midRef(1));
+    }
+    return regexp.exactMatch(fileName);
 }
 
 static QString resolveSymlinks(const QString &fileName)

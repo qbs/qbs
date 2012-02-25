@@ -65,7 +65,7 @@ public:
     static bool exists(const QString &fp);
     static bool isAbsolute(const QString &fp);
     static QString resolvePath(const QString &base, const QString &rel);
-    static bool globMatches(const QString &pattern, const QString &subject);
+    static bool globMatches(const QRegExp &pattern, const QString &subject);
 
 private:
 #if defined(Q_OS_WIN)
