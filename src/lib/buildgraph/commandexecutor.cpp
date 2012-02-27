@@ -138,17 +138,36 @@ void CommandExecutor::printCommandInfo(AbstractCommand *cmd)
     }
 }
 
+static QString commandArgsToString(const QStringList &args)
+{
+    QString result;
+    QRegExp ws("\\s");
+    bool first = true;
+    foreach (const QString &arg, args) {
+        if (first)
+            first = false;
+        else
+            result += QLatin1Char(' ');
+
+        if (arg.contains(ws))
+            result += QLatin1Char('"') + arg + QLatin1Char('"');
+        else
+            result += arg;
+    }
+    return result;
+}
+
 void CommandExecutor::startProcessCommand()
 {
     Q_ASSERT(m_process.state() == QProcess::NotRunning);
 
     printCommandInfo(m_processCommand);
     if (!m_processCommand->isSilent()) {
-        QString commandLine = m_processCommand->program() + QLatin1Char(' ') + m_processCommand->arguments().join(" ");
+        QString commandLine = m_processCommand->program() + QLatin1Char(' ') + commandArgsToString(m_processCommand->arguments());
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << commandLine;
     }
     if (qbsLogLevel(LoggerDebug)) {
-        qbsDebug() << "[EXEC] " << m_processCommand->program() + QLatin1Char(' ') + m_processCommand->arguments().join(" ");
+        qbsDebug() << "[EXEC] " << m_processCommand->program() + QLatin1Char(' ') + commandArgsToString(m_processCommand->arguments());
     }
 
     // Automatically use response files, if the command line gets to long.
@@ -180,7 +199,7 @@ void CommandExecutor::startProcessCommand()
             arguments.clear();
             arguments += QDir::toNativeSeparators(m_processCommand->responseFileUsagePrefix() + responseFile.fileName());
             if (qbsLogLevel(LoggerDebug))
-                qbsDebug("[EXEC] command line with response file: %s %s", qPrintable(m_processCommand->program()), qPrintable(arguments.join(" ")));
+                qbsDebug("[EXEC] command line with response file: %s %s", qPrintable(m_processCommand->program()), qPrintable(commandArgsToString(arguments)));
         }
     }
 
@@ -225,10 +244,8 @@ static QStringList filePathsFromInputArtifacts(Transformer *transformer)
 void CommandExecutor::sendProcessOutput(bool logCommandLine)
 {
     QString commandLine = m_processCommand->program();
-    if (!m_processCommand->arguments().isEmpty()) {
-        commandLine += ' ';
-        commandLine += m_processCommand->arguments().join(" ");
-    }
+    if (!m_processCommand->arguments().isEmpty())
+        commandLine += commandArgsToString(m_processCommand->arguments());
 
     QByteArray processStdOut = filterProcessOutput(m_process.readAllStandardOutput(), m_processCommand->stdoutFilterFunction());
     QByteArray processStdErr = filterProcessOutput(m_process.readAllStandardError(), m_processCommand->stderrFilterFunction());
