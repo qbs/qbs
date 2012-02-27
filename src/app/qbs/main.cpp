@@ -230,6 +230,8 @@ int main(int argc, char *argv[])
     result = app.exec();
     if (buildExecutor->state() == Qbs::BuildExecutor::ExecutorError)
         return ExitCodeErrorExecutionFailed;
+    if (buildExecutor->buildResult() != Qbs::BuildExecutor::SuccessfulBuild)
+        result = ExitCodeErrorBuildFailure;
 
     // store the projects on disk
     try {
