@@ -33,7 +33,12 @@ Module {
         inputs: ["install"]
         Artifact {
             fileTags: ["installed_content"]
-            fileName: input.modules.qbs.installDir + "/" + input.fileName
+            fileName: {
+                var targetPath = input.modules.qbs.installDir + "/" + input.fileName
+                if (product.module.sysroot && FileInfo.isAbsolutePath(targetPath))
+                    targetPath = product.module.sysroot + targetPath
+                return targetPath
+            }
         }
 
         prepare: {
