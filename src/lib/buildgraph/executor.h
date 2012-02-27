@@ -70,11 +70,17 @@ public:
         ExecutorError
     };
 
+    enum BuildResult {
+        SuccessfulBuild,
+        FailedBuild
+    };
+
     void setRunOnceAndForgetModeEnabled(bool enabled) { m_runOnceAndForgetMode = enabled; }
     void setDryRun(bool b);
     void setKeepGoing(bool b) { m_keepGoing = b; }
     bool isKeepGoingSet() const { return m_keepGoing; }
     ExecutorState state() const { return m_state; }
+    BuildResult buildResult() const { return m_buildResult; }
 
     void setMaximumJobs(int numberOfJobs);
     int maximumJobs() const;
@@ -127,6 +133,7 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
+    BuildResult m_buildResult;
     bool m_keepGoing;
     QList<BuildProject::Ptr> m_projectsToBuild;
     QList<BuildProduct::Ptr> m_productsToBuild;

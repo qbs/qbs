@@ -58,6 +58,7 @@ Executor::Executor(int maxJobs)
     : m_scriptEngine(0)
     , m_runOnceAndForgetMode(false)
     , m_state(ExecutorIdle)
+    , m_buildResult(SuccessfulBuild)
     , m_keepGoing(false)
     , m_maximumJobNumber(maxJobs)
     , m_futureInterface(0)
@@ -87,6 +88,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
     m_futureInterface = &futureInterface;
+    m_buildResult = SuccessfulBuild;
     bool success = true;
 
     setState(ExecutorRunning);
@@ -725,6 +727,7 @@ void Executor::resolveScanResultDependencies(const QStringList &includePaths,
 
 void Executor::onProcessError(QString errorString)
 {
+    m_buildResult = FailedBuild;
     if (m_keepGoing) {
         qbsWarning() << tr("ignoring error: %1").arg(errorString);
         onProcessSuccess();
