@@ -44,13 +44,13 @@ Module {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() {
-                        File.remove(output.fileName);
-                        File.copy(input.fileName, output.fileName);
-                    }
+                File.remove(output.fileName);
+                if (!File.copy(input.fileName, output.fileName))
+                    throw "Cannot copy '" + input.fileName + "' to '" + output.fileName + "'";
+            }
             cmd.description = "installing " + FileInfo.fileName(output.fileName);
             cmd.highlight = "linker";
             return cmd;
         }
-
     }
 }
