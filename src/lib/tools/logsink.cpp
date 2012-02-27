@@ -53,13 +53,13 @@ void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &
     if (message.printLogLevel) {
         switch (level) {
         case LoggerFatal:
-            fprintfColored(TextColorRed, file, "FATAL ERROR: ");
+            fprintfWrapper(TextColorRed, file, "FATAL ERROR: ");
             break;
         case LoggerError:
-            fprintfColored(TextColorRed, file, "ERROR: ");
+            fprintfWrapper(TextColorRed, file, "ERROR: ");
             break;
         case LoggerWarning:
-            fprintfColored(TextColorYellow, file, "WARNING: ");
+            fprintfWrapper(TextColorYellow, file, "WARNING: ");
             break;
         case LoggerInfo:
             fprintf(file, "INFO: ");
@@ -72,10 +72,18 @@ void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &
             break;
         }
     }
-    if (message.textColor == TextColorDefault || !m_coloredOutputEnabled)
-        fprintf(file, "%s\n", message.data.data());
+    fprintfWrapper(message.textColor, file, "%s\n", message.data.data());
+}
+
+void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
+{
+    va_list vl;
+    va_start(vl, str);
+    if (m_coloredOutputEnabled)
+        fprintfColored(color, file, str, vl);
     else
-        fprintfColored(message.textColor, file, "%s\n", message.data.data());
+        vfprintf(file, str, vl);
+    va_end(vl);
 }
 
 } // namespace qbs

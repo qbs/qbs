@@ -52,6 +52,9 @@ protected:
     virtual void outputLogMessage(LoggerLevel level, const LogMessage &message);
 
 private:
+    void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
+
+private:
     bool m_coloredOutputEnabled;
 };
 
