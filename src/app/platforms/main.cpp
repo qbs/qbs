@@ -74,7 +74,7 @@ void showUsage()
         ;
 }
 
-int probe(const QString &settingsPath, QHash<QString, qbs::Platform*> &platforms);
+int probe(const QString &settingsPath, QHash<QString, qbs::Platform::Ptr> &platforms);
 
 int main(int argc, char **argv)
 {
@@ -125,21 +125,21 @@ int main(int argc, char **argv)
         }
     }
 
-    QHash<QString, qbs::Platform*> targets;
+    QHash<QString, qbs::Platform::Ptr> platforms;
     QDirIterator i(localSettingsPath, QDir::Dirs | QDir::NoDotAndDotDot);
     while (i.hasNext()) {
         i.next();
-        qbs::Platform *t = new qbs::Platform(i.fileName(), i.filePath());
-        targets.insert(t->name, t);
+        qbs::Platform::Ptr platform(new qbs::Platform(i.fileName(), i.filePath()));
+        platforms.insert(platform->name, platform);
     }
 
     if (action == ListPlatform) {
         qstdout << "Platforms:\n";
-        foreach (qbs::Platform *t, targets.values()) {
-            qstdout << "\t- " << t->name;
-            if (t->name == defaultPlatform)
+        foreach (qbs::Platform::Ptr platform, platforms.values()) {
+            qstdout << "\t- " << platform->name;
+            if (platform->name == defaultPlatform)
                 qstdout << " (default)";
-            qstdout << " "<< t->settings.value("target-triplet").toString() << "\n";
+            qstdout << " "<< platform->settings.value("target-triplet").toString() << "\n";
         }
     } else if (action == RenamePlatform) {
         if (arguments.count() < 2) {
@@ -147,12 +147,12 @@ int main(int argc, char **argv)
             return 3;
         }
         QString from = arguments.takeFirst();
-        if (!targets.contains(from)) {
+        if (!platforms.contains(from)) {
             qDebug("cannot rename: no such target: %s", qPrintable(from));
             return 5;
         }
         QString to = arguments.takeFirst();
-        if (targets.contains(to)) {
+        if (platforms.contains(to)) {
             qDebug("cannot rename: already exists: %s", qPrintable(to));
             return 5;
         }
@@ -163,14 +163,14 @@ int main(int argc, char **argv)
                     );
             return 5;
         }
-        targets.insert(to, targets.take(from));
+        platforms.insert(to, platforms.take(from));
     } else if (action == RemovePlatform) {
         if (arguments.count() < 1) {
             showUsage();
             return 3;
         }
         QString targetName = arguments.takeFirst();
-        if (!targets.contains(targetName)) {
+        if (!platforms.contains(targetName)) {
             qDebug("cannot remove: no such target: %s", qPrintable(targetName));
             return 5;
         }
@@ -189,18 +189,18 @@ int main(int argc, char **argv)
             QDir().rmdir(i2.filePath());
         }
         QDir().rmdir(localSettingsPath + targetName);
-        delete targets.take(targetName);
+        platforms.remove(targetName);
     } else if (action == ConfigPlatform) {
         if (arguments.count() < 1) {
             showUsage();
             return 3;
         }
-        QString targetName= arguments.takeFirst();
-        if (!targets.contains(targetName)) {
-            qDebug("no such target: %s", qPrintable(targetName));
+        QString platformName = arguments.takeFirst();
+        if (!platforms.contains(platformName)) {
+            fprintf(stderr, "Unknown platform '%s'.", qPrintable(platformName));
             return 5;
         }
-        qbs::Platform *p = targets.value(targetName);
+        qbs::Platform::Ptr p = platforms.value(platformName);
         if (arguments.count()) {
             QString key = arguments.takeFirst();
             if (arguments.count()) {
@@ -219,10 +219,10 @@ int main(int argc, char **argv)
         }
 
     } else if (action == ProbePlatform) {
-        bool firstRun = targets.isEmpty();
-        probe(localSettingsPath, targets);
-        if (firstRun && !targets.isEmpty()) {
-            settings->setValue(qbs::Settings::Global, "defaults/platform", targets.values().at(0)->name);
+        bool firstRun = platforms.isEmpty();
+        probe(localSettingsPath, platforms);
+        if (firstRun && !platforms.isEmpty()) {
+            settings->setValue(qbs::Settings::Global, "defaults/platform", platforms.values().at(0)->name);
         }
     }
     return 0;

@@ -69,10 +69,9 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
 }
 
 static int specific_probe(const QString &settingsPath,
-        QHash<QString, Platform*> &platforms,
-        QString cc,
-                          bool printComfortingMessage = false
-        )
+                          QHash<QString, Platform::Ptr> &platforms,
+                          QString cc,
+                          bool printComfortingMessage = false)
 {
     QTextStream qstdout(stdout);
 
@@ -142,8 +141,8 @@ static int specific_probe(const QString &settingsPath,
         return 1;
     }
 
-    Platform *s = 0;
-    foreach (Platform *p, platforms.values()) {
+    Platform::Ptr s;
+    foreach (Platform::Ptr p, platforms.values()) {
         QString path = p->settings.value(Platform::internalKey() + "/completeccpath").toString();
         if (path == pathToGcc) {
             name = p->name;
@@ -216,7 +215,7 @@ static int specific_probe(const QString &settingsPath,
     if (!s) {
         if (name.isEmpty())
             name = toolchainType;
-       s =  new Platform(name, settingsPath + "/" + name);
+       s = Platform::Ptr(new Platform(name, settingsPath + "/" + name));
     }
 
     // fixme should be cpp.toolchain
@@ -254,13 +253,11 @@ static int specific_probe(const QString &settingsPath,
         s->settings.setValue("environment/LDFLAGS", ldflags);
 
     platforms.insert(s->name, s);
-
-    s->settings.sync();
     return 0;
 }
 
 #ifdef Q_OS_WIN
-static void msvcProbe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
+static void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
 {
     QTextStream qstdout(stdout);
 
@@ -306,9 +303,9 @@ static void msvcProbe(const QString &settingsPath, QHash<QString, Platform*> &pl
         return;
     vsInstallDir.truncate(idx);
 
-    Platform *platform = platforms.value(msvcVersion);
+    Platform::Ptr platform = platforms.value(msvcVersion);
     if (!platform) {
-       platform = new Platform(msvcVersion, settingsPath + "/" + msvcVersion);
+       platform = Platform::Ptr(new Platform(msvcVersion, settingsPath + "/" + msvcVersion));
        platforms.insert(platform->name, platform);
     }
     platform->settings.setValue("targetOS", "windows");
@@ -317,10 +314,9 @@ static void msvcProbe(const QString &settingsPath, QHash<QString, Platform*> &pl
     platform->settings.setValue("cpp/windowsSDKPath", winSDKPath);
     qstdout << "Detected platform " << msvcVersion << " for " << clArch << ".\n";
     qstdout << "When building projects, the architecture can be chosen by passing\narchitecture:x86 or architecture:x86_64 to qbs.\n";
-    platform->settings.sync();
 }
 
-static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
+static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
 {
     QString mingwPath;
     QString mingwBinPath;
@@ -350,20 +346,19 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform*> &p
         return;
     }
 
-    Platform *platform = platforms.value(gccMachineName);
+    Platform::Ptr platform = platforms.value(gccMachineName);
     printf("Platform '%s' detected in '%s'.", gccMachineName.data(), qPrintable(QDir::toNativeSeparators(mingwPath)));
     if (!platform) {
-       platform = new Platform(gccMachineName, settingsPath + "/" + gccMachineName);
+       platform = Platform::Ptr(new Platform(gccMachineName, settingsPath + "/" + gccMachineName));
        platforms.insert(platform->name, platform);
     }
     platform->settings.setValue("targetOS", "windows");
     platform->settings.setValue("cpp/toolchainInstallPath", QDir::toNativeSeparators(mingwBinPath));
     platform->settings.setValue("toolchain", "mingw");
-    platform->settings.sync();
 }
 #endif
 
-int probe(const QString &settingsPath, QHash<QString, Platform*> &platforms)
+int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
 {
 #ifdef Q_OS_WIN
     msvcProbe(settingsPath, platforms);
