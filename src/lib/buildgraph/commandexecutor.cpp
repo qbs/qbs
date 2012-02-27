@@ -59,6 +59,7 @@ struct JavaScriptCommandFutureResult
 {
     bool success;
     QString errorMessage;
+    CodeLocation errorLocation;
 };
 
 class JavaScriptCommandFutureWatcher : public QFutureWatcher<JavaScriptCommandFutureResult>
@@ -346,12 +347,16 @@ public:
         scriptEngine->pushContext();
         for (QVariantMap::const_iterator it = m_jsCommand->properties().constBegin(); it != m_jsCommand->properties().constEnd(); ++it)
             scriptEngine->currentContext()->activationObject().setProperty(it.key(), scriptEngine->toScriptValue(it.value()));
+
         scriptEngine->evaluate(m_jsCommand->sourceCode());
         if (scriptEngine->hasUncaughtException()) {
             result.success = false;
             result.errorMessage = scriptEngine->uncaughtException().toString();
+            result.errorLocation = m_jsCommand->codeLocation();
+            result.errorLocation.line += scriptEngine->uncaughtExceptionLineNumber();
         }
         scriptEngine->popContext();
+        scriptEngine->clearExceptions();
         return result;
     }
 
@@ -379,11 +384,11 @@ void CommandExecutor::onJavaScriptCommandFinished()
     if (result.success) {
         emit finished();
     } else {
-        qbsInfo() << DontPrintLogLevel << "JS context:\n" << m_jsCommand->properties();
-        qbsInfo() << DontPrintLogLevel << "JS code:\n" << m_jsCommand->sourceCode();
-        QString msg = "Error while executing JavaScriptCommand: ";
+        qbsDebug() << DontPrintLogLevel << "JS context:\n" << m_jsCommand->properties();
+        qbsDebug() << DontPrintLogLevel << "JS code:\n" << m_jsCommand->sourceCode();
+        QString msg = "Error while executing JavaScriptCommand (%1:%2):\n";
         msg += result.errorMessage;
-        emit error(msg);
+        emit error(msg.arg(QDir::toNativeSeparators(result.errorLocation.fileName)).arg(result.errorLocation.line));
     }
 }
 
