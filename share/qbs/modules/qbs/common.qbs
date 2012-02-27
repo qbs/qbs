@@ -20,7 +20,7 @@ Module {
     PropertyOptions {
         name: "buildVariant"
         allowedValues: ['debug', 'release']
-        description: "Defines the consistence of your ice cream sandwich"
+        description: "name of the build variant"
     }
 
     PropertyOptions {
