@@ -62,6 +62,11 @@ public:
         ExecutorError
     };
 
+    enum BuildResult {
+        SuccessfulBuild,
+        FailedBuild
+    };
+
     void setMaximumJobs(int numberOfJobs);
     int maximumJobs() const;
 
@@ -80,6 +85,7 @@ public:
                               QStringList selectedProductNames);
 
     ExecutorState state() const;
+    BuildResult buildResult() const;
 
 private: //functions
     void setState(const ExecutorState &state);
@@ -91,6 +97,7 @@ private:  // variables
     bool m_dryRun;
     bool m_keepGoing;
     ExecutorState m_state;
+    BuildResult m_buildResult;
 };
 
 } // namespace Qbs

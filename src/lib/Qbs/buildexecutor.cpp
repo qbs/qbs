@@ -149,6 +149,7 @@ void BuildExecutor::executeBuildProjects(QFutureInterface<bool> &futureInterface
     eventLoop.exec();
 
     setState(static_cast<ExecutorState>(executor.state()));
+    m_buildResult = static_cast<BuildResult>(executor.buildResult());
 
     if (futureInterface.resultCount() == 0)
         futureInterface.reportResult(true);
@@ -158,6 +159,11 @@ BuildExecutor::ExecutorState BuildExecutor::state() const
 {
     QReadLocker locker(&m_lock);
     return m_state;
+}
+
+BuildExecutor::BuildResult BuildExecutor::buildResult() const
+{
+    return m_buildResult;
 }
 
 void BuildExecutor::setState(const BuildExecutor::ExecutorState &state)
