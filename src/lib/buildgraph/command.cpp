@@ -64,8 +64,9 @@ AbstractCommand *AbstractCommand::createByType(AbstractCommand::CommandType comm
     return 0;
 }
 
-void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue)
+void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
+    Q_UNUSED(codeLocation);
     m_description = scriptValue->property("description").toString();
     m_highlight = scriptValue->property("highlight").toString();
     m_silent = scriptValue->property("silent").toBool();
@@ -132,9 +133,10 @@ ProcessCommand::ProcessCommand()
 {
 }
 
-void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue)
+void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
-    AbstractCommand::fillFromScriptValue(scriptValue);
+    Q_UNUSED(codeLocation);
+    AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
     m_program = scriptValue->property("program").toString();
     m_arguments = scriptValue->property("arguments").toVariant().toStringList();
     m_workingDir = scriptValue->property("workingDirectory").toString();
@@ -195,9 +197,10 @@ JavaScriptCommand::JavaScriptCommand()
 {
 }
 
-void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue)
+void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
-    AbstractCommand::fillFromScriptValue(scriptValue);
+    m_codeLocation = codeLocation;
+    AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
     QScriptValue sourceCode = scriptValue->property("sourceCode");
     if (sourceCode.isFunction()) {
         m_sourceCode = "(" + sourceCode.toString() + ")()";
@@ -219,13 +222,17 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue)
 void JavaScriptCommand::load(QDataStream &s)
 {
     AbstractCommand::load(s);
-    s >> m_sourceCode >> m_properties;
+    s   >> m_sourceCode
+        >> m_properties
+        >> m_codeLocation;
 }
 
 void JavaScriptCommand::store(QDataStream &s)
 {
     AbstractCommand::store(s);
-    s << m_sourceCode << m_properties;
+    s   << m_sourceCode
+        << m_properties
+        << m_codeLocation;
 }
 
 } // namespace qbs

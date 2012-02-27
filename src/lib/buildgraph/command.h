@@ -37,6 +37,8 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+#include <tools/codelocation.h>
+
 #include <QtCore/QStringList>
 #include <QtCore/QVariantMap>
 
@@ -62,7 +64,7 @@ public:
     static AbstractCommand *createByType(CommandType commandType);
 
     virtual CommandType type() const { return AbstractCommandType; }
-    virtual void fillFromScriptValue(const QScriptValue *scriptValue);
+    virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     virtual void load(QDataStream &s);
     virtual void store(QDataStream &s);
 
@@ -89,7 +91,7 @@ public:
     ProcessCommand();
 
     CommandType type() const { return ProcessCommandType; }
-    void fillFromScriptValue(const QScriptValue *scriptValue);
+    void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     void load(QDataStream &s);
     void store(QDataStream &s);
 
@@ -136,17 +138,20 @@ public:
     JavaScriptCommand();
 
     virtual CommandType type() const { return JavaScriptCommandType; }
-    void fillFromScriptValue(const QScriptValue *scriptValue);
+    void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     void load(QDataStream &s);
     void store(QDataStream &s);
 
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
+    const CodeLocation &codeLocation() const { return m_codeLocation; }
+    void setCodeLocation(const CodeLocation &loc) { m_codeLocation = loc; }
     const QVariantMap &properties() const { return m_properties; }
 
 private:
     QString m_sourceCode;
     QVariantMap m_properties;
+    CodeLocation m_codeLocation;
 };
 
 } // namespace qbs

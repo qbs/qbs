@@ -298,7 +298,7 @@ void BuildGraph::detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact 
     done += v;
 }
 
-static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptValue)
+static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptValue, const CodeLocation &codeLocation)
 {
     if (scriptValue.isUndefined() || !scriptValue.isValid())
         return 0;
@@ -309,7 +309,7 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
     else if (className == "JavaScriptCommand")
         cmdBase = new JavaScriptCommand;
     if (cmdBase)
-        cmdBase->fillFromScriptValue(&scriptValue);
+        cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
     return cmdBase;
 }
 
@@ -580,13 +580,13 @@ void BuildGraph::createTransformerCommands(RuleScript::Ptr script, Transformer *
         for (qint32 i=0; i < count; ++i) {
             QScriptValue item = scriptValue.property(i);
             if (item.isValid() && !item.isUndefined()) {
-                AbstractCommand *cmd = createCommandFromScriptValue(item);
+                AbstractCommand *cmd = createCommandFromScriptValue(item, script->location);
                 if (cmd)
                     commands += cmd;
             }
         }
     } else {
-        AbstractCommand *cmd = createCommandFromScriptValue(scriptValue);
+        AbstractCommand *cmd = createCommandFromScriptValue(scriptValue, script->location);
         if (cmd)
             commands += cmd;
     }
