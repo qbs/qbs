@@ -130,7 +130,7 @@ SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const
     if (!proFile.open())
         throw Exception(tr("Could not create temporary file."));
     const QByteArray qmakeMessagePrefix = "Project MESSAGE: ";
-    proFile.write("message($$QMAKE_CXXFLAGS_DEBUG)");
+    proFile.write("message($$QMAKE_CXXFLAGS_DEBUG $$QMAKE_CXXFLAGS_APP)");
     if (!proFile.flush()) {
         throw Exception(tr("Could not write temporary project file: %1")
             .arg(proFile.errorString()));
