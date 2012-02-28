@@ -126,7 +126,7 @@ CppModule {
             property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
             property var dynamicLibraries: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries')
-            property var linkerFlags: ModUtils.appendAll(inpulinkerFlagskerFlags')
+            property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
         }
 
         prepare: {
@@ -154,7 +154,7 @@ CppModule {
             property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
             property var dynamicLibraries: ModUtils.appendAll(product, 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries')
-            property var linkerFlags: ModUtils.appendAll(inpulinkerFlagskerFlags')
+            property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
         }
 
         prepare: {
