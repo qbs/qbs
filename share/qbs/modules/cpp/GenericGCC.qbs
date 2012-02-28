@@ -64,7 +64,7 @@ CppModule {
                     '-Wl,-soname=' + FileInfo.fileName(output.fileName)
                 ]);
             args = args.concat([
-                '-Wl,-rpath,\$ORIGIN',
+                '-Wl,-rpath,$ORIGIN',
                 '-shared'
             ]);
             for (var i in inputs.obj)
@@ -163,7 +163,7 @@ CppModule {
                 args.push(inputs.obj[i].fileName)
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
-            args.push('-Wl,-rpath,\$ORIGIN');
+            args.push('-Wl,-rpath,$ORIGIN');
             args.push('-o');
             args.push(output.fileName);
 
