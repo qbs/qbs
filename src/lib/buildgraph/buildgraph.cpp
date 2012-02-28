@@ -1201,12 +1201,6 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
             throw Error(msg.arg(project->resolvedProject()->qbsFile));
         }
 
-        if (projectFileChanged) {
-            qWarning("[BG] project file changed: %s", qPrintable(project->resolvedProject()->qbsFile));
-            qWarning("[BG] ### HANDLING THAT PROPERLY IS NOT YET IMPLEMENTED");
-            qWarning("[BG] ### CONSIDER DELETING THE STORED BUILD GRAPH");
-        }
-
         QMap<QString, ResolvedProduct::Ptr> changedProductsMap;
         foreach (BuildProduct::Ptr product, changedProducts) {
             if (changedProductsMap.isEmpty())
