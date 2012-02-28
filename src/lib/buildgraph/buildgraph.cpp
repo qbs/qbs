@@ -920,14 +920,6 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
         if (changedArtifact->configuration->value() != a->configuration->value())        // ### TODO
         {
             qWarning("Some properties changed. Consider rebuild or fix QBS-7. File name: %s", qPrintable(changedArtifact->absoluteFilePath));
-            QVariantMap m = a->configuration->value();
-
-            for (QVariantMap::iterator it = m.begin(); it != m.end(); ++it) {
-                if (it.value() != changedArtifact->configuration->value().value(it.key())) {
-                    qDebug() << "    old:" << it.value();
-                    qDebug() << "    new:" << changedArtifact->configuration->value().value(it.key());
-                }
-            }
         }
     }
 
