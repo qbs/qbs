@@ -1,5 +1,6 @@
 function prepareCompiler(product, input, outputs, defines, includePaths, compilerFlags)
 {
+    var i;
     var optimization = input.module.optimization
     var debugInformation = input.module.debugInformation
     var architecture = input.module.architecture
@@ -31,7 +32,7 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
         args.push('/w')
     if (warningLevel === 'all')
         args.push('/Wall')
-    for (var i in includePaths)
+    for (i in includePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(includePaths[i]))
     for (i in defines)
         args.push('/D' + defines[i])
@@ -66,7 +67,7 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
         clPath += 'amd64/'
     clPath += 'cl.exe'
 
-    for (var i in compilerFlags) {
+    for (i in compilerFlags) {
         args.push(compilerFlags[i])
     }
 
@@ -85,6 +86,7 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
 
 function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries)
 {
+    var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
     var optimization = product.module.optimization
@@ -115,17 +117,17 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     var allInputs = inputs.obj.concat(inputs.staticlibrary || [])
     if (inputs.dynamiclibrary_import)
         allInputs = inputs.obj.concat(inputs.dynamiclibrary_import)
-    for (var i in allInputs) {
+    for (i in allInputs) {
         var fileName = FileInfo.toWindowsSeparators(allInputs[i].fileName)
         args.push(fileName)
     }
-    for (var i in staticLibraries) {
+    for (i in staticLibraries) {
         var staticLibrary = staticLibraries[i];
         if (!staticLibrary.match(/\.lib$/i))
             staticLibrary += ".lib";
         args.push(staticLibrary)
     }
-    for (var i in dynamicLibraries) {
+    for (i in dynamicLibraries) {
         var dynamicLibrary = dynamicLibraries[i];
         if (!dynamicLibrary.match(/\.lib$/i))
             dynamicLibrary += ".lib";
@@ -134,7 +136,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
 
     var nativeOutputFileName = FileInfo.toWindowsSeparators(primaryOutput.fileName)
     args.push('/OUT:' + nativeOutputFileName)
-    for (var i in libraryPaths) {
+    for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
     args = args.concat(dynamicLibraries)
@@ -156,12 +158,12 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
 
     if (generateManifestFiles) {
         // embed the generated manifest files
-        var args = [
+        args = [
             '/nologo', '/manifest', manifestFileName,
             '/outputresource:' + nativeOutputFileName + ';1'
         ]
         var mtPath = windowsSDKPath + '/bin/mt.exe'
-        var cmd = new Command(mtPath, args)
+        cmd = new Command(mtPath, args)
         cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.fileName)
         cmd.highlight = 'linker';
         cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
