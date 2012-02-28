@@ -199,7 +199,9 @@ void SpecialPlatformsSetup::writeConfigFile(const PlatformInfo &platformInfo,
     settings.beginGroup(QLatin1String("cpp"));
     settings.setValue(QLatin1String("toolchainInstallPath"), platformInfo.toolchainDir);
     settings.setValue(QLatin1String("compilerName"), platformInfo.compilerName);
-    settings.setValue(QLatin1String("compilerFlags"), platformInfo.compilerFlags);
+    settings.setValue(QLatin1String("cFlags"), platformInfo.cFlags);
+    settings.setValue(QLatin1String("cxxFlags"), platformInfo.cxxFlags);
+    settings.setValue(QLatin1String("linkerFlags"), platformInfo.ldFlags);
     settings.endGroup();
 
     settings.beginGroup(QLatin1String("qt/core"));

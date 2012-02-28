@@ -59,7 +59,9 @@ public:
         QString name;
         QString toolchainDir;
         QString compilerName;
-        QStringList compilerFlags;
+        QStringList cFlags;
+        QStringList cxxFlags;
+        QStringList ldFlags;
         QString sysrootDir;
         QString qtBinDir;
         QString qtIncDir;

@@ -108,10 +108,10 @@ QStringList MtPlatformsSetup::gatherMtPlatformNames()
 SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const QString &platform)
 {
     PlatformInfo platformInfo;
-    const QString prefix = QLatin1String("mt-");
+    const QString platformNamePrefix = QLatin1String("mt-");
     platformInfo.name = platform;
-    if (!platformInfo.name.startsWith(prefix))
-        platformInfo.name.prepend(prefix);
+    if (!platformInfo.name.startsWith(platformNamePrefix))
+        platformInfo.name.prepend(platformNamePrefix);
 
     const QString platformDir = m_mtSubDir + QLatin1Char('/') + platform;
     platformInfo.toolchainDir = platformDir + QLatin1String("/toolchain/bin");
@@ -130,7 +130,12 @@ SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const
     if (!proFile.open())
         throw Exception(tr("Could not create temporary file."));
     const QByteArray qmakeMessagePrefix = "Project MESSAGE: ";
+    proFile.write("message($$QMAKE_CFLAGS_DEBUG $$QMAKE_CFLAGS_APP)");
     proFile.write("message($$QMAKE_CXXFLAGS_DEBUG $$QMAKE_CXXFLAGS_APP)");
+    proFile.write("message($$QMAKE_LFLAGS_DEBUG $$QMAKE_LFLAGS_APP)");
+    QStringList * const flagsVars[] = {
+        &platformInfo.cFlags, &platformInfo.cxxFlags, &platformInfo.ldFlags
+    };
     if (!proFile.flush()) {
         throw Exception(tr("Could not write temporary project file: %1")
             .arg(proFile.errorString()));
@@ -139,16 +144,17 @@ SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const
     const QString qmakeOutputFilePath = proFile.fileName() + QLatin1String("blubb");
     const QStringList qmakeArgs = QStringList() << QLatin1String("-o") << qmakeOutputFilePath
         << proFile.fileName();
-    const QByteArray qmakeMessage = runProcess(qmakeCommand + QLatin1Char(' ')
-        + qmakeArgs.join(QLatin1String(" ")), QProcessEnvironment::systemEnvironment());
+    const QString qmakeMessage = QString::fromLocal8Bit(runProcess(qmakeCommand + QLatin1Char(' ')
+        + qmakeArgs.join(QLatin1String(" ")), QProcessEnvironment::systemEnvironment()));
     if (!QFile::remove(qmakeOutputFilePath))
         qDebug("Failed to remove temporary file '%s', ignoring.", qPrintable(qmakeOutputFilePath));
-    if (!qmakeMessage.startsWith(qmakeMessagePrefix)) {
-        throw Exception(tr("Unexpected qmake output: '%1'")
-            .arg(QString::fromLocal8Bit(qmakeMessage)));
+    QStringList qmakeMessageLines = qmakeMessage.split(QLatin1Char('\n'), QString::SkipEmptyParts);
+    if (qmakeMessageLines.count() != sizeof flagsVars/sizeof *flagsVars)
+        throw Exception(tr("Unexpected qmake output: '%1'").arg(qmakeMessage));
+    for (int i = 0; i < qmakeMessageLines.count(); ++i) {
+        *flagsVars[i] = qmakeMessageLines.at(i).mid(qmakeMessagePrefix.count())
+            .split(QRegExp(QLatin1String("\\s")), QString::SkipEmptyParts);
     }
-    platformInfo.compilerFlags = QString::fromLocal8Bit(qmakeMessage.mid(qmakeMessagePrefix.count()))
-        .split(QRegExp(QLatin1String("\\s")), QString::SkipEmptyParts);
 
 #ifdef Q_OS_LINUX
     platformInfo.environment.insert(QLatin1String("PATH"), QLatin1String("/opt/mt/bin"));
