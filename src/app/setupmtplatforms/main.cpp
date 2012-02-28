@@ -40,6 +40,9 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QProcessEnvironment>
+#include <QRegExp>
+#include <QTemporaryFile>
 
 #include <iostream>
 #include <cstdlib>
@@ -122,6 +125,30 @@ SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const
     platformInfo.qtBinDir = qtToolsDir + QLatin1String("/bin");
     platformInfo.qtIncDir = platformInfo.sysrootDir + QLatin1String("/usr/include/qt5");
     platformInfo.qtMkspecsDir = qtToolsDir + QLatin1String("/share/qt5/mkspecs");
+
+    QTemporaryFile proFile;
+    if (!proFile.open())
+        throw Exception(tr("Could not create temporary file."));
+    const QByteArray qmakeMessagePrefix = "Project MESSAGE: ";
+    proFile.write("message($$QMAKE_CXXFLAGS_DEBUG)");
+    if (!proFile.flush()) {
+        throw Exception(tr("Could not write temporary project file: %1")
+            .arg(proFile.errorString()));
+    }
+    const QString qmakeCommand = platformInfo.qtBinDir + QLatin1String("/qmake");
+    const QString qmakeOutputFilePath = proFile.fileName() + QLatin1String("blubb");
+    const QStringList qmakeArgs = QStringList() << QLatin1String("-o") << qmakeOutputFilePath
+        << proFile.fileName();
+    const QByteArray qmakeMessage = runProcess(qmakeCommand + QLatin1Char(' ')
+        + qmakeArgs.join(QLatin1String(" ")), QProcessEnvironment::systemEnvironment());
+    if (!QFile::remove(qmakeOutputFilePath))
+        qDebug("Failed to remove temporary file '%s', ignoring.", qPrintable(qmakeOutputFilePath));
+    if (!qmakeMessage.startsWith(qmakeMessagePrefix)) {
+        throw Exception(tr("Unexpected qmake output: '%1'")
+            .arg(QString::fromLocal8Bit(qmakeMessage)));
+    }
+    platformInfo.compilerFlags = QString::fromLocal8Bit(qmakeMessage.mid(qmakeMessagePrefix.count()))
+        .split(QRegExp(QLatin1String("\\s")), QString::SkipEmptyParts);
 
 #ifdef Q_OS_LINUX
     platformInfo.environment.insert(QLatin1String("PATH"), QLatin1String("/opt/mt/bin"));
