@@ -15,7 +15,6 @@ Module {
     property paths includePaths
     property paths libraryPaths
     property paths frameworkPaths
-    property var compilerFlags
     property string compilerPath
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix
@@ -28,6 +27,30 @@ Module {
     property var staticLibraries // list of static library files
     property var frameworks // list of frameworks, will be linked with '-framework <name>'
     property var rpaths
+
+    property var cppFlags
+    PropertyOptions {
+        name: "cppFlags"
+        description: "additional flags for the C preprocessor"
+    }
+
+    property var cFlags
+    PropertyOptions {
+        name: "cFlags"
+        description: "additional flags for the C compiler"
+    }
+
+    property var cxxFlags
+    PropertyOptions {
+        name: "cxxFlags"
+        description: "additional flags for the C++ compiler"
+    }
+
+    property var linkerFlags
+    PropertyOptions {
+        name: "linkerFlags"
+        description: "additional linker flags"
+    }
 
     FileTagger {
         pattern: "*.c"

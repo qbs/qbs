@@ -51,6 +51,7 @@ CppModule {
             property var dynamicLibraries: ModUtils.appendAll(product, 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAll(product, 'staticLibraries')
             property var rpaths: ModUtils.appendAll(product, 'rpaths')
+            property var linkerFlags: ModUtils.appendAll(input, 'linkerFlags')
         }
 
         prepare: {
@@ -63,6 +64,8 @@ CppModule {
                     '-Wl,--no-undefined',
                     '-Wl,-soname=' + FileInfo.fileName(output.fileName)
                 ]);
+            for (i in linkerFlags)
+                args.push('-Wl,' + linkerFlags[i])
             args = args.concat([
                 '-Wl,-rpath,$ORIGIN',
                 '-shared'
@@ -155,6 +158,7 @@ CppModule {
             property var dynamicLibraries: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAllFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries')
             property var rpaths: ModUtils.appendAll(product, 'rpaths')
+            property var linkerFlags: ModUtils.appendAll(input, 'linkerFlags')
         }
 
         prepare: {
@@ -164,6 +168,8 @@ CppModule {
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
             args.push('-Wl,-rpath,$ORIGIN');
+            for (i in linkerFlags)
+                args.push('-Wl,' + linkerFlags[i])
             args.push('-o');
             args.push(output.fileName);
 
@@ -225,11 +231,15 @@ CppModule {
         TransformProperties {
             property var defines: ModUtils.appendAll(input, 'defines')
             property var includePaths: ModUtils.appendAll(input, 'includePaths')
-            property var compilerFlags: ModUtils.appendAll(input, 'compilerFlags')
+            property var cppFlags: ModUtils.appendAll(input, 'cppFlags')
+            property var cFlags: ModUtils.appendAll(input, 'cFlags')
+            property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
         }
 
         prepare: {
+            var i;
             var args = Gcc.configFlags(input);
+            var isCxx = true;
 
             // ### what we actually need here is something like product.usedFileTags
             //     that contains all fileTags that have been used when applying the rules.
@@ -242,16 +252,18 @@ CppModule {
 
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
-            for (var i in defines)
+            for (i in cppFlags)
+                args.push('-Wp,' + cppFlags[i])
+            for (i in defines)
                 args.push('-D' + defines[i]);
-            for (var i in includePaths)
+            for (i in includePaths)
                 args.push('-I' + includePaths[i]);
             if (product.module.precompiledHeader) {
                 args.push('-include')
                 args.push(product.name)
                 var pchPath = product.module.precompiledHeaderDir[0]
                 var pchPathIncluded = false
-                for (var i in includePaths) {
+                for (i in includePaths) {
                     if (includePaths[i] == pchPath) {
                         pchPathIncluded = true
                         break
@@ -261,6 +273,7 @@ CppModule {
                     args.push('-I' + pchPath)
             }
             if (input.fileTags.indexOf("c") >= 0) {
+                isCxx = false;
                 args.push('-x')
                 args.push('c')
             }
@@ -268,7 +281,13 @@ CppModule {
             args.push(input.fileName);
             args.push('-o');
             args.push(output.fileName);
-            args = args.concat(compilerFlags);
+            if (isCxx) {
+                if (cxxFlags)
+                    args = args.concat(cxxFlags);
+            } else {
+                if (cFlags)
+                    args = args.concat(cFlags);
+            }
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'compiling ';
             Gcc.describe(cmd, input.fileName, output.fileName);
@@ -288,6 +307,8 @@ CppModule {
             var args = Gcc.configFlags(product);
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
+            for (i in cppFlags)
+                args.push('-Wp,' + cppFlags[i])
             for (var i in product.module.defines)
                 args.push('-D' + defines[i]);
             for (var i in product.module.includePaths)
@@ -298,8 +319,8 @@ CppModule {
             args.push(product.module.precompiledHeader);
             args.push('-o');
             args.push(output.fileName);
-            if (product.module.compilerFlags)
-                args = args.concat(product.module.compilerFlags);
+            if (product.module.cxxFlags)
+                args = args.concat(product.module.cxxFlags);
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
             return cmd;

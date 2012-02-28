@@ -1,4 +1,4 @@
-function prepareCompiler(product, input, outputs, defines, includePaths, compilerFlags)
+function prepareCompiler(product, input, outputs, defines, includePaths, cFlags, cxxFlags)
 {
     var i;
     var optimization = input.module.optimization
@@ -9,7 +9,9 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
     var args = ['/nologo', '/c', '/Zm200', '/Zc:wchar_t-']
 
     // C or C++
+    var isCxx = true;
     if (input.fileTags.indexOf('c') >= 0) {
+        isCxx = false;
         args.push('/TC')
     }
 
@@ -67,8 +69,12 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
         clPath += 'amd64/'
     clPath += 'cl.exe'
 
-    for (i in compilerFlags) {
-        args.push(compilerFlags[i])
+    if (isCxx) {
+        if (cxxFlags)
+            args = args.concat(cxxFlags);
+    } else {
+        if (cFlags)
+            args = args.concat(cFlags);
     }
 
     var cmd = new Command(clPath, args)
@@ -84,7 +90,7 @@ function prepareCompiler(product, input, outputs, defines, includePaths, compile
     return cmd;
 }
 
-function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries)
+function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
 {
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)

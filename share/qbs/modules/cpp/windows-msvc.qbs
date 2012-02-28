@@ -82,10 +82,11 @@ CppModule {
         TransformProperties {
             property var defines: ModUtils.appendAll(input, 'defines')
             property var includePaths: ModUtils.appendAll(input, 'includePaths')
-            property var compilerFlags: ModUtils.appendAll(input, 'compilerFlags')
+            property var cFlags: ModUtils.appendAll(input, 'cFlags')
+            property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
         }
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs)
+            return MSVC.prepareCompiler(product, input, outputs, defines, includePaths, cFlags, cxxFlags)
         }
     }
 
@@ -102,11 +103,12 @@ CppModule {
         TransformProperties {
             property var defines: ModUtils.appendAll(input, 'defines')
             property var includePaths: ModUtils.appendAll(input, 'includePaths')
-            property var compilerFlags: ModUtils.appendAll(input, 'compilerFlags')
+            property var cFlags: ModUtils.appendAll(input, 'cFlags')
+            property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
         }
 
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs, defines, includePaths, compilerFlags)
+            return MSVC.prepareCompiler(product, input, outputs, defines, includePaths, cFlags, cxxFlags)
         }
     }
 
@@ -124,10 +126,11 @@ CppModule {
             property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
             property var dynamicLibraries: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries')
+            property var linkerFlags: ModUtils.appendAll(inpulinkerFlagskerFlags')
         }
 
         prepare: {
-            return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries)
+            return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
 
@@ -151,10 +154,11 @@ CppModule {
             property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
             property var dynamicLibraries: ModUtils.appendAll(product, 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries')
+            property var linkerFlags: ModUtils.appendAll(inpulinkerFlagskerFlags')
         }
 
         prepare: {
-            return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries)
+            return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
 
