@@ -286,6 +286,8 @@ CppModule {
         }
         prepare: {
             var args = Gcc.configFlags(product);
+            if (product.module.sysroot)
+                args.push('--sysroot=' + product.module.sysroot)
             for (var i in product.module.defines)
                 args.push('-D' + defines[i]);
             for (var i in product.module.includePaths)
