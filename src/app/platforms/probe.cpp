@@ -273,7 +273,7 @@ static void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr>
     if (clOutput.isEmpty())
         return;
 
-    QRegExp rex("C/C\\+\\+ Optimizing Compiler Version ((\\d|\\.)+) for ((x|\\d)+)");
+    QRegExp rex("C/C\\+\\+ .+ Version ((?:\\d|\\.)+) \\w+ ((?:x|\\d)+)");
     int idx = rex.indexIn(clOutput);
     if (idx < 0)
         return;
@@ -281,7 +281,7 @@ static void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr>
     QStringList clVersion = rex.cap(1).split(".");
     if (clVersion.isEmpty())
         return;
-    QString clArch = rex.cap(3);
+    QString clArch = rex.cap(2);
     QString msvcVersion = "msvc";
     switch (clVersion.first().toInt()) {
     case 14:
