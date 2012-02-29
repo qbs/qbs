@@ -264,6 +264,7 @@ void BuildGraph::detectCycle(BuildProject *project)
     QElapsedTimer *t = 0;
     if (qbsLogLevel(LoggerTrace)) {
         t = new QElapsedTimer;
+        t->start();
         qbsTrace() << "[BG] running cycle detection on project '" + project->resolvedProject()->id + "'";
     }
 
