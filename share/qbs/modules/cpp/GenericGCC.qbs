@@ -307,8 +307,8 @@ CppModule {
             var args = Gcc.configFlags(product);
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
-            for (i in cppFlags)
-                args.push('-Wp,' + cppFlags[i])
+            for (i in product.module.cppFlags)
+                args.push('-Wp,' + product.module.cppFlags[i])
             for (var i in product.module.defines)
                 args.push('-D' + defines[i]);
             for (var i in product.module.includePaths)
