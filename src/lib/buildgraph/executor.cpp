@@ -449,6 +449,11 @@ void Executor::finishArtifact(Artifact *leaf)
 
 void Executor::handleDependencies(Artifact *processedArtifact, Artifact *scannedArtifact, const QSet<QString> &resolvedDependencies)
 {
+    if (resolvedDependencies.isEmpty()) {
+        qbsTrace("[DEPSCAN] no dependencies found.");
+        return;
+    }
+
     qbsTrace() << "[DEPSCAN] dependencies found for '" << fileName(scannedArtifact)
                << "' while processing '" << fileName(processedArtifact) << "'";
 
