@@ -886,6 +886,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             addedArtifacts += createArtifact(product, a);
         }
     }
+    QList<SourceArtifact::Ptr> sourceArtifactsToRemove;
     foreach (SourceArtifact::Ptr a, product->rProduct->sources) {
         SourceArtifact::Ptr changedArtifact = newArtifacts.value(a->absoluteFilePath);
         if (!changedArtifact) {
@@ -893,6 +894,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' removed from product " << product->rProduct->name;
             Artifact *artifact = product->artifacts.value(a->absoluteFilePath);
             Q_ASSERT(artifact);
+            sourceArtifactsToRemove += a;
             removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
             continue;
         }
@@ -923,6 +925,10 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             qWarning("Some properties changed. Consider rebuild or fix QBS-7. File name: %s", qPrintable(changedArtifact->absoluteFilePath));
         }
     }
+
+    // remove all source artifacts from the product that have been removed from the project file
+    foreach (SourceArtifact::Ptr sourceArtifact, sourceArtifactsToRemove)
+        product->rProduct->sources.remove(sourceArtifact);
 
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)
