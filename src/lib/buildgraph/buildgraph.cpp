@@ -960,6 +960,8 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] updating transformer for " << fileName(artifact);
 
+    QFile::remove(artifact->fileName);
+
     Rule::Ptr rule = artifact->transformer->rule;
     artifact->product->project->markDirty();
     artifact->transformer = QSharedPointer<Transformer>();
