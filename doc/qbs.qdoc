@@ -434,7 +434,7 @@
     be compiled on a certain platform. This is how you do it:
     \code
         Group {
-            condition: qbs.target == "windows"
+            condition: qbs.targetOS == "windows"
             files: [
                 "harddiskdeleter_win.cpp",
                 "blowupmonitor_win.cpp",
@@ -442,7 +442,7 @@
             ]
         }
         Group {
-            condition: qbs.target == "linux"
+            condition: qbs.targetOS == "linux"
             files: [
                 "harddiskdeleter_linux.cpp",
                 "blowupmonitor_linux.cpp",
@@ -451,7 +451,7 @@
         }
     \endcode
 
-    That odd \a qbs.target thingy is the property \a target of the module \a
+    That odd \a qbs.targetOS thingy is the property \a target of the module \a
     qbs. The module \a qbs is always implicitly loaded. Its main properties
     are:
 
@@ -468,25 +468,24 @@
         \o Name of the current build variant. By default "debug" and "release"
         are valid values but the user can add more in a project file.
     \row
-        \o host
+        \o hostOS
         \o string
         \o platform-dependent
-        \o The host platform. Currently "windows", "linux" or "mac".
+        \o The host operating system. Currently "windows", "linux" or "mac".
     \row
-        \o target
+        \o targetOS
         \o string
         \o platform-dependent
-        \o The target platform. Currently "windows", "linux", "mac" or
-        "ponyphone".
+        \o The target operating system. Currently "windows", "linux" or "mac".
     \endtable
 
     You can set these properties on the command line. Property \a
     qbs.buildVariant is handled in a special way.
 
     \code
-    $ qbs                   # qbs.buildVariant:debug, qbs.target:qbs.host
-    $ qbs release           # qbs.buildVariant:release, qbs.target:qbs.host
-    $ qbs target:ponyphone  # qbs.buildVariant:debug, qbs.target:ponyphone
+    $ qbs                   # qbs.buildVariant:debug, qbs.platform:<default platform>
+    $ qbs release           # qbs.buildVariant:release, qbs.platform:<default platform>
+    $ qbs platform:Maemo    # qbs.buildVariant:debug, qbs.platform:Maemo
     $ qbs debug release     # builds two variants of the project
     \endcode
 
@@ -609,7 +608,7 @@
     command:
 
     \code
-    qbs build debug release target:symbian
+    qbs build debug release platform:Maemo
     \endcode
 
 */
