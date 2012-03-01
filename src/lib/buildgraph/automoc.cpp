@@ -64,6 +64,8 @@ void AutoMoc::apply(BuildProduct::Ptr product)
     QHash<QString, Artifact *>::const_iterator it = product->artifacts.begin();
     for (; it != product->artifacts.end(); ++it) {
         Artifact *artifact = it.value();
+        if (artifact->artifactType != Artifact::SourceFile)
+            continue;
         FileType fileType = UnknownFileType;
         if (artifact->fileTags.contains("hpp"))
             fileType = HppFileType;
