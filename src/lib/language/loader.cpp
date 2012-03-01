@@ -1956,6 +1956,9 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     rtrafo->transform->script = trafo->scope->verbatimValue("prepare");
     rtrafo->transform->location.fileName = trafo->instantiatingObject()->file->fileName;
     rtrafo->transform->location.column = 1;
+    Binding binding = trafo->instantiatingObject()->bindings.value(QStringList("prepare"));
+    rtrafo->transform->location.line = binding.valueSource.firstLineNumber();
+
     Configuration::Ptr outputConfiguration(new Configuration);
     foreach (EvaluationObject *child, trafo->children) {
         if (child->prototype != name_Artifact)
