@@ -513,12 +513,13 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
 
         QVariantMap artifactModulesCfg = outputArtifact->configuration->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
-            const QStringList &name = ra->bindings.at(i).first;
-            const QString &code = ra->bindings.at(i).second;
-            scriptValue = scriptEngine()->evaluate(code);
-            if (scriptValue.isError())
-                throw Error(QLatin1String("evaluating rule bindings: ") + scriptValue.toString());
-            setConfigProperty(artifactModulesCfg, name, scriptValue.toVariant());
+            const RuleArtifact::Binding &binding = ra->bindings.at(i);
+            scriptValue = scriptEngine()->evaluate(binding.code);
+            if (scriptValue.isError()) {
+                QString msg = QLatin1String("evaluating rule binding '%1': %2");
+                throw Error(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
+            }
+            setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
         QVariantMap outputArtifactConfiguration = outputArtifact->configuration->value();
         outputArtifactConfiguration.insert("modules", artifactModulesCfg);

@@ -2051,7 +2051,12 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::Ptr modu
             foreach (const Binding &binding, origArtifactObj->bindings) {
                 if (binding.name.length() <= 1)
                     continue;
-                artifact->bindings.append(qMakePair(binding.name, binding.valueSource.sourceCode()));
+                RuleArtifact::Binding rabinding;
+                rabinding.name = binding.name;
+                rabinding.code = binding.valueSource.sourceCode();
+                rabinding.location.fileName = binding.valueSource.fileName();
+                rabinding.location.line = binding.valueSource.firstLineNumber();
+                artifact->bindings.append(rabinding);
             }
         } else if (hashChildPrototypeName == hashName_TransformProperties) {
             addTransformPropertiesToRule(rule, child->instantiatingObject());

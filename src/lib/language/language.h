@@ -112,7 +112,15 @@ public:
     typedef QSharedPointer<RuleArtifact> Ptr;
     QString fileScript;
     QStringList fileTags;
-    QList<QPair<QStringList, QString> > bindings;
+
+    struct Binding
+    {
+        QStringList name;
+        QString code;
+        CodeLocation location;
+    };
+
+    QVector<Binding> bindings;
 
 private:
     void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
@@ -265,5 +273,9 @@ private:
 };
 
 } // namespace qbs
+
+QT_BEGIN_NAMESPACE
+Q_DECLARE_TYPEINFO(qbs::RuleArtifact::Binding, Q_MOVABLE_TYPE);
+QT_END_NAMESPACE
 
 #endif

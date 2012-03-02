@@ -117,7 +117,16 @@ void RuleArtifact::load(PersistentPool &pool, PersistentObjectData &data)
     QDataStream s(data);
     s >> fileScript;
     s >> fileTags;
-    s >> bindings;
+
+    int i;
+    s >> i;
+    bindings.clear();
+    bindings.reserve(i);
+    Binding binding;
+    for (; --i >= 0;) {
+        s >> binding.name >> binding.code >> binding.location;
+        bindings += binding;
+    }
 }
 
 void RuleArtifact::store(PersistentPool &pool, PersistentObjectData &data) const
@@ -126,7 +135,12 @@ void RuleArtifact::store(PersistentPool &pool, PersistentObjectData &data) const
     QDataStream s(&data, QIODevice::WriteOnly);
     s << fileScript;
     s << fileTags;
-    s << bindings;
+
+    s << bindings.count();
+    for (int i = bindings.count(); --i >= 0;) {
+        const Binding &binding = bindings.at(i);
+        s << binding.name << binding.code << binding.location;
+    }
 }
 
 void RuleScript::load(PersistentPool &, PersistentObjectData &data)
