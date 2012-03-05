@@ -1054,9 +1054,8 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
     artifacts.clear();
     s >> count;
     for (i = count; --i >= 0;) {
-        QString key;
-        s >> key;
-        artifacts.insert(key, pool.idLoad<Artifact>(s));
+        Artifact *artifact = pool.idLoad<Artifact>(s);
+        artifacts.insert(artifact->fileName, artifact);
     }
     foreach (Artifact *a, artifacts)
         a->product = this;
@@ -1108,7 +1107,6 @@ void BuildProduct::store(PersistentPool &pool, PersistentObjectData &data) const
 
     //artifacts
     for (QHash<QString, Artifact *>::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
-        s << i.key();
         PersistentObjectId artifactId = pool.store(i.value());
         s << artifactId;
     }
