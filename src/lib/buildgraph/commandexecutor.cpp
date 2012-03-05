@@ -246,7 +246,7 @@ void CommandExecutor::sendProcessOutput(bool logCommandLine)
 {
     QString commandLine = m_processCommand->program();
     if (!m_processCommand->arguments().isEmpty())
-        commandLine += commandArgsToString(m_processCommand->arguments());
+        commandLine += QLatin1Char(' ') + commandArgsToString(m_processCommand->arguments());
 
     QByteArray processStdOut = filterProcessOutput(m_process.readAllStandardOutput(), m_processCommand->stdoutFilterFunction());
     QByteArray processStdErr = filterProcessOutput(m_process.readAllStandardError(), m_processCommand->stderrFilterFunction());
