@@ -149,8 +149,6 @@ public:
         return obj.staticCast<T>();
     }
 
-    PersistentObject *load(PersistentObjectId);
-
     template <class T>
     PersistentObjectId store(QSharedPointer<T> ptr)
     {

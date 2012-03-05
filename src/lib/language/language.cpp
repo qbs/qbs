@@ -159,7 +159,6 @@ void RuleScript::store(PersistentPool &, PersistentObjectData &data) const
 
 void ResolvedModule::load(PersistentPool &pool, PersistentObjectData &data)
 {
-    Q_UNUSED(pool);
     QDataStream s(data);
     name = pool.idLoadString(s);
     moduleDependencies = pool.idLoadStringList(s);
@@ -172,7 +171,6 @@ void ResolvedModule::load(PersistentPool &pool, PersistentObjectData &data)
 
 void ResolvedModule::store(PersistentPool &pool, PersistentObjectData &data) const
 {
-    Q_UNUSED(pool);
     QDataStream s(&data, QIODevice::WriteOnly);
     s << pool.storeString(name)
       << pool.storeStringList(moduleDependencies)
@@ -451,11 +449,11 @@ void ResolvedProject::load(PersistentPool &pool, PersistentObjectData &data)
     s >> id;
     s >> qbsFile;
 
-    int count, i;
+    int count;
     s >> count;
     products.clear();
     products.reserve(count);
-    for (i = count; --i >= 0;) {
+    for (; --count >= 0;) {
         ResolvedProduct::Ptr rProduct = pool.idLoadS<ResolvedProduct>(s);
         rProduct->project = this;
         products.insert(rProduct);

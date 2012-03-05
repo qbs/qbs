@@ -1048,12 +1048,12 @@ void Transformer::store(PersistentPool &pool, PersistentObjectData &data) const
 void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
 {
     QDataStream s(data);
-    int i, count;
 
     // artifacts
+    int i;
+    s >> i;
     artifacts.clear();
-    s >> count;
-    for (i = count; --i >= 0;) {
+    for (; --i >= 0;) {
         Artifact *artifact = pool.idLoad<Artifact>(s);
         artifacts.insert(artifact->fileName, artifact);
     }
@@ -1061,31 +1061,31 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
         a->product = this;
 
     // edges
-    for (i = count; --i >= 0;) {
+    for (i = artifacts.count(); --i >= 0;) {
         Artifact *artifact = pool.idLoad<Artifact>(s);
-        int count2, j;
-        s >> count2;
+        int k;
+        s >> k;
         artifact->parents.clear();
-        artifact->parents.reserve(count2);
-        for (j = count2; --j >= 0;)
+        artifact->parents.reserve(k);
+        for (; --k >= 0;)
             artifact->parents.insert(pool.idLoad<Artifact>(s));
 
-        s >> count2;
+        s >> k;
         artifact->children.clear();
-        artifact->children.reserve(count2);
-        for (j = count2; --j >= 0;)
+        artifact->children.reserve(k);
+        for (; --k >= 0;)
             artifact->children.insert(pool.idLoad<Artifact>(s));
 
-        s >> count2;
+        s >> k;
         artifact->fileDependencies.clear();
-        artifact->fileDependencies.reserve(count2);
-        for (j = count2; --j >= 0;)
+        artifact->fileDependencies.reserve(k);
+        for (; --k >= 0;)
             artifact->fileDependencies.insert(pool.idLoad<Artifact>(s));
 
-        s >> count2;
+        s >> k;
         artifact->sideBySideArtifacts.clear();
-        artifact->sideBySideArtifacts.reserve(count2);
-        for (j = count2; --j >= 0;)
+        artifact->sideBySideArtifacts.reserve(k);
+        for (; --k >= 0;)
             artifact->sideBySideArtifacts.insert(pool.idLoad<Artifact>(s));
     }
 
@@ -1093,10 +1093,10 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
     rProduct = pool.idLoadS<ResolvedProduct>(s);
     loadContainer(targetArtifacts, s, pool);
 
-    s >> count;
+    s >> i;
     usings.clear();
-    usings.reserve(count);
-    for (; --count >= 0;)
+    usings.reserve(i);
+    for (; --i >= 0;)
         usings += pool.idLoadS<BuildProduct>(s).data();
 }
 
@@ -1295,12 +1295,11 @@ QStringList BuildProject::storedProjectFiles(BuildGraph *bg)
 void BuildProject::load(PersistentPool &pool, PersistentObjectData &data)
 {
     QDataStream s(data);
+    m_resolvedProject = pool.idLoadS<ResolvedProject>(s);
 
-    setResolvedProject(pool.idLoadS<ResolvedProject>(s));
-
-    int count, i;
+    int count;
     s >> count;
-    for (i = count; --i >= 0;) {
+    for (; --count >= 0;) {
         BuildProduct::Ptr product = pool.idLoadS<BuildProduct>(s);
         product->project = this;
         foreach (Artifact *artifact, product->artifacts)
@@ -1311,7 +1310,7 @@ void BuildProject::load(PersistentPool &pool, PersistentObjectData &data)
     s >> count;
     m_dependencyArtifacts.clear();
     m_dependencyArtifacts.reserve(count);
-    for (i = count; --i >= 0;) {
+    for (; --count >= 0;) {
         Artifact *artifact = pool.idLoad<Artifact>(s);
         artifact->project = this;
         m_dependencyArtifacts.insert(artifact->fileName, artifact);
@@ -1322,7 +1321,7 @@ void BuildProject::store(PersistentPool &pool, PersistentObjectData &data) const
 {
     QDataStream s(&data, QIODevice::WriteOnly);
 
-    s << pool.store(resolvedProject());
+    s << pool.store(m_resolvedProject);
     storeContainer(m_buildProducts, s, pool);
     storeHashContainer(m_dependencyArtifacts, s, pool);
 }
