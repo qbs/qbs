@@ -44,11 +44,15 @@
 #include <QtCore/QObject>
 #include <QtCore/QList>
 #include <QtCore/QEventLoop>
-#include <QtCore/QFutureWatcher>
-#include <QtCore/QtConcurrentRun>
 #include <QtCore/QThreadPool>
-
-#include <QtDebug>
+#include <QtCore/QDebug>
+#if QT_VERSION >= 0x050000
+#    include <QtConcurrent/QFutureWatcher>
+#    include <QtConcurrent/QtConcurrentRun>
+#else
+#    include <QtCore/QFutureWatcher>
+#    include <QtCore/QtConcurrentRun>
+#endif
 
 QT_BEGIN_NAMESPACE
 

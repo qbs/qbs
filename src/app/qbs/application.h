@@ -39,7 +39,11 @@
 
 #include <Qbs/buildexecutor.h>
 #include <QtCore/QCoreApplication>
-#include <QtCore/QFutureWatcher>
+#if QT_VERSION >= 0x050000
+#    include <QtConcurrent/QFutureWatcher>
+#else
+#    include <QtCore/QFutureWatcher>
+#endif
 
 class Application : public QCoreApplication
 {

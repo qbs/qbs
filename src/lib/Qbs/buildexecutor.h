@@ -41,8 +41,12 @@
 
 #include "buildproduct.h"
 
-#include <QtCore/QFutureInterface>
 #include <QtCore/QReadWriteLock>
+#if QT_VERSION >= 0x050000
+#    include <QtConcurrent/QFutureInterface>
+#else
+#    include <QtCore/QFutureInterface>
+#endif
 
 namespace qbs {
     class Executor;

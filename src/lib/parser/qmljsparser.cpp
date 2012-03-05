@@ -31,7 +31,7 @@
 **************************************************************************/
 
 #include <QtCore/QtDebug>
-#include <QtGui/QApplication>
+#include <QtCore/QCoreApplication>
 
 #include <string.h>
 

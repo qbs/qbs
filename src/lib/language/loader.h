@@ -45,8 +45,11 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
-#include <QtCore/QFutureInterface>
-
+#if QT_VERSION >= 0x050000
+#    include <QtConcurrent/QFutureInterface>
+#else
+#    include <QtCore/QFutureInterface>
+#endif
 #include <QtScript/QScriptClass>
 #include <QtScript/QScriptEngine>
 

@@ -1,4 +1,5 @@
 QT = core script
+greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 TEMPLATE = lib
 DESTDIR = ../../lib
 TARGET = qbscore
@@ -14,4 +15,3 @@ include(parser/parser.pri)
 include(buildgraph/buildgraph.pri)
 include(Qbs/Qbs.pri)
 include(language/language.pri)
-include(qtconcurrent/qtconcurrent.pri)

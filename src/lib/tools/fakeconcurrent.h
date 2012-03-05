@@ -38,7 +38,12 @@
 #ifndef FAKECONCURRENT_H
 #define FAKECONCURRENT_H
 
-#include <qtconcurrent/runextensions.h>
+#include <QtCore/QtGlobal>
+#if QT_VERSION >= 0x050000
+#    include <QtConcurrent/QFuture>
+#else
+#    include <QtCore/QFuture>
+#endif
 
 namespace qbs {
 namespace FakeConcurrent {

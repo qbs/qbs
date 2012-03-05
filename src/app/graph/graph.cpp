@@ -40,6 +40,7 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <tools/fileinfo.h>
+#include <tools/fakeconcurrent.h>
 #include <Qbs/sourceproject.h>
 
 #include <cassert>
@@ -69,9 +70,6 @@
 #include <QGridLayout>
 #include <QAbstractListModel>
 #include <QTimer>
-
-#include <qtconcurrent/runextensions.h>
-#include <QtCore/QFuture>
 
 class QGV : public QGraphicsView
 {
@@ -196,11 +194,10 @@ int main(int argc, char *argv[])
     sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    QFuture<bool> loadProjectFuture = QtConcurrent::run(&qbs::SourceProject::loadProjectCommandLine,
-                                                        &sourceProject,
-                                                        options.projectFileName(),
-                                                        options.buildConfigurations());
-    loadProjectFuture.waitForFinished();
+    qbs::FakeConcurrent::run(&qbs::SourceProject::loadProjectCommandLine,
+                             &sourceProject,
+                             options.projectFileName(),
+                             options.buildConfigurations());
     foreach (const Qbs::Error &error, sourceProject.errors()) {
         qbsError() << error.toString();
         return 4;

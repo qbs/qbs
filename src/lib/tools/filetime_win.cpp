@@ -93,7 +93,7 @@ QString FileTime::toString() const
                                  L"%02d.%02d.%d %02d:%02d:%02d",
                                  stLocal.wDay, stLocal.wMonth, stLocal.wYear,
                                  stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
-    return SUCCEEDED(hr) ? QString::fromUtf16(szString) : QString();
+    return SUCCEEDED(hr) ? QString::fromWCharArray(szString) : QString();
 #else // Q_CC_MSVC
     const QString result = QString("%1.%2.%3 %4:%5:%6")
             .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)

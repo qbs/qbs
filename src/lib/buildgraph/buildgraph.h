@@ -53,7 +53,11 @@
 #include <QtCore/QVector>
 #include <QtCore/QVariant>
 #include <QtScript/QScriptEngine>
-#include <QtCore/QFutureInterface>
+#if QT_VERSION >= 0x050000
+#    include <QtConcurrent/QFutureInterface>
+#else
+#    include <QtCore/QFutureInterface>
+#endif
 
 namespace qbs {
 
