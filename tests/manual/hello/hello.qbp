@@ -7,7 +7,7 @@ Project {
         type: 'application'
         name: 'HelloWorld'
 
-        cpp.defines: ['SOMETHING']
+        cpp.defines: base.concat(['SOMETHING'])
         //cpp.applicationLinker.debugInformation: false
 
         Group {
