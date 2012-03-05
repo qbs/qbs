@@ -145,8 +145,6 @@ void PersistentPool::setData(PersistentObjectId id, PersistentObjectData data)
 
 int PersistentPool::storeString(const QString &t)
 {
-    if (t.isEmpty())
-        return 0;
     int id = m_inverseStringStorage.value(t, -1);
     if (id < 0) {
         id = m_stringStorage.count();
@@ -158,9 +156,6 @@ int PersistentPool::storeString(const QString &t)
 
 QString PersistentPool::loadString(int id)
 {
-    if (id == 0)
-        return QString();
-
     if (id < 0 || id >= m_stringStorage.count())
         throw Error(QString("storage error: no string id %1 stored.").arg(id));
 
