@@ -5,6 +5,10 @@
 #   error missing define HAVE_MAIN_CPP
 #endif
 
+#ifndef SOMETHING
+#   error missing define SOMETHING
+#endif
+
 int main()
 {
     someUsefulFunction();
