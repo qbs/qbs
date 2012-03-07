@@ -7,7 +7,7 @@ import '../qtfunctions.js' as QtFunctions
 Module {
     Depends { name: "cpp" }
 
-    property string qtVersionName: "default"
+    property string qtVersionName: qbs.configurationValue("defaults/qtVersionName", "default")
     property string configKey: "qt/" + qtVersionName + "/"
     property string qtNamespace: qbs.configurationValue(configKey + "namespace", undefined)
     property string qtLibInfix: qbs.configurationValue(configKey + "libInfix", "")
