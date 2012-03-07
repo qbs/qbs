@@ -1,18 +1,25 @@
 import qbs.base 1.0
 
-Project {
-    Application {
-        name : "CollidingMice"
-        destination: "bin"
+Application {
+    name : "CollidingMice"
+    destination: "bin"
 
-        Depends { name: "Qt.gui" }
-
-        files : [
-            "main.cpp",
-            "mouse.cpp",
-            "mouse.h",
-            "mice.qrc"
-        ]
+    Depends { id: qtcore; name: "Qt.core" }
+    Depends {
+        condition: qtcore.versionMajor === 4
+        name: "Qt.gui"
     }
+    Depends {
+        condition: qtcore.versionMajor === 5
+        name: "Qt"
+        submodules: ["gui", "widgets"]
+    }
+
+    files : [
+        "main.cpp",
+        "mouse.cpp",
+        "mouse.h",
+        "mice.qrc"
+    ]
 }
 

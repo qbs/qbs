@@ -37,7 +37,11 @@
 
 #include "mouse.h"
 
-#include <QtGui>
+#include <QApplication>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QTime>
+#include <QTimer>
 
 #include <math.h>
 
