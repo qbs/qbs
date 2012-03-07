@@ -197,7 +197,12 @@
     qbs config --global qt/default/mkspecsPath /usr/share/qt4/mkspecs
     \endcode
 
-    If you have built your Qt with the option -qtnamespace MyNamespace 
+    If you're using Qt 5, you must specify the version number.
+    \code
+    qbs config --global qt/default/version 5.0.0
+    \endcode
+
+    If you have built your Qt with the option -qtnamespace MyNamespace
     then you must set the following config value.
 
     \code

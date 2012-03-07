@@ -15,6 +15,11 @@ Module {
     property string binPath: qtPath ? qtPath + "/bin" : qbs.configurationValue(configKey + "binPath", undefined)
     property string incPath: qtPath ? qtPath + "/include" : qbs.configurationValue(configKey + "incPath", undefined)
     property string libPath: qtPath ? qtPath + "/lib" : qbs.configurationValue(configKey + "libPath", undefined)
+    property string version: qbs.configurationValue(configKey + "version", "4.7.0")
+    property var versionParts: version.split('.').map(parseInt)
+    property var versionMajor: versionParts[0]
+    property var versionMinor: versionParts[1]
+    property var versionPatch: versionParts[2]
     property string mkspecsPath: qtPath ? qtPath + "/mkspecs" : qbs.configurationValue(configKey + "mkspecsPath", undefined)
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
@@ -30,9 +35,9 @@ Module {
         product.buildDirectory + '/' + generatedFilesDir
     ]
     cpp.libraryPaths: [libPath]
-    cpp.dynamicLibraries: qbs.targetOS != 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, qbs.targetOS, cpp.debugInformation)] : []
+    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : []
     cpp.frameworkPaths: [libPath]
-    cpp.frameworks: [QtFunctions.getLibraryName('QtCore' + qtLibInfix, qbs.targetOS, cpp.debugInformation)]
+    cpp.frameworks: [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)]
     cpp.rpaths:  [libPath]
 
     setupBuildEnvironment: {
