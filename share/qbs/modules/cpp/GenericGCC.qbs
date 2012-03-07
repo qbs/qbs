@@ -230,6 +230,7 @@ CppModule {
 
         TransformProperties {
             property var defines: ModUtils.appendAll(input, 'defines')
+            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
             property var includePaths: ModUtils.appendAll(input, 'includePaths')
             property var cppFlags: ModUtils.appendAll(input, 'cppFlags')
             property var cFlags: ModUtils.appendAll(input, 'cFlags')
@@ -254,6 +255,8 @@ CppModule {
                 args.push('--sysroot=' + product.module.sysroot)
             for (i in cppFlags)
                 args.push('-Wp,' + cppFlags[i])
+            for (i in platformDefines)
+                args.push('-D' + platformDefines[i]);
             for (i in defines)
                 args.push('-D' + defines[i]);
             for (i in includePaths)
@@ -307,11 +310,14 @@ CppModule {
             var args = Gcc.configFlags(product);
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
+            var i;
             for (i in product.module.cppFlags)
                 args.push('-Wp,' + product.module.cppFlags[i])
-            for (var i in product.module.defines)
+            for (i in product.module.platformDefines)
+                args.push('-D' + product.module.platformDefines[i]);
+            for (i in product.module.defines)
                 args.push('-D' + defines[i]);
-            for (var i in product.module.includePaths)
+            for (i in product.module.includePaths)
                 args.push('-I' + includePaths[i]);
             args.push('-x');
             args.push('c++-header');

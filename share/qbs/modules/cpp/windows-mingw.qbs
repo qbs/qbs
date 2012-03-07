@@ -10,6 +10,6 @@ GenericGCC {
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
-    defines: ['UNICODE']
+    platformDefines: ['UNICODE']
 }
 

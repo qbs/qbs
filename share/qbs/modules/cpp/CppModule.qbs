@@ -12,6 +12,7 @@ Module {
     property string precompiledHeader
     property paths precompiledHeaderDir: [product.buildDirectory]
     property var defines
+    property var platformDefines
     property paths includePaths
     property paths libraryPaths
     property paths frameworkPaths

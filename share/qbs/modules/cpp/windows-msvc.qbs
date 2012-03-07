@@ -8,7 +8,7 @@ CppModule {
 
     id: module
 
-    defines: ['UNICODE', 'WIN32']
+    platformDefines: ['UNICODE', 'WIN32']
     warningLevel: "default"
 
     property bool generateManifestFiles: true
@@ -80,13 +80,14 @@ CppModule {
             fileName: ".obj/" + product.name + "/" + product.name + '.pch'
         }
         TransformProperties {
+            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
             property var defines: ModUtils.appendAll(input, 'defines')
             property var includePaths: ModUtils.appendAll(input, 'includePaths')
             property var cFlags: ModUtils.appendAll(input, 'cFlags')
             property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
         }
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs, defines, includePaths, cFlags, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
         }
     }
 
@@ -101,6 +102,7 @@ CppModule {
         }
  
         TransformProperties {
+            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
             property var defines: ModUtils.appendAll(input, 'defines')
             property var includePaths: ModUtils.appendAll(input, 'includePaths')
             property var cFlags: ModUtils.appendAll(input, 'cFlags')
@@ -108,7 +110,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs, defines, includePaths, cFlags, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
         }
     }
 
