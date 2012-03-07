@@ -44,6 +44,7 @@
 #include <QtCore/QSettings>
 
 #include <tools/platform.h>
+#include "msvcprobe.h"
 
 using namespace qbs;
 
@@ -257,65 +258,6 @@ static int specific_probe(const QString &settingsPath,
 }
 
 #ifdef Q_OS_WIN
-static void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
-{
-    QTextStream qstdout(stdout);
-
-    QString vcInstallDir = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv("VCINSTALLDIR")));
-    if (vcInstallDir.endsWith('/'))
-        vcInstallDir.chop(1);
-    if (vcInstallDir.isEmpty())
-        return;
-    QString winSDKPath = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv("WindowsSdkDir")));
-    if (winSDKPath.endsWith('/'))
-        winSDKPath.chop(1);
-    QString clOutput = qsystem(vcInstallDir + "/bin/cl.exe");
-    if (clOutput.isEmpty())
-        return;
-
-    QRegExp rex("C/C\\+\\+ .+ Version ((?:\\d|\\.)+) \\w+ ((?:x|\\d)+)");
-    int idx = rex.indexIn(clOutput);
-    if (idx < 0)
-        return;
-
-    QStringList clVersion = rex.cap(1).split(".");
-    if (clVersion.isEmpty())
-        return;
-    QString clArch = rex.cap(2);
-    QString msvcVersion = "msvc";
-    switch (clVersion.first().toInt()) {
-    case 14:
-        msvcVersion += "2005";
-        break;
-    case 15:
-        msvcVersion += "2008";
-        break;
-    case 16:
-        msvcVersion += "2010";
-        break;
-    default:
-        return;
-    }
-
-    QString vsInstallDir = vcInstallDir;
-    idx = vsInstallDir.lastIndexOf("/");
-    if (idx < 0)
-        return;
-    vsInstallDir.truncate(idx);
-
-    Platform::Ptr platform = platforms.value(msvcVersion);
-    if (!platform) {
-       platform = Platform::Ptr(new Platform(msvcVersion, settingsPath + "/" + msvcVersion));
-       platforms.insert(platform->name, platform);
-    }
-    platform->settings.setValue("targetOS", "windows");
-    platform->settings.setValue("cpp/toolchainInstallPath", vsInstallDir);
-    platform->settings.setValue("toolchain", "msvc");
-    platform->settings.setValue("cpp/windowsSDKPath", winSDKPath);
-    qstdout << "Detected platform " << msvcVersion << " for " << clArch << ".\n";
-    qstdout << "When building projects, the architecture can be chosen by passing\narchitecture:x86 or architecture:x86_64 to qbs.\n";
-}
-
 static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
 {
     QString mingwPath;

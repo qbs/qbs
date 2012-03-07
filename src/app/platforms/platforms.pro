@@ -9,4 +9,11 @@ CONFIG   -= app_bundle
 
 SOURCES += main.cpp probe.cpp
 
+win32 {
+    HEADERS += \
+        msvcprobe.h
+    SOURCES += \
+        msvcprobe.cpp
+}
+
 include(../../lib/use.pri)
