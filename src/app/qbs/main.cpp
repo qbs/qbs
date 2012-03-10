@@ -93,28 +93,9 @@ int main(int argc, char *argv[])
         args.takeFirst();
         QString app = args.takeFirst();
         if (!app.startsWith('-')) {
-#if defined(Q_OS_UNIX)
-            char **argvp = new char*[args.count() + 2];
-            QList<QByteArray> bargs;
-            bargs.append("qbs-" + app.toLocal8Bit());
-            argvp[0] = bargs.last().data();
-            int i = 1;
-            foreach (const QString &s, args) {
-                bargs.append(s.toLocal8Bit());
-                argvp[i++] = bargs.last().data();
-            }
-            argvp[i] = 0;
-
-            execvp(argvp[0], argvp);
-            if (errno != ENOENT) {
-                perror("execvp");
-                return errno;
-            }
-#else
-            int r = QProcess::execute ( "qbs-" + app, args );
-            if (r != -2)
-                return r;
-#endif
+            const int exitCode = QProcess::execute ( "qbs-" + app, args );
+            if (exitCode != -2)
+                return exitCode;
         }
     }
 

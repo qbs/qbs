@@ -42,10 +42,6 @@
 #include <QtCore/QDebug>
 #include <QtScript/QScriptEngine>
 
-#ifdef Q_OS_UNIX
-#include <unistd.h>
-#endif
-
 void File::init(QScriptValue &extensionObject, QScriptEngine *engine)
 {
     QScriptValue fileObj = engine->newQObject(new File, QScriptEngine::ScriptOwnership);
@@ -83,9 +79,6 @@ QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
                                    tr("remove expects 1 argument"));
     }
     QString fileName = context->argument(0).toString();
-#ifdef Q_OS_UNIX
-    return unlink(fileName.toLocal8Bit().data()) == 0;
-#else
+
     return QFile::remove(fileName);
-#endif
 }
