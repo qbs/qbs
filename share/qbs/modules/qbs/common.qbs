@@ -16,6 +16,7 @@ Module {
     property string endianness: null
     property string installDir: '.'
     property string sysroot
+    property string installPrefix: ""
 
     PropertyOptions {
         name: "buildVariant"
@@ -35,6 +36,8 @@ Module {
             fileTags: ["installed_content"]
             fileName: {
                 var targetPath = input.modules.qbs.installDir + "/" + input.fileName
+                if (FileInfo.isAbsolutePath(targetPath))
+                    targetPath = product.module.installPrefix + targetPath
                 if (product.module.sysroot && FileInfo.isAbsolutePath(targetPath))
                     targetPath = product.module.sysroot + targetPath
                 return targetPath
