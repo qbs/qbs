@@ -100,11 +100,8 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths)
             qbsTrace("pluginmanager: scanner plugin '%s' loaded.",
                      qPrintable(QDir::toNativeSeparators(fileName)));
 
-            int i = 0;
-            while (plugins[i] != 0) {
+            for (int i = 0; plugins[i] != 0; ++i)
                 m_scannerPlugins[QString::fromLocal8Bit(plugins[i]->fileTag)] += plugins[i];
-                ++i;
-            }
             m_libs.append(lib.take());
         }
     }

@@ -61,7 +61,7 @@
 #include <errno.h>
 #endif
 
-enum ExitCodes
+enum ExitCode
 {
     ExitCodeOK = 0,
     ExitCodeErrorParsingCommandLine = 1,
@@ -84,13 +84,13 @@ int main(int argc, char *argv[])
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
-    if (arguments.count()) {
-        qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit() + qbs::nativePathVariableSeparator + QByteArray(qgetenv("PATH")));
-        QStringList args = app.arguments();
-        args.takeFirst();
-        QString app = args.takeFirst();
-        if (!app.startsWith('-')) {
-            const int exitCode = QProcess::execute ( "qbs-" + app, args );
+    if (!arguments.isEmpty()) {
+        qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
+            + qbs::nativePathVariableSeparator + QByteArray(qgetenv("PATH")));
+        QStringList subProcessArgs = arguments;
+        const QString subProcess = subProcessArgs.takeFirst();
+        if (!subProcess.startsWith('-')) {
+            const int exitCode = QProcess::execute("qbs-" + subProcess, subProcessArgs);
             if (exitCode != -2)
                 return exitCode;
         }
@@ -123,17 +123,17 @@ int main(int argc, char *argv[])
         qbsError("No project file found.");
         return ExitCodeErrorParsingCommandLine;
     } else {
-        qbsInfo() << qbs::DontPrintLogLevel << "Found project file " << qPrintable(QDir::toNativeSeparators(options.projectFileName()));
+        qbsInfo() << qbs::DontPrintLogLevel << "Found project file "
+            << qPrintable(QDir::toNativeSeparators(options.projectFileName()));
     }
 
     if (options.command() == qbs::CommandLineOptions::CleanCommand) {
         // ### TODO: take selected products into account!
         QString errorMessage;
 
-        const QString buildPath = qbs::FileInfo::resolvePath(QDir::currentPath(), QLatin1String("build"));
-        qbs::removeDirectoryWithContents(buildPath, &errorMessage);
-
-        if (!errorMessage.isEmpty()) {
+        const QString buildPath = qbs::FileInfo::resolvePath(QDir::currentPath(),
+                QLatin1String("build"));
+        if (!qbs::removeDirectoryWithContents(buildPath, &errorMessage)) {
             qbsError() << errorMessage;
             return ExitCodeErrorExecutionFailed;
         }

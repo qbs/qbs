@@ -101,14 +101,12 @@ void SourceProject::setSearchPaths(const QStringList &searchPaths)
 void SourceProject::loadPlugins(const QStringList &pluginPaths)
 {
     static bool alreadyCalled = false;
-        if (alreadyCalled) {
-            qbsWarning("qbs::SourceProject::loadPlugins was called more than once.");
-        }
+    if (alreadyCalled)
+        qbsWarning("qbs::SourceProject::loadPlugins was called more than once.");
+    alreadyCalled = true;
 
-        alreadyCalled = true;
-
-        foreach (const QString &pluginPath, pluginPaths)
-            QCoreApplication::addLibraryPath(pluginPath);
+    foreach (const QString &pluginPath, pluginPaths)
+        QCoreApplication::addLibraryPath(pluginPath);
 
     qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
