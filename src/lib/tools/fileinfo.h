@@ -47,6 +47,8 @@
 #include <QtCore/QString>
 #include <QtCore/QCoreApplication> // for Q_DECLARE_TR_FUNCTIONS
 
+QT_FORWARD_DECLARE_CLASS(QFileInfo)
+
 namespace qbs {
 
 class FileInfo
@@ -83,7 +85,9 @@ private:
 
 QString applicationDirPath();
 QString qbsRootPath();
+bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
 bool removeDirectoryWithContents(const QString &path, QString *errorMessage);
+bool copyFileRecursion(const QString &sourcePath, const QString &targetPath, QString *errorMessage);
 
 }
 

@@ -229,7 +229,7 @@ QString applicationDirPath()
 #endif
 
 // adapted from qtc/plugins/vcsbase/cleandialog.cpp
-static bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
+bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
 {
     if (!f.exists())
         return true;
@@ -262,6 +262,56 @@ bool removeDirectoryWithContents(const QString &path, QString *errorMessage)
     }
     return removeFileRecursion(f, errorMessage);
 }
+
+/*!
+  Copies the directory specified by \a srcFilePath recursively to \a tgtFilePath.
+  \a tgtFilePath will contain the target directory, which will be created. Example usage:
+
+  \code
+    QString error;
+    book ok = Utils::FileUtils::copyRecursively("/foo/bar", "/foo/baz", &error);
+    if (!ok)
+      qDebug() << error;
+  \endcode
+
+  This will copy the contents of /foo/bar into to the baz directory under /foo,
+  which will be created in the process.
+
+  \return Whether the operation succeeded.
+  \note Function was adapted from qtc/src/libs/fileutils.cpp
+*/
+
+bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
+    QString *errorMessage)
+{
+    QFileInfo srcFileInfo(srcFilePath);
+    if (srcFileInfo.isDir()) {
+        QDir targetDir(tgtFilePath);
+        targetDir.cdUp();
+        if (!targetDir.mkdir(QFileInfo(tgtFilePath).fileName())) {
+            *errorMessage = FileInfo::tr("The directory '%1' could not be created.")
+               .arg(QDir::toNativeSeparators(tgtFilePath));
+            return false;
+        }
+        QDir sourceDir(srcFilePath);
+        QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot
+            | QDir::Hidden | QDir::System);
+        foreach (const QString &fileName, fileNames) {
+            const QString newSrcFilePath = srcFilePath + QLatin1Char('/') + fileName;
+            const QString newTgtFilePath = tgtFilePath + QLatin1Char('/') + fileName;
+            if (!copyFileRecursion(newSrcFilePath, newTgtFilePath, errorMessage))
+                return false;
+        }
+    } else {
+        if (!QFile::copy(srcFilePath, tgtFilePath)) {
+            *errorMessage = FileInfo::tr("Could not copy file '%1' to '%2'.")
+                .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath));
+            return false;
+        }
+    }
+    return true;
+}
+
 
 QString qbsRootPath()
 {

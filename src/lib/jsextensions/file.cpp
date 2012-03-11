@@ -40,6 +40,7 @@
 #include <tools/fileinfo.h>
 
 #include <QtCore/QDebug>
+#include <QtCore/QFileInfo>
 #include <QtScript/QScriptEngine>
 
 void File::init(QScriptValue &extensionObject, QScriptEngine *engine)
@@ -58,7 +59,13 @@ QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(QScriptContext::SyntaxError,
                                    tr("copy expects 2 arguments"));
     }
-    return QFile::copy(context->argument(0).toString(), context->argument(1).toString());
+
+    const QString sourceFile = context->argument(0).toString();
+    const QString targetFile = context->argument(1).toString();
+    QString errorMessage;
+    if (!qbs::copyFileRecursion(sourceFile, targetFile, &errorMessage))
+        return context->throwError(errorMessage);
+    return true;
 }
 
 QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
@@ -80,5 +87,8 @@ QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
     }
     QString fileName = context->argument(0).toString();
 
-    return QFile::remove(fileName);
+    QString errorMessage;
+    if (!qbs::removeFileRecursion(QFileInfo(fileName), &errorMessage))
+        return context->throwError(errorMessage);
+    return true;
 }
