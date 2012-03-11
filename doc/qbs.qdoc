@@ -60,7 +60,7 @@
     task of executing the commands in the low-level build graph (like make).
 
     \note Please report bugs and suggestions to the
-    \l{http://bugreports.qt-project.com/}{Qt Bug Tracker}.
+    \l{http://bugreports.qt-project.org/}{Qt Bug Tracker}.
 
     \list
        \o  \l{Introducing Qbs}
@@ -188,7 +188,7 @@
     of your Qt build are below the qtPath. This is usually the case on Windows
     or if you build Qt yourself without installing it.
     For installed Qt versions we need to set up some more paths.
-    Here's an example for registering an Qt, installed on Ubuntu GNU/Linux:
+    Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
 
     \code
     qbs config --global qt/default/binPath /usr/bin
@@ -209,7 +209,7 @@
     qbs config --global qt/default/namespace MyNamespace
     \endcode
 
-    Now open a build shell (on Windows open a MSVC command prompt,
+    Now open a build shell (on Windows open an MSVC command prompt,
     on other platforms the default shell is usually ok):
     \code
     qbs platforms probe
@@ -275,7 +275,7 @@
         }
     \endcode
 
-    The import statement gives us access to some inbuilt types and specifies the
+    The import statement gives us access to some built-in types and specifies the
     used language version.
 
     \a Application describes a product we want to build. In this case an
@@ -295,7 +295,7 @@
 
     \a Depends adds the dependency to the module \a{cpp} (see below for an
     explanation of qbs modules).
-    This is necessary to let qbs know that we're having a C++ project and want
+    This is necessary to let qbs know that we have a C++ project and want
     to compile main.cpp with a C++ compiler.
 
 
@@ -613,7 +613,7 @@
     command:
 
     \code
-    qbs build debug release platform:Maemo
+    qbs build debug release platform:Symbian
     \endcode
 
 */
