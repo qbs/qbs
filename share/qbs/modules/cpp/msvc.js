@@ -4,7 +4,6 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     var optimization = input.module.optimization
     var debugInformation = input.module.debugInformation
     var architecture = input.module.architecture
-    var toolchainInstallPath = product.module.toolchainInstallPath
 
     var args = ['/nologo', '/c', '/Zm200', '/Zc:wchar_t-']
 
@@ -65,12 +64,6 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
     args.push(FileInfo.toWindowsSeparators(input.fileName))
 
-    var clPath = toolchainInstallPath + '/VC/bin/'
-    var is64bit = (architecture === "x86_64")
-    if (is64bit)
-        clPath += 'amd64/'
-    clPath += 'cl.exe'
-
     if (isCxx) {
         if (cxxFlags)
             args = args.concat(cxxFlags);
@@ -79,7 +72,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
             args = args.concat(cFlags);
     }
 
-    var cmd = new Command(clPath, args)
+    var cmd = new Command("cl.exe", args)
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName)
     cmd.highlight = "compiler";
     cmd.workingDirectory = FileInfo.path(objOutput.fileName)
@@ -102,7 +95,6 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     var architecture = product.module.architecture
     var windowsSDKPath = product.module.windowsSDKPath
     var generateManifestFiles = !linkDLL && product.module.generateManifestFiles
-    var toolchainInstallPath = product.module.toolchainInstallPath
 
     var args = ['/nologo']
     if (linkDLL) {
@@ -150,13 +142,8 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     args = args.concat(dynamicLibraries)
     var is64bit = (architecture == "x86_64")
 
-    var linkerPath = toolchainInstallPath + '/VC/bin/'
-    if (is64bit)
-        linkerPath += 'amd64/'
-    linkerPath += 'link.exe'
-
     var commands = [];
-    var cmd = new Command(linkerPath, args)
+    var cmd = new Command("link.exe", args)
     cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.fileName)
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
@@ -170,8 +157,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
             '/nologo', '/manifest', manifestFileName,
             '/outputresource:' + nativeOutputFileName + ';1'
         ]
-        var mtPath = windowsSDKPath + '/bin/mt.exe'
-        cmd = new Command(mtPath, args)
+        cmd = new Command("mt.exe", args)
         cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.fileName)
         cmd.highlight = 'linker';
         cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
