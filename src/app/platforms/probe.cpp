@@ -306,15 +306,10 @@ int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
     msvcProbe(settingsPath, platforms);
     mingwProbe(settingsPath, platforms);
 #else
-    QString cc = QString::fromLocal8Bit(qgetenv("CC"));
-    if (cc.isEmpty()) {
-        bool somethingFound = false;
-        if (specific_probe(settingsPath, platforms, "gcc") == 0)
-            somethingFound = true;
-        specific_probe(settingsPath, platforms, "clang", somethingFound);
-    } else {
-        specific_probe(settingsPath, platforms, cc);
-    }
+    bool somethingFound = false;
+    if (specific_probe(settingsPath, platforms, "gcc") == 0)
+        somethingFound = true;
+    specific_probe(settingsPath, platforms, "clang", somethingFound);
 #endif
     if (platforms.isEmpty())
         fprintf(stderr, "Could not detect any platforms.\n");
