@@ -51,6 +51,7 @@ class AbstractCommand;
 class ProcessCommand;
 class JavaScriptCommand;
 class JavaScriptCommandFutureWatcher;
+class ResolvedProduct;
 class Transformer;
 
 class CommandExecutor : public QObject
@@ -85,8 +86,12 @@ protected slots:
 
 private:
     void removeResponseFile();
+    QString findProcessCommandInPath();
+    QString findProcessCommandBySuffix();
+    bool findProcessCandidateCheck(const QString &directory, const QString &program, QString &fullProgramPath);
 
 private:
+    static const QStringList m_executableSuffixes;
     Transformer *m_transformer;
     bool dryRun;
 

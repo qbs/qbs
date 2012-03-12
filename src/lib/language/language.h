@@ -248,6 +248,7 @@ public:
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved
+    QHash<QString, QString> executablePathCache;
 
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
     void setupBuildEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;

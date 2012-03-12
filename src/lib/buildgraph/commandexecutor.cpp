@@ -42,6 +42,7 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
 #include <tools/logger.h>
+#include <tools/platformglobals.h>
 #include <jsextensions/file.h>
 #include <jsextensions/textfile.h>
 
@@ -70,6 +71,19 @@ public:
         : QFutureWatcher<JavaScriptCommandFutureResult>(parent)
     {}
 };
+
+static QStringList populateExecutableSuffixes()
+{
+    QStringList result;
+    result << QString();
+#ifdef Q_OS_WIN
+    result << QLatin1String(".com") << QLatin1String(".exe")
+           << QLatin1String(".bat") << QLatin1String(".cmd");
+#endif
+    return result;
+}
+
+const QStringList CommandExecutor::m_executableSuffixes = populateExecutableSuffixes();
 
 CommandExecutor::CommandExecutor(QObject *parent)
     : QObject(parent)
@@ -205,8 +219,19 @@ void CommandExecutor::startProcessCommand()
         }
     }
 
+    QString program;
+    if (FileInfo::isAbsolute(m_processCommand->program())) {
+#ifdef Q_OS_WIN
+        program = findProcessCommandBySuffix();
+#else
+        program = m_processCommand->program();
+#endif
+    } else {
+        program = findProcessCommandInPath();
+    }
+
     m_process.setWorkingDirectory(m_processCommand->workingDir());
-    m_process.start(m_processCommand->program(), arguments);
+    m_process.start(program, arguments);
 }
 
 QByteArray CommandExecutor::filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource)
@@ -401,6 +426,69 @@ void CommandExecutor::removeResponseFile()
         return;
     QFile::remove(m_responseFileName);
     m_responseFileName.clear();
+}
+
+QString CommandExecutor::findProcessCommandInPath()
+{
+    Artifact *outputNode = (*m_transformer->outputs.begin());
+    ResolvedProduct *product = outputNode->product->rProduct.data();
+    QString fullProgramPath = product->executablePathCache.value(m_processCommand->program());
+    if (!fullProgramPath.isEmpty())
+        return fullProgramPath;
+
+    fullProgramPath = m_processCommand->program();
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
+    const QProcessEnvironment &buildEnvironment = product->buildEnvironment;
+    QStringList pathEnv = buildEnvironment.value("PATH").split(QLatin1Char(nativePathVariableSeparator), QString::SkipEmptyParts);
+#ifdef Q_OS_WIN
+    pathEnv.prepend(QLatin1String("."));
+#endif
+    for (int i = 0; i < pathEnv.count(); ++i) {
+        QString directory = pathEnv.at(i);
+        if (directory == QLatin1String("."))
+            directory = m_processCommand->workingDir();
+        if (!directory.isEmpty()) {
+            const QChar lastChar = directory.at(directory.count() - 1);
+            if (lastChar != QLatin1Char('/') && lastChar != QLatin1Char('\\'))
+                directory.append(QLatin1Char('/'));
+        }
+        if (findProcessCandidateCheck(directory, fullProgramPath, fullProgramPath))
+            break;
+    }
+    product->executablePathCache.insert(m_processCommand->program(), fullProgramPath);
+    return fullProgramPath;
+}
+
+QString CommandExecutor::findProcessCommandBySuffix()
+{
+    Artifact *outputNode = (*m_transformer->outputs.begin());
+    ResolvedProduct *product = outputNode->product->rProduct.data();
+    QString fullProgramPath = product->executablePathCache.value(m_processCommand->program());
+    if (!fullProgramPath.isEmpty())
+        return fullProgramPath;
+
+    fullProgramPath = m_processCommand->program();
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
+    const QString emptyDirectory;
+    findProcessCandidateCheck(emptyDirectory, fullProgramPath, fullProgramPath);
+    product->executablePathCache.insert(m_processCommand->program(), fullProgramPath);
+    return fullProgramPath;
+}
+
+bool CommandExecutor::findProcessCandidateCheck(const QString &directory, const QString &program, QString &fullProgramPath)
+{
+    for (int i = 0; i < m_executableSuffixes.count(); ++i) {
+        QString candidate = directory + program + m_executableSuffixes.at(i);
+        if (qbsLogLevel(LoggerTrace))
+            qbsTrace() << "[EXEC] candidate: " << candidate;
+        if (FileInfo::exists(candidate)) {
+            fullProgramPath = candidate;
+            return true;
+        }
+    }
+    return false;
 }
 
 } // namespace qbs
