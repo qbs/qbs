@@ -40,6 +40,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/logger.h>
+#include <tools/platformglobals.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -268,11 +269,7 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
     }
 
     // eventually load defaults from configs
-#if defined(Q_OS_WIN)
-    const QChar configPathSeparator = QLatin1Char(';');
-#else
-    const QChar configPathSeparator = QLatin1Char(':');
-#endif
+    const QChar configPathSeparator = QLatin1Char(nativePathVariableSeparator);
     if (m_searchPaths.isEmpty())
         m_searchPaths = configurationValue("paths/cubes", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
     m_pluginPaths = configurationValue("paths/plugins", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);

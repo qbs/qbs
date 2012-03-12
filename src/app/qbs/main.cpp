@@ -49,6 +49,7 @@
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/logsink.h>
+#include <tools/platformglobals.h>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QProcess>
@@ -84,11 +85,7 @@ int main(int argc, char *argv[])
     arguments.removeFirst();
 
     if (arguments.count()) {
-#if defined(Q_OS_UNIX)
-        qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit() + ':' + QByteArray(qgetenv("PATH")));
-#elif defined(Q_OS_WIN)
-        qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit() + ';' + QByteArray(qgetenv("PATH")));
-#endif
+        qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit() + qbs::nativePathVariableSeparator + QByteArray(qgetenv("PATH")));
         QStringList args = app.arguments();
         args.takeFirst();
         QString app = args.takeFirst();
