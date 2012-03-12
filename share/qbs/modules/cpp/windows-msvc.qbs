@@ -33,6 +33,7 @@ CppModule {
 
         if (architecture == 'x86') {
             v = new ModUtils.EnvironmentVariable("PATH", ";", true)
+            v.prepend(windowsSDKPath + "/bin")
             v.prepend(toolchainInstallPath + "/Common7/IDE")
             v.prepend(toolchainInstallPath + "/VC/bin")
             v.prepend(toolchainInstallPath + "/Common7/Tools")
@@ -45,6 +46,7 @@ CppModule {
             v.set()
         } else if (architecture == 'x86_64') {
             v = new ModUtils.EnvironmentVariable("PATH", ";", true)
+            v.prepend(windowsSDKPath + "/bin")
             v.prepend(toolchainInstallPath + "/Common7/IDE")
             v.prepend(toolchainInstallPath + "/VC/bin/amd64")
             v.prepend(toolchainInstallPath + "/Common7/Tools")
