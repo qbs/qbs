@@ -47,6 +47,7 @@
 
 #include <QtConcurrentRun>
 #include <QDebug>
+#include <QDir>
 #include <QFutureWatcher>
 #include <QProcess>
 #include <QScriptEngine>
@@ -270,24 +271,26 @@ void CommandExecutor::onProcessError(QProcess::ProcessError processError)
     removeResponseFile();
     sendProcessOutput(true);
     QString errorMessage;
+    const QString binary = QDir::toNativeSeparators(m_processCommand->program());
     switch (processError) {
     case QProcess::FailedToStart:
-        errorMessage = "Process could not be started.";
+        errorMessage = QString::fromLatin1("The process '%1' could not be started: %2").
+                arg(binary, m_process.errorString());
         break;
     case QProcess::Crashed:
-        errorMessage = "Process crashed.";
+        errorMessage = QString::fromLatin1("The process '%1' crashed.").arg(binary);
         break;
     case QProcess::Timedout:
-        errorMessage = "Process timed out.";
+        errorMessage = QString::fromLatin1("The process '%1' timed out.").arg(binary);
         break;
     case QProcess::ReadError:
-        errorMessage = "Error when reading process output.";
+        errorMessage = QString::fromLatin1("Error reading process output from '%1'.").arg(binary);
         break;
     case QProcess::WriteError:
-        errorMessage = "Error when writing to process.";
+        errorMessage = QString::fromLatin1("Error writing to process '%1'.").arg(binary);
         break;
     default:
-        errorMessage = "Unknown process error.";
+        errorMessage = QString::fromLatin1("Unknown process error running '%1'.").arg(binary);
         break;
     }
     emit error(errorMessage);
