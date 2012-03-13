@@ -35,10 +35,10 @@ Module {
         product.buildDirectory + '/' + generatedFilesDir
     ]
     cpp.libraryPaths: [libPath]
-    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : []
-    cpp.frameworkPaths: [libPath]
-    cpp.frameworks: [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)]
-    cpp.rpaths:  [libPath]
+    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
+    cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
+    cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
+    cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
 
     setupBuildEnvironment: {
         // Not really a setup in this case. Just some sanity checks.

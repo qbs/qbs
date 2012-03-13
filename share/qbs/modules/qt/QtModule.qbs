@@ -14,8 +14,9 @@ Module {
     property string qtLibInfix: qtcore.qtLibInfix
     property string qtModuleName: ''
     property string internalQtModuleName: 'Qt' + qtModuleName
+    property string internalLibraryName: QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qtcore.versionMajor, qbs.targetOS, cpp.debugInformation)
     cpp.includePaths: [incPath + '/' + internalQtModuleName]
-    cpp.dynamicLibraries: [QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qtcore.versionMajor, qbs.targetOS, cpp.debugInformation)]
-    cpp.frameworks: [QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qtcore.versionMajor, qbs.targetOS, cpp.debugInformation)]
+    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [internalLibraryName] : undefined
+    cpp.frameworks: qbs.targetOS === 'mac' ? [internalLibraryName] : undefined
     cpp.defines: [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
 }
