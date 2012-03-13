@@ -56,9 +56,11 @@ CommandLineOptions::CommandLineOptions()
     , m_help (false)
     , m_clean (false)
     , m_keepGoing(false)
-    , m_jobs(QThread::idealThreadCount())
 {
     m_settings = Settings::create();
+    m_jobs = configurationValue("defaults/jobs", 0).toInt();
+    if (m_jobs <= 0)
+        m_jobs = QThread::idealThreadCount();
 }
 
 void CommandLineOptions::printHelp()
