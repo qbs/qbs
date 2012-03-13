@@ -50,6 +50,7 @@ Settings::Settings()
     m_globalSettings = new QSettings(QSettings::UserScope,
                                      QLatin1String("Nokia"),
                                      QLatin1String("qbs"));
+    m_globalSettings->setFallbacksEnabled(false);
 }
 
 Settings::~Settings()
@@ -63,6 +64,7 @@ void Settings::loadProjectSettings(const QString &projectFileName)
     delete m_localSettings;
     m_localSettings = new QSettings(QFileInfo(projectFileName).path()
             + "/.qbs/config", QSettings::IniFormat);
+    m_localSettings->setFallbacksEnabled(false);
 }
 
 QVariant Settings::value(const QString &key, const QVariant &defaultValue) const
