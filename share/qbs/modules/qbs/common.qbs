@@ -36,8 +36,8 @@ Module {
             fileTags: ["installed_content"]
             fileName: {
                 var targetPath = input.modules.qbs.installDir + "/" + input.fileName
-                if (FileInfo.isAbsolutePath(targetPath))
-                    targetPath = product.module.installPrefix + targetPath
+                if (!FileInfo.isAbsolutePath(targetPath))
+                    targetPath = input.modules.qbs.installPrefix + "/" + targetPath
                 if (product.module.sysroot && FileInfo.isAbsolutePath(targetPath))
                     targetPath = product.module.sysroot + targetPath
                 return targetPath
