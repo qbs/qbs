@@ -1,38 +1,3 @@
-function collectDynamicLinkPaths(config) {
-    var paths = []
-
-    var linkProducts = config.linkProducts || []
-    for (var libPath in linkProducts) {
-        var linkedConfig = linkProducts[libPath]
-        var fileTags = linkedConfig['fileTags']
-        if (fileTags.indexOf('dynamiclibrary') >= 0) {
-            paths.push(FileInfo.path(libPath))
-            paths = paths.concat(collectDynamicLinkPaths(linkedConfig))
-        }
-    }
-    return paths
-}
-
-function linkEnv(cmd) {
-    // ### setup LD_LIBRARY_PATH for ProductModule dynamiclibrary depends
-//    var paths = []
-//    for (var i in config.linkProducts) {
-//        var linkedConfig = config.linkProducts[i]
-//        var fileTags = linkedConfig['fileTags']
-//        if (fileTags.indexOf('dynamiclibrary') >= 0) {
-//            paths = paths.concat(collectDynamicLinkPaths(linkedConfig))
-//        }
-//    }
-
-//    if (paths.length) {
-//        var envdef = newEnvironmentDefinition("LD_LIBRARY_PATH")
-//        envdef.pathNames = true
-//        envdef.separator = ':'
-//        envdef.prepend = paths
-//        cmd.addEnvironmentDefinition(envdef)
-//    }
-}
-
 function libs(libraryPaths, rpaths, dynamicLibraries, staticLibraries) {
 
     var args = [];
@@ -86,24 +51,6 @@ function configFlags(config) {
     if (config.module.treatWarningsAsErrors)
         args.push('-Werror');
 
-    return args;
-}
-
-function frameworkPaths(config) {
-    var args = [];
-    for (var i in config.frameworkPaths) {
-        args.push('-F' + config.frameworkPaths[i]);
-    }
-    return args;
-}
-
-function frameworks(config) {
-    var args = [];
-    for (var i in config.frameworks) {
-        args.push('-framework');
-        args.push(config.frameworks[i]
-                .replace(/.framework$/,''));
-    }
     return args;
 }
 

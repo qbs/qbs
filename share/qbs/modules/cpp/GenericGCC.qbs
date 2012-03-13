@@ -93,7 +93,6 @@ CppModule {
             args.push(output.fileName);
             args = args.concat(Gcc.libs(libraryPaths, rpaths, dynamicLibrariesI, staticLibrariesI));
             var cmd = new Command(product.module.compilerPath, args);
-            Gcc.linkEnv(cmd)
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker';
             return cmd;
@@ -210,7 +209,6 @@ CppModule {
 
             args = args.concat(Gcc.libs(libraryPaths, rpaths, dynamicLibrariesI, staticLibrariesI));
             var cmd = new Command(product.module.compilerPath, args);
-            Gcc.linkEnv(cmd, product)
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
             return cmd;
