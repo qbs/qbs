@@ -50,13 +50,17 @@ CppModule {
             property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
             property var dynamicLibraries: ModUtils.appendAll(product, 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAll(product, 'staticLibraries')
+            property var frameworkPaths: ModUtils.appendAll(product, 'frameworkPaths')
+            property var frameworks: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks')
             property var rpaths: ModUtils.appendAll(product, 'rpaths')
             property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
         }
 
         prepare: {
+            var i;
             var args = Gcc.configFlags(product);
-            if (product.modules.qbs.targetOS == 'linux')
+            args.push('-shared');
+            if (product.modules.qbs.targetOS === 'linux')
                 args = args.concat([
                     '-Wl,--hash-style=gnu',
                     '-Wl,--as-needed',
@@ -66,11 +70,7 @@ CppModule {
                 ]);
             for (i in linkerFlags)
                 args.push('-Wl,' + linkerFlags[i])
-            args = args.concat([
-                '-Wl,-rpath,$ORIGIN',
-                '-shared'
-            ]);
-            for (var i in inputs.obj)
+            for (i in inputs.obj)
                 args.push(inputs.obj[i].fileName);
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
@@ -89,9 +89,18 @@ CppModule {
             }
             dynamicLibrariesI = dynamicLibrariesI.concat(dynamicLibraries);
 
+            var frameworksI = frameworks;
+            for (i in inputs.framework) {
+                fileName = inputs.framework[i].fileName;
+                frameworkPaths.push(FileInfo.path(fileName));
+                fileName = FileInfo.fileName(fileName);
+                fileName = fileName.substr(3, fileName.length - 6);
+                frameworksI.push(fileName);
+            }
+
             args.push('-o');
             args.push(output.fileName);
-            args = args.concat(Gcc.libs(libraryPaths, rpaths, dynamicLibrariesI, staticLibrariesI));
+            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI));
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker';
@@ -156,6 +165,8 @@ CppModule {
             property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
             property var dynamicLibraries: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries')
             property var staticLibraries: ModUtils.appendAllFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries')
+            property var frameworkPaths: ModUtils.appendAll(product, 'frameworkPaths')
+            property var frameworks: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks')
             property var rpaths: ModUtils.appendAll(product, 'rpaths')
             property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
         }
@@ -166,7 +177,6 @@ CppModule {
                 args.push(inputs.obj[i].fileName)
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
-            args.push('-Wl,-rpath,$ORIGIN');
             for (i in linkerFlags)
                 args.push('-Wl,' + linkerFlags[i])
             args.push('-o');
@@ -207,7 +217,16 @@ CppModule {
                 dynamicLibrariesI.push(fileName)
             }
 
-            args = args.concat(Gcc.libs(libraryPaths, rpaths, dynamicLibrariesI, staticLibrariesI));
+            var frameworksI = frameworks;
+            for (i in inputs.framework) {
+                fileName = inputs.framework[i].fileName;
+                frameworkPaths.push(FileInfo.path(fileName));
+                fileName = FileInfo.fileName(fileName);
+                fileName = fileName.substr(3, fileName.length - 6);
+                frameworksI.push(fileName);
+            }
+
+            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI));
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'

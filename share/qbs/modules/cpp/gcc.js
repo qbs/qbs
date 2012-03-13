@@ -1,34 +1,26 @@
-function libs(libraryPaths, rpaths, dynamicLibraries, staticLibraries) {
-
+function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks)
+{
+    var i;
     var args = [];
     if (rpaths && rpaths.length)
         args.push('-Wl,-rpath,' + rpaths.join(':'));
-    for (var i in libraryPaths) {
+    for (i in libraryPaths) {
         args.push('-L' + libraryPaths[i]);
     }
-    for (var i in staticLibraries) {
+    for (i in staticLibraries) {
         args.push(staticLibraries[i]);
     }
-    for (var i in dynamicLibraries) {
+    for (i in dynamicLibraries) {
         if (FileInfo.isAbsolutePath(dynamicLibraries[i])) {
             args.push(dynamicLibraries[i]);
         } else {
             args.push('-l' + dynamicLibraries[i]);
         }
     }
-    return args;
-}
-
-function macLibs(libraryPaths, rpaths, dynamicLibraries, staticLibraries, frameworks)
-{
-    var args = libs(libraryPaths, rpaths, dynamicLibraries, staticLibraries);
-    for (var i in libraryPaths) {
-        args.push('-F' + libraryPaths[i]);
-    }
-    for (var i in frameworks) {
-        args.push('-framework');
-        args.push(frameworks[i]);
-    }
+    if (frameworkPaths)
+        args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
+    for (i in frameworks)
+        args = args.concat(['-framework', frameworks[i]]);
     return args;
 }
 
