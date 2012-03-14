@@ -39,6 +39,7 @@ Module {
     cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
     cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
+    cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
 
     setupBuildEnvironment: {
         // Not really a setup in this case. Just some sanity checks.

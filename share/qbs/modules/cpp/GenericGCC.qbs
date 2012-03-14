@@ -252,6 +252,7 @@ CppModule {
             property var cppFlags: ModUtils.appendAll(input, 'cppFlags')
             property var cFlags: ModUtils.appendAll(input, 'cFlags')
             property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
+            property var positionIndependentCode: ModUtils.findFirst(product.modules, 'cpp', 'positionIndependentCode')
         }
 
         prepare: {
@@ -264,7 +265,10 @@ CppModule {
             if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
                 if (product.modules.qbs.toolchain !== "mingw")
                     args.push('-fPIC');
-            } else if (product.type.indexOf('application') < 0) {
+            } else if (product.type.indexOf('application') >= 0) {
+                if (positionIndependentCode && product.modules.qbs.toolchain !== "mingw")
+                    args.push('-fPIE');
+            } else {
                 throw ("OK, now we got a problem... The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
             }
 

@@ -53,6 +53,12 @@ Module {
         description: "additional linker flags"
     }
 
+    property var positionIndependentCode
+    PropertyOptions {
+        name: "positionIndependentCode"
+        description: "generate position independent code"
+    }
+
     FileTagger {
         pattern: "*.c"
         fileTags: ["c"]
