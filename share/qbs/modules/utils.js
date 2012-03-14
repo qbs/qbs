@@ -45,18 +45,20 @@ function appendAllFromArtifacts(product, artifacts, moduleName, propertyName)
 
 function findFirst(modules, name, property)
 {
-    for (var m in modules) {
-        if (m == name) {
-            var value = modules[m][property]
-            if (value)
-                return value
-        } else {
-            var value = findFirst(m.modules, name, property)
-            if (value)
-                return value
+    var value;
+    var module;
+    for (var moduleName in modules) {
+        module = modules[moduleName];
+        if (moduleName === name) {
+            value = module[property];
+            if (value !== undefined)
+                return value;
         }
+        value = findFirst(module.modules, name, property);
+        if (value !== undefined)
+            return value;
     }
-    return null
+    return undefined;
 }
 
 function dumpProperty(key, value, level)
