@@ -4,6 +4,5 @@ import '../QtModule.qbs' as QtModule
 QtModule {
     Depends { id: qtcore; name: "Qt.core" }
     Depends { name: "Qt.gui" }
-    condition: qtcore.versionMajor >= 5
-    qtModuleName: 'Widgets'
+    qtModuleName: qtcore.versionMajor >= 5 ? 'Widgets' : undefined
 }
