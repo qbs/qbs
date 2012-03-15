@@ -105,8 +105,7 @@ void CommandExecutor::setProcessEnvironment(const QProcessEnvironment &processEn
 
 void CommandExecutor::waitForFinished()
 {
-    if (m_process.state() == QProcess::Running)
-        m_process.waitForFinished(-1);
+    m_process.waitForFinished(-1);
     if (m_jsFutureWatcher && m_jsFutureWatcher->isRunning())
         m_jsFutureWatcher->waitForFinished();
 }
