@@ -141,20 +141,6 @@ QByteArray SpecialPlatformsSetup::runProcess(const QString &commandLine,
     return output;
 }
 
-QChar SpecialPlatformsSetup::envVarSeparator() const
-{
-    // TODO: This should not be necessary; qbs should handle it.
-    QChar sep;
-#ifdef Q_OS_UNIX
-    sep = QLatin1Char(':');
-#elif defined(Q_OS_WIN)
-    sep = QLatin1Char(';');
-#else
-#error "Weird platform this is. Not support it we do."
-#endif
-    return sep;
-}
-
 void SpecialPlatformsSetup::handleProcessError(const QString &commandLine, const QString &message,
     const QByteArray &output)
 {

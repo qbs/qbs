@@ -35,6 +35,7 @@
 **
 **************************************************************************/
 #include "../shared/specialplatformssetup.h"
+#include "../../lib/tools/platformglobals.h"
 
 #include <QBuffer>
 #include <QCoreApplication>
@@ -161,12 +162,13 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
     const QString targetBinDir = targetDir + QLatin1String("/bin");
 
     // !!! The order matters here !!!
-    const QString pathValue = targetBinDir + envVarSeparator() + m_maddeBinDir + envVarSeparator()
-        + maddeMadLibDir + envVarSeparator() + maddeMadBinDir;
+    const QChar sep = QLatin1Char(nativePathVariableSeparator);
+    const QString pathValue = targetBinDir + sep + m_maddeBinDir + sep + maddeMadLibDir + sep
+        + maddeMadBinDir;
     platformInfo.environment.insert(QLatin1String("PATH"), pathValue);
 
-    const QString mangleWhiteList = QLatin1String("/usr") + envVarSeparator()
-        + QLatin1String("/lib") + envVarSeparator() + QLatin1String("/opt");
+    const QString mangleWhiteList = QLatin1String("/usr") + sep + QLatin1String("/lib") + sep
+        + QLatin1String("/opt");
     platformInfo.environment.insert(QLatin1String("GCCWRAPPER_PATHMANGLE"), mangleWhiteList);
 
     return platformInfo;

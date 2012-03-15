@@ -80,7 +80,6 @@ public:
 protected:
     QString baseDirectory() const { return m_baseDir; }
     QByteArray runProcess(const QString &commandLine, const QProcessEnvironment &env);
-    QChar envVarSeparator() const;
 
 private:
     virtual QString defaultBaseDirectory() const = 0;
