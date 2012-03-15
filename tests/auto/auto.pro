@@ -1,8 +1,5 @@
 TEMPLATE=subdirs
-SUBDIRS=\
-    options\
-    tools\
-    blackbox
-
-#    dependencyFinder\
-
+SUBDIRS= \
+    blackbox \
+    language \
+    tools

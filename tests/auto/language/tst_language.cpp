@@ -35,27 +35,28 @@
 **
 **************************************************************************/
 
-#include <tools/options.h>
-#include <tools/logger.h>
+#include <language/loader.h>
 #include <QtTest/QtTest>
 
-class TestOptions : public QObject
+using namespace qbs;
+
+class TestLanguage : public QObject
 {
     Q_OBJECT
-private slots:
+    Loader *loader;
 
-    void test()
+private slots:
+    void initTestCase()
     {
-        QStringList args;
-        args.append("-vvvk");
-        qbs::CommandLineOptions options;
-        options.readCommandLineArguments(args);
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
-        QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
-        QVERIFY(options.isKeepGoingSet());
+        loader = new Loader();
+    }
+
+    void cleanupTestCase()
+    {
+        delete loader;
     }
 };
 
-QTEST_APPLESS_MAIN(TestOptions)
+QTEST_APPLESS_MAIN(TestLanguage)
 
-#include "tst_options.moc"
+#include "tst_language.moc"

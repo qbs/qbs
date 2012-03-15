@@ -35,13 +35,25 @@
 **
 **************************************************************************/
 
+#include <tools/logger.h>
 #include <tools/fileinfo.h>
+#include <tools/options.h>
 #include <QtTest/QtTest>
 
 class TestFileInfo : public QObject
 {
     Q_OBJECT
 private slots:
+    void testCommandLineOptions()
+    {
+        QStringList args;
+        args.append("-vvvk");
+        qbs::CommandLineOptions options;
+        options.readCommandLineArguments(args);
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
+        QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
+        QVERIFY(options.isKeepGoingSet());
+    }
 
     void testFileInfo()
     {
@@ -55,7 +67,6 @@ private slots:
         QVERIFY(qbs::FileInfo::isAbsolute("C:\\bla\\lol"));
 #endif
         QCOMPARE(qbs::FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
-
     }
 };
 
