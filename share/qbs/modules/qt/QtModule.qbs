@@ -18,7 +18,12 @@ Module {
 
     Properties {
         condition: qtModuleName != undefined
-        cpp.includePaths: [incPath + '/' + internalQtModuleName]
+        cpp.includePaths: {
+            var paths = [incPath + '/' + internalQtModuleName];
+            if (qbs.targetOS === "mac")
+                paths.unshift(libPath + '/' + internalQtModuleName + qtLibInfix + '.framework/Versions/' + qtcore.versionMajor + '/Headers');
+            return paths;
+        }
         cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [internalLibraryName] : undefined
         cpp.frameworks: qbs.targetOS === 'mac' ? [internalLibraryName] : undefined
         cpp.defines: [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]

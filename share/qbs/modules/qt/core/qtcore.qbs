@@ -28,12 +28,15 @@ Module {
             return undefined;
         return ["QT_NAMESPACE=" + qtNamespace]
     }
-    cpp.includePaths: [
-        mkspecsPath + '/default',
-        incPath + '/QtCore',
-        incPath,
-        product.buildDirectory + '/' + generatedFilesDir
-    ]
+    cpp.includePaths: {
+        var paths = [mkspecsPath + '/default'];
+        if (qbs.targetOS === "mac")
+            paths.push(libPath + '/QtCore' + qtLibInfix + '.framework/Versions/' + versionMajor + '/Headers');
+        paths.push(incPath + '/QtCore');
+        paths.push(incPath);
+        paths.push(product.buildDirectory + '/' + generatedFilesDir);
+        return paths;
+    }
     cpp.libraryPaths: [libPath]
     cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
     cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
