@@ -84,7 +84,10 @@ CppModule {
             for (i in inputs.dynamiclibrary) {
                 libraryPaths.push(FileInfo.path(inputs.dynamiclibrary[i].fileName))
                 var fileName = FileInfo.fileName(inputs.dynamiclibrary[i].fileName)
-                fileName = fileName.substr(3, fileName.length - 6)
+                if (product.modules.qbs.toolchain == 'mingw')
+                    fileName = fileName.substr(0, fileName.length - 4)
+                else
+                    fileName = fileName.substr(3, fileName.length - 6)
                 dynamicLibrariesI.push(fileName)
             }
             dynamicLibrariesI = dynamicLibrariesI.concat(dynamicLibraries);
@@ -213,7 +216,10 @@ CppModule {
             for (i in inputs.dynamiclibrary) {
                 libraryPaths.push(FileInfo.path(inputs.dynamiclibrary[i].fileName))
                 var fileName = FileInfo.fileName(inputs.dynamiclibrary[i].fileName)
-                fileName = fileName.substr(3, fileName.length - 6)
+                if (product.modules.qbs.toolchain == 'mingw')
+                    fileName = fileName.substr(0, fileName.length - 4)
+                else
+                    fileName = fileName.substr(3, fileName.length - 6)
                 dynamicLibrariesI.push(fileName)
             }
 
