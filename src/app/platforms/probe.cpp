@@ -44,17 +44,17 @@
 #include <QtCore/QSettings>
 
 #include <tools/platform.h>
+#include <tools/platformglobals.h>
 #include "msvcprobe.h"
 
 using namespace qbs;
 
 static QString searchPath(const QString &path, const QString &me)
 {
-    //TODO: use native seperator
-    foreach (const QString &ppath, path.split(":")) {
-        if (QFileInfo(ppath +  "/"  +  me).exists()) {
-            return QDir::cleanPath(ppath +  "/"  +  me);
-        }
+    foreach (const QString &ppath, path.split(QLatin1Char(nativePathVariableSeparator))) {
+        const QString fullPath = ppath + QLatin1Char('/') + me;
+        if (QFileInfo(fullPath).exists())
+            return QDir::cleanPath(fullPath);
     }
     return QString();
 }
