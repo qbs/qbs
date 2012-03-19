@@ -16,7 +16,7 @@ Module {
     property string incPath: qtPath ? qtPath + "/include" : qbs.configurationValue(configKey + "incPath", undefined)
     property string libPath: qtPath ? qtPath + "/lib" : qbs.configurationValue(configKey + "libPath", undefined)
     property string version: qbs.configurationValue(configKey + "version", "4.7.0")
-    property var versionParts: version.split('.').map(parseInt)
+    property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
