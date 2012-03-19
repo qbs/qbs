@@ -60,3 +60,17 @@ function fromWindowsSeparators(str)
     return str.toString().replace(/\\/g, '/');
 }
 
+var removeDoubleSlashesPattern = new RegExp("/{2,}", "g")
+removeDoubleSlashesPattern.compile()
+
+function joinPaths()
+{
+    function pathFilter(path) {
+        return path && typeof path === 'string';
+    }
+
+    var paths = Array.prototype.slice.call(arguments, 0).filter(pathFilter);
+    var joinedPaths = paths.join('/');
+
+    return joinedPaths.replace(removeDoubleSlashesPattern, "/")
+}
