@@ -869,11 +869,13 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     return product;
 }
 
-void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct)
+void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct, bool *discardStoredProject)
 {
     qbsDebug() << "[BG] product '" << product->rProduct->name << "' changed.";
 
+    *discardStoredProject = false;
     QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
+    QSet<SourceArtifact::Ptr> addedSourceArtifacts;
     QList<Artifact *> addedArtifacts, artifactsToRemove;
     QHash<QString, SourceArtifact::Ptr> oldArtifacts, newArtifacts;
     foreach (SourceArtifact::Ptr a, product->rProduct->sources)
@@ -885,6 +887,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' added to product " << product->rProduct->name;
             product->rProduct->sources.insert(a);
             addedArtifacts += createArtifact(product, a);
+            addedSourceArtifacts += a;
         }
     }
     QList<SourceArtifact::Ptr> sourceArtifactsToRemove;
@@ -898,6 +901,14 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             sourceArtifactsToRemove += a;
             removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
             continue;
+        }
+        if (!addedSourceArtifacts.contains(changedArtifact)
+            && changedArtifact->configuration->value() != a->configuration->value())
+        {
+            qbsInfo("Some properties changed. Regenerating build graph.");
+            qbsDebug("Artifact with changed properties: %s", qPrintable(changedArtifact->absoluteFilePath));
+            *discardStoredProject = true;
+            return;
         }
         if (changedArtifact->fileTags != a->fileTags) {
             // artifact's filetags have changed
@@ -920,10 +931,6 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
                     }
                 }
             }
-        }
-        if (changedArtifact->configuration->value() != a->configuration->value())        // ### TODO
-        {
-            qWarning("Some properties changed. Consider rebuild or fix QBS-7. File name: %s", qPrintable(changedArtifact->absoluteFilePath));
         }
     }
 
@@ -1201,12 +1208,15 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
             throw Error(msg.arg(project->resolvedProject()->qbsFile));
         }
 
+        bool discardStoredProject;
         QMap<QString, ResolvedProduct::Ptr> changedProductsMap;
         foreach (BuildProduct::Ptr product, changedProducts) {
             if (changedProductsMap.isEmpty())
                 foreach (ResolvedProduct::Ptr cp, changedProject->products)
                     changedProductsMap.insert(cp->name, cp);
-            bg->onProductChanged(product, changedProductsMap.value(product->rProduct->name));
+            bg->onProductChanged(product, changedProductsMap.value(product->rProduct->name), &discardStoredProject);
+            if (discardStoredProject)
+                return BuildProject::Ptr();
         }
 
         BuildGraph::detectCycle(project.data());

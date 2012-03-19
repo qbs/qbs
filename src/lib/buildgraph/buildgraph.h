@@ -187,7 +187,7 @@ public:
                           QList<Artifact *> *outputArtifacts,
                           QSharedPointer<Transformer> &transformer);
 
-    void onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct);
+    void onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct, bool *discardStoredProject);
     void updateNodesThatMustGetNewTransformer();
 
     static void setupScriptEngineForProduct(QScriptEngine *scriptEngine, ResolvedProduct::Ptr product, Rule::Ptr rule, BuildGraph *bg = 0);
