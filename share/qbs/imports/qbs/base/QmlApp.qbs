@@ -1,7 +1,7 @@
 import qbs.base 1.0
 
 Product {
-    type: ['mac' ? "applicationbundle" : "application", "installed_content"]
+    type: [qbs.targetOS == 'mac' ? "applicationbundle" : "application", "installed_content"]
     Depends { id: qtcore; name: "Qt.core" }
     Depends { name: "qt.declarative" }
     Depends { name: "cpp" }
