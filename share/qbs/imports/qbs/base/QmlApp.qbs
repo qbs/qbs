@@ -5,8 +5,6 @@ Product {
     Depends { id: qtcore; name: "Qt.core" }
     Depends { name: "qt.declarative" }
     Depends { name: "cpp" }
-    Depends { name: "qt.widgets"; condition: qtcore.versionMajor === 5 }
-    Depends { name: "qt.script"; condition: qtcore.versionMajor === 5 }
     property string appViewerPath: localPath + "/qmlapplicationviewer"
     cpp.includePaths: [appViewerPath]
 
