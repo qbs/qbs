@@ -3,6 +3,8 @@ import qbs.base 1.0
 UnixGCC {
     condition: qbs.hostOS === 'mac' && qbs.targetOS === 'mac' && qbs.toolchain === 'gcc'
 
+    platformDefines: ["__GNUC__", "__APPLE__"]
+
     Rule {
         multiplex: true
         inputs: ["qbs"]
