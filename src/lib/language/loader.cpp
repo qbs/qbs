@@ -1285,16 +1285,21 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
                                   ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule)
 {
     // check for additional module search paths in the product
-    Binding searchPathsBinding = object->bindings.value(QStringList(name_moduleSearchPaths));
-    if (searchPathsBinding.isValid())
-        applyBinding(object, searchPathsBinding, localScope);
-
-    // if none found, check for additional module search paths in the project
     QStringList extraSearchPaths;
+    Binding searchPathsBinding = object->bindings.value(QStringList(name_moduleSearchPaths));
+    if (searchPathsBinding.isValid()) {
+        applyBinding(object, searchPathsBinding, localScope);
+        const QScriptValue scriptValue = localScope->value().property(name_moduleSearchPaths);
+        extraSearchPaths = scriptValue.toVariant().toStringList();
+    }
+
     Property projectProperty = localScope->lookupProperty("project");
     if (projectProperty.isValid() && projectProperty.scope) {
-        extraSearchPaths = projectProperty.scope->stringListValue(name_moduleSearchPaths);
-        // ### depends on the project.path property
+        // if no product.moduleSearchPaths found, check for additional module search paths in the project
+        if (extraSearchPaths.isEmpty())
+            extraSearchPaths = projectProperty.scope->stringListValue(name_moduleSearchPaths);
+
+        // resolve all found module search paths
         extraSearchPaths = resolvePaths(extraSearchPaths, projectProperty.scope->stringValue("path"));
     }
 
