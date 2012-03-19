@@ -1,15 +1,14 @@
-function args(input, output, config) {
+function args(product, input, output, config)
+{
+    var defines = ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'platformDefines');
+    defines = defines.concat(ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'defines'));
+    var includePaths = ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'includePaths');
     var args = [];
-
-    // ### fixme
-    var defines = ModUtils.appendAll_internal(config.modules, 'cpp', 'defines') //config.modules.cpp.compiler.defines
-    var includePaths = ModUtils.appendAll_internal(config.modules, 'cpp', 'includePaths') //config.modules.cpp.compiler.includePaths
-    for (var i in defines)
-        args.push('-D' + defines[i]);
-    for (var i in includePaths)
-        args.push('-I' + includePaths[i]);
-    args.push('-o', output);
-    args.push(input);
+    args = args.concat(
+                defines.map(function(item) { return '-D' + item; }),
+                includePaths.map(function(item) { return '-I' + item; }),
+                '-o', output,
+                input);
     return args;
 }
 

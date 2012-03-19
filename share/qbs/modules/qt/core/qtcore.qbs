@@ -83,7 +83,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/moc', Moc.args(input.fileName, output.fileName, input));
+            var cmd = new Command(product.module.binPath + '/moc', Moc.args(product, input.fileName, output.fileName, input));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -99,7 +99,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/moc', Moc.args(input.fileName, output.fileName, input));
+            var cmd = new Command(product.module.binPath + '/moc', Moc.args(product, input.fileName, output.fileName, input));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -115,7 +115,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/moc', Moc.args(input.fileName, output.fileName, input));
+            var cmd = new Command(product.module.binPath + '/moc', Moc.args(product, input.fileName, output.fileName, input));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
