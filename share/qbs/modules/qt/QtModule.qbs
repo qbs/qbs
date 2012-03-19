@@ -13,7 +13,7 @@ Module {
     property string incPath: qtcore.qtPath ? FileInfo.joinPaths(qtcore.qtPath, repository, "include") : qtcore.incPath
     property string libPath: qtcore.libPath
     property string qtLibInfix: qtcore.qtLibInfix
-    property string repository: 'qtbase'
+    property string repository: qtcore.versionMajor === 5 ? 'qtbase' : undefined
     property string internalQtModuleName: 'Qt' + qtModuleName
     property string internalLibraryName: QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qtcore.versionMajor, qbs.targetOS, cpp.debugInformation)
 

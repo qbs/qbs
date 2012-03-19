@@ -3,6 +3,6 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: 'Script'
-    repository: 'qtscript'
+    repository: qtcore.versionMajor === 5 ? 'qtscript' : undefined
 }
 

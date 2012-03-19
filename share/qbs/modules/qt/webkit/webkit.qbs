@@ -3,6 +3,6 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: 'WebKit'
-    repository: 'qtwebkit'
+    repository: qtcore.versionMajor === 5 ? 'qtwebkit' : undefined
 }
 

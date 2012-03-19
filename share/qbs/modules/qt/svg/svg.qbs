@@ -3,6 +3,6 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: 'Svg'
-    repository: 'qtsvg'
+    repository: qtcore.versionMajor === 5 ? 'qtsvg' : undefined
 }
 

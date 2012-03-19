@@ -8,6 +8,6 @@ QtModule {
     Depends { name: "qt.widgets"; condition: qtcore.versionMajor === 5 }
     Depends { name: "qt.script"; condition: qtcore.versionMajor === 5 }
     internalQtModuleName: qtcore.versionMajor === 5 ? "QtQuick1" : 'Qt' + qtModuleName
-    repository: 'qtquick1'
+    repository: qtcore.versionMajor === 5 ? 'qtquick1' : undefined
 }
 
