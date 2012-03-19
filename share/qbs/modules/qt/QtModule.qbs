@@ -10,20 +10,23 @@ Module {
 
     property string qtModuleName
     property string binPath: qtcore.binPath
-    property string incPath: qtcore.incPath
+    property string incPath: qtcore.qtPath ? FileInfo.joinPaths(qtcore.qtPath, repository, "include") : qtcore.incPath
     property string libPath: qtcore.libPath
     property string qtLibInfix: qtcore.qtLibInfix
+    property string repository: 'qtbase'
     property string internalQtModuleName: 'Qt' + qtModuleName
     property string internalLibraryName: QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qtcore.versionMajor, qbs.targetOS, cpp.debugInformation)
 
     Properties {
         condition: qtModuleName != undefined
+
         cpp.includePaths: {
-            var paths = [incPath + '/' + internalQtModuleName];
+            var paths = [incPath, FileInfo.joinPaths(incPath, internalQtModuleName)];
             if (qbs.targetOS === "mac")
                 paths.unshift(libPath + '/' + internalQtModuleName + qtLibInfix + '.framework/Versions/' + qtcore.versionMajor + '/Headers');
             return paths;
         }
+
         cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [internalLibraryName] : undefined
         cpp.frameworks: qbs.targetOS === 'mac' ? [internalLibraryName] : undefined
         cpp.defines: [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]

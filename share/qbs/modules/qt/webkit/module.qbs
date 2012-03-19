@@ -3,5 +3,6 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: 'WebKit'
+    repository: 'qtwebkit'
 }
 

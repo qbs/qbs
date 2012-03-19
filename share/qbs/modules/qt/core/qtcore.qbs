@@ -12,15 +12,16 @@ Module {
     property string qtNamespace: qbs.configurationValue(configKey + "namespace", undefined)
     property string qtLibInfix: qbs.configurationValue(configKey + "libInfix", "")
     property string qtPath: qbs.configurationValue(configKey + "path", undefined)
-    property string binPath: qtPath ? qtPath + "/bin" : qbs.configurationValue(configKey + "binPath", undefined)
-    property string incPath: qtPath ? qtPath + "/include" : qbs.configurationValue(configKey + "incPath", undefined)
-    property string libPath: qtPath ? qtPath + "/lib" : qbs.configurationValue(configKey + "libPath", undefined)
+    property string repository: versionMajor === 5 ? "qtbase" : undefined
+    property string binPath: qtPath ? FileInfo.joinPaths(qtPath, repository, "bin") : qbs.configurationValue(configKey + "binPath", undefined)
+    property string incPath: qtPath ? FileInfo.joinPaths(qtPath, repository, "include") : qbs.configurationValue(configKey + "incPath", undefined)
+    property string libPath: qtPath ? FileInfo.joinPaths(qtPath, repository, "lib") : qbs.configurationValue(configKey + "libPath", undefined)
     property string version: qbs.configurationValue(configKey + "version", "4.7.0")
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
-    property string mkspecsPath: qtPath ? qtPath + "/mkspecs" : qbs.configurationValue(configKey + "mkspecsPath", undefined)
+    property string mkspecsPath: qtPath ? FileInfo.joinPaths(qtPath, 'qtbase',  "mkspecs") : qbs.configurationValue(configKey + "mkspecsPath", undefined)
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
     cpp.defines: {
