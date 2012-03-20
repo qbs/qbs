@@ -182,16 +182,8 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
 
     if (success)
         success = runAutoMoc();
-    if (success) {
-        if (changedFilesProvided) {
-            foreach (Artifact *artifact, changedArtifacts)
-                scanFileDependencies(artifact);
-        } else {
-            doDependencyScanTopDown();
-            updateBuildGraph(initialBuildState);
-        }
+    if (success)
         initLeaves(changedArtifacts);
-    }
 
     m_futureInterface->setProgressRange(0 , m_leaves.count());
 
@@ -268,6 +260,10 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
         return;
     seenArtifacts += artifact;
 
+    // Artifacts that appear in the build graph after
+    // prepareBuildGraph() has been called, must be initialized.
+    if (artifact->buildState == Artifact::Untouched)
+        artifact->buildState = Artifact::Buildable;
 
     if (artifact->children.isEmpty()) {
         m_leaves.insert(artifact, hashDummy);
@@ -416,6 +412,36 @@ void Executor::execute(Artifact *artifact)
             outDir.mkpath(".");
     }
 
+    // scan all input artifacts
+    bool newDependenciesFound;
+    scanInputArtifacts(artifact, &newDependenciesFound);
+
+    // postpone the build of this artifact, if new dependencies found
+    if (newDependenciesFound) {
+        bool buildingDependenciesFound = false;
+        QVector<Artifact *> unbuiltDependencies;
+        foreach (Artifact *dependency, artifact->children) {
+            switch (dependency->buildState) {
+            case Artifact::Untouched:
+            case Artifact::Buildable:
+                unbuiltDependencies += dependency;
+                break;
+            case Artifact::Building:
+                buildingDependenciesFound = true;
+                break;
+            case Artifact::Built:
+                // do nothing
+                break;
+            }
+        }
+        if (!unbuiltDependencies.isEmpty()) {
+            insertLeavesAfterAddingDependencies(unbuiltDependencies);
+            return;
+        }
+        if (buildingDependenciesFound)
+            return;
+    }
+
     ExecutorJob *job = m_availableJobs.takeFirst();
     artifact->buildState = Artifact::Building;
     m_processingJobs.insert(job, artifact);
@@ -433,13 +459,19 @@ void Executor::finishArtifact(Artifact *leaf)
 
     leaf->buildState = Artifact::Built;
     foreach (Artifact *parent, leaf->parents) {
-        if (parent->buildState != Artifact::Buildable)
+        if (parent->buildState != Artifact::Buildable) {
+            if (qbsLogLevel(LoggerTrace))
+                qbsTrace() << "[EXEC] parent " << fileName(parent) << " build state: " << toString(parent->buildState);
             continue;
+        }
 
         if (isLeaf(parent)) {
             m_leaves.insert(parent, hashDummy);
             if (qbsLogLevel(LoggerTrace))
                 qbsTrace() << "[EXEC] finishArtifact adds leaf " << fileName(parent) << " " << toString(parent->buildState);
+        } else {
+            if (qbsLogLevel(LoggerTrace))
+                qbsTrace() << "[EXEC] parent " << fileName(parent) << " build state: " << toString(parent->buildState);
         }
     }
 
@@ -448,7 +480,7 @@ void Executor::finishArtifact(Artifact *leaf)
             finishArtifact(sideBySideArtifact);
 }
 
-void Executor::handleDependencies(Artifact *processedArtifact, Artifact *scannedArtifact, const QSet<QString> &resolvedDependencies)
+void Executor::handleDependencies(Artifact *processedArtifact, Artifact *scannedArtifact, const QSet<QString> &resolvedDependencies, bool *newDependencyAdded)
 {
     if (resolvedDependencies.isEmpty()) {
         qbsTrace("[DEPSCAN] no dependencies found.");
@@ -459,10 +491,10 @@ void Executor::handleDependencies(Artifact *processedArtifact, Artifact *scanned
                << "' while processing '" << fileName(processedArtifact) << "'";
 
     foreach (const QString &dependencyFilePath, resolvedDependencies)
-        handleDependency(processedArtifact, dependencyFilePath);
+        handleDependency(processedArtifact, dependencyFilePath, newDependencyAdded);
 }
 
-void Executor::handleDependency(Artifact *processedArtifact, const QString &dependencyFilePath)
+void Executor::handleDependency(Artifact *processedArtifact, const QString &dependencyFilePath, bool *newDependencyAdded)
 {
     BuildProduct *product = processedArtifact->product;
     Artifact *dependency = 0;
@@ -490,7 +522,8 @@ void Executor::handleDependency(Artifact *processedArtifact, const QString &depe
 
     // dependency not found in the whole build graph, thus create a new artifact
     if (!dependency) {
-        qbsTrace("[DEPSCAN]   + '%s'", qPrintable(dependencyFilePath));
+        if (qbsLogLevel(LoggerTrace))
+            qbsTrace("[DEPSCAN]   + '%s'", qPrintable(dependencyFilePath));
         dependency = new Artifact(processedArtifact->project);
         dependency->artifactType = Artifact::FileDependency;
         dependency->configuration = processedArtifact->configuration;
@@ -502,19 +535,47 @@ void Executor::handleDependency(Artifact *processedArtifact, const QString &depe
         return;
 
     if (dependency->artifactType == Artifact::FileDependency) {
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace() << "[DEPSCAN] new file dependency " << fileName(dependency);
         processedArtifact->fileDependencies.insert(dependency);
     } else {
         if (processedArtifact->children.contains(dependency))
             return;
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace() << "[DEPSCAN] new artifact dependency " << fileName(dependency);
         BuildGraph *buildGraph = product->project->buildGraph();
         if (insertIntoProduct && !product->artifacts.contains(dependency->fileName))
             buildGraph->insert(product, dependency);
         buildGraph->safeConnect(processedArtifact, dependency);
+        *newDependencyAdded = true;
     }
+}
+
+static void insertLeavesAfterAddingDependencies_recurse(Artifact *artifact, QSet<Artifact *> &seenArtifacts, QMap<Artifact *, QHashDummyValue> &leaves)
+{
+    if (seenArtifacts.contains(artifact))
+        return;
+    seenArtifacts += artifact;
+
+    if (artifact->buildState == Artifact::Untouched)
+        artifact->buildState = Artifact::Buildable;
+
+    bool isLeaf = true;
+    foreach (Artifact *child, artifact->children) {
+        if (child->buildState != Artifact::Built) {
+            isLeaf = false;
+            insertLeavesAfterAddingDependencies_recurse(child, seenArtifacts, leaves);
+        }
+    }
+
+    if (isLeaf) {
+        if (qbsLogLevel(LoggerDebug))
+            qbsDebug() << "[EXEC] adding leaf " << fileName(artifact);
+        leaves.insert(artifact, hashDummy);
+    }
+}
+
+void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies)
+{
+    QSet<Artifact *> seenArtifacts;
+    foreach (Artifact *dependency, dependencies)
+        insertLeavesAfterAddingDependencies_recurse(dependency, seenArtifacts, m_leaves);
 }
 
 void Executor::cancelJobs()
@@ -627,17 +688,20 @@ static QStringList collectIncludePaths(const QVariantMap &modules)
     return QStringList(collectedPaths.toList());
 }
 
-void Executor::scanFileDependencies(Artifact *processedArtifact)
+void Executor::scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded)
 {
-    if (!processedArtifact->transformer)
+    *newDependencyAdded = false;
+    if (artifact->inputsScanned)
         return;
 
-    foreach (Artifact *output, processedArtifact->transformer->outputs) {
-        // clear the file dependencies - they will be regenerated
-        output->fileDependencies.clear();
-    }
+    artifact->inputsScanned = true;
 
-    foreach (Artifact *inputArtifact, processedArtifact->transformer->inputs) {
+    // clear file dependencies; they will be regenerated
+    artifact->fileDependencies.clear();
+
+    QSet<Artifact*>::const_iterator it = artifact->transformer->inputs.begin();
+    for (; it != artifact->transformer->inputs.end(); ++it) {
+        Artifact *inputArtifact = *it;
         QStringList includePaths;
         foreach (const QString &fileTag, inputArtifact->fileTags) {
             QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(fileTag);
@@ -645,16 +709,18 @@ void Executor::scanFileDependencies(Artifact *processedArtifact)
                 if (includePaths.isEmpty())
                     includePaths = collectIncludePaths(inputArtifact->configuration->value().value("modules").toMap());
 
-                scanForFileDependencies(scanner, includePaths, processedArtifact, inputArtifact);
+                scanForFileDependencies(scanner, includePaths, artifact, inputArtifact, newDependencyAdded);
             }
         }
     }
 }
 
-void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact)
+void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded)
 {
-    qbsDebug("scanning %s [%s]", qPrintable(inputArtifact->fileName), scannerPlugin->fileTag);
-    qbsDebug("  from %s", qPrintable(processedArtifact->fileName));
+    if (qbsLogLevel(LoggerDebug)) {
+        qbsDebug("scanning %s [%s]", qPrintable(inputArtifact->fileName), scannerPlugin->fileTag);
+        qbsDebug("    from %s", qPrintable(outputArtifact->fileName));
+    }
 
     QSet<QString> resolvedDependencies;
     QSet<QString> visitedFilePaths;
@@ -669,15 +735,15 @@ void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStri
 
         ScanResultCache::Result scanResult = m_scanResultCache.value(filePathToBeScanned);
         if (!scanResult.visited) {
-            bool canScan = scanWithScannerPlugin(scannerPlugin, filePathToBeScanned, &m_scanResultCache, &scanResult);
-            if (!canScan)
+            bool successfulScan = scanWithScannerPlugin(scannerPlugin, filePathToBeScanned, &m_scanResultCache, &scanResult);
+            if (!successfulScan)
                 continue;
         }
 
         resolveScanResultDependencies(includePaths, inputArtifact, scanResult, filePathToBeScanned, &resolvedDependencies, &filePathsToScan);
     }
 
-    handleDependencies(processedArtifact, inputArtifact, resolvedDependencies);
+    handleDependencies(outputArtifact, inputArtifact, resolvedDependencies, newDependencyAdded);
 }
 
 static bool resolveWithIncludePath(const QString &includePath, QString &outFilePath, BuildProduct *buildProduct)
@@ -853,27 +919,6 @@ void Executor::doOutOfDateCheck(Artifact *artifact)
     artifact->outOfDateCheckPerformed = true;
     foreach (Artifact *child, artifact->children)
         doOutOfDateCheck(child);
-}
-
-void Executor::doDependencyScanTopDown()
-{
-    qbsInfo() << DontPrintLogLevel << "Scanning for file dependencies...";
-    QSet<Artifact *> seenArtifacts;
-    foreach (Artifact *root, m_roots)
-        doDependencyScan_impl(root, seenArtifacts);
-}
-
-void Executor::doDependencyScan_impl(Artifact *artifact, QSet<Artifact *> &seenArtifacts)
-{
-    if (!artifact->transformer || seenArtifacts.contains(artifact))
-        return;
-    seenArtifacts += artifact;
-    if (!artifact->outOfDateCheckPerformed)
-        doOutOfDateCheck(artifact);
-    if (artifact->isOutOfDate)
-        scanFileDependencies(artifact);
-    foreach (Artifact *child, artifact->children)
-        doDependencyScan_impl(child, seenArtifacts);
 }
 
 void Executor::setState(ExecutorState s)

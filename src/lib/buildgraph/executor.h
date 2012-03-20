@@ -103,8 +103,6 @@ protected:
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
     void doOutOfDateCheck();
     void doOutOfDateCheck(Artifact *root);
-    void doDependencyScanTopDown();
-    void doDependencyScan_impl(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     static bool isLeaf(Artifact *artifact);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
@@ -119,12 +117,13 @@ protected:
     void addExecutorJobs(int jobNumber);
     void removeExecutorJobs(int jobNumber);
     bool runAutoMoc();
-    void scanFileDependencies(Artifact *processedArtifact);
-    void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact);
+    void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded);
+    void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded);
     static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
                                               const QString &filePathToBeScanned, QSet<QString> *dependencies, QStringList *filePathsToScan);
-    void handleDependencies(Artifact *processedArtifact, Artifact *scannedArtifact, const QSet<QString> &resolvedDependencies);
-    void handleDependency(Artifact *processedArtifact, const QString &dependencyFilePath);
+    void handleDependencies(Artifact *processedArtifact, Artifact *scannedArtifact, const QSet<QString> &resolvedDependencies, bool *newDependencyAdded);
+    void handleDependency(Artifact *processedArtifact, const QString &dependencyFilePath, bool *newDependencyAdded);
+    void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();
 
 private:

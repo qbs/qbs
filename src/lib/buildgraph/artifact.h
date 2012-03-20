@@ -83,6 +83,7 @@ public:
     };
     BuildState buildState;
 
+    bool inputsScanned : 1;
     bool outOfDateCheckPerformed : 1;
     bool isOutOfDate : 1;
     bool isExistingFile : 1;
