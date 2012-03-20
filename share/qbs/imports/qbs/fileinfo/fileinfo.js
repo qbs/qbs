@@ -61,7 +61,6 @@ function fromWindowsSeparators(str)
 }
 
 var removeDoubleSlashesPattern = new RegExp("/{2,}", "g")
-removeDoubleSlashesPattern.compile()
 
 function joinPaths()
 {
