@@ -293,9 +293,14 @@ bool Executor::run(QFutureInterface<bool> &futureInterface)
         if (m_leaves.isEmpty())
             return !m_processingJobs.isEmpty();
 
-        Artifact *leaf = m_leaves.begin().key();
-        if (!execute(leaf))
+        if (m_availableJobs.isEmpty()) {
+            if (qbsLogLevel(LoggerDebug))
+                qbsDebug("[EXEC] No jobs available. Trying later.");
             return true;
+        }
+
+        Artifact *leaf = m_leaves.begin().key();
+        execute(leaf);
     }
     return false;
 }
@@ -342,22 +347,12 @@ bool Executor::isOutOfDate(Artifact *artifact, bool &fileExists)
     return false;
 }
 
-/**
-  * Returns false if the artifact cannot be executed right now
-  * and should be looked at later.
-  */
-bool Executor::execute(Artifact *artifact)
+void Executor::execute(Artifact *artifact)
 {
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[EXEC] " << fileName(artifact);
 
 //    artifact->project->buildGraph()->dump(*artifact->products.begin());
-
-    if (m_availableJobs.isEmpty()) {
-        if (qbsLogLevel(LoggerDebug))
-            qbsDebug("[EXEC] No jobs available. Trying later.");
-        return false;
-    }
 
     if (!artifact->outOfDateCheckPerformed)
         doOutOfDateCheck(artifact);
@@ -365,64 +360,70 @@ bool Executor::execute(Artifact *artifact)
     bool isDirty = artifact->isOutOfDate;
     m_leaves.remove(artifact);
 
+    // skip source artifacts
     if (!fileExists && artifact->artifactType == Artifact::SourceFile) {
         QString msg = QLatin1String("Can't find source file '%1', referenced in '%2'.");
         setError(msg.arg(artifact->fileName, artifact->product->rProduct->qbsFile));
-        return true;
+        return;
     }
 
+    // skip artifacts without transformer
     if (!artifact->transformer) {
         if (!fileExists)
             qbsWarning() << tr("No transformer builds '%1'").arg(QDir::toNativeSeparators(artifact->fileName));
         if (qbsLogLevel(LoggerDebug))
             qbsDebug("[EXEC] No transformer. Skipping.");
         finishArtifact(artifact);
-        return true;
-    } else if (!isDirty) {
+        return;
+    }
+
+    // skip artifacts that are up-to-date
+    if (!isDirty) {
         if (qbsLogLevel(LoggerDebug))
             qbsDebug("[EXEC] Up to date. Skipping.");
         finishArtifact(artifact);
-        return true;
-    } else {
-        foreach (Artifact *sideBySideArtifact, artifact->sideBySideArtifacts) {
-            if (sideBySideArtifact->transformer != artifact->transformer)
-                continue;
-            switch (sideBySideArtifact->buildState)
-            {
-            case Artifact::Untouched:
-            case Artifact::Buildable:
-                break;
-            case Artifact::Built:
-                if (qbsLogLevel(LoggerDebug))
-                    qbsDebug("[EXEC] Side by side artifact already finished. Skipping.");
-                finishArtifact(artifact);
-                return true;
-            case Artifact::Building:
-                if (qbsLogLevel(LoggerDebug))
-                    qbsDebug("[EXEC] Side by side artifact processing. Skipping.");
-                artifact->buildState = Artifact::Building;
-                return true;
-            }
-        }
-
-        foreach (Artifact *output, artifact->transformer->outputs) {
-            // create the output directories
-            QDir outDir = QFileInfo(output->fileName).absoluteDir();
-            if (!outDir.exists())
-                outDir.mkpath(".");
-        }
-
-        ExecutorJob *job = m_availableJobs.takeFirst();
-        artifact->buildState = Artifact::Building;
-        m_processingJobs.insert(job, artifact);
-
-        if (!artifact->product)
-            qbsError() << QString("BUG: Generated artifact %1 belongs to no product.").arg(QDir::toNativeSeparators(artifact->fileName));
-
-        job->run(artifact->transformer.data(), artifact->product);
+        return;
     }
 
-    return true;
+    // skip if side-by-side artifacts have been built
+    foreach (Artifact *sideBySideArtifact, artifact->sideBySideArtifacts) {
+        if (sideBySideArtifact->transformer != artifact->transformer)
+            continue;
+        switch (sideBySideArtifact->buildState)
+        {
+        case Artifact::Untouched:
+        case Artifact::Buildable:
+            break;
+        case Artifact::Built:
+            if (qbsLogLevel(LoggerDebug))
+                qbsDebug("[EXEC] Side by side artifact already finished. Skipping.");
+            finishArtifact(artifact);
+            return;
+        case Artifact::Building:
+            if (qbsLogLevel(LoggerDebug))
+                qbsDebug("[EXEC] Side by side artifact processing. Skipping.");
+            artifact->buildState = Artifact::Building;
+            return;
+        }
+    }
+
+    // create the output directories
+    QSet<Artifact*>::const_iterator it = artifact->transformer->outputs.begin();
+    for (; it != artifact->transformer->outputs.end(); ++it) {
+        Artifact *output = *it;
+        QDir outDir = QFileInfo(output->fileName).absoluteDir();
+        if (!outDir.exists())
+            outDir.mkpath(".");
+    }
+
+    ExecutorJob *job = m_availableJobs.takeFirst();
+    artifact->buildState = Artifact::Building;
+    m_processingJobs.insert(job, artifact);
+
+    if (!artifact->product)
+        qbsError() << QString("BUG: Generated artifact %1 belongs to no product.").arg(QDir::toNativeSeparators(artifact->fileName));
+
+    job->run(artifact->transformer.data(), artifact->product);
 }
 
 void Executor::finishArtifact(Artifact *leaf)

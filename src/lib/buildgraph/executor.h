@@ -111,7 +111,7 @@ protected:
     bool run(QFutureInterface<bool> &futureInterface);
     qbs::FileTime timeStamp(Artifact *artifact);
     bool isOutOfDate(Artifact *artifact, bool &fileExists);
-    bool execute(Artifact *artifact);
+    void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
     void setState(ExecutorState);
