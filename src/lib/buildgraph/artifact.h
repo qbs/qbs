@@ -96,14 +96,16 @@ private:
 inline QString toString(Artifact::BuildState s)
 {
     switch (s) {
+    case Artifact::Untouched:
+        return QLatin1String("Untouched");
     case Artifact::Buildable:
-        return "Initialized";
+        return QLatin1String("Buildable");
     case Artifact::Building:
-        return "Processing";
+        return QLatin1String("Building");
     case Artifact::Built:
-        return "Finished";
+        return QLatin1String("Built");
     default:
-        return "Unknown";
+        return QLatin1String("Unknown");
     }
 }
 
