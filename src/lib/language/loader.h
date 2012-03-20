@@ -337,9 +337,9 @@ protected:
     ProjectFile::Ptr parseFile(const QString &fileName);
 
     Scope::Ptr buildFileContext(ProjectFile *file);
-    Module::Ptr loadModule(const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
-                           const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation,
-                           const QStringList &extraSearchPaths = QStringList());
+    Module::Ptr searchAndLoadModule(const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
+                                    const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation,
+                                    const QStringList &extraSearchPaths = QStringList());
     Module::Ptr loadModule(ProjectFile *file, const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                            const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation);
     QList<Module::Ptr> evaluateDependency(EvaluationObject *parentEObj, LanguageObject *depends,

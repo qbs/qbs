@@ -1216,9 +1216,9 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
 }
 
 /// load all module.qbs files, checking their conditions
-Module::Ptr Loader::loadModule(const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
-                               const QVariantMap &userProperties, const CodeLocation &dependsLocation,
-                               const QStringList &extraSearchPaths)
+Module::Ptr Loader::searchAndLoadModule(const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
+                                        const QVariantMap &userProperties, const CodeLocation &dependsLocation,
+                                        const QStringList &extraSearchPaths)
 {
     Q_ASSERT(!moduleName.isEmpty());
 
@@ -1304,7 +1304,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     }
 
     if (loadBaseModule) {
-        Module::Ptr baseModule = loadModule("qbs", "qbs", moduleScope, userProperties, CodeLocation(object->file->fileName));
+        Module::Ptr baseModule = searchAndLoadModule("qbs", "qbs", moduleScope, userProperties, CodeLocation(object->file->fileName));
         if (!baseModule)
             throw Error("Cannot load the qbs base module.");
         evaluationObject->modules.insert(baseModule->name, baseModule);
@@ -1460,7 +1460,7 @@ QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, Lang
     unknownModules->clear();
     for (int i=0; i < fullModuleNames.count(); ++i) {
         const QString &fullModuleName = fullModuleNames.at(i);
-        Module::Ptr module = loadModule(fullModuleIds.at(i), fullModuleName, moduleScope, userProperties, dependsLocation, extraSearchPaths);
+        Module::Ptr module = searchAndLoadModule(fullModuleIds.at(i), fullModuleName, moduleScope, userProperties, dependsLocation, extraSearchPaths);
         if (module) {
             modules.append(module);
         } else {
