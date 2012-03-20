@@ -331,11 +331,11 @@ FileTime Executor::timeStamp(Artifact *artifact)
     return result;
 }
 
-bool Executor::isOutOfDate(Artifact *artifact, bool &fileExists)
+bool Executor::isOutOfDate(Artifact *artifact, bool *fileExists)
 {
     FileInfo fi(artifact->fileName);
-    fileExists = fi.exists();
-    if (!fileExists)
+    *fileExists = fi.exists();
+    if (!*fileExists)
         return true;
 
     FileTime artifactTimeStamp = fi.lastModified();
@@ -847,7 +847,7 @@ void Executor::doOutOfDateCheck(Artifact *artifact)
     if (artifact->outOfDateCheckPerformed)
         return;
     bool fileExists;
-    if (isOutOfDate(artifact, fileExists))
+    if (isOutOfDate(artifact, &fileExists))
         artifact->isOutOfDate = true;
     artifact->isExistingFile = fileExists;
     artifact->outOfDateCheckPerformed = true;

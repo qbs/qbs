@@ -110,7 +110,7 @@ protected:
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool run(QFutureInterface<bool> &futureInterface);
     qbs::FileTime timeStamp(Artifact *artifact);
-    bool isOutOfDate(Artifact *artifact, bool &fileExists);
+    bool isOutOfDate(Artifact *artifact, bool *fileExists);
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
