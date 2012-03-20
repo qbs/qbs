@@ -1616,6 +1616,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
+    Scope::scopesWithEvaluatedProperties.clear();
     ResolvedProject::Ptr rproject(new ResolvedProject);
     rproject->qbsFile = m_project->fileName;
 
