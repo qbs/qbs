@@ -3,5 +3,6 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: 'Help'
+    repository: qtcore.versionMajor === 5 ? 'qttools' : undefined
 }
 
