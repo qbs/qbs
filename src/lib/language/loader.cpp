@@ -1693,7 +1693,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                 resolveGroup(rproduct, data.product, child);
             } else if (prototypeNameHash == hashName_ProductModule) {
                 child->scope->properties.insert("product", Property(data.product));
-                resolveProductModule(rproduct, data.product, child);
+                resolveProductModule(rproduct, data.product, child, userProperties->value());
                 data.usedProductsFromProductModule += child->unknownModules;
             }
         }
@@ -1978,11 +1978,10 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     }
 }
 
-void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *productModule)
+void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *productModule, const QVariantMap &userProperties)
 {
     Q_ASSERT(!rproduct->name.isEmpty());
 
-    QVariantMap userProperties; // ### dummy
     ScopeChain::Ptr localScopeChain(new ScopeChain(&m_engine, productModule->scope));
     ScopeChain::Ptr moduleScopeChain(new ScopeChain(&m_engine, productModule->scope));
     evaluateDependencies(productModule->instantiatingObject(), productModule, localScopeChain, moduleScopeChain, userProperties);

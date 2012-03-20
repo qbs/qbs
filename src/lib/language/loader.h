@@ -357,7 +357,7 @@ protected:
     void setupInternalPrototype(EvaluationObject *evaluationObject);
     void resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module);
     void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
-    void resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
+    void resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group, const QVariantMap &userProperties);
     void resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::Ptr module);
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
                                                     ResolvedProduct::Ptr rproduct, ResolvedModule::Ptr module);
