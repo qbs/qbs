@@ -2,7 +2,12 @@ defineReplace(targetPath) {
     return($$replace(1, /, $$QMAKE_DIR_SEP))
 }
 
-QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc3)
+qt:greaterThan(QT_MAJOR_VERSION, 4) {
+    QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
+} else {
+    QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc3)
+}
+
 HELPGENERATOR = $$targetPath($$[QT_INSTALL_BINS]/qhelpgenerator)
 
 VERSION_TAG = $$replace(QBS_VERSION, "[-.]", )
