@@ -1178,6 +1178,10 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
         module->object->scope->properties.insert("configurationValue", p);
     }
 
+    if (!checkFileCondition(&m_engine, moduleScope, file))
+        return Module::Ptr();
+
+    qbsTrace() << "loading module '" << moduleName << "' from " << file->fileName;
     evaluatePropertyOptions(file->root);
     evaluateDependencies(file->root, module->object, moduleScope, moduleBaseScope, userProperties, !isBaseModule);
     if (!module->object->unknownModules.isEmpty()) {
@@ -1191,28 +1195,23 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
     }
     buildModulesProperty(module->object);
 
-    if (checkFileCondition(&m_engine, moduleScope, file)) {
-        qbsTrace() << "loading module '" << moduleName << "' from " << file->fileName;
-        if (!file->root->id.isEmpty())
-            module->context->properties.insert(file->root->id, Property(module->object));
-        fillEvaluationObject(moduleScope, file->root, module->object->scope, module->object, userProperties);
+    if (!file->root->id.isEmpty())
+        module->context->properties.insert(file->root->id, Property(module->object));
+    fillEvaluationObject(moduleScope, file->root, module->object->scope, module->object, userProperties);
 
-        // override properties given on the command line
-        const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
-        for (QVariantMap::const_iterator vmit = userModuleProperties.begin(); vmit != userModuleProperties.end(); ++vmit) {
-            if (!module->object->scope->properties.contains(vmit.key()))
-                throw Error("Unknown property: " + module->id + '.' + vmit.key());
-            module->object->scope->properties.insert(vmit.key(), Property(m_engine.toScriptValue(vmit.value())));
+    // override properties given on the command line
+    const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
+    for (QVariantMap::const_iterator vmit = userModuleProperties.begin(); vmit != userModuleProperties.end(); ++vmit) {
+        if (!module->object->scope->properties.contains(vmit.key()))
+            throw Error("Unknown property: " + module->id + '.' + vmit.key());
+        module->object->scope->properties.insert(vmit.key(), Property(m_engine.toScriptValue(vmit.value())));
 
-            const PropertyDeclaration &decl = module->object->scope->declarations.value(vmit.key());
-            if (!decl.allowedValues.isNull())
-                testIfValueIsAllowed(vmit.value(), decl.allowedValues, vmit.key(), dependsLocation);
-        }
-
-        return module;
+        const PropertyDeclaration &decl = module->object->scope->declarations.value(vmit.key());
+        if (!decl.allowedValues.isNull())
+            testIfValueIsAllowed(vmit.value(), decl.allowedValues, vmit.key(), dependsLocation);
     }
 
-    return Module::Ptr();
+    return module;
 }
 
 /// load all module.qbs files, checking their conditions
