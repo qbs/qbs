@@ -265,15 +265,41 @@ public:
     QScriptValue value;
 };
 
-class Module;
-
-class UnknownModule
+class ModuleBase
 {
 public:
+    virtual ~ModuleBase() {}
     QString name;
+    QScriptProgram condition;
+    qbs::CodeLocation dependsLocation;
+};
+
+class UnknownModule : public ModuleBase
+{
+public:
+    typedef QSharedPointer<UnknownModule> Ptr;
+
     bool required;
     QString failureMessage;
-    qbs::CodeLocation dependsLocation;
+};
+
+class EvaluationObject;
+
+class Module : public ModuleBase
+{
+    Q_DISABLE_COPY(Module)
+public:
+    typedef QSharedPointer<Module> Ptr;
+
+    Module();
+    ~Module();
+
+    ProjectFile *file() const;
+    void dump(QByteArray &indent);
+
+    QString id;
+    Scope::Ptr context;
+    EvaluationObject *object;
 };
 
 class EvaluationObject
@@ -290,32 +316,12 @@ public:
 
     Scope::Ptr scope;
     QList<EvaluationObject *> children;
-    QHash<QString, QSharedPointer<Module> > modules;
-    QList<UnknownModule> unknownModules;
+    QHash<QString, Module::Ptr> modules;
+    QList<UnknownModule::Ptr> unknownModules;
 
     // the source objects that generated this object
     // the object that triggered the instantiation is first, followed by prototypes
     QList<LanguageObject *> objects;
-};
-
-class Module
-{
-    Q_DISABLE_COPY(Module)
-public:
-    typedef QSharedPointer<Module> Ptr;
-
-    Module();
-    ~Module();
-
-    ProjectFile *file() const;
-    void dump(QByteArray &indent);
-
-    QString id;
-    QString name;
-    qbs::CodeLocation dependsLocation;
-
-    Scope::Ptr context;
-    EvaluationObject *object;
 };
 
 class Loader
@@ -343,10 +349,11 @@ protected:
     Module::Ptr loadModule(ProjectFile *file, const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                            const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation);
     QList<Module::Ptr> evaluateDependency(EvaluationObject *parentEObj, LanguageObject *depends,
-                                          ScopeChain::Ptr moduleScope,
-                                          const QStringList &extraSearchPaths, QList<UnknownModule> *unknownModules, const QVariantMap &userProperties);
+                                          ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
+                                          QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties);
     void evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
                               ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule = true);
+    void evaluateDependencyConditions(EvaluationObject *evaluationObject);
     void evaluateImports(Scope::Ptr target, const JsImports &jsImports);
     void evaluatePropertyOptions(LanguageObject *object);
     void resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
@@ -368,10 +375,10 @@ protected:
     {
     public:
         EvaluationObject *product;
-        QList<UnknownModule> usedProducts;
-        QList<UnknownModule> usedProductsFromProductModule;
+        QList<UnknownModule::Ptr> usedProducts;
+        QList<UnknownModule::Ptr> usedProductsFromProductModule;
 
-        void addUsedProducts(const QList<UnknownModule> &additionalUsedProducts, bool *productsAdded);
+        void addUsedProducts(const QList<UnknownModule::Ptr> &additionalUsedProducts, bool *productsAdded);
     };
     typedef QHash<ResolvedProduct::Ptr, ProductData> ProjectData;
 

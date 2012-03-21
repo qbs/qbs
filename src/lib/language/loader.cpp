@@ -720,6 +720,7 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
         evaluateDependencies(file->root, evaluationObject, scopeChain, moduleScope, userProperties);
 
     fillEvaluationObject(scopeChain, file->root, evaluationObject->scope, evaluationObject, userProperties);
+    evaluateDependencyConditions(evaluationObject);
 
 //    QByteArray indent;
 //    evaluationObject->dump(indent);
@@ -1187,9 +1188,9 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
     evaluateDependencies(file->root, module->object, moduleScope, moduleBaseScope, userProperties, !isBaseModule);
     if (!module->object->unknownModules.isEmpty()) {
         QString msg;
-        foreach (const UnknownModule &missingModule, module->object->unknownModules) {
-            msg.append(Error(QString("Module '%1' cannot be loaded.").arg(missingModule.name),
-                                    missingModule.dependsLocation).toString());
+        foreach (const UnknownModule::Ptr &missingModule, module->object->unknownModules) {
+            msg.append(Error(QString("Module '%1' cannot be loaded.").arg(missingModule->name),
+                                    missingModule->dependsLocation).toString());
             msg.append("\n");
         }
         throw Error(msg);
@@ -1199,6 +1200,7 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
     if (!file->root->id.isEmpty())
         module->context->properties.insert(file->root->id, Property(module->object));
     fillEvaluationObject(moduleScope, file->root, module->object->scope, module->object, userProperties);
+    evaluateDependencyConditions(module->object);
 
     // override properties given on the command line
     const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
@@ -1306,7 +1308,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
 
     foreach (LanguageObject *child, object->children) {
         if (compare(child->prototype, name_Depends)) {
-            QList<UnknownModule> unknownModules;
+            QList<UnknownModule::Ptr> unknownModules;
             foreach (const Module::Ptr &m, evaluateDependency(evaluationObject, child, moduleScope, extraSearchPaths, &unknownModules, userProperties)) {
                 evaluationObject->modules.insert(m->name, m);
                 evaluationObject->scope->properties.insert(m->id, Property(m->object));
@@ -1314,6 +1316,59 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
             evaluationObject->unknownModules.append(unknownModules);
         }
     }
+}
+
+void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
+{
+    bool mustEvaluateConditions = false;
+    QVector<Module::Ptr> modules;
+    QVector<QSharedPointer<ModuleBase> > moduleBaseObjects;
+    foreach (const Module::Ptr &module, evaluationObject->modules) {
+        if (!module->condition.isNull())
+            mustEvaluateConditions = true;
+        modules += module;
+        moduleBaseObjects += module;
+    }
+    if (!mustEvaluateConditions) {
+        foreach (const UnknownModule::Ptr &module, evaluationObject->unknownModules) {
+            if (!module->condition.isNull())
+                mustEvaluateConditions = true;
+            moduleBaseObjects += module;
+        }
+    }
+    if (!mustEvaluateConditions)
+        return;
+
+    ScopeChain::Ptr conditionScopeChain(new ScopeChain(&m_engine, evaluationObject->scope));
+    Scope::Ptr conditionScope = Scope::create(&m_engine, "Depends.condition scope", evaluationObject->instantiatingObject()->file);
+    conditionScopeChain->prepend(conditionScope);
+
+    foreach (Module::Ptr module, modules)
+        conditionScope->properties.insert(module->id, Property(module->object));
+
+    QScriptContext *context = m_engine.currentContext();
+    const QScriptValue activationObject = context->activationObject();
+    context->setActivationObject(conditionScopeChain->value());
+
+    foreach (const QSharedPointer<ModuleBase> &moduleBaseObject, moduleBaseObjects) {
+        if (moduleBaseObject->condition.isNull())
+            continue;
+
+        QScriptValue conditionValue = m_engine.evaluate(moduleBaseObject->condition);
+        if (conditionValue.isError()) {
+            CodeLocation location(moduleBaseObject->condition.fileName(), moduleBaseObject->condition.firstLineNumber());
+            throw Error("Error while evaluating Depends.condition: " + conditionValue.toString(), location);
+        }
+        if (!conditionValue.toBool()) {
+            // condition is false, thus remove the module from evaluationObject
+            if (Module::Ptr module = moduleBaseObject.dynamicCast<Module>())
+                evaluationObject->modules.remove(module->name);
+            else
+                evaluationObject->unknownModules.removeAll(moduleBaseObject.dynamicCast<UnknownModule>());
+        }
+    }
+
+    context->setActivationObject(activationObject);
 }
 
 void Loader::buildModulesProperty(EvaluationObject *evaluationObject)
@@ -1332,7 +1387,7 @@ void Loader::buildModulesProperty(EvaluationObject *evaluationObject)
 
 QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, LanguageObject *depends, ScopeChain::Ptr moduleScope,
                                               const QStringList &extraSearchPaths,
-                                              QList<UnknownModule> *unknownModules, const QVariantMap &userProperties)
+                                              QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties)
 {
     const CodeLocation dependsLocation = depends->prototypeLocation;
 
@@ -1345,13 +1400,10 @@ QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, Lang
                                CodeLocation(depends->file->fileName, binding.valueSource.firstLineNumber()));
     }
 
-    // check condition
+    QScriptProgram condition;
     Binding binding = depends->bindings.value(QStringList("condition"));
-    if (binding.isValid()) {
-        QScriptValue v = evaluate(&m_engine, binding.valueSource);
-        if (!v.toBool())
-            return QList<Module::Ptr>();
-    }
+    if (binding.isValid())
+        condition = binding.valueSource;
 
     bool isRequired = true;
     binding = depends->bindings.value(QStringList("required"));
@@ -1417,13 +1469,15 @@ QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, Lang
         const QString &fullModuleName = fullModuleNames.at(i);
         Module::Ptr module = searchAndLoadModule(fullModuleIds.at(i), fullModuleName, moduleScope, userProperties, dependsLocation, extraSearchPaths);
         if (module) {
+            module->condition = condition;
             modules.append(module);
         } else {
-            UnknownModule unknownModule;
-            unknownModule.name = fullModuleName;
-            unknownModule.required = isRequired;
-            unknownModule.failureMessage = failureMessage;
-            unknownModule.dependsLocation = dependsLocation;
+            UnknownModule::Ptr unknownModule(new UnknownModule);
+            unknownModule->condition = condition;
+            unknownModule->name = fullModuleName;
+            unknownModule->required = isRequired;
+            unknownModule->failureMessage = failureMessage;
+            unknownModule->dependsLocation = dependsLocation;
             unknownModules->append(unknownModule);
         }
     }
@@ -1721,13 +1775,13 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
             productDependenciesAdded = false;
             foreach (ResolvedProduct::Ptr rproduct, rproject->products) {
                 ProductData &productData = products[rproduct];
-                foreach (const UnknownModule &unknownModule, productData.usedProducts) {
-                    const QString &usedProductName = unknownModule.name;
+                foreach (const UnknownModule::Ptr &unknownModule, productData.usedProducts) {
+                    const QString &usedProductName = unknownModule->name;
                     QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
                     if (usedProductCandidates.count() < 1) {
-                        if (!unknownModule.required) {
-                            if (!unknownModule.failureMessage.isEmpty())
-                                qbsWarning() << unknownModule.failureMessage;
+                        if (!unknownModule->required) {
+                            if (!unknownModule->failureMessage.isEmpty())
+                                qbsWarning() << unknownModule->failureMessage;
                             continue;
                         }
                         throw Error(QString("Product dependency '%1' not found.").arg(usedProductName),
@@ -1748,13 +1802,13 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
 
         // Resolve all inter-product dependencies.
         foreach (ResolvedProduct::Ptr rproduct, rproject->products) {
-            foreach (const UnknownModule &unknownModule, products.value(rproduct).usedProducts) {
-                const QString &usedProductName = unknownModule.name;
+            foreach (const UnknownModule::Ptr &unknownModule, products.value(rproduct).usedProducts) {
+                const QString &usedProductName = unknownModule->name;
                 QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
                 if (usedProductCandidates.count() < 1) {
-                    if (!unknownModule.required) {
-                        if (!unknownModule.failureMessage.isEmpty())
-                            qbsWarning() << unknownModule.failureMessage;
+                    if (!unknownModule->required) {
+                        if (!unknownModule->failureMessage.isEmpty())
+                            qbsWarning() << unknownModule->failureMessage;
                         continue;
                     }
                     throw Error(QString("Product dependency '%1' not found.").arg(usedProductName),
@@ -1940,6 +1994,7 @@ void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObjec
     ScopeChain::Ptr localScopeChain(new ScopeChain(&m_engine, productModule->scope));
     ScopeChain::Ptr moduleScopeChain(new ScopeChain(&m_engine, productModule->scope));
     evaluateDependencies(productModule->instantiatingObject(), productModule, localScopeChain, moduleScopeChain, userProperties);
+    evaluateDependencyConditions(productModule);
 
     clearCachedValues();
     QVariantMap moduleValues = evaluateModuleValues(rproduct, product, productModule->scope);
@@ -2600,6 +2655,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     evaluateDependencies(object, evaluationObject, localScope, moduleScope, userProperties->value());
     productData.usedProducts = evaluationObject->unknownModules;
     fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
+    evaluateDependencyConditions(evaluationObject);
 
     // check if product's name is empty and set a default value
     Property &nameProperty = evaluationObject->scope->properties["name"];
@@ -2676,14 +2732,14 @@ ProjectFile::~ProjectFile()
     qDeleteAll(m_languageObjects);
 }
 
-void Loader::ProductData::addUsedProducts(const QList<UnknownModule> &additionalUsedProducts, bool *productsAdded)
+void Loader::ProductData::addUsedProducts(const QList<UnknownModule::Ptr> &additionalUsedProducts, bool *productsAdded)
 {
     int oldCount = usedProducts.count();
     QSet<QString> usedProductNames;
-    foreach (const UnknownModule &usedProduct, usedProducts)
-        usedProductNames += usedProduct.name;
-    foreach (const UnknownModule &usedProduct, additionalUsedProducts)
-        if (!usedProductNames.contains(usedProduct.name))
+    foreach (const UnknownModule::Ptr &usedProduct, usedProducts)
+        usedProductNames += usedProduct->name;
+    foreach (const UnknownModule::Ptr &usedProduct, additionalUsedProducts)
+        if (!usedProductNames.contains(usedProduct->name))
             usedProducts += usedProduct;
     *productsAdded = (oldCount != usedProducts.count());
 }
