@@ -921,6 +921,7 @@ void Loader::setupInternalPrototype(EvaluationObject *evaluationObject)
         builtinDeclarations.insert(name_Project, project);
 
         QList<PropertyDeclaration> product;
+        product += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
         product += PropertyDeclaration("type", PropertyDeclaration::String);
         product += PropertyDeclaration("name", PropertyDeclaration::String);
         product += PropertyDeclaration("destination", PropertyDeclaration::String);
@@ -1608,6 +1609,19 @@ static void applyFileTaggers(const SourceArtifact::Ptr &artifact, const Resolved
     }
 }
 
+static bool checkCondition(EvaluationObject *object)
+{
+    QScriptValue scriptValue = object->scope->property("condition");
+    if (scriptValue.isBool()) {
+        return scriptValue.toBool();
+    } else if (scriptValue.isValid() && !scriptValue.isUndefined()) {
+        const QScriptProgram &scriptProgram = object->objects.first()->bindings.value(QStringList("condition")).valueSource;
+        throw Error(QString("Invalid condition."), CodeLocation(scriptProgram.fileName(), scriptProgram.firstLineNumber()));
+    }
+    // no 'condition' property means 'the condition is true'
+    return true;
+}
+
 ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                                             Configuration::Ptr userProperties,
                                             QFutureInterface<bool> &futureInterface,
@@ -1838,19 +1852,6 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
     }
 
     return rproject;
-}
-
-static bool checkCondition(EvaluationObject *object)
-{
-    QScriptValue scriptValue = object->scope->property("condition");
-    if (scriptValue.isBool()) {
-        return scriptValue.toBool();
-    } else if (scriptValue.isValid() && !scriptValue.isUndefined()) {
-        const QScriptProgram &scriptProgram = object->objects.first()->bindings.value(QStringList("condition")).valueSource;
-        throw Error(QString("Invalid condition."), CodeLocation(scriptProgram.fileName(), scriptProgram.firstLineNumber()));
-    }
-    // no 'condition' property means 'the condition is true'
-    return true;
 }
 
 void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module)
@@ -2676,6 +2677,13 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         evaluationObject->modules.insert(module->name, module);
     }
     buildModulesProperty(evaluationObject);
+
+    // check the product's condition
+    if (!checkCondition(evaluationObject)) {
+        if (qbsLogLevel(LoggerTrace))
+            qbsTrace() << "[LDR] condition for product '" << evaluationObject->scope->stringValue("name") << "' is false.";
+        return;
+    }
 
     // get the build variant / determine the project id
     QString buildVariant = userProperties->value().value("qbs").toMap().value("buildVariant").toString();
