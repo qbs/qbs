@@ -1274,13 +1274,6 @@ Module::Ptr Loader::searchAndLoadModule(const QString &moduleId, const QString &
     return module;
 }
 
-struct DependencyDescription
-{
-    QScriptProgram condition;
-    QList<Module::Ptr> modules;
-    QList<UnknownModule> unknownModules;
-};
-
 void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
                                   ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule)
 {
@@ -1311,61 +1304,15 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
         evaluationObject->scope->properties.insert(baseModule->id, Property(baseModule->object));
     }
 
-    QList<DependencyDescription> dependencies;
-    QHash<QString, Property> conditionScopeProperties;
-    bool mustEvaluateConditions = false;
     foreach (LanguageObject *child, object->children) {
         if (compare(child->prototype, name_Depends)) {
-            DependencyDescription depdesc;
-            Binding binding = child->bindings.value(QStringList("condition"));
-            depdesc.condition = binding.valueSource;
-            if (!depdesc.condition.isNull())
-                mustEvaluateConditions = true;
-            foreach (const Module::Ptr &m, evaluateDependency(evaluationObject, child, moduleScope, extraSearchPaths, &depdesc.unknownModules, userProperties)) {
-                depdesc.modules += m;
-                conditionScopeProperties.insert(m->id, Property(m->object));
+            QList<UnknownModule> unknownModules;
+            foreach (const Module::Ptr &m, evaluateDependency(evaluationObject, child, moduleScope, extraSearchPaths, &unknownModules, userProperties)) {
+                evaluationObject->modules.insert(m->name, m);
+                evaluationObject->scope->properties.insert(m->id, Property(m->object));
             }
-            dependencies += depdesc;
+            evaluationObject->unknownModules.append(unknownModules);
         }
-    }
-
-    QList<DependencyDescription>::iterator it;
-    if (mustEvaluateConditions) {
-        Scope::Ptr conditionScope = Scope::create(&m_engine, "Depends.condition scope", object->file);
-        conditionScope->properties = conditionScopeProperties;
-        ScopeChain::Ptr conditionScopeChain(new ScopeChain(&m_engine, evaluationObject->scope));
-        conditionScopeChain->prepend(conditionScope);
-
-        QScriptContext *context = m_engine.currentContext();
-        const QScriptValue activationObject = context->activationObject();
-        context->setActivationObject(conditionScopeChain->value());
-
-        for (it = dependencies.begin(); it != dependencies.end();) {
-            const DependencyDescription &depdesc = *it;
-            if (!depdesc.condition.isNull()) {
-                QScriptValue conditionValue = m_engine.evaluate(depdesc.condition);
-                if (conditionValue.isError()) {
-                    CodeLocation location(depdesc.condition.fileName(), depdesc.condition.firstLineNumber());
-                    throw Error("Error while evaluating Depends.condition: " + conditionValue.toString(), location);
-                }
-                if (!conditionValue.toBool()) {
-                    it = dependencies.erase(it);
-                    continue;
-                }
-            }
-            ++it;
-        }
-
-        context->setActivationObject(activationObject);
-    }
-
-    for (it = dependencies.begin(); it != dependencies.end(); ++it) {
-        const DependencyDescription &depdesc = *it;
-        foreach (const Module::Ptr &m, depdesc.modules) {
-            evaluationObject->modules.insert(m->name, m);
-            evaluationObject->scope->properties.insert(m->id, Property(m->object));
-        }
-        evaluationObject->unknownModules.append(depdesc.unknownModules);
     }
 }
 
@@ -1398,8 +1345,16 @@ QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, Lang
                                CodeLocation(depends->file->fileName, binding.valueSource.firstLineNumber()));
     }
 
+    // check condition
+    Binding binding = depends->bindings.value(QStringList("condition"));
+    if (binding.isValid()) {
+        QScriptValue v = evaluate(&m_engine, binding.valueSource);
+        if (!v.toBool())
+            return QList<Module::Ptr>();
+    }
+
     bool isRequired = true;
-    Binding binding = depends->bindings.value(QStringList("required"));
+    binding = depends->bindings.value(QStringList("required"));
     if (!binding.valueSource.isNull())
         isRequired = evaluate(&m_engine, binding.valueSource).toBool();
 
@@ -2529,9 +2484,7 @@ QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngin
     Settings::Ptr settings = Loader::get(engine)->m_settings;
     const bool defaultValueProvided = context->argumentCount() > 1;
     const QString key = context->argument(0).toString();
-    QVariant defaultValue;
-    if (defaultValueProvided && !context->argument(1).isUndefined())
-        defaultValue = context->argument(1).toVariant();
+    const QString defaultValue = (defaultValueProvided ? QString() : (context->argument(1).isUndefined() ? QString() : context->argument(1).toString()));
     QVariant v = settings->value(key, defaultValue);
     if (!defaultValueProvided && v.isNull())
         return context->throwError(QScriptContext::SyntaxError,
