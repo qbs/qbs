@@ -2538,15 +2538,15 @@ QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngin
     return engine->toScriptValue(v);
 }
 
-EvaluationObject *Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
-                                          LanguageObject *object,
-                                          const QString &projectFileName,
-                                          ProjectData *projectData,
-                                          QList<Rule::Ptr> *globalRules,
-                                          const Configuration::Ptr &userProperties,
-                                          const ScopeChain::Ptr &scope,
-                                          const ResolvedModule::Ptr &dummyModule,
-                                          QFutureInterface<bool> &futureInterface)
+void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
+                             LanguageObject *object,
+                             const QString &projectFileName,
+                             ProjectData *projectData,
+                             QList<Rule::Ptr> *globalRules,
+                             const Configuration::Ptr &userProperties,
+                             const ScopeChain::Ptr &scope,
+                             const ResolvedModule::Ptr &dummyModule,
+                             QFutureInterface<bool> &futureInterface)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolve top-level " << object->file->fileName;
@@ -2619,13 +2619,13 @@ EvaluationObject *Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                             dummyModule,
                             futureInterface);
 
-        return evaluationObject;
+        return;
     } else if (evaluationObject->prototype == name_Rule) {
         fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
         Rule::Ptr rule = resolveRule(evaluationObject, dummyModule);
         globalRules->append(rule);
 
-        return evaluationObject;
+        return;
     } else if (evaluationObject->prototype != name_Product) {
         QString msg("unknown prototype '%1' - expected Product");
         // ### location
@@ -2701,7 +2701,6 @@ EvaluationObject *Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         }
     }
     projectData->insert(rproduct, productData);
-    return evaluationObject;
 }
 
 ProjectFile::ProjectFile()

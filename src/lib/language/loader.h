@@ -375,15 +375,15 @@ protected:
     };
     typedef QHash<ResolvedProduct::Ptr, ProductData> ProjectData;
 
-    EvaluationObject *resolveTopLevel(const ResolvedProject::Ptr &rproject,
-                                      LanguageObject *object,
-                                      const QString &projectFileName,
-                                      ProjectData *projectData,
-                                      QList<Rule::Ptr> *globalRules,
-                                      const Configuration::Ptr &userProperties,
-                                      const ScopeChain::Ptr &scope,
-                                      const ResolvedModule::Ptr &dummyModule,
-                                      QFutureInterface<bool> &futureInterface);
+    void resolveTopLevel(const ResolvedProject::Ptr &rproject,
+                         LanguageObject *object,
+                         const QString &projectFileName,
+                         ProjectData *projectData,
+                         QList<Rule::Ptr> *globalRules,
+                         const Configuration::Ptr &userProperties,
+                         const ScopeChain::Ptr &scope,
+                         const ResolvedModule::Ptr &dummyModule,
+                         QFutureInterface<bool> &futureInterface);
 
 private:
     static Loader *get(QScriptEngine *engine);
