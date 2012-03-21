@@ -11,3 +11,6 @@ include(../../../src/lib/use.pri)
 
 SOURCES += \
     tst_language.cpp
+
+OTHER_FILES += \
+    $$PWD/testdata

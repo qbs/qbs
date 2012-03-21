@@ -45,18 +45,50 @@ class TestLanguage : public QObject
     Q_OBJECT
     Loader *loader;
 
+    QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project)
+    {
+        QHash<QString, ResolvedProduct::Ptr> result;
+        foreach (ResolvedProduct::Ptr product, project->products)
+            result.insert(product->name, product);
+        return result;
+    }
+
 private slots:
     void initTestCase()
     {
         loader = new Loader();
+        loader->setSearchPaths(QStringList() << SRCDIR "../../../share/qbs");
     }
 
     void cleanupTestCase()
     {
         delete loader;
     }
+
+    void productConditions()
+    {
+        bool exceptionCaught = false;
+        try {
+            loader->loadProject(SRCDIR "testdata/productconditions.qbs");
+            Configuration::Ptr cfg(new Configuration);
+            QFutureInterface<bool> futureInterface;
+            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+            QVERIFY(project);
+            QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+            QCOMPARE(products.count(), 3);
+            QVERIFY(products.value("product_no_condition"));
+            QVERIFY(products.value("product_true_condition"));
+            QVERIFY(products.value("product_condition_dependent_of_module"));
+        }
+        catch (Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
+    }
+
 };
 
-QTEST_APPLESS_MAIN(TestLanguage)
+QTEST_MAIN(TestLanguage)
 
 #include "tst_language.moc"
