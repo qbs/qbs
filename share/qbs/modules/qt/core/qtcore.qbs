@@ -25,9 +25,14 @@ Module {
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
     cpp.defines: {
-        if (!qtNamespace)
-            return undefined;
-        return ["QT_NAMESPACE=" + qtNamespace]
+        var defines = ["QT_CORE_LIB"];
+        // ### QT_NO_DEBUG must be added if the current build variant is derived
+        //     from the build variant "release"
+        if (!qbs.debugInformation)
+            defines.push("QT_NO_DEBUG");
+        if (qtNamespace)
+            defines.push("QT_NAMESPACE=" + qtNamespace);
+        return defines;
     }
     cpp.includePaths: {
         var paths = [mkspecsPath + '/default'];
