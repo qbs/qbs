@@ -1,4 +1,4 @@
-QBS_VERSION = 0.1.0
+QBS_VERSION = 0.2.0
 TEMPLATE = subdirs
 CONFIG += ordered
 lib.file = src/lib/lib.pro
