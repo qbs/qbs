@@ -139,7 +139,6 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
-    args = args.concat(dynamicLibraries)
     var is64bit = (architecture == "x86_64")
 
     var commands = [];
