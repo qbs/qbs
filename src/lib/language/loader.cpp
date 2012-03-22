@@ -2539,7 +2539,12 @@ QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngin
     Settings::Ptr settings = Loader::get(engine)->m_settings;
     const bool defaultValueProvided = context->argumentCount() > 1;
     const QString key = context->argument(0).toString();
-    const QString defaultValue = (defaultValueProvided ? QString() : (context->argument(1).isUndefined() ? QString() : context->argument(1).toString()));
+    QString defaultValue;
+    if (defaultValueProvided) {
+        const QScriptValue arg = context->argument(1);
+        if (!arg.isUndefined())
+            defaultValue = arg.toString();
+    }
     QVariant v = settings->value(key, defaultValue);
     if (!defaultValueProvided && v.isNull())
         return context->throwError(QScriptContext::SyntaxError,
