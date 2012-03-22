@@ -69,6 +69,7 @@
                \o  \l{System Requirements}
                \o  \l{Building Qbs}
                \o  \l{Configuring Qbs}
+               \o  \l{Managing Qt Versions}
            \endlist
        \o  \l{Using Qbs}
            \list
@@ -114,6 +115,7 @@
         \o  \l{System Requirements}
         \o  \l{Building Qbs}
         \o  \l{Configuring Qbs}
+        \o  \l{Managing Qt Versions}
     \endlist
 */
 
@@ -161,7 +163,7 @@
     \contentspage index.html
     \previouspage qbs-building.html
     \page qbs-configuring.html
-    \nextpage qbs-usage.html
+    \nextpage qbs-qt-versions.html
 
     \title Configuring Qbs
 
@@ -177,37 +179,7 @@
     \endcode
 
     Currently, you also must tell qbs where it can find Qt.
-    Qt installations are grouped by a free form name, like in Qt Creator.
-    The default Qt installation name is "default".
-
-    \code
-    qbs config --global qt/default/path /home/icke/dev/qt/4.7-build
-    \endcode
-
-    This is the case where the bin, include, lib and mkspecs directories
-    of your Qt build are below the qtPath. This is usually the case on Windows
-    or if you build Qt yourself without installing it.
-    For installed Qt versions we need to set up some more paths.
-    Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
-
-    \code
-    qbs config --global qt/default/binPath /usr/bin
-    qbs config --global qt/default/incPath /usr/include/qt4
-    qbs config --global qt/default/libPath /usr/lib/x86_64-linux-gnu
-    qbs config --global qt/default/mkspecsPath /usr/share/qt4/mkspecs
-    \endcode
-
-    If you're using Qt 5, you must specify the version number.
-    \code
-    qbs config --global qt/default/version 5.0.0
-    \endcode
-
-    If you have built your Qt with the option -qtnamespace MyNamespace
-    then you must set the following config value.
-
-    \code
-    qbs config --global qt/default/namespace MyNamespace
-    \endcode
+    Please refer to \l{Managing Qt Versions} to set up your Qt builds.
 
     Now open a build shell (on Windows open an MSVC command prompt,
     on other platforms the default shell is usually ok):
@@ -229,6 +201,81 @@
     \endcode
 */
 
+/*!
+    \contentspage index.html
+    \previouspage qbs-configuring.html
+    \page qbs-qt-versions.html
+    \nextpage qbs-usage.html
+
+    \title Managing Qt Versions
+
+    \section1 Introduction
+
+    QBS must know where it can find Qt.
+    Qt installations are grouped by a free form name, like in Qt Creator.
+    The default Qt installation name is "default".
+
+    \code
+    qbs config --global qt/default/path ~/dev/qt/4.7-build
+    \endcode
+
+    This is the case where the bin, include, lib and mkspecs directories
+    of your Qt build are below the qtPath. This is usually the case on Windows
+    or if you build Qt yourself without installing it.
+    For installed Qt versions we need to set up some more paths.
+    Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
+
+    \code
+    qbs config --global qt/default/binPath /usr/bin
+    qbs config --global qt/default/incPath /usr/include/qt4
+    qbs config --global qt/default/libPath /usr/lib/x86_64-linux-gnu
+    qbs config --global qt/default/mkspecsPath /usr/share/qt4/mkspecs
+    \endcode
+
+    If you're using Qt 5, you must specify the version number.
+    \code
+    qbs config --global qt/default/version 5.0.0
+    \endcode
+
+    \section1 Multiple Qt builds
+
+    As hinted above, the "default" we've seen in the configuration values is
+    just a name that can be anything. This is how you configure three different
+    Qt builds:
+
+    \code
+    qbs config --global qt/4.7/path ~/dev/qt/4.7
+    qbs config --global qt/4.8/path ~/dev/qt/4.8
+    qbs config --global qt/5.0/path ~/dev/qt/5.0
+    qbs config --global qt/5.0/version 5.0.0
+    \endcode
+
+    You can set the default Qt build you want to use like this
+    \code
+    qbs config --global defaults/qtVersionName 5.0
+    \endcode
+
+    To choose a Qt build, that's different from the default, use
+    \code
+    qbs qt/core.qtVersionName:4.8
+    \endcode
+
+
+    \section1 Customized Qt Settings
+
+    If you have built your Qt with the option -qtnamespace MyNamespace
+    then you must set the following config value.
+
+    \code
+    qbs config --global qt/default/namespace MyNamespace
+    \endcode
+
+    The same goes for the -qtlibinfix option.
+
+    \code
+    qbs config --global qt/default/libInfix MyInfix
+    \endcode
+*/
 
 /*!
     \contentspage index.html
