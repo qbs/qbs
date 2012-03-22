@@ -11,5 +11,11 @@ GenericGCC {
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     platformDefines: ['UNICODE']
+
+    setupBuildEnvironment: {
+        var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
+        v.prepend(toolchainInstallPath);
+        v.set();
+    }
 }
 
