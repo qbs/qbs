@@ -1,12 +1,11 @@
-project     = "Qt Build System"
-description = "Qbs Manual"
+project     = "Qt Build Suite"
+description = "QBS Manual"
 
 headerdirs = 
 sourcedirs = $SRCDIR
 imagedirs = $SRCDIR/images $SRCDIR/templates/images
 outputdir = $OUTDIR
 exampledirs = $SRCDIR
-indexes                 = qt.index
 
 include(compat.qdocconf)
 include(macros.qdocconf)
