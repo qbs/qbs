@@ -4,7 +4,7 @@ import '../utils.js' as ModUtils
 import 'msvc.js' as MSVC
 
 CppModule {
-    condition: qbs.hostOS == 'windows' && qbs.targetOS == 'windows' && qbs.toolchain == 'msvc'
+    condition: qbs.hostOS === 'windows' && qbs.targetOS === 'windows' && qbs.toolchain === 'msvc'
 
     id: module
 
