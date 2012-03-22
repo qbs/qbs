@@ -8,7 +8,8 @@ CppModule {
 
     id: module
 
-    platformDefines: ['UNICODE', 'WIN32']
+    platformDefines: ['UNICODE']
+    compilerDefines: ['_WIN32']
     warningLevel: "default"
 
     property bool generateManifestFiles: true

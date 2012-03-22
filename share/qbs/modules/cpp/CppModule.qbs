@@ -13,6 +13,12 @@ Module {
     property paths precompiledHeaderDir: [product.buildDirectory]
     property var defines
     property var platformDefines
+    property var compilerDefines
+    PropertyOptions {
+        name: "compilerDefines"
+        description: "preprocessor macros that are defined when using this particular compiler"
+    }
+
     property paths includePaths
     property paths libraryPaths
     property paths frameworkPaths

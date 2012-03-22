@@ -1,6 +1,7 @@
 function args(product, input, output, config)
 {
-    var defines = ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'platformDefines');
+    var defines = ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'compilerDefines');
+    defines = defines.concat(ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'platformDefines'));
     defines = defines.concat(ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'defines'));
     var includePaths = ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'includePaths');
     var args = [];
