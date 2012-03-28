@@ -1812,7 +1812,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                                 qbsWarning() << unknownModule->failureMessage;
                             continue;
                         }
-                        throw Error(QString("Product dependency '%1' not found.").arg(usedProductName),
+                        throw Error(QString("Product dependency '%1' not found in '%2'.").arg(usedProductName, rproduct->qbsFile),
                                            CodeLocation(m_project->fileName));
                     }
                     if (usedProductCandidates.count() > 1)
