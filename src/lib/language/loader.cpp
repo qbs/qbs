@@ -881,38 +881,6 @@ static void applyBindings(LanguageObject *object, ScopeChain::Ptr scopeChain)
         applyBinding(object, binding, scopeChain);
 }
 
-void Loader::fillEvaluationObjectForProperties(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties)
-{
-    if (!object->children.isEmpty())
-        throw Error("Properties block may not have children", object->children.first()->prototypeLocation);
-
-    const QStringList conditionName("condition");
-    Binding condition = object->bindings.value(conditionName);
-    if (!condition.isValid())
-        throw Error("Properties block must have a condition property", object->prototypeLocation);
-
-    LanguageObject *ifCopy = new LanguageObject(*object);
-
-    // adjust bindings to be if (condition) { original-source }
-    QMutableHashIterator<QStringList, Binding> it(ifCopy->bindings);
-    while (it.hasNext()) {
-        it.next();
-        if (it.key() == conditionName) {
-            it.remove();
-            continue;
-        }
-        Binding &binding = it.value();
-        binding.valueSource = QScriptProgram(
-                    QString("if (%1) { %2 }").arg(
-                        condition.valueSource.sourceCode(),
-                        binding.valueSource.sourceCode()),
-                    binding.valueSource.fileName(),
-                    binding.valueSource.firstLineNumber());
-    }
-
-    fillEvaluationObject(scope, ifCopy, ids, evaluationObject, userProperties);
-}
-
 void Loader::setupInternalPrototype(EvaluationObject *evaluationObject)
 {
     // special builtins
@@ -1000,17 +968,72 @@ void Loader::setupInternalPrototype(EvaluationObject *evaluationObject)
     }
 }
 
+struct ConditionalBinding
+{
+    QString condition;
+    QString rhs;
+};
+
 void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties)
 {
-    // fill subobjects recursively
-    foreach (LanguageObject *child, object->children) {
-        // 'Properties' objects are treated specially, they don't introduce a scope
-        // and don't get added as a child object
-        if (compare(child->prototype, name_Properties)) {
-            fillEvaluationObjectForProperties(scope, child, ids, evaluationObject, userProperties);
+    // filter Properties items
+    typedef QHash<QStringList, QVector<ConditionalBinding> > ConditionalBindings;
+    ConditionalBindings conditionalBindings;
+    QList<LanguageObject *>::iterator childIt = object->children.begin();
+    while (childIt != object->children.end()) {
+        LanguageObject *propertiesItem = *childIt;
+        if (!compare(propertiesItem->prototype, name_Properties)) {
+            ++childIt;
             continue;
         }
+        childIt = object->children.erase(childIt);
 
+        if (!propertiesItem->children.isEmpty())
+            throw Error("Properties block may not have children", propertiesItem->children.first()->prototypeLocation);
+
+        const QStringList conditionName("condition");
+        const Binding condition = propertiesItem->bindings.value(conditionName);
+        if (!condition.isValid())
+            throw Error("Properties block must have a condition property", propertiesItem->prototypeLocation);
+
+        const QString conditionCode = condition.valueSource.sourceCode();
+        QHashIterator<QStringList, Binding> it(propertiesItem->bindings);
+        while (it.hasNext()) {
+            it.next();
+            if (it.key() == conditionName)
+                continue;
+
+            const Binding &binding = it.value();
+            ConditionalBinding conditionalBinding;
+            conditionalBinding.condition = conditionCode;
+            conditionalBinding.rhs = binding.valueSource.sourceCode();
+            conditionalBindings[binding.name] += conditionalBinding;
+        }
+    }
+
+    // rewrite conditional bindings
+    for (ConditionalBindings::const_iterator it = conditionalBindings.constBegin(); it != conditionalBindings.constEnd(); ++it) {
+        const QStringList &bindingName = it.key();
+        Binding &parentBinding = object->bindings[bindingName];
+        QString rewrittenSource = QLatin1String("(function() {\n"
+                                                "var outer = ");
+        if (parentBinding.isValid()) {
+            rewrittenSource += parentBinding.valueSource.sourceCode() + QLatin1Char('\n');
+        } else {
+            rewrittenSource += QLatin1String("undefined\n");
+            parentBinding.name = bindingName;
+        }
+
+        foreach (const ConditionalBinding &cb, it.value())
+            rewrittenSource += QLatin1String("if (") + cb.condition
+                    + QLatin1String(") outer = ") + cb.rhs + QLatin1Char('\n');
+
+        rewrittenSource += QLatin1String("return outer})()");
+        parentBinding.valueSource = rewrittenSource;
+    }
+
+    // fill subobjects recursively
+    foreach (LanguageObject *child, object->children) {
         // 'Depends' blocks are already handled before this function is called
         // and should not appear in the children list
         if (compare(child->prototype, name_Depends))
@@ -2755,3 +2778,7 @@ void Loader::ProductData::addUsedProducts(const QList<UnknownModule::Ptr> &addit
 }
 
 } // namespace qbs
+
+QT_BEGIN_NAMESPACE
+Q_DECLARE_TYPEINFO(qbs::ConditionalBinding, Q_MOVABLE_TYPE);
+QT_END_NAMESPACE
