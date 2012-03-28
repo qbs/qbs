@@ -36,6 +36,9 @@
 **************************************************************************/
 
 #include <language/loader.h>
+#include <tools/logger.h>
+#include <tools/logsink.h>
+#include <tools/scripttools.h>
 #include <QtTest/QtTest>
 
 using namespace qbs;
@@ -53,11 +56,23 @@ class TestLanguage : public QObject
         return result;
     }
 
+    QVariant productPropertyValue(ResolvedProduct::Ptr product, QString propertyName)
+    {
+        QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
+        if (propertyNameComponents.count() > 1)
+            propertyNameComponents.prepend(QLatin1String("modules"));
+        return getConfigProperty(product->configuration->value(), propertyNameComponents);
+    }
+
 private slots:
     void initTestCase()
     {
+        //Logger::instance().setLogSink(new ConsolePrintLogSink);
+        //Logger::instance().setLevel(LoggerTrace);
         loader = new Loader();
-        loader->setSearchPaths(QStringList() << SRCDIR "../../../share/qbs");
+        loader->setSearchPaths(QStringList()
+                               << QLatin1String(SRCDIR "../../../share/qbs")
+                               << QLatin1String(SRCDIR "testdata"));
     }
 
     void cleanupTestCase()
@@ -87,6 +102,47 @@ private slots:
         QCOMPARE(exceptionCaught, false);
     }
 
+    void propertiesBlocks_data()
+    {
+        QTest::addColumn<QString>("propertyName");
+        QTest::addColumn<QStringList>("expectedValues");
+        QTest::newRow("property_overwrite") << QString("dummy.defines") << QStringList("OVERWRITTEN");
+        QTest::newRow("property_overwrite_no_outer") << QString("dummy.defines") << QStringList("OVERWRITTEN");
+        QTest::newRow("property_append_to_outer") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO"));
+
+        QTest::newRow("multiple_exclusive_properties") << QString("dummy.defines") << QStringList("OVERWRITTEN");
+        QTest::newRow("multiple_exclusive_properties_no_outer") << QString("dummy.defines") << QStringList("OVERWRITTEN");
+        QTest::newRow("multiple_exclusive_properties_append_to_outer") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO"));
+
+        QTest::newRow("ambiguous_properties") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO") << QString("THREE"));
+    }
+
+    void propertiesBlocks()
+    {
+        QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
+        QFETCH(QString, propertyName);
+        QFETCH(QStringList, expectedValues);
+
+        bool exceptionCaught = false;
+        try {
+            loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
+            Configuration::Ptr cfg(new Configuration);
+            QFutureInterface<bool> futureInterface;
+            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+            QVERIFY(project);
+            QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+            ResolvedProduct::Ptr product = products.value(productName);
+            QVERIFY(product);
+            QCOMPARE(product->name, productName);
+            QVariant v = productPropertyValue(product, propertyName);
+            QCOMPARE(v.toStringList(), expectedValues);
+        }
+        catch (Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
+    }
 };
 
 QTEST_MAIN(TestLanguage)
