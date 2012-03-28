@@ -100,6 +100,8 @@ public:
     PropertyDeclaration(const QString &name, Type type, Flags flags = DefaultFlags);
     ~PropertyDeclaration();
 
+    bool isValid() const;
+
     QString name;
     Type type;
     Flags flags;

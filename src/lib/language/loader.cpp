@@ -94,6 +94,11 @@ PropertyDeclaration::~PropertyDeclaration()
 {
 }
 
+bool PropertyDeclaration::isValid() const
+{
+    return type != UnknownType;
+}
+
 LanguageObject::LanguageObject(ProjectFile *owner)
     : file(owner)
 {
