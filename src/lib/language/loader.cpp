@@ -725,7 +725,6 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
         evaluateDependencies(file->root, evaluationObject, scopeChain, moduleScope, userProperties);
 
     fillEvaluationObject(scopeChain, file->root, evaluationObject->scope, evaluationObject, userProperties);
-    evaluateDependencyConditions(evaluationObject);
 
 //    QByteArray indent;
 //    evaluationObject->dump(indent);
