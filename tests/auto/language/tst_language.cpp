@@ -56,6 +56,14 @@ class TestLanguage : public QObject
         return result;
     }
 
+    ResolvedModule::Ptr findModuleByName(ResolvedProduct::Ptr product, const QString &name)
+    {
+        foreach (ResolvedModule::Ptr module, product->modules)
+            if (module->name == name)
+                return module;
+        return ResolvedModule::Ptr();
+    }
+
     QVariant productPropertyValue(ResolvedProduct::Ptr product, QString propertyName)
     {
         QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
@@ -78,6 +86,69 @@ private slots:
     void cleanupTestCase()
     {
         delete loader;
+    }
+
+    void conditionalDepends()
+    {
+        bool exceptionCaught = false;
+        ResolvedProduct::Ptr product;
+        ResolvedModule::Ptr dependency;
+        try {
+            loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs");
+            Configuration::Ptr cfg(new Configuration);
+            QFutureInterface<bool> futureInterface;
+            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+            QVERIFY(project);
+            QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+
+            product = products.value("conditionaldepends_derived");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QVERIFY(dependency);
+
+            product = products.value("conditionaldepends_derived_false");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QCOMPARE(dependency, ResolvedModule::Ptr());
+
+            product = products.value("product_props_true");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QVERIFY(dependency);
+
+            product = products.value("product_props_false");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QCOMPARE(dependency, ResolvedModule::Ptr());
+
+            product = products.value("project_props_true");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QVERIFY(dependency);
+
+            product = products.value("project_props_false");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QCOMPARE(dependency, ResolvedModule::Ptr());
+
+            product = products.value("module_props_true");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy2");
+            QVERIFY(dependency);
+            dependency = findModuleByName(product, "dummy");
+            QVERIFY(dependency);
+
+            product = products.value("module_props_false");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy2");
+            QVERIFY(dependency);
+            dependency = findModuleByName(product, "dummy");
+            QCOMPARE(dependency, ResolvedModule::Ptr());
+        } catch (Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
     }
 
     void productConditions()
