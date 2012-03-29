@@ -97,6 +97,19 @@ protected slots:
     void resetArtifactsToUntouched();
 
 protected:
+    struct Dependency
+    {
+        Dependency()
+            : artifact(0)
+        {}
+
+        bool isValid() const { return !filePath.isNull(); }
+
+        QString filePath;
+        Artifact *artifact;
+    };
+
+protected:
     void prepareBuildGraph(Artifact::BuildState buildState);
     void prepareBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState);
     void updateBuildGraph(Artifact::BuildState buildState);
@@ -119,10 +132,10 @@ protected:
     bool runAutoMoc();
     void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded);
     void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded);
-    static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
-                                              const QString &filePathToBeScanned, QSet<QString> *dependencies, QStringList *filePathsToScan);
-    void handleDependencies(Artifact *processedArtifact, Artifact *scannedArtifact, const QSet<QString> &resolvedDependencies, bool *newDependencyAdded);
-    void handleDependency(Artifact *processedArtifact, const QString &dependencyFilePath, bool *newDependencyAdded);
+    static Dependency resolveWithIncludePath(const QString &includePath, const QString &relativeFilePath, BuildProduct *buildProduct);
+    static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
+                                              const QString &filePathToBeScanned, QStringList *filePathsToScan, bool *newDependencyAdded);
+    static void handleDependency(Artifact *processedArtifact, Dependency &dependency, bool *newDependencyAdded);
     void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();
 
