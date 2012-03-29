@@ -2686,9 +2686,9 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     productData.product = evaluationObject;
 
     evaluateDependencies(object, evaluationObject, localScope, moduleScope, userProperties->value());
-    productData.usedProducts = evaluationObject->unknownModules;
     fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
     evaluateDependencyConditions(evaluationObject);
+    productData.usedProducts = evaluationObject->unknownModules;
 
     // check if product's name is empty and set a default value
     Property &nameProperty = evaluationObject->scope->properties["name"];
