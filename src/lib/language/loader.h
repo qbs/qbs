@@ -302,6 +302,7 @@ public:
     QString id;
     Scope::Ptr context;
     EvaluationObject *object;
+    uint dependsCount;
 };
 
 class EvaluationObject
@@ -350,7 +351,7 @@ protected:
                                     const QStringList &extraSearchPaths = QStringList());
     Module::Ptr loadModule(ProjectFile *file, const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                            const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation);
-    QList<Module::Ptr> evaluateDependency(EvaluationObject *parentEObj, LanguageObject *depends,
+    QList<Module::Ptr> evaluateDependency(LanguageObject *depends,
                                           ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
                                           QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties);
     void evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,

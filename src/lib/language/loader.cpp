@@ -541,6 +541,7 @@ void EvaluationObject::dump(QByteArray &indent)
 
 Module::Module()
     : object(0)
+    , dependsCount(0)
 {
 }
 
@@ -1336,7 +1337,13 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     foreach (LanguageObject *child, object->children) {
         if (compare(child->prototype, name_Depends)) {
             QList<UnknownModule::Ptr> unknownModules;
-            foreach (const Module::Ptr &m, evaluateDependency(evaluationObject, child, moduleScope, extraSearchPaths, &unknownModules, userProperties)) {
+            foreach (const Module::Ptr &m, evaluateDependency(child, moduleScope, extraSearchPaths, &unknownModules, userProperties)) {
+                Module::Ptr m2 = evaluationObject->modules.value(m->name);
+                if (m2) {
+                    m2->dependsCount++;
+                    continue;
+                }
+                m->dependsCount = 1;
                 evaluationObject->modules.insert(m->name, m);
                 evaluationObject->scope->properties.insert(m->id, Property(m->object));
             }
@@ -1392,10 +1399,12 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject, co
         }
         if (!conditionValue.toBool()) {
             // condition is false, thus remove the module from evaluationObject
-            if (Module::Ptr module = moduleBaseObject.dynamicCast<Module>())
-                evaluationObject->modules.remove(module->name);
-            else
-                evaluationObject->unknownModules.removeAll(moduleBaseObject.dynamicCast<UnknownModule>());
+            if (Module::Ptr module = moduleBaseObject.dynamicCast<Module>()) {
+                if (--module->dependsCount == 0)
+                    evaluationObject->modules.remove(module->name);
+            } else {
+                evaluationObject->unknownModules.removeOne(moduleBaseObject.dynamicCast<UnknownModule>());
+            }
         }
     }
 
@@ -1416,7 +1425,7 @@ void Loader::buildModulesProperty(EvaluationObject *evaluationObject)
     evaluationObject->scope->declarations.insert("modules", PropertyDeclaration("modules", PropertyDeclaration::Variant));
 }
 
-QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, LanguageObject *depends, ScopeChain::Ptr moduleScope,
+QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChain::Ptr moduleScope,
                                               const QStringList &extraSearchPaths,
                                               QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties)
 {
@@ -1452,25 +1461,6 @@ QList<Module::Ptr> Loader::evaluateDependency(EvaluationObject *parentEObj, Lang
         moduleName = evaluate(&m_engine, binding.valueSource).toString();
     } else {
         moduleName = depends->id;
-    }
-
-    if (parentEObj->modules.contains(moduleName)) {
-        // If the module is already in the target object then don't add it a second time.
-        // This is for the case where you have the same module in the instantiating object
-        // and in a base object.
-        //
-        // ---Foo.qbs---
-        // Product {
-        //    cpp.defines: ["BEAGLE"]
-        //    Depends { name: "cpp" }
-        // }
-        //
-        // ---bar.qbp---
-        // Foo {
-        //    Depends { name: "cpp" }
-        // }
-        //
-        return QList<Module::Ptr>();
     }
 
     QString moduleId = depends->id;

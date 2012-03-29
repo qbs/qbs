@@ -144,6 +144,16 @@ private slots:
             QVERIFY(dependency);
             dependency = findModuleByName(product, "dummy");
             QCOMPARE(dependency, ResolvedModule::Ptr());
+
+            product = products.value("contradictory_conditions1");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QVERIFY(dependency);
+
+            product = products.value("contradictory_conditions2");
+            QVERIFY(product);
+            dependency = findModuleByName(product, "dummy");
+            QVERIFY(dependency);
         } catch (Error &e) {
             exceptionCaught = true;
             qDebug() << e.toString();

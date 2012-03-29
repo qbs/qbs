@@ -6,6 +6,7 @@ Project {
         name: 'conditionaldepends_derived'
         someProp: true
     }
+
     CondBase {
         name: 'conditionaldepends_derived_false'
         someProp: "knolf" === "narf"
@@ -45,5 +46,17 @@ Project {
         name: "module_props_false"
         Depends { name: "dummy2" }
         Depends { condition: dummy2.someFalseProp; name: "dummy" }
+    }
+
+    Product {
+        name: "contradictory_conditions1"
+        Depends { condition: false; name: "dummy" }
+        Depends { condition: true; name: "dummy" }  // this one wins
+    }
+
+    Product {
+        name: "contradictory_conditions2"
+        Depends { condition: true; name: "dummy" }  // this one wins
+        Depends { condition: false; name: "dummy" }
     }
 }
