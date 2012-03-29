@@ -1227,7 +1227,7 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
     if (!file->root->id.isEmpty())
         module->context->properties.insert(file->root->id, Property(module->object));
     fillEvaluationObject(moduleScope, file->root, module->object->scope, module->object, userProperties);
-    evaluateDependencyConditions(module->object);
+    evaluateDependencyConditions(module->object, moduleScope);
 
     // override properties given on the command line
     const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
@@ -1345,7 +1345,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     }
 }
 
-void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
+void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope)
 {
     bool mustEvaluateConditions = false;
     QVector<Module::Ptr> modules;
@@ -1369,6 +1369,10 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
     ScopeChain::Ptr conditionScopeChain(new ScopeChain(&m_engine, evaluationObject->scope));
     Scope::Ptr conditionScope = Scope::create(&m_engine, "Depends.condition scope", evaluationObject->instantiatingObject()->file);
     conditionScopeChain->prepend(conditionScope);
+
+    Property projectProperty = localScope->lookupProperty("project");
+    if (projectProperty.isValid() && projectProperty.scope)
+        conditionScope->properties.insert("project", projectProperty);
 
     foreach (Module::Ptr module, modules)
         conditionScope->properties.insert(module->id, Property(module->object));
@@ -2021,7 +2025,7 @@ void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObjec
     ScopeChain::Ptr localScopeChain(new ScopeChain(&m_engine, productModule->scope));
     ScopeChain::Ptr moduleScopeChain(new ScopeChain(&m_engine, productModule->scope));
     evaluateDependencies(productModule->instantiatingObject(), productModule, localScopeChain, moduleScopeChain, userProperties);
-    evaluateDependencyConditions(productModule);
+    evaluateDependencyConditions(productModule, localScopeChain);
 
     clearCachedValues();
     QVariantMap moduleValues = evaluateModuleValues(rproduct, product, productModule->scope);
@@ -2686,7 +2690,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
     evaluateDependencies(object, evaluationObject, localScope, moduleScope, userProperties->value());
     fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
-    evaluateDependencyConditions(evaluationObject);
+    evaluateDependencyConditions(evaluationObject, localScope);
     productData.usedProducts = evaluationObject->unknownModules;
 
     // check if product's name is empty and set a default value

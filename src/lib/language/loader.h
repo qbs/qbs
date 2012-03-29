@@ -355,7 +355,7 @@ protected:
                                           QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties);
     void evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
                               ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule = true);
-    void evaluateDependencyConditions(EvaluationObject *evaluationObject);
+    void evaluateDependencyConditions(EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope);
     void evaluateImports(Scope::Ptr target, const JsImports &jsImports);
     void evaluatePropertyOptions(LanguageObject *object);
     void resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
