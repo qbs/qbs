@@ -207,8 +207,7 @@ private slots:
             QCOMPARE(product->name, productName);
             QVariant v = productPropertyValue(product, propertyName);
             QCOMPARE(v.toStringList(), expectedValues);
-        }
-        catch (Error &e) {
+        } catch (Error &e) {
             exceptionCaught = true;
             qDebug() << e.toString();
         }
