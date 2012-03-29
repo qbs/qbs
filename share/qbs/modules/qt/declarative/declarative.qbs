@@ -3,11 +3,11 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: "Declarative"
+    condition: qtcore.versionMajor === 4
     Depends { id: qtcore; name: "Qt.core" }
-    Depends { name: "Qt.gui" }
-    Depends { name: "qt.widgets"; condition: qtcore.versionMajor === 5 }
-    Depends { name: "qt.script"; condition: qtcore.versionMajor === 5 }
-    internalQtModuleName: qtcore.versionMajor === 5 ? "QtQuick1" : 'Qt' + qtModuleName
-    repository: qtcore.versionMajor === 5 ? 'qtquick1' : undefined
+    Depends {
+        name: "Qt"
+        submodules: ["gui", "network", "script", "xmlpatterns"]
+    }
 }
 
