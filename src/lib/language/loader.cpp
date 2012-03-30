@@ -147,7 +147,7 @@ ScopeChain::~ScopeChain()
 
 ScopeChain *ScopeChain::clone() const
 {
-    ScopeChain *s = new ScopeChain(engine(), m_scopes.last());
+    ScopeChain *s = new ScopeChain(engine());
     s->m_scopes = m_scopes;
     return s;
 }
