@@ -647,6 +647,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
 
 ProjectFile::Ptr Loader::loadProject(const QString &fileName)
 {
+    m_moduleDirListCache.clear();
     m_settings->loadProjectSettings(fileName);
     m_project = parseFile(fileName);
     return m_project;
@@ -1261,44 +1262,49 @@ Module::Ptr Loader::searchAndLoadModule(const QString &moduleId, const QString &
 
     foreach (const QString &path, searchPaths) {
         QString dirPath = FileInfo::resolvePath(path, moduleName);
-        QFileInfo dirInfo(dirPath);
-        if (!dirInfo.isDir()) {
-            bool found = false;
-#ifndef Q_OS_WIN
-            // On case sensitive file systems try to find the path.
-            QStringList subPaths = moduleName.split("/", QString::SkipEmptyParts);
-            QDir dir(path);
-            if (!dir.cd(searchSubDir))
-                continue;
-            do {
-                QStringList lst = dir.entryList(QStringList(subPaths.takeFirst()), QDir::Dirs);
-                if (lst.count() != 1)
-                    break;
-                if (!dir.cd(lst.first()))
-                    break;
-                if (subPaths.isEmpty()) {
-                    found = true;
-                    dirPath = dir.absolutePath();
-                }
-            } while (!found);
-#endif
-            if (!found)
-                continue;
-        }
+        QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
+        if (moduleFileNames.isEmpty()) {
+            QString origDirPath = dirPath;
+            QFileInfo dirInfo(dirPath);
+            if (!dirInfo.isDir()) {
+                bool found = false;
+    #ifndef Q_OS_WIN
+                // On case sensitive file systems try to find the path.
+                QStringList subPaths = moduleName.split("/", QString::SkipEmptyParts);
+                QDir dir(path);
+                if (!dir.cd(searchSubDir))
+                    continue;
+                do {
+                    QStringList lst = dir.entryList(QStringList(subPaths.takeFirst()), QDir::Dirs);
+                    if (lst.count() != 1)
+                        break;
+                    if (!dir.cd(lst.first()))
+                        break;
+                    if (subPaths.isEmpty()) {
+                        found = true;
+                        dirPath = dir.absolutePath();
+                    }
+                } while (!found);
+    #endif
+                if (!found)
+                    continue;
+            }
 
-        QDirIterator dirIter(dirPath, QStringList("*.qbs"));
-        while (dirIter.hasNext()) {
-            QString fileName = dirIter.next();
+            QDirIterator dirIter(dirPath, QStringList("*.qbs"));
+            while (dirIter.hasNext())
+                moduleFileNames += dirIter.next();
+
+            m_moduleDirListCache.insert(origDirPath, moduleFileNames);
+        }
+        foreach (const QString &fileName, moduleFileNames) {
             ProjectFile::Ptr file = parseFile(fileName);
             if (!file)
                 throw Error("Error while parsing file: " + fileName, dependsLocation);
 
             module = loadModule(file.data(), moduleId, moduleName, moduleBaseScope, userProperties, dependsLocation);
             if (module)
-                break;
+                return module;
         }
-        if (module)
-            break;
     }
 
     return module;

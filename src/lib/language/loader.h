@@ -413,6 +413,7 @@ private:
     QHash<QString, QScriptValue> m_jsImports;
     QHash<Rule::Ptr, EvaluationObject *> m_ruleMap;
     QHash<QString, QVariantMap> m_productModules;
+    QHash<QString, QStringList> m_moduleDirListCache;
 };
 
 } // namespace qbs
