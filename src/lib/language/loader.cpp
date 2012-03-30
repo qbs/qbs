@@ -77,6 +77,11 @@ namespace qbs {
 
 const QString dumpIndent("  ");
 
+CodeLocation Binding::codeLocation() const
+{
+    return CodeLocation(valueSource.fileName(), valueSource.firstLineNumber());
+}
+
 PropertyDeclaration::PropertyDeclaration()
     : type(UnknownType)
     , flags(DefaultFlags)
@@ -753,7 +758,7 @@ static bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &sco
     if (value.isBool())
         result = value.toBool();
     else
-        throw Error(QString("Condition return type must be boolean."), CodeLocation(condition.valueSource.fileName(), condition.valueSource.firstLineNumber()));
+        throw Error(QString("Condition return type must be boolean."), condition.codeLocation());
     if (debugCondition)
         qbsTrace() << "   result: " << value.toString();
 
@@ -801,8 +806,6 @@ static void testIfValueIsAllowed(const QVariant &value, const QVariant &allowedV
 
 static void applyBinding(LanguageObject *object, const Binding &binding, const ScopeChain::Ptr &scopeChain)
 {
-    CodeLocation bindingLocation(binding.valueSource.fileName(),
-                                        binding.valueSource.firstLineNumber());
     Scope *target;
     if (binding.name.size() == 1) {
         target = scopeChain->first().data(); // assume the top scope is the 'current' one
@@ -815,7 +818,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
             throw Error(msg.arg(binding.name.join("."),
                                        binding.name.first(),
                                        scopeChain->first()->name()),
-                               bindingLocation);
+                               binding.codeLocation());
         }
         target = dynamic_cast<Scope *>(targetValue.scriptClass());
         if (!target) {
@@ -823,7 +826,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
             throw Error(msg.arg(binding.name.join("."),
                                        binding.name.first(),
                                        scopeChain->first()->name()),
-                               bindingLocation);
+                               binding.codeLocation());
         }
     }
 
@@ -836,7 +839,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
             throw Error(msg.arg(binding.name.join("."),
                                        binding.name.at(i),
                                        target->name()),
-                               bindingLocation);
+                               binding.codeLocation());
         }
         target = dynamic_cast<Scope *>(value.scriptClass());
         if (!target) {
@@ -844,7 +847,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
             throw Error(msg.arg(binding.name.join("."),
                                        bindingName,
                                        oldTarget->name()),
-                               bindingLocation);
+                               binding.codeLocation());
         }
     }
 
@@ -855,7 +858,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
         throw Error(msg.arg(binding.name.join("."),
                                    name,
                                    target->name()),
-                           bindingLocation);
+                           binding.codeLocation());
     }
 
     Property newProperty;
@@ -873,7 +876,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
     const PropertyDeclaration &decl = object->propertyDeclarations.value(name);
     // ### testIfValueIsAllowed is wrong here...
     if (!decl.allowedValues.isNull())
-        testIfValueIsAllowed(target->property(name).toVariant(), decl.allowedValues, name, bindingLocation);
+        testIfValueIsAllowed(target->property(name).toVariant(), decl.allowedValues, name, binding.codeLocation());
 }
 
 static void applyBindings(LanguageObject *object, ScopeChain::Ptr scopeChain)
@@ -2070,8 +2073,7 @@ static void addTransformPropertiesToRule(Rule::Ptr rule, LanguageObject *obj)
     foreach (const Binding &binding, obj->bindings) {
         if (binding.name.length() != 1) {
             throw Error("Binding with dots are prohibited in TransformProperties.",
-                               CodeLocation(binding.valueSource.fileName(),
-                                                   binding.valueSource.firstLineNumber()));
+                        binding.codeLocation());
             continue;
         }
 

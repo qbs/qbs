@@ -73,6 +73,7 @@ public:
     QScriptProgram valueSource;
 
     bool isValid() const { return !name.isEmpty(); }
+    CodeLocation codeLocation() const;
 };
 
 class PropertyDeclaration
