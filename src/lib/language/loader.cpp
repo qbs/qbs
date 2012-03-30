@@ -1100,9 +1100,11 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
 void Loader::fillEvaluationObjectBasics(const ScopeChain::Ptr &scopeChain, LanguageObject *object, EvaluationObject *evaluationObject)
 {
     // append the property declarations
-    foreach (const PropertyDeclaration &pd, object->propertyDeclarations)
-        if (!evaluationObject->scope->declarations.contains(pd.name))
-            evaluationObject->scope->declarations.insert(pd.name, pd);
+    foreach (const PropertyDeclaration &pd, object->propertyDeclarations) {
+        PropertyDeclaration &scopePropertyDeclaration = evaluationObject->scope->declarations[pd.name];
+        if (!scopePropertyDeclaration.isValid())
+            scopePropertyDeclaration = pd;
+    }
 
     applyFunctions(&m_engine, object, evaluationObject, scopeChain);
     applyBindings(object, scopeChain);
