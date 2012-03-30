@@ -784,26 +784,6 @@ static void applyFunctions(QScriptEngine *engine, LanguageObject *object, Evalua
     engine->currentContext()->setActivationObject(oldActivation);
 }
 
-static void testIfValueIsAllowed(const QVariant &value, const QVariant &allowedValues,
-                                 const QString &propertyName, const CodeLocation &location)
-{
-    bool valueIsAllowed = false;
-
-    if (value.type() == QVariant::String && allowedValues.type() == QVariant::List)
-        valueIsAllowed = allowedValues.toStringList().contains(value.toString());
-    else if (value.type() == QVariant::Int && allowedValues.type() == QVariant::List)
-        valueIsAllowed = allowedValues.toList().contains(value);
-    else {
-        const QString msg = "The combination of the type of Property '%1' and the type of its allowedValues is not supported";
-        throw Error(msg.arg(propertyName), location);
-    }
-
-    if (!valueIsAllowed) {
-        const QString msg = "Value '%1' is not allowed for Property '%2'";
-        throw Error(msg.arg(value.toString()).arg(propertyName), location); // TODO: print out allowed values?
-    }
-}
-
 static void applyBinding(LanguageObject *object, const Binding &binding, const ScopeChain::Ptr &scopeChain)
 {
     Scope *target;
@@ -872,11 +852,6 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
         newProperty.baseProperties += property;
     }
     property = newProperty;
-
-    const PropertyDeclaration &decl = object->propertyDeclarations.value(name);
-    // ### testIfValueIsAllowed is wrong here...
-    if (!decl.allowedValues.isNull())
-        testIfValueIsAllowed(target->property(name).toVariant(), decl.allowedValues, name, binding.codeLocation());
 }
 
 static void applyBindings(LanguageObject *object, const ScopeChain::Ptr &scopeChain)
@@ -1242,10 +1217,6 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
         if (!module->object->scope->properties.contains(vmit.key()))
             throw Error("Unknown property: " + module->id + '.' + vmit.key());
         module->object->scope->properties.insert(vmit.key(), Property(m_engine.toScriptValue(vmit.value())));
-
-        const PropertyDeclaration &decl = module->object->scope->declarations.value(vmit.key());
-        if (!decl.allowedValues.isNull())
-            testIfValueIsAllowed(vmit.value(), decl.allowedValues, vmit.key(), dependsLocation);
     }
 
     return module;
