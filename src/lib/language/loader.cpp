@@ -879,7 +879,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
         testIfValueIsAllowed(target->property(name).toVariant(), decl.allowedValues, name, binding.codeLocation());
 }
 
-static void applyBindings(LanguageObject *object, ScopeChain::Ptr scopeChain)
+static void applyBindings(LanguageObject *object, const ScopeChain::Ptr &scopeChain)
 {
     foreach (const Binding &binding, object->bindings)
         applyBinding(object, binding, scopeChain);
