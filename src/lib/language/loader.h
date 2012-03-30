@@ -202,6 +202,7 @@ public:
 class ScopeChain : public QScriptClass
 {
     Q_DISABLE_COPY(ScopeChain)
+    Q_DECLARE_TR_FUNCTIONS(ScopeChain)
 public:
     typedef QSharedPointer<ScopeChain> Ptr;
 
@@ -236,6 +237,7 @@ private:
 class Scope : public QScriptClass
 {
     Q_DISABLE_COPY(Scope)
+    Q_DECLARE_TR_FUNCTIONS(Scope)
     Scope(QScriptEngine *engine, const QString &name);
 public:
     typedef QSharedPointer<Scope> Ptr;
