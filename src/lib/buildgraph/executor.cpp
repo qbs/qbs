@@ -655,7 +655,6 @@ void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStri
         qbsDebug("    from %s", qPrintable(outputArtifact->fileName));
     }
 
-    QSet<QString> resolvedDependencies;
     QSet<QString> visitedFilePaths;
     QStringList filePathsToScan;
     filePathsToScan.append(inputArtifact->fileName);
