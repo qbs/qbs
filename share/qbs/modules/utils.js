@@ -2,44 +2,57 @@
 // utility functions for modules
 //
 
-function appendAll_internal2(modules, name, property, seenValues)
+function appendAll_internal_recursive(modules, name, key, seenValues)
 {
     var result = []
-    for (var m in modules) {
-        if (m == name) {
-            var value = modules[m][property]
-            if (value) {
-                if (!seenValues[value]) {
-                    seenValues[value] = true
-                    result = result.concat(value)
+    var propertyValue
+    var m, k
+    for (m in modules) {
+        if (m === name) {
+            propertyValue = modules[m][key]
+            if (propertyValue instanceof Array) {
+                k = propertyValue.length
+                while (k--) {
+                    var value = propertyValue[k]
+                    if (!seenValues[value]) {
+                        seenValues[value] = true
+                        result.push(value)
+                    }
+                }
+            } else if (propertyValue) {
+                if (!seenValues[propertyValue]) {
+                    seenValues[propertyValue] = true
+                    result.push(propertyValue)
                 }
             }
         } else {
-            var values = appendAll_internal2(modules[m].modules, name, property, seenValues)
-            if (values && values.length > 0)
-                result = result.concat(values)
+            propertyValue = appendAll_internal_recursive(modules[m].modules, name, key, seenValues)
+            if (propertyValue.length > 0) {
+                result = result.concat(propertyValue)
+            }
         }
     }
     return result
 }
 
-function appendAll_internal(modules, name, property)
+function appendAll_internal(modules, name, key, seenValues)
 {
-    var seenValues = []
-    return appendAll_internal2(modules, name, property, seenValues)
+    if (!seenValues)
+        seenValues = []
+    return appendAll_internal_recursive(modules, name, key, seenValues)
 }
 
-function appendAll(config, property)
+function appendAll(config, key)
 {
-    return appendAll_internal(config.modules, config.module.name, property)
+    return appendAll_internal(config.modules, config.module.name, key)
 }
 
 function appendAllFromArtifacts(product, artifacts, moduleName, propertyName)
 {
     var seenValues = []
-    var result = appendAll_internal2(product.modules, moduleName, propertyName, seenValues)
+    var result = appendAll_internal(product.modules, moduleName, propertyName, seenValues)
     for (var i in artifacts)
-        result = result.concat(appendAll_internal2(artifacts[i].modules, moduleName, propertyName, seenValues))
+        result = result.concat(appendAll_internal(artifacts[i].modules, moduleName, propertyName, seenValues))
     return result
 }
 
