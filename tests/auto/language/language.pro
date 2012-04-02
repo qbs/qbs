@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = testOptions
+TARGET = tst_language
 DEPENDPATH += .
 INCLUDEPATH += . ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
