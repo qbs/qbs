@@ -375,6 +375,7 @@ protected:
                                                     ResolvedProduct::Ptr rproduct, ResolvedModule::Ptr module);
     Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::Ptr module);
     void buildModulesProperty(EvaluationObject *evaluationObject);
+    void checkModuleDependencies(const Module::Ptr &module);
 
     class ProductData
     {

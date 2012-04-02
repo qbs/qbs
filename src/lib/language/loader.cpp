@@ -1195,21 +1195,19 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
     qbsTrace() << "loading module '" << moduleName << "' from " << file->fileName;
     evaluatePropertyOptions(file->root);
     evaluateDependencies(file->root, module->object, moduleScope, moduleBaseScope, userProperties, !isBaseModule);
-    if (!module->object->unknownModules.isEmpty()) {
-        QString msg;
-        foreach (const UnknownModule::Ptr &missingModule, module->object->unknownModules) {
-            msg.append(Error(tr("Module '%1' cannot be loaded.").arg(missingModule->name),
-                                    missingModule->dependsLocation).toString());
-            msg.append(QLatin1Char('\n'));
-        }
-        throw Error(msg);
-    }
     buildModulesProperty(module->object);
 
     if (!file->root->id.isEmpty())
         module->context->properties.insert(file->root->id, Property(module->object));
     fillEvaluationObject(moduleScope, file->root, module->object->scope, module->object, userProperties);
     evaluateDependencyConditions(module->object, moduleScope);
+
+    if (!module->object->unknownModules.isEmpty()) {
+        // Some module dependencies could not be resolved.
+        // We're deferring the error emission because this module
+        // might be removed later due to an unsatisfied dependency condition.
+        return module;
+    }
 
     // override properties given on the command line
     const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
@@ -1345,12 +1343,10 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject, co
         modules += module;
         moduleBaseObjects += module;
     }
-    if (!mustEvaluateConditions) {
-        foreach (const UnknownModule::Ptr &module, evaluationObject->unknownModules) {
-            if (!module->condition.isNull())
-                mustEvaluateConditions = true;
-            moduleBaseObjects += module;
-        }
+    foreach (const UnknownModule::Ptr &module, evaluationObject->unknownModules) {
+        if (!module->condition.isNull())
+            mustEvaluateConditions = true;
+        moduleBaseObjects += module;
     }
     if (!mustEvaluateConditions)
         return;
@@ -1405,6 +1401,18 @@ void Loader::buildModulesProperty(EvaluationObject *evaluationObject)
     }
     evaluationObject->scope->properties.insert("modules", Property(modules));
     evaluationObject->scope->declarations.insert("modules", PropertyDeclaration("modules", PropertyDeclaration::Variant));
+}
+
+void Loader::checkModuleDependencies(const Module::Ptr &module)
+{
+    if (!module->object->unknownModules.isEmpty()) {
+        UnknownModule::Ptr missingModule = module->object->unknownModules.first();
+        throw Error(tr("Module '%1' cannot be loaded.").arg(missingModule->name),
+                    missingModule->dependsLocation);
+    }
+
+    foreach (const Module::Ptr &dependency, module->object->modules)
+        checkModuleDependencies(dependency);
 }
 
 QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChain::Ptr moduleScope,
@@ -1757,6 +1765,11 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
 
         rproject->products.insert(rproduct);
     }
+
+    // Check all modules for unresolved dependencies.
+    foreach (ResolvedProduct::Ptr rproduct, rproject->products)
+        foreach (Module::Ptr module, products.value(rproduct).product->modules)
+            checkModuleDependencies(module);
 
     // Change build directory for products with the same name.
     foreach (const QString &name, uniqueStrings) {
