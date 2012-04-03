@@ -680,6 +680,12 @@ Executor::Dependency Executor::resolveWithIncludePath(const QString &includePath
     QString fullFilePath = FileInfo::resolvePath(includePath, relativeFilePath);
 
     Executor::Dependency result;
+    result.artifact = buildProduct->project->dependencyArtifacts().value(fullFilePath);
+    if (result.artifact) {
+        result.filePath = result.artifact->fileName;
+        return result;
+    }
+
     result.artifact = buildProduct->artifacts.value(fullFilePath);
     if (result.artifact) {
         result.filePath = result.artifact->fileName;
