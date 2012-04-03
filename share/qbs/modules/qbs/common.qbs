@@ -5,14 +5,14 @@ Module {
     property string buildVariant: "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
-    property string platform: null
+    property string platform
     property string hostOS: getHostOS()
     property string hostArchitecture: getHostDefaultArchitecture()
-    property string targetOS: null
-    property string targetName: null
-    property string toolchain: null
-    property string architecture: null
-    property string endianness: null
+    property string targetOS
+    property string targetName
+    property string toolchain
+    property string architecture
+    property string endianness
     property string installDir: '.'
     property string sysroot
     property string installPrefix: ""
