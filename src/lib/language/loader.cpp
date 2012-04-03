@@ -877,6 +877,9 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
         product += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
         product += PropertyDeclaration("type", PropertyDeclaration::String);
         product += PropertyDeclaration("name", PropertyDeclaration::String);
+        PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
+        decl.initialValueSource = "name";
+        product += decl;
         product += PropertyDeclaration("destination", PropertyDeclaration::String);
         product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         product += PropertyDeclaration("module", PropertyDeclaration::Variant);
@@ -1691,6 +1694,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
         Scope *productProps = data.product->scope.data();
 
         rproduct->name = productProps->stringValue("name");
+        rproduct->targetName = productProps->stringValue("targetName");
         QString buildDirectory = FileInfo::resolvePath(buildDirectoryRoot, rproject->id);
 
         // insert property "buildDirectory"

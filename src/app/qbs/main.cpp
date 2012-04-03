@@ -237,10 +237,10 @@ int main(int argc, char *argv[])
         QString productFileName;
 
         foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
-            if (!options.runTargetName().isEmpty() && options.runTargetName() != buildProduct.name())
+            if (!options.runTargetName().isEmpty() && options.runTargetName() != buildProduct.targetName())
                 continue;
 
-            if (options.runTargetName().isEmpty() || options.runTargetName() == buildProduct.name()) {
+            if (options.runTargetName().isEmpty() || options.runTargetName() == buildProduct.targetName()) {
                 if (buildProduct.isExecutable()) {
                     productToRun = buildProduct;
                     productFileName = buildProduct.executablePath();

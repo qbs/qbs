@@ -249,6 +249,7 @@ void ResolvedProduct::load(PersistentPool &pool, PersistentObjectData &data)
     QDataStream s(data);
     s   >> fileTags
         >> name
+        >> targetName
         >> buildDirectory
         >> sourceDirectory
         >> destinationDirectory
@@ -267,6 +268,7 @@ void ResolvedProduct::store(PersistentPool &pool, PersistentObjectData &data) co
     QDataStream s(&data, QIODevice::WriteOnly);
     s   << fileTags
         << name
+        << targetName
         << buildDirectory
         << sourceDirectory
         << destinationDirectory

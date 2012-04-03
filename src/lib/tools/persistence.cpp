@@ -42,7 +42,7 @@
 
 namespace qbs {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE0_0_1__5";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE0_0_1__6";
 
 PersistentPool::PersistentPool()
 {

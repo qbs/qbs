@@ -81,6 +81,7 @@ public:
     bool isValid() const;
 
     QString name() const;
+    QString targetName() const;
     QString displayName() const;
     QString filePath() const;
     QVector<SourceFile> sourceFiles() const;

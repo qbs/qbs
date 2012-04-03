@@ -32,7 +32,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.name + product.module.dynamicLibrarySuffix
+            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibrarySuffix
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
@@ -118,7 +118,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.name + product.module.staticLibrarySuffix
+            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.targetName + product.module.staticLibrarySuffix
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
                 var result = []
@@ -160,7 +160,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.name + product.module.executableSuffix
+            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.targetName + product.module.executableSuffix
             fileTags: ["application"]
         }
 

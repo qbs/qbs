@@ -124,7 +124,7 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.name + product.module.executableSuffix
+            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.targetName + product.module.executableSuffix
         }
 
         TransformProperties {
@@ -147,12 +147,12 @@ CppModule {
 
         Artifact {
             fileTags: ["dynamiclibrary"]
-            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.name + product.module.dynamicLibrarySuffix
+            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibrarySuffix
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
-            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.name + product.module.dynamicLibraryImportSuffix
+            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibraryImportSuffix
         }
 
         TransformProperties {
@@ -175,7 +175,7 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.name + product.module.staticLibrarySuffix
+            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.targetName + product.module.staticLibrarySuffix
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {

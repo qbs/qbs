@@ -91,6 +91,11 @@ QString BuildProduct::name() const
     return m_internalBuildProduct->rProduct->name;
 }
 
+QString BuildProduct::targetName() const
+{
+    return m_internalBuildProduct->rProduct->targetName;
+}
+
 static QStringList findProjectIncludePathsRecursive(const QVariantMap &variantMap)
 {
     QStringList includePathList;
@@ -125,7 +130,7 @@ QString BuildProduct::executableSuffix() const
 
 QString BuildProduct::executablePath() const
 {
-    QString localPath = m_internalBuildProduct->rProduct->name;
+    QString localPath = m_internalBuildProduct->rProduct->targetName;
     QString destinationDirectory = m_internalBuildProduct->rProduct->destinationDirectory;
 
     if (!destinationDirectory.isEmpty()) {

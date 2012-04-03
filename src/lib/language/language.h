@@ -233,6 +233,7 @@ public:
 
     QStringList fileTags;
     QString name;
+    QString targetName;
     QString buildDirectory;
     QString sourceDirectory;
     QString destinationDirectory;
