@@ -41,12 +41,14 @@
 #include <QtCore/QMutex>
 #include <QtCore/QSet>
 #include <QtCore/QString>
+#include <QtCore/QVector>
 
 namespace qbs {
 
 class ScanResultCache
 {
 public:
+    typedef QPair<QString, bool> Dependency;
 
     struct Result
     {
@@ -54,8 +56,8 @@ public:
             : visited(false)
         {}
 
-        QHash<QString, bool> deps;
         bool visited;
+        QVector<Dependency> deps;
     };
 
     Result value(const QString &fileName) const;

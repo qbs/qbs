@@ -174,7 +174,7 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
                 if (includedFilePath.isEmpty())
                     continue;
                 bool isLocalInclude = (flags & SC_LOCAL_INCLUDE_FLAG);
-                scanResult.deps.insert(includedFilePath, isLocalInclude);
+                scanResult.deps += ScanResultCache::Dependency(includedFilePath, isLocalInclude);
             }
 
             scanner->close(opaq);
@@ -182,8 +182,8 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
                 m_scanResultCache->insert(artifact->fileName, scanResult);
         }
 
-        for (QHash<QString, bool>::const_iterator it = scanResult.deps.constBegin(); it != scanResult.deps.constEnd(); ++it) {
-            const QString &includedFilePath = it.key();
+        foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
+            const QString &includedFilePath = dependency.first;
             if (includedFilePath.startsWith("moc_") && includedFilePath.endsWith(".cpp")) {
                 if (qbsLogLevel(LoggerTrace))
                     qbsTrace() << "[AUTOMOC] finds included file: " << includedFilePath;

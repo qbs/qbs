@@ -589,7 +589,7 @@ static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
         if (outFilePath.isEmpty())
             continue;
         bool isLocalInclude = (flags & SC_LOCAL_INCLUDE_FLAG);
-        scanResult->deps.insert(outFilePath, isLocalInclude);
+        scanResult->deps += ScanResultCache::Dependency(outFilePath, isLocalInclude);
     }
     scannerPlugin->close(scannerHandle);
     scanResult->visited = true;
@@ -711,9 +711,9 @@ void Executor::resolveScanResultDependencies(const QStringList &includePaths,
                                              bool *newDependencyAdded)
 {
     QString baseDirOfInFilePath;
-    for (QHash<QString, bool>::const_iterator iterator = scanResult.deps.constBegin(); iterator != scanResult.deps.constEnd(); ++iterator) {
-        QString outFilePath = iterator.key();
-        const bool isLocalInclude = iterator.value();
+    foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
+        QString outFilePath = dependency.first;
+        const bool isLocalInclude = dependency.second;
         Dependency resolvedDependency;
         if (FileInfo::isAbsolute(outFilePath)) {
             resolvedDependency.filePath = outFilePath;
