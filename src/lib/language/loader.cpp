@@ -687,7 +687,7 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
             throw Error(tr("prototype with dots does not resolve to a file"), object->prototypeLocation);
         evaluationObject->prototype = object->prototype.first();
 
-        setupInternalPrototype(evaluationObject);
+        setupInternalPrototype(object, evaluationObject);
 
         // once we know something is a project/product, add a property to
         // the correct scope
@@ -860,7 +860,7 @@ static void applyBindings(LanguageObject *object, const ScopeChain::Ptr &scopeCh
         applyBinding(object, binding, scopeChain);
 }
 
-void Loader::setupInternalPrototype(EvaluationObject *evaluationObject)
+void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject)
 {
     // special builtins
     static QHash<QString, QList<PropertyDeclaration> > builtinDeclarations;
@@ -944,6 +944,16 @@ void Loader::setupInternalPrototype(EvaluationObject *evaluationObject)
     foreach (const PropertyDeclaration &pd, builtinDeclarations.value(evaluationObject->prototype)) {
         evaluationObject->scope->declarations.insert(pd.name, pd);
         evaluationObject->scope->properties.insert(pd.name, Property(m_engine.undefinedValue()));
+
+        // If there's an initial value and the language object doesn't have a binding for that property, create one.
+        if (!pd.initialValueSource.isEmpty()) {
+            const QStringList bindingName(pd.name);
+            Binding &binding = object->bindings[bindingName];
+            if (!binding.isValid()) {
+                binding.name = bindingName;
+                binding.valueSource = QScriptProgram(pd.initialValueSource);
+            }
+        }
     }
 }
 

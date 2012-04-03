@@ -108,7 +108,7 @@ public:
     Flags flags;
     QVariant allowedValues;
     QString description;
-    // the initial value will be in the bindings list
+    QString initialValueSource;
 };
 
 class ProjectFile;
@@ -366,7 +366,7 @@ protected:
                             ScopeChain::Ptr moduleScope = ScopeChain::Ptr(), const QVariantMap &userProperties = QVariantMap());
     void fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties);
     void fillEvaluationObjectBasics(const ScopeChain::Ptr &scope, LanguageObject *object, EvaluationObject *evaluationObject);
-    void setupInternalPrototype(EvaluationObject *evaluationObject);
+    void setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject);
     void resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module);
     void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
     void resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group, const QVariantMap &userProperties);
