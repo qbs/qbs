@@ -159,8 +159,8 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
         ScanResultCache::Result scanResult;
         if (m_scanResultCache)
             scanResult = m_scanResultCache->value(artifact->fileName);
-        if (!scanResult.visited) {
-            scanResult.visited = true;
+        if (!scanResult.valid) {
+            scanResult.valid = true;
             opaq = scanner->open(artifact->fileName.utf16(), 0, 0);
             if (!opaq)
                 continue;

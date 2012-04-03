@@ -592,7 +592,7 @@ static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
         scanResult->deps += ScanResultCache::Dependency(outFilePath, isLocalInclude);
     }
     scannerPlugin->close(scannerHandle);
-    scanResult->visited = true;
+    scanResult->valid = true;
     return true;
 }
 
@@ -664,7 +664,7 @@ void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStri
         visitedFilePaths.insert(filePathToBeScanned);
 
         ScanResultCache::Result scanResult = m_scanResultCache.value(filePathToBeScanned);
-        if (!scanResult.visited) {
+        if (!scanResult.valid) {
             bool successfulScan = scanWithScannerPlugin(scannerPlugin, filePathToBeScanned, &scanResult);
             if (!successfulScan)
                 continue;

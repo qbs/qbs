@@ -53,11 +53,11 @@ public:
     struct Result
     {
         Result()
-            : visited(false)
+            : valid(false)
         {}
 
-        bool visited;
         QVector<Dependency> deps;
+        bool valid;
     };
 
     Result value(const QString &fileName) const;
