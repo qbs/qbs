@@ -9,7 +9,7 @@ Module {
     property string hostOS: getHostOS()
     property string hostArchitecture: getHostDefaultArchitecture()
     property string targetOS
-    property string targetName
+    property string buildProfileName
     property string toolchain
     property string architecture
     property string endianness

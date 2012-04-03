@@ -2736,10 +2736,10 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
             throw Error(tr("base module not loaded"));
         const QString hostName = baseModule->scope->stringValue("hostOS");
         const QString targetOS = baseModule->scope->stringValue("targetOS");
-        const QString targetName = baseModule->scope->stringValue("targetName");
+        const QString buildProfileName = baseModule->scope->stringValue("buildProfileName");
         rproject->id = buildVariant;
-        if (!targetName.isEmpty())
-            rproject->id.prepend(targetName + "-");
+        if (!buildProfileName.isEmpty())
+            rproject->id.prepend(buildProfileName + "-");
         if (hostName != targetOS) {
             QString platformName = targetOS;
             const QString hostArchitecture = baseModule->scope->stringValue("hostArchitecture");
