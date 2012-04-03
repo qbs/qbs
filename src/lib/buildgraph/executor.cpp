@@ -574,7 +574,6 @@ bool Executor::runAutoMoc()
 
 static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
                                   const QString &filePathToBeScanned,
-                                  ScanResultCache *scanResultCache,
                                   ScanResultCache::Result *scanResult)
 {
     void *scannerHandle = scannerPlugin->open(filePathToBeScanned.utf16(), 0, 0);
@@ -594,7 +593,6 @@ static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
     }
     scannerPlugin->close(scannerHandle);
     scanResult->visited = true;
-    scanResultCache->insert(filePathToBeScanned, *scanResult);
     return true;
 }
 
@@ -667,9 +665,10 @@ void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStri
 
         ScanResultCache::Result scanResult = m_scanResultCache.value(filePathToBeScanned);
         if (!scanResult.visited) {
-            bool successfulScan = scanWithScannerPlugin(scannerPlugin, filePathToBeScanned, &m_scanResultCache, &scanResult);
+            bool successfulScan = scanWithScannerPlugin(scannerPlugin, filePathToBeScanned, &scanResult);
             if (!successfulScan)
                 continue;
+            m_scanResultCache.insert(filePathToBeScanned, scanResult);
         }
 
         resolveScanResultDependencies(includePaths, outputArtifact, inputArtifact, scanResult, filePathToBeScanned, &filePathsToScan, newDependencyAdded);
