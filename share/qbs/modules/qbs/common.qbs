@@ -2,7 +2,6 @@ import qbs.base 1.0
 import qbs.fileinfo 1.0 as FileInfo
 
 Module {
-    property list<string> references;
     property string buildVariant: "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
