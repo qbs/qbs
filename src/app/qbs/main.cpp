@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
     qbs::CommandLineOptions options;
     qbs::ConsolePrintLogSink *logSink = new qbs::ConsolePrintLogSink;
-    logSink->setColoredOutputEnabled(options.configurationValue("defaults/useColoredOutput", true).toBool());
+    logSink->setColoredOutputEnabled(options.configurationValue("preferences/useColoredOutput", true).toBool());
     Qbs::ILogSink::setGlobalLogSink(logSink);
     Qbs::MainThreadCommunication::registerMetaType();
     QStringList arguments = app.arguments();
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     foreach (const QString &searchPath, options.searchPaths()) {
         if (!qbs::FileInfo::exists(searchPath)) {
             qbsError("search path '%s' does not exist.\n"
-                     "run 'qbs config --global paths/cubes $QBS_SOURCE_TREE/share/qbs'",
+                     "run 'qbs config --global preferences.qbsPath $QBS_SOURCE_TREE/share/qbs'",
                      qPrintable(searchPath));
 
             return ExitCodeErrorParsingCommandLine;
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     foreach (const QString &pluginPath, options.pluginPaths()) {
         if (!qbs::FileInfo::exists(pluginPath)) {
             qbsError("plugin path '%s' does not exist.\n"
-                     "run 'qbs config --global paths/plugins $QBS_BUILD_TREE/plugins'",
+                     "run 'qbs config --global preferences.pluginsPath $QBS_BUILD_TREE/plugins'",
                      qPrintable(pluginPath));
             return ExitCodeErrorParsingCommandLine;
         }
@@ -188,6 +188,17 @@ int main(int argc, char *argv[])
 
     if (options.command() == qbs::CommandLineOptions::StatusCommand)
         return qbs::printStatus(options, sourceProject);
+
+    if (options.command() == qbs::CommandLineOptions::PropertiesCommand) {
+        const bool showAll = (options.selectedProductNames().count() == 0);
+        foreach (const Qbs::BuildProject& buildProject, sourceProject.buildProjects()) {
+            foreach (const Qbs::BuildProduct& buildProduct, buildProject.buildProducts()) {
+                if (showAll || options.selectedProductNames().contains(buildProduct.name()))
+                    buildProduct.dumpProperties();
+            }
+        }
+        return 0;
+    }
 
     // execute the build graph
     Qbs::BuildExecutor *buildExecutor = app.buildExecutor();

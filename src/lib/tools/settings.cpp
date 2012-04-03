@@ -80,6 +80,18 @@ QVariant Settings::value(Scope scope, const QString &key, const QVariant &defaul
     return s ? s->value(key, defaultValue) : defaultValue;
 }
 
+QVariant Settings::moduleValue(const QString &key, const QList<QString> &profiles, const QVariant &defaultValue)
+{
+    // Check profile list first, last one wins
+    for (int i = profiles.count() - 1; i >= 0; i--) {
+        QString profileKey = QString("profiles/%1/%2").arg(profiles[i]).arg(key);
+        QVariant val = value(profileKey);
+        if (val.isValid()) return val;
+    }
+    QString modulesKey = QString("modules/%1").arg(key);
+    return value(modulesKey, defaultValue);
+}
+
 QStringList Settings::allKeys() const
 {
     QStringList keys;
@@ -88,6 +100,24 @@ QStringList Settings::allKeys() const
     keys.append(m_globalSettings->allKeys());
     keys.sort();
     std::unique(keys.begin(), keys.end());
+    return keys;
+}
+
+QStringList Settings::allKeysWithPrefix(const QString &group)
+{
+    QStringList keys;
+    if (m_localSettings) {
+        m_localSettings->beginGroup(group);
+        keys = m_localSettings->allKeys();
+        m_localSettings->endGroup();
+    }
+
+    m_globalSettings->beginGroup(group);
+    keys.append(m_globalSettings->allKeys());
+    m_globalSettings->endGroup();
+    keys.sort();
+    std::unique(keys.begin(), keys.end());
+    keys.removeDuplicates();
     return keys;
 }
 

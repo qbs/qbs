@@ -7,21 +7,19 @@ import '../qtfunctions.js' as QtFunctions
 Module {
     Depends { name: "cpp" }
 
-    property string qtVersionName: qbs.configurationValue("defaults/qtVersionName", "default")
-    property string configKey: "qt/" + qtVersionName + "/"
-    property string qtNamespace: qbs.configurationValue(configKey + "namespace", undefined)
-    property string qtLibInfix: qbs.configurationValue(configKey + "libInfix", "")
-    property string qtPath: qbs.configurationValue(configKey + "path", undefined)
+    property string namespace
+    property string libInfix: ""
+    property string path
     property string repository: versionMajor === 5 ? "qtbase" : undefined
-    property string binPath: qtPath ? FileInfo.joinPaths(qtPath, repository, "bin") : qbs.configurationValue(configKey + "binPath", undefined)
-    property string incPath: qtPath ? FileInfo.joinPaths(qtPath, repository, "include") : qbs.configurationValue(configKey + "incPath", undefined)
-    property string libPath: qtPath ? FileInfo.joinPaths(qtPath, repository, "lib") : qbs.configurationValue(configKey + "libPath", undefined)
-    property string version: qbs.configurationValue(configKey + "version", "4.7.0")
+    property string binPath: path ? FileInfo.joinPaths(path, repository, "bin") : undefined
+    property string incPath: path ? FileInfo.joinPaths(path, repository, "include") : undefined
+    property string libPath: path ? FileInfo.joinPaths(path, repository, "lib") : undefined
+    property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
-    property string mkspecsPath: qtPath ? FileInfo.joinPaths(qtPath, 'qtbase',  "mkspecs") : qbs.configurationValue(configKey + "mkspecsPath", undefined)
+    property string mkspecsPath: path ? FileInfo.joinPaths(path, 'qtbase',  "mkspecs") : undefined
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
     cpp.defines: {
@@ -30,23 +28,23 @@ Module {
         //     from the build variant "release"
         if (!qbs.debugInformation)
             defines.push("QT_NO_DEBUG");
-        if (qtNamespace)
-            defines.push("QT_NAMESPACE=" + qtNamespace);
+        if (namespace)
+            defines.push("QT_NAMESPACE=" + namespace);
         return defines;
     }
     cpp.includePaths: {
         var paths = [mkspecsPath + '/default'];
         if (qbs.targetOS === "mac")
-            paths.push(libPath + '/QtCore' + qtLibInfix + '.framework/Versions/' + versionMajor + '/Headers');
+            paths.push(libPath + '/QtCore' + libInfix + '.framework/Versions/' + versionMajor + '/Headers');
         paths.push(incPath + '/QtCore');
         paths.push(incPath);
         paths.push(product.buildDirectory + '/' + generatedFilesDir);
         return paths;
     }
     cpp.libraryPaths: [libPath]
-    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
+    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
     cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
-    cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + qtLibInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
+    cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
 

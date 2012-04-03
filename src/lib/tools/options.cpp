@@ -59,7 +59,7 @@ CommandLineOptions::CommandLineOptions()
     , m_keepGoing(false)
 {
     m_settings = Settings::create();
-    m_jobs = configurationValue("defaults/jobs", 0).toInt();
+    m_jobs = configurationValue("preferences/jobs", 0).toInt();
     if (m_jobs <= 0)
         m_jobs = QThread::idealThreadCount();
 }
@@ -71,6 +71,8 @@ void CommandLineOptions::printHelp()
          "  build  [variant] [property:value]\n"
          "                     build project (default command)\n"
          "  clean  ........... remove all generated files\n"
+         "  properties [variant] [property:value]\n"
+         "                     show all calculated properties for a build\n"
          "  shell  ........... open a shell\n"
          "  status [variant] [property:value]\n"
          "                     list files that are (un)tracked by the project\n"
@@ -140,6 +142,8 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                 firstPositionalEaten = true;
             } else if (arg == QLatin1String("status")) {
                 m_command = StatusCommand;
+            } else if (arg == QLatin1String("properties")) {
+                m_command = PropertiesCommand;
             } else {
                 m_positional.append(arg);
             }
@@ -164,7 +168,7 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                 m_changedFiles = changedFiles;
                 --i;
                 continue;
-            } else if (arg == "products" && (m_command == BuildCommand || m_command == CleanCommand)) {
+            } else if (arg == "products" && (m_command == BuildCommand || m_command == CleanCommand || m_command == PropertiesCommand)) {
                 QStringList productNames;
                 for (++i; i < argc && !args.at(i).startsWith('-'); ++i)
                     productNames += args.at(i);
@@ -271,8 +275,8 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
     // eventually load defaults from configs
     const QChar configPathSeparator = QLatin1Char(nativePathVariableSeparator);
     if (m_searchPaths.isEmpty())
-        m_searchPaths = configurationValue("paths/cubes", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
-    m_pluginPaths = configurationValue("paths/plugins", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
+        m_searchPaths = configurationValue("preferences/qbsPath", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
+    m_pluginPaths = configurationValue("preferences/pluginsPath", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
 
     // fixup some defaults
     if (m_searchPaths.isEmpty())
@@ -292,8 +296,10 @@ static void showConfigUsage()
          "    --local     choose local configuration file (default)\n"
          "\n"
          "Actions:\n"
-         "    --list      list all variables\n"
-         "    --unset     remove variable with given name\n");
+         "    --list           list all variables\n"
+         "    --unset          remove variable with given name\n"
+         "    --import <file>  import global settings from given file\n"
+         "    --export <file>  export global settings to given file\n");
 }
 
 void CommandLineOptions::loadLocalProjectSettings(bool throwExceptionOnFailure)
@@ -307,7 +313,7 @@ void CommandLineOptions::loadLocalProjectSettings(bool throwExceptionOnFailure)
 
 void CommandLineOptions::configure()
 {
-    enum ConfigCommand { CfgSet, CfgUnset, CfgList };
+    enum ConfigCommand { CfgSet, CfgUnset, CfgList, CfgExport, CfgImport, CfgUpgrade };
     ConfigCommand cmd = CfgSet;
     Settings::Scope scope = Settings::Local;
     bool scopeSet = false;
@@ -332,6 +338,12 @@ void CommandLineOptions::configure()
         } else if (arg == "local") {
             scope = Settings::Local;
             scopeSet = true;
+        } else if (arg == "export") {
+            cmd = CfgExport;
+        } else if (arg == "import") {
+            cmd = CfgImport;
+        } else if (arg == "upgrade") {
+            cmd = CfgUpgrade;
         } else {
             throw Error("Unknown option for config command.");
         }
@@ -359,7 +371,9 @@ void CommandLineOptions::configure()
         } else if (args.count() < 2) {
             puts(qPrintable(m_settings->value(scope, args.at(0)).toString()));
         } else {
-            m_settings->setValue(scope, args.at(0), args.at(1));
+            QString key(args.at(0));
+            key.replace(QChar('.'), QChar('/'));
+            m_settings->setValue(scope, key, args.at(1));
         }
         break;
     case CfgUnset:
@@ -367,8 +381,37 @@ void CommandLineOptions::configure()
             loadLocalProjectSettings(true);
         if (args.isEmpty())
             throw Error("unset what?");
-        foreach (const QString &arg, args)
-            m_settings->remove(scope, arg);
+        foreach (const QString &arg, args) {
+            QString key(arg);
+            key.replace(QChar('.'), QChar('/'));
+            m_settings->remove(scope, key);
+        }
+        break;
+    case CfgExport:
+        if (args.count() != 1)
+            throw Error("Syntax: qbs config --export <filename>");
+        exportGlobalSettings(args[0]);
+        break;
+    case CfgImport:
+        if (args.count() != 1)
+            throw Error("Syntax: qbs config --import <filename>");
+        // Display old and new settings, in case import fails or user accidentally nukes everything
+        printf("old "); // Will end up as "old global settings:"
+        printSettings(Settings::Global);
+        importGlobalSettings(args[0]);
+        printf("\nnew ");
+        printSettings(Settings::Global);
+        break;
+    case CfgUpgrade:
+        if (scopeSet) {
+            if (scope == Settings::Local)
+                loadLocalProjectSettings(true);
+            upgradeSettings(scope);
+        } else {
+            loadLocalProjectSettings(false);
+            upgradeSettings(Settings::Local);
+            upgradeSettings(Settings::Global);
+        }
         break;
     }
 }
@@ -389,6 +432,16 @@ QMap<S,T> &inhaleValues(QMap<S,T> &dst, const QMap<S,T> &src)
     return dst;
 }
 
+QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
+{
+    // Make fully-qualified, ie "platform" -> "qbs.platform"
+    // "profile" is the only top-level thing that doesn't have a dot or belong in the qbs module
+    if (aCommandLineName.contains(".") || aCommandLineName == "profile")
+        return aCommandLineName;
+    else
+        return "qbs." + aCommandLineName;
+}
+
 QList<QVariantMap> CommandLineOptions::buildConfigurations() const
 {
     QList<QVariantMap> ret;
@@ -403,23 +456,29 @@ QList<QVariantMap> CommandLineOptions::buildConfigurations() const
             } else {
                 QVariantMap map = globalSet;
                 inhaleValues(map, currentSet);
-                if (!map.contains("buildVariant"))
-                    map["buildVariant"] = currentName;
+                if (!map.contains("qbs.buildVariant"))
+                    map["qbs.buildVariant"] = currentName;
                 ret.append(map);
             }
             currentSet.clear();
             currentName = arg;
         } else {
-            currentSet.insert(arg.left(idx), arg.mid(idx + 1));
+            currentSet.insert(propertyName(arg.left(idx)), arg.mid(idx + 1));
         }
     }
 
+    if (currentName.isEmpty()) {
+        // If a build variant is not specified the default build variant can be given by
+        // modules.qbs.buildVariant or by any of the current profiles
+        QStringList currentProfiles = currentSet.value("profile").toString().split(QChar(','), QString::SkipEmptyParts);
+        currentName = m_settings->moduleValue("qbs/buildVariant", currentProfiles, "").toString();
+    }
     if (currentName.isEmpty())
         currentName = m_settings->value("defaults/buildvariant", "debug").toString();
     QVariantMap map = globalSet;
     inhaleValues(map, currentSet);
-    if (!map.contains("buildVariant"))
-        map["buildVariant"] = currentName;
+    if (!map.contains("qbs.buildVariant"))
+        map["qbs.buildVariant"] = currentName;
     ret.append(map);
     return ret;
 }
@@ -430,9 +489,12 @@ void CommandLineOptions::printSettings(Settings::Scope scope)
         printf("global variables:\n");
     else
         printf("local variables:\n");
-    foreach (const QString &key, m_settings->allKeys(scope))
-        printf("%s = %s\n", qPrintable(key),
+    foreach (const QString &key, m_settings->allKeys(scope)) {
+        QString prettyKey(key);
+        prettyKey.replace(QChar('/'), QChar('.'));
+        printf("%s: %s\n", qPrintable(prettyKey),
                qPrintable(m_settings->value(scope, key).toString()));
+    }
 }
 
 QString CommandLineOptions::guessProjectFileName()
@@ -453,6 +515,99 @@ QString CommandLineOptions::guessProjectFileName()
             break;
     }
     return QString();
+}
+
+void CommandLineOptions::exportGlobalSettings(const QString &filename)
+{
+    QFile file(filename);
+    if (!file.open(QFile::Truncate | QFile::WriteOnly | QFile::Text)) {
+        qbsFatal("Couldn't open file %s for writing: %s", qPrintable(filename), qPrintable(file.errorString()));
+        return;
+    }
+    QTextStream stream(&file);
+    stream.setCodec("UTF-8");
+    foreach (const QString &key, m_settings->allKeys(Settings::Global)) {
+        QString prettyKey(key);
+        prettyKey.replace(QChar('/'), QChar('.'));
+        stream << prettyKey << ": " << m_settings->value(Settings::Global, key).toString() << endl;
+    }
+}
+
+void CommandLineOptions::importGlobalSettings(const QString &filename)
+{
+    QFile file(filename);
+    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+        qbsFatal("Couldn't open file %s for reading: %s", qPrintable(filename), qPrintable(file.errorString()));
+        return;
+    }
+    // Remove all current settings
+    foreach (const QString &key, m_settings->allKeys(Settings::Global)) {
+        m_settings->remove(Settings::Global, key);
+    }
+
+    QTextStream stream(&file);
+    stream.setCodec("UTF-8");
+    while (!stream.atEnd()) {
+        QString line = stream.readLine();
+        int colon = line.indexOf(':');
+        if (colon >= 0 && !line.startsWith("#")) {
+            QString key = line.left(colon).trimmed();
+            key.replace(QChar('.'), QChar('/'));
+            QString value = line.mid(colon + 1).trimmed();
+            m_settings->setValue(Settings::Global, key, value);
+        }
+    }
+}
+
+void CommandLineOptions::upgradeSettings(Settings::Scope scope)
+{
+    // This upgrades config settings from v0.1 format to v0.2 format
+    // ### REMOVE this after v0.2!
+    QStringList allKeys = m_settings->allKeys(scope);
+    bool seenQtDefaultKey = false;
+    foreach (const QString &key, allKeys) {
+        QString newKey;
+        QVariant newValue = m_settings->value(scope, key);
+        if (key.startsWith("qt/")) {
+            // Replace with qt/name/* with profiles/name/qt/core/*
+            QStringList components = key.split("/");
+            components[0] = "profiles";
+            // The examples used to show Qt names with dots in, we can't allow that any more
+            components[1].replace(".", "_");
+            components.insert(2, "qt");
+            components.insert(3, "core");
+            newKey = components.join("/");
+            if (key.startsWith("qt/default"))
+                seenQtDefaultKey = true;
+        } else if (key.compare("defaults/buildvariant", Qt::CaseInsensitive) == 0) {
+            newKey = "modules/qbs/buildVariant";
+        } else if (key == "defaults/platform") {
+            newKey = "modules/qbs/platform";
+        } else if (key == "defaults/qtVersionName") {
+            newKey = "profile";
+            QString val = newValue.toString();
+            val.replace(".", "_");
+            newValue = val;
+        } else if (key == "defaults/jobs") {
+            newKey = "preferences/jobs";
+        } else if (key == "defaults/useColoredOutput") {
+            newKey = "preferences/useColoredOutput";
+        } else if (key == "paths/cubes") {
+            newKey = "preferences/qbsPath";
+        } else if (key == "paths/plugins") {
+            newKey = "preferences/pluginsPath";
+        }
+
+        if (newKey.length()) {
+            printf("Replacing %s with %s\n", qPrintable(QString(key).replace('/', '.')), qPrintable(QString(newKey).replace('/', '.')));
+            m_settings->remove(scope, key);
+            m_settings->setValue(scope, newKey, newValue);
+        }
+    }
+    if (seenQtDefaultKey && !m_settings->value(scope, "profile").isValid()) {
+        printf("Setting profile key to use 'profiles.default'\n");
+        m_settings->setValue(scope, "profile", "default");
+    }
 }
 
 } // namespace qbs

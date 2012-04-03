@@ -174,8 +174,8 @@
     \code
     QBS_SOURCE_DIR=/path/to/qbs-source
     QBS_BUILD_DIR=/path/to/qbs-build
-    qbs config --global paths/cubes $QBS_SOURCE_DIR/share/qbs
-    qbs config --global paths/plugins $QBS_BUILD_DIR/plugins
+    qbs config --global preferences.qbsPath $QBS_SOURCE_DIR/share/qbs
+    qbs config --global preferences.pluginsPath $QBS_BUILD_DIR/plugins
     \endcode
 
     Currently, you also must tell qbs where it can find Qt.
@@ -212,54 +212,65 @@
     \section1 Introduction
 
     QBS must know where it can find Qt.
-    Qt installations are grouped by a free form name, like in Qt Creator.
-    The default Qt installation name is "default".
+    If you have only one install of Qt you don't need to use profiles and can
+    use:
 
     \code
-    qbs config --global qt/default/path ~/dev/qt/4.7-build
+    qbs config --global modules.qt.core.path ~/dev/qt/4.7-build
     \endcode
 
     This is the case where the bin, include, lib and mkspecs directories
-    of your Qt build are below the qtPath. This is usually the case on Windows
+    of your Qt build are below the Qt path. This is usually the case on Windows
     or if you build Qt yourself without installing it.
     For installed Qt versions we need to set up some more paths.
     Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
 
     \code
-    qbs config --global qt/default/binPath /usr/bin
-    qbs config --global qt/default/incPath /usr/include/qt4
-    qbs config --global qt/default/libPath /usr/lib/x86_64-linux-gnu
-    qbs config --global qt/default/mkspecsPath /usr/share/qt4/mkspecs
+    qbs config --global modules.qt.core.binPath /usr/bin
+    qbs config --global modules.qt.core.incPath /usr/include/qt4
+    qbs config --global modules.qt.core.libPath /usr/lib/x86_64-linux-gnu
+    qbs config --global modules.qt.core.mkspecsPath /usr/share/qt4/mkspecs
     \endcode
 
     If you're using Qt 5, you must specify the version number.
     \code
-    qbs config --global qt/default/version 5.0.0
+    qbs config --global modules.qt.core.version 5.0.0
     \endcode
 
     \section1 Multiple Qt builds
 
-    As hinted above, the "default" we've seen in the configuration values is
-    just a name that can be anything. This is how you configure three different
-    Qt builds:
+    To support multiple Qt builds, or in fact any combination of settings you
+    need to set together, you need to use a profile. This is how you'd set up
+    three different profiles, each for a different Qt build:
 
     \code
-    qbs config --global qt/4.7/path ~/dev/qt/4.7
-    qbs config --global qt/4.8/path ~/dev/qt/4.8
-    qbs config --global qt/5.0/path ~/dev/qt/5.0
-    qbs config --global qt/5.0/version 5.0.0
+    qbs config --global profiles.4_7.qt.core.path ~/dev/qt/4.7
+    qbs config --global profiles.4_8.qt.core.path ~/dev/qt/4.8
+    qbs config --global profiles.5_0.qt.core.path ~/dev/qt/5.0
+    qbs config --global profiles.5_0.qt.core.version 5.0.0
     \endcode
 
-    You can set the default Qt build you want to use like this
+    You can set the default Qt build you want to use like this:
+
     \code
-    qbs config --global defaults/qtVersionName 5.0
+    qbs config --global profile 5_0
     \endcode
 
-    To choose a Qt build, that's different from the default, use
+    To choose a Qt build that's different from the default, use:
+
     \code
-    qbs qt/core.qtVersionName:4.8
+    qbs build profile:4_8
     \endcode
 
+    You can set other properties in a profile not just Qt ones, in the same way
+    you could override them from the command-line. For example:
+
+    \code
+    qbs config --global profiles.x64.qt.core.path ~/dev/qt/5.0_64
+    qbs config --global profiles.x64.qt.core.version 5.0.0
+    qbs config --global profiles.x64.qbs.architecture x86_64
+    qbs config --global profiles.x64.qbs.platform msvc2010
+    \endcode
 
     \section1 Customized Qt Settings
 
@@ -267,13 +278,16 @@
     then you must set the following config value.
 
     \code
-    qbs config --global qt/default/namespace MyNamespace
+    qbs config --global modules.qt.core.namespace MyNamespace
     \endcode
+
+    (or if the namespace was only relevant for a particular profile, you'd set
+    profiles.<profileName>.qt.core.namespace instead.)
 
     The same goes for the -qtlibinfix option.
 
     \code
-    qbs config --global qt/default/libInfix MyInfix
+    qbs config --global modules.qt.core.libInfix MyInfix
     \endcode
 */
 
@@ -531,7 +545,8 @@
         \o The target operating system. Currently "windows", "linux" or "mac".
     \endtable
 
-    You can set these properties on the command line. Property \a
+    You can set these properties on the command line, or by using a profile or
+    setting the \a modules.qbs.<propertyName> global config item. Property \a
     qbs.buildVariant is handled in a special way.
 
     \code
@@ -553,13 +568,13 @@
     \code
         Properties {
             condition: qbs.buildVariant == "debug"
-            cpp.debugInformation: "on"
+            cpp.debugInformation: true
             cpp.optimization: "none"
         }
     \endcode
     or more QML style:
     \code
-        cpp.debugInformation: qbs.buildVariant == "debug" ? "on" : "off"
+        cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
         cpp.optimization: qbs.buildVariant == "debug" ? "none" : "fast"
     \endcode
 
@@ -663,6 +678,8 @@
     qbs build debug release platform:Symbian
     \endcode
 
+    This assumes you have already set up a platform called "Symbian" - run
+    "qbs platforms list" or "qbs platforms probe" to view or setup platforms.
 */
 
 

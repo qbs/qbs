@@ -150,9 +150,52 @@ Private::ResolvedProduct BuildProduct::privateResolvedProject() const
     return Private::ResolvedProduct(m_internalBuildProduct->rProduct);
 }
 
-void BuildProduct::dump()
+void BuildProduct::dump() const
 {
     qbs::BuildGraph().dump(m_internalBuildProduct);
+}
+
+QString variantDescription(const QVariant &val)
+{
+    if (!val.isValid()) {
+        return "undefined";
+    } else if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
+        QString res;
+        foreach (const QVariant &child, val.toList()) {
+            if (res.length()) res.append(", ");
+            res.append(variantDescription(child));
+        }
+        res.prepend("[");
+        res.append("]");
+        return res;
+    } else if (val.type() == QVariant::Bool) {
+        return val.toBool() ? "true" : "false";
+    } else if (val.canConvert(QVariant::String)) {
+        return QString("'%1'").arg(val.toString());
+    } else {
+        return QString("Unconvertible type %1").arg(val.typeName());
+    }
+}
+
+void dumpMap(const QVariantMap &map, const QString &prefix = QString())
+{
+    QStringList keys(map.keys());
+    qSort(keys);
+    foreach (const QString &key, keys) {
+        const QVariant& val = map.value(key);
+        if (val.type() == QVariant::Map) {
+            dumpMap(val.value<QVariantMap>(), prefix + key + ".");
+        } else {
+            printf("%s%s: %s\n", qPrintable(prefix), qPrintable(key), qPrintable(variantDescription(val)));
+        }
+    }
+}
+
+void BuildProduct::dumpProperties() const
+{
+    const qbs::ResolvedProduct::Ptr rProduct = m_internalBuildProduct->rProduct;
+    printf("--------%s--------\n", qPrintable(rProduct->name));
+    dumpMap(rProduct->configuration->value());
 }
 
 QSharedPointer<qbs::BuildProduct> BuildProduct::internalBuildProduct() const

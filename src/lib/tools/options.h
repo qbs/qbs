@@ -59,7 +59,8 @@ public:
         ConfigCommand,
         StartShellCommand,
         RunCommand,
-        StatusCommand
+        StatusCommand,
+        PropertiesCommand
     };
 
     static void printHelp();
@@ -88,7 +89,11 @@ public:
 private:
     void loadLocalProjectSettings(bool throwExceptionOnFailure);
     void printSettings(Settings::Scope scope);
+    void exportGlobalSettings(const QString &filename);
+    void importGlobalSettings(const QString &filename);
+    void upgradeSettings(Settings::Scope scope);
     QString guessProjectFileName();
+    QString propertyName(const QString &aCommandLineName) const;
 
 private:
     Settings::Ptr m_settings;

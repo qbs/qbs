@@ -187,6 +187,12 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
     futureInterface.reportResult(true);
 }
 
+void warnLegacyConfig(const QString &aKey)
+{
+    qbsWarning("Config key %s is deprecated. Run qbs config --upgrade [--global|--local]",
+        qPrintable(QString(aKey).replace("/", ".")));
+}
+
 void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterface, QString projectFileName, QList<QVariantMap> buildConfigs)
 {
     QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
@@ -202,16 +208,78 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
     }
     QList<qbs::Configuration::Ptr> configurations;
     foreach (QVariantMap buildCfg, buildConfigs) {
-        if (!buildCfg.value("platform").isValid()) {
-            if (!d->settings->value("defaults/platform").isValid()) {
+        // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
+        // 1) Things specified on command line (already in buildCfg at this point)
+        // 2) Everything from the profile key (in reverse order)
+        // 2a) For compatibility with v0.1, treat qt/<qtVersionName>/* the same as if it were profiles.<qtVersionName>.qt.core.*
+        // 3) Everything from the platform
+        // 4) Any remaining keys from modules keyspace
+        QStringList profiles;
+        if (buildCfg.contains("profile"))
+            profiles = buildCfg.take("profile").toString().split(QChar(','), QString::SkipEmptyParts); // Remove from buildCfg if present
+        else
+            profiles = d->settings->value("profile", "").toString().split(QChar(','), QString::SkipEmptyParts);
+
+        // (2)
+        bool profileError = false;
+        for (int i = profiles.count() - 1; i >= 0; i--) {
+            QString profileGroup = QString("profiles/%1").arg(profiles[i]);
+            QStringList profileKeys = d->settings->allKeysWithPrefix(profileGroup);
+            if (profileKeys.isEmpty()) {
+                qbsFatal("Unknown profile '%s'.", qPrintable(profiles[i]));
+                profileError = true; // Need this because we can't break out of 2 for loops at once
+                break;
+            }
+            foreach (const QString &profileKey, profileKeys) {
+                QString fixedKey(profileKey);
+                fixedKey.replace(QChar('/'), QChar('.'));
+                if (!buildCfg.contains(fixedKey))
+                    buildCfg.insert(fixedKey, d->settings->value(profileGroup + "/" + profileKey));
+            }
+        }
+        if (profileError)
+            continue;
+
+        // (2a) ### can remove? This replaces the qbs.configurationValue() stuff in qtcore.qbs in v0.1
+        // Check for someone setting qt.core.qtVersionName explicitly on command-line because we've removed this property
+        QString legacyQtVersionName = buildCfg.take("qt/core.qtVersionName").toString();
+        if (legacyQtVersionName.length()) {
+            qbsWarning("Setting qt/core.qtVersionName is deprecated. Run 'qbs config --upgrade [--global|--local]' and use profile:%s instead", qPrintable(legacyQtVersionName));
+        } else {
+            legacyQtVersionName = d->settings->value("defaults/qtVersionName").toString();
+            if (legacyQtVersionName.length())
+                warnLegacyConfig("defaults.qtVersionName");
+            else
+                legacyQtVersionName = "default";
+        }
+        QStringList legacyQtKeys = d->settings->allKeysWithPrefix("qt/" + legacyQtVersionName);
+        foreach (const QString &key, legacyQtKeys) {
+            QString oldKey = QString("qt/%1/%2").arg(legacyQtVersionName).arg(key);
+            QString newKey = QString("qt.core.%1").arg(key);
+            if (!buildCfg.contains(newKey)) {
+                warnLegacyConfig(oldKey);
+                buildCfg.insert(newKey, d->settings->value(oldKey));
+            }
+        }
+
+        // (3) Need to make sure we have a value for qbs.platform before going any further
+        if (!buildCfg.value("qbs.platform").isValid()) {
+            QVariant defaultPlatform = d->settings->moduleValue("qbs/platform", profiles);
+            if (!defaultPlatform.isValid()) {
+                // ### Compatibility with v0.1
+                defaultPlatform = d->settings->value("defaults/platform");
+                if (defaultPlatform.isValid())
+                    warnLegacyConfig("defaults/platform");
+                }
+            if (!defaultPlatform.isValid()) {
                 qbsFatal("SourceProject::loadProject: no platform given and no default set.");
                 continue;
             }
-            buildCfg.insert("platform", d->settings->value("defaults/platform").toString());
+            buildCfg.insert("qbs.platform", defaultPlatform);
         }
-        Platform::Ptr platform = platforms.value(buildCfg.value("platform").toString());
+        Platform::Ptr platform = platforms.value(buildCfg.value("qbs.platform").toString());
         if (platform.isNull()) {
-            qbsFatal("SourceProject::loadProject: unknown platform: %s", qPrintable(buildCfg.value("platform").toString()));
+            qbsFatal("SourceProject::loadProject: unknown platform: %s", qPrintable(buildCfg.value("qbs.platform").toString()));
             continue;
         }
         foreach (const QString &key, platform->settings.allKeys()) {
@@ -221,11 +289,19 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
             int idx = fixedKey.lastIndexOf(QChar('/'));
             if (idx > 0)
                 fixedKey[idx] = QChar('.');
-            buildCfg.insert(fixedKey, platform->settings.value(key));
+            if (!buildCfg.contains(fixedKey))
+                buildCfg.insert(fixedKey, platform->settings.value(key));
+        }
+        // Now finally do (4)
+        foreach (const QString &defaultKey, d->settings->allKeysWithPrefix("modules")) {
+            QString fixedKey(defaultKey);
+            fixedKey.replace(QChar('/'), QChar('.'));
+            if (!buildCfg.contains(fixedKey))
+                buildCfg.insert(fixedKey, d->settings->value(QString("modules/") + defaultKey));
         }
 
-        if (!buildCfg.value("buildVariant").isValid()) {
-            qbsFatal("SourceProject::loadProject: property 'buildVariant' missing in build configuration.");
+        if (!buildCfg.value("qbs.buildVariant").isValid()) {
+            qbsFatal("SourceProject::loadProject: property 'qbs.buildVariant' missing in build configuration.");
             continue;
         }
         qbs::Configuration::Ptr configure(new qbs::Configuration);
@@ -233,8 +309,13 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
 
         foreach (const QString &property, buildCfg.keys()) {
             QStringList nameElements = property.split('.');
-            if (nameElements.count() == 1)
+            if (nameElements.count() == 1) // ### Still need this because platform doesn't supply fully-qualified properties (yet), need to fix this
                 nameElements.prepend("qbs");
+            if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
+                QStringList newElements(QStringList(nameElements.mid(0, nameElements.count()-1)).join("/"));
+                newElements.append(nameElements.last());
+                nameElements = newElements;
+            }
             QVariantMap configValue = configure->value();
             qbs::setConfigProperty(configValue, nameElements, buildCfg.value(property));
             configure->setValue(configValue);

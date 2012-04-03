@@ -92,7 +92,8 @@ public:
 
     Private::ResolvedProduct privateResolvedProject() const;
 
-    void dump();
+    void dump() const;
+    void dumpProperties() const;
 
     QSharedPointer<qbs::BuildProduct> internalBuildProduct() const;
 

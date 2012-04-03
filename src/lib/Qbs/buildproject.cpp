@@ -123,7 +123,7 @@ bool BuildProject::isValid() const
 QString BuildProject::qtInstallPath() const
 {
     return qbs::getConfigProperty(m_internalBuildProject->resolvedProject()->configuration->value(),
-                                  QStringList() << "qt/core" << "qtPath").toString();
+                                  QStringList() << "qt/core" << "path").toString();
 }
 
 BuildProject::BuildProject(const QSharedPointer<qbs::BuildProject> &internalBuildProject)

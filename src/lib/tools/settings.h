@@ -64,8 +64,10 @@ public:
     bool hasProjectSettings() const { return m_localSettings; }
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
     QVariant value(Scope scope, const QString &key, const QVariant &defaultValue = QVariant()) const;
+    QVariant moduleValue(const QString &key, const QList<QString> &profiles, const QVariant &defaultValue = QVariant());
     QStringList allKeys() const;
     QStringList allKeys(Scope scope) const;
+    QStringList allKeysWithPrefix(const QString &group);
     void setValue(const QString &key, const QVariant &value);
     void setValue(Scope scope, const QString &key, const QVariant &value);
     void remove(Scope scope, const QString &key);
