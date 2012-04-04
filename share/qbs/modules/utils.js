@@ -6,14 +6,13 @@ function appendAll_internal_recursive(modules, name, key, seenValues)
 {
     var result = []
     var propertyValue
-    var m, k
+    var m
     for (m in modules) {
         if (m === name) {
             propertyValue = modules[m][key]
             if (propertyValue instanceof Array) {
-                k = propertyValue.length
-                while (k--) {
-                    var value = propertyValue[k]
+                for (var i = 0; i < propertyValue.length; ++i) {
+                    var value = propertyValue[i]
                     if (!seenValues[value]) {
                         seenValues[value] = true
                         result.push(value)
