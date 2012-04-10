@@ -168,7 +168,17 @@ void BuildGraph::insert(BuildProduct *product, Artifact *n) const
 
 void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, ResolvedProduct::Ptr product, Rule::Ptr rule, BuildGraph *bg)
 {
+    ResolvedProject *lastSetupProject = (ResolvedProject *)scriptEngine->property("lastSetupProject").toULongLong();
     ResolvedProduct *lastSetupProduct = (ResolvedProduct *)scriptEngine->property("lastSetupProduct").toULongLong();
+
+    if (lastSetupProject != product->project) {
+        scriptEngine->setProperty("lastSetupProject", QVariant((qulonglong)product->project));
+        QScriptValue projectScriptValue;
+        projectScriptValue = scriptEngine->newObject();
+        projectScriptValue.setProperty("filePath", product->project->qbsFile);
+        projectScriptValue.setProperty("path", FileInfo::path(product->project->qbsFile));
+        scriptEngine->globalObject().setProperty("project", projectScriptValue, QScriptValue::ReadOnly);
+    }
 
     QScriptValue productScriptValue;
     if (lastSetupProduct != product.data()) {
