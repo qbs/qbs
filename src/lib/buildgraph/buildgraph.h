@@ -74,6 +74,7 @@ public:
     ~BuildProduct();
 
     const QList<Rule::Ptr> &topSortedRules() const;
+    Artifact *lookupArtifact(const QString &filePath) const;
 
     BuildProject *project;
     ResolvedProduct::Ptr rProduct;
@@ -114,9 +115,9 @@ public:
     BuildGraph *buildGraph() const;
     ResolvedProject::Ptr resolvedProject() const;
     QSet<BuildProduct::Ptr> buildProducts() const;
-    QHash<QString, Artifact *> &dependencyArtifacts();
     bool dirty() const;
-    Artifact *findArtifact(const QString &filePath) const;
+    QList<Artifact *> lookupArtifacts(const QString &filePath, bool stopAtFirstResult = false, const BuildProduct *preferredProduct = 0) const;
+    void insertFileDependency(Artifact *artifact);
 
 private:
     static QString storedProjectFilePath(BuildGraph *bg, const QString &configId);

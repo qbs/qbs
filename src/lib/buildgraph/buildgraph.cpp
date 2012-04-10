@@ -86,6 +86,12 @@ const QList<Rule::Ptr> &BuildProduct::topSortedRules() const
     return m_topSortedRules;
 }
 
+Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
+{
+    QList<Artifact *> artifacts = project->lookupArtifacts(filePath, true, this);
+    return artifacts.isEmpty() ? 0 : artifacts.first();
+}
+
 BuildGraph::BuildGraph()
 {
 }
@@ -1384,27 +1390,43 @@ QSet<BuildProduct::Ptr> BuildProject::buildProducts() const
     return m_buildProducts;
 }
 
-QHash<QString, Artifact *> &BuildProject::dependencyArtifacts()
-{
-    return m_dependencyArtifacts;
-}
-
 bool BuildProject::dirty() const
 {
     return m_dirty;
 }
 
-Artifact *BuildProject::findArtifact(const QString &filePath) const
+QList<Artifact *> BuildProject::lookupArtifacts(const QString &filePath, bool stopAtFirstResult, const BuildProduct *preferredProduct) const
 {
+    QList<Artifact *> result;
     Artifact *artifact = m_dependencyArtifacts.value(filePath);
-    if (!artifact) {
-        foreach (const BuildProduct::Ptr &product, m_buildProducts) {
-            artifact = product->artifacts.value(filePath);
-            if (artifact)
-                break;
+    if (artifact) {
+        result += artifact;
+        if (stopAtFirstResult)
+            return result;
+    }
+    if (preferredProduct) {
+        if (artifact = preferredProduct->artifacts.value(filePath)) {
+            result += artifact;
+            if (stopAtFirstResult)
+                return result;
         }
     }
-    return artifact;
+    foreach (const BuildProduct::Ptr &product, m_buildProducts) {
+        if (product.data() == preferredProduct)
+            continue;
+        if (artifact = product->artifacts.value(filePath)) {
+            result += artifact;
+            if (stopAtFirstResult)
+                return result;
+        }
+    }
+    return result;
+}
+
+void BuildProject::insertFileDependency(Artifact *artifact)
+{
+    Q_ASSERT(artifact->artifactType == Artifact::FileDependency);
+    m_dependencyArtifacts.insert(artifact->fileName, artifact);
 }
 
 void BuildProject::markDirty()

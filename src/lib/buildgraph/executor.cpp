@@ -50,6 +50,8 @@
 #include <Windows.h>
 #endif
 
+#include <algorithm>
+
 namespace qbs {
 
 static QHashDummyValue hashDummy;
@@ -138,18 +140,17 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
 
     QList<Artifact *> changedArtifacts;
     foreach (const QString &filePath, changedFiles) {
-        Artifact *artifact = 0;
-        foreach (BuildProject::Ptr project, m_projectsToBuild) {
-            artifact = project->findArtifact(filePath);
-            if (artifact)
-                break;
-        }
-        if (!artifact) {
+        QList<Artifact *> artifacts;
+        foreach (BuildProject::Ptr project, m_projectsToBuild)
+            artifacts.append(project->lookupArtifacts(filePath));
+        if (artifacts.isEmpty()) {
             qbsWarning() << QString("Out of date file '%1' provided but not found.").arg(QDir::toNativeSeparators(filePath));
             continue;
         }
-        changedArtifacts += artifact;
+        changedArtifacts += artifacts;
     }
+    qSort(changedArtifacts);
+    std::unique(changedArtifacts.begin(), changedArtifacts.end());
 
     // prepare products
     const QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
@@ -680,26 +681,10 @@ Executor::Dependency Executor::resolveWithIncludePath(const QString &includePath
     QString fullFilePath = FileInfo::resolvePath(includePath, relativeFilePath);
 
     Executor::Dependency result;
-    result.artifact = buildProduct->project->dependencyArtifacts().value(fullFilePath);
+    result.artifact = buildProduct->lookupArtifact(fullFilePath);
     if (result.artifact) {
         result.filePath = result.artifact->fileName;
         return result;
-    }
-
-    result.artifact = buildProduct->artifacts.value(fullFilePath);
-    if (result.artifact) {
-        result.filePath = result.artifact->fileName;
-        return result;
-    }
-
-    foreach (BuildProduct::Ptr otherProduct, buildProduct->project->buildProducts()) {
-        if (otherProduct.data() == buildProduct)
-            continue;
-        result.artifact = otherProduct->artifacts.value(fullFilePath);
-        if (result.artifact) {
-            result.filePath = result.artifact->fileName;
-            return result;
-        }
     }
 
     if (FileInfo::exists(fullFilePath))
@@ -768,7 +753,7 @@ void Executor::handleDependency(Artifact *processedArtifact, Dependency &depende
         dependency.artifact->artifactType = Artifact::FileDependency;
         dependency.artifact->configuration = processedArtifact->configuration;
         dependency.artifact->fileName = dependency.filePath;
-        processedArtifact->project->dependencyArtifacts().insert(dependency.filePath, dependency.artifact);
+        processedArtifact->project->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
         // The dependency exists in the project's list of file dependencies.
         if (qbsLogLevel(LoggerTrace))
