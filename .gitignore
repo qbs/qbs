@@ -1,5 +1,10 @@
 .qbs
 build
+*.dll
+*.exe
+*.exp
+*.manifest
+*.obj
 *.pdb
 *.pro.user
 *~
@@ -12,11 +17,9 @@ moc_*.cpp
 *.a
 *.cpp.orig
 
-Makefile
+Makefile*
 testOptions
 testTools
 
 bin/*
 doc/html/*
-
-
