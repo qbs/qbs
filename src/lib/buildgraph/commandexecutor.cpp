@@ -262,7 +262,7 @@ static QStringList filePathsFromInputArtifacts(Transformer *transformer)
 
     if (transformer) {
         foreach (Artifact *artifact, transformer->inputs)
-            filePathList.append(artifact->fileName);
+            filePathList.append(artifact->filePath());
     }
 
     return filePathList;

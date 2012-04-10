@@ -73,10 +73,16 @@ Artifact::~Artifact()
 {
 }
 
+void Artifact::setFilePath(const QString &filePath)
+{
+    m_filePath = filePath;
+    FileInfo::splitIntoDirectoryAndFileName(m_filePath, &m_dirPath, &m_fileName);
+}
+
 void Artifact::load(PersistentPool &pool, PersistentObjectData &data)
 {
     QDataStream s(data);
-    fileName = pool.idLoadString(s);
+    setFilePath(pool.idLoadString(s));
     fileTags = pool.idLoadStringSet(s);
     configuration = pool.idLoadS<Configuration>(s);
     transformer = pool.idLoadS<Transformer>(s);
@@ -86,7 +92,7 @@ void Artifact::load(PersistentPool &pool, PersistentObjectData &data)
 void Artifact::store(PersistentPool &pool, PersistentObjectData &data) const
 {
     QDataStream s(&data, QIODevice::WriteOnly);
-    s << pool.storeString(fileName);
+    s << pool.storeString(m_filePath);
     s << pool.storeStringSet(fileTags);
     s << pool.store(configuration);
     s << pool.store(transformer);

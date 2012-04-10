@@ -86,10 +86,20 @@ const QList<Rule::Ptr> &BuildProduct::topSortedRules() const
     return m_topSortedRules;
 }
 
+Artifact *BuildProduct::lookupArtifact(const QString &dirPath, const QString &fileName) const
+{
+    QList<Artifact *> artifacts = project->lookupArtifacts(dirPath, fileName);
+    for (QList<Artifact *>::const_iterator it = artifacts.constBegin(); it != artifacts.constEnd(); ++it)
+        if ((*it)->product == this)
+            return *it;
+    return 0;
+}
+
 Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
 {
-    QList<Artifact *> artifacts = project->lookupArtifacts(filePath, true, this);
-    return artifacts.isEmpty() ? 0 : artifacts.first();
+    QString dirPath, fileName;
+    FileInfo::splitIntoDirectoryAndFileName(filePath, &dirPath, &fileName);
+    return lookupArtifact(dirPath, fileName);
 }
 
 BuildGraph::BuildGraph()
@@ -103,11 +113,11 @@ BuildGraph::~BuildGraph()
 
 static void internalDump(BuildProduct *product, Artifact *n, QByteArray indent)
 {
-    Artifact *artifactInProduct = product->artifacts.value(n->fileName);
+    Artifact *artifactInProduct = product->lookupArtifact(n->filePath());
     if (artifactInProduct && artifactInProduct != n) {
         fprintf(stderr,"\ntree corrupted. %p ('%s') resolves to %p ('%s')\n",
-                n,  qPrintable(n->fileName), product->artifacts.value(n->fileName),
-                qPrintable(product->artifacts.value(n->fileName)->fileName));
+                n,  qPrintable(n->filePath()), product->lookupArtifact(n->filePath()),
+                qPrintable(product->lookupArtifact(n->filePath())->filePath()));
 
         abort();
     }
@@ -116,7 +126,7 @@ static void internalDump(BuildProduct *product, Artifact *n, QByteArray indent)
     printf("%s%s %s [%s]",
            qPrintable(QString(toString(n->buildState).at(0))),
            artifactInProduct ? "" : " SBS",     // SBS == side-by-side artifact from other product
-           qPrintable(n->fileName),
+           qPrintable(n->filePath()),
            qPrintable(QStringList(n->fileTags.toList()).join(",")));
     printf("\n");
     indent.append("  ");
@@ -127,8 +137,6 @@ static void internalDump(BuildProduct *product, Artifact *n, QByteArray indent)
 
 void BuildGraph::dump(BuildProduct::Ptr product) const
 {
-    Q_ASSERT(product->artifacts.uniqueKeys() == product->artifacts.keys());
-
     foreach (Artifact *n, product->artifacts)
         if (n->parents.isEmpty())
             internalDump(product.data(), n, QByteArray());
@@ -142,34 +150,35 @@ void BuildGraph::insert(BuildProduct::Ptr product, Artifact *n) const
 void BuildGraph::insert(BuildProduct *product, Artifact *n) const
 {
     Q_ASSERT(n->product == 0);
-    Q_ASSERT(!n->fileName.isEmpty());
-    Q_ASSERT(!product->artifacts.contains(n->fileName));
+    Q_ASSERT(!n->filePath().isEmpty());
+    Q_ASSERT(!product->artifacts.contains(n));
 #ifdef QT_DEBUG
     foreach (BuildProduct::Ptr otherProduct, product->project->buildProducts()) {
-        if (otherProduct->artifacts.contains(n->fileName)) {
+        if (otherProduct->lookupArtifact(n->filePath())) {
             if (n->artifactType == Artifact::Generated) {
                 QString pl;
                 pl.append(QString("  - %1 \n").arg(product->rProduct->name));
                 foreach (BuildProduct::Ptr p, product->project->buildProducts()) {
-                    if (p->artifacts.contains(n->fileName)) {
+                    if (p->lookupArtifact(n->filePath())) {
                         pl.append(QString("  - %1 \n").arg(p->rProduct->name));
                     }
                 }
                 throw Error(QString ("BUG: already inserted in this project: %1\n%2"
                             )
-                        .arg(n->fileName)
+                        .arg(n->filePath())
                         .arg(pl)
                         );
             }
         }
     }
 #endif
-    product->artifacts.insert(n->fileName, n);
+    product->artifacts.insert(n);
     n->product = product;
+    product->project->insertIntoArtifactLookupTable(n);
     product->project->markDirty();
 
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] insert artifact '%s'", qPrintable(n->fileName));
+        qbsTrace("[BG] insert artifact '%s'", qPrintable(n->filePath()));
 }
 
 void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, ResolvedProduct::Ptr product, Rule::Ptr rule, BuildGraph *bg)
@@ -234,17 +243,17 @@ void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, Resolv
 
 void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *artifact)
 {
-    QString inFileName = FileInfo::fileName(artifact->fileName);
-    QString inBaseName = FileInfo::baseName(artifact->fileName);
-    QString inCompleteBaseName = FileInfo::completeBaseName(artifact->fileName);
+    QString inFileName = artifact->fileName();
+    QString inBaseName = FileInfo::baseName(artifact->filePath());
+    QString inCompleteBaseName = FileInfo::completeBaseName(artifact->filePath());
 
     QString basedir;
     if (artifact->artifactType == Artifact::SourceFile) {
         QDir sourceDir(product->rProduct->sourceDirectory);
-        basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->fileName));
+        basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
     } else {
         QDir buildDir(product->project->buildGraph()->buildDirectoryRoot() + product->project->resolvedProject()->id);
-        basedir = FileInfo::path(buildDir.relativeFilePath(artifact->fileName));
+        basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
     QScriptValue modulesScriptValue = artifact->configuration->cachedScriptValue(scriptEngine());
@@ -373,7 +382,7 @@ void BuildGraph::createOutputArtifact(
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
     outputPath = resolveOutPath(outputPath, product);
 
-    Artifact *outputArtifact = product->artifacts.value(outputPath);
+    Artifact *outputArtifact = product->lookupArtifact(outputPath);
     if (outputArtifact) {
         if (outputArtifact->transformer && outputArtifact->transformer != transformer) {
             // This can happen when applying rules after scanning for additional file tags.
@@ -385,7 +394,7 @@ void BuildGraph::createOutputArtifact(
 
             if (transformer->inputs.count() > 1 && !rule->isMultiplexRule()) {
                 QString th = "[" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
-                QString e = tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->fileName, th);
+                QString e = tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
                 th = "[" + rule->inputs.join(", ")
                    + "] -> [" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
 
@@ -407,7 +416,7 @@ void BuildGraph::createOutputArtifact(
     } else {
         outputArtifact = new Artifact(product->project);
         outputArtifact->artifactType = Artifact::Generated;
-        outputArtifact->fileName = outputPath;
+        outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags.toSet();
         insert(product, outputArtifact);
     }
@@ -524,7 +533,7 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
         outputArtifact->configuration = Configuration::Ptr(new Configuration(*outputArtifact->configuration));
 
         // ### clean scriptEngine() first?
-        scriptEngine()->globalObject().setProperty("fileName", scriptEngine()->toScriptValue(outputArtifact->fileName), QScriptValue::ReadOnly);
+        scriptEngine()->globalObject().setProperty("fileName", scriptEngine()->toScriptValue(outputArtifact->filePath()), QScriptValue::ReadOnly);
         scriptEngine()->globalObject().setProperty("fileTags", toScriptValue(scriptEngine(), outputArtifact->fileTags), QScriptValue::ReadOnly);
 
         QVariantMap artifactModulesCfg = outputArtifact->configuration->value().value("modules").toMap();
@@ -726,8 +735,9 @@ void BuildGraph::remove(Artifact *artifact) const
         qbsTrace() << "[BG] remove artifact " << fileName(artifact);
 
     if (artifact->artifactType == Artifact::Generated)
-        QFile::remove(artifact->fileName);
-    artifact->product->artifacts.remove(artifact->fileName);
+        QFile::remove(artifact->filePath());
+    artifact->product->artifacts.remove(artifact);
+    artifact->project->removeFromArtifactLookupTable(artifact);
     artifact->product->targetArtifacts.remove(artifact);
     foreach (Artifact *parent, artifact->parents) {
         parent->children.remove(artifact);
@@ -793,11 +803,11 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     }
 
     //add qbsFile artifact
-    Artifact *qbsFileArtifact = product->artifacts.value(rProduct->qbsFile);
+    Artifact *qbsFileArtifact = product->lookupArtifact(rProduct->qbsFile);
     if (!qbsFileArtifact) {
         qbsFileArtifact = new Artifact(project);
         qbsFileArtifact->artifactType = Artifact::SourceFile;
-        qbsFileArtifact->fileName = rProduct->qbsFile;
+        qbsFileArtifact->setFilePath(rProduct->qbsFile);
         qbsFileArtifact->configuration = rProduct->configuration;
         insert(product, qbsFileArtifact);
     }
@@ -807,7 +817,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     // read sources
     foreach (SourceArtifact::Ptr sourceArtifact, rProduct->sources) {
         QString filePath = sourceArtifact->absoluteFilePath;
-        if (product->artifacts.contains(filePath)) {
+        if (product->lookupArtifact(filePath)) {
             // ignore duplicate artifacts
             continue;
         }
@@ -823,7 +833,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     foreach (const ResolvedTransformer::Ptr rtrafo, rProduct->transformers) {
         QList<Artifact *> inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
-            Artifact *artifact = product->artifacts.value(inputFileName);
+            Artifact *artifact = product->lookupArtifact(inputFileName);
             if (!artifact)
                 throw Error(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
             inputArtifacts += artifact;
@@ -848,7 +858,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
             RuleArtifact::Ptr ruleArtifact(new RuleArtifact);
-            ruleArtifact->fileScript = outputArtifact->fileName;
+            ruleArtifact->fileScript = outputArtifact->filePath();
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
             transformer->rule->artifacts += ruleArtifact;
         }
@@ -912,7 +922,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
         if (!changedArtifact) {
             // artifact removed
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' removed from product " << product->rProduct->name;
-            Artifact *artifact = product->artifacts.value(a->absoluteFilePath);
+            Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
             Q_ASSERT(artifact);
             sourceArtifactsToRemove += a;
             removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
@@ -930,7 +940,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             // artifact's filetags have changed
             qbsDebug() << "[BG] filetags have changed for artifact '" << a->absoluteFilePath
                        << "' from " << a->fileTags << " to " << changedArtifact->fileTags;
-            Artifact *artifact = product->artifacts.value(a->absoluteFilePath);
+            Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
             Q_ASSERT(artifact);
 
             // handle added filetags
@@ -969,8 +979,8 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, artifactsToRemove) {
         if (artifact->artifactType == Artifact::Generated) {
-            qbsDebug() << "[BG] deleting stale artifact " << artifact->fileName;
-            QFile::remove(artifact->fileName);
+            qbsDebug() << "[BG] deleting stale artifact " << artifact->filePath();
+            QFile::remove(artifact->filePath());
         }
         delete artifact;
     }
@@ -990,7 +1000,7 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] updating transformer for " << fileName(artifact);
 
-    QFile::remove(artifact->fileName);
+    QFile::remove(artifact->filePath());
 
     Rule::Ptr rule = artifact->transformer->rule;
     artifact->product->project->markDirty();
@@ -1022,7 +1032,7 @@ Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::
 {
     Artifact *artifact = new Artifact(product->project);
     artifact->artifactType = Artifact::SourceFile;
-    artifact->fileName = sourceArtifact->absoluteFilePath;
+    artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->fileTags = sourceArtifact->fileTags;
     artifact->configuration = sourceArtifact->configuration;
     insert(product, artifact);
@@ -1078,10 +1088,9 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
     artifacts.clear();
     for (; --i >= 0;) {
         Artifact *artifact = pool.idLoad<Artifact>(s);
-        artifacts.insert(artifact->fileName, artifact);
+        artifacts.insert(artifact);
+        artifact->product = this;
     }
-    foreach (Artifact *a, artifacts)
-        a->product = this;
 
     // edges
     for (i = artifacts.count(); --i >= 0;) {
@@ -1129,14 +1138,14 @@ void BuildProduct::store(PersistentPool &pool, PersistentObjectData &data) const
     s << artifacts.count();
 
     //artifacts
-    for (QHash<QString, Artifact *>::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
-        PersistentObjectId artifactId = pool.store(i.value());
+    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
+        PersistentObjectId artifactId = pool.store(*i);
         s << artifactId;
     }
 
     // edges
-    for (QHash<QString, Artifact *>::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
-        Artifact * artifact = i.value();
+    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
+        Artifact * artifact = *i;
         s << pool.store(artifact);
 
         s << artifact->parents.count();
@@ -1328,8 +1337,10 @@ void BuildProject::load(PersistentPool &pool, PersistentObjectData &data)
     for (; --count >= 0;) {
         BuildProduct::Ptr product = pool.idLoadS<BuildProduct>(s);
         product->project = this;
-        foreach (Artifact *artifact, product->artifacts)
+        foreach (Artifact *artifact, product->artifacts) {
             artifact->project = this;
+            insertIntoArtifactLookupTable(artifact);
+        }
         addBuildProduct(product);
     }
 
@@ -1339,7 +1350,7 @@ void BuildProject::load(PersistentPool &pool, PersistentObjectData &data)
     for (; --count >= 0;) {
         Artifact *artifact = pool.idLoad<Artifact>(s);
         artifact->project = this;
-        m_dependencyArtifacts.insert(artifact->fileName, artifact);
+        insertFileDependency(artifact);
     }
 }
 
@@ -1349,7 +1360,7 @@ void BuildProject::store(PersistentPool &pool, PersistentObjectData &data) const
 
     s << pool.store(m_resolvedProject);
     storeContainer(m_buildProducts, s, pool);
-    storeHashContainer(m_dependencyArtifacts, s, pool);
+    storeContainer(m_dependencyArtifacts, s, pool);
 }
 
 char **createCFileTags(const QSet<QString> &fileTags)
@@ -1395,38 +1406,36 @@ bool BuildProject::dirty() const
     return m_dirty;
 }
 
-QList<Artifact *> BuildProject::lookupArtifacts(const QString &filePath, bool stopAtFirstResult, const BuildProduct *preferredProduct) const
+void BuildProject::insertIntoArtifactLookupTable(Artifact *artifact)
 {
-    QList<Artifact *> result;
-    Artifact *artifact = m_dependencyArtifacts.value(filePath);
-    if (artifact) {
-        result += artifact;
-        if (stopAtFirstResult)
-            return result;
-    }
-    if (preferredProduct) {
-        if (artifact = preferredProduct->artifacts.value(filePath)) {
-            result += artifact;
-            if (stopAtFirstResult)
-                return result;
-        }
-    }
-    foreach (const BuildProduct::Ptr &product, m_buildProducts) {
-        if (product.data() == preferredProduct)
-            continue;
-        if (artifact = product->artifacts.value(filePath)) {
-            result += artifact;
-            if (stopAtFirstResult)
-                return result;
-        }
-    }
+    QList<Artifact *> &lst = m_artifactLookupTable[artifact->fileName()][artifact->dirPath()];
+    if (!lst.contains(artifact))
+        lst.append(artifact);
+}
+
+void BuildProject::removeFromArtifactLookupTable(Artifact *artifact)
+{
+    m_artifactLookupTable[artifact->fileName()][artifact->dirPath()].removeOne(artifact);
+}
+
+QList<Artifact *> BuildProject::lookupArtifacts(const QString &filePath) const
+{
+    QString dirPath, fileName;
+    FileInfo::splitIntoDirectoryAndFileName(filePath, &dirPath, &fileName);
+    return lookupArtifacts(dirPath, fileName);
+}
+
+QList<Artifact *> BuildProject::lookupArtifacts(const QString &dirPath, const QString &fileName) const
+{
+    QList<Artifact *> result = m_artifactLookupTable.value(fileName).value(dirPath);
     return result;
 }
 
 void BuildProject::insertFileDependency(Artifact *artifact)
 {
     Q_ASSERT(artifact->artifactType == Artifact::FileDependency);
-    m_dependencyArtifacts.insert(artifact->fileName, artifact);
+    m_dependencyArtifacts += artifact;
+    insertIntoArtifactLookupTable(artifact);
 }
 
 void BuildProject::markDirty()
@@ -1447,7 +1456,7 @@ void BuildProject::setResolvedProject(const ResolvedProject::Ptr &resolvedProjec
 QString fileName(Artifact *n)
 {
     class BuildGraph *bg = n->project->buildGraph();
-    QString str = n->fileName;
+    QString str = n->filePath();
     if (str.startsWith(bg->outputDirectoryRoot()))
         str.remove(0, bg->outputDirectoryRoot().count());
     if (str.startsWith('/'))

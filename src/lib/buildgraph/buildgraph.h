@@ -74,13 +74,14 @@ public:
     ~BuildProduct();
 
     const QList<Rule::Ptr> &topSortedRules() const;
+    Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
 
     BuildProject *project;
     ResolvedProduct::Ptr rProduct;
     QSet<Artifact *> targetArtifacts;
     QList<BuildProduct *> usings;
-    QHash<QString, Artifact *> artifacts;
+    ArtifactList artifacts;
 
 private:
     void load(PersistentPool &pool, PersistentObjectData &data);
@@ -116,7 +117,10 @@ public:
     ResolvedProject::Ptr resolvedProject() const;
     QSet<BuildProduct::Ptr> buildProducts() const;
     bool dirty() const;
-    QList<Artifact *> lookupArtifacts(const QString &filePath, bool stopAtFirstResult = false, const BuildProduct *preferredProduct = 0) const;
+    void insertIntoArtifactLookupTable(Artifact *artifact);
+    void removeFromArtifactLookupTable(Artifact *artifact);
+    QList<Artifact *> lookupArtifacts(const QString &filePath) const;
+    QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     void insertFileDependency(Artifact *artifact);
 
 private:
@@ -137,7 +141,8 @@ private:
     BuildGraph *m_buildGraph;
     ResolvedProject::Ptr m_resolvedProject;
     QSet<BuildProduct::Ptr> m_buildProducts;
-    QHash<QString, Artifact *> m_dependencyArtifacts;
+    ArtifactList m_dependencyArtifacts;
+    QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
     bool m_dirty;
 };
 

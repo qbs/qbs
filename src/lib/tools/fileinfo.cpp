@@ -87,6 +87,30 @@ QString FileInfo::path(const QString &fp)
     return QDir::cleanPath(fp.mid(0, last));
 }
 
+void FileInfo::splitIntoDirectoryAndFileName(const QString &filePath, QString *dirPath, QString *fileName)
+{
+    int idx = filePath.lastIndexOf(QLatin1Char('/'));
+    if (idx < 0) {
+        dirPath->clear();
+        *fileName = filePath;
+        return;
+    }
+    *dirPath = filePath.left(idx);
+    *fileName = filePath.mid(idx + 1);
+}
+
+void FileInfo::splitIntoDirectoryAndFileName(const QString &filePath, QStringRef *dirPath, QStringRef *fileName)
+{
+    int idx = filePath.lastIndexOf(QLatin1Char('/'));
+    if (idx < 0) {
+        dirPath->clear();
+        *fileName = QStringRef(&filePath);
+        return;
+    }
+    *dirPath = filePath.leftRef(idx);
+    *fileName = filePath.midRef(idx + 1);
+}
+
 bool FileInfo::exists(const QString &fp)
 {
     return FileInfo(fp).exists();

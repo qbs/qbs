@@ -132,7 +132,7 @@ protected:
     bool runAutoMoc();
     void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded);
     void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded);
-    static Dependency resolveWithIncludePath(const QString &includePath, const QString &relativeFilePath, BuildProduct *buildProduct);
+    static Dependency resolveWithIncludePath(const QString &includePath, const QString &dependencyDirPath, const QString &dependencyFileName, BuildProduct *buildProduct);
     static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
                                               const QString &filePathToBeScanned, QStringList *filePathsToScan, bool *newDependencyAdded);
     static void handleDependency(Artifact *processedArtifact, Dependency &dependency, bool *newDependencyAdded);

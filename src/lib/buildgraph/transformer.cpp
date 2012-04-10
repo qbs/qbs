@@ -58,7 +58,7 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
 
     QScriptValue artifactConfig = scriptEngine->newObject();
     artifactConfig.setPrototype(config);
-    artifactConfig.setProperty(QLatin1String("fileName"), artifact->fileName);
+    artifactConfig.setProperty(QLatin1String("fileName"), artifact->filePath());
     QStringList fileTags = artifact->fileTags.toList();
     artifactConfig.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())

@@ -228,8 +228,8 @@ void step1(qbs::Artifact *artifact, int l)
     if (!cartifacts.contains(artifact)) {
         ArtifactC *nc =  new ArtifactC;
         cartifacts.insert(artifact, nc);
-        nc->text = artifact->fileName;
-        nc->label = qbs::FileInfo::fileName(artifact->fileName);
+        nc->text = artifact->filePath();
+        nc->label = artifact->fileName();
         nc->artifact = artifact;
         QMap<int, ArtifactC *> & line = table[l];
         int col = startcol;

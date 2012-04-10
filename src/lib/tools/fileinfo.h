@@ -64,6 +64,8 @@ public:
     static QString baseName(const QString &fp);
     static QString completeBaseName(const QString &fp);
     static QString path(const QString &fp);
+    static void splitIntoDirectoryAndFileName(const QString &filePath, QString *dirPath, QString *fileName);
+    static void splitIntoDirectoryAndFileName(const QString &filePath, QStringRef *dirPath, QStringRef *fileName);
     static bool exists(const QString &fp);
     static bool isAbsolute(const QString &fp);
     static QString resolvePath(const QString &base, const QString &rel);

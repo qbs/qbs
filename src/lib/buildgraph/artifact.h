@@ -58,7 +58,6 @@ public:
     ArtifactList children;
     ArtifactList fileDependencies;
     ArtifactList sideBySideArtifacts;     /// all artifacts that have been produced by the same rule
-    QString fileName;
     QSet<QString> fileTags;
     BuildProject *project;
     BuildProduct *product;          // Note: file dependency artifacts don't belong to a product.
@@ -88,9 +87,19 @@ public:
     bool isOutOfDate : 1;
     bool isExistingFile : 1;
 
+    void setFilePath(const QString &filePath);
+    const QString &filePath() const { return m_filePath; }
+    QString dirPath() const { return m_dirPath.toString(); }
+    QString fileName() const { return m_fileName.toString(); }
+
 private:
     void load(PersistentPool &pool, PersistentObjectData &data);
     void store(PersistentPool &pool, PersistentObjectData &data) const;
+
+private:
+    QString m_filePath;
+    QStringRef m_dirPath;
+    QStringRef m_fileName;
 };
 
 // debugging helper

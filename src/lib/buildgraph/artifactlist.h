@@ -63,6 +63,8 @@ public:
     iterator end() { return m_data.end(); }
     const_iterator begin() const { return m_data.begin(); }
     const_iterator end() const { return m_data.end(); }
+    const_iterator constBegin() const { return m_data.begin(); }
+    const_iterator constEnd() const { return m_data.end(); }
 
     void insert(Artifact *artifact)
     {

@@ -61,9 +61,9 @@ void AutoMoc::apply(BuildProduct::Ptr product)
 
     QList<QPair<Artifact *, FileType> > artifactsToMoc;
     QSet<QString> includedMocCppFiles;
-    QHash<QString, Artifact *>::const_iterator it = product->artifacts.begin();
+    ArtifactList::const_iterator it = product->artifacts.begin();
     for (; it != product->artifacts.end(); ++it) {
-        Artifact *artifact = it.value();
+        Artifact *artifact = *it;
         if (artifact->artifactType != Artifact::SourceFile)
             continue;
         FileType fileType = UnknownFileType;
@@ -117,10 +117,10 @@ QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)
     case UnknownFileType:
         break;
     case HppFileType:
-        mocFileName = "moc_" + FileInfo::baseName(artifact->fileName) + ".cpp";
+        mocFileName = "moc_" + FileInfo::baseName(artifact->filePath()) + ".cpp";
         break;
     case CppFileType:
-        mocFileName = FileInfo::baseName(artifact->fileName) + ".moc";
+        mocFileName = FileInfo::baseName(artifact->filePath()) + ".moc";
         break;
     }
     return mocFileName;
@@ -136,7 +136,7 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
     char **cFileTags = createCFileTags(artifact->fileTags);
 
     foreach (ScannerPlugin *scanner, scanners()) {
-        void *opaq = scanner->open(artifact->fileName.utf16(), cFileTags, numFileTags);
+        void *opaq = scanner->open(artifact->filePath().utf16(), cFileTags, numFileTags);
         if (!opaq || !scanner->additionalFileTags)
             continue;
 
@@ -158,10 +158,10 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
 
         ScanResultCache::Result scanResult;
         if (m_scanResultCache)
-            scanResult = m_scanResultCache->value(artifact->fileName);
+            scanResult = m_scanResultCache->value(artifact->filePath());
         if (!scanResult.valid) {
             scanResult.valid = true;
-            opaq = scanner->open(artifact->fileName.utf16(), 0, 0);
+            opaq = scanner->open(artifact->filePath().utf16(), 0, 0);
             if (!opaq)
                 continue;
 
@@ -179,7 +179,7 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
 
             scanner->close(opaq);
             if (m_scanResultCache)
-                m_scanResultCache->insert(artifact->fileName, scanResult);
+                m_scanResultCache->insert(artifact->filePath(), scanResult);
         }
 
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {

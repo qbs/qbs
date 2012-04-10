@@ -236,7 +236,7 @@ static void markAsOutOfDateBottomUp(Artifact *artifact)
     artifact->buildState = Artifact::Buildable;
     artifact->outOfDateCheckPerformed = true;
     artifact->isOutOfDate = true;
-    artifact->isExistingFile = FileInfo(artifact->fileName).exists();
+    artifact->isExistingFile = FileInfo(artifact->filePath()).exists();
     foreach (Artifact *parent, artifact->parents)
         markAsOutOfDateBottomUp(parent);
 }
@@ -308,7 +308,7 @@ FileTime Executor::timeStamp(Artifact *artifact)
     if (result.isValid())
         return result;
 
-    FileInfo fi(artifact->fileName);
+    FileInfo fi(artifact->filePath());
     if (!fi.exists())
         return FileTime::currentTime();
 
@@ -330,7 +330,7 @@ FileTime Executor::timeStamp(Artifact *artifact)
 
 bool Executor::isOutOfDate(Artifact *artifact, bool *fileExists)
 {
-    FileInfo fi(artifact->fileName);
+    FileInfo fi(artifact->filePath());
     *fileExists = fi.exists();
     if (!*fileExists)
         return true;
@@ -360,14 +360,14 @@ void Executor::execute(Artifact *artifact)
     // skip source artifacts
     if (!fileExists && artifact->artifactType == Artifact::SourceFile) {
         QString msg = QLatin1String("Can't find source file '%1', referenced in '%2'.");
-        setError(msg.arg(artifact->fileName, artifact->product->rProduct->qbsFile));
+        setError(msg.arg(artifact->filePath(), artifact->product->rProduct->qbsFile));
         return;
     }
 
     // skip artifacts without transformer
     if (!artifact->transformer) {
         if (!fileExists)
-            qbsWarning() << tr("No transformer builds '%1'").arg(QDir::toNativeSeparators(artifact->fileName));
+            qbsWarning() << tr("No transformer builds '%1'").arg(QDir::toNativeSeparators(artifact->filePath()));
         if (qbsLogLevel(LoggerDebug))
             qbsDebug("[EXEC] No transformer. Skipping.");
         finishArtifact(artifact);
@@ -408,7 +408,7 @@ void Executor::execute(Artifact *artifact)
     QSet<Artifact*>::const_iterator it = artifact->transformer->outputs.begin();
     for (; it != artifact->transformer->outputs.end(); ++it) {
         Artifact *output = *it;
-        QDir outDir = QFileInfo(output->fileName).absoluteDir();
+        QDir outDir = QFileInfo(output->filePath()).absoluteDir();
         if (!outDir.exists())
             outDir.mkpath(".");
     }
@@ -448,7 +448,7 @@ void Executor::execute(Artifact *artifact)
     m_processingJobs.insert(job, artifact);
 
     if (!artifact->product)
-        qbsError() << QString("BUG: Generated artifact %1 belongs to no product.").arg(QDir::toNativeSeparators(artifact->fileName));
+        qbsError() << QString("BUG: Generated artifact %1 belongs to no product.").arg(QDir::toNativeSeparators(artifact->filePath()));
 
     job->run(artifact->transformer.data(), artifact->product);
 }
@@ -650,13 +650,13 @@ void Executor::scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded)
 void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded)
 {
     if (qbsLogLevel(LoggerDebug)) {
-        qbsDebug("scanning %s [%s]", qPrintable(inputArtifact->fileName), scannerPlugin->fileTag);
-        qbsDebug("    from %s", qPrintable(outputArtifact->fileName));
+        qbsDebug("scanning %s [%s]", qPrintable(inputArtifact->filePath()), scannerPlugin->fileTag);
+        qbsDebug("    from %s", qPrintable(outputArtifact->filePath()));
     }
 
     QSet<QString> visitedFilePaths;
     QStringList filePathsToScan;
-    filePathsToScan.append(inputArtifact->fileName);
+    filePathsToScan.append(inputArtifact->filePath());
 
     while (!filePathsToScan.isEmpty()) {
         const QString filePathToBeScanned = filePathsToScan.takeFirst();
@@ -676,19 +676,37 @@ void Executor::scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStri
     }
 }
 
-Executor::Dependency Executor::resolveWithIncludePath(const QString &includePath, const QString &relativeFilePath, BuildProduct *buildProduct)
+Executor::Dependency Executor::resolveWithIncludePath(const QString &includePath, const QString &dependencyDirPath, const QString &dependencyFileName, BuildProduct *buildProduct)
 {
-    QString fullFilePath = FileInfo::resolvePath(includePath, relativeFilePath);
+    QString absDirPath = dependencyDirPath.isEmpty() ? includePath : FileInfo::resolvePath(includePath, dependencyDirPath);
+    absDirPath = QDir::cleanPath(absDirPath);
 
     Executor::Dependency result;
-    result.artifact = buildProduct->lookupArtifact(fullFilePath);
-    if (result.artifact) {
-        result.filePath = result.artifact->fileName;
+    BuildProject *project = buildProduct->project;
+    Artifact *fileDependencyArtifact = 0;
+    Artifact *dependencyInProduct = 0;
+    Artifact *dependencyInOtherProduct = 0;
+    foreach (Artifact *artifact, project->lookupArtifacts(absDirPath, dependencyFileName)) {
+        if (artifact->artifactType == Artifact::FileDependency)
+            fileDependencyArtifact = artifact;
+        else if (artifact->product == buildProduct)
+            dependencyInProduct = artifact;
+        else
+            dependencyInOtherProduct = artifact;
+    }
+
+    // prioritize found artifacts
+    if ((result.artifact = dependencyInProduct)
+        || (result.artifact = dependencyInOtherProduct)
+        || (result.artifact = fileDependencyArtifact))
+    {
+        result.filePath = result.artifact->filePath();
         return result;
     }
 
-    if (FileInfo::exists(fullFilePath))
-        result.filePath = QDir::cleanPath(fullFilePath);
+    QString absFilePath = FileInfo::resolvePath(absDirPath, dependencyFileName);
+    if (FileInfo::exists(absFilePath))
+        result.filePath = QDir::cleanPath(absFilePath);
 
     return result;
 }
@@ -701,35 +719,39 @@ void Executor::resolveScanResultDependencies(const QStringList &includePaths,
                                              QStringList *filePathsToScan,
                                              bool *newDependencyAdded)
 {
+    QString dependencyDirPath;
+    QString dependencyFileName;
     QString baseDirOfInFilePath;
     foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
-        QString outFilePath = dependency.first;
+        const QString &dependencyFilePath = dependency.first;
         const bool isLocalInclude = dependency.second;
         Dependency resolvedDependency;
-        if (FileInfo::isAbsolute(outFilePath)) {
-            resolvedDependency.filePath = outFilePath;
+        if (FileInfo::isAbsolute(dependencyFilePath)) {
+            resolvedDependency.filePath = dependencyFilePath;
             goto resolved;
         }
+
+        FileInfo::splitIntoDirectoryAndFileName(dependencyFilePath, &dependencyDirPath, &dependencyFileName);
 
         if (isLocalInclude) {
             // try base directory of source file
             if (baseDirOfInFilePath.isNull())
                 baseDirOfInFilePath = FileInfo::path(filePathToBeScanned);
-            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, outFilePath, inputArtifact->product);
+            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, dependencyDirPath, dependencyFileName, inputArtifact->product);
             if (resolvedDependency.isValid())
                 goto resolved;
         }
 
         // try include paths
         foreach (const QString &includePath, includePaths) {
-            resolvedDependency = resolveWithIncludePath(includePath, outFilePath, inputArtifact->product);
+            resolvedDependency = resolveWithIncludePath(includePath, dependencyDirPath, dependencyFileName, inputArtifact->product);
             if (resolvedDependency.isValid())
                 goto resolved;
         }
 
         // we could not resolve the include
         if (qbsLogLevel(LoggerTrace))
-            qbsTrace("[DEPSCAN] unresolved '%s'", qPrintable(outFilePath));
+            qbsTrace("[DEPSCAN] unresolved '%s'", qPrintable(dependencyFilePath));
         continue;
 
 resolved:
@@ -752,7 +774,7 @@ void Executor::handleDependency(Artifact *processedArtifact, Dependency &depende
         dependency.artifact = new Artifact(processedArtifact->project);
         dependency.artifact->artifactType = Artifact::FileDependency;
         dependency.artifact->configuration = processedArtifact->configuration;
-        dependency.artifact->fileName = dependency.filePath;
+        dependency.artifact->setFilePath(dependency.filePath);
         processedArtifact->project->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
         // The dependency exists in the project's list of file dependencies.
@@ -780,7 +802,7 @@ void Executor::handleDependency(Artifact *processedArtifact, Dependency &depende
         if (processedArtifact->children.contains(dependency.artifact))
             return;
         BuildGraph *buildGraph = product->project->buildGraph();
-        if (insertIntoProduct && !product->artifacts.contains(dependency.filePath))
+        if (insertIntoProduct && !product->artifacts.contains(dependency.artifact))
             buildGraph->insert(product, dependency.artifact);
         buildGraph->safeConnect(processedArtifact, dependency.artifact);
         *newDependencyAdded = true;
