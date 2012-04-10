@@ -140,8 +140,6 @@ private:
     bool m_dirty;
 };
 
-class BuildGraphListener;
-
 /**
  * N artifact, T transformer, parent -> child
  * parent depends on child, child is a dependency of parent,
