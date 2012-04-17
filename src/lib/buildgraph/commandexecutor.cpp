@@ -211,6 +211,7 @@ void CommandExecutor::startProcessCommand()
                 responseFile.write("\n");
             }
             responseFile.close();
+            m_responseFileName = responseFile.fileName();
             arguments.clear();
             arguments += QDir::toNativeSeparators(m_processCommand->responseFileUsagePrefix() + responseFile.fileName());
             if (qbsLogLevel(LoggerDebug))
