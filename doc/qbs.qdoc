@@ -83,6 +83,7 @@
            \list
                \o  \l{Qbs Functions}
                \o  \l{Rules}
+               \o  \l{Products}
            \endlist
     \endlist
 */
@@ -751,10 +752,10 @@
     \title Reference
 
     \list
-        \o  \l{Qbs Functions}
-        \o  \l{Rules}
+        \o \l{Qbs Functions}
+        \o \l{Rules}
+        \o \l{Products}
     \endlist
-
 */
 
 
@@ -762,6 +763,7 @@
     \contentspage index.html
     \previouspage qbs-functions.html
     \page qbs-rules.html
+    \nextpage qbs-products.html
 
     \title Rules
 
@@ -838,3 +840,75 @@
 
 */
 
+/*!
+    \contentspage index.html
+    \previouspage qbs-rules.html
+    \page qbs-products.html
+
+    \title Products
+
+    \table
+        \header
+            \o Product Item
+            \o Description
+            \o Property
+            \o Property Description
+        \row
+            \o Product
+            \o Generic product.
+            \o
+            \o
+        \row
+            \o
+            \o
+            \o condition
+            \o Boolean value. If false, the product is excluded from build. Default is true.
+        \row
+            \o
+            \o
+            \o name
+            \o The name of the product for referencing it in Depends items.
+        \row
+            \o
+            \o
+            \o type
+            \o A list of file tags the product is going to create.
+        \row
+            \o
+            \o
+            \o targetName
+            \o The base file name of the generated file. If not set, \a name is used.
+        \row
+            \o
+            \o
+            \o destination
+            \o The destination directory of the produced file. Relative to the build dir.
+        \row
+            \o
+            \o
+            \o files
+            \o List of source files.
+        \row
+            \o
+            \o
+            \o consoleApplication
+            \o Boolean value. If set to true, a console application is generated.
+               If false, a GUI application is generated. Default is undefined / not set,
+               which means the linker decides. This only has an effect on Windows.
+        \row
+            \o Application
+            \o Product with type "application" or "applicationbundle" on Mac.
+            \o
+            \o
+        \row
+            \o DynamicLibrary
+            \o Product with type "dynamiclibrary". Produces a DLL or shared object.
+            \o
+            \o
+        \row
+            \o StaticLibrary
+            \o Product with type "staticlibrary". Produces a static library.
+            \o
+            \o
+    \endtable
+*/
