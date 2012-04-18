@@ -881,6 +881,7 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
         decl.initialValueSource = "name";
         product += decl;
         product += PropertyDeclaration("destination", PropertyDeclaration::String);
+        product += PropertyDeclaration("consoleApplication", PropertyDeclaration::Boolean);
         product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         product += PropertyDeclaration("module", PropertyDeclaration::Variant);
         product += PropertyDeclaration("modules", PropertyDeclaration::Variant);

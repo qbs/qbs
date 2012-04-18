@@ -107,6 +107,13 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     else
         args.push('/INCREMENTAL:NO')
 
+    if (product.consoleApplication !== undefined) {
+        if (product.consoleApplication)
+            args.push('/SUBSYSTEM:CONSOLE');
+        else
+            args.push('/SUBSYSTEM:WINDOWS');
+    }
+
     var manifestFileName
     if (generateManifestFiles) {
         manifestFileName = FileInfo.toWindowsSeparators(primaryOutput.fileName)
