@@ -1057,27 +1057,26 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
             ids->properties.insert(child->id, Property(childEvObject));
         }
 
-        // for Group and ProjectModule, add new module instances
         const bool isProductModule = (childPrototypeHash == hashName_ProductModule);
         const bool isArtifact = (childPrototypeHash == hashName_Artifact);
-        if (isProductModule || isArtifact || childPrototypeHash == hashName_Group) {
+        if (isProductModule) {
+            // give ProductModules their own module namespace
+            childScope = ScopeChain::Ptr(new ScopeChain(&m_engine, childEvObject->scope));
+            ScopeChain::Ptr moduleScope(new ScopeChain(&m_engine));
+            moduleScope->prepend(scope->findNonEmpty(name_productPropertyScope));
+            moduleScope->prepend(scope->findNonEmpty(name_projectPropertyScope));
+            moduleScope->prepend(childEvObject->scope);
+            evaluateDependencies(child, childEvObject, childScope, moduleScope, userProperties);
+        } else if (isArtifact || childPrototypeHash == hashName_Group) {
+            // for Group and Artifact, add new module instances
             QHashIterator<QString, Module::Ptr> moduleIt(evaluationObject->modules);
             while (moduleIt.hasNext()) {
                 moduleIt.next();
                 Module::Ptr module = moduleIt.value();
                 if (module->id.isEmpty())
                     continue;
+
                 Scope::Ptr moduleInstance = Scope::create(&m_engine, module->object->scope->name(), module->file());
-                if (isProductModule) {
-                    // A ProductModule does not inherit module values set in the product
-                    // but has its own module instance.
-                    ScopeChain::Ptr moduleScope(new ScopeChain(&m_engine));
-                    moduleScope->prepend(scope->findNonEmpty(name_productPropertyScope));
-                    moduleScope->prepend(scope->findNonEmpty(name_projectPropertyScope));
-                    moduleScope->prepend(childEvObject->scope);
-                    module = loadModule(module->file(), module->id, module->name, moduleScope, userProperties, module->dependsLocation);
-                    childEvObject->modules.insert(module->name, module);
-                }
                 if (!isArtifact)
                     moduleInstance->fallbackScope = module->object->scope;
                 moduleInstance->declarations = module->object->scope->declarations;
@@ -1754,7 +1753,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                 resolveGroup(rproduct, data.product, child);
             } else if (prototypeNameHash == hashName_ProductModule) {
                 child->scope->properties.insert("product", Property(data.product));
-                resolveProductModule(rproduct, data.product, child, userProperties->value());
+                resolveProductModule(rproduct, child);
                 data.usedProductsFromProductModule += child->unknownModules;
             }
         }
@@ -1950,12 +1949,12 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
     }
 }
 
-static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, EvaluationObject *product, Scope::Ptr objectScope)
+static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, EvaluationObject *moduleContainer, Scope::Ptr objectScope)
 {
     QVariantMap values;
     QVariantMap modules;
-    for (QHash<QString, Module::Ptr>::const_iterator it = product->modules.begin();
-         it != product->modules.end(); ++it)
+    for (QHash<QString, Module::Ptr>::const_iterator it = moduleContainer->modules.begin();
+         it != moduleContainer->modules.end(); ++it)
     {
         Module::Ptr module = it.value();
         const QString name = module->name;
@@ -1963,7 +1962,7 @@ static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, Evaluatio
         if (!id.isEmpty()) {
             Scope::Ptr moduleScope = objectScope->properties.value(id).scope;
             if (!moduleScope)
-                moduleScope = product->scope->properties.value(id).scope;
+                moduleScope = moduleContainer->scope->properties.value(id).scope;
             if (!moduleScope)
                 continue;
             modules.insert(name, evaluateAll(rproduct, moduleScope));
@@ -2031,17 +2030,15 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     }
 }
 
-void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *productModule, const QVariantMap &userProperties)
+void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *productModule)
 {
     Q_ASSERT(!rproduct->name.isEmpty());
 
     ScopeChain::Ptr localScopeChain(new ScopeChain(&m_engine, productModule->scope));
-    ScopeChain::Ptr moduleScopeChain(new ScopeChain(&m_engine, productModule->scope));
-    evaluateDependencies(productModule->instantiatingObject(), productModule, localScopeChain, moduleScopeChain, userProperties);
     evaluateDependencyConditions(productModule, localScopeChain);
 
     clearCachedValues();
-    QVariantMap moduleValues = evaluateModuleValues(rproduct, product, productModule->scope);
+    QVariantMap moduleValues = evaluateModuleValues(rproduct, productModule, productModule->scope);
     m_productModules.insert(rproduct->name.toLower(), moduleValues);
 }
 

@@ -23,6 +23,7 @@ Project {
         ]
         Depends { name: "cpp" }
         ProductModule {
+            Depends { name: "cpp" }
             cpp.includePaths: ['helper']
         }
     }
