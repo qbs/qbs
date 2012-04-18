@@ -12,8 +12,6 @@ SUBDIRS += \
     tests
 
 OTHER_FILES += \
-    share/qbs/imports/qbs/base/* \
-    share/qbs/imports/qbs/fileinfo/* \
     doc/qbs.qdoc
 
 include(doc/doc.pri)
