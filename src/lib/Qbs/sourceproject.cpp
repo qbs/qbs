@@ -220,6 +220,9 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
         else
             profiles = d->settings->value("profile", "").toString().split(QChar(','), QString::SkipEmptyParts);
 
+        const QString combinedBuildProfileName = profiles.join(QLatin1String("-"));
+        buildCfg.insert("buildProfileName", combinedBuildProfileName);
+
         // (2)
         bool profileError = false;
         for (int i = profiles.count() - 1; i >= 0; i--) {

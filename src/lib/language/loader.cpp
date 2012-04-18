@@ -2749,7 +2749,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         const QString targetOS = baseModule->scope->stringValue("targetOS");
         const QString buildProfileName = baseModule->scope->stringValue("buildProfileName");
         rproject->id = buildVariant;
-        if (!buildProfileName.isEmpty())
+        if (!buildProfileName.isEmpty() && buildProfileName != QLatin1String("default"))
             rproject->id.prepend(buildProfileName + "-");
         if (hostName != targetOS) {
             QString platformName = targetOS;
