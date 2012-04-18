@@ -14,10 +14,6 @@ SUBDIRS += \
 OTHER_FILES += \
     share/qbs/imports/qbs/base/* \
     share/qbs/imports/qbs/fileinfo/* \
-    share/qbs/modules/*.* \
-    share/qbs/modules/cpp/*.* \
-    share/qbs/modules/qbs/*.* \
-    share/qbs/modules/qt/*.* \
     doc/qbs.qdoc
 
 include(doc/doc.pri)
