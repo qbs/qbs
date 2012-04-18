@@ -177,10 +177,8 @@ class Scope;
 class Property
 {
 public:
-    Property() {}
-    explicit Property(QSharedPointer<Scope> scope)
-        : scope(scope)
-    {}
+    explicit Property(LanguageObject *sourceObject = 0);
+    explicit Property(QSharedPointer<Scope> scope);
     explicit Property(EvaluationObject *object);
     explicit Property(const QScriptValue &scriptValue);
 
@@ -195,6 +193,9 @@ public:
 
     // if value is a scope
     QSharedPointer<Scope> scope;
+
+    // where this property is set
+    LanguageObject *sourceObject;
 
     bool isValid() const { return scopeChain || scope || value.isValid(); }
 };

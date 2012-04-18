@@ -132,6 +132,27 @@ LanguageObject::~LanguageObject()
         file->registerLanguageObject(this);
 }
 
+Property::Property(LanguageObject *sourceObject)
+    : sourceObject(sourceObject)
+{}
+
+Property::Property(QSharedPointer<Scope> scope)
+    : scope(scope)
+    , sourceObject(0)
+{}
+
+Property::Property(EvaluationObject *object)
+    : scope(object->scope)
+    , sourceObject(0)
+{
+}
+
+Property::Property(const QScriptValue &scriptValue)
+    : value(scriptValue)
+    , sourceObject(0)
+{
+}
+
 ScopeChain::ScopeChain(QScriptEngine *engine, const QSharedPointer<Scope> &root)
     : QScriptClass(engine)
 {
@@ -237,16 +258,6 @@ void ScopeChain::setProperty(QScriptValue &, const QScriptString &name, uint, co
 {
     QString msg = tr("Removing or setting property '%1' in a binding is invalid.");
     engine()->currentContext()->throwError(msg.arg(name.toString()));
-}
-
-Property::Property(EvaluationObject * object)
-    : scope(object->scope)
-{
-}
-
-Property::Property(const QScriptValue &scriptValue)
-    : value(scriptValue)
-{
 }
 
 static QScriptValue evaluate(QScriptEngine *engine, const QScriptProgram &expression)
@@ -844,6 +855,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
     Property newProperty;
     newProperty.valueSource = binding.valueSource;
     newProperty.scopeChain = scopeChain;
+    newProperty.sourceObject = object;
 
     Property &property = target->properties[name];
     if (!property.valueSource.isNull()) {
@@ -1565,7 +1577,8 @@ static QVariantMap evaluateAll(const ResolvedProduct::Ptr &rproduct, const Scope
 
         if (decl.type == PropertyDeclaration::Paths) {
             QStringList lst = value.toStringList();
-            value = resolvePaths(lst, rproduct->sourceDirectory);
+            QString sourceDirPath = property.sourceObject ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
+            value = resolvePaths(lst, sourceDirPath);
         }
 
         result.insert(it.key(), value);
