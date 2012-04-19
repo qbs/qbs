@@ -47,6 +47,7 @@ class TestLanguage : public QObject
 {
     Q_OBJECT
     Loader *loader;
+    ResolvedProject::Ptr project;
 
     QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project)
     {
@@ -222,6 +223,55 @@ private slots:
             qDebug() << e.toString();
         }
         QCOMPARE(exceptionCaught, false);
+    }
+
+    void fileTags_data()
+    {
+        QTest::addColumn<QStringList>("expectedFileTags");
+
+        QTest::newRow("init") << QStringList();
+        QTest::newRow("filetagger_project_scope") << (QStringList() << "cpp");
+        QTest::newRow("filetagger_product_scope") << (QStringList() << "asm");
+        QTest::newRow("unknown_file_tag") << (QStringList() << "unknown-file-tag");
+        QTest::newRow("set_file_tag_via_group") << (QStringList() << "c++");
+        QTest::newRow("add_file_tag_via_group") << (QStringList() << "cpp" << "zzz");
+        QTest::newRow("add_file_tag_via_group_and_file_ref") << (QStringList() << "cpp" << "zzz");
+        QTest::newRow("cleanup") << QStringList();
+    }
+
+    void fileTags()
+    {
+        QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
+        if (productName == QLatin1String("init")) {
+            bool exceptionCaught = false;
+            try {
+                loader->loadProject(SRCDIR "testdata/filetags.qbs");
+                Configuration::Ptr cfg(new Configuration);
+                QFutureInterface<bool> futureInterface;
+                project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+                QVERIFY(project);
+            }
+            catch (Error &e) {
+                exceptionCaught = true;
+                qDebug() << e.toString();
+            }
+            QCOMPARE(exceptionCaught, false);
+            return;
+        } else if (productName == QLatin1String("cleanup")) {
+            project = ResolvedProject::Ptr();
+            return;
+        }
+
+        QVERIFY(project);
+        QFETCH(QStringList, expectedFileTags);
+        QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+        ResolvedProduct::Ptr product;
+        QVERIFY(product = products.value(productName));
+        QCOMPARE(product->sources.count(), 1);
+        SourceArtifact::Ptr sourceFile = *product->sources.begin();
+        QStringList fileTags = sourceFile->fileTags.toList();
+        fileTags.sort();
+        QCOMPARE(fileTags, expectedFileTags);
     }
 };
 
