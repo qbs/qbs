@@ -739,8 +739,7 @@ void BuildGraph::remove(Artifact *artifact) const
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[BG] remove artifact " << fileName(artifact);
 
-    if (artifact->artifactType == Artifact::Generated)
-        QFile::remove(artifact->filePath());
+    removeGeneratedArtifactFromDisk(artifact);
     artifact->product->artifacts.remove(artifact);
     artifact->project->removeFromArtifactLookupTable(artifact);
     artifact->product->targetArtifacts.remove(artifact);
@@ -773,6 +772,20 @@ void BuildGraph::removeArtifactAndExclusiveDependents(Artifact *artifact, QList<
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
     remove(artifact);
+}
+
+void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
+{
+    if (artifact->artifactType != Artifact::Generated)
+        return;
+
+    QFile file(artifact->filePath());
+    if (!file.exists())
+        return;
+
+    qbsDebug() << "removing " << artifact->fileName();
+    if (!file.remove())
+        qbsWarning("Cannot remove '%s'.", qPrintable(artifact->filePath()));
 }
 
 BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject, QFutureInterface<bool> &futureInterface)
@@ -983,10 +996,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
 
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, artifactsToRemove) {
-        if (artifact->artifactType == Artifact::Generated) {
-            qbsDebug() << "[BG] deleting stale artifact " << artifact->filePath();
-            QFile::remove(artifact->filePath());
-        }
+        removeGeneratedArtifactFromDisk(artifact);
         delete artifact;
     }
 }
@@ -1005,7 +1015,7 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] updating transformer for " << fileName(artifact);
 
-    QFile::remove(artifact->filePath());
+    removeGeneratedArtifactFromDisk(artifact);
 
     Rule::Ptr rule = artifact->transformer->rule;
     artifact->product->project->markDirty();
@@ -1250,6 +1260,18 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
                 return BuildProject::Ptr();
         }
 
+        QSet<QString> oldProductNames, newProductNames;
+        foreach (const BuildProduct::Ptr &product, project->buildProducts())
+            oldProductNames += product->rProduct->name;
+        foreach (const ResolvedProduct::Ptr &product, changedProject->products)
+            newProductNames += product->name;
+        QSet<QString> removedProductsNames = oldProductNames - newProductNames;
+        if (!removedProductsNames.isEmpty()) {
+            foreach (const BuildProduct::Ptr &product, project->buildProducts())
+                if (removedProductsNames.contains(product->rProduct->name))
+                    project->onProductRemoved(product);
+        }
+
         BuildGraph::detectCycle(project.data());
     }
 
@@ -1442,6 +1464,20 @@ void BuildProject::insertFileDependency(Artifact *artifact)
     Q_ASSERT(artifact->artifactType == Artifact::FileDependency);
     m_dependencyArtifacts += artifact;
     insertIntoArtifactLookupTable(artifact);
+}
+
+void BuildProject::onProductRemoved(const BuildProduct::Ptr &product)
+{
+    qbsDebug() << "[BG] product '" << product->rProduct->name << "' removed.";
+
+    m_dirty = true;
+    m_buildProducts.remove(product);
+
+    // delete all removed artifacts physically from the disk
+    foreach (Artifact *artifact, product->artifacts) {
+        BuildGraph::disconnectAll(artifact);
+        BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+    }
 }
 
 void BuildProject::markDirty()

@@ -123,6 +123,8 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     void insertFileDependency(Artifact *artifact);
 
+    void onProductRemoved(const BuildProduct::Ptr &product);
+
 private:
     static QString storedProjectFilePath(BuildGraph *bg, const QString &configId);
     static QStringList storedProjectFiles(BuildGraph *bg);
@@ -183,6 +185,7 @@ public:
     void insert(BuildProduct *target, Artifact *n) const;
     void remove(Artifact *artifact) const;
     void removeArtifactAndExclusiveDependents(Artifact *artifact, QList<Artifact*> *removedArtifacts = 0);
+    static void removeGeneratedArtifactFromDisk(Artifact *artifact);
 
     void createOutputArtifact(BuildProduct *product,
                           const Rule::Ptr &rule, const RuleArtifact::Ptr &ruleArtifact,
