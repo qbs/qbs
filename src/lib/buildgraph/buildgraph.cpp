@@ -1217,16 +1217,17 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
         projectFileChanged = true;
     }
 
+    bool referencedProductRemoved = false;
     QList<BuildProduct::Ptr> changedProducts;
     foreach (BuildProduct::Ptr product, project->buildProducts()) {
         FileInfo pfi(product->rProduct->qbsFile);
         if (!pfi.exists())
-            throw Error(QString("The product file '%1' is gone.").arg(product->rProduct->qbsFile));
-        if (bgfi.lastModified() < pfi.lastModified())
+            referencedProductRemoved = true;
+        else if (bgfi.lastModified() < pfi.lastModified())
             changedProducts += product;
     }
 
-    if (projectFileChanged || !changedProducts.isEmpty()) {
+    if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
 
         Loader ldr;
         ldr.setSearchPaths(loaderSearchPaths);
