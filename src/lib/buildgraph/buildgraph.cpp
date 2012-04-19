@@ -714,6 +714,26 @@ void BuildGraph::disconnect(Artifact *u, Artifact *v)
     v->parents.remove(u);
 }
 
+void BuildGraph::disconnectChildren(Artifact *u)
+{
+    foreach (Artifact *child, u->children)
+        child->parents.remove(u);
+    u->children.clear();
+}
+
+void BuildGraph::disconnectParents(Artifact *u)
+{
+    foreach (Artifact *parent, u->parents)
+        parent->children.remove(u);
+    u->parents.clear();
+}
+
+void BuildGraph::disconnectAll(Artifact *u)
+{
+    disconnectChildren(u);
+    disconnectParents(u);
+}
+
 void BuildGraph::remove(Artifact *artifact) const
 {
     if (qbsLogLevel(LoggerTrace))

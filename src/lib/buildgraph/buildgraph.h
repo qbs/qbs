@@ -195,13 +195,16 @@ public:
     void updateNodesThatMustGetNewTransformer();
 
     static void setupScriptEngineForProduct(QScriptEngine *scriptEngine, ResolvedProduct::Ptr product, Rule::Ptr rule, BuildGraph *bg = 0);
+    static void disconnect(Artifact *u, Artifact *v);
+    static void disconnectChildren(Artifact *u);
+    static void disconnectParents(Artifact *u);
+    static void disconnectAll(Artifact *u);
 
 private:
     Artifact *createArtifact(BuildProduct::Ptr product, SourceArtifact::Ptr sourceArtifact);
     void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::Ptr rule);
     void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::Ptr rule, const QSet<Artifact *> &inputArtifacts);
     void createTransformerCommands(RuleScript::Ptr script, Transformer *transformer);
-    static void disconnect(Artifact *u, Artifact *v);
     void setupScriptEngineForArtifact(BuildProduct *product, Artifact *artifact);
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
     static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);
