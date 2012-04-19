@@ -714,24 +714,6 @@ void BuildGraph::disconnect(Artifact *u, Artifact *v)
     v->parents.remove(u);
 }
 
-QSet<Artifact *> BuildGraph::disconnect(Artifact *n) const
-{
-    QSet<Artifact *> r;
-    if (n->children.count() == 1) {
-        Artifact * c = *(n->children.begin());
-        c->parents.remove(n);
-        n->children.clear();
-        r += n;
-        foreach (Artifact * p, n->parents) {
-            r += disconnect(p);
-            p->children.remove(n);
-            if (p->transformer)
-                p->transformer->inputs.remove(n);
-        }
-    }
-    return r;
-}
-
 void BuildGraph::remove(Artifact *artifact) const
 {
     if (qbsLogLevel(LoggerTrace))

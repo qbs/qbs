@@ -202,7 +202,6 @@ private:
     void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::Ptr rule, const QSet<Artifact *> &inputArtifacts);
     void createTransformerCommands(RuleScript::Ptr script, Transformer *transformer);
     static void disconnect(Artifact *u, Artifact *v);
-    QSet<Artifact *> disconnect(Artifact *n) const;
     void setupScriptEngineForArtifact(BuildProduct *product, Artifact *artifact);
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
     static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);
