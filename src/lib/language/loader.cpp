@@ -1685,6 +1685,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
     ResolvedModule::Ptr dummyModule(new ResolvedModule);
     dummyModule->jsImports = m_project->jsImports;
     QList<Rule::Ptr> globalRules;
+    QList<FileTagger::Ptr> globalFileTaggers;
 
     ProjectData products;
     resolveTopLevel(rproject,
@@ -1692,6 +1693,7 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                     m_project->fileName,
                     &products,
                     &globalRules,
+                    &globalFileTaggers,
                     userProperties,
                     scope,
                     dummyModule,
@@ -1721,6 +1723,8 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
         rproduct->buildDirectory = buildDirectory;
         foreach (const Rule::Ptr &rule, globalRules)
             rproduct->rules.insert(rule);
+        foreach (const FileTagger::Ptr &fileTagger, globalFileTaggers)
+            rproduct->fileTaggers.insert(fileTagger);
         const QString lowerProductName = rproduct->name.toLower();
         uniqueStrings.insert(lowerProductName);
         resolvedProducts.insert(lowerProductName, rproduct);
@@ -2103,9 +2107,7 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
     foreach (EvaluationObject *object, objects) {
         const uint hashPrototypeName = qHash(object->prototype);
         if (hashPrototypeName == hashName_FileTagger) {
-            FileTagger::Ptr fileTagger(new FileTagger);
-            fileTagger->artifactExpression.setPattern(object->scope->stringValue("pattern"));
-            fileTagger->fileTags = object->scope->stringListValue("fileTags");
+            FileTagger::Ptr fileTagger = resolveFileTagger(object);
             rproduct->fileTaggers.insert(fileTagger);
         } else if (hashPrototypeName == hashName_Rule) {
             Rule::Ptr rule = resolveRule(object, module);
@@ -2187,6 +2189,14 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::Ptr modu
 
     m_ruleMap.insert(rule, object);
     return rule;
+}
+
+FileTagger::Ptr Loader::resolveFileTagger(EvaluationObject *evaluationObject)
+{
+    FileTagger::Ptr fileTagger(new FileTagger);
+    fileTagger->artifactExpression.setPattern(evaluationObject->scope->stringValue("pattern"));
+    fileTagger->fileTags = evaluationObject->scope->stringListValue("fileTags");
+    return fileTagger;
 }
 
 /// --------------------------------------------------------------------------
@@ -2597,6 +2607,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                              const QString &projectFileName,
                              ProjectData *projectData,
                              QList<Rule::Ptr> *globalRules,
+                             QList<FileTagger::Ptr> *globalFileTaggers,
                              const Configuration::Ptr &userProperties,
                              const ScopeChain::Ptr &scope,
                              const ResolvedModule::Ptr &dummyModule,
@@ -2655,6 +2666,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                             referencedFile->fileName,
                             projectData,
                             globalRules,
+                            globalFileTaggers,
                             userProperties,
                             referencedFileScope,
                             dummyModule, futureInterface);
@@ -2668,6 +2680,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                             projectFileName,
                             projectData,
                             globalRules,
+                            globalFileTaggers,
                             userProperties,
                             childScope,
                             dummyModule,
@@ -2678,6 +2691,12 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
         Rule::Ptr rule = resolveRule(evaluationObject, dummyModule);
         globalRules->append(rule);
+
+        return;
+    } else if (evaluationObject->prototype == name_FileTagger) {
+        fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
+        FileTagger::Ptr fileTagger = resolveFileTagger(evaluationObject);
+        globalFileTaggers->append(fileTagger);
 
         return;
     } else if (evaluationObject->prototype != name_Product) {

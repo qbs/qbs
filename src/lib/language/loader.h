@@ -375,6 +375,7 @@ protected:
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
                                                     ResolvedProduct::Ptr rproduct, ResolvedModule::Ptr module);
     Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::Ptr module);
+    FileTagger::Ptr resolveFileTagger(EvaluationObject *evaluationObject);
     void buildModulesProperty(EvaluationObject *evaluationObject);
     void checkModuleDependencies(const Module::Ptr &module);
 
@@ -393,7 +394,7 @@ protected:
                          LanguageObject *object,
                          const QString &projectFileName,
                          ProjectData *projectData,
-                         QList<Rule::Ptr> *globalRules,
+                         QList<Rule::Ptr> *globalRules, QList<FileTagger::Ptr> *globalFileTaggers,
                          const Configuration::Ptr &userProperties,
                          const ScopeChain::Ptr &scope,
                          const ResolvedModule::Ptr &dummyModule,
