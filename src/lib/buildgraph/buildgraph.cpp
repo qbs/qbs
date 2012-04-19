@@ -421,6 +421,9 @@ void BuildGraph::createOutputArtifact(
         insert(product, outputArtifact);
     }
 
+    if (outputArtifact->fileTags.isEmpty())
+        outputArtifact->fileTags = product->rProduct->fileTagsForFileName(outputArtifact->fileName());
+
     if (rule->isMultiplexRule())
         outputArtifact->configuration = product->rProduct->configuration;
     else
