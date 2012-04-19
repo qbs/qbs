@@ -188,6 +188,8 @@ private slots:
     {
         QTest::addColumn<QString>("propertyName");
         QTest::addColumn<QStringList>("expectedValues");
+
+        QTest::newRow("init") << QString() << QStringList();
         QTest::newRow("property_overwrite") << QString("dummy.defines") << QStringList("OVERWRITTEN");
         QTest::newRow("property_overwrite_no_outer") << QString("dummy.defines") << QStringList("OVERWRITTEN");
         QTest::newRow("property_append_to_outer") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO"));
@@ -197,32 +199,40 @@ private slots:
         QTest::newRow("multiple_exclusive_properties_append_to_outer") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO"));
 
         QTest::newRow("ambiguous_properties") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO") << QString("THREE"));
+        QTest::newRow("cleanup") << QString() << QStringList();
     }
 
     void propertiesBlocks()
     {
         QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
+        if (productName == "init") {
+            bool exceptionCaught = false;
+            try {
+                loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
+                Configuration::Ptr cfg(new Configuration);
+                QFutureInterface<bool> futureInterface;
+                project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+                QVERIFY(project);
+            } catch (Error &e) {
+                exceptionCaught = true;
+                qDebug() << e.toString();
+            }
+            QCOMPARE(exceptionCaught, false);
+            return;
+        } else if (productName == "cleanup") {
+            project = ResolvedProject::Ptr();
+            return;
+        }
+
         QFETCH(QString, propertyName);
         QFETCH(QStringList, expectedValues);
-
-        bool exceptionCaught = false;
-        try {
-            loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
-            Configuration::Ptr cfg(new Configuration);
-            QFutureInterface<bool> futureInterface;
-            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
-            QVERIFY(project);
-            QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
-            ResolvedProduct::Ptr product = products.value(productName);
-            QVERIFY(product);
-            QCOMPARE(product->name, productName);
-            QVariant v = productPropertyValue(product, propertyName);
-            QCOMPARE(v.toStringList(), expectedValues);
-        } catch (Error &e) {
-            exceptionCaught = true;
-            qDebug() << e.toString();
-        }
-        QCOMPARE(exceptionCaught, false);
+        QVERIFY(project);
+        QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+        ResolvedProduct::Ptr product = products.value(productName);
+        QVERIFY(product);
+        QCOMPARE(product->name, productName);
+        QVariant v = productPropertyValue(product, propertyName);
+        QCOMPARE(v.toStringList(), expectedValues);
     }
 
     void fileTags_data()
