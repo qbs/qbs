@@ -106,10 +106,18 @@ public:
                                             BuildGraph *buildGraph,
                                             const FileTime &minTimeStamp,
                                             const QStringList &loaderSearchPaths);
-    static BuildProject::Ptr load(BuildGraph *bg,
-                                  const FileTime &minTimeStamp,
-                                  Configuration::Ptr cfg,
-                                  const QStringList &loaderSearchPaths);
+
+    struct LoadResult
+    {
+        ResolvedProject::Ptr changedResolvedProject;
+        BuildProject::Ptr loadedProject;
+        bool discardLoadedProject;
+    };
+
+    static LoadResult load(BuildGraph *bg,
+                           const FileTime &minTimeStamp,
+                           Configuration::Ptr cfg,
+                           const QStringList &loaderSearchPaths);
     void store();
 
 
@@ -122,17 +130,19 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &filePath) const;
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     void insertFileDependency(Artifact *artifact);
+    void rescueDependencies(const BuildProject::Ptr &other);
 
     void onProductRemoved(const BuildProduct::Ptr &product);
 
 private:
     static QString storedProjectFilePath(BuildGraph *bg, const QString &configId);
     static QStringList storedProjectFiles(BuildGraph *bg);
-    static BuildProject::Ptr restoreBuildGraph(const QString &buildGraphFilePath,
-                                               BuildGraph *buildGraph,
-                                               const FileTime &minTimeStamp,
-                                               Configuration::Ptr configuration,
-                                               const QStringList &loaderSearchPaths);
+    static void restoreBuildGraph(const QString &buildGraphFilePath,
+                                  BuildGraph *buildGraph,
+                                  const FileTime &minTimeStamp,
+                                  Configuration::Ptr configuration,
+                                  const QStringList &loaderSearchPaths,
+                                  LoadResult *loadResult);
     void load(PersistentPool &pool, PersistentObjectData &data);
     void store(PersistentPool &pool, PersistentObjectData &data) const;
     void markDirty();
@@ -178,9 +188,9 @@ public:
     QString buildDirectoryRoot() const;
     QString resolveOutPath(const QString &path, BuildProduct *) const;
 
-    void connect(Artifact *p, Artifact *c);
-    void loggedConnect(Artifact *u, Artifact *v);
-    bool safeConnect(Artifact *u, Artifact *v);
+    static void connect(Artifact *p, Artifact *c);
+    static void loggedConnect(Artifact *u, Artifact *v);
+    static bool safeConnect(Artifact *u, Artifact *v);
     void insert(BuildProduct::Ptr target, Artifact *n) const;
     void insert(BuildProduct *target, Artifact *n) const;
     void remove(Artifact *artifact) const;

@@ -341,6 +341,11 @@ public:
     ProjectFile::Ptr loadProject(const QString &fileName);
     bool hasLoaded() const { return m_project; }
     int productCount(Configuration::Ptr userProperties);
+    ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile,
+                                        const QString &buildDirectoryRoot,
+                                        Configuration::Ptr userProperties,
+                                        QFutureInterface<bool> &futureInterface,
+                                        bool resolveProductDependencies = true);
     ResolvedProject::Ptr resolveProject(const QString &buildDirectoryRoot,
                                         Configuration::Ptr userProperties,
                                         QFutureInterface<bool> &futureInterface,

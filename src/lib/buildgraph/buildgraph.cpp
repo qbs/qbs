@@ -1194,15 +1194,16 @@ BuildProject::~BuildProject()
     qDeleteAll(m_dependencyArtifacts);
 }
 
-BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
-                                                         BuildGraph *bg,
-                                                         const FileTime &minTimeStamp,
-                                                         Configuration::Ptr cfg,
-                                                         const QStringList &loaderSearchPaths)
+void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
+                                     BuildGraph *bg,
+                                     const FileTime &minTimeStamp,
+                                     Configuration::Ptr cfg,
+                                     const QStringList &loaderSearchPaths,
+                                     LoadResult *loadResult)
 {
     if (buildGraphFilePath.isNull()) {
         qbsDebug() << "[BG] No stored build graph found that's compatible to the desired build configuration.";
-        return BuildProject::Ptr();
+        return;
     }
 
     PersistentPool pool;
@@ -1211,7 +1212,7 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
     FileInfo bgfi(buildGraphFilePath);
     if (!bgfi.exists()) {
         qbsDebug() << "[BG] stored build graph file does not exist";
-        return project;
+        return;
     }
     if (!pool.load(buildGraphFilePath))
         throw Error("Cannot load stored build graph.");
@@ -1220,6 +1221,7 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
     project->load(pool, data);
     project->resolvedProject()->configuration = Configuration::Ptr(new Configuration);
     project->resolvedProject()->configuration->setValue(pool.headData().projectConfig);
+    loadResult->loadedProject = project;
     qbsDebug() << "[BG] stored project loaded.";
 
     bool projectFileChanged = false;
@@ -1248,16 +1250,16 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
             QString msg("Trying to load '%1' failed.");
             throw Error(msg.arg(project->resolvedProject()->qbsFile));
         }
+        loadResult->changedResolvedProject = changedProject;
 
-        bool discardStoredProject;
         QMap<QString, ResolvedProduct::Ptr> changedProductsMap;
         foreach (BuildProduct::Ptr product, changedProducts) {
             if (changedProductsMap.isEmpty())
                 foreach (ResolvedProduct::Ptr cp, changedProject->products)
                     changedProductsMap.insert(cp->name, cp);
-            bg->onProductChanged(product, changedProductsMap.value(product->rProduct->name), &discardStoredProject);
-            if (discardStoredProject)
-                return BuildProject::Ptr();
+            bg->onProductChanged(product, changedProductsMap.value(product->rProduct->name), &loadResult->discardLoadedProject);
+            if (loadResult->discardLoadedProject)
+                return;
         }
 
         QSet<QString> oldProductNames, newProductNames;
@@ -1274,8 +1276,6 @@ BuildProject::Ptr BuildProject::restoreBuildGraph(const QString &buildGraphFileP
 
         BuildGraph::detectCycle(project.data());
     }
-
-    return project;
 }
 
 BuildProject::Ptr BuildProject::loadBuildGraph(const QString &buildGraphFilePath,
@@ -1284,7 +1284,9 @@ BuildProject::Ptr BuildProject::loadBuildGraph(const QString &buildGraphFilePath
                                                const QStringList &loaderSearchPaths)
 {
     static const qbs::Configuration::Ptr configuration(new qbs::Configuration);
-    return restoreBuildGraph(buildGraphFilePath, buildGraph, minTimeStamp, configuration, loaderSearchPaths);
+    LoadResult lr;
+    restoreBuildGraph(buildGraphFilePath, buildGraph, minTimeStamp, configuration, loaderSearchPaths, &lr);
+    return lr.loadedProject;
 }
 
 static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
@@ -1304,8 +1306,11 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
     return true;
 }
 
-BuildProject::Ptr BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp, Configuration::Ptr cfg, const QStringList &loaderSearchPaths)
+BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp, Configuration::Ptr cfg, const QStringList &loaderSearchPaths)
 {
+    LoadResult result;
+    result.discardLoadedProject = false;
+
     PersistentPool pool;
     QString fileName;
     QStringList bgFiles = storedProjectFiles(bg);
@@ -1319,8 +1324,8 @@ BuildProject::Ptr BuildProject::load(BuildGraph *bg, const FileTime &minTimeStam
         }
     }
 
-
-    return restoreBuildGraph(fileName, bg, minTimeStamp, cfg, loaderSearchPaths);
+    restoreBuildGraph(fileName, bg, minTimeStamp, cfg, loaderSearchPaths, &result);
+    return result;
 }
 
 void BuildProject::store()
@@ -1477,6 +1482,46 @@ void BuildProject::onProductRemoved(const BuildProduct::Ptr &product)
     foreach (Artifact *artifact, product->artifacts) {
         BuildGraph::disconnectAll(artifact);
         BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+    }
+}
+
+/**
+ * Copies dependencies between artifacts from the other project to this project.
+ */
+void BuildProject::rescueDependencies(const BuildProject::Ptr &other)
+{
+    QHash<QString, BuildProduct::Ptr> otherProductsByName;
+    foreach (const BuildProduct::Ptr &product, other->m_buildProducts)
+        otherProductsByName.insert(product->rProduct->name, product);
+
+    foreach (const BuildProduct::Ptr &product, m_buildProducts) {
+        BuildProduct::Ptr otherProduct = otherProductsByName.value(product->rProduct->name);
+        if (!otherProduct)
+            continue;
+
+        if (qbsLogLevel(LoggerTrace))
+            qbsTrace("[BG] rescue dependencies of product '%s'", qPrintable(product->rProduct->name));
+
+        foreach (Artifact *artifact, product->artifacts) {
+            if (qbsLogLevel(LoggerTrace))
+                qbsTrace("[BG]    artifact '%s'", qPrintable(artifact->fileName()));
+
+            Artifact *otherArtifact = otherProduct->lookupArtifact(artifact->dirPath(), artifact->fileName());
+            if (!otherArtifact || !otherArtifact->transformer)
+                continue;
+
+            foreach (Artifact *otherChild, otherArtifact->children) {
+                // skip transform edges
+                if (otherArtifact->transformer->inputs.contains(otherChild))
+                    continue;
+
+                QList<Artifact *> children = lookupArtifacts(otherChild->dirPath(), otherChild->fileName());
+                foreach (Artifact *child, children) {
+                    if (!artifact->children.contains(child))
+                        BuildGraph::safeConnect(artifact, child);
+                }
+            }
+        }
     }
 }
 

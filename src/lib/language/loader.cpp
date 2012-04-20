@@ -1668,6 +1668,12 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
+ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot, Configuration::Ptr userProperties, QFutureInterface<bool> &futureInterface, bool resolveProductDependencies)
+{
+    m_project = projectFile;
+    return resolveProject(buildDirectoryRoot, userProperties, futureInterface, resolveProductDependencies);
+}
+
 ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                                             Configuration::Ptr userProperties,
                                             QFutureInterface<bool> &futureInterface,

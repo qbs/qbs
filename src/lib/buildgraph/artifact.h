@@ -48,6 +48,14 @@ class BuildProduct;
 class BuildProject;
 class Transformer;
 
+/**
+ * The Artifact class
+ *
+ * Let artifact P be the parent of artifact C. Thus C is child of P.
+ * C produces P using the transformer P.transformer.
+ *
+ *
+ */
 class Artifact : public PersistentObject
 {
 public:

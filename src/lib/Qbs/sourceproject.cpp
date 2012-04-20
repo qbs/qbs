@@ -149,27 +149,37 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
 
     try {
         int productCount = 0;
-        foreach (const qbs::Configuration::Ptr &configure, configurations) {
-            qbs::BuildProject::Ptr buildProject;
+        QHash<qbs::Configuration::Ptr, qbs::BuildProject::Ptr> buildProjectsPerConfig;
+        QHash<qbs::Configuration::Ptr, qbs::ResolvedProject::Ptr> resolvedProjectsPerConfig;
+        QHash<qbs::Configuration::Ptr, qbs::ProjectFile::Ptr> projectFilesPerConfig;
+        foreach (const qbs::Configuration::Ptr &configuration, configurations) {
             const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-            buildProject = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
-            if (!buildProject) {
-                if (!loader.hasLoaded())
-                    loader.loadProject(projectFileName);
-                productCount += loader.productCount(configure);
+            qbs::BuildProject::LoadResult loadResult;
+            loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configuration, d->searchPaths);
+            if (loadResult.loadedProject && !loadResult.discardLoadedProject) {
+                buildProjectsPerConfig.insert(configuration, loadResult.loadedProject);
+            } else if (loadResult.changedResolvedProject) {
+                productCount += loadResult.changedResolvedProject->products.count();
+                resolvedProjectsPerConfig.insert(configuration, loadResult.changedResolvedProject);
+            } else {
+                ProjectFile::Ptr projectFile = loader.loadProject(projectFileName);
+                projectFilesPerConfig.insert(configuration, projectFile);
+                productCount += loader.productCount(configuration);
             }
         }
+
         futureInterface.setProgressRange(0, productCount * 2);
 
-
-        foreach (const qbs::Configuration::Ptr &configure, configurations) {
-            qbs::BuildProject::Ptr buildProject;
-            const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-            buildProject = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
+        foreach (const qbs::Configuration::Ptr &configuration, configurations) {
+            qbs::BuildProject::Ptr buildProject = buildProjectsPerConfig.value(configuration);
             if (!buildProject) {
-                if (!loader.hasLoaded())
-                    loader.loadProject(projectFileName);
-                qbs::ResolvedProject::Ptr rProject = loader.resolveProject(buildDirectoryRoot, configure, futureInterface);
+                ResolvedProject::Ptr rProject = resolvedProjectsPerConfig.value(configuration);
+                if (!rProject) {
+                    ProjectFile::Ptr projectFile = projectFilesPerConfig.value(configuration);
+                    if (!projectFile)
+                        projectFile = loader.loadProject(projectFileName);
+                    rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configuration, futureInterface);
+                }
                 if (rProject->products.isEmpty())
                     throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
                 buildProject = d->buildGraph->resolveProject(rProject, futureInterface);
@@ -335,18 +345,27 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
         foreach (const qbs::Configuration::Ptr &configure, configurations) {
             qbs::BuildProject::Ptr bProject;
             const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-            bProject = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
+            qbs::BuildProject::LoadResult loadResult;
+            loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
+            if (!loadResult.discardLoadedProject)
+                bProject = loadResult.loadedProject;
             if (!bProject) {
                 QElapsedTimer timer;
                 timer.start();
                 if (!loader.hasLoaded())
                     loader.loadProject(projectFileName);
-                qbs::ResolvedProject::Ptr rProject = loader.resolveProject(buildDirectoryRoot, configure, futureInterface);
+                qbs::ResolvedProject::Ptr rProject;
+                if (loadResult.changedResolvedProject)
+                    rProject = loadResult.changedResolvedProject;
+                else
+                    rProject = loader.resolveProject(buildDirectoryRoot, configure, futureInterface);
                 if (rProject->products.isEmpty())
                     throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
                 qDebug() << "loading project took: " << timer.elapsed() << "ms";
                 timer.start();
                 bProject = d->buildGraph->resolveProject(rProject, futureInterface);
+                if (loadResult.loadedProject)
+                    bProject->rescueDependencies(loadResult.loadedProject);
                 qDebug() << "build graph took: " << timer.elapsed() << "ms";
             }
 

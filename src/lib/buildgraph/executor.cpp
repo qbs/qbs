@@ -631,6 +631,14 @@ void Executor::scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded)
     // clear file dependencies; they will be regenerated
     artifact->fileDependencies.clear();
 
+    // Remove all connections to children that do not belong to our transformer.
+    // They will be regenerated.
+    foreach (Artifact *dependency, artifact->children) {
+        if (artifact->transformer->inputs.contains(dependency))
+            continue;
+        BuildGraph::disconnect(artifact, dependency);
+    }
+
     QSet<Artifact*>::const_iterator it = artifact->transformer->inputs.begin();
     for (; it != artifact->transformer->inputs.end(); ++it) {
         Artifact *inputArtifact = *it;
