@@ -149,6 +149,10 @@ SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const
     if (!QFile::remove(qmakeOutputFilePath))
         qDebug("Failed to remove temporary file '%s', ignoring.", qPrintable(qmakeOutputFilePath));
     QStringList qmakeMessageLines = qmakeMessage.split(QLatin1Char('\n'), QString::SkipEmptyParts);
+    for (int i = qmakeMessageLines.count() - 1; i >= 0; --i) {
+        if (!qmakeMessageLines.at(i).startsWith(QLatin1String("Project MESSAGE:")))
+            qmakeMessageLines.removeAt(i);
+    }
     if (qmakeMessageLines.count() != sizeof flagsVars/sizeof *flagsVars)
         throw Exception(tr("Unexpected qmake output: '%1'").arg(qmakeMessage));
     for (int i = 0; i < qmakeMessageLines.count(); ++i) {
