@@ -64,8 +64,12 @@ void SpecialPlatformsSetup::setup()
     const QString configBaseDir = QString::fromLocal8Bit(runProcess(commandLine,
         QProcessEnvironment::systemEnvironment())).trimmed();
 
-    foreach (const PlatformInfo &pi, gatherPlatformInfo())
+    foreach (const PlatformInfo &pi, gatherPlatformInfo()) {
         writeConfigFile(pi, configBaseDir);
+        const QString registerCommandLine = QString::fromLocal8Bit("%1 config "
+                "--global profiles.%2.qbs.platform %2").arg(qbsPath, pi.name);
+        runProcess(registerCommandLine, QProcessEnvironment::systemEnvironment());
+    }
 }
 
 QString SpecialPlatformsSetup::helpString() const
@@ -196,8 +200,8 @@ void SpecialPlatformsSetup::writeConfigFile(const PlatformInfo &platformInfo,
         platformInfo.sysrootDir + QLatin1String("/usr/lib"));
     settings.setValue(QLatin1String("incPath"), platformInfo.qtIncDir);
     settings.setValue(QLatin1String("mkspecsPath"), platformInfo.qtMkspecsDir);
-    settings.setValue(QLatin1String("qtNamespace"), QString());
-    settings.setValue(QLatin1String("qtLibInfix"), QString());
+    settings.setValue(QLatin1String("namespace"), QString());
+    settings.setValue(QLatin1String("libInfix"), QString());
     settings.endGroup();
 
     settings.beginGroup(QLatin1String("environment"));
