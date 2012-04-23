@@ -182,7 +182,7 @@ CppModule {
                 args.push('--sysroot=' + product.module.sysroot)
             for (i in linkerFlags)
                 args.push('-Wl,' + linkerFlags[i])
-            if (product.consoleApplication !== undefined && qbs.toolchain === "mingw") {
+            if (product.consoleApplication !== undefined && product.modules.qbs.toolchain === "mingw") {
                 if (product.consoleApplication)
                     args.push("-Wl,-subsystem,console");
                 else
