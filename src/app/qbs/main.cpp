@@ -231,7 +231,8 @@ int main(int argc, char *argv[])
         return ExitCodeErrorExecutionFailed;
     }
 
-    if (options.command() == qbs::CommandLineOptions::RunCommand) {
+    if (options.command() == qbs::CommandLineOptions::RunCommand
+            && buildExecutor->buildResult() == Qbs::BuildExecutor::SuccessfulBuild) {
         Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
         Qbs::BuildProduct productToRun;
         QString productFileName;
@@ -248,7 +249,6 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
 
         if (!productToRun.isValid()) {
             if (options.runTargetName().isEmpty())
