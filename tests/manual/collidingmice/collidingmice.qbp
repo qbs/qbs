@@ -4,15 +4,9 @@ Application {
     name : "CollidingMice"
     destination: "bin"
 
-    Depends { id: qtcore; name: "Qt.core" }
     Depends {
-        condition: qtcore.versionMajor === 4
-        name: "Qt.gui"
-    }
-    Depends {
-        condition: qtcore.versionMajor === 5
         name: "Qt"
-        submodules: ["gui", "widgets"]
+        submodules: ["widgets"]
     }
 
     files : [
