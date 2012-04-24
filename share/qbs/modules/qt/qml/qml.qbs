@@ -3,8 +3,7 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: "qml"
-    condition: qtcore.versionMajor === 5
-    Depends { id: qtcore; name: "qt.core" }
+    condition: qt.core.versionMajor === 5
     Depends {
         name: "Qt"
         submodules: ["widgets", "script"]

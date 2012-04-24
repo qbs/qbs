@@ -6,16 +6,16 @@ Module {
     condition: false
 
     Depends { name: "cpp" }
-    Depends { id: qtcore; name: "Qt.core" }
+    Depends { name: "Qt.core" }
 
     property string qtModuleName
-    property string binPath: qtcore.binPath
-    property string incPath: qtcore.path ? FileInfo.joinPaths(qtcore.path, repository, "include") : qtcore.incPath
-    property string libPath: qtcore.libPath
-    property string qtLibInfix: qtcore.libInfix
-    property string repository: qtcore.versionMajor === 5 ? 'qtbase' : undefined
+    property string binPath: qt.core.binPath
+    property string incPath: qt.core.path ? FileInfo.joinPaths(qt.core.path, repository, "include") : qt.core.incPath
+    property string libPath: qt.core.libPath
+    property string qtLibInfix: qt.core.libInfix
+    property string repository: qt.core.versionMajor === 5 ? 'qtbase' : undefined
     property string internalQtModuleName: 'Qt' + qtModuleName
-    property string internalLibraryName: QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qtcore.versionMajor, qbs.targetOS, cpp.debugInformation)
+    property string internalLibraryName: QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qt.core.versionMajor, qbs.targetOS, cpp.debugInformation)
 
     Properties {
         condition: qtModuleName != undefined
@@ -23,7 +23,7 @@ Module {
         cpp.includePaths: {
             var paths = [incPath, FileInfo.joinPaths(incPath, internalQtModuleName)];
             if (qbs.targetOS === "mac")
-                paths.unshift(libPath + '/' + internalQtModuleName + qtLibInfix + '.framework/Versions/' + qtcore.versionMajor + '/Headers');
+                paths.unshift(libPath + '/' + internalQtModuleName + qtLibInfix + '.framework/Versions/' + qt.core.versionMajor + '/Headers');
             return paths;
         }
 

@@ -5,8 +5,6 @@ import '../QtModule.qbs' as QtModule
 QtModule {
     qtModuleName: "Gui"
 
-    Depends { id: qtcore; name: "Qt.core" }
-
     FileTagger {
         pattern: "*.ui"
         fileTags: ["ui"]
@@ -16,7 +14,7 @@ QtModule {
         inputs: ["ui"]
 
         Artifact {
-//  ### TODO we want to access the module's property "qtcore.generatedFilesDir" here. But without evaluating all available properties a priori.
+//  ### TODO we want to access the module's property "qt.core.generatedFilesDir" here. But without evaluating all available properties a priori.
 //            fileName: input.baseDir + '/qrc_' + input.baseName + '.cpp'
             fileName: 'GeneratedFiles/' + product.name + '/ui_' + input.baseName + '.h'
             fileTags: ["hpp"]

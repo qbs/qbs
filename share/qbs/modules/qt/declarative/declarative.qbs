@@ -3,8 +3,7 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: "Declarative"
-    condition: qtcore.versionMajor === 4
-    Depends { id: qtcore; name: "Qt.core" }
+    condition: qt.core.versionMajor === 4
     Depends {
         name: "Qt"
         submodules: ["gui", "network", "script", "xmlpatterns"]

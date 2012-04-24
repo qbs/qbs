@@ -2,9 +2,8 @@ import qbs.base 1.0
 import '../QtModule.qbs' as QtModule
 
 QtModule {
-    Depends { id: qtcore; name: "Qt.core" }
-    Depends { name: "qt.gui"; condition: qtcore.versionMajor === 4}
+    Depends { name: "qt.gui"; condition: qt.core.versionMajor === 4}
     qtModuleName: 'WebKit'
-    repository: qtcore.versionMajor === 5 ? 'qtwebkit' : undefined
+    repository: qt.core.versionMajor === 5 ? 'qtwebkit' : undefined
 }
 
