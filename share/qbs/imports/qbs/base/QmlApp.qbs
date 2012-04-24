@@ -2,14 +2,13 @@ import qbs.base 1.0
 
 Product {
     type: [qbs.targetOS == 'mac' ? "applicationbundle" : "application", "installed_content"]
-    Depends { id: qtcore; name: "Qt.core" }
-    Depends { name: "qt.declarative" }
+    Depends { name: "qt"; submodules: ["core", "declarative"] }
     Depends { name: "cpp" }
     property string appViewerPath: localPath + "/qmlapplicationviewer"
     cpp.includePaths: [appViewerPath]
 
     Group {
-        condition: qtcore.versionMajor === 4
+        condition: qt.core.versionMajor === 4
         files: [
             appViewerPath + "/qmlapplicationviewer_qt4.h",
             appViewerPath + "/qmlapplicationviewer_qt4.cpp"
@@ -17,7 +16,7 @@ Product {
     }
 
     Group {
-        condition: qtcore.versionMajor === 5
+        condition: qt.core.versionMajor === 5
         files: [
             appViewerPath + "/qmlapplicationviewer_qt5.h",
             appViewerPath + "/qmlapplicationviewer_qt5.cpp"
