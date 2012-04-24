@@ -44,6 +44,10 @@ Module {
         return paths;
     }
     cpp.libraryPaths: [libPath]
+    cpp.staticLibraries: {
+        if (qbs.targetOS === 'windows' && !product.consoleApplication)
+            return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + ".lib"];
+    }
     cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
     cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
     cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
