@@ -517,6 +517,12 @@ void Scope::dump(const QByteArray &aIndent) const
     printf("%s}\n", indent.constData());
 }
 
+void Scope::insertAndDeclareProperty(const QString &propertyName, const Property &property, PropertyDeclaration::Type propertyType)
+{
+    properties.insert(propertyName, property);
+    declarations.insert(propertyName, PropertyDeclaration(propertyName, propertyType));
+}
+
 EvaluationObject::EvaluationObject(LanguageObject *instantiatingObject)
 {
     instantiatingObject->file->registerEvaluationObject(this);
@@ -1080,8 +1086,7 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
                 if (!isArtifact)
                     moduleInstance->fallbackScope = module->object->scope;
                 moduleInstance->declarations = module->object->scope->declarations;
-                Property property(moduleInstance);
-                childEvObject->scope->properties.insert(module->id, property);
+                insertModulePropertyIntoScope(childEvObject->scope, module, moduleInstance);
             }
         }
 
@@ -1179,7 +1184,7 @@ void Loader::evaluatePropertyOptions(LanguageObject *object)
     }
 }
 
-Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const QString &moduleName,
+Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName,
                                ScopeChain::Ptr moduleBaseScope, const QVariantMap &userProperties,
                                const CodeLocation &dependsLocation)
 {
@@ -1238,20 +1243,44 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QString &moduleId, const
     const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin(); vmit != userModuleProperties.end(); ++vmit) {
         if (!module->object->scope->properties.contains(vmit.key()))
-            throw Error(tr("Unknown property: %1.%2").arg(module->id, vmit.key()));
+            throw Error(tr("Unknown property: %1.%2").arg(module->id.join("."), vmit.key()));
         module->object->scope->properties.insert(vmit.key(), Property(m_engine.toScriptValue(vmit.value())));
     }
 
     return module;
 }
 
+/**
+ * Set up the module and submodule properties in \a targetScope.
+ */
+void Loader::insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance)
+{
+    if (!moduleInstance)
+        moduleInstance = module->object->scope;
+
+    for (int i=0; i < module->id.count() - 1; ++i) {
+        const QString &currentModuleId = module->id.at(i);
+        Scope::Ptr superModuleScope;
+        Property p = targetScope->properties.value(currentModuleId);
+        if (p.isValid() && p.scope) {
+            superModuleScope = p.scope;
+        } else {
+            ProjectFile *owner = module->object->instantiatingObject()->file;
+            superModuleScope = Scope::create(&m_engine, currentModuleId, owner);
+            superModuleScope->properties.insert("name", Property(m_engine.toScriptValue(currentModuleId)));
+            targetScope->insertAndDeclareProperty(currentModuleId, Property(superModuleScope));
+        }
+        targetScope = superModuleScope;
+    }
+    targetScope->insertAndDeclareProperty(module->id.last(), Property(moduleInstance));
+}
+
 /// load all module.qbs files, checking their conditions
-Module::Ptr Loader::searchAndLoadModule(const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
+Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                                         const QVariantMap &userProperties, const CodeLocation &dependsLocation,
                                         const QStringList &extraSearchPaths)
 {
     Q_ASSERT(!moduleName.isEmpty());
-
     Module::Ptr module;
     QStringList searchPaths = extraSearchPaths;
 
@@ -1332,11 +1361,12 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     }
 
     if (loadBaseModule) {
-        Module::Ptr baseModule = searchAndLoadModule("qbs", "qbs", moduleScope, userProperties, CodeLocation(object->file->fileName));
+        Module::Ptr baseModule = searchAndLoadModule(QStringList("qbs"), QLatin1String("qbs"),
+                                                     moduleScope, userProperties, CodeLocation(object->file->fileName));
         if (!baseModule)
             throw Error(tr("Cannot load the qbs base module."));
         evaluationObject->modules.insert(baseModule->name, baseModule);
-        evaluationObject->scope->properties.insert(baseModule->id, Property(baseModule->object));
+        evaluationObject->scope->properties.insert(baseModule->id.first(), Property(baseModule->object));
     }
 
     foreach (LanguageObject *child, object->children) {
@@ -1350,7 +1380,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
                 }
                 m->dependsCount = 1;
                 evaluationObject->modules.insert(m->name, m);
-                evaluationObject->scope->properties.insert(m->id, Property(m->object));
+                insertModulePropertyIntoScope(evaluationObject->scope, m, m->object->scope);
             }
             evaluationObject->unknownModules.append(unknownModules);
         }
@@ -1385,7 +1415,7 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject, co
         conditionScope->properties.insert("project", projectProperty);
 
     foreach (Module::Ptr module, modules)
-        conditionScope->properties.insert(module->id, Property(module->object));
+        insertModulePropertyIntoScope(conditionScope, module);
 
     QScriptContext *context = m_engine.currentContext();
     const QScriptValue activationObject = context->activationObject();
@@ -1480,21 +1510,21 @@ QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChai
 
     QString moduleId = depends->id;
     if (moduleId.isEmpty())
-        moduleId = moduleName;
+        moduleId = moduleName.toLower();
 
     QStringList subModules;
     Binding subModulesBinding = depends->bindings.value(QStringList("submodules"));
     if (!subModulesBinding.valueSource.isNull())
         subModules = evaluate(&m_engine, subModulesBinding.valueSource).toVariant().toStringList();
 
-    QStringList fullModuleIds;
+    QList<QStringList> fullModuleIds;
     QStringList fullModuleNames;
     if (subModules.isEmpty()) {
-        fullModuleIds.append(moduleId);
+        fullModuleIds.append(moduleId.split(QLatin1Char('.')));
         fullModuleNames.append(moduleName.toLower().replace('.', "/"));
     } else {
         foreach (const QString &subModuleName, subModules) {
-            fullModuleIds.append(moduleId + "." + subModuleName);
+            fullModuleIds.append(QStringList() << moduleId << subModuleName);
             fullModuleNames.append(moduleName.toLower().replace('.', "/") + "/" + subModuleName.toLower().replace('.', "/"));
         }
     }
@@ -1959,6 +1989,16 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
     }
 }
 
+static Scope::Ptr moduleScopeById(Scope::Ptr scope, const QStringList &moduleId)
+{
+    for (int i = 0; i < moduleId.count(); ++i) {
+        scope = scope->properties.value(moduleId.at(i)).scope;
+        if (!scope)
+            break;
+    }
+    return scope;
+}
+
 static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, EvaluationObject *moduleContainer, Scope::Ptr objectScope)
 {
     QVariantMap values;
@@ -1968,11 +2008,11 @@ static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, Evaluatio
     {
         Module::Ptr module = it.value();
         const QString name = module->name;
-        const QString id = module->id;
+        const QStringList id = module->id;
         if (!id.isEmpty()) {
-            Scope::Ptr moduleScope = objectScope->properties.value(id).scope;
+            Scope::Ptr moduleScope = moduleScopeById(objectScope, id);
             if (!moduleScope)
-                moduleScope = moduleContainer->scope->properties.value(id).scope;
+                moduleScope = moduleScopeById(moduleContainer->scope, id);
             if (!moduleScope)
                 continue;
             modules.insert(name, evaluateAll(rproduct, moduleScope));
@@ -2747,7 +2787,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         it.next();
         if (productData.product->modules.contains(it.key()))
                 continue; // ### check if files equal
-        Module::Ptr module = loadModule(it.value(), QString(), it.key(), moduleScope, userProperties->value(),
+        Module::Ptr module = loadModule(it.value(), QStringList(), it.key(), moduleScope, userProperties->value(),
                                         CodeLocation(object->file->fileName));
         if (!module) {
             throw Error(tr("could not load module '%1' from file '%2' into product even though it was loaded into a submodule").arg(

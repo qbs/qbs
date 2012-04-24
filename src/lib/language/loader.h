@@ -262,6 +262,8 @@ public:
     QStringList stringListValue(const QString &name) const;
     QString verbatimValue(const QString &name) const;
     void dump(const QByteArray &indent) const;
+    void insertAndDeclareProperty(const QString &propertyName, const Property &property,
+                                  PropertyDeclaration::Type propertyType = PropertyDeclaration::Variant);
 
     QHash<QString, Property> properties;
     QHash<QString, PropertyDeclaration> declarations;
@@ -303,7 +305,7 @@ public:
     ProjectFile *file() const;
     void dump(QByteArray &indent);
 
-    QString id;
+    QStringList id;
     Scope::Ptr context;
     EvaluationObject *object;
     uint dependsCount;
@@ -355,11 +357,12 @@ protected:
     ProjectFile::Ptr parseFile(const QString &fileName);
 
     Scope::Ptr buildFileContext(ProjectFile *file);
-    Module::Ptr searchAndLoadModule(const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
+    Module::Ptr searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
                                     const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation,
                                     const QStringList &extraSearchPaths = QStringList());
-    Module::Ptr loadModule(ProjectFile *file, const QString &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
+    Module::Ptr loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                            const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation);
+    void insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance = Scope::Ptr());
     QList<Module::Ptr> evaluateDependency(LanguageObject *depends,
                                           ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
                                           QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties);
