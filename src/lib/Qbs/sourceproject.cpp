@@ -322,7 +322,7 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
 
         foreach (const QString &property, buildCfg.keys()) {
             QStringList nameElements = property.split('.');
-            if (nameElements.count() == 1) // ### Still need this because platform doesn't supply fully-qualified properties (yet), need to fix this
+            if (nameElements.count() == 1 && nameElements.first() != "project") // ### Still need this because platform doesn't supply fully-qualified properties (yet), need to fix this
                 nameElements.prepend("qbs");
             if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
                 QStringList newElements(QStringList(nameElements.mid(0, nameElements.count()-1)).join("/"));

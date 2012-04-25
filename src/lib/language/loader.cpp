@@ -2734,6 +2734,14 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
         fillEvaluationObjectBasics(localScope, object, evaluationObject);
 
+        // override properties from command line
+        const QVariantMap overriddenProperties = userProperties->value().value("project").toMap();
+        for (QVariantMap::const_iterator it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it) {
+            if (!evaluationObject->scope->properties.contains(it.key()))
+                throw Error(tr("No property '%1' in project scope.").arg(it.key()));
+            evaluationObject->scope->properties.insert(it.key(), Property(m_engine.toScriptValue(it.value())));
+        }
+
         // load referenced files
         foreach (const QString &reference, evaluationObject->scope->stringListValue("references")) {
 
