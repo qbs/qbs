@@ -27,7 +27,7 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
 function configFlags(config) {
     var args = [];
     // optimization:
-    if (config.module.debugInformation === 'on')
+    if (config.module.debugInformation)
         args.push('-g');
     if (config.module.optimization === 'fast')
         args.push('-O2');
