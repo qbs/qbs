@@ -121,7 +121,6 @@ protected:
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool run(QFutureInterface<bool> &futureInterface);
     qbs::FileTime timeStamp(Artifact *artifact);
-    bool isOutOfDate(Artifact *artifact, bool *fileExists);
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
@@ -130,7 +129,7 @@ protected:
     void addExecutorJobs(int jobNumber);
     void removeExecutorJobs(int jobNumber);
     bool runAutoMoc();
-    void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded);
+    void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded, bool printInfo = false);
     void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded);
     static Dependency resolveWithIncludePath(const QString &includePath, const QString &dependencyDirPath, const QString &dependencyFileName, BuildProduct *buildProduct);
     static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,

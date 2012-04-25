@@ -91,6 +91,8 @@ public:
     BuildState buildState;
 
     bool inputsScanned : 1;
+
+    // the following members are not serialized
     bool outOfDateCheckPerformed : 1;
     bool isOutOfDate : 1;
     bool isExistingFile : 1;

@@ -86,7 +86,10 @@ void Artifact::load(PersistentPool &pool, PersistentObjectData &data)
     fileTags = pool.idLoadStringSet(s);
     configuration = pool.idLoadS<Configuration>(s);
     transformer = pool.idLoadS<Transformer>(s);
-    s >> artifactType;
+    quint8 n;
+    s >> artifactType
+      >> n;
+    inputsScanned = n;
 }
 
 void Artifact::store(PersistentPool &pool, PersistentObjectData &data) const
@@ -96,7 +99,8 @@ void Artifact::store(PersistentPool &pool, PersistentObjectData &data) const
     s << pool.storeStringSet(fileTags);
     s << pool.store(configuration);
     s << pool.store(transformer);
-    s << artifactType;
+    s << artifactType
+      << static_cast<quint8>(inputsScanned);
 }
 
 } // namespace qbs

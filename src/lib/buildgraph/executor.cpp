@@ -177,7 +177,12 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
 
     // determine which artifacts are out of date
     const bool changedFilesProvided = !changedFiles.isEmpty();
-    if (!changedFilesProvided) {
+    if (changedFilesProvided) {
+        bool newDependencyAdded;
+        foreach (Artifact *artifact, changedArtifacts)
+            if (!artifact->inputsScanned && artifact->artifactType == Artifact::Generated)
+                scanInputArtifacts(artifact, &newDependencyAdded, true);
+    } else {
         doOutOfDateCheck();
     }
 
@@ -326,22 +331,6 @@ FileTime Executor::timeStamp(Artifact *artifact)
 
     m_timeStampCache.insert(artifact, result);
     return result;
-}
-
-bool Executor::isOutOfDate(Artifact *artifact, bool *fileExists)
-{
-    FileInfo fi(artifact->filePath());
-    *fileExists = fi.exists();
-    if (!*fileExists)
-        return true;
-
-    FileTime artifactTimeStamp = fi.lastModified();
-    foreach (Artifact *child, artifact->children) {
-        if (artifactTimeStamp < timeStamp(child))
-            return true;
-    }
-
-    return false;
 }
 
 void Executor::execute(Artifact *artifact)
@@ -620,7 +609,7 @@ static QStringList collectIncludePaths(const QVariantMap &modules)
     return QStringList(collectedPaths.toList());
 }
 
-void Executor::scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded)
+void Executor::scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded, bool printInfo)
 {
     *newDependencyAdded = false;
     if (artifact->inputsScanned)
@@ -643,8 +632,14 @@ void Executor::scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded)
     for (; it != artifact->transformer->inputs.end(); ++it) {
         Artifact *inputArtifact = *it;
         QStringList includePaths;
+
         foreach (const QString &fileTag, inputArtifact->fileTags) {
             QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(fileTag);
+
+            if (printInfo && !scanners.isEmpty())
+                qbsInfo() << DontPrintLogLevel
+                          << tr("scanning %1").arg(inputArtifact->fileName());
+
             foreach (ScannerPlugin *scanner, scanners) {
                 if (includePaths.isEmpty())
                     includePaths = collectIncludePaths(inputArtifact->configuration->value().value("modules").toMap());
@@ -932,10 +927,28 @@ void Executor::doOutOfDateCheck(Artifact *artifact)
 {
     if (artifact->outOfDateCheckPerformed)
         return;
-    bool fileExists;
-    if (isOutOfDate(artifact, &fileExists))
+
+    FileInfo fi(artifact->filePath());
+    artifact->isExistingFile = fi.exists();
+    if (!artifact->isExistingFile) {
         artifact->isOutOfDate = true;
-    artifact->isExistingFile = fileExists;
+    } else {
+        if (!artifact->inputsScanned && artifact->artifactType == Artifact::Generated) {
+            // The file exists but no dependency scan has been performed.
+            // This happens if the build graph is removed manually.
+            bool newDependencyAdded;
+            scanInputArtifacts(artifact, &newDependencyAdded, true);
+        }
+
+        FileTime artifactTimeStamp = fi.lastModified();
+        foreach (Artifact *child, artifact->children) {
+            if (artifactTimeStamp < timeStamp(child)) {
+                artifact->isOutOfDate = true;
+                break;
+            }
+        }
+    }
+
     artifact->outOfDateCheckPerformed = true;
     foreach (Artifact *child, artifact->children)
         doOutOfDateCheck(child);
