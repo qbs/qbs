@@ -76,6 +76,7 @@ using namespace QmlJS::AST;
 namespace qbs {
 
 const QString dumpIndent("  ");
+const QString moduleSearchSubDir = QLatin1String("modules");
 
 CodeLocation Binding::codeLocation() const
 {
@@ -665,6 +666,9 @@ static bool compare(const QStringList &list, const QString &value)
 void Loader::setSearchPaths(const QStringList &searchPaths)
 {
     m_searchPaths = searchPaths;
+    m_moduleSearchPaths.clear();
+    foreach (const QString &path, searchPaths)
+        m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 
 ProjectFile::Ptr Loader::loadProject(const QString &fileName)
@@ -694,6 +698,14 @@ Scope::Ptr Loader::buildFileContext(ProjectFile *file)
     evaluateImports(context, file->jsImports);
 
     return context;
+}
+
+bool Loader::existsModuleInSearchPath(const QString &moduleName)
+{
+    foreach (const QString &dirPath, m_moduleSearchPaths)
+        if (FileInfo(dirPath + QLatin1Char('/') + moduleName).exists())
+            return true;
+    return false;
 }
 
 void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
@@ -1283,10 +1295,7 @@ Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QStri
     Q_ASSERT(!moduleName.isEmpty());
     Module::Ptr module;
     QStringList searchPaths = extraSearchPaths;
-
-    const QString searchSubDir("modules");
-    foreach (const QString &path, m_searchPaths)
-        searchPaths += FileInfo::resolvePath(path, searchSubDir);
+    searchPaths.append(m_moduleSearchPaths);
 
     foreach (const QString &path, searchPaths) {
         QString dirPath = FileInfo::resolvePath(path, moduleName);
@@ -1300,7 +1309,7 @@ Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QStri
                 // On case sensitive file systems try to find the path.
                 QStringList subPaths = moduleName.split("/", QString::SkipEmptyParts);
                 QDir dir(path);
-                if (!dir.cd(searchSubDir))
+                if (!dir.cd(moduleSearchSubDir))
                     continue;
                 do {
                     QStringList lst = dir.entryList(QStringList(subPaths.takeFirst()), QDir::Dirs);
@@ -1831,6 +1840,30 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                 artifact->configuration = rproduct->configuration;
 
         rproject->products.insert(rproduct);
+    }
+
+    // Check, if the userProperties contain invalid items.
+    {
+        QSet<QString> allowedUserPropertyNames;
+        allowedUserPropertyNames << QLatin1String("project");
+        for (ProjectData::const_iterator it = products.constBegin(); it != products.constEnd(); ++it) {
+            const ResolvedProduct::Ptr &product = it.key();
+            allowedUserPropertyNames += product->name;
+            foreach (ResolvedModule::Ptr module, product->modules) {
+                allowedUserPropertyNames += module->name;
+                foreach (const QString &dependency, module->moduleDependencies)
+                    allowedUserPropertyNames += dependency;
+            }
+        }
+
+        for (QVariantMap::const_iterator it = userProperties->value().begin(); it != userProperties->value().end(); ++it) {
+            const QString &propertyName = it.key();
+            if (allowedUserPropertyNames.contains(propertyName))
+                continue;
+            if (existsModuleInSearchPath(propertyName))
+                continue;
+            throw Error(tr("%1 is not a product or a module.").arg(propertyName));
+        }
     }
 
     // Check all modules for unresolved dependencies.

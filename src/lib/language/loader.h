@@ -357,6 +357,7 @@ protected:
     ProjectFile::Ptr parseFile(const QString &fileName);
 
     Scope::Ptr buildFileContext(ProjectFile *file);
+    bool existsModuleInSearchPath(const QString &moduleName);
     Module::Ptr searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
                                     const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation,
                                     const QStringList &extraSearchPaths = QStringList());
@@ -417,6 +418,7 @@ private:
     static QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
 
     QStringList m_searchPaths;
+    QStringList m_moduleSearchPaths;
     QScriptEngine m_engine;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;

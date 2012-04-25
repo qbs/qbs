@@ -296,7 +296,7 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
             continue;
         }
         foreach (const QString &key, platform->settings.allKeys()) {
-            if (key == Platform::internalKey())
+            if (key.startsWith(Platform::internalKey()))
                 continue;
             QString fixedKey = key;
             int idx = fixedKey.lastIndexOf(QChar('/'));
