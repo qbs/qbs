@@ -391,6 +391,7 @@ protected:
     class ProductData
     {
     public:
+        QString originalProductName;
         EvaluationObject *product;
         QList<UnknownModule::Ptr> usedProducts;
         QList<UnknownModule::Ptr> usedProductsFromProductModule;

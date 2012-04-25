@@ -1848,7 +1848,9 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
         allowedUserPropertyNames << QLatin1String("project");
         for (ProjectData::const_iterator it = products.constBegin(); it != products.constEnd(); ++it) {
             const ResolvedProduct::Ptr &product = it.key();
+            const ProductData &productData = it.value();
             allowedUserPropertyNames += product->name;
+            allowedUserPropertyNames += productData.originalProductName;
             foreach (ResolvedModule::Ptr module, product->modules) {
                 allowedUserPropertyNames += module->name;
                 foreach (const QString &dependency, module->moduleDependencies)
@@ -2806,6 +2808,15 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         QString projectName = FileInfo::fileName(projectFileName);
         projectName.chop(4);
         nameProperty.value = m_engine.toScriptValue(projectName);
+    }
+
+    // override properties from command line
+    productData.originalProductName = evaluationObject->scope->stringValue("name");
+    const QVariantMap overriddenProperties = userProperties->value().value(productData.originalProductName).toMap();
+    for (QVariantMap::const_iterator it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it) {
+        if (!evaluationObject->scope->properties.contains(it.key()))
+            throw Error(tr("No property '%1' in product '%2'.").arg(it.key(), productData.originalProductName));
+        evaluationObject->scope->properties.insert(it.key(), Property(m_engine.toScriptValue(it.value())));
     }
 
     if (!object->id.isEmpty()) {
