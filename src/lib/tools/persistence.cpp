@@ -37,8 +37,8 @@
 
 #include "persistence.h"
 #include "fileinfo.h"
+#include <tools/logger.h>
 #include <QtCore/QDir>
-#include <stdio.h>
 
 namespace qbs {
 
@@ -64,6 +64,8 @@ bool PersistentPool::load(const QString &filePath, const LoadMode loadMode)
     if (magic != QBS_PERSISTENCE_MAGIC) {
         file.close();
         file.remove();
+        qbsInfo() << DontPrintLogLevel
+                  << "The build graph format changed. The build graph will be regenerated.";
         return false;
     }
 
