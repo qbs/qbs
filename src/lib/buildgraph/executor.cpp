@@ -875,6 +875,7 @@ void Executor::resetArtifactsToUntouched()
     foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
         foreach (Artifact *artifact, product->artifacts) {
             artifact->buildState = Artifact::Untouched;
+            artifact->outOfDateCheckPerformed = false;
             artifact->isExistingFile = false;
             artifact->isOutOfDate = false;
         }
