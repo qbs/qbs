@@ -768,7 +768,15 @@ void BuildGraph::removeArtifactAndExclusiveDependents(Artifact *artifact, QList<
     if (removedArtifacts)
         removedArtifacts->append(artifact);
     foreach (Artifact *parent, artifact->parents) {
-        if (parent->children.count() == 1)
+        bool removeParent = false;
+        disconnect(parent, artifact);
+        if (parent->children.isEmpty()) {
+            removeParent = true;
+        } else if (parent->transformer) {
+            parent->transformer->inputs.remove(artifact);
+            removeParent = parent->transformer->inputs.isEmpty();
+        }
+        if (removeParent)
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
     remove(artifact);
