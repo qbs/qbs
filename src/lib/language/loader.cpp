@@ -2837,8 +2837,15 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     QHashIterator<QString, ProjectFile *> it(moduleDependencies);
     while (it.hasNext()) {
         it.next();
-        if (productData.product->modules.contains(it.key()))
-                continue; // ### check if files equal
+
+        Module::Ptr moduleInProduct = productData.product->modules.value(it.key());
+        if (moduleInProduct) {
+            if (moduleInProduct->file() != it.value())
+                throw Error(tr("two different versions of '%1' were used: '%2' and '%3'").arg(
+                                it.key(), it.value()->fileName, moduleInProduct->file()->fileName));
+            continue;
+        }
+
         Module::Ptr module = loadModule(it.value(), QStringList(), it.key(), moduleScope, userProperties->value(),
                                         CodeLocation(object->file->fileName));
         if (!module) {
