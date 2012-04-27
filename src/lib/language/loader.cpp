@@ -1144,8 +1144,7 @@ void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
                 QFile file(fileName);
                 if (!file.open(QFile::ReadOnly)) {
                     QString msg = tr("Couldn't open js import '%1'.");
-                    // ### location
-                    throw Error(msg.arg(fileName));
+                    throw Error(msg.arg(fileName), importIt->location);
                     continue;
                 }
                 const QString source = QTextStream(&file).readAll();
@@ -2517,19 +2516,19 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
         QString as;
         if (isBase) {
             if (importId) {
-                // ### location
-                throw Error(Loader::tr("Import of qbs.base must have no 'as <Name>'"));
+                throw Error(Loader::tr("Import of qbs.base must have no 'as <Name>'"),
+                            toCodeLocation(fileName, import->importIdToken));
             }
         } else {
             if (!importId) {
-                // ### location
-                throw Error(Loader::tr("Imports require 'as <Name>'"));
+                throw Error(Loader::tr("Imports require 'as <Name>'"),
+                            toCodeLocation(fileName, import->importToken));
             }
 
             as = importId->asString();
             if (importAsNames.contains(as)) {
-                // ### location
-                throw Error(Loader::tr("Can't import into the same name more than once"));
+                throw Error(Loader::tr("Can't import into the same name more than once."),
+                            toCodeLocation(fileName, import->importIdToken));
             }
             importAsNames.insert(as);
         }
@@ -2582,7 +2581,6 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
                 }
             }
             if (!found) {
-                // ### location
                 throw Error(Loader::tr("import %1 not found").arg(importUri.join(".")),
                             toCodeLocation(fileName, import->fileNameToken));
             }
