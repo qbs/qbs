@@ -2318,7 +2318,7 @@ static QStringList toStringList(UiQualifiedId *qid)
     return result;
 }
 
-static CodeLocation location(const QString &fileName, SourceLocation location)
+static CodeLocation toCodeLocation(const QString &fileName, SourceLocation location)
 {
     return CodeLocation(fileName, location.startLine, location.startColumn);
 }
@@ -2340,7 +2340,7 @@ static void checkDuplicateBinding(LanguageObject *object, const QStringList &bin
     if (object->bindings.contains(bindingName)) {
         QString msg = Loader::tr("Duplicate binding for '%1'");
         throw Error(msg.arg(bindingName.join(".")),
-                    location(object->file->fileName, sourceLocation));
+                    toCodeLocation(object->file->fileName, sourceLocation));
     }
 }
 
@@ -2431,7 +2431,7 @@ static LanguageObject *bindObject(ProjectFile::Ptr file, const QString &source, 
     if (!ast->qualifiedTypeNameId || !ast->qualifiedTypeNameId->name)
         throw Error(Loader::tr("no prototype"));
     result->prototype = toStringList(ast->qualifiedTypeNameId);
-    result->prototypeLocation = location(file->fileName, ast->qualifiedTypeNameId->identifierToken);
+    result->prototypeLocation = toCodeLocation(file->fileName, ast->qualifiedTypeNameId->identifierToken);
 
     // resolve prototype if possible
     result->prototypeFileName = prototypeToFile.value(result->prototype);
