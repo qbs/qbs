@@ -2789,9 +2789,9 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
         return;
     } else if (evaluationObject->prototype != name_Product) {
-        QString msg = tr("unknown prototype '%1' - expected Product");
-        // ### location
-        throw Error(msg.arg(evaluationObject->prototype));
+        QString msg = tr("'%1' is not allowed here.");
+        throw Error(msg.arg(evaluationObject->prototype),
+                    evaluationObject->instantiatingObject()->prototypeLocation);
     }
 
     // set the 'path' and 'filePath' properties
