@@ -129,7 +129,8 @@ protected:
     void addExecutorJobs(int jobNumber);
     void removeExecutorJobs(int jobNumber);
     bool runAutoMoc();
-    void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded, bool printInfo = false);
+    void printScanningMessageOnce();
+    void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded);
     void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded);
     static Dependency resolveWithIncludePath(const QString &includePath, const QString &dependencyDirPath, const QString &dependencyFileName, BuildProduct *buildProduct);
     static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
@@ -146,6 +147,7 @@ private:
     ExecutorState m_state;
     BuildResult m_buildResult;
     bool m_keepGoing;
+    bool m_printScanningMessage;
     QList<BuildProject::Ptr> m_projectsToBuild;
     QList<BuildProduct::Ptr> m_productsToBuild;
     QList<Artifact *> m_roots;
