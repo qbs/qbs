@@ -1136,7 +1136,7 @@ void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
          importIt != jsImports.end(); ++importIt) {
 
         QScriptValue targetObject = m_engine.newObject();
-        foreach (const QString &fileName, importIt.value()) {
+        foreach (const QString &fileName, importIt->fileNames) {
             QScriptValue importResult = m_jsImports.value(fileName);
             if (importResult.isValid()) {
                 targetObject = importResult;
@@ -1159,7 +1159,7 @@ void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
             }
         }
 
-        target->properties.insert(importIt.key(), Property(targetObject));
+        target->properties.insert(importIt->scopeName, Property(targetObject));
     }
 }
 
@@ -2497,6 +2497,7 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
     collectPrototypes(path, QString(), &prototypeToFile);
 
     QSet<QString> importAsNames;
+    QHash<QString, JsImport> jsImports;
 
     for (QmlJS::AST::UiImportList *it = ast->imports; it; it = it->next) {
         QmlJS::AST::UiImport *import = it->import;
@@ -2545,7 +2546,10 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
                 collectPrototypes(name, as, &prototypeToFile);
             } else {
                 if (name.endsWith(".js", Qt::CaseInsensitive)) {
-                    file->jsImports[as].append(name);
+                    JsImport &jsImport = jsImports[as];
+                    jsImport.scopeName = as;
+                    jsImport.fileNames.append(name);
+                    jsImport.location = toCodeLocation(fileName, import->firstSourceLocation());
                 } else if (name.endsWith(".qbs", Qt::CaseInsensitive)) {
                     prototypeToFile.insert(QStringList(as), name);
                 } else {
@@ -2566,7 +2570,12 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
                     QDirIterator dirIter(resultPath, QStringList("*.js"));
                     while (dirIter.hasNext()) {
                         dirIter.next();
-                        file->jsImports[as].append(dirIter.filePath());
+                        JsImport &jsImport = jsImports[as];
+                        if (jsImport.scopeName.isNull()) {
+                            jsImport.scopeName = as;
+                            jsImport.location = toCodeLocation(fileName, import->firstSourceLocation());
+                        }
+                        jsImport.fileNames.append(dirIter.filePath());
                     }
                     found = true;
                     break;
@@ -2574,7 +2583,8 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
             }
             if (!found) {
                 // ### location
-                throw Error(Loader::tr("import %1 not found").arg(importUri.join(".")));
+                throw Error(Loader::tr("import %1 not found").arg(importUri.join(".")),
+                            toCodeLocation(fileName, import->fileNameToken));
             }
         }
     }
@@ -2583,6 +2593,7 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
     if (rootDef)
         file->root = bindObject(file, source, rootDef, prototypeToFile);
 
+    file->jsImports = jsImports.values();
     return file;
 }
 

@@ -61,12 +61,21 @@ QT_END_NAMESPACE
 namespace qbs {
 
 /**
-  * Represents JavaScript import.
-  * Key: scope name, Value: list of JS file names.
+  * Represents JavaScript import of the form
+  *    import 'fileOrDirectory' as scopeName
+  *
   * There can be several filenames per scope
   * if we import a whole directory.
   */
-typedef QHash<QString, QStringList> JsImports;
+class JsImport
+{
+public:
+    QString scopeName;
+    QStringList fileNames;
+    CodeLocation location;
+};
+
+typedef QList<JsImport> JsImports;
 
 class Rule;
 
@@ -277,6 +286,7 @@ private:
 } // namespace qbs
 
 QT_BEGIN_NAMESPACE
+Q_DECLARE_TYPEINFO(qbs::JsImport, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(qbs::RuleArtifact::Binding, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 

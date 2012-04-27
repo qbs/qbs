@@ -42,6 +42,23 @@
 #include <QtScript/QScriptValue>
 #include <algorithm>
 
+QT_BEGIN_NAMESPACE
+inline QDataStream& operator>>(QDataStream &stream, qbs::JsImport &jsImport)
+{
+    stream >> jsImport.scopeName
+           >> jsImport.fileNames
+           >> jsImport.location;
+    return stream;
+}
+
+inline QDataStream& operator<<(QDataStream &stream, const qbs::JsImport &jsImport)
+{
+    return stream << jsImport.scopeName
+                  << jsImport.fileNames
+                  << jsImport.location;
+}
+QT_END_NAMESPACE
+
 namespace qbs {
 
 QMutex Configuration::m_scriptValueCacheMutex;
@@ -379,12 +396,12 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
         // handle imports
         QScriptValue scriptValue;
         for (JsImports::const_iterator it = module->jsImports.begin(); it != module->jsImports.end(); ++it) {
-            foreach (const QString &fileName, it.value()) {
+            foreach (const QString &fileName, it->fileNames) {
                 QFile file(fileName);
                 if (!file.open(QFile::ReadOnly))
                     throw Error(QString("Can't open '%1'.").arg(fileName));
                 QScriptProgram program(file.readAll(), fileName);
-                scriptValue = addJSImport(scriptEngine, program, it.key());
+                scriptValue = addJSImport(scriptEngine, program, it->scopeName);
                 if (scriptValue.isError())
                     throw Error(scriptValue.toString());
             }
