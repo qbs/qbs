@@ -53,6 +53,7 @@ namespace qbs {
 
 class AutoMoc;
 class ExecutorJob;
+class ProgressObserver;
 class ScanResultCache;
 
 class Executor : public QObject
@@ -62,11 +63,13 @@ public:
     Executor(int maxJobs = 1);
     ~Executor();
 
-    void build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames, QFutureInterface<bool> &futureInterface);
+    void build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames);
+    void cancelBuild();
 
     enum ExecutorState {
         ExecutorIdle,
         ExecutorRunning,
+        ExecutorCanceled,
         ExecutorError
     };
 
@@ -75,6 +78,7 @@ public:
         FailedBuild
     };
 
+    void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
     void setRunOnceAndForgetModeEnabled(bool enabled) { m_runOnceAndForgetMode = enabled; }
     void setDryRun(bool b);
     void setKeepGoing(bool b) { m_keepGoing = b; }
@@ -119,7 +123,7 @@ protected:
     static bool isLeaf(Artifact *artifact);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
-    bool run(QFutureInterface<bool> &futureInterface);
+    bool run();
     qbs::FileTime timeStamp(Artifact *artifact);
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
@@ -141,6 +145,7 @@ protected:
 
 private:
     QScriptEngine *m_scriptEngine;
+    ProgressObserver *m_progressObserver;
     bool m_runOnceAndForgetMode;    // This is true for the command line version.
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
@@ -158,7 +163,6 @@ private:
 
     friend class ExecutorJob;
     int m_maximumJobNumber;
-    QFutureInterface<bool> *m_futureInterface; // TODO: its a hack
 };
 
 } // namespace qbs

@@ -38,6 +38,8 @@
 #include "ctrlchandler.h"
 #include <QtCore/QDebug>
 
+namespace qbs {
+
 Application::Application(int &argc, char **argv)
     : QCoreApplication(argc, argv)
 {
@@ -50,12 +52,12 @@ void Application::init()
     setApplicationName("qbs");
     setOrganizationName("Nokia");
     setOrganizationDomain("qt.nokia.com");
-
-    connect(&m_buildProjectFutureWatcher, SIGNAL(finished()), this, SLOT(quit()), Qt::QueuedConnection);
 }
 
 void Application::userInterrupt()
 {
     fprintf(stderr, "qbs terminated by user (pid=%u)\n", (uint)QCoreApplication::applicationPid());
-    m_buildProjectFutureWatcher.cancel();
+    m_executor.cancelBuild();
 }
+
+} // namespace qbs

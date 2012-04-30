@@ -46,6 +46,7 @@
 #include <tools/persistence.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/logger.h>
+#include <tools/progressobserver.h>
 #include <tools/scripttools.h>
 
 #include <QFileInfo>
@@ -103,6 +104,7 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
 }
 
 BuildGraph::BuildGraph()
+    : m_progressObserver(0)
 {
 }
 
@@ -309,6 +311,11 @@ void BuildGraph::detectCycle(Artifact *a)
 {
     QSet<Artifact *> done, currentBranch;
     detectCycle(a, done, currentBranch);
+}
+
+void BuildGraph::setProgressObserver(ProgressObserver *observer)
+{
+    m_progressObserver = observer;
 }
 
 void BuildGraph::detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch)
@@ -797,24 +804,26 @@ void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
         qbsWarning("Cannot remove '%s'.", qPrintable(artifact->filePath()));
 }
 
-BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject, QFutureInterface<bool> &futureInterface)
+BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
 {
     BuildProject::Ptr project = BuildProject::Ptr(new BuildProject(this));
     project->setResolvedProject(rProject);
     foreach (ResolvedProduct::Ptr rProduct, rProject->products) {
-        resolveProduct(project.data(), rProduct, futureInterface);
+        resolveProduct(project.data(), rProduct);
     }
     detectCycle(project.data());
     return project;
 }
 
-BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProduct::Ptr rProduct, QFutureInterface<bool> &futureInterface)
+BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProduct::Ptr rProduct)
 {
     BuildProduct::Ptr product = m_productCache.value(rProduct);
     if (product)
         return product;
 
-    futureInterface.setProgressValue(futureInterface.progressValue() + 1);
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue();
+
     product = BuildProduct::Ptr(new BuildProduct);
     m_productCache.insert(rProduct, product);
     product->project = project;
@@ -825,7 +834,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
         if (t2 == rProduct) {
             throw Error(tr("circular using"));
         }
-        BuildProduct::Ptr referencedProduct = resolveProduct(project, t2, futureInterface);
+        BuildProduct::Ptr referencedProduct = resolveProduct(project, t2);
         product->usings.append(referencedProduct.data());
     }
 
@@ -1253,8 +1262,7 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
         Loader ldr;
         ldr.setSearchPaths(loaderSearchPaths);
         ldr.loadProject(project->resolvedProject()->qbsFile);
-        QFutureInterface<bool> dummyFutureInterface;
-        ResolvedProject::Ptr changedProject = ldr.resolveProject(bg->buildDirectoryRoot(), cfg, dummyFutureInterface);
+        ResolvedProject::Ptr changedProject = ldr.resolveProject(bg->buildDirectoryRoot(), cfg);
         if (!changedProject) {
             QString msg("Trying to load '%1' failed.");
             throw Error(msg.arg(project->resolvedProject()->qbsFile));

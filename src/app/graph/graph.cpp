@@ -40,7 +40,6 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <tools/fileinfo.h>
-#include <tools/fakeconcurrent.h>
 #include <Qbs/sourceproject.h>
 
 #include <cassert>
@@ -194,10 +193,7 @@ int main(int argc, char *argv[])
     sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    qbs::FakeConcurrent::run(&qbs::SourceProject::loadProjectCommandLine,
-                             &sourceProject,
-                             options.projectFileName(),
-                             options.buildConfigurations());
+    sourceProject.loadProjectCommandLine(options.projectFileName(), options.buildConfigurations());
     foreach (const Qbs::Error &error, sourceProject.errors()) {
         qbsError() << error.toString();
         return 4;

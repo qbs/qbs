@@ -37,13 +37,10 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <Qbs/buildexecutor.h>
+#include <buildgraph/executor.h>
 #include <QtCore/QCoreApplication>
-#if QT_VERSION >= 0x050000
-#    include <QtConcurrent/QFutureWatcher>
-#else
-#    include <QtCore/QFutureWatcher>
-#endif
+
+namespace qbs {
 
 class Application : public QCoreApplication
 {
@@ -53,15 +50,15 @@ public:
 
     void init();
 
-    Qbs::BuildExecutor *buildExecutor() { return &m_buildExecutor; }
-    QFutureWatcher<bool> *buildProjectFutureWatcher() { return &m_buildProjectFutureWatcher; }
+    Executor *executor() { return &m_executor; }
 
 public slots:
     void userInterrupt();
 
 private:
-    Qbs::BuildExecutor m_buildExecutor;
-    QFutureWatcher<bool> m_buildProjectFutureWatcher;
+    Executor m_executor;
 };
+
+} // namespace qbs
 
 #endif // APPLICATION_H

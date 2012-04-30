@@ -45,7 +45,6 @@
 #include <tools/options.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
-#include <tools/fakeconcurrent.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/logsink.h>
@@ -73,7 +72,7 @@ enum ExitCode
 
 int main(int argc, char *argv[])
 {
-    Application app(argc, argv);
+    qbs::Application app(argc, argv);
     app.init();
 
     qbs::CommandLineOptions options;
@@ -163,11 +162,7 @@ int main(int argc, char *argv[])
     sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    QFuture<bool> loadProjectFuture = qbs::FakeConcurrent::run(&qbs::SourceProject::loadProjectCommandLine,
-                                                               &sourceProject,
-                                                               options.projectFileName(),
-                                                               options.buildConfigurations());
-    loadProjectFuture.waitForFinished();
+    sourceProject.loadProjectCommandLine(options.projectFileName(), options.buildConfigurations());
     foreach (const Qbs::Error &error, sourceProject.errors()) {
         qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
@@ -201,11 +196,13 @@ int main(int argc, char *argv[])
     }
 
     // execute the build graph
-    Qbs::BuildExecutor *buildExecutor = app.buildExecutor();
-    buildExecutor->setMaximumJobs(options.jobs());
-    buildExecutor->setRunOnceAndForgetModeEnabled(true);
-    buildExecutor->setKeepGoingEnabled(options.isKeepGoingSet());
-    buildExecutor->setDryRunEnabled(options.isDryRunSet());
+    qbs::Executor *executor = app.executor();
+    QObject::connect(executor, SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
+    QObject::connect(executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
+    executor->setMaximumJobs(options.jobs());
+    executor->setRunOnceAndForgetModeEnabled(true);
+    executor->setKeepGoing(options.isKeepGoingSet());
+    executor->setDryRun(options.isDryRunSet());
 
     QDir currentDir;
     QStringList absoluteNamesChangedFiles;
@@ -213,13 +210,11 @@ int main(int argc, char *argv[])
         absoluteNamesChangedFiles += QDir::fromNativeSeparators(currentDir.absoluteFilePath(fileName));
 
     int result = 0;
-    QFuture<bool> buildProjectFuture = qbs::FakeConcurrent::run(&Qbs::BuildExecutor::executeBuildProjects, buildExecutor,
-                                                         sourceProject.buildProjects(), absoluteNamesChangedFiles, options.selectedProductNames());
-    app.buildProjectFutureWatcher()->setFuture(buildProjectFuture);
+    executor->build(sourceProject.internalBuildProjects(), absoluteNamesChangedFiles, options.selectedProductNames());
     result = app.exec();
-    if (buildExecutor->state() == Qbs::BuildExecutor::ExecutorError)
+    if (executor->state() == qbs::Executor::ExecutorError)
         return ExitCodeErrorExecutionFailed;
-    if (buildExecutor->buildResult() != Qbs::BuildExecutor::SuccessfulBuild)
+    if (executor->buildResult() != qbs::Executor::SuccessfulBuild)
         result = ExitCodeErrorBuildFailure;
 
     // store the projects on disk
@@ -232,7 +227,7 @@ int main(int argc, char *argv[])
     }
 
     if (options.command() == qbs::CommandLineOptions::RunCommand
-            && buildExecutor->buildResult() == Qbs::BuildExecutor::SuccessfulBuild) {
+            && executor->buildResult() == qbs::Executor::SuccessfulBuild) {
         Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
         Qbs::BuildProduct productToRun;
         QString productFileName;
@@ -259,7 +254,6 @@ int main(int argc, char *argv[])
         }
 
         Qbs::RunEnvironment run(productToRun);
-
         return run.runTarget(productFileName, options.runArgs());
     }
 

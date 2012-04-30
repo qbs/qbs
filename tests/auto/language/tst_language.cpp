@@ -97,8 +97,7 @@ private slots:
         try {
             loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs");
             Configuration::Ptr cfg(new Configuration);
-            QFutureInterface<bool> futureInterface;
-            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg);
             QVERIFY(project);
             QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
 
@@ -168,8 +167,7 @@ private slots:
         try {
             loader->loadProject(SRCDIR "testdata/productconditions.qbs");
             Configuration::Ptr cfg(new Configuration);
-            QFutureInterface<bool> futureInterface;
-            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+            ResolvedProject::Ptr project = loader->resolveProject("someBuildDirectory", cfg);
             QVERIFY(project);
             QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
             QCOMPARE(products.count(), 3);
@@ -210,8 +208,7 @@ private slots:
             try {
                 loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
                 Configuration::Ptr cfg(new Configuration);
-                QFutureInterface<bool> futureInterface;
-                project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+                project = loader->resolveProject("someBuildDirectory", cfg);
                 QVERIFY(project);
             } catch (Error &e) {
                 exceptionCaught = true;
@@ -257,8 +254,7 @@ private slots:
             try {
                 loader->loadProject(SRCDIR "testdata/filetags.qbs");
                 Configuration::Ptr cfg(new Configuration);
-                QFutureInterface<bool> futureInterface;
-                project = loader->resolveProject("someBuildDirectory", cfg, futureInterface);
+                project = loader->resolveProject("someBuildDirectory", cfg);
                 QVERIFY(project);
             }
             catch (Error &e) {

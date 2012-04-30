@@ -53,11 +53,6 @@
 #include <QtCore/QVector>
 #include <QtCore/QVariant>
 #include <QtScript/QScriptEngine>
-#if QT_VERSION >= 0x050000
-#    include <QtConcurrent/QFutureInterface>
-#else
-#    include <QtCore/QFutureInterface>
-#endif
 
 namespace qbs {
 
@@ -158,6 +153,8 @@ private:
     bool m_dirty;
 };
 
+class ProgressObserver;
+
 /**
  * N artifact, T transformer, parent -> child
  * parent depends on child, child is a dependency of parent,
@@ -175,14 +172,15 @@ public:
     BuildGraph();
     ~BuildGraph();
 
-    BuildProject::Ptr resolveProject(ResolvedProject::Ptr, QFutureInterface<bool> &futureInterface);
-    BuildProduct::Ptr resolveProduct(BuildProject *, ResolvedProduct::Ptr, QFutureInterface<bool> &futureInterface);
+    BuildProject::Ptr resolveProject(ResolvedProject::Ptr);
+    BuildProduct::Ptr resolveProduct(BuildProject *, ResolvedProduct::Ptr);
 
     void dump(BuildProduct::Ptr) const;
     void applyRules(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag);
     static void detectCycle(BuildProject *project);
     static void detectCycle(Artifact *a);
 
+    void setProgressObserver(ProgressObserver *observer);
     void setOutputDirectoryRoot(const QString &buildDirectoryRoot) { m_outputDirectoryRoot = buildDirectoryRoot; }
     const QString &outputDirectoryRoot() const { return m_outputDirectoryRoot; }
     QString buildDirectoryRoot() const;
@@ -225,6 +223,7 @@ private:
     QScriptEngine *scriptEngine();
 
 private:
+    ProgressObserver *m_progressObserver;
     QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
     QHash<QThread *, QScriptEngine *> m_scriptEnginePerThread;
     QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;

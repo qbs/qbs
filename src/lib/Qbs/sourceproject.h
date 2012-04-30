@@ -40,6 +40,7 @@
 
 #include <language/language.h>
 #include <buildgraph/buildgraph.h>
+#include <tools/progressobserver.h>
 
 #include "buildproject.h"
 #include "error.h"
@@ -64,7 +65,7 @@ namespace Qbs {
 
 class SourceProjectPrivate;
 
-class SourceProject
+class SourceProject : protected qbs::ProgressObserver
 {
     friend class BuildProject;
 public:
@@ -80,8 +81,7 @@ public:
     void loadProjectIde(QFutureInterface<bool> &futureInterface,
                      const QString projectFileName,
                      const QList<QVariantMap> buildConfigs);
-    void loadProjectCommandLine(QFutureInterface<bool> &futureInterface,
-                     QString projectFileName,
+    void loadProjectCommandLine(QString projectFileName,
                      QList<QVariantMap> buildConfigs);
 
 
@@ -94,9 +94,15 @@ public:
     QString buildDirectoryRoot() const;
 
     QVector<BuildProject> buildProjects() const;
+    QList<qbs::BuildProject::Ptr> internalBuildProjects() const;
 
     QList<Qbs::Error> errors() const;
 
+protected:
+    // Implementation of qbs::ProgressObserver
+    void setProgressRange(int minimum, int maximum);
+    void setProgressValue(int value);
+    int progressValue();
 
 private: // functions
     QList<QSharedPointer<qbs::BuildProject> > toInternalBuildProjectList(const QVector<Qbs::BuildProject> &buildProjects) const;

@@ -44,6 +44,7 @@
 #include <tools/fileinfo.h>
 #include <tools/scripttools.h>
 #include <tools/logger.h>
+#include <tools/progressobserver.h>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSettings>
@@ -628,6 +629,7 @@ static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
 Loader::Loader()
+    : m_progressObserver(0)
 {
     m_settings = Settings::create();
 
@@ -654,6 +656,11 @@ Loader::Loader()
 
 Loader::~Loader()
 {
+}
+
+void Loader::setProgressObserver(ProgressObserver *observer)
+{
+    m_progressObserver = observer;
 }
 
 static bool compare(const QStringList &list, const QString &value)
@@ -1706,15 +1713,14 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
-ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot, Configuration::Ptr userProperties, QFutureInterface<bool> &futureInterface, bool resolveProductDependencies)
+ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot, Configuration::Ptr userProperties, bool resolveProductDependencies)
 {
     m_project = projectFile;
-    return resolveProject(buildDirectoryRoot, userProperties, futureInterface, resolveProductDependencies);
+    return resolveProject(buildDirectoryRoot, userProperties, resolveProductDependencies);
 }
 
 ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                                             Configuration::Ptr userProperties,
-                                            QFutureInterface<bool> &futureInterface,
                                             bool resolveProductDependencies)
 {
     if (qbsLogLevel(LoggerTrace))
@@ -1740,14 +1746,14 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
                     &globalFileTaggers,
                     userProperties,
                     scope,
-                    dummyModule,
-                    futureInterface);
+                    dummyModule);
 
     QSet<QString> uniqueStrings;
     QMultiMap<QString, ResolvedProduct::Ptr> resolvedProducts;
     QHash<ResolvedProduct::Ptr, ProductData>::iterator it = products.begin();
     for (; it != products.end(); ++it) {
-        futureInterface.setProgressValue(futureInterface.progressValue() + 1);
+        if (m_progressObserver)
+            m_progressObserver->incrementProgressValue();
         ResolvedProduct::Ptr rproduct = it.key();
         ProductData &data = it.value();
         Scope *productProps = data.product->scope.data();
@@ -2700,8 +2706,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                              QList<FileTagger::Ptr> *globalFileTaggers,
                              const Configuration::Ptr &userProperties,
                              const ScopeChain::Ptr &scope,
-                             const ResolvedModule::Ptr &dummyModule,
-                             QFutureInterface<bool> &futureInterface)
+                             const ResolvedModule::Ptr &dummyModule)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolve top-level " << object->file->fileName;
@@ -2767,7 +2772,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                             globalFileTaggers,
                             userProperties,
                             referencedFileScope,
-                            dummyModule, futureInterface);
+                            dummyModule);
         }
 
         // load children
@@ -2781,8 +2786,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                             globalFileTaggers,
                             userProperties,
                             childScope,
-                            dummyModule,
-                            futureInterface);
+                            dummyModule);
 
         return;
     } else if (evaluationObject->prototype == name_Rule) {

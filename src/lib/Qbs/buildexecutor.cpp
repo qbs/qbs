@@ -49,7 +49,8 @@ BuildExecutor::BuildExecutor()
       m_runOnceAndForgetModeEnabled(false),
       m_dryRun(false),
       m_keepGoing(false),
-      m_state(ExecutorIdle)
+      m_state(ExecutorIdle),
+      m_futureInterface(0)
 {
 }
 
@@ -135,6 +136,7 @@ void BuildExecutor::executeBuildProjects(QFutureInterface<bool> &futureInterface
 {
     QEventLoop eventLoop;
 
+    m_futureInterface = &futureInterface;
     m_state = ExecutorRunning;
     qbs::Executor executor(maximumJobs());
     executor.setRunOnceAndForgetModeEnabled(runOnceAndForgetModeIsEnabled());
@@ -144,13 +146,15 @@ void BuildExecutor::executeBuildProjects(QFutureInterface<bool> &futureInterface
     QObject::connect(&executor, SIGNAL(finished()), &eventLoop, SLOT(quit()), Qt::QueuedConnection);
     QObject::connect(&executor, SIGNAL(error()), &eventLoop, SLOT(quit()), Qt::QueuedConnection);
 
-    executor.build(toInternalBuildProjects(buildProjects), changedFiles, selectedProductNames, futureInterface);
+    executor.setProgressObserver(this);
+    executor.build(toInternalBuildProjects(buildProjects), changedFiles, selectedProductNames);
 
     eventLoop.exec();
 
     setState(static_cast<ExecutorState>(executor.state()));
     m_buildResult = static_cast<BuildResult>(executor.buildResult());
 
+    m_futureInterface = 0;
     if (futureInterface.resultCount() == 0)
         futureInterface.reportResult(true);
 }
@@ -164,6 +168,23 @@ BuildExecutor::ExecutorState BuildExecutor::state() const
 BuildExecutor::BuildResult BuildExecutor::buildResult() const
 {
     return m_buildResult;
+}
+
+void BuildExecutor::setProgressRange(int minimum, int maximum)
+{
+    if (m_futureInterface)
+        m_futureInterface->setProgressRange(minimum, maximum);
+}
+
+void BuildExecutor::setProgressValue(int value)
+{
+    if (m_futureInterface)
+        m_futureInterface->setProgressValue(value);
+}
+
+int BuildExecutor::progressValue()
+{
+    return m_futureInterface ? m_futureInterface->progressValue() : 0;
 }
 
 void BuildExecutor::setState(const BuildExecutor::ExecutorState &state)

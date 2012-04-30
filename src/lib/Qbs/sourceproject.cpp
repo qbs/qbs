@@ -56,6 +56,7 @@ public:
     QStringList searchPaths;
     QList<qbs::Configuration::Ptr> configurations;
 
+    QFutureInterface<bool> *futureInterface;
     QSharedPointer<qbs::BuildGraph> buildGraph;
     QVector<Qbs::BuildProject> buildProjects;
 
@@ -63,13 +64,15 @@ public:
     QList<Error> errors;
 
     QString buildDirectoryRoot;
-
+    int progressValue;
 };
 
 SourceProject::SourceProject()
     : d(new SourceProjectPrivate)
 {
     d->settings = qbs::Settings::create(); // fix it
+    d->progressValue = 0;
+    d->futureInterface = 0;
 }
 
 SourceProject::~SourceProject()
@@ -139,10 +142,12 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
     }
 
     qbs::Loader loader;
+    loader.setProgressObserver(this);
     loader.setSearchPaths(d->searchPaths);
     d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
-
+    d->buildGraph->setProgressObserver(this);
     d->buildGraph->setOutputDirectoryRoot(QFileInfo(projectFileName).absoluteDir().path());
+    d->futureInterface = &futureInterface;
 
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 
@@ -178,11 +183,11 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
                     ProjectFile::Ptr projectFile = projectFilesPerConfig.value(configuration);
                     if (!projectFile)
                         projectFile = loader.loadProject(projectFileName);
-                    rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configuration, futureInterface);
+                    rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configuration);
                 }
                 if (rProject->products.isEmpty())
                     throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
-                buildProject = d->buildGraph->resolveProject(rProject, futureInterface);
+                buildProject = d->buildGraph->resolveProject(rProject);
             }
 
             d->buildProjects.append(BuildProject(buildProject));
@@ -191,10 +196,12 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
     } catch (qbs::Error &error) {
         d->errors.append(Error(error));
         futureInterface.reportResult(false);
+        d->futureInterface = 0;
         return;
     }
 
     futureInterface.reportResult(true);
+    d->futureInterface = 0;
 }
 
 void warnLegacyConfig(const QString &aKey)
@@ -203,17 +210,15 @@ void warnLegacyConfig(const QString &aKey)
         qPrintable(QString(aKey).replace("/", ".")));
 }
 
-void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterface, QString projectFileName, QList<QVariantMap> buildConfigs)
+void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVariantMap> buildConfigs)
 {
     QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty()) {
         qbsFatal("No platforms configured. You must run 'qbs platforms probe' first.");
-        futureInterface.reportResult(false);
         return;
     }
     if (buildConfigs.isEmpty()) {
         qbsFatal("SourceProject::loadProject: no build configuration given.");
-        futureInterface.reportResult(false);
         return;
     }
     QList<qbs::Configuration::Ptr> configurations;
@@ -358,12 +363,12 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
                 if (loadResult.changedResolvedProject)
                     rProject = loadResult.changedResolvedProject;
                 else
-                    rProject = loader.resolveProject(buildDirectoryRoot, configure, futureInterface);
+                    rProject = loader.resolveProject(buildDirectoryRoot, configure);
                 if (rProject->products.isEmpty())
                     throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
                 qDebug() << "loading project took: " << timer.elapsed() << "ms";
                 timer.start();
-                bProject = d->buildGraph->resolveProject(rProject, futureInterface);
+                bProject = d->buildGraph->resolveProject(rProject);
                 if (loadResult.loadedProject)
                     bProject->rescueDependencies(loadResult.loadedProject);
                 qDebug() << "build graph took: " << timer.elapsed() << "ms";
@@ -389,13 +394,8 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
 
     } catch (qbs::Error &e) {
         d->errors.append(e);
-        futureInterface.reportResult(false);
         return;
     }
-
-    futureInterface.reportResult(true);
-
-
 }
 
 static QStringList buildGraphFilePaths(const QDir &buildDirectory)
@@ -449,9 +449,34 @@ QVector<BuildProject> SourceProject::buildProjects() const
     return d->buildProjects;
 }
 
+QList<qbs::BuildProject::Ptr> SourceProject::internalBuildProjects() const
+{
+    QList<qbs::BuildProject::Ptr> result;
+    foreach (const Qbs::BuildProject &buildProject, d->buildProjects)
+        result += buildProject.internalBuildProject();
+    return result;
+}
+
 QList<Error> SourceProject::errors() const
 {
     return d->errors;
+}
+
+void SourceProject::setProgressRange(int minimum, int maximum)
+{
+    if (d->futureInterface)
+        d->futureInterface->setProgressRange(minimum, maximum);
+}
+
+void SourceProject::setProgressValue(int value)
+{
+    if (d->futureInterface)
+        d->futureInterface->setProgressValue(value);
+}
+
+int SourceProject::progressValue()
+{
+    return d->futureInterface ? d->futureInterface->progressValue() : 0;
 }
 
 void SourceProject::loadBuildGraph(const QString &buildGraphPath, const qbs::FileTime &projectFileTimeStamp)

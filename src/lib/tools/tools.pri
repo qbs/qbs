@@ -14,8 +14,8 @@ HEADERS += \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
     $$PWD/coloredoutput.h \
-    $$PWD/fakeconcurrent.h \
-    $$PWD/platformglobals.h
+    $$PWD/platformglobals.h \
+    $$PWD/progressobserver.h
 
 SOURCES += \
     $$PWD/error.cpp \

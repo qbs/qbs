@@ -44,6 +44,7 @@
 #include <language/language.h>
 #include <tools/fileinfo.h>
 #include <tools/logger.h>
+#include <tools/progressobserver.h>
 #include <tools/scannerpluginmanager.h>
 
 #ifdef Q_OS_WIN32
@@ -58,12 +59,12 @@ static QHashDummyValue hashDummy;
 
 Executor::Executor(int maxJobs)
     : m_scriptEngine(0)
+    , m_progressObserver(0)
     , m_runOnceAndForgetMode(false)
     , m_state(ExecutorIdle)
     , m_buildResult(SuccessfulBuild)
     , m_keepGoing(false)
     , m_maximumJobNumber(maxJobs)
-    , m_futureInterface(0)
 {
     m_autoMoc = new AutoMoc;
     m_autoMoc->setScanResultCache(&m_scanResultCache);
@@ -84,12 +85,10 @@ Executor::~Executor()
     delete m_autoMoc;
 }
 
-void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames,
-                     QFutureInterface<bool> &futureInterface)
+void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames)
 {
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
-    m_futureInterface = &futureInterface;
     m_buildResult = SuccessfulBuild;
     bool success = true;
 
@@ -195,14 +194,24 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     if (success)
         initLeaves(changedArtifacts);
 
-    m_futureInterface->setProgressRange(0 , m_leaves.count());
+    if (m_progressObserver)
+        m_progressObserver->setProgressRange(0 , m_leaves.count());
 
     if (success) {
-        bool stillArtifactsToExecute = run(futureInterface);
+        bool stillArtifactsToExecute = run();
 
         if (!stillArtifactsToExecute)
             finish();
     }
+}
+
+void Executor::cancelBuild()
+{
+    if (m_state != ExecutorRunning)
+        return;
+    qbsInfo() << "Build canceled.";
+    setState(ExecutorCanceled);
+    cancelJobs();
 }
 
 void Executor::setDryRun(bool b)
@@ -286,16 +295,11 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
 /**
   * Returns true if there are still artifacts to traverse.
   */
-bool Executor::run(QFutureInterface<bool> &futureInterface)
+bool Executor::run()
 {
     while (m_state == ExecutorRunning) {
-        if (m_futureInterface->isCanceled()) {
-            qbsInfo() << "Build canceled.";
-            cancelJobs();
-            return false;
-        }
-
-        futureInterface.setProgressValue(futureInterface.progressValue() + 1);
+        if (m_progressObserver)
+            m_progressObserver->incrementProgressValue();
         if (m_leaves.isEmpty())
             return !m_processingJobs.isEmpty();
 
@@ -843,7 +847,7 @@ void Executor::onProcessSuccess()
     m_availableJobs.append(job);
     finishArtifact(processedArtifact);
 
-    if (m_state == ExecutorRunning && !run(*m_futureInterface))
+    if (m_state == ExecutorRunning && !run())
         finish();
 }
 

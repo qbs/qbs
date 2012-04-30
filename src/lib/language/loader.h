@@ -45,11 +45,6 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
-#if QT_VERSION >= 0x050000
-#    include <QtConcurrent/QFutureInterface>
-#else
-#    include <QtCore/QFutureInterface>
-#endif
 #include <QtScript/QScriptClass>
 #include <QtScript/QScriptEngine>
 
@@ -333,12 +328,15 @@ public:
     QList<LanguageObject *> objects;
 };
 
+class ProgressObserver;
+
 class Loader
 {
     Q_DECLARE_TR_FUNCTIONS(Loader)
 public:
     Loader();
     ~Loader();
+    void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
     ProjectFile::Ptr loadProject(const QString &fileName);
     bool hasLoaded() const { return m_project; }
@@ -346,11 +344,9 @@ public:
     ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile,
                                         const QString &buildDirectoryRoot,
                                         Configuration::Ptr userProperties,
-                                        QFutureInterface<bool> &futureInterface,
                                         bool resolveProductDependencies = true);
     ResolvedProject::Ptr resolveProject(const QString &buildDirectoryRoot,
                                         Configuration::Ptr userProperties,
-                                        QFutureInterface<bool> &futureInterface,
                                         bool resolveProductDependencies = true);
 
 protected:
@@ -407,8 +403,7 @@ protected:
                          QList<Rule::Ptr> *globalRules, QList<FileTagger::Ptr> *globalFileTaggers,
                          const Configuration::Ptr &userProperties,
                          const ScopeChain::Ptr &scope,
-                         const ResolvedModule::Ptr &dummyModule,
-                         QFutureInterface<bool> &futureInterface);
+                         const ResolvedModule::Ptr &dummyModule);
 
 private:
     static Loader *get(QScriptEngine *engine);
@@ -418,6 +413,7 @@ private:
 
     static QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
 
+    ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;
     QStringList m_moduleSearchPaths;
     QScriptEngine m_engine;

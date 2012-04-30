@@ -40,6 +40,7 @@
 #define QBS_BUILDEXECUTOR_H
 
 #include "buildproduct.h"
+#include <tools/progressobserver.h>
 
 #include <QtCore/QReadWriteLock>
 #if QT_VERSION >= 0x050000
@@ -55,7 +56,7 @@ namespace qbs {
 
 namespace Qbs {
 
-class BuildExecutor
+class BuildExecutor : protected qbs::ProgressObserver
 {
 public:
     BuildExecutor();
@@ -91,6 +92,12 @@ public:
     ExecutorState state() const;
     BuildResult buildResult() const;
 
+protected:
+    // Implementation of qbs::ProgressObserver
+    virtual void setProgressRange(int minimum, int maximum);
+    virtual void setProgressValue(int value);
+    virtual int progressValue();
+
 private: //functions
     void setState(const ExecutorState &state);
 
@@ -102,6 +109,7 @@ private:  // variables
     bool m_keepGoing;
     ExecutorState m_state;
     BuildResult m_buildResult;
+    QFutureInterface<bool> *m_futureInterface;
 };
 
 } // namespace Qbs
