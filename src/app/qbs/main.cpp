@@ -163,8 +163,9 @@ int main(int argc, char *argv[])
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
     sourceProject.loadProjectCommandLine(options.projectFileName(), options.buildConfigurations());
-    foreach (const Qbs::Error &error, sourceProject.errors()) {
-        qbsError() << error.toString();
+    if (!sourceProject.errors().isEmpty()) {
+        foreach (const Qbs::Error &error, sourceProject.errors())
+            qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
     }
 
