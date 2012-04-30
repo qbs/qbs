@@ -67,6 +67,7 @@ class SourceProjectPrivate;
 
 class SourceProject : protected qbs::ProgressObserver
 {
+    Q_DECLARE_TR_FUNCTIONS(SourceProject)
     friend class BuildProject;
 public:
     SourceProject();

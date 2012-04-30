@@ -214,11 +214,11 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
 {
     QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty()) {
-        qbsFatal("No platforms configured. You must run 'qbs platforms probe' first.");
+        d->errors.append(Error(tr("No platforms configured. You must run 'qbs platforms probe' first.")));
         return;
     }
     if (buildConfigs.isEmpty()) {
-        qbsFatal("SourceProject::loadProject: no build configuration given.");
+        d->errors.append(Error(tr("SourceProject::loadProject: no build configuration given.")));
         return;
     }
     QList<qbs::Configuration::Ptr> configurations;
