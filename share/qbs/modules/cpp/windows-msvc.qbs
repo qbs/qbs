@@ -212,4 +212,52 @@ CppModule {
             return cmd;
          }
     }
+
+    FileTagger {
+        pattern: "*.rc"
+        fileTags: ["rc"]
+    }
+
+    Rule {
+        inputs: ["rc"]
+
+        Artifact {
+            fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.baseName + ".res"
+            fileTags: ["obj"]
+        }
+
+        TransformProperties {
+            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
+            property var defines: ModUtils.appendAll(input, 'defines')
+        }
+
+        prepare: {
+            var args = [];
+            var i;
+            for (i in platformDefines) {
+                args.push('/d');
+                args.push(platformDefines[i]);
+            }
+            for (i in defines) {
+                args.push('/d');
+                args.push(defines[i]);
+            }
+
+            args = args.concat(['/fo', output.fileName, input.fileName]);
+            var cmd = new Command('rc', args);
+            cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
+            cmd.highlight = 'compiler';
+
+            // Remove the first two lines of stdout. That's the logo.
+            // Unfortunately there's no command line switch to turn that off.
+            cmd.stdoutFilterFunction = function(output) {
+                var idx = 0;
+                for (var i = 0; i < 3; ++i)
+                    idx = output.indexOf('\n', idx + 1);
+                return output.substr(idx + 1);
+            }
+
+            return cmd;
+        }
+    }
 }
