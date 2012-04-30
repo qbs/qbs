@@ -207,7 +207,7 @@ void SourceProject::loadProjectCommandLine(QFutureInterface<bool> &futureInterfa
 {
     QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty()) {
-        qbsFatal("no platforms configured. maybe you want to run 'qbs platforms probe' first.");
+        qbsFatal("No platforms configured. You must run 'qbs platforms probe' first.");
         futureInterface.reportResult(false);
         return;
     }
