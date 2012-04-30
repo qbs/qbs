@@ -1284,6 +1284,11 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
             oldProductNames += product->rProduct->name;
         foreach (const ResolvedProduct::Ptr &product, changedProject->products)
             newProductNames += product->name;
+        QSet<QString> addedProductNames = newProductNames - oldProductNames;
+        if (!addedProductNames.isEmpty()) {
+            loadResult->discardLoadedProject = true;
+            return;
+        }
         QSet<QString> removedProductsNames = oldProductNames - newProductNames;
         if (!removedProductsNames.isEmpty()) {
             foreach (const BuildProduct::Ptr &product, project->buildProducts())
