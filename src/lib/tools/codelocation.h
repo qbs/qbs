@@ -72,6 +72,7 @@ struct CodeLocation
 
 } // namespace qbs
 
+QT_BEGIN_NAMESPACE
 inline QDataStream &operator<< (QDataStream &s, const qbs::CodeLocation &o)
 {
     s << o.fileName;
@@ -87,5 +88,6 @@ inline QDataStream &operator>> (QDataStream &s, qbs::CodeLocation &o)
     s >> o.column;
     return s;
 }
+QT_END_NAMESPACE
 
 #endif // SOURCELOCATION_H
