@@ -244,11 +244,13 @@ LogWriter operator<<(LogWriter w, const QString &str)
 
 LogWriter operator<<(LogWriter w, const QStringList &strList)
 {
+    w.write('[');
     for (int i = 0; i < strList.size(); ++i) {
-        w << strList.at(i);
+        w.write(qPrintable(strList.at(i)));
         if (i != strList.size() - 1)
             w.write(", ");
     }
+    w.write(']');
     return w;
 }
 
