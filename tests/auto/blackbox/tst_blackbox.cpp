@@ -388,6 +388,22 @@ private slots:
         QCOMPARE(QFile::exists("build/debug/someapp/main.foo"), false);
     }
 
+    void trackAddMocInclude()
+    {
+        QDir::setCurrent(testDataDir + "/trackAddMocInclude");
+        if (QFile::exists("work"))
+            rmDirR("work");
+        QDir().mkdir("work");
+        ccp("before", "work");
+        QDir::setCurrent(testDataDir + "/trackAddMocInclude/work");
+        // The build must fail because the main.moc include is missing.
+        QVERIFY(runQbs() != 0);
+
+        QTest::qWait(1000); // for file systems with low resolution timestamps
+        ccp("../after", ".");
+        touch("main.cpp");
+        QCOMPARE(runQbs(), 0);
+    }
 };
 
 QTEST_MAIN(TestBlackbox)
