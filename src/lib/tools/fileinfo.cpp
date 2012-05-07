@@ -181,14 +181,6 @@ bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
     return regexp.exactMatch(fileName);
 }
 
-static QString resolveSymlinks(const QString &fileName)
-{
-    QFileInfo fi(fileName);
-    while (fi.isSymLink())
-        fi.setFile(fi.symLinkTarget());
-    return fi.absoluteFilePath();
-}
-
 #if defined(Q_OS_WIN)
 
 #include <qt_windows.h>
@@ -219,6 +211,14 @@ FileTime FileInfo::lastModified() const
 {
     return FileTime(*reinterpret_cast<const FileTime::InternalType*>(
         &z(m_stat)->ftLastWriteTime));
+}
+
+static QString resolveSymlinks(const QString &fileName)
+{
+    QFileInfo fi(fileName);
+    while (fi.isSymLink())
+        fi.setFile(fi.symLinkTarget());
+    return fi.absoluteFilePath();
 }
 
 QString applicationDirPath()
