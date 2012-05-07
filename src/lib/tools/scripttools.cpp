@@ -92,6 +92,15 @@ QScriptValue addJSImport(QScriptEngine *engine,
                          const QScriptProgram &program,
                          QScriptValue &targetObject)
 {
+    QSet<QString> globalPropertyNames;
+    {
+        QScriptValueIterator it(engine->globalObject());
+        while (it.hasNext()) {
+            it.next();
+            globalPropertyNames += it.name();
+        }
+    }
+
     engine->pushContext();
     QScriptValue result = engine->evaluate(program);
     QScriptValue activationObject = engine->currentContext()->activationObject();
@@ -112,6 +121,21 @@ QScriptValue addJSImport(QScriptEngine *engine,
     } else {
         targetObject = activationObject;
     }
+
+    // copy properties of the global object
+    QScriptValueIterator it(engine->globalObject());
+    while (it.hasNext()) {
+        it.next();
+        if (globalPropertyNames.contains(it.name()))
+            continue;
+
+        if (debugJSImports)
+            qDebug() << "inserting global property" << it.name() << it.value().toString();
+
+        targetObject.setProperty(it.name(), it.value());
+        it.remove();
+    }
+
     return result;
 }
 
