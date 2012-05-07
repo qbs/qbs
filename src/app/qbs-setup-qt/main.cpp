@@ -35,7 +35,6 @@
 **
 **************************************************************************/
 
-
 #include <QCoreApplication>
 #include <QtDebug>
 #include <QStringList>
@@ -44,11 +43,9 @@
 
 #include "setupqt.h"
 
-
 static void printWrongQMakePath()
 {
     std::cerr << QCoreApplication::translate("SetupQt", "Wrong qmake path!").toStdString() << std::endl;
-
 }
 
 static void printHelp()

@@ -57,7 +57,6 @@ static QStringList collectQmakePaths()
 {
     QStringList qmakePaths;
 
-
 #ifdef Q_OS_WIN
     const char pathSeparator = ';';
 #else
@@ -91,7 +90,6 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
         return false;
 
     return true;
-
 }
 
 QList<QtEnviroment> SetupQt::fetchEnviroments()
@@ -143,8 +141,6 @@ static QByteArray configVariable(const QByteArray &configContent, const QByteArr
             break;
     }
 
-    Q_ASSERT(success);
-
     if (success)
         return regularExpression.capturedTexts()[1].simplified().toLatin1();
 
@@ -187,7 +183,6 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnviroment.qtVersion = queryVariable(queryOutput, "QT_VERSION");
 
     QByteArray mkspecPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
-
     QByteArray qconfigContent = mkSpecContent(mkspecPath);
 
     qtEnviroment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
@@ -203,7 +198,6 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment &qtEnviroment)
 {
     QSettings qbsSettings(QLatin1String("Nokia"), QLatin1String("qbs"));
-
     QString settingsTemplate(qtVersionName + QLatin1String("/qt/core/%1"));
 
     qbsSettings.beginGroup(QLatin1String("profiles"));
