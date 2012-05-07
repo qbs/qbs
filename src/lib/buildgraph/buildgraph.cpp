@@ -781,6 +781,7 @@ void BuildGraph::removeArtifactAndExclusiveDependents(Artifact *artifact, QList<
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
+            m_artifactsThatMustGetNewTransformers += parent;
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.isEmpty();
         }
