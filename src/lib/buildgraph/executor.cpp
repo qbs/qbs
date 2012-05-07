@@ -965,6 +965,8 @@ void Executor::doOutOfDateCheck(Artifact *artifact)
     }
 
     artifact->outOfDateCheckPerformed = true;
+    if (artifact->isOutOfDate)
+        artifact->inputsScanned = false;
     foreach (Artifact *child, artifact->children)
         doOutOfDateCheck(child);
 }
