@@ -2074,7 +2074,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
 {
     const bool isGroup = product != group;
 
-    Configuration::Ptr configuration;
+    Configuration::Ptr configuration = rproduct->configuration;
 
     if (isGroup) {
         clearCachedValues();
@@ -2082,11 +2082,23 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
         if (!checkCondition(group))
             return;
 
-        // build configuration for this group
-        configuration = Configuration::Ptr(new Configuration);
-        configuration->setValue(evaluateModuleValues(rproduct, product, group->scope));
-    } else {
-        configuration = rproduct->configuration;
+        // Walk through all bindings and check if we set anything
+        // that required a separate config for this group.
+        bool createNewConfig = false;
+        for (int i = 0; i < group->objects.count() && !createNewConfig; ++i) {
+            foreach (const Binding &binding, group->objects.at(i)->bindings) {
+                if (binding.name.count() > 1 || !m_groupPropertyDeclarations.contains(binding.name.first())) {
+                    createNewConfig = true;
+                    break;
+                }
+            }
+        }
+
+        if (createNewConfig) {
+            // build configuration for this group
+            configuration = Configuration::Ptr(new Configuration);
+            configuration->setValue(evaluateModuleValues(rproduct, product, group->scope));
+        }
     }
 
     // Products can have 'files' but not 'fileTags'
