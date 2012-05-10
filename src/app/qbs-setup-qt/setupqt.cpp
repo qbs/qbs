@@ -190,7 +190,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnviroment.qtMinorVersion = configVariable(qconfigContent, "QT_MINOR_VERSION").toInt();
     qtEnviroment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnviroment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
-    qtEnviroment.qtLibaryInfix = configVariable(qconfigContent, "QT_LIBINFIX");
+    qtEnviroment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
     qtEnviroment.mkspec = mkSpecPath(mkspecsPath);
 
     return qtEnviroment;
@@ -208,7 +208,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     qbsSettings.setValue(settingsTemplate.arg("mkspecsPath"), qtEnviroment.mkspecsPath);
     qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     qbsSettings.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
-    qbsSettings.setValue(settingsTemplate.arg("libaryInfix"), qtEnviroment.qtLibaryInfix);
+    qbsSettings.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
     qbsSettings.endGroup();
 }
 
