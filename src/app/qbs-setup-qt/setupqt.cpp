@@ -170,28 +170,28 @@ static QString mkSpecPath(const QByteArray &mkspecsPath)
 
 QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
 {
-    QtEnviroment qtEnviroment;
+    QtEnviroment qtEnvironment;
     QByteArray queryOutput = qmakeQueryOutput(qmakePath);
 
-    qtEnviroment.installPrefixPath = queryVariable(queryOutput, "QT_INSTALL_PREFIX");
-    qtEnviroment.documentationPath = queryVariable(queryOutput, "QT_INSTALL_DOCS");
-    qtEnviroment.includePath = queryVariable(queryOutput, "QT_INSTALL_HEADERS");
-    qtEnviroment.libaryPath = queryVariable(queryOutput, "QT_INSTALL_LIBS");
-    qtEnviroment.binaryPath = queryVariable(queryOutput, "QT_INSTALL_BINS");
-    qtEnviroment.pluginPath = queryVariable(queryOutput, "QT_INSTALL_PLUGINS");
-    qtEnviroment.qmlImportPath = queryVariable(queryOutput, "QT_INSTALL_IMPORTS");
-    qtEnviroment.qtVersion = queryVariable(queryOutput, "QT_VERSION");
+    qtEnvironment.installPrefixPath = queryVariable(queryOutput, "QT_INSTALL_PREFIX");
+    qtEnvironment.documentationPath = queryVariable(queryOutput, "QT_INSTALL_DOCS");
+    qtEnvironment.includePath = queryVariable(queryOutput, "QT_INSTALL_HEADERS");
+    qtEnvironment.libaryPath = queryVariable(queryOutput, "QT_INSTALL_LIBS");
+    qtEnvironment.binaryPath = queryVariable(queryOutput, "QT_INSTALL_BINS");
+    qtEnvironment.pluginPath = queryVariable(queryOutput, "QT_INSTALL_PLUGINS");
+    qtEnvironment.qmlImportPath = queryVariable(queryOutput, "QT_INSTALL_IMPORTS");
+    qtEnvironment.qtVersion = queryVariable(queryOutput, "QT_VERSION");
 
     QByteArray mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
-    qtEnviroment.mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
+    qtEnvironment.mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
 
     QByteArray qconfigContent = mkSpecContent(mkspecsPath);
-    qtEnviroment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
-    qtEnviroment.qtMinorVersion = configVariable(qconfigContent, "QT_MINOR_VERSION").toInt();
-    qtEnviroment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
-    qtEnviroment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
-    qtEnviroment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
-    qtEnviroment.mkspec = mkSpecPath(mkspecsPath);
+    qtEnvironment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
+    qtEnvironment.qtMinorVersion = configVariable(qconfigContent, "QT_MINOR_VERSION").toInt();
+    qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
+    qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
+    qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
+    qtEnvironment.mkspec = mkSpecPath(mkspecsPath);
 
     return qtEnviroment;
 }
