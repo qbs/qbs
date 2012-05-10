@@ -866,7 +866,6 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     }
 
     // read manually added transformers
-    QList<Artifact *> transformerOutputs;
     foreach (const ResolvedTransformer::Ptr rtrafo, rProduct->transformers) {
         QList<Artifact *> inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
@@ -888,7 +887,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             outputArtifact->artifactType = Artifact::Generated;
             outputArtifact->transformer = transformer;
             transformer->outputs += outputArtifact;
-            transformerOutputs += outputArtifact;
+            product->targetArtifacts += outputArtifact;
             foreach (Artifact *inputArtifact, inputArtifacts)
                 safeConnect(outputArtifact, inputArtifact);
             foreach (const QString &fileTag, outputArtifact->fileTags)
@@ -922,10 +921,6 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
 
     foreach (Artifact *productArtifact, productArtifactCandidates) {
         product->targetArtifacts.insert(productArtifact);
-
-        foreach (Artifact *trafoOutputArtifact, transformerOutputs)
-            if (productArtifact != trafoOutputArtifact)
-                loggedConnect(productArtifact, trafoOutputArtifact);
     }
 
     project->addBuildProduct(product);
