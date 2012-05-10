@@ -624,6 +624,7 @@ static const uint hashName_Properties = qHash(name_Properties);
 static const uint hashName_PropertyOptions = qHash(name_PropertyOptions);
 static const uint hashName_Depends = qHash(name_Depends);
 QHash<QString, PropertyDeclaration> Loader::m_dependsPropertyDeclarations;
+QHash<QString, PropertyDeclaration> Loader::m_groupPropertyDeclarations;
 
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
@@ -651,6 +652,14 @@ Loader::Loader()
         depends += PropertyDeclaration("failureMessage", PropertyDeclaration::String);
         foreach (const PropertyDeclaration &pd, depends)
             m_dependsPropertyDeclarations.insert(pd.name, pd);
+
+        depends.clear();
+        depends += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+        depends += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        depends += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        depends += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        foreach (const PropertyDeclaration &pd, depends)
+            m_groupPropertyDeclarations.insert(pd.name, pd);
     }
 }
 
@@ -903,6 +912,7 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
     static QHash<QString, QList<PropertyDeclaration> > builtinDeclarations;
     if (builtinDeclarations.isEmpty()) {
         builtinDeclarations.insert(name_Depends, m_dependsPropertyDeclarations.values());
+        builtinDeclarations.insert(name_Group, m_groupPropertyDeclarations.values());
         PropertyDeclaration conditionProperty("condition", PropertyDeclaration::Boolean);
 
         QList<PropertyDeclaration> project;
@@ -929,13 +939,6 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
         fileTagger += PropertyDeclaration("pattern", PropertyDeclaration::String);
         fileTagger += PropertyDeclaration("fileTags", PropertyDeclaration::Variant);
         builtinDeclarations.insert(name_FileTagger, fileTagger);
-
-        QList<PropertyDeclaration> group;
-        group += conditionProperty;
-        group += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        group += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        group += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        builtinDeclarations.insert(name_Group, group);
 
         QList<PropertyDeclaration> artifact;
         artifact += conditionProperty;

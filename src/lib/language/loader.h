@@ -412,6 +412,7 @@ private:
     static QScriptValue js_configurationValue(QScriptContext *context, QScriptEngine *engine);
 
     static QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
+    static QHash<QString, PropertyDeclaration> m_groupPropertyDeclarations;
 
     ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;
