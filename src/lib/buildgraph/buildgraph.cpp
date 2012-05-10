@@ -922,13 +922,13 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
 
     foreach (Artifact *productArtifact, productArtifactCandidates) {
         product->targetArtifacts.insert(productArtifact);
-        project->addBuildProduct(product);
 
         foreach (Artifact *trafoOutputArtifact, transformerOutputs)
             if (productArtifact != trafoOutputArtifact)
                 loggedConnect(productArtifact, trafoOutputArtifact);
     }
 
+    project->addBuildProduct(product);
     return product;
 }
 
