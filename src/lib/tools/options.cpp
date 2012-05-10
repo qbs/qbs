@@ -96,7 +96,7 @@ void CommandLineOptions::printHelp()
          "      .............. specify a list of products to build\n"
          "\ngraph options:\n"
          "  -g  .............. show generation graph\n"
-         , stderr);
+         , stdout);
 }
 
 /**
