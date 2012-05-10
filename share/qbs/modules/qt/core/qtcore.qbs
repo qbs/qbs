@@ -11,9 +11,9 @@ Module {
     property string libInfix: ""
     property string path
     property string repository: versionMajor === 5 ? "qtbase" : undefined
-    property string binPath: path ? FileInfo.joinPaths(path, repository, "bin") : undefined
-    property string incPath: path ? FileInfo.joinPaths(path, repository, "include") : undefined
-    property string libPath: path ? FileInfo.joinPaths(path, repository, "lib") : undefined
+    property string binPath: path ? FileInfo.joinPaths(path, repoSubDir, "bin") : undefined
+    property string incPath: path ? FileInfo.joinPaths(path, repoSubDir, "include") : undefined
+    property string libPath: path ? FileInfo.joinPaths(path, repoSubDir, "lib") : undefined
     property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
@@ -21,7 +21,12 @@ Module {
     property var versionPatch: versionParts[2]
     property string mkspecsPath: path ? FileInfo.joinPaths(path, 'qtbase',  "mkspecs") : undefined
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
+    property bool isInstalled
+
+    // private properties
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
+    property string repoSubDir: isInstalled ? repository : undefined
+
     cpp.defines: {
         var defines = ["QT_CORE_LIB"];
         // ### QT_NO_DEBUG must be added if the current build variant is derived
