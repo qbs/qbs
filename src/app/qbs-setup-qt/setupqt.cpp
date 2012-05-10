@@ -38,6 +38,7 @@
 #include "setupqt.h"
 
 #include <QByteArrayMatcher>
+#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
@@ -193,11 +194,27 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
     qtEnvironment.mkspec = mkSpecPath(mkspecsPath);
 
-    return qtEnviroment;
+    qtEnvironment.isInstalled = true;
+    QFile qmakeCache(qtEnvironment.binaryPath + QLatin1String("/../.qmake.cache"));
+    if (qmakeCache.exists()) {
+        qtEnvironment.isInstalled = false;
+        qmakeCache.open(QFile::ReadOnly);
+        QRegExp rex("\\bQTDIR_build\\b");
+        QString content = QString::fromLocal8Bit(qmakeCache.readAll());
+        if (!content.contains(rex)) {
+            qWarning("You're setting up the build directory of a Qt that has been configured with -prefix.\n"
+                     "Just saying. Maybe this is what you want to do.");
+        }
+    }
+
+    return qtEnvironment;
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment &qtEnviroment)
 {
+    QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.").arg(qtVersionName);
+    printf("%s\n", qPrintable(msg));
+
     QSettings qbsSettings(QLatin1String("Nokia"), QLatin1String("qbs"));
     QString settingsTemplate(qtVersionName + QLatin1String("/qt/core/%1"));
 
@@ -209,6 +226,8 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     qbsSettings.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     qbsSettings.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
+    if (qtEnviroment.isInstalled)
+        qbsSettings.setValue(settingsTemplate.arg("isInstalled"), qtEnviroment.isInstalled);
     qbsSettings.endGroup();
 }
 

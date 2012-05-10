@@ -59,6 +59,7 @@ struct QtEnviroment {
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
+    bool isInstalled;
 };
 
 class SetupQt
