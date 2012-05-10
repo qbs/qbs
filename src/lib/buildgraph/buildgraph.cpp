@@ -919,10 +919,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
         throw Error(msg.arg(product->rProduct->name));
     }
 
-    foreach (Artifact *productArtifact, productArtifactCandidates) {
-        product->targetArtifacts.insert(productArtifact);
-    }
-
+    product->targetArtifacts += productArtifactCandidates;
     project->addBuildProduct(product);
     return product;
 }
