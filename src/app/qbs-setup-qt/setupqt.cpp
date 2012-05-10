@@ -158,13 +158,13 @@ static QByteArray qmakeConfContent(const QByteArray &mkSpecPath)
 }
 #endif
 
-static QString mkSpecPath(const QByteArray &mkSpecPath)
+static QString mkSpecPath(const QByteArray &mkspecsPath)
 {
 #ifdef Q_OS_WIN
-    return configVariable(qmakeConfContent(mkSpecPath), "QMAKESPEC_ORIGINAL");
+    return configVariable(qmakeConfContent(mkspecsPath), "QMAKESPEC_ORIGINAL");
 #else
-    Q_ASSERT(QFileInfo(mkSpecPath + "/default").isSymLink());
-    return QFileInfo(mkSpecPath + "/default").symLinkTarget();
+    Q_ASSERT(QFileInfo(mkspecsPath + "/default").isSymLink());
+    return QFileInfo(mkspecsPath + "/default").symLinkTarget();
 #endif
 }
 
@@ -182,15 +182,16 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnviroment.qmlImportPath = queryVariable(queryOutput, "QT_INSTALL_IMPORTS");
     qtEnviroment.qtVersion = queryVariable(queryOutput, "QT_VERSION");
 
-    QByteArray mkspecPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
-    QByteArray qconfigContent = mkSpecContent(mkspecPath);
+    QByteArray mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
+    qtEnviroment.mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
 
+    QByteArray qconfigContent = mkSpecContent(mkspecsPath);
     qtEnviroment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
     qtEnviroment.qtMinorVersion = configVariable(qconfigContent, "QT_MINOR_VERSION").toInt();
     qtEnviroment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnviroment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnviroment.qtLibaryInfix = configVariable(qconfigContent, "QT_LIBINFIX");
-    qtEnviroment.mkSpecPath = mkSpecPath(mkspecPath);
+    qtEnviroment.mkspec = mkSpecPath(mkspecsPath);
 
     return qtEnviroment;
 }
@@ -204,7 +205,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     qbsSettings.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
     qbsSettings.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libaryPath);
     qbsSettings.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);
-    qbsSettings.setValue(settingsTemplate.arg("mkspecsPath"), qtEnviroment.mkSpecPath);
+    qbsSettings.setValue(settingsTemplate.arg("mkspecsPath"), qtEnviroment.mkspecsPath);
     qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     qbsSettings.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     qbsSettings.setValue(settingsTemplate.arg("libaryInfix"), qtEnviroment.qtLibaryInfix);

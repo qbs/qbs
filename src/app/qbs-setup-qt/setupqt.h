@@ -53,8 +53,9 @@ struct QtEnviroment {
     QString pluginPath;
     QString qtLibaryInfix;
     QString qtNameSpace;
-    QString mkSpecPath;
+    QString mkspecsPath;
     QString qtVersion;
+    QString mkspec;
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
