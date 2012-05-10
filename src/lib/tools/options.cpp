@@ -66,6 +66,7 @@ CommandLineOptions::CommandLineOptions()
 
 void CommandLineOptions::printHelp()
 {
+    puts("qbs " QBS_VERSION "\n");
     fputs("usage: qbs [command] [options]\n"
          "\ncommands:\n"
          "  build  [variant] [property:value]\n"

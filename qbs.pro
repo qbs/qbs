@@ -1,4 +1,3 @@
-QBS_VERSION = 0.2.0
 TEMPLATE = subdirs
 CONFIG += ordered
 lib.file = src/lib/lib.pro
@@ -14,4 +13,5 @@ SUBDIRS += \
 OTHER_FILES += \
     doc/qbs.qdoc
 
+include(qbs_version.pri)
 include(doc/doc.pri)
