@@ -1853,7 +1853,9 @@ ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
     // Check, if the userProperties contain invalid items.
     {
         QSet<QString> allowedUserPropertyNames;
-        allowedUserPropertyNames << QLatin1String("project");
+        allowedUserPropertyNames
+            << QLatin1String("project")
+            << QLatin1String("environment");
         for (ProjectData::const_iterator it = products.constBegin(); it != products.constEnd(); ++it) {
             const ResolvedProduct::Ptr &product = it.key();
             const ProductData &productData = it.value();
