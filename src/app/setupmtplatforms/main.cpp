@@ -59,7 +59,7 @@ private:
     QStringList gatherMtPlatformNames();
     PlatformInfo gatherMtPlatformInfo(const QString &platform);
 
-    QString m_mtSubDir;
+    QString m_targetsDir;
 };
 
 
@@ -70,14 +70,7 @@ QString MtPlatformsSetup::defaultBaseDirectory() const
 
 QList<SpecialPlatformsSetup::PlatformInfo> MtPlatformsSetup::gatherPlatformInfo()
 {
-    // TODO: De-obfuscate.
-    const QStringList mtSubDirNames
-        = QDir(baseDirectory()).entryList(QStringList(QLatin1String("m*")));
-    if (mtSubDirNames.count() != 1) {
-        throw Exception(tr("Unexpected directory layout in '%1'.")
-            .arg(QDir::toNativeSeparators(baseDirectory())));
-    }
-    m_mtSubDir = baseDirectory() + QLatin1Char('/') + mtSubDirNames.first();
+    m_targetsDir = baseDirectory() + QLatin1String("/Targets");
 
     const QStringList &platformNames = gatherMtPlatformNames();
     if (platformNames.isEmpty()) {
@@ -94,13 +87,10 @@ QList<SpecialPlatformsSetup::PlatformInfo> MtPlatformsSetup::gatherPlatformInfo(
 QStringList MtPlatformsSetup::gatherMtPlatformNames()
 {
     QStringList platformNames;
-    QDirIterator dit(m_mtSubDir, QDir::Dirs | QDir::NoDotAndDotDot);
+    QDirIterator dit(m_targetsDir, QDir::Dirs | QDir::NoDotAndDotDot);
     while (dit.hasNext()) {
         dit.next();
-        const QFileInfo &fi = dit.fileInfo();
-        if (!fi.isDir() || fi.fileName() == QLatin1String("qttools"))
-            continue;
-        platformNames << fi.fileName();
+        platformNames << dit.fileName();
     }
     return platformNames;
 }
@@ -113,18 +103,18 @@ SpecialPlatformsSetup::PlatformInfo MtPlatformsSetup::gatherMtPlatformInfo(const
     if (!platformInfo.name.startsWith(platformNamePrefix))
         platformInfo.name.prepend(platformNamePrefix);
 
-    const QString platformDir = m_mtSubDir + QLatin1Char('/') + platform;
-    platformInfo.toolchainDir = platformDir + QLatin1String("/toolchain/bin");
+    const QString platformDir = m_targetsDir + QLatin1Char('/') + platform;
+    platformInfo.sysrootDir = platformDir + QLatin1String("/sysroot");
+    const QString hostToolsDir = platformInfo.sysrootDir + QLatin1String("/hosttools");
+    platformInfo.toolchainDir = hostToolsDir + QLatin1String("/toolchain/bin");
     QDir tcDir(platformInfo.toolchainDir);
     const QStringList &files = tcDir.entryList(QStringList(QLatin1String("*g++")), QDir::Files);
     if (files.count() != 1)
         throw Exception(tr("Unexpected toolchain directory contents."));
     platformInfo.compilerName = files.first();
-    platformInfo.sysrootDir = platformDir + QLatin1String("/sysroot");
-    const QString qtToolsDir = platformDir + QLatin1String("/qttools");
-    platformInfo.qtBinDir = qtToolsDir + QLatin1String("/bin");
+    platformInfo.qtBinDir = hostToolsDir + QLatin1String("/bin");
     platformInfo.qtIncDir = platformInfo.sysrootDir + QLatin1String("/usr/include/qt5");
-    platformInfo.qtMkspecsDir = qtToolsDir + QLatin1String("/share/qt5/mkspecs");
+    platformInfo.qtMkspecsDir = hostToolsDir + QLatin1String("/share/qt5/mkspecs");
 
     QTemporaryFile proFile;
     if (!proFile.open())
