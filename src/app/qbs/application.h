@@ -48,15 +48,17 @@ class Application : public QCoreApplication
 public:
     Application(int &argc, char **argv);
 
-    void init();
+    static Application *instance();
 
-    Executor *executor() { return &m_executor; }
+    void init();
+    void setExecutor(Executor *e);
+    Executor *executor() { return m_executor; }
 
 public slots:
     void userInterrupt();
 
 private:
-    Executor m_executor;
+    Executor *m_executor;
 };
 
 } // namespace qbs

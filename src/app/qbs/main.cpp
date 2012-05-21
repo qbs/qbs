@@ -197,38 +197,43 @@ int main(int argc, char *argv[])
     }
 
     // execute the build graph
-    qbs::Executor *executor = app.executor();
-    QObject::connect(executor, SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
-    QObject::connect(executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
-    executor->setMaximumJobs(options.jobs());
-    executor->setRunOnceAndForgetModeEnabled(true);
-    executor->setKeepGoing(options.isKeepGoingSet());
-    executor->setDryRun(options.isDryRunSet());
+    int exitCode = 0;
+    qbs::Executor::BuildResult buildResult = qbs::Executor::SuccessfulBuild;
+    {
+        QScopedPointer<qbs::Executor> executor(new qbs::Executor(options.jobs()));
+        app.setExecutor(executor.data());
+        QObject::connect(executor.data(), SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
+        QObject::connect(executor.data(), SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
+        executor->setRunOnceAndForgetModeEnabled(true);
+        executor->setKeepGoing(options.isKeepGoingSet());
+        executor->setDryRun(options.isDryRunSet());
 
-    QDir currentDir;
-    QStringList absoluteNamesChangedFiles;
-    foreach (const QString &fileName, options.changedFiles())
-        absoluteNamesChangedFiles += QDir::fromNativeSeparators(currentDir.absoluteFilePath(fileName));
+        QDir currentDir;
+        QStringList absoluteNamesChangedFiles;
+        foreach (const QString &fileName, options.changedFiles())
+            absoluteNamesChangedFiles += QDir::fromNativeSeparators(currentDir.absoluteFilePath(fileName));
 
-    int result = 0;
-    executor->build(sourceProject.internalBuildProjects(), absoluteNamesChangedFiles, options.selectedProductNames());
-    result = app.exec();
-    if (executor->state() == qbs::Executor::ExecutorError)
-        return ExitCodeErrorExecutionFailed;
-    if (executor->buildResult() != qbs::Executor::SuccessfulBuild)
-        result = ExitCodeErrorBuildFailure;
+        executor->build(sourceProject.internalBuildProjects(), absoluteNamesChangedFiles, options.selectedProductNames());
+        exitCode = app.exec();
+        app.setExecutor(0);
+        buildResult = executor->buildResult();
+        if (executor->state() == qbs::Executor::ExecutorError)
+            return ExitCodeErrorExecutionFailed;
+        if (buildResult != qbs::Executor::SuccessfulBuild)
+            exitCode = ExitCodeErrorBuildFailure;
 
-    // store the projects on disk
-    try {
-        foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
-            buildProject.storeBuildGraph();
-    } catch (qbs::Error &e) {
-        qbsError() << e.toString();
-        return ExitCodeErrorExecutionFailed;
+        // store the projects on disk
+        try {
+            foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
+                buildProject.storeBuildGraph();
+        } catch (qbs::Error &e) {
+            qbsError() << e.toString();
+            return ExitCodeErrorExecutionFailed;
+        }
     }
 
     if (options.command() == qbs::CommandLineOptions::RunCommand
-            && executor->buildResult() == qbs::Executor::SuccessfulBuild) {
+            && buildResult == qbs::Executor::SuccessfulBuild) {
         Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
         Qbs::BuildProduct productToRun;
         QString productFileName;
@@ -258,5 +263,5 @@ int main(int argc, char *argv[])
         return run.runTarget(productFileName, options.runArgs());
     }
 
-    return result;
+    return exitCode;
 }

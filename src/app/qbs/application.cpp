@@ -47,6 +47,11 @@ Application::Application(int &argc, char **argv)
     //installCtrlCHandler();
 }
 
+Application *Application::instance()
+{
+    return qobject_cast<Application *>(QCoreApplication::instance());
+}
+
 void Application::init()
 {
     setApplicationName("qbs");
@@ -54,10 +59,16 @@ void Application::init()
     setOrganizationDomain("qt.nokia.com");
 }
 
+void Application::setExecutor(Executor *e)
+{
+    m_executor = e;
+}
+
 void Application::userInterrupt()
 {
     fprintf(stderr, "qbs terminated by user (pid=%u)\n", (uint)QCoreApplication::applicationPid());
-    m_executor.cancelBuild();
+    if (m_executor)
+        m_executor->cancelBuild();
 }
 
 } // namespace qbs
