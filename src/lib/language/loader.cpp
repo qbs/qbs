@@ -131,7 +131,7 @@ LanguageObject::LanguageObject(const LanguageObject &other)
 LanguageObject::~LanguageObject()
 {
     if (!file->isDestructing())
-        file->registerLanguageObject(this);
+        file->unregisterLanguageObject(this);
 }
 
 Property::Property(LanguageObject *sourceObject)
