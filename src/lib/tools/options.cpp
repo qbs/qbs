@@ -475,7 +475,7 @@ QList<QVariantMap> CommandLineOptions::buildConfigurations() const
         currentName = m_settings->moduleValue("qbs/buildVariant", currentProfiles, "").toString();
     }
     if (currentName.isEmpty())
-        currentName = m_settings->value("defaults/buildvariant", "debug").toString();
+        currentName = m_settings->value("modules/qbs/buildvariant", "debug").toString();
     QVariantMap map = globalSet;
     inhaleValues(map, currentSet);
     if (!map.contains("qbs.buildVariant"))

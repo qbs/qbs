@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     QTextStream qstdout(stdout);
 
     qbs::Settings::Ptr settings = qbs::Settings::create();
-    QString defaultPlatform = settings->value("defaults/platform").toString();
+    QString defaultPlatform = settings->value("modules/qbs/platform").toString();
 
     QString localSettingsPath = qbs::Platform::configBaseDir();
     if (!localSettingsPath.endsWith(QLatin1Char('/')))
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
         bool firstRun = platforms.isEmpty();
         probe(localSettingsPath, platforms);
         if (firstRun && !platforms.isEmpty()) {
-            settings->setValue(qbs::Settings::Global, "defaults/platform", platforms.values().at(0)->name);
+            settings->setValue(qbs::Settings::Global, "modules/qbs/platform", platforms.values().at(0)->name);
         }
     }
     return 0;
