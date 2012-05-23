@@ -1074,9 +1074,8 @@ QString BuildGraph::resolveOutPath(const QString &path, BuildProduct *product) c
     return result;
 }
 
-void Transformer::load(PersistentPool &pool, PersistentObjectData &data)
+void Transformer::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
     rule = pool.idLoadS<Rule>(s);
     loadContainer(inputs, s, pool);
     loadContainer(outputs, s, pool);
@@ -1091,10 +1090,9 @@ void Transformer::load(PersistentPool &pool, PersistentObjectData &data)
     }
 }
 
-void Transformer::store(PersistentPool &pool, PersistentObjectData &data) const
+void Transformer::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
-    s << pool.store(rule);
+    pool.store(rule);
     storeContainer(inputs, s, pool);
     storeContainer(outputs, s, pool);
     s << commands.count();
@@ -1104,10 +1102,8 @@ void Transformer::store(PersistentPool &pool, PersistentObjectData &data) const
     }
 }
 
-void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
+void BuildProduct::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
-
     // artifacts
     int i;
     s >> i;
@@ -1158,38 +1154,35 @@ void BuildProduct::load(PersistentPool &pool, PersistentObjectData &data)
         usings += pool.idLoadS<BuildProduct>(s).data();
 }
 
-void BuildProduct::store(PersistentPool &pool, PersistentObjectData &data) const
+void BuildProduct::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
     s << artifacts.count();
 
     //artifacts
-    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
-        PersistentObjectId artifactId = pool.store(*i);
-        s << artifactId;
-    }
+    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++)
+        pool.store(*i);
 
     // edges
     for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
         Artifact * artifact = *i;
-        s << pool.store(artifact);
+        pool.store(artifact);
 
         s << artifact->parents.count();
         foreach (Artifact * n, artifact->parents)
-            s << pool.store(n);
+            pool.store(n);
         s << artifact->children.count();
         foreach (Artifact * n, artifact->children)
-            s << pool.store(n);
+            pool.store(n);
         s << artifact->fileDependencies.count();
         foreach (Artifact * n, artifact->fileDependencies)
-            s << pool.store(n);
+            pool.store(n);
         s << artifact->sideBySideArtifacts.count();
         foreach (Artifact *n, artifact->sideBySideArtifacts)
-            s << pool.store(n);
+            pool.store(n);
     }
 
     // other data
-    s << pool.store(rProduct);
+    pool.store(rProduct);
     storeContainer(targetArtifacts, s, pool);
     storeContainer(usings, s, pool);
 }
@@ -1228,8 +1221,7 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
     if (!pool.load(buildGraphFilePath))
         throw Error("Cannot load stored build graph.");
     project = BuildProject::Ptr(new BuildProject(bg));
-    PersistentObjectData data = pool.getData(0);
-    project->load(pool, data);
+    project->load(pool, pool.stream());
     project->resolvedProject()->configuration = Configuration::Ptr(new Configuration);
     project->resolvedProject()->configuration->setValue(pool.headData().projectConfig);
     loadResult->loadedProject = project;
@@ -1326,18 +1318,19 @@ BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minT
     LoadResult result;
     result.discardLoadedProject = false;
 
-    PersistentPool pool;
+    PersistentPool *pool = new PersistentPool;
     QString fileName;
     QStringList bgFiles = storedProjectFiles(bg);
     foreach (const QString &fn, bgFiles) {
-        if (!pool.load(fn, PersistentPool::LoadHeadData))
+        if (!pool->load(fn))
             continue;
-        PersistentPool::HeadData headData = pool.headData();
+        PersistentPool::HeadData headData = pool->headData();
         if (isConfigCompatible(cfg->value(), headData.projectConfig)) {
             fileName = fn;
             break;
         }
     }
+    delete pool;
 
     restoreBuildGraph(fileName, bg, minTimeStamp, cfg, loaderSearchPaths, &result);
     return result;
@@ -1355,10 +1348,9 @@ void BuildProject::store()
     PersistentPool::HeadData headData;
     headData.projectConfig = resolvedProject()->configuration->value();
     pool.setHeadData(headData);
-    PersistentObjectData data;
-    store(pool, data);
-    pool.setData(0, data);
-    pool.store(fileName);
+    pool.setupWriteStream(fileName);
+    store(pool, pool.stream());
+    pool.closeStream();
 }
 
 QString BuildProject::storedProjectFilePath(BuildGraph *bg, const QString &projectId)
@@ -1375,9 +1367,8 @@ QStringList BuildProject::storedProjectFiles(BuildGraph *bg)
     return result;
 }
 
-void BuildProject::load(PersistentPool &pool, PersistentObjectData &data)
+void BuildProject::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
     m_resolvedProject = pool.idLoadS<ResolvedProject>(s);
 
     int count;
@@ -1402,11 +1393,9 @@ void BuildProject::load(PersistentPool &pool, PersistentObjectData &data)
     }
 }
 
-void BuildProject::store(PersistentPool &pool, PersistentObjectData &data) const
+void BuildProject::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
-
-    s << pool.store(m_resolvedProject);
+    pool.store(m_resolvedProject);
     storeContainer(m_buildProducts, s, pool);
     storeContainer(m_dependencyArtifacts, s, pool);
 }

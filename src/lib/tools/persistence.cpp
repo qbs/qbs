@@ -39,10 +39,11 @@
 #include "fileinfo.h"
 #include <tools/logger.h>
 #include <QtCore/QDir>
+#include <QtCore/QScopedPointer>
 
 namespace qbs {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE0_0_1__8";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE0_0_1__9";
 
 PersistentPool::PersistentPool()
 {
@@ -50,41 +51,38 @@ PersistentPool::PersistentPool()
 
 PersistentPool::~PersistentPool()
 {
+    closeStream();
 }
 
-bool PersistentPool::load(const QString &filePath, const LoadMode loadMode)
+bool PersistentPool::load(const QString &filePath)
 {
-    QFile file(filePath);
-    if (!file.open(QFile::ReadOnly))
+    QScopedPointer<QFile> file(new QFile(filePath));
+    if (!file->open(QFile::ReadOnly))
         return false;
-    QDataStream s(&file);
 
+    m_stream.setDevice(file.data());
     QByteArray magic;
-    s >> magic;
+    m_stream >> magic;
     if (magic != QBS_PERSISTENCE_MAGIC) {
-        file.close();
-        file.remove();
+        file->close();
+        file->remove();
+        m_stream.setDevice(0);
         qbsInfo() << DontPrintLogLevel
                   << "The build graph format changed. The build graph will be regenerated.";
         return false;
     }
 
-    s >> m_headData.projectConfig;
-    if (loadMode == LoadHeadData)
-        return true;
-
-    s >> m_stringStorage;
-    m_inverseStringStorage.reserve(m_stringStorage.count());
-    for (int i = m_stringStorage.count(); --i >= 0;)
-        m_inverseStringStorage.insert(m_stringStorage.at(i), i);
-
-    s >> m_storage;
-    m_loadedRaw.reserve(m_storage.count());
-    m_loaded.reserve(m_storage.count());
+    m_stream >> m_headData.projectConfig;
+    file.take();
+    m_loadedRaw.clear();
+    m_loaded.clear();
+    m_storageIndices.clear();
+    m_stringStorage.clear();
+    m_inverseStringStorage.clear();
     return true;
 }
 
-bool PersistentPool::store(const QString &filePath)
+bool PersistentPool::setupWriteStream(const QString &filePath)
 {
     QString dirPath = FileInfo::path(filePath);
     if (!FileInfo::exists(dirPath))
@@ -94,131 +92,120 @@ bool PersistentPool::store(const QString &filePath)
     if (QFile::exists(filePath) && !QFile::remove(filePath))
         return false;
     Q_ASSERT(!QFile::exists(filePath));
-    QFile file(filePath);
-    if (!file.open(QFile::WriteOnly))
+    QScopedPointer<QFile> file(new QFile(filePath));
+    if (!file->open(QFile::WriteOnly))
         return false;
 
-    QDataStream s(&file);
-    s << QByteArray(QBS_PERSISTENCE_MAGIC);
-    s << m_headData.projectConfig;
-    s << m_stringStorage;
-    s << m_storage;
+    m_stream.setDevice(file.take());
+    m_stream << QByteArray(QBS_PERSISTENCE_MAGIC) << m_headData.projectConfig;
+    m_lastStoredObjectId = 0;
+    m_lastStoredStringId = 0;
     return true;
 }
 
-PersistentObjectId PersistentPool::store(PersistentObject *object)
+void PersistentPool::closeStream()
 {
-    if (!object)
-        return 0;
+    delete m_stream.device();
+    m_stream.setDevice(0);
+}
+
+void PersistentPool::store(PersistentObject *object)
+{
+    if (!object) {
+        m_stream << -1;
+        return;
+    }
     PersistentObjectId id = m_storageIndices.value(object, -1);
     if (id < 0) {
-        PersistentObjectData data;
-        id = qMax(m_storage.count(), m_maxReservedId + 1);
+        id = m_lastStoredObjectId++;
         m_storageIndices.insert(object, id);
-        m_storage.resize(id + 1);
-        m_storage[id] = data;
-        object->store(*this, data);
-        m_storage[id] = data;
+        m_stream << id;
+        object->store(*this, stream());
+    } else {
+        m_stream << id;
     }
-    return id;
 }
 
 void PersistentPool::clear()
 {
     m_loaded.clear();
-    m_storage.clear();
     m_storageIndices.clear();
     m_stringStorage.clear();
     m_inverseStringStorage.clear();
 }
 
-PersistentObjectData PersistentPool::getData(PersistentObjectId id) const
+QDataStream &PersistentPool::stream()
 {
-    return m_storage.at(id);
+    return m_stream;
 }
 
-void PersistentPool::setData(PersistentObjectId id, PersistentObjectData data)
-{
-    Q_ASSERT(id <= m_maxReservedId);
-    if (id >= m_storage.count())
-        m_storage.resize(id + 1);
-    m_storage[id] = data;
-}
-
-int PersistentPool::storeString(const QString &t)
+void PersistentPool::storeString(const QString &t)
 {
     int id = m_inverseStringStorage.value(t, -1);
     if (id < 0) {
-        id = m_stringStorage.count();
+        id = m_lastStoredStringId++;
         m_inverseStringStorage.insert(t, id);
-        m_stringStorage.append(t);
+        m_stream << id << t;
+    } else {
+        m_stream << id;
     }
-    return id;
 }
 
 QString PersistentPool::loadString(int id)
 {
-    if (id < 0 || id >= m_stringStorage.count())
-        throw Error(QString("storage error: no string id %1 stored.").arg(id));
+    if (id < 0)
+        throw Error("loadString with negative id called");
+
+    if (id >= m_stringStorage.count()) {
+        QString s;
+        m_stream >> s;
+        m_stringStorage.resize(id + 1);
+        m_stringStorage[id] = s;
+        return s;
+    }
 
     return m_stringStorage.at(id);
 }
 
-QString PersistentPool::idLoadString(QDataStream &s)
+QString PersistentPool::idLoadString()
 {
     int id;
-    s >> id;
+    m_stream >> id;
     return loadString(id);
 }
 
-QList<int> PersistentPool::storeStringSet(const QSet<QString> &t)
+void PersistentPool::storeStringSet(const QSet<QString> &t)
 {
-    QList<int> r;
-    r.reserve(t.count());
+    m_stream << t.count();
     foreach (const QString &s, t)
-        r += storeString(s);
-    return r;
+        storeString(s);
 }
 
-QSet<QString> PersistentPool::loadStringSet(const QList<int> &ids)
+QSet<QString> PersistentPool::idLoadStringSet()
 {
-    QSet<QString> r;
-    r.reserve(ids.count());
-    foreach (int id, ids)
-        r.insert(loadString(id));
-    return r;
-}
-
-QSet<QString> PersistentPool::idLoadStringSet(QDataStream &s)
-{
-    QList<int> list;
-    s >> list;
-    return loadStringSet(list);
-}
-
-QList<int> PersistentPool::storeStringList(const QStringList &t)
-{
-    QList<int> r;
-    r.reserve(t.count());
-    foreach (const QString &s, t)
-        r += storeString(s);
-    return r;
-}
-
-QStringList PersistentPool::loadStringList(const QList<int> &ids)
-{
-    QStringList result;
-    result.reserve(ids.count());
-    foreach (const int &id, ids)
-        result.append(loadString(id));
+    int i;
+    m_stream >> i;
+    QSet<QString> result;
+    for (; --i >= 0;)
+        result += idLoadString();
     return result;
 }
 
-QStringList PersistentPool::idLoadStringList(QDataStream &s)
+void PersistentPool::storeStringList(const QStringList &t)
 {
-    QList<int> list;
-    s >> list;
-    return loadStringList(list);
+    m_stream << t.count();
+    foreach (const QString &s, t)
+        storeString(s);
+}
+
+QStringList PersistentPool::idLoadStringList()
+{
+    int i;
+    m_stream >> i;
+    QStringList result;
+    for (; --i >= 0;)
+        result += idLoadString();
+    return result;
 }
 
 } // namespace qbs

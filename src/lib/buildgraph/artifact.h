@@ -103,8 +103,8 @@ public:
     QString fileName() const { return m_fileName.toString(); }
 
 private:
-    void load(PersistentPool &pool, PersistentObjectData &data);
-    void store(PersistentPool &pool, PersistentObjectData &data) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 
 private:
     QString m_filePath;

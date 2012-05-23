@@ -79,8 +79,8 @@ public:
     ArtifactList artifacts;
 
 private:
-    void load(PersistentPool &pool, PersistentObjectData &data);
-    void store(PersistentPool &pool, PersistentObjectData &data) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 
 private:
     mutable QList<Rule::Ptr> m_topSortedRules;
@@ -138,8 +138,8 @@ private:
                                   Configuration::Ptr configuration,
                                   const QStringList &loaderSearchPaths,
                                   LoadResult *loadResult);
-    void load(PersistentPool &pool, PersistentObjectData &data);
-    void store(PersistentPool &pool, PersistentObjectData &data) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
     void markDirty();
     void addBuildProduct(const BuildProduct::Ptr &product);
     void setResolvedProject(const ResolvedProject::Ptr & resolvedProject);

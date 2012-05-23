@@ -86,52 +86,47 @@ void Configuration::cacheScriptValue(QScriptEngine *scriptEngine, const QScriptV
     m_scriptValueCacheMutex.unlock();
 }
 
-void Configuration::load(PersistentPool &, PersistentObjectData &data)
+void Configuration::load(PersistentPool &, QDataStream &s)
 {
-    QDataStream s(data);
     s >> m_value;
 }
 
-void Configuration::store(PersistentPool &, PersistentObjectData &data) const
+void Configuration::store(PersistentPool &, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
     s << m_value;
 }
 
-void FileTagger::load(PersistentPool &pool, PersistentObjectData &data)
+void FileTagger::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
-    artifactExpression.setPattern(pool.idLoadString(s));
-    fileTags = pool.idLoadStringList(s);
+    Q_UNUSED(s);
+    artifactExpression.setPattern(pool.idLoadString());
+    fileTags = pool.idLoadStringList();
 }
 
-void FileTagger::store(PersistentPool &pool, PersistentObjectData &data) const
+void FileTagger::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
-    s << pool.storeString(artifactExpression.pattern());
-    s << pool.storeStringList(fileTags);
+    Q_UNUSED(s);
+    pool.storeString(artifactExpression.pattern());
+    pool.storeStringList(fileTags);
 }
 
-void SourceArtifact::load(PersistentPool &pool, PersistentObjectData &data)
+void SourceArtifact::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
     s >> absoluteFilePath;
     s >> fileTags;
     configuration = pool.idLoadS<Configuration>(s);
 }
 
-void SourceArtifact::store(PersistentPool &pool, PersistentObjectData &data) const
+void SourceArtifact::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
     s << absoluteFilePath;
     s << fileTags;
-    s << pool.store(configuration);
+    pool.store(configuration);
 }
 
-void RuleArtifact::load(PersistentPool &pool, PersistentObjectData &data)
+void RuleArtifact::load(PersistentPool &pool, QDataStream &s)
 {
     Q_UNUSED(pool);
-    QDataStream s(data);
     s >> fileScript;
     s >> fileTags;
 
@@ -146,10 +141,9 @@ void RuleArtifact::load(PersistentPool &pool, PersistentObjectData &data)
     }
 }
 
-void RuleArtifact::store(PersistentPool &pool, PersistentObjectData &data) const
+void RuleArtifact::store(PersistentPool &pool, QDataStream &s) const
 {
     Q_UNUSED(pool);
-    QDataStream s(&data, QIODevice::WriteOnly);
     s << fileScript;
     s << fileTags;
 
@@ -160,40 +154,36 @@ void RuleArtifact::store(PersistentPool &pool, PersistentObjectData &data) const
     }
 }
 
-void RuleScript::load(PersistentPool &, PersistentObjectData &data)
+void RuleScript::load(PersistentPool &, QDataStream &s)
 {
-    QDataStream s(data);
     s >> script;
     s >> location;
 }
 
-void RuleScript::store(PersistentPool &, PersistentObjectData &data) const
+void RuleScript::store(PersistentPool &, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
     s << script;
     s << location;
 }
 
-void ResolvedModule::load(PersistentPool &pool, PersistentObjectData &data)
+void ResolvedModule::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
-    name = pool.idLoadString(s);
-    moduleDependencies = pool.idLoadStringList(s);
-    setupBuildEnvironmentScript = pool.idLoadString(s);
-    setupRunEnvironmentScript = pool.idLoadString(s);
+    name = pool.idLoadString();
+    moduleDependencies = pool.idLoadStringList();
+    setupBuildEnvironmentScript = pool.idLoadString();
+    setupRunEnvironmentScript = pool.idLoadString();
     s >> jsImports
       >> setupBuildEnvironmentScript
       >> setupRunEnvironmentScript;
 }
 
-void ResolvedModule::store(PersistentPool &pool, PersistentObjectData &data) const
+void ResolvedModule::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
-    s << pool.storeString(name)
-      << pool.storeStringList(moduleDependencies)
-      << pool.storeString(setupBuildEnvironmentScript)
-      << pool.storeString(setupRunEnvironmentScript)
-      << jsImports
+    pool.storeString(name);
+    pool.storeStringList(moduleDependencies);
+    pool.storeString(setupBuildEnvironmentScript);
+    pool.storeString(setupRunEnvironmentScript);
+    s << jsImports
       << setupBuildEnvironmentScript
       << setupRunEnvironmentScript;
 }
@@ -213,9 +203,8 @@ QStringList Rule::outputFileTags() const
     return result;
 }
 
-void Rule::load(PersistentPool &pool, PersistentObjectData &data)
+void Rule::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
     script = pool.idLoadS<RuleScript>(s);
     module = pool.idLoadS<ResolvedModule>(s);
     s   >> jsImports
@@ -229,12 +218,11 @@ void Rule::load(PersistentPool &pool, PersistentObjectData &data)
     loadContainerS(artifacts, s, pool);
 }
 
-void Rule::store(PersistentPool &pool, PersistentObjectData &data) const
+void Rule::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
-    s   << pool.store(script)
-        << pool.store(module)
-        << jsImports
+    pool.store(script);
+    pool.store(module);
+    s   << jsImports
         << inputs
         << usings
         << explicitlyDependsOn
@@ -261,9 +249,8 @@ QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) cons
     return result;
 }
 
-void ResolvedProduct::load(PersistentPool &pool, PersistentObjectData &data)
+void ResolvedProduct::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
     s   >> fileTags
         >> name
         >> targetName
@@ -280,9 +267,8 @@ void ResolvedProduct::load(PersistentPool &pool, PersistentObjectData &data)
     loadContainerS(modules, s, pool);
 }
 
-void ResolvedProduct::store(PersistentPool &pool, PersistentObjectData &data) const
+void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
     s   << fileTags
         << name
         << targetName
@@ -291,7 +277,7 @@ void ResolvedProduct::store(PersistentPool &pool, PersistentObjectData &data) co
         << destinationDirectory
         << qbsFile;
 
-    s << pool.store(configuration);
+    pool.store(configuration);
     storeContainer(sources, s, pool);
     storeContainer(rules, s, pool);
     storeContainer(uses, s, pool);
@@ -462,9 +448,8 @@ void ResolvedProduct::setupRunEnvironment(QScriptEngine *scriptEngine, const QPr
     runEnvironment = getProcessEnvironment(scriptEngine, RunEnv, modules, configuration, project, systemEnvironment);
 }
 
-void ResolvedProject::load(PersistentPool &pool, PersistentObjectData &data)
+void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
     s >> id;
     s >> qbsFile;
 
@@ -479,15 +464,14 @@ void ResolvedProject::load(PersistentPool &pool, PersistentObjectData &data)
     }
 }
 
-void ResolvedProject::store(PersistentPool &pool, PersistentObjectData &data) const
+void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
     s << id;
     s << qbsFile;
 
     s << products.count();
     foreach (ResolvedProduct::Ptr product, products)
-        s << pool.store(product);
+        pool.store(product);
 }
 
 } // namespace qbs

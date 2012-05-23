@@ -79,11 +79,10 @@ void Artifact::setFilePath(const QString &filePath)
     FileInfo::splitIntoDirectoryAndFileName(m_filePath, &m_dirPath, &m_fileName);
 }
 
-void Artifact::load(PersistentPool &pool, PersistentObjectData &data)
+void Artifact::load(PersistentPool &pool, QDataStream &s)
 {
-    QDataStream s(data);
-    setFilePath(pool.idLoadString(s));
-    fileTags = pool.idLoadStringSet(s);
+    setFilePath(pool.idLoadString());
+    fileTags = pool.idLoadStringSet();
     configuration = pool.idLoadS<Configuration>(s);
     transformer = pool.idLoadS<Transformer>(s);
     quint8 n;
@@ -92,13 +91,12 @@ void Artifact::load(PersistentPool &pool, PersistentObjectData &data)
     inputsScanned = n;
 }
 
-void Artifact::store(PersistentPool &pool, PersistentObjectData &data) const
+void Artifact::store(PersistentPool &pool, QDataStream &s) const
 {
-    QDataStream s(&data, QIODevice::WriteOnly);
-    s << pool.storeString(m_filePath);
-    s << pool.storeStringSet(fileTags);
-    s << pool.store(configuration);
-    s << pool.store(transformer);
+    pool.storeString(m_filePath);
+    pool.storeStringSet(fileTags);
+    pool.store(configuration);
+    pool.store(transformer);
     s << artifactType
       << static_cast<quint8>(inputsScanned);
 }

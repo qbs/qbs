@@ -50,15 +50,14 @@
 namespace qbs {
 
 typedef int PersistentObjectId;
-typedef QByteArray PersistentObjectData;
 class PersistentPool;
 
 class PersistentObject
 {
 public:
     virtual ~PersistentObject() {}
-    virtual void load(PersistentPool &/*pool*/, PersistentObjectData &/*data*/) {}
-    virtual void store(PersistentPool &/*pool*/, PersistentObjectData &/*data*/) const {}
+    virtual void load(PersistentPool &, QDataStream &) {}
+    virtual void store(PersistentPool &, QDataStream &) const {}
 };
 
 class PersistentPool
@@ -72,14 +71,11 @@ public:
         QVariantMap projectConfig;
     };
 
-    enum LoadMode
-    {
-        LoadHeadData, LoadAll
-    };
-
-    bool load(const QString &filePath, const LoadMode loadMode = LoadAll);
-    bool store(const QString &filePath);
+    bool load(const QString &filePath);
+    bool setupWriteStream(const QString &filePath);
+    void closeStream();
     void clear();
+    QDataStream &stream();
 
     template <typename T>
     inline T *idLoad(QDataStream &s)
@@ -92,7 +88,7 @@ public:
     template <class T>
     inline T *loadRaw(PersistentObjectId id)
     {
-        if (id == 0)
+        if (id < 0)
             return 0;
 
         PersistentObject *obj = 0;
@@ -103,14 +99,10 @@ public:
             m_loadedRaw.resize(id + 1);
             for (; i < m_loadedRaw.count(); ++i)
                 m_loadedRaw[i] = 0;
-        }
-        if (!obj) {
-            if (id >= m_storage.count())
-                throw Error(QString("storage error: no id %1 stored.").arg(id).arg(m_storage.count()));
-            PersistentObjectData data = m_storage.at(id);
+
             obj = new T;
             m_loadedRaw[id] = obj;
-            obj->load(*this, data);
+            obj->load(*this, m_stream);
         }
 
         return static_cast<T*>(obj);
@@ -127,64 +119,57 @@ public:
     template <class T>
     inline QSharedPointer<T> load(PersistentObjectId id)
     {
-        if (id == 0)
+        if (id < 0)
             return QSharedPointer<T>();
 
         QSharedPointer<PersistentObject> obj;
-        if (id < m_loaded.count())
+        if (id < m_loaded.count()) {
             obj = m_loaded.value(id);
-        else
+        } else {
             m_loaded.resize(id + 1);
-        if (!obj) {
-            if (id >= m_storage.count())
-                throw Error(QString("storage error: no id %1 stored. I have that many: %2").arg(id).arg(m_storage.count()));
-
-            PersistentObjectData data = m_storage.at(id);
             T *t = new T;
             obj = QSharedPointer<PersistentObject>(t);
             m_loaded[id] = obj;
-            obj->load(*this, data);
+            obj->load(*this, m_stream);
         }
 
         return obj.staticCast<T>();
     }
 
     template <class T>
-    PersistentObjectId store(QSharedPointer<T> ptr)
+    void store(QSharedPointer<T> ptr)
     {
-        return store(ptr.data());
+        store(ptr.data());
     }
 
-    PersistentObjectId store(PersistentObject *object);
+    void store(PersistentObject *object);
 
-    int storeString(const QString &t);
+    void storeString(const QString &t);
     QString loadString(int id);
-    QString idLoadString(QDataStream &s);
+    QString idLoadString();
 
-    QList<int> storeStringSet(const QSet<QString> &t);
+    void storeStringSet(const QSet<QString> &t);
     QSet<QString> loadStringSet(const QList<int> &id);
-    QSet<QString> idLoadStringSet(QDataStream &s);
+    QSet<QString> idLoadStringSet();
 
-    QList<int> storeStringList(const QStringList &t);
+    void storeStringList(const QStringList &t);
     QStringList loadStringList(const QList<int> &ids);
-    QStringList idLoadStringList(QDataStream &s);
-
-    PersistentObjectData getData(PersistentObjectId) const;
-    void setData(PersistentObjectId, PersistentObjectData);
+    QStringList idLoadStringList();
 
     const HeadData &headData() const { return m_headData; }
     void setHeadData(const HeadData &hd) { m_headData = hd; }
 
 private:
-    static const int m_maxReservedId = 0;
+    QDataStream m_stream;
     HeadData m_headData;
     QVector<PersistentObject *> m_loadedRaw;
     QVector<QSharedPointer<PersistentObject> > m_loaded;
-    QVector<PersistentObjectData> m_storage;
     QHash<PersistentObject *, int> m_storageIndices;
+    PersistentObjectId m_lastStoredObjectId;
 
     QVector<QString> m_stringStorage;
     QHash<QString, int> m_inverseStringStorage;
+    PersistentObjectId m_lastStoredStringId;
 };
 
 template<typename T> struct RemovePointer { typedef T Type; };
@@ -219,7 +204,7 @@ void storeContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
     typename T::const_iterator it = container.constBegin();
     const typename T::const_iterator itEnd = container.constEnd();
     for (; it != itEnd; ++it)
-        s << pool.store(*it);
+        pool.store(*it);
 }
 
 template <typename T>
@@ -227,7 +212,7 @@ void storeHashContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
 {
     s << container.count();
     foreach (const typename T::mapped_type &item, container)
-        s << pool.store(item);
+        pool.store(item);
 }
 
 } // namespace qbs

@@ -90,8 +90,8 @@ public:
     void cacheScriptValue(QScriptEngine *scriptEngine, const QScriptValue &scriptValue);
 
 private:
-    void load(qbs::PersistentPool &, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &, QDataStream &s);
+    void store(qbs::PersistentPool &, QDataStream &s) const;
 
 private:
     QVariantMap m_value;
@@ -111,8 +111,8 @@ public:
     {}
 
 private:
-    void load(qbs::PersistentPool &, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &, QDataStream &s);
+    void store(qbs::PersistentPool &, QDataStream &s) const;
 };
 
 class RuleArtifact : public qbs::PersistentObject
@@ -132,8 +132,8 @@ public:
     QVector<Binding> bindings;
 
 private:
-    void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &pool, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
 class SourceArtifact : public qbs::PersistentObject
@@ -145,8 +145,8 @@ public:
     Configuration::Ptr configuration;
 
 private:
-    void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &pool, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
 class RuleScript: public qbs::PersistentObject
@@ -157,8 +157,8 @@ public:
     qbs::CodeLocation location;
 
 private:
-    void load(qbs::PersistentPool &, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &, QDataStream &s);
+    void store(qbs::PersistentPool &, QDataStream &s) const;
 };
 
 class ResolvedModule : public qbs::PersistentObject
@@ -172,8 +172,8 @@ public:
     QString setupRunEnvironmentScript;
 
 private:
-    void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &pool, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
 /**
@@ -217,8 +217,8 @@ public:
     }
 
 private:
-    void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &pool, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
 class ResolvedTransformer
@@ -265,8 +265,8 @@ public:
     void setupRunEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
 
 private:
-    void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &pool, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
 class ResolvedProject: public qbs::PersistentObject
@@ -279,8 +279,8 @@ public:
     Configuration::Ptr configuration;
 
 private:
-    void load(qbs::PersistentPool &pool, qbs::PersistentObjectData &data);
-    void store(qbs::PersistentPool &pool, qbs::PersistentObjectData &data) const;
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
 } // namespace qbs

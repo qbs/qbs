@@ -76,8 +76,8 @@ public:
     void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
 
 private:
-    void load(PersistentPool &pool, PersistentObjectData &data);
-    void store(PersistentPool &pool, PersistentObjectData &data) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
 } // namespace qbs
