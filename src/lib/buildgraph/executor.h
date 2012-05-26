@@ -43,7 +43,6 @@
 #include <buildgraph/artifact.h>
 #include <Qbs/processoutput.h>
 #include <tools/settings.h>
-#include <tools/scannerpluginmanager.h>
 #include <buildgraph/scanresultcache.h>
 
 #include <QtCore/QObject>
@@ -101,19 +100,6 @@ protected slots:
     void resetArtifactsToUntouched();
 
 protected:
-    struct Dependency
-    {
-        Dependency()
-            : artifact(0)
-        {}
-
-        bool isValid() const { return !filePath.isNull(); }
-
-        QString filePath;
-        Artifact *artifact;
-    };
-
-protected:
     void prepareBuildGraph(Artifact::BuildState buildState);
     void prepareBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState);
     void updateBuildGraph(Artifact::BuildState buildState);
@@ -134,12 +120,6 @@ protected:
     void removeExecutorJobs(int jobNumber);
     bool runAutoMoc();
     void printScanningMessageOnce();
-    void scanInputArtifacts(Artifact *artifact, bool *newDependencyAdded);
-    void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths, Artifact *outputArtifact, Artifact *inputArtifact, bool *newDependencyAdded);
-    static Dependency resolveWithIncludePath(const QString &includePath, const QString &dependencyDirPath, const QString &dependencyFileName, BuildProduct *buildProduct);
-    static void resolveScanResultDependencies(const QStringList &includePaths, Artifact *processedArtifact, Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
-                                              const QString &filePathToBeScanned, QStringList *filePathsToScan, bool *newDependencyAdded);
-    static void handleDependency(Artifact *processedArtifact, Dependency &dependency, bool *newDependencyAdded);
     void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();
 

@@ -10,7 +10,8 @@ SOURCES += \
     $$PWD/command.cpp \
     $$PWD/commandexecutor.cpp \
     $$PWD/transformer.cpp \
-    $$PWD/artifact.cpp
+    $$PWD/artifact.cpp \
+    $$PWD/inputartifactscanner.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -23,4 +24,5 @@ HEADERS += \
     $$PWD/command.h \
     $$PWD/commandexecutor.h \
     $$PWD/transformer.h \
-    $$PWD/artifact.h
+    $$PWD/artifact.h \
+    $$PWD/inputartifactscanner.h
