@@ -48,7 +48,20 @@ namespace qbs {
 class ScanResultCache
 {
 public:
-    typedef QPair<QString, bool> Dependency;
+    struct Dependency
+    {
+        Dependency() : isLocal(false), isClean(true) {}
+        Dependency(const QString &filePath, bool isLocal) : filePath(filePath), isLocal(isLocal)
+        {
+            isClean = !filePath.contains(QLatin1Char('.'))
+                    && !filePath.contains(QLatin1String("//"))
+                    && !filePath.endsWith(QLatin1Char('/'));
+        }
+
+        QString filePath;
+        bool isLocal;
+        bool isClean;
+    };
 
     struct Result
     {
