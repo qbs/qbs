@@ -82,11 +82,10 @@ static QStringList collectIncludePaths(const QVariantMap &modules)
     return QStringList(collectedPaths.toList());
 }
 
-static Dependency resolveWithIncludePath(const QString &includePath, const QString &dependencyDirPath,
-        bool isCleanPath, const QString &dependencyFileName, const BuildProduct *buildProduct)
+static Dependency resolveWithIncludePath(const QString &includePath, const ScanResultCache::Dependency &dependency, const BuildProduct *buildProduct)
 {
-    QString absDirPath = dependencyDirPath.isEmpty() ? includePath : FileInfo::resolvePath(includePath, dependencyDirPath);
-    if (!isCleanPath)
+    QString absDirPath = dependency.dirPath().isEmpty() ? includePath : FileInfo::resolvePath(includePath, dependency.dirPath());
+    if (!dependency.isClean())
         absDirPath = QDir::cleanPath(absDirPath);
 
     Dependency result;
@@ -94,7 +93,7 @@ static Dependency resolveWithIncludePath(const QString &includePath, const QStri
     Artifact *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
     Artifact *dependencyInOtherProduct = 0;
-    foreach (Artifact *artifact, project->lookupArtifacts(absDirPath, dependencyFileName)) {
+    foreach (Artifact *artifact, project->lookupArtifacts(absDirPath, dependency.fileName())) {
         if (artifact->artifactType == Artifact::FileDependency)
             fileDependencyArtifact = artifact;
         else if (artifact->product == buildProduct)
@@ -112,7 +111,7 @@ static Dependency resolveWithIncludePath(const QString &includePath, const QStri
         return result;
     }
 
-    QString absFilePath = absDirPath + QLatin1Char('/') + dependencyFileName;
+    QString absFilePath = absDirPath + QLatin1Char('/') + dependency.fileName();
     if (FileInfo::exists(absFilePath))
         result.filePath = absFilePath;
 
@@ -218,32 +217,27 @@ void InputArtifactScanner::resolveScanResultDependencies(const QStringList &incl
         const Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
         const QString &filePathToBeScanned, QStringList *filePathsToScan)
 {
-    QString dependencyDirPath;
-    QString dependencyFileName;
     QString baseDirOfInFilePath;
     foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
-        const QString &dependencyFilePath = dependency.filePath;
-        const bool isLocalInclude = dependency.isLocal;
+        const QString &dependencyFilePath = dependency.filePath();
         Dependency resolvedDependency;
         if (FileInfo::isAbsolute(dependencyFilePath)) {
             resolvedDependency.filePath = dependencyFilePath;
             goto resolved;
         }
 
-        FileInfo::splitIntoDirectoryAndFileName(dependencyFilePath, &dependencyDirPath, &dependencyFileName);
-
-        if (isLocalInclude) {
+        if (dependency.isLocal()) {
             // try base directory of source file
             if (baseDirOfInFilePath.isNull())
                 baseDirOfInFilePath = FileInfo::path(filePathToBeScanned);
-            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, dependencyDirPath, dependency.isClean, dependencyFileName, inputArtifact->product);
+            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, dependency, inputArtifact->product);
             if (resolvedDependency.isValid())
                 goto resolved;
         }
 
         // try include paths
         foreach (const QString &includePath, includePaths) {
-            resolvedDependency = resolveWithIncludePath(includePath, dependencyDirPath, dependency.isClean, dependencyFileName, inputArtifact->product);
+            resolvedDependency = resolveWithIncludePath(includePath, dependency, inputArtifact->product);
             if (resolvedDependency.isValid())
                 goto resolved;
         }

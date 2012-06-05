@@ -48,19 +48,23 @@ namespace qbs {
 class ScanResultCache
 {
 public:
-    struct Dependency
+    class Dependency
     {
-        Dependency() : isLocal(false), isClean(true) {}
-        Dependency(const QString &filePath, bool isLocal) : filePath(filePath), isLocal(isLocal)
-        {
-            isClean = !filePath.contains(QLatin1Char('.'))
-                    && !filePath.contains(QLatin1String("//"))
-                    && !filePath.endsWith(QLatin1Char('/'));
-        }
+    public:
+        Dependency() : m_isLocal(false), m_isClean(true) {}
+        Dependency(const QString &filePath, bool m_isLocal);
 
-        QString filePath;
-        bool isLocal;
-        bool isClean;
+        QString filePath() const { return m_dirPath.isEmpty() ? m_fileName : m_dirPath + QLatin1Char('/') + m_fileName; }
+        const QString &dirPath() const { return m_dirPath; }
+        const QString &fileName() const { return m_fileName; }
+        bool isLocal() const { return m_isLocal; }
+        bool isClean() const { return m_isClean; }
+
+    private:
+        QString m_dirPath;
+        QString m_fileName;
+        bool m_isLocal;
+        bool m_isClean;
     };
 
     struct Result

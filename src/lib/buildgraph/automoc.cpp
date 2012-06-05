@@ -183,7 +183,7 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
         }
 
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
-            const QString &includedFilePath = dependency.filePath;
+            const QString &includedFilePath = dependency.filePath();
             if (includedFilePath.startsWith("moc_") && includedFilePath.endsWith(".cpp")) {
                 if (qbsLogLevel(LoggerTrace))
                     qbsTrace() << "[AUTOMOC] finds included file: " << includedFilePath;

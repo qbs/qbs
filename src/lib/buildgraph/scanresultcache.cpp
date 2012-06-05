@@ -34,9 +34,20 @@
 ** conditions contained in a signed written agreement between you and Nokia.
 **
 **************************************************************************/
+
 #include "scanresultcache.h"
+#include "fileinfo.h"
 
 namespace qbs {
+
+ScanResultCache::Dependency::Dependency(const QString &filePath, bool isLocal)
+    : m_isLocal(isLocal)
+{
+    FileInfo::splitIntoDirectoryAndFileName(filePath, &m_dirPath, &m_fileName);
+
+    m_isClean = !m_dirPath.contains(QLatin1Char('.'))
+            && !m_dirPath.contains(QLatin1String("//"));
+}
 
 ScanResultCache::Result ScanResultCache::value(const QString &fileName) const
 {
