@@ -3,6 +3,7 @@ build
 *.dll
 *.exe
 *.exp
+*.ilk
 *.manifest
 *.obj
 *.pdb
