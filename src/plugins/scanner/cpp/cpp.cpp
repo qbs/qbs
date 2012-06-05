@@ -271,7 +271,27 @@ ScannerPlugin cppScanner =
     additionalFileTags
 };
 
-ScannerPlugin *theScanners[3] = {&hppScanner, &cppScanner, NULL};
+ScannerPlugin cScanner =
+{
+    "include_scanner",
+    "c",
+    openScanner,
+    closeScanner,
+    next,
+    0
+};
+
+ScannerPlugin rcScanner =
+{
+    "include_scanner",
+    "rc",
+    openScanner,
+    closeScanner,
+    next,
+    0
+};
+
+ScannerPlugin *theScanners[] = {&hppScanner, &cppScanner, &cScanner, &rcScanner, NULL};
 
 CPPSCANNER_EXPORT ScannerPlugin **getScanners()
 {
