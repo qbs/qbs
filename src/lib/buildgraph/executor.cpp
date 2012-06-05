@@ -46,10 +46,6 @@
 #include <tools/logger.h>
 #include <tools/progressobserver.h>
 
-#ifdef Q_OS_WIN32
-#include <Windows.h>
-#endif
-
 #include <algorithm>
 
 namespace qbs {
