@@ -229,6 +229,7 @@ CppModule {
         TransformProperties {
             property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
             property var defines: ModUtils.appendAll(input, 'defines')
+            property var includePaths: ModUtils.appendAll(input, 'includePaths')
         }
 
         prepare: {
@@ -241,6 +242,10 @@ CppModule {
             for (i in defines) {
                 args.push('/d');
                 args.push(defines[i]);
+            }
+            for (i in includePaths) {
+                args.push('/i');
+                args.push(includePaths[i]);
             }
 
             args = args.concat(['/fo', output.fileName, input.fileName]);

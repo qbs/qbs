@@ -32,8 +32,30 @@ GenericGCC {
             fileTags: ["obj"]
         }
 
+        TransformProperties {
+            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
+            property var defines: ModUtils.appendAll(input, 'defines')
+            property var includePaths: ModUtils.appendAll(input, 'includePaths')
+        }
+
         prepare: {
-            var cmd = new Command('windres', ['-i', input.fileName, '-o', output.fileName]);
+            var args = [];
+            var i;
+            for (i in platformDefines) {
+                args.push('-D');
+                args.push(platformDefines[i]);
+            }
+            for (i in defines) {
+                args.push('-D');
+                args.push(defines[i]);
+            }
+            for (i in includePaths) {
+                args.push('-I');
+                args.push(includePaths[i]);
+            }
+
+            args = args.concat(['-i', input.fileName, '-o', output.fileName]);
+            var cmd = new Command('windres', args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'compiler';
             return cmd;
