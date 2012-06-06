@@ -61,6 +61,7 @@ Executor::Executor(int maxJobs)
     , m_keepGoing(false)
     , m_maximumJobNumber(maxJobs)
 {
+    m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
     m_autoMoc->setScanResultCache(&m_scanResultCache);
     if (!m_runOnceAndForgetMode) {
@@ -78,6 +79,7 @@ Executor::~Executor()
     foreach (ExecutorJob *job, m_processingJobs.keys())
         delete job;
     delete m_autoMoc;
+    delete m_inputArtifactScanContext;
 }
 
 void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames)
@@ -176,7 +178,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
         foreach (Artifact *artifact, changedArtifacts) {
             if (!artifact->inputsScanned && artifact->artifactType == Artifact::Generated) {
                 printScanningMessageOnce();
-                InputArtifactScanner scanner(artifact, &m_scanResultCache);
+                InputArtifactScanner scanner(artifact, m_inputArtifactScanContext);
                 scanner.scan();
             }
         }
@@ -406,7 +408,7 @@ void Executor::execute(Artifact *artifact)
     }
 
     // scan all input artifacts
-    InputArtifactScanner scanner(artifact, &m_scanResultCache);
+    InputArtifactScanner scanner(artifact, m_inputArtifactScanContext);
     scanner.scan();
 
     // postpone the build of this artifact, if new dependencies found
@@ -701,7 +703,7 @@ void Executor::doOutOfDateCheck(Artifact *artifact)
             // The file exists but no dependency scan has been performed.
             // This happens if the build graph is removed manually.
             printScanningMessageOnce();
-            InputArtifactScanner scanner(artifact, &m_scanResultCache);
+            InputArtifactScanner scanner(artifact, m_inputArtifactScanContext);
             scanner.scan();
         }
 

@@ -52,6 +52,7 @@ namespace qbs {
 
 class AutoMoc;
 class ExecutorJob;
+class InputArtifactScannerContext;
 class ProgressObserver;
 class ScanResultCache;
 
@@ -139,6 +140,7 @@ private:
     QMap<Artifact *, QHashDummyValue> m_leaves;
     QHash<Artifact *, qbs::FileTime> m_timeStampCache;
     ScanResultCache m_scanResultCache;
+    InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;
 
     friend class ExecutorJob;

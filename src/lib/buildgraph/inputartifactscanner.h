@@ -39,31 +39,83 @@
 
 #include "scanresultcache.h"
 
-#include <QString>
+#include <QHash>
+#include <QStringList>
+#include <QSharedPointer>
 
 struct ScannerPlugin;
 
 namespace qbs {
+
 class Artifact;
-struct Dependency;
+class Configuration;
+
+struct ResolvedDependency
+{
+    ResolvedDependency()
+        : artifact(0)
+    {}
+
+    bool isValid() const { return !filePath.isNull(); }
+
+    QString filePath;
+    Artifact *artifact;
+};
+
+class InputArtifactScannerContext
+{
+public:
+    InputArtifactScannerContext(ScanResultCache *scanResultCache);
+    ~InputArtifactScannerContext();
+
+private:
+    ScanResultCache *scanResultCache;
+
+    struct ResolvedDependencyCacheItem
+    {
+        ResolvedDependencyCacheItem()
+            : valid(false)
+        {}
+
+        bool valid;
+        ResolvedDependency resolvedDependency;
+    };
+
+    typedef QHash<QString, QHash<QString, ResolvedDependencyCacheItem> > ResolvedDependenciesCache;
+
+    struct CacheItem
+    {
+        CacheItem()
+            : valid(false)
+        {}
+
+        bool valid;
+        QStringList includePaths;
+        ResolvedDependenciesCache resolvedDependenciesCache;
+    };
+
+    QHash<QSharedPointer<Configuration>, CacheItem> cache;
+
+    friend class InputArtifactScanner;
+};
 
 class InputArtifactScanner
 {
 public:
-    InputArtifactScanner(Artifact *artifact, ScanResultCache *scanResultCache);
+    InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx);
     void scan();
     bool newDependencyAdded() const { return m_newDependencyAdded; }
 
 private:
     void scanForFileDependencies(ScannerPlugin *scannerPlugin, const QStringList &includePaths,
-            Artifact *inputArtifact);
+            Artifact *inputArtifact, InputArtifactScannerContext::ResolvedDependenciesCache &cacheItem);
     void resolveScanResultDependencies(const QStringList &includePaths,
             const Artifact *inputArtifact, const ScanResultCache::Result &scanResult,
-            const QString &filePathToBeScanned, QStringList *filePathsToScan);
-    void handleDependency(Dependency &dependency);
+            const QString &filePathToBeScanned, QStringList *filePathsToScan, InputArtifactScannerContext::ResolvedDependenciesCache &cacheItem);
+    void handleDependency(ResolvedDependency &dependency);
 
     Artifact * const m_artifact;
-    ScanResultCache * const m_scanResultCache;
+    InputArtifactScannerContext *const m_context;
     bool m_newDependencyAdded;
 };
 
