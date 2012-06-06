@@ -83,6 +83,7 @@ struct ScannerPlugin
     scanClose_f close;
     scanNext_f  next;
     scanAdditionalFileTags_f additionalFileTags;
+    bool usesCppIncludePaths;
 };
 
 typedef ScannerPlugin **(*getScanners_f)();

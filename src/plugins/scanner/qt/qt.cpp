@@ -204,7 +204,8 @@ ScannerPlugin uiScanner =
     openScanner,
     closeScanner,
     nextUi,
-    additionalFileTags
+    additionalFileTags,
+    true
 };
 
 ScannerPlugin qrcScanner =
@@ -214,7 +215,8 @@ ScannerPlugin qrcScanner =
     openScanner,
     closeScanner,
     nextQrc,
-    additionalFileTags
+    additionalFileTags,
+    false
 };
 
 ScannerPlugin *theScanners[3] = {&uiScanner, &qrcScanner, NULL};

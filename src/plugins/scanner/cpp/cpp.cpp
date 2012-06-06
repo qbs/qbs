@@ -258,7 +258,8 @@ ScannerPlugin hppScanner =
     openScanner,
     closeScanner,
     next,
-    additionalFileTags
+    additionalFileTags,
+    true
 };
 
 ScannerPlugin cppScanner =
@@ -268,7 +269,8 @@ ScannerPlugin cppScanner =
     openScanner,
     closeScanner,
     next,
-    additionalFileTags
+    additionalFileTags,
+    true
 };
 
 ScannerPlugin cScanner =
@@ -278,7 +280,8 @@ ScannerPlugin cScanner =
     openScanner,
     closeScanner,
     next,
-    0
+    0,
+    true
 };
 
 ScannerPlugin rcScanner =
@@ -288,7 +291,8 @@ ScannerPlugin rcScanner =
     openScanner,
     closeScanner,
     next,
-    0
+    0,
+    true
 };
 
 ScannerPlugin *theScanners[] = {&hppScanner, &cppScanner, &cScanner, &rcScanner, NULL};

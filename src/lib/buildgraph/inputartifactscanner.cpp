@@ -170,12 +170,15 @@ void InputArtifactScanner::scan()
     for (; it != m_artifact->transformer->inputs.end(); ++it) {
         Artifact *inputArtifact = *it;
         QStringList includePaths;
+        bool includePathsCollected = false;
 
         foreach (const QString &fileTag, inputArtifact->fileTags) {
             QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(fileTag);
             foreach (ScannerPlugin *scanner, scanners) {
-                if (includePaths.isEmpty())
+                if (scanner->usesCppIncludePaths && !includePathsCollected) {
                     includePaths = collectIncludePaths(inputArtifact->configuration->value().value("modules").toMap());
+                    includePathsCollected = true;
+                }
                 scanForFileDependencies(scanner, includePaths, inputArtifact);
             }
         }
