@@ -68,7 +68,7 @@ static void collectIncludePaths(const QVariantMap &modules, QSet<QString> *colle
             if (includePathsVariant.isValid())
                 collectedPaths->unite(QSet<QString>::fromList(includePathsVariant.toStringList()));
         } else {
-            collectIncludePaths(iterator .value().toMap().value("modules").toMap(), collectedPaths);
+            collectIncludePaths(iterator.value().toMap().value("modules").toMap(), collectedPaths);
         }
     }
 }
