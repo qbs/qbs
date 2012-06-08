@@ -1259,7 +1259,10 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
             if (changedProductsMap.isEmpty())
                 foreach (ResolvedProduct::Ptr cp, changedProject->products)
                     changedProductsMap.insert(cp->name, cp);
-            bg->onProductChanged(product, changedProductsMap.value(product->rProduct->name), &loadResult->discardLoadedProject);
+            ResolvedProduct::Ptr changedProduct = changedProductsMap.value(product->rProduct->name);
+            if (!changedProduct)
+                continue;
+            bg->onProductChanged(product, changedProduct, &loadResult->discardLoadedProject);
             if (loadResult->discardLoadedProject)
                 return;
         }
