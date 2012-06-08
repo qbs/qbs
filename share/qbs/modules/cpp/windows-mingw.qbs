@@ -11,7 +11,7 @@ GenericGCC {
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     platformDefines: ['UNICODE']
-    compilerDefines: ['__GNUC__', 'WIN32']
+    compilerDefines: ['__GNUC__', 'WIN32', '_WIN32']
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
