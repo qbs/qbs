@@ -1192,10 +1192,8 @@ void Loader::evaluatePropertyOptions(LanguageObject *object)
         PropertyDeclaration &decl = object->propertyDeclarations[name];
 
         const Binding allowedValuesBinding = child->bindings.value(QStringList("allowedValues"));
-        if (allowedValuesBinding.isValid()) {
-            const QScriptValue allowedValuesScriptValue = evaluate(&m_engine, allowedValuesBinding.valueSource);
-            decl.allowedValues = allowedValuesScriptValue.toVariant();
-        }
+        if (allowedValuesBinding.isValid())
+            decl.allowedValues = evaluate(&m_engine, allowedValuesBinding.valueSource);
 
         const Binding descriptionBinding = child->bindings.value(QStringList("description"));
         if (descriptionBinding.isValid()) {
@@ -1597,6 +1595,29 @@ static QHash<QString, ProjectFile *> findModuleDependencies(EvaluationObject *ro
     return result;
 }
 
+static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QScriptValue &value)
+{
+    if (!decl.allowedValues.isValid())
+        return;
+
+    if (decl.allowedValues.isArray()) {
+        QScriptValue length = decl.allowedValues.property("length");
+        if (length.isNumber()) {
+            const int c = length.toInt32();
+            for (int i = 0; i < c; ++i) {
+                QScriptValue allowedValue = decl.allowedValues.property(i);
+                if (allowedValue.equals(value))
+                    return;
+            }
+        }
+    } else if (decl.allowedValues.equals(value)) {
+        return;
+    }
+
+    QString msg = Loader::tr("value %1 not allowed in property %2").arg(value.toString(), decl.name);
+    throw Error(msg);
+}
+
 static QVariantMap evaluateAll(const ResolvedProduct::Ptr &rproduct, const Scope::Ptr &properties)
 {
     QVariantMap result;
@@ -1619,7 +1640,9 @@ static QVariantMap evaluateAll(const ResolvedProduct::Ptr &rproduct, const Scope
         if (property.scope) {
             value = evaluateAll(rproduct, property.scope);
         } else {
-            value = properties->property(it.key()).toVariant();
+            QScriptValue scriptValue = properties->property(it.key());
+            checkAllowedPropertyValues(decl, scriptValue);
+            value = scriptValue.toVariant();
         }
 
         if (decl.type == PropertyDeclaration::Paths) {

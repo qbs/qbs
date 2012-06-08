@@ -101,7 +101,7 @@ public:
     QString name;
     Type type;
     Flags flags;
-    QVariant allowedValues;
+    QScriptValue allowedValues;
     QString description;
     QString initialValueSource;
 };
