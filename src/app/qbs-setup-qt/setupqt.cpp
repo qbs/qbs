@@ -84,7 +84,12 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
     if (!qmakeFileInfo.exists())
         return false;
 
-    if (qmakePath.split("/").last() != QLatin1String("qmake"))
+#ifdef Q_OS_WIN
+    QString qmakeBinaryName(QLatin1String("qmake.exe"));
+#else
+    QString qmakeBinaryName(QLatin1String("qmake"));
+#endif
+    if (qmakeFileInfo.fileName() != qmakeBinaryName)
         return false;
 
     if (!qmakeFileInfo.isExecutable())
