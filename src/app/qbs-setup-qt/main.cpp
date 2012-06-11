@@ -43,9 +43,9 @@
 
 #include "setupqt.h"
 
-static void printWrongQMakePath()
+static void printWrongQMakePath(const QString &qmakePath)
 {
-    std::cerr << QCoreApplication::translate("SetupQt", "Wrong qmake path!").toStdString() << std::endl;
+    std::cerr << QCoreApplication::translate("SetupQt", "Invalid path to qmake: %1").arg(qmakePath).toStdString() << std::endl;
 }
 
 static void printHelp()
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
         } else {
             QString qmakePath = application.arguments()[1];
             if (!qbs::SetupQt::isQMakePathValid(qmakePath)) {
-                printWrongQMakePath();
+                printWrongQMakePath(qmakePath);
                 return 1;
             }
             qbs::QtEnviroment qtEnvironment = qbs::SetupQt::fetchEnviroment(qmakePath);
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     } else if (argc == 3) {
         QString qmakePath = application.arguments()[1];
         if (!qbs::SetupQt::isQMakePathValid(qmakePath)) {
-            printWrongQMakePath();
+            printWrongQMakePath(qmakePath);
             return 1;
         }
         qbs::QtEnviroment qtEnvironment = qbs::SetupQt::fetchEnviroment(qmakePath);
