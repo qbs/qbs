@@ -212,7 +212,27 @@
 
     \section1 Introduction
 
-    QBS must know where it can find Qt.
+    To let qbs know where a Qt build or Qt version is you want to use,
+    it has to be registered.
+
+    Register a Qt version like this:
+    \code
+    qbs setup-qt /usr/bin/qmake myqt
+    \endcode
+
+    This will create the "myqt" profile which can then be used on
+    the command line:
+
+    \code
+    qbs profile:myqt
+    \endcode
+
+
+    \section1 Manual Setup
+
+    All what the setup-qt tool does can be done manually.
+    That's described in this section.
+
     If you have only one install of Qt you don't need to use profiles and can
     use:
 
