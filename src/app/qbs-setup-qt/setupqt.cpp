@@ -125,7 +125,7 @@ static QByteArray queryVariable(const QByteArray &queryOutput, const QByteArray 
     int beginIndex = queryOutput.indexOf(key) + key.size() + 1;
     int endIndex = queryOutput.indexOf("\n", beginIndex);
 
-    return queryOutput.mid(beginIndex, endIndex - beginIndex);
+    return queryOutput.mid(beginIndex, endIndex - beginIndex).trimmed();
 }
 
 static QByteArray configVariable(const QByteArray &configContent, const QByteArray &key)
