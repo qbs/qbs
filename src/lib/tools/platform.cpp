@@ -49,7 +49,7 @@
 #   ifndef _WIN32_IE
 #       define _WIN32_IE 0x0400    // for MinGW
 #   endif
-#   include <Shlobj.h>
+#   include <shlobj.h>
 #endif
 
 namespace qbs {
