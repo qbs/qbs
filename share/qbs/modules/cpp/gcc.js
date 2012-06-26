@@ -8,7 +8,11 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
         args.push('-L' + libraryPaths[i]);
     }
     for (i in staticLibraries) {
-        args.push(staticLibraries[i]);
+        if (FileInfo.isAbsolutePath(staticLibraries[i])) {
+            args.push(staticLibraries[i]);
+        } else {
+            args.push('-l' + staticLibraries[i]);
+        }
     }
     for (i in dynamicLibraries) {
         if (FileInfo.isAbsolutePath(dynamicLibraries[i])) {
