@@ -30,6 +30,11 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
 
 function configFlags(config) {
     var args = [];
+    // architecture
+    if (config.module.architecture === 'x86_64')
+        args.push('-m64');
+    else if (config.module.architecture === 'x86')
+        args.push('-m32');
     // optimization:
     if (config.module.debugInformation)
         args.push('-g');
