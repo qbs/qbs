@@ -43,11 +43,13 @@ function relativePath(base, rel)
     return r.join('/');
 }
 
+var windowsAbsolutePathPattern = new RegExp("^[a-z,A-Z]:[/,\\\\]")
+
 function isAbsolutePath(path)
 {
     if (!path)
         return false;
-    return (path.charAt(0) == '/');
+    return (path.charAt(0) == '/' || windowsAbsolutePathPattern.test(path));
 }
 
 function toWindowsSeparators(str)
