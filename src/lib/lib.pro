@@ -4,7 +4,7 @@ TEMPLATE = lib
 DESTDIR = ../../lib
 TARGET = qbscore
 
-CONFIG += staticlib depend_includepath
+CONFIG += static depend_includepath
 DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS
 
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
