@@ -199,19 +199,6 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
     qtEnvironment.mkspec = mkSpecPath(mkspecsPath);
 
-    qtEnvironment.isInstalled = true;
-    QFile qmakeCache(qtEnvironment.binaryPath + QLatin1String("/../.qmake.cache"));
-    if (qmakeCache.exists()) {
-        qtEnvironment.isInstalled = false;
-        qmakeCache.open(QFile::ReadOnly);
-        QRegExp rex("\\bQTDIR_build\\b");
-        QString content = QString::fromLocal8Bit(qmakeCache.readAll());
-        if (!content.contains(rex)) {
-            qWarning("You're setting up the build directory of a Qt that has been configured with -prefix.\n"
-                     "Just saying. Maybe this is what you want to do.");
-        }
-    }
-
     return qtEnvironment;
 }
 
@@ -231,8 +218,6 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     qbsSettings.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     qbsSettings.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
-    if (qtEnviroment.isInstalled)
-        qbsSettings.setValue(settingsTemplate.arg("isInstalled"), qtEnviroment.isInstalled);
     qbsSettings.endGroup();
 }
 

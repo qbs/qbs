@@ -10,17 +10,7 @@ Module {
 
     property string qtModuleName
     property string binPath: qt.core.binPath
-    property string incPath: {
-        var result;
-        if (qt.core.isInstalled || qt.core.versionMajor < 5) {
-            result = qt.core.incPath;
-        } else {
-            result = FileInfo.joinPaths(
-                        FileInfo.path(FileInfo.path(qt.core.incPath)),
-                        repository, "include");
-        }
-        return result;
-    }
+    property string incPath: qt.core.incPath
     property string libPath: qt.core.libPath
     property string qtLibInfix: qt.core.libInfix
     property string repository: qt.core.versionMajor === 5 ? 'qtbase' : undefined
