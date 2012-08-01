@@ -31,8 +31,6 @@ Module {
         //     from the build variant "release"
         if (!qbs.debugInformation)
             defines.push("QT_NO_DEBUG");
-        if (!product.consoleApplication && qbs.toolchain === "mingw")
-            defines.push("QT_NEEDS_QMAIN");
         if (namespace)
             defines.push("QT_NAMESPACE=" + namespace);
         return defines;
