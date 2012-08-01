@@ -24,7 +24,7 @@ Project {
             var code = 'int main(int, char **) { return 0; }'
             var args = ['echo ' + code + '>' + output.fileName]
             var cmd
-            if (product.modules.qbs.targetOS == 'windows') {
+            if (product.modules.qbs.hostOS == 'windows') {
                 cmd = new Command('c:/Windows/System32/cmd.exe', ['/C'].concat(args));
             } else {
                 args[0] = args[0].replace(/\(/g, '\\(')
