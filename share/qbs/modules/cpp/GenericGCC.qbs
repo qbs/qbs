@@ -10,6 +10,7 @@ CppModule {
     property string toolchainPrefix
     property string toolchainInstallPath
     property string compilerName: 'g++'
+    property string archiverName: 'ar'
     property string sysroot: qbs.sysroot
 
     property string compilerPath: {
@@ -22,6 +23,19 @@ CppModule {
         if (toolchainPrefix)
             path += toolchainPrefix
         path += compilerName
+        return path
+    }
+
+    property string archiverPath: {
+        var path = ''
+        if (toolchainInstallPath) {
+            path += toolchainInstallPath
+            if (path.substr(-1) !== '/')
+                path += '/'
+        }
+        if (toolchainPrefix)
+            path += toolchainPrefix
+        path += archiverName
         return path
     }
 
@@ -146,7 +160,7 @@ CppModule {
             var args = ['rcs', output.fileName];
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].fileName);
-            var cmd = new Command('ar', args);
+            var cmd = new Command(product.module.archiverPath, args);
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
             return cmd;
