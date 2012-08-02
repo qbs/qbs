@@ -13,6 +13,9 @@ GenericGCC {
     platformDefines: ['UNICODE']
     compilerDefines: ['__GNUC__', 'WIN32', '_WIN32']
 
+    property string windresName: 'windres'
+    property string windresPath: { return toolchainPathPrefix + windresName }
+
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
         v.prepend(toolchainInstallPath);
@@ -55,7 +58,7 @@ GenericGCC {
             }
 
             args = args.concat(['-i', input.fileName, '-o', output.fileName]);
-            var cmd = new Command('windres', args);
+            var cmd = new Command(product.module.windresPath, args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'compiler';
             return cmd;
