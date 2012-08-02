@@ -13,7 +13,7 @@ CppModule {
     property string archiverName: 'ar'
     property string sysroot: qbs.sysroot
 
-    property string compilerPath: {
+    property string toolchainPathPrefix: {
         var path = ''
         if (toolchainInstallPath) {
             path += toolchainInstallPath
@@ -22,22 +22,11 @@ CppModule {
         }
         if (toolchainPrefix)
             path += toolchainPrefix
-        path += compilerName
         return path
     }
 
-    property string archiverPath: {
-        var path = ''
-        if (toolchainInstallPath) {
-            path += toolchainInstallPath
-            if (path.substr(-1) !== '/')
-                path += '/'
-        }
-        if (toolchainPrefix)
-            path += toolchainPrefix
-        path += archiverName
-        return path
-    }
+    property string compilerPath: { return toolchainPathPrefix + compilerName }
+    property string archiverPath: { return toolchainPathPrefix + archiverName }
 
     Rule {
         id: dynamicLibraryLinker
