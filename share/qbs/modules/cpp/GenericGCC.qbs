@@ -72,7 +72,7 @@ CppModule {
                     '-Wl,-soname=' + FileInfo.fileName(output.fileName)
                 ]);
             for (i in linkerFlags)
-                args.push('-Wl,' + linkerFlags[i])
+                args.push(linkerFlags[i])
             for (i in inputs.obj)
                 args.push(inputs.obj[i].fileName);
             if (product.module.sysroot)
@@ -184,7 +184,7 @@ CppModule {
             if (product.module.sysroot)
                 args.push('--sysroot=' + product.module.sysroot)
             for (i in linkerFlags)
-                args.push('-Wl,' + linkerFlags[i])
+                args.push(linkerFlags[i])
             if (product.consoleApplication !== undefined && product.modules.qbs.toolchain === "mingw") {
                 if (product.consoleApplication)
                     args.push("-Wl,-subsystem,console");
