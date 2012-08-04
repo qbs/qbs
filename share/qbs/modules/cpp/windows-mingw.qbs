@@ -5,7 +5,7 @@ import '../utils.js' as ModUtils
 GenericGCC {
     condition: qbs.targetOS === "windows" && qbs.toolchain === "mingw"
     staticLibraryPrefix: "lib"
-    dynamicLibraryPrefix: "lib"
+    dynamicLibraryPrefix: ""
     executablePrefix: ""
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
