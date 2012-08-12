@@ -61,6 +61,10 @@
 #include <parser/qmljsengine_p.h>
 #include <parser/qmljslexer_p.h>
 
+#include <jsextensions/file.h>
+#include <jsextensions/textfile.h>
+#include <jsextensions/process.h>
+
 QT_BEGIN_NAMESPACE
 static uint qHash(const QStringList &list)
 {
@@ -637,6 +641,10 @@ Loader::Loader()
     QVariant v;
     v.setValue(static_cast<void*>(this));
     m_engine.setProperty(szLoaderPropertyName, v);
+    QScriptValue extensionObject = m_engine.globalObject();
+    File::init(extensionObject, &m_engine);
+    TextFile::init(extensionObject, &m_engine);
+    Process::init(extensionObject, &m_engine);
     m_engine.pushContext();     // this preserves the original global object
 
     m_jsFunction_getHostOS  = m_engine.newFunction(js_getHostOS, 0);

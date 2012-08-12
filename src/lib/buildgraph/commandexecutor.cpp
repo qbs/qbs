@@ -45,6 +45,7 @@
 #include <tools/platformglobals.h>
 #include <jsextensions/file.h>
 #include <jsextensions/textfile.h>
+#include <jsextensions/process.h>
 
 #include <QtConcurrentRun>
 #include <QDebug>
@@ -357,6 +358,7 @@ public:
             QScriptValue extensionObject = scriptEngine->globalObject();
             File::init(extensionObject, scriptEngine);
             TextFile::init(extensionObject, scriptEngine);
+            Process::init(extensionObject, scriptEngine);
         }
 
         QString trafoPtrStr = QString::number((qulonglong)transformer);
