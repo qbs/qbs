@@ -63,6 +63,7 @@ UnixGCC {
             cmd.description = "generating app bundle";
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
+                File.remove(outputs.applicationbundle[0].fileName);
                 File.copy(inputs.application[0].fileName, outputs.applicationbundle[0].fileName);
             }
             return cmd;
