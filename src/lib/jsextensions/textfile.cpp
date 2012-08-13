@@ -84,7 +84,7 @@ TextFile::~TextFile()
     delete qfile;
 }
 
-TextFile::TextFile(QScriptContext *context, QString file, OpenMode mode, QString codec)
+TextFile::TextFile(QScriptContext *context, const QString &file, OpenMode mode, const QString &codec)
 {
     Q_UNUSED(codec)
     Q_ASSERT(thisObject().engine() == engine());
@@ -122,7 +122,7 @@ void TextFile::close()
     t->qstream = 0;
 }
 
-void TextFile::setCodec(QString codec)
+void TextFile::setCodec(const QString &codec)
 {
     Q_ASSERT(thisObject().engine() == engine());
     TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
@@ -147,7 +147,7 @@ QString TextFile::readAll()
     return t->qstream->readAll();
 }
 
-bool TextFile::eof()
+bool TextFile::atEof() const
 {
     TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
     if (!t->qstream)
@@ -164,7 +164,7 @@ void TextFile::truncate()
     t->qstream->reset();
 }
 
-void TextFile::write(QString str)
+void TextFile::write(const QString &str)
 {
     TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
     if (!t->qstream)
@@ -172,7 +172,7 @@ void TextFile::write(QString str)
     (*t->qstream) << str;
 }
 
-void TextFile::writeLine(QString str)
+void TextFile::writeLine(const QString &str)
 {
     TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
     if (!t->qstream)

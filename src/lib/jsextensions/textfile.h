@@ -56,16 +56,16 @@ public:
 
     enum OpenMode { ReadOnly, WriteOnly, ReadWrite };
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    TextFile(QScriptContext *context, QString file, OpenMode mode = ReadOnly, QString codec = QLatin1String("UTF8"));
+    TextFile(QScriptContext *context, const QString &file, OpenMode mode = ReadOnly, const QString &codec = QLatin1String("UTF8"));
     ~TextFile();
     Q_INVOKABLE void close();
-    Q_INVOKABLE void setCodec(QString codec);
+    Q_INVOKABLE void setCodec(const QString &codec);
     Q_INVOKABLE QString readLine();
     Q_INVOKABLE QString readAll();
-    Q_INVOKABLE bool eof();
+    Q_INVOKABLE bool atEof() const;
     Q_INVOKABLE void truncate();
-    Q_INVOKABLE void write(QString);
-    Q_INVOKABLE void writeLine(QString);
+    Q_INVOKABLE void write(const QString &str);
+    Q_INVOKABLE void writeLine(const QString &str);
 private:
     QFile *qfile;
     QTextStream *qstream;
