@@ -5,6 +5,9 @@ UnixGCC {
 
     compilerDefines: ["__GNUC__", "__APPLE__"]
 
+    property string infoPlist
+    property string pkgInfo
+
     Rule {
         multiplex: true
         inputs: ["qbs"]
@@ -18,9 +21,43 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist";
             cmd.highlight = "codegen";
+            cmd.infoPlist = product.module.infoPlist || {};
             cmd.sourceCode = function() {
                 var infoplist = new TextFile(outputs.infoplist[0].fileName, TextFile.WriteOnly);
-                infoplist.write("<foobar>");
+                infoplist.writeLine('<?xml version="1.0" encoding="UTF-8"?>');
+                infoplist.writeLine('<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">');
+                infoplist.writeLine('<plist version="0.9">');
+                infoplist.writeLine('<dict>');
+                for (var key in infoPlist) {
+                    infoplist.writeLine('    <key>' + key + '</key>');
+                    var value = infoPlist[key];
+                    // Plist files depends on variable types
+                    var type = typeof(value);
+                    if (type === "string") {
+                        // It's already ok
+                    } else if (type === "boolean") {
+                        if (value)
+                            type = "true";
+                        else
+                            type = "false";
+                        value = undefined;
+                    } else if (type === "number") {
+                        // Is there better way?
+                        if (value % 1 === 0)
+                            type = "integer";
+                        else
+                            type = "real";
+                    } else {
+                        // FIXME: Add Dict support:
+                        throw "Unsupported type '" + type + "'";
+                    }
+                    if (value === undefined)
+                        infoplist.writeLine('    <' + type + '/>');
+                    else
+                        infoplist.writeLine('    <' + type + '>' + value + '</' + type + '>');
+                }
+                infoplist.writeLine('</dict>');
+                infoplist.writeLine('</plist>');
                 infoplist.close();
             }
             return cmd;
@@ -40,9 +77,10 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating PkgInfo";
             cmd.highlight = "codegen";
+            cmd.pkgInfo = product.module.pkgInfo || "FOO";
             cmd.sourceCode = function() {
                 var pkginfo = new TextFile(outputs.pkginfo[0].fileName, TextFile.WriteOnly);
-                pkginfo.write("FOO");
+                pkginfo.write(pkgInfo);
                 pkginfo.close();
             }
             return cmd;
