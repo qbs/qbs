@@ -44,6 +44,7 @@
 
 QT_BEGIN_NAMESPACE
 class QProcess;
+class QProcessEnvironment;
 class QTextStream;
 QT_END_NAMESPACE
 
@@ -56,6 +57,8 @@ public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     Process(QScriptContext *context);
     ~Process();
+    Q_INVOKABLE QString getEnv(const QString &name);
+    Q_INVOKABLE void setEnv(const QString &name, const QString &value);
     Q_INVOKABLE bool start(const QString &program, const QStringList &arguments);
     Q_INVOKABLE int exec(const QString &program, const QStringList &arguments);
     Q_INVOKABLE void close();
@@ -69,7 +72,10 @@ public:
     Q_INVOKABLE void writeLine(const QString &str);
 
 private:
+    QProcessEnvironment &ensureEnvironment();
+
     QProcess *qprocess;
+    QProcessEnvironment *qenvironment;
     QTextStream *qstream;
 };
 
