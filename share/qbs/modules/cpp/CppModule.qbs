@@ -53,6 +53,12 @@ Module {
         description: "additional flags for the C++ compiler"
     }
 
+    property var objcFlags
+    PropertyOptions {
+        name: "objcFlags"
+        description: "additional flags for the Objective-C compiler"
+    }
+
     property var linkerFlags
     PropertyOptions {
         name: "linkerFlags"
@@ -88,6 +94,16 @@ Module {
     FileTagger {
         pattern: "*.c++"
         fileTags: ["cpp"]
+    }
+
+    FileTagger {
+        pattern: "*.m"
+        fileTags: ["objc"]
+    }
+
+    FileTagger {
+        pattern: "*.mm"
+        fileTags: ["objcpp"]
     }
 
     FileTagger {

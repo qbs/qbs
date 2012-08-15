@@ -1,0 +1,9 @@
+import qbs.base 1.0
+
+Project {
+    CppApplication {
+        Depends { name: "qt.core" }
+        files: "main.mm"
+        cpp.frameworks: [ "Carbon", "Cocoa" ]
+    }
+}

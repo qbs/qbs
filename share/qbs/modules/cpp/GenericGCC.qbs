@@ -251,7 +251,7 @@ CppModule {
 
     Rule {
         id: compiler
-        inputs: ["cpp", "c"]
+        inputs: ["cpp", "c", "objcpp", "objc"]
         explicitlyDependsOn: ["c++_pch"]
 
         Artifact {
@@ -267,6 +267,7 @@ CppModule {
             property var cppFlags: ModUtils.appendAll(input, 'cppFlags')
             property var cFlags: ModUtils.appendAll(input, 'cFlags')
             property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
+            property var objcFlags: ModUtils.appendAll(input, 'objcFlags')
             property var positionIndependentCode: ModUtils.findFirst(product.modules, 'cpp', 'positionIndependentCode')
         }
 
@@ -274,6 +275,7 @@ CppModule {
             var i;
             var args = Gcc.configFlags(input);
             var isCxx = true;
+            var isObjC = false;
 
             args.push('-pipe');
             // ### what we actually need here is something like product.usedFileTags
@@ -314,14 +316,28 @@ CppModule {
             }
             if (input.fileTags.indexOf("c") >= 0) {
                 isCxx = false;
+                isObjC = false;
                 args.push('-x')
                 args.push('c')
+            } else if (input.fileTags.indexOf("objc") >= 0) {
+                isObjC = true;
+                isCxx = false;
+                args.push('-x');
+                args.push('objective-c');
+            } else if (input.fileTags.indexOf("objcpp") >= 0) {
+                isObjC = true;
+                isCxx = true;
+                args.push('-x');
+                args.push('objective-c++');
             }
             args.push('-c');
             args.push(input.fileName);
             args.push('-o');
             args.push(output.fileName);
-            if (isCxx) {
+            if (isObjC) {
+                if (objcFlags)
+                    args = args.concat(objcFlags);
+            } else if (isCxx) {
                 if (cxxFlags)
                     args = args.concat(cxxFlags);
             } else {
