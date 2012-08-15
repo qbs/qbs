@@ -268,6 +268,32 @@ public:
     QScriptValue value;
 };
 
+class ProbeScope : public QScriptClass
+{
+    Q_DISABLE_COPY(ProbeScope)
+    Q_DECLARE_TR_FUNCTIONS(ProbeScope)
+    ProbeScope(QScriptEngine *engine, const Scope::Ptr &scope);
+public:
+    typedef QSharedPointer<ProbeScope> Ptr;
+
+    static Ptr create(QScriptEngine *engine, const Scope::Ptr &scope);
+    ~ProbeScope();
+
+    QScriptValue value();
+
+protected:
+    // QScriptClass interface
+    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+                             QueryFlags flags, uint *id);
+    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
+    void setProperty(QScriptValue &object, const QScriptString &name, uint id, const QScriptValue &value);
+
+private:
+    Scope::Ptr m_scope;
+    QSharedPointer<QScriptClass> m_scopeChain;
+    QScriptValue m_value;
+};
+
 class ModuleBase
 {
 public:
@@ -377,6 +403,7 @@ protected:
     void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
     void resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *group);
     void resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::Ptr module);
+    void resolveProbe(EvaluationObject *node);
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
                                                     ResolvedProduct::Ptr rproduct, ResolvedModule::Ptr module);
     Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::Ptr module);

@@ -529,6 +529,65 @@ void Scope::insertAndDeclareProperty(const QString &propertyName, const Property
     declarations.insert(propertyName, PropertyDeclaration(propertyName, propertyType));
 }
 
+ProbeScope::ProbeScope(QScriptEngine *engine, const Scope::Ptr &scope)
+    : QScriptClass(engine), m_scope(scope)
+{
+    m_value = engine->newObject(this);
+    Property property = m_scope->properties.value("configure");
+    m_scopeChain = property.scopeChain.staticCast<QScriptClass>();
+}
+
+ProbeScope::Ptr ProbeScope::create(QScriptEngine *engine, const Scope::Ptr &scope)
+{
+    return ProbeScope::Ptr(new ProbeScope(engine, scope));
+}
+
+ProbeScope::~ProbeScope()
+{
+}
+
+QScriptValue ProbeScope::value()
+{
+    return m_value;
+}
+
+QScriptClass::QueryFlags ProbeScope::queryProperty(const QScriptValue &object, const QScriptString &name,
+                                                           QScriptClass::QueryFlags flags, uint *id)
+{
+    Q_UNUSED(object);
+    Q_UNUSED(name);
+    Q_UNUSED(flags);
+    Q_UNUSED(id);
+    return (HandlesReadAccess | HandlesWriteAccess) & flags;
+}
+
+QScriptValue ProbeScope::property(const QScriptValue &object, const QScriptString &name, uint id)
+{
+    const QString nameString = name.toString();
+    if (m_scope->properties.contains(nameString))
+        return m_scope->property(name);
+    QScriptValue proto = m_value.prototype();
+    if (proto.isValid()) {
+        QScriptValue value = proto.property(name);
+        if (value.isValid())
+            return value;
+    }
+    return m_scopeChain->property(object, name, id);
+}
+
+void ProbeScope::setProperty(QScriptValue &object, const QScriptString &name, uint id, const QScriptValue &value)
+{
+    const QString nameString = name.toString();
+    if (nameString == "configure") {
+        throw Error(tr("Can not access 'configure' property from itself"));
+    } else if (m_scope->properties.contains(nameString)) {
+        Property &property = m_scope->properties[nameString];
+        property.value = value;
+    } else {
+        m_scopeChain->setProperty(object, name, id, value);
+    }
+}
+
 EvaluationObject::EvaluationObject(LanguageObject *instantiatingObject)
 {
     instantiatingObject->file->registerEvaluationObject(this);
@@ -614,6 +673,7 @@ static const QLatin1String name_Properties("Properties");
 static const QLatin1String name_PropertyOptions("PropertyOptions");
 static const QLatin1String name_Depends("Depends");
 static const QLatin1String name_moduleSearchPaths("moduleSearchPaths");
+static const QLatin1String name_Probe("Probe");
 static const uint hashName_FileTagger = qHash(name_FileTagger);
 static const uint hashName_Rule = qHash(name_Rule);
 static const uint hashName_Transformer = qHash(name_Transformer);
@@ -627,6 +687,7 @@ static const uint hashName_Module = qHash(name_Module);
 static const uint hashName_Properties = qHash(name_Properties);
 static const uint hashName_PropertyOptions = qHash(name_PropertyOptions);
 static const uint hashName_Depends = qHash(name_Depends);
+static const uint hashName_Probe = qHash(name_Probe);
 QHash<QString, PropertyDeclaration> Loader::m_dependsPropertyDeclarations;
 QHash<QString, PropertyDeclaration> Loader::m_groupPropertyDeclarations;
 
@@ -773,10 +834,12 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
 
     // project and product scopes are always available
     ScopeChain::Ptr scopeChain(new ScopeChain(&m_engine, context));
-    if (Scope::Ptr projectPropertyScope = moduleScope->findNonEmpty(name_projectPropertyScope))
-        scopeChain->prepend(projectPropertyScope);
-    if (Scope::Ptr productPropertyScope = moduleScope->findNonEmpty(name_productPropertyScope))
-        scopeChain->prepend(productPropertyScope);
+    if (moduleScope) {
+        if (Scope::Ptr projectPropertyScope = moduleScope->findNonEmpty(name_projectPropertyScope))
+            scopeChain->prepend(projectPropertyScope);
+        if (Scope::Ptr productPropertyScope = moduleScope->findNonEmpty(name_productPropertyScope))
+            scopeChain->prepend(productPropertyScope);
+    }
 
     scopeChain->prepend(evaluationObject->scope);
 
@@ -987,6 +1050,12 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
         propertyOptions += PropertyDeclaration("allowedValues", PropertyDeclaration::Variant);
         propertyOptions += PropertyDeclaration("description", PropertyDeclaration::String);
         builtinDeclarations.insert(name_PropertyOptions, propertyOptions);
+
+        QList<PropertyDeclaration> probe;
+        probe += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+        probe += PropertyDeclaration("found", PropertyDeclaration::Boolean);
+        probe += PropertyDeclaration("configure", PropertyDeclaration::Verbatim);
+        builtinDeclarations.insert(name_Probe, probe);
     }
 
     if (!builtinDeclarations.contains(evaluationObject->prototype))
@@ -1118,6 +1187,13 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
                 moduleInstance->declarations = module->object->scope->declarations;
                 insertModulePropertyIntoScope(childEvObject->scope, module, moduleInstance);
             }
+        } else if (childPrototypeHash == hashName_Probe) {
+            Module::Ptr baseModule = searchAndLoadModule(QStringList("qbs"), QLatin1String("qbs"),
+                                                         childScope, userProperties, CodeLocation(object->file->fileName));
+            if (!baseModule)
+                throw Error(tr("Cannot load the qbs base module."));
+            childEvObject->modules.insert(baseModule->name, baseModule);
+            childEvObject->scope->properties.insert(baseModule->id.first(), Property(baseModule->object));
         }
 
         // for TransformProperties, add declarations to parent
@@ -2215,6 +2291,18 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     rproduct->transformers += rtrafo;
 }
 
+void Loader::resolveProbe(EvaluationObject *node)
+{
+    if (!checkCondition(node))
+        return;
+    QScriptContext *ctx = m_engine.pushContext();
+    ProbeScope::Ptr scope = ProbeScope::create(&m_engine, node->scope);
+    ctx->setActivationObject(scope->value());
+    QString constructor = node->scope->verbatimValue("configure");
+    evaluate(&m_engine, constructor);
+    m_engine.popContext();
+}
+
 static void addTransformPropertiesToRule(Rule::Ptr rule, LanguageObject *obj)
 {
     foreach (const Binding &binding, obj->bindings) {
@@ -2253,6 +2341,8 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
             outerTransformProperties.append(object->instantiatingObject());
         } else if (hashPrototypeName == hashName_PropertyOptions) {
             // Just ignore this type to allow it. It is handled elsewhere.
+        } else if (hashPrototypeName == hashName_Probe) {
+            resolveProbe(object);
         } else {
             unhandledObjects.append(object);
         }
