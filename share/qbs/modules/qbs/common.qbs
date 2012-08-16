@@ -21,6 +21,8 @@ Module {
     property string deployRoot: "./deployRoot"
     property string deployInfoFile
 
+    property var getenv: getGetEnvFunction()
+
     PropertyOptions {
         name: "buildVariant"
         allowedValues: ['debug', 'release']
