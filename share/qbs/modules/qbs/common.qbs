@@ -8,8 +8,8 @@ Module {
     property string platform
     property string hostOS: getHostOS()
     property string hostArchitecture: getHostDefaultArchitecture()
-    property string pathListSeparator: qbs.hostOS === "windows" ? ";" : ":"
-    property string pathSeparator: qbs.hostOS === "windows" ? "\\" : "/"
+    property string pathListSeparator: hostOS === "windows" ? ";" : ":"
+    property string pathSeparator: hostOS === "windows" ? "\\" : "/"
     property string targetOS
     property string buildProfileName
     property string toolchain
