@@ -728,6 +728,14 @@ Loader::Loader()
         depends += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         depends += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         depends += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+
+        PropertyDeclaration declaration;
+        declaration.name = "overrideTags";
+        declaration.type = PropertyDeclaration::Boolean;
+        declaration.flags = PropertyDeclaration::PropertyNotAvailableInConfig;
+        declaration.initialValueSource = "true";
+        depends += declaration;
+
         foreach (const PropertyDeclaration &pd, depends)
             m_groupPropertyDeclarations.insert(pd.name, pd);
     }
@@ -1822,8 +1830,9 @@ int Loader::productCount(Configuration::Ptr userProperties)
 
 static void applyFileTaggers(const SourceArtifact::Ptr &artifact, const ResolvedProduct::Ptr &product)
 {
-    if (artifact->fileTags.isEmpty()) {
-        artifact->fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
+    if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
+        QSet<QString> fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
+        artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(QLatin1String("unknown-file-tag"));
         if (qbsLogLevel(LoggerTrace))
@@ -2256,11 +2265,15 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     QSet<QString> fileTags;
     if (isGroup)
         fileTags = group->scope->stringListValue("fileTags").toSet();
+    bool overrideTags = true;
+    if (isGroup)
+        overrideTags = group->scope->boolValue("overrideTags", true);
     foreach (const QString &fileName, files) {
         SourceArtifact::Ptr artifact(new SourceArtifact);
         artifact->configuration = configuration;
         artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
         artifact->fileTags = fileTags;
+        artifact->overrideFileTags = overrideTags;
         rproduct->sources.insert(artifact);
     }
 }

@@ -142,7 +142,12 @@ public:
     typedef QSharedPointer<SourceArtifact> Ptr;
     QString absoluteFilePath;
     QSet<QString> fileTags;
+    bool overrideFileTags;
     Configuration::Ptr configuration;
+
+    SourceArtifact()
+        : overrideFileTags(true)
+    {}
 
 private:
     void load(qbs::PersistentPool &pool, QDataStream &s);
