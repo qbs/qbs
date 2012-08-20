@@ -2,7 +2,7 @@ import qbs.base 1.0
 import '../QtModule.qbs' as QtModule
 
 QtModule {
-    qtModuleName: "qml"
+    qtModuleName: "Qml"
     condition: qt.core.versionMajor === 5
     Depends {
         name: "Qt"
