@@ -1182,6 +1182,10 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
             moduleScope->prepend(scope->findNonEmpty(name_productPropertyScope));
             moduleScope->prepend(scope->findNonEmpty(name_projectPropertyScope));
             moduleScope->prepend(childEvObject->scope);
+            Property productProperty(evaluationObject);
+            childEvObject->scope->properties.insert("product", productProperty);
+            Property projectProperty(scope->lookupProperty("project"));
+            childEvObject->scope->properties.insert("project", projectProperty);
             evaluateDependencies(child, childEvObject, childScope, moduleScope, userProperties);
         } else if (isArtifact || childPrototypeHash == hashName_Group) {
             // for Group and Artifact, add new module instances
@@ -1463,6 +1467,10 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
         extraSearchPaths = scriptValue.toVariant().toStringList();
     }
 
+    // ProductModule does not have moduleSearchPaths property
+    Property productProperty = localScope->lookupProperty("product");
+    if (productProperty.isValid() && productProperty.scope)
+        extraSearchPaths = productProperty.scope->stringListValue(name_moduleSearchPaths);
     Property projectProperty = localScope->lookupProperty("project");
     if (projectProperty.isValid() && projectProperty.scope) {
         // if no product.moduleSearchPaths found, check for additional module search paths in the project
