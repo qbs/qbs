@@ -1325,12 +1325,12 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, c
         module->object->scope->properties.insert("configurationValue", p);
     }
 
+    evaluatePropertyOptions(file->root);
+    evaluateDependencies(file->root, module->object, moduleScope, moduleBaseScope, userProperties, !isBaseModule);
     if (!checkFileCondition(&m_engine, moduleScope, file))
         return Module::Ptr();
 
     qbsTrace() << "loading module '" << moduleName << "' from " << file->fileName;
-    evaluatePropertyOptions(file->root);
-    evaluateDependencies(file->root, module->object, moduleScope, moduleBaseScope, userProperties, !isBaseModule);
     buildModulesProperty(module->object);
 
     if (!file->root->id.isEmpty())
