@@ -883,22 +883,32 @@ static bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &sco
     return result;
 }
 
-static void applyFunctions(QScriptEngine *engine, LanguageObject *object, EvaluationObject *evaluationObject, ScopeChain::Ptr scope)
+static void applyFunctions(QScriptEngine *engine, LanguageObject *object, EvaluationObject *evaluationObject)
+{
+    foreach (const Function &func, object->functions) {
+        Property property;
+        property.value = evaluate(engine, func.source);
+        evaluationObject->scope->properties.insert(func.name, property);
+    }
+}
+
+static void applyFunctions(QScriptEngine *engine, LanguageObject *object, EvaluationObject *evaluationObject, const QScriptValue &value)
 {
     if (object->functions.isEmpty())
         return;
 
     // set the activation object to the correct scope
     QScriptValue oldActivation = engine->currentContext()->activationObject();
-    engine->currentContext()->setActivationObject(scope->value());
+    engine->currentContext()->setActivationObject(value);
 
-    foreach (const Function &func, object->functions) {
-        Property property;
-        property.value = evaluate(engine, func.source);
-        evaluationObject->scope->properties.insert(func.name, property);
-    }
+    applyFunctions(engine, object, evaluationObject);
 
     engine->currentContext()->setActivationObject(oldActivation);
+}
+
+static void applyFunctions(QScriptEngine *engine, LanguageObject *object, EvaluationObject *evaluationObject, ScopeChain::Ptr scope)
+{
+    return applyFunctions(engine, object, evaluationObject, scope->value());
 }
 
 static void applyBinding(LanguageObject *object, const Binding &binding, const ScopeChain::Ptr &scopeChain)
@@ -2301,6 +2311,8 @@ void Loader::resolveProbe(EvaluationObject *node)
     QScriptContext *ctx = m_engine.pushContext();
     ProbeScope::Ptr scope = ProbeScope::create(&m_engine, node->scope);
     ctx->setActivationObject(scope->value());
+    for (int i = node->objects.size() - 1; i >= 0; --i)
+        applyFunctions(&m_engine, node->objects.at(i), node);
     QString constructor = node->scope->verbatimValue("configure");
     evaluate(&m_engine, constructor);
     m_engine.popContext();
