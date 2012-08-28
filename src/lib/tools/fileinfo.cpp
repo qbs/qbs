@@ -137,6 +137,23 @@ bool FileInfo::isAbsolute(const QString &path)
     return false;
 }
 
+bool FileInfo::isPattern(const QString &str)
+{
+    return isPattern(QStringRef(&str));
+}
+
+bool FileInfo::isPattern(const QStringRef &str)
+{
+    for (int i = 0; i < str.size(); ++i) {
+        const QChar ch = str.at(i);
+        if (ch == QLatin1Char('*') || ch == QLatin1Char('?')
+                || ch == QLatin1Char(']') || ch == QLatin1Char('[')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 QString FileInfo::resolvePath(const QString &base, const QString &rel)
 {
     if (isAbsolute(rel))
@@ -167,14 +184,7 @@ bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
 {
     const QString pattern = regexp.pattern();
     // May be it's simple wildcard, i.e. "*.cpp"?
-    if (pattern.startsWith(QLatin1Char('*'))) {
-        for (int i = 1; i < pattern.size(); ++i) {
-            const QChar ch = pattern.at(i);
-            if (ch == QLatin1Char('*') || ch == QLatin1Char('?')
-                    || ch == QLatin1Char(']') || ch == QLatin1Char('[')) {
-                return regexp.exactMatch(fileName);
-            }
-        }
+    if (pattern.startsWith(QLatin1Char('*')) && !isPattern(pattern.midRef(1))) {
         // Yes, it's rather simple to just check the extension
         return fastStringEndsWith(fileName, pattern.midRef(1));
     }

@@ -226,6 +226,25 @@ private:
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
 
+class Group : public qbs::PersistentObject
+{
+public:
+    typedef QSharedPointer<Group> Ptr;
+    QString prefix;
+    bool recursive;
+    QStringList patterns;
+    QStringList excludePatterns;
+    QSet<QString> files;
+
+    Group()
+        : recursive(false)
+    {}
+
+private:
+    void load(qbs::PersistentPool &pool, QDataStream &s);
+    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+};
+
 class ResolvedTransformer
 {
 public:
@@ -260,6 +279,7 @@ public:
     QSet<FileTagger::Ptr> fileTaggers;
     QList<ResolvedModule::Ptr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
+    QList<Group::Ptr> groups;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved

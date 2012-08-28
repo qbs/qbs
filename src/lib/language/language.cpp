@@ -233,6 +233,24 @@ void Rule::store(PersistentPool &pool, QDataStream &s) const
     storeContainer(artifacts, s, pool);
 }
 
+void Group::load(PersistentPool &pool, QDataStream &s)
+{
+    prefix = pool.idLoadString();
+    patterns = pool.idLoadStringList();
+    excludePatterns = pool.idLoadStringList();
+    files = pool.idLoadStringSet();
+    s >> recursive;
+}
+
+void Group::store(PersistentPool &pool, QDataStream &s) const
+{
+    pool.storeString(prefix);
+    pool.storeStringList(patterns);
+    pool.storeStringList(excludePatterns);
+    pool.storeStringSet(files);
+    s << recursive;
+}
+
 ResolvedProduct::ResolvedProduct()
     : project(0)
 {
@@ -265,6 +283,7 @@ void ResolvedProduct::load(PersistentPool &pool, QDataStream &s)
     loadContainerS(uses, s, pool);
     loadContainerS(fileTaggers, s, pool);
     loadContainerS(modules, s, pool);
+    loadContainerS(groups, s, pool);
 }
 
 void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
@@ -283,6 +302,7 @@ void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
     storeContainer(uses, s, pool);
     storeContainer(fileTaggers, s, pool);
     storeContainer(modules, s, pool);
+    storeContainer(groups, s, pool);
 }
 
 QList<ResolvedModule*> topSortModules(const QHash<ResolvedModule*, QList<ResolvedModule*> > &moduleChildren,

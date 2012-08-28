@@ -377,8 +377,13 @@ public:
     ResolvedProject::Ptr resolveProject(const QString &buildDirectoryRoot,
                                         Configuration::Ptr userProperties,
                                         bool resolveProductDependencies = true);
+    static QSet<QString> resolveFiles(Group::Ptr group, const QString &baseDir);
 
 protected:
+    static QSet<QString> resolveFiles(Group::Ptr group, const QStringList &patterns, const QString &baseDir);
+    static void resolveFiles(QSet<QString> &files, const QString &baseDir, bool recursive,
+                             const QStringList &parts, int index = 0);
+
     ProjectFile::Ptr parseFile(const QString &fileName);
 
     Scope::Ptr buildFileContext(ProjectFile *file);

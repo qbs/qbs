@@ -68,6 +68,8 @@ public:
     static void splitIntoDirectoryAndFileName(const QString &filePath, QStringRef *dirPath, QStringRef *fileName);
     static bool exists(const QString &fp);
     static bool isAbsolute(const QString &fp);
+    static bool isPattern(const QStringRef &str);
+    static bool isPattern(const QString &str);
     static QString resolvePath(const QString &base, const QString &rel);
     static bool globMatches(const QRegExp &pattern, const QString &subject);
 

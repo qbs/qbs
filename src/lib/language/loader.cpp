@@ -726,6 +726,10 @@ Loader::Loader()
         depends.clear();
         depends += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
         depends += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        depends += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
+        recursiveProperty.initialValueSource = "false";
+        depends += recursiveProperty;
         depends += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         depends += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
 
@@ -2210,6 +2214,61 @@ static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, Evaluatio
     return values;
 }
 
+QSet<QString> Loader::resolveFiles(Group::Ptr group, const QString &baseDir)
+{
+    QSet<QString> files = resolveFiles(group, group->patterns, baseDir);
+    files -= resolveFiles(group, group->excludePatterns, baseDir);
+    return files;
+}
+
+QSet<QString> Loader::resolveFiles(Group::Ptr group, const QStringList &patterns, const QString &baseDir)
+{
+    QSet<QString> files;
+    foreach (QString pattern, patterns) {
+        if (!group->prefix.isEmpty())
+            pattern.prepend(group->prefix);
+        if (pattern.contains('\\'))
+            pattern.replace('\\', '/');
+        QStringList parts = pattern.split('/', QString::SkipEmptyParts);
+        QString basePath;
+        if (FileInfo::isAbsolute(pattern)) {
+            if (pattern.startsWith('/'))
+                basePath += '/';
+            while (!FileInfo::isPattern(parts.first())) {
+                basePath.append(parts.takeFirst());
+                basePath += '/';
+            }
+        } else {
+            basePath = baseDir;
+        }
+        resolveFiles(files, baseDir, group->recursive, parts);
+    }
+    return files;
+}
+
+void Loader::resolveFiles(QSet<QString> &files, const QString &baseDir, bool recursive, const QStringList &parts, int index)
+{
+    QDir::Filters filter;
+    const bool isDirectory = index + 1 < parts.size();
+    if (isDirectory)
+        filter |= QDir::Dirs;
+    else
+        filter |= QDir::Files;
+    const QString &part = parts[index];
+    QDirIterator::IteratorFlags flags;
+    if (recursive && FileInfo::isPattern(part)) {
+        flags |= QDirIterator::Subdirectories;
+        recursive = false;
+    }
+    QDirIterator it(baseDir, QStringList(part), filter, flags);
+    while (it.hasNext()) {
+        if (isDirectory)
+            resolveFiles(files, it.next(), recursive, parts, index + 1);
+        else
+            files.insert(it.next());
+    }
+}
+
 /**
   * Resolve Group {} and the files part of Product {}.
   */
@@ -2260,11 +2319,18 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
         if (!filesBindingFound)
             throw Error(tr("Group without files is not allowed."), group->instantiatingObject()->prototypeLocation);
     }
+    QStringList patterns;
+    QString prefix;
+    for (int i = files.count(); --i >= 0;) {
+        if (FileInfo::isPattern(files[i]))
+            patterns.append(files.takeAt(i));
+    }
     if (isGroup) {
-        QString prefix = group->scope->stringValue("prefix");
-        if (!prefix.isEmpty())
-            for (int i=files.count(); --i >= 0;)
-                files[i].prepend(prefix);
+        prefix = group->scope->stringValue("prefix");
+        if (!prefix.isEmpty()) {
+            for (int i = files.count(); --i >= 0;)
+                    files[i].prepend(prefix);
+        }
     }
     QSet<QString> fileTags;
     if (isGroup)
@@ -2272,6 +2338,21 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     bool overrideTags = true;
     if (isGroup)
         overrideTags = group->scope->boolValue("overrideTags", true);
+
+    if (!patterns.isEmpty()) {
+        Group::Ptr buildGroup(new Group());
+        if (isGroup) {
+            buildGroup->recursive = group->scope->boolValue("recursive");
+            buildGroup->excludePatterns = group->scope->stringListValue("excludeFiles");
+        }
+        buildGroup->prefix = prefix;
+        buildGroup->patterns = patterns;
+        buildGroup->files = resolveFiles(buildGroup, rproduct->sourceDirectory);
+        foreach (const QString &file, buildGroup->files)
+            files.append(file);
+        rproduct->groups.append(buildGroup);
+    }
+
     foreach (const QString &fileName, files) {
         SourceArtifact::Ptr artifact(new SourceArtifact);
         artifact->configuration = configuration;

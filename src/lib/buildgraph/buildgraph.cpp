@@ -933,6 +933,10 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
     QSet<SourceArtifact::Ptr> addedSourceArtifacts;
     QList<Artifact *> addedArtifacts, artifactsToRemove;
     QHash<QString, SourceArtifact::Ptr> oldArtifacts, newArtifacts;
+
+    // Update list of found files by patterns
+    product->rProduct->groups = changedProduct->groups;
+
     foreach (SourceArtifact::Ptr a, product->rProduct->sources)
         oldArtifacts.insert(a->absoluteFilePath, a);
     foreach (SourceArtifact::Ptr a, changedProduct->sources) {
@@ -1235,11 +1239,21 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
     bool referencedProductRemoved = false;
     QList<BuildProduct::Ptr> changedProducts;
     foreach (BuildProduct::Ptr product, project->buildProducts()) {
-        FileInfo pfi(product->rProduct->qbsFile);
-        if (!pfi.exists())
+        const ResolvedProduct::Ptr &resolvedProduct = product->rProduct;
+        FileInfo pfi(resolvedProduct->qbsFile);
+        if (!pfi.exists()) {
             referencedProductRemoved = true;
-        else if (bgfi.lastModified() < pfi.lastModified())
+        } else if (bgfi.lastModified() < pfi.lastModified()) {
             changedProducts += product;
+        } else if (!resolvedProduct->groups.isEmpty()) {
+            foreach (Group::Ptr group, resolvedProduct->groups) {
+                QSet<QString> files = Loader::resolveFiles(group, resolvedProduct->sourceDirectory);
+                if (files != group->files) {
+                    changedProducts += product;
+                    break;
+                }
+            }
+        }
     }
 
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
