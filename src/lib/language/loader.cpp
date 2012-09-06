@@ -1073,7 +1073,9 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
 
         QList<PropertyDeclaration> probe;
         probe += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        probe += PropertyDeclaration("found", PropertyDeclaration::Boolean);
+        PropertyDeclaration foundProperty("found", PropertyDeclaration::Boolean);
+        foundProperty.initialValueSource = "false";
+        probe += foundProperty;
         probe += PropertyDeclaration("configure", PropertyDeclaration::Verbatim);
         builtinDeclarations.insert(name_Probe, probe);
     }
