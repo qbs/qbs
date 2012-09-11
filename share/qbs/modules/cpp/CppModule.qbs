@@ -71,6 +71,13 @@ Module {
         description: "generate position independent code"
     }
 
+    property string visibility: 'default' // 'default', 'hidden', 'hiddenInlines'
+    PropertyOptions {
+        name: "visibility"
+        description: "export symbols visibility level"
+        allowedValues: ['default', 'hidden', 'hiddenInlines']
+    }
+
     FileTagger {
         pattern: "*.c"
         fileTags: ["c"]

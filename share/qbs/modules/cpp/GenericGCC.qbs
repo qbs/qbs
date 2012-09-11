@@ -269,6 +269,7 @@ CppModule {
             property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
             property var objcFlags: ModUtils.appendAll(input, 'objcFlags')
             property var positionIndependentCode: ModUtils.findFirst(product.modules, 'cpp', 'positionIndependentCode')
+            property var visibility: ModUtils.findFirst(product.modules, 'cpp', 'visibility')
         }
 
         prepare: {
@@ -288,6 +289,15 @@ CppModule {
                     args.push('-fPIE');
             } else {
                 throw ("OK, now we got a problem... The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
+            }
+
+            if (product.type.indexOf('staticlibrary') === -1 && (product.modules.qbs.toolchain !== "mingw")) {
+                if (visibility === 'hidden')
+                    args.push('-fvisibility=hidden');
+                if (visibility === 'hiddenInlines')
+                    args.push('-fvisibility-inlines-hidden');
+                if (visibility === 'default')
+                    args.push('-fvisibility=default')
             }
 
             if (product.module.sysroot)

@@ -36,6 +36,7 @@
 **************************************************************************/
 
 #include <stdio.h>
+#include <lib4.h>
 
 #if defined(_WIN32) || defined(WIN32)
 #   define EXPORT __declspec(dllexport)
@@ -50,6 +51,9 @@ IMPORT int lib1_hello();
 int main()
 {
     puts("application says hello!");
+    TestMe test;
+    test.hello1();
+    test.hello2();
     return lib1_hello();
 }
 
