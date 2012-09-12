@@ -1269,8 +1269,9 @@ void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
                 file.close();
                 const QScriptProgram program(source, fileName);
                 importResult = addJSImport(&m_engine, program, targetObject);
-                if (importResult.isError())
-                    throw Error(QLatin1String("error while evaluating import: ") + importResult.toString());
+                if (m_engine.hasUncaughtException())
+                    throw Error(QLatin1String("error while evaluating import: ") + importResult.toString(),
+                                fileName, m_engine.uncaughtExceptionLineNumber());
 
                 m_jsImports.insert(fileName, targetObject);
             }
