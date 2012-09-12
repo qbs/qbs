@@ -710,7 +710,7 @@ Loader::Loader()
 
     m_jsFunction_getHostOS  = m_engine.newFunction(js_getHostOS, 0);
     m_jsFunction_getHostDefaultArchitecture = m_engine.newFunction(js_getHostDefaultArchitecture, 0);
-    m_jsFunction_getGetEnvFunction = m_engine.newFunction(js_getGetEnvFunction, 0);
+    m_jsFunction_getenv = m_engine.newFunction(js_getenv, 0);
     m_jsFunction_configurationValue = m_engine.newFunction(js_configurationValue, 2);
 
     if (m_dependsPropertyDeclarations.isEmpty()) {
@@ -1341,8 +1341,8 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, c
         module->object->scope->properties.insert("getHostOS", p);
         p.value = m_jsFunction_getHostDefaultArchitecture;
         module->object->scope->properties.insert("getHostDefaultArchitecture", p);
-        p.value = m_jsFunction_getGetEnvFunction;
-        module->object->scope->properties.insert("getGetEnvFunction", p);
+        p.value = m_jsFunction_getenv;
+        module->object->scope->properties.insert("getenv", p);
         p.value = m_jsFunction_configurationValue;
         module->object->scope->properties.insert("configurationValue", p);
     }
@@ -2848,12 +2848,6 @@ QScriptValue Loader::js_getenv(QScriptContext *context, QScriptEngine *engine)
     const QByteArray name = context->argument(0).toString().toLocal8Bit();
     const QByteArray value = qgetenv(name);
     return value.isNull() ? engine->undefinedValue() : QString::fromLocal8Bit(value);
-}
-
-QScriptValue Loader::js_getGetEnvFunction(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(context);
-    return engine->newFunction(js_getenv, 1);
 }
 
 QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngine *engine)

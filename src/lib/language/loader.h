@@ -440,7 +440,6 @@ private:
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getGetEnvFunction(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_configurationValue(QScriptContext *context, QScriptEngine *engine);
 
     static QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
@@ -452,7 +451,7 @@ private:
     QScriptEngine m_engine;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;
-    QScriptValue m_jsFunction_getGetEnvFunction;
+    QScriptValue m_jsFunction_getenv;
     QScriptValue m_jsFunction_configurationValue;
     Settings::Ptr m_settings;
     ProjectFile::Ptr m_project;
