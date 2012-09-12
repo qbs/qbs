@@ -743,6 +743,7 @@ Loader::Loader()
 
 Loader::~Loader()
 {
+    m_engine.popContext();  // pop the context we've pushed in our c'tor
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)
