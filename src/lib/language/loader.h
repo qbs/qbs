@@ -297,9 +297,12 @@ private:
 class ModuleBase
 {
 public:
+    typedef QSharedPointer<ModuleBase> Ptr;
+
     virtual ~ModuleBase() {}
     QString name;
     QScriptProgram condition;
+    ScopeChain::Ptr conditionScopeChain;
     qbs::CodeLocation dependsLocation;
 };
 
@@ -386,12 +389,12 @@ protected:
     Module::Ptr loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                            const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation);
     void insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance = Scope::Ptr());
-    QList<Module::Ptr> evaluateDependency(LanguageObject *depends,
+    QList<Module::Ptr> evaluateDependency(LanguageObject *depends, ScopeChain::Ptr conditionScopeChain,
                                           ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
                                           QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties);
     void evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
                               ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule = true);
-    void evaluateDependencyConditions(EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope);
+    void evaluateDependencyConditions(EvaluationObject *evaluationObject);
     void evaluateImports(Scope::Ptr target, const JsImports &jsImports);
     void evaluatePropertyOptions(LanguageObject *object);
     void resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,

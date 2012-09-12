@@ -1358,7 +1358,7 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, c
     if (!file->root->id.isEmpty())
         module->context->properties.insert(file->root->id, Property(module->object));
     fillEvaluationObject(moduleScope, file->root, module->object->scope, module->object, userProperties);
-    evaluateDependencyConditions(module->object, moduleScope);
+    evaluateDependencyConditions(module->object);
 
     if (!module->object->unknownModules.isEmpty()) {
         // Some module dependencies could not be resolved.
@@ -1501,7 +1501,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     foreach (LanguageObject *child, object->children) {
         if (compare(child->prototype, name_Depends)) {
             QList<UnknownModule::Ptr> unknownModules;
-            foreach (const Module::Ptr &m, evaluateDependency(child, moduleScope, extraSearchPaths, &unknownModules, userProperties)) {
+            foreach (const Module::Ptr &m, evaluateDependency(child, localScope, moduleScope, extraSearchPaths, &unknownModules, userProperties)) {
                 Module::Ptr m2 = evaluationObject->modules.value(m->name);
                 if (m2) {
                     m2->dependsCount++;
@@ -1516,7 +1516,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     }
 }
 
-void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope)
+void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
 {
     bool mustEvaluateConditions = false;
     QVector<Module::Ptr> modules;
@@ -1535,25 +1535,14 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject, co
     if (!mustEvaluateConditions)
         return;
 
-    ScopeChain::Ptr conditionScopeChain(new ScopeChain(&m_engine, evaluationObject->scope));
-    Scope::Ptr conditionScope = Scope::create(&m_engine, "Depends.condition scope", evaluationObject->instantiatingObject()->file);
-    conditionScopeChain->prepend(conditionScope);
-
-    Property projectProperty = localScope->lookupProperty("project");
-    if (projectProperty.isValid() && projectProperty.scope)
-        conditionScope->properties.insert("project", projectProperty);
-
-    foreach (Module::Ptr module, modules)
-        insertModulePropertyIntoScope(conditionScope, module);
-
     QScriptContext *context = m_engine.currentContext();
     const QScriptValue activationObject = context->activationObject();
-    context->setActivationObject(conditionScopeChain->value());
 
     foreach (const QSharedPointer<ModuleBase> &moduleBaseObject, moduleBaseObjects) {
         if (moduleBaseObject->condition.isNull())
             continue;
 
+        context->setActivationObject(moduleBaseObject->conditionScopeChain->value());
         QScriptValue conditionValue = m_engine.evaluate(moduleBaseObject->condition);
         if (conditionValue.isError()) {
             CodeLocation location(moduleBaseObject->condition.fileName(), moduleBaseObject->condition.firstLineNumber());
@@ -1599,8 +1588,8 @@ void Loader::checkModuleDependencies(const Module::Ptr &module)
         checkModuleDependencies(dependency);
 }
 
-QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChain::Ptr moduleScope,
-                                              const QStringList &extraSearchPaths,
+QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChain::Ptr conditionScopeChain,
+                                              ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
                                               QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties)
 {
     const CodeLocation dependsLocation = depends->prototypeLocation;
@@ -1663,18 +1652,21 @@ QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChai
     for (int i=0; i < fullModuleNames.count(); ++i) {
         const QString &fullModuleName = fullModuleNames.at(i);
         Module::Ptr module = searchAndLoadModule(fullModuleIds.at(i), fullModuleName, moduleScope, userProperties, dependsLocation, extraSearchPaths);
+        ModuleBase::Ptr moduleBase;
         if (module) {
-            module->condition = condition;
+            moduleBase = module;
             modules.append(module);
         } else {
             UnknownModule::Ptr unknownModule(new UnknownModule);
-            unknownModule->condition = condition;
             unknownModule->name = fullModuleName;
             unknownModule->required = isRequired;
             unknownModule->failureMessage = failureMessage;
             unknownModule->dependsLocation = dependsLocation;
+            moduleBase = unknownModule;
             unknownModules->append(unknownModule);
         }
+        moduleBase->condition = condition;
+        moduleBase->conditionScopeChain = conditionScopeChain;
     }
     return modules;
 }
@@ -2282,9 +2274,7 @@ void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObjec
 {
     Q_ASSERT(!rproduct->name.isEmpty());
 
-    ScopeChain::Ptr localScopeChain(new ScopeChain(&m_engine, productModule->scope));
-    evaluateDependencyConditions(productModule, localScopeChain);
-
+    evaluateDependencyConditions(productModule);
     clearCachedValues();
     QVariantMap moduleValues = evaluateModuleValues(rproduct, productModule, productModule->scope);
     m_productModules.insert(rproduct->name.toLower(), moduleValues);
@@ -3011,7 +3001,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
     evaluateDependencies(object, evaluationObject, localScope, moduleScope, userProperties->value());
     fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
-    evaluateDependencyConditions(evaluationObject, localScope);
+    evaluateDependencyConditions(evaluationObject);
     productData.usedProducts = evaluationObject->unknownModules;
 
     // check if product's name is empty and set a default value
