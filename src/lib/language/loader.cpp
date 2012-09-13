@@ -1839,6 +1839,14 @@ static void applyFileTaggers(const SourceArtifact::Ptr &artifact, const Resolved
 static bool checkCondition(EvaluationObject *object)
 {
     QScriptValue scriptValue = object->scope->property("condition");
+    if (scriptValue.isString()) {
+        // Condition is user-defined
+        const QString str = scriptValue.toString();
+        if (str == "true")
+            return true;
+        else if (str == "false")
+            return false;
+    }
     if (scriptValue.isBool()) {
         return scriptValue.toBool();
     } else if (scriptValue.isValid() && !scriptValue.isUndefined()) {
@@ -3050,8 +3058,13 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
     // check the product's condition
     if (!checkCondition(evaluationObject)) {
+        // Remove product from configuration if it is disabled
+        const QString productName = evaluationObject->scope->stringValue("name");
+        QVariantMap map = userProperties->value();
+        map.remove(productName);
+        userProperties->setValue(map);
         if (qbsLogLevel(LoggerTrace))
-            qbsTrace() << "[LDR] condition for product '" << evaluationObject->scope->stringValue("name") << "' is false.";
+            qbsTrace() << "[LDR] condition for product '" << productName << "' is false.";
         return;
     }
 
