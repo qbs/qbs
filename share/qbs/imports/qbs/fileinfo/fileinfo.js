@@ -26,9 +26,18 @@ function relativePath(base, rel)
 {
     var basel = base.split('/');
     var rell  = rel.split('/');
-    var i = 0;
+    var i;
+    for (i = basel.length; i-- >= 0;) {
+        if (basel[i] === '.' || basel[i] === '')
+            basel.splice(i, 1);
+    }
+    for (i = rell.length; i-- >= 0;) {
+        if (rell[i] === '.' || rell[i] === '')
+            rell.splice(i, 1);
+    }
 
-    while (i < basel.length && i < rell.length && basel[i] == rell[i])
+    i = 0;
+    while (i < basel.length && i < rell.length && basel[i] === rell[i])
         i++;
 
     var j = i;
