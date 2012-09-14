@@ -160,7 +160,7 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
     platformInfo.qtMkspecsDir = platformInfo.sysrootDir + QLatin1String("/usr/share/qt4/mkspecs");
     platformInfo.environment.insert(QLatin1String("SYSROOT_DIR"), platformInfo.sysrootDir);
     const QString maddeMadLibDir = baseDirectory() + QLatin1String("/madlib");
-    platformInfo.environment.insert(QLatin1String("PERL5LIB"), maddeMadLibDir);
+    platformInfo.environment.insert(QLatin1String("PERL5LIB"), maddeMadLibDir + QLatin1String("/perl5"));
 
     const QString maddeMadBinDir = baseDirectory() + QLatin1String("/madbin");
     const QString targetBinDir = targetDir + QLatin1String("/bin");
