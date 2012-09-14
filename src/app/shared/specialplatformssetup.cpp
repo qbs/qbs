@@ -183,7 +183,8 @@ void SpecialPlatformsSetup::writeConfigFile(const PlatformInfo &platformInfo,
 
     settings.setValue(QLatin1String("toolchain"), QLatin1String("gcc"));
     settings.setValue(QLatin1String("endianness"), QLatin1String("little-endian"));
-    settings.setValue(QLatin1String("targetOS"), QLatin1String("linux"));
+    settings.setValue(QLatin1String("targetOS"), platformInfo.targetOS);
+    settings.setValue(QLatin1String("targetPlatform"), platformInfo.targetPlatform);
     settings.setValue(QLatin1String("sysroot"), platformInfo.sysrootDir);
 
     settings.beginGroup(QLatin1String("cpp"));

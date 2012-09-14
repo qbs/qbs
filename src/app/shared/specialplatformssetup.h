@@ -57,6 +57,8 @@ public:
     struct PlatformInfo
     {
         QString name;
+        QString targetOS;
+        QStringList targetPlatform;
         QString toolchainDir;
         QString compilerName;
         QStringList cFlags;

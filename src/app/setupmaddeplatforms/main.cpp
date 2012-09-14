@@ -149,6 +149,10 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
         throw Exception(tr("Error: No sysroot information found for target '%1'.").arg(target));
 
     platformInfo.name = target;
+    platformInfo.targetOS = QLatin1String("linux");
+    platformInfo.targetPlatform << QLatin1String("unix") << QLatin1String("linux");
+    if (target.contains(QLatin1String("harmattan")))
+        platformInfo.targetPlatform << QLatin1String("meego") << QLatin1String("maemo6");
     platformInfo.toolchainDir = targetDir + QLatin1String("/bin");
     platformInfo.compilerName = QLatin1String("g++");
     platformInfo.qtBinDir = platformInfo.toolchainDir;

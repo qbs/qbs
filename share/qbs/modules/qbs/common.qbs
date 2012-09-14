@@ -11,6 +11,16 @@ Module {
     property string pathListSeparator: hostOS === "windows" ? ";" : ":"
     property string pathSeparator: hostOS === "windows" ? "\\" : "/"
     property string targetOS
+    property var targetPlatform: {
+        if (targetOS === "linux")
+            return [ "unix", "linux" ];
+        else if (targetOS === "mac")
+            return [ "unix", "darwin", "mac" ];
+        else if (targetOS === "windows")
+            return [ "windows" ];
+        else
+            throw "Unknown targetOS: \"" + targetOS + "\""
+    }
     property string buildProfileName
     property string toolchain
     property string architecture
