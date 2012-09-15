@@ -9,17 +9,24 @@ function path(fp) {
 
 function fileName(fph) {
     var fp = fph.toString();
-    if (fp[fp.length -1] == '/')
-        return fp;
     var last = fp.lastIndexOf('/');
     if (last < 0)
-        return '.';
+        return fp;
     return fp.slice(last + 1);
 }
 
 function baseName(fph) {
     var fn = fileName(fph);
     return fn.split('.')[0];
+}
+
+function completeBaseName(fph) {
+    var fn = fileName(fph);
+    var last = fn.lastIndexOf(".");
+    if (last < 0)
+        return fn;
+    else
+        return fn.slice(0, last);
 }
 
 function relativePath(base, rel)
