@@ -55,6 +55,7 @@ using namespace CPlusPlus;
 #include <QtCore/QList>
 #include <QtCore/QScopedPointer>
 #include <QtCore/QString>
+#include <QtCore/QLatin1Literal>
 
 struct ScanResult
 {
@@ -110,7 +111,8 @@ struct Opaq
 
 static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
 {
-    static const size_t lengthOfIncludeLiteral = strlen("include");
+    const QLatin1Literal includeLiteral("include");
+    const QLatin1Literal importLiteral("import");
     Opaq *opaque = static_cast<Opaq *>(opaq);
     Token tk;
     ScanResult scanResult;
@@ -122,8 +124,10 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
             yylex(&tk);
 
             if (!scanForFileTags && !tk.newline() && tk.is(T_IDENTIFIER)) {
-                if (tk.length() >= lengthOfIncludeLiteral
-                    && (strncmp(opaque->fileContent + tk.begin(), "include", lengthOfIncludeLiteral) == 0))
+                if ((tk.length() >= includeLiteral.size()
+                     && (strncmp(opaque->fileContent + tk.begin(), includeLiteral.data(), includeLiteral.size()) == 0))
+                        || (tk.length() >= importLiteral.size()
+                            && (strncmp(opaque->fileContent + tk.begin(), importLiteral.data(), importLiteral.size()) == 0)))
                 {
                     yylex.setScanAngleStringLiteralTokens(true);
                     yylex(&tk);
@@ -284,6 +288,28 @@ ScannerPlugin cScanner =
     true
 };
 
+ScannerPlugin objcppScanner =
+{
+    "include_scanner",
+    "objcpp",
+    openScanner,
+    closeScanner,
+    next,
+    additionalFileTags,
+    true
+};
+
+ScannerPlugin objcScanner =
+{
+    "include_scanner",
+    "objc",
+    openScanner,
+    closeScanner,
+    next,
+    additionalFileTags,
+    true
+};
+
 ScannerPlugin rcScanner =
 {
     "include_scanner",
@@ -295,7 +321,7 @@ ScannerPlugin rcScanner =
     true
 };
 
-ScannerPlugin *theScanners[] = {&hppScanner, &cppScanner, &cScanner, &rcScanner, NULL};
+ScannerPlugin *theScanners[] = {&hppScanner, &cppScanner, &cScanner, &objcppScanner, &objcScanner, &rcScanner, NULL};
 
 CPPSCANNER_EXPORT ScannerPlugin **getScanners()
 {
