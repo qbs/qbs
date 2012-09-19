@@ -2227,8 +2227,7 @@ QSet<QString> Loader::resolveFiles(Group::Ptr group, const QStringList &patterns
     foreach (QString pattern, patterns) {
         if (!group->prefix.isEmpty())
             pattern.prepend(group->prefix);
-        if (pattern.contains('\\'))
-            pattern.replace('\\', '/');
+        pattern.replace('\\', '/');
         QStringList parts = pattern.split('/', QString::SkipEmptyParts);
         QString basePath;
         if (FileInfo::isAbsolute(pattern)) {
