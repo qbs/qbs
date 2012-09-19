@@ -76,7 +76,7 @@ public:
     SourceProject(const SourceProject &other);
     SourceProject &operator=(const SourceProject &other);
 
-    void setSettings(const qbs::Settings::Ptr &setttings);
+    void setSettings(const qbs::Settings::Ptr &settings);
     void setSearchPaths(const QStringList &searchPaths);
     void loadPlugins(const QStringList &pluginPaths);
     void loadProjectIde(QFutureInterface<bool> &futureInterface,

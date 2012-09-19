@@ -91,9 +91,9 @@ SourceProject &SourceProject::operator =(const SourceProject &other)
     return *this;
 }
 
-void SourceProject::setSettings(const qbs::Settings::Ptr &setttings)
+void SourceProject::setSettings(const qbs::Settings::Ptr &settings)
 {
-    d->settings = setttings;
+    d->settings = settings;
 }
 
 void SourceProject::setSearchPaths(const QStringList &searchPaths)
