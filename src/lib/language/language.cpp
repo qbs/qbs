@@ -357,7 +357,7 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
     QProcessEnvironment procenv = systemEnvironment;
 
     // Copy the environment of the platform configuration to the process environment.
-    const QVariantMap platformEnv = project->configuration->value().value("environment").toMap();
+    const QVariantMap &platformEnv = project->platformEnvironment;
     for (QVariantMap::const_iterator it = platformEnv.constBegin(); it != platformEnv.constEnd(); ++it)
         procenv.insert(it.key(), it.value().toString());
 
@@ -472,6 +472,7 @@ void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
 {
     s >> id;
     s >> qbsFile;
+    s >> platformEnvironment;
 
     int count;
     s >> count;
@@ -488,6 +489,7 @@ void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
 {
     s << id;
     s << qbsFile;
+    s << platformEnvironment;
 
     s << products.count();
     foreach (ResolvedProduct::Ptr product, products)

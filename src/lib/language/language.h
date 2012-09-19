@@ -300,6 +300,7 @@ public:
     typedef QSharedPointer<ResolvedProject> Ptr;
     QString id;
     QString qbsFile;
+    QVariantMap platformEnvironment;
     QSet<ResolvedProduct::Ptr> products;
     Configuration::Ptr configuration;
 

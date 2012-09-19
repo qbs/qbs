@@ -375,9 +375,8 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
             }
 
             // copy the environment from the platform config into the project's config
-            QVariantMap projectCfg = bProject->resolvedProject()->configuration->value();
-            projectCfg.insert("environment", configure->value().value("environment"));
-            bProject->resolvedProject()->configuration->setValue(projectCfg);
+            const QVariantMap platformEnvironment = configure->value().value("environment").toMap();
+            bProject->resolvedProject()->platformEnvironment = platformEnvironment;
 
             d->buildProjects.append(bProject);
 
