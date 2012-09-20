@@ -393,11 +393,11 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
             (envType == RunEnv && module->setupBuildEnvironmentScript.isEmpty() && module->setupRunEnvironmentScript.isEmpty()))
             continue;
 
-        // expose functions
-        scriptEngine->globalObject().setProperty("getenv", scriptEngine->newFunction(js_getenv, 1));
-        scriptEngine->globalObject().setProperty("putenv", scriptEngine->newFunction(js_putenv, 2));
-
         QScriptContext *ctx = scriptEngine->pushContext();
+
+        // expose functions
+        ctx->activationObject().setProperty("getenv", scriptEngine->newFunction(js_getenv, 1));
+        ctx->activationObject().setProperty("putenv", scriptEngine->newFunction(js_putenv, 2));
 
         // handle imports
         QScriptValue scriptValue;
