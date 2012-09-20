@@ -67,15 +67,6 @@ namespace qbs {
 
 static const bool debugJSImports = false;
 
-void addJSImport(QScriptEngine *engine,
-                 const QScriptValue &targetObject,
-                 const QString &id)
-{
-    if (debugJSImports)
-        qDebug() << "addJSImport (cached): " << id;
-    engine->globalObject().setProperty(id, targetObject);
-}
-
 QScriptValue addJSImport(QScriptEngine *engine,
                          const QScriptProgram &program,
                          const QString &id)

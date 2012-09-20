@@ -219,6 +219,7 @@ void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, Resolv
         for (JsImports::const_iterator it = rule->jsImports.begin(); it != rule->jsImports.end(); ++it) {
             const JsImport &jsImport = *it;
             foreach (const QString &fileName, jsImport.fileNames) {
+                QScriptValue activationObject = scriptEngine->currentContext()->activationObject();
                 QScriptValue jsImportValue;
                 if (bg)
                     jsImportValue = bg->m_jsImportCache.value(fileName, scriptEngine->undefinedValue());
@@ -230,12 +231,12 @@ void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, Resolv
                     const QString sourceCode = QTextStream(&file).readAll();
                     QScriptProgram program(sourceCode, fileName);
                     addJSImport(scriptEngine, program, jsImportValue);
-                    addJSImport(scriptEngine, jsImportValue, jsImport.scopeName);
+                    activationObject.setProperty(jsImport.scopeName, jsImportValue);
                     if (bg)
                         bg->m_jsImportCache.insert(fileName, jsImportValue);
                 } else {
 //                    qDebug() << "CACHE HIT" << fileName;
-                    addJSImport(scriptEngine, jsImportValue, jsImport.scopeName);
+                    activationObject.setProperty(jsImport.scopeName, jsImportValue);
                 }
             }
         }

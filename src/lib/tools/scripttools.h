@@ -65,9 +65,6 @@ QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
     return v;
 }
 
-void addJSImport(QScriptEngine *engine,
-                 const QScriptValue &targetObject,
-                 const QString &id);
 QScriptValue addJSImport(QScriptEngine *engine,
                          const QScriptProgram &program,
                          const QString &id);
