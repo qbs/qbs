@@ -702,9 +702,9 @@ Loader::Loader()
     v.setValue(static_cast<void*>(this));
     m_engine.setProperty(szLoaderPropertyName, v);
     QScriptValue extensionObject = m_engine.globalObject();
-    File::init(extensionObject, &m_engine);
-    TextFile::init(extensionObject, &m_engine);
-    Process::init(extensionObject, &m_engine);
+    File::init(extensionObject);
+    TextFile::init(extensionObject);
+    Process::init(extensionObject);
     m_engine.pushContext();     // this preserves the original global object
 
     m_jsFunction_getHostOS  = m_engine.newFunction(js_getHostOS, 0);

@@ -42,8 +42,9 @@
 #include <QtScript/QScriptValue>
 #include <QtCore/QDebug>
 
-void Process::init(QScriptValue &extensionObject, QScriptEngine *engine)
+void Process::init(QScriptValue &extensionObject)
 {
+    QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
     extensionObject.setProperty("Process", obj);
 }

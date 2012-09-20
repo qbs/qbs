@@ -52,7 +52,7 @@ class TextFile : public QObject, public QScriptable
     Q_OBJECT
     Q_ENUMS(OpenMode)
 public:
-    static void init(QScriptValue &extensionObject, QScriptEngine *engine);
+    static void init(QScriptValue &extensionObject);
 
     enum OpenMode { ReadOnly, WriteOnly, ReadWrite };
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);

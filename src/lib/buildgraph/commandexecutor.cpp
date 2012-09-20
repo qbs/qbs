@@ -356,9 +356,9 @@ public:
             m_scriptEnginesPerThread.insert(currentThread, scriptEngine);
 
             QScriptValue extensionObject = scriptEngine->globalObject();
-            File::init(extensionObject, scriptEngine);
-            TextFile::init(extensionObject, scriptEngine);
-            Process::init(extensionObject, scriptEngine);
+            File::init(extensionObject);
+            TextFile::init(extensionObject);
+            Process::init(extensionObject);
         }
 
         QString trafoPtrStr = QString::number((qulonglong)transformer);

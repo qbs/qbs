@@ -41,8 +41,9 @@
 #include <QtScript/QScriptEngine>
 #include <QtScript/QScriptValue>
 
-void TextFile::init(QScriptValue &extensionObject, QScriptEngine *engine)
+void TextFile::init(QScriptValue &extensionObject)
 {
+    QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject, engine->newFunction(&TextFile::ctor));
     extensionObject.setProperty("TextFile", obj);
 }

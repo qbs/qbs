@@ -52,7 +52,7 @@ class Process : public QObject, public QScriptable
 {
     Q_OBJECT
 public:
-    static void init(QScriptValue &extensionObject, QScriptEngine *engine);
+    static void init(QScriptValue &extensionObject);
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     Process(QScriptContext *context);

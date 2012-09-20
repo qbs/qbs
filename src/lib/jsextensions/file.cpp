@@ -43,8 +43,9 @@
 #include <QtCore/QFileInfo>
 #include <QtScript/QScriptEngine>
 
-void File::init(QScriptValue &extensionObject, QScriptEngine *engine)
+void File::init(QScriptValue &extensionObject)
 {
+    QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileObj = engine->newQObject(new File, QScriptEngine::ScriptOwnership);
     fileObj.setProperty("copy", engine->newFunction(File::js_copy));
     fileObj.setProperty("exists", engine->newFunction(File::js_exists));
