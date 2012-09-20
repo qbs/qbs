@@ -73,9 +73,10 @@ QScriptValue addJSImport(QScriptEngine *engine,
 {
     if (debugJSImports)
         qDebug() << "addJSImport: " << id;
-    QScriptValue targetObject = engine->globalObject().property(id);
+    QScriptValue activationObject = engine->currentContext()->activationObject();
+    QScriptValue targetObject = activationObject.property(id);
     QScriptValue result = addJSImport(engine, program, targetObject);
-    engine->globalObject().setProperty(id, targetObject);
+    activationObject.setProperty(id, targetObject);
     return result;
 }
 
