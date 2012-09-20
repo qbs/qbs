@@ -227,7 +227,6 @@ protected:
 private:
     QList<QWeakPointer<Scope> > m_scopes;
     QScriptValue m_value;
-    QScriptValue m_globalObject;
 };
 
 class Scope : public QScriptClass

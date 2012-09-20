@@ -163,7 +163,6 @@ ScopeChain::ScopeChain(QScriptEngine *engine, const QSharedPointer<Scope> &root)
     : QScriptClass(engine)
 {
     m_value = engine->newObject(this);
-    m_globalObject = engine->globalObject();
     if (root)
         m_scopes.append(root);
 }
@@ -252,7 +251,7 @@ QScriptValue ScopeChain::property(const QScriptValue &object, const QScriptStrin
             return value;
         }
     }
-    value = m_globalObject.property(name);
+    value = engine()->globalObject().property(name);
     if (!value.isValid() || (value.isUndefined() && name.toString() != QLatin1String("undefined"))) {
         QString msg = tr("Undefined property '%1'");
         value = engine()->currentContext()->throwError(msg.arg(name.toString()));
