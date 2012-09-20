@@ -75,6 +75,27 @@ QScriptValue addJSImport(QScriptEngine *engine,
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
 
+/**
+ * @brief push/pop a QScriptEngine's context the RAII way.
+ */
+class ScriptEngineContextPusher
+{
+public:
+    ScriptEngineContextPusher(QScriptEngine *scriptEngine)
+        : m_scriptEngine(scriptEngine)
+    {
+        m_scriptEngine->pushContext();
+    }
+
+    ~ScriptEngineContextPusher()
+    {
+        m_scriptEngine->popContext();
+    }
+
+private:
+    QScriptEngine *m_scriptEngine;
+};
+
 } // namespace qbs
 
 #endif // SCRIPTTOOLS_H
