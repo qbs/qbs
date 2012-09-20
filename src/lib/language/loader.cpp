@@ -701,10 +701,6 @@ Loader::Loader()
     QVariant v;
     v.setValue(static_cast<void*>(this));
     m_engine.setProperty(szLoaderPropertyName, v);
-    QScriptValue extensionObject = m_engine.globalObject();
-    File::init(extensionObject);
-    TextFile::init(extensionObject);
-    Process::init(extensionObject);
     m_engine.pushContext();     // this preserves the original global object
 
     m_jsFunction_getHostOS  = m_engine.newFunction(js_getHostOS, 0);
@@ -2408,6 +2404,19 @@ void Loader::resolveProbe(EvaluationObject *node)
 {
     if (!checkCondition(node))
         return;
+    QScriptValue oldGlobalObject = m_engine.globalObject();
+    if (!m_globalObjectForProbes.isValid()) {
+        m_globalObjectForProbes = m_engine.newObject();
+        QScriptValueIterator svit(oldGlobalObject);
+        while (svit.hasNext()) {
+            svit.next();
+            m_globalObjectForProbes.setProperty(svit.name(), svit.value());
+        }
+        File::init(m_globalObjectForProbes);
+        TextFile::init(m_globalObjectForProbes);
+        Process::init(m_globalObjectForProbes);
+    }
+    m_engine.setGlobalObject(m_globalObjectForProbes);
     QScriptContext *ctx = m_engine.pushContext();
     ProbeScope::Ptr scope = ProbeScope::create(&m_engine, node->scope);
     ctx->setActivationObject(scope->value());
@@ -2416,6 +2425,7 @@ void Loader::resolveProbe(EvaluationObject *node)
     QString constructor = node->scope->verbatimValue("configure");
     evaluate(&m_engine, constructor);
     m_engine.popContext();
+    m_engine.setGlobalObject(oldGlobalObject);
 }
 
 static void addTransformPropertiesToRule(Rule::Ptr rule, LanguageObject *obj)
