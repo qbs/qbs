@@ -113,7 +113,9 @@ QScriptValue addJSImport(QScriptEngine *engine,
         targetObject = activationObject;
     }
 
-    // copy properties of the global object
+    // Copy new global properties to the target object and remove them from
+    // the global object. This is to support direct variable assignments
+    // without the 'var' keyword in JavaScript files.
     QScriptValueIterator it(engine->globalObject());
     while (it.hasNext()) {
         it.next();
