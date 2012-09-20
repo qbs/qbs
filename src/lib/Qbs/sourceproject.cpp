@@ -357,13 +357,14 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
             if (!bProject) {
                 QElapsedTimer timer;
                 timer.start();
+                ProjectFile::Ptr projectFile;
                 if (!loader.hasLoaded())
-                    loader.loadProject(projectFileName);
+                    projectFile = loader.loadProject(projectFileName);
                 qbs::ResolvedProject::Ptr rProject;
                 if (loadResult.changedResolvedProject)
                     rProject = loadResult.changedResolvedProject;
                 else
-                    rProject = loader.resolveProject(buildDirectoryRoot, configure);
+                    rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configure);
                 if (rProject->products.isEmpty())
                     throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
                 qDebug() << "loading project took: " << timer.elapsed() << "ms";

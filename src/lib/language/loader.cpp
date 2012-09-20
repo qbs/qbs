@@ -1856,18 +1856,12 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
-ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot, Configuration::Ptr userProperties, bool resolveProductDependencies)
-{
-    m_project = projectFile;
-    return resolveProject(buildDirectoryRoot, userProperties, resolveProductDependencies);
-}
-
-ResolvedProject::Ptr Loader::resolveProject(const QString &buildDirectoryRoot,
-                                            Configuration::Ptr userProperties,
-                                            bool resolveProductDependencies)
+ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
+                                            Configuration::Ptr userProperties, bool resolveProductDependencies)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
+    m_project = projectFile;
     Scope::scopesWithEvaluatedProperties.clear();
     ResolvedProject::Ptr rproject(new ResolvedProject);
     rproject->qbsFile = m_project->fileName;

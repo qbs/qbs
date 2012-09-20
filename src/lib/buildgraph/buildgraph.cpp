@@ -1261,8 +1261,8 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
 
         Loader ldr;
         ldr.setSearchPaths(loaderSearchPaths);
-        ldr.loadProject(project->resolvedProject()->qbsFile);
-        ResolvedProject::Ptr changedProject = ldr.resolveProject(bg->buildDirectoryRoot(), cfg);
+        ProjectFile::Ptr projectFile = ldr.loadProject(project->resolvedProject()->qbsFile);
+        ResolvedProject::Ptr changedProject = ldr.resolveProject(projectFile, bg->buildDirectoryRoot(), cfg);
         if (!changedProject) {
             QString msg("Trying to load '%1' failed.");
             throw Error(msg.arg(project->resolvedProject()->qbsFile));
