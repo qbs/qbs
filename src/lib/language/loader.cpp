@@ -701,7 +701,6 @@ Loader::Loader()
     QVariant v;
     v.setValue(static_cast<void*>(this));
     m_engine.setProperty(szLoaderPropertyName, v);
-    m_engine.pushContext();     // this preserves the original global object
 
     m_jsFunction_getHostOS  = m_engine.newFunction(js_getHostOS, 0);
     m_jsFunction_getHostDefaultArchitecture = m_engine.newFunction(js_getHostDefaultArchitecture, 0);
@@ -742,7 +741,6 @@ Loader::Loader()
 
 Loader::~Loader()
 {
-    m_engine.popContext();  // pop the context we've pushed in our c'tor
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)
@@ -1862,6 +1860,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
     m_project = projectFile;
+    ScriptEngineContextPusher contextPusher(&m_engine);
     Scope::scopesWithEvaluatedProperties.clear();
     ResolvedProject::Ptr rproject(new ResolvedProject);
     rproject->qbsFile = m_project->fileName;
