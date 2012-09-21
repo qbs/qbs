@@ -21,6 +21,11 @@ Module {
     property var versionPatch: versionParts[2]
     property string mkspecsPath: path ? FileInfo.joinPaths(path, 'qtbase',  "mkspecs") : undefined
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
+    property string qmFilesDir: {
+        if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
+            return product.name + ".app/Contents/Resources";
+        return product.destination;
+    }
 
     // private properties
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
@@ -55,6 +60,8 @@ Module {
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
 
+    additionalProductFileTags: ["qm"]
+
     setupBuildEnvironment: {
         // Not really a setup in this case. Just some sanity checks.
         if (!binPath)
@@ -82,6 +89,11 @@ Module {
     FileTagger {
         pattern: "*.qrc"
         fileTags: ["qrc"]
+    }
+
+    FileTagger {
+        pattern: "*.ts"
+        fileTags: ["ts"]
     }
 
     Rule {
@@ -145,6 +157,22 @@ Module {
             var cmd = new Command(product.module.binPath + '/rcc', [input.fileName, '-name', FileInfo.baseName(input.fileName), '-o', output.fileName]);
             cmd.description = 'rcc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
+            return cmd;
+        }
+    }
+
+    Rule {
+        inputs: ["ts"]
+
+        Artifact {
+            fileName: FileInfo.joinPaths(product.module.qmFilesDir, input.baseName + ".qm")
+            fileTags: ["qm"]
+        }
+
+        prepare: {
+            var cmd = new Command(product.module.binPath + '/lrelease', ['-silent', input.fileName, '-qm', output.fileName]);
+            cmd.description = 'lrelease ' + FileInfo.fileName(input.fileName);
+            cmd.highlight = 'filegen';
             return cmd;
         }
     }
