@@ -141,6 +141,7 @@ static QHash<QString, TextColor> setupColorTable()
     colorTable["compiler"] = TextColorDefault;
     colorTable["linker"] = TextColorDarkGreen;
     colorTable["codegen"] = TextColorDarkYellow;
+    colorTable["filegen"] = TextColorDarkYellow;
     return colorTable;
 }
 
