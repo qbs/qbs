@@ -7,7 +7,7 @@ build
 *.manifest
 *.obj
 *.pdb
-*.pro.user
+*.pro.user*
 *~
 *.o
 *.lib
