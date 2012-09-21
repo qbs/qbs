@@ -4,6 +4,7 @@ UnixGCC {
     condition: qbs.hostOS === 'mac' && qbs.targetOS === 'mac' && qbs.toolchain === 'gcc'
 
     compilerDefines: ["__GNUC__", "__APPLE__"]
+    dynamicLibrarySuffix: ".dylib"
 
     property string infoPlist
     property string pkgInfo
