@@ -2226,7 +2226,7 @@ QSet<QString> Loader::resolveFiles(Group::Ptr group, const QStringList &patterns
         } else {
             basePath = baseDir;
         }
-        resolveFiles(files, baseDir, group->recursive, parts);
+        resolveFiles(files, basePath, group->recursive, parts);
     }
     return files;
 }
