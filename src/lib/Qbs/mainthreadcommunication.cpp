@@ -47,7 +47,7 @@
 
 namespace Qbs {
 
-typedef QWeakPointer<QObject> ObjectPointer;
+typedef QPointer<QObject> ObjectPointer;
 
 MainThreadCommunication::MainThreadCommunication()
 {

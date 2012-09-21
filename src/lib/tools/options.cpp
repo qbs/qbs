@@ -212,7 +212,7 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                 break;
             case 'j':
                 if (arg.length() > 2) {
-                    const QByteArray str(arg.mid(2).toAscii());
+                    const QByteArray str(arg.mid(2).toLatin1());
                     char *endStr = 0;
                     m_jobs = strtoul(str.data(), &endStr, 10);
                     k += endStr - str.data();

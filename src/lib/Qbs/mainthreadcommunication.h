@@ -41,7 +41,7 @@
 #include "processoutput.h"
 #include "ilogsink.h"
 
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 #include <QtCore/QReadWriteLock>
 
 namespace Qbs {
@@ -68,8 +68,8 @@ public:
 
 private:
     QReadWriteLock m_lock;
-    QList<QWeakPointer<QObject> > m_logReceiverList;
-    QList<QWeakPointer<QObject> > m_processOutputReceiverList;
+    QList<QPointer<QObject> > m_logReceiverList;
+    QList<QPointer<QObject> > m_processOutputReceiverList;
 
 };
 
