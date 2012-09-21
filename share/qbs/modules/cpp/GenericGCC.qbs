@@ -87,10 +87,8 @@ CppModule {
             for (i in inputs.dynamiclibrary) {
                 libraryPaths.push(FileInfo.path(inputs.dynamiclibrary[i].fileName))
                 var fileName = FileInfo.fileName(inputs.dynamiclibrary[i].fileName)
-                if (product.modules.qbs.toolchain == 'mingw')
-                    fileName = fileName.substr(0, fileName.length - 4)
-                else
-                    fileName = fileName.substr(3, fileName.length - 6)
+                fileName = Gcc.removePrefixAndSuffix(fileName, product.module.dynamicLibraryPrefix,
+                                                     product.module.dynamicLibrarySuffix);
                 dynamicLibrariesI.push(fileName)
             }
             dynamicLibrariesI = dynamicLibrariesI.concat(dynamicLibraries);
@@ -202,11 +200,12 @@ CppModule {
 
             var dynamicLibrariesI = [];
             for (i in dynamicLibraries) {
-                if (dynamicLibraries[i].match("lib.*\\.so$") != null) {
+                if (dynamicLibraries[i].match("^" + product.module.dynamicLibraryPrefix + ".*\\" + product.module.dynamicLibrarySuffix + "$") !== null) {
                     // shared object filename found
                     var libDir = FileInfo.path(dynamicLibraries[i])
                     var libName = FileInfo.fileName(dynamicLibraries[i])
-                    libName = libName.substr(3, libName.length - 6)
+                    libName = Gcc.removePrefixAndSuffix(libName, product.module.dynamicLibraryPrefix,
+                                                        product.module.dynamicLibrarySuffix);
                     libraryPaths.push(libDir)
                     dynamicLibrariesI.push(libName)
                 } else {
@@ -225,10 +224,8 @@ CppModule {
             for (i in inputs.dynamiclibrary) {
                 libraryPaths.push(FileInfo.path(inputs.dynamiclibrary[i].fileName))
                 var fileName = FileInfo.fileName(inputs.dynamiclibrary[i].fileName)
-                if (product.modules.qbs.toolchain == 'mingw')
-                    fileName = fileName.substr(0, fileName.length - 4)
-                else
-                    fileName = fileName.substr(3, fileName.length - 6)
+                fileName = Gcc.removePrefixAndSuffix(fileName, product.module.dynamicLibraryPrefix,
+                                                     product.module.dynamicLibrarySuffix);
                 dynamicLibrariesI.push(fileName)
             }
 
