@@ -101,7 +101,7 @@ CppModule {
         Artifact {
             fileTags: ['obj']
             // ### make the object file dir overridable
-            fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.baseName + ".obj"
+            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.baseName + ".obj"
         }
  
         TransformProperties {
@@ -222,7 +222,7 @@ CppModule {
         inputs: ["rc"]
 
         Artifact {
-            fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.baseName + ".res"
+            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.baseName + ".res"
             fileTags: ["obj"]
         }
 
