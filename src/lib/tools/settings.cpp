@@ -36,6 +36,7 @@
 **************************************************************************/
 
 #include "settings.h"
+#include "error.h"
 #include <QtCore/QFileInfo>
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
@@ -137,13 +138,29 @@ void Settings::setValue(Scope scope, const QString &key, const QVariant &value)
     QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
     Q_CHECK_PTR(s);
     s->setValue(key, value);
+    checkStatus(s);
 }
 
 void Settings::remove(Settings::Scope scope, const QString &key)
 {
     QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
-    if (s)
+    if (s) {
         s->remove(key);
+        checkStatus(s);
+    }
+}
+
+void Settings::checkStatus(QSettings *s)
+{
+    s->sync();
+    switch (s->status()) {
+    case QSettings::NoError:
+        break;
+    case QSettings::AccessError:
+        throw Error(tr("%1 is not accessible.").arg(s->fileName()));
+    case QSettings::FormatError:
+        throw Error(tr("Format error in %1.").arg(s->fileName()));
+    }
 }
 
 } // namespace qbs

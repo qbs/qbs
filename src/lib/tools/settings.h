@@ -38,6 +38,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QSharedPointer>
 #include <QtCore/QVariant>
 
@@ -49,6 +50,7 @@ namespace qbs {
 
 class Settings
 {
+    Q_DECLARE_TR_FUNCTIONS(Settings)
 public:
     ~Settings();
 
@@ -74,6 +76,7 @@ public:
 
 protected:
     Settings();
+    static void checkStatus(QSettings *s);
 
 protected:
     QSettings *m_globalSettings;
