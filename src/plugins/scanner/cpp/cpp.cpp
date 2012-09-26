@@ -124,9 +124,9 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
             yylex(&tk);
 
             if (!scanForFileTags && !tk.newline() && tk.is(T_IDENTIFIER)) {
-                if ((tk.length() >= includeLiteral.size()
+                if ((static_cast<int>(tk.length()) >= includeLiteral.size()
                      && (strncmp(opaque->fileContent + tk.begin(), includeLiteral.data(), includeLiteral.size()) == 0))
-                        || (tk.length() >= importLiteral.size()
+                        || (static_cast<int>(tk.length()) >= importLiteral.size()
                             && (strncmp(opaque->fileContent + tk.begin(), importLiteral.data(), importLiteral.size()) == 0)))
                 {
                     yylex.setScanAngleStringLiteralTokens(true);
