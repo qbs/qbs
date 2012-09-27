@@ -812,13 +812,15 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
 
         // once we know something is a project/product, add a property to
         // the correct scope
-        if (evaluationObject->prototype == name_Project) {
-            if (Scope::Ptr projectPropertyScope = moduleScope->find(name_projectPropertyScope))
-                projectPropertyScope->properties.insert("project", Property(evaluationObject));
-        }
-        else if (evaluationObject->prototype == name_Product) {
-            if (Scope::Ptr productPropertyScope = moduleScope->find(name_productPropertyScope))
-                productPropertyScope->properties.insert("product", Property(evaluationObject));
+        if (moduleScope) {
+            if (evaluationObject->prototype == name_Project) {
+                if (Scope::Ptr projectPropertyScope = moduleScope->find(name_projectPropertyScope))
+                    projectPropertyScope->properties.insert("project", Property(evaluationObject));
+            }
+            else if (evaluationObject->prototype == name_Product) {
+                if (Scope::Ptr productPropertyScope = moduleScope->find(name_productPropertyScope))
+                    productPropertyScope->properties.insert("product", Property(evaluationObject));
+            }
         }
 
         return;
