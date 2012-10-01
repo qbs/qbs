@@ -150,6 +150,9 @@ void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platf
         case 10:
             msvc.version = QLatin1String("2010");
             break;
+        case 11:
+            msvc.version = QLatin1String("2012");
+            break;
         }
 
         if (msvc.version.isEmpty()) {
