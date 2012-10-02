@@ -338,8 +338,7 @@ CppModule {
                     args = args.concat(cFlags);
             }
             var cmd = new Command(product.module.compilerPath, args);
-            cmd.description = 'compiling ';
-            Gcc.describe(cmd, input.fileName, output.fileName);
+            cmd.description = 'compiling ' + FileInfo.fileName(input);
             cmd.highlight = "compiler";
             return cmd;
         }

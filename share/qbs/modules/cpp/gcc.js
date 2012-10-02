@@ -55,11 +55,6 @@ function configFlags(config) {
     return args;
 }
 
-function describe(cmd, input, output)
-{
-    cmd.description += FileInfo.fileName(input);
-}
-
 function removePrefixAndSuffix(str, prefix, suffix)
 {
     return str.substr(prefix.length, str.length - prefix.length - suffix.length);
