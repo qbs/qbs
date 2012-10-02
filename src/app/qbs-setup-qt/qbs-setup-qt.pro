@@ -1,5 +1,4 @@
 QT       += core
-
 QT       -= gui
 
 TARGET = qbs-setup-qt
@@ -9,8 +8,8 @@ DESTDIR = ../../../bin
 
 TEMPLATE = app
 
-
-SOURCES += main.cpp \
+SOURCES += \
+    main.cpp \
     setupqt.cpp
 
 HEADERS += \
