@@ -347,6 +347,7 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 
     try {
+        ProjectFile::Ptr projectFile;
         foreach (const qbs::Configuration::Ptr &configure, configurations) {
             qbs::BuildProject::Ptr bProject;
             const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
@@ -357,8 +358,7 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
             if (!bProject) {
                 QElapsedTimer timer;
                 timer.start();
-                ProjectFile::Ptr projectFile;
-                if (!loader.hasLoaded())
+                if (!projectFile)
                     projectFile = loader.loadProject(projectFileName);
                 qbs::ResolvedProject::Ptr rProject;
                 if (loadResult.changedResolvedProject)
