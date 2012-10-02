@@ -1778,10 +1778,11 @@ static void clearCachedValues()
     Scope::scopesWithEvaluatedProperties.clear();
 }
 
-int Loader::productCount(Configuration::Ptr userProperties)
+int Loader::productCount(ProjectFile::Ptr projectFile, Configuration::Ptr userProperties)
 {
-    Q_ASSERT(hasLoaded());
+    Q_ASSERT(projectFile);
 
+    m_project = projectFile;
     LanguageObject *object = m_project->root;
     EvaluationObject *evaluationObject = new EvaluationObject(object);
 

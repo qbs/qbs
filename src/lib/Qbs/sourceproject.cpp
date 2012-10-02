@@ -169,7 +169,7 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
             } else {
                 ProjectFile::Ptr projectFile = loader.loadProject(projectFileName);
                 projectFilesPerConfig.insert(configuration, projectFile);
-                productCount += loader.productCount(configuration);
+                productCount += loader.productCount(projectFile, configuration);
             }
         }
 
