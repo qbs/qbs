@@ -444,7 +444,7 @@ private:
     ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;
     QStringList m_moduleSearchPaths;
-    QScriptEngine m_engine;
+    QScriptEngine *m_engine;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;
     QScriptValue m_jsFunction_getenv;
