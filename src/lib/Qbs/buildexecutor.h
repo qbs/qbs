@@ -43,11 +43,7 @@
 #include <tools/progressobserver.h>
 
 #include <QtCore/QReadWriteLock>
-#if QT_VERSION >= 0x050000
-#    include <QtConcurrent/QFutureInterface>
-#else
-#    include <QtCore/QFutureInterface>
-#endif
+#include <QtCore/QFutureInterface>
 
 namespace qbs {
     class Executor;

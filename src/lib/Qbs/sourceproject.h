@@ -45,11 +45,7 @@
 #include "buildproject.h"
 #include "error.h"
 
-#if QT_VERSION >= 0x050000
-#    include <QtConcurrent/QFutureInterface>
-#else
-#    include <QtCore/QFutureInterface>
-#endif
+#include <QtCore/QFutureInterface>
 #include <QtCore/QExplicitlySharedDataPointer>
 #include <QtCore/QSharedPointer>
 
