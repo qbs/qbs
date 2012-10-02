@@ -95,6 +95,7 @@ private:
     void upgradeSettings(Settings::Scope scope);
     QString guessProjectFileName();
     QString propertyName(const QString &aCommandLineName) const;
+    bool setRealProjectFile();
 
 private:
     Settings::Ptr m_settings;

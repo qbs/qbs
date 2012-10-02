@@ -240,6 +240,8 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                     m_projectFileName = args.at(i);
                 }
                 m_projectFileName = QDir::fromNativeSeparators(m_projectFileName);
+                if (!setRealProjectFile())
+                    return false;
                 break;
             case 'g':
                 m_gephi = true;
@@ -441,6 +443,35 @@ QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
         return aCommandLineName;
     else
         return "qbs." + aCommandLineName;
+}
+
+bool CommandLineOptions::setRealProjectFile()
+{
+    const QFileInfo projectFileInfo(m_projectFileName);
+    if (!projectFileInfo.exists()) {
+        qbsError("Project file '%s' cannot be found.", qPrintable(m_projectFileName));
+        return false;
+    }
+    if (projectFileInfo.isFile())
+        return true;
+    if (!projectFileInfo.isDir()) {
+        qbsError("Project file '%s' has invalid type.", qPrintable(m_projectFileName));
+        return false;
+    }
+    const QStringList namePatterns = QStringList(QLatin1String("*.qbp"));
+    const QStringList &actualFileNames
+            = QDir(m_projectFileName).entryList(namePatterns, QDir::Files);
+    if (actualFileNames.isEmpty()) {
+        qbsError("No project file found in directory '%s'.", qPrintable(m_projectFileName));
+        return false;
+    }
+    if (actualFileNames.count() > 1) {
+        qbsError("More than one project file found in directory '%s'.",
+                 qPrintable(m_projectFileName));
+        return false;
+    }
+    m_projectFileName.append(QLatin1Char('/')).append(actualFileNames.first());
+    return true;
 }
 
 QList<QVariantMap> CommandLineOptions::buildConfigurations() const

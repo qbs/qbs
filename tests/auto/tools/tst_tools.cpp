@@ -38,6 +38,7 @@
 #include <tools/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/options.h>
+#include <QDir>
 #include <QtTest>
 
 class TestFileInfo : public QObject
@@ -67,6 +68,26 @@ private slots:
         QVERIFY(qbs::FileInfo::isAbsolute("C:\\bla\\lol"));
 #endif
         QCOMPARE(qbs::FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
+    }
+
+    void testProjectFileLookup()
+    {
+        const QString srcDir = QLatin1String(SRCDIR);
+        const QString noProjectsDir = srcDir + QLatin1String("data/dirwithnoprojects");
+        const QString oneProjectDir = srcDir + QLatin1String("data/dirwithoneproject");
+        const QString multiProjectsDir = srcDir + QLatin1String("data/dirwithmultipleprojects");
+        Q_ASSERT(QDir(noProjectsDir).exists() && QDir(oneProjectDir).exists()
+                && QDir(multiProjectsDir).exists());
+        qbs::CommandLineOptions options;
+        const QStringList args(QLatin1String("-f"));
+        QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbp");
+        QVERIFY(options.readCommandLineArguments(args + QStringList(projectFilePath)));
+        QCOMPARE(projectFilePath, options.projectFileName());
+        projectFilePath = oneProjectDir + QLatin1String("/project.qbp");
+        QVERIFY(options.readCommandLineArguments(args + QStringList(oneProjectDir)));
+        QCOMPARE(projectFilePath, options.projectFileName());
+        QVERIFY(!options.readCommandLineArguments(args + QStringList(noProjectsDir)));
+        QVERIFY(!options.readCommandLineArguments(args + QStringList(multiProjectsDir)));
     }
 };
 
