@@ -133,7 +133,7 @@
 
     \list
 
-        \o  Qt 4.7
+        \o  Qt 4.8
 
     \endlist
 
@@ -495,25 +495,22 @@
 
     \section2 Different properties for a single file
 
-    Not only the product but all source files of the product can have their own
-    set of module properties. For example you have a file that's known to crash
+    Not only the product, but all source files of the product can have their own
+    set of module properties. For example, assume you have some files that are known to crash
     your compiler if you turn on optimizations. You want to turn off
-    optimizations for just this file and this is how you do it:
+    optimizations for just these files and this is how you do it:
 
     \code
         Application {
             name: "helloworld"
             files: "main.cpp"
             Group {
-                files: "bad_file.cpp"
+                files: ["bad_file.cpp", "other_bad_file.cpp"]
                 cpp.optimization: "none"
             }
             Depends { name: "cpp" }
         }
     \endcode
-
-    With a group you can set the properties of a whole set of files, not just
-    single ones.
 
     \section2 Selecting files by properties
 
@@ -567,13 +564,13 @@
     \endtable
 
     You can set these properties on the command line, or by using a profile or
-    setting the \a modules.qbs.<propertyName> global config item. Property \a
+    setting the \a modules.qbs.<propertyName> global config item. The property \a
     qbs.buildVariant is handled in a special way.
 
     \code
-    $ qbs                   # qbs.buildVariant:debug, qbs.platform:<default platform>
-    $ qbs release           # qbs.buildVariant:release, qbs.platform:<default platform>
-    $ qbs platform:Maemo    # qbs.buildVariant:debug, qbs.platform:Maemo
+    $ qbs                   # qbs.buildVariant:debug, profile:<default profile>
+    $ qbs release           # qbs.buildVariant:release, profile:<default profile>
+    $ qbs profile:Maemo     # qbs.buildVariant:debug, profile:Maemo
     $ qbs debug release     # builds two variants of the project
     \endcode
 
@@ -585,7 +582,7 @@
         }
     \endcode
 
-    Setting properties for a build variant goes like this:
+    Setting properties for a build variant works like this:
     \code
         Properties {
             condition: qbs.buildVariant == "debug"
@@ -602,7 +599,7 @@
 
     \section1 File tags and taggers
 
-    Qbs knows nothing about C++ files or its file extensions. All source file
+    The qbs tool itself knows nothing about C++ files or its file extensions. All source file
     in a product are handled equally. There's the concept of a \a{file tag},
     which is basically a marker or a type that can be assigned to an artifact.
 
@@ -632,7 +629,7 @@
             fileTags: ["cpp"]
         }
     \endcode
-    This thing means that every source file that matches the glob *.cpp (and
+    This construct means that every source file that matches the glob *.cpp (and
     hasn't explicitly set a file tag) gets the file tag \c{cpp}.
 
     The above example can be simplified to
@@ -653,7 +650,7 @@
     property can be simply expressed by using the \a files property of the product.
 
     File tags are used by \a rules to transform one type of artifact into
-    another. E.g. the C++ compiler rule transforms artifacts with the file tag
+    another. For instance, the C++ compiler rule transforms artifacts with the file tag
     \c cpp to artifacts with the file tag \c{obj}.
 
     \section1 Rules
@@ -696,11 +693,10 @@
     command:
 
     \code
-    qbs build debug release platform:Symbian
+    qbs build debug release profile:Symbian
     \endcode
 
-    This assumes you have already set up a platform called "Symbian" - run
-    "qbs platforms list" or "qbs platforms probe" to view or setup platforms.
+    This assumes you have already set up a profile called "Symbian".
 */
 
 
