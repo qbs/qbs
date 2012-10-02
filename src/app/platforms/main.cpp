@@ -34,14 +34,14 @@
 ** conditions contained in a signed written agreement between you and Nokia.
 **
 **************************************************************************/
-#include <QtCore/QCoreApplication>
-#include <QtCore/QProcess>
-#include <QtCore/QDir>
-#include <QtCore/QDirIterator>
-#include <QtCore/QStringList>
-#include <QtCore/QDebug>
-#include <QtCore/QTextStream>
-#include <QtCore/QSettings>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QDirIterator>
+#include <QProcess>
+#include <QSettings>
+#include <QStringList>
+#include <QTextStream>
 
 #include <tools/platform.h>
 #include <tools/settings.h>

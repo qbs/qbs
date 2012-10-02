@@ -50,11 +50,11 @@
 #include <tools/logsink.h>
 #include <tools/platformglobals.h>
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QProcess>
-#include <QtCore/QScopedPointer>
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QProcess>
+#include <QScopedPointer>
 
 #if defined(Q_OS_UNIX)
 #include <errno.h>

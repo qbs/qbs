@@ -36,13 +36,14 @@
 **************************************************************************/
 
 #include "platform.h"
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDir>
-#include <QtCore/QDirIterator>
-#include <QtCore/QStringList>
-#include <QtCore/QDebug>
-#include <QtCore/QTextStream>
-#include <QtCore/QSettings>
+
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QDirIterator>
+#include <QSettings>
+#include <QStringList>
+#include <QTextStream>
 
 #ifdef Q_OS_WIN
 #   include <qt_windows.h>

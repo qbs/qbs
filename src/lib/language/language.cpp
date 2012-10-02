@@ -37,9 +37,9 @@
 
 #include "language.h"
 #include <tools/scripttools.h>
-#include <QtCore/QCryptographicHash>
-#include <QtScript/QScriptEngine>
-#include <QtScript/QScriptValue>
+#include <QCryptographicHash>
+#include <QScriptEngine>
+#include <QScriptValue>
 #include <algorithm>
 
 QT_BEGIN_NAMESPACE

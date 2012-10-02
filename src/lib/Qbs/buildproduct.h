@@ -41,9 +41,9 @@
 
 #include "private/resolvedproduct.h"
 
-#include <QtCore/QSharedPointer>
-#include <QtCore/QStringList>
-#include <QtCore/QSet>
+#include <QSet>
+#include <QSharedPointer>
+#include <QStringList>
 
 namespace qbs {
     class BuildProduct;

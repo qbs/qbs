@@ -38,12 +38,12 @@
 #ifndef SCRIPTTOOLS_H
 #define SCRIPTTOOLS_H
 
-#include <QtCore/QSet>
-#include <QtCore/QStringList>
-#include <QtCore/QVariantMap>
-#include <QtScript/QScriptProgram>
-#include <QtScript/QScriptValue>
-#include <QtScript/QScriptEngine>
+#include <QScriptEngine>
+#include <QScriptProgram>
+#include <QScriptValue>
+#include <QSet>
+#include <QStringList>
+#include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
 

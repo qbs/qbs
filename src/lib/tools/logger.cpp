@@ -42,14 +42,13 @@
 #include "logger.h"
 #include "logsink.h"
 
+#include <QByteArray>
+#include <QMutex>
+#include <QSet>
+#include <QVariant>
+
 #include <cstdarg>
 #include <stdio.h>
-
-#include <QtCore/QSet>
-#include <QtCore/QByteArray>
-#include <QtCore/QMutex>
-#include <QtCore/QVariant>
-
 
 namespace qbs {
 

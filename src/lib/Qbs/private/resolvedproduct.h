@@ -38,9 +38,8 @@
 #ifndef QBS_PRIVATE_RESOLVEDPRODUCT_H
 #define QBS_PRIVATE_RESOLVEDPRODUCT_H
 
-#include <QtCore/QSharedPointer>
-#include <QtCore/QProcessEnvironment>
-
+#include <QProcessEnvironment>
+#include <QSharedPointer>
 
 namespace qbs {
     class ResolvedProduct;

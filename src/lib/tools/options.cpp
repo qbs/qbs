@@ -40,13 +40,13 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/logger.h>
+#include <tools/platform.h>
 #include <tools/platformglobals.h>
 
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QThread>
-#include <tools/platform.h>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QThread>
 
 namespace qbs {
 

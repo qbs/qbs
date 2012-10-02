@@ -37,9 +37,9 @@
 
 #include "settings.h"
 #include "error.h"
-#include <QtCore/QFileInfo>
-#include <QtCore/QSettings>
-#include <QtCore/QStringList>
+#include <QFileInfo>
+#include <QSettings>
+#include <QStringList>
 #include <algorithm>
 
 namespace qbs {

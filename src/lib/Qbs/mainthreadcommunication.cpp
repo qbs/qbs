@@ -41,9 +41,9 @@
 #include "logmessageevent.h"
 #include "processoutputevent.h"
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QReadLocker>
-#include <QtCore/QWriteLocker>
+#include <QCoreApplication>
+#include <QReadLocker>
+#include <QWriteLocker>
 
 namespace Qbs {
 

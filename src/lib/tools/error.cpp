@@ -37,7 +37,7 @@
 
 #include "error.h"
 
-#include <QtCore/QDir>
+#include <QDir>
 
 namespace qbs {
 

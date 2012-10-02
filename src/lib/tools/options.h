@@ -39,9 +39,10 @@
 #define OPTIONS_H
 
 #include <tools/settings.h>
-#include <QtCore/QStringList>
-#include <QtCore/QPair>
-#include <QtCore/QVariant>
+
+#include <QPair>
+#include <QStringList>
+#include <QVariant>
 
 namespace qbs {
 /**

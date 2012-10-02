@@ -39,8 +39,8 @@
 
 #include <tools/codelocation.h>
 
-#include <QtCore/QStringList>
-#include <QtCore/QVariantMap>
+#include <QStringList>
+#include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;

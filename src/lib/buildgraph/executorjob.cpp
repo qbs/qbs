@@ -39,7 +39,7 @@
 #include "executor.h"
 #include "commandexecutor.h"
 #include <buildgraph/transformer.h>
-#include <QtCore/QThread>
+#include <QThread>
 
 namespace qbs {
 

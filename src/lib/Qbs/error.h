@@ -39,7 +39,7 @@
 #ifndef QBS_ERROR_H
 #define QBS_ERROR_H
 
-#include <QtCore/QSharedPointer>
+#include <QSharedPointer>
 
 namespace qbs {
     class Error;

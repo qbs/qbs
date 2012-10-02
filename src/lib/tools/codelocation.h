@@ -38,8 +38,8 @@
 #ifndef SOURCELOCATION_H
 #define SOURCELOCATION_H
 
-#include <QtCore/QString>
-#include <QtCore/QDataStream>
+#include <QDataStream>
+#include <QString>
 
 namespace qbs {
 

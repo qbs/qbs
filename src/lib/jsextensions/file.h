@@ -36,12 +36,12 @@
 **************************************************************************/
 #ifndef FILE_H
 
-#include <QtCore/QMetaType>
-#include <QtCore/QObject>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-#include <QtScript/QScriptable>
-#include <QtScript/QScriptValue>
+#include <QFile>
+#include <QMetaType>
+#include <QObject>
+#include <QScriptable>
+#include <QScriptValue>
+#include <QTextStream>
 
 class File : public QObject, public QScriptable
 {

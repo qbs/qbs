@@ -38,7 +38,7 @@
 #include <tools/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/options.h>
-#include <QtTest/QtTest>
+#include <QtTest>
 
 class TestFileInfo : public QObject
 {

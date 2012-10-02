@@ -42,9 +42,9 @@
 
 #include <Qbs/ilogsink.h>
 
-#include <QtCore/QByteArray>
-#include <QtCore/QString>
-#include <QtCore/QStringList>
+#include <QByteArray>
+#include <QString>
+#include <QStringList>
 
 QT_BEGIN_NAMESPACE
 class QVariant;

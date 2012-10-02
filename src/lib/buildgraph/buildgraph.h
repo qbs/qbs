@@ -44,15 +44,14 @@
 #include <tools/error.h>
 #include <tools/persistence.h>
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QSet>
-#include <QtCore/QSharedPointer>
-#include <QtCore/QStringList>
-
-#include <QtCore/QDir>
-#include <QtCore/QVector>
-#include <QtCore/QVariant>
-#include <QtScript/QScriptEngine>
+#include <QCoreApplication>
+#include <QDir>
+#include <QScriptEngine>
+#include <QSet>
+#include <QSharedPointer>
+#include <QStringList>
+#include <QVariant>
+#include <QVector>
 
 namespace qbs {
 

@@ -42,15 +42,13 @@
 #include <tools/settings.h>
 #include <tools/codelocation.h>
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QStringList>
-#include <QtCore/QVariant>
-#include <QtScript/QScriptClass>
-#include <QtScript/QScriptEngine>
+#include <QCoreApplication>
+#include <QScriptClass>
+#include <QScriptEngine>
+#include <QStringList>
+#include <QVariant>
 
 #include <set>
-
-
 
 namespace qbs {
 

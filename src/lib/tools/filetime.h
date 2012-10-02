@@ -38,8 +38,8 @@
 #ifndef FILETIME_H
 #define FILETIME_H
 
-#include <QtCore/QDataStream>
-#include <QtCore/QDebug>
+#include <QDataStream>
+#include <QDebug>
 
 #if defined(Q_OS_UNIX)
 #include <time.h>

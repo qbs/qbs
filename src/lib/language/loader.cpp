@@ -46,15 +46,14 @@
 #include <tools/logger.h>
 #include <tools/progressobserver.h>
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QSettings>
-#include <QtCore/QStringList>
-#include <QtCore/QVariant>
-#include <QtCore/QDirIterator>
-
-#include <QtScript/QScriptEngine>
-#include <QtScript/QScriptProgram>
-#include <QtScript/QScriptValueIterator>
+#include <QCoreApplication>
+#include <QDirIterator>
+#include <QSettings>
+#include <QScriptEngine>
+#include <QScriptProgram>
+#include <QScriptValueIterator>
+#include <QStringList>
+#include <QVariant>
 
 #include <parser/qmljsparser_p.h>
 #include <parser/qmljsnodepool_p.h>

@@ -39,8 +39,8 @@
 
 #include "globals.h"
 
-#include <QtCore/QEvent>
-#include <QtCore/QString>
+#include <QEvent>
+#include <QString>
 
 namespace Qbs {
 

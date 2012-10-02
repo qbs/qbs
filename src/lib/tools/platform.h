@@ -38,9 +38,9 @@
 #ifndef QBS_PLATFORM_H
 #define QBS_PLATFORM_H
 
-#include <QtCore/QSharedPointer>
-#include <QtCore/QTextStream>
-#include <QtCore/QSettings>
+#include <QSettings>
+#include <QSharedPointer>
+#include <QTextStream>
 
 namespace qbs {
 

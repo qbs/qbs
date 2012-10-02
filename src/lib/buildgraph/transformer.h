@@ -38,9 +38,9 @@
 
 #include "tools/persistence.h"
 
-#include <QtCore/QSet>
-#include <QtCore/QSharedPointer>
-#include <QtScript/QScriptEngine>
+#include <QSet>
+#include <QSharedPointer>
+#include <QScriptEngine>
 
 QT_BEGIN_NAMESPACE
 

@@ -36,10 +36,10 @@
 **************************************************************************/
 
 #include "textfile.h"
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-#include <QtScript/QScriptEngine>
-#include <QtScript/QScriptValue>
+#include <QFile>
+#include <QScriptEngine>
+#include <QScriptValue>
+#include <QTextStream>
 
 void TextFile::init(QScriptValue &extensionObject)
 {

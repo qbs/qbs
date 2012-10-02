@@ -38,9 +38,9 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QSharedPointer>
-#include <QtCore/QVariant>
+#include <QCoreApplication>
+#include <QSharedPointer>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 class QSettings;

@@ -42,7 +42,7 @@
 
 #include "private/resolvedproduct.h"
 
-#include <QtCore/QSharedPointer>
+#include <QSharedPointer>
 
 
 

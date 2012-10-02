@@ -44,8 +44,8 @@
 #include <sys/stat.h>
 #endif
 
-#include <QtCore/QString>
-#include <QtCore/QCoreApplication> // for Q_DECLARE_TR_FUNCTIONS
+#include <QCoreApplication> // for Q_DECLARE_TR_FUNCTIONS
+#include <QString>
 
 QT_FORWARD_DECLARE_CLASS(QFileInfo)
 

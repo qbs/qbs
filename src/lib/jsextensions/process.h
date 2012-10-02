@@ -38,9 +38,9 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <QtCore/QObject>
-#include <QtCore/QVariant>
-#include <QtScript/QScriptable>
+#include <QObject>
+#include <QScriptable>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 class QProcess;

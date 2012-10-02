@@ -45,10 +45,9 @@
 #include "buildproject.h"
 #include "error.h"
 
-#include <QtCore/QFutureInterface>
-#include <QtCore/QExplicitlySharedDataPointer>
-#include <QtCore/QSharedPointer>
-
+#include <QExplicitlySharedDataPointer>
+#include <QFutureInterface>
+#include <QSharedPointer>
 
 namespace qbs {
     class BuildProject;

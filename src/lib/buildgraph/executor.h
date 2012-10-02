@@ -45,8 +45,8 @@
 #include <tools/settings.h>
 #include <buildgraph/scanresultcache.h>
 
-#include <QtCore/QObject>
-#include <QtCore/QVariant>
+#include <QObject>
+#include <QVariant>
 
 namespace qbs {
 

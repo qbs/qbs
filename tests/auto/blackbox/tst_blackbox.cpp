@@ -35,11 +35,11 @@
 **
 **************************************************************************/
 
-#include <QtCore/QFileInfo>
-#include <QtCore/QProcess>
-#include <QtCore/QFile>
-#include <QtCore/QCoreApplication>
-#include <QtTest/QtTest>
+#include <QCoreApplication>
+#include <QFile>
+#include <QFileInfo>
+#include <QProcess>
+#include <QtTest>
 
 #ifdef Q_OS_LINUX
 #include <unistd.h>

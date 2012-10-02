@@ -36,11 +36,12 @@
 **************************************************************************/
 
 #include "process.h"
-#include <QtCore/QProcess>
-#include <QtCore/QTextStream>
-#include <QtScript/QScriptEngine>
-#include <QtScript/QScriptValue>
-#include <QtCore/QDebug>
+
+#include <QDebug>
+#include <QProcess>
+#include <QScriptEngine>
+#include <QScriptValue>
+#include <QTextStream>
 
 void Process::init(QScriptValue &extensionObject)
 {

@@ -38,9 +38,10 @@
 #ifndef PLUGINS_H
 #define PLUGINS_H
 
-#include <QtCore/QString>
-#include <QtCore/QMap>
 #include <plugins/scanner/scanner.h>
+
+#include <QMap>
+#include <QString>
 
 QT_BEGIN_NAMESPACE
 class QLibrary;

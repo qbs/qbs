@@ -38,10 +38,10 @@
 #include "scannerpluginmanager.h"
 #include "logger.h"
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDebug>
-#include <QtCore/QDirIterator>
-#include <QtCore/QLibrary>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDirIterator>
+#include <QLibrary>
 
 namespace qbs {
 ScannerPluginManager *ScannerPluginManager::instance()

@@ -35,10 +35,10 @@
 **
 **************************************************************************/
 
-#include <QtCore/qglobal.h>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDebug>
-#include <QtCore/QTimer>
+#include <QtGlobal>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QTimer>
 
 #if defined(Q_OS_WIN) && defined(Q_CC_MSVC)
 

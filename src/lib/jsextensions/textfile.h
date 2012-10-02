@@ -38,9 +38,9 @@
 #ifndef TEXTFILE_H
 #define TEXTFILE_H
 
-#include <QtCore/QObject>
-#include <QtCore/QVariant>
-#include <QtScript/QScriptable>
+#include <QObject>
+#include <QScriptable>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 class QFile;

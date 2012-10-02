@@ -37,11 +37,11 @@
 #ifndef SCANRESULTCACHE_H
 #define SCANRESULTCACHE_H
 
-#include <QtCore/QHash>
-#include <QtCore/QMutex>
-#include <QtCore/QSet>
-#include <QtCore/QString>
-#include <QtCore/QVector>
+#include <QHash>
+#include <QMutex>
+#include <QSet>
+#include <QString>
+#include <QVector>
 
 namespace qbs {
 

@@ -38,7 +38,7 @@
 #define APPLICATION_H
 
 #include <buildgraph/executor.h>
-#include <QtCore/QCoreApplication>
+#include <QCoreApplication>
 
 namespace qbs {
 

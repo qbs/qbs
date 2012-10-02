@@ -49,17 +49,17 @@
 #include <tools/progressobserver.h>
 #include <tools/scripttools.h>
 
-#include <QFileInfo>
+#include <QCache>
 #include <QDebug>
 #include <QDir>
-#include <QtCore/QDirIterator>
+#include <QDirIterator>
 #include <QDataStream>
-#include <QtCore/QElapsedTimer>
-#include <QtCore/QMutex>
-#include <QtScript/QScriptProgram>
-#include <QtScript/QScriptValueIterator>
-#include <QtCore/QCache>
-#include <QtCore/QThread>
+#include <QElapsedTimer>
+#include <QFileInfo>
+#include <QMutex>
+#include <QScriptProgram>
+#include <QScriptValueIterator>
+#include <QThread>
 
 namespace qbs {
 

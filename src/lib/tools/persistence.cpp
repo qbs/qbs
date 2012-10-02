@@ -38,8 +38,8 @@
 #include "persistence.h"
 #include "fileinfo.h"
 #include <tools/logger.h>
-#include <QtCore/QDir>
-#include <QtCore/QScopedPointer>
+#include <QDir>
+#include <QScopedPointer>
 
 namespace qbs {
 

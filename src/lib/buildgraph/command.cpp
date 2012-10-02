@@ -38,7 +38,7 @@
 
 #include <QDebug>
 #include <QScriptEngine>
-#include <QtScript/QScriptValueIterator>
+#include <QScriptValueIterator>
 
 namespace qbs {
 

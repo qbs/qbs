@@ -43,16 +43,16 @@
 #include <tools/settings.h>
 #include <tools/fileinfo.h>
 
-#include <QtCore/QString>
-#include <QtCore/QDataStream>
-#include <QtCore/QProcessEnvironment>
-#include <QtCore/QStringList>
-#include <QtCore/QSet>
-#include <QtCore/QSharedPointer>
-#include <QtCore/QVariant>
-#include <QtCore/QMutex>
-#include <QtScript/QScriptProgram>
-#include <QtScript/QScriptValue>
+#include <QDataStream>
+#include <QMutex>
+#include <QProcessEnvironment>
+#include <QScriptProgram>
+#include <QScriptValue>
+#include <QSet>
+#include <QSharedPointer>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;

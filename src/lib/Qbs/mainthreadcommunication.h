@@ -41,8 +41,8 @@
 #include "processoutput.h"
 #include "ilogsink.h"
 
-#include <QtCore/QPointer>
-#include <QtCore/QReadWriteLock>
+#include <QPointer>
+#include <QReadWriteLock>
 
 namespace Qbs {
 

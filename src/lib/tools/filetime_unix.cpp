@@ -37,9 +37,10 @@
 
 #include "filetime.h"
 
-#include <QtCore/QString>
-#include <QtCore/QDateTime>
-#include <QtCore/QDebug>
+#include <QDateTime>
+#include <QDebug>
+#include <QString>
+
 #include <time.h>
 
 namespace qbs {

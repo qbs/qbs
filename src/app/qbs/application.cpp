@@ -36,7 +36,7 @@
 **************************************************************************/
 #include "application.h"
 #include "ctrlchandler.h"
-#include <QtCore/QDebug>
+#include <QDebug>
 
 namespace qbs {
 

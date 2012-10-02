@@ -38,9 +38,9 @@
 #include <tools/fileinfo.h>
 #include <tools/logger.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QRegExp>
-#include <QtCore/QDir>
+#include <QDir>
+#include <QFile>
+#include <QRegExp>
 
 namespace qbs {
 

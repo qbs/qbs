@@ -37,7 +37,7 @@
 
 #include "rulegraph.h"
 #include <tools/error.h>
-#include <QtCore/QDebug>
+#include <QDebug>
 
 namespace qbs {
 

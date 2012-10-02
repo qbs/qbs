@@ -42,8 +42,8 @@
 #include "buildproduct.h"
 #include <tools/progressobserver.h>
 
-#include <QtCore/QReadWriteLock>
-#include <QtCore/QFutureInterface>
+#include <QFutureInterface>
+#include <QReadWriteLock>
 
 namespace qbs {
     class Executor;

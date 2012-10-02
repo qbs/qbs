@@ -37,7 +37,7 @@
 
 #include "filetime.h"
 
-#include <QtCore/QString>
+#include <QString>
 #include <qt_windows.h>
 #ifdef Q_CC_MSVC
 #include <strsafe.h>

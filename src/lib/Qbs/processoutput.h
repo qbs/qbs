@@ -39,10 +39,10 @@
 #ifndef QBS_PROCESSOUTPUT_H
 #define QBS_PROCESSOUTPUT_H
 
-#include <QtCore/QByteArray>
-#include <QtCore/QSharedDataPointer>
-#include <QtCore/QString>
-#include <QtCore/QMetaType>
+#include <QByteArray>
+#include <QMetaType>
+#include <QSharedDataPointer>
+#include <QString>
 
 namespace Qbs {
 

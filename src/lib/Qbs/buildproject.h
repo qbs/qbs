@@ -41,7 +41,7 @@
 
 #include "buildproduct.h"
 
-#include <QtCore/QSharedPointer>
+#include <QSharedPointer>
 
 namespace qbs {
     class BuildProject;

@@ -43,8 +43,8 @@
 #include <tools/scripttools.h>
 #include <tools/platform.h>
 
-#include <QtCore/QDebug>
-#include <QtCore/QElapsedTimer>
+#include <QDebug>
+#include <QElapsedTimer>
 
 using namespace qbs;
 

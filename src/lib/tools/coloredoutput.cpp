@@ -36,7 +36,7 @@
 **************************************************************************/
 
 #include "coloredoutput.h"
-#include <qglobal.h>
+#include <QtGlobal>
 #ifdef Q_OS_WIN32
 # include <qt_windows.h>
 #endif

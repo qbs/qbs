@@ -38,14 +38,15 @@
 #ifndef QBS_PERSISTENCE
 #define QBS_PERSISTENCE
 
-#include <QtCore/QString>
-#include <QtCore/QSharedPointer>
-#include <QtCore/QFile>
-#include <QtCore/QDataStream>
-#include <QtCore/QMap>
-#include <QtCore/QVariantMap>
-#include <QtCore/QDebug>
 #include <tools/error.h>
+
+#include <QDataStream>
+#include <QDebug>
+#include <QFile>
+#include <QMap>
+#include <QSharedPointer>
+#include <QString>
+#include <QVariantMap>
 
 namespace qbs {
 

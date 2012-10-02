@@ -38,7 +38,7 @@
 #ifndef EXECUTORJOB_H
 #define EXECUTORJOB_H
 
-#include <QtCore/QObject>
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 class QScriptEngine;

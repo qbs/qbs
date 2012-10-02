@@ -36,12 +36,13 @@
 **************************************************************************/
 
 #include "fileinfo.h"
-#include <QtCore/QCoreApplication>
+
+#include <QCoreApplication>
+#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
-#include <QDebug>
-#include <cassert>
 
+#include <cassert>
 
 #ifdef Q_OS_UNIX
 #include <sys/stat.h>

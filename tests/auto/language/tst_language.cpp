@@ -39,7 +39,7 @@
 #include <tools/logger.h>
 #include <tools/logsink.h>
 #include <tools/scripttools.h>
-#include <QtTest/QtTest>
+#include <QtTest>
 
 using namespace qbs;
 

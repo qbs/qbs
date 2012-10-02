@@ -40,8 +40,8 @@
 
 #include <language.h>
 
-#include <QtCore/QSet>
-#include <QtCore/QVector>
+#include <QSet>
+#include <QVector>
 
 namespace qbs {
 

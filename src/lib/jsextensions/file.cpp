@@ -39,9 +39,9 @@
 
 #include <tools/fileinfo.h>
 
-#include <QtCore/QDebug>
-#include <QtCore/QFileInfo>
-#include <QtScript/QScriptEngine>
+#include <QDebug>
+#include <QFileInfo>
+#include <QScriptEngine>
 
 void File::init(QScriptValue &extensionObject)
 {

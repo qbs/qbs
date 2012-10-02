@@ -38,7 +38,7 @@
 #include "resolvedproduct.h"
 
 
-#include <QtScript/QScriptEngine>
+#include <QScriptEngine>
 
 #include <language/language.h>
 

@@ -40,10 +40,10 @@
 
 #include <tools/settings.h>
 
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-#include <QtScript/QScriptEngine>
+#include <QDebug>
+#include <QDir>
+#include <QProcess>
+#include <QScriptEngine>
 
 #include <stdio.h>
 #include <stdlib.h>
