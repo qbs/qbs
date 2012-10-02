@@ -169,7 +169,6 @@ static QString mkSpecPath(const QByteArray &mkspecsPath)
 #ifdef Q_OS_WIN
     return configVariable(qmakeConfContent(mkspecsPath), "QMAKESPEC_ORIGINAL");
 #else
-    Q_ASSERT(QFileInfo(mkspecsPath + "/default").isSymLink());
     return QFileInfo(mkspecsPath + "/default").symLinkTarget();
 #endif
 }
@@ -198,6 +197,9 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
     qtEnvironment.mkspec = mkSpecPath(mkspecsPath);
+
+    if (!QFileInfo(qtEnvironment.mkspec).exists())
+        throw Exception(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspec));
 
     return qtEnvironment;
 }

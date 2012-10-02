@@ -58,45 +58,50 @@ int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
 
-    if (argc == 1) {
-        printHelp();
-        return 0;
-    } else if (argc == 2) {
-        if (application.arguments()[1] == QLatin1String("--help") || application.arguments()[1] == QLatin1String("-h")) {
+    try {
+        if (argc == 1) {
             printHelp();
-        } else if (application.arguments()[1] == QLatin1String("--detect")) {
-            // search all Qt's in path and dump their settings
-            QList<qbs::QtEnviroment> qtEnvironments = qbs::SetupQt::fetchEnviroments();
+            return 0;
+        } else if (argc == 2) {
+            if (application.arguments()[1] == QLatin1String("--help") || application.arguments()[1] == QLatin1String("-h")) {
+                printHelp();
+            } else if (application.arguments()[1] == QLatin1String("--detect")) {
+                // search all Qt's in path and dump their settings
+                QList<qbs::QtEnviroment> qtEnvironments = qbs::SetupQt::fetchEnviroments();
 
-            foreach (const qbs::QtEnviroment &qtEnvironment, qtEnvironments) {
+                foreach (const qbs::QtEnviroment &qtEnvironment, qtEnvironments) {
+                    QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
+                    if (qbs::SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments))
+                        profileName += QLatin1String("-") + qtEnvironment.installPrefixPath.split("/").last();
+                    qbs::SetupQt::saveToQbsSettings(profileName, qtEnvironment);
+                }
+            } else {
+                QString qmakePath = application.arguments()[1];
+                if (!qbs::SetupQt::isQMakePathValid(qmakePath)) {
+                    printWrongQMakePath(qmakePath);
+                    return 1;
+                }
+                qbs::QtEnviroment qtEnvironment = qbs::SetupQt::fetchEnviroment(qmakePath);
                 QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
-                if (qbs::SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments))
-                    profileName += QLatin1String("-") + qtEnvironment.installPrefixPath.split("/").last();
-                qbs::SetupQt::saveToQbsSettings(profileName, qtEnvironment);
+                profileName.replace(".", "-");
+                qbs::SetupQt::saveToQbsSettings(profileName , qtEnvironment);
             }
-        } else {
+        } else if (argc == 3) {
             QString qmakePath = application.arguments()[1];
             if (!qbs::SetupQt::isQMakePathValid(qmakePath)) {
                 printWrongQMakePath(qmakePath);
                 return 1;
             }
             qbs::QtEnviroment qtEnvironment = qbs::SetupQt::fetchEnviroment(qmakePath);
-            QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
+            QString profileName = application.arguments()[2];
             profileName.replace(".", "-");
             qbs::SetupQt::saveToQbsSettings(profileName , qtEnvironment);
+        } else {
+            printHelp();
         }
-    } else if (argc == 3) {
-        QString qmakePath = application.arguments()[1];
-        if (!qbs::SetupQt::isQMakePathValid(qmakePath)) {
-            printWrongQMakePath(qmakePath);
-            return 1;
-        }
-        qbs::QtEnviroment qtEnvironment = qbs::SetupQt::fetchEnviroment(qmakePath);
-        QString profileName = application.arguments()[2];
-        profileName.replace(".", "-");
-        qbs::SetupQt::saveToQbsSettings(profileName , qtEnvironment);
-    } else {
-        printHelp();
+    } catch (qbs::Exception &e) {
+        std::cerr << "qbs-setup-qt: " << qPrintable(e.message()) << std::endl;
+        return EXIT_FAILURE;
     }
 
     return 0;

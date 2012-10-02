@@ -39,6 +39,7 @@
 #define QBS_SETUPQT_H
 
 #include <QString>
+#include <QCoreApplication>
 
 namespace qbs {
 
@@ -61,8 +62,25 @@ struct QtEnviroment {
     int qtPatchVersion;
 };
 
+class Exception
+{
+public:
+    Exception(const QString &message)
+        : m_message(message)
+    {}
+
+    const QString &message() const
+    {
+        return m_message;
+    }
+
+private:
+    QString m_message;
+};
+
 class SetupQt
 {
+    Q_DECLARE_TR_FUNCTIONS(SetupQt)
 public:
     static bool isQMakePathValid(const QString &qmakePath);
     static QList<QtEnviroment> fetchEnviroments();
