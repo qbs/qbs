@@ -108,12 +108,20 @@ QList<QtEnviroment> SetupQt::fetchEnviroments()
     return qtEnviroments;
 }
 
-static QByteArray qmakeQueryOutput(const QString &qmakePath)
+static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
 {
     QProcess qmakeProcess;
     qmakeProcess.start(qmakePath, QStringList() << "-query");
     qmakeProcess.waitForFinished();
-    return qmakeProcess.readAllStandardOutput();
+    const QByteArray output = qmakeProcess.readAllStandardOutput();
+
+    QMap<QByteArray, QByteArray> ret;
+    foreach (const QByteArray &line, output.split('\n')) {
+        int idx = line.indexOf(':');
+        if (idx >= 0)
+            ret[line.left(idx)] = line.mid(idx + 1).trimmed();
+    }
+    return ret;
 }
 
 static QByteArray mkSpecContent(const QByteArray &mkSpecPath)
@@ -123,14 +131,6 @@ static QByteArray mkSpecContent(const QByteArray &mkSpecPath)
         return qconfigFile.readAll();
 
     return QByteArray();
-}
-
-static QByteArray queryVariable(const QByteArray &queryOutput, const QByteArray &key)
-{
-    int beginIndex = queryOutput.indexOf(key) + key.size() + 1;
-    int endIndex = queryOutput.indexOf("\n", beginIndex);
-
-    return queryOutput.mid(beginIndex, endIndex - beginIndex).trimmed();
 }
 
 static QByteArray configVariable(const QByteArray &configContent, const QByteArray &key)
@@ -176,19 +176,25 @@ static QString mkSpecPath(const QByteArray &mkspecsPath)
 QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
 {
     QtEnviroment qtEnvironment;
-    QByteArray queryOutput = qmakeQueryOutput(qmakePath);
+    QMap<QByteArray, QByteArray> queryOutput = qmakeQueryOutput(qmakePath);
 
-    qtEnvironment.installPrefixPath = queryVariable(queryOutput, "QT_INSTALL_PREFIX");
-    qtEnvironment.documentationPath = queryVariable(queryOutput, "QT_INSTALL_DOCS");
-    qtEnvironment.includePath = queryVariable(queryOutput, "QT_INSTALL_HEADERS");
-    qtEnvironment.libaryPath = queryVariable(queryOutput, "QT_INSTALL_LIBS");
-    qtEnvironment.binaryPath = queryVariable(queryOutput, "QT_INSTALL_BINS");
-    qtEnvironment.pluginPath = queryVariable(queryOutput, "QT_INSTALL_PLUGINS");
-    qtEnvironment.qmlImportPath = queryVariable(queryOutput, "QT_INSTALL_IMPORTS");
-    qtEnvironment.qtVersion = queryVariable(queryOutput, "QT_VERSION");
+    qtEnvironment.installPrefixPath = queryOutput.value("QT_INSTALL_PREFIX");
+    qtEnvironment.documentationPath = queryOutput.value("QT_INSTALL_DOCS");
+    qtEnvironment.includePath = queryOutput.value("QT_INSTALL_HEADERS");
+    qtEnvironment.libaryPath = queryOutput.value("QT_INSTALL_LIBS");
+    qtEnvironment.binaryPath = queryOutput.value("QT_INSTALL_BINS");
+    qtEnvironment.pluginPath = queryOutput.value("QT_INSTALL_PLUGINS");
+    qtEnvironment.qmlImportPath = queryOutput.value("QT_INSTALL_IMPORTS");
+    qtEnvironment.qtVersion = queryOutput.value("QT_VERSION");
 
-    QByteArray mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
-    qtEnvironment.mkspecsPath = queryVariable(queryOutput, "QMAKE_MKSPECS");
+    QByteArray mkspecsPath = queryOutput.value("QMAKE_MKSPECS");
+    if (mkspecsPath.isEmpty()) {
+        mkspecsPath = queryOutput.value("QT_INSTALL_PREFIX");
+        if (mkspecsPath.isEmpty())
+            throw Exception(tr("Cannot extract the mkspecs directory."));
+        mkspecsPath += "/mkspecs";
+    }
+    qtEnvironment.mkspecsPath = mkspecsPath;
 
     QByteArray qconfigContent = mkSpecContent(mkspecsPath);
     qtEnvironment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
