@@ -1869,6 +1869,8 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     Scope::scopesWithEvaluatedProperties.clear();
     ResolvedProject::Ptr rproject(new ResolvedProject);
     rproject->qbsFile = m_project->fileName;
+    rproject->configuration = Configuration::Ptr(new Configuration);
+    rproject->configuration->setValue(userProperties->value());
 
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
@@ -2103,23 +2105,6 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                     sourceArtifactConfigValue.insert("modules", modules);
                     artifact->configuration->setValue(sourceArtifactConfigValue);
                 }
-            }
-        }
-    }
-
-    // Create the unaltered configuration for this project from all used modules.
-    {
-        rproject->configuration = Configuration::Ptr(new Configuration);
-        QSet<QString> seenModules;
-        ResolvedProduct::Ptr dummyProduct(new ResolvedProduct);
-        foreach (const ProductData &pd, products) {
-            foreach (Module::Ptr module, pd.product->modules) {
-                if (seenModules.contains(module->name))
-                    continue;
-                seenModules.insert(module->name);
-                QVariantMap projectConfigValue = rproject->configuration->value();
-                projectConfigValue.insert(module->name, evaluateAll(dummyProduct, module->object->scope));
-                rproject->configuration->setValue(projectConfigValue);
             }
         }
     }
