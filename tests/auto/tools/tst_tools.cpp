@@ -48,10 +48,11 @@ private slots:
     void testCommandLineOptions()
     {
         QStringList args;
-        args.append("-vvvk");
+        args.append("-vvv");
+        args.append("-k");
         qbs::CommandLineOptions options;
         options.readCommandLineArguments(args);
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerInfo);
         QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
         QVERIFY(options.isKeepGoingSet());
     }
