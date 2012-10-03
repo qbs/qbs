@@ -449,7 +449,7 @@ private:
     QScriptValue m_jsFunction_getHostDefaultArchitecture;
     QScriptValue m_jsFunction_getenv;
     QScriptValue m_jsFunction_configurationValue;
-    QScriptValue m_globalObjectForProbes;
+    QScriptValue m_probeScriptScope;
     Settings::Ptr m_settings;
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;

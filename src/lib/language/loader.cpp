@@ -2387,28 +2387,22 @@ void Loader::resolveProbe(EvaluationObject *node)
 {
     if (!checkCondition(node))
         return;
-    QScriptValue oldGlobalObject = m_engine->globalObject();
-    if (!m_globalObjectForProbes.isValid()) {
-        m_globalObjectForProbes = m_engine->newObject();
-        QScriptValueIterator svit(oldGlobalObject);
-        while (svit.hasNext()) {
-            svit.next();
-            m_globalObjectForProbes.setProperty(svit.name(), svit.value());
-        }
-        File::init(m_globalObjectForProbes);
-        TextFile::init(m_globalObjectForProbes);
-        Process::init(m_globalObjectForProbes);
+    if (!m_probeScriptScope.isValid()) {
+        m_probeScriptScope = m_engine->newObject();
+        File::init(m_probeScriptScope);
+        TextFile::init(m_probeScriptScope);
+        Process::init(m_probeScriptScope);
     }
-    m_engine->setGlobalObject(m_globalObjectForProbes);
     QScriptContext *ctx = m_engine->pushContext();
+    ctx->pushScope(m_probeScriptScope);
     ProbeScope::Ptr scope = ProbeScope::create(m_engine, node->scope);
     ctx->setActivationObject(scope->value());
     for (int i = node->objects.size() - 1; i >= 0; --i)
         applyFunctions(m_engine, node->objects.at(i), node);
     QString constructor = node->scope->verbatimValue("configure");
     evaluate(m_engine, constructor);
+    ctx->popScope();
     m_engine->popContext();
-    m_engine->setGlobalObject(oldGlobalObject);
 }
 
 static void addTransformPropertiesToRule(Rule::Ptr rule, LanguageObject *obj)
