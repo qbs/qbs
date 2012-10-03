@@ -93,6 +93,6 @@ private slots:
     }
 };
 
-QTEST_APPLESS_MAIN(TestFileInfo)
+QTEST_MAIN(TestFileInfo)
 
 #include "tst_tools.moc"
