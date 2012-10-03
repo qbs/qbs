@@ -48,6 +48,7 @@ class TestLanguage : public QObject
     Q_OBJECT
     Loader *loader;
     ResolvedProject::Ptr project;
+    Configuration::Ptr buildConfig;
 
     QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project)
     {
@@ -82,6 +83,10 @@ private slots:
         loader->setSearchPaths(QStringList()
                                << QLatin1String(SRCDIR "../../../share/qbs")
                                << QLatin1String(SRCDIR "testdata"));
+        buildConfig = Configuration::Ptr(new Configuration);
+        QVariantMap cfgValue;
+        setConfigProperty(cfgValue, QStringList() << "qbs" << "targetOS", "linux");
+        buildConfig->setValue(cfgValue);
     }
 
     void cleanupTestCase()
@@ -96,8 +101,8 @@ private slots:
         ResolvedModule::Ptr dependency;
         try {
             ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs");
-            Configuration::Ptr cfg(new Configuration);
-            ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory", cfg);
+            ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
+                                                                  buildConfig);
             QVERIFY(project);
             QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
 
@@ -166,8 +171,8 @@ private slots:
         bool exceptionCaught = false;
         try {
             ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/productconditions.qbs");
-            Configuration::Ptr cfg(new Configuration);
-            ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory", cfg);
+            ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
+                                                                  buildConfig);
             QVERIFY(project);
             QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
             QCOMPARE(products.count(), 3);
@@ -207,8 +212,7 @@ private slots:
             bool exceptionCaught = false;
             try {
                 ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
-                Configuration::Ptr cfg(new Configuration);
-                project = loader->resolveProject(projectFile, "someBuildDirectory", cfg);
+                project = loader->resolveProject(projectFile, "someBuildDirectory", buildConfig);
                 QVERIFY(project);
             } catch (Error &e) {
                 exceptionCaught = true;
@@ -253,8 +257,7 @@ private slots:
             bool exceptionCaught = false;
             try {
                 ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/filetags.qbs");
-                Configuration::Ptr cfg(new Configuration);
-                project = loader->resolveProject(projectFile, "someBuildDirectory", cfg);
+                project = loader->resolveProject(projectFile, "someBuildDirectory", buildConfig);
                 QVERIFY(project);
             }
             catch (Error &e) {
