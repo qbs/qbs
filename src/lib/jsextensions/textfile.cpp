@@ -44,7 +44,7 @@
 #include <QScriptValue>
 #include <QTextStream>
 
-void TextFile::init(QScriptValue &extensionObject)
+void TextFile::init(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject, engine->newFunction(&TextFile::ctor));

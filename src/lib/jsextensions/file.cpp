@@ -43,7 +43,7 @@
 #include <QFileInfo>
 #include <QScriptEngine>
 
-void File::init(QScriptValue &extensionObject)
+void File::init(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileObj = engine->newQObject(new File, QScriptEngine::ScriptOwnership);

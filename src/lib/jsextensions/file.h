@@ -47,7 +47,7 @@ class File : public QObject, public QScriptable
 {
 Q_OBJECT
 public:
-    static void init(QScriptValue &extensionObject);
+    static void init(QScriptValue extensionObject);
 
 private:
     static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);

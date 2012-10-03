@@ -45,7 +45,7 @@
 #include <QScriptValue>
 #include <QTextStream>
 
-void Process::init(QScriptValue &extensionObject)
+void Process::init(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
