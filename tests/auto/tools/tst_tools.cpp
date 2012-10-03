@@ -60,6 +60,7 @@ private slots:
     {
         QCOMPARE(qbs::FileInfo::fileName("C:/waffl/copter.exe"), QString("copter.exe"));
         QCOMPARE(qbs::FileInfo::baseName("C:/waffl/copter.exe.lib"), QString("copter"));
+        QCOMPARE(qbs::FileInfo::completeBaseName("C:/waffl/copter.exe.lib"), QString("copter.exe"));
         QCOMPARE(qbs::FileInfo::path("abc"), QString("."));
         QCOMPARE(qbs::FileInfo::path("/abc/lol"), QString("/abc"));
         QVERIFY(!qbs::FileInfo::isAbsolute("bla/lol"));
