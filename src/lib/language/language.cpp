@@ -78,11 +78,10 @@ QScriptValue Configuration::cachedScriptValue(QScriptEngine *scriptEngine) const
     return result;
 }
 
-void Configuration::cacheScriptValue(QScriptEngine *scriptEngine, const QScriptValue &scriptValue)
+void Configuration::cacheScriptValue(const QScriptValue &scriptValue)
 {
-    Q_ASSERT(scriptEngine == scriptValue.engine());
     m_scriptValueCacheMutex.lock();
-    m_scriptValueCache.insert(scriptEngine, scriptValue);
+    m_scriptValueCache.insert(scriptValue.engine(), scriptValue);
     m_scriptValueCacheMutex.unlock();
 }
 

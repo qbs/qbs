@@ -263,7 +263,7 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
     QScriptValue modulesScriptValue = artifact->configuration->cachedScriptValue(scriptEngine());
     if (!modulesScriptValue.isValid()) {
         modulesScriptValue = scriptEngine()->toScriptValue(artifact->configuration->value());
-        artifact->configuration->cacheScriptValue(scriptEngine(), modulesScriptValue);
+        artifact->configuration->cacheScriptValue(modulesScriptValue);
     }
     modulesScriptValue = modulesScriptValue.property("modules");
 

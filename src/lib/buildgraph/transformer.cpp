@@ -53,7 +53,7 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
     QScriptValue config = artifact->configuration->cachedScriptValue(scriptEngine);
     if (!config.isValid()) {
         config = scriptEngine->toScriptValue(artifact->configuration->value());
-        artifact->configuration->cacheScriptValue(scriptEngine, config);
+        artifact->configuration->cacheScriptValue(config);
     }
 
     QScriptValue artifactConfig = scriptEngine->newObject();

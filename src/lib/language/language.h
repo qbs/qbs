@@ -87,7 +87,7 @@ public:
     const QVariantMap &value() const { return m_value; }
     void setValue(const QVariantMap &value);
     QScriptValue cachedScriptValue(QScriptEngine *scriptEngine) const;
-    void cacheScriptValue(QScriptEngine *scriptEngine, const QScriptValue &scriptValue);
+    void cacheScriptValue(const QScriptValue &scriptValue);
 
 private:
     void load(qbs::PersistentPool &, QDataStream &s);
