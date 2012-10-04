@@ -38,6 +38,7 @@
 #include "language.h"
 #include <tools/scripttools.h>
 #include <QCryptographicHash>
+#include <QMutexLocker>
 #include <QScriptEngine>
 #include <QScriptValue>
 #include <algorithm>
@@ -71,18 +72,16 @@ void Configuration::setValue(const QVariantMap &map)
 
 QScriptValue Configuration::cachedScriptValue(QScriptEngine *scriptEngine) const
 {
-    m_scriptValueCacheMutex.lock();
+    QMutexLocker ml(&m_scriptValueCacheMutex);
     const QScriptValue result = m_scriptValueCache.value(scriptEngine);
-    m_scriptValueCacheMutex.unlock();
     Q_ASSERT(!result.isValid() || result.engine() == scriptEngine);
     return result;
 }
 
 void Configuration::cacheScriptValue(const QScriptValue &scriptValue)
 {
-    m_scriptValueCacheMutex.lock();
+    QMutexLocker ml(&m_scriptValueCacheMutex);
     m_scriptValueCache.insert(scriptValue.engine(), scriptValue);
-    m_scriptValueCacheMutex.unlock();
 }
 
 void Configuration::load(PersistentPool &, QDataStream &s)
