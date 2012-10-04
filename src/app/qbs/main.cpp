@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
             options.configure();
             return 0;
         }
-    } catch (qbs::Error &e) {
+    } catch (const qbs::Error &e) {
         fputs("qbs config: ", stderr);
         fputs(qPrintable(e.toString()), stderr);
         fputs("\n", stderr);
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
         try {
             foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
                 buildProject.storeBuildGraph();
-        } catch (qbs::Error &e) {
+        } catch (const qbs::Error &e) {
             qbsError() << e.toString();
             return ExitCodeErrorExecutionFailed;
         }

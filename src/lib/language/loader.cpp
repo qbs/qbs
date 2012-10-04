@@ -384,7 +384,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
             try {
                 baseValue = evaluate(engine(), baseProperty.valueSource);
             }
-            catch (Error &e)
+            catch (const Error &e)
             {
                 baseValue = engine()->currentContext()->throwError(tr("error while evaluating:\n%1").arg(e.toString()));
             }
@@ -407,7 +407,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
     try {
         result = evaluate(engine(), property.valueSource);
     }
-    catch (Error &e)
+    catch (const Error &e)
     {
         result = engine()->currentContext()->throwError(tr("error while evaluating:\n%1").arg(e.toString()));
     }

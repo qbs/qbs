@@ -193,7 +193,7 @@ void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
             d->buildProjects.append(BuildProject(buildProject));
         }
 
-    } catch (qbs::Error &error) {
+    } catch (const qbs::Error &error) {
         d->errors.append(Error(error));
         futureInterface.reportResult(false);
         d->futureInterface = 0;
@@ -392,7 +392,7 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
             printf("\n");
         }
 
-    } catch (qbs::Error &e) {
+    } catch (const qbs::Error &e) {
         d->errors.append(e);
         return;
     }
@@ -485,7 +485,7 @@ void SourceProject::loadBuildGraph(const QString &buildGraphPath, const qbs::Fil
         qbs::BuildProject::Ptr buildProject;
         buildProject = qbs::BuildProject::loadBuildGraph(buildGraphPath, d->buildGraph.data(), projectFileTimeStamp, d->searchPaths);
         d->buildProjects.append(BuildProject(buildProject));
-    } catch (qbs::Error &error) {
+    } catch (const qbs::Error &error) {
         d->errors.append(Error(error));
         return;
     }

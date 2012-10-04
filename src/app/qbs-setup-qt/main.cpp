@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         } else {
             printHelp();
         }
-    } catch (qbs::Exception &e) {
+    } catch (const qbs::Exception &e) {
         std::cerr << "qbs-setup-qt: " << qPrintable(e.message()) << std::endl;
         return EXIT_FAILURE;
     }

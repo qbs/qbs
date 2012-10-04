@@ -71,7 +71,7 @@ int ResolvedProduct::setupBuildEnvironment() const
     try {
         QScriptEngine engine;
         m_internalResolvedBuildProduct->setupBuildEnvironment(&engine, QProcessEnvironment::systemEnvironment());
-    } catch (qbs::Error &error) {
+    } catch (const qbs::Error &error) {
         fprintf(stderr, "%s", qPrintable(error.toString()));
         return 1;
     }
@@ -84,7 +84,7 @@ int ResolvedProduct::setupRunEnvironment() const
     try {
         QScriptEngine engine;
         m_internalResolvedBuildProduct->setupRunEnvironment(&engine, QProcessEnvironment::systemEnvironment());
-    } catch (qbs::Error &error) {
+    } catch (const qbs::Error &error) {
         fprintf(stderr, "%s", qPrintable(error.toString()));
         return 1;
     }

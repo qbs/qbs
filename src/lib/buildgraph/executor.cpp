@@ -153,7 +153,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     foreach (BuildProduct::Ptr product, m_productsToBuild) {
         try {
             product->rProduct->setupBuildEnvironment(m_scriptEngine, systemEnvironment);
-        } catch (Error &e) {
+        } catch (const Error &e) {
             setError(e.toString());
             return;
         }
@@ -552,7 +552,7 @@ bool Executor::runAutoMoc()
                 try {
                     autoMocApplied = true;
                     m_autoMoc->apply(product);
-                } catch (Error &e) {
+                } catch (const Error &e) {
                     setError(e.toString());
                     return false;
                 }

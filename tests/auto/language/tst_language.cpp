@@ -159,7 +159,7 @@ private slots:
             QVERIFY(product);
             dependency = findModuleByName(product, "dummy");
             QVERIFY(dependency);
-        } catch (Error &e) {
+        } catch (const Error &e) {
             exceptionCaught = true;
             qDebug() << e.toString();
         }
@@ -180,7 +180,7 @@ private slots:
             QVERIFY(products.value("product_true_condition"));
             QVERIFY(products.value("product_condition_dependent_of_module"));
         }
-        catch (Error &e) {
+        catch (const Error &e) {
             exceptionCaught = true;
             qDebug() << e.toString();
         }
@@ -214,7 +214,7 @@ private slots:
                 ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
                 project = loader->resolveProject(projectFile, "someBuildDirectory", buildConfig);
                 QVERIFY(project);
-            } catch (Error &e) {
+            } catch (const Error &e) {
                 exceptionCaught = true;
                 qDebug() << e.toString();
             }
@@ -260,7 +260,7 @@ private slots:
                 project = loader->resolveProject(projectFile, "someBuildDirectory", buildConfig);
                 QVERIFY(project);
             }
-            catch (Error &e) {
+            catch (const Error &e) {
                 exceptionCaught = true;
                 qDebug() << e.toString();
             }
