@@ -41,6 +41,7 @@
 #include <Qbs/sourceproject.h>
 #include <Qbs/runenvironment.h>
 #include <Qbs/mainthreadcommunication.h>
+#include <tools/hostosinfo.h>
 #include <tools/logger.h>
 #include <tools/options.h>
 #include <buildgraph/buildgraph.h>
@@ -48,7 +49,6 @@
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/logsink.h>
-#include <tools/platformglobals.h>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     if (!arguments.isEmpty()) {
         qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
-            + qbs::nativePathVariableSeparator + QByteArray(qgetenv("PATH")));
+            + qbs::HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
         QStringList subProcessArgs = arguments;
         const QString subProcess = subProcessArgs.takeFirst();
         if (!subProcess.startsWith('-')) {

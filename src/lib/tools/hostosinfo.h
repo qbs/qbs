@@ -34,18 +34,81 @@
 ** conditions contained in a signed written agreement between you and Nokia.
 **
 **************************************************************************/
+#ifndef HOSTOSINFO_H
+#define HOSTOSINFO_H
 
-#ifndef PLATFORMGLOBALS_H
-#define PLATFORMGLOBALS_H
+#include <QtGlobal>
+#include <QString>
+
+#ifdef Q_OS_WIN
+#define QTC_HOST_EXE_SUFFIX ".exe"
+#else
+#define QTC_HOST_EXE_SUFFIX ""
+#endif // Q_OS_WIN
 
 namespace qbs {
 
-#ifdef Q_OS_WIN
-const char nativePathVariableSeparator = ';';
+class HostOsInfo
+{
+public:
+    // Add more as needed.
+    enum HostOs { HostOsWindows, HostOsLinux, HostOsMac, HostOsOtherUnix, HostOsOther };
+
+    static inline HostOs hostOs();
+
+    static bool isWindowsHost() { return hostOs() == HostOsWindows; }
+    static bool isLinuxHost() { return hostOs() == HostOsLinux; }
+    static bool isMacHost() { return hostOs() == HostOsMac; }
+    static inline bool isAnyUnixHost();
+
+    static QString appendExecutableSuffix(const QString &executable)
+    {
+        QString finalName = executable;
+        if (isWindowsHost())
+            finalName += QLatin1String(QTC_HOST_EXE_SUFFIX);
+        return finalName;
+    }
+
+    static Qt::CaseSensitivity fileNameCaseSensitivity()
+    {
+        return isWindowsHost() ? Qt::CaseInsensitive: Qt::CaseSensitive;
+    }
+
+    static QChar pathListSeparator()
+    {
+        return isWindowsHost() ? QLatin1Char(';') : QLatin1Char(':');
+    }
+
+    static Qt::KeyboardModifier controlModifier()
+    {
+        return isMacHost() ? Qt::MetaModifier : Qt::ControlModifier;
+    }
+};
+
+HostOsInfo::HostOs HostOsInfo::hostOs()
+{
+#if defined(Q_OS_WIN)
+    return HostOsWindows;
+#elif defined(Q_OS_LINUX)
+    return HostOsLinux;
+#elif defined(Q_OS_MAC)
+    return HostOsMac;
+#elif defined(Q_OS_UNIX)
+    return HostOsOtherUnix;
 #else
-const char nativePathVariableSeparator = ':';
+    return HostOsOther;
 #endif
+}
+
+bool HostOsInfo::isAnyUnixHost()
+{
+#ifdef Q_OS_UNIX
+    return true;
+#else
+    return false;
+#endif
+}
 
 } // namespace qbs
 
-#endif // PLATFORMGLOBALS_H
+#endif // HOSTOSINFO_H

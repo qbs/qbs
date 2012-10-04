@@ -38,6 +38,8 @@
 #include "scannerpluginmanager.h"
 #include "logger.h"
 
+#include <tools/hostosinfo.h>
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDirIterator>
@@ -61,15 +63,14 @@ QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const QString &f
 
 void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths)
 {
-    QStringList filters;
-#if defined(Q_OS_WIN)
-    QString sharedLibSuffix = ".dll";
-#elif defined(Q_OS_DARWIN)
-    QString sharedLibSuffix = ".dylib";
-#else
-    QString sharedLibSuffix = ".so";
-#endif
-    filters << "*" + sharedLibSuffix;
+    QStringList filters("*");
+
+    if (HostOsInfo::isWindowsHost())
+        filters << ".dll";
+    else if (HostOsInfo::isMacHost())
+        filters << ".dylib";
+    else
+        filters << ".so";
 
     foreach (const QString &pluginPath, pluginPaths) {
         qbsTrace("pluginmanager: loading plugins from '%s'.", qPrintable(QDir::toNativeSeparators(pluginPath)));

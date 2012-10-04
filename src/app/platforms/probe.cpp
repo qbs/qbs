@@ -43,15 +43,15 @@
 #include <QStringList>
 #include <QTextStream>
 
+#include <tools/hostosinfo.h>
 #include <tools/platform.h>
-#include <tools/platformglobals.h>
 #include "msvcprobe.h"
 
 using namespace qbs;
 
 static QString searchPath(const QString &path, const QString &me)
 {
-    foreach (const QString &ppath, path.split(QLatin1Char(nativePathVariableSeparator))) {
+    foreach (const QString &ppath, path.split(HostOsInfo::pathListSeparator())) {
         const QString fullPath = ppath + QLatin1Char('/') + me;
         if (QFileInfo(fullPath).exists())
             return QDir::cleanPath(fullPath);
@@ -103,11 +103,9 @@ static int specific_probe(const QString &settingsPath,
     if (arch.isEmpty())
         arch = uname;
 
-#ifdef Q_OS_MAC
     // HACK: "uname -m" reports "i386" but "gcc -dumpmachine" reports "i686" on MacOS.
-    if (arch == "i386")
+    if (HostOsInfo::isMacHost() && arch == "i386")
         arch = "i686";
-#endif
 
     if (ld.isEmpty())
         ld = "ld";
@@ -227,13 +225,12 @@ static int specific_probe(const QString &settingsPath,
     s->settings.setValue("architecture", architecture);
     s->settings.setValue("endianness", endianness);
 
-#if defined(Q_OS_MAC)
-    s->settings.setValue("targetOS", "mac");
-#elif defined(Q_OS_LINUX)
-    s->settings.setValue("targetOS", "linux");
-#else
-    s->settings.setValue("targetOS", "unknown"); //fixme
-#endif
+    if (HostOsInfo::isMacHost())
+        s->settings.setValue("targetOS", "mac");
+    else if (HostOsInfo::isLinuxHost())
+        s->settings.setValue("targetOS", "linux");
+    else
+        s->settings.setValue("targetOS", "unknown"); //fixme
 
     if (compilerName.contains('-')) {
         QStringList nl = compilerName.split('-');
@@ -257,7 +254,6 @@ static int specific_probe(const QString &settingsPath,
     return 0;
 }
 
-#ifdef Q_OS_WIN
 static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
 {
     QString mingwPath;
@@ -298,19 +294,18 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr
     platform->settings.setValue("cpp/toolchainInstallPath", QDir::toNativeSeparators(mingwBinPath));
     platform->settings.setValue("toolchain", "mingw");
 }
-#endif
 
 int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
 {
-#ifdef Q_OS_WIN
-    msvcProbe(settingsPath, platforms);
-    mingwProbe(settingsPath, platforms);
-#else
-    bool somethingFound = false;
-    if (specific_probe(settingsPath, platforms, "gcc") == 0)
-        somethingFound = true;
-    specific_probe(settingsPath, platforms, "clang", somethingFound);
-#endif
+    if (HostOsInfo::isWindowsHost()) {
+        msvcProbe(settingsPath, platforms);
+        mingwProbe(settingsPath, platforms);
+    } else {
+        bool somethingFound = false;
+        if (specific_probe(settingsPath, platforms, "gcc") == 0)
+            somethingFound = true;
+        specific_probe(settingsPath, platforms, "clang", somethingFound);
+    }
     if (platforms.isEmpty())
         fprintf(stderr, "Could not detect any platforms.\n");
     return 0;

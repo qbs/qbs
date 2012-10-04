@@ -47,6 +47,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+// TODO: Not needed (see below)
 #ifdef Q_OS_UNIX
 #include <unistd.h>
 #endif
@@ -83,6 +85,7 @@ int RunEnvironment::runShell()
 {
     int exitCode = m_resolvedProduct.setupBuildEnvironment();
 
+    // TODO: Just use QProcess here in both cases. No need for platform-dependent methods.
     if (exitCode == 0) {
         QString productId = m_resolvedProduct.productId();
         printf("Starting shell for target '%s'.\n", qPrintable(productId));

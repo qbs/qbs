@@ -35,13 +35,13 @@
 **
 **************************************************************************/
 
-
 #include "buildproject.h"
 
-#include <QSharedData>
-
 #include <buildgraph/buildgraph.h>
+#include <tools/hostosinfo.h>
 #include <tools/scripttools.h>
+
+#include <QSharedData>
 
 namespace Qbs {
 
@@ -140,18 +140,18 @@ bool BuildProject::removeBuildDirectory()
 {
     bool filesRemoved = false;
 
-#if defined(Q_OS_LINUX)
-    QStringList arguments;
-    arguments.append("-rf");
-    arguments.append(buildDirectory());
-    filesRemoved = !QProcess::execute("/bin/rm", arguments);
-#elif defined(Q_OS_WIN)
-    QString command = QString("rd /s /q \"%1\"").arg(QDir::toNativeSeparators(buildDirectory()));
-    QStringList arguments;
-    arguments.append("/c");
-    arguments.append(command);
-    filesRemoved = !QProcess::execute("cmd", arguments);
-#endif
+    if (qbs::HostOsInfo::isLinuxHost()) {
+        QStringList arguments;
+        arguments.append("-rf");
+        arguments.append(buildDirectory());
+        filesRemoved = !QProcess::execute("/bin/rm", arguments);
+    } else if (qbs::HostOsInfo::isWindowsHost()) {
+        QString command = QString("rd /s /q \"%1\"").arg(QDir::toNativeSeparators(buildDirectory()));
+        QStringList arguments;
+        arguments.append("/c");
+        arguments.append(command);
+        filesRemoved = !QProcess::execute("cmd", arguments);
+    }
 
     return filesRemoved;
 }

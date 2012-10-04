@@ -41,8 +41,8 @@
 
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
+#include <tools/hostosinfo.h>
 #include <tools/logger.h>
-#include <tools/platformglobals.h>
 #include <jsextensions/file.h>
 #include <jsextensions/textfile.h>
 #include <jsextensions/process.h>
@@ -77,10 +77,10 @@ static QStringList populateExecutableSuffixes()
 {
     QStringList result;
     result << QString();
-#ifdef Q_OS_WIN
-    result << QLatin1String(".com") << QLatin1String(".exe")
-           << QLatin1String(".bat") << QLatin1String(".cmd");
-#endif
+    if (HostOsInfo::isWindowsHost()) {
+        result << QLatin1String(".com") << QLatin1String(".exe")
+               << QLatin1String(".bat") << QLatin1String(".cmd");
+    }
     return result;
 }
 
@@ -223,11 +223,8 @@ void CommandExecutor::startProcessCommand()
 
     QString program;
     if (FileInfo::isAbsolute(m_processCommand->program())) {
-#ifdef Q_OS_WIN
-        program = findProcessCommandBySuffix();
-#else
-        program = m_processCommand->program();
-#endif
+        program = HostOsInfo::isWindowsHost()
+                ? findProcessCommandBySuffix() : m_processCommand->program();
     } else {
         program = findProcessCommandInPath();
     }
@@ -443,10 +440,10 @@ QString CommandExecutor::findProcessCommandInPath()
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
     const QProcessEnvironment &buildEnvironment = product->buildEnvironment;
-    QStringList pathEnv = buildEnvironment.value("PATH").split(QLatin1Char(nativePathVariableSeparator), QString::SkipEmptyParts);
-#ifdef Q_OS_WIN
-    pathEnv.prepend(QLatin1String("."));
-#endif
+    QStringList pathEnv = buildEnvironment.value("PATH").split(HostOsInfo::pathListSeparator(),
+            QString::SkipEmptyParts);
+    if (HostOsInfo::isWindowsHost())
+        pathEnv.prepend(QLatin1String("."));
     for (int i = 0; i < pathEnv.count(); ++i) {
         QString directory = pathEnv.at(i);
         if (directory == QLatin1String("."))

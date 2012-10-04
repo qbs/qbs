@@ -41,7 +41,7 @@
 #include <tools/fileinfo.h>
 #include <tools/logger.h>
 #include <tools/platform.h>
-#include <tools/platformglobals.h>
+#include <tools/hostosinfo.h>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -276,7 +276,7 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
     }
 
     // eventually load defaults from configs
-    const QChar configPathSeparator = QLatin1Char(nativePathVariableSeparator);
+    const QChar configPathSeparator = HostOsInfo::pathListSeparator();
     if (m_searchPaths.isEmpty())
         m_searchPaths = configurationValue("preferences/qbsPath", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
     m_pluginPaths = configurationValue("preferences/pluginsPath", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);

@@ -14,3 +14,5 @@ SOURCES += \
 
 HEADERS += \
     setupqt.h
+
+include(../../lib/use.pri)

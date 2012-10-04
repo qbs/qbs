@@ -36,6 +36,9 @@
 **************************************************************************/
 
 #include "textfile.h"
+
+#include <tools/hostosinfo.h>
+
 #include <QFile>
 #include <QScriptEngine>
 #include <QScriptValue>
@@ -179,9 +182,7 @@ void TextFile::writeLine(const QString &str)
     if (!t->qstream)
         return;
     (*t->qstream) << str;
-#ifdef Q_OS_WINDOWS
-    (*t->qstream) <<"\r\n";
-#else
-    (*t->qstream) <<"\n";
-#endif
+    if (qbs::HostOsInfo::isWindowsHost())
+        (*t->qstream) << '\r';
+    (*t->qstream) << '\n';
 }

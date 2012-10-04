@@ -35,7 +35,8 @@
 **
 **************************************************************************/
 #include "../shared/specialplatformssetup.h"
-#include "../../lib/tools/platformglobals.h"
+
+#include <tools/hostosinfo.h>
 
 #include <QBuffer>
 #include <QCoreApplication>
@@ -64,11 +65,9 @@ private:
 
 QString MaddePlatformsSetup::defaultBaseDirectory() const
 {
-#ifdef Q_OS_WIN
-    return QLatin1String("C:/QtSDK/Madde");
-#else
+    if (HostOsInfo::isWindowsHost())
+        return QLatin1String("C:/QtSDK/Madde");
     return QDir::homePath() + QLatin1String("/QtSDK/Madde");
-#endif
 }
 
 QList<SpecialPlatformsSetup::PlatformInfo> MaddePlatformsSetup::gatherPlatformInfo()
@@ -89,15 +88,15 @@ QStringList MaddePlatformsSetup::gatherMaddeTargetNames()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     QString madListCommandLine = m_maddeBinDir + QLatin1String("/mad list");
-#ifdef Q_OS_WIN
-    const QString pathKey = QLatin1String("PATH");
-    const QString oldPath = env.value(pathKey);
-    QString newPath = m_maddeBinDir;
-    if (!oldPath.isEmpty())
-        newPath.append(QLatin1Char(';') + oldPath);
-    env.insert(pathKey, newPath);
-    madListCommandLine.prepend(m_maddeBinDir + QLatin1String("/sh.exe "));
-#endif
+    if (HostOsInfo::isWindowsHost()) {
+        const QString pathKey = QLatin1String("PATH");
+        const QString oldPath = env.value(pathKey);
+        QString newPath = m_maddeBinDir;
+        if (!oldPath.isEmpty())
+            newPath.append(QLatin1Char(';') + oldPath);
+        env.insert(pathKey, newPath);
+        madListCommandLine.prepend(m_maddeBinDir + QLatin1String("/sh.exe "));
+    }
     QByteArray madListOutput = runProcess(madListCommandLine, env).trimmed();
 
     QBuffer buf(&madListOutput);
@@ -166,7 +165,7 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
     const QString targetBinDir = targetDir + QLatin1String("/bin");
 
     // !!! The order matters here !!!
-    const QChar sep = QLatin1Char(nativePathVariableSeparator);
+    const QChar sep = HostOsInfo::pathListSeparator();
     const QString pathValue = targetBinDir + sep + m_maddeBinDir + sep + maddeMadLibDir + sep
         + maddeMadBinDir;
     platformInfo.environment.insert(QLatin1String("PATH"), pathValue);

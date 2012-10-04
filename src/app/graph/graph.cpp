@@ -168,9 +168,6 @@ qbs::CommandLineOptions options;
 void targetToScene(QGraphicsScene *scene, qbs::BuildProduct *t);
 int main(int argc, char *argv[])
 {
-//#ifndef Q_OS_WIN
-//    QApplication::setGraphicsSystem("opengl");
-//#endif
     QApplication app(argc, argv);
     app.setApplicationName("qbs");
     app.setOrganizationName("Nokia");

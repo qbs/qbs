@@ -10,3 +10,5 @@ TEMPLATE = app
 
 SOURCES += main.cpp ../shared/specialplatformssetup.cpp
 HEADERS += ../shared/specialplatformssetup.h
+
+include(../../lib/use.pri)

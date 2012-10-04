@@ -37,6 +37,8 @@
 
 #include "fileinfo.h"
 
+#include <tools/hostosinfo.h>
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
@@ -126,15 +128,15 @@ bool FileInfo::isAbsolute(const QString &path)
     const QChar at0 = path.at(0);
     if (at0 == QLatin1Char('/'))
         return true;
-#ifdef Q_OS_WIN
-    if (at0 == QLatin1Char('\\'))
-        return true;
-    // Unlike QFileInfo, this won't accept a relative path with a drive letter.
-    // Such paths result in a royal mess anyway ...
-    if (n >= 3 && path.at(1) == QLatin1Char(':') && at0.isLetter()
-            && (path.at(2) == QLatin1Char('/') || path.at(2) == QLatin1Char('\\')))
-        return true;
-#endif
+    if (HostOsInfo::isWindowsHost()) {
+        if (at0 == QLatin1Char('\\'))
+            return true;
+        // Unlike QFileInfo, this won't accept a relative path with a drive letter.
+        // Such paths result in a royal mess anyway ...
+        if (n >= 3 && path.at(1) == QLatin1Char(':') && at0.isLetter()
+                && (path.at(2) == QLatin1Char('/') || path.at(2) == QLatin1Char('\\')))
+            return true;
+    }
     return false;
 }
 

@@ -40,6 +40,7 @@
 
 #include "language.h"
 #include <tools/error.h>
+#include <tools/hostosinfo.h>
 #include <tools/settings.h>
 #include <tools/fileinfo.h>
 #include <tools/scripttools.h>
@@ -1423,24 +1424,24 @@ Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QStri
             QFileInfo dirInfo(dirPath);
             if (!dirInfo.isDir()) {
                 bool found = false;
-    #ifndef Q_OS_WIN
-                // On case sensitive file systems try to find the path.
-                QStringList subPaths = moduleName.split("/", QString::SkipEmptyParts);
-                QDir dir(path);
-                if (!dir.cd(moduleSearchSubDir))
-                    continue;
-                do {
-                    QStringList lst = dir.entryList(QStringList(subPaths.takeFirst()), QDir::Dirs);
-                    if (lst.count() != 1)
-                        break;
-                    if (!dir.cd(lst.first()))
-                        break;
-                    if (subPaths.isEmpty()) {
-                        found = true;
-                        dirPath = dir.absolutePath();
-                    }
-                } while (!found);
-    #endif
+                if (HostOsInfo::isWindowsHost()) {
+                    // On case sensitive file systems try to find the path.
+                    QStringList subPaths = moduleName.split("/", QString::SkipEmptyParts);
+                    QDir dir(path);
+                    if (!dir.cd(moduleSearchSubDir))
+                        continue;
+                    do {
+                        QStringList lst = dir.entryList(QStringList(subPaths.takeFirst()), QDir::Dirs);
+                        if (lst.count() != 1)
+                            break;
+                        if (!dir.cd(lst.first()))
+                            break;
+                        if (subPaths.isEmpty()) {
+                            found = true;
+                            dirPath = dir.absolutePath();
+                        }
+                    } while (!found);
+                }
                 if (!found)
                     continue;
             }
@@ -2904,6 +2905,8 @@ QScriptValue Loader::js_getHostOS(QScriptContext *context, QScriptEngine *engine
 {
     Q_UNUSED(context);
     QString hostSystem;
+
+    // TODO: Do we really not support other UNIX systems?
 #if defined(Q_OS_WIN)
     hostSystem = "windows";
 #elif defined(Q_OS_MAC)

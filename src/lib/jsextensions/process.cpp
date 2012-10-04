@@ -37,6 +37,8 @@
 
 #include "process.h"
 
+#include <tools/hostosinfo.h>
+
 #include <QDebug>
 #include <QProcess>
 #include <QScriptEngine>
@@ -202,11 +204,9 @@ void Process::writeLine(const QString &str)
     if (!t->qstream)
         return;
     (*t->qstream) << str;
-#ifdef Q_OS_WINDOWS
-    (*t->qstream) << "\r\n";
-#else
-    (*t->qstream) << "\n";
-#endif
+    if (qbs::HostOsInfo::isWindowsHost())
+        (*t->qstream) << '\r';
+    (*t->qstream) << '\n';
 }
 
 QProcessEnvironment &Process::ensureEnvironment()

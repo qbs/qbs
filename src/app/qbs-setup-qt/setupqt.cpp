@@ -37,6 +37,8 @@
 
 #include "setupqt.h"
 
+#include <tools/hostosinfo.h>
+
 #include <QByteArrayMatcher>
 #include <QCoreApplication>
 #include <QDir>
@@ -48,24 +50,15 @@
 
 namespace qbs {
 
-#ifdef Q_OS_WIN32
-const QString qmakeExecutableName(QLatin1String("qmake.exe"));
-#else
-const QString qmakeExecutableName(QLatin1String("qmake"));
-#endif
+const QString qmakeExecutableName = QLatin1String("qmake" QTC_HOST_EXE_SUFFIX);
 
 static QStringList collectQmakePaths()
 {
     QStringList qmakePaths;
 
-#ifdef Q_OS_WIN
-    const char pathSeparator = ';';
-#else
-    const char pathSeparator = ':';
-#endif
-
     QByteArray enviromentPath = qgetenv("PATH");
-    QList<QByteArray> enviromentPaths = enviromentPath.split(pathSeparator);
+    QList<QByteArray> enviromentPaths
+            = enviromentPath.split(HostOsInfo::pathListSeparator().toLatin1());
     foreach (const QByteArray &path, enviromentPaths) {
         QFileInfo pathFileInfo(QDir(QLatin1String(path)), qmakeExecutableName);
         if (pathFileInfo.exists()) {
@@ -83,18 +76,10 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
     QFileInfo qmakeFileInfo(qmakePath);
     if (!qmakeFileInfo.exists())
         return false;
-
-#ifdef Q_OS_WIN
-    QString qmakeBinaryName(QLatin1String("qmake.exe"));
-#else
-    QString qmakeBinaryName(QLatin1String("qmake"));
-#endif
-    if (qmakeFileInfo.fileName() != qmakeBinaryName)
+    if (qmakeFileInfo.fileName() != qmakeExecutableName)
         return false;
-
     if (!qmakeFileInfo.isExecutable())
         return false;
-
     return true;
 }
 
@@ -153,7 +138,6 @@ static QByteArray configVariable(const QByteArray &configContent, const QByteArr
     return QByteArray();
 }
 
-#ifdef Q_OS_WIN
 static QByteArray qmakeConfContent(const QByteArray &mkSpecPath)
 {
     QFile qconfigFile(mkSpecPath + "/default/qmake.conf");
@@ -162,15 +146,12 @@ static QByteArray qmakeConfContent(const QByteArray &mkSpecPath)
 
     return QByteArray();
 }
-#endif
 
 static QString mkSpecPath(const QByteArray &mkspecsPath)
 {
-#ifdef Q_OS_WIN
-    return configVariable(qmakeConfContent(mkspecsPath), "QMAKESPEC_ORIGINAL");
-#else
+    if (HostOsInfo::isWindowsHost())
+        return configVariable(qmakeConfContent(mkspecsPath), "QMAKESPEC_ORIGINAL");
     return QFileInfo(mkspecsPath + "/default").symLinkTarget();
-#endif
 }
 
 QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
