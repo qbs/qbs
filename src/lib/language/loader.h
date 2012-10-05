@@ -368,10 +368,10 @@ public:
     int productCount(ProjectFile::Ptr projectFile, Configuration::Ptr userProperties);
     ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
                                         Configuration::Ptr userProperties, bool resolveProductDependencies = true);
-    static QSet<QString> resolveFiles(Group::Ptr group, const QString &baseDir);
+    static QSet<QString> resolveFiles(const Group::ConstPtr &group, const QString &baseDir);
 
 protected:
-    static QSet<QString> resolveFiles(Group::Ptr group, const QStringList &patterns, const QString &baseDir);
+    static QSet<QString> resolveFiles(const Group::ConstPtr &group, const QStringList &patterns, const QString &baseDir);
     static void resolveFiles(QSet<QString> &files, const QString &baseDir, bool recursive,
                              const QStringList &parts, int index = 0);
 
@@ -400,13 +400,13 @@ protected:
     void setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject);
     void resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module);
     void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
-    void resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *group);
-    void resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::Ptr module);
+    void resolveProductModule(const ResolvedProduct::ConstPtr &rproduct, EvaluationObject *group);
+    void resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module);
     void resolveProbe(EvaluationObject *node);
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
-                                                    ResolvedProduct::Ptr rproduct, ResolvedModule::Ptr module);
-    Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::Ptr module);
-    FileTagger::Ptr resolveFileTagger(EvaluationObject *evaluationObject);
+                                                    ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module);
+    Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module);
+    FileTagger::ConstPtr resolveFileTagger(EvaluationObject *evaluationObject);
     void buildModulesProperty(EvaluationObject *evaluationObject);
     void checkModuleDependencies(const Module::Ptr &module);
 
@@ -426,10 +426,11 @@ protected:
                          LanguageObject *object,
                          const QString &projectFileName,
                          ProjectData *projectData,
-                         QList<Rule::Ptr> *globalRules, QList<FileTagger::Ptr> *globalFileTaggers,
+                         QList<Rule::Ptr> *globalRules,
+                         QList<FileTagger::ConstPtr> *globalFileTaggers,
                          const Configuration::Ptr &userProperties,
                          const ScopeChain::Ptr &scope,
-                         const ResolvedModule::Ptr &dummyModule);
+                         const ResolvedModule::ConstPtr &dummyModule);
 
 private:
     static Loader *get(QScriptEngine *engine);
@@ -454,7 +455,6 @@ private:
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;
     QHash<QString, QScriptValue> m_jsImports;
-    QHash<Rule::Ptr, EvaluationObject *> m_ruleMap;
     QHash<QString, QVariantMap> m_productModules;
     QHash<QString, QStringList> m_moduleDirListCache;
 };

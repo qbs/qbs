@@ -54,7 +54,7 @@ QVector<SourceFile> BuildProduct::sourceFiles() const
     artifactList.reserve(m_internalBuildProduct->rProduct->sources.size());
 
     if (m_internalBuildProduct) {
-        foreach (const qbs::SourceArtifact::Ptr &artifact, m_internalBuildProduct->rProduct->sources)
+        foreach (const qbs::SourceArtifact::ConstPtr &artifact, m_internalBuildProduct->rProduct->sources)
             artifactList.append(SourceFile(artifact->absoluteFilePath, artifact->fileTags));
     }
 
@@ -198,7 +198,7 @@ void dumpMap(const QVariantMap &map, const QString &prefix = QString())
 
 void BuildProduct::dumpProperties() const
 {
-    const qbs::ResolvedProduct::Ptr rProduct = m_internalBuildProduct->rProduct;
+    const qbs::ResolvedProduct::ConstPtr rProduct = m_internalBuildProduct->rProduct;
     printf("--------%s--------\n", qPrintable(rProduct->name));
     dumpMap(rProduct->configuration->value());
 }

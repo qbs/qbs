@@ -547,7 +547,7 @@ bool Executor::runAutoMoc()
     bool autoMocApplied = false;
     foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
         // HACK call the automoc thingy here only if we have use qt/core module
-        foreach (ResolvedModule::Ptr m, product->rProduct->modules) {
+        foreach (const ResolvedModule::ConstPtr &m, product->rProduct->modules) {
             if (m->name == "qt/core") {
                 try {
                     autoMocApplied = true;

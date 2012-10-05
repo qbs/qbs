@@ -62,7 +62,7 @@ public:
 
     QSet<Artifact*> inputs; // can be different from "children of all outputs"
     QSet<Artifact*> outputs;
-    QSharedPointer<Rule> rule;
+    QSharedPointer<const Rule> rule;
     QList<AbstractCommand *> commands;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,

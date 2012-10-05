@@ -54,7 +54,7 @@ class TestLanguage : public QObject
     Configuration::Ptr buildConfig;
 
     QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project);
-    ResolvedModule::Ptr findModuleByName(ResolvedProduct::Ptr product, const QString &name);
+    ResolvedModule::ConstPtr findModuleByName(ResolvedProduct::Ptr product, const QString &name);
     QVariant productPropertyValue(ResolvedProduct::Ptr product, QString propertyName);
 
 private slots:

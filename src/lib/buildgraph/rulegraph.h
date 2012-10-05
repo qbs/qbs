@@ -50,22 +50,22 @@ class RuleGraph
 public:
     RuleGraph();
 
-    void build(const QSet<qbs::Rule::Ptr> &rules, const QStringList &productFileTag);
-    QList<qbs::Rule::Ptr> topSorted();
+    void build(const QSet<Rule::Ptr> &rules, const QStringList &productFileTag);
+    QList<Rule::ConstPtr> topSorted();
 
     void dump() const;
 
 private:
     void dump_impl(QByteArray &indent, int rootIndex) const;
-    int insert(qbs::Rule::Ptr rule);
-    void connect(qbs::Rule *creatingRule, qbs::Rule *consumingRule);
-    void remove(qbs::Rule *rule);
-    void removeParents(qbs::Rule *rule);
-    void removeSiblings(qbs::Rule *rule);
-    QList<qbs::Rule::Ptr> topSort(qbs::Rule::Ptr rule);
+    int insert(const Rule::Ptr &rule);
+    void connect(const Rule *creatingRule, const Rule *consumingRule);
+    void remove(Rule *rule);
+    void removeParents(const Rule *rule);
+    void removeSiblings(const Rule *rule);
+    QList<Rule::ConstPtr> topSort(const Rule::ConstPtr &rule);
 
 private:
-    QMap<QString, QList<qbs::Rule*> > m_outputFileTagToRule;
+    QMap<QString, QList<const qbs::Rule*> > m_outputFileTagToRule;
     QVector<qbs::Rule::Ptr> m_artifacts;
     QVector< QVector<int> > m_parents;
     QVector< QVector<int> > m_children;

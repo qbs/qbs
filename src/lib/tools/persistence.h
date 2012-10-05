@@ -128,8 +128,7 @@ public:
             obj = m_loaded.value(id);
         } else {
             m_loaded.resize(id + 1);
-            T *t = new T;
-            obj = QSharedPointer<PersistentObject>(t);
+            obj = QSharedPointer<PersistentObject>(new T);
             m_loaded[id] = obj;
             obj->load(*this, m_stream);
         }
@@ -143,7 +142,7 @@ public:
         store(ptr.data());
     }
 
-    void store(PersistentObject *object);
+    void store(const PersistentObject *object);
 
     void storeString(const QString &t);
     QString loadString(int id);
@@ -165,7 +164,7 @@ private:
     HeadData m_headData;
     QVector<PersistentObject *> m_loadedRaw;
     QVector<QSharedPointer<PersistentObject> > m_loaded;
-    QHash<PersistentObject *, int> m_storageIndices;
+    QHash<const PersistentObject *, int> m_storageIndices;
     PersistentObjectId m_lastStoredObjectId;
 
     QVector<QString> m_stringStorage;
@@ -175,6 +174,8 @@ private:
 
 template<typename T> struct RemovePointer { typedef T Type; };
 template<typename T> struct RemovePointer<T*> { typedef T Type; };
+template <class T> struct RemoveConst { typedef T Type; };
+template <class T> struct RemoveConst<const T> { typedef T Type; };
 
 template <typename T>
 void loadContainerS(T &container, QDataStream &s, qbs::PersistentPool &pool)
@@ -184,7 +185,7 @@ void loadContainerS(T &container, QDataStream &s, qbs::PersistentPool &pool)
     container.clear();
     container.reserve(count);
     for (int i = count; --i >= 0;)
-        container += pool.idLoadS<typename T::value_type::Type>(s);
+        container += pool.idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>(s);
 }
 
 template <typename T>

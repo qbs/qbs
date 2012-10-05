@@ -47,7 +47,7 @@ RuleGraph::RuleGraph()
 
 void RuleGraph::build(const QSet<Rule::Ptr> &rules, const QStringList &productFileTags)
 {
-    QMap<QString, QList<Rule*> > inputFileTagToRule;
+    QMap<QString, QList<const Rule *> > inputFileTagToRule;
     m_artifacts.reserve(rules.count());
     foreach (const Rule::Ptr &rule, rules) {
         foreach (const QString &fileTag, rule->outputFileTags())
@@ -58,41 +58,41 @@ void RuleGraph::build(const QSet<Rule::Ptr> &rules, const QStringList &productFi
     m_parents.resize(rules.count());
     m_children.resize(rules.count());
 
-    foreach (Rule::Ptr rule, m_artifacts) {
+    foreach (const Rule::ConstPtr &rule, m_artifacts) {
         QStringList inFileTags = rule->inputs;
         inFileTags += rule->explicitlyDependsOn;
         foreach (const QString &fileTag, inFileTags) {
             inputFileTagToRule[fileTag].append(rule.data());
-            foreach (Rule *consumingRule, m_outputFileTagToRule.value(fileTag)) {
+            foreach (const Rule * const consumingRule, m_outputFileTagToRule.value(fileTag)) {
                 connect(rule.data(), consumingRule);
             }
         }
     }
 
-    QList<Rule*> productRules;
+    QList<const Rule *> productRules;
     for (int i=0; i < productFileTags.count(); ++i) {
-        QList<Rule*> rules = m_outputFileTagToRule.value(productFileTags.at(i));
+        QList<const Rule *> rules = m_outputFileTagToRule.value(productFileTags.at(i));
         productRules += rules;
         //### check: the rule graph must be a in valid shape!
     }
-    foreach (Rule *r, productRules)
+    foreach (const Rule *r, productRules)
         m_rootRules += r->ruleGraphId;
 }
 
-QList<Rule::Ptr> RuleGraph::topSorted()
+QList<Rule::ConstPtr> RuleGraph::topSorted()
 {
     QSet<int> rootRules = m_rootRules;
-    QList<Rule::Ptr> result;
+    QList<Rule::ConstPtr> result;
     foreach (int rootIndex, rootRules) {
-        Rule::Ptr rule = m_artifacts.at(rootIndex);
+        Rule::ConstPtr rule = m_artifacts.at(rootIndex);
         result.append(topSort(rule));
     }
 
     // remove duplicates from the result of our post-order traversal
-    QSet<Rule*> seenRules;
+    QSet<const Rule*> seenRules;
     seenRules.reserve(result.count());
     for (int i = 0; i < result.count();) {
-        Rule *rule = result.at(i).data();
+        const Rule * const rule = result.at(i).data();
         if (seenRules.contains(rule))
             result.removeAt(i);
         else
@@ -108,7 +108,7 @@ void RuleGraph::dump() const
     QByteArray indent;
     printf("---rule graph dump:\n");
     QSet<int> rootRules;
-    foreach (Rule::Ptr rule, m_artifacts)
+    foreach (const Rule::ConstPtr &rule, m_artifacts)
         if (m_parents[rule->ruleGraphId].isEmpty())
             rootRules += rule->ruleGraphId;
     foreach (int idx, rootRules) {
@@ -118,7 +118,7 @@ void RuleGraph::dump() const
 
 void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 {
-    Rule::Ptr r = m_artifacts[rootIndex];
+    const Rule::ConstPtr r = m_artifacts[rootIndex];
     printf("%s", indent.constData());
     printf("%s", qPrintable(r->toString()));
     printf("\n");
@@ -129,14 +129,14 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
     indent.chop(2);
 }
 
-int RuleGraph::insert(Rule::Ptr rule)
+int RuleGraph::insert(const Rule::Ptr &rule)
 {
     rule->ruleGraphId = m_artifacts.count();
     m_artifacts.append(rule);
     return rule->ruleGraphId;
 }
 
-void RuleGraph::connect(Rule *creatingRule, Rule *consumingRule)
+void RuleGraph::connect(const Rule *creatingRule, const Rule *consumingRule)
 {
     int maxIndex = qMax(creatingRule->ruleGraphId, consumingRule->ruleGraphId);
     if (m_parents.count() <= maxIndex) {
@@ -156,23 +156,23 @@ void RuleGraph::remove(Rule *rule)
     rule->ruleGraphId = -1;
 }
 
-void RuleGraph::removeParents(Rule *rule)
+void RuleGraph::removeParents(const Rule *rule)
 {
     foreach (int parentIndex, m_parents[rule->ruleGraphId]) {
-        Rule::Ptr parent = m_artifacts.at(parentIndex);
+        const Rule::Ptr parent = m_artifacts.at(parentIndex);
         removeParents(parent.data());
         remove(parent.data());
     }
     m_parents[rule->ruleGraphId].clear();
 }
 
-void RuleGraph::removeSiblings(Rule *rule)
+void RuleGraph::removeSiblings(const Rule *rule)
 {
     foreach (int childIndex, m_children[rule->ruleGraphId]) {
-        Rule::Ptr child = m_artifacts.at(childIndex);
+        const Rule::ConstPtr child = m_artifacts.at(childIndex);
         QList<int> toRemove;
         foreach (int siblingIndex, m_parents.at(child->ruleGraphId)) {
-            Rule::Ptr sibling = m_artifacts.at(siblingIndex);
+            const Rule::Ptr sibling = m_artifacts.at(siblingIndex);
             if (sibling == rule)
                 continue;
             toRemove.append(sibling->ruleGraphId);
@@ -188,9 +188,9 @@ void RuleGraph::removeSiblings(Rule *rule)
     }
 }
 
-QList<Rule::Ptr> RuleGraph::topSort(Rule::Ptr rule)
+QList<Rule::ConstPtr> RuleGraph::topSort(const Rule::ConstPtr &rule)
 {
-    QList<Rule::Ptr> result;
+    QList<Rule::ConstPtr> result;
     foreach (int childIndex, m_children.at(rule->ruleGraphId))
         result.append(topSort(m_artifacts.at(childIndex)));
 

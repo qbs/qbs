@@ -73,7 +73,7 @@ BuildProduct::~BuildProduct()
     qDeleteAll(artifacts);
 }
 
-const QList<Rule::Ptr> &BuildProduct::topSortedRules() const
+const QList<Rule::ConstPtr> &BuildProduct::topSortedRules() const
 {
     if (m_topSortedRules.isEmpty()) {
         RuleGraph ruleGraph;
@@ -183,13 +183,15 @@ void BuildGraph::insert(BuildProduct *product, Artifact *n) const
         qbsTrace("[BG] insert artifact '%s'", qPrintable(n->filePath()));
 }
 
-void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, ResolvedProduct::Ptr product, Rule::Ptr rule, BuildGraph *bg)
+void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine,
+        const ResolvedProduct::ConstPtr &product, Rule::ConstPtr rule, BuildGraph *bg)
 {
-    ResolvedProject *lastSetupProject = (ResolvedProject *)scriptEngine->property("lastSetupProject").toULongLong();
-    ResolvedProduct *lastSetupProduct = (ResolvedProduct *)scriptEngine->property("lastSetupProduct").toULongLong();
+    const ResolvedProject *lastSetupProject = reinterpret_cast<ResolvedProject *>(scriptEngine->property("lastSetupProject").toULongLong());
+    const ResolvedProduct *lastSetupProduct = reinterpret_cast<ResolvedProduct *>(scriptEngine->property("lastSetupProduct").toULongLong());
 
     if (lastSetupProject != product->project) {
-        scriptEngine->setProperty("lastSetupProject", QVariant((qulonglong)product->project));
+        scriptEngine->setProperty("lastSetupProject",
+                QVariant(reinterpret_cast<qulonglong>(product->project)));
         QScriptValue projectScriptValue;
         projectScriptValue = scriptEngine->newObject();
         projectScriptValue.setProperty("filePath", product->project->qbsFile);
@@ -199,7 +201,8 @@ void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine, Resolv
 
     QScriptValue productScriptValue;
     if (lastSetupProduct != product.data()) {
-        scriptEngine->setProperty("lastSetupProduct", QVariant((qulonglong)product.data()));
+        scriptEngine->setProperty("lastSetupProduct",
+                QVariant(reinterpret_cast<qulonglong>(product.data())));
         productScriptValue = scriptEngine->toScriptValue(product->configuration->value());
         productScriptValue.setProperty("name", product->name);
         QString destinationDirectory = product->destinationDirectory;
@@ -281,7 +284,7 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
 
 void BuildGraph::applyRules(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag)
 {
-    foreach (Rule::Ptr rule, product->topSortedRules())
+    foreach (Rule::ConstPtr rule, product->topSortedRules())
         applyRule(product, artifactsPerFileTag, rule);
 }
 
@@ -349,7 +352,7 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 }
 
 void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag,
-                           Rule::Ptr rule)
+                           Rule::ConstPtr rule)
 {
     setupScriptEngineForProduct(scriptEngine(), product->rProduct, rule, this);
 
@@ -378,9 +381,9 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
 
 void BuildGraph::createOutputArtifact(
         BuildProduct *product,
-        const Rule::Ptr &rule, const RuleArtifact::Ptr &ruleArtifact,
+        const Rule::ConstPtr &rule, const RuleArtifact::ConstPtr &ruleArtifact,
         const QSet<Artifact *> &inputArtifacts,
-        QList< QPair<RuleArtifact*, Artifact *> > *ruleArtifactArtifactMap,
+        QList< QPair<const RuleArtifact*, Artifact *> > *ruleArtifactArtifactMap,
         QList<Artifact *> *outputArtifacts,
         QSharedPointer<Transformer> &transformer)
 {
@@ -442,7 +445,7 @@ void BuildGraph::createOutputArtifact(
         Q_ASSERT(outputArtifact != inputArtifact);
         loggedConnect(outputArtifact, inputArtifact);
     }
-    ruleArtifactArtifactMap->append(qMakePair(ruleArtifact.data(), outputArtifact));
+    ruleArtifactArtifactMap->append(qMakePair<const RuleArtifact *, Artifact *>(ruleArtifact.data(), outputArtifact));
     outputArtifacts->append(outputArtifact);
 
     // create transformer if not already done so
@@ -454,12 +457,14 @@ void BuildGraph::createOutputArtifact(
     outputArtifact->transformer = transformer;
 }
 
-void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::Ptr rule, const QSet<Artifact *> &inputArtifacts)
+void BuildGraph::applyRule(BuildProduct *product,
+        QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, const Rule::ConstPtr &rule,
+        const QSet<Artifact *> &inputArtifacts)
 {
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] apply rule " << rule->toString() << " " << toStringList(inputArtifacts).join(",\n            ");
 
-    QList< QPair<RuleArtifact*, Artifact *> > ruleArtifactArtifactMap;
+    QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
     QSet<Artifact *> usingArtifacts;
@@ -484,7 +489,7 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
 
     // create the output artifacts from the set of input artifacts
     QSharedPointer<Transformer> transformer;
-    foreach (RuleArtifact::Ptr ruleArtifact, rule->artifacts) {
+    foreach (const RuleArtifact::ConstPtr &ruleArtifact, rule->artifacts) {
         if (!rule->isMultiplexRule()) {
             foreach (Artifact *inputArtifact, inputArtifacts) {
                 setupScriptEngineForArtifact(product, inputArtifact);
@@ -536,7 +541,7 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
     for (int i=ruleArtifactArtifactMap.count(); --i >= 0;) {
-        RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
+        const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
         if (ra->bindings.isEmpty())
             continue;
 
@@ -602,7 +607,7 @@ void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *>
         throw Error(QString("There's a rule without commands: %1.").arg(rule->toString()), rule->script->location);
 }
 
-void BuildGraph::createTransformerCommands(RuleScript::Ptr script, Transformer *transformer)
+void BuildGraph::createTransformerCommands(const RuleScript::ConstPtr &script, Transformer *transformer)
 {
     QScriptProgram &scriptProgram = m_scriptProgramCache[script->script];
     if (scriptProgram.isNull())
@@ -853,7 +858,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
-    foreach (SourceArtifact::Ptr sourceArtifact, rProduct->sources) {
+    foreach (const SourceArtifact::ConstPtr &sourceArtifact, rProduct->sources) {
         QString filePath = sourceArtifact->absoluteFilePath;
         if (product->lookupArtifact(filePath)) {
             // ignore duplicate artifacts
@@ -877,13 +882,14 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
         }
         QSharedPointer<Transformer> transformer(new Transformer);
         transformer->inputs = inputArtifacts.toSet();
-        transformer->rule = Rule::Ptr(new Rule);
-        transformer->rule->inputs = rtrafo->inputs;
-        transformer->rule->jsImports = rtrafo->jsImports;
-        transformer->rule->module = ResolvedModule::Ptr(new ResolvedModule);
-        transformer->rule->module->name = rtrafo->module->name;
-        transformer->rule->script = rtrafo->transform;
-        foreach (SourceArtifact::Ptr sourceArtifact, rtrafo->outputs) {
+        const Rule::Ptr rule(new Rule);
+        rule->inputs = rtrafo->inputs;
+        rule->jsImports = rtrafo->jsImports;
+        ResolvedModule::Ptr module(new ResolvedModule);
+        module->name = rtrafo->module->name;
+        rule->module = module;
+        rule->script = rtrafo->transform;
+        foreach (const SourceArtifact::ConstPtr &sourceArtifact, rtrafo->outputs) {
             Artifact *outputArtifact = createArtifact(product, sourceArtifact);
             outputArtifact->artifactType = Artifact::Generated;
             outputArtifact->transformer = transformer;
@@ -897,8 +903,9 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             RuleArtifact::Ptr ruleArtifact(new RuleArtifact);
             ruleArtifact->fileScript = outputArtifact->filePath();
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
-            transformer->rule->artifacts += ruleArtifact;
+            rule->artifacts += ruleArtifact;
         }
+        transformer->rule = rule;
         setupScriptEngineForProduct(scriptEngine(), rProduct, transformer->rule, this);
         transformer->setupInputs(scriptEngine(), scriptEngine()->globalObject());
         transformer->setupOutputs(scriptEngine(), scriptEngine()->globalObject());
@@ -931,16 +938,16 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
 
     *discardStoredProject = false;
     QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
-    QSet<SourceArtifact::Ptr> addedSourceArtifacts;
+    QSet<SourceArtifact::ConstPtr> addedSourceArtifacts;
     QList<Artifact *> addedArtifacts, artifactsToRemove;
-    QHash<QString, SourceArtifact::Ptr> oldArtifacts, newArtifacts;
+    QHash<QString, SourceArtifact::ConstPtr> oldArtifacts, newArtifacts;
 
     // Update list of found files by patterns
     product->rProduct->groups = changedProduct->groups;
 
-    foreach (SourceArtifact::Ptr a, product->rProduct->sources)
+    foreach (const SourceArtifact::ConstPtr &a, product->rProduct->sources)
         oldArtifacts.insert(a->absoluteFilePath, a);
-    foreach (SourceArtifact::Ptr a, changedProduct->sources) {
+    foreach (const SourceArtifact::Ptr &a, changedProduct->sources) {
         newArtifacts.insert(a->absoluteFilePath, a);
         if (!oldArtifacts.contains(a->absoluteFilePath)) {
             // artifact added
@@ -951,8 +958,8 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
         }
     }
     QList<SourceArtifact::Ptr> sourceArtifactsToRemove;
-    foreach (SourceArtifact::Ptr a, product->rProduct->sources) {
-        SourceArtifact::Ptr changedArtifact = newArtifacts.value(a->absoluteFilePath);
+    foreach (const SourceArtifact::Ptr &a, product->rProduct->sources) {
+        const SourceArtifact::ConstPtr changedArtifact = newArtifacts.value(a->absoluteFilePath);
         if (!changedArtifact) {
             // artifact removed
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' removed from product " << product->rProduct->name;
@@ -995,7 +1002,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
     }
 
     // remove all source artifacts from the product that have been removed from the project file
-    foreach (SourceArtifact::Ptr sourceArtifact, sourceArtifactsToRemove)
+    foreach (const SourceArtifact::Ptr &sourceArtifact, sourceArtifactsToRemove)
         product->rProduct->sources.remove(sourceArtifact);
 
     // apply rules for new artifacts
@@ -1033,7 +1040,7 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
 
     removeGeneratedArtifactFromDisk(artifact);
 
-    Rule::Ptr rule = artifact->transformer->rule;
+    const Rule::ConstPtr rule = artifact->transformer->rule;
     artifact->product->project->markDirty();
     artifact->transformer = QSharedPointer<Transformer>();
 
@@ -1059,7 +1066,7 @@ QScriptEngine *BuildGraph::scriptEngine()
     return engine;
 }
 
-Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::Ptr sourceArtifact)
+Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::ConstPtr sourceArtifact)
 {
     Artifact *artifact = new Artifact(product->project);
     artifact->artifactType = Artifact::SourceFile;
@@ -1240,14 +1247,14 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
     bool referencedProductRemoved = false;
     QList<BuildProduct::Ptr> changedProducts;
     foreach (BuildProduct::Ptr product, project->buildProducts()) {
-        const ResolvedProduct::Ptr &resolvedProduct = product->rProduct;
+        const ResolvedProduct::ConstPtr &resolvedProduct = product->rProduct;
         FileInfo pfi(resolvedProduct->qbsFile);
         if (!pfi.exists()) {
             referencedProductRemoved = true;
         } else if (bgfi.lastModified() < pfi.lastModified()) {
             changedProducts += product;
         } else if (!resolvedProduct->groups.isEmpty()) {
-            foreach (Group::Ptr group, resolvedProduct->groups) {
+            foreach (const Group::ConstPtr &group, resolvedProduct->groups) {
                 QSet<QString> files = Loader::resolveFiles(group, resolvedProduct->sourceDirectory);
                 if (files != group->files) {
                     changedProducts += product;
@@ -1285,7 +1292,7 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
         QSet<QString> oldProductNames, newProductNames;
         foreach (const BuildProduct::Ptr &product, project->buildProducts())
             oldProductNames += product->rProduct->name;
-        foreach (const ResolvedProduct::Ptr &product, changedProject->products)
+        foreach (const ResolvedProduct::ConstPtr &product, changedProject->products)
             newProductNames += product->name;
         QSet<QString> addedProductNames = newProductNames - oldProductNames;
         if (!addedProductNames.isEmpty()) {

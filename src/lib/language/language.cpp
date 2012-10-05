@@ -104,15 +104,15 @@ void Configuration::store(PersistentPool &, QDataStream &s) const
 void FileTagger::load(PersistentPool &pool, QDataStream &s)
 {
     Q_UNUSED(s);
-    artifactExpression.setPattern(pool.idLoadString());
-    fileTags = pool.idLoadStringList();
+    m_artifactExpression.setPattern(pool.idLoadString());
+    m_fileTags = pool.idLoadStringList();
 }
 
 void FileTagger::store(PersistentPool &pool, QDataStream &s) const
 {
     Q_UNUSED(s);
-    pool.storeString(artifactExpression.pattern());
-    pool.storeStringList(fileTags);
+    pool.storeString(m_artifactExpression.pattern());
+    pool.storeStringList(m_fileTags);
 }
 
 void SourceArtifact::load(PersistentPool &pool, QDataStream &s)
@@ -201,7 +201,7 @@ QString Rule::toString() const
 QStringList Rule::outputFileTags() const
 {
     QStringList result;
-    foreach (RuleArtifact::Ptr artifact, artifacts)
+    foreach (const RuleArtifact::ConstPtr &artifact, artifacts)
         result.append(artifact->fileTags);
     result.sort();
     std::unique(result.begin(), result.end());
@@ -264,9 +264,9 @@ ResolvedProduct::ResolvedProduct()
 QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     QSet<QString> result;
-    foreach (FileTagger::Ptr tagger, fileTaggers) {
-        if (FileInfo::globMatches(tagger->artifactExpression, fileName)) {
-            result.unite(tagger->fileTags.toSet());
+    foreach (FileTagger::ConstPtr tagger, fileTaggers) {
+        if (FileInfo::globMatches(tagger->artifactExpression(), fileName)) {
+            result.unite(tagger->fileTags().toSet());
         }
     }
     return result;
@@ -310,12 +310,12 @@ void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
     storeContainer(groups, s, pool);
 }
 
-QList<ResolvedModule*> topSortModules(const QHash<ResolvedModule*, QList<ResolvedModule*> > &moduleChildren,
-                                      const QList<ResolvedModule*> &modules,
+QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,
+                                      const QList<const ResolvedModule*> &modules,
                                       QSet<QString> &seenModuleNames)
 {
-    QList<ResolvedModule*> result;
-    foreach (ResolvedModule *m, modules) {
+    QList<const ResolvedModule*> result;
+    foreach (const ResolvedModule *m, modules) {
         if (m->name.isNull())
             continue;
         result.append(topSortModules(moduleChildren, moduleChildren.value(m), seenModuleNames));
@@ -354,8 +354,8 @@ enum EnvType
 };
 
 static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, EnvType envType,
-                                                 const QList<ResolvedModule::Ptr> &modules,
-                                                 const Configuration::Ptr &productConfiguration,
+                                                 const QList<ResolvedModule::ConstPtr> &modules,
+                                                 const Configuration::ConstPtr &productConfiguration,
                                                  ResolvedProject *project,
                                                  const QProcessEnvironment &systemEnvironment)
 {
@@ -366,22 +366,22 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
     for (QVariantMap::const_iterator it = platformEnv.constBegin(); it != platformEnv.constEnd(); ++it)
         procenv.insert(it.key(), it.value().toString());
 
-    QMap<QString, ResolvedModule*> moduleMap;
-    foreach (ResolvedModule::Ptr module, modules)
+    QMap<QString, const ResolvedModule *> moduleMap;
+    foreach (const ResolvedModule::ConstPtr &module, modules)
         moduleMap.insert(module->name, module.data());
 
-    QHash<ResolvedModule*, QList<ResolvedModule*> > moduleParents;
-    QHash<ResolvedModule*, QList<ResolvedModule*> > moduleChildren;
-    foreach (ResolvedModule::Ptr module, modules) {
+    QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
+    QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
+    foreach (ResolvedModule::ConstPtr module, modules) {
         foreach (const QString &moduleName, module->moduleDependencies) {
-            ResolvedModule *depmod = moduleMap.value(moduleName);
+            const ResolvedModule * const depmod = moduleMap.value(moduleName);
             moduleParents[depmod].append(module.data());
             moduleChildren[module.data()].append(depmod);
         }
     }
 
-    QList<ResolvedModule*> rootModules;
-    foreach (ResolvedModule::Ptr module, modules)
+    QList<const ResolvedModule *> rootModules;
+    foreach (ResolvedModule::ConstPtr module, modules)
         if (moduleParents.value(module.data()).isEmpty())
             rootModules.append(module.data());
 
@@ -392,8 +392,8 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
     }
 
     QSet<QString> seenModuleNames;
-    QList<ResolvedModule*> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
-    foreach (ResolvedModule *module, topSortedModules) {
+    QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
+    foreach (const ResolvedModule *module, topSortedModules) {
         if ((envType == BuildEnv && module->setupBuildEnvironmentScript.isEmpty()) ||
             (envType == RunEnv && module->setupBuildEnvironmentScript.isEmpty() && module->setupRunEnvironmentScript.isEmpty()))
             continue;
@@ -421,7 +421,7 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
         // expose properties of direct module dependencies
         QScriptValue activationObject = ctx->activationObject();
         QVariantMap productModules = productConfiguration->value().value("modules").toMap();
-        foreach (ResolvedModule *depmod, moduleChildren.value(module)) {
+        foreach (const ResolvedModule * const depmod, moduleChildren.value(module)) {
             scriptValue = scriptEngine->newObject();
             QVariantMap moduleCfg = productModules.value(depmod->name).toMap();
             for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
@@ -497,7 +497,7 @@ void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
     s << platformEnvironment;
 
     s << products.count();
-    foreach (ResolvedProduct::Ptr product, products)
+    foreach (const ResolvedProduct::ConstPtr &product, products)
         pool.store(product);
 }
 

@@ -109,7 +109,7 @@ void PersistentPool::closeStream()
     m_stream.setDevice(0);
 }
 
-void PersistentPool::store(PersistentObject *object)
+void PersistentPool::store(const PersistentObject *object)
 {
     if (!object) {
         m_stream << -1;

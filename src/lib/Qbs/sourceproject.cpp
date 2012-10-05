@@ -382,7 +382,7 @@ void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVaria
             d->buildProjects.append(bProject);
 
             printf("for %s:\n", qPrintable(bProject->resolvedProject()->id));
-            foreach (qbs::ResolvedProduct::Ptr p, bProject->resolvedProject()->products) {
+            foreach (const qbs::ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
                 printf("  - [%s] %s as %s\n"
                         ,qPrintable(p->fileTags.join(", "))
                         ,qPrintable(p->name)

@@ -83,6 +83,7 @@ class Configuration: public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<Configuration> Ptr;
+    typedef QSharedPointer<const Configuration> ConstPtr;
 
     Configuration();
     Configuration(const Configuration &other);
@@ -105,14 +106,23 @@ class FileTagger : public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<FileTagger> Ptr;
-    QRegExp artifactExpression;
-    QStringList fileTags;
+    typedef QSharedPointer<const FileTagger> ConstPtr;
+
+    FileTagger(const QRegExp &artifactExpression, const QStringList &fileTags)
+        : m_artifactExpression(artifactExpression), m_fileTags(fileTags)
+    { }
 
     FileTagger()
-        : artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
+        : m_artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
     {}
 
+    const QRegExp &artifactExpression() const { return m_artifactExpression; }
+    const QStringList &fileTags() const { return m_fileTags; }
+
 private:
+    QRegExp m_artifactExpression;
+    QStringList m_fileTags;
+
     void load(qbs::PersistentPool &, QDataStream &s);
     void store(qbs::PersistentPool &, QDataStream &s) const;
 };
@@ -121,6 +131,8 @@ class RuleArtifact : public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<RuleArtifact> Ptr;
+    typedef QSharedPointer<const RuleArtifact> ConstPtr;
+
     QString fileScript;
     QStringList fileTags;
 
@@ -142,6 +154,8 @@ class SourceArtifact : public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<SourceArtifact> Ptr;
+    typedef QSharedPointer<const SourceArtifact> ConstPtr;
+
     QString absoluteFilePath;
     QSet<QString> fileTags;
     bool overrideFileTags;
@@ -160,6 +174,8 @@ class RuleScript: public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<RuleScript> Ptr;
+    typedef QSharedPointer<const RuleScript> ConstPtr;
+
     QString script;
     qbs::CodeLocation location;
 
@@ -172,6 +188,8 @@ class ResolvedModule : public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedModule> Ptr;
+    typedef QSharedPointer<const ResolvedModule> ConstPtr;
+
     QString name;
     QStringList moduleDependencies;
     JsImports jsImports;
@@ -196,15 +214,17 @@ class Rule : public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<Rule> Ptr;
-    ResolvedModule::Ptr module;
+    typedef QSharedPointer<const Rule> ConstPtr;
+
+    ResolvedModule::ConstPtr module;
     JsImports jsImports;
-    RuleScript::Ptr script;
+    RuleScript::ConstPtr script;
     QStringList inputs;
     QStringList usings;
     QStringList explicitlyDependsOn;
     bool multiplex;
     QString objectId;
-    QList<RuleArtifact::Ptr> artifacts;
+    QList<RuleArtifact::ConstPtr> artifacts;
     QMap<QString, QScriptProgram> transformProperties;
 
     // members that we don't need to save
@@ -232,15 +252,15 @@ class Group : public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<Group> Ptr;
+    typedef QSharedPointer<const Group> ConstPtr;
+
     QString prefix;
     bool recursive;
     QStringList patterns;
     QStringList excludePatterns;
     QSet<QString> files;
 
-    Group()
-        : recursive(false)
-    {}
+    Group() : recursive(false) {}
 
 private:
     void load(qbs::PersistentPool &pool, QDataStream &s);
@@ -252,10 +272,10 @@ class ResolvedTransformer
 public:
     typedef QSharedPointer<ResolvedTransformer> Ptr;
 
-    ResolvedModule::Ptr module;
+    ResolvedModule::ConstPtr module;
     QStringList inputs;
     QList<SourceArtifact::Ptr> outputs;
-    RuleScript::Ptr transform;
+    RuleScript::ConstPtr transform;
     JsImports jsImports;
 };
 
@@ -264,6 +284,8 @@ class ResolvedProduct: public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedProduct> Ptr;
+    typedef QSharedPointer<const ResolvedProduct> ConstPtr;
+
     ResolvedProduct();
 
     QStringList fileTags;
@@ -278,10 +300,10 @@ public:
     QSet<SourceArtifact::Ptr> sources;
     QSet<Rule::Ptr> rules;
     QSet<ResolvedProduct::Ptr> uses;
-    QSet<FileTagger::Ptr> fileTaggers;
-    QList<ResolvedModule::Ptr> modules;
+    QSet<FileTagger::ConstPtr> fileTaggers;
+    QList<ResolvedModule::ConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
-    QList<Group::Ptr> groups;
+    QList<Group::ConstPtr> groups;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved

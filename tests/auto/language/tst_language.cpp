@@ -45,12 +45,12 @@ QHash<QString, ResolvedProduct::Ptr> TestLanguage::productsFromProject(ResolvedP
     return result;
 }
 
-ResolvedModule::Ptr TestLanguage::findModuleByName(ResolvedProduct::Ptr product, const QString &name)
+ResolvedModule::ConstPtr TestLanguage::findModuleByName(ResolvedProduct::Ptr product, const QString &name)
 {
-    foreach (ResolvedModule::Ptr module, product->modules)
+    foreach (const ResolvedModule::ConstPtr &module, product->modules)
         if (module->name == name)
             return module;
-    return ResolvedModule::Ptr();
+    return ResolvedModule::ConstPtr();
 }
 
 QVariant TestLanguage::productPropertyValue(ResolvedProduct::Ptr product, QString propertyName)
@@ -84,7 +84,7 @@ void TestLanguage::conditionalDepends()
 {
     bool exceptionCaught = false;
     ResolvedProduct::Ptr product;
-    ResolvedModule::Ptr dependency;
+    ResolvedModule::ConstPtr dependency;
     try {
         ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs");
         ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
@@ -100,7 +100,7 @@ void TestLanguage::conditionalDepends()
         product = products.value("conditionaldepends_derived_false");
         QVERIFY(product);
         dependency = findModuleByName(product, "dummy");
-        QCOMPARE(dependency, ResolvedModule::Ptr());
+        QCOMPARE(dependency, ResolvedModule::ConstPtr());
 
         product = products.value("product_props_true");
         QVERIFY(product);
@@ -110,7 +110,7 @@ void TestLanguage::conditionalDepends()
         product = products.value("product_props_false");
         QVERIFY(product);
         dependency = findModuleByName(product, "dummy");
-        QCOMPARE(dependency, ResolvedModule::Ptr());
+        QCOMPARE(dependency, ResolvedModule::ConstPtr());
 
         product = products.value("project_props_true");
         QVERIFY(product);
@@ -120,7 +120,7 @@ void TestLanguage::conditionalDepends()
         product = products.value("project_props_false");
         QVERIFY(product);
         dependency = findModuleByName(product, "dummy");
-        QCOMPARE(dependency, ResolvedModule::Ptr());
+        QCOMPARE(dependency, ResolvedModule::ConstPtr());
 
         product = products.value("module_props_true");
         QVERIFY(product);
@@ -134,7 +134,7 @@ void TestLanguage::conditionalDepends()
         dependency = findModuleByName(product, "dummy2");
         QVERIFY(dependency);
         dependency = findModuleByName(product, "dummy");
-        QCOMPARE(dependency, ResolvedModule::Ptr());
+        QCOMPARE(dependency, ResolvedModule::ConstPtr());
 
         product = products.value("contradictory_conditions1");
         QVERIFY(product);
@@ -263,7 +263,7 @@ void TestLanguage::fileTags()
     ResolvedProduct::Ptr product;
     QVERIFY(product = products.value(productName));
     QCOMPARE(product->sources.count(), 1);
-    SourceArtifact::Ptr sourceFile = *product->sources.begin();
+    SourceArtifact::ConstPtr sourceFile = *product->sources.begin();
     QStringList fileTags = sourceFile->fileTags.toList();
     fileTags.sort();
     QCOMPARE(fileTags, expectedFileTags);

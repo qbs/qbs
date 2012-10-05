@@ -67,7 +67,7 @@ public:
     BuildProduct();
     ~BuildProduct();
 
-    const QList<Rule::Ptr> &topSortedRules() const;
+    const QList<Rule::ConstPtr> &topSortedRules() const;
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
 
@@ -82,7 +82,7 @@ private:
     void store(PersistentPool &pool, QDataStream &s) const;
 
 private:
-    mutable QList<Rule::Ptr> m_topSortedRules;
+    mutable QList<Rule::ConstPtr> m_topSortedRules;
 };
 
 class BuildGraph;
@@ -195,26 +195,26 @@ public:
     static void removeGeneratedArtifactFromDisk(Artifact *artifact);
 
     void createOutputArtifact(BuildProduct *product,
-                          const Rule::Ptr &rule, const RuleArtifact::Ptr &ruleArtifact,
+                          const Rule::ConstPtr &rule, const RuleArtifact::ConstPtr &ruleArtifact,
                           const QSet<Artifact *> &inputArtifacts,
-                          QList<QPair<RuleArtifact *, Artifact *> > *ruleArtifactArtifactMap,
+                          QList<QPair<const RuleArtifact *, Artifact *> > *ruleArtifactArtifactMap,
                           QList<Artifact *> *outputArtifacts,
                           QSharedPointer<Transformer> &transformer);
 
     void onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct, bool *discardStoredProject);
     void updateNodesThatMustGetNewTransformer();
 
-    static void setupScriptEngineForProduct(QScriptEngine *scriptEngine, ResolvedProduct::Ptr product, Rule::Ptr rule, BuildGraph *bg = 0);
+    static void setupScriptEngineForProduct(QScriptEngine *scriptEngine, const ResolvedProduct::ConstPtr &product, Rule::ConstPtr rule, BuildGraph *bg = 0);
     static void disconnect(Artifact *u, Artifact *v);
     static void disconnectChildren(Artifact *u);
     static void disconnectParents(Artifact *u);
     static void disconnectAll(Artifact *u);
 
 private:
-    Artifact *createArtifact(BuildProduct::Ptr product, SourceArtifact::Ptr sourceArtifact);
-    void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::Ptr rule);
-    void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::Ptr rule, const QSet<Artifact *> &inputArtifacts);
-    void createTransformerCommands(RuleScript::Ptr script, Transformer *transformer);
+    Artifact *createArtifact(BuildProduct::Ptr product, SourceArtifact::ConstPtr sourceArtifact);
+    void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, Rule::ConstPtr rule);
+    void applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag, const Rule::ConstPtr &rule, const QSet<Artifact *> &inputArtifacts);
+    void createTransformerCommands(const RuleScript::ConstPtr &script, Transformer *transformer);
     void setupScriptEngineForArtifact(BuildProduct *product, Artifact *artifact);
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
     static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);

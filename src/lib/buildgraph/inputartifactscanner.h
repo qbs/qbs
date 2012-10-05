@@ -94,7 +94,7 @@ private:
         ResolvedDependenciesCache resolvedDependenciesCache;
     };
 
-    QHash<QSharedPointer<Configuration>, CacheItem> cache;
+    QHash<QSharedPointer<const Configuration>, CacheItem> cache;
 
     friend class InputArtifactScanner;
 };

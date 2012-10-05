@@ -1728,7 +1728,7 @@ static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QS
     throw Error(msg);
 }
 
-static QVariantMap evaluateAll(const ResolvedProduct::Ptr &rproduct, const Scope::Ptr &properties)
+static QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct, const Scope::Ptr &properties)
 {
     QVariantMap result;
 
@@ -1826,7 +1826,8 @@ int Loader::productCount(ProjectFile::Ptr projectFile, Configuration::Ptr userPr
     return referencedProducts.count() + productChildrenCount;
 }
 
-static void applyFileTaggers(const SourceArtifact::Ptr &artifact, const ResolvedProduct::Ptr &product)
+static void applyFileTaggers(const SourceArtifact::Ptr &artifact,
+        const ResolvedProduct::ConstPtr &product)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         QSet<QString> fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
@@ -1878,7 +1879,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     ResolvedModule::Ptr dummyModule(new ResolvedModule);
     dummyModule->jsImports = m_project->jsImports;
     QList<Rule::Ptr> globalRules;
-    QList<FileTagger::Ptr> globalFileTaggers;
+    QList<FileTagger::ConstPtr> globalFileTaggers;
 
     ProjectData products;
     resolveTopLevel(rproject,
@@ -1916,7 +1917,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
         rproduct->buildDirectory = buildDirectory;
         foreach (const Rule::Ptr &rule, globalRules)
             rproduct->rules.insert(rule);
-        foreach (const FileTagger::Ptr &fileTagger, globalFileTaggers)
+        foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
             rproduct->fileTaggers.insert(fileTagger);
         const QString lowerProductName = rproduct->name.toLower();
         uniqueStrings.insert(lowerProductName);
@@ -1999,7 +2000,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
             const ProductData &productData = it.value();
             allowedUserPropertyNames += product->name;
             allowedUserPropertyNames += productData.originalProductName;
-            foreach (ResolvedModule::Ptr module, product->modules) {
+            foreach (const ResolvedModule::ConstPtr &module, product->modules) {
                 allowedUserPropertyNames += module->name;
                 foreach (const QString &dependency, module->moduleDependencies)
                     allowedUserPropertyNames += dependency;
@@ -2165,7 +2166,8 @@ static Scope::Ptr moduleScopeById(Scope::Ptr scope, const QStringList &moduleId)
     return scope;
 }
 
-static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, EvaluationObject *moduleContainer, Scope::Ptr objectScope)
+static QVariantMap evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+        EvaluationObject *moduleContainer, Scope::Ptr objectScope)
 {
     QVariantMap values;
     QVariantMap modules;
@@ -2190,14 +2192,14 @@ static QVariantMap evaluateModuleValues(ResolvedProduct::Ptr rproduct, Evaluatio
     return values;
 }
 
-QSet<QString> Loader::resolveFiles(Group::Ptr group, const QString &baseDir)
+QSet<QString> Loader::resolveFiles(const Group::ConstPtr &group, const QString &baseDir)
 {
     QSet<QString> files = resolveFiles(group, group->patterns, baseDir);
     files -= resolveFiles(group, group->excludePatterns, baseDir);
     return files;
 }
 
-QSet<QString> Loader::resolveFiles(Group::Ptr group, const QStringList &patterns, const QString &baseDir)
+QSet<QString> Loader::resolveFiles(const Group::ConstPtr &group, const QStringList &patterns, const QString &baseDir)
 {
     QSet<QString> files;
     foreach (QString pattern, patterns) {
@@ -2338,7 +2340,8 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     }
 }
 
-void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObject *productModule)
+void Loader::resolveProductModule(const ResolvedProduct::ConstPtr &rproduct,
+        EvaluationObject *productModule)
 {
     Q_ASSERT(!rproduct->name.isEmpty());
 
@@ -2348,7 +2351,7 @@ void Loader::resolveProductModule(ResolvedProduct::Ptr rproduct, EvaluationObjec
     m_productModules.insert(rproduct->name.toLower(), moduleValues);
 }
 
-void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::Ptr module)
+void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module)
 {
     if (!checkCondition(trafo))
         return;
@@ -2359,12 +2362,13 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     rtrafo->inputs = trafo->scope->stringListValue("inputs");
     for (int i=0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(rproduct->sourceDirectory, rtrafo->inputs[i]);
-    rtrafo->transform = RuleScript::Ptr(new RuleScript);
-    rtrafo->transform->script = trafo->scope->verbatimValue("prepare");
-    rtrafo->transform->location.fileName = trafo->instantiatingObject()->file->fileName;
-    rtrafo->transform->location.column = 1;
+    const RuleScript::Ptr transform(new RuleScript);
+    transform->script = trafo->scope->verbatimValue("prepare");
+    transform->location.fileName = trafo->instantiatingObject()->file->fileName;
+    transform->location.column = 1;
     Binding binding = trafo->instantiatingObject()->bindings.value(QStringList("prepare"));
-    rtrafo->transform->location.line = binding.valueSource.firstLineNumber();
+    transform->location.line = binding.valueSource.firstLineNumber();
+    rtrafo->transform = transform;
 
     Configuration::Ptr outputConfiguration(new Configuration);
     foreach (EvaluationObject *child, trafo->children) {
@@ -2405,7 +2409,7 @@ void Loader::resolveProbe(EvaluationObject *node)
     m_engine->popContext();
 }
 
-static void addTransformPropertiesToRule(Rule::Ptr rule, LanguageObject *obj)
+static void addTransformPropertiesToRule(const Rule::Ptr &rule, LanguageObject *obj)
 {
     foreach (const Binding &binding, obj->bindings) {
         if (binding.name.length() != 1) {
@@ -2422,7 +2426,7 @@ static void addTransformPropertiesToRule(Rule::Ptr rule, LanguageObject *obj)
  *Resolve stuff that Module and Product have in common.
  */
 QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObject *> &objects,
-                                                        ResolvedProduct::Ptr rproduct, ResolvedModule::Ptr module)
+                                                        ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module)
 {
     QList<LanguageObject *> outerTransformProperties;    // ### do we really want to allow these?
     QList<Rule::Ptr> rules;
@@ -2431,10 +2435,9 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
     foreach (EvaluationObject *object, objects) {
         const uint hashPrototypeName = qHash(object->prototype);
         if (hashPrototypeName == hashName_FileTagger) {
-            FileTagger::Ptr fileTagger = resolveFileTagger(object);
-            rproduct->fileTaggers.insert(fileTagger);
+            rproduct->fileTaggers.insert(resolveFileTagger(object));
         } else if (hashPrototypeName == hashName_Rule) {
-            Rule::Ptr rule = resolveRule(object, module);
+            const Rule::Ptr rule = resolveRule(object, module);
             rproduct->rules.insert(rule);
             rules.append(rule);
         } else if (hashPrototypeName == hashName_Transformer) {
@@ -2451,7 +2454,7 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
     }
 
     // attach the outer TransformProperties to the rules
-    foreach (Rule::Ptr rule, rules) {
+    foreach (const Rule::Ptr &rule, rules) {
         foreach (LanguageObject *tp, outerTransformProperties)
             addTransformPropertiesToRule(rule, tp);
     }
@@ -2459,7 +2462,7 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
     return unhandledObjects;
 }
 
-Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::Ptr module)
+Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module)
 {
     Rule::Ptr rule(new Rule);
 
@@ -2467,7 +2470,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::Ptr modu
     Q_CHECK_PTR(origObj);
 
     // read artifacts and TransformProperties
-    QList<RuleArtifact::Ptr> artifacts;
+    QList<RuleArtifact::ConstPtr> artifacts;
     foreach (EvaluationObject *child, object->children) {
         const uint hashChildPrototypeName = qHash(child->prototype);
         if (hashChildPrototypeName == hashName_Artifact) {
@@ -2494,7 +2497,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::Ptr modu
         }
     }
 
-    RuleScript::Ptr ruleScript(new RuleScript);
+    const RuleScript::Ptr ruleScript(new RuleScript);
     ruleScript->script = object->scope->verbatimValue("prepare");
     ruleScript->location.fileName = object->instantiatingObject()->file->fileName;
     ruleScript->location.column = 1;
@@ -2513,16 +2516,14 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::Ptr modu
     rule->explicitlyDependsOn = object->scope->stringListValue("explicitlyDependsOn");
     rule->module = module;
 
-    m_ruleMap.insert(rule, object);
     return rule;
 }
 
-FileTagger::Ptr Loader::resolveFileTagger(EvaluationObject *evaluationObject)
+FileTagger::ConstPtr Loader::resolveFileTagger(EvaluationObject *evaluationObject)
 {
-    FileTagger::Ptr fileTagger(new FileTagger);
-    fileTagger->artifactExpression.setPattern(evaluationObject->scope->stringValue("pattern"));
-    fileTagger->fileTags = evaluationObject->scope->stringListValue("fileTags");
-    return fileTagger;
+    const Scope::Ptr scope = evaluationObject->scope;
+    return FileTagger::ConstPtr(new FileTagger(QRegExp(scope->stringValue("pattern")),
+            scope->stringListValue("fileTags")));
 }
 
 /// --------------------------------------------------------------------------
@@ -2956,10 +2957,10 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                              const QString &projectFileName,
                              ProjectData *projectData,
                              QList<Rule::Ptr> *globalRules,
-                             QList<FileTagger::Ptr> *globalFileTaggers,
+                             QList<FileTagger::ConstPtr> *globalFileTaggers,
                              const Configuration::Ptr &userProperties,
                              const ScopeChain::Ptr &scope,
-                             const ResolvedModule::Ptr &dummyModule)
+                             const ResolvedModule::ConstPtr &dummyModule)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolve top-level " << object->file->fileName;
@@ -3044,14 +3045,12 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         return;
     } else if (evaluationObject->prototype == name_Rule) {
         fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
-        Rule::Ptr rule = resolveRule(evaluationObject, dummyModule);
-        globalRules->append(rule);
+        globalRules->append(resolveRule(evaluationObject, dummyModule));
 
         return;
     } else if (evaluationObject->prototype == name_FileTagger) {
         fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
-        FileTagger::Ptr fileTagger = resolveFileTagger(evaluationObject);
-        globalFileTaggers->append(fileTagger);
+        globalFileTaggers->append(resolveFileTagger(evaluationObject));
 
         return;
     } else if (evaluationObject->prototype != name_Product) {
