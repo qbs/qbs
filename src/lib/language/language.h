@@ -84,6 +84,9 @@ class Configuration: public qbs::PersistentObject
 public:
     typedef QSharedPointer<Configuration> Ptr;
 
+    Configuration();
+    Configuration(const Configuration &other);
+
     const QVariantMap &value() const { return m_value; }
     void setValue(const QVariantMap &value);
     QScriptValue cachedScriptValue(QScriptEngine *scriptEngine) const;
@@ -93,10 +96,9 @@ private:
     void load(qbs::PersistentPool &, QDataStream &s);
     void store(qbs::PersistentPool &, QDataStream &s) const;
 
-private:
     QVariantMap m_value;
     QHash<QScriptEngine *, QScriptValue> m_scriptValueCache;
-    static QMutex m_scriptValueCacheMutex;
+    mutable QMutex m_scriptValueCacheMutex;
 };
 
 class FileTagger : public qbs::PersistentObject

@@ -62,7 +62,14 @@ QT_END_NAMESPACE
 
 namespace qbs {
 
-QMutex Configuration::m_scriptValueCacheMutex;
+Configuration::Configuration()
+{
+}
+
+Configuration::Configuration(const Configuration &other)
+    : m_value(other.m_value), m_scriptValueCache(other.m_scriptValueCache)
+{
+}
 
 void Configuration::setValue(const QVariantMap &map)
 {
