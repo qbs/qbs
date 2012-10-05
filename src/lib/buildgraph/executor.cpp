@@ -584,7 +584,6 @@ void Executor::onProcessError(QString errorString)
         onProcessSuccess();
     } else {
         setError(errorString);
-        cancelJobs();
         finish();
     }
 }
@@ -735,6 +734,7 @@ void Executor::setError(const QString &errorMessage)
 {
     setState(ExecutorError);
     qbsError() << errorMessage;
+    cancelJobs();
     emit error();
 }
 
