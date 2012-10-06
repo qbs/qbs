@@ -80,6 +80,7 @@ struct Opaq
           fileContent(0),
           fileType(FT_UNKNOWN),
           hasQObjectMacro(false),
+          hasPluginMetaDataMacro(false),
           currentResultIndex(0)
     {}
 
@@ -106,6 +107,7 @@ struct Opaq
     FileType fileType;
     QList<ScanResult> includedFiles;
     bool hasQObjectMacro;
+    bool hasPluginMetaDataMacro;
     int currentResultIndex;
 };
 
@@ -113,6 +115,9 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
 {
     const QLatin1Literal includeLiteral("include");
     const QLatin1Literal importLiteral("import");
+    const QLatin1Literal qobjectLiteral("Q_OBJECT");
+    const QLatin1Literal qgadgetLiteral("Q_GADGET");
+    const QLatin1Literal pluginMetaDataLiteral("Q_PLUGIN_METADATA");
     Opaq *opaque = static_cast<Opaq *>(opaq);
     Token tk;
     ScanResult scanResult;
@@ -144,17 +149,24 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
                     }
                 }
             }
-        } else if (tk.is(T_IDENTIFIER) && !opaque->hasQObjectMacro) {
-            if (scanForFileTags
-                && tk.length() == 8
-                && opaque->fileContent[tk.begin()] == 'Q'
-                && opaque->fileContent[tk.begin() + 1] == '_'
-                && (strncmp(opaque->fileContent + tk.begin() + 2, "OBJECT", 6) == 0
-                    || strncmp(opaque->fileContent + tk.begin() + 2, "GADGET", 6) == 0))
-            {
-                opaque->hasQObjectMacro = true;
-                break;
+        } else if (tk.is(T_IDENTIFIER)) {
+            if (scanForFileTags) {
+                const char *identifier = opaque->fileContent + tk.begin();
+                if (strncmp(identifier, qobjectLiteral.data(), qobjectLiteral.size()) == 0
+                    || strncmp(identifier, qgadgetLiteral.data(), qgadgetLiteral.size()) == 0)
+                {
+                    opaque->hasQObjectMacro = true;
+                } else if (opaque->fileType == Opaq::FT_HPP
+                           && strncmp(identifier, pluginMetaDataLiteral.data(),
+                                      pluginMetaDataLiteral.size()) == 0)
+                {
+                    opaque->hasPluginMetaDataMacro = true;
+                }
+                if (opaque->hasQObjectMacro
+                    && (opaque->fileType == Opaq::FT_CPP || opaque->hasPluginMetaDataMacro))
+                    break;
             }
+
         }
         yylex(&tk);
     }
@@ -236,6 +248,7 @@ static const char **additionalFileTags(void *opaq, int *size)
 {
     static const char *thMocCpp[] = { "moc_cpp" };
     static const char *thMocHpp[] = { "moc_hpp" };
+    static const char *thMocPluginHpp[] = { "moc_plugin_hpp" };
 
     Opaq *opaque = static_cast<Opaq*>(opaq);
     if (opaque->hasQObjectMacro) {
@@ -244,7 +257,7 @@ static const char **additionalFileTags(void *opaq, int *size)
         case Opaq::FT_CPP:
             return thMocCpp;
         case Opaq::FT_HPP:
-            return thMocHpp;
+            return opaque->hasPluginMetaDataMacro ? thMocPluginHpp : thMocHpp;
         default:
             break;
         }

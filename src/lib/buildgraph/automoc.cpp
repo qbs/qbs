@@ -38,6 +38,7 @@
 #include "automoc.h"
 #include "scanresultcache.h"
 #include <buildgraph/artifact.h>
+#include <buildgraph/transformer.h>
 #include <tools/error.h>
 #include <tools/logger.h>
 #include <tools/scannerpluginmanager.h>
@@ -59,11 +60,17 @@ void AutoMoc::apply(BuildProduct::Ptr product)
     if (scanners().isEmpty())
         throw Error("C++ scanner cannot be loaded.");
 
+    Artifact *pluginMetaDataFile = 0;
     QList<QPair<Artifact *, FileType> > artifactsToMoc;
     QSet<QString> includedMocCppFiles;
     ArtifactList::const_iterator it = product->artifacts.begin();
     for (; it != product->artifacts.end(); ++it) {
         Artifact *artifact = *it;
+        if (!pluginMetaDataFile && artifact->fileTags.contains(QLatin1String("qt_plugin_metadata"))) {
+            if (qbsLogLevel(LoggerDebug))
+                qbsDebug() << "[AUTOMOC] found Qt plugin metadata file " << artifact->filePath();
+            pluginMetaDataFile = artifact;
+        }
         if (artifact->artifactType != Artifact::SourceFile)
             continue;
         const FileType fileType = AutoMoc::fileType(artifact);
@@ -80,6 +87,7 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         }
     }
 
+    Artifact *pluginHeaderFile = 0;
     QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
     for (int i = artifactsToMoc.count(); --i >= 0;) {
         const QPair<Artifact *, FileType> &p = artifactsToMoc.at(i);
@@ -95,6 +103,14 @@ void AutoMoc::apply(BuildProduct::Ptr product)
                     artifactsPerFileTag[newFileTag].insert(artifact);
                     continue;
                 }
+            } else if (fileTag == QLatin1String("moc_plugin_hpp")) {
+                if (qbsLogLevel(LoggerDebug))
+                    qbsDebug() << "[AUTOMOC] found Qt plugin header file " << artifact->filePath();
+                QString newFileTag = QLatin1String("moc_hpp");
+                artifact->fileTags -= fileTag;
+                artifact->fileTags += newFileTag;
+                artifactsPerFileTag[newFileTag].insert(artifact);
+                pluginHeaderFile = artifact;
             }
             artifactsPerFileTag[fileTag].insert(artifact);
         }
@@ -105,6 +121,13 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         qbsInfo() << DontPrintLogLevel << "Applying moc rules for '" << product->rProduct->name << "'.";
         buildGraph->applyRules(product.data(), artifactsPerFileTag);
     }
+    if (pluginHeaderFile && pluginMetaDataFile) {
+        // Make every artifact that is dependent of the header file also
+        // dependent of the plugin metadata file.
+        foreach (Artifact *outputOfHeader, pluginHeaderFile->parents)
+            buildGraph->loggedConnect(outputOfHeader, pluginMetaDataFile);
+    }
+
     buildGraph->updateNodesThatMustGetNewTransformer();
 }
 
