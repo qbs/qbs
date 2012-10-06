@@ -72,11 +72,12 @@ private:
 
 private:
     static QString generateMocFileName(Artifact *artifact, FileType fileType);
-    void apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles);
+    static FileType fileType(Artifact *artifact);
+    void scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles);
     bool isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foundMocFileTag);
     void unmoc(Artifact *artifact, const QString &mocFileTag);
     QList<ScannerPlugin *> scanners() const;
-private:
+
     mutable QList<ScannerPlugin *> m_scanners;
     ScanResultCache *m_scanResultCache;
 };

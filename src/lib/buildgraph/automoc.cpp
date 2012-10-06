@@ -66,17 +66,13 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         Artifact *artifact = *it;
         if (artifact->artifactType != Artifact::SourceFile)
             continue;
-        FileType fileType = UnknownFileType;
-        if (artifact->fileTags.contains("hpp"))
-            fileType = HppFileType;
-        if (artifact->fileTags.contains("cpp"))
-            fileType = CppFileType;
+        const FileType fileType = AutoMoc::fileType(artifact);
         if (fileType == UnknownFileType)
             continue;
         QString mocFileTag;
         bool alreadyMocced = isVictimOfMoc(artifact, fileType, mocFileTag);
         bool hasQObjectMacro;
-        apply(artifact, hasQObjectMacro, includedMocCppFiles);
+        scan(artifact, hasQObjectMacro, includedMocCppFiles);
         if (hasQObjectMacro && !alreadyMocced) {
             artifactsToMoc += qMakePair(artifact, fileType);
         } else if (!hasQObjectMacro && alreadyMocced) {
@@ -89,17 +85,19 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         const QPair<Artifact *, FileType> &p = artifactsToMoc.at(i);
         Artifact * const artifact = p.first;
         FileType fileType = p.second;
-        QString fileTag;
-        if (fileType == CppFileType) {
-            fileTag = "moc_cpp";
-        } else if (fileType == HppFileType) {
-            QString mocFileName = generateMocFileName(artifact, fileType);
-            if (includedMocCppFiles.contains(mocFileName))
-                fileTag = "moc_hpp_inc";
-            else
-                fileTag = "moc_hpp";
+        foreach (const QString &fileTag, artifact->fileTags) {
+            if (fileTag == QLatin1String("moc_hpp")) {
+                const QString mocFileName = generateMocFileName(artifact, fileType);
+                if (includedMocCppFiles.contains(mocFileName)) {
+                    QString newFileTag = QLatin1String("moc_hpp_inc");
+                    artifact->fileTags -= fileTag;
+                    artifact->fileTags += newFileTag;
+                    artifactsPerFileTag[newFileTag].insert(artifact);
+                    continue;
+                }
+            }
+            artifactsPerFileTag[fileTag].insert(artifact);
         }
-        artifactsPerFileTag[fileTag].insert(artifact);
     }
 
     BuildGraph *buildGraph = product->project->buildGraph();
@@ -126,7 +124,17 @@ QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)
     return mocFileName;
 }
 
-void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles)
+AutoMoc::FileType AutoMoc::fileType(Artifact *artifact)
+{
+    foreach (const QString &fileTag, artifact->fileTags)
+        if (fileTag == QLatin1String("hpp"))
+            return HppFileType;
+        else if (fileTag == QLatin1String("cpp"))
+            return CppFileType;
+    return UnknownFileType;
+}
+
+void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[AUTOMOC] checks " << fileName(artifact);
@@ -197,19 +205,25 @@ void AutoMoc::apply(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &in
 
 bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foundMocFileTag)
 {
+    static const QSet<QString> mocHeaderFileTags = QSet<QString>() << QLatin1String("moc_hpp")
+                                                                   << QLatin1String("moc_hpp_inc")
+                                                                   << QLatin1String("moc_plugin_hpp");
+    static const QString mocCppFileTag = QLatin1String("moc_cpp");
     foundMocFileTag.clear();
     switch (fileType) {
     case UnknownFileType:
         break;
     case HppFileType:
-        if (artifact->fileTags.contains("moc_hpp"))
-            foundMocFileTag = "moc_hpp";
-        else if (artifact->fileTags.contains("moc_hpp_inc"))
-            foundMocFileTag = "moc_hpp_inc";
+        foreach (const QString &fileTag, artifact->fileTags) {
+            if (mocHeaderFileTags.contains(fileTag)) {
+                foundMocFileTag = fileTag;
+                break;
+            }
+        }
         break;
     case CppFileType:
-        if (artifact->fileTags.contains("moc_cpp"))
-            foundMocFileTag = "moc_cpp";
+        if (artifact->fileTags.contains(mocCppFileTag))
+            foundMocFileTag = mocCppFileTag;
         break;
     }
     return !foundMocFileTag.isEmpty();
