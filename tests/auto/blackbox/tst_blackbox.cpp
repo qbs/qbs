@@ -147,8 +147,6 @@ void TestBlackbox::build_project()
     if (!projectSubDir.startsWith('/'))
         projectSubDir.prepend('/');
     QDir::setCurrent(testDataDir + projectSubDir);
-    qDebug() << "currentdir set" << testDataDir + projectSubDir;
-    qDebug() << "currentdir" << QDir::currentPath();
     productFileName.append(executableSuffix);
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile::exists(productFileName));
