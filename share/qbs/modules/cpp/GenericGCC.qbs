@@ -251,7 +251,6 @@ CppModule {
             property var cFlags: ModUtils.appendAll(input, 'cFlags')
             property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
             property var objcFlags: ModUtils.appendAll(input, 'objcFlags')
-            property var positionIndependentCode: ModUtils.findFirst(product.modules, 'cpp', 'positionIndependentCode')
             property var visibility: ModUtils.findFirst(product.modules, 'cpp', 'visibility')
         }
 
@@ -262,17 +261,7 @@ CppModule {
             var isObjC = false;
 
             args.push('-pipe');
-            // ### what we actually need here is something like product.usedFileTags
-            //     that contains all fileTags that have been used when applying the rules.
-            if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
-                if (product.modules.qbs.toolchain !== "mingw")
-                    args.push('-fPIC');
-            } else if (product.type.indexOf('application') >= 0) {
-                if (positionIndependentCode && product.modules.qbs.toolchain !== "mingw")
-                    args.push('-fPIE');
-            } else {
-                throw ("OK, now we got a problem... The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
-            }
+            Gcc.addAdditionalFlags(product, args)
 
             if (product.type.indexOf('staticlibrary') === -1 && (product.modules.qbs.toolchain !== "mingw")) {
                 if (visibility === 'hidden')
@@ -364,12 +353,14 @@ CppModule {
                 args.push('-D' + defines[i]);
             for (i in product.module.includePaths)
                 args.push('-I' + includePaths[i]);
+
             args.push('-x');
             args.push('c++-header');
             args.push('-c');
             args.push(product.module.precompiledHeader);
             args.push('-o');
             args.push(output.fileName);
+            Gcc.addAdditionalFlags(product, args)
             if (product.module.cxxFlags)
                 args = args.concat(product.module.cxxFlags);
             var cmd = new Command(product.module.compilerPath, args);

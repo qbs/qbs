@@ -59,3 +59,19 @@ function removePrefixAndSuffix(str, prefix, suffix)
 {
     return str.substr(prefix.length, str.length - prefix.length - suffix.length);
 }
+
+// ### what we actually need here is something like product.usedFileTags
+//     that contains all fileTags that have been used when applying the rules.
+function addAdditionalFlags(product, args)
+{
+    if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
+        if (product.modules.qbs.toolchain !== "mingw")
+            args.push('-fPIC');
+    } else if (product.type.indexOf('application') >= 0) {
+        var positionIndependentCode = ModUtils.findFirst(product.modules, 'cpp', 'positionIndependentCode')
+        if (positionIndependentCode && product.modules.qbs.toolchain !== "mingw")
+            args.push('-fPIE');
+    } else {
+        throw ("The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
+    }
+}
