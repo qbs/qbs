@@ -61,11 +61,21 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         throw Error("C++ scanner cannot be loaded.");
 
     Artifact *pluginMetaDataFile = 0;
+    Artifact *pchFile = 0;
     QList<QPair<Artifact *, FileType> > artifactsToMoc;
     QSet<QString> includedMocCppFiles;
     ArtifactList::const_iterator it = product->artifacts.begin();
     for (; it != product->artifacts.end(); ++it) {
         Artifact *artifact = *it;
+        if (!pchFile || !pluginMetaDataFile) {
+            foreach (const QString &fileTag, artifact->fileTags) {
+                if (fileTag == QLatin1String("c++_pch"))
+                    pchFile = artifact;
+                else if (fileTag == QLatin1String("qt_plugin_metadata"))
+                    pluginMetaDataFile = artifact;
+            }
+        }
+
         if (!pluginMetaDataFile && artifact->fileTags.contains(QLatin1String("qt_plugin_metadata"))) {
             if (qbsLogLevel(LoggerDebug))
                 qbsDebug() << "[AUTOMOC] found Qt plugin metadata file " << artifact->filePath();
@@ -116,6 +126,8 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         }
     }
 
+    if (pchFile)
+        artifactsPerFileTag[QLatin1String("c++_pch")] += pchFile;
     BuildGraph *buildGraph = product->project->buildGraph();
     if (!artifactsPerFileTag.isEmpty()) {
         qbsInfo() << DontPrintLogLevel << "Applying moc rules for '" << product->rProduct->name << "'.";
