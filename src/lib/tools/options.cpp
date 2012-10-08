@@ -273,6 +273,7 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
     // make the project file name absolute
     if (!m_projectFileName.isEmpty() && !FileInfo::isAbsolute(m_projectFileName)) {
         m_projectFileName = FileInfo::resolvePath(QDir::currentPath(), m_projectFileName);
+        m_projectFileName = QDir::cleanPath(m_projectFileName);
     }
 
     // eventually load defaults from configs
