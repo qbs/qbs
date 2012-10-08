@@ -40,10 +40,18 @@
 #include <QtGlobal>
 #include <QString>
 
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
 #define QTC_HOST_EXE_SUFFIX ".exe"
+#define QTC_HOST_DYNAMICLIB_PREFIX ""
+#define QTC_HOST_DYNAMICLIB_SUFFIX ".dll"
+#elif defined(Q_OS_MAC)
+#define QTC_HOST_EXE_SUFFIX ""
+#define QTC_HOST_DYNAMICLIB_PREFIX ""
+#define QTC_HOST_DYNAMICLIB_SUFFIX ".dylib"
 #else
 #define QTC_HOST_EXE_SUFFIX ""
+#define QTC_HOST_DYNAMICLIB_PREFIX "lib"
+#define QTC_HOST_DYNAMICLIB_SUFFIX ".so"
 #endif // Q_OS_WIN
 
 namespace qbs {
@@ -67,6 +75,12 @@ public:
         if (isWindowsHost())
             finalName += QLatin1String(QTC_HOST_EXE_SUFFIX);
         return finalName;
+    }
+
+    static QString dynamicLibraryName(const QString &libraryBaseName)
+    {
+        return QLatin1String(QTC_HOST_DYNAMICLIB_PREFIX) + libraryBaseName
+                + QLatin1String(QTC_HOST_DYNAMICLIB_SUFFIX);
     }
 
     static Qt::CaseSensitivity fileNameCaseSensitivity()
