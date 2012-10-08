@@ -9,6 +9,8 @@ QT = core script testlib
 
 include(../../../src/lib/use.pri)
 
+HEADERS += \
+    tst_blackbox.h
+
 SOURCES += \
     tst_blackbox.cpp
-
