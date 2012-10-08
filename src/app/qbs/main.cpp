@@ -32,7 +32,6 @@
 
 #include <Qbs/sourceproject.h>
 #include <Qbs/runenvironment.h>
-#include <Qbs/mainthreadcommunication.h>
 #include <tools/hostosinfo.h>
 #include <tools/logger.h>
 #include <tools/options.h>
@@ -71,7 +70,6 @@ int main(int argc, char *argv[])
     qbs::ConsolePrintLogSink *logSink = new qbs::ConsolePrintLogSink;
     logSink->setColoredOutputEnabled(options.configurationValue("preferences/useColoredOutput", true).toBool());
     Qbs::ILogSink::setGlobalLogSink(logSink);
-    Qbs::MainThreadCommunication::registerMetaType();
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
@@ -154,9 +152,9 @@ int main(int argc, char *argv[])
     sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    sourceProject.loadProjectCommandLine(options.projectFileName(), options.buildConfigurations());
+    sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
     if (!sourceProject.errors().isEmpty()) {
-        foreach (const Qbs::Error &error, sourceProject.errors())
+        foreach (const qbs::Error &error, sourceProject.errors())
             qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
     }

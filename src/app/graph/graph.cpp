@@ -182,8 +182,8 @@ int main(int argc, char *argv[])
     sourceProject.setSettings(options.settings());
     sourceProject.setSearchPaths(options.searchPaths());
     sourceProject.loadPlugins(options.pluginPaths());
-    sourceProject.loadProjectCommandLine(options.projectFileName(), options.buildConfigurations());
-    foreach (const Qbs::Error &error, sourceProject.errors()) {
+    sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
+    foreach (const qbs::Error &error, sourceProject.errors()) {
         qbsError() << error.toString();
         return 4;
     }

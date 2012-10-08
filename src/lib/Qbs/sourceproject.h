@@ -42,11 +42,10 @@
 #include <QSharedPointer>
 
 namespace qbs {
-    class BuildProject;
-    class Loader;
-    class Settings;
+class BuildProject;
+class Loader;
+class Settings;
 }
-
 
 namespace Qbs {
 
@@ -66,13 +65,7 @@ public:
     void setSettings(const qbs::Settings::Ptr &settings);
     void setSearchPaths(const QStringList &searchPaths);
     void loadPlugins(const QStringList &pluginPaths);
-    void loadProjectIde(QFutureInterface<bool> &futureInterface,
-                     const QString projectFileName,
-                     const QList<QVariantMap> buildConfigs);
-    void loadProjectCommandLine(QString projectFileName,
-                     QList<QVariantMap> buildConfigs);
-
-
+    void loadProject(const QString &projectFileName, const QList<QVariantMap> &buildConfigs);
 
     void loadBuildGraphs(const QString projectFileName);
 
@@ -84,7 +77,7 @@ public:
     QVector<BuildProject> buildProjects() const;
     QList<qbs::BuildProject::Ptr> internalBuildProjects() const;
 
-    QList<Qbs::Error> errors() const;
+    QList<qbs::Error> errors() const;
 
 protected:
     // Implementation of qbs::ProgressObserver
@@ -100,5 +93,6 @@ private:
     QExplicitlySharedDataPointer<SourceProjectPrivate> d;
 };
 
-}
+} // namespace Qbs
+
 #endif

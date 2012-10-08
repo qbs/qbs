@@ -106,103 +106,14 @@ void SourceProject::loadPlugins(const QStringList &pluginPaths)
     qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
 
-void SourceProject::loadProjectIde(QFutureInterface<bool> &futureInterface,
-                                const QString projectFileName,
-                                const QList<QVariantMap> buildConfigurations)
-{
-    if (buildConfigurations.isEmpty()) {
-        qbsFatal("SourceProject::loadProject: no build configuration given.");
-        futureInterface.reportResult(false);
-        return;
-    }
-
-    QList<qbs::Configuration::Ptr> configurations;
-    foreach (QVariantMap buildConfiguation, buildConfigurations) {
-        if (!buildConfiguation.value("qbs.buildVariant").isValid()) {
-            qbsFatal("SourceProject::loadProject: property 'buildVariant' missing in build configuration.");
-            continue;
-        }
-
-        qbs::Configuration::Ptr configuration(new qbs::Configuration);
-        configurations.append(configuration);
-
-        QVariantMap configurationMap = configuration->value();
-        foreach (const QString &property, buildConfiguation.keys()) {
-            qbs::setConfigProperty(configurationMap, property.split('.'), buildConfiguation.value(property));
-        }
-        configuration->setValue(configurationMap);
-    }
-
-    qbs::Loader loader;
-    loader.setProgressObserver(this);
-    loader.setSearchPaths(d->searchPaths);
-    d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
-    d->buildGraph->setProgressObserver(this);
-    d->buildGraph->setOutputDirectoryRoot(QFileInfo(projectFileName).absoluteDir().path());
-    d->futureInterface = &futureInterface;
-
-    const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
-
-
-    try {
-        int productCount = 0;
-        QHash<qbs::Configuration::Ptr, qbs::BuildProject::Ptr> buildProjectsPerConfig;
-        QHash<qbs::Configuration::Ptr, qbs::ResolvedProject::Ptr> resolvedProjectsPerConfig;
-        QHash<qbs::Configuration::Ptr, qbs::ProjectFile::Ptr> projectFilesPerConfig;
-        foreach (const qbs::Configuration::Ptr &configuration, configurations) {
-            const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-            qbs::BuildProject::LoadResult loadResult;
-            loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configuration, d->searchPaths);
-            if (loadResult.loadedProject && !loadResult.discardLoadedProject) {
-                buildProjectsPerConfig.insert(configuration, loadResult.loadedProject);
-            } else if (loadResult.changedResolvedProject) {
-                productCount += loadResult.changedResolvedProject->products.count();
-                resolvedProjectsPerConfig.insert(configuration, loadResult.changedResolvedProject);
-            } else {
-                ProjectFile::Ptr projectFile = loader.loadProject(projectFileName);
-                projectFilesPerConfig.insert(configuration, projectFile);
-                productCount += loader.productCount(projectFile, configuration);
-            }
-        }
-
-        futureInterface.setProgressRange(0, productCount * 2);
-
-        foreach (const qbs::Configuration::Ptr &configuration, configurations) {
-            qbs::BuildProject::Ptr buildProject = buildProjectsPerConfig.value(configuration);
-            if (!buildProject) {
-                ResolvedProject::Ptr rProject = resolvedProjectsPerConfig.value(configuration);
-                if (!rProject) {
-                    ProjectFile::Ptr projectFile = projectFilesPerConfig.value(configuration);
-                    if (!projectFile)
-                        projectFile = loader.loadProject(projectFileName);
-                    rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configuration);
-                }
-                if (rProject->products.isEmpty())
-                    throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
-                buildProject = d->buildGraph->resolveProject(rProject);
-            }
-
-            d->buildProjects.append(BuildProject(buildProject));
-        }
-
-    } catch (const qbs::Error &error) {
-        d->errors.append(Error(error));
-        futureInterface.reportResult(false);
-        d->futureInterface = 0;
-        return;
-    }
-
-    futureInterface.reportResult(true);
-    d->futureInterface = 0;
-}
-
 void warnLegacyConfig(const QString &aKey)
 {
     qbsWarning("Config key %s is deprecated. Run qbs config --upgrade [--global|--local]",
         qPrintable(QString(aKey).replace("/", ".")));
 }
 
-void SourceProject::loadProjectCommandLine(QString projectFileName, QList<QVariantMap> buildConfigs)
+void SourceProject::loadProject(const QString &projectFileName,
+        const QList<QVariantMap> &buildConfigs)
 {
     QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty()) {
