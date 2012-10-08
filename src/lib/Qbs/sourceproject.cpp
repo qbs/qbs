@@ -46,25 +46,14 @@ class SourceProjectPrivate : public QSharedData
 {
 public:
     QStringList searchPaths;
-    QList<qbs::Configuration::Ptr> configurations;
-
-    QFutureInterface<bool> *futureInterface;
     QSharedPointer<qbs::BuildGraph> buildGraph;
     QVector<Qbs::BuildProject> buildProjects;
-
     qbs::Settings::Ptr settings;
-    QList<Error> errors;
-
-    QString buildDirectoryRoot;
-    int progressValue;
 };
 
-SourceProject::SourceProject()
-    : d(new SourceProjectPrivate)
+SourceProject::SourceProject() : d(new SourceProjectPrivate)
 {
     d->settings = qbs::Settings::create(); // fix it
-    d->progressValue = 0;
-    d->futureInterface = 0;
 }
 
 SourceProject::~SourceProject()
@@ -115,15 +104,13 @@ void warnLegacyConfig(const QString &aKey)
 void SourceProject::loadProject(const QString &projectFileName,
         const QList<QVariantMap> &buildConfigs)
 {
+    if (buildConfigs.isEmpty())
+        throw Error(tr("No build configuration given."));
+
     QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
-    if (platforms.isEmpty()) {
-        d->errors.append(Error(tr("No platforms configured. You must run 'qbs platforms probe' first.")));
-        return;
-    }
-    if (buildConfigs.isEmpty()) {
-        d->errors.append(Error(tr("SourceProject::loadProject: no build configuration given.")));
-        return;
-    }
+    if (platforms.isEmpty())
+        throw Error(tr("No platforms configured. You must run 'qbs platforms probe' first."));
+
     QList<qbs::Configuration::Ptr> configurations;
     foreach (QVariantMap buildCfg, buildConfigs) {
         // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
@@ -142,15 +129,11 @@ void SourceProject::loadProject(const QString &projectFileName,
         buildCfg.insert("buildProfileName", combinedBuildProfileName);
 
         // (2)
-        bool profileError = false;
         for (int i = profiles.count() - 1; i >= 0; i--) {
             QString profileGroup = QString("profiles/%1").arg(profiles[i]);
             QStringList profileKeys = d->settings->allKeysWithPrefix(profileGroup);
-            if (profileKeys.isEmpty()) {
-                qbsFatal("Unknown profile '%s'.", qPrintable(profiles[i]));
-                profileError = true; // Need this because we can't break out of 2 for loops at once
-                break;
-            }
+            if (profileKeys.isEmpty())
+                throw Error(tr("Unknown profile '%1'.").arg(profiles.at(i)));
             foreach (const QString &profileKey, profileKeys) {
                 QString fixedKey(profileKey);
                 fixedKey.replace(QChar('/'), QChar('.'));
@@ -158,8 +141,6 @@ void SourceProject::loadProject(const QString &projectFileName,
                     buildCfg.insert(fixedKey, d->settings->value(profileGroup + "/" + profileKey));
             }
         }
-        if (profileError)
-            continue;
 
         // (2a) ### can remove? This replaces the qbs.configurationValue() stuff in qtcore.qbs in v0.1
         // Check for someone setting qt.core.qtVersionName explicitly on command-line because we've removed this property
@@ -192,17 +173,14 @@ void SourceProject::loadProject(const QString &projectFileName,
                 if (defaultPlatform.isValid())
                     warnLegacyConfig("defaults/platform");
                 }
-            if (!defaultPlatform.isValid()) {
-                qbsFatal("SourceProject::loadProject: no platform given and no default set.");
-                continue;
-            }
+            if (!defaultPlatform.isValid())
+                throw Error(tr("SourceProject::loadProject: no platform given and no default set."));
             buildCfg.insert("qbs.platform", defaultPlatform);
         }
-        Platform::Ptr platform = platforms.value(buildCfg.value("qbs.platform").toString());
-        if (platform.isNull()) {
-            qbsFatal("SourceProject::loadProject: unknown platform: %s", qPrintable(buildCfg.value("qbs.platform").toString()));
-            continue;
-        }
+        const QString platformName = buildCfg.value("qbs.platform").toString();
+        Platform::Ptr platform = platforms.value(platformName);
+        if (platform.isNull())
+            throw Error(tr("Unknown platform '%1'.").arg(platformName));
         foreach (const QString &key, platform->settings.allKeys()) {
             if (key.startsWith(Platform::internalKey()))
                 continue;
@@ -221,10 +199,8 @@ void SourceProject::loadProject(const QString &projectFileName,
                 buildCfg.insert(fixedKey, d->settings->value(QString("modules/") + defaultKey));
         }
 
-        if (!buildCfg.value("qbs.buildVariant").isValid()) {
-            qbsFatal("SourceProject::loadProject: property 'qbs.buildVariant' missing in build configuration.");
-            continue;
-        }
+        if (!buildCfg.value("qbs.buildVariant").isValid())
+            throw Error(tr("Property 'qbs.buildVariant' missing in build configuration."));
         qbs::Configuration::Ptr configure = qbs::Configuration::create();
         configurations.append(configure);
 
@@ -249,102 +225,50 @@ void SourceProject::loadProject(const QString &projectFileName,
     d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 
-    try {
-        ProjectFile::Ptr projectFile;
-        foreach (const qbs::Configuration::Ptr &configure, configurations) {
-            qbs::BuildProject::Ptr bProject;
-            const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-            qbs::BuildProject::LoadResult loadResult;
-            loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
-            if (!loadResult.discardLoadedProject)
-                bProject = loadResult.loadedProject;
-            if (!bProject) {
-                QElapsedTimer timer;
-                timer.start();
-                if (!projectFile)
-                    projectFile = loader.loadProject(projectFileName);
-                qbs::ResolvedProject::Ptr rProject;
-                if (loadResult.changedResolvedProject)
-                    rProject = loadResult.changedResolvedProject;
-                else
-                    rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configure);
-                if (rProject->products.isEmpty())
-                    throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
-                qDebug() << "loading project took: " << timer.elapsed() << "ms";
-                timer.start();
-                bProject = d->buildGraph->resolveProject(rProject);
-                if (loadResult.loadedProject)
-                    bProject->rescueDependencies(loadResult.loadedProject);
-                qDebug() << "build graph took: " << timer.elapsed() << "ms";
-            }
-
-            // copy the environment from the platform config into the project's config
-            const QVariantMap platformEnvironment = configure->value().value("environment").toMap();
-            bProject->resolvedProject()->platformEnvironment = platformEnvironment;
-
-            d->buildProjects.append(bProject);
-
-            printf("for %s:\n", qPrintable(bProject->resolvedProject()->id));
-            foreach (const qbs::ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
-                printf("  - [%s] %s as %s\n"
-                        ,qPrintable(p->fileTags.join(", "))
-                        ,qPrintable(p->name)
-                        ,qPrintable(p->project->id)
-                      );
-            }
-            printf("\n");
+    ProjectFile::Ptr projectFile;
+    foreach (const qbs::Configuration::Ptr &configure, configurations) {
+        qbs::BuildProject::Ptr bProject;
+        const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
+        qbs::BuildProject::LoadResult loadResult;
+        loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
+        if (!loadResult.discardLoadedProject)
+            bProject = loadResult.loadedProject;
+        if (!bProject) {
+            QElapsedTimer timer;
+            timer.start();
+            if (!projectFile)
+                projectFile = loader.loadProject(projectFileName);
+            qbs::ResolvedProject::Ptr rProject;
+            if (loadResult.changedResolvedProject)
+                rProject = loadResult.changedResolvedProject;
+            else
+                rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configure);
+            if (rProject->products.isEmpty())
+                throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
+            qDebug() << "loading project took: " << timer.elapsed() << "ms";
+            timer.start();
+            bProject = d->buildGraph->resolveProject(rProject);
+            if (loadResult.loadedProject)
+                bProject->rescueDependencies(loadResult.loadedProject);
+            qDebug() << "build graph took: " << timer.elapsed() << "ms";
         }
 
-    } catch (const qbs::Error &e) {
-        d->errors.append(e);
-        return;
+        // copy the environment from the platform config into the project's config
+        const QVariantMap platformEnvironment = configure->value().value("environment").toMap();
+        bProject->resolvedProject()->platformEnvironment = platformEnvironment;
+
+        d->buildProjects.append(bProject);
+
+        printf("for %s:\n", qPrintable(bProject->resolvedProject()->id));
+        foreach (const qbs::ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
+            printf("  - [%s] %s as %s\n"
+                   ,qPrintable(p->fileTags.join(", "))
+                   ,qPrintable(p->name)
+                   ,qPrintable(p->project->id)
+                   );
+        }
+        printf("\n");
     }
-}
-
-static QStringList buildGraphFilePaths(const QDir &buildDirectory)
-{
-    QStringList filePathList;
-
-    QStringList nameFilters;
-    nameFilters.append("*.bg");
-
-    foreach (const QFileInfo &fileInfo, buildDirectory.entryInfoList(nameFilters, QDir::Files))
-        filePathList.append(fileInfo.absoluteFilePath());
-
-    return filePathList;
-}
-
-void SourceProject::loadBuildGraphs(const QString projectFileName)
-{
-    QDir buildDirectory = QFileInfo(projectFileName).absoluteDir();
-    QString projectRootPath = buildDirectory.path();
-
-    bool sucess = buildDirectory.cd(QLatin1String("build"));
-
-    if (sucess) {
-        d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
-        d->buildGraph->setOutputDirectoryRoot(projectRootPath);
-        const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-
-        foreach (const QString &buildGraphFilePath, buildGraphFilePaths(buildDirectory))
-            loadBuildGraph(buildGraphFilePath, projectFileTimeStamp);
-    }
-}
-
-void SourceProject::storeBuildProjectsBuildGraph()
-{
-    foreach (BuildProject buildProject, d->buildProjects)
-        buildProject.storeBuildGraph();
-}
-
-void SourceProject::setBuildDirectoryRoot(const QString &buildDirectoryRoot)
-{
-    d->buildDirectoryRoot = buildDirectoryRoot;
-}
-
-QString SourceProject::buildDirectoryRoot() const
-{
-    return d->buildDirectoryRoot;
 }
 
 QVector<BuildProject> SourceProject::buildProjects() const
@@ -360,39 +284,5 @@ QList<qbs::BuildProject::Ptr> SourceProject::internalBuildProjects() const
     return result;
 }
 
-QList<Error> SourceProject::errors() const
-{
-    return d->errors;
-}
-
-void SourceProject::setProgressRange(int minimum, int maximum)
-{
-    if (d->futureInterface)
-        d->futureInterface->setProgressRange(minimum, maximum);
-}
-
-void SourceProject::setProgressValue(int value)
-{
-    if (d->futureInterface)
-        d->futureInterface->setProgressValue(value);
-}
-
-int SourceProject::progressValue()
-{
-    return d->futureInterface ? d->futureInterface->progressValue() : 0;
-}
-
-void SourceProject::loadBuildGraph(const QString &buildGraphPath, const qbs::FileTime &projectFileTimeStamp)
-{
-    try {
-        qbs::BuildProject::Ptr buildProject;
-        buildProject = qbs::BuildProject::loadBuildGraph(buildGraphPath, d->buildGraph.data(), projectFileTimeStamp, d->searchPaths);
-        d->buildProjects.append(BuildProject(buildProject));
-    } catch (const qbs::Error &error) {
-        d->errors.append(Error(error));
-        return;
-    }
-}
-
-}
+} // namespace Qbs
 

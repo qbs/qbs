@@ -32,7 +32,6 @@
 
 #include <language/language.h>
 #include <buildgraph/buildgraph.h>
-#include <tools/progressobserver.h>
 
 #include "buildproject.h"
 #include "error.h"
@@ -51,7 +50,7 @@ namespace Qbs {
 
 class SourceProjectPrivate;
 
-class SourceProject : protected qbs::ProgressObserver
+class SourceProject
 {
     Q_DECLARE_TR_FUNCTIONS(SourceProject)
     friend class BuildProject;
@@ -64,30 +63,13 @@ public:
 
     void setSettings(const qbs::Settings::Ptr &settings);
     void setSearchPaths(const QStringList &searchPaths);
+
+    // These may throw qbs::Error.
     void loadPlugins(const QStringList &pluginPaths);
     void loadProject(const QString &projectFileName, const QList<QVariantMap> &buildConfigs);
 
-    void loadBuildGraphs(const QString projectFileName);
-
-    void storeBuildProjectsBuildGraph();
-
-    void setBuildDirectoryRoot(const QString &buildDirectoryRoot);
-    QString buildDirectoryRoot() const;
-
     QVector<BuildProject> buildProjects() const;
     QList<qbs::BuildProject::Ptr> internalBuildProjects() const;
-
-    QList<qbs::Error> errors() const;
-
-protected:
-    // Implementation of qbs::ProgressObserver
-    void setProgressRange(int minimum, int maximum);
-    void setProgressValue(int value);
-    int progressValue();
-
-private: // functions
-    QList<QSharedPointer<qbs::BuildProject> > toInternalBuildProjectList(const QVector<Qbs::BuildProject> &buildProjects) const;
-    void loadBuildGraph(const QString &buildGraphPath, const qbs::FileTime &projectFileTimeStamp);
 
 private:
     QExplicitlySharedDataPointer<SourceProjectPrivate> d;

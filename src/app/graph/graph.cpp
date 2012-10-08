@@ -179,11 +179,12 @@ int main(int argc, char *argv[])
     }
 
     Qbs::SourceProject sourceProject;
-    sourceProject.setSettings(options.settings());
-    sourceProject.setSearchPaths(options.searchPaths());
-    sourceProject.loadPlugins(options.pluginPaths());
-    sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
-    foreach (const qbs::Error &error, sourceProject.errors()) {
+    try {
+        sourceProject.setSettings(options.settings());
+        sourceProject.setSearchPaths(options.searchPaths());
+        sourceProject.loadPlugins(options.pluginPaths());
+        sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
+    } catch (const qbs::Error &error) {
         qbsError() << error.toString();
         return 4;
     }
