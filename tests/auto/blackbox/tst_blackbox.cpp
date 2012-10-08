@@ -40,6 +40,8 @@
 TestBlackbox::TestBlackbox()
     : testDataDir(QCoreApplication::applicationDirPath() + "/testdata"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
+      buildProfile(QLatin1String("qbs_autotests")),
+      qbsExecutableFilePath(QCoreApplication::applicationDirPath() + "/qbs"),
 #ifdef Q_OS_WIN
       executableSuffix(QLatin1String(".exe")),
 #else
@@ -55,7 +57,8 @@ TestBlackbox::TestBlackbox()
 
 int TestBlackbox::runQbs(QStringList arguments, bool showOutput)
 {
-    QString cmdLine = QCoreApplication::applicationDirPath() + "/qbs";
+    arguments.prepend(QLatin1String("profile:") + buildProfile);
+    QString cmdLine = qbsExecutableFilePath;
     foreach (const QString &str, arguments)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
 
@@ -117,6 +120,29 @@ void TestBlackbox::touch(const QString &fn)
         qFatal("cannot open file %s", qPrintable(fn));
     f.resize(s+1);
     f.resize(s);
+}
+
+void TestBlackbox::initTestCase()
+{
+    QProcess process;
+    process.start(qbsExecutableFilePath, QStringList() << "config" << "--global" << "--list");
+    QVERIFY(process.waitForStarted());
+    QVERIFY(process.waitForFinished());
+    QCOMPARE(process.exitCode(), 0);
+    bool found = false;
+    forever {
+        QByteArray line = process.readLine();
+        if (line.isEmpty())
+            break;
+        if (line.startsWith(QByteArray("profiles.") + buildProfile.toLatin1() + QByteArray("."))) {
+            found = true;
+            break;
+        }
+    }
+    if (!found)
+        qWarning("The build profile '%s' could not be found. Please set it up on your machine.",
+                 qPrintable(buildProfile));
+    QVERIFY(found);
 }
 
 void TestBlackbox::init()

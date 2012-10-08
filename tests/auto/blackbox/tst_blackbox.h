@@ -16,6 +16,8 @@ class TestBlackbox : public QObject
     Q_OBJECT
     const QString testDataDir;
     const QString testSourceDir;
+    const QString buildProfile;
+    const QString qbsExecutableFilePath;
     const QString executableSuffix;
     const QString objectSuffix;
 
@@ -28,6 +30,7 @@ protected:
     void touch(const QString &fn);
 
 public slots:
+    void initTestCase();
     void init();
     void cleanup();
 
