@@ -41,6 +41,7 @@ TestBlackbox::TestBlackbox()
     : testDataDir(QCoreApplication::applicationDirPath() + "/testdata"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       buildProfile(QLatin1String("qbs_autotests")),
+      buildDir(QLatin1String("build/") + buildProfile + QLatin1String("-debug")),
       qbsExecutableFilePath(QCoreApplication::applicationDirPath() + "/qbs"),
 #ifdef Q_OS_WIN
       executableSuffix(QLatin1String(".exe")),
@@ -163,7 +164,7 @@ void TestBlackbox::build_project_data()
     QTest::addColumn<QString>("productFileName");
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
-            << QString("build/debug/HelloWorld");
+            << QString(buildDir + "/HelloWorld");
 }
 
 void TestBlackbox::build_project()
@@ -185,7 +186,7 @@ void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
-    QString fileName = "build/debug/i" + executableSuffix;
+    QString fileName = "build/" + buildProfile + "-debug/i" + executableSuffix;
     QVERIFY(QFile(fileName).exists());
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);
@@ -208,8 +209,8 @@ void TestBlackbox::track_qobject_change()
     QVERIFY(QFile("bla_qobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile("build/debug/i" + executableSuffix).exists());
-    QString moc_bla_objectFileName = "build/debug/.obj/i/GeneratedFiles/i/moc_bla" + objectSuffix;
+    QVERIFY(QFile(buildDir + "/i" + executableSuffix).exists());
+    QString moc_bla_objectFileName = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla" + objectSuffix;
     QVERIFY(QFile(moc_bla_objectFileName).exists());
 
     QTest::qSleep(1000);
@@ -217,7 +218,7 @@ void TestBlackbox::track_qobject_change()
     QVERIFY(QFile("bla_noqobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile("build/debug/i" + executableSuffix).exists());
+    QVERIFY(QFile(buildDir + "/i" + executableSuffix).exists());
     QVERIFY(!QFile(moc_bla_objectFileName).exists());
 }
 
@@ -233,14 +234,14 @@ void TestBlackbox::trackAddFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
-    QString unchangedObjectFile = "build/debug/someapp/narf" + objectSuffix;
+    QString unchangedObjectFile = buildDir + "/someapp/narf" + objectSuffix;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
@@ -249,7 +250,7 @@ void TestBlackbox::trackAddFile()
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -276,7 +277,7 @@ void TestBlackbox::trackRemoveFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -284,7 +285,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
-    QString unchangedObjectFile = "build/debug/someapp/narf" + objectSuffix;
+    QString unchangedObjectFile = buildDir + "/someapp/narf" + objectSuffix;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
@@ -300,7 +301,7 @@ void TestBlackbox::trackRemoveFile()
     touch("project.qbp");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -313,7 +314,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QCOMPARE(QFile::exists("build/debug/someapp/zort" + objectSuffix), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/zort" + objectSuffix), false);
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -328,7 +329,7 @@ void TestBlackbox::trackAddFileTag()
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -341,7 +342,7 @@ void TestBlackbox::trackAddFileTag()
     touch("project.qbp");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -362,11 +363,11 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QCOMPARE(QFile::exists("build/debug/.obj/someapp/main_foo" + objectSuffix), true);
-    QCOMPARE(QFile::exists("build/debug/main_foo.cpp"), true);
-    QCOMPARE(QFile::exists("build/debug/main.foo"), true);
+    QCOMPARE(QFile::exists(buildDir + "/.obj/someapp/main_foo" + objectSuffix), true);
+    QCOMPARE(QFile::exists(buildDir + "/main_foo.cpp"), true);
+    QCOMPARE(QFile::exists(buildDir + "/main.foo"), true);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -379,7 +380,7 @@ void TestBlackbox::trackRemoveFileTag()
     touch("project.qbp");
     QCOMPARE(runQbs(), 0);
 
-    process.start("build/debug/someapp");
+    process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -387,9 +388,9 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(QFile::exists("build/debug/someapp/main_foo" + objectSuffix), false);
-    QCOMPARE(QFile::exists("build/debug/someapp/main_foo.cpp"), false);
-    QCOMPARE(QFile::exists("build/debug/someapp/main.foo"), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo" + objectSuffix), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo.cpp"), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/main.foo"), false);
 }
 
 void TestBlackbox::trackAddMocInclude()
