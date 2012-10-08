@@ -1,95 +1,42 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of the Qt Build System
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (info@qt.nokia.com)
-**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** This file may be used under the terms of the GNU Lesser General Public
-** License version 2.1 as published by the Free Software Foundation and
-** appearing in the file LICENSE.LGPL included in the packaging of this file.
-** Please review the following information to ensure the GNU Lesser General
-** Public License version 2.1 requirements will be met:
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Nokia gives you certain additional
-** rights. These rights are described in the Nokia Qt LGPL Exception
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-** Other Usage
-**
-** Alternatively, this file may be used in accordance with the terms and
-** conditions contained in a signed written agreement between you and Nokia.
-**
-** If you have questions regarding the use of this file, please contact
-** Nokia at info@qt.nokia.com.
-**
-**************************************************************************/
+****************************************************************************/
 
 #include "qmljsengine_p.h"
-
 #include "qmljsglobal_p.h"
-#include "qmljsnodepool_p.h"
 
 #include <qnumeric.h>
 #include <QHash>
+#include <QDebug>
 
 QT_QML_BEGIN_NAMESPACE
 
 namespace QmlJS {
-
-uint qHash(const QmlJS::NameId &id)
-{ return qHash(id.asString()); }
-
-QString numberToString(double value)
-{ return QString::number(value); }
-
-int Ecma::RegExp::flagFromChar(const QChar &ch)
-{
-    static QHash<QChar, int> flagsHash;
-    if (flagsHash.isEmpty()) {
-        flagsHash[QLatin1Char('g')] = Global;
-        flagsHash[QLatin1Char('i')] = IgnoreCase;
-        flagsHash[QLatin1Char('m')] = Multiline;
-    }
-    QHash<QChar, int>::const_iterator it;
-    it = flagsHash.constFind(ch);
-    if (it == flagsHash.constEnd())
-        return 0;
-    return it.value();
-}
-
-QString Ecma::RegExp::flagsToString(int flags)
-{
-    QString result;
-    if (flags & Global)
-        result += QLatin1Char('g');
-    if (flags & IgnoreCase)
-        result += QLatin1Char('i');
-    if (flags & Multiline)
-        result += QLatin1Char('m');
-    return result;
-}
-
-NodePool::NodePool(const QString &fileName, Engine *engine)
-    : m_fileName(fileName), m_engine(engine)
-{
-    m_engine->setNodePool(this);
-}
-
-NodePool::~NodePool()
-{
-}
-
-Code *NodePool::createCompiledCode(AST::Node *, CompilationUnit &)
-{
-    Q_ASSERT(0);
-    return 0;
-}
 
 static int toDigit(char c)
 {
@@ -163,14 +110,14 @@ double integerFromString(const QString &str, int radix)
 
 
 Engine::Engine()
-    : _lexer(0), _nodePool(0)
+    : _lexer(0), _directives(0)
 { }
 
 Engine::~Engine()
 { }
 
-QSet<NameId> Engine::literals() const
-{ return _literals; }
+void Engine::setCode(const QString &code)
+{ _code = code; }
 
 void Engine::addComment(int pos, int len, int line, int col)
 { if (len > 0) _comments.append(QmlJS::AST::SourceLocation(pos, len, line, col)); }
@@ -178,25 +125,30 @@ void Engine::addComment(int pos, int len, int line, int col)
 QList<QmlJS::AST::SourceLocation> Engine::comments() const
 { return _comments; }
 
-NameId *Engine::intern(const QChar *u, int s)
-{ return const_cast<NameId *>(&*_literals.insert(NameId(u, s))); }
-
-QString Engine::toString(NameId *id)
-{ return id->asString(); }
-
 Lexer *Engine::lexer() const
 { return _lexer; }
 
 void Engine::setLexer(Lexer *lexer)
 { _lexer = lexer; }
 
-NodePool *Engine::nodePool() const
-{ return _nodePool; }
+void Engine::setDirectives(Directives *directives)
+{ _directives = directives; }
 
-void Engine::setNodePool(NodePool *nodePool)
-{ _nodePool = nodePool; }
+Directives *Engine::directives() const
+{ return _directives; }
 
+MemoryPool *Engine::pool()
+{ return &_pool; }
 
+QStringRef Engine::newStringRef(const QString &text)
+{
+    const int pos = _extraCode.length();
+    _extraCode += text;
+    return _extraCode.midRef(pos, text.length());
+}
+
+QStringRef Engine::newStringRef(const QChar *chars, int size)
+{ return newStringRef(QString(chars, size)); }
 
 } // end of namespace QmlJS
 

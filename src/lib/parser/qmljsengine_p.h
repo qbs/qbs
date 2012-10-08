@@ -1,34 +1,31 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of the Qt Build System
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (info@qt.nokia.com)
-**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** This file may be used under the terms of the GNU Lesser General Public
-** License version 2.1 as published by the Free Software Foundation and
-** appearing in the file LICENSE.LGPL included in the packaging of this file.
-** Please review the following information to ensure the GNU Lesser General
-** Public License version 2.1 requirements will be met:
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Nokia gives you certain additional
-** rights. These rights are described in the Nokia Qt LGPL Exception
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-** Other Usage
-**
-** Alternatively, this file may be used in accordance with the terms and
-** conditions contained in a signed written agreement between you and Nokia.
-**
-** If you have questions regarding the use of this file, please contact
-** Nokia at info@qt.nokia.com.
-**
-**************************************************************************/
+****************************************************************************/
 
 #ifndef QMLJSENGINE_P_H
 #define QMLJSENGINE_P_H
@@ -46,6 +43,7 @@
 
 #include "qmljsglobal_p.h"
 #include "qmljsastfwd_p.h"
+#include "qmljsmemorypool_p.h"
 
 #include <QString>
 #include <QSet>
@@ -53,54 +51,10 @@
 QT_QML_BEGIN_NAMESPACE
 
 namespace QmlJS {
-class QML_PARSER_EXPORT NameId
-{
-    QString _text;
-
-public:
-    NameId(const QChar *u, int s)
-        : _text(u, s)
-    { }
-
-    const QString asString() const
-    { return _text; }
-
-    bool operator == (const NameId &other) const
-    { return _text == other._text; }
-
-    bool operator != (const NameId &other) const
-    { return _text != other._text; }
-
-    bool operator < (const NameId &other) const
-    { return _text < other._text; }
-};
-
-uint qHash(const QmlJS::NameId &id);
-
-} // end of namespace QmlJS
-
-namespace QmlJS {
 
 class Lexer;
-class NodePool;
-
-namespace Ecma {
-
-class QML_PARSER_EXPORT RegExp
-{
-public:
-    enum RegExpFlag {
-        Global     = 0x01,
-        IgnoreCase = 0x02,
-        Multiline  = 0x04
-    };
-
-public:
-    static int flagFromChar(const QChar &);
-    static QString flagsToString(int flags);
-};
-
-} // end of namespace Ecma
+class Directives;
+class MemoryPool;
 
 class QML_PARSER_EXPORT DiagnosticMessage
 {
@@ -127,29 +81,36 @@ public:
 class QML_PARSER_EXPORT Engine
 {
     Lexer *_lexer;
-    NodePool *_nodePool;
-    QSet<NameId> _literals;
-    QList<QmlJS::AST::SourceLocation> _comments;
+    Directives *_directives;
+    MemoryPool _pool;
+    QList<AST::SourceLocation> _comments;
+    QString _extraCode;
+    QString _code;
 
 public:
     Engine();
     ~Engine();
 
-    QSet<NameId> literals() const;
+    void setCode(const QString &code);
 
     void addComment(int pos, int len, int line, int col);
-    QList<QmlJS::AST::SourceLocation> comments() const;
-
-    NameId *intern(const QChar *u, int s);
-
-    static QString toString(NameId *id);
+    QList<AST::SourceLocation> comments() const;
 
     Lexer *lexer() const;
     void setLexer(Lexer *lexer);
 
-    NodePool *nodePool() const;
-    void setNodePool(NodePool *nodePool);
+    void setDirectives(Directives *directives);
+    Directives *directives() const;
+
+    MemoryPool *pool();
+
+    inline QStringRef midRef(int position, int size) { return _code.midRef(position, size); }
+
+    QStringRef newStringRef(const QString &s);
+    QStringRef newStringRef(const QChar *chars, int size);
 };
+
+double integerFromString(const char *buf, int size, int radix);
 
 } // end of namespace QmlJS
 

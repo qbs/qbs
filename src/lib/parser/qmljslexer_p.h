@@ -1,34 +1,31 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of the Qt Build System
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (info@qt.nokia.com)
-**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** This file may be used under the terms of the GNU Lesser General Public
-** License version 2.1 as published by the Free Software Foundation and
-** appearing in the file LICENSE.LGPL included in the packaging of this file.
-** Please review the following information to ensure the GNU Lesser General
-** Public License version 2.1 requirements will be met:
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Nokia gives you certain additional
-** rights. These rights are described in the Nokia Qt LGPL Exception
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-** Other Usage
-**
-** Alternatively, this file may be used in accordance with the terms and
-** conditions contained in a signed written agreement between you and Nokia.
-**
-** If you have questions regarding the use of this file, please contact
-** Nokia at info@qt.nokia.com.
-**
-**************************************************************************/
+****************************************************************************/
 
 #ifndef QMLJSLEXER_P_H
 #define QMLJSLEXER_P_H
@@ -45,7 +42,7 @@
 //
 
 #include "qmljsglobal_p.h"
-
+#include "qmljsgrammar_p.h"
 #include <QtCore/QString>
 
 QT_QML_BEGIN_NAMESPACE
@@ -53,55 +50,63 @@ QT_QML_BEGIN_NAMESPACE
 namespace QmlJS {
 
 class Engine;
-class NameId;
 
-class QML_PARSER_EXPORT Lexer
+class QML_PARSER_EXPORT Directives {
+public:
+    virtual ~Directives() {}
+
+    virtual void pragmaLibrary()
+    {
+    }
+
+    virtual void importFile(const QString &jsfile, const QString &module)
+    {
+        Q_UNUSED(jsfile);
+        Q_UNUSED(module);
+    }
+
+    virtual void importModule(const QString &uri, const QString &version, const QString &module)
+    {
+        Q_UNUSED(uri);
+        Q_UNUSED(version);
+        Q_UNUSED(module);
+    }
+};
+
+class QML_PARSER_EXPORT Lexer: public QmlJSGrammar
 {
 public:
-    Lexer(Engine *eng, bool tokenizeComments = false);
-    ~Lexer();
-
-    void setCode(const QString &c, int lineno);
-    int lex();
-
-    int currentLineNo() const { return yylineno; }
-    int currentColumnNo() const { return yycolumn; }
-
-    int tokenOffset() const { return startpos; }
-    int tokenLength() const { return pos - startpos; }
-
-    int startLineNo() const { return startlineno; }
-    int startColumnNo() const { return startcolumn; }
-
-    int endLineNo() const { return currentLineNo(); }
-    int endColumnNo() const
-    { int col = currentColumnNo(); return (col > 0) ? col - 1 : col; }
-
-    bool prevTerminator() const { return terminator; }
-
-    enum State { Start,
-                 Identifier,
-                 InIdentifier,
-                 InSingleLineComment,
-                 InMultiLineComment,
-                 InNum,
-                 InNum0,
-                 InHex,
-                 InOctal,
-                 InDecimal,
-                 InExponentIndicator,
-                 InExponent,
-                 Hex,
-                 Octal,
-                 Number,
-                 String,
-                 Eof,
-                 InString,
-                 InEscapeSequence,
-                 InHexEscape,
-                 InUnicodeEscape,
-                 Other,
-                 Bad };
+    enum {
+        T_ABSTRACT = T_RESERVED_WORD,
+        T_BOOLEAN = T_RESERVED_WORD,
+        T_BYTE = T_RESERVED_WORD,
+        T_CHAR = T_RESERVED_WORD,
+        T_CLASS = T_RESERVED_WORD,
+        T_DOUBLE = T_RESERVED_WORD,
+        T_ENUM = T_RESERVED_WORD,
+        T_EXPORT = T_RESERVED_WORD,
+        T_EXTENDS = T_RESERVED_WORD,
+        T_FINAL = T_RESERVED_WORD,
+        T_FLOAT = T_RESERVED_WORD,
+        T_GOTO = T_RESERVED_WORD,
+        T_IMPLEMENTS = T_RESERVED_WORD,
+        T_INT = T_RESERVED_WORD,
+        T_INTERFACE = T_RESERVED_WORD,
+        T_LET = T_RESERVED_WORD,
+        T_LONG = T_RESERVED_WORD,
+        T_NATIVE = T_RESERVED_WORD,
+        T_PACKAGE = T_RESERVED_WORD,
+        T_PRIVATE = T_RESERVED_WORD,
+        T_PROTECTED = T_RESERVED_WORD,
+        T_SHORT = T_RESERVED_WORD,
+        T_STATIC = T_RESERVED_WORD,
+        T_SUPER = T_RESERVED_WORD,
+        T_SYNCHRONIZED = T_RESERVED_WORD,
+        T_THROWS = T_RESERVED_WORD,
+        T_TRANSIENT = T_RESERVED_WORD,
+        T_VOLATILE = T_RESERVED_WORD,
+        T_YIELD = T_RESERVED_WORD
+    };
 
     enum Error {
         NoError,
@@ -114,127 +119,119 @@ public:
         IllegalIdentifier
     };
 
+    enum RegExpBodyPrefix {
+        NoPrefix,
+        EqualPrefix
+    };
+
+    enum RegExpFlag {
+        RegExp_Global     = 0x01,
+        RegExp_IgnoreCase = 0x02,
+        RegExp_Multiline  = 0x04
+    };
+
+public:
+    Lexer(Engine *engine);
+
+    bool qmlMode() const;
+
+    QString code() const;
+    void setCode(const QString &code, int lineno, bool qmlMode = true);
+
+    int lex();
+
+    bool scanRegExp(RegExpBodyPrefix prefix = NoPrefix);
+    bool scanDirectives(Directives *directives);
+
+    int regExpFlags() const { return _patternFlags; }
+    QString regExpPattern() const { return _tokenText; }
+
+    int tokenKind() const { return _tokenKind; }
+    int tokenOffset() const { return _tokenStartPtr - _code.unicode(); }
+    int tokenLength() const { return _tokenLength; }
+
+    int tokenStartLine() const { return _tokenLine; }
+    int tokenStartColumn() const { return _tokenStartPtr - _tokenLinePtr + 1; }
+
+    int tokenEndLine() const;
+    int tokenEndColumn() const;
+
+    inline QStringRef tokenSpell() const { return _tokenSpell; }
+    double tokenValue() const { return _tokenValue; }
+    QString tokenText() const;
+
+    Error errorCode() const;
+    QString errorMessage() const;
+
+    bool prevTerminator() const;
+    bool followsClosingBrace() const;
+    bool canInsertAutomaticSemicolon(int token) const;
+
     enum ParenthesesState {
         IgnoreParentheses,
         CountParentheses,
         BalancedParentheses
     };
 
-    enum RegExpBodyPrefix {
-        NoPrefix,
-        EqualPrefix
-    };
-
-    bool scanRegExp(RegExpBodyPrefix prefix = NoPrefix);
-
-    NameId *pattern;
-    int flags;
-
-    State lexerState() const
-        { return state; }
-
-    QString errorMessage() const
-        { return errmsg; }
-    void setErrorMessage(const QString &err)
-        { errmsg = err; }
-    void setErrorMessage(const char *err)
-        { setErrorMessage(QString::fromLatin1(err)); }
-
-    Error error() const
-        { return err; }
-    void clearError()
-        { err = NoError; }
+protected:
+    int classify(const QChar *s, int n, bool qmlMode);
 
 private:
-    Engine *driver;
-    int yylineno;
-    bool done;
-    char *buffer8;
-    QChar *buffer16;
-    uint size8, size16;
-    uint pos8, pos16;
-    bool terminator;
-    bool restrKeyword;
-    // encountered delimiter like "'" and "}" on last run
-    bool delimited;
-    int stackToken;
+    inline void scanChar();
+    int scanToken();
+    int scanNumber(QChar ch);
 
-    State state;
-    void setDone(State s);
-    uint pos;
-    void shift(uint p);
-    int lookupKeyword(const char *);
-
-    bool isWhiteSpace() const;
     bool isLineTerminator() const;
-    bool isHexDigit(ushort c) const;
-    bool isOctalDigit(ushort c) const;
-
-    int matchPunctuator(ushort c1, ushort c2,
-                         ushort c3, ushort c4);
-    ushort singleEscape(ushort c) const;
-    ushort convertOctal(ushort c1, ushort c2,
-                         ushort c3) const;
-public:
-    static unsigned char convertHex(ushort c1);
-    static unsigned char convertHex(ushort c1, ushort c2);
-    static QChar convertUnicode(ushort c1, ushort c2,
-                                 ushort c3, ushort c4);
-    static bool isIdentLetter(ushort c);
+    static bool isIdentLetter(QChar c);
     static bool isDecimalDigit(ushort c);
-
-    inline int ival() const { return qsyylval.ival; }
-    inline double dval() const { return qsyylval.dval; }
-    inline NameId *ustr() const { return qsyylval.ustr; }
-
-    const QChar *characterBuffer() const { return buffer16; }
-    int characterCount() const { return pos16; }
-
-private:
-    void record8(ushort c);
-    void record16(QChar c);
-    void recordStartPos();
-
-    int findReservedWord(const QChar *buffer, int size) const;
+    static bool isHexDigit(QChar c);
+    static bool isOctalDigit(ushort c);
+    static bool isUnicodeEscapeSequence(const QChar *chars);
 
     void syncProhibitAutomaticSemicolon();
+    QChar decodeUnicodeEscapeCharacter(bool *ok);
 
-    const QChar *code;
-    uint length;
-    int yycolumn;
-    int startpos;
-    int startlineno;
-    int startcolumn;
-    int bol;     // begin of line
+private:
+    Engine *_engine;
 
-    union {
-        int ival;
-        double dval;
-        NameId *ustr;
-    } qsyylval;
+    QString _code;
+    QString _tokenText;
+    QString _errorMessage;
+    QStringRef _tokenSpell;
 
-    // current and following unicode characters
-    ushort current, next1, next2, next3;
+    const QChar *_codePtr;
+    const QChar *_lastLinePtr;
+    const QChar *_tokenLinePtr;
+    const QChar *_tokenStartPtr;
 
-    struct keyword {
-        const char *name;
-        int token;
-    };
+    QChar _char;
+    Error _errorCode;
 
-    QString errmsg;
-    Error err;
+    int _currentLineNumber;
+    double _tokenValue;
 
-    bool wantRx;
-    bool check_reserved;
+    // parentheses state
+    ParenthesesState _parenthesesState;
+    int _parenthesesCount;
 
-    ParenthesesState parenthesesState;
-    int parenthesesCount;
-    bool prohibitAutomaticSemicolon;
-    bool tokenizeComments;
+    int _stackToken;
+
+    int _patternFlags;
+    int _tokenKind;
+    int _tokenLength;
+    int _tokenLine;
+
+    bool _validTokenText;
+    bool _prohibitAutomaticSemicolon;
+    bool _restrictedKeyword;
+    bool _terminator;
+    bool _followsClosingBrace;
+    bool _delimited;
+    bool _qmlMode;
 };
 
-} // namespace QmlJS
+} // end of namespace QmlJS
 
 QT_QML_END_NAMESPACE
 
-#endif
+#endif // LEXER_H

@@ -2531,9 +2531,9 @@ static QString textOf(const QString &source, T *node)
 static void bindFunction(LanguageObject *result, const QString &source, FunctionDeclaration *ast)
 {
     Function f;
-    if (!ast->name)
+    if (ast->name.isNull())
         throw Error(Loader::tr("function decl without name"));
-    f.name = ast->name->asString();
+    f.name = ast->name.toString();
 
     // remove the name
     QString funcNoName = textOf(source, ast);
@@ -2547,8 +2547,8 @@ static QStringList toStringList(UiQualifiedId *qid)
 {
     QStringList result;
     for (; qid; qid = qid->next) {
-        if (qid->name)
-            result.append(qid->name->asString());
+        if (!qid->name.isEmpty())
+            result.append(qid->name.toString());
         else
             result.append(QString()); // throw error instead?
     }
@@ -2584,7 +2584,7 @@ static void checkDuplicateBinding(LanguageObject *object, const QStringList &bin
 static void bindBinding(LanguageObject *result, const QString &source, UiScriptBinding *ast)
 {
     Binding p;
-    if (!ast->qualifiedId || !ast->qualifiedId->name)
+    if (!ast->qualifiedId || ast->qualifiedId->name.isEmpty())
         throw Error(Loader::tr("script binding without name"));
     p.name = toStringList(ast->qualifiedId);
     checkDuplicateBinding(result, p.name, ast->qualifiedId->identifierToken);
@@ -2594,9 +2594,9 @@ static void bindBinding(LanguageObject *result, const QString &source, UiScriptB
         if (!expStmt)
             throw Error(Loader::tr("id: must be followed by identifier"));
         IdentifierExpression *idExp = cast<IdentifierExpression *>(expStmt->expression);
-        if (!idExp || !idExp->name)
+        if (!idExp || idExp->name.isEmpty())
             throw Error(Loader::tr("id: must be followed by identifier"));
-        result->id = idExp->name->asString();
+        result->id = idExp->name.toString();
         return;
     }
 
@@ -2608,9 +2608,9 @@ static void bindBinding(LanguageObject *result, const QString &source, UiScriptB
 static void bindBinding(LanguageObject *result, const QString &source, UiPublicMember *ast)
 {
     Binding p;
-    if (!ast->name)
+    if (ast->name.isNull())
         throw Error(Loader::tr("public member without name"));
-    p.name = QStringList(ast->name->asString());
+    p.name = QStringList(ast->name.toString());
     checkDuplicateBinding(result, p.name, ast->identifierToken);
 
     if (ast->statement)
@@ -2637,18 +2637,18 @@ static PropertyDeclaration::Type propertyTypeFromString(const QString &typeName)
 static void bindPropertyDeclaration(LanguageObject *result, UiPublicMember *ast)
 {
     PropertyDeclaration p;
-    if (!ast->name)
+    if (ast->name.isEmpty())
         throw Error(Loader::tr("public member without name"));
-    if (!ast->memberType)
+    if (ast->memberType.isEmpty())
         throw Error(Loader::tr("public member without type"));
-    if (ast->typeModifier && ast->typeModifier->asString() != QLatin1String("list"))
-        throw Error(Loader::tr("public member with type modifier that is not 'list'"));
     if (ast->type == UiPublicMember::Signal)
         throw Error(Loader::tr("public member with signal type not supported"));
-    p.name = ast->name->asString();
-    p.type = propertyTypeFromString(ast->memberType->asString());
-    if (ast->typeModifier && ast->typeModifier->asString() == QLatin1String("list"))
+    p.name = ast->name.toString();
+    p.type = propertyTypeFromString(ast->memberType.toString());
+    if (ast->typeModifier.compare(QLatin1String("list")))
         p.flags |= PropertyDeclaration::ListProperty;
+    else if (!ast->typeModifier.isEmpty())
+        throw Error(Loader::tr("public member with type modifier '%1' not supported").arg(ast->typeModifier.toString()));
 
     result->propertyDeclarations.insert(p.name, p);
 }
@@ -2665,7 +2665,7 @@ static LanguageObject *bindObject(ProjectFile::Ptr file, const QString &source, 
 //            ast->firstSourceLocation().startColumn
 //    );
 
-    if (!ast->qualifiedTypeNameId || !ast->qualifiedTypeNameId->name)
+    if (!ast->qualifiedTypeNameId || ast->qualifiedTypeNameId->name.isEmpty())
         throw Error(Loader::tr("no prototype"));
     result->prototype = toStringList(ast->qualifiedTypeNameId);
     result->prototypeLocation = toCodeLocation(file->fileName, ast->qualifiedTypeNameId->identifierToken);
@@ -2736,10 +2736,8 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
     QSet<QString> importAsNames;
     QHash<QString, JsImport> jsImports;
 
-    for (QmlJS::AST::UiImportList *it = ast->imports; it; it = it->next) {
-        QmlJS::AST::UiImport *import = it->import;
-        QmlJS::NameId *iFileName = import->fileName;
-        QmlJS::NameId *importId = import->importId;
+    for (const QmlJS::AST::UiImportList *it = ast->imports; it; it = it->next) {
+        const QmlJS::AST::UiImport *const import = it->import;
 
         QStringList importUri;
         bool isBase = false;
@@ -2753,17 +2751,17 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
 
         QString as;
         if (isBase) {
-            if (importId) {
+            if (!import->importId.isNull()) {
                 throw Error(Loader::tr("Import of qbs.base must have no 'as <Name>'"),
                             toCodeLocation(fileName, import->importIdToken));
             }
         } else {
-            if (!importId) {
+            if (import->importId.isNull()) {
                 throw Error(Loader::tr("Imports require 'as <Name>'"),
                             toCodeLocation(fileName, import->importToken));
             }
 
-            as = importId->asString();
+            as = import->importId.toString();
             if (importAsNames.contains(as)) {
                 throw Error(Loader::tr("Can't import into the same name more than once."),
                             toCodeLocation(fileName, import->importIdToken));
@@ -2771,8 +2769,8 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
             importAsNames.insert(as);
         }
 
-        if (iFileName) {
-            QString name = FileInfo::resolvePath(path, iFileName->asString());
+        if (!import->fileName.isNull()) {
+            QString name = FileInfo::resolvePath(path, import->fileName.toString());
 
             QFileInfo fi(name);
             if (!fi.exists())
@@ -2845,7 +2843,6 @@ ProjectFile::Ptr Loader::parseFile(const QString &fileName)
 
     const QString code = QTextStream(&file).readAll();
     QScopedPointer<QmlJS::Engine> engine(new QmlJS::Engine);
-    QScopedPointer<QmlJS::NodePool> nodePool(new QmlJS::NodePool(fileName, engine.data()));
     QmlJS::Lexer lexer(engine.data());
     lexer.setCode(code, 1);
     QmlJS::Parser parser(engine.data());

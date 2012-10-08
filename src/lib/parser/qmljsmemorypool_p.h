@@ -1,34 +1,31 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of the Qt Build System
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (info@qt.nokia.com)
-**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** This file may be used under the terms of the GNU Lesser General Public
-** License version 2.1 as published by the Free Software Foundation and
-** appearing in the file LICENSE.LGPL included in the packaging of this file.
-** Please review the following information to ensure the GNU Lesser General
-** Public License version 2.1 requirements will be met:
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Nokia gives you certain additional
-** rights. These rights are described in the Nokia Qt LGPL Exception
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-** Other Usage
-**
-** Alternatively, this file may be used in accordance with the terms and
-** conditions contained in a signed written agreement between you and Nokia.
-**
-** If you have questions regarding the use of this file, please contact
-** Nokia at info@qt.nokia.com.
-**
-**************************************************************************/
+****************************************************************************/
 
 #ifndef QMLJSMEMORYPOOL_P_H
 #define QMLJSMEMORYPOOL_P_H
@@ -48,8 +45,8 @@
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qshareddata.h>
+#include <QtCore/qdebug.h>
 
-#include <cstdlib>
 #include <cstring>
 
 QT_QML_BEGIN_NAMESPACE
@@ -58,64 +55,103 @@ namespace QmlJS {
 
 class QML_PARSER_EXPORT MemoryPool : public QSharedData
 {
+    MemoryPool(const MemoryPool &other);
+    void operator =(const MemoryPool &other);
+
 public:
-    enum { maxBlockCount = -1 };
-    enum { defaultBlockSize = 1 << 12 };
+    MemoryPool()
+        : _blocks(0),
+          _allocatedBlocks(0),
+          _blockCount(-1),
+          _ptr(0),
+          _end(0)
+    { }
 
-    MemoryPool() {
-        m_blockIndex = maxBlockCount;
-        m_currentIndex = 0;
-        m_storage = 0;
-        m_currentBlock = 0;
-        m_currentBlockSize = 0;
+    ~MemoryPool()
+    {
+        if (_blocks) {
+            for (int i = 0; i < _allocatedBlocks; ++i) {
+                if (char *b = _blocks[i])
+                    free(b);
+            }
+
+            free(_blocks);
+        }
     }
 
-    virtual ~MemoryPool() {
-        for (int index = 0; index < m_blockIndex + 1; ++index)
-            std::free(m_storage[index]);
-
-        std::free(m_storage);
+    inline void *allocate(size_t size)
+    {
+        size = (size + 7) & ~7;
+        if (_ptr && (_ptr + size < _end)) {
+            void *addr = _ptr;
+            _ptr += size;
+            return addr;
+        }
+        return allocate_helper(size);
     }
 
-    char *allocate(int bytes) {
-        bytes += (8 - bytes) & 7; // ensure multiple of 8 bytes (maintain alignment)
-        if (m_currentBlock == 0 || m_currentBlockSize < m_currentIndex + bytes) {
-            ++m_blockIndex;
-            m_currentBlockSize = defaultBlockSize << m_blockIndex;
+    void reset()
+    {
+        _blockCount = -1;
+        _ptr = _end = 0;
+    }
 
-            m_storage = reinterpret_cast<char**>(std::realloc(m_storage, sizeof(char*) * (1 + m_blockIndex)));
-            m_currentBlock = m_storage[m_blockIndex] = reinterpret_cast<char*>(std::malloc(m_currentBlockSize));
-            std::memset(m_currentBlock, 0, m_currentBlockSize);
+private:
+    void *allocate_helper(size_t size)
+    {
+        Q_ASSERT(size < BLOCK_SIZE);
 
-            m_currentIndex = (8 - quintptr(m_currentBlock)) & 7; // ensure first chunk is 64-bit aligned
-            Q_ASSERT(m_currentIndex + bytes <= m_currentBlockSize);
+        if (++_blockCount == _allocatedBlocks) {
+            if (! _allocatedBlocks)
+                _allocatedBlocks = DEFAULT_BLOCK_COUNT;
+            else
+                _allocatedBlocks *= 2;
+
+            _blocks = (char **) realloc(_blocks, sizeof(char *) * _allocatedBlocks);
+
+            for (int index = _blockCount; index < _allocatedBlocks; ++index)
+                _blocks[index] = 0;
         }
 
-        char *p = reinterpret_cast<char *>
-            (m_currentBlock + m_currentIndex);
+        char *&block = _blocks[_blockCount];
 
-        m_currentIndex += bytes;
+        if (! block)
+            block = (char *) malloc(BLOCK_SIZE);
 
-        return p;
-    }
+        _ptr = block;
+        _end = _ptr + BLOCK_SIZE;
 
-    int bytesAllocated() const {
-        int bytes = 0;
-        for (int index = 0; index < m_blockIndex; ++index)
-            bytes += (defaultBlockSize << index);
-        bytes += m_currentIndex;
-        return bytes;
+        void *addr = _ptr;
+        _ptr += size;
+        return addr;
     }
 
 private:
-    int m_blockIndex;
-    int m_currentIndex;
-    char *m_currentBlock;
-    int m_currentBlockSize;
-    char **m_storage;
+    char **_blocks;
+    int _allocatedBlocks;
+    int _blockCount;
+    char *_ptr;
+    char *_end;
 
-private:
-    Q_DISABLE_COPY(MemoryPool)
+    enum
+    {
+        BLOCK_SIZE = 8 * 1024,
+        DEFAULT_BLOCK_COUNT = 8
+    };
+};
+
+class QML_PARSER_EXPORT Managed
+{
+    Managed(const Managed &other);
+    void operator = (const Managed &other);
+
+public:
+    Managed() {}
+    ~Managed() {}
+
+    void *operator new(size_t size, MemoryPool *pool) { return pool->allocate(size); }
+    void operator delete(void *) {}
+    void operator delete(void *, MemoryPool *) {}
 };
 
 } // namespace QmlJS
