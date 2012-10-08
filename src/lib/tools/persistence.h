@@ -120,7 +120,7 @@ public:
             obj = m_loaded.value(id);
         } else {
             m_loaded.resize(id + 1);
-            obj = QSharedPointer<PersistentObject>(new T);
+            obj = T::create();
             m_loaded[id] = obj;
             obj->load(*this, m_stream);
         }

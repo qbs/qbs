@@ -51,7 +51,8 @@ class Transformer : public PersistentObject
 public:
     typedef QSharedPointer<Transformer> Ptr;
 
-    Transformer();
+    static Ptr create() { return Ptr(new Transformer); }
+
     ~Transformer();
 
     QSet<Artifact*> inputs; // can be different from "children of all outputs"
@@ -70,6 +71,8 @@ public:
     void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
 
 private:
+    Transformer();
+
     void load(PersistentPool &pool, QDataStream &s);
     void store(PersistentPool &pool, QDataStream &s) const;
 };

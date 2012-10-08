@@ -442,7 +442,7 @@ void BuildGraph::createOutputArtifact(
 
     // create transformer if not already done so
     if (!transformer) {
-        transformer = QSharedPointer<Transformer>(new Transformer);
+        transformer = Transformer::create();
         transformer->rule = rule;
         transformer->inputs = inputArtifacts;
     }
@@ -539,7 +539,7 @@ void BuildGraph::applyRule(BuildProduct *product,
 
         // expose attributes of this artifact
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
-        outputArtifact->configuration = Configuration::Ptr(new Configuration(*outputArtifact->configuration));
+        outputArtifact->configuration = Configuration::create(*outputArtifact->configuration);
 
         // ### clean scriptEngine() first?
         scriptEngine()->globalObject().setProperty("fileName", scriptEngine()->toScriptValue(outputArtifact->filePath()), QScriptValue::ReadOnly);
@@ -823,7 +823,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     if (m_progressObserver)
         m_progressObserver->incrementProgressValue();
 
-    product = BuildProduct::Ptr(new BuildProduct);
+    product = BuildProduct::create();
     m_productCache.insert(rProduct, product);
     product->project = project;
     product->rProduct = rProduct;
@@ -872,12 +872,12 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
                 throw Error(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
             inputArtifacts += artifact;
         }
-        QSharedPointer<Transformer> transformer(new Transformer);
+        Transformer::Ptr transformer = Transformer::create();
         transformer->inputs = inputArtifacts.toSet();
-        const Rule::Ptr rule(new Rule);
+        const Rule::Ptr rule = Rule::create();
         rule->inputs = rtrafo->inputs;
         rule->jsImports = rtrafo->jsImports;
-        ResolvedModule::Ptr module(new ResolvedModule);
+        ResolvedModule::Ptr module = ResolvedModule::create();
         module->name = rtrafo->module->name;
         rule->module = module;
         rule->script = rtrafo->transform;
@@ -892,7 +892,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             foreach (const QString &fileTag, outputArtifact->fileTags)
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
-            RuleArtifact::Ptr ruleArtifact(new RuleArtifact);
+            RuleArtifact::Ptr ruleArtifact = RuleArtifact::create();
             ruleArtifact->fileScript = outputArtifact->filePath();
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
             rule->artifacts += ruleArtifact;
@@ -1226,7 +1226,7 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
         throw Error("Cannot load stored build graph.");
     project = BuildProject::Ptr(new BuildProject(bg));
     project->load(pool, pool.stream());
-    project->resolvedProject()->configuration = Configuration::Ptr(new Configuration);
+    project->resolvedProject()->configuration = Configuration::create();
     project->resolvedProject()->configuration->setValue(pool.headData().projectConfig);
     loadResult->loadedProject = project;
     qbsDebug() << "[BG] stored project loaded.";
@@ -1307,7 +1307,7 @@ BuildProject::Ptr BuildProject::loadBuildGraph(const QString &buildGraphFilePath
                                                const FileTime &minTimeStamp,
                                                const QStringList &loaderSearchPaths)
 {
-    static const qbs::Configuration::Ptr configuration(new qbs::Configuration);
+    static const qbs::Configuration::Ptr configuration = qbs::Configuration::create();
     LoadResult lr;
     restoreBuildGraph(buildGraphFilePath, buildGraph, minTimeStamp, configuration, loaderSearchPaths, &lr);
     return lr.loadedProject;

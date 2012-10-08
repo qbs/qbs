@@ -56,7 +56,8 @@ class BuildProduct : public PersistentObject
 public:
     typedef QSharedPointer<BuildProduct> Ptr;
 
-    BuildProduct();
+    static Ptr create() { return Ptr(new BuildProduct); }
+
     ~BuildProduct();
 
     const QList<Rule::ConstPtr> &topSortedRules() const;
@@ -70,6 +71,8 @@ public:
     ArtifactList artifacts;
 
 private:
+    BuildProduct();
+
     void load(PersistentPool &pool, QDataStream &s);
     void store(PersistentPool &pool, QDataStream &s) const;
 

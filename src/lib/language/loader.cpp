@@ -1859,15 +1859,15 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     m_project = projectFile;
     ScriptEngineContextPusher contextPusher(m_engine);
     Scope::scopesWithEvaluatedProperties.clear();
-    ResolvedProject::Ptr rproject(new ResolvedProject);
+    ResolvedProject::Ptr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
-    rproject->configuration = Configuration::Ptr(new Configuration);
+    rproject->configuration = Configuration::create();
     rproject->configuration->setValue(userProperties->value());
 
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
 
-    ResolvedModule::Ptr dummyModule(new ResolvedModule);
+    ResolvedModule::Ptr dummyModule = ResolvedModule::create();
     dummyModule->jsImports = m_project->jsImports;
     QList<Rule::Ptr> globalRules;
     QList<FileTagger::ConstPtr> globalFileTaggers;
@@ -1924,7 +1924,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
         QList<EvaluationObject *> unresolvedChildren = resolveCommonItems(data.product->children, rproduct, dummyModule);
 
         // build the product's configuration
-        rproduct->configuration = Configuration::Ptr(new Configuration);
+        rproduct->configuration = Configuration::create();
         QVariantMap productCfg = evaluateAll(rproduct, data.product->scope);
         rproduct->configuration->setValue(productCfg);
 
@@ -2106,7 +2106,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
 void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module)
 {
-    ResolvedModule::Ptr rmodule(new ResolvedModule);
+    ResolvedModule::Ptr rmodule = ResolvedModule::create();
     rmodule->name = moduleName;
     rmodule->jsImports = module->instantiatingObject()->file->jsImports;
     rmodule->setupBuildEnvironmentScript = module->scope->verbatimValue("setupBuildEnvironment");
@@ -2135,7 +2135,7 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
                 }
             }
             if (!artifact) {
-                artifact = SourceArtifact::Ptr(new SourceArtifact);
+                artifact = SourceArtifact::create();
                 artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
                 rproduct->sources += artifact;
             }
@@ -2266,7 +2266,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
 
         if (createNewConfig) {
             // build configuration for this group
-            configuration = Configuration::Ptr(new Configuration);
+            configuration = Configuration::create();
             configuration->setValue(evaluateModuleValues(rproduct, product, group->scope));
         }
     }
@@ -2308,7 +2308,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
         overrideTags = group->scope->boolValue("overrideTags", true);
 
     if (!patterns.isEmpty()) {
-        Group::Ptr buildGroup(new Group());
+        Group::Ptr buildGroup = Group::create();
         if (isGroup) {
             buildGroup->recursive = group->scope->boolValue("recursive");
             buildGroup->excludePatterns = group->scope->stringListValue("excludeFiles");
@@ -2322,7 +2322,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     }
 
     foreach (const QString &fileName, files) {
-        SourceArtifact::Ptr artifact(new SourceArtifact);
+        SourceArtifact::Ptr artifact = SourceArtifact::create();
         artifact->configuration = configuration;
         artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
         artifact->fileTags = fileTags;
@@ -2347,13 +2347,13 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     if (!checkCondition(trafo))
         return;
 
-    ResolvedTransformer::Ptr rtrafo(new ResolvedTransformer);
+    ResolvedTransformer::Ptr rtrafo = ResolvedTransformer::create();
     rtrafo->module = module;
     rtrafo->jsImports = trafo->instantiatingObject()->file->jsImports;
     rtrafo->inputs = trafo->scope->stringListValue("inputs");
     for (int i=0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(rproduct->sourceDirectory, rtrafo->inputs[i]);
-    const RuleScript::Ptr transform(new RuleScript);
+    const RuleScript::Ptr transform = RuleScript::create();
     transform->script = trafo->scope->verbatimValue("prepare");
     transform->location.fileName = trafo->instantiatingObject()->file->fileName;
     transform->location.column = 1;
@@ -2361,11 +2361,11 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     transform->location.line = binding.valueSource.firstLineNumber();
     rtrafo->transform = transform;
 
-    Configuration::Ptr outputConfiguration(new Configuration);
+    Configuration::Ptr outputConfiguration = Configuration::create();
     foreach (EvaluationObject *child, trafo->children) {
         if (child->prototype != name_Artifact)
             throw Error(tr("Transformer: wrong child type '%0'.").arg(child->prototype));
-        SourceArtifact::Ptr artifact(new SourceArtifact);
+        SourceArtifact::Ptr artifact = SourceArtifact::create();
         artifact->configuration = outputConfiguration;
         QString fileName = child->scope->stringValue("fileName");
         if (fileName.isEmpty())
@@ -2455,7 +2455,7 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
 
 Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module)
 {
-    Rule::Ptr rule(new Rule);
+    Rule::Ptr rule = Rule::create();
 
     LanguageObject *origObj = object->instantiatingObject();
     Q_CHECK_PTR(origObj);
@@ -2465,7 +2465,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
     foreach (EvaluationObject *child, object->children) {
         const uint hashChildPrototypeName = qHash(child->prototype);
         if (hashChildPrototypeName == hashName_Artifact) {
-            RuleArtifact::Ptr artifact(new RuleArtifact);
+            RuleArtifact::Ptr artifact = RuleArtifact::create();
             artifacts.append(artifact);
             artifact->fileScript = child->scope->verbatimValue("fileName");
             artifact->fileTags = child->scope->stringListValue("fileTags");
@@ -2488,7 +2488,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
         }
     }
 
-    const RuleScript::Ptr ruleScript(new RuleScript);
+    const RuleScript::Ptr ruleScript = RuleScript::create();
     ruleScript->script = object->scope->verbatimValue("prepare");
     ruleScript->location.fileName = object->instantiatingObject()->file->fileName;
     ruleScript->location.column = 1;
@@ -2513,8 +2513,8 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
 FileTagger::ConstPtr Loader::resolveFileTagger(EvaluationObject *evaluationObject)
 {
     const Scope::Ptr scope = evaluationObject->scope;
-    return FileTagger::ConstPtr(new FileTagger(QRegExp(scope->stringValue("pattern")),
-            scope->stringListValue("fileTags")));
+    return FileTagger::create(QRegExp(scope->stringValue("pattern")),
+            scope->stringListValue("fileTags"));
 }
 
 /// --------------------------------------------------------------------------
@@ -3050,7 +3050,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     // set the 'path' and 'filePath' properties
     setPathAndFilePath(evaluationObject->scope, object->file->fileName);
 
-    ResolvedProduct::Ptr rproduct(new ResolvedProduct);
+    const ResolvedProduct::Ptr rproduct = ResolvedProduct::create();
     rproduct->qbsFile = projectFileName;
     rproduct->sourceDirectory = QFileInfo(projectFileName).absolutePath();
     rproduct->project = rproject.data();

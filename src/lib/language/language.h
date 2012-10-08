@@ -77,8 +77,8 @@ public:
     typedef QSharedPointer<Configuration> Ptr;
     typedef QSharedPointer<const Configuration> ConstPtr;
 
-    Configuration();
-    Configuration(const Configuration &other);
+    static Ptr create() { return Ptr(new Configuration); }
+    static Ptr create(const Configuration &other) { return Ptr(new Configuration(other)); }
 
     const QVariantMap &value() const { return m_value; }
     void setValue(const QVariantMap &value);
@@ -86,6 +86,9 @@ public:
     void cacheScriptValue(const QScriptValue &scriptValue);
 
 private:
+    Configuration();
+    Configuration(const Configuration &other);
+
     void load(qbs::PersistentPool &, QDataStream &s);
     void store(qbs::PersistentPool &, QDataStream &s) const;
 
@@ -100,6 +103,15 @@ public:
     typedef QSharedPointer<FileTagger> Ptr;
     typedef QSharedPointer<const FileTagger> ConstPtr;
 
+    static Ptr create() { return Ptr(new FileTagger); }
+    static Ptr create(const QRegExp &artifactExpression, const QStringList &fileTags) {
+        return Ptr(new FileTagger(artifactExpression, fileTags));
+    }
+
+    const QRegExp &artifactExpression() const { return m_artifactExpression; }
+    const QStringList &fileTags() const { return m_fileTags; }
+
+private:
     FileTagger(const QRegExp &artifactExpression, const QStringList &fileTags)
         : m_artifactExpression(artifactExpression), m_fileTags(fileTags)
     { }
@@ -108,15 +120,11 @@ public:
         : m_artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
     {}
 
-    const QRegExp &artifactExpression() const { return m_artifactExpression; }
-    const QStringList &fileTags() const { return m_fileTags; }
-
-private:
-    QRegExp m_artifactExpression;
-    QStringList m_fileTags;
-
     void load(qbs::PersistentPool &, QDataStream &s);
     void store(qbs::PersistentPool &, QDataStream &s) const;
+
+    QRegExp m_artifactExpression;
+    QStringList m_fileTags;
 };
 
 class RuleArtifact : public qbs::PersistentObject
@@ -124,6 +132,8 @@ class RuleArtifact : public qbs::PersistentObject
 public:
     typedef QSharedPointer<RuleArtifact> Ptr;
     typedef QSharedPointer<const RuleArtifact> ConstPtr;
+
+    static Ptr create() { return Ptr(new RuleArtifact); }
 
     QString fileScript;
     QStringList fileTags;
@@ -138,6 +148,8 @@ public:
     QVector<Binding> bindings;
 
 private:
+    RuleArtifact() {}
+
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
@@ -148,16 +160,16 @@ public:
     typedef QSharedPointer<SourceArtifact> Ptr;
     typedef QSharedPointer<const SourceArtifact> ConstPtr;
 
+    static Ptr create() { return Ptr(new SourceArtifact); }
+
     QString absoluteFilePath;
     QSet<QString> fileTags;
     bool overrideFileTags;
     Configuration::Ptr configuration;
 
-    SourceArtifact()
-        : overrideFileTags(true)
-    {}
-
 private:
+    SourceArtifact() : overrideFileTags(true) {}
+
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
@@ -168,10 +180,14 @@ public:
     typedef QSharedPointer<RuleScript> Ptr;
     typedef QSharedPointer<const RuleScript> ConstPtr;
 
+    static Ptr create() { return Ptr(new RuleScript); }
+
     QString script;
     qbs::CodeLocation location;
 
 private:
+    RuleScript() {}
+
     void load(qbs::PersistentPool &, QDataStream &s);
     void store(qbs::PersistentPool &, QDataStream &s) const;
 };
@@ -182,6 +198,8 @@ public:
     typedef QSharedPointer<ResolvedModule> Ptr;
     typedef QSharedPointer<const ResolvedModule> ConstPtr;
 
+    static Ptr create() { return Ptr(new ResolvedModule); }
+
     QString name;
     QStringList moduleDependencies;
     JsImports jsImports;
@@ -189,6 +207,8 @@ public:
     QString setupRunEnvironmentScript;
 
 private:
+    ResolvedModule() {}
+
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
@@ -208,6 +228,8 @@ public:
     typedef QSharedPointer<Rule> Ptr;
     typedef QSharedPointer<const Rule> ConstPtr;
 
+    static Ptr create() { return Ptr(new Rule); }
+
     ResolvedModule::ConstPtr module;
     JsImports jsImports;
     RuleScript::ConstPtr script;
@@ -222,11 +244,6 @@ public:
     // members that we don't need to save
     int ruleGraphId;
 
-    Rule()
-        : multiplex(false)
-        , ruleGraphId(-1)
-    {}
-
     QString toString() const;
     QStringList outputFileTags() const;
 
@@ -236,6 +253,8 @@ public:
     }
 
 private:
+    Rule() : multiplex(false), ruleGraphId(-1) {}
+
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
@@ -246,15 +265,17 @@ public:
     typedef QSharedPointer<Group> Ptr;
     typedef QSharedPointer<const Group> ConstPtr;
 
+    static Ptr create() { return Ptr(new Group); }
+
     QString prefix;
     bool recursive;
     QStringList patterns;
     QStringList excludePatterns;
     QSet<QString> files;
 
+private:
     Group() : recursive(false) {}
 
-private:
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
@@ -264,11 +285,16 @@ class ResolvedTransformer
 public:
     typedef QSharedPointer<ResolvedTransformer> Ptr;
 
+    static Ptr create() { return Ptr(new ResolvedTransformer); }
+
     ResolvedModule::ConstPtr module;
     QStringList inputs;
     QList<SourceArtifact::Ptr> outputs;
     RuleScript::ConstPtr transform;
     JsImports jsImports;
+
+private:
+    ResolvedTransformer() {}
 };
 
 class ResolvedProject;
@@ -278,7 +304,7 @@ public:
     typedef QSharedPointer<ResolvedProduct> Ptr;
     typedef QSharedPointer<const ResolvedProduct> ConstPtr;
 
-    ResolvedProduct();
+    static Ptr create() { return Ptr(new ResolvedProduct); }
 
     QStringList fileTags;
     QString name;
@@ -306,6 +332,8 @@ public:
     void setupRunEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
 
 private:
+    ResolvedProduct();
+
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };
@@ -314,6 +342,9 @@ class ResolvedProject: public qbs::PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedProject> Ptr;
+
+    static Ptr create() { return Ptr(new ResolvedProject); }
+
     QString id;
     QString qbsFile;
     QVariantMap platformEnvironment;
@@ -321,6 +352,8 @@ public:
     Configuration::Ptr configuration;
 
 private:
+    ResolvedProject() {}
+
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
 };

@@ -225,7 +225,7 @@ void SourceProject::loadProject(const QString &projectFileName,
             qbsFatal("SourceProject::loadProject: property 'qbs.buildVariant' missing in build configuration.");
             continue;
         }
-        qbs::Configuration::Ptr configure(new qbs::Configuration);
+        qbs::Configuration::Ptr configure = qbs::Configuration::create();
         configurations.append(configure);
 
         foreach (const QString &property, buildCfg.keys()) {
