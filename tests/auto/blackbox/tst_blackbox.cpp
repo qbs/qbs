@@ -38,12 +38,24 @@
 #include "tst_blackbox.h"
 #include <tools/hostosinfo.h>
 
+
+static QString initQbsExecutableFilePath()
+{
+    QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/../../../");
+    if (qbs::HostOsInfo::isWindowsHost())
+        filePath += QLatin1String("../");
+    filePath += "bin/qbs";
+    filePath = qbs::HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
+    return filePath;
+
+}
+
 TestBlackbox::TestBlackbox()
     : testDataDir(QCoreApplication::applicationDirPath() + "/testdata"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
+      qbsExecutableFilePath(initQbsExecutableFilePath()),
       buildProfile(QLatin1String("qbs_autotests")),
       buildDir(QLatin1String("build/") + buildProfile + QLatin1String("-debug")),
-      qbsExecutableFilePath(QCoreApplication::applicationDirPath() + "/qbs"),
 #ifdef Q_OS_WIN
         objectSuffix(QLatin1String(".obj"))
 #else
@@ -121,6 +133,7 @@ void TestBlackbox::touch(const QString &fn)
 
 void TestBlackbox::initTestCase()
 {
+    QVERIFY(QFile::exists(qbsExecutableFilePath));
     QProcess process;
     process.start(qbsExecutableFilePath, QStringList() << "config" << "--global" << "--list");
     QVERIFY(process.waitForStarted());

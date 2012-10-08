@@ -1,7 +1,6 @@
 TEMPLATE = app
-TARGET = testBlackbox
+TARGET = tst_blackbox
 DEPENDPATH += .
-DESTDIR = ../../../bin/
 INCLUDEPATH += . ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 

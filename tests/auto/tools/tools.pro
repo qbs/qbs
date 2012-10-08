@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = testTools
+TARGET = tst_tools
 DEPENDPATH += .
 INCLUDEPATH += . ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

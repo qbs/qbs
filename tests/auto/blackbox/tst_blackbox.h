@@ -16,9 +16,9 @@ class TestBlackbox : public QObject
     Q_OBJECT
     const QString testDataDir;
     const QString testSourceDir;
+    const QString qbsExecutableFilePath;
     const QString buildProfile;
     const QString buildDir;
-    const QString qbsExecutableFilePath;
     const QString objectSuffix;
 
 public:
