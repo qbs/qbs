@@ -28,10 +28,10 @@
 ****************************************************************************/
 
 #include "language.h"
+#include "qbsengine.h"
 #include <tools/scripttools.h>
 #include <QCryptographicHash>
 #include <QMutexLocker>
-#include <QScriptEngine>
 #include <QScriptValue>
 #include <algorithm>
 
@@ -345,7 +345,7 @@ enum EnvType
     BuildEnv, RunEnv
 };
 
-static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, EnvType envType,
+static QProcessEnvironment getProcessEnvironment(QbsEngine *engine, EnvType envType,
                                                  const QList<ResolvedModule::ConstPtr> &modules,
                                                  const Configuration::ConstPtr &productConfiguration,
                                                  ResolvedProject *project,
@@ -380,7 +380,7 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
     {
         QVariant v;
         v.setValue<void*>(&procenv);
-        scriptEngine->setProperty("_qbs_procenv", v);
+        engine->setProperty("_qbs_procenv", v);
     }
 
     QSet<QString> seenModuleNames;
@@ -390,41 +390,31 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
             (envType == RunEnv && module->setupBuildEnvironmentScript.isEmpty() && module->setupRunEnvironmentScript.isEmpty()))
             continue;
 
-        QScriptContext *ctx = scriptEngine->pushContext();
+        QScriptContext *ctx = engine->pushContext();
 
         // expose functions
-        ctx->activationObject().setProperty("getenv", scriptEngine->newFunction(js_getenv, 1));
-        ctx->activationObject().setProperty("putenv", scriptEngine->newFunction(js_putenv, 2));
+        ctx->activationObject().setProperty("getenv", engine->newFunction(js_getenv, 1));
+        ctx->activationObject().setProperty("putenv", engine->newFunction(js_putenv, 2));
 
         // handle imports
-        QScriptValue scriptValue;
-        for (JsImports::const_iterator it = module->jsImports.begin(); it != module->jsImports.end(); ++it) {
-            foreach (const QString &fileName, it->fileNames) {
-                QFile file(fileName);
-                if (!file.open(QFile::ReadOnly))
-                    throw Error(QString("Can't open '%1'.").arg(fileName));
-                QScriptProgram program(file.readAll(), fileName);
-                scriptValue = addJSImport(scriptEngine, program, it->scopeName);
-                if (scriptValue.isError())
-                    throw Error(scriptValue.toString());
-            }
-        }
+        engine->import(module->jsImports, QScriptValue(), engine->currentContext()->activationObject());
 
         // expose properties of direct module dependencies
+        QScriptValue scriptValue;
         QScriptValue activationObject = ctx->activationObject();
         QVariantMap productModules = productConfiguration->value().value("modules").toMap();
         foreach (const ResolvedModule * const depmod, moduleChildren.value(module)) {
-            scriptValue = scriptEngine->newObject();
+            scriptValue = engine->newObject();
             QVariantMap moduleCfg = productModules.value(depmod->name).toMap();
             for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
-                scriptValue.setProperty(it.key(), scriptEngine->toScriptValue(it.value()));
+                scriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
             activationObject.setProperty(depmod->name, scriptValue);
         }
 
         // expose the module's properties
         QVariantMap moduleCfg = productModules.value(module->name).toMap();
         for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
-            activationObject.setProperty(it.key(), scriptEngine->toScriptValue(it.value()));
+            activationObject.setProperty(it.key(), engine->toScriptValue(it.value()));
 
         QString setupScript;
         if (envType == BuildEnv) {
@@ -436,33 +426,33 @@ static QProcessEnvironment getProcessEnvironment(QScriptEngine *scriptEngine, En
                 setupScript = module->setupRunEnvironmentScript;
             }
         }
-        scriptValue = scriptEngine->evaluate(setupScript);
-        if (scriptValue.isError() || scriptEngine->hasUncaughtException()) {
+        scriptValue = engine->evaluate(setupScript);
+        if (scriptValue.isError() || engine->hasUncaughtException()) {
             QString envTypeStr = (envType == BuildEnv ? "build" : "run");
             throw Error(QString("Error while setting up %1 environment: %2").arg(envTypeStr, scriptValue.toString()));
         }
 
-        scriptEngine->popContext();
+        engine->popContext();
     }
 
-    scriptEngine->setProperty("_qbs_procenv", QVariant());
+    engine->setProperty("_qbs_procenv", QVariant());
     return procenv;
 }
 
-void ResolvedProduct::setupBuildEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const
+void ResolvedProduct::setupBuildEnvironment(QbsEngine *engine, const QProcessEnvironment &systemEnvironment) const
 {
     if (!buildEnvironment.isEmpty())
         return;
 
-    buildEnvironment = getProcessEnvironment(scriptEngine, BuildEnv, modules, configuration, project, systemEnvironment);
+    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, configuration, project, systemEnvironment);
 }
 
-void ResolvedProduct::setupRunEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const
+void ResolvedProduct::setupRunEnvironment(QbsEngine *engine, const QProcessEnvironment &systemEnvironment) const
 {
     if (!runEnvironment.isEmpty())
         return;
 
-    runEnvironment = getProcessEnvironment(scriptEngine, RunEnv, modules, configuration, project, systemEnvironment);
+    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, configuration, project, systemEnvironment);
 }
 
 void ResolvedProject::load(PersistentPool &pool, QDataStream &s)

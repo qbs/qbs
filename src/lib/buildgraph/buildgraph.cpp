@@ -34,6 +34,7 @@
 #include "transformer.h"
 
 #include <language/loader.h>
+#include <language/qbsengine.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/scannerpluginmanager.h>
@@ -175,35 +176,36 @@ void BuildGraph::insert(BuildProduct *product, Artifact *n) const
         qbsTrace("[BG] insert artifact '%s'", qPrintable(n->filePath()));
 }
 
-void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine,
-        const ResolvedProduct::ConstPtr &product, Rule::ConstPtr rule, BuildGraph *bg)
+void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
+                                             const ResolvedProduct::ConstPtr &product,
+                                             Rule::ConstPtr rule)
 {
-    const ResolvedProject *lastSetupProject = reinterpret_cast<ResolvedProject *>(scriptEngine->property("lastSetupProject").toULongLong());
-    const ResolvedProduct *lastSetupProduct = reinterpret_cast<ResolvedProduct *>(scriptEngine->property("lastSetupProduct").toULongLong());
+    const ResolvedProject *lastSetupProject = reinterpret_cast<ResolvedProject *>(engine->property("lastSetupProject").toULongLong());
+    const ResolvedProduct *lastSetupProduct = reinterpret_cast<ResolvedProduct *>(engine->property("lastSetupProduct").toULongLong());
 
     if (lastSetupProject != product->project) {
-        scriptEngine->setProperty("lastSetupProject",
+        engine->setProperty("lastSetupProject",
                 QVariant(reinterpret_cast<qulonglong>(product->project)));
         QScriptValue projectScriptValue;
-        projectScriptValue = scriptEngine->newObject();
+        projectScriptValue = engine->newObject();
         projectScriptValue.setProperty("filePath", product->project->qbsFile);
         projectScriptValue.setProperty("path", FileInfo::path(product->project->qbsFile));
-        scriptEngine->globalObject().setProperty("project", projectScriptValue, QScriptValue::ReadOnly);
+        engine->globalObject().setProperty("project", projectScriptValue, QScriptValue::ReadOnly);
     }
 
     QScriptValue productScriptValue;
     if (lastSetupProduct != product.data()) {
-        scriptEngine->setProperty("lastSetupProduct",
+        engine->setProperty("lastSetupProduct",
                 QVariant(reinterpret_cast<qulonglong>(product.data())));
-        productScriptValue = scriptEngine->toScriptValue(product->configuration->value());
+        productScriptValue = engine->toScriptValue(product->configuration->value());
         productScriptValue.setProperty("name", product->name);
         QString destinationDirectory = product->destinationDirectory;
         if (destinationDirectory.isEmpty())
             destinationDirectory = ".";
         productScriptValue.setProperty("destinationDirectory", destinationDirectory);
-        scriptEngine->globalObject().setProperty("product", productScriptValue, QScriptValue::ReadOnly);
+        engine->globalObject().setProperty("product", productScriptValue, QScriptValue::ReadOnly);
     } else {
-        productScriptValue = scriptEngine->globalObject().property("product");
+        productScriptValue = engine->globalObject().property("product");
     }
 
     // If the Rule is in a Module, set up the 'module' property
@@ -211,30 +213,8 @@ void BuildGraph::setupScriptEngineForProduct(QScriptEngine *scriptEngine,
         productScriptValue.setProperty("module", productScriptValue.property("modules").property(rule->module->name));
 
     if (rule) {
-        for (JsImports::const_iterator it = rule->jsImports.begin(); it != rule->jsImports.end(); ++it) {
-            const JsImport &jsImport = *it;
-            foreach (const QString &fileName, jsImport.fileNames) {
-                QScriptValue activationObject = scriptEngine->currentContext()->activationObject();
-                QScriptValue jsImportValue;
-                if (bg)
-                    jsImportValue = bg->m_jsImportCache.value(fileName, scriptEngine->undefinedValue());
-                if (jsImportValue.isUndefined()) {
-//                    qDebug() << "CACHE MISS" << fileName;
-                    QFile file(fileName);
-                    if (!file.open(QFile::ReadOnly))
-                        throw Error(QString("Cannot open '%1'.").arg(fileName));
-                    const QString sourceCode = QTextStream(&file).readAll();
-                    QScriptProgram program(sourceCode, fileName);
-                    addJSImport(scriptEngine, program, jsImportValue);
-                    activationObject.setProperty(jsImport.scopeName, jsImportValue);
-                    if (bg)
-                        bg->m_jsImportCache.insert(fileName, jsImportValue);
-                } else {
-//                    qDebug() << "CACHE HIT" << fileName;
-                    activationObject.setProperty(jsImport.scopeName, jsImportValue);
-                }
-            }
-        }
+        QScriptValue targetObject = engine->currentContext()->activationObject();
+        engine->import(rule->jsImports, QScriptValue(), targetObject);
     } else {
         // ### TODO remove the imports we added before
     }
@@ -346,7 +326,7 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag,
                            Rule::ConstPtr rule)
 {
-    setupScriptEngineForProduct(scriptEngine(), product->rProduct, rule, this);
+    setupScriptEngineForProduct(scriptEngine(), product->rProduct, rule);
 
     if (rule->isMultiplexRule()) {
         // apply the rule once for a set of inputs
@@ -898,7 +878,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             rule->artifacts += ruleArtifact;
         }
         transformer->rule = rule;
-        setupScriptEngineForProduct(scriptEngine(), rProduct, transformer->rule, this);
+        setupScriptEngineForProduct(scriptEngine(), rProduct, transformer->rule);
         transformer->setupInputs(scriptEngine(), scriptEngine()->globalObject());
         transformer->setupOutputs(scriptEngine(), scriptEngine()->globalObject());
         createTransformerCommands(rtrafo->transform, transformer.data());
@@ -1044,12 +1024,12 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
     applyRule(artifact->product, artifactsPerFileTag, rule);
 }
 
-QScriptEngine *BuildGraph::scriptEngine()
+QbsEngine *BuildGraph::scriptEngine()
 {
     QThread *const currentThread = QThread::currentThread();
-    QScriptEngine *engine = m_scriptEnginePerThread.value(currentThread);
+    QbsEngine *engine = m_scriptEnginePerThread.value(currentThread);
     if (!engine) {
-        engine = new QScriptEngine;
+        engine = new QbsEngine;
         m_scriptEnginePerThread.insert(currentThread, engine);
 
         ProcessCommand::setupForJavaScript(engine);

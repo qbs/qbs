@@ -36,11 +36,14 @@
 
 #include <QCoreApplication>
 #include <QScriptClass>
-#include <QScriptEngine>
 #include <QStringList>
 #include <QVariant>
 
 #include <set>
+
+QT_BEGIN_NAMESPACE
+class QScriptContext;
+QT_END_NAMESPACE
 
 namespace qbs {
 
@@ -347,6 +350,7 @@ public:
 };
 
 class ProgressObserver;
+class QbsEngine;
 
 class Loader
 {
@@ -437,7 +441,7 @@ private:
     ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;
     QStringList m_moduleSearchPaths;
-    QScriptEngine *m_engine;
+    QbsEngine *m_engine;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;
     QScriptValue m_jsFunction_getenv;
@@ -446,7 +450,7 @@ private:
     Settings::Ptr m_settings;
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;
-    QHash<QString, QScriptValue> m_jsImports;
+    QHash<QString, QScriptValue> m_jsImports;   // ### remove
     QHash<QString, QVariantMap> m_productModules;
     QHash<QString, QStringList> m_moduleDirListCache;
 };

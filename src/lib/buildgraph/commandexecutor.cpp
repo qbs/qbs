@@ -34,6 +34,7 @@
 
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
+#include <language/qbsengine.h>
 #include <tools/hostosinfo.h>
 #include <tools/logger.h>
 #include <jsextensions/file.h>
@@ -45,7 +46,6 @@
 #include <QDir>
 #include <QFutureWatcher>
 #include <QProcess>
-#include <QScriptEngine>
 #include <QThread>
 #include <QTemporaryFile>
 
@@ -341,10 +341,10 @@ public:
         result_type result;
         result.success = true;
         QThread *currentThread = QThread::currentThread();
-        QScriptEngine *scriptEngine = m_scriptEnginesPerThread.value(currentThread);
+        QbsEngine *scriptEngine = m_enginesPerThread.value(currentThread);
         if (!scriptEngine) {
-            scriptEngine = new QScriptEngine();
-            m_scriptEnginesPerThread.insert(currentThread, scriptEngine);
+            scriptEngine = new QbsEngine();
+            m_enginesPerThread.insert(currentThread, scriptEngine);
 
             QScriptValue extensionObject = scriptEngine->globalObject();
             File::init(extensionObject);
@@ -382,11 +382,11 @@ public:
     }
 
 private:
-    static QHash<QThread *, QScriptEngine *> m_scriptEnginesPerThread;
+    static QHash<QThread *, QbsEngine *> m_enginesPerThread;
     JavaScriptCommand *m_jsCommand;
 };
 
-QHash<QThread *, QScriptEngine *> JSRunner::m_scriptEnginesPerThread;
+QHash<QThread *, QbsEngine *> JSRunner::m_enginesPerThread;
 
 void CommandExecutor::startJavaScriptCommand()
 {

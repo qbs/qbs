@@ -29,10 +29,8 @@
 
 #include "resolvedproduct.h"
 
-
-#include <QScriptEngine>
-
 #include <language/language.h>
+#include <language/qbsengine.h>
 
 namespace Qbs {
 namespace Private {
@@ -61,7 +59,7 @@ ResolvedProduct &ResolvedProduct::operator =(const ResolvedProduct &other)
 int ResolvedProduct::setupBuildEnvironment() const
 {
     try {
-        QScriptEngine engine;
+        qbs::QbsEngine engine;
         m_internalResolvedBuildProduct->setupBuildEnvironment(&engine, QProcessEnvironment::systemEnvironment());
     } catch (const qbs::Error &error) {
         fprintf(stderr, "%s", qPrintable(error.toString()));
@@ -74,7 +72,7 @@ int ResolvedProduct::setupBuildEnvironment() const
 int ResolvedProduct::setupRunEnvironment() const
 {
     try {
-        QScriptEngine engine;
+        qbs::QbsEngine engine;
         m_internalResolvedBuildProduct->setupRunEnvironment(&engine, QProcessEnvironment::systemEnvironment());
     } catch (const qbs::Error &error) {
         fprintf(stderr, "%s", qPrintable(error.toString()));

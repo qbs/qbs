@@ -34,6 +34,7 @@
 
 #include <buildgraph/transformer.h>
 #include <language/language.h>
+#include <language/qbsengine.h>
 #include <tools/fileinfo.h>
 #include <tools/logger.h>
 #include <tools/progressobserver.h>
@@ -45,7 +46,7 @@ namespace qbs {
 static QHashDummyValue hashDummy;
 
 Executor::Executor(int maxJobs)
-    : m_scriptEngine(0)
+    : m_engine(0)
     , m_progressObserver(0)
     , m_runOnceAndForgetMode(false)
     , m_state(ExecutorIdle)
@@ -84,10 +85,10 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     setState(ExecutorRunning);
     Artifact::BuildState initialBuildState = changedFiles.isEmpty() ? Artifact::Buildable : Artifact::Built;
 
-    if (!m_scriptEngine) {
-        m_scriptEngine = new QScriptEngine(this);
+    if (!m_engine) {
+        m_engine = new QbsEngine(this);
         foreach (ExecutorJob *job, findChildren<ExecutorJob *>())
-            job->setMainThreadScriptEngine(m_scriptEngine);
+            job->setMainThreadScriptEngine(m_engine);
     }
 
     // determine the products we want to build
@@ -144,7 +145,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     const QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
     foreach (BuildProduct::Ptr product, m_productsToBuild) {
         try {
-            product->rProduct->setupBuildEnvironment(m_scriptEngine, systemEnvironment);
+            product->rProduct->setupBuildEnvironment(m_engine, systemEnvironment);
         } catch (const Error &e) {
             setError(e.toString());
             return;

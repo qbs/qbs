@@ -30,6 +30,7 @@
 #ifndef L2_LANGUAGE_HPP
 #define L2_LANGUAGE_HPP
 
+#include "jsimports.h"
 #include <tools/codelocation.h>
 #include <tools/persistence.h>
 #include <tools/settings.h>
@@ -51,23 +52,6 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
-
-/**
-  * Represents JavaScript import of the form
-  *    import 'fileOrDirectory' as scopeName
-  *
-  * There can be several filenames per scope
-  * if we import a whole directory.
-  */
-class JsImport
-{
-public:
-    QString scopeName;
-    QStringList fileNames;
-    CodeLocation location;
-};
-
-typedef QList<JsImport> JsImports;
 
 class Rule;
 
@@ -298,6 +282,8 @@ private:
 };
 
 class ResolvedProject;
+class QbsEngine;
+
 class ResolvedProduct: public qbs::PersistentObject
 {
 public:
@@ -328,8 +314,8 @@ public:
     QHash<QString, QString> executablePathCache;
 
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
-    void setupBuildEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
-    void setupRunEnvironment(QScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
+    void setupBuildEnvironment(QbsEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
+    void setupRunEnvironment(QbsEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
 
 private:
     ResolvedProduct();

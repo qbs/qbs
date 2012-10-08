@@ -30,6 +30,7 @@
 #include "loader.h"
 
 #include "language.h"
+#include "qbsengine.h"
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/settings.h>
@@ -41,7 +42,6 @@
 #include <QCoreApplication>
 #include <QDirIterator>
 #include <QSettings>
-#include <QScriptEngine>
 #include <QScriptProgram>
 #include <QScriptValueIterator>
 #include <QStringList>
@@ -688,7 +688,7 @@ Loader::Loader()
     : m_progressObserver(0)
 {
     m_settings = Settings::create();
-    m_engine = new QScriptEngine;
+    m_engine = new QbsEngine;
 
     QVariant v;
     v.setValue(static_cast<void*>(this));
@@ -1244,34 +1244,11 @@ void Loader::fillEvaluationObjectBasics(const ScopeChain::Ptr &scopeChain, Langu
 
 void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
 {
-    for (JsImports::const_iterator importIt = jsImports.begin();
-         importIt != jsImports.end(); ++importIt) {
-
+    QScriptValue importScope;
+    for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it) {
         QScriptValue targetObject = m_engine->newObject();
-        foreach (const QString &fileName, importIt->fileNames) {
-            QScriptValue importResult = m_jsImports.value(fileName);
-            if (importResult.isValid()) {
-                targetObject = importResult;
-            } else {
-                QFile file(fileName);
-                if (!file.open(QFile::ReadOnly)) {
-                    QString msg = tr("Couldn't open js import '%1'.");
-                    throw Error(msg.arg(fileName), importIt->location);
-                    continue;
-                }
-                const QString source = QTextStream(&file).readAll();
-                file.close();
-                const QScriptProgram program(source, fileName);
-                importResult = addJSImport(m_engine, program, targetObject);
-                if (m_engine->hasUncaughtException())
-                    throw Error(QLatin1String("error while evaluating import: ") + importResult.toString(),
-                                fileName, m_engine->uncaughtExceptionLineNumber());
-
-                m_jsImports.insert(fileName, targetObject);
-            }
-        }
-
-        target->properties.insert(importIt->scopeName, Property(targetObject));
+        m_engine->import(*it, importScope, targetObject);
+        target->properties.insert(it->scopeName, Property(targetObject.property(it->scopeName)));
     }
 }
 

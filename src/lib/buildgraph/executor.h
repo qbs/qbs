@@ -117,7 +117,7 @@ protected:
     void cancelJobs();
 
 private:
-    QScriptEngine *m_scriptEngine;
+    QbsEngine *m_engine;
     ProgressObserver *m_progressObserver;
     bool m_runOnceAndForgetMode;    // This is true for the command line version.
     QList<ExecutorJob*> m_availableJobs;

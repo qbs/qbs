@@ -199,7 +199,9 @@ public:
     void onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct, bool *discardStoredProject);
     void updateNodesThatMustGetNewTransformer();
 
-    static void setupScriptEngineForProduct(QScriptEngine *scriptEngine, const ResolvedProduct::ConstPtr &product, Rule::ConstPtr rule, BuildGraph *bg = 0);
+    static void setupScriptEngineForProduct(QbsEngine *scriptEngine,
+                                            const ResolvedProduct::ConstPtr &product,
+                                            Rule::ConstPtr rule);
     static void disconnect(Artifact *u, Artifact *v);
     static void disconnectChildren(Artifact *u);
     static void disconnectParents(Artifact *u);
@@ -214,12 +216,12 @@ private:
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
     static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);
 
-    QScriptEngine *scriptEngine();
+    QbsEngine *scriptEngine();
 
 private:
     ProgressObserver *m_progressObserver;
     QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
-    QHash<QThread *, QScriptEngine *> m_scriptEnginePerThread;
+    QHash<QThread *, QbsEngine *> m_scriptEnginePerThread;
     QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QString, QScriptProgram> m_scriptProgramCache;

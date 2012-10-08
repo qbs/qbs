@@ -27,60 +27,35 @@
 **
 ****************************************************************************/
 
-#ifndef SCRIPTTOOLS_H
-#define SCRIPTTOOLS_H
+#ifndef QBSENGINE_H
+#define QBSENGINE_H
 
+#include "language.h" // ### remove
 #include <QScriptEngine>
-#include <QScriptProgram>
-#include <QScriptValue>
-#include <QSet>
-#include <QStringList>
-#include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
-
-QDataStream &operator<< (QDataStream &s, const QScriptProgram &script);
-QDataStream &operator>> (QDataStream &s, QScriptProgram &script);
-
+class QScriptEngine;
 QT_END_NAMESPACE
-
 
 namespace qbs {
 
-template <typename C>
-QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
+class QbsEngine : public QScriptEngine
 {
-    QScriptValue v = scriptEngine->newArray(container.count());
-    int i = 0;
-    foreach (const typename C::value_type &item, container)
-        v.setProperty(i++, scriptEngine->toScriptValue(item));
-    return v;
-}
-
-void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
-QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
-
-/**
- * @brief push/pop a QScriptEngine's context the RAII way.
- */
-class ScriptEngineContextPusher
-{
+    Q_OBJECT
 public:
-    ScriptEngineContextPusher(QScriptEngine *scriptEngine)
-        : m_scriptEngine(scriptEngine)
-    {
-        m_scriptEngine->pushContext();
-    }
+    QbsEngine(QObject *parent = 0);
+    ~QbsEngine();
 
-    ~ScriptEngineContextPusher()
-    {
-        m_scriptEngine->popContext();
-    }
+    void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
+    void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
 
 private:
-    QScriptEngine *m_scriptEngine;
+    void importProgram(const QScriptProgram &program, const QScriptValue &scope,
+                       QScriptValue &targetObject);
+
+    QHash<QString, QScriptValue> m_jsImportCache;
 };
 
 } // namespace qbs
 
-#endif // SCRIPTTOOLS_H
+#endif // QBSENGINE_H
