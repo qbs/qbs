@@ -1,0 +1,31 @@
+import qbs.base
+import qbs.fileinfo as FileInfo
+
+DynamicLibrary {
+    name: "echoplugin"
+    files: [
+        "echoplugin.h",
+        "echoplugin.cpp",
+        "echoplugin.json.source"
+    ]
+
+    Depends { name: "Qt.widgets" }
+    Depends { name: "cpp" }
+    cpp.includePaths: buildDirectory
+
+    Transformer {
+        inputs: ["echoplugin.json.source"]
+        Artifact {
+            fileName: "echoplugin.json"
+            fileTags: ["qt_plugin_metadata"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "generating " + FileInfo.fileName(output.fileName);
+            cmd.sourceCode = function() {
+                File.copy(input.fileName, output.fileName);
+            }
+            return cmd;
+        }
+    }
+}

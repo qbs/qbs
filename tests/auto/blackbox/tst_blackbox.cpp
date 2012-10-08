@@ -174,6 +174,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
             << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
+    QTest::newRow("Qt5 plugin")
+            << QString("qt5plugin")
+            << QString(buildDir + QLatin1String("/") + qbs::HostOsInfo::dynamicLibraryName("echoplugin"));
 }
 
 void TestBlackbox::build_project()
@@ -182,6 +185,7 @@ void TestBlackbox::build_project()
     QFETCH(QString, productFileName);
     if (!projectSubDir.startsWith('/'))
         projectSubDir.prepend('/');
+    QVERIFY(QFile::exists(testDataDir + projectSubDir));
     QDir::setCurrent(testDataDir + projectSubDir);
 
     QCOMPARE(runQbs(), 0);
