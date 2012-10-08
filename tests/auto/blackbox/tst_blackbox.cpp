@@ -36,6 +36,7 @@
 **************************************************************************/
 
 #include "tst_blackbox.h"
+#include <tools/hostosinfo.h>
 
 TestBlackbox::TestBlackbox()
     : testDataDir(QCoreApplication::applicationDirPath() + "/testdata"),
@@ -43,11 +44,6 @@ TestBlackbox::TestBlackbox()
       buildProfile(QLatin1String("qbs_autotests")),
       buildDir(QLatin1String("build/") + buildProfile + QLatin1String("-debug")),
       qbsExecutableFilePath(QCoreApplication::applicationDirPath() + "/qbs"),
-#ifdef Q_OS_WIN
-      executableSuffix(QLatin1String(".exe")),
-#else
-      executableSuffix(QLatin1String("")),
-#endif
 #ifdef Q_OS_WIN
         objectSuffix(QLatin1String(".obj"))
 #else
@@ -164,7 +160,7 @@ void TestBlackbox::build_project_data()
     QTest::addColumn<QString>("productFileName");
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
-            << QString(buildDir + "/HelloWorld");
+            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
 }
 
 void TestBlackbox::build_project()
@@ -174,7 +170,7 @@ void TestBlackbox::build_project()
     if (!projectSubDir.startsWith('/'))
         projectSubDir.prepend('/');
     QDir::setCurrent(testDataDir + projectSubDir);
-    productFileName.append(executableSuffix);
+
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile::exists(productFileName));
     QVERIFY(QFile::remove(productFileName));
@@ -186,7 +182,7 @@ void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
-    QString fileName = "build/" + buildProfile + "-debug/i" + executableSuffix;
+    const QString fileName = qbs::HostOsInfo::appendExecutableSuffix("build/" + buildProfile + "-debug/i");
     QVERIFY(QFile(fileName).exists());
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);
@@ -209,7 +205,8 @@ void TestBlackbox::track_qobject_change()
     QVERIFY(QFile("bla_qobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(buildDir + "/i" + executableSuffix).exists());
+    const QString productFilePath = qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/i");
+    QVERIFY(QFile(productFilePath).exists());
     QString moc_bla_objectFileName = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla" + objectSuffix;
     QVERIFY(QFile(moc_bla_objectFileName).exists());
 
@@ -218,7 +215,7 @@ void TestBlackbox::track_qobject_change()
     QVERIFY(QFile("bla_noqobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(buildDir + "/i" + executableSuffix).exists());
+    QVERIFY(QFile(productFilePath).exists());
     QVERIFY(!QFile(moc_bla_objectFileName).exists());
 }
 
