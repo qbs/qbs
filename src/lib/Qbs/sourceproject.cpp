@@ -174,7 +174,7 @@ void SourceProject::loadProject(const QString &projectFileName,
                     warnLegacyConfig("defaults/platform");
                 }
             if (!defaultPlatform.isValid())
-                throw Error(tr("SourceProject::loadProject: no platform given and no default set."));
+                throw Error(tr("No platform given and no default set."));
             buildCfg.insert("qbs.platform", defaultPlatform);
         }
         const QString platformName = buildCfg.value("qbs.platform").toString();

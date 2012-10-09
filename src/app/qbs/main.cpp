@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     }
 
     // read commandline
-    if (!options.readCommandLineArguments(arguments)) {
+    if (!options.parseCommandLine(arguments)) {
         qbs::CommandLineOptions::printHelp();
         return ExitCodeErrorParsingCommandLine;
     }

@@ -45,7 +45,6 @@ namespace qbs {
 CommandLineOptions::CommandLineOptions()
     : m_command(BuildCommand)
     , m_dumpGraph(false)
-    , m_gephi (false)
     , m_help (false)
     , m_clean (false)
     , m_keepGoing(false)
@@ -86,9 +85,7 @@ void CommandLineOptions::printHelp()
          "      .............. specify a list of out of date files\n"
          "  --products ProductName [product name 2] ... [product name n]\n"
          "      .............. specify a list of products to build\n"
-         "\ngraph options:\n"
-         "  -g  .............. show generation graph\n"
-         , stdout);
+        , stdout);
 }
 
 /**
@@ -96,7 +93,18 @@ void CommandLineOptions::printHelp()
  * If there's more than one project file found then this function returns false.
  * A project file can explicitely be given by the -f option.
  */
-bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
+bool CommandLineOptions::parseCommandLine(const QStringList &args)
+{
+    try {
+        doParse(args);
+    } catch (const Error &error) {
+        qbsError(qPrintable(tr("Invalid command line: %1").arg(error.toString())));
+        return false;
+    }
+    return true;
+}
+
+void CommandLineOptions::doParse(const QStringList &args)
 {
     m_projectFileName.clear();
     m_dryRun = false;
@@ -154,37 +162,30 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                 QStringList changedFiles;
                 for (++i; i < argc && !args.at(i).startsWith('-'); ++i)
                     changedFiles += args.at(i);
-                if (changedFiles.isEmpty()) {
-                    qbsError("--changed-files expects one or more file names.");
-                    return false;
-                }
+                if (changedFiles.isEmpty())
+                    throw Error(tr("--changed-files expects one or more file names."));
                 m_changedFiles = changedFiles;
                 --i;
                 continue;
-            } else if (arg == "products" && (m_command == BuildCommand || m_command == CleanCommand || m_command == PropertiesCommand)) {
+            } else if (arg == "products" && (m_command == BuildCommand || m_command == CleanCommand
+                    || m_command == PropertiesCommand)) {
                 QStringList productNames;
                 for (++i; i < argc && !args.at(i).startsWith('-'); ++i)
                     productNames += args.at(i);
-                if (productNames.isEmpty()) {
-                    qbsError("--products expects one or more product names.");
-                    return false;
-                }
+                if (productNames.isEmpty())
+                    throw Error(tr("--products expects one or more product names."));
                 m_selectedProductNames = productNames;
                 --i;
                 continue;
             } else {
-                QString err = QLatin1String("Parameter '%1' is unknown.");
-                qbsError(qPrintable(err.arg(QLatin1String("--") + arg)));
-                return false;
+                throw Error(tr("Parameter '%1' is unknown.").arg(QLatin1String("--") + arg));
             }
 
             QString stringValue;
             if (targetString || targetStringList) {
-                // string value expected
                 if (++i >= argc) {
-                    QString err = QLatin1String("String value expected after parameter '%1'.");
-                    qbsError(qPrintable(err.arg(QLatin1String("--") + arg)));
-                    return false;
+                    throw Error(tr("Argument expected after parameter '%1'.")
+                            .arg(QLatin1String("--") + arg));
                 }
                 stringValue = args.at(i);
             }
@@ -210,9 +211,11 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                     k += endStr - str.data();
                 } else if (++i < argc) {
                     m_jobs = args.at(i).toInt();
+                } else {
+                    throw Error(tr("Option -j needs an argument."));
                 }
                 if (m_jobs < 1)
-                    return false;
+                    throw Error(tr("Invalid job count."));
                 break;
             case 'v':
                 verbosity = 1;
@@ -232,11 +235,7 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                     m_projectFileName = args.at(i);
                 }
                 m_projectFileName = QDir::fromNativeSeparators(m_projectFileName);
-                if (!setRealProjectFile())
-                    return false;
-                break;
-            case 'g':
-                m_gephi = true;
+                setRealProjectFile();
                 break;
             case 'k':
                 m_keepGoing = true;
@@ -245,13 +244,10 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
                 m_dryRun = true;
                 break;
             default:
-                qbsError(qPrintable(QString("Unknown option '%1'.").arg(arg.at(1))));
-                return false;
+                throw Error(tr("Unknown option '%1'.").arg(arg.at(1)));
             }
-            if (k < arg.length() - 1) { // Trailing characters?
-                qbsError(qPrintable(QString("Invalid option '%1'.").arg(arg)));
-                return false;
-            }
+            if (k < arg.length() - 1) // Trailing characters?
+                throw Error(tr("Invalid option '%1'.").arg(arg));
         }
     }
 
@@ -279,8 +275,6 @@ bool CommandLineOptions::readCommandLineArguments(const QStringList &args)
         m_searchPaths.append(qbsRootPath() + "/share/qbs/");
     if (m_pluginPaths.isEmpty())
         m_pluginPaths.append(qbsRootPath() + "/plugins/");
-
-    return true;
 }
 
 static void showConfigUsage()
@@ -438,33 +432,25 @@ QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
         return "qbs." + aCommandLineName;
 }
 
-bool CommandLineOptions::setRealProjectFile()
+void CommandLineOptions::setRealProjectFile()
 {
     const QFileInfo projectFileInfo(m_projectFileName);
-    if (!projectFileInfo.exists()) {
-        qbsError("Project file '%s' cannot be found.", qPrintable(m_projectFileName));
-        return false;
-    }
+    if (!projectFileInfo.exists())
+        throw Error(tr("Project file '%1' cannot be found.").arg(m_projectFileName));
     if (projectFileInfo.isFile())
-        return true;
-    if (!projectFileInfo.isDir()) {
-        qbsError("Project file '%s' has invalid type.", qPrintable(m_projectFileName));
-        return false;
-    }
+        return;
+    if (!projectFileInfo.isDir())
+        throw Error(tr("Project file '%1' has invalid type.").arg(m_projectFileName));
     const QStringList namePatterns = QStringList(QLatin1String("*.qbp"));
     const QStringList &actualFileNames
             = QDir(m_projectFileName).entryList(namePatterns, QDir::Files);
-    if (actualFileNames.isEmpty()) {
-        qbsError("No project file found in directory '%s'.", qPrintable(m_projectFileName));
-        return false;
-    }
+    if (actualFileNames.isEmpty())
+        throw Error(tr("No project file found in directory '%1'.").arg(m_projectFileName));
     if (actualFileNames.count() > 1) {
-        qbsError("More than one project file found in directory '%s'.",
-                 qPrintable(m_projectFileName));
-        return false;
+        throw Error(tr("More than one project file found in directory '%1'.")
+                .arg(m_projectFileName));
     }
     m_projectFileName.append(QLatin1Char('/')).append(actualFileNames.first());
-    return true;
 }
 
 QList<QVariantMap> CommandLineOptions::buildConfigurations() const
@@ -531,10 +517,9 @@ QString CommandLineOptions::guessProjectFileName()
             QDir::setCurrent(searchDir.path());
             return searchDir.absoluteFilePath(projectFiles.first());
         } else if (projectFiles.count() > 1) {
-            QString str = QLatin1String("Multiple project files found in '%1'.\n"
-                    "Please specify the correct project file using the -f option.");
-            qbsError(qPrintable(str.arg(QDir::toNativeSeparators(searchDir.absolutePath()))));
-            return QString();
+            throw Error(tr("Multiple project files found in '%1'.\n"
+                    "Please specify the correct project file using the -f option.")
+                    .arg(QDir::toNativeSeparators(searchDir.absolutePath())));
         }
         if (!searchDir.cdUp())
             break;

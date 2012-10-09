@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
-    if (!options.readCommandLineArguments(arguments)) {
+    if (!options.parseCommandLine(arguments)) {
         qbs::CommandLineOptions::printHelp();
         return 1;
     }

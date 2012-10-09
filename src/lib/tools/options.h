@@ -43,6 +43,7 @@ namespace qbs {
   */
 class CommandLineOptions
 {
+    Q_DECLARE_TR_FUNCTIONS(CommandLineOptions)
 public:
     CommandLineOptions();
 
@@ -58,7 +59,7 @@ public:
 
     static void printHelp();
     Command command() const { return m_command;}
-    bool readCommandLineArguments(const QStringList &args);
+    bool parseCommandLine(const QStringList &args);
     void configure();
     const QString &runTargetName() const { return m_runTargetName; }
     const QString &projectFileName() const { return m_projectFileName; }
@@ -69,7 +70,6 @@ public:
     const QStringList &changedFiles() const { return m_changedFiles; }
     const QStringList &selectedProductNames() const { return m_selectedProductNames; }
     bool isDumpGraphSet() const { return m_dumpGraph; }
-    bool isGephiSet() const { return m_gephi; }
     bool isDryRunSet() const { return m_dryRun; }
     bool isHelpSet() const { return m_help; }
     bool isCleanSet() const { return m_clean; }
@@ -80,6 +80,7 @@ public:
     QList<QVariantMap> buildConfigurations() const;
 
 private:
+    void doParse(const QStringList &args);
     void loadLocalProjectSettings(bool throwExceptionOnFailure);
     void printSettings(Settings::Scope scope);
     void exportGlobalSettings(const QString &filename);
@@ -87,9 +88,8 @@ private:
     void upgradeSettings(Settings::Scope scope);
     QString guessProjectFileName();
     QString propertyName(const QString &aCommandLineName) const;
-    bool setRealProjectFile();
+    void setRealProjectFile();
 
-private:
     Settings::Ptr m_settings;
     Command m_command;
     QString m_runTargetName;
@@ -102,7 +102,6 @@ private:
     QStringList m_changedFiles;
     QStringList m_selectedProductNames;
     bool m_dumpGraph;
-    bool m_gephi;
     bool m_dryRun;
     bool m_help;
     bool m_clean;

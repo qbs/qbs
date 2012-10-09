@@ -43,8 +43,8 @@ private slots:
         args.append("-vvv");
         args.append("-k");
         qbs::CommandLineOptions options;
-        options.readCommandLineArguments(args);
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerInfo);
+        options.parseCommandLine(args);
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
         QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
         QVERIFY(options.isKeepGoingSet());
     }
@@ -75,13 +75,13 @@ private slots:
         qbs::CommandLineOptions options;
         const QStringList args(QLatin1String("-f"));
         QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbp");
-        QVERIFY(options.readCommandLineArguments(args + QStringList(projectFilePath)));
+        QVERIFY(options.parseCommandLine(args + QStringList(projectFilePath)));
         QCOMPARE(projectFilePath, options.projectFileName());
         projectFilePath = oneProjectDir + QLatin1String("/project.qbp");
-        QVERIFY(options.readCommandLineArguments(args + QStringList(oneProjectDir)));
+        QVERIFY(options.parseCommandLine(args + QStringList(oneProjectDir)));
         QCOMPARE(projectFilePath, options.projectFileName());
-        QVERIFY(!options.readCommandLineArguments(args + QStringList(noProjectsDir)));
-        QVERIFY(!options.readCommandLineArguments(args + QStringList(multiProjectsDir)));
+        QVERIFY(!options.parseCommandLine(args + QStringList(noProjectsDir)));
+        QVERIFY(!options.parseCommandLine(args + QStringList(multiProjectsDir)));
     }
 };
 
