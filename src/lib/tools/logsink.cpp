@@ -44,9 +44,6 @@ void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &
 
     if (message.printLogLevel) {
         switch (level) {
-        case LoggerFatal:
-            fprintfWrapper(TextColorRed, file, "FATAL ERROR: ");
-            break;
         case LoggerError:
             fprintfWrapper(TextColorRed, file, "ERROR: ");
             break;

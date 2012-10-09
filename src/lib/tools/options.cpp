@@ -546,7 +546,7 @@ void CommandLineOptions::exportGlobalSettings(const QString &filename)
 {
     QFile file(filename);
     if (!file.open(QFile::Truncate | QFile::WriteOnly | QFile::Text)) {
-        qbsFatal("Couldn't open file %s for writing: %s", qPrintable(filename), qPrintable(file.errorString()));
+        qbsError("Couldn't open file %s for writing: %s", qPrintable(filename), qPrintable(file.errorString()));
         return;
     }
     QTextStream stream(&file);
@@ -562,7 +562,7 @@ void CommandLineOptions::importGlobalSettings(const QString &filename)
 {
     QFile file(filename);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        qbsFatal("Couldn't open file %s for reading: %s", qPrintable(filename), qPrintable(file.errorString()));
+        qbsError("Couldn't open file %s for reading: %s", qPrintable(filename), qPrintable(file.errorString()));
         return;
     }
     // Remove all current settings

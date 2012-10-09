@@ -99,7 +99,6 @@ enum LogModifier
 
 inline bool qbsLogLevel(qbs::LoggerLevel l) { return qbs::Logger::instance().level() >= l; }
 void qbsLog(qbs::LoggerLevel logLevel, const char *str, ...);
-void qbsFatal(const char *str, ...);
 void qbsError(const char *str, ...);
 void qbsWarning(const char *str, ...);
 void qbsInfo(const char *str, ...);
@@ -107,7 +106,6 @@ void qbsDebug(const char *str, ...);
 void qbsTrace(const char *str, ...);
 
 qbs::LogWriter qbsLog(qbs::LoggerLevel level);
-qbs::LogWriter qbsFatal();
 qbs::LogWriter qbsError();
 qbs::LogWriter qbsWarning();
 qbs::LogWriter qbsInfo();

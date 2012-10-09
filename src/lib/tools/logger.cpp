@@ -173,7 +173,6 @@ void qbsLog(LoggerLevel logLevel, const char *str, ...)
         } \
     } \
 
-DEFINE_QBS_LOG_FUNCTION(Fatal)
 DEFINE_QBS_LOG_FUNCTION(Error)
 DEFINE_QBS_LOG_FUNCTION(Warning)
 DEFINE_QBS_LOG_FUNCTION(Info)
@@ -183,11 +182,6 @@ DEFINE_QBS_LOG_FUNCTION(Trace)
 LogWriter qbsLog(LoggerLevel level)
 {
     return LogWriter(level);
-}
-
-LogWriter qbsFatal()
-{
-    return LogWriter(LoggerFatal);
 }
 
 LogWriter qbsError()
