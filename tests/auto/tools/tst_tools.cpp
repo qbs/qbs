@@ -37,16 +37,32 @@ class TestFileInfo : public QObject
 {
     Q_OBJECT
 private slots:
-    void testCommandLineOptions()
+    void testValidCommandLine()
     {
         QStringList args;
-        args.append("-vvv");
-        args.append("-k");
+        args.append("-vvk");
+        args.append("-v");
+        args << "--products" << "blubb";
+        args << "--changed-files" << "foo,bar";
         qbs::CommandLineOptions options;
         options.parseCommandLine(args);
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
         QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
+        QCOMPARE(options.selectedProductNames(), QStringList() << "blubb");
+        QCOMPARE(options.changedFiles(), QStringList() << "foo" << "bar");
         QVERIFY(options.isKeepGoingSet());
+    }
+
+    void testInvalidCommandLine()
+    {
+        qbs::CommandLineOptions options;
+        QVERIFY(!options.parseCommandLine(QStringList() << "-x")); // Unknown short option.
+        QVERIFY(!options.parseCommandLine(QStringList() << "--xyz")); // Unknown long option.
+        QVERIFY(!options.parseCommandLine(QStringList() << "-vjv")); // Invalid position.
+        QVERIFY(!options.parseCommandLine(QStringList() << "-j"));  // Missing argument.
+        QVERIFY(!options.parseCommandLine(QStringList() << "-j" << "0")); // Wrong argument.
+        QVERIFY(!options.parseCommandLine(QStringList() << "--products"));  // Missing argument.
+        QVERIFY(!options.parseCommandLine(QStringList() << "--changed-files" << ",")); // Wrong argument.
     }
 
     void testFileInfo()

@@ -80,7 +80,13 @@ public:
     QList<QVariantMap> buildConfigurations() const;
 
 private:
-    void doParse(const QStringList &args);
+    void doParse();
+    void parseLongOption(const QString &option);
+    void parseShortOptions(const QString &options);
+    QString getShortOptionArgument(const QString &options, int optionPos);
+    QStringList getOptionArgumentAsList(const QString &option);
+    void parseArgument(const QString &arg);
+
     void loadLocalProjectSettings(bool throwExceptionOnFailure);
     void printSettings(Settings::Scope scope);
     void exportGlobalSettings(const QString &filename);
@@ -94,6 +100,7 @@ private:
     Command m_command;
     QString m_runTargetName;
     QString m_projectFileName;
+    QStringList m_commandLine;
     QStringList m_searchPaths;
     QStringList m_pluginPaths;
     QStringList m_positional;
@@ -107,6 +114,7 @@ private:
     bool m_clean;
     bool m_keepGoing;
     int m_jobs;
+    int m_verbosity;
 };
 }
 #endif // OPTIONS_H

@@ -43,11 +43,6 @@
 namespace qbs {
 
 CommandLineOptions::CommandLineOptions()
-    : m_command(BuildCommand)
-    , m_dumpGraph(false)
-    , m_help (false)
-    , m_clean (false)
-    , m_keepGoing(false)
 {
     m_settings = Settings::create();
     m_jobs = configurationValue("preferences/jobs", 0).toInt();
@@ -81,9 +76,9 @@ void CommandLineOptions::printHelp()
          "  -j <n>  .......... use <n> jobs (default is nr of cores)\n"
          "  -k  .............. keep going (ignore errors)\n"
          "  -n  .............. dry run\n"
-         "  --changed-files file [file 2] ... [file n]\n"
+         "  --changed-files file[,file...]\n"
          "      .............. specify a list of out of date files\n"
-         "  --products ProductName [product name 2] ... [product name n]\n"
+         "  --products name[,name...]\n"
          "      .............. specify a list of products to build\n"
         , stdout);
 }
@@ -95,8 +90,9 @@ void CommandLineOptions::printHelp()
  */
 bool CommandLineOptions::parseCommandLine(const QStringList &args)
 {
+    m_commandLine = args;
     try {
-        doParse(args);
+        doParse();
     } catch (const Error &error) {
         qbsError(qPrintable(tr("Invalid command line: %1").arg(error.toString())));
         return false;
@@ -104,155 +100,33 @@ bool CommandLineOptions::parseCommandLine(const QStringList &args)
     return true;
 }
 
-void CommandLineOptions::doParse(const QStringList &args)
+void CommandLineOptions::doParse()
 {
+    m_command = BuildCommand;
     m_projectFileName.clear();
+    m_changedFiles.clear();
+    m_selectedProductNames.clear();
     m_dryRun = false;
-    bool firstPositionalEaten = false;
-    bool runArgMode = false;
-    int verbosity = 0;
+    m_dumpGraph = false;
+    m_help = false;
+    m_clean = false;
+    m_keepGoing = false;
+    m_verbosity = 0;
 
-    const int argc = args.size();
-    for (int i = 0; i < argc; ++i) {
-        QString arg = args.at(i);
-        if (runArgMode) {
-            m_runArgs.append(arg);
-            continue;
-        }
-        if (arg == "--") {
-            runArgMode = true;
-            continue;
-        }
-
-        // --- no dash
-        if (arg.at(0) != '-' || arg.length() < 2) {
-            if (arg == QLatin1String("build")) {
-                m_command = BuildCommand;
-            } else if (arg == QLatin1String("config")) {
-                m_command = ConfigCommand;
-                m_configureArgs = args.mid(i + 1);
-                break;
-            } else if (arg == QLatin1String("clean")) {
-                m_command = CleanCommand;
-            } else if (arg == QLatin1String("shell")) {
-                m_command = StartShellCommand;
-            } else if (arg == QLatin1String("run")) {
-                m_command = RunCommand;
-            } else if (m_command == RunCommand && !firstPositionalEaten) {
-                m_runTargetName = arg;
-                firstPositionalEaten = true;
-            } else if (arg == QLatin1String("status")) {
-                m_command = StatusCommand;
-            } else if (arg == QLatin1String("properties")) {
-                m_command = PropertiesCommand;
-            } else {
-                m_positional.append(arg);
-            }
-
-        // --- two dashes
-        } else if (arg.at(1) == '-') {
-
-            arg = arg.remove(0, 2).toLower();
-            QString *targetString = 0;
-            QStringList *targetStringList = 0;
-
-            if (arg == QLatin1String("help")) {
-                m_help = true;
-            } else if (arg == "changed-files" && m_command == BuildCommand) {
-                QStringList changedFiles;
-                for (++i; i < argc && !args.at(i).startsWith('-'); ++i)
-                    changedFiles += args.at(i);
-                if (changedFiles.isEmpty())
-                    throw Error(tr("--changed-files expects one or more file names."));
-                m_changedFiles = changedFiles;
-                --i;
-                continue;
-            } else if (arg == "products" && (m_command == BuildCommand || m_command == CleanCommand
-                    || m_command == PropertiesCommand)) {
-                QStringList productNames;
-                for (++i; i < argc && !args.at(i).startsWith('-'); ++i)
-                    productNames += args.at(i);
-                if (productNames.isEmpty())
-                    throw Error(tr("--products expects one or more product names."));
-                m_selectedProductNames = productNames;
-                --i;
-                continue;
-            } else {
-                throw Error(tr("Parameter '%1' is unknown.").arg(QLatin1String("--") + arg));
-            }
-
-            QString stringValue;
-            if (targetString || targetStringList) {
-                if (++i >= argc) {
-                    throw Error(tr("Argument expected after parameter '%1'.")
-                            .arg(QLatin1String("--") + arg));
-                }
-                stringValue = args.at(i);
-            }
-
-            if (targetString)
-                *targetString = stringValue;
-            else if (targetStringList)
-                targetStringList->append(stringValue);
-
-        // --- one dash
-        } else {
-            int k = 1;
-            switch (arg.at(1).toLower().unicode()) {
-            case '?':
-            case 'h':
-                m_help = true;
-                break;
-            case 'j':
-                if (arg.length() > 2) {
-                    const QByteArray str(arg.mid(2).toLatin1());
-                    char *endStr = 0;
-                    m_jobs = strtoul(str.data(), &endStr, 10);
-                    k += endStr - str.data();
-                } else if (++i < argc) {
-                    m_jobs = args.at(i).toInt();
-                } else {
-                    throw Error(tr("Option -j needs an argument."));
-                }
-                if (m_jobs < 1)
-                    throw Error(tr("Invalid job count."));
-                break;
-            case 'v':
-                verbosity = 1;
-                while (k < arg.length() - 1 && arg.at(k + 1).toLower().unicode() == 'v') {
-                    verbosity++;
-                    k++;
-                }
-                break;
-            case 'd':
-                m_dumpGraph = true;
-                break;
-            case 'f':
-                if (arg.length() > 2) {
-                    m_projectFileName = arg.mid(2);
-                    k += m_projectFileName.length();
-                } else if (++i < argc) {
-                    m_projectFileName = args.at(i);
-                }
-                m_projectFileName = QDir::fromNativeSeparators(m_projectFileName);
-                setRealProjectFile();
-                break;
-            case 'k':
-                m_keepGoing = true;
-                break;
-            case 'n':
-                m_dryRun = true;
-                break;
-            default:
-                throw Error(tr("Unknown option '%1'.").arg(arg.at(1)));
-            }
-            if (k < arg.length() - 1) // Trailing characters?
-                throw Error(tr("Invalid option '%1'.").arg(arg));
-        }
+    while (!m_commandLine.isEmpty()) {
+        const QString arg = m_commandLine.takeFirst();
+        if (arg.isEmpty())
+            throw Error(tr("Empty arguments not allowed."));
+        if (arg.startsWith(QLatin1String("--")))
+            parseLongOption(arg);
+        else if (arg.at(0) == QLatin1Char('-'))
+            parseShortOptions(arg);
+        else
+            parseArgument(arg);
     }
 
-    if (verbosity)
-        Logger::instance().setLevel(verbosity);
+    if (m_verbosity)
+        Logger::instance().setLevel(m_verbosity);
 
     // automatically detect the project file name
     if (m_projectFileName.isEmpty())
@@ -275,6 +149,116 @@ void CommandLineOptions::doParse(const QStringList &args)
         m_searchPaths.append(qbsRootPath() + "/share/qbs/");
     if (m_pluginPaths.isEmpty())
         m_pluginPaths.append(qbsRootPath() + "/plugins/");
+}
+
+void CommandLineOptions::parseLongOption(const QString &option)
+{
+    const QString optionName = option.mid(2);
+    if (optionName.isEmpty()) {
+        if (m_command != RunCommand)
+            throw Error(tr("Argument '--' only allowed in run mode."));
+        m_runArgs = m_commandLine;
+        m_commandLine.clear();
+    }
+    else if (optionName == QLatin1String("help")) {
+        m_help = true;
+        m_commandLine.clear();
+    } else if (optionName == QLatin1String("changed-files") && m_command == BuildCommand) {
+        m_changedFiles = getOptionArgumentAsList(option);
+    } else if (optionName == QLatin1String("products") && (m_command == BuildCommand
+            || m_command == CleanCommand || m_command == PropertiesCommand)) {
+        m_selectedProductNames = getOptionArgumentAsList(option);
+    } else {
+        throw Error(tr("Unknown option '%1'.").arg(option));
+    }
+}
+
+void CommandLineOptions::parseShortOptions(const QString &options)
+{
+    for (int i = 1; i < options.count(); ++i) {
+        const char option = options.at(i).toLower().toLatin1();
+        switch (option) {
+        case '?':
+        case 'h':
+            m_help = true;
+            m_commandLine.clear();
+            return;
+        case 'j': {
+            const QString jobCountString = getShortOptionArgument(options, i);
+            bool stringOk;
+            m_jobs = jobCountString.toInt(&stringOk);
+            if (!stringOk || m_jobs <= 0)
+                throw Error(tr("Invalid job count '%1'.").arg(jobCountString));
+            break;
+        }
+        case 'v':
+            ++m_verbosity;
+            break;
+        case 'd':
+            m_dumpGraph = true;
+            break;
+        case 'f':
+            m_projectFileName = QDir::fromNativeSeparators(getShortOptionArgument(options, i));
+            setRealProjectFile();
+            break;
+        case 'k':
+            m_keepGoing = true;
+            break;
+        case 'n':
+            m_dryRun = true;
+            break;
+        default:
+            throw Error(tr("Unknown option '-%1'.").arg(option));
+        }
+    }
+}
+
+QString CommandLineOptions::getShortOptionArgument(const QString &options, int optionPos)
+{
+    if (optionPos < options.count() - 1 || m_commandLine.isEmpty())
+        throw Error(tr("Option '%1' needs an argument.").arg(options.at(optionPos)));
+    return m_commandLine.takeFirst();
+}
+
+QStringList CommandLineOptions::getOptionArgumentAsList(const QString &option)
+{
+    if (m_commandLine.isEmpty())
+        throw Error(tr("Option '%1' expects an argument.").arg(option));
+    const QStringList list = m_commandLine.takeFirst().split(QLatin1Char(','));
+    if (list.isEmpty())
+        throw Error(tr("Argument list for option '%1' must not be empty.").arg(option));
+    foreach (const QString &element, list) {
+        if (element.isEmpty()) {
+            throw Error(tr("Argument list for option '%1' must not contain empty elements.")
+                    .arg(option));
+        }
+    }
+    return list;
+}
+
+void CommandLineOptions::parseArgument(const QString &arg)
+{
+    if (arg == QLatin1String("build")) {
+        m_command = BuildCommand;
+    } else if (arg == QLatin1String("config")) {
+        m_command = ConfigCommand;
+        m_configureArgs = m_commandLine;
+        m_commandLine.clear();
+    } else if (arg == QLatin1String("clean")) {
+        m_command = CleanCommand;
+    } else if (arg == QLatin1String("shell")) {
+        m_command = StartShellCommand;
+    } else if (arg == QLatin1String("run")) {
+        m_command = RunCommand;
+    } else if (m_command == RunCommand && m_runTargetName.isEmpty()) {
+        m_runTargetName = arg;
+    } else if (arg == QLatin1String("status")) {
+        m_command = StatusCommand;
+    } else if (arg == QLatin1String("properties")) {
+        m_command = PropertiesCommand;
+    } else {
+        m_positional.append(arg);
+    }
 }
 
 static void showConfigUsage()
