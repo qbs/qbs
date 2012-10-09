@@ -433,8 +433,9 @@ void Executor::execute(Artifact *artifact)
     artifact->buildState = Artifact::Building;
     m_processingJobs.insert(job, artifact);
 
-    if (!artifact->product)
-        qbsError() << QString("BUG: Generated artifact %1 belongs to no product.").arg(QDir::toNativeSeparators(artifact->filePath()));
+    Q_ASSERT_X(artifact->product, Q_FUNC_INFO,
+               qPrintable(QString("Generated artifact '%1'' belongs to no product.")
+               .arg(QDir::toNativeSeparators(artifact->filePath()))));
 
     job->run(artifact->transformer.data(), artifact->product);
 }
@@ -509,8 +510,8 @@ void Executor::cancelJobs()
 
 void Executor::addExecutorJobs(int jobNumber)
 {
-    if (jobNumber < 1)
-        qbsError() << tr("Maximum job number must be larger than zero.");
+    Q_ASSERT(jobNumber > 0);
+
     for (int i = 1; i <= jobNumber; i++) {
         ExecutorJob *job = new ExecutorJob(this);
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
