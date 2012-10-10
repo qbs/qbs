@@ -69,18 +69,16 @@ void Configuration::setValue(const QVariantMap &map)
     m_scriptValueCache.clear();
 }
 
-QScriptValue Configuration::cachedScriptValue(QScriptEngine *scriptEngine) const
+QScriptValue Configuration::toScriptValue(QScriptEngine *scriptEngine) const
 {
     QMutexLocker ml(&m_scriptValueCacheMutex);
-    const QScriptValue result = m_scriptValueCache.value(scriptEngine);
+    QScriptValue result = m_scriptValueCache.value(scriptEngine);
     Q_ASSERT(!result.isValid() || result.engine() == scriptEngine);
+    if (!result.isValid()) {
+        result = scriptEngine->toScriptValue(m_value);
+        m_scriptValueCache[scriptEngine] = result;
+    }
     return result;
-}
-
-void Configuration::cacheScriptValue(const QScriptValue &scriptValue)
-{
-    QMutexLocker ml(&m_scriptValueCacheMutex);
-    m_scriptValueCache.insert(scriptValue.engine(), scriptValue);
 }
 
 void Configuration::load(PersistentPool &, QDataStream &s)

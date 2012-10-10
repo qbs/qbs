@@ -233,11 +233,7 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
-    QScriptValue modulesScriptValue = artifact->configuration->cachedScriptValue(scriptEngine());
-    if (!modulesScriptValue.isValid()) {
-        modulesScriptValue = scriptEngine()->toScriptValue(artifact->configuration->value());
-        artifact->configuration->cacheScriptValue(modulesScriptValue);
-    }
+    QScriptValue modulesScriptValue = artifact->configuration->toScriptValue(scriptEngine());
     modulesScriptValue = modulesScriptValue.property("modules");
 
     // expose per file properties we want to use in an Artifact within a Rule
