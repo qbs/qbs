@@ -32,6 +32,7 @@
 
 #include <Qbs/sourceproject.h>
 #include <Qbs/runenvironment.h>
+#include <language/qbsengine.h>
 #include <tools/hostosinfo.h>
 #include <tools/logger.h>
 #include <tools/options.h>
@@ -134,7 +135,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    Qbs::SourceProject sourceProject;
+    qbs::QbsEngine engine;
+    Qbs::SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(options.settings());
         sourceProject.setSearchPaths(options.searchPaths());

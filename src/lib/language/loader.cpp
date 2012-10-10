@@ -684,11 +684,11 @@ QHash<QString, PropertyDeclaration> Loader::m_groupPropertyDeclarations;
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
-Loader::Loader()
+Loader::Loader(QbsEngine *engine)
     : m_progressObserver(0)
+    , m_engine(engine)
 {
     m_settings = Settings::create();
-    m_engine = new QbsEngine;
 
     QVariant v;
     v.setValue(static_cast<void*>(this));
@@ -733,7 +733,6 @@ Loader::Loader()
 
 Loader::~Loader()
 {
-    delete m_engine;
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)

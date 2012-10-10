@@ -125,11 +125,11 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
     return lookupArtifact(dirPath, fileName);
 }
 
-BuildGraph::BuildGraph()
+BuildGraph::BuildGraph(QbsEngine *engine)
     : m_progressObserver(0)
+    , m_engine(engine)
     , m_initEngineCalls(0)
 {
-    m_engine = new QbsEngine;
     m_prepareScriptScope = m_engine->newObject();
     ProcessCommand::setupForJavaScript(m_prepareScriptScope);
     JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
@@ -137,7 +137,6 @@ BuildGraph::BuildGraph()
 
 BuildGraph::~BuildGraph()
 {
-    delete m_engine;
 }
 
 void BuildGraph::insert(BuildProduct::Ptr product, Artifact *n) const
@@ -1262,7 +1261,7 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
 
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
 
-        Loader ldr;
+        Loader ldr(bg->engine());
         ldr.setSearchPaths(loaderSearchPaths);
         ProjectFile::Ptr projectFile = ldr.loadProject(project->resolvedProject()->qbsFile);
         ResolvedProject::Ptr changedProject = ldr.resolveProject(projectFile, bg->buildDirectoryRoot(), cfg);

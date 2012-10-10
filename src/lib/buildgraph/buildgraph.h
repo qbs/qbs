@@ -164,7 +164,7 @@ class BuildGraph
 {
     Q_DECLARE_TR_FUNCTIONS(BuildGraph)
 public:
-    BuildGraph();
+    BuildGraph(QbsEngine *engine);
     ~BuildGraph();
 
     QbsEngine *engine() { return m_engine; }

@@ -27,6 +27,7 @@
 **
 ****************************************************************************/
 
+#include <language/qbsengine.h>
 #include <tools/logger.h>
 #include <tools/options.h>
 #include <buildgraph/artifact.h>
@@ -179,7 +180,8 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    Qbs::SourceProject sourceProject;
+    qbs::QbsEngine engine;
+    Qbs::SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(options.settings());
         sourceProject.setSearchPaths(options.searchPaths());

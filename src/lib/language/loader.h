@@ -356,7 +356,7 @@ class Loader
 {
     Q_DECLARE_TR_FUNCTIONS(Loader)
 public:
-    Loader();
+    Loader(QbsEngine *engine);
     ~Loader();
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);

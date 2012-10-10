@@ -44,14 +44,16 @@ namespace Qbs {
 class SourceProjectPrivate : public QSharedData
 {
 public:
+    QbsEngine *engine;
     QStringList searchPaths;
     QSharedPointer<qbs::BuildGraph> buildGraph;
     QVector<Qbs::BuildProject> buildProjects;
     qbs::Settings::Ptr settings;
 };
 
-SourceProject::SourceProject() : d(new SourceProjectPrivate)
+SourceProject::SourceProject(QbsEngine *engine) : d(new SourceProjectPrivate)
 {
+    d->engine = engine;
     d->settings = qbs::Settings::create(); // fix it
 }
 
@@ -182,9 +184,9 @@ void SourceProject::loadProject(const QString &projectFileName,
         }
     }
 
-    qbs::Loader loader;
+    qbs::Loader loader(d->engine);
     loader.setSearchPaths(d->searchPaths);
-    d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph);
+    d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph(d->engine));
     d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 

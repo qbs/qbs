@@ -55,7 +55,7 @@ class SourceProject
     Q_DECLARE_TR_FUNCTIONS(SourceProject)
     friend class BuildProject;
 public:
-    SourceProject();
+    SourceProject(qbs::QbsEngine *engine);
     ~SourceProject();
 
     SourceProject(const SourceProject &other);
