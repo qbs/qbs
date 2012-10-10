@@ -129,11 +129,6 @@ void LogWriter::write(const char *str)
         m_logMessage.data.append(str);
 }
 
-} // namespace qbs
-
-
-using namespace qbs;
-
 Q_GLOBAL_STATIC(QMutex, logMutex)
 Q_GLOBAL_STATIC(QByteArray, logByteArray)
 
@@ -310,3 +305,5 @@ LogWriter operator<<(LogWriter w, TextColor color)
     w.setTextColor(color);
     return w;
 }
+
+} // namespace qbs

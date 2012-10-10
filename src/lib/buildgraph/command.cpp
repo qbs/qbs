@@ -36,7 +36,9 @@
 namespace qbs {
 
 AbstractCommand::AbstractCommand()
-    : m_silent(true)
+    : m_description(defaultDescription()),
+      m_highlight(defaultHighLight()),
+      m_silent(defaultIsSilent())
 {
 }
 
@@ -47,13 +49,12 @@ AbstractCommand::~AbstractCommand()
 AbstractCommand *AbstractCommand::createByType(AbstractCommand::CommandType commandType)
 {
     switch (commandType) {
-    case qbs::AbstractCommand::AbstractCommandType:
-        break;
     case qbs::AbstractCommand::ProcessCommandType:
         return new ProcessCommand;
     case qbs::AbstractCommand::JavaScriptCommandType:
         return new JavaScriptCommand;
     }
+    qFatal("%s: Invalid command type %d", Q_FUNC_INFO, commandType);
     return 0;
 }
 
@@ -77,11 +78,10 @@ void AbstractCommand::store(QDataStream &s)
 
 static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)
 {
-    static AbstractCommand commandPrototype;
     QScriptValue cmd = context->thisObject();
-    cmd.setProperty("description", engine->toScriptValue(commandPrototype.description()));
-    cmd.setProperty("highlight", engine->toScriptValue(commandPrototype.highlight()));
-    cmd.setProperty("silent", engine->toScriptValue(commandPrototype.isSilent()));
+    cmd.setProperty("description", engine->toScriptValue(AbstractCommand::defaultDescription()));
+    cmd.setProperty("highlight", engine->toScriptValue(AbstractCommand::defaultHighLight()));
+    cmd.setProperty("silent", engine->toScriptValue(AbstractCommand::defaultIsSilent()));
     return cmd;
 }
 

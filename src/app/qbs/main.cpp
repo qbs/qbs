@@ -109,10 +109,10 @@ int main(int argc, char *argv[])
     }
 
     if (options.projectFileName().isEmpty()) {
-        qbsError("No project file found.");
+        qbs::qbsError("No project file found.");
         return ExitCodeErrorParsingCommandLine;
     } else {
-        qbsInfo() << qbs::DontPrintLogLevel << "Found project file "
+        qbs::qbsInfo() << qbs::DontPrintLogLevel << "Found project file "
             << qPrintable(QDir::toNativeSeparators(options.projectFileName()));
     }
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         const QString buildPath = qbs::FileInfo::resolvePath(QDir::currentPath(),
                 QLatin1String("build"));
         if (!qbs::removeDirectoryWithContents(buildPath, &errorMessage)) {
-            qbsError() << errorMessage;
+            qbs::qbsError() << errorMessage;
             return ExitCodeErrorExecutionFailed;
         }
         return 0;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     // some sanity checks
     foreach (const QString &searchPath, options.searchPaths()) {
         if (!qbs::FileInfo::exists(searchPath)) {
-            qbsError("search path '%s' does not exist.\n"
+            qbs::qbsError("search path '%s' does not exist.\n"
                      "run 'qbs config --global preferences.qbsPath $QBS_SOURCE_TREE/share/qbs'",
                      qPrintable(searchPath));
 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     }
     foreach (const QString &pluginPath, options.pluginPaths()) {
         if (!qbs::FileInfo::exists(pluginPath)) {
-            qbsError("plugin path '%s' does not exist.\n"
+            qbs::qbsError("plugin path '%s' does not exist.\n"
                      "run 'qbs config --global preferences.pluginsPath $QBS_BUILD_TREE/plugins'",
                      qPrintable(pluginPath));
             return ExitCodeErrorParsingCommandLine;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         sourceProject.loadPlugins(options.pluginPaths());
         sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
     } catch (const qbs::Error &error) {
-        qbsError() << error.toString();
+        qbs::qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
     }
 
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
             foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
                 buildProject.storeBuildGraph();
         } catch (const qbs::Error &e) {
-            qbsError() << e.toString();
+            qbs::qbsError() << e.toString();
             return ExitCodeErrorExecutionFailed;
         }
     }
@@ -243,9 +243,9 @@ int main(int argc, char *argv[])
 
         if (!productToRun.isValid()) {
             if (options.runTargetName().isEmpty())
-                qbsError() << QObject::tr("Can't find a suitable product to run.");
+                qbs::qbsError() << QObject::tr("Can't find a suitable product to run.");
             else
-                qbsError() << QObject::tr("No such product: '%1'").arg(options.runTargetName());
+                qbs::qbsError() << QObject::tr("No such product: '%1'").arg(options.runTargetName());
             return ExitCodeErrorBuildFailure;
         }
 

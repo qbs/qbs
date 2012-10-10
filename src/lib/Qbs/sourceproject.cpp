@@ -245,12 +245,12 @@ void SourceProject::loadProject(const QString &projectFileName,
                 rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configure);
             if (rProject->products.isEmpty())
                 throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
-            qDebug() << "loading project took: " << timer.elapsed() << "ms";
+            qbsDebug() << "Project loaded in " << timer.elapsed() << "ms.";
             timer.start();
             bProject = d->buildGraph->resolveProject(rProject);
             if (loadResult.loadedProject)
                 bProject->rescueDependencies(loadResult.loadedProject);
-            qDebug() << "build graph took: " << timer.elapsed() << "ms";
+            qbsDebug() << "Build graph took " << timer.elapsed() << "ms.";
         }
 
         // copy the environment from the platform config into the project's config

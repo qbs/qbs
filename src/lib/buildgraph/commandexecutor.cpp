@@ -111,9 +111,6 @@ void CommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)
     m_jsCommand = 0;
 
     switch (cmd->type()) {
-    case AbstractCommand::AbstractCommandType:
-        qWarning("CommandExecutor can't execute abstract commands.");
-        return;
     case AbstractCommand::ProcessCommandType:
         m_processCommand = static_cast<ProcessCommand*>(cmd);
         startProcessCommand();
@@ -122,10 +119,10 @@ void CommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)
         m_jsCommand = static_cast<JavaScriptCommand*>(cmd);
         startJavaScriptCommand();
         return;
+    default:
+        qFatal("%s: Impossible command type %d.", Q_FUNC_INFO, cmd->type());
+        return;
     }
-
-    emit error("CommandExecutor: unknown command type.");
-    return;
 }
 
 static QHash<QString, TextColor> setupColorTable()

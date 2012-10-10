@@ -97,8 +97,6 @@ enum LogModifier
     DontPrintLogLevel
 };
 
-} // namespace qbs
-
 inline bool qbsLogLevel(qbs::LoggerLevel l) { return qbs::Logger::instance().level() >= l; }
 void qbsLog(qbs::LoggerLevel logLevel, const char *str, ...);
 void qbsError(const char *str, ...);
@@ -126,5 +124,7 @@ qbs::LogWriter operator<<(qbs::LogWriter w, bool b);
 qbs::LogWriter operator<<(qbs::LogWriter w, qbs::LogOutputChannel);
 qbs::LogWriter operator<<(qbs::LogWriter w, qbs::LogModifier);
 qbs::LogWriter operator<<(qbs::LogWriter w, qbs::TextColor);
+
+} // namespace qbs
 
 #endif // LOGGER_H

@@ -30,6 +30,7 @@
 
 #include "runenvironment.h"
 
+#include <tools/logger.h>
 #include <tools/settings.h>
 
 #include <QDebug>
@@ -105,7 +106,7 @@ int RunEnvironment::runShell()
         }
         env[i] = 0;
         execve(argv[0], argv, env);
-        qDebug("executing the shell failed");
+        qbs::qbsError("Executing the shell failed.");
         exitCode = 890;
 #else
         foreach (const QString &s, m_resolvedProduct.buildEnvironmentStringList()) {

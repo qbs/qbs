@@ -45,18 +45,19 @@ namespace qbs {
 class AbstractCommand
 {
 public:
-    AbstractCommand();
     virtual ~AbstractCommand();
 
     enum CommandType {
-        AbstractCommandType,
         ProcessCommandType,
         JavaScriptCommandType
     };
 
     static AbstractCommand *createByType(CommandType commandType);
+    static QString defaultDescription() { return QString(); }
+    static QString defaultHighLight() { return QString(); }
+    static bool defaultIsSilent() { return true; }
 
-    virtual CommandType type() const { return AbstractCommandType; }
+    virtual CommandType type() const = 0;
     virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     virtual void load(QDataStream &s);
     virtual void store(QDataStream &s);
@@ -69,6 +70,9 @@ public:
 
     bool isSilent() const { return m_silent; }
     void setSilent(bool b) { m_silent = b; }
+
+protected:
+    AbstractCommand();
 
 private:
     QString m_description;
