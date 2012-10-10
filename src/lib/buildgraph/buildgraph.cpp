@@ -195,7 +195,7 @@ void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
     if (lastSetupProduct != product.data()) {
         engine->setProperty("lastSetupProduct",
                 QVariant(reinterpret_cast<qulonglong>(product.data())));
-        productScriptValue = engine->toScriptValue(product->configuration->value());
+        productScriptValue = product->configuration->toScriptValue(engine);
         productScriptValue.setProperty("name", product->name);
         QString destinationDirectory = product->destinationDirectory;
         if (destinationDirectory.isEmpty())
