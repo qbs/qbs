@@ -97,10 +97,12 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
 
 BuildGraph::BuildGraph()
     : m_progressObserver(0)
+    , m_initEngineCalls(0)
 {
     m_engine = new QbsEngine;
-    ProcessCommand::setupForJavaScript(m_engine->globalObject());
-    JavaScriptCommand::setupForJavaScript(m_engine->globalObject());
+    m_prepareScriptScope = m_engine->newObject();
+    ProcessCommand::setupForJavaScript(m_prepareScriptScope);
+    JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
 }
 
 BuildGraph::~BuildGraph()
@@ -179,7 +181,8 @@ void BuildGraph::insert(BuildProduct *product, Artifact *n) const
 
 void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
                                              const ResolvedProduct::ConstPtr &product,
-                                             Rule::ConstPtr rule)
+                                             Rule::ConstPtr rule,
+                                             QScriptValue targetObject)
 {
     const ResolvedProject *lastSetupProject = reinterpret_cast<ResolvedProject *>(engine->property("lastSetupProject").toULongLong());
     const ResolvedProduct *lastSetupProduct = reinterpret_cast<ResolvedProduct *>(engine->property("lastSetupProduct").toULongLong());
@@ -191,7 +194,7 @@ void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
         projectScriptValue = engine->newObject();
         projectScriptValue.setProperty("filePath", product->project->qbsFile);
         projectScriptValue.setProperty("path", FileInfo::path(product->project->qbsFile));
-        engine->globalObject().setProperty("project", projectScriptValue);
+        targetObject.setProperty("project", projectScriptValue);
     }
 
     QScriptValue productScriptValue;
@@ -204,21 +207,16 @@ void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
         if (destinationDirectory.isEmpty())
             destinationDirectory = ".";
         productScriptValue.setProperty("destinationDirectory", destinationDirectory);
-        engine->globalObject().setProperty("product", productScriptValue);
+        targetObject.setProperty("product", productScriptValue);
     } else {
-        productScriptValue = engine->globalObject().property("product");
+        productScriptValue = targetObject.property("product");
     }
 
     // If the Rule is in a Module, set up the 'module' property
     if (!rule->module->name.isEmpty())
         productScriptValue.setProperty("module", productScriptValue.property("modules").property(rule->module->name));
 
-    if (rule) {
-        QScriptValue targetObject = engine->currentContext()->activationObject();
-        engine->import(rule->jsImports, QScriptValue(), targetObject);
-    } else {
-        // ### TODO remove the imports we added before
-    }
+    engine->import(rule->jsImports, targetObject, targetObject);
 }
 
 void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *artifact)
@@ -247,12 +245,14 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
     scriptValue.setProperty("baseDir", basedir);
     scriptValue.setProperty("modules", modulesScriptValue);
 
-    QScriptValue globalObj = m_engine->globalObject();
-    globalObj.setProperty("input", scriptValue);
+    m_scope.setProperty("input", scriptValue);
+    Q_ASSERT_X(scriptValue.strictlyEquals(m_engine->evaluate("input")),
+               "BG", "The input object is not in current scope.");
 }
 
 void BuildGraph::applyRules(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag)
 {
+    EngineInitializer engineInitializer(this);
     foreach (Rule::ConstPtr rule, product->topSortedRules())
         applyRule(product, artifactsPerFileTag, rule);
 }
@@ -323,7 +323,9 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 void BuildGraph::applyRule(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag,
                            Rule::ConstPtr rule)
 {
-    setupScriptEngineForProduct(m_engine, product->rProduct, rule);
+    setupScriptEngineForProduct(m_engine, product->rProduct, rule, m_scope);
+    Q_ASSERT_X(m_scope.property("product").strictlyEquals(m_engine->evaluate("product")),
+               "BG", "Product object is not in current scope.");
 
     if (rule->isMultiplexRule()) {
         // apply the rule once for a set of inputs
@@ -505,7 +507,7 @@ void BuildGraph::applyRule(BuildProduct *product,
                 if (sbs1 != sbs2)
                     sbs1->sideBySideArtifacts.insert(sbs2);
 
-    transformer->setupInputs(m_engine, m_engine->globalObject());
+    transformer->setupInputs(m_engine, m_scope);
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
@@ -519,8 +521,8 @@ void BuildGraph::applyRule(BuildProduct *product,
         outputArtifact->configuration = Configuration::create(*outputArtifact->configuration);
 
         // ### clean m_engine first?
-        m_engine->globalObject().setProperty("fileName", m_engine->toScriptValue(outputArtifact->filePath()));
-        m_engine->globalObject().setProperty("fileTags", toScriptValue(m_engine, outputArtifact->fileTags));
+        m_scope.setProperty("fileName", m_engine->toScriptValue(outputArtifact->filePath()));
+        m_scope.setProperty("fileTags", toScriptValue(m_engine, outputArtifact->fileTags));
 
         QVariantMap artifactModulesCfg = outputArtifact->configuration->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
@@ -537,7 +539,7 @@ void BuildGraph::applyRule(BuildProduct *product,
         outputArtifact->configuration->setValue(outputArtifactConfiguration);
     }
 
-    transformer->setupOutputs(m_engine, m_engine->globalObject());
+    transformer->setupOutputs(m_engine, m_scope);
 
     // setup transform properties
     {
@@ -567,7 +569,7 @@ void BuildGraph::applyRule(BuildProduct *product,
                     throw Error(QLatin1String("transform property evaluation: ") + sv.toString(), errorLocation);
                 }
             }
-            m_engine->globalObject().setProperty(propertyName, sv);
+            m_scope.setProperty(propertyName, sv);
         }
     }
 
@@ -582,7 +584,9 @@ void BuildGraph::createTransformerCommands(const RuleScript::ConstPtr &script, T
     if (scriptProgram.isNull())
         scriptProgram = QScriptProgram(script->script);
 
+    m_engine->currentContext()->pushScope(m_prepareScriptScope);
     QScriptValue scriptValue = m_engine->evaluate(scriptProgram);
+    m_engine->currentContext()->popScope();
     if (m_engine->hasUncaughtException())
         throw Error("evaluating prepare script: " + m_engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName,
@@ -716,6 +720,31 @@ void BuildGraph::disconnectAll(Artifact *u)
 {
     disconnectChildren(u);
     disconnectParents(u);
+}
+
+void BuildGraph::initEngine()
+{
+    if (m_initEngineCalls++ > 0)
+        return;
+
+    m_engine->setProperty("lastSetupProject", QVariant());
+    m_engine->setProperty("lastSetupProduct", QVariant());
+
+    m_engine->clearImportsCache();
+    m_engine->pushContext();
+    m_scope = m_engine->newObject();
+    m_engine->currentContext()->pushScope(m_scope);
+}
+
+void BuildGraph::cleanupEngine()
+{
+    Q_ASSERT(m_initEngineCalls > 0);
+    if (--m_initEngineCalls > 0)
+        return;
+
+    m_scope = QScriptValue();
+    m_engine->currentContext()->popScope();
+    m_engine->popContext();
 }
 
 void BuildGraph::remove(Artifact *artifact) const
@@ -876,10 +905,21 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             rule->artifacts += ruleArtifact;
         }
         transformer->rule = rule;
-        setupScriptEngineForProduct(m_engine, rProduct, transformer->rule);
-        transformer->setupInputs(m_engine, m_engine->globalObject());
-        transformer->setupOutputs(m_engine, m_engine->globalObject());
-        createTransformerCommands(rtrafo->transform, transformer.data());
+        QScriptValue oldScope = m_scope;
+        m_scope = m_engine->newObject();
+        m_engine->currentContext()->pushScope(m_scope);
+        try {
+            setupScriptEngineForProduct(m_engine, rProduct, transformer->rule, m_scope);
+            transformer->setupInputs(m_engine, m_scope);
+            transformer->setupOutputs(m_engine, m_scope);
+            createTransformerCommands(rtrafo->transform, transformer.data());
+        } catch (const Error &) {
+            m_engine->currentContext()->popScope();
+            m_scope = oldScope;
+            throw;
+        }
+        m_engine->currentContext()->popScope();
+        m_scope = oldScope;
         if (transformer->commands.isEmpty())
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
     }
@@ -996,6 +1036,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
 
 void BuildGraph::updateNodesThatMustGetNewTransformer()
 {
+    EngineInitializer engineInitializer(this);
     foreach (Artifact *artifact, m_artifactsThatMustGetNewTransformers)
         updateNodeThatMustGetNewTransformer(artifact);
     m_artifactsThatMustGetNewTransformers.clear();
@@ -1531,6 +1572,17 @@ QString fileName(Artifact *n)
     if (str.startsWith('/'))
         str.remove(0, 1);
     return str;
+}
+
+BuildGraph::EngineInitializer::EngineInitializer(BuildGraph *bg)
+    : buildGraph(bg)
+{
+    buildGraph->initEngine();
+}
+
+BuildGraph::EngineInitializer::~EngineInitializer()
+{
+    buildGraph->cleanupEngine();
 }
 
 } // namespace qbs

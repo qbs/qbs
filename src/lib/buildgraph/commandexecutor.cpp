@@ -355,7 +355,8 @@ public:
             Artifact *someOutputArtifact = *transformer->outputs.begin();
             if (someOutputArtifact->product) {
                 const ResolvedProduct::ConstPtr product = someOutputArtifact->product->rProduct;
-                BuildGraph::setupScriptEngineForProduct(scriptEngine, product, transformer->rule);
+                BuildGraph::setupScriptEngineForProduct(scriptEngine, product, transformer->rule,
+                                                        scriptEngine->globalObject());
             }
             transformer->setupInputs(scriptEngine, scriptEngine->globalObject());
             transformer->setupOutputs(scriptEngine, scriptEngine->globalObject());

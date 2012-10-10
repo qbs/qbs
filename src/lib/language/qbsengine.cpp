@@ -84,6 +84,11 @@ void QbsEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptValu
     }
 }
 
+void QbsEngine::clearImportsCache()
+{
+    m_jsImportCache.clear();
+}
+
 void QbsEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,
                                QScriptValue &targetObject)
 {

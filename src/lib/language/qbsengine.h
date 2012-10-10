@@ -48,6 +48,7 @@ public:
 
     void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
+    void clearImportsCache();
 
 private:
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
