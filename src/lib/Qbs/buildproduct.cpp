@@ -130,7 +130,7 @@ QString BuildProduct::executablePath() const
     }
 
     return QString(m_internalBuildProduct->project->buildGraph()->buildDirectoryRoot()
-                  + m_internalBuildProduct->project->resolvedProject()->id
+                  + m_internalBuildProduct->project->resolvedProject()->id()
                   + QLatin1String("/")
                   + localPath
                   + executableSuffix());

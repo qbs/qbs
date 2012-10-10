@@ -93,13 +93,13 @@ bool BuildProject::hasBuildProductForName(const QString &name) const
 QString BuildProject::buildDirectory() const
 {
     return QString(m_internalBuildProject->buildGraph()->buildDirectoryRoot()
-                   + m_internalBuildProject->resolvedProject()->id
+                   + m_internalBuildProject->resolvedProject()->id()
                    + QLatin1String("/"));
 }
 
 QString BuildProject::displayName() const
 {
-    return m_internalBuildProject->resolvedProject()->id;
+    return m_internalBuildProject->resolvedProject()->id();
 }
 
 void BuildProject::storeBuildGraph()
@@ -114,7 +114,7 @@ bool BuildProject::isValid() const
 
 QString BuildProject::qtInstallPath() const
 {
-    return qbs::getConfigProperty(m_internalBuildProject->resolvedProject()->configuration->value(),
+    return qbs::getConfigProperty(m_internalBuildProject->resolvedProject()->configuration(),
                                   QStringList() << "qt/core" << "path").toString();
 }
 

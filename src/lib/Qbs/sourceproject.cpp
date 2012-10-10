@@ -259,12 +259,12 @@ void SourceProject::loadProject(const QString &projectFileName,
 
         d->buildProjects.append(bProject);
 
-        printf("for %s:\n", qPrintable(bProject->resolvedProject()->id));
+        printf("for %s:\n", qPrintable(bProject->resolvedProject()->id()));
         foreach (const qbs::ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
             printf("  - [%s] %s as %s\n"
                    ,qPrintable(p->fileTags.join(", "))
                    ,qPrintable(p->name)
-                   ,qPrintable(p->project->id)
+                   ,qPrintable(p->project->id())
                    );
         }
         printf("\n");

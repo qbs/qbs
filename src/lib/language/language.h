@@ -331,17 +331,24 @@ public:
 
     static Ptr create() { return Ptr(new ResolvedProject); }
 
-    QString id;
+    static QString deriveId(const QVariantMap &config);
+
     QString qbsFile;
     QVariantMap platformEnvironment;
     QSet<ResolvedProduct::Ptr> products;
-    Configuration::Ptr configuration;
+
+    void setConfiguration(const QVariantMap &config);
+    QVariantMap configuration() const { return m_configuration->value(); }
+    QString id() const { return m_id; }
 
 private:
     ResolvedProject() {}
 
     void load(qbs::PersistentPool &pool, QDataStream &s);
     void store(qbs::PersistentPool &pool, QDataStream &s) const;
+
+    Configuration::Ptr m_configuration;
+    QString m_id;
 };
 
 } // namespace qbs

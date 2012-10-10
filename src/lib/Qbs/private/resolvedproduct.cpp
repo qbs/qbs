@@ -84,7 +84,7 @@ int ResolvedProduct::setupRunEnvironment() const
 
 QString ResolvedProduct::productId() const
 {
-    return m_internalResolvedBuildProduct->project->id + '/' + m_internalResolvedBuildProduct->name;
+    return m_internalResolvedBuildProduct->project->id() + '/' + m_internalResolvedBuildProduct->name;
 }
 
 QStringList ResolvedProduct::buildEnvironmentStringList() const

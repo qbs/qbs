@@ -1838,8 +1838,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     Scope::scopesWithEvaluatedProperties.clear();
     ResolvedProject::Ptr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
-    rproject->configuration = Configuration::create();
-    rproject->configuration->setValue(userProperties->value());
+    rproject->setConfiguration(userProperties->value());
 
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
@@ -1872,7 +1871,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
         rproduct->name = productProps->stringValue("name");
         rproduct->targetName = productProps->stringValue("targetName");
-        QString buildDirectory = FileInfo::resolvePath(buildDirectoryRoot, rproject->id);
+        QString buildDirectory = FileInfo::resolvePath(buildDirectoryRoot, rproject->id());
 
         // insert property "buildDirectory"
         {
@@ -3098,29 +3097,6 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         return;
     }
 
-    // get the build variant / determine the project id
-    QString buildVariant = userProperties->value().value("qbs").toMap().value("buildVariant").toString();
-    if (rproject->id.isEmpty()) {
-        EvaluationObject *baseModule = evaluationObject->modules.value("qbs")->object;
-        if (!baseModule)
-            throw Error(tr("base module not loaded"));
-        const QString hostName = baseModule->scope->stringValue("hostOS");
-        const QString targetOS = baseModule->scope->stringValue("targetOS");
-        const QString buildProfileName = baseModule->scope->stringValue("buildProfileName");
-        rproject->id = buildVariant;
-        if (!buildProfileName.isEmpty() && buildProfileName != QLatin1String("default"))
-            rproject->id.prepend(buildProfileName + "-");
-        if (hostName != targetOS) {
-            QString platformName = targetOS;
-            const QString hostArchitecture = baseModule->scope->stringValue("hostArchitecture");
-            const QString targetArchitecture = baseModule->scope->stringValue("architecture");
-            if (hostArchitecture != targetArchitecture) {
-                platformName += "-";
-                platformName += targetArchitecture;
-            }
-            rproject->id.prepend(platformName + "-");
-        }
-    }
     projectData->insert(rproduct, productData);
 }
 

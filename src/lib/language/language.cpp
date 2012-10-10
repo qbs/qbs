@@ -455,9 +455,25 @@ void ResolvedProduct::setupRunEnvironment(QbsEngine *engine, const QProcessEnvir
     runEnvironment = getProcessEnvironment(engine, RunEnv, modules, configuration, project, systemEnvironment);
 }
 
+QString ResolvedProject::deriveId(const QVariantMap &config)
+{
+    const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
+    const QString buildVariant = qbsProperties.value(QLatin1String("buildVariant")).toString();
+    const QString profile = qbsProperties.value(QLatin1String("buildProfileName")).toString();
+    return profile + QLatin1Char('-') + buildVariant;
+}
+
+void ResolvedProject::setConfiguration(const QVariantMap &config)
+{
+    if (!m_configuration)
+        m_configuration = Configuration::create();
+    m_configuration->setValue(config);
+    m_id = deriveId(config);
+}
+
 void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
 {
-    s >> id;
+    s >> m_id;
     s >> qbsFile;
     s >> platformEnvironment;
 
@@ -474,7 +490,7 @@ void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
 
 void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
 {
-    s << id;
+    s << m_id;
     s << qbsFile;
     s << platformEnvironment;
 

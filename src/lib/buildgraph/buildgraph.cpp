@@ -231,7 +231,7 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
         QDir sourceDir(product->rProduct->sourceDirectory);
         basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
     } else {
-        QDir buildDir(product->project->buildGraph()->buildDirectoryRoot() + product->project->resolvedProject()->id);
+        QDir buildDir(product->project->buildGraph()->buildDirectoryRoot() + product->project->resolvedProject()->id());
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
@@ -269,7 +269,7 @@ void BuildGraph::detectCycle(BuildProject *project)
     if (qbsLogLevel(LoggerTrace)) {
         t = new QElapsedTimer;
         t->start();
-        qbsTrace() << "[BG] running cycle detection on project '" + project->resolvedProject()->id + "'";
+        qbsTrace() << "[BG] running cycle detection on project '" + project->resolvedProject()->id() + "'";
     }
 
     foreach (BuildProduct::Ptr product, project->buildProducts())
@@ -278,7 +278,7 @@ void BuildGraph::detectCycle(BuildProject *project)
 
     if (qbsLogLevel(LoggerTrace)) {
         qint64 elapsed = t->elapsed();
-        qbsTrace() << "[BG] cycle detection for project '" + project->resolvedProject()->id + "' took " << elapsed << " ms";
+        qbsTrace() << "[BG] cycle detection for project '" + project->resolvedProject()->id() + "' took " << elapsed << " ms";
         delete t;
     }
 }
@@ -1206,8 +1206,7 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
         throw Error("Cannot load stored build graph.");
     project = BuildProject::Ptr(new BuildProject(bg));
     project->load(pool, pool.stream());
-    project->resolvedProject()->configuration = Configuration::create();
-    project->resolvedProject()->configuration->setValue(pool.headData().projectConfig);
+    project->resolvedProject()->setConfiguration(pool.headData().projectConfig);
     loadResult->loadedProject = project;
     qbsDebug() << "[BG] stored project loaded.";
 
@@ -1315,19 +1314,18 @@ BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minT
     LoadResult result;
     result.discardLoadedProject = false;
 
-    PersistentPool *pool = new PersistentPool;
+    PersistentPool pool;
     QString fileName;
     QStringList bgFiles = storedProjectFiles(bg);
     foreach (const QString &fn, bgFiles) {
-        if (!pool->load(fn))
+        if (!pool.load(fn))
             continue;
-        PersistentPool::HeadData headData = pool->headData();
+        PersistentPool::HeadData headData = pool.headData();
         if (isConfigCompatible(cfg->value(), headData.projectConfig)) {
             fileName = fn;
             break;
         }
     }
-    delete pool;
 
     restoreBuildGraph(fileName, bg, minTimeStamp, cfg, loaderSearchPaths, &result);
     return result;
@@ -1336,18 +1334,17 @@ BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minT
 void BuildProject::store()
 {
     if (!dirty()) {
-        qbsDebug() << "[BG] build graph is unchanged in project " << resolvedProject()->id << ".";
+        qbsDebug() << "[BG] build graph is unchanged in project " << resolvedProject()->id() << ".";
         return;
     }
-    const QString fileName = storedProjectFilePath(buildGraph(), resolvedProject()->id);
+    const QString fileName = storedProjectFilePath(buildGraph(), resolvedProject()->id());
     qbsDebug() << "[BG] storing: " << fileName;
     PersistentPool pool;
     PersistentPool::HeadData headData;
-    headData.projectConfig = resolvedProject()->configuration->value();
+    headData.projectConfig = resolvedProject()->configuration();
     pool.setHeadData(headData);
     pool.setupWriteStream(fileName);
     store(pool, pool.stream());
-    pool.closeStream();
 }
 
 QString BuildProject::storedProjectFilePath(BuildGraph *bg, const QString &projectId)
