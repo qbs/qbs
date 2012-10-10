@@ -361,7 +361,6 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
     ProjectFile::Ptr loadProject(const QString &fileName);
-    int productCount(ProjectFile::Ptr projectFile, Configuration::Ptr userProperties);
     ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
                                         Configuration::Ptr userProperties, bool resolveProductDependencies = true);
     static QSet<QString> resolveFiles(const Group::ConstPtr &group, const QString &baseDir);

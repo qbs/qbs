@@ -1749,51 +1749,6 @@ static void clearCachedValues()
     Scope::scopesWithEvaluatedProperties.clear();
 }
 
-int Loader::productCount(ProjectFile::Ptr projectFile, Configuration::Ptr userProperties)
-{
-    Q_ASSERT(projectFile);
-
-    m_project = projectFile;
-    LanguageObject *object = m_project->root;
-    EvaluationObject *evaluationObject = new EvaluationObject(object);
-
-    const QString propertiesName = object->prototype.join(".");
-    evaluationObject->scope = Scope::create(m_engine, propertiesName, m_project->root->file);
-
-    Scope::Ptr productProperty = Scope::create(m_engine, name_productPropertyScope, m_project->root->file);
-    Scope::Ptr projectProperty = Scope::create(m_engine, name_projectPropertyScope, m_project->root->file);
-
-    // for the 'product' and 'project' property available to the modules
-    ScopeChain::Ptr moduleScope(new ScopeChain(m_engine));
-    moduleScope->prepend(productProperty);
-    moduleScope->prepend(projectProperty);
-
-    ScopeChain::Ptr localScope(new ScopeChain(m_engine));
-    localScope->prepend(productProperty);
-    localScope->prepend(projectProperty);
-    localScope->prepend(evaluationObject->scope);
-
-    resolveInheritance(object, evaluationObject, moduleScope, userProperties->value());
-
-    if (evaluationObject->prototype != name_Project)
-        return 0;
-
-    fillEvaluationObjectBasics(localScope, object, evaluationObject);
-    QStringList referencedProducts = evaluationObject->scope->stringListValue("references");
-
-    setPathAndFilePath(evaluationObject->scope, object->file->fileName);
-    int productChildrenCount = 0;
-    foreach (LanguageObject *child, object->children) {
-        EvaluationObject *eoChild = new EvaluationObject(child);
-        eoChild->scope = Scope::Ptr(evaluationObject->scope);
-        resolveInheritance(child, eoChild, moduleScope, userProperties->value());
-        if (eoChild->prototype == name_Product)
-            ++productChildrenCount;
-    }
-
-    return referencedProducts.count() + productChildrenCount;
-}
-
 static void applyFileTaggers(const SourceArtifact::Ptr &artifact,
         const ResolvedProduct::ConstPtr &product)
 {
