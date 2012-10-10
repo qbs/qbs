@@ -81,13 +81,13 @@ void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetSc
 {
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
-    targetScriptValue.setProperty("inputs", scriptValue, QScriptValue::ReadOnly);
+    targetScriptValue.setProperty("inputs", scriptValue);
     if (inputs.count() == 1) {
         Artifact *input = *inputs.begin();
         const QSet<QString> &fileTags = input->fileTags;
         QScriptValue inputsForFileTag = scriptValue.property(*fileTags.begin());
         QScriptValue inputScriptValue = inputsForFileTag.property(0);
-        targetScriptValue.setProperty("input", inputScriptValue, QScriptValue::ReadOnly);
+        targetScriptValue.setProperty("input", inputScriptValue);
     }
 }
 
@@ -95,14 +95,14 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
 {
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
-    targetScriptValue.setProperty("outputs", scriptValue, QScriptValue::ReadOnly);
+    targetScriptValue.setProperty("outputs", scriptValue);
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
         const QSet<QString> &fileTags = output->fileTags;
         Q_ASSERT(!fileTags.isEmpty());
         QScriptValue outputsForFileTag = scriptValue.property(*fileTags.begin());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
-        targetScriptValue.setProperty("output", outputScriptValue, QScriptValue::ReadOnly);
+        targetScriptValue.setProperty("output", outputScriptValue);
     }
 }
 

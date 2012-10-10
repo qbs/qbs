@@ -188,7 +188,7 @@ void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
         projectScriptValue = engine->newObject();
         projectScriptValue.setProperty("filePath", product->project->qbsFile);
         projectScriptValue.setProperty("path", FileInfo::path(product->project->qbsFile));
-        engine->globalObject().setProperty("project", projectScriptValue, QScriptValue::ReadOnly);
+        engine->globalObject().setProperty("project", projectScriptValue);
     }
 
     QScriptValue productScriptValue;
@@ -201,7 +201,7 @@ void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
         if (destinationDirectory.isEmpty())
             destinationDirectory = ".";
         productScriptValue.setProperty("destinationDirectory", destinationDirectory);
-        engine->globalObject().setProperty("product", productScriptValue, QScriptValue::ReadOnly);
+        engine->globalObject().setProperty("product", productScriptValue);
     } else {
         productScriptValue = engine->globalObject().property("product");
     }
@@ -516,8 +516,8 @@ void BuildGraph::applyRule(BuildProduct *product,
         outputArtifact->configuration = Configuration::create(*outputArtifact->configuration);
 
         // ### clean scriptEngine() first?
-        scriptEngine()->globalObject().setProperty("fileName", scriptEngine()->toScriptValue(outputArtifact->filePath()), QScriptValue::ReadOnly);
-        scriptEngine()->globalObject().setProperty("fileTags", toScriptValue(scriptEngine(), outputArtifact->fileTags), QScriptValue::ReadOnly);
+        scriptEngine()->globalObject().setProperty("fileName", scriptEngine()->toScriptValue(outputArtifact->filePath()));
+        scriptEngine()->globalObject().setProperty("fileTags", toScriptValue(scriptEngine(), outputArtifact->fileTags));
 
         QVariantMap artifactModulesCfg = outputArtifact->configuration->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
