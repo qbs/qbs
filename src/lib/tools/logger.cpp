@@ -52,7 +52,7 @@ Logger &Logger::instance()
 
 Logger::Logger()
     : m_logSink(0)
-    , m_level(LoggerInfo)
+    , m_level(defaultLevel())
 {
 }
 

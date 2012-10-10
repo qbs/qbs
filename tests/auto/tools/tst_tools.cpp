@@ -45,12 +45,20 @@ private slots:
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar";
         qbs::CommandLineOptions options;
-        options.parseCommandLine(args);
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
+        QVERIFY(options.parseCommandLine(args));
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
         QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
         QCOMPARE(options.selectedProductNames(), QStringList() << "blubb");
         QCOMPARE(options.changedFiles(), QStringList() << "foo" << "bar");
         QVERIFY(options.isKeepGoingSet());
+        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqq"));
+        QCOMPARE(qbs::Logger::instance().level(), qbs::Logger::defaultLevel());
+        QVERIFY(options.parseCommandLine(QStringList() << "-vvqqq"));
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerWarning);
+        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqq"));
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
+        QVERIFY(options.parseCommandLine(QStringList() << "--log-level" << "trace"));
+        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
     }
 
     void testInvalidCommandLine()
@@ -63,6 +71,7 @@ private slots:
         QVERIFY(!options.parseCommandLine(QStringList() << "-j" << "0")); // Wrong argument.
         QVERIFY(!options.parseCommandLine(QStringList() << "--products"));  // Missing argument.
         QVERIFY(!options.parseCommandLine(QStringList() << "--changed-files" << ",")); // Wrong argument.
+        QVERIFY(!options.parseCommandLine(QStringList() << "--log-level" << "blubb")); // Wrong argument.
     }
 
     void testFileInfo()

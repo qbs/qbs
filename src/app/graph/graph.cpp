@@ -170,11 +170,11 @@ int main(int argc, char *argv[])
     arguments.removeFirst();
 
     if (!options.parseCommandLine(arguments)) {
-        qbs::CommandLineOptions::printHelp();
+        options.printHelp();
         return 1;
     }
     if (options.isHelpSet()) {
-        qbs::CommandLineOptions::printHelp();
+        options.printHelp();
         return 0;
     }
 

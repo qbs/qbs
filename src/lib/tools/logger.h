@@ -49,6 +49,8 @@ class Logger
 public:
     static Logger &instance();
 
+    static LoggerLevel defaultLevel() { return LoggerInfo; }
+
     void setLevel(int level);
     void setLevel(LoggerLevel level);
     LoggerLevel level() const { return m_level; }

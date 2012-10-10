@@ -38,9 +38,43 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
+#include <QTextStream>
 #include <QThread>
 
+#include <cstdio>
+
 namespace qbs {
+
+static QString logLevelToString(LoggerLevel level)
+{
+    switch (level) {
+    case LoggerError: return QLatin1String("error");
+    case LoggerWarning: return QLatin1String("warning");
+    case LoggerInfo: return QLatin1String("info");
+    case LoggerDebug: return QLatin1String("debug");
+    case LoggerTrace: return QLatin1String("trace");
+    default: qFatal("%s: Missing case in switch statement", Q_FUNC_INFO);
+    }
+    return QString(); // Never reached.
+}
+
+static LoggerLevel logLevelFromString(const QString &logLevelString)
+{
+    const QList<LoggerLevel> levels = QList<LoggerLevel>() << LoggerError << LoggerWarning
+            << LoggerInfo << LoggerDebug << LoggerTrace;
+    foreach (LoggerLevel l, levels) {
+        if (logLevelToString(l) == logLevelString)
+            return l;
+    }
+    throw Error(CommandLineOptions::tr("Invalid log level '%1'.").arg(logLevelString));
+}
+
+static QStringList allLogLevelStrings()
+{
+    return QStringList() << logLevelToString(LoggerError) << logLevelToString(LoggerWarning)
+            << logLevelToString(LoggerInfo) << logLevelToString(LoggerDebug)
+            << logLevelToString(LoggerTrace);
+}
 
 CommandLineOptions::CommandLineOptions()
 {
@@ -50,37 +84,44 @@ CommandLineOptions::CommandLineOptions()
         m_jobs = QThread::idealThreadCount();
 }
 
-void CommandLineOptions::printHelp()
+void CommandLineOptions::printHelp() const
 {
-    puts("qbs " QBS_VERSION "\n");
-    fputs("usage: qbs [command] [options]\n"
-         "\ncommands:\n"
+    QTextStream stream(m_help ? stdout : stderr);
+
+    stream << "qbs " QBS_VERSION "\n";
+    stream << tr("Usage: qbs [command] [options]\n"
+         "\nCommands:\n"
          "  build  [variant] [property:value]\n"
-         "                     build project (default command)\n"
-         "  clean  ........... remove all generated files\n"
+         "                     Build project (default command).\n"
+         "  clean  ........... Remove all generated files.\n"
          "  properties [variant] [property:value]\n"
-         "                     show all calculated properties for a build\n"
-         "  shell  ........... open a shell\n"
+         "                     Show all calculated properties for a build.\n"
+         "  shell  ........... Open a shell.\n"
          "  status [variant] [property:value]\n"
-         "                     list files that are (un)tracked by the project\n"
+         "                     List files that are (un)tracked by the project.\n"
          "  run target [variant] [property:value] -- <args>\n"
-         "                     run the specified target\n"
+         "                     Run the specified target.\n"
          "  config\n"
-         "                     set, get, or get all project/global options\n"
-         "\ngeneral options:\n"
-         "  -h -? --help  .... this help\n"
-         "  -d  .............. dump graph\n"
-         "  -f <file>  ....... specify .qbp project file\n"
-         "  -v  .............. verbose (add up to 5 v to increase verbosity level)\n"
-         "\nbuild options:\n"
-         "  -j <n>  .......... use <n> jobs (default is nr of cores)\n"
-         "  -k  .............. keep going (ignore errors)\n"
-         "  -n  .............. dry run\n"
+         "                     Set or get project/global option(s).\n"
+         "\nGeneral options:\n"
+         "  -h -? --help  .... Show this help.\n"
+         "  -d  .............. Dump the build graph.\n"
+         "  -f <file>  ....... Specify the .qbp project file.\n"
+         "  -v  .............. Be more verbose. Increases the log level by one.\n"
+         "  -q  .............. Be more quiet. Decreases the log level by one.\n"
+         "\nBuild options:\n"
+         "  -j <n>  .......... Use <n> jobs (default is the number of cores).\n"
+         "  -k  .............. Keep going (ignore errors).\n"
+         "  -n  .............. Dry run.\n"
          "  --changed-files file[,file...]\n"
-         "      .............. specify a list of out of date files\n"
+         "      .............. Assume these and only these files have changed.\n"
          "  --products name[,name...]\n"
-         "      .............. specify a list of products to build\n"
-        , stdout);
+         "      .............. Build only the specified products.\n"
+         "  --log-level level\n"
+         "      .............. Use the specified log level. Possible values are \"%1\".\n"
+         "                     The default is \"%2\".\n")
+             .arg(allLogLevelStrings().join(QLatin1String("\", \"")),
+                  logLevelToString(Logger::defaultLevel()));
 }
 
 /**
@@ -111,7 +152,7 @@ void CommandLineOptions::doParse()
     m_help = false;
     m_clean = false;
     m_keepGoing = false;
-    m_verbosity = 0;
+    m_logLevel = Logger::defaultLevel();
 
     while (!m_commandLine.isEmpty()) {
         const QString arg = m_commandLine.takeFirst();
@@ -125,8 +166,16 @@ void CommandLineOptions::doParse()
             parseArgument(arg);
     }
 
-    if (m_verbosity)
-        Logger::instance().setLevel(m_verbosity);
+    if (m_logLevel < LoggerMinLevel) {
+        qbsWarning() << tr("Cannot decrease log level as much as specified; using \"%1\".")
+                .arg(logLevelToString(LoggerMinLevel));
+        m_logLevel = LoggerMinLevel;
+    } else if (m_logLevel > LoggerMaxLevel) {
+        qbsWarning() << tr("Cannot increase log level as much as specified; using \"%1\".")
+                .arg(logLevelToString(LoggerMaxLevel));
+        m_logLevel = LoggerMaxLevel;
+    }
+    Logger::instance().setLevel(m_logLevel);
 
     // automatically detect the project file name
     if (m_projectFileName.isEmpty())
@@ -168,6 +217,8 @@ void CommandLineOptions::parseLongOption(const QString &option)
     } else if (optionName == QLatin1String("products") && (m_command == BuildCommand
             || m_command == CleanCommand || m_command == PropertiesCommand)) {
         m_selectedProductNames = getOptionArgumentAsList(option);
+    } else if (optionName == QLatin1String("log-level")) {
+        m_logLevel = logLevelFromString(getOptionArgument(option));
     } else {
         throw Error(tr("Unknown option '%1'.").arg(option));
     }
@@ -192,7 +243,10 @@ void CommandLineOptions::parseShortOptions(const QString &options)
             break;
         }
         case 'v':
-            ++m_verbosity;
+            ++m_logLevel;
+            break;
+        case 'q':
+            --m_logLevel;
             break;
         case 'd':
             m_dumpGraph = true;
@@ -215,8 +269,16 @@ void CommandLineOptions::parseShortOptions(const QString &options)
 
 QString CommandLineOptions::getShortOptionArgument(const QString &options, int optionPos)
 {
-    if (optionPos < options.count() - 1 || m_commandLine.isEmpty())
-        throw Error(tr("Option '%1' needs an argument.").arg(options.at(optionPos)));
+    const QString option = QLatin1Char('-') + options.at(optionPos);
+    if (optionPos < options.count() - 1)
+        throw Error(tr("Option '%1' needs an argument.").arg(option));
+    return getOptionArgument(option);
+}
+
+QString CommandLineOptions::getOptionArgument(const QString &option)
+{
+    if (m_commandLine.isEmpty())
+        throw Error(tr("Option '%1' needs an argument.").arg(option));
     return m_commandLine.takeFirst();
 }
 

@@ -30,6 +30,8 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include <Qbs/globals.h>
+
 #include <tools/settings.h>
 
 #include <QPair>
@@ -57,7 +59,7 @@ public:
         PropertiesCommand
     };
 
-    static void printHelp();
+    void printHelp() const;
     Command command() const { return m_command;}
     bool parseCommandLine(const QStringList &args);
     void configure();
@@ -84,6 +86,7 @@ private:
     void parseLongOption(const QString &option);
     void parseShortOptions(const QString &options);
     QString getShortOptionArgument(const QString &options, int optionPos);
+    QString getOptionArgument(const QString &option);
     QStringList getOptionArgumentAsList(const QString &option);
     void parseArgument(const QString &arg);
 
@@ -114,7 +117,7 @@ private:
     bool m_clean;
     bool m_keepGoing;
     int m_jobs;
-    int m_verbosity;
+    int m_logLevel;
 };
 }
 #endif // OPTIONS_H

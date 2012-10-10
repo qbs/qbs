@@ -87,12 +87,12 @@ int main(int argc, char *argv[])
 
     // read commandline
     if (!options.parseCommandLine(arguments)) {
-        qbs::CommandLineOptions::printHelp();
+        options.printHelp();
         return ExitCodeErrorParsingCommandLine;
     }
 
     if (options.isHelpSet()) {
-        qbs::CommandLineOptions::printHelp();
+        options.printHelp();
         return 0;
     }
 

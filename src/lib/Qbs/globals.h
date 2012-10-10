@@ -36,7 +36,8 @@ namespace Qbs {
 
 enum LoggerLevel
 {
-    LoggerError,
+    LoggerMinLevel,
+    LoggerError = LoggerMinLevel,
     LoggerWarning,
     LoggerInfo,
     LoggerDebug,
