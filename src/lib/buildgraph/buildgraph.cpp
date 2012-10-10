@@ -586,7 +586,8 @@ void BuildGraph::createTransformerCommands(const RuleScript::ConstPtr &script, T
     QScriptValue scriptValue = scriptEngine()->evaluate(scriptProgram);
     if (scriptEngine()->hasUncaughtException())
         throw Error("evaluating prepare script: " + scriptEngine()->uncaughtException().toString(),
-                    script->location);
+                    CodeLocation(script->location.fileName,
+                                 script->location.line + scriptEngine()->uncaughtExceptionLineNumber() - 1));
 
     QList<AbstractCommand*> commands;
     if (scriptValue.isArray()) {
