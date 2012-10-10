@@ -166,6 +166,8 @@ public:
     BuildGraph();
     ~BuildGraph();
 
+    QbsEngine *engine() { return m_engine; }
+
     BuildProject::Ptr resolveProject(ResolvedProject::Ptr);
     BuildProduct::Ptr resolveProduct(BuildProject *, ResolvedProduct::Ptr);
 
@@ -216,12 +218,10 @@ private:
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
     static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);
 
-    QbsEngine *scriptEngine();
-
 private:
     ProgressObserver *m_progressObserver;
     QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
-    QHash<QThread *, QbsEngine *> m_scriptEnginePerThread;
+    QbsEngine *m_engine;
     QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QString, QScriptProgram> m_scriptProgramCache;
