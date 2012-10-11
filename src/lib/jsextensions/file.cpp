@@ -31,7 +31,6 @@
 
 #include <tools/fileinfo.h>
 
-#include <QDebug>
 #include <QFileInfo>
 #include <QScriptEngine>
 

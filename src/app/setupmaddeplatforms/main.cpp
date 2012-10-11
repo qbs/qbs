@@ -29,6 +29,7 @@
 #include "../shared/specialplatformssetup.h"
 
 #include <tools/hostosinfo.h>
+#include <tools/logsink.h>
 
 #include <QBuffer>
 #include <QCoreApplication>
@@ -175,11 +176,12 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+    qbs::ConsoleLogger cl;
     qbs::MaddePlatformsSetup setup;
     try {
         setup.setup();
     } catch (const qbs::SpecialPlatformsSetup::Exception &ex) {
-        std::cerr << qPrintable(setup.tr("Error: %1").arg(ex.errorMessage)) << std::endl;
+        qbs::qbsError() << setup.tr("Error: %1").arg(ex.errorMessage);
         return EXIT_FAILURE;
     }
 

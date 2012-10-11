@@ -35,7 +35,6 @@
 #include <tools/scripttools.h>
 #include <tools/platform.h>
 
-#include <QDebug>
 #include <QElapsedTimer>
 
 using namespace qbs;
@@ -259,15 +258,15 @@ void SourceProject::loadProject(const QString &projectFileName,
 
         d->buildProjects.append(bProject);
 
-        printf("for %s:\n", qPrintable(bProject->resolvedProject()->id()));
+        qbsDebug("for %s:", qPrintable(bProject->resolvedProject()->id()));
         foreach (const qbs::ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
-            printf("  - [%s] %s as %s\n"
+            qbsDebug("  - [%s] %s as %s"
                    ,qPrintable(p->fileTags.join(", "))
                    ,qPrintable(p->name)
                    ,qPrintable(p->project->id())
                    );
         }
-        printf("\n");
+        qbsDebug("");
     }
 }
 

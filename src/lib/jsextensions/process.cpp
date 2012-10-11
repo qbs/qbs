@@ -31,7 +31,6 @@
 
 #include <tools/hostosinfo.h>
 
-#include <QDebug>
 #include <QProcess>
 #include <QScriptEngine>
 #include <QScriptValue>

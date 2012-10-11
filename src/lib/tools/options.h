@@ -78,7 +78,7 @@ public:
     bool isKeepGoingSet() const { return m_keepGoing; }
     int jobs() const { return m_jobs; }
     Settings::Ptr settings() const { return m_settings; }
-    QVariant configurationValue(const QString &key, const QVariant &defaultValue = QVariant());
+    QVariant configurationValue(const QString &key, const QVariant &defaultValue = QVariant()) const;
     QList<QVariantMap> buildConfigurations() const;
 
 private:

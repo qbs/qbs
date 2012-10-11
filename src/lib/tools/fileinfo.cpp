@@ -32,7 +32,6 @@
 #include <tools/hostosinfo.h>
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 

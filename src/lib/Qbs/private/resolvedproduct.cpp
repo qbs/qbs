@@ -31,6 +31,7 @@
 
 #include <language/language.h>
 #include <language/qbsengine.h>
+#include <tools/logger.h>
 
 namespace Qbs {
 namespace Private {
@@ -62,7 +63,7 @@ int ResolvedProduct::setupBuildEnvironment() const
         qbs::QbsEngine engine;
         m_internalResolvedBuildProduct->setupBuildEnvironment(&engine, QProcessEnvironment::systemEnvironment());
     } catch (const qbs::Error &error) {
-        fprintf(stderr, "%s", qPrintable(error.toString()));
+        qbs::qbsError("%s", qPrintable(error.toString()));
         return 1;
     }
 
@@ -75,7 +76,7 @@ int ResolvedProduct::setupRunEnvironment() const
         qbs::QbsEngine engine;
         m_internalResolvedBuildProduct->setupRunEnvironment(&engine, QProcessEnvironment::systemEnvironment());
     } catch (const qbs::Error &error) {
-        fprintf(stderr, "%s", qPrintable(error.toString()));
+        qbs::qbsError("%s", qPrintable(error.toString()));
         return 1;
     }
 

@@ -29,11 +29,11 @@
 
 #include "msvcprobe.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QSettings>
 #include <QStringList>
-#include <QDir>
-#include <QDebug>
+#include <QVector>
 
 using namespace qbs;
 

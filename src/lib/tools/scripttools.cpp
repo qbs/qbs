@@ -30,7 +30,6 @@
 #include "scripttools.h"
 #include <QScriptEngine>
 #include <QScriptValueIterator>
-#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 

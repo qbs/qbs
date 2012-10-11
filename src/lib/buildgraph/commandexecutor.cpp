@@ -42,7 +42,6 @@
 #include <jsextensions/process.h>
 
 #include <QtConcurrentRun>
-#include <QDebug>
 #include <QDir>
 #include <QFutureWatcher>
 #include <QProcess>

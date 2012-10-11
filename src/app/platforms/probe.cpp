@@ -28,7 +28,6 @@
 ****************************************************************************/
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QProcess>
@@ -37,6 +36,7 @@
 #include <QTextStream>
 
 #include <tools/hostosinfo.h>
+#include <tools/logger.h>
 #include <tools/platform.h>
 #include "msvcprobe.h"
 
@@ -125,11 +125,10 @@ static int specific_probe(const QString &settingsPath,
         pathToGcc = searchPath(path, cc);
 
     if (!QFileInfo(pathToGcc).exists()) {
-        fprintf(stderr, "Cannot find %s.", qPrintable(cc));
+        QString error = QString::fromLatin1("Cannot find '%1'.").arg(cc);
         if (printComfortingMessage)
-            fprintf(stderr, " But that's not a problem. I've already found other platforms.\n");
-        else
-            fprintf(stderr, "\n");
+            error += QLatin1String(" But that's not a problem. I've already found other platforms.");
+        qbsError() << error;
         return 1;
     }
 
@@ -150,7 +149,7 @@ static int specific_probe(const QString &settingsPath,
             !(compilerTripletl.at(0).contains(QRegExp(".86")) ||
               compilerTripletl.at(0).contains("arm") )
             ) {
-        qDebug("detected %s , but i don't understand it's architecture: %s",
+        qbs::qbsError("Detected '%s', but I don't understand its architecture '%s'.",
                 qPrintable(pathToGcc), qPrintable(compilerTriplet));
                 return 12;
     }
@@ -267,13 +266,13 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr
     QProcess process;
     process.start(gccPath, QStringList() << "-dumpmachine");
     if (!process.waitForStarted()) {
-        fprintf(stderr, "Could not start \"gcc -dumpmachine\".\n");
+        qbsError("Could not start \"gcc -dumpmachine\".");
         return;
     }
     process.waitForFinished(-1);
     QByteArray gccMachineName = process.readAll().trimmed();
     if (gccMachineName != "mingw32" && gccMachineName != "mingw64") {
-        fprintf(stderr, "Detected gcc platform '%s' is not supported.\n", gccMachineName.data());
+        qbsError("Detected gcc platform '%s' is not supported.", gccMachineName.data());
         return;
     }
 
@@ -300,6 +299,6 @@ int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
         specific_probe(settingsPath, platforms, "clang", somethingFound);
     }
     if (platforms.isEmpty())
-        fprintf(stderr, "Could not detect any platforms.\n");
+        qbsWarning("Could not detect any platforms.");
     return 0;
 }

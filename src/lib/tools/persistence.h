@@ -33,12 +33,12 @@
 #include <tools/error.h>
 
 #include <QDataStream>
-#include <QDebug>
 #include <QFile>
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
 #include <QVariantMap>
+#include <QVector>
 
 namespace qbs {
 

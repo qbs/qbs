@@ -142,6 +142,11 @@ void Settings::remove(Settings::Scope scope, const QString &key)
     }
 }
 
+bool Settings::useColoredOutput() const
+{
+    return value(QLatin1String("preferences/useColoredOutput"), true).toBool();
+}
+
 void Settings::checkStatus(QSettings *s)
 {
     s->sync();

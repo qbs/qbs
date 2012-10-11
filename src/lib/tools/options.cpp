@@ -36,7 +36,6 @@
 #include <tools/hostosinfo.h>
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QTextStream>
 #include <QThread>
@@ -452,7 +451,7 @@ void CommandLineOptions::configure()
     }
 }
 
-QVariant CommandLineOptions::configurationValue(const QString &key, const QVariant &defaultValue)
+QVariant CommandLineOptions::configurationValue(const QString &key, const QVariant &defaultValue) const
 {
     return m_settings->value(key, defaultValue);
 }
@@ -655,13 +654,13 @@ void CommandLineOptions::upgradeSettings(Settings::Scope scope)
         }
 
         if (newKey.length()) {
-            printf("Replacing %s with %s\n", qPrintable(QString(key).replace('/', '.')), qPrintable(QString(newKey).replace('/', '.')));
+            qbsInfo("Replacing %s with %s\n", qPrintable(QString(key).replace('/', '.')), qPrintable(QString(newKey).replace('/', '.')));
             m_settings->remove(scope, key);
             m_settings->setValue(scope, newKey, newValue);
         }
     }
     if (seenQtDefaultKey && !m_settings->value(scope, "profile").isValid()) {
-        printf("Setting profile key to use 'profiles.default'\n");
+        qbsInfo("Setting profile key to use 'profiles.default'\n");
         m_settings->setValue(scope, "profile", "default");
     }
 }

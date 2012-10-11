@@ -32,6 +32,7 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <tools/fileinfo.h>
+#include <tools/logsink.h>
 #include <Qbs/sourceproject.h>
 
 #include <cassert>
@@ -40,7 +41,6 @@
 #include <QProcess>
 #include <QDir>
 #include <QFileInfo>
-#include <QDebug>
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
@@ -53,7 +53,6 @@
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
-#include <QDebug>
 #include <QProcess>
 #include <QFont>
 #include <QStyle>
@@ -155,9 +154,9 @@ private:
     QList<ArtifactC *> l;
 };
 
-qbs::CommandLineOptions options;
 
 void targetToScene(QGraphicsScene *scene, qbs::BuildProduct *t);
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -169,6 +168,8 @@ int main(int argc, char *argv[])
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
+    qbs::ConsoleLogger cl;
+    qbs::CommandLineOptions options;
     if (!options.parseCommandLine(arguments)) {
         options.printHelp();
         return 1;

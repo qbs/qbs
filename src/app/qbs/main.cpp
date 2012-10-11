@@ -42,7 +42,6 @@
 #include <tools/logsink.h>
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QProcess>
 #include <QScopedPointer>
@@ -66,10 +65,8 @@ int main(int argc, char *argv[])
     qbs::Application app(argc, argv);
     app.init();
 
-    qbs::CommandLineOptions options;
-    qbs::ConsolePrintLogSink *logSink = new qbs::ConsolePrintLogSink;
-    logSink->setColoredOutputEnabled(options.configurationValue("preferences/useColoredOutput", true).toBool());
-    Qbs::ILogSink::setGlobalLogSink(logSink);
+    qbs::ConsoleLogger cl;
+
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
@@ -86,6 +83,7 @@ int main(int argc, char *argv[])
     }
 
     // read commandline
+    qbs::CommandLineOptions options;
     if (!options.parseCommandLine(arguments)) {
         options.printHelp();
         return ExitCodeErrorParsingCommandLine;
@@ -102,9 +100,7 @@ int main(int argc, char *argv[])
             return 0;
         }
     } catch (const qbs::Error &e) {
-        fputs("qbs config: ", stderr);
-        fputs(qPrintable(e.toString()), stderr);
-        fputs("\n", stderr);
+        qbs::qbsError("qbs config: %s", qPrintable(e.toString()));
         return ExitCodeErrorParsingCommandLine;
     }
 

@@ -29,7 +29,6 @@
 
 #include "rulegraph.h"
 #include <tools/error.h>
-#include <QDebug>
 
 namespace qbs {
 

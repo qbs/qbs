@@ -30,7 +30,6 @@
 #include "filetime.h"
 
 #include <QDateTime>
-#include <QDebug>
 #include <QString>
 
 #include <time.h>

@@ -43,7 +43,6 @@
 #include <tools/scripttools.h>
 
 #include <QCache>
-#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QDataStream>
@@ -110,11 +109,10 @@ static void internalDump(BuildProduct *product, Artifact *n, QByteArray indent)
 {
     Artifact *artifactInProduct = product->lookupArtifact(n->filePath());
     if (artifactInProduct && artifactInProduct != n) {
-        fprintf(stderr,"\ntree corrupted. %p ('%s') resolves to %p ('%s')\n",
+        qFatal("\ntree corrupted. %p ('%s') resolves to %p ('%s')\n",
                 n,  qPrintable(n->filePath()), product->lookupArtifact(n->filePath()),
                 qPrintable(product->lookupArtifact(n->filePath())->filePath()));
 
-        abort();
     }
     printf("%s", indent.constData());
     printf("Artifact (%p) ", n);

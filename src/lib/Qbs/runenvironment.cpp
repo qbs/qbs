@@ -33,7 +33,6 @@
 #include <tools/logger.h>
 #include <tools/settings.h>
 
-#include <QDebug>
 #include <QDir>
 #include <QProcess>
 #include <QScriptEngine>
@@ -81,7 +80,7 @@ int RunEnvironment::runShell()
     // TODO: Just use QProcess here in both cases. No need for platform-dependent methods.
     if (exitCode == 0) {
         QString productId = m_resolvedProduct.productId();
-        printf("Starting shell for target '%s'.\n", qPrintable(productId));
+        qbs::qbsInfo("Starting shell for target '%s'.", qPrintable(productId));
 #ifdef Q_OS_UNIX
         qbs::Settings::Ptr settings = qbs::Settings::create();
         QByteArray shellProcess = settings->value("shell", "/bin/sh").toString().toLocal8Bit();
@@ -129,7 +128,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     int exitCode = 0;
 
     if (!QFileInfo(targetBin).isExecutable()) {
-        fprintf(stderr, "File '%s' is not an executable.\n", qPrintable(targetBin));
+        qbs::qbsError("File '%s' is not an executable.", qPrintable(targetBin));
         exitCode = 1;
     }
 
@@ -137,7 +136,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         exitCode = m_resolvedProduct.setupRunEnvironment();
 
         if (exitCode == 0) {
-            printf("Starting target '%s'.\n", qPrintable(QDir::toNativeSeparators(targetBin)));
+            qbs::qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
             QProcess process;
             process.setProcessEnvironment(m_resolvedProduct.runEnvironment());
             process.setProcessChannelMode(QProcess::ForwardedChannels);

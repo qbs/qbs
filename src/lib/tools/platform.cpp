@@ -30,7 +30,6 @@
 #include "platform.h"
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QSettings>

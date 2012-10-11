@@ -27,6 +27,8 @@
 **
 ****************************************************************************/
 
+#include <tools/logsink.h>
+
 #include <QCoreApplication>
 #include <QtDebug>
 #include <QStringList>
@@ -37,7 +39,7 @@
 
 static void printWrongQMakePath(const QString &qmakePath)
 {
-    std::cerr << QCoreApplication::translate("SetupQt", "Invalid path to qmake: %1").arg(qmakePath).toStdString() << std::endl;
+    qbs::qbsError() << QCoreApplication::translate("SetupQt", "Invalid path to qmake: %1").arg(qmakePath);
 }
 
 static void printHelp()
@@ -49,6 +51,7 @@ static void printHelp()
 int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
+    qbs::ConsoleLogger cl;
 
     try {
         if (argc == 1) {
@@ -92,7 +95,7 @@ int main(int argc, char *argv[])
             printHelp();
         }
     } catch (const qbs::Exception &e) {
-        std::cerr << "qbs-setup-qt: " << qPrintable(e.message()) << std::endl;
+        qbs::qbsError() << "qbs-setup-qt: " << qPrintable(e.message());
         return EXIT_FAILURE;
     }
 

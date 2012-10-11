@@ -29,7 +29,6 @@
 
 #include "application.h"
 #include "ctrlchandler.h"
-#include <QDebug>
 
 namespace qbs {
 

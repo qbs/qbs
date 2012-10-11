@@ -47,7 +47,6 @@
 #include <QFile>
 #endif
 
-#include <QDebug>
 #include <QScopedPointer>
 #include <QString>
 #include <QXmlStreamReader>

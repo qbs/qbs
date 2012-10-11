@@ -50,6 +50,18 @@ private:
     bool m_coloredOutputEnabled;
 };
 
+
+// Instantiate this at the top of a tool's main function to enable qbsError() & friends.
+class ConsoleLogger
+{
+public:
+    ConsoleLogger();
+    ~ConsoleLogger();
+
+private:
+    ConsolePrintLogSink m_logSink;
+};
+
 } // namespace qbs
 
 #endif // LOGSINK_H

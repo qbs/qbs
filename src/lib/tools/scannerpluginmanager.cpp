@@ -33,7 +33,6 @@
 #include <tools/hostosinfo.h>
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDirIterator>
 #include <QLibrary>
 

@@ -29,9 +29,9 @@
 
 #include "command.h"
 
-#include <QDebug>
 #include <QScriptEngine>
 #include <QScriptValueIterator>
+#include <QSet>
 
 namespace qbs {
 

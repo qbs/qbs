@@ -66,6 +66,9 @@ public:
     void setValue(Scope scope, const QString &key, const QVariant &value);
     void remove(Scope scope, const QString &key);
 
+    // Add convenience functions here.
+    bool useColoredOutput() const;
+
 protected:
     Settings();
     static void checkStatus(QSettings *s);

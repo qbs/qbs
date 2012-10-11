@@ -28,7 +28,6 @@
 ****************************************************************************/
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QProcess>
@@ -36,6 +35,7 @@
 #include <QStringList>
 #include <QTextStream>
 
+#include <tools/logsink.h>
 #include <tools/platform.h>
 #include <tools/settings.h>
 
@@ -73,6 +73,8 @@ int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
     QTextStream qstdout(stdout);
+
+    qbs::ConsoleLogger cl;
 
     qbs::Settings::Ptr settings = qbs::Settings::create();
     QString defaultPlatform = settings->value("modules/qbs/platform").toString();
@@ -141,16 +143,16 @@ int main(int argc, char **argv)
         }
         QString from = arguments.takeFirst();
         if (!platforms.contains(from)) {
-            qDebug("cannot rename: no such target: %s", qPrintable(from));
+            qbs::qbsError("Cannot rename: No such target '%s'.", qPrintable(from));
             return 5;
         }
         QString to = arguments.takeFirst();
         if (platforms.contains(to)) {
-            qDebug("cannot rename: already exists: %s", qPrintable(to));
+            qbs::qbsError("Cannot rename: Target '%s' already exists.", qPrintable(to));
             return 5;
         }
         if (!QFile(localSettingsPath + from).rename(localSettingsPath + to)) {
-            qDebug("file error moving %s to %s",
+            qbs::qbsError("File error moving '%s'' to '%s'.",
                     qPrintable(localSettingsPath + from),
                     qPrintable(localSettingsPath + to)
                     );
@@ -164,7 +166,7 @@ int main(int argc, char **argv)
         }
         QString targetName = arguments.takeFirst();
         if (!platforms.contains(targetName)) {
-            qDebug("cannot remove: no such target: %s", qPrintable(targetName));
+            qbs::qbsError("Cannot remove: No such target '%s'.", qPrintable(targetName));
             return 5;
         }
         QDirIterator i1(localSettingsPath + targetName,
@@ -190,7 +192,7 @@ int main(int argc, char **argv)
         }
         QString platformName = arguments.takeFirst();
         if (!platforms.contains(platformName)) {
-            fprintf(stderr, "Unknown platform '%s'.", qPrintable(platformName));
+            qbs::qbsError("Unknown platform '%s'.", qPrintable(platformName));
             return 5;
         }
         qbs::Platform::Ptr p = platforms.value(platformName);
@@ -201,7 +203,7 @@ int main(int argc, char **argv)
                 p->settings.setValue(key, value);
             }
             if (!p->settings.contains(key)) {
-                qDebug("no such configuration key: %s", qPrintable(key));
+                qbs::qbsError("No such configuration key '%s'.", qPrintable(key));
                 return 7;
             }
             qstdout << p->settings.value(key).toString() << "\n";

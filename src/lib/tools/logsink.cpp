@@ -31,8 +31,11 @@
 #include "logger.h"
 #include "coloredoutput.h"
 
-#include <qhash.h>
-#include <stdio.h>
+#include <tools/settings.h>
+
+#include <QHash>
+
+#include <cstdio>
 
 namespace qbs {
 
@@ -73,6 +76,18 @@ void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char
     else
         vfprintf(file, str, vl);
     va_end(vl);
+}
+
+
+ConsoleLogger::ConsoleLogger()
+{
+    m_logSink.setColoredOutputEnabled(Settings::create()->useColoredOutput());
+    Qbs::ILogSink::setGlobalLogSink(&m_logSink);
+}
+
+ConsoleLogger::~ConsoleLogger()
+{
+    Qbs::ILogSink::cleanupGlobalLogSink();
 }
 
 } // namespace qbs
