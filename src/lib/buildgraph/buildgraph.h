@@ -60,6 +60,7 @@ public:
 
     ~BuildProduct();
 
+    void dump() const;
     const QList<Rule::ConstPtr> &topSortedRules() const;
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
@@ -170,7 +171,6 @@ public:
 
     BuildProject::Ptr resolveProject(ResolvedProject::Ptr);
 
-    void dump(BuildProduct::Ptr) const;
     void applyRules(BuildProduct *product, QMap<QString, QSet<Artifact *> > &artifactsPerFileTag);
     static void detectCycle(BuildProject *project);
     static void detectCycle(Artifact *a);

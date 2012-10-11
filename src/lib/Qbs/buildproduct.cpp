@@ -149,7 +149,7 @@ Private::ResolvedProduct BuildProduct::privateResolvedProject() const
 
 void BuildProduct::dump() const
 {
-    qbs::BuildGraph().dump(m_internalBuildProduct);
+    m_internalBuildProduct->dump();
 }
 
 QString variantDescription(const QVariant &val)

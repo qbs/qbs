@@ -65,6 +65,36 @@ BuildProduct::~BuildProduct()
     qDeleteAll(artifacts);
 }
 
+static void internalDump(const BuildProduct *product, Artifact *artifact, QByteArray indent)
+{
+    Artifact *artifactInProduct = product->lookupArtifact(artifact->filePath());
+    if (artifactInProduct && artifactInProduct != artifact) {
+        qFatal("\ntree corrupted. %p ('%s') resolves to %p ('%s')\n",
+                artifact,  qPrintable(artifact->filePath()), product->lookupArtifact(artifact->filePath()),
+                qPrintable(product->lookupArtifact(artifact->filePath())->filePath()));
+
+    }
+    printf("%s", indent.constData());
+    printf("Artifact (%p) ", artifact);
+    printf("%s%s %s [%s]",
+           qPrintable(QString(toString(artifact->buildState).at(0))),
+           artifactInProduct ? "" : " SBS",     // SBS == side-by-side artifact from other product
+           qPrintable(artifact->filePath()),
+           qPrintable(QStringList(artifact->fileTags.toList()).join(",")));
+    printf("\n");
+    indent.append("  ");
+    foreach (Artifact *child, artifact->children) {
+        internalDump(product, child, indent);
+    }
+}
+
+void BuildProduct::dump() const
+{
+    foreach (Artifact *artifact, artifacts)
+        if (artifact->parents.isEmpty())
+            internalDump(this, artifact, QByteArray());
+}
+
 const QList<Rule::ConstPtr> &BuildProduct::topSortedRules() const
 {
     if (m_topSortedRules.isEmpty()) {
@@ -108,36 +138,6 @@ BuildGraph::BuildGraph()
 BuildGraph::~BuildGraph()
 {
     delete m_engine;
-}
-
-static void internalDump(BuildProduct *product, Artifact *n, QByteArray indent)
-{
-    Artifact *artifactInProduct = product->lookupArtifact(n->filePath());
-    if (artifactInProduct && artifactInProduct != n) {
-        qFatal("\ntree corrupted. %p ('%s') resolves to %p ('%s')\n",
-                n,  qPrintable(n->filePath()), product->lookupArtifact(n->filePath()),
-                qPrintable(product->lookupArtifact(n->filePath())->filePath()));
-
-    }
-    printf("%s", indent.constData());
-    printf("Artifact (%p) ", n);
-    printf("%s%s %s [%s]",
-           qPrintable(QString(toString(n->buildState).at(0))),
-           artifactInProduct ? "" : " SBS",     // SBS == side-by-side artifact from other product
-           qPrintable(n->filePath()),
-           qPrintable(QStringList(n->fileTags.toList()).join(",")));
-    printf("\n");
-    indent.append("  ");
-    foreach (Artifact *child, n->children) {
-        internalDump(product, child, indent);
-    }
-}
-
-void BuildGraph::dump(BuildProduct::Ptr product) const
-{
-    foreach (Artifact *n, product->artifacts)
-        if (n->parents.isEmpty())
-            internalDump(product.data(), n, QByteArray());
 }
 
 void BuildGraph::insert(BuildProduct::Ptr product, Artifact *n) const
