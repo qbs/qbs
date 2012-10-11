@@ -180,6 +180,7 @@ int main(int argc, char *argv[])
         app.setExecutor(executor.data());
         QObject::connect(executor.data(), SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
         QObject::connect(executor.data(), SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
+        executor->setEngine(&engine);
         executor->setMaximumJobs(options.jobs());
         executor->setRunOnceAndForgetModeEnabled(true);
         executor->setKeepGoing(options.isKeepGoingSet());

@@ -70,6 +70,7 @@ public:
         FailedBuild
     };
 
+    void setEngine(QbsEngine *engine);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
     void setRunOnceAndForgetModeEnabled(bool enabled) { m_runOnceAndForgetMode = enabled; }
     void setDryRun(bool b);

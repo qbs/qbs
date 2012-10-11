@@ -76,6 +76,7 @@ Executor::~Executor()
 void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames)
 {
     Q_ASSERT(m_maximumJobNumber > 0);
+    Q_ASSERT(m_engine);
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
     m_buildResult = SuccessfulBuild;
@@ -83,12 +84,6 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
 
     setState(ExecutorRunning);
     Artifact::BuildState initialBuildState = changedFiles.isEmpty() ? Artifact::Buildable : Artifact::Built;
-
-    if (!m_engine) {
-        m_engine = new QbsEngine(this);
-        foreach (ExecutorJob *job, findChildren<ExecutorJob *>())
-            job->setMainThreadScriptEngine(m_engine);
-    }
 
     // determine the products we want to build
     m_projectsToBuild = projectsToBuild;
@@ -201,6 +196,16 @@ void Executor::cancelBuild()
     qbsInfo() << "Build canceled.";
     setState(ExecutorCanceled);
     cancelJobs();
+}
+
+void Executor::setEngine(QbsEngine *engine)
+{
+    if (m_engine == engine)
+        return;
+
+    m_engine = engine;
+    foreach (ExecutorJob *job, findChildren<ExecutorJob *>())
+        job->setMainThreadScriptEngine(engine);
 }
 
 void Executor::setDryRun(bool b)
@@ -515,6 +520,8 @@ void Executor::addExecutorJobs(int jobNumber)
 
     for (int i = 1; i <= jobNumber; i++) {
         ExecutorJob *job = new ExecutorJob(this);
+        if (m_engine)
+            job->setMainThreadScriptEngine(m_engine);
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
         m_availableJobs.append(job);
         connect(job, SIGNAL(error(QString)),
