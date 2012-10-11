@@ -50,15 +50,16 @@ defineReplace(stripSrcDir) {
     return($$out)
 }
 
-!isEqual(PWD, $$OUT_PWD) {
-    for(data_dir, DATA_DIRS) {
-        files = $$files($$PWD/$$data_dir/*, true)
-        win32:files ~= s|\\\\|/|g
-        for(file, files):!exists($$file/*):FILES += $$file
-    }
-    FILES += $$DATA_FILES
+for(data_dir, DATA_DIRS) {
+    files = $$files($$PWD/$$data_dir/*, true)
+    win32:files ~= s|\\\\|/|g
+    for(file, files):!exists($$file/*):FILES += $$file
+}
+FILES += $$DATA_FILES
 
-    OTHER_FILES += $$FILES
+OTHER_FILES += $$FILES
+
+!isEqual(PWD, $$OUT_PWD) {
     copy2build.input = FILES
     copy2build.output = ${QMAKE_FUNC_FILE_IN_stripSrcDir}
     isEmpty(vcproj):copy2build.variable_out = PRE_TARGETDEPS
