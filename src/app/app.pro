@@ -4,4 +4,5 @@ SUBDIRS =\
     graph \
     platforms \
     setupmaddeplatforms \
-    qbs-setup-qt
+    qbs-setup-qt \
+    config

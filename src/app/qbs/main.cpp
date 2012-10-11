@@ -94,16 +94,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    try {
-        if (options.command() == qbs::CommandLineOptions::ConfigCommand) {
-            options.configure();
-            return 0;
-        }
-    } catch (const qbs::Error &e) {
-        qbs::qbsError("qbs config: %s", qPrintable(e.toString()));
-        return ExitCodeErrorParsingCommandLine;
-    }
-
     if (options.projectFileName().isEmpty()) {
         qbs::qbsError("No project file found.");
         return ExitCodeErrorParsingCommandLine;

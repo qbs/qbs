@@ -301,10 +301,6 @@ void CommandLineOptions::parseArgument(const QString &arg)
 {
     if (arg == QLatin1String("build")) {
         m_command = BuildCommand;
-    } else if (arg == QLatin1String("config")) {
-        m_command = ConfigCommand;
-        m_configureArgs = m_commandLine;
-        m_commandLine.clear();
     } else if (arg == QLatin1String("clean")) {
         m_command = CleanCommand;
     } else if (arg == QLatin1String("shell")) {
@@ -319,122 +315,6 @@ void CommandLineOptions::parseArgument(const QString &arg)
         m_command = PropertiesCommand;
     } else {
         m_positional.append(arg);
-    }
-}
-
-static void showConfigUsage()
-{
-    puts("usage: qbs config [options]\n"
-         "\n"
-         "Config file location:\n"
-         "    --global    choose global configuration file\n"
-         "    --local     choose local configuration file (default)\n"
-         "\n"
-         "Actions:\n"
-         "    --list           list all variables\n"
-         "    --unset          remove variable with given name\n"
-         "    --import <file>  import global settings from given file\n"
-         "    --export <file>  export global settings to given file\n");
-}
-
-void CommandLineOptions::loadLocalProjectSettings(bool throwExceptionOnFailure)
-{
-    if (m_settings->hasProjectSettings())
-        return;
-    if (throwExceptionOnFailure && m_projectFileName.isEmpty())
-        throw Error("Can't find a project file in the current directory. Local configuration not available.");
-    m_settings->loadProjectSettings(m_projectFileName);
-}
-
-void CommandLineOptions::configure()
-{
-    enum ConfigCommand { CfgSet, CfgUnset, CfgList, CfgExport, CfgImport };
-    ConfigCommand cmd = CfgSet;
-    Settings::Scope scope = Settings::Local;
-    bool scopeSet = false;
-
-    QStringList args = m_configureArgs;
-    m_configureArgs.clear();
-    if (args.isEmpty()) {
-        showConfigUsage();
-        return;
-    }
-
-    while (!args.isEmpty() && args.first().startsWith("--")) {
-        QString arg = args.takeFirst();
-        arg.remove(0, 2);
-        if (arg == "list") {
-            cmd = CfgList;
-        } else if (arg == "unset") {
-            cmd = CfgUnset;
-        } else if (arg == "global") {
-            scope = Settings::Global;
-            scopeSet = true;
-        } else if (arg == "local") {
-            scope = Settings::Local;
-            scopeSet = true;
-        } else if (arg == "export") {
-            cmd = CfgExport;
-        } else if (arg == "import") {
-            cmd = CfgImport;
-        } else {
-            throw Error("Unknown option for config command.");
-        }
-    }
-
-    switch (cmd) {
-    case CfgList:
-        if (scopeSet) {
-            if (scope == Settings::Local)
-                loadLocalProjectSettings(true);
-            printSettings(scope);
-        } else {
-            loadLocalProjectSettings(false);
-            printSettings(Settings::Local);
-            printSettings(Settings::Global);
-        }
-        break;
-    case CfgSet:
-        if (scope == Settings::Local)
-            loadLocalProjectSettings(true);
-        if (args.count() > 2)
-            throw Error("Too many arguments for setting a configuration value.");
-        if (args.count() == 0) {
-            showConfigUsage();
-        } else if (args.count() < 2) {
-            puts(qPrintable(m_settings->value(scope, args.at(0)).toString()));
-        } else {
-            QString key(args.at(0));
-            key.replace(QChar('.'), QChar('/'));
-            m_settings->setValue(scope, key, args.at(1));
-        }
-        break;
-    case CfgUnset:
-        if (scope == Settings::Local)
-            loadLocalProjectSettings(true);
-        if (args.isEmpty())
-            throw Error("unset what?");
-        foreach (const QString &arg, args) {
-            QString key(arg);
-            key.replace(QChar('.'), QChar('/'));
-            m_settings->remove(scope, key);
-        }
-        break;
-    case CfgExport:
-        if (args.count() != 1)
-            throw Error("Syntax: qbs config --export <filename>");
-        exportGlobalSettings(args[0]);
-        break;
-    case CfgImport:
-        if (args.count() != 1)
-            throw Error("Syntax: qbs config --import <filename>");
-        // Display old and new settings, in case import fails or user accidentally nukes everything
-        printf("old "); // Will end up as "old global settings:"
-        printSettings(Settings::Global);
-        importGlobalSettings(args[0]);
-        printf("\nnew ");
-        printSettings(Settings::Global);
-        break;
     }
 }
 
@@ -525,20 +405,6 @@ QList<QVariantMap> CommandLineOptions::buildConfigurations() const
     return ret;
 }
 
-void CommandLineOptions::printSettings(Settings::Scope scope)
-{
-    if (scope == Settings::Global)
-        printf("global variables:\n");
-    else
-        printf("local variables:\n");
-    foreach (const QString &key, m_settings->allKeys(scope)) {
-        QString prettyKey(key);
-        prettyKey.replace(QChar('/'), QChar('.'));
-        printf("%s: %s\n", qPrintable(prettyKey),
-               qPrintable(m_settings->value(scope, key).toString()));
-    }
-}
-
 QString CommandLineOptions::guessProjectFileName()
 {
     QDir searchDir = QDir::current();
@@ -556,48 +422,6 @@ QString CommandLineOptions::guessProjectFileName()
             break;
     }
     return QString();
-}
-
-void CommandLineOptions::exportGlobalSettings(const QString &filename)
-{
-    QFile file(filename);
-    if (!file.open(QFile::Truncate | QFile::WriteOnly | QFile::Text)) {
-        qbsError("Couldn't open file %s for writing: %s", qPrintable(filename), qPrintable(file.errorString()));
-        return;
-    }
-    QTextStream stream(&file);
-    stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings->allKeys(Settings::Global)) {
-        QString prettyKey(key);
-        prettyKey.replace(QChar('/'), QChar('.'));
-        stream << prettyKey << ": " << m_settings->value(Settings::Global, key).toString() << endl;
-    }
-}
-
-void CommandLineOptions::importGlobalSettings(const QString &filename)
-{
-    QFile file(filename);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        qbsError("Couldn't open file %s for reading: %s", qPrintable(filename), qPrintable(file.errorString()));
-        return;
-    }
-    // Remove all current settings
-    foreach (const QString &key, m_settings->allKeys(Settings::Global)) {
-        m_settings->remove(Settings::Global, key);
-    }
-
-    QTextStream stream(&file);
-    stream.setCodec("UTF-8");
-    while (!stream.atEnd()) {
-        QString line = stream.readLine();
-        int colon = line.indexOf(':');
-        if (colon >= 0 && !line.startsWith("#")) {
-            QString key = line.left(colon).trimmed();
-            key.replace(QChar('.'), QChar('/'));
-            QString value = line.mid(colon + 1).trimmed();
-            m_settings->setValue(Settings::Global, key, value);
-        }
-    }
 }
 
 } // namespace qbs

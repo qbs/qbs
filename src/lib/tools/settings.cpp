@@ -128,9 +128,10 @@ void Settings::setValue(const QString &key, const QVariant &value)
 void Settings::setValue(Scope scope, const QString &key, const QVariant &value)
 {
     QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
-    Q_CHECK_PTR(s);
-    s->setValue(key, value);
-    checkStatus(s);
+    if (s) {
+        s->setValue(key, value);
+        checkStatus(s);
+    }
 }
 
 void Settings::remove(Settings::Scope scope, const QString &key)

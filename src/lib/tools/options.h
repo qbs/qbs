@@ -52,7 +52,6 @@ public:
     enum Command {
         BuildCommand,
         CleanCommand,
-        ConfigCommand,
         StartShellCommand,
         RunCommand,
         StatusCommand,
@@ -62,7 +61,6 @@ public:
     void printHelp() const;
     Command command() const { return m_command;}
     bool parseCommandLine(const QStringList &args);
-    void configure();
     const QString &runTargetName() const { return m_runTargetName; }
     const QString &projectFileName() const { return m_projectFileName; }
     const QStringList &searchPaths() const { return m_searchPaths; }
@@ -90,10 +88,6 @@ private:
     QStringList getOptionArgumentAsList(const QString &option);
     void parseArgument(const QString &arg);
 
-    void loadLocalProjectSettings(bool throwExceptionOnFailure);
-    void printSettings(Settings::Scope scope);
-    void exportGlobalSettings(const QString &filename);
-    void importGlobalSettings(const QString &filename);
     QString guessProjectFileName();
     QString propertyName(const QString &aCommandLineName) const;
     void setRealProjectFile();
@@ -107,7 +101,6 @@ private:
     QStringList m_pluginPaths;
     QStringList m_positional;
     QStringList m_runArgs;
-    QStringList m_configureArgs;
     QStringList m_changedFiles;
     QStringList m_selectedProductNames;
     bool m_dumpGraph;
