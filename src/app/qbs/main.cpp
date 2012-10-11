@@ -186,10 +186,11 @@ int main(int argc, char *argv[])
     int exitCode = 0;
     qbs::Executor::BuildResult buildResult = qbs::Executor::SuccessfulBuild;
     {
-        QScopedPointer<qbs::Executor> executor(new qbs::Executor(options.jobs()));
+        QScopedPointer<qbs::Executor> executor(new qbs::Executor());
         app.setExecutor(executor.data());
         QObject::connect(executor.data(), SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
         QObject::connect(executor.data(), SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
+        executor->setMaximumJobs(options.jobs());
         executor->setRunOnceAndForgetModeEnabled(true);
         executor->setKeepGoing(options.isKeepGoingSet());
         executor->setDryRun(options.isDryRunSet());

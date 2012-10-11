@@ -45,14 +45,14 @@ namespace qbs {
 
 static QHashDummyValue hashDummy;
 
-Executor::Executor(int maxJobs)
+Executor::Executor()
     : m_engine(0)
     , m_progressObserver(0)
     , m_runOnceAndForgetMode(false)
     , m_state(ExecutorIdle)
     , m_buildResult(SuccessfulBuild)
     , m_keepGoing(false)
-    , m_maximumJobNumber(maxJobs)
+    , m_maximumJobNumber(0)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
@@ -60,8 +60,6 @@ Executor::Executor(int maxJobs)
     if (!m_runOnceAndForgetMode) {
         connect(this, SIGNAL(finished()), SLOT(resetArtifactsToUntouched()));
     }
-    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", maxJobs);
-    addExecutorJobs(maxJobs);
 }
 
 Executor::~Executor()
@@ -77,6 +75,7 @@ Executor::~Executor()
 
 void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames)
 {
+    Q_ASSERT(m_maximumJobNumber > 0);
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
     m_buildResult = SuccessfulBuild;
@@ -215,6 +214,7 @@ void Executor::setMaximumJobs(int numberOfJobs)
     if (numberOfJobs == m_maximumJobNumber)
         return;
 
+    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", numberOfJobs);
     m_maximumJobNumber = numberOfJobs;
     int actualJobNumber = m_availableJobs.count() + m_processingJobs.count();
     if (actualJobNumber > m_maximumJobNumber) {

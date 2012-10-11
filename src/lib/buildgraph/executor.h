@@ -52,7 +52,7 @@ class Executor : public QObject
 {
     Q_OBJECT
 public:
-    Executor(int maxJobs = 1);
+    Executor();
     ~Executor();
 
     void build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames);
