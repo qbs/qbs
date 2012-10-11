@@ -1027,8 +1027,8 @@ QbsEngine *BuildGraph::scriptEngine()
         engine = new QbsEngine;
         m_scriptEnginePerThread.insert(currentThread, engine);
 
-        ProcessCommand::setupForJavaScript(engine);
-        JavaScriptCommand::setupForJavaScript(engine);
+        ProcessCommand::setupForJavaScript(engine->globalObject());
+        JavaScriptCommand::setupForJavaScript(engine->globalObject());
     }
     return engine;
 }

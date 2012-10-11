@@ -34,11 +34,7 @@
 
 #include <QStringList>
 #include <QVariantMap>
-
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-class QScriptValue;
-QT_END_NAMESPACE
+#include <QScriptValue>
 
 namespace qbs {
 
@@ -83,7 +79,7 @@ private:
 class ProcessCommand : public AbstractCommand
 {
 public:
-    static void setupForJavaScript(QScriptEngine *engine);
+    static void setupForJavaScript(QScriptValue targetObject);
 
     ProcessCommand();
 
@@ -130,7 +126,7 @@ private:
 class JavaScriptCommand : public AbstractCommand
 {
 public:
-    static void setupForJavaScript(QScriptEngine *engine);
+    static void setupForJavaScript(QScriptValue targetObject);
 
     JavaScriptCommand();
 

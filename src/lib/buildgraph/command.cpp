@@ -114,10 +114,11 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
 }
 
 
-void ProcessCommand::setupForJavaScript(QScriptEngine *engine)
+void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
 {
-    QScriptValue ctor = engine->newFunction(js_Command, 2);
-    engine->globalObject().setProperty("Command", ctor);
+    Q_ASSERT(targetObject.isObject());
+    QScriptValue ctor = targetObject.engine()->newFunction(js_Command, 2);
+    targetObject.setProperty("Command", ctor);
 }
 
 ProcessCommand::ProcessCommand()
@@ -180,10 +181,11 @@ static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine 
     return cmd;
 }
 
-void JavaScriptCommand::setupForJavaScript(QScriptEngine *engine)
+void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
 {
-    QScriptValue ctor = engine->newFunction(js_JavaScriptCommand, 0);
-    engine->globalObject().setProperty("JavaScriptCommand", ctor);
+    Q_ASSERT(targetObject.isObject());
+    QScriptValue ctor = targetObject.engine()->newFunction(js_JavaScriptCommand, 0);
+    targetObject.setProperty("JavaScriptCommand", ctor);
 }
 
 JavaScriptCommand::JavaScriptCommand()
