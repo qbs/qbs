@@ -222,7 +222,6 @@ public:
     bool multiplex;
     QString objectId;
     QList<RuleArtifact::ConstPtr> artifacts;
-    QMap<QString, QScriptProgram> transformProperties;
 
     // members that we don't need to save
     int ruleGraphId;

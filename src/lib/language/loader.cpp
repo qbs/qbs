@@ -652,7 +652,6 @@ static const char szLoaderPropertyName[] = "qbs_loader_ptr";
 static const QLatin1String name_FileTagger("FileTagger");
 static const QLatin1String name_Rule("Rule");
 static const QLatin1String name_Transformer("Transformer");
-static const QLatin1String name_TransformProperties("TransformProperties");
 static const QLatin1String name_Artifact("Artifact");
 static const QLatin1String name_Group("Group");
 static const QLatin1String name_Project("Project");
@@ -667,7 +666,6 @@ static const QLatin1String name_Probe("Probe");
 static const uint hashName_FileTagger = qHash(name_FileTagger);
 static const uint hashName_Rule = qHash(name_Rule);
 static const uint hashName_Transformer = qHash(name_Transformer);
-static const uint hashName_TransformProperties = qHash(name_TransformProperties);
 static const uint hashName_Artifact = qHash(name_Artifact);
 static const uint hashName_Group = qHash(name_Group);
 static const uint hashName_Project = qHash(name_Project);
@@ -1042,9 +1040,6 @@ void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *ev
         transformer += conditionProperty;
         builtinDeclarations.insert(name_Transformer, transformer);
 
-        QList<PropertyDeclaration> transformProperties;
-        builtinDeclarations.insert(name_TransformProperties, transformProperties);
-
         QList<PropertyDeclaration> productModule;
         builtinDeclarations.insert(name_ProductModule, productModule);
 
@@ -1211,14 +1206,6 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
                 throw Error(tr("Cannot load the qbs base module."));
             childEvObject->modules.insert(baseModule->name, baseModule);
             childEvObject->scope->properties.insert(baseModule->id.first(), Property(baseModule->object));
-        }
-
-        // for TransformProperties, add declarations to parent
-        if (childPrototypeHash == hashName_TransformProperties) {
-            for (QHash<QString, PropertyDeclaration>::const_iterator it = child->propertyDeclarations.begin();
-                 it != child->propertyDeclarations.end(); ++it) {
-                evaluationObject->scope->declarations.insert(it.key(), it.value());
-            }
         }
 
         fillEvaluationObject(childScope, child, ids, childEvObject, userProperties);
@@ -2330,26 +2317,12 @@ void Loader::resolveProbe(EvaluationObject *node)
     m_engine->popContext();
 }
 
-static void addTransformPropertiesToRule(const Rule::Ptr &rule, LanguageObject *obj)
-{
-    foreach (const Binding &binding, obj->bindings) {
-        if (binding.name.length() != 1) {
-            throw Error(Loader::tr("Binding with dots are prohibited in TransformProperties."),
-                        binding.codeLocation());
-            continue;
-        }
-
-        rule->transformProperties.insert(binding.name.first(), binding.valueSource);
-    }
-}
-
 /**
  *Resolve stuff that Module and Product have in common.
  */
 QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObject *> &objects,
                                                         ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module)
 {
-    QList<LanguageObject *> outerTransformProperties;    // ### do we really want to allow these?
     QList<Rule::Ptr> rules;
 
     QList<EvaluationObject *> unhandledObjects;
@@ -2363,8 +2336,6 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
             rules.append(rule);
         } else if (hashPrototypeName == hashName_Transformer) {
             resolveTransformer(rproduct, object, module);
-        } else if (hashPrototypeName == hashName_TransformProperties) {
-            outerTransformProperties.append(object->instantiatingObject());
         } else if (hashPrototypeName == hashName_PropertyOptions) {
             // Just ignore this type to allow it. It is handled elsewhere.
         } else if (hashPrototypeName == hashName_Probe) {
@@ -2372,12 +2343,6 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
         } else {
             unhandledObjects.append(object);
         }
-    }
-
-    // attach the outer TransformProperties to the rules
-    foreach (const Rule::Ptr &rule, rules) {
-        foreach (LanguageObject *tp, outerTransformProperties)
-            addTransformPropertiesToRule(rule, tp);
     }
 
     return unhandledObjects;
@@ -2390,7 +2355,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
     LanguageObject *origObj = object->instantiatingObject();
     Q_CHECK_PTR(origObj);
 
-    // read artifacts and TransformProperties
+    // read artifacts
     QList<RuleArtifact::ConstPtr> artifacts;
     foreach (EvaluationObject *child, object->children) {
         const uint hashChildPrototypeName = qHash(child->prototype);
@@ -2410,10 +2375,8 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
                 rabinding.location.line = binding.valueSource.firstLineNumber();
                 artifact->bindings.append(rabinding);
             }
-        } else if (hashChildPrototypeName == hashName_TransformProperties) {
-            addTransformPropertiesToRule(rule, child->instantiatingObject());
         } else {
-            throw Error(tr("'Rule' can only have children of type 'Artifact' or 'TransformProperties'."),
+            throw Error(tr("'Rule' can only have children of type 'Artifact'."),
                                child->instantiatingObject()->prototypeLocation);
         }
     }

@@ -539,39 +539,6 @@ void BuildGraph::applyRule(BuildProduct *product,
     }
 
     transformer->setupOutputs(m_engine, m_scope);
-
-    // setup transform properties
-    {
-        const QVariantMap overriddenTransformProperties = product->rProduct->configuration->value().value("modules").toMap().value(rule->module->name).toMap().value(rule->objectId).toMap();
-        /*
-          overriddenTransformProperties contains the rule's transform properties that have been overridden in the project file.
-          For example, if you set cpp.compiler.defines in your project file, that property appears here.
-          */
-
-        QMap<QString, QScriptProgram>::const_iterator it = rule->transformProperties.begin();
-        for (; it != rule->transformProperties.end(); ++it)
-        {
-            const QString &propertyName = it.key();
-            QScriptValue sv;
-            if (overriddenTransformProperties.contains(propertyName)) {
-                sv = m_engine->toScriptValue(overriddenTransformProperties.value(propertyName));
-            } else {
-                const QScriptProgram &myProgram = it.value();
-                sv = m_engine->evaluate(myProgram);
-                if (m_engine->hasUncaughtException()) {
-                    CodeLocation errorLocation;
-                    errorLocation.fileName = m_engine->uncaughtExceptionBacktrace().join("\n");
-                    errorLocation.line = m_engine->uncaughtExceptionLineNumber();
-                    throw Error(QLatin1String("transform property evaluation: ") + m_engine->uncaughtException().toString(), errorLocation);
-                } else if (sv.isError()) {
-                    CodeLocation errorLocation(myProgram.fileName(), myProgram.firstLineNumber());
-                    throw Error(QLatin1String("transform property evaluation: ") + sv.toString(), errorLocation);
-                }
-            }
-            m_scope.setProperty(propertyName, sv);
-        }
-    }
-
     createTransformerCommands(rule->script, transformer.data());
     if (transformer->commands.isEmpty())
         throw Error(QString("There's a rule without commands: %1.").arg(rule->toString()), rule->script->location);
