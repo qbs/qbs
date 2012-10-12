@@ -78,7 +78,7 @@ static QStringList allLogLevelStrings()
 CommandLineOptions::CommandLineOptions()
 {
     m_settings = Settings::create();
-    m_jobs = configurationValue("preferences/jobs", 0).toInt();
+    m_jobs = m_settings->value("preferences/jobs", 0).toInt();
     if (m_jobs <= 0)
         m_jobs = QThread::idealThreadCount();
 }
@@ -185,18 +185,6 @@ void CommandLineOptions::doParse()
         m_projectFileName = FileInfo::resolvePath(QDir::currentPath(), m_projectFileName);
         m_projectFileName = QDir::cleanPath(m_projectFileName);
     }
-
-    // eventually load defaults from configs
-    const QChar configPathSeparator = HostOsInfo::pathListSeparator();
-    if (m_searchPaths.isEmpty())
-        m_searchPaths = configurationValue("preferences/qbsPath", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
-    m_pluginPaths = configurationValue("preferences/pluginsPath", QVariant()).toString().split(configPathSeparator, QString::SkipEmptyParts);
-
-    // fixup some defaults
-    if (m_searchPaths.isEmpty())
-        m_searchPaths.append(qbsRootPath() + "/share/qbs/");
-    if (m_pluginPaths.isEmpty())
-        m_pluginPaths.append(qbsRootPath() + "/plugins/");
 }
 
 void CommandLineOptions::parseLongOption(const QString &option)
@@ -318,22 +306,6 @@ void CommandLineOptions::parseArgument(const QString &arg)
     }
 }
 
-QVariant CommandLineOptions::configurationValue(const QString &key, const QVariant &defaultValue) const
-{
-    return m_settings->value(key, defaultValue);
-}
-
-template <typename S, typename T>
-QMap<S,T> &inhaleValues(QMap<S,T> &dst, const QMap<S,T> &src)
-{
-    for (typename QMap<S,T>::const_iterator it=src.constBegin();
-         it != src.constEnd(); ++it)
-    {
-        dst.insert(it.key(), it.value());
-    }
-    return dst;
-}
-
 QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
 {
     // Make fully-qualified, ie "platform" -> "qbs.platform"
@@ -366,43 +338,54 @@ void CommandLineOptions::setRealProjectFile()
 
 QList<QVariantMap> CommandLineOptions::buildConfigurations() const
 {
-    QList<QVariantMap> ret;
-    QVariantMap globalSet;
-    QVariantMap currentSet;
-    QString currentName;
-    foreach (const QString &arg, positional()) {
-        int idx = arg.indexOf(':');
-        if (idx < 0) {
-            if (currentName.isEmpty()) {
-                globalSet = currentSet;
-            } else {
-                QVariantMap map = globalSet;
-                inhaleValues(map, currentSet);
-                if (!map.contains("qbs.buildVariant"))
-                    map["qbs.buildVariant"] = currentName;
-                ret.append(map);
-            }
-            currentSet.clear();
-            currentName = arg;
-        } else {
-            currentSet.insert(propertyName(arg.left(idx)), arg.mid(idx + 1));
+    // Key: build variant, value: properties. Empty key used for global properties.
+    typedef QMap<QString, QVariantMap> PropertyMaps;
+    PropertyMaps propertyMaps;
+
+    const QString buildVariantKey = QLatin1String("qbs.buildVariant");
+    QString currentKey = QString();
+    QVariantMap currentProperties;
+    QStringList args = m_positional;
+    while (!args.isEmpty()) {
+        const QString arg = args.takeFirst();
+        const int sepPos = arg.indexOf(QLatin1Char(':'));
+        if (sepPos == -1) { // New build variant found.
+            propertyMaps.insert(currentKey, currentProperties);
+            currentKey = arg;
+            currentProperties.clear();
+            continue;
         }
+        const QString property = propertyName(arg.left(sepPos));
+        if (property.isEmpty())
+            qbsWarning() << tr("Ignoring empty property.");
+        else if (property == buildVariantKey)
+            qbsWarning() << tr("Refusing to overwrite special property '%1'.").arg(buildVariantKey);
+        else
+            currentProperties.insert(property, arg.mid(sepPos + 1));
+    }
+    propertyMaps.insert(currentKey, currentProperties);
+
+    if (propertyMaps.count() == 1) // No build variant specified on command line.
+        propertyMaps.insert(m_settings->buildVariant(), QVariantMap());
+
+    const PropertyMaps::Iterator globalMapIt = propertyMaps.find(QString());
+    Q_ASSERT(globalMapIt != propertyMaps.end());
+    const QVariantMap globalProperties = globalMapIt.value();
+    propertyMaps.erase(globalMapIt);
+
+    QList<QVariantMap> buildConfigs;
+    for (PropertyMaps::ConstIterator mapsIt = propertyMaps.constBegin();
+             mapsIt != propertyMaps.constEnd(); ++mapsIt) {
+        QVariantMap properties = mapsIt.value();
+        for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
+                 globalPropIt != globalProperties.constEnd(); ++globalPropIt) {
+            properties.insert(globalPropIt.key(), globalPropIt.value());
+        }
+        properties.insert(buildVariantKey, mapsIt.key());
+        buildConfigs << properties;
     }
 
-    if (currentName.isEmpty()) {
-        // If a build variant is not specified the default build variant can be given by
-        // modules.qbs.buildVariant or by any of the current profiles
-        QStringList currentProfiles = currentSet.value("profile").toString().split(QChar(','), QString::SkipEmptyParts);
-        currentName = m_settings->moduleValue("qbs/buildVariant", currentProfiles, "").toString();
-    }
-    if (currentName.isEmpty())
-        currentName = m_settings->value("modules/qbs/buildvariant", "debug").toString();
-    QVariantMap map = globalSet;
-    inhaleValues(map, currentSet);
-    if (!map.contains("qbs.buildVariant"))
-        map["qbs.buildVariant"] = currentName;
-    ret.append(map);
-    return ret;
+    return buildConfigs;
 }
 
 QString CommandLineOptions::guessProjectFileName()

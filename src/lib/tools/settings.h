@@ -32,6 +32,7 @@
 
 #include <QCoreApplication>
 #include <QSharedPointer>
+#include <QStringList>
 #include <QVariant>
 
 QT_BEGIN_NAMESPACE
@@ -58,7 +59,8 @@ public:
     bool hasProjectSettings() const { return m_localSettings; }
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
     QVariant value(Scope scope, const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QVariant moduleValue(const QString &key, const QList<QString> &profiles, const QVariant &defaultValue = QVariant());
+    QVariant moduleValue(const QString &key, const QString &profile,
+            const QVariant &defaultValue = QVariant());
     QStringList allKeys() const;
     QStringList allKeys(Scope scope) const;
     QStringList allKeysWithPrefix(const QString &group);
@@ -68,12 +70,15 @@ public:
 
     // Add convenience functions here.
     bool useColoredOutput() const;
+    QStringList searchPaths() const;
+    QStringList pluginPaths() const;
+    QString buildVariant() const;
 
-protected:
+private:
     Settings();
     static void checkStatus(QSettings *s);
+    QStringList pathList(const QString &key, const QString &defaultValue) const;
 
-protected:
     QSettings *m_globalSettings;
     QSettings *m_localSettings;
 };

@@ -36,7 +36,6 @@
 #include <buildgraph/executor.h>
 #include <language/qbsengine.h>
 #include <tools/consolelogger.h>
-#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/logger.h>
 #include <tools/options.h>
@@ -117,7 +116,7 @@ int main(int argc, char *argv[])
     }
 
     // some sanity checks
-    foreach (const QString &searchPath, options.searchPaths()) {
+    foreach (const QString &searchPath, options.settings()->searchPaths()) {
         if (!qbs::FileInfo::exists(searchPath)) {
             qbs::qbsError("search path '%s' does not exist.\n"
                      "run 'qbs config --global preferences.qbsPath $QBS_SOURCE_TREE/share/qbs'",
@@ -126,7 +125,7 @@ int main(int argc, char *argv[])
             return ExitCodeErrorParsingCommandLine;
         }
     }
-    foreach (const QString &pluginPath, options.pluginPaths()) {
+    foreach (const QString &pluginPath, options.settings()->pluginPaths()) {
         if (!qbs::FileInfo::exists(pluginPath)) {
             qbs::qbsError("plugin path '%s' does not exist.\n"
                      "run 'qbs config --global preferences.pluginsPath $QBS_BUILD_TREE/plugins'",
@@ -139,8 +138,7 @@ int main(int argc, char *argv[])
     Qbs::SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(options.settings());
-        sourceProject.setSearchPaths(options.searchPaths());
-        sourceProject.loadPlugins(options.pluginPaths());
+        sourceProject.loadPlugins();
         sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
     } catch (const qbs::Error &error) {
         qbs::qbsError() << error.toString();

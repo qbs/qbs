@@ -28,10 +28,14 @@
 ****************************************************************************/
 
 #include "settings.h"
+
 #include "error.h"
+#include "fileinfo.h"
+#include "hostosinfo.h"
+
 #include <QFileInfo>
 #include <QSettings>
-#include <QStringList>
+
 #include <algorithm>
 
 namespace qbs {
@@ -73,15 +77,14 @@ QVariant Settings::value(Scope scope, const QString &key, const QVariant &defaul
     return s ? s->value(key, defaultValue) : defaultValue;
 }
 
-QVariant Settings::moduleValue(const QString &key, const QList<QString> &profiles, const QVariant &defaultValue)
+QVariant Settings::moduleValue(const QString &key, const QString &profile,
+        const QVariant &defaultValue)
 {
-    // Check profile list first, last one wins
-    for (int i = profiles.count() - 1; i >= 0; i--) {
-        QString profileKey = QString("profiles/%1/%2").arg(profiles[i]).arg(key);
-        QVariant val = value(profileKey);
-        if (val.isValid()) return val;
-    }
-    QString modulesKey = QString("modules/%1").arg(key);
+    const QString profileKey = QString::fromLatin1("profiles/%1/%2").arg(profile, key);
+    const QVariant val = value(profileKey);
+    if (val.isValid())
+        return val;
+    const QString modulesKey = QString::fromLatin1("modules/%1").arg(key);
     return value(modulesKey, defaultValue);
 }
 
@@ -146,6 +149,32 @@ void Settings::remove(Settings::Scope scope, const QString &key)
 bool Settings::useColoredOutput() const
 {
     return value(QLatin1String("preferences/useColoredOutput"), true).toBool();
+}
+
+QStringList Settings::searchPaths() const
+{
+    return pathList(QLatin1String("preferences/qbsPath"),
+            qbsRootPath() + QLatin1String("/share/qbs/"));
+}
+
+QStringList Settings::pluginPaths() const
+{
+    return pathList(QLatin1String("preferences/pluginsPath"),
+                    qbsRootPath() + QLatin1String("/plugins/"));
+}
+
+QStringList Settings::pathList(const QString &key, const QString &defaultValue) const
+{
+    QStringList paths = value(key).toString().split(HostOsInfo::pathListSeparator(),
+                                                    QString::SkipEmptyParts);
+    if (paths.isEmpty())
+        paths << defaultValue;
+    return paths;
+}
+
+QString Settings::buildVariant() const
+{
+    return value(QLatin1String("modules/qbs/buildVariant"), QLatin1String("debug")).toString();
 }
 
 void Settings::checkStatus(QSettings *s)

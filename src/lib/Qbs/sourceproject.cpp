@@ -45,7 +45,6 @@ class SourceProjectPrivate : public QSharedData
 {
 public:
     QbsEngine *engine;
-    QStringList searchPaths;
     QSharedPointer<qbs::BuildGraph> buildGraph;
     QVector<Qbs::BuildProject> buildProjects;
     qbs::Settings::Ptr settings;
@@ -78,18 +77,14 @@ void SourceProject::setSettings(const qbs::Settings::Ptr &settings)
     d->settings = settings;
 }
 
-void SourceProject::setSearchPaths(const QStringList &searchPaths)
-{
-    d->searchPaths = searchPaths;
-}
-
-void SourceProject::loadPlugins(const QStringList &pluginPaths)
+void SourceProject::loadPlugins()
 {
     static bool alreadyCalled = false;
     if (alreadyCalled)
         qbsWarning("qbs::SourceProject::loadPlugins was called more than once.");
     alreadyCalled = true;
 
+    const QStringList pluginPaths = d->settings->pluginPaths();
     foreach (const QString &pluginPath, pluginPaths)
         QCoreApplication::addLibraryPath(pluginPath);
 
@@ -138,7 +133,7 @@ void SourceProject::loadProject(const QString &projectFileName,
         // (3) Need to make sure we have a value for qbs.platform before going any further
         QVariant platformName = buildCfg.value("qbs.platform");
         if (!platformName.isValid()) {
-            platformName = d->settings->moduleValue("qbs/platform", QStringList(profileName));
+            platformName = d->settings->moduleValue("qbs/platform", profileName);
             if (!platformName.isValid())
                 throw Error(tr("No platform given and no default set."));
             buildCfg.insert("qbs.platform", platformName);
@@ -185,7 +180,7 @@ void SourceProject::loadProject(const QString &projectFileName,
     }
 
     qbs::Loader loader(d->engine);
-    loader.setSearchPaths(d->searchPaths);
+    loader.setSearchPaths(d->settings->searchPaths());
     d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph(d->engine));
     d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
@@ -195,7 +190,7 @@ void SourceProject::loadProject(const QString &projectFileName,
         qbs::BuildProject::Ptr bProject;
         const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
         qbs::BuildProject::LoadResult loadResult;
-        loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->searchPaths);
+        loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->settings->searchPaths());
         if (!loadResult.discardLoadedProject)
             bProject = loadResult.loadedProject;
         if (!bProject) {

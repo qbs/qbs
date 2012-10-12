@@ -62,10 +62,9 @@ public:
     SourceProject &operator=(const SourceProject &other);
 
     void setSettings(const qbs::Settings::Ptr &settings);
-    void setSearchPaths(const QStringList &searchPaths);
 
     // These may throw qbs::Error.
-    void loadPlugins(const QStringList &pluginPaths);
+    void loadPlugins();
     void loadProject(const QString &projectFileName, const QList<QVariantMap> &buildConfigs);
 
     QVector<BuildProject> buildProjects() const;

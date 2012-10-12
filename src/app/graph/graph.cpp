@@ -184,8 +184,7 @@ int main(int argc, char *argv[])
     Qbs::SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(options.settings());
-        sourceProject.setSearchPaths(options.searchPaths());
-        sourceProject.loadPlugins(options.pluginPaths());
+        sourceProject.loadPlugins();
         sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
     } catch (const qbs::Error &error) {
         qbs::qbsError() << error.toString();

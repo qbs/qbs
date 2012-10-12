@@ -63,9 +63,6 @@ public:
     bool parseCommandLine(const QStringList &args);
     const QString &runTargetName() const { return m_runTargetName; }
     const QString &projectFileName() const { return m_projectFileName; }
-    const QStringList &searchPaths() const { return m_searchPaths; }
-    const QStringList &pluginPaths() const { return m_pluginPaths; }
-    const QStringList &positional() const { return m_positional; }
     const QStringList &runArgs() const { return m_runArgs; }
     const QStringList &changedFiles() const { return m_changedFiles; }
     const QStringList &selectedProductNames() const { return m_selectedProductNames; }
@@ -76,7 +73,6 @@ public:
     bool isKeepGoingSet() const { return m_keepGoing; }
     int jobs() const { return m_jobs; }
     Settings::Ptr settings() const { return m_settings; }
-    QVariant configurationValue(const QString &key, const QVariant &defaultValue = QVariant()) const;
     QList<QVariantMap> buildConfigurations() const;
 
 private:
@@ -97,8 +93,6 @@ private:
     QString m_runTargetName;
     QString m_projectFileName;
     QStringList m_commandLine;
-    QStringList m_searchPaths;
-    QStringList m_pluginPaths;
     QStringList m_positional;
     QStringList m_runArgs;
     QStringList m_changedFiles;
