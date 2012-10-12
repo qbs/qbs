@@ -32,15 +32,15 @@
 
 #include <Qbs/sourceproject.h>
 #include <Qbs/runenvironment.h>
+#include <buildgraph/buildgraph.h>
+#include <buildgraph/executor.h>
 #include <language/qbsengine.h>
+#include <tools/consolelogger.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/logger.h>
 #include <tools/options.h>
-#include <buildgraph/buildgraph.h>
-#include <buildgraph/executor.h>
-#include <tools/fileinfo.h>
 #include <tools/persistence.h>
-#include <tools/logsink.h>
 
 #include <QCoreApplication>
 #include <QDir>

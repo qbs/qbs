@@ -27,14 +27,14 @@
 **
 ****************************************************************************/
 
-#include <language/qbsengine.h>
-#include <tools/logger.h>
-#include <tools/options.h>
+#include <Qbs/sourceproject.h>
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
+#include <language/qbsengine.h>
+#include <tools/consolelogger.h>
 #include <tools/fileinfo.h>
-#include <tools/logsink.h>
-#include <Qbs/sourceproject.h>
+#include <tools/logger.h>
+#include <tools/options.h>
 
 #include <cassert>
 

@@ -6,7 +6,7 @@ HEADERS += \
     $$PWD/fileinfo.h \
     $$PWD/filetime.h \
     $$PWD/logger.h \
-    $$PWD/logsink.h \
+    $$PWD/consolelogger.h \
     $$PWD/options.h \
     $$PWD/persistence.h \
     $$PWD/platform.h \
@@ -21,7 +21,7 @@ SOURCES += \
     $$PWD/error.cpp \
     $$PWD/fileinfo.cpp \
     $$PWD/logger.cpp \
-    $$PWD/logsink.cpp \
+    $$PWD/consolelogger.cpp \
     $$PWD/options.cpp \
     $$PWD/persistence.cpp \
     $$PWD/platform.cpp \

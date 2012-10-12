@@ -30,8 +30,8 @@
 
 #include "configcommand.h"
 
+#include <tools/consolelogger.h>
 #include <lib/tools/error.h>
-#include <lib/tools/logsink.h>
 
 #include <QDir>
 #include <QFile>

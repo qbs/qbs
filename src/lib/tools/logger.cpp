@@ -32,7 +32,6 @@
 #endif
 
 #include "logger.h"
-#include "logsink.h"
 
 #include <QByteArray>
 #include <QMutex>

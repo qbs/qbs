@@ -28,8 +28,8 @@
 ****************************************************************************/
 #include "../shared/specialplatformssetup.h"
 
+#include <tools/consolelogger.h>
 #include <tools/hostosinfo.h>
-#include <tools/logsink.h>
 
 #include <QBuffer>
 #include <QCoreApplication>

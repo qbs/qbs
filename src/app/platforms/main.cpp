@@ -35,7 +35,7 @@
 #include <QStringList>
 #include <QTextStream>
 
-#include <tools/logsink.h>
+#include <tools/consolelogger.h>
 #include <tools/platform.h>
 #include <tools/settings.h>
 

@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include "logsink.h"
+#include "consolelogger.h"
 #include "logger.h"
 #include "coloredoutput.h"
 

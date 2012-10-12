@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include <tools/logsink.h>
+#include <tools/consolelogger.h>
 
 #include <QCoreApplication>
 #include <QtDebug>
