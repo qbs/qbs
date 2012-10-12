@@ -111,40 +111,39 @@ void SourceProject::loadProject(const QString &projectFileName,
         // 2) Everything from the profile key (in reverse order)
         // 3) Everything from the platform
         // 4) Any remaining keys from modules keyspace
-        QStringList profiles;
-        if (buildCfg.contains("profile"))
-            profiles = buildCfg.take("profile").toString().split(QChar(','), QString::SkipEmptyParts); // Remove from buildCfg if present
-        else
-            profiles = d->settings->value("profile", "").toString().split(QChar(','), QString::SkipEmptyParts);
-
-        const QString combinedBuildProfileName = profiles.join(QLatin1String("-"));
-        buildCfg.insert("buildProfileName", combinedBuildProfileName);
+        QString profileName = buildCfg.value("qbs.profile").toString();
+        if (profileName.isNull()) {
+            profileName = d->settings->value("profile").toString();
+            if (profileName.isNull())
+                throw Error(tr("No profile given.\n"
+                               "Either set the configuration value 'profile' to a valid profile's name\n"
+                               "or specify the profile with the command line parameter 'profile:name'."));
+            buildCfg.insert("qbs.profile", profileName);
+        }
 
         // (2)
-        for (int i = profiles.count() - 1; i >= 0; i--) {
-            QString profileGroup = QString("profiles/%1").arg(profiles[i]);
-            QStringList profileKeys = d->settings->allKeysWithPrefix(profileGroup);
-            if (profileKeys.isEmpty())
-                throw Error(tr("Unknown profile '%1'.").arg(profiles.at(i)));
-            foreach (const QString &profileKey, profileKeys) {
-                QString fixedKey(profileKey);
-                fixedKey.replace(QChar('/'), QChar('.'));
-                if (!buildCfg.contains(fixedKey))
-                    buildCfg.insert(fixedKey, d->settings->value(profileGroup + "/" + profileKey));
-            }
+        const QString profileGroup = QString("profiles/%1").arg(profileName);
+        const QStringList profileKeys = d->settings->allKeysWithPrefix(profileGroup);
+        if (profileKeys.isEmpty())
+            throw Error(tr("Unknown profile '%1'.").arg(profileName));
+        foreach (const QString &profileKey, profileKeys) {
+            QString fixedKey(profileKey);
+            fixedKey.replace(QChar('/'), QChar('.'));
+            if (!buildCfg.contains(fixedKey))
+                buildCfg.insert(fixedKey, d->settings->value(profileGroup + "/" + profileKey));
         }
 
         // (3) Need to make sure we have a value for qbs.platform before going any further
-        if (!buildCfg.value("qbs.platform").isValid()) {
-            QVariant defaultPlatform = d->settings->moduleValue("qbs/platform", profiles);
-            if (!defaultPlatform.isValid())
+        QVariant platformName = buildCfg.value("qbs.platform");
+        if (!platformName.isValid()) {
+            platformName = d->settings->moduleValue("qbs/platform", QStringList(profileName));
+            if (!platformName.isValid())
                 throw Error(tr("No platform given and no default set."));
-            buildCfg.insert("qbs.platform", defaultPlatform);
+            buildCfg.insert("qbs.platform", platformName);
         }
-        const QString platformName = buildCfg.value("qbs.platform").toString();
-        Platform::Ptr platform = platforms.value(platformName);
+        Platform::Ptr platform = platforms.value(platformName.toString());
         if (platform.isNull())
-            throw Error(tr("Unknown platform '%1'.").arg(platformName));
+            throw Error(tr("Unknown platform '%1'.").arg(platformName.toString()));
         foreach (const QString &key, platform->settings.allKeys()) {
             if (key.startsWith(Platform::internalKey()))
                 continue;

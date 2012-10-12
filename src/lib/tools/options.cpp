@@ -457,8 +457,7 @@ QMap<S,T> &inhaleValues(QMap<S,T> &dst, const QMap<S,T> &src)
 QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
 {
     // Make fully-qualified, ie "platform" -> "qbs.platform"
-    // "profile" is the only top-level thing that doesn't have a dot or belong in the qbs module
-    if (aCommandLineName.contains(".") || aCommandLineName == "profile")
+    if (aCommandLineName.contains("."))
         return aCommandLineName;
     else
         return "qbs." + aCommandLineName;

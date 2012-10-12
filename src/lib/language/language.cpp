@@ -457,7 +457,7 @@ QString ResolvedProject::deriveId(const QVariantMap &config)
 {
     const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
     const QString buildVariant = qbsProperties.value(QLatin1String("buildVariant")).toString();
-    const QString profile = qbsProperties.value(QLatin1String("buildProfileName")).toString();
+    const QString profile = qbsProperties.value(QLatin1String("profile")).toString();
     return profile + QLatin1Char('-') + buildVariant;
 }
 

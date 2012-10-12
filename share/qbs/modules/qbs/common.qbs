@@ -21,7 +21,7 @@ Module {
         else
             throw "Unknown targetOS: \"" + targetOS + "\""
     }
-    property string buildProfileName
+    property string profile
     property string toolchain
     property string architecture
     property string endianness
