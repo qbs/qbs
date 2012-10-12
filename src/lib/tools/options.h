@@ -94,7 +94,6 @@ private:
     void printSettings(Settings::Scope scope);
     void exportGlobalSettings(const QString &filename);
     void importGlobalSettings(const QString &filename);
-    void upgradeSettings(Settings::Scope scope);
     QString guessProjectFileName();
     QString propertyName(const QString &aCommandLineName) const;
     void setRealProjectFile();

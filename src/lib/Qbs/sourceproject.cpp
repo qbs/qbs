@@ -94,12 +94,6 @@ void SourceProject::loadPlugins(const QStringList &pluginPaths)
     qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
 
-void warnLegacyConfig(const QString &aKey)
-{
-    qbsWarning("Config key %s is deprecated. Run qbs config --upgrade [--global|--local]",
-        qPrintable(QString(aKey).replace("/", ".")));
-}
-
 void SourceProject::loadProject(const QString &projectFileName,
         const QList<QVariantMap> &buildConfigs)
 {
@@ -115,7 +109,6 @@ void SourceProject::loadProject(const QString &projectFileName,
         // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
         // 1) Things specified on command line (already in buildCfg at this point)
         // 2) Everything from the profile key (in reverse order)
-        // 2a) For compatibility with v0.1, treat qt/<qtVersionName>/* the same as if it were profiles.<qtVersionName>.qt.core.*
         // 3) Everything from the platform
         // 4) Any remaining keys from modules keyspace
         QStringList profiles;
@@ -141,37 +134,9 @@ void SourceProject::loadProject(const QString &projectFileName,
             }
         }
 
-        // (2a) ### can remove? This replaces the qbs.configurationValue() stuff in qtcore.qbs in v0.1
-        // Check for someone setting qt.core.qtVersionName explicitly on command-line because we've removed this property
-        QString legacyQtVersionName = buildCfg.take("qt/core.qtVersionName").toString();
-        if (legacyQtVersionName.length()) {
-            qbsWarning("Setting qt/core.qtVersionName is deprecated. Run 'qbs config --upgrade [--global|--local]' and use profile:%s instead", qPrintable(legacyQtVersionName));
-        } else {
-            legacyQtVersionName = d->settings->value("defaults/qtVersionName").toString();
-            if (legacyQtVersionName.length())
-                warnLegacyConfig("defaults.qtVersionName");
-            else
-                legacyQtVersionName = "default";
-        }
-        QStringList legacyQtKeys = d->settings->allKeysWithPrefix("qt/" + legacyQtVersionName);
-        foreach (const QString &key, legacyQtKeys) {
-            QString oldKey = QString("qt/%1/%2").arg(legacyQtVersionName).arg(key);
-            QString newKey = QString("qt.core.%1").arg(key);
-            if (!buildCfg.contains(newKey)) {
-                warnLegacyConfig(oldKey);
-                buildCfg.insert(newKey, d->settings->value(oldKey));
-            }
-        }
-
         // (3) Need to make sure we have a value for qbs.platform before going any further
         if (!buildCfg.value("qbs.platform").isValid()) {
             QVariant defaultPlatform = d->settings->moduleValue("qbs/platform", profiles);
-            if (!defaultPlatform.isValid()) {
-                // ### Compatibility with v0.1
-                defaultPlatform = d->settings->value("defaults/platform");
-                if (defaultPlatform.isValid())
-                    warnLegacyConfig("defaults/platform");
-                }
             if (!defaultPlatform.isValid())
                 throw Error(tr("No platform given and no default set."));
             buildCfg.insert("qbs.platform", defaultPlatform);

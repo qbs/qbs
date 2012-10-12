@@ -348,7 +348,7 @@ void CommandLineOptions::loadLocalProjectSettings(bool throwExceptionOnFailure)
 
 void CommandLineOptions::configure()
 {
-    enum ConfigCommand { CfgSet, CfgUnset, CfgList, CfgExport, CfgImport, CfgUpgrade };
+    enum ConfigCommand { CfgSet, CfgUnset, CfgList, CfgExport, CfgImport };
     ConfigCommand cmd = CfgSet;
     Settings::Scope scope = Settings::Local;
     bool scopeSet = false;
@@ -377,8 +377,6 @@ void CommandLineOptions::configure()
             cmd = CfgExport;
         } else if (arg == "import") {
             cmd = CfgImport;
-        } else if (arg == "upgrade") {
-            cmd = CfgUpgrade;
         } else {
             throw Error("Unknown option for config command.");
         }
@@ -436,17 +434,6 @@ void CommandLineOptions::configure()
         importGlobalSettings(args[0]);
         printf("\nnew ");
         printSettings(Settings::Global);
-        break;
-    case CfgUpgrade:
-        if (scopeSet) {
-            if (scope == Settings::Local)
-                loadLocalProjectSettings(true);
-            upgradeSettings(scope);
-        } else {
-            loadLocalProjectSettings(false);
-            upgradeSettings(Settings::Local);
-            upgradeSettings(Settings::Global);
-        }
         break;
     }
 }
@@ -611,57 +598,6 @@ void CommandLineOptions::importGlobalSettings(const QString &filename)
             QString value = line.mid(colon + 1).trimmed();
             m_settings->setValue(Settings::Global, key, value);
         }
-    }
-}
-
-void CommandLineOptions::upgradeSettings(Settings::Scope scope)
-{
-    // This upgrades config settings from v0.1 format to v0.2 format
-    // ### REMOVE this after v0.2!
-    QStringList allKeys = m_settings->allKeys(scope);
-    bool seenQtDefaultKey = false;
-    foreach (const QString &key, allKeys) {
-        QString newKey;
-        QVariant newValue = m_settings->value(scope, key);
-        if (key.startsWith("qt/")) {
-            // Replace with qt/name/* with profiles/name/qt/core/*
-            QStringList components = key.split("/");
-            components[0] = "profiles";
-            // The examples used to show Qt names with dots in, we can't allow that any more
-            components[1].replace(".", "_");
-            components.insert(2, "qt");
-            components.insert(3, "core");
-            newKey = components.join("/");
-            if (key.startsWith("qt/default"))
-                seenQtDefaultKey = true;
-        } else if (key.compare("defaults/buildvariant", Qt::CaseInsensitive) == 0) {
-            newKey = "modules/qbs/buildVariant";
-        } else if (key == "defaults/platform") {
-            newKey = "modules/qbs/platform";
-        } else if (key == "defaults/qtVersionName") {
-            newKey = "profile";
-            QString val = newValue.toString();
-            val.replace(".", "_");
-            newValue = val;
-        } else if (key == "defaults/jobs") {
-            newKey = "preferences/jobs";
-        } else if (key == "defaults/useColoredOutput") {
-            newKey = "preferences/useColoredOutput";
-        } else if (key == "paths/cubes") {
-            newKey = "preferences/qbsPath";
-        } else if (key == "paths/plugins") {
-            newKey = "preferences/pluginsPath";
-        }
-
-        if (newKey.length()) {
-            qbsInfo("Replacing %s with %s\n", qPrintable(QString(key).replace('/', '.')), qPrintable(QString(newKey).replace('/', '.')));
-            m_settings->remove(scope, key);
-            m_settings->setValue(scope, newKey, newValue);
-        }
-    }
-    if (seenQtDefaultKey && !m_settings->value(scope, "profile").isValid()) {
-        qbsInfo("Setting profile key to use 'profiles.default'\n");
-        m_settings->setValue(scope, "profile", "default");
     }
 }
 
