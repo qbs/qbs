@@ -82,14 +82,12 @@ CppModule {
             // ### make the object file dir overridable
             fileName: ".obj/" + product.name + "/" + product.name + '.pch'
         }
-        TransformProperties {
-            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
-            property var defines: ModUtils.appendAll(input, 'defines')
-            property var includePaths: ModUtils.appendAll(input, 'includePaths')
-            property var cFlags: ModUtils.appendAll(input, 'cFlags')
-            property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
-        }
         prepare: {
+            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+            var defines = ModUtils.appendAll(input, 'defines');
+            var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var cFlags = ModUtils.appendAll(input, 'cFlags');
+            var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
         }
     }
@@ -104,15 +102,12 @@ CppModule {
             fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.baseName + ".obj"
         }
  
-        TransformProperties {
-            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
-            property var defines: ModUtils.appendAll(input, 'defines')
-            property var includePaths: ModUtils.appendAll(input, 'includePaths')
-            property var cFlags: ModUtils.appendAll(input, 'cFlags')
-            property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
-        }
-
         prepare: {
+            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+            var defines = ModUtils.appendAll(input, 'defines');
+            var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var cFlags = ModUtils.appendAll(input, 'cFlags');
+            var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
         }
     }
@@ -127,14 +122,11 @@ CppModule {
             fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.targetName + product.module.executableSuffix
         }
 
-        TransformProperties {
-            property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
-            property var dynamicLibraries: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries')
-            property var staticLibraries: ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries')
-            property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
-        }
-
         prepare: {
+            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries');
+            var staticLibraries = ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
+            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
             return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
@@ -155,14 +147,12 @@ CppModule {
             fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibraryImportSuffix
         }
 
-        TransformProperties {
-            property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
-            property var dynamicLibraries: ModUtils.appendAll(product, 'dynamicLibraries')
-            property var staticLibraries: ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries')
-            property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
-        }
 
         prepare: {
+            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.appendAll(product, 'dynamicLibraries');
+            var staticLibraries = ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
+            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
             return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
@@ -226,13 +216,10 @@ CppModule {
             fileTags: ["obj"]
         }
 
-        TransformProperties {
-            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
-            property var defines: ModUtils.appendAll(input, 'defines')
-            property var includePaths: ModUtils.appendAll(input, 'includePaths')
-        }
-
         prepare: {
+            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+            var defines = ModUtils.appendAll(input, 'defines');
+            var includePaths = ModUtils.appendAll(input, 'includePaths');
             var args = [];
             var i;
             for (i in platformDefines) {

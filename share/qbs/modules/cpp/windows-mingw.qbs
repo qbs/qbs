@@ -35,13 +35,10 @@ GenericGCC {
             fileTags: ["obj"]
         }
 
-        TransformProperties {
-            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
-            property var defines: ModUtils.appendAll(input, 'defines')
-            property var includePaths: ModUtils.appendAll(input, 'includePaths')
-        }
-
         prepare: {
+            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+            var defines = ModUtils.appendAll(input, 'defines');
+            var includePaths = ModUtils.appendAll(input, 'includePaths');
             var args = [];
             var i;
             for (i in platformDefines) {

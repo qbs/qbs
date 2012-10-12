@@ -49,17 +49,14 @@ CppModule {
             }
         }
 
-        TransformProperties {
-            property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
-            property var dynamicLibraries: ModUtils.appendAll(product, 'dynamicLibraries')
-            property var staticLibraries: ModUtils.appendAll(product, 'staticLibraries')
-            property var frameworkPaths: ModUtils.appendAll(product, 'frameworkPaths')
-            property var frameworks: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks')
-            property var rpaths: ModUtils.appendAll(product, 'rpaths')
-            property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
-        }
-
         prepare: {
+            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.appendAll(product, 'dynamicLibraries');
+            var staticLibraries = ModUtils.appendAll(product, 'staticLibraries');
+            var frameworkPaths = ModUtils.appendAll(product, 'frameworkPaths');
+            var frameworks = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+            var rpaths = ModUtils.appendAll(product, 'rpaths');
+            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
             var i;
             var args = Gcc.configFlags(product);
             args.push('-shared');
@@ -157,17 +154,14 @@ CppModule {
             fileTags: ["application"]
         }
 
-        TransformProperties {
-            property var libraryPaths: ModUtils.appendAll(product, 'libraryPaths')
-            property var dynamicLibraries: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries')
-            property var staticLibraries: ModUtils.appendAllFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries')
-            property var frameworkPaths: ModUtils.appendAll(product, 'frameworkPaths')
-            property var frameworks: ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks')
-            property var rpaths: ModUtils.appendAll(product, 'rpaths')
-            property var linkerFlags: ModUtils.appendAll(product, 'linkerFlags')
-        }
-
         prepare: {
+            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries');
+            var staticLibraries = ModUtils.appendAllFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
+            var frameworkPaths = ModUtils.appendAll(product, 'frameworkPaths');
+            var frameworks = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+            var rpaths = ModUtils.appendAll(product, 'rpaths');
+            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
             var args = Gcc.configFlags(product);
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].fileName)
@@ -243,18 +237,15 @@ CppModule {
             fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.baseName + ".o"
         }
 
-        TransformProperties {
-            property var defines: ModUtils.appendAll(input, 'defines')
-            property var platformDefines: ModUtils.appendAll(input, 'platformDefines')
-            property var includePaths: ModUtils.appendAll(input, 'includePaths')
-            property var cppFlags: ModUtils.appendAll(input, 'cppFlags')
-            property var cFlags: ModUtils.appendAll(input, 'cFlags')
-            property var cxxFlags: ModUtils.appendAll(input, 'cxxFlags')
-            property var objcFlags: ModUtils.appendAll(input, 'objcFlags')
-            property var visibility: ModUtils.findFirst(product.modules, 'cpp', 'visibility')
-        }
-
         prepare: {
+            var defines = ModUtils.appendAll(input, 'defines');
+            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+            var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var cppFlags = ModUtils.appendAll(input, 'cppFlags');
+            var cFlags = ModUtils.appendAll(input, 'cFlags');
+            var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
+            var objcFlags = ModUtils.appendAll(input, 'objcFlags');
+            var visibility = ModUtils.findFirst(product.modules, 'cpp', 'visibility');
             var i;
             var args = Gcc.configFlags(input);
             var isCxx = true;
