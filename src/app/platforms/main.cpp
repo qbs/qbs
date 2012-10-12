@@ -56,7 +56,6 @@ void showUsage()
     QTextStream s(stderr);
     s   << "platform [action]\n"
         << "actions:\n"
-        << "  s|shell <name>                     --  open a shell, setting up the named platform\n"
         << "  ls|list                            --  list available platforms\n"
         << "  mv|rename <from> <to>              --  rename a platform\n"
         << "  rm|remove <name>                   --  irrevocably remove the given target\n"
@@ -89,7 +88,6 @@ int main(int argc, char **argv)
         ProbePlatform,
         RenamePlatform,
         RemovePlatform,
-        ShellPlatform,
         ConfigPlatform
     };
 
@@ -105,8 +103,6 @@ int main(int argc, char **argv)
             action = RenamePlatform;
         } else if (cmd == "rm" || cmd == "remove") {
             action = RemovePlatform;
-        } else if (cmd == "shell" || cmd == "s") {
-            action = ShellPlatform;
         } else if (cmd == "config") {
             action = ConfigPlatform;
         } else if (cmd == "list" || cmd == "ls") {
