@@ -32,9 +32,9 @@
 
 #include <language/language.h>
 #include <buildgraph/buildgraph.h>
+#include <tools/error.h>
 
 #include "buildproject.h"
-#include "error.h"
 
 #include <QExplicitlySharedDataPointer>
 #include <QFutureInterface>
