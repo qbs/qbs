@@ -54,7 +54,7 @@ public:
     TestBlackbox();
 
 protected:
-    int runQbs(QStringList arguments = QStringList(), bool showOutput = false);
+    int runQbs(QStringList arguments = QStringList(), bool expectFailure = false);
     void rmDirR(const QString &dir);
     void touch(const QString &fn);
 

@@ -56,24 +56,26 @@ TestBlackbox::TestBlackbox()
 {
 }
 
-int TestBlackbox::runQbs(QStringList arguments, bool showOutput)
+int TestBlackbox::runQbs(QStringList arguments, bool expectFailure)
 {
     arguments.prepend(QLatin1String("profile:") + buildProfile);
     QString cmdLine = qbsExecutableFilePath;
     foreach (const QString &str, arguments)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
-
-    int r;
-    if (showOutput) {
-        r = system(cmdLine.toLatin1());
-    } else {
-        QProcess process;
-        process.start(cmdLine);
-        process.waitForStarted();
-        process.waitForFinished();
-        r = process.exitCode();
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    process.start(cmdLine);
+    if (!process.waitForStarted() || !process.waitForFinished()) {
+        if (!expectFailure)
+            qDebug("%s", qPrintable(process.errorString()));
+        return -1;
     }
-    return r;
+
+    if ((process.exitStatus() != QProcess::NormalExit
+             || process.exitCode() != 0) && !expectFailure) {
+        qDebug("%s", process.readAll().constData());
+    }
+    return process.exitCode();
 }
 
 /*!
@@ -177,14 +179,14 @@ void TestBlackbox::build_project()
     QFETCH(QString, productFileName);
     if (!projectSubDir.startsWith('/'))
         projectSubDir.prepend('/');
-    QVERIFY(QFile::exists(testDataDir + projectSubDir));
+    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
     QDir::setCurrent(testDataDir + projectSubDir);
 
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile::exists(productFileName));
-    QVERIFY(QFile::remove(productFileName));
+    QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile::exists(productFileName));
+    QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
 }
 
 void TestBlackbox::track_qrc()
@@ -192,7 +194,7 @@ void TestBlackbox::track_qrc()
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
     const QString fileName = qbs::HostOsInfo::appendExecutableSuffix("build/" + buildProfile + "-debug/i");
-    QVERIFY(QFile(fileName).exists());
+    QVERIFY2(QFile(fileName).exists(), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);
     {
@@ -215,7 +217,7 @@ void TestBlackbox::track_qobject_change()
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
     const QString productFilePath = qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/i");
-    QVERIFY(QFile(productFilePath).exists());
+    QVERIFY2(QFile(productFilePath).exists(), qPrintable(productFilePath));
     QString moc_bla_objectFileName = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla" + objectSuffix;
     QVERIFY(QFile(moc_bla_objectFileName).exists());
 
@@ -241,8 +243,8 @@ void TestBlackbox::trackAddFile()
     QCOMPARE(runQbs(), 0);
 
     process.start(buildDir + "/someapp");
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
+    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
+    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
@@ -284,8 +286,8 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(runQbs(), 0);
 
     process.start(buildDir + "/someapp");
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
+    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
+    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
@@ -336,8 +338,8 @@ void TestBlackbox::trackAddFileTag()
     QCOMPARE(runQbs(), 0);
 
     process.start(buildDir + "/someapp");
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
+    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
+    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
@@ -369,9 +371,10 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QCOMPARE(QFile::exists(buildDir + "/.obj/someapp/main_foo" + objectSuffix), true);
-    QCOMPARE(QFile::exists(buildDir + "/main_foo.cpp"), true);
-    QCOMPARE(QFile::exists(buildDir + "/main.foo"), true);
+    QVERIFY2(QFile::exists(buildDir + "/.obj/someapp/main_foo" + objectSuffix),
+            qPrintable(buildDir + "/.obj/someapp/main_foo" + objectSuffix));
+    QVERIFY2(QFile::exists(buildDir + "/main_foo.cpp"), qPrintable(buildDir + "/main_foo.cpp"));
+    QVERIFY2(QFile::exists(buildDir + "/main.foo"), qPrintable(buildDir + "/main.foo"));
 
     process.start(buildDir + "/someapp");
     QVERIFY(process.waitForStarted());
@@ -408,7 +411,7 @@ void TestBlackbox::trackAddMocInclude()
     ccp("before", "work");
     QDir::setCurrent(testDataDir + "/trackAddMocInclude/work");
     // The build must fail because the main.moc include is missing.
-    QVERIFY(runQbs() != 0);
+    QVERIFY(runQbs(QStringList(), true) != 0);
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
     ccp("../after", ".");
