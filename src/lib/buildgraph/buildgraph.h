@@ -92,11 +92,6 @@ public:
     BuildProject(BuildGraph *bg);
     ~BuildProject();
 
-    static BuildProject::Ptr loadBuildGraph(const QString &buildGraphFilePath,
-                                            BuildGraph *buildGraph,
-                                            const FileTime &minTimeStamp,
-                                            const QStringList &loaderSearchPaths);
-
     struct LoadResult
     {
         ResolvedProject::Ptr changedResolvedProject;

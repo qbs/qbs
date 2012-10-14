@@ -1305,17 +1305,6 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
     }
 }
 
-BuildProject::Ptr BuildProject::loadBuildGraph(const QString &buildGraphFilePath,
-                                               BuildGraph *buildGraph,
-                                               const FileTime &minTimeStamp,
-                                               const QStringList &loaderSearchPaths)
-{
-    static const qbs::Configuration::Ptr configuration = qbs::Configuration::create();
-    LoadResult lr;
-    restoreBuildGraph(buildGraphFilePath, buildGraph, minTimeStamp, configuration, loaderSearchPaths, &lr);
-    return lr.loadedProject;
-}
-
 static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
 {
     QVariantMap::const_iterator it = userCfg.begin();
