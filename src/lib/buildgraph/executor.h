@@ -34,6 +34,7 @@
 
 #include <buildgraph/artifact.h>
 #include <Qbs/processoutput.h>
+#include <tools/buildoptions.h>
 #include <tools/settings.h>
 #include <buildgraph/scanresultcache.h>
 
@@ -55,7 +56,7 @@ public:
     Executor();
     ~Executor();
 
-    void build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames);
+    void build(const QList<BuildProject::Ptr> projectsToBuild);
     void cancelBuild();
 
     enum ExecutorState {
@@ -71,16 +72,11 @@ public:
     };
 
     void setEngine(QbsEngine *engine);
+    void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
     void setRunOnceAndForgetModeEnabled(bool enabled) { m_runOnceAndForgetMode = enabled; }
-    void setDryRun(bool b);
-    void setKeepGoing(bool b) { m_keepGoing = b; }
-    bool isKeepGoingSet() const { return m_keepGoing; }
     ExecutorState state() const { return m_state; }
     BuildResult buildResult() const { return m_buildResult; }
-
-    void setMaximumJobs(int numberOfJobs);
-    int maximumJobs() const;
 
 signals:
     void error();
@@ -119,13 +115,13 @@ protected:
 
 private:
     QbsEngine *m_engine;
+    BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
     bool m_runOnceAndForgetMode;    // This is true for the command line version.
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
     BuildResult m_buildResult;
-    bool m_keepGoing;
     bool m_printScanningMessage;
     QList<BuildProject::Ptr> m_projectsToBuild;
     QList<BuildProduct::Ptr> m_productsToBuild;
@@ -137,7 +133,6 @@ private:
     AutoMoc *m_autoMoc;
 
     friend class ExecutorJob;
-    int m_maximumJobNumber;
 };
 
 } // namespace qbs

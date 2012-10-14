@@ -32,6 +32,7 @@
 
 #include <Qbs/globals.h>
 
+#include <tools/buildoptions.h>
 #include <tools/settings.h>
 
 #include <QPair>
@@ -58,20 +59,16 @@ public:
         PropertiesCommand
     };
 
-    void printHelp() const;
-    Command command() const { return m_command;}
     bool parseCommandLine(const QStringList &args);
+    void printHelp() const;
+
+    Command command() const { return m_command;}
+    BuildOptions buildOptions() const { return m_buildOptions; }
     const QString &runTargetName() const { return m_runTargetName; }
     const QString &projectFileName() const { return m_projectFileName; }
     const QStringList &runArgs() const { return m_runArgs; }
-    const QStringList &changedFiles() const { return m_changedFiles; }
-    const QStringList &selectedProductNames() const { return m_selectedProductNames; }
     bool isDumpGraphSet() const { return m_dumpGraph; }
-    bool isDryRunSet() const { return m_dryRun; }
     bool isHelpSet() const { return m_help; }
-    bool isCleanSet() const { return m_clean; }
-    bool isKeepGoingSet() const { return m_keepGoing; }
-    int jobs() const { return m_jobs; }
     Settings::Ptr settings() const { return m_settings; }
     QList<QVariantMap> buildConfigurations() const;
 
@@ -95,14 +92,9 @@ private:
     QStringList m_commandLine;
     QStringList m_positional;
     QStringList m_runArgs;
-    QStringList m_changedFiles;
-    QStringList m_selectedProductNames;
+    BuildOptions m_buildOptions;
     bool m_dumpGraph;
-    bool m_dryRun;
     bool m_help;
-    bool m_clean;
-    bool m_keepGoing;
-    int m_jobs;
     int m_logLevel;
 };
 }

@@ -51,8 +51,6 @@ Executor::Executor()
     , m_runOnceAndForgetMode(false)
     , m_state(ExecutorIdle)
     , m_buildResult(SuccessfulBuild)
-    , m_keepGoing(false)
-    , m_maximumJobNumber(0)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
@@ -73,9 +71,9 @@ Executor::~Executor()
     delete m_inputArtifactScanContext;
 }
 
-void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStringList &changedFiles, const QStringList &selectedProductNames)
+void Executor::build(const QList<BuildProject::Ptr> projectsToBuild)
 {
-    Q_ASSERT(m_maximumJobNumber > 0);
+    Q_ASSERT(m_buildOptions.maxJobCount > 0);
     Q_ASSERT(m_engine);
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
@@ -83,11 +81,12 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     bool success = true;
 
     setState(ExecutorRunning);
-    Artifact::BuildState initialBuildState = changedFiles.isEmpty() ? Artifact::Buildable : Artifact::Built;
+    Artifact::BuildState initialBuildState = m_buildOptions.changedFiles.isEmpty()
+            ? Artifact::Buildable : Artifact::Built;
 
     // determine the products we want to build
     m_projectsToBuild = projectsToBuild;
-    if (selectedProductNames.isEmpty()) {
+    if (m_buildOptions.selectedProductNames.isEmpty()) {
         // Use all products we have in the build graph.
         m_productsToBuild.clear();
         foreach (BuildProject::Ptr project, m_projectsToBuild)
@@ -101,7 +100,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
                 productsPerName.insert(product->rProduct->name.toLower(), product);
 
         QSet<BuildProduct::Ptr> selectedProducts;
-        foreach (const QString &productName, selectedProductNames) {
+        foreach (const QString &productName, m_buildOptions.selectedProductNames) {
             BuildProduct::Ptr product = productsPerName.value(productName.toLower());
             if (!product) {
                 qbsWarning() << "Selected product " << productName << " not found.";
@@ -122,7 +121,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     }
 
     QList<Artifact *> changedArtifacts;
-    foreach (const QString &filePath, changedFiles) {
+    foreach (const QString &filePath, m_buildOptions.changedFiles) {
         QList<Artifact *> artifacts;
         foreach (BuildProject::Ptr project, m_projectsToBuild)
             artifacts.append(project->lookupArtifacts(filePath));
@@ -159,7 +158,7 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild, const QStri
     prepareBuildGraph(initialBuildState);
 
     // determine which artifacts are out of date
-    const bool changedFilesProvided = !changedFiles.isEmpty();
+    const bool changedFilesProvided = !m_buildOptions.changedFiles.isEmpty();
     if (changedFilesProvided) {
         m_printScanningMessage = true;
         foreach (Artifact *artifact, changedArtifacts) {
@@ -208,30 +207,23 @@ void Executor::setEngine(QbsEngine *engine)
         job->setMainThreadScriptEngine(engine);
 }
 
-void Executor::setDryRun(bool b)
+void Executor::setBuildOptions(const BuildOptions &buildOptions)
 {
-    foreach (ExecutorJob *job, m_availableJobs)
-        job->setDryRun(b);
-}
-
-void Executor::setMaximumJobs(int numberOfJobs)
-{
-    if (numberOfJobs == m_maximumJobNumber)
+    if (buildOptions == m_buildOptions)
         return;
-
-    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", numberOfJobs);
-    m_maximumJobNumber = numberOfJobs;
-    int actualJobNumber = m_availableJobs.count() + m_processingJobs.count();
-    if (actualJobNumber > m_maximumJobNumber) {
-        removeExecutorJobs(actualJobNumber - m_maximumJobNumber);
-    } else {
-        addExecutorJobs(m_maximumJobNumber - actualJobNumber);
+    const int oldMaxJobCount = m_buildOptions.maxJobCount;
+    m_buildOptions = buildOptions;
+    if (oldMaxJobCount != m_buildOptions.maxJobCount) {
+        qbsDebug("[EXEC] preparing executor for %d jobs in parallel", m_buildOptions.maxJobCount);
+        int actualJobNumber = m_availableJobs.count() + m_processingJobs.count();
+        if (actualJobNumber > m_buildOptions.maxJobCount) {
+            removeExecutorJobs(actualJobNumber - m_buildOptions.maxJobCount);
+        } else {
+            addExecutorJobs(m_buildOptions.maxJobCount - actualJobNumber);
+        }
     }
-}
-
-int Executor::maximumJobs() const
-{
-    return m_maximumJobNumber;
+    foreach (ExecutorJob * const job, m_availableJobs)
+        job->setDryRun(m_buildOptions.dryRun);
 }
 
 bool Executor::isLeaf(Artifact *artifact)
@@ -580,7 +572,7 @@ void Executor::printScanningMessageOnce()
 void Executor::onProcessError(QString errorString)
 {
     m_buildResult = FailedBuild;
-    if (m_keepGoing) {
+    if (m_buildOptions.keepGoing) {
         qbsWarning() << tr("ignoring error: %1").arg(errorString);
         onProcessSuccess();
     } else {

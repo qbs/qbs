@@ -46,10 +46,6 @@
 #include <QProcess>
 #include <QScopedPointer>
 
-#if defined(Q_OS_UNIX)
-#include <errno.h>
-#endif
-
 enum ExitCode
 {
     ExitCodeOK = 0,
@@ -162,10 +158,11 @@ int main(int argc, char *argv[])
         return qbs::printStatus(options, sourceProject);
 
     if (options.command() == qbs::CommandLineOptions::PropertiesCommand) {
-        const bool showAll = (options.selectedProductNames().count() == 0);
+        const QStringList &selectedProducts = options.buildOptions().selectedProductNames;
+        const bool showAll = selectedProducts.isEmpty();
         foreach (const Qbs::BuildProject& buildProject, sourceProject.buildProjects()) {
             foreach (const Qbs::BuildProduct& buildProduct, buildProject.buildProducts()) {
-                if (showAll || options.selectedProductNames().contains(buildProduct.name()))
+                if (showAll || selectedProducts.contains(buildProduct.name()))
                     buildProduct.dumpProperties();
             }
         }
@@ -181,17 +178,9 @@ int main(int argc, char *argv[])
         QObject::connect(executor.data(), SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
         QObject::connect(executor.data(), SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
         executor->setEngine(&engine);
-        executor->setMaximumJobs(options.jobs());
+        executor->setBuildOptions(options.buildOptions());
         executor->setRunOnceAndForgetModeEnabled(true);
-        executor->setKeepGoing(options.isKeepGoingSet());
-        executor->setDryRun(options.isDryRunSet());
-
-        QDir currentDir;
-        QStringList absoluteNamesChangedFiles;
-        foreach (const QString &fileName, options.changedFiles())
-            absoluteNamesChangedFiles += QDir::fromNativeSeparators(currentDir.absoluteFilePath(fileName));
-
-        executor->build(sourceProject.internalBuildProjects(), absoluteNamesChangedFiles, options.selectedProductNames());
+        executor->build(sourceProject.internalBuildProjects());
         exitCode = app.exec();
         app.setExecutor(0);
         buildResult = executor->buildResult();

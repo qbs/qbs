@@ -15,7 +15,8 @@ HEADERS += \
     $$PWD/settings.h \
     $$PWD/coloredoutput.h \
     $$PWD/progressobserver.h \
-    $$PWD/hostosinfo.h
+    $$PWD/hostosinfo.h \
+    $$PWD/buildoptions.h
 
 SOURCES += \
     $$PWD/error.cpp \

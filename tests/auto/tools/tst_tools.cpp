@@ -48,9 +48,9 @@ private slots:
         QVERIFY(options.parseCommandLine(args));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
         QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
-        QCOMPARE(options.selectedProductNames(), QStringList() << "blubb");
-        QCOMPARE(options.changedFiles(), QStringList() << "foo" << "bar");
-        QVERIFY(options.isKeepGoingSet());
+        QCOMPARE(options.buildOptions().selectedProductNames, QStringList() << "blubb");
+        QCOMPARE(options.buildOptions().changedFiles.count(), 2);
+        QVERIFY(options.buildOptions().keepGoing);
         QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqq"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::Logger::defaultLevel());
         QVERIFY(options.parseCommandLine(QStringList() << "-vvqqq"));

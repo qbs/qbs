@@ -78,9 +78,6 @@ static QStringList allLogLevelStrings()
 CommandLineOptions::CommandLineOptions()
 {
     m_settings = Settings::create();
-    m_jobs = m_settings->value("preferences/jobs", 0).toInt();
-    if (m_jobs <= 0)
-        m_jobs = QThread::idealThreadCount();
 }
 
 void CommandLineOptions::printHelp() const
@@ -144,13 +141,12 @@ void CommandLineOptions::doParse()
 {
     m_command = BuildCommand;
     m_projectFileName.clear();
-    m_changedFiles.clear();
-    m_selectedProductNames.clear();
-    m_dryRun = false;
+    m_buildOptions = BuildOptions();
+    m_buildOptions.maxJobCount = m_settings->value("preferences/jobs", 0).toInt();
+    if (m_buildOptions.maxJobCount <= 0)
+        m_buildOptions.maxJobCount = QThread::idealThreadCount();
     m_dumpGraph = false;
     m_help = false;
-    m_clean = false;
-    m_keepGoing = false;
     m_logLevel = Logger::defaultLevel();
 
     while (!m_commandLine.isEmpty()) {
@@ -200,10 +196,15 @@ void CommandLineOptions::parseLongOption(const QString &option)
         m_help = true;
         m_commandLine.clear();
     } else if (optionName == QLatin1String("changed-files") && m_command == BuildCommand) {
-        m_changedFiles = getOptionArgumentAsList(option);
+        m_buildOptions.changedFiles = getOptionArgumentAsList(option);
+        QDir currentDir;
+        for (int i = 0; i < m_buildOptions.changedFiles.count(); ++i) {
+            QString &file = m_buildOptions.changedFiles[i];
+            file = QDir::fromNativeSeparators(currentDir.absoluteFilePath(file));
+        }
     } else if (optionName == QLatin1String("products") && (m_command == BuildCommand
             || m_command == CleanCommand || m_command == PropertiesCommand)) {
-        m_selectedProductNames = getOptionArgumentAsList(option);
+        m_buildOptions.selectedProductNames = getOptionArgumentAsList(option);
     } else if (optionName == QLatin1String("log-level")) {
         m_logLevel = logLevelFromString(getOptionArgument(option));
     } else {
@@ -224,8 +225,8 @@ void CommandLineOptions::parseShortOptions(const QString &options)
         case 'j': {
             const QString jobCountString = getShortOptionArgument(options, i);
             bool stringOk;
-            m_jobs = jobCountString.toInt(&stringOk);
-            if (!stringOk || m_jobs <= 0)
+            m_buildOptions.maxJobCount = jobCountString.toInt(&stringOk);
+            if (!stringOk || m_buildOptions.maxJobCount <= 0)
                 throw Error(tr("Invalid job count '%1'.").arg(jobCountString));
             break;
         }
@@ -243,10 +244,10 @@ void CommandLineOptions::parseShortOptions(const QString &options)
             setRealProjectFile();
             break;
         case 'k':
-            m_keepGoing = true;
+            m_buildOptions.keepGoing = true;
             break;
         case 'n':
-            m_dryRun = true;
+            m_buildOptions.dryRun = true;
             break;
         default:
             throw Error(tr("Unknown option '-%1'.").arg(option));
@@ -345,9 +346,7 @@ QList<QVariantMap> CommandLineOptions::buildConfigurations() const
     const QString buildVariantKey = QLatin1String("qbs.buildVariant");
     QString currentKey = QString();
     QVariantMap currentProperties;
-    QStringList args = m_positional;
-    while (!args.isEmpty()) {
-        const QString arg = args.takeFirst();
+    foreach (const QString &arg, m_positional) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
         if (sepPos == -1) { // New build variant found.
             propertyMaps.insert(currentKey, currentProperties);
