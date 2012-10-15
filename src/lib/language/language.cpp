@@ -379,6 +379,11 @@ static QProcessEnvironment getProcessEnvironment(QbsEngine *engine, EnvType envT
         engine->setProperty("_qbs_procenv", v);
     }
 
+    engine->clearImportsCache();
+    QScriptValue scope = engine->newObject();
+    scope.setProperty("getenv", engine->newFunction(js_getenv, 1));
+    scope.setProperty("putenv", engine->newFunction(js_putenv, 2));
+
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
     foreach (const ResolvedModule *module, topSortedModules) {
@@ -386,31 +391,24 @@ static QProcessEnvironment getProcessEnvironment(QbsEngine *engine, EnvType envT
             (envType == RunEnv && module->setupBuildEnvironmentScript.isEmpty() && module->setupRunEnvironmentScript.isEmpty()))
             continue;
 
-        QScriptContext *ctx = engine->pushContext();
-
-        // expose functions
-        ctx->activationObject().setProperty("getenv", engine->newFunction(js_getenv, 1));
-        ctx->activationObject().setProperty("putenv", engine->newFunction(js_putenv, 2));
-
         // handle imports
-        engine->import(module->jsImports, QScriptValue(), engine->currentContext()->activationObject());
+        engine->import(module->jsImports, scope, scope);
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;
-        QScriptValue activationObject = ctx->activationObject();
         QVariantMap productModules = productConfiguration->value().value("modules").toMap();
         foreach (const ResolvedModule * const depmod, moduleChildren.value(module)) {
             scriptValue = engine->newObject();
             QVariantMap moduleCfg = productModules.value(depmod->name).toMap();
             for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
                 scriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
-            activationObject.setProperty(depmod->name, scriptValue);
+            scope.setProperty(depmod->name, scriptValue);
         }
 
         // expose the module's properties
         QVariantMap moduleCfg = productModules.value(module->name).toMap();
         for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
-            activationObject.setProperty(it.key(), engine->toScriptValue(it.value()));
+            scope.setProperty(it.key(), engine->toScriptValue(it.value()));
 
         QString setupScript;
         if (envType == BuildEnv) {
@@ -422,13 +420,15 @@ static QProcessEnvironment getProcessEnvironment(QbsEngine *engine, EnvType envT
                 setupScript = module->setupRunEnvironmentScript;
             }
         }
+
+        QScriptContext *ctx = engine->currentContext();
+        ctx->pushScope(scope);
         scriptValue = engine->evaluate(setupScript);
+        ctx->popScope();
         if (scriptValue.isError() || engine->hasUncaughtException()) {
             QString envTypeStr = (envType == BuildEnv ? "build" : "run");
             throw Error(QString("Error while setting up %1 environment: %2").arg(envTypeStr, scriptValue.toString()));
         }
-
-        engine->popContext();
     }
 
     engine->setProperty("_qbs_procenv", QVariant());
