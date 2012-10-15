@@ -208,7 +208,7 @@ void TestBlackbox::track_qrc()
 
 void TestBlackbox::track_qobject_change()
 {
-    QDir::setCurrent(testDataDir + "/moc_h");
+    QDir::setCurrent(testDataDir + "/trackQObjChange");
     QFile("bla.h").remove();
     QVERIFY(QFile("bla_qobject.h").copy("bla.h"));
     touch("bla.h");
