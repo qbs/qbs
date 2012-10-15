@@ -179,7 +179,6 @@ int main(int argc, char *argv[])
         QObject::connect(executor.data(), SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
         executor->setEngine(&engine);
         executor->setBuildOptions(options.buildOptions());
-        executor->setRunOnceAndForgetModeEnabled(true);
         executor->build(sourceProject.internalBuildProjects());
         exitCode = app.exec();
         app.setExecutor(0);

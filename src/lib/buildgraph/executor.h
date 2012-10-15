@@ -74,7 +74,6 @@ public:
     void setEngine(QbsEngine *engine);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
-    void setRunOnceAndForgetModeEnabled(bool enabled) { m_runOnceAndForgetMode = enabled; }
     ExecutorState state() const { return m_state; }
     BuildResult buildResult() const { return m_buildResult; }
 
@@ -117,7 +116,6 @@ private:
     QbsEngine *m_engine;
     BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
-    bool m_runOnceAndForgetMode;    // This is true for the command line version.
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;

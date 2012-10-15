@@ -48,16 +48,13 @@ static QHashDummyValue hashDummy;
 Executor::Executor()
     : m_engine(0)
     , m_progressObserver(0)
-    , m_runOnceAndForgetMode(false)
     , m_state(ExecutorIdle)
     , m_buildResult(SuccessfulBuild)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
     m_autoMoc->setScanResultCache(&m_scanResultCache);
-    if (!m_runOnceAndForgetMode) {
-        connect(this, SIGNAL(finished()), SLOT(resetArtifactsToUntouched()));
-    }
+    connect(this, SIGNAL(finished()), SLOT(resetArtifactsToUntouched()));
 }
 
 Executor::~Executor()
