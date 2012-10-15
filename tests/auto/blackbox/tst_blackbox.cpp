@@ -171,6 +171,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("Q_OBJECT in header")
             << QString("moc_hpp")
             << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp"));
+    QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
+            << QString("moc_hpp_included")
+            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp_included"));
 }
 
 void TestBlackbox::build_project()
