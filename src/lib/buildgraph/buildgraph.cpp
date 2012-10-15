@@ -550,9 +550,7 @@ void BuildGraph::createTransformerCommands(const RuleScript::ConstPtr &script, T
     if (scriptProgram.isNull())
         scriptProgram = QScriptProgram(script->script);
 
-    m_engine->currentContext()->pushScope(m_prepareScriptScope);
     QScriptValue scriptValue = m_engine->evaluate(scriptProgram);
-    m_engine->currentContext()->popScope();
     if (m_engine->hasUncaughtException())
         throw Error("evaluating prepare script: " + m_engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName,
@@ -699,6 +697,7 @@ void BuildGraph::initEngine()
     m_engine->clearImportsCache();
     m_engine->pushContext();
     m_scope = m_engine->newObject();
+    m_scope.setPrototype(m_prepareScriptScope);
     m_engine->currentContext()->pushScope(m_scope);
 }
 
@@ -871,21 +870,12 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             rule->artifacts += ruleArtifact;
         }
         transformer->rule = rule;
-        QScriptValue oldScope = m_scope;
-        m_scope = m_engine->newObject();
-        m_engine->currentContext()->pushScope(m_scope);
-        try {
-            setupScriptEngineForProduct(m_engine, rProduct, transformer->rule, m_scope);
-            transformer->setupInputs(m_engine, m_scope);
-            transformer->setupOutputs(m_engine, m_scope);
-            createTransformerCommands(rtrafo->transform, transformer.data());
-        } catch (const Error &) {
-            m_engine->currentContext()->popScope();
-            m_scope = oldScope;
-            throw;
-        }
-        m_engine->currentContext()->popScope();
-        m_scope = oldScope;
+
+        EngineInitializer initializer(this);
+        setupScriptEngineForProduct(m_engine, rProduct, transformer->rule, m_scope);
+        transformer->setupInputs(m_engine, m_scope);
+        transformer->setupOutputs(m_engine, m_scope);
+        createTransformerCommands(rtrafo->transform, transformer.data());
         if (transformer->commands.isEmpty())
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
     }
