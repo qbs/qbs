@@ -33,7 +33,7 @@
 #include <QDir>
 #include <QtTest>
 
-class TestFileInfo : public QObject
+class TestTools : public QObject
 {
     Q_OBJECT
 private slots:
@@ -110,6 +110,6 @@ private slots:
     }
 };
 
-QTEST_MAIN(TestFileInfo)
+QTEST_MAIN(TestTools)
 
 #include "tst_tools.moc"
