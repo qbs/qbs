@@ -7,6 +7,7 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 QT = core testlib
 greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
+CONFIG += testcase
 
 include(../../../src/lib/use.pri)
 

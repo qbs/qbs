@@ -6,6 +6,7 @@ INCLUDEPATH += . ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 QT = core testlib
+CONFIG += testcase
 
 include(../../../src/lib/use.pri)
 
