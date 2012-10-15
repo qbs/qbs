@@ -415,7 +415,12 @@ protected:
 
         void addUsedProducts(const QList<UnknownModule::Ptr> &additionalUsedProducts, bool *productsAdded);
     };
-    typedef QHash<ResolvedProduct::Ptr, ProductData> ProjectData;
+
+    struct ProjectData
+    {
+        QHash<ResolvedProduct::Ptr, ProductData> products;
+        QList<ProductData> removedProducts;
+    };
 
     void resolveTopLevel(const ResolvedProject::Ptr &rproject,
                          LanguageObject *object,

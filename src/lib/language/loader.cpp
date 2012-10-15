@@ -1798,11 +1798,11 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     QList<Rule::Ptr> globalRules;
     QList<FileTagger::ConstPtr> globalFileTaggers;
 
-    ProjectData products;
+    ProjectData projectData;
     resolveTopLevel(rproject,
                     m_project->root,
                     m_project->fileName,
-                    &products,
+                    &projectData,
                     &globalRules,
                     &globalFileTaggers,
                     userProperties,
@@ -1811,8 +1811,8 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
     QSet<QString> uniqueStrings;
     QMultiMap<QString, ResolvedProduct::Ptr> resolvedProducts;
-    QHash<ResolvedProduct::Ptr, ProductData>::iterator it = products.begin();
-    for (; it != products.end(); ++it) {
+    QHash<ResolvedProduct::Ptr, ProductData>::iterator it = projectData.products.begin();
+    for (; it != projectData.products.end(); ++it) {
         if (m_progressObserver)
             m_progressObserver->incrementProgressValue();
         ResolvedProduct::Ptr rproduct = it.key();
@@ -1912,7 +1912,9 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     {
         QSet<QString> allowedUserPropertyNames;
         allowedUserPropertyNames << QLatin1String("project");
-        for (ProjectData::const_iterator it = products.constBegin(); it != products.constEnd(); ++it) {
+        for (QHash<ResolvedProduct::Ptr, ProductData>::const_iterator it = projectData.products.constBegin();
+             it != projectData.products.constEnd(); ++it)
+        {
             const ResolvedProduct::Ptr &product = it.key();
             const ProductData &productData = it.value();
             allowedUserPropertyNames += product->name;
@@ -1922,6 +1924,10 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 foreach (const QString &dependency, module->moduleDependencies)
                     allowedUserPropertyNames += dependency;
             }
+        }
+        foreach (const ProductData &productData, projectData.removedProducts) {
+            allowedUserPropertyNames += productData.originalProductName;
+            allowedUserPropertyNames += productData.product->scope->stringValue("name");
         }
 
         for (QVariantMap::const_iterator it = userProperties->value().begin(); it != userProperties->value().end(); ++it) {
@@ -1936,7 +1942,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
     // Check all modules for unresolved dependencies.
     foreach (ResolvedProduct::Ptr rproduct, rproject->products)
-        foreach (Module::Ptr module, products.value(rproduct).product->modules)
+        foreach (Module::Ptr module, projectData.products.value(rproduct).product->modules)
             checkModuleDependencies(module);
 
     // Change build directory for products with the same name.
@@ -1958,7 +1964,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
         do {
             productDependenciesAdded = false;
             foreach (ResolvedProduct::Ptr rproduct, rproject->products) {
-                ProductData &productData = products[rproduct];
+                ProductData &productData = projectData.products[rproduct];
                 foreach (const UnknownModule::Ptr &unknownModule, productData.usedProducts) {
                     const QString &usedProductName = unknownModule->name;
                     QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
@@ -1975,7 +1981,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                         throw Error(tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
                                            CodeLocation(m_project->fileName));
                     ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
-                    const ProductData &usedProductData = products.value(usedProduct);
+                    const ProductData &usedProductData = projectData.products.value(usedProduct);
                     bool added;
                     productData.addUsedProducts(usedProductData.usedProductsFromProductModule, &added);
                     if (added)
@@ -1986,7 +1992,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
         // Resolve all inter-product dependencies.
         foreach (ResolvedProduct::Ptr rproduct, rproject->products) {
-            foreach (const UnknownModule::Ptr &unknownModule, products.value(rproduct).usedProducts) {
+            foreach (const UnknownModule::Ptr &unknownModule, projectData.products.value(rproduct).usedProducts) {
                 const QString &usedProductName = unknownModule->name;
                 QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
                 if (usedProductCandidates.count() < 1) {
@@ -3015,15 +3021,13 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     if (!checkCondition(evaluationObject)) {
         // Remove product from configuration if it is disabled
         const QString productName = evaluationObject->scope->stringValue("name");
-        QVariantMap map = userProperties->value();
-        map.remove(productName);
-        userProperties->setValue(map);
+        projectData->removedProducts += productData;
         if (qbsLogLevel(LoggerTrace))
             qbsTrace() << "[LDR] condition for product '" << productName << "' is false.";
         return;
     }
 
-    projectData->insert(rproduct, productData);
+    projectData->products.insert(rproduct, productData);
 }
 
 ProjectFile::ProjectFile()
