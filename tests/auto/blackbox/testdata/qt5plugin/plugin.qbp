@@ -3,17 +3,27 @@ import qbs.fileinfo as FileInfo
 
 DynamicLibrary {
     name: "echoplugin"
-    files: [
-        "echoplugin.h",
-        "echoplugin.cpp",
-        "echoplugin.json.source"
-    ]
 
-    Depends { name: "Qt.widgets" }
+    Depends { name: "Qt"; submodules: ["core", "widgets"] }
     Depends { name: "cpp" }
+
+    Group {
+        condition: qt.core.versionMajor >= 5
+        files: [
+            "echoplugin.h",
+            "echoplugin.cpp",
+            "echoplugin.json.source"
+        ]
+    }
+    Group {
+        condition: qt.core.versionMajor < 5
+        files: "echoplugin_dummy.cpp"
+    }
+
     cpp.includePaths: buildDirectory
 
     Transformer {
+        condition: qt.core.versionMajor >= 5
         inputs: ["echoplugin.json.source"]
         Artifact {
             fileName: "echoplugin.json"
