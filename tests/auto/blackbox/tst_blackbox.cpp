@@ -34,12 +34,9 @@
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/../../../");
-    if (qbs::HostOsInfo::isWindowsHost())
-        filePath += QLatin1String("../");
     filePath += "bin/qbs";
     filePath = qbs::HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
     return filePath;
-
 }
 
 TestBlackbox::TestBlackbox()

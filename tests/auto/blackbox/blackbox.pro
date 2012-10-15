@@ -1,5 +1,6 @@
 TEMPLATE = app
 TARGET = tst_blackbox
+DESTDIR = $$OUT_PWD
 DEPENDPATH += .
 INCLUDEPATH += . ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
