@@ -168,6 +168,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("Qt5 plugin")
             << QString("qt5plugin")
             << QString(buildDir + QLatin1String("/") + qbs::HostOsInfo::dynamicLibraryName("echoplugin"));
+    QTest::newRow("Q_OBJECT in source")
+            << QString("moc_cpp")
+            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_cpp"));
     QTest::newRow("Q_OBJECT in header")
             << QString("moc_hpp")
             << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp"));
