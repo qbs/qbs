@@ -747,9 +747,18 @@ static bool compare(const QStringList &list, const QString &value)
 
 void Loader::setSearchPaths(const QStringList &searchPaths)
 {
-    m_searchPaths = searchPaths;
+    m_searchPaths.clear();
+    foreach (const QString &searchPath, searchPaths) {
+        if (!qbs::FileInfo::exists(searchPath)) {
+            qbsWarning() << tr("Search path '%1' does not exist.")
+                    .arg(QDir::toNativeSeparators(searchPath));
+        } else {
+            m_searchPaths << searchPath;
+        }
+    }
+
     m_moduleSearchPaths.clear();
-    foreach (const QString &path, searchPaths)
+    foreach (const QString &path, m_searchPaths)
         m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 

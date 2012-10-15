@@ -84,10 +84,17 @@ void SourceProject::loadPlugins()
         qbsWarning("qbs::SourceProject::loadPlugins was called more than once.");
     alreadyCalled = true;
 
-    const QStringList pluginPaths = d->settings->pluginPaths();
+    QStringList pluginPaths;
+    foreach (const QString &pluginPath, d->settings->pluginPaths()) {
+        if (!qbs::FileInfo::exists(pluginPath)) {
+            qbsWarning() << tr("Plugin path '%1' does not exist.")
+                    .arg(QDir::toNativeSeparators(pluginPath));
+        } else {
+            pluginPaths << pluginPath;
+        }
+    }
     foreach (const QString &pluginPath, pluginPaths)
         QCoreApplication::addLibraryPath(pluginPath);
-
     qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
 
@@ -242,6 +249,11 @@ QList<qbs::BuildProject::Ptr> SourceProject::internalBuildProjects() const
     foreach (const Qbs::BuildProject &buildProject, d->buildProjects)
         result += buildProject.internalBuildProject();
     return result;
+}
+
+QbsEngine *SourceProject::engine() const
+{
+    return d->engine;
 }
 
 } // namespace Qbs

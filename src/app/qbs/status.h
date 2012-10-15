@@ -103,9 +103,9 @@ static QStringList allFilesInProject(const QString &projectRootPath)
     return allFilesInDirectoryRecursive(QDir(projectRootPath), ignoreRegularExpressionList);
 }
 
-static int printStatus(const CommandLineOptions &options, const Qbs::SourceProject &sourceProject)
+static int printStatus(const QString &projectFilePath, const Qbs::SourceProject &sourceProject)
 {
-    QString projectDirectory = qbs::FileInfo::path(options.projectFileName());
+    QString projectDirectory = qbs::FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);

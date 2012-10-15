@@ -44,7 +44,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QProcess>
-#include <QScopedPointer>
 
 enum ExitCode
 {
@@ -56,29 +55,127 @@ enum ExitCode
     ExitCodeErrorBuildFailure = 5
 };
 
-int main(int argc, char *argv[])
+static bool tryToRunTool(const QStringList &arguments, int &exitCode)
 {
-    qbs::Application app(argc, argv);
-    app.init();
-
-    qbs::ConsoleLogger cl;
-
-    QStringList arguments = app.arguments();
-    arguments.removeFirst();
-
-    if (!arguments.isEmpty()) {
-        qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
+    if (arguments.isEmpty())
+        return false;
+    qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
             + qbs::HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
-        QStringList subProcessArgs = arguments;
-        const QString subProcess = subProcessArgs.takeFirst();
-        if (!subProcess.startsWith('-')) {
-            const int exitCode = QProcess::execute("qbs-" + subProcess, subProcessArgs);
-            if (exitCode != -2)
-                return exitCode;
+    QStringList subProcessArgs = arguments;
+    const QString subProcess = subProcessArgs.takeFirst();
+    if (subProcess.startsWith(QLatin1Char('-')))
+        return false;
+    exitCode = QProcess::execute(QLatin1String("qbs-") + subProcess, subProcessArgs);
+    return exitCode != -2;
+}
+
+static int makeClean()
+{
+    // ### TODO: take selected products into account!
+    QString errorMessage;
+    const QString buildPath = qbs::FileInfo::resolvePath(QDir::currentPath(),
+            QLatin1String("build"));
+    if (!qbs::removeDirectoryWithContents(buildPath, &errorMessage)) {
+        qbs::qbsError() << errorMessage;
+        return ExitCodeErrorExecutionFailed;
+    }
+    return 0;
+}
+
+static int runShell(const Qbs::SourceProject &sourceProject)
+{
+    Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
+    Qbs::BuildProduct buildProduct = buildProject.buildProducts().first();
+    Qbs::RunEnvironment run(buildProduct);
+    return run.runShell();
+}
+
+static int showProperties(const Qbs::SourceProject &sourceProject,
+        const qbs::BuildOptions &buildOptions)
+{
+    const QStringList &selectedProducts = buildOptions.selectedProductNames;
+    const bool showAll = selectedProducts.isEmpty();
+    foreach (const Qbs::BuildProject& buildProject, sourceProject.buildProjects()) {
+        foreach (const Qbs::BuildProduct& buildProduct, buildProject.buildProducts()) {
+            if (showAll || selectedProducts.contains(buildProduct.name()))
+                buildProduct.dumpProperties();
+        }
+    }
+    return 0;
+}
+
+static int buildProject(qbs::Application &app, const Qbs::SourceProject sourceProject,
+        const qbs::BuildOptions &buildOptions)
+{
+    qbs::Executor executor;
+    app.setExecutor(&executor);
+    QObject::connect(&executor, SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
+    QObject::connect(&executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
+    executor.setEngine(sourceProject.engine());
+    executor.setBuildOptions(buildOptions);
+    executor.build(sourceProject.internalBuildProjects());
+    app.exec();
+    app.setExecutor(0);
+    if (executor.state() == qbs::Executor::ExecutorError)
+        return ExitCodeErrorExecutionFailed;
+
+    // store the projects on disk
+    try {
+        foreach (const Qbs::BuildProject &buildProject, sourceProject.buildProjects())
+            buildProject.storeBuildGraph();
+    } catch (const qbs::Error &e) {
+        qbs::qbsError() << e.toString();
+        return ExitCodeErrorExecutionFailed;
+    }
+
+    return executor.buildResult() == qbs::Executor::SuccessfulBuild ? 0 : ExitCodeErrorBuildFailure;
+}
+
+static int runTarget(const Qbs::SourceProject &sourceProject, const QString &targetName,
+        const QStringList &arguments)
+{
+    Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
+    Qbs::BuildProduct productToRun;
+    QString productFileName;
+
+    foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
+        if (!targetName.isEmpty() && targetName != buildProduct.targetName())
+            continue;
+        if (targetName.isEmpty() || targetName == buildProduct.targetName()) {
+            if (buildProduct.isExecutable()) {
+                productToRun = buildProduct;
+                productFileName = buildProduct.executablePath();
+                break;
+            }
         }
     }
 
-    // read commandline
+    if (!productToRun.isValid()) {
+        if (targetName.isEmpty())
+            qbs::qbsError() << QObject::tr("Can't find a suitable product to run.");
+        else
+            qbs::qbsError() << QObject::tr("No such product: '%1'").arg(targetName);
+        return ExitCodeErrorBuildFailure;
+    }
+
+    Qbs::RunEnvironment run(productToRun);
+    return run.runTarget(productFileName, arguments);
+}
+
+
+int main(int argc, char *argv[])
+{
+    qbs::ConsoleLogger cl;
+
+    qbs::Application app(argc, argv);
+    app.init();
+    QStringList arguments = app.arguments();
+    arguments.removeFirst();
+
+    int toolExitCode;
+    if (tryToRunTool(arguments, toolExitCode))
+        return toolExitCode;
+
     qbs::CommandLineOptions options;
     if (!options.parseCommandLine(arguments)) {
         options.printHelp();
@@ -88,46 +185,6 @@ int main(int argc, char *argv[])
     if (options.isHelpSet()) {
         options.printHelp();
         return 0;
-    }
-
-    if (options.projectFileName().isEmpty()) {
-        qbs::qbsError("No project file found.");
-        return ExitCodeErrorParsingCommandLine;
-    } else {
-        qbs::qbsInfo() << qbs::DontPrintLogLevel << "Found project file "
-            << qPrintable(QDir::toNativeSeparators(options.projectFileName()));
-    }
-
-    if (options.command() == qbs::CommandLineOptions::CleanCommand) {
-        // ### TODO: take selected products into account!
-        QString errorMessage;
-
-        const QString buildPath = qbs::FileInfo::resolvePath(QDir::currentPath(),
-                QLatin1String("build"));
-        if (!qbs::removeDirectoryWithContents(buildPath, &errorMessage)) {
-            qbs::qbsError() << errorMessage;
-            return ExitCodeErrorExecutionFailed;
-        }
-        return 0;
-    }
-
-    // some sanity checks
-    foreach (const QString &searchPath, options.settings()->searchPaths()) {
-        if (!qbs::FileInfo::exists(searchPath)) {
-            qbs::qbsError("search path '%s' does not exist.\n"
-                     "run 'qbs config --global preferences.qbsPath $QBS_SOURCE_TREE/share/qbs'",
-                     qPrintable(searchPath));
-
-            return ExitCodeErrorParsingCommandLine;
-        }
-    }
-    foreach (const QString &pluginPath, options.settings()->pluginPaths()) {
-        if (!qbs::FileInfo::exists(pluginPath)) {
-            qbs::qbsError("plugin path '%s' does not exist.\n"
-                     "run 'qbs config --global preferences.pluginsPath $QBS_BUILD_TREE/plugins'",
-                     qPrintable(pluginPath));
-            return ExitCodeErrorParsingCommandLine;
-        }
     }
 
     qbs::QbsEngine engine;
@@ -141,93 +198,22 @@ int main(int argc, char *argv[])
         return ExitCodeErrorLoadingProjectFailed;
     }
 
-    if (options.command() == qbs::CommandLineOptions::StartShellCommand) {
-        Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
-        Qbs::BuildProduct buildProduct = buildProject.buildProducts().first();
-        Qbs::RunEnvironment run(buildProduct);
-        return run.runShell();
+    switch (options.command()) {
+    case qbs::CommandLineOptions::CleanCommand:
+        return makeClean();
+    case qbs::CommandLineOptions::StartShellCommand:
+        return runShell(sourceProject);
+    case qbs::CommandLineOptions::StatusCommand:
+        return qbs::printStatus(options.projectFileName(), sourceProject);
+    case qbs::CommandLineOptions::PropertiesCommand:
+        return showProperties(sourceProject, options.buildOptions());
+    case qbs::CommandLineOptions::BuildCommand:
+        return buildProject(app, sourceProject, options.buildOptions());
+    case qbs::CommandLineOptions::RunCommand: {
+        const int buildExitCode = buildProject(app, sourceProject, options.buildOptions());
+        if (buildExitCode != 0)
+            return buildExitCode;
+        return runTarget(sourceProject, options.runTargetName(), options.runArgs());
     }
-    if (options.isDumpGraphSet()) {
-        foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
-            foreach (Qbs::BuildProduct buildProduct, buildProject.buildProducts())
-                buildProduct.dump();
-        return 0;
     }
-
-    if (options.command() == qbs::CommandLineOptions::StatusCommand)
-        return qbs::printStatus(options, sourceProject);
-
-    if (options.command() == qbs::CommandLineOptions::PropertiesCommand) {
-        const QStringList &selectedProducts = options.buildOptions().selectedProductNames;
-        const bool showAll = selectedProducts.isEmpty();
-        foreach (const Qbs::BuildProject& buildProject, sourceProject.buildProjects()) {
-            foreach (const Qbs::BuildProduct& buildProduct, buildProject.buildProducts()) {
-                if (showAll || selectedProducts.contains(buildProduct.name()))
-                    buildProduct.dumpProperties();
-            }
-        }
-        return 0;
-    }
-
-    // execute the build graph
-    int exitCode = 0;
-    qbs::Executor::BuildResult buildResult = qbs::Executor::SuccessfulBuild;
-    {
-        QScopedPointer<qbs::Executor> executor(new qbs::Executor());
-        app.setExecutor(executor.data());
-        QObject::connect(executor.data(), SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
-        QObject::connect(executor.data(), SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
-        executor->setEngine(&engine);
-        executor->setBuildOptions(options.buildOptions());
-        executor->build(sourceProject.internalBuildProjects());
-        exitCode = app.exec();
-        app.setExecutor(0);
-        buildResult = executor->buildResult();
-        if (executor->state() == qbs::Executor::ExecutorError)
-            return ExitCodeErrorExecutionFailed;
-        if (buildResult != qbs::Executor::SuccessfulBuild)
-            exitCode = ExitCodeErrorBuildFailure;
-
-        // store the projects on disk
-        try {
-            foreach (Qbs::BuildProject buildProject, sourceProject.buildProjects())
-                buildProject.storeBuildGraph();
-        } catch (const qbs::Error &e) {
-            qbs::qbsError() << e.toString();
-            return ExitCodeErrorExecutionFailed;
-        }
-    }
-
-    if (options.command() == qbs::CommandLineOptions::RunCommand
-            && buildResult == qbs::Executor::SuccessfulBuild) {
-        Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
-        Qbs::BuildProduct productToRun;
-        QString productFileName;
-
-        foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
-            if (!options.runTargetName().isEmpty() && options.runTargetName() != buildProduct.targetName())
-                continue;
-
-            if (options.runTargetName().isEmpty() || options.runTargetName() == buildProduct.targetName()) {
-                if (buildProduct.isExecutable()) {
-                    productToRun = buildProduct;
-                    productFileName = buildProduct.executablePath();
-                    break;
-                }
-            }
-        }
-
-        if (!productToRun.isValid()) {
-            if (options.runTargetName().isEmpty())
-                qbs::qbsError() << QObject::tr("Can't find a suitable product to run.");
-            else
-                qbs::qbsError() << QObject::tr("No such product: '%1'").arg(options.runTargetName());
-            return ExitCodeErrorBuildFailure;
-        }
-
-        Qbs::RunEnvironment run(productToRun);
-        return run.runTarget(productFileName, options.runArgs());
-    }
-
-    return exitCode;
 }

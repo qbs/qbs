@@ -59,7 +59,7 @@ public:
     QString buildDirectory() const;
     QString displayName() const;
 
-    void storeBuildGraph();
+    void storeBuildGraph() const;
 
     bool isValid() const;
 

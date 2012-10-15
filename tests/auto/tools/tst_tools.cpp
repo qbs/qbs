@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#include <tools/logger.h>
 #include <tools/fileinfo.h>
+#include <tools/logger.h>
 #include <tools/options.h>
 #include <QDir>
 #include <QtTest>
@@ -44,6 +44,7 @@ private slots:
         args.append("-v");
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar";
+        args << "-h";
         qbs::CommandLineOptions options;
         QVERIFY(options.parseCommandLine(args));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
@@ -51,13 +52,13 @@ private slots:
         QCOMPARE(options.buildOptions().selectedProductNames, QStringList() << "blubb");
         QCOMPARE(options.buildOptions().changedFiles.count(), 2);
         QVERIFY(options.buildOptions().keepGoing);
-        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqq"));
+        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqqh"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::Logger::defaultLevel());
-        QVERIFY(options.parseCommandLine(QStringList() << "-vvqqq"));
+        QVERIFY(options.parseCommandLine(QStringList() << "-vvqqqh"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerWarning);
-        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqq"));
+        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqh"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
-        QVERIFY(options.parseCommandLine(QStringList() << "--log-level" << "trace"));
+        QVERIFY(options.parseCommandLine(QStringList() << "--log-level" << "trace" << "-h"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
     }
 

@@ -69,6 +69,7 @@ public:
 
     QVector<BuildProject> buildProjects() const;
     QList<qbs::BuildProject::Ptr> internalBuildProjects() const;
+    qbs::QbsEngine *engine() const;
 
 private:
     QExplicitlySharedDataPointer<SourceProjectPrivate> d;

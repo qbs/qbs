@@ -103,7 +103,7 @@ public:
                            const FileTime &minTimeStamp,
                            Configuration::Ptr cfg,
                            const QStringList &loaderSearchPaths);
-    void store();
+    void store() const;
 
 
     BuildGraph *buildGraph() const;

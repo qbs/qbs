@@ -67,7 +67,6 @@ public:
     const QString &runTargetName() const { return m_runTargetName; }
     const QString &projectFileName() const { return m_projectFileName; }
     const QStringList &runArgs() const { return m_runArgs; }
-    bool isDumpGraphSet() const { return m_dumpGraph; }
     bool isHelpSet() const { return m_help; }
     Settings::Ptr settings() const { return m_settings; }
     QList<QVariantMap> buildConfigurations() const;

@@ -1311,7 +1311,7 @@ BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minT
     return result;
 }
 
-void BuildProject::store()
+void BuildProject::store() const
 {
     if (!dirty()) {
         qbsDebug() << "[BG] build graph is unchanged in project " << resolvedProject()->id() << ".";

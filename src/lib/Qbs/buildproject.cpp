@@ -102,7 +102,7 @@ QString BuildProject::displayName() const
     return m_internalBuildProject->resolvedProject()->id();
 }
 
-void BuildProject::storeBuildGraph()
+void BuildProject::storeBuildGraph() const
 {
     m_internalBuildProject->store();
 }

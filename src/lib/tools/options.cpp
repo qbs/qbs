@@ -101,7 +101,6 @@ void CommandLineOptions::printHelp() const
          "                     Set or get project/global option(s).\n"
          "\nGeneral options:\n"
          "  -h -? --help  .... Show this help.\n"
-         "  -d  .............. Dump the build graph.\n"
          "  -f <file>  ....... Specify the .qbp project file.\n"
          "  -v  .............. Be more verbose. Increases the log level by one.\n"
          "  -q  .............. Be more quiet. Decreases the log level by one.\n"
@@ -145,7 +144,6 @@ void CommandLineOptions::doParse()
     m_buildOptions.maxJobCount = m_settings->value("preferences/jobs", 0).toInt();
     if (m_buildOptions.maxJobCount <= 0)
         m_buildOptions.maxJobCount = QThread::idealThreadCount();
-    m_dumpGraph = false;
     m_help = false;
     m_logLevel = Logger::defaultLevel();
 
@@ -172,15 +170,23 @@ void CommandLineOptions::doParse()
     }
     Logger::instance().setLevel(m_logLevel);
 
+    if (isHelpSet())
+        return;
+
     // automatically detect the project file name
     if (m_projectFileName.isEmpty())
         m_projectFileName = guessProjectFileName();
+    if (m_projectFileName.isEmpty())
+        throw Error(tr("No project file given."));
 
     // make the project file name absolute
-    if (!m_projectFileName.isEmpty() && !FileInfo::isAbsolute(m_projectFileName)) {
+    if (FileInfo::isAbsolute(m_projectFileName)) {
         m_projectFileName = FileInfo::resolvePath(QDir::currentPath(), m_projectFileName);
         m_projectFileName = QDir::cleanPath(m_projectFileName);
     }
+
+    qbsDebug() << qbs::DontPrintLogLevel << "Using project file '"
+               << QDir::toNativeSeparators(projectFileName()) << "'.";
 }
 
 void CommandLineOptions::parseLongOption(const QString &option)
@@ -235,9 +241,6 @@ void CommandLineOptions::parseShortOptions(const QString &options)
             break;
         case 'q':
             --m_logLevel;
-            break;
-        case 'd':
-            m_dumpGraph = true;
             break;
         case 'f':
             m_projectFileName = QDir::fromNativeSeparators(getShortOptionArgument(options, i));
