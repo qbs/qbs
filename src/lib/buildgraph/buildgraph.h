@@ -101,7 +101,7 @@ public:
 
     static LoadResult load(BuildGraph *bg,
                            const FileTime &minTimeStamp,
-                           Configuration::Ptr cfg,
+                           const QVariantMap &cfg,
                            const QStringList &loaderSearchPaths);
     void store() const;
 
@@ -125,7 +125,7 @@ private:
     static void restoreBuildGraph(const QString &buildGraphFilePath,
                                   BuildGraph *buildGraph,
                                   const FileTime &minTimeStamp,
-                                  Configuration::Ptr configuration,
+                                  const QVariantMap &configuration,
                                   const QStringList &loaderSearchPaths,
                                   LoadResult *loadResult);
     void load(PersistentPool &pool, QDataStream &s);

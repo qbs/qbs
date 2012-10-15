@@ -362,7 +362,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     ProjectFile::Ptr loadProject(const QString &fileName);
     ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
-                                        Configuration::Ptr userProperties, bool resolveProductDependencies = true);
+                                        const QVariantMap &userProperties, bool resolveProductDependencies = true);
     static QSet<QString> resolveFiles(const Group::ConstPtr &group, const QString &baseDir);
 
 protected:
@@ -428,7 +428,7 @@ protected:
                          ProjectData *projectData,
                          QList<Rule::Ptr> *globalRules,
                          QList<FileTagger::ConstPtr> *globalFileTaggers,
-                         const Configuration::Ptr &userProperties,
+                         const QVariantMap &userProperties,
                          const ScopeChain::Ptr &scope,
                          const ResolvedModule::ConstPtr &dummyModule);
 

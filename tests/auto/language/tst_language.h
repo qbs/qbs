@@ -43,7 +43,7 @@ class TestLanguage : public QObject
     Q_OBJECT
     Loader *loader;
     ResolvedProject::Ptr project;
-    Configuration::Ptr buildConfig;
+    QVariantMap buildConfig;
 
     QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project);
     ResolvedModule::ConstPtr findModuleByName(ResolvedProduct::Ptr product, const QString &name);

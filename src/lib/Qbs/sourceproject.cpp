@@ -98,8 +98,7 @@ void SourceProject::loadPlugins()
     qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
 
-void SourceProject::loadProject(const QString &projectFileName,
-        const QList<QVariantMap> &buildConfigs)
+void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMap> buildConfigs)
 {
     if (buildConfigs.isEmpty())
         throw Error(tr("No build configuration given."));
@@ -108,8 +107,9 @@ void SourceProject::loadProject(const QString &projectFileName,
     if (platforms.isEmpty())
         throw Error(tr("No platforms configured. You must run 'qbs platforms probe' first."));
 
-    QList<qbs::Configuration::Ptr> configurations;
-    foreach (QVariantMap buildCfg, buildConfigs) {
+    QList<QVariantMap>::iterator bcit = buildConfigs.begin();
+    for (; bcit != buildConfigs.end(); ++bcit) {
+        QVariantMap &buildCfg = *bcit;
         // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
         // 1) Things specified on command line (already in buildCfg at this point)
         // 2) Everything from the profile key (in reverse order)
@@ -168,8 +168,6 @@ void SourceProject::loadProject(const QString &projectFileName,
 
         if (!buildCfg.value("qbs.buildVariant").isValid())
             throw Error(tr("Property 'qbs.buildVariant' missing in build configuration."));
-        qbs::Configuration::Ptr configure = qbs::Configuration::create();
-        configurations.append(configure);
 
         foreach (const QString &property, buildCfg.keys()) {
             QStringList nameElements = property.split('.');
@@ -180,9 +178,8 @@ void SourceProject::loadProject(const QString &projectFileName,
                 newElements.append(nameElements.last());
                 nameElements = newElements;
             }
-            QVariantMap configValue = configure->value();
-            qbs::setConfigProperty(configValue, nameElements, buildCfg.value(property));
-            configure->setValue(configValue);
+            qbs::setConfigProperty(buildCfg, nameElements, buildCfg.value(property));
+            buildCfg.remove(property);
         }
     }
 
@@ -193,11 +190,11 @@ void SourceProject::loadProject(const QString &projectFileName,
     const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 
     ProjectFile::Ptr projectFile;
-    foreach (const qbs::Configuration::Ptr &configure, configurations) {
+    foreach (const QVariantMap &buildCfg, buildConfigs) {
         qbs::BuildProject::Ptr bProject;
         const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
         qbs::BuildProject::LoadResult loadResult;
-        loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, configure, d->settings->searchPaths());
+        loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, buildCfg, d->settings->searchPaths());
         if (!loadResult.discardLoadedProject)
             bProject = loadResult.loadedProject;
         if (!bProject) {
@@ -209,7 +206,7 @@ void SourceProject::loadProject(const QString &projectFileName,
             if (loadResult.changedResolvedProject)
                 rProject = loadResult.changedResolvedProject;
             else
-                rProject = loader.resolveProject(projectFile, buildDirectoryRoot, configure);
+                rProject = loader.resolveProject(projectFile, buildDirectoryRoot, buildCfg);
             if (rProject->products.isEmpty())
                 throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
             qbsDebug() << "Project loaded in " << timer.elapsed() << "ms.";
@@ -221,7 +218,7 @@ void SourceProject::loadProject(const QString &projectFileName,
         }
 
         // copy the environment from the platform config into the project's config
-        const QVariantMap platformEnvironment = configure->value().value("environment").toMap();
+        const QVariantMap platformEnvironment = buildCfg.value("environment").toMap();
         bProject->resolvedProject()->platformEnvironment = platformEnvironment;
 
         d->buildProjects.append(bProject);

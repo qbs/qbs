@@ -30,7 +30,6 @@
 #ifndef QBSINTERFACE_H
 #define QBSINTERFACE_H
 
-#include <language/language.h>
 #include <buildgraph/buildgraph.h>
 #include <tools/error.h>
 
@@ -65,7 +64,7 @@ public:
 
     // These may throw qbs::Error.
     void loadPlugins();
-    void loadProject(const QString &projectFileName, const QList<QVariantMap> &buildConfigs);
+    void loadProject(const QString &projectFileName, QList<QVariantMap> buildConfigs);
 
     QVector<BuildProject> buildProjects() const;
     QList<qbs::BuildProject::Ptr> internalBuildProjects() const;

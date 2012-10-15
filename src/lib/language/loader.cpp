@@ -1779,7 +1779,7 @@ static bool checkCondition(EvaluationObject *object)
 }
 
 ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
-                                            Configuration::Ptr userProperties, bool resolveProductDependencies)
+                                            const QVariantMap &userProperties, bool resolveProductDependencies)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
@@ -1788,7 +1788,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     Scope::scopesWithEvaluatedProperties.clear();
     ResolvedProject::Ptr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
-    rproject->setConfiguration(userProperties->value());
+    rproject->setConfiguration(userProperties);
 
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
@@ -1930,7 +1930,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
             allowedUserPropertyNames += productData.product->scope->stringValue("name");
         }
 
-        for (QVariantMap::const_iterator it = userProperties->value().begin(); it != userProperties->value().end(); ++it) {
+        for (QVariantMap::const_iterator it = userProperties.begin(); it != userProperties.end(); ++it) {
             const QString &propertyName = it.key();
             if (allowedUserPropertyNames.contains(propertyName))
                 continue;
@@ -2854,7 +2854,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                              ProjectData *projectData,
                              QList<Rule::Ptr> *globalRules,
                              QList<FileTagger::ConstPtr> *globalFileTaggers,
-                             const Configuration::Ptr &userProperties,
+                             const QVariantMap &userProperties,
                              const ScopeChain::Ptr &scope,
                              const ResolvedModule::ConstPtr &dummyModule)
 {
@@ -2884,7 +2884,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
     evaluationObject->scope->properties.insert("configurationValue", Property(m_jsFunction_configurationValue));
 
-    resolveInheritance(object, evaluationObject, moduleScope, userProperties->value());
+    resolveInheritance(object, evaluationObject, moduleScope, userProperties);
 
     if (evaluationObject->prototype == name_Project) {
         // if this is a nested project, set a fallback scope
@@ -2899,7 +2899,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         fillEvaluationObjectBasics(localScope, object, evaluationObject);
 
         // override properties from command line
-        const QVariantMap overriddenProperties = userProperties->value().value("project").toMap();
+        const QVariantMap overriddenProperties = userProperties.value("project").toMap();
         for (QVariantMap::const_iterator it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it) {
             if (!evaluationObject->scope->properties.contains(it.key()))
                 throw Error(tr("No property '%1' in project scope.").arg(it.key()));
@@ -2940,12 +2940,12 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
         return;
     } else if (evaluationObject->prototype == name_Rule) {
-        fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
+        fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties);
         globalRules->append(resolveRule(evaluationObject, dummyModule));
 
         return;
     } else if (evaluationObject->prototype == name_FileTagger) {
-        fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
+        fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties);
         globalFileTaggers->append(resolveFileTagger(evaluationObject));
 
         return;
@@ -2966,8 +2966,8 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     ProductData productData;
     productData.product = evaluationObject;
 
-    evaluateDependencies(object, evaluationObject, localScope, moduleScope, userProperties->value());
-    fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties->value());
+    evaluateDependencies(object, evaluationObject, localScope, moduleScope, userProperties);
+    fillEvaluationObject(localScope, object, evaluationObject->scope, evaluationObject, userProperties);
     evaluateDependencyConditions(evaluationObject);
     productData.usedProducts = evaluationObject->unknownModules;
 
@@ -2981,7 +2981,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
     // override properties from command line
     productData.originalProductName = evaluationObject->scope->stringValue("name");
-    const QVariantMap overriddenProperties = userProperties->value().value(productData.originalProductName).toMap();
+    const QVariantMap overriddenProperties = userProperties.value(productData.originalProductName).toMap();
     for (QVariantMap::const_iterator it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it) {
         if (!evaluationObject->scope->properties.contains(it.key()))
             throw Error(tr("No property '%1' in product '%2'.").arg(it.key(), productData.originalProductName));
@@ -3007,7 +3007,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
             continue;
         }
 
-        Module::Ptr module = loadModule(it.value(), QStringList(), it.key(), moduleScope, userProperties->value(),
+        Module::Ptr module = loadModule(it.value(), QStringList(), it.key(), moduleScope, userProperties,
                                         CodeLocation(object->file->fileName));
         if (!module) {
             throw Error(tr("could not load module '%1' from file '%2' into product even though it was loaded into a submodule").arg(

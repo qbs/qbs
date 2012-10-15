@@ -1166,7 +1166,7 @@ BuildProject::~BuildProject()
 void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
                                      BuildGraph *bg,
                                      const FileTime &minTimeStamp,
-                                     Configuration::Ptr cfg,
+                                     const QVariantMap &cfg,
                                      const QStringList &loaderSearchPaths,
                                      LoadResult *loadResult)
 {
@@ -1279,7 +1279,8 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
     return true;
 }
 
-BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp, Configuration::Ptr cfg, const QStringList &loaderSearchPaths)
+BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp,
+                                            const QVariantMap &cfg, const QStringList &loaderSearchPaths)
 {
     LoadResult result;
     result.discardLoadedProject = false;
@@ -1291,7 +1292,7 @@ BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minT
         if (!pool.load(fn))
             continue;
         PersistentPool::HeadData headData = pool.headData();
-        if (isConfigCompatible(cfg->value(), headData.projectConfig)) {
+        if (isConfigCompatible(cfg, headData.projectConfig)) {
             fileName = fn;
             break;
         }

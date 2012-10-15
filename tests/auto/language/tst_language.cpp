@@ -63,10 +63,7 @@ void TestLanguage::initTestCase()
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "../../../share/qbs")
                            << QLatin1String(SRCDIR "testdata"));
-    buildConfig = Configuration::create();
-    QVariantMap cfgValue;
-    setConfigProperty(cfgValue, QStringList() << "qbs" << "targetOS", "linux");
-    buildConfig->setValue(cfgValue);
+    setConfigProperty(buildConfig, QStringList() << "qbs" << "targetOS", "linux");
 }
 
 void TestLanguage::cleanupTestCase()
