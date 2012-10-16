@@ -27,6 +27,7 @@
 **
 ****************************************************************************/
 
+#include <app/shared/commandlineparser.h>
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <language/qbsengine.h>
@@ -34,7 +35,6 @@
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
-#include <tools/options.h>
 
 #include <cassert>
 
@@ -170,22 +170,22 @@ int main(int argc, char *argv[])
     arguments.removeFirst();
 
     qbs::ConsoleLogger cl;
-    qbs::CommandLineOptions options;
-    if (!options.parseCommandLine(arguments)) {
-        options.printHelp();
+    qbs::CommandLineParser parser;
+    if (!parser.parseCommandLine(arguments)) {
+        parser.printHelp();
         return 1;
     }
-    if (options.isHelpSet()) {
-        options.printHelp();
+    if (parser.isHelpSet()) {
+        parser.printHelp();
         return 0;
     }
 
     qbs::QbsEngine engine;
     qbs::SourceProject sourceProject(&engine);
     try {
-        sourceProject.setSettings(options.settings());
+        sourceProject.setSettings(parser.settings());
         sourceProject.loadPlugins();
-        sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
+        sourceProject.loadProject(parser.projectFileName(), parser.buildConfigurations());
     } catch (const qbs::Error &error) {
         qbs::qbsError() << error.toString();
         return 4;

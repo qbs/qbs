@@ -9,10 +9,13 @@ CONFIG   -= app_bundle
 
 SOURCES += main.cpp \
     ctrlchandler.cpp \
-    application.cpp
+    application.cpp \
+    ../shared/commandlineparser.cpp
 HEADERS += \
     ctrlchandler.h \
     application.h \
-    status.h
+    status.h \
+    ../shared/commandlineparser.h
 
 include(../../lib/use.pri)
+include(../../../qbs_version.pri)

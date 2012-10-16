@@ -9,6 +9,9 @@ QT = core testlib
 CONFIG += testcase
 
 include(../../../src/lib/use.pri)
+include(../../../qbs_version.pri)
 
-SOURCES += \
-    tst_tools.cpp
+HEADERS += \
+    ../../../src/app/shared/commandlineparser.h
+SOURCES += tst_tools.cpp \
+    ../../../src/app/shared/commandlineparser.cpp

@@ -30,9 +30,9 @@
 #ifndef STATUS_H
 #define STATUS_H
 
+#include <app/shared/commandlineparser.h>
 #include <language/sourceproject.h>
 #include <logging/logger.h>
-#include <tools/options.h>
 #include <tools/fileinfo.h>
 
 #include <QDir>

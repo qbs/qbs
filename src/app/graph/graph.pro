@@ -8,6 +8,8 @@ DESTDIR = ../../../bin/
 CONFIG   += console
 CONFIG   -= app_bundle
 
-SOURCES += graph.cpp
+HEADERS += ../shared/commandlineparser.h
+SOURCES += graph.cpp ../shared/commandlineparser.cpp
 
 include(../../lib/use.pri)
+include(../../../qbs_version.pri)

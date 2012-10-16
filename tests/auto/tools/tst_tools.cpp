@@ -27,9 +27,9 @@
 **
 ****************************************************************************/
 
+#include <app/shared/commandlineparser.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
-#include <tools/options.h>
 #include <QDir>
 #include <QtTest>
 
@@ -45,34 +45,34 @@ private slots:
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar";
         args << "-h";
-        qbs::CommandLineOptions options;
-        QVERIFY(options.parseCommandLine(args));
+        qbs::CommandLineParser parser;
+        QVERIFY(parser.parseCommandLine(args));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
-        QCOMPARE(options.command(), qbs::CommandLineOptions::BuildCommand);
-        QCOMPARE(options.buildOptions().selectedProductNames, QStringList() << "blubb");
-        QCOMPARE(options.buildOptions().changedFiles.count(), 2);
-        QVERIFY(options.buildOptions().keepGoing);
-        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqqh"));
+        QCOMPARE(parser.command(), qbs::CommandLineParser::BuildCommand);
+        QCOMPARE(parser.buildOptions().selectedProductNames, QStringList() << "blubb");
+        QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
+        QVERIFY(parser.buildOptions().keepGoing);
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqqh"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::Logger::defaultLevel());
-        QVERIFY(options.parseCommandLine(QStringList() << "-vvqqqh"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqqh"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerWarning);
-        QVERIFY(options.parseCommandLine(QStringList() << "-vvvqqh"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqh"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
-        QVERIFY(options.parseCommandLine(QStringList() << "--log-level" << "trace" << "-h"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << "-h"));
         QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
     }
 
     void testInvalidCommandLine()
     {
-        qbs::CommandLineOptions options;
-        QVERIFY(!options.parseCommandLine(QStringList() << "-x")); // Unknown short option.
-        QVERIFY(!options.parseCommandLine(QStringList() << "--xyz")); // Unknown long option.
-        QVERIFY(!options.parseCommandLine(QStringList() << "-vjv")); // Invalid position.
-        QVERIFY(!options.parseCommandLine(QStringList() << "-j"));  // Missing argument.
-        QVERIFY(!options.parseCommandLine(QStringList() << "-j" << "0")); // Wrong argument.
-        QVERIFY(!options.parseCommandLine(QStringList() << "--products"));  // Missing argument.
-        QVERIFY(!options.parseCommandLine(QStringList() << "--changed-files" << ",")); // Wrong argument.
-        QVERIFY(!options.parseCommandLine(QStringList() << "--log-level" << "blubb")); // Wrong argument.
+        qbs::CommandLineParser parser;
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-x")); // Unknown short option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--xyz")); // Unknown long option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-vjv")); // Invalid position.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-j"));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0")); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--products"));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << ",")); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb")); // Wrong argument.
     }
 
     void testFileInfo()
@@ -98,16 +98,16 @@ private slots:
         const QString multiProjectsDir = srcDir + QLatin1String("data/dirwithmultipleprojects");
         Q_ASSERT(QDir(noProjectsDir).exists() && QDir(oneProjectDir).exists()
                 && QDir(multiProjectsDir).exists());
-        qbs::CommandLineOptions options;
+        qbs::CommandLineParser parser;
         const QStringList args(QLatin1String("-f"));
         QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbp");
-        QVERIFY(options.parseCommandLine(args + QStringList(projectFilePath)));
-        QCOMPARE(projectFilePath, options.projectFileName());
+        QVERIFY(parser.parseCommandLine(args + QStringList(projectFilePath)));
+        QCOMPARE(projectFilePath, parser.projectFileName());
         projectFilePath = oneProjectDir + QLatin1String("/project.qbp");
-        QVERIFY(options.parseCommandLine(args + QStringList(oneProjectDir)));
-        QCOMPARE(projectFilePath, options.projectFileName());
-        QVERIFY(!options.parseCommandLine(args + QStringList(noProjectsDir)));
-        QVERIFY(!options.parseCommandLine(args + QStringList(multiProjectsDir)));
+        QVERIFY(parser.parseCommandLine(args + QStringList(oneProjectDir)));
+        QCOMPARE(projectFilePath, parser.projectFileName());
+        QVERIFY(!parser.parseCommandLine(args + QStringList(noProjectsDir)));
+        QVERIFY(!parser.parseCommandLine(args + QStringList(multiProjectsDir)));
     }
 };
 

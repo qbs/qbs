@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include "options.h"
+#include "commandlineparser.h"
 
 #include <logging/logger.h>
 #include <tools/error.h>
@@ -65,7 +65,7 @@ static LoggerLevel logLevelFromString(const QString &logLevelString)
         if (logLevelToString(l) == logLevelString)
             return l;
     }
-    throw Error(CommandLineOptions::tr("Invalid log level '%1'.").arg(logLevelString));
+    throw Error(CommandLineParser::tr("Invalid log level '%1'.").arg(logLevelString));
 }
 
 static QStringList allLogLevelStrings()
@@ -75,12 +75,12 @@ static QStringList allLogLevelStrings()
             << logLevelToString(LoggerTrace);
 }
 
-CommandLineOptions::CommandLineOptions()
+CommandLineParser::CommandLineParser()
 {
     m_settings = Settings::create();
 }
 
-void CommandLineOptions::printHelp() const
+void CommandLineParser::printHelp() const
 {
     QTextStream stream(m_help ? stdout : stderr);
 
@@ -124,7 +124,7 @@ void CommandLineOptions::printHelp() const
  * If there's more than one project file found then this function returns false.
  * A project file can explicitely be given by the -f option.
  */
-bool CommandLineOptions::parseCommandLine(const QStringList &args)
+bool CommandLineParser::parseCommandLine(const QStringList &args)
 {
     m_commandLine = args;
     try {
@@ -136,7 +136,7 @@ bool CommandLineOptions::parseCommandLine(const QStringList &args)
     return true;
 }
 
-void CommandLineOptions::doParse()
+void CommandLineParser::doParse()
 {
     m_command = BuildCommand;
     m_projectFileName.clear();
@@ -189,7 +189,7 @@ void CommandLineOptions::doParse()
                << QDir::toNativeSeparators(projectFileName()) << "'.";
 }
 
-void CommandLineOptions::parseLongOption(const QString &option)
+void CommandLineParser::parseLongOption(const QString &option)
 {
     const QString optionName = option.mid(2);
     if (optionName.isEmpty()) {
@@ -218,7 +218,7 @@ void CommandLineOptions::parseLongOption(const QString &option)
     }
 }
 
-void CommandLineOptions::parseShortOptions(const QString &options)
+void CommandLineParser::parseShortOptions(const QString &options)
 {
     for (int i = 1; i < options.count(); ++i) {
         const char option = options.at(i).toLower().toLatin1();
@@ -258,7 +258,7 @@ void CommandLineOptions::parseShortOptions(const QString &options)
     }
 }
 
-QString CommandLineOptions::getShortOptionArgument(const QString &options, int optionPos)
+QString CommandLineParser::getShortOptionArgument(const QString &options, int optionPos)
 {
     const QString option = QLatin1Char('-') + options.at(optionPos);
     if (optionPos < options.count() - 1)
@@ -266,14 +266,14 @@ QString CommandLineOptions::getShortOptionArgument(const QString &options, int o
     return getOptionArgument(option);
 }
 
-QString CommandLineOptions::getOptionArgument(const QString &option)
+QString CommandLineParser::getOptionArgument(const QString &option)
 {
     if (m_commandLine.isEmpty())
         throw Error(tr("Option '%1' needs an argument.").arg(option));
     return m_commandLine.takeFirst();
 }
 
-QStringList CommandLineOptions::getOptionArgumentAsList(const QString &option)
+QStringList CommandLineParser::getOptionArgumentAsList(const QString &option)
 {
     if (m_commandLine.isEmpty())
         throw Error(tr("Option '%1' expects an argument.").arg(option));
@@ -289,7 +289,7 @@ QStringList CommandLineOptions::getOptionArgumentAsList(const QString &option)
     return list;
 }
 
-void CommandLineOptions::parseArgument(const QString &arg)
+void CommandLineParser::parseArgument(const QString &arg)
 {
     if (arg == QLatin1String("build")) {
         m_command = BuildCommand;
@@ -310,7 +310,7 @@ void CommandLineOptions::parseArgument(const QString &arg)
     }
 }
 
-QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
+QString CommandLineParser::propertyName(const QString &aCommandLineName) const
 {
     // Make fully-qualified, ie "platform" -> "qbs.platform"
     if (aCommandLineName.contains("."))
@@ -319,7 +319,7 @@ QString CommandLineOptions::propertyName(const QString &aCommandLineName) const
         return "qbs." + aCommandLineName;
 }
 
-void CommandLineOptions::setRealProjectFile()
+void CommandLineParser::setRealProjectFile()
 {
     const QFileInfo projectFileInfo(m_projectFileName);
     if (!projectFileInfo.exists())
@@ -340,7 +340,7 @@ void CommandLineOptions::setRealProjectFile()
     m_projectFileName.append(QLatin1Char('/')).append(actualFileNames.first());
 }
 
-QList<QVariantMap> CommandLineOptions::buildConfigurations() const
+QList<QVariantMap> CommandLineParser::buildConfigurations() const
 {
     // Key: build variant, value: properties. Empty key used for global properties.
     typedef QMap<QString, QVariantMap> PropertyMaps;
@@ -390,7 +390,7 @@ QList<QVariantMap> CommandLineOptions::buildConfigurations() const
     return buildConfigs;
 }
 
-QString CommandLineOptions::guessProjectFileName()
+QString CommandLineParser::guessProjectFileName()
 {
     QDir searchDir = QDir::current();
     for (;;) {

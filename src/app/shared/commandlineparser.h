@@ -38,15 +38,12 @@
 #include <QVariant>
 
 namespace qbs {
-/**
-  * Command line options for qbs command line tools.
-  * ### TODO: move to qbs application.
-  */
-class CommandLineOptions
+
+class CommandLineParser
 {
-    Q_DECLARE_TR_FUNCTIONS(CommandLineOptions)
+    Q_DECLARE_TR_FUNCTIONS(CommandLineParser)
 public:
-    CommandLineOptions();
+    CommandLineParser();
 
     enum Command {
         BuildCommand,

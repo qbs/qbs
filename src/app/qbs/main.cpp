@@ -30,6 +30,7 @@
 #include "application.h"
 #include "status.h"
 
+#include <app/shared/commandlineparser.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
 #include <language/qbsengine.h>
@@ -37,7 +38,6 @@
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
 #include <tools/hostosinfo.h>
-#include <tools/options.h>
 #include <tools/persistence.h>
 #include <tools/runenvironment.h>
 
@@ -176,44 +176,44 @@ int main(int argc, char *argv[])
     if (tryToRunTool(arguments, toolExitCode))
         return toolExitCode;
 
-    qbs::CommandLineOptions options;
-    if (!options.parseCommandLine(arguments)) {
-        options.printHelp();
+    qbs::CommandLineParser parser;
+    if (!parser.parseCommandLine(arguments)) {
+        parser.printHelp();
         return ExitCodeErrorParsingCommandLine;
     }
 
-    if (options.isHelpSet()) {
-        options.printHelp();
+    if (parser.isHelpSet()) {
+        parser.printHelp();
         return 0;
     }
 
     qbs::QbsEngine engine;
     qbs::SourceProject sourceProject(&engine);
     try {
-        sourceProject.setSettings(options.settings());
+        sourceProject.setSettings(parser.settings());
         sourceProject.loadPlugins();
-        sourceProject.loadProject(options.projectFileName(), options.buildConfigurations());
+        sourceProject.loadProject(parser.projectFileName(), parser.buildConfigurations());
     } catch (const qbs::Error &error) {
         qbs::qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
     }
 
-    switch (options.command()) {
-    case qbs::CommandLineOptions::CleanCommand:
+    switch (parser.command()) {
+    case qbs::CommandLineParser::CleanCommand:
         return makeClean();
-    case qbs::CommandLineOptions::StartShellCommand:
+    case qbs::CommandLineParser::StartShellCommand:
         return runShell(sourceProject);
-    case qbs::CommandLineOptions::StatusCommand:
-        return qbs::printStatus(options.projectFileName(), sourceProject);
-    case qbs::CommandLineOptions::PropertiesCommand:
-        return showProperties(sourceProject, options.buildOptions());
-    case qbs::CommandLineOptions::BuildCommand:
-        return buildProject(app, sourceProject, options.buildOptions());
-    case qbs::CommandLineOptions::RunCommand: {
-        const int buildExitCode = buildProject(app, sourceProject, options.buildOptions());
+    case qbs::CommandLineParser::StatusCommand:
+        return qbs::printStatus(parser.projectFileName(), sourceProject);
+    case qbs::CommandLineParser::PropertiesCommand:
+        return showProperties(sourceProject, parser.buildOptions());
+    case qbs::CommandLineParser::BuildCommand:
+        return buildProject(app, sourceProject, parser.buildOptions());
+    case qbs::CommandLineParser::RunCommand: {
+        const int buildExitCode = buildProject(app, sourceProject, parser.buildOptions());
         if (buildExitCode != 0)
             return buildExitCode;
-        return runTarget(sourceProject, options.runTargetName(), options.runArgs());
+        return runTarget(sourceProject, parser.runTargetName(), parser.runArgs());
     }
     }
 }

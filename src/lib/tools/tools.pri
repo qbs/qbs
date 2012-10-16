@@ -5,7 +5,6 @@ HEADERS += \
     $$PWD/error.h \
     $$PWD/fileinfo.h \
     $$PWD/filetime.h \
-    $$PWD/options.h \
     $$PWD/persistence.h \
     $$PWD/platform.h \
     $$PWD/scannerpluginmanager.h \
@@ -20,7 +19,6 @@ HEADERS += \
 SOURCES += \
     $$PWD/error.cpp \
     $$PWD/fileinfo.cpp \
-    $$PWD/options.cpp \
     $$PWD/persistence.cpp \
     $$PWD/platform.cpp \
     $$PWD/scannerpluginmanager.cpp \
