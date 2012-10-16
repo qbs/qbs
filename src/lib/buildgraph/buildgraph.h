@@ -55,6 +55,7 @@ class BuildProduct : public PersistentObject
 {
 public:
     typedef QSharedPointer<BuildProduct> Ptr;
+    typedef QSharedPointer<const BuildProduct> ConstPtr;
 
     static Ptr create() { return Ptr(new BuildProduct); }
 
@@ -88,6 +89,7 @@ class BuildProject : public PersistentObject
     friend class BuildGraph;
 public:
     typedef QSharedPointer<BuildProject> Ptr;
+    typedef QSharedPointer<const BuildProject> ConstPtr;
 
     BuildProject(BuildGraph *bg);
     ~BuildProject();
