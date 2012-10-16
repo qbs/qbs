@@ -87,7 +87,6 @@ private:
     QStringList m_positional;
     QStringList m_runArgs;
     BuildOptions m_buildOptions;
-    bool m_dumpGraph;
     bool m_help;
     int m_logLevel;
 };
