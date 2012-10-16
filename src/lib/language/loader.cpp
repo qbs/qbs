@@ -698,33 +698,33 @@ Loader::Loader(QbsEngine *engine)
     m_jsFunction_configurationValue = m_engine->newFunction(js_configurationValue, 2);
 
     if (m_dependsPropertyDeclarations.isEmpty()) {
-        QList<PropertyDeclaration> depends;
-        depends += PropertyDeclaration("name", PropertyDeclaration::String);
-        depends += PropertyDeclaration("submodules", PropertyDeclaration::Variant);
-        depends += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        depends += PropertyDeclaration("required", PropertyDeclaration::Boolean);
-        depends += PropertyDeclaration("failureMessage", PropertyDeclaration::String);
-        foreach (const PropertyDeclaration &pd, depends)
+        QList<PropertyDeclaration> decls;
+        decls += PropertyDeclaration("name", PropertyDeclaration::String);
+        decls += PropertyDeclaration("submodules", PropertyDeclaration::Variant);
+        decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+        decls += PropertyDeclaration("required", PropertyDeclaration::Boolean);
+        decls += PropertyDeclaration("failureMessage", PropertyDeclaration::String);
+        foreach (const PropertyDeclaration &pd, decls)
             m_dependsPropertyDeclarations.insert(pd.name, pd);
 
-        depends.clear();
-        depends += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        depends += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        depends += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        decls.clear();
+        decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+        decls += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        decls += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
         recursiveProperty.initialValueSource = "false";
-        depends += recursiveProperty;
-        depends += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        depends += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        decls += recursiveProperty;
+        decls += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+        decls += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
 
         PropertyDeclaration declaration;
         declaration.name = "overrideTags";
         declaration.type = PropertyDeclaration::Boolean;
         declaration.flags = PropertyDeclaration::PropertyNotAvailableInConfig;
         declaration.initialValueSource = "true";
-        depends += declaration;
+        decls += declaration;
 
-        foreach (const PropertyDeclaration &pd, depends)
+        foreach (const PropertyDeclaration &pd, decls)
             m_groupPropertyDeclarations.insert(pd.name, pd);
     }
 }
