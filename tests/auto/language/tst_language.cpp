@@ -143,6 +143,30 @@ void TestLanguage::conditionalDepends()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::groupName()
+{
+    bool exceptionCaught = false;
+    try {
+        ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/groupname.qbs");
+        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
+                                                              buildConfig);
+        QVERIFY(project);
+        QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+        ResolvedProduct::Ptr product = *products.begin();
+        QVERIFY(product);
+        QCOMPARE(product->groups.count(), 1);
+        Group::ConstPtr group = *product->groups.begin();
+        QVERIFY(group);
+        QCOMPARE(group->name, QString("MyProduct.MyGroup"));
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;

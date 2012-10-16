@@ -709,6 +709,7 @@ Loader::Loader(QbsEngine *engine)
 
         decls.clear();
         decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+        decls += PropertyDeclaration("name", PropertyDeclaration::String, PropertyDeclaration::PropertyNotAvailableInConfig);
         decls += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         decls += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
         PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
@@ -2245,6 +2246,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
             buildGroup->recursive = group->scope->boolValue("recursive");
             buildGroup->excludePatterns = group->scope->stringListValue("excludeFiles");
         }
+        buildGroup->name = group->scope->stringValue("name");
         buildGroup->prefix = prefix;
         buildGroup->patterns = patterns;
         buildGroup->files = resolveFiles(buildGroup, rproduct->sourceDirectory);

@@ -53,6 +53,7 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
     void conditionalDepends();
+    void groupName();
     void productConditions();
     void propertiesBlocks_data();
     void propertiesBlocks();

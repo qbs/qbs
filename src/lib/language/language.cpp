@@ -228,6 +228,7 @@ void Rule::store(PersistentPool &pool, QDataStream &s) const
 
 void Group::load(PersistentPool &pool, QDataStream &s)
 {
+    name = pool.idLoadString();
     prefix = pool.idLoadString();
     patterns = pool.idLoadStringList();
     excludePatterns = pool.idLoadStringList();
@@ -237,6 +238,7 @@ void Group::load(PersistentPool &pool, QDataStream &s)
 
 void Group::store(PersistentPool &pool, QDataStream &s) const
 {
+    pool.storeString(name);
     pool.storeString(prefix);
     pool.storeStringList(patterns);
     pool.storeStringList(excludePatterns);

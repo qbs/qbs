@@ -249,6 +249,7 @@ public:
 
     static Ptr create() { return Ptr(new Group); }
 
+    QString name;
     QString prefix;
     bool recursive;
     QStringList patterns;
