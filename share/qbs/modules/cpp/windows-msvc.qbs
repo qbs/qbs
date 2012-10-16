@@ -23,7 +23,7 @@ CppModule {
     staticLibrarySuffix: ".lib"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
-    property string dynamicLibraryImportSuffix: "_imp.lib"
+    property string dynamicLibraryImportSuffix: ".lib"
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("INCLUDE", ";", true)
