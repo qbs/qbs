@@ -192,9 +192,9 @@ int main(int argc, char *argv[])
     }
 
     QGraphicsScene scene;
-    foreach (const Qbs::BuildProject &buildProject, sourceProject.buildProjects()) {
-        foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
-            targetToScene(&scene, buildProduct.internalBuildProduct().data());
+    foreach (const qbs::BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
+        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+            targetToScene(&scene, buildProduct.data());
         }
     }
     QRectF sr = scene.sceneRect();

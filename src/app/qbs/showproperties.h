@@ -27,41 +27,17 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PRIVATE_RESOLVEDPRODUCT_H
-#define QBS_PRIVATE_RESOLVEDPRODUCT_H
-
-#include <QProcessEnvironment>
-#include <QSharedPointer>
+#ifndef SHOWPROPERTIES_H
+#define SHOWPROPERTIES_H
 
 namespace qbs {
-    class ResolvedProduct;
-}
 
+class SourceProject;
+class BuildOptions;
 
-namespace Qbs {
-namespace Private {
+int showProperties(const qbs::SourceProject &sourceProject,
+                   const qbs::BuildOptions &buildOptions);
 
-class ResolvedProduct
-{
-public:
-    ResolvedProduct(const QSharedPointer<qbs::ResolvedProduct> &internalResolvedBuildProduct);
-    ~ResolvedProduct();
-    ResolvedProduct(const ResolvedProduct &other);
-    ResolvedProduct &operator =(const ResolvedProduct &other);
+} // namespace qbs
 
-    int setupBuildEnvironment() const;
-    int setupRunEnvironment() const;
-
-    QString productId() const;
-
-    QStringList buildEnvironmentStringList() const;
-    QProcessEnvironment runEnvironment() const;
-
-private:  // variables
-    QSharedPointer<qbs::ResolvedProduct> m_internalResolvedBuildProduct;
-};
-
-} // namespace Private
-} // namespace Qbs
-
-#endif // QBS_PRIVATE_RESOLVEDPRODUCT_H
+#endif // SHOWPROPERTIES_H

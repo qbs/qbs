@@ -44,7 +44,7 @@ class SourceProjectPrivate : public QSharedData
 public:
     QbsEngine *engine;
     QSharedPointer<qbs::BuildGraph> buildGraph;
-    QVector<Qbs::BuildProject> buildProjects;
+    QList<BuildProject::Ptr> buildProjects;
     qbs::Settings::Ptr settings;
 };
 
@@ -233,17 +233,9 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
     }
 }
 
-QVector<Qbs::BuildProject> SourceProject::buildProjects() const
+QList<qbs::BuildProject::Ptr> SourceProject::buildProjects() const
 {
     return d->buildProjects;
-}
-
-QList<qbs::BuildProject::Ptr> SourceProject::internalBuildProjects() const
-{
-    QList<qbs::BuildProject::Ptr> result;
-    foreach (const Qbs::BuildProject &buildProject, d->buildProjects)
-        result += buildProject.internalBuildProject();
-    return result;
 }
 
 QbsEngine *SourceProject::engine() const

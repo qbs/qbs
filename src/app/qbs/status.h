@@ -30,113 +30,14 @@
 #ifndef STATUS_H
 #define STATUS_H
 
-#include <app/shared/commandlineparser.h>
-#include <language/sourceproject.h>
-#include <logging/logger.h>
-#include <tools/fileinfo.h>
-
-#include <QDir>
-#include <QFile>
-#include <QRegExp>
+#include <QString>
 
 namespace qbs {
 
-static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
-{
-    QList<QRegExp> ignoreRegularExpressionList;
-    ignoreRegularExpressionList.append(QRegExp(projectRootPath + "/build.*"));
-    ignoreRegularExpressionList.append(QRegExp("*.qbs", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.qbp", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.pro", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*Makefile", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.so*", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.o", Qt::CaseSensitive, QRegExp::Wildcard));
-    QString ignoreFilePath = projectRootPath + "/.qbsignore";
+class SourceProject;
 
+int printStatus(const QString &projectFilePath, const SourceProject &sourceProject);
 
-    QFile ignoreFile(ignoreFilePath);
-
-    if (ignoreFile.open(QFile::ReadOnly)) {
-        QList<QByteArray> ignoreTokenList = ignoreFile.readAll().split('\n');
-        foreach (const QString &token, ignoreTokenList) {
-            if (token.left(1) == "/")
-                ignoreRegularExpressionList.append(QRegExp(projectRootPath + token + ".*", Qt::CaseSensitive, QRegExp::RegExp2));
-            else if (!token.isEmpty())
-                ignoreRegularExpressionList.append(QRegExp(token, Qt::CaseSensitive, QRegExp::RegExp2));
-
-        }
-    }
-
-    return ignoreRegularExpressionList;
-}
-
-static QStringList allFilesInDirectoryRecursive(const QDir &rootDirecory, const QList<QRegExp> &ignoreRegularExpressionList)
-{
-    QStringList fileList;
-
-    foreach (const QFileInfo &fileInfo, rootDirecory.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name)) {
-        QString absoluteFilePath = fileInfo.absoluteFilePath();
-        bool inIgnoreList = false;
-        foreach (const QRegExp &ignoreRegularExpression, ignoreRegularExpressionList) {
-            if (ignoreRegularExpression.exactMatch(absoluteFilePath)) {
-                inIgnoreList = true;
-                break;
-            }
-        }
-
-        if (!inIgnoreList) {
-            if (fileInfo.isFile())
-                fileList.append(absoluteFilePath);
-            else if (fileInfo.isDir())
-                fileList.append(allFilesInDirectoryRecursive(QDir(absoluteFilePath), ignoreRegularExpressionList));
-
-        }
-    }
-
-    return fileList;
-}
-
-static QStringList allFilesInProject(const QString &projectRootPath)
-{
-    QList<QRegExp> ignoreRegularExpressionList = createIgnoreList(projectRootPath);
-
-    return allFilesInDirectoryRecursive(QDir(projectRootPath), ignoreRegularExpressionList);
-}
-
-static int printStatus(const QString &projectFilePath, const qbs::SourceProject &sourceProject)
-{
-    QString projectDirectory = qbs::FileInfo::path(projectFilePath);
-    int projectDirectoryPathLength = projectDirectory.length();
-
-    QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
-    QStringList missingFiles;
-    Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
-    foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
-        qbsInfo() << qbs::DontPrintLogLevel << qbs::TextColorBlue << "\nProduct: " << buildProduct.displayName();
-        QVector<Qbs::SourceFile> sourceFiles = buildProduct.sourceFiles();
-        qSort(sourceFiles.begin(), sourceFiles.end(), Qbs::lessThanSourceFile);
-        foreach (const Qbs::SourceFile &sourceFile, sourceFiles) {
-            QString fileTags = QStringList(sourceFile.tags.toList()).join(", ");
-            qbs::TextColor statusColor = qbs::TextColorDefault;
-            if (!qbs::FileInfo(sourceFile.fileName).exists()) {
-                statusColor = qbs::TextColorRed;
-                missingFiles.append(sourceFile.fileName);
-            }
-            qbsInfo() << qbs::DontPrintLogLevel<< statusColor <<"  " << sourceFile.fileName.mid(projectDirectoryPathLength + 1) << " [" + fileTags + "]";
-            untrackedFilesInProject.removeOne(sourceFile.fileName);
-        }
-    }
-
-    qbsInfo() << qbs::DontPrintLogLevel << qbs::TextColorDarkBlue << "\nMissing files:";
-    foreach (const QString &untrackedFile, missingFiles)
-        qbsInfo() << qbs::DontPrintLogLevel<< qbs::TextColorRed <<"  " << untrackedFile.mid(projectDirectoryPathLength + 1);
-
-    qbsInfo() << qbs::DontPrintLogLevel << qbs::TextColorDarkBlue << "\nUntracked files:";
-    foreach (const QString &missingFile, untrackedFilesInProject)
-        qbsInfo() << qbs::DontPrintLogLevel<< qbs::TextColorCyan <<"  " << missingFile.mid(projectDirectoryPathLength + 1);
-
-    return 0;
-}
-}
+} // namespace qbs
 
 #endif // STATUS_H

@@ -10,10 +10,14 @@ CONFIG   -= app_bundle
 SOURCES += main.cpp \
     ctrlchandler.cpp \
     application.cpp \
+    showproperties.cpp \
+    status.cpp \
     ../shared/commandlineparser.cpp
+
 HEADERS += \
     ctrlchandler.h \
     application.h \
+    showproperties.h \
     status.h \
     ../shared/commandlineparser.h
 

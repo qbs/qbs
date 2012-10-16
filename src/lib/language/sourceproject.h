@@ -33,11 +33,8 @@
 #include "language.h"
 
 #include <buildgraph/buildgraph.h>
-#include <Qbs/buildproject.h>
 
 #include <QExplicitlySharedDataPointer>
-#include <QFutureInterface>
-#include <QSharedPointer>
 
 namespace qbs {
 class BuildProject;
@@ -63,8 +60,7 @@ public:
     void loadPlugins();
     void loadProject(const QString &projectFileName, QList<QVariantMap> buildConfigs);
 
-    QVector<Qbs::BuildProject> buildProjects() const;
-    QList<BuildProject::Ptr> internalBuildProjects() const;
+    QList<BuildProject::Ptr> buildProjects() const;
     QbsEngine *engine() const;
 
 private:

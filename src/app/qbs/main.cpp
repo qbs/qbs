@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "application.h"
+#include "showproperties.h"
 #include "status.h"
 
 #include <app/shared/commandlineparser.h>
@@ -84,24 +85,10 @@ static int makeClean()
 
 static int runShell(const qbs::SourceProject &sourceProject)
 {
-    Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
-    Qbs::BuildProduct buildProduct = buildProject.buildProducts().first();
-    qbs::RunEnvironment run(sourceProject.engine(), buildProduct.internalBuildProduct()->rProduct);
+    qbs::BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
+    qbs::BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
+    qbs::RunEnvironment run(sourceProject.engine(), buildProduct->rProduct);
     return run.runShell();
-}
-
-static int showProperties(const qbs::SourceProject &sourceProject,
-        const qbs::BuildOptions &buildOptions)
-{
-    const QStringList &selectedProducts = buildOptions.selectedProductNames;
-    const bool showAll = selectedProducts.isEmpty();
-    foreach (const Qbs::BuildProject& buildProject, sourceProject.buildProjects()) {
-        foreach (const Qbs::BuildProduct& buildProduct, buildProject.buildProducts()) {
-            if (showAll || selectedProducts.contains(buildProduct.name()))
-                buildProduct.dumpProperties();
-        }
-    }
-    return 0;
 }
 
 static int buildProject(qbs::Application &app, const qbs::SourceProject sourceProject,
@@ -113,7 +100,7 @@ static int buildProject(qbs::Application &app, const qbs::SourceProject sourcePr
     QObject::connect(&executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
     executor.setEngine(sourceProject.engine());
     executor.setBuildOptions(buildOptions);
-    executor.build(sourceProject.internalBuildProjects());
+    executor.build(sourceProject.buildProjects());
     app.exec();
     app.setExecutor(0);
     if (executor.state() == qbs::Executor::ExecutorError)
@@ -121,8 +108,8 @@ static int buildProject(qbs::Application &app, const qbs::SourceProject sourcePr
 
     // store the projects on disk
     try {
-        foreach (const Qbs::BuildProject &buildProject, sourceProject.buildProjects())
-            buildProject.storeBuildGraph();
+        foreach (const qbs::BuildProject::ConstPtr &buildProject, sourceProject.buildProjects())
+            buildProject->store();
     } catch (const qbs::Error &e) {
         qbs::qbsError() << e.toString();
         return ExitCodeErrorExecutionFailed;
@@ -131,34 +118,69 @@ static int buildProject(qbs::Application &app, const qbs::SourceProject sourcePr
     return executor.buildResult() == qbs::Executor::SuccessfulBuild ? 0 : ExitCodeErrorBuildFailure;
 }
 
+static qbs::Artifact *findTarget(const qbs::BuildProduct::ConstPtr &buildProduct,
+                                 const QString &name)
+{
+    foreach (qbs::Artifact *artifact, buildProduct->targetArtifacts)
+        if (artifact->filePath().endsWith(name))
+            return artifact;
+    return 0;
+}
+
 static int runTarget(const qbs::SourceProject &sourceProject, const QString &targetName,
         const QStringList &arguments)
 {
-    Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
-    Qbs::BuildProduct productToRun;
+    qbs::BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
+    qbs::BuildProduct::Ptr productToRun;
     QString productFileName;
 
-    foreach (const Qbs::BuildProduct &buildProduct, buildProject.buildProducts()) {
-        if (!targetName.isEmpty() && targetName != buildProduct.targetName())
-            continue;
-        if (targetName.isEmpty() || targetName == buildProduct.targetName()) {
-            if (buildProduct.isExecutable()) {
-                productToRun = buildProduct;
-                productFileName = buildProduct.executablePath();
-                break;
+    if (targetName.isEmpty()) {
+        qbs::Artifact *executable = 0;
+        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+            foreach (qbs::Artifact *artifact, buildProduct->targetArtifacts) {
+                if (artifact->fileTags.contains("application")) {
+                    if (executable) {
+                        qbs::qbsError() << QObject::tr("There's more than one executable target in "
+                                                       "the project. Please specify which target "
+                                                       "you want to run.");
+                        return EXIT_FAILURE;
+                    }
+                    executable = artifact;
+                }
             }
+        }
+        qbs::BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
+        if (!executable) {
+            qbs::qbsError() << QObject::tr("Cannot find executable target in product '%1'.")
+                               .arg(productToRun->rProduct->name);
+            return EXIT_FAILURE;
+        }
+        productToRun = buildProduct;
+        productFileName = executable->filePath();
+    } else {
+        qbs::Artifact *executable = 0;
+        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+            executable = findTarget(buildProduct, targetName);
+            if (!executable)
+                continue;
+            if (!executable->fileTags.contains("application")) {
+                qbs::qbsError() << QObject::tr("%1 is not an executable target.").arg(executable->filePath());
+                return EXIT_FAILURE;
+            }
+            productToRun = buildProduct;
+            productFileName = executable->filePath();
         }
     }
 
-    if (!productToRun.isValid()) {
+    if (!productToRun) {
         if (targetName.isEmpty())
             qbs::qbsError() << QObject::tr("Can't find a suitable product to run.");
         else
-            qbs::qbsError() << QObject::tr("No such product: '%1'").arg(targetName);
+            qbs::qbsError() << QObject::tr("No such target: '%1'").arg(targetName);
         return ExitCodeErrorBuildFailure;
     }
 
-    qbs::RunEnvironment run(sourceProject.engine(), productToRun.internalBuildProduct()->rProduct);
+    qbs::RunEnvironment run(sourceProject.engine(), productToRun->rProduct);
     return run.runTarget(productFileName, arguments);
 }
 
