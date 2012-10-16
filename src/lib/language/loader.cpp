@@ -2362,7 +2362,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
     Rule::Ptr rule = Rule::create();
 
     LanguageObject *origObj = object->instantiatingObject();
-    Q_CHECK_PTR(origObj);
+    Q_ASSERT(origObj);
 
     // read artifacts
     QList<RuleArtifact::ConstPtr> artifacts;

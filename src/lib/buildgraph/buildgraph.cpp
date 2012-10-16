@@ -1000,7 +1000,7 @@ void BuildGraph::updateNodesThatMustGetNewTransformer()
 
 void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
 {
-    Q_CHECK_PTR(artifact->transformer);
+    Q_ASSERT(artifact->transformer);
 
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] updating transformer for " << fileName(artifact);

@@ -281,7 +281,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     BuildProduct *product = m_artifact->product;
     bool insertIntoProduct = true;
     Q_ASSERT(m_artifact->artifactType == Artifact::Generated);
-    Q_CHECK_PTR(m_artifact->product);
+    Q_ASSERT(m_artifact->product);
 
     if (!dependency.artifact) {
         // The dependency is an existing file but does not exist in the build graph.
