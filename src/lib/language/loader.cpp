@@ -2762,7 +2762,7 @@ ProjectFile::Ptr Loader::parseFile(const QString &fileName)
         foreach (const QmlJS::DiagnosticMessage &msg, parserMessages)
             errorLines += Error(msg.message, fileName, msg.loc.startLine, msg.loc.startColumn).toString()
                     + QLatin1Char('\n');
-        throw Error(tr("Parsing errors:\n%1").arg(errorLines));
+        throw Error(tr("Parsing errors:\n%1").arg(errorLines), fileName);
     }
 
     result = bindFile(code, fileName, parser.ast(), m_searchPaths);
