@@ -29,6 +29,7 @@
 
 #include "runenvironment.h"
 
+#include <language/qbsengine.h>
 #include <logging/logger.h>
 #include <tools/settings.h>
 
@@ -46,13 +47,9 @@
 
 namespace qbs {
 
-RunEnvironment::RunEnvironment(const Qbs::Private::ResolvedProduct &resolvedproduct)
-    : m_resolvedProduct(resolvedproduct)
-{
-}
-
-RunEnvironment::RunEnvironment(const Qbs::BuildProduct &buildProduct)
-    : m_resolvedProduct(buildProduct.privateResolvedProject())
+RunEnvironment::RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product)
+    : m_engine(engine)
+    , m_resolvedProduct(product)
 {
 }
 
@@ -74,78 +71,79 @@ RunEnvironment &RunEnvironment::operator =(const RunEnvironment &other)
 
 int RunEnvironment::runShell()
 {
-    int exitCode = m_resolvedProduct.setupBuildEnvironment();
+    try {
+        m_resolvedProduct->setupBuildEnvironment(m_engine, QProcessEnvironment::systemEnvironment());
+    } catch (const Error &e) {
+        qbsError() << e.toString();
+        return EXIT_FAILURE;
+    }
 
     // TODO: Just use QProcess here in both cases. No need for platform-dependent methods.
-    if (exitCode == 0) {
-        QString productId = m_resolvedProduct.productId();
-        qbs::qbsInfo("Starting shell for target '%s'.", qPrintable(productId));
+    int exitCode;
+    QString productId = m_resolvedProduct->name;
+    qbs::qbsInfo("Starting shell for target '%s'.", qPrintable(productId));
 #ifdef Q_OS_UNIX
-        qbs::Settings::Ptr settings = qbs::Settings::create();
-        QByteArray shellProcess = settings->value("shell", "/bin/sh").toString().toLocal8Bit();
-        QByteArray prompt = "PS1=qbs " + productId.toLocal8Bit() + " $ ";
+    qbs::Settings::Ptr settings = qbs::Settings::create();
+    QByteArray shellProcess = settings->value("shell", "/bin/sh").toString().toLocal8Bit();
+    QByteArray prompt = "PS1=qbs " + productId.toLocal8Bit() + " $ ";
 
-        QStringList environmentStringList = m_resolvedProduct.buildEnvironmentStringList();
+    QStringList environmentStringList = m_resolvedProduct->buildEnvironment.toStringList();
 
-        char *argv[2];
-        argv[0] = shellProcess.data();
-        argv[1] = 0;
-        char **env = new char *[environmentStringList.count() + 1];
-        int i = 0;
-        foreach (const QString &s, environmentStringList){
-            QByteArray b = s.toLocal8Bit();
-            if (b.startsWith("PS1")) {
-                b = prompt;
-            }
-            env[i] = (char*)malloc(b.size() + 1);
-            memcpy(env[i], b.data(), b.size());
-            env[i][b.size()] = 0;
-            ++i;
+    char *argv[2];
+    argv[0] = shellProcess.data();
+    argv[1] = 0;
+    char **env = new char *[environmentStringList.count() + 1];
+    int i = 0;
+    foreach (const QString &s, environmentStringList){
+        QByteArray b = s.toLocal8Bit();
+        if (b.startsWith("PS1")) {
+            b = prompt;
         }
-        env[i] = 0;
-        execve(argv[0], argv, env);
-        qbs::qbsError("Executing the shell failed.");
-        exitCode = 890;
-#else
-        foreach (const QString &s, m_resolvedProduct.buildEnvironmentStringList()) {
-            int idx = s.indexOf(QLatin1Char('='));
-            qputenv(s.left(idx).toLocal8Bit(), s.mid(idx + 1, s.length() - idx - 1).toLocal8Bit());
-        }
-        QByteArray shellProcess = qgetenv("COMSPEC");
-        if (shellProcess.isEmpty())
-            shellProcess = "cmd";
-        shellProcess.append(" /k prompt [qbs] " + qgetenv("PROMPT"));
-        exitCode = system(shellProcess);
-#endif
+        env[i] = (char*)malloc(b.size() + 1);
+        memcpy(env[i], b.data(), b.size());
+        env[i][b.size()] = 0;
+        ++i;
     }
+    env[i] = 0;
+    execve(argv[0], argv, env);
+    qbs::qbsError("Executing the shell failed.");
+    exitCode = 890;
+#else
+    foreach (const QString &s, m_resolvedProduct->buildEnvironmentStringList()) {
+        int idx = s.indexOf(QLatin1Char('='));
+        qputenv(s.left(idx).toLocal8Bit(), s.mid(idx + 1, s.length() - idx - 1).toLocal8Bit());
+    }
+    QByteArray shellProcess = qgetenv("COMSPEC");
+    if (shellProcess.isEmpty())
+        shellProcess = "cmd";
+    shellProcess.append(" /k prompt [qbs] " + qgetenv("PROMPT"));
+    exitCode = system(shellProcess);
+#endif
 
     return exitCode;
 }
 
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
-    int exitCode = 0;
-
     if (!QFileInfo(targetBin).isExecutable()) {
         qbs::qbsError("File '%s' is not an executable.", qPrintable(targetBin));
-        exitCode = 1;
+        return EXIT_FAILURE;
     }
 
-    if (exitCode == 0) {
-        exitCode = m_resolvedProduct.setupRunEnvironment();
-
-        if (exitCode == 0) {
-            qbs::qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
-            QProcess process;
-            process.setProcessEnvironment(m_resolvedProduct.runEnvironment());
-            process.setProcessChannelMode(QProcess::ForwardedChannels);
-            process.start(targetBin, arguments);
-            process.waitForFinished(-1);
-            exitCode = process.exitCode();
-        }
+    try {
+        m_resolvedProduct->setupRunEnvironment(m_engine, QProcessEnvironment::systemEnvironment());
+    } catch (const Error &e) {
+        qbsError() << e.toString();
+        return EXIT_FAILURE;
     }
 
-    return exitCode;
+    qbs::qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
+    QProcess process;
+    process.setProcessEnvironment(m_resolvedProduct->runEnvironment);
+    process.setProcessChannelMode(QProcess::ForwardedChannels);
+    process.start(targetBin, arguments);
+    process.waitForFinished(-1);
+    return process.exitCode();
 }
 
 } // namespace qbs

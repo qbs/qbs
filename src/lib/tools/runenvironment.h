@@ -30,19 +30,16 @@
 #ifndef QBS_RUNENVIRONMENT_H
 #define QBS_RUNENVIRONMENT_H
 
-#include <Qbs/buildproduct.h>
-
-#include <Qbs/private/resolvedproduct.h>
-
-#include <QSharedPointer>
+#include <language/language.h>
 
 namespace qbs {
+
+class QbsEngine;
 
 class RunEnvironment
 {
 public:
-    RunEnvironment(const Qbs::Private::ResolvedProduct &resolvedproduct);
-    RunEnvironment(const Qbs::BuildProduct &buildProduct);
+    RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product);
     ~RunEnvironment();
     RunEnvironment(const RunEnvironment &other);
     RunEnvironment &operator =(const RunEnvironment &other);
@@ -51,7 +48,8 @@ public:
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
-    Qbs::Private::ResolvedProduct m_resolvedProduct;
+    QbsEngine *m_engine;
+    ResolvedProduct::Ptr m_resolvedProduct;
 };
 
 } // namespace qbs

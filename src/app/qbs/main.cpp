@@ -86,7 +86,7 @@ static int runShell(const qbs::SourceProject &sourceProject)
 {
     Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
     Qbs::BuildProduct buildProduct = buildProject.buildProducts().first();
-    qbs::RunEnvironment run(buildProduct);
+    qbs::RunEnvironment run(sourceProject.engine(), buildProduct.internalBuildProduct()->rProduct);
     return run.runShell();
 }
 
@@ -158,7 +158,7 @@ static int runTarget(const qbs::SourceProject &sourceProject, const QString &tar
         return ExitCodeErrorBuildFailure;
     }
 
-    qbs::RunEnvironment run(productToRun);
+    qbs::RunEnvironment run(sourceProject.engine(), productToRun.internalBuildProduct()->rProduct);
     return run.runTarget(productFileName, arguments);
 }
 
