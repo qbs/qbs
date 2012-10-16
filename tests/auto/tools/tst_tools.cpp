@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
+#include <logging/logger.h>
 #include <tools/fileinfo.h>
-#include <tools/logger.h>
 #include <tools/options.h>
 #include <QDir>
 #include <QtTest>

@@ -30,16 +30,14 @@
 #include "sourceproject.h"
 
 #include <language/loader.h>
-#include <tools/logger.h>
+#include <logging/logger.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/platform.h>
 
 #include <QElapsedTimer>
 
-using namespace qbs;
-
-namespace Qbs {
+namespace qbs {
 
 class SourceProjectPrivate : public QSharedData
 {
@@ -235,7 +233,7 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
     }
 }
 
-QVector<BuildProject> SourceProject::buildProjects() const
+QVector<Qbs::BuildProject> SourceProject::buildProjects() const
 {
     return d->buildProjects;
 }
@@ -253,5 +251,5 @@ QbsEngine *SourceProject::engine() const
     return d->engine;
 }
 
-} // namespace Qbs
+} // namespace qbs
 

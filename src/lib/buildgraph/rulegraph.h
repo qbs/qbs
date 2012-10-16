@@ -57,8 +57,8 @@ private:
     QList<Rule::ConstPtr> topSort(const Rule::ConstPtr &rule);
 
 private:
-    QMap<QString, QList<const qbs::Rule*> > m_outputFileTagToRule;
-    QVector<qbs::Rule::Ptr> m_artifacts;
+    QMap<QString, QList<const Rule*> > m_outputFileTagToRule;
+    QVector<Rule::Ptr> m_artifacts;
     QVector< QVector<int> > m_parents;
     QVector< QVector<int> > m_children;
     QSet<int> m_rootRules;

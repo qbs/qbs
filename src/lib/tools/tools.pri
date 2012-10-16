@@ -5,31 +5,29 @@ HEADERS += \
     $$PWD/error.h \
     $$PWD/fileinfo.h \
     $$PWD/filetime.h \
-    $$PWD/logger.h \
-    $$PWD/consolelogger.h \
     $$PWD/options.h \
     $$PWD/persistence.h \
     $$PWD/platform.h \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
-    $$PWD/coloredoutput.h \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
-    $$PWD/buildoptions.h
+    $$PWD/buildoptions.h \
+    $$PWD/runenvironment.h \
+    $$PWD/processoutput.h
 
 SOURCES += \
     $$PWD/error.cpp \
     $$PWD/fileinfo.cpp \
-    $$PWD/logger.cpp \
-    $$PWD/consolelogger.cpp \
     $$PWD/options.cpp \
     $$PWD/persistence.cpp \
     $$PWD/platform.cpp \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
-    $$PWD/coloredoutput.cpp
+    $$PWD/runenvironment.cpp \
+    $$PWD/processoutput.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

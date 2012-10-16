@@ -27,56 +27,18 @@
 **
 ****************************************************************************/
 
-
-#ifndef QBS_ILOGSINK_H
-#define QBS_ILOGSINK_H
-
-#include "globals.h"
-#include "processoutput.h"
-#include <tools/coloredoutput.h>
+#include "logger.h"
 
 namespace qbs {
-class Logger;
+
+void ILogSink::setGlobalLogSink(ILogSink *logSink)
+{
+    qbs::Logger::instance().setLogSink(logSink);
 }
 
-namespace Qbs {
-
-enum LogOutputChannel
+void ILogSink::cleanupGlobalLogSink()
 {
-    LogOutputStdOut,
-    LogOutputStdErr
-};
+    qbs::Logger::instance().setLogSink(0);
+}
 
-struct LogMessage
-{
-    LogMessage()
-        : printLogLevel(true)
-        , outputChannel(LogOutputStdErr)
-        , textColor(qbs::TextColorDefault)
-        , backgroundColor(qbs::TextColorDefault)
-    {}
-
-    QByteArray data;
-    bool printLogLevel;
-    LogOutputChannel outputChannel;
-    qbs::TextColor textColor;
-    qbs::TextColor backgroundColor;
-};
-
-class ILogSink
-{
-    friend class qbs::Logger;
-public:
-    virtual ~ILogSink() { }
-
-    static void setGlobalLogSink(ILogSink *logSink);
-    static void cleanupGlobalLogSink();
-
-protected:
-    virtual void outputLogMessage(LoggerLevel /*level*/, const LogMessage &/*logMessage*/) {}
-    virtual void processOutput(const Qbs::ProcessOutput &/*processOutput*/) {}
-};
-
-} // namespace Qbs
-
-#endif // QBS_ILOGSINK_H
+} // namespace qbs

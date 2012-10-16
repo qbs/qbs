@@ -30,9 +30,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <Qbs/globals.h>
-
-#include <Qbs/ilogsink.h>
+#include "ilogsink.h"
 
 #include <QByteArray>
 #include <QString>
@@ -59,7 +57,7 @@ public:
     ~Logger();
 
     void setLogSink(ILogSink *logSink);
-    void sendProcessOutput(const Qbs::ProcessOutput &processOutput);
+    void sendProcessOutput(const ProcessOutput &processOutput);
 
 protected:
     Logger();
@@ -85,11 +83,11 @@ public:
     void setOutputChannel(LogOutputChannel channel) { m_logMessage.outputChannel = channel; }
     void setPrintLogLevel(bool b) { m_logMessage.printLogLevel = b; }
     void setTextColor(TextColor color) { m_logMessage.textColor = color; }
-    const Qbs::LogMessage &logMessage() const { return m_logMessage; }
+    const LogMessage &logMessage() const { return m_logMessage; }
 
 private:
     LoggerLevel m_level;
-    mutable Qbs::LogMessage m_logMessage;
+    mutable LogMessage m_logMessage;
 };
 
 enum LogModifier
@@ -97,33 +95,33 @@ enum LogModifier
     DontPrintLogLevel
 };
 
-inline bool qbsLogLevel(qbs::LoggerLevel l) { return qbs::Logger::instance().level() >= l; }
-void qbsLog(qbs::LoggerLevel logLevel, const char *str, ...);
+inline bool qbsLogLevel(LoggerLevel l) { return Logger::instance().level() >= l; }
+void qbsLog(LoggerLevel logLevel, const char *str, ...);
 void qbsError(const char *str, ...);
 void qbsWarning(const char *str, ...);
 void qbsInfo(const char *str, ...);
 void qbsDebug(const char *str, ...);
 void qbsTrace(const char *str, ...);
 
-qbs::LogWriter qbsLog(qbs::LoggerLevel level);
-qbs::LogWriter qbsError();
-qbs::LogWriter qbsWarning();
-qbs::LogWriter qbsInfo();
-qbs::LogWriter qbsDebug();
-qbs::LogWriter qbsTrace();
+LogWriter qbsLog(LoggerLevel level);
+LogWriter qbsError();
+LogWriter qbsWarning();
+LogWriter qbsInfo();
+LogWriter qbsDebug();
+LogWriter qbsTrace();
 
-qbs::LogWriter operator<<(qbs::LogWriter w, const char *str);
-qbs::LogWriter operator<<(qbs::LogWriter w, const QByteArray &byteArray);
-qbs::LogWriter operator<<(qbs::LogWriter w, const QString &str);
-qbs::LogWriter operator<<(qbs::LogWriter w, const QStringList &strList);
-qbs::LogWriter operator<<(qbs::LogWriter w, const QSet<QString> &strSet);
-qbs::LogWriter operator<<(qbs::LogWriter w, const QVariant &variant);
-qbs::LogWriter operator<<(qbs::LogWriter w, int n);
-qbs::LogWriter operator<<(qbs::LogWriter w, qint64 n);
-qbs::LogWriter operator<<(qbs::LogWriter w, bool b);
-qbs::LogWriter operator<<(qbs::LogWriter w, qbs::LogOutputChannel);
-qbs::LogWriter operator<<(qbs::LogWriter w, qbs::LogModifier);
-qbs::LogWriter operator<<(qbs::LogWriter w, qbs::TextColor);
+LogWriter operator<<(LogWriter w, const char *str);
+LogWriter operator<<(LogWriter w, const QByteArray &byteArray);
+LogWriter operator<<(LogWriter w, const QString &str);
+LogWriter operator<<(LogWriter w, const QStringList &strList);
+LogWriter operator<<(LogWriter w, const QSet<QString> &strSet);
+LogWriter operator<<(LogWriter w, const QVariant &variant);
+LogWriter operator<<(LogWriter w, int n);
+LogWriter operator<<(LogWriter w, qint64 n);
+LogWriter operator<<(LogWriter w, bool b);
+LogWriter operator<<(LogWriter w, LogOutputChannel);
+LogWriter operator<<(LogWriter w, LogModifier);
+LogWriter operator<<(LogWriter w, TextColor);
 
 } // namespace qbs
 

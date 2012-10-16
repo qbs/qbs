@@ -55,7 +55,7 @@ namespace qbs {
 
 class Rule;
 
-class Configuration: public qbs::PersistentObject
+class Configuration: public PersistentObject
 {
 public:
     typedef QSharedPointer<Configuration> Ptr;
@@ -72,15 +72,15 @@ private:
     Configuration();
     Configuration(const Configuration &other);
 
-    void load(qbs::PersistentPool &, QDataStream &s);
-    void store(qbs::PersistentPool &, QDataStream &s) const;
+    void load(PersistentPool &, QDataStream &s);
+    void store(PersistentPool &, QDataStream &s) const;
 
     QVariantMap m_value;
     mutable QHash<QScriptEngine *, QScriptValue> m_scriptValueCache;
     mutable QMutex m_scriptValueCacheMutex;
 };
 
-class FileTagger : public qbs::PersistentObject
+class FileTagger : public PersistentObject
 {
 public:
     typedef QSharedPointer<FileTagger> Ptr;
@@ -103,14 +103,14 @@ private:
         : m_artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
     {}
 
-    void load(qbs::PersistentPool &, QDataStream &s);
-    void store(qbs::PersistentPool &, QDataStream &s) const;
+    void load(PersistentPool &, QDataStream &s);
+    void store(PersistentPool &, QDataStream &s) const;
 
     QRegExp m_artifactExpression;
     QStringList m_fileTags;
 };
 
-class RuleArtifact : public qbs::PersistentObject
+class RuleArtifact : public PersistentObject
 {
 public:
     typedef QSharedPointer<RuleArtifact> Ptr;
@@ -133,11 +133,11 @@ public:
 private:
     RuleArtifact() {}
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-class SourceArtifact : public qbs::PersistentObject
+class SourceArtifact : public PersistentObject
 {
 public:
     typedef QSharedPointer<SourceArtifact> Ptr;
@@ -153,11 +153,11 @@ public:
 private:
     SourceArtifact() : overrideFileTags(true) {}
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-class RuleScript: public qbs::PersistentObject
+class RuleScript: public PersistentObject
 {
 public:
     typedef QSharedPointer<RuleScript> Ptr;
@@ -166,16 +166,16 @@ public:
     static Ptr create() { return Ptr(new RuleScript); }
 
     QString script;
-    qbs::CodeLocation location;
+    CodeLocation location;
 
 private:
     RuleScript() {}
 
-    void load(qbs::PersistentPool &, QDataStream &s);
-    void store(qbs::PersistentPool &, QDataStream &s) const;
+    void load(PersistentPool &, QDataStream &s);
+    void store(PersistentPool &, QDataStream &s) const;
 };
 
-class ResolvedModule : public qbs::PersistentObject
+class ResolvedModule : public PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedModule> Ptr;
@@ -192,8 +192,8 @@ public:
 private:
     ResolvedModule() {}
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
 /**
@@ -205,7 +205,7 @@ private:
   *
   * A "non-multiplex rule" creates one transformer per matching input file.
   */
-class Rule : public qbs::PersistentObject
+class Rule : public PersistentObject
 {
 public:
     typedef QSharedPointer<Rule> Ptr;
@@ -237,11 +237,11 @@ public:
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-class Group : public qbs::PersistentObject
+class Group : public PersistentObject
 {
 public:
     typedef QSharedPointer<Group> Ptr;
@@ -258,8 +258,8 @@ public:
 private:
     Group() : recursive(false) {}
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
 class ResolvedTransformer
@@ -282,7 +282,7 @@ private:
 class ResolvedProject;
 class QbsEngine;
 
-class ResolvedProduct: public qbs::PersistentObject
+class ResolvedProduct: public PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedProduct> Ptr;
@@ -318,11 +318,11 @@ public:
 private:
     ResolvedProduct();
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-class ResolvedProject: public qbs::PersistentObject
+class ResolvedProject: public PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedProject> Ptr;
@@ -342,8 +342,8 @@ public:
 private:
     ResolvedProject() {}
 
-    void load(qbs::PersistentPool &pool, QDataStream &s);
-    void store(qbs::PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
 
     Configuration::Ptr m_configuration;
     QString m_id;

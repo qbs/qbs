@@ -27,67 +27,33 @@
 **
 ****************************************************************************/
 
-#include "consolelogger.h"
-#include "logger.h"
-#include "coloredoutput.h"
+#ifndef QBS_RUNENVIRONMENT_H
+#define QBS_RUNENVIRONMENT_H
 
-#include <tools/settings.h>
+#include <Qbs/buildproduct.h>
 
-#include <QHash>
+#include <Qbs/private/resolvedproduct.h>
 
-#include <cstdio>
+#include <QSharedPointer>
 
 namespace qbs {
 
-void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &message)
+class RunEnvironment
 {
-    FILE *file = stdout;
-    if (message.outputChannel == LogOutputStdErr)
-        file = stderr;
+public:
+    RunEnvironment(const Qbs::Private::ResolvedProduct &resolvedproduct);
+    RunEnvironment(const Qbs::BuildProduct &buildProduct);
+    ~RunEnvironment();
+    RunEnvironment(const RunEnvironment &other);
+    RunEnvironment &operator =(const RunEnvironment &other);
 
-    if (message.printLogLevel) {
-        switch (level) {
-        case LoggerError:
-            fprintfWrapper(TextColorRed, file, "ERROR: ");
-            break;
-        case LoggerWarning:
-            fprintfWrapper(TextColorYellow, file, "WARNING: ");
-            break;
-        case LoggerInfo:
-            fprintf(file, "INFO: ");
-            break;
-        case LoggerDebug:
-            fprintf(file, "DEBUG: ");
-            break;
-        case LoggerTrace:
-            fprintf(file, "TRACE: ");
-            break;
-        }
-    }
-    fprintfWrapper(message.textColor, file, "%s\n", message.data.data());
-}
+    int runShell();
+    int runTarget(const QString &targetBin, const QStringList &arguments);
 
-void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
-{
-    va_list vl;
-    va_start(vl, str);
-    if (m_coloredOutputEnabled)
-        fprintfColored(color, file, str, vl);
-    else
-        vfprintf(file, str, vl);
-    va_end(vl);
-}
-
-
-ConsoleLogger::ConsoleLogger()
-{
-    m_logSink.setColoredOutputEnabled(Settings::create()->useColoredOutput());
-    Qbs::ILogSink::setGlobalLogSink(&m_logSink);
-}
-
-ConsoleLogger::~ConsoleLogger()
-{
-    Qbs::ILogSink::cleanupGlobalLogSink();
-}
+private:
+    Qbs::Private::ResolvedProduct m_resolvedProduct;
+};
 
 } // namespace qbs
+
+#endif // QBS_RUNENVIRONMENT_H

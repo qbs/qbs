@@ -27,6 +27,10 @@
 **
 ****************************************************************************/
 
+#include <logging/consolelogger.h>
+#include <tools/platform.h>
+#include <tools/settings.h>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
@@ -34,10 +38,6 @@
 #include <QSettings>
 #include <QStringList>
 #include <QTextStream>
-
-#include <tools/consolelogger.h>
-#include <tools/platform.h>
-#include <tools/settings.h>
 
 #ifdef Q_OS_UNIX
 #include <iostream>

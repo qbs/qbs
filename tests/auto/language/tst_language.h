@@ -31,8 +31,8 @@
 #define TST_LANGUAGE_H
 
 #include <language/loader.h>
-#include <tools/consolelogger.h>
-#include <tools/logger.h>
+#include <logging/consolelogger.h>
+#include <logging/logger.h>
 #include <tools/scripttools.h>
 #include <QtTest>
 

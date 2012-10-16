@@ -35,10 +35,10 @@
 
 #include <language/loader.h>
 #include <language/qbsengine.h>
+#include <logging/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/scannerpluginmanager.h>
-#include <tools/logger.h>
 #include <tools/progressobserver.h>
 #include <tools/scripttools.h>
 

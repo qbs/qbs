@@ -27,41 +27,67 @@
 **
 ****************************************************************************/
 
-#ifndef LOGSINK_H
-#define LOGSINK_H
-
+#include "consolelogger.h"
 #include "logger.h"
-#include <Qbs/ilogsink.h>
+#include "coloredoutput.h"
+
+#include <tools/settings.h>
+
+#include <QHash>
+
+#include <cstdio>
 
 namespace qbs {
 
-class ConsolePrintLogSink : public Qbs::ILogSink
+void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &message)
 {
-public:
-    void setColoredOutputEnabled(bool enabled) { m_coloredOutputEnabled = enabled; }
+    FILE *file = stdout;
+    if (message.outputChannel == LogOutputStdErr)
+        file = stderr;
 
-protected:
-    virtual void outputLogMessage(LoggerLevel level, const LogMessage &message);
+    if (message.printLogLevel) {
+        switch (level) {
+        case LoggerError:
+            fprintfWrapper(TextColorRed, file, "ERROR: ");
+            break;
+        case LoggerWarning:
+            fprintfWrapper(TextColorYellow, file, "WARNING: ");
+            break;
+        case LoggerInfo:
+            fprintf(file, "INFO: ");
+            break;
+        case LoggerDebug:
+            fprintf(file, "DEBUG: ");
+            break;
+        case LoggerTrace:
+            fprintf(file, "TRACE: ");
+            break;
+        }
+    }
+    fprintfWrapper(message.textColor, file, "%s\n", message.data.data());
+}
 
-private:
-    void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
-
-private:
-    bool m_coloredOutputEnabled;
-};
-
-
-// Instantiate this at the top of a tool's main function to enable qbsError() & friends.
-class ConsoleLogger
+void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
 {
-public:
-    ConsoleLogger();
-    ~ConsoleLogger();
+    va_list vl;
+    va_start(vl, str);
+    if (m_coloredOutputEnabled)
+        fprintfColored(color, file, str, vl);
+    else
+        vfprintf(file, str, vl);
+    va_end(vl);
+}
 
-private:
-    ConsolePrintLogSink m_logSink;
-};
+
+ConsoleLogger::ConsoleLogger()
+{
+    m_logSink.setColoredOutputEnabled(Settings::create()->useColoredOutput());
+    ILogSink::setGlobalLogSink(&m_logSink);
+}
+
+ConsoleLogger::~ConsoleLogger()
+{
+    ILogSink::cleanupGlobalLogSink();
+}
 
 } // namespace qbs
-
-#endif // LOGSINK_H

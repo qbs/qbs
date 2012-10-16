@@ -30,7 +30,7 @@
 #include "configcommandlineparser.h"
 #include "configcommandexecutor.h"
 
-#include <tools/consolelogger.h>
+#include <logging/consolelogger.h>
 #include <tools/error.h>
 
 #include <QCoreApplication>

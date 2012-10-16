@@ -33,10 +33,10 @@
 #include "buildgraph.h"
 
 #include <buildgraph/artifact.h>
-#include <Qbs/processoutput.h>
-#include <tools/buildoptions.h>
-#include <tools/settings.h>
 #include <buildgraph/scanresultcache.h>
+#include <tools/buildoptions.h>
+#include <tools/processoutput.h>
+#include <tools/settings.h>
 
 #include <QObject>
 #include <QVariant>
@@ -99,7 +99,7 @@ protected:
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool run();
-    qbs::FileTime timeStamp(Artifact *artifact);
+    FileTime timeStamp(Artifact *artifact);
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
@@ -125,7 +125,7 @@ private:
     QList<BuildProduct::Ptr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QMap<Artifact *, QHashDummyValue> m_leaves;
-    QHash<Artifact *, qbs::FileTime> m_timeStampCache;
+    QHash<Artifact *, FileTime> m_timeStampCache;
     ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;

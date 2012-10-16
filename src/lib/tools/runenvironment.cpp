@@ -27,10 +27,9 @@
 **
 ****************************************************************************/
 
-
 #include "runenvironment.h"
 
-#include <tools/logger.h>
+#include <logging/logger.h>
 #include <tools/settings.h>
 
 #include <QDir>
@@ -45,14 +44,14 @@
 #include <unistd.h>
 #endif
 
-namespace Qbs {
+namespace qbs {
 
 RunEnvironment::RunEnvironment(const Qbs::Private::ResolvedProduct &resolvedproduct)
     : m_resolvedProduct(resolvedproduct)
 {
 }
 
-RunEnvironment::RunEnvironment(const BuildProduct &buildProduct)
+RunEnvironment::RunEnvironment(const Qbs::BuildProduct &buildProduct)
     : m_resolvedProduct(buildProduct.privateResolvedProject())
 {
 }
@@ -149,4 +148,4 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     return exitCode;
 }
 
-} // namespace Qbs
+} // namespace qbs

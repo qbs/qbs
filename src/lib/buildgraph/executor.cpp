@@ -35,8 +35,8 @@
 #include <buildgraph/transformer.h>
 #include <language/language.h>
 #include <language/qbsengine.h>
+#include <logging/logger.h>
 #include <tools/fileinfo.h>
-#include <tools/logger.h>
 #include <tools/progressobserver.h>
 
 #include <algorithm>

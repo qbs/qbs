@@ -27,6 +27,11 @@
 **
 ****************************************************************************/
 
+#include <logging/logger.h>
+#include <tools/hostosinfo.h>
+#include <tools/platform.h>
+#include "msvcprobe.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
@@ -34,11 +39,6 @@
 #include <QSettings>
 #include <QStringList>
 #include <QTextStream>
-
-#include <tools/hostosinfo.h>
-#include <tools/logger.h>
-#include <tools/platform.h>
-#include "msvcprobe.h"
 
 using namespace qbs;
 

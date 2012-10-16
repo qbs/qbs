@@ -32,10 +32,7 @@
 #include <QSharedData>
 #include <QStringList>
 
-#include <QtDebug>
-
-
-namespace Qbs {
+namespace qbs {
 
 class ProcessOutputData : public QSharedData
 {
@@ -126,4 +123,4 @@ QDataStream &operator>>(QDataStream &in, ProcessOutput &processOutput)
     return in;
 }
 
-} // namespace Qbs
+} // namespace qbs

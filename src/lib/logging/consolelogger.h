@@ -27,18 +27,41 @@
 **
 ****************************************************************************/
 
-#include <tools/logger.h>
+#ifndef LOGSINK_H
+#define LOGSINK_H
 
-namespace Qbs {
+#include "ilogsink.h"
+#include "logger.h"
 
-void ILogSink::setGlobalLogSink(ILogSink *logSink)
+namespace qbs {
+
+class ConsolePrintLogSink : public ILogSink
 {
-    qbs::Logger::instance().setLogSink(logSink);
-}
+public:
+    void setColoredOutputEnabled(bool enabled) { m_coloredOutputEnabled = enabled; }
 
-void ILogSink::cleanupGlobalLogSink()
+protected:
+    virtual void outputLogMessage(LoggerLevel level, const LogMessage &message);
+
+private:
+    void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
+
+private:
+    bool m_coloredOutputEnabled;
+};
+
+
+// Instantiate this at the top of a tool's main function to enable qbsError() & friends.
+class ConsoleLogger
 {
-    qbs::Logger::instance().setLogSink(0);
-}
+public:
+    ConsoleLogger();
+    ~ConsoleLogger();
 
-}
+private:
+    ConsolePrintLogSink m_logSink;
+};
+
+} // namespace qbs
+
+#endif // LOGSINK_H

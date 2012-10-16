@@ -30,16 +30,16 @@
 #include "application.h"
 #include "status.h"
 
-#include <Qbs/sourceproject.h>
-#include <Qbs/runenvironment.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
 #include <language/qbsengine.h>
-#include <tools/consolelogger.h>
+#include <language/sourceproject.h>
+#include <logging/consolelogger.h>
+#include <logging/logger.h>
 #include <tools/hostosinfo.h>
-#include <tools/logger.h>
 #include <tools/options.h>
 #include <tools/persistence.h>
+#include <tools/runenvironment.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -82,15 +82,15 @@ static int makeClean()
     return 0;
 }
 
-static int runShell(const Qbs::SourceProject &sourceProject)
+static int runShell(const qbs::SourceProject &sourceProject)
 {
     Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
     Qbs::BuildProduct buildProduct = buildProject.buildProducts().first();
-    Qbs::RunEnvironment run(buildProduct);
+    qbs::RunEnvironment run(buildProduct);
     return run.runShell();
 }
 
-static int showProperties(const Qbs::SourceProject &sourceProject,
+static int showProperties(const qbs::SourceProject &sourceProject,
         const qbs::BuildOptions &buildOptions)
 {
     const QStringList &selectedProducts = buildOptions.selectedProductNames;
@@ -104,7 +104,7 @@ static int showProperties(const Qbs::SourceProject &sourceProject,
     return 0;
 }
 
-static int buildProject(qbs::Application &app, const Qbs::SourceProject sourceProject,
+static int buildProject(qbs::Application &app, const qbs::SourceProject sourceProject,
         const qbs::BuildOptions &buildOptions)
 {
     qbs::Executor executor;
@@ -131,7 +131,7 @@ static int buildProject(qbs::Application &app, const Qbs::SourceProject sourcePr
     return executor.buildResult() == qbs::Executor::SuccessfulBuild ? 0 : ExitCodeErrorBuildFailure;
 }
 
-static int runTarget(const Qbs::SourceProject &sourceProject, const QString &targetName,
+static int runTarget(const qbs::SourceProject &sourceProject, const QString &targetName,
         const QStringList &arguments)
 {
     Qbs::BuildProject buildProject = sourceProject.buildProjects().first();
@@ -158,7 +158,7 @@ static int runTarget(const Qbs::SourceProject &sourceProject, const QString &tar
         return ExitCodeErrorBuildFailure;
     }
 
-    Qbs::RunEnvironment run(productToRun);
+    qbs::RunEnvironment run(productToRun);
     return run.runTarget(productFileName, arguments);
 }
 
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     }
 
     qbs::QbsEngine engine;
-    Qbs::SourceProject sourceProject(&engine);
+    qbs::SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(options.settings());
         sourceProject.loadPlugins();

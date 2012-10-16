@@ -29,9 +29,9 @@
 
 #include "options.h"
 
+#include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/logger.h>
 #include <tools/platform.h>
 #include <tools/hostosinfo.h>
 

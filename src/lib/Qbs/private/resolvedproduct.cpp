@@ -31,7 +31,7 @@
 
 #include <language/language.h>
 #include <language/qbsengine.h>
-#include <tools/logger.h>
+#include <logging/logger.h>
 
 namespace Qbs {
 namespace Private {

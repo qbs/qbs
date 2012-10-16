@@ -28,11 +28,15 @@
 ****************************************************************************/
 
 
-#ifndef QBSGLOBALS_H
-#define QBSGLOBALS_H
+#ifndef QBS_ILOGSINK_H
+#define QBS_ILOGSINK_H
 
+#include "coloredoutput.h"
 
-namespace Qbs {
+#include <tools/processoutput.h>
+
+namespace qbs {
+class Logger;
 
 enum LoggerLevel
 {
@@ -45,11 +49,42 @@ enum LoggerLevel
     LoggerMaxLevel = LoggerTrace
 };
 
-}
+enum LogOutputChannel
+{
+    LogOutputStdOut,
+    LogOutputStdErr
+};
 
+struct LogMessage
+{
+    LogMessage()
+        : printLogLevel(true)
+        , outputChannel(LogOutputStdErr)
+        , textColor(TextColorDefault)
+        , backgroundColor(TextColorDefault)
+    {}
 
-namespace qbs {
-using namespace Qbs;
-}
+    QByteArray data;
+    bool printLogLevel;
+    LogOutputChannel outputChannel;
+    TextColor textColor;
+    TextColor backgroundColor;
+};
 
-#endif // QBSGLOBALS_H
+class ILogSink
+{
+    friend class Logger;
+public:
+    virtual ~ILogSink() { }
+
+    static void setGlobalLogSink(ILogSink *logSink);
+    static void cleanupGlobalLogSink();
+
+protected:
+    virtual void outputLogMessage(LoggerLevel /*level*/, const LogMessage &/*logMessage*/) {}
+    virtual void processOutput(const ProcessOutput &/*processOutput*/) {}
+};
+
+} // namespace qbs
+
+#endif // QBS_ILOGSINK_H

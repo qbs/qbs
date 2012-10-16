@@ -30,10 +30,10 @@
 #ifndef STATUS_H
 #define STATUS_H
 
-#include <Qbs/sourceproject.h>
+#include <language/sourceproject.h>
+#include <logging/logger.h>
 #include <tools/options.h>
 #include <tools/fileinfo.h>
-#include <tools/logger.h>
 
 #include <QDir>
 #include <QFile>
@@ -103,7 +103,7 @@ static QStringList allFilesInProject(const QString &projectRootPath)
     return allFilesInDirectoryRecursive(QDir(projectRootPath), ignoreRegularExpressionList);
 }
 
-static int printStatus(const QString &projectFilePath, const Qbs::SourceProject &sourceProject)
+static int printStatus(const QString &projectFilePath, const qbs::SourceProject &sourceProject)
 {
     QString projectDirectory = qbs::FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();

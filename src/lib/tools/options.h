@@ -30,8 +30,6 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-#include <Qbs/globals.h>
-
 #include <tools/buildoptions.h>
 #include <tools/settings.h>
 

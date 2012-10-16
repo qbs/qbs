@@ -36,16 +36,15 @@
 #include <QSharedPointer>
 
 namespace qbs {
-    class BuildProject;
+class BuildProject;
+class SourceProject;
 }
 
 namespace Qbs {
 
-class SourceProject;
-
 class BuildProject
 {
-    friend class SourceProject;
+    friend class qbs::SourceProject;
 public:
     BuildProject();
     ~BuildProject();

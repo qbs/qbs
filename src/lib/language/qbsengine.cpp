@@ -28,8 +28,8 @@
 ****************************************************************************/
 
 #include "qbsengine.h"
+#include <logging/logger.h>
 #include <tools/error.h>
-#include <tools/logger.h>
 #include <QScriptProgram>
 #include <QScriptValueIterator>
 

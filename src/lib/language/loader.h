@@ -112,7 +112,7 @@ public:
 
     QStringList prototype;
     QString prototypeFileName;
-    qbs::CodeLocation prototypeLocation;
+    CodeLocation prototypeLocation;
     ProjectFile *file;
 
     QList<LanguageObject *> children;
@@ -295,7 +295,7 @@ public:
     QString name;
     QScriptProgram condition;
     ScopeChain::Ptr conditionScopeChain;
-    qbs::CodeLocation dependsLocation;
+    CodeLocation dependsLocation;
 };
 
 class UnknownModule : public ModuleBase
@@ -375,10 +375,10 @@ protected:
     Scope::Ptr buildFileContext(ProjectFile *file);
     bool existsModuleInSearchPath(const QString &moduleName);
     Module::Ptr searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
-                                    const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation,
+                                    const QVariantMap &userProperties, const CodeLocation &dependsLocation,
                                     const QStringList &extraSearchPaths = QStringList());
     Module::Ptr loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
-                           const QVariantMap &userProperties, const qbs::CodeLocation &dependsLocation);
+                           const QVariantMap &userProperties, const CodeLocation &dependsLocation);
     void insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance = Scope::Ptr());
     QList<Module::Ptr> evaluateDependency(LanguageObject *depends, ScopeChain::Ptr conditionScopeChain,
                                           ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,

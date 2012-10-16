@@ -28,8 +28,8 @@
 ****************************************************************************/
 
 #include "scannerpluginmanager.h"
-#include "logger.h"
 
+#include <logging/logger.h>
 #include <tools/hostosinfo.h>
 
 #include <QCoreApplication>

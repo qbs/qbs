@@ -31,12 +31,12 @@
 
 #include "language.h"
 #include "qbsengine.h"
+#include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/settings.h>
 #include <tools/fileinfo.h>
 #include <tools/scripttools.h>
-#include <tools/logger.h>
 #include <tools/progressobserver.h>
 
 #include <QCoreApplication>

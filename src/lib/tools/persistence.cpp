@@ -29,7 +29,7 @@
 
 #include "persistence.h"
 #include "fileinfo.h"
-#include <tools/logger.h>
+#include <logging/logger.h>
 #include <QDir>
 #include <QScopedPointer>
 

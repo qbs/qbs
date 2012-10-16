@@ -28,7 +28,7 @@
 ****************************************************************************/
 #include "../shared/specialplatformssetup.h"
 
-#include <tools/consolelogger.h>
+#include <logging/consolelogger.h>
 #include <tools/hostosinfo.h>
 
 #include <QBuffer>

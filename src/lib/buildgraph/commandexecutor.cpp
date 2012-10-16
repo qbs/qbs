@@ -27,26 +27,26 @@
 **
 ****************************************************************************/
 
+#include "buildgraph.h"
 #include "commandexecutor.h"
 #include "command.h"
-#include "buildgraph.h"
-#include "processoutput.h"
 
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
 #include <language/qbsengine.h>
-#include <tools/hostosinfo.h>
-#include <tools/logger.h>
 #include <jsextensions/file.h>
-#include <jsextensions/textfile.h>
 #include <jsextensions/process.h>
+#include <jsextensions/textfile.h>
+#include <tools/hostosinfo.h>
+#include <logging/logger.h>
+#include <tools/processoutput.h>
 
 #include <QtConcurrentRun>
 #include <QDir>
 #include <QFutureWatcher>
 #include <QProcess>
-#include <QThread>
 #include <QTemporaryFile>
+#include <QThread>
 
 namespace qbs {
 

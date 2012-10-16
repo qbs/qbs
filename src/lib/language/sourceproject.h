@@ -27,49 +27,50 @@
 **
 ****************************************************************************/
 
+#ifndef QBSINTERFACE_H
+#define QBSINTERFACE_H
 
-#ifndef QBS_PROCESSOUTPUT_H
-#define QBS_PROCESSOUTPUT_H
+#include "language.h"
 
-#include <QByteArray>
-#include <QMetaType>
-#include <QSharedDataPointer>
-#include <QString>
+#include <buildgraph/buildgraph.h>
+#include <Qbs/buildproject.h>
 
-namespace Qbs {
+#include <QExplicitlySharedDataPointer>
+#include <QFutureInterface>
+#include <QSharedPointer>
 
-class ProcessOutputData;
+namespace qbs {
+class BuildProject;
+class Loader;
+class Settings;
 
-class ProcessOutput
+class SourceProjectPrivate;
+
+class SourceProject
 {
-    friend QDataStream &operator>>(QDataStream &in, ProcessOutput &processOutput);
+    Q_DECLARE_TR_FUNCTIONS(SourceProject)
+    friend class BuildProject;
 public:
-    ProcessOutput();
-    ProcessOutput(const ProcessOutput &other);
-    ProcessOutput &operator=(const ProcessOutput &other);
-    ~ProcessOutput();
-    
-    void setStandardOutput(const QByteArray &standardOutput);
-    QByteArray standardOutput() const;
+    SourceProject(QbsEngine *engine);
+    ~SourceProject();
 
-    void setStandardError(const QByteArray &standardError);
-    QByteArray standardError() const;
+    SourceProject(const SourceProject &other);
+    SourceProject &operator=(const SourceProject &other);
 
-    void setCommandLine(const QString &commandLine);
-    QString commandLine() const;
+    void setSettings(const Settings::Ptr &settings);
 
-    void setFilePaths(const QStringList &filePathList);
-    QStringList filePaths() const;
+    // These may throw qbs::Error.
+    void loadPlugins();
+    void loadProject(const QString &projectFileName, QList<QVariantMap> buildConfigs);
+
+    QVector<Qbs::BuildProject> buildProjects() const;
+    QList<BuildProject::Ptr> internalBuildProjects() const;
+    QbsEngine *engine() const;
 
 private:
-    QSharedDataPointer<ProcessOutputData> data;
+    QExplicitlySharedDataPointer<SourceProjectPrivate> d;
 };
 
-QDataStream &operator<<(QDataStream &out, const ProcessOutput &processOutput);
-QDataStream &operator>>(QDataStream &in, ProcessOutput &processOutput);
+} // namespace qbs
 
-} // namespace Qbs
-
-Q_DECLARE_METATYPE(Qbs::ProcessOutput)
-
-#endif // QBS_PROCESSOUTPUT_H
+#endif

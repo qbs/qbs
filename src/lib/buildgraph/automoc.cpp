@@ -31,8 +31,8 @@
 #include "scanresultcache.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
+#include <logging/logger.h>
 #include <tools/error.h>
-#include <tools/logger.h>
 #include <tools/scannerpluginmanager.h>
 
 namespace qbs {

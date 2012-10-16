@@ -27,13 +27,13 @@
 **
 ****************************************************************************/
 
-#include <Qbs/sourceproject.h>
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <language/qbsengine.h>
-#include <tools/consolelogger.h>
+#include <language/sourceproject.h>
+#include <logging/consolelogger.h>
+#include <logging/logger.h>
 #include <tools/fileinfo.h>
-#include <tools/logger.h>
 #include <tools/options.h>
 
 #include <cassert>
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     }
 
     qbs::QbsEngine engine;
-    Qbs::SourceProject sourceProject(&engine);
+    qbs::SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(options.settings());
         sourceProject.loadPlugins();

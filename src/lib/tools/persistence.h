@@ -170,7 +170,7 @@ template <class T> struct RemoveConst { typedef T Type; };
 template <class T> struct RemoveConst<const T> { typedef T Type; };
 
 template <typename T>
-void loadContainerS(T &container, QDataStream &s, qbs::PersistentPool &pool)
+void loadContainerS(T &container, QDataStream &s, PersistentPool &pool)
 {
     int count;
     s >> count;
@@ -181,7 +181,7 @@ void loadContainerS(T &container, QDataStream &s, qbs::PersistentPool &pool)
 }
 
 template <typename T>
-void loadContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
+void loadContainer(T &container, QDataStream &s, PersistentPool &pool)
 {
     int count;
     s >> count;
@@ -192,7 +192,7 @@ void loadContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
 }
 
 template <typename T>
-void storeContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
+void storeContainer(T &container, QDataStream &s, PersistentPool &pool)
 {
     s << container.count();
     typename T::const_iterator it = container.constBegin();
@@ -202,7 +202,7 @@ void storeContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
 }
 
 template <typename T>
-void storeHashContainer(T &container, QDataStream &s, qbs::PersistentPool &pool)
+void storeHashContainer(T &container, QDataStream &s, PersistentPool &pool)
 {
     s << container.count();
     foreach (const typename T::mapped_type &item, container)
