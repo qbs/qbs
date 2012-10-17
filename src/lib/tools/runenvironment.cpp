@@ -109,7 +109,7 @@ int RunEnvironment::runShell()
     qbs::qbsError("Executing the shell failed.");
     exitCode = 890;
 #else
-    foreach (const QString &s, m_resolvedProduct->buildEnvironmentStringList()) {
+    foreach (const QString &s, m_resolvedProduct->buildEnvironment.toStringList()) {
         int idx = s.indexOf(QLatin1Char('='));
         qputenv(s.left(idx).toLocal8Bit(), s.mid(idx + 1, s.length() - idx - 1).toLocal8Bit());
     }
