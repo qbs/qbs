@@ -238,21 +238,16 @@ CppModule {
         }
 
         prepare: {
-            var defines = ModUtils.appendAll(input, 'defines');
-            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var cppFlags = ModUtils.appendAll(input, 'cppFlags');
             var cFlags = ModUtils.appendAll(input, 'cFlags');
             var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
             var objcFlags = ModUtils.appendAll(input, 'objcFlags');
             var visibility = ModUtils.findFirst(product.modules, 'cpp', 'visibility');
-            var i;
             var args = Gcc.configFlags(input);
             var isCxx = true;
             var isObjC = false;
 
             args.push('-pipe');
-            Gcc.addAdditionalFlags(product, args)
 
             if (product.type.indexOf('staticlibrary') === -1 && (product.modules.qbs.toolchain !== "mingw")) {
                 if (visibility === 'hidden')
@@ -263,22 +258,12 @@ CppModule {
                     args.push('-fvisibility=default')
             }
 
-            if (product.module.sysroot)
-                args.push('--sysroot=' + product.module.sysroot)
-            for (i in cppFlags)
-                args.push('-Wp,' + cppFlags[i])
-            for (i in platformDefines)
-                args.push('-D' + platformDefines[i]);
-            for (i in defines)
-                args.push('-D' + defines[i]);
-            for (i in includePaths)
-                args.push('-I' + includePaths[i]);
             if (product.module.precompiledHeader) {
                 args.push('-include')
                 args.push(product.name)
                 var pchPath = product.module.precompiledHeaderDir[0]
                 var pchPathIncluded = false
-                for (i in includePaths) {
+                for (var i in includePaths) {
                     if (includePaths[i] == pchPath) {
                         pchPathIncluded = true
                         break
@@ -303,10 +288,6 @@ CppModule {
                 args.push('-x');
                 args.push('objective-c++');
             }
-            args.push('-c');
-            args.push(input.fileName);
-            args.push('-o');
-            args.push(output.fileName);
             if (isObjC) {
                 if (objcFlags)
                     args = args.concat(objcFlags);
@@ -317,6 +298,7 @@ CppModule {
                 if (cFlags)
                     args = args.concat(cFlags);
             }
+            args = args.concat(Gcc.additionalFlags(product, includePaths, input.fileName, output))
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
@@ -333,31 +315,16 @@ CppModule {
         }
         prepare: {
             var args = Gcc.configFlags(product);
-            if (product.module.sysroot)
-                args.push('--sysroot=' + product.module.sysroot)
-            var i;
-            for (i in product.module.cppFlags)
-                args.push('-Wp,' + product.module.cppFlags[i])
-            for (i in product.module.platformDefines)
-                args.push('-D' + product.module.platformDefines[i]);
-            for (i in product.module.defines)
-                args.push('-D' + defines[i]);
-            for (i in product.module.includePaths)
-                args.push('-I' + includePaths[i]);
-
+            var includePaths = ModUtils.appendAll(input, 'includePaths');
             args.push('-x');
             args.push('c++-header');
-            args.push('-c');
-            args.push(product.module.precompiledHeader);
-            args.push('-o');
-            args.push(output.fileName);
-            Gcc.addAdditionalFlags(product, args)
             if (product.module.cxxFlags)
                 args = args.concat(product.module.cxxFlags);
+            args = args.concat(Gcc.additionalFlags(product, includePaths,
+                    product.module.precompiledHeader, output));
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
             return cmd;
         }
     }
 }
-

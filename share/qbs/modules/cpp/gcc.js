@@ -62,8 +62,9 @@ function removePrefixAndSuffix(str, prefix, suffix)
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function addAdditionalFlags(product, args)
+function additionalFlags(product, includePaths, fileName, output)
 {
+    var args = []
     if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
         if (product.modules.qbs.toolchain !== "mingw")
             args.push('-fPIC');
@@ -74,4 +75,23 @@ function addAdditionalFlags(product, args)
     } else {
         throw ("The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
     }
+    if (product.module.sysroot)
+        args.push('--sysroot=' + product.module.sysroot)
+    var i;
+    var cppFlags = ModUtils.appendAll(input, 'cppFlags');
+    for (i in cppFlags)
+        args.push('-Wp,' + cppFlags[i])
+    var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+    for (i in platformDefines)
+        args.push('-D' + product.module.platformDefines[i]);
+    var defines = ModUtils.appendAll(input, 'defines');
+    for (i in defines)
+        args.push('-D' + defines[i]);
+    for (i in includePaths)
+        args.push('-I' + includePaths[i]);
+    args.push('-c');
+    args.push(fileName);
+    args.push('-o');
+    args.push(output.fileName);
+    return args
 }
