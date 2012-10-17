@@ -31,19 +31,15 @@
 
 #include <language/qbsengine.h>
 #include <logging/logger.h>
+#include <tools/hostosinfo.h>
 #include <tools/settings.h>
 
 #include <QDir>
 #include <QProcess>
-#include <QScriptEngine>
+#include <QScopedPointer>
+#include <QTemporaryFile>
 
-#include <stdio.h>
 #include <stdlib.h>
-
-// TODO: Not needed (see below)
-#ifdef Q_OS_UNIX
-#include <unistd.h>
-#endif
 
 namespace qbs {
 
@@ -78,55 +74,51 @@ int RunEnvironment::runShell()
         return EXIT_FAILURE;
     }
 
-    // TODO: Just use QProcess here in both cases. No need for platform-dependent methods.
-    int exitCode;
-    QString productId = m_resolvedProduct->name;
-    qbs::qbsInfo("Starting shell for target '%s'.", qPrintable(productId));
+    const QString productId = m_resolvedProduct->name;
+    qbsInfo() << tr("Starting shell for target '%1'.").arg(productId);
+    const QProcessEnvironment environment = m_resolvedProduct->buildEnvironment;
 #ifdef Q_OS_UNIX
-    qbs::Settings::Ptr settings = qbs::Settings::create();
-    QByteArray shellProcess = settings->value("shell", "/bin/sh").toString().toLocal8Bit();
-    QByteArray prompt = "PS1=qbs " + productId.toLocal8Bit() + " $ ";
-
-    QStringList environmentStringList = m_resolvedProduct->buildEnvironment.toStringList();
-
-    char *argv[2];
-    argv[0] = shellProcess.data();
-    argv[1] = 0;
-    char **env = new char *[environmentStringList.count() + 1];
-    int i = 0;
-    foreach (const QString &s, environmentStringList){
-        QByteArray b = s.toLocal8Bit();
-        if (b.startsWith("PS1")) {
-            b = prompt;
-        }
-        env[i] = (char*)malloc(b.size() + 1);
-        memcpy(env[i], b.data(), b.size());
-        env[i][b.size()] = 0;
-        ++i;
-    }
-    env[i] = 0;
-    execve(argv[0], argv, env);
-    qbs::qbsError("Executing the shell failed.");
-    exitCode = 890;
-#else
-    foreach (const QString &s, m_resolvedProduct->buildEnvironment.toStringList()) {
-        int idx = s.indexOf(QLatin1Char('='));
-        qputenv(s.left(idx).toLocal8Bit(), s.mid(idx + 1, s.length() - idx - 1).toLocal8Bit());
-    }
-    QByteArray shellProcess = qgetenv("COMSPEC");
-    if (shellProcess.isEmpty())
-        shellProcess = "cmd";
-    shellProcess.append(" /k prompt [qbs] " + qgetenv("PROMPT"));
-    exitCode = system(shellProcess);
+    clearenv();
 #endif
+    foreach (const QString &key, environment.keys())
+        qputenv(key.toLocal8Bit().constData(), environment.value(key).toLocal8Bit());
+    QString command;
+    QScopedPointer<QTemporaryFile> envFile;
+    if (HostOsInfo::isWindowsHost()) {
+        command = environment.value(QLatin1String("COMSPEC"));
+        if (command.isEmpty())
+            command = QLatin1String("cmd");
+        const QString prompt = environment.value(QLatin1String("PROMPT"));
+        command += QLatin1String(" /k prompt [qbs] ") + prompt;
+    } else {
+        const Settings::Ptr settings = Settings::create();
+        command = settings->value(QLatin1String("shell")).toString();
+        if (command.isEmpty())
+            command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
 
-    return exitCode;
+        // Yes, we have to use this prcoedure. PS1 is not inherited from the environment.
+        const QString prompt = QLatin1String("qbs ") + productId + QLatin1String(" $ ");
+        envFile.reset(new QTemporaryFile);
+        if (envFile->open()) {
+            if (command.endsWith(QLatin1String("bash")))
+                command += " --posix"; // Teach bash some manners.
+            const QString promptLine = QLatin1String("PS1='") + prompt + QLatin1String("'\n");
+            envFile->write(promptLine.toLocal8Bit());
+            envFile->close();
+            qputenv("ENV", envFile->fileName().toLocal8Bit());
+        } else {
+            qbsWarning() << tr("Setting custom shell prompt failed.");
+        }
+    }
+
+    // We cannot use QProcess, since it does not do stdin forwarding.
+    return system(command.toLocal8Bit().constData());
 }
 
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
     if (!QFileInfo(targetBin).isExecutable()) {
-        qbs::qbsError("File '%s' is not an executable.", qPrintable(targetBin));
+        qbsError("File '%s' is not an executable.", qPrintable(targetBin));
         return EXIT_FAILURE;
     }
 
@@ -137,7 +129,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         return EXIT_FAILURE;
     }
 
-    qbs::qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
+    qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
     QProcess process;
     process.setProcessEnvironment(m_resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);

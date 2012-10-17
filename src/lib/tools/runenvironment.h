@@ -32,12 +32,15 @@
 
 #include <language/language.h>
 
+#include <QCoreApplication>
+
 namespace qbs {
 
 class QbsEngine;
 
 class RunEnvironment
 {
+    Q_DECLARE_TR_FUNCTIONS(RunEnvironment)
 public:
     RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product);
     ~RunEnvironment();
