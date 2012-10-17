@@ -1,5 +1,5 @@
 QT = core script gui
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets concurrent
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
 TARGET = qbs-graph

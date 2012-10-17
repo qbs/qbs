@@ -1,5 +1,4 @@
 QT = core script
-greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 TEMPLATE = app
 TARGET = qbs
 DESTDIR = ../../../bin
