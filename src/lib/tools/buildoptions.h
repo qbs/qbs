@@ -33,8 +33,9 @@
 
 namespace qbs {
 
-struct BuildOptions
+class BuildOptions
 {
+public:
     BuildOptions() : dryRun(false), keepGoing(false), maxJobCount(1) {}
 
     QStringList changedFiles;
