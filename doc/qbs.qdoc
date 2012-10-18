@@ -331,7 +331,7 @@
 
     \title Language Introduction
 
-    Qbs uses project files (*.qbp) to describe the contents of a project.
+    Qbs uses project files (*.qbs) to describe the contents of a project.
     A project contains one or more products. A product is the target of a build
     process, typically an application, library or maybe a tar ball.
 
@@ -339,7 +339,7 @@
 
     These project files are written using a QML dialect.
     A very simple C++ hello world project looks like this:
-    \code ---helloworld.qbp---
+    \code ---helloworld.qbs---
         import qbs.base 1.0
 
         Application {
@@ -384,7 +384,7 @@
         property string craziness: "low"
     }
 
-    ---hellocrazyworld.qbp---
+    ---hellocrazyworld.qbs---
     CrazyProduct {
         craziness: "enormous"
         name: "hellocrazyworld"
@@ -449,7 +449,7 @@
     module. This is how you specify the optimization level for your product (and
     all build variants):
 
-    \code ---helloworld.qbp---
+    \code ---helloworld.qbs---
         import qbs.base 1.0
 
         Application {

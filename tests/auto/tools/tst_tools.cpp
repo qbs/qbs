@@ -100,10 +100,10 @@ private slots:
                 && QDir(multiProjectsDir).exists());
         qbs::CommandLineParser parser;
         const QStringList args(QLatin1String("-f"));
-        QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbp");
+        QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbs");
         QVERIFY(parser.parseCommandLine(args + QStringList(projectFilePath)));
         QCOMPARE(projectFilePath, parser.projectFileName());
-        projectFilePath = oneProjectDir + QLatin1String("/project.qbp");
+        projectFilePath = oneProjectDir + QLatin1String("/project.qbs");
         QVERIFY(parser.parseCommandLine(args + QStringList(oneProjectDir)));
         QCOMPARE(projectFilePath, parser.projectFileName());
         QVERIFY(!parser.parseCommandLine(args + QStringList(noProjectsDir)));

@@ -101,7 +101,7 @@ void CommandLineParser::printHelp() const
          "                     Set or get project/global option(s).\n"
          "\nGeneral options:\n"
          "  -h -? --help  .... Show this help.\n"
-         "  -f <file>  ....... Specify the .qbp project file.\n"
+         "  -f <file>  ....... Use <file> as the main project file.\n"
          "  -v  .............. Be more verbose. Increases the log level by one.\n"
          "  -q  .............. Be more quiet. Decreases the log level by one.\n"
          "\nBuild options:\n"
@@ -173,17 +173,18 @@ void CommandLineParser::doParse()
     if (isHelpSet())
         return;
 
-    // automatically detect the project file name
-    if (m_projectFileName.isEmpty())
-        m_projectFileName = guessProjectFileName();
-    if (m_projectFileName.isEmpty())
-        throw Error(tr("No project file given."));
-
-    // make the project file name absolute
-    if (FileInfo::isAbsolute(m_projectFileName)) {
-        m_projectFileName = FileInfo::resolvePath(QDir::currentPath(), m_projectFileName);
-        m_projectFileName = QDir::cleanPath(m_projectFileName);
+    if (m_projectFileName.isEmpty()) {
+        qbsDebug() << "No project file given; looking in current directory.";
+        m_projectFileName = QDir::currentPath();
     }
+    setRealProjectFile();
+    m_projectFileName = FileInfo::resolvePath(QDir::currentPath(), m_projectFileName);
+    m_projectFileName = QDir::cleanPath(m_projectFileName);
+
+    // TODO: Remove in 0.4
+    if (m_projectFileName.endsWith(QLatin1String(".qbp")))
+        qbsInfo() << tr("Your main project file has the old suffix '.qbp'. This does not "
+                        "hurt, but the convention is now to use '.qbs'.");
 
     qbsDebug() << qbs::DontPrintLogLevel << "Using project file '"
                << QDir::toNativeSeparators(projectFileName()) << "'.";
@@ -244,7 +245,6 @@ void CommandLineParser::parseShortOptions(const QString &options)
             break;
         case 'f':
             m_projectFileName = QDir::fromNativeSeparators(getShortOptionArgument(options, i));
-            setRealProjectFile();
             break;
         case 'k':
             m_buildOptions.keepGoing = true;
@@ -328,7 +328,11 @@ void CommandLineParser::setRealProjectFile()
         return;
     if (!projectFileInfo.isDir())
         throw Error(tr("Project file '%1' has invalid type.").arg(m_projectFileName));
-    const QStringList namePatterns = QStringList(QLatin1String("*.qbp"));
+
+    // TODO: Remove check for '.qbp' in 0.4.
+    const QStringList namePatterns = QStringList()
+            << QLatin1String("*.qbp") << QLatin1String("*.qbs");
+
     const QStringList &actualFileNames
             = QDir(m_projectFileName).entryList(namePatterns, QDir::Files);
     if (actualFileNames.isEmpty())
@@ -388,25 +392,6 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     }
 
     return buildConfigs;
-}
-
-QString CommandLineParser::guessProjectFileName()
-{
-    QDir searchDir = QDir::current();
-    for (;;) {
-        QStringList projectFiles = searchDir.entryList(QStringList() << "*.qbp", QDir::Files);
-        if (projectFiles.count() == 1) {
-            QDir::setCurrent(searchDir.path());
-            return searchDir.absoluteFilePath(projectFiles.first());
-        } else if (projectFiles.count() > 1) {
-            throw Error(tr("Multiple project files found in '%1'.\n"
-                    "Please specify the correct project file using the -f option.")
-                    .arg(QDir::toNativeSeparators(searchDir.absolutePath())));
-        }
-        if (!searchDir.cdUp())
-            break;
-    }
-    return QString();
 }
 
 } // namespace qbs

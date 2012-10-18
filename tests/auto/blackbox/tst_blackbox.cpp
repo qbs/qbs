@@ -261,7 +261,7 @@ void TestBlackbox::trackAddFile()
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
     ccp("../after", ".");
-    touch("project.qbp");
+    touch("project.qbs");
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
 
@@ -304,16 +304,16 @@ void TestBlackbox::trackRemoveFile()
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
-    QFile::remove("project.qbp");
+    QFile::remove("project.qbs");
     QFile::remove("main.cpp");
-    ccp("../before/project.qbp", ".");
+    ccp("../before/project.qbs", ".");
     ccp("../before/main.cpp", ".");
-    QFile::copy("../before/project.qbp", "project.qbp");
+    QFile::copy("../before/project.qbs", "project.qbs");
     QFile::copy("../before/main.cpp", "main.cpp");
     QVERIFY(QFile::remove("zort.h"));
     QVERIFY(QFile::remove("zort.cpp"));
     touch("main.cpp");
-    touch("project.qbp");
+    touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
     process.start(buildDir + "/someapp");
@@ -354,7 +354,7 @@ void TestBlackbox::trackAddFileTag()
     QTest::qWait(1000); // for file systems with low resolution timestamps
     ccp("../after", ".");
     touch("main.cpp");
-    touch("project.qbp");
+    touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
     process.start(buildDir + "/someapp");
@@ -393,7 +393,7 @@ void TestBlackbox::trackRemoveFileTag()
     QTest::qWait(1000); // for file systems with low resolution timestamps
     ccp("../before", ".");
     touch("main.cpp");
-    touch("project.qbp");
+    touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
     process.start(buildDir + "/someapp");
