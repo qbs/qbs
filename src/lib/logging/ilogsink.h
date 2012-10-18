@@ -33,7 +33,7 @@
 
 #include "coloredoutput.h"
 
-#include <tools/processoutput.h>
+#include <QByteArray>
 
 namespace qbs {
 class Logger;
@@ -81,8 +81,7 @@ public:
     static void cleanupGlobalLogSink();
 
 protected:
-    virtual void outputLogMessage(LoggerLevel /*level*/, const LogMessage &/*logMessage*/) {}
-    virtual void processOutput(const ProcessOutput &/*processOutput*/) {}
+    virtual void outputLogMessage(LoggerLevel level, const LogMessage &logMessage) = 0;
 };
 
 } // namespace qbs

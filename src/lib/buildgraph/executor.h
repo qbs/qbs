@@ -35,7 +35,6 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/scanresultcache.h>
 #include <tools/buildoptions.h>
-#include <tools/processoutput.h>
 #include <tools/settings.h>
 
 #include <QObject>

@@ -39,7 +39,6 @@
 #include <jsextensions/textfile.h>
 #include <tools/hostosinfo.h>
 #include <logging/logger.h>
-#include <tools/processoutput.h>
 
 #include <QtConcurrentRun>
 #include <QDir>
@@ -244,18 +243,6 @@ QByteArray CommandExecutor::filterProcessOutput(const QByteArray &output, const 
     return filteredOutput.toString().toLocal8Bit();
 }
 
-static QStringList filePathsFromInputArtifacts(Transformer *transformer)
-{
-    QStringList filePathList;
-
-    if (transformer) {
-        foreach (Artifact *artifact, transformer->inputs)
-            filePathList.append(artifact->filePath());
-    }
-
-    return filePathList;
-}
-
 void CommandExecutor::sendProcessOutput(bool logCommandLine)
 {
     QString commandLine = m_processCommand->program();
@@ -270,13 +257,6 @@ void CommandExecutor::sendProcessOutput(bool logCommandLine)
         qbsInfo() << DontPrintLogLevel << commandLine << (processOutputEmpty ? "" : "\n")
                   << processStdOut << processStdErr;
     }
-
-    ProcessOutput processOutput;
-    processOutput.setCommandLine(commandLine);
-    processOutput.setStandardOutput(processStdOut);
-    processOutput.setStandardError(processStdErr);
-    processOutput.setFilePaths(filePathsFromInputArtifacts(m_transformer));
-    Logger::instance().sendProcessOutput(processOutput);
 }
 
 void CommandExecutor::onProcessError(QProcess::ProcessError processError)

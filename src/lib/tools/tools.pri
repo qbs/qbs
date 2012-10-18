@@ -13,8 +13,7 @@ HEADERS += \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
-    $$PWD/runenvironment.h \
-    $$PWD/processoutput.h
+    $$PWD/runenvironment.h
 
 SOURCES += \
     $$PWD/error.cpp \
@@ -24,8 +23,7 @@ SOURCES += \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
-    $$PWD/runenvironment.cpp \
-    $$PWD/processoutput.cpp
+    $$PWD/runenvironment.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

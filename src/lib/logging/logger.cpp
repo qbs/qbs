@@ -65,14 +65,6 @@ void Logger::setLogSink(ILogSink *logSink)
     m_logSink = logSink;
 }
 
-void Logger::sendProcessOutput(const ProcessOutput &processOutput)
-{
-    if (!m_logSink)
-        return;
-
-    m_logSink->processOutput(processOutput);
-}
-
 void Logger::setLevel(int level)
 {
     m_level = static_cast<LoggerLevel>(qMin(level, int(LoggerMaxLevel)));

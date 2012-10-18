@@ -57,7 +57,6 @@ public:
     ~Logger();
 
     void setLogSink(ILogSink *logSink);
-    void sendProcessOutput(const ProcessOutput &processOutput);
 
 protected:
     Logger();
