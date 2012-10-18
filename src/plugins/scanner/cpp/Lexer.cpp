@@ -507,10 +507,10 @@ void Lexer::scan_helper(Token *tok)
 
     case '<':
         if (f._scanAngleStringLiteralTokens) {
-            const char *yytext = _currentChar;
+            //const char *yytext = _currentChar;
             while (_yychar && _yychar != '>')
                 yyinp();
-            int yylen = _currentChar - yytext;
+            //int yylen = _currentChar - yytext;
             // ### assert(_yychar == '>');
             if (_yychar == '>')
                 yyinp();
@@ -554,7 +554,7 @@ void Lexer::scan_helper(Token *tok)
     default: {
         if (f._objCEnabled) {
             if (ch == '@' && _yychar >= 'a' && _yychar <= 'z') {
-                const char *yytext = _currentChar;
+                //const char *yytext = _currentChar;
 
                 do {
                     yyinp();
@@ -562,7 +562,7 @@ void Lexer::scan_helper(Token *tok)
                         break;
                 } while (_yychar);
 
-                const int yylen = _currentChar - yytext;
+                // const int yylen = _currentChar - yytext;
                 //tok->f.kind = classifyObjCAtKeyword(yytext, yylen);		 /// ### FIXME
                 break;
             } else if (ch == '@' && _yychar == '"') {
@@ -571,7 +571,7 @@ void Lexer::scan_helper(Token *tok)
                 yyinp();
                 tok->f.kind = T_AT_STRING_LITERAL;
 
-                const char *yytext = _currentChar;
+                //const char *yytext = _currentChar;
 
                 while (_yychar && _yychar != '"') {
                     if (_yychar != '\\')
@@ -585,7 +585,7 @@ void Lexer::scan_helper(Token *tok)
                 }
                 // assert(_yychar == '"');
 
-                int yylen = _currentChar - yytext;
+                //int yylen = _currentChar - yytext;
 
                 if (_yychar == '"')
                     yyinp();
@@ -605,7 +605,7 @@ void Lexer::scan_helper(Token *tok)
                 ? T_WIDE_STRING_LITERAL
                 : T_WIDE_CHAR_LITERAL;
 
-            const char *yytext = _currentChar;
+            //const char *yytext = _currentChar;
 
             while (_yychar && _yychar != quote) {
                 if (_yychar != '\\')
@@ -619,20 +619,20 @@ void Lexer::scan_helper(Token *tok)
             }
             // assert(_yychar == quote);
 
-            int yylen = _currentChar - yytext;
+            //int yylen = _currentChar - yytext;
 
             if (_yychar == quote)
                 yyinp();
 
         } else if (std::isalpha(ch) || ch == '_' || ch == '$') {
-            const char *yytext = _currentChar - 1;
+            //const char *yytext = _currentChar - 1;
             while (std::isalnum(_yychar) || _yychar == '_' || _yychar == '$')
                 yyinp();
-            int yylen = _currentChar - yytext;
+            //int yylen = _currentChar - yytext;
             tok->f.kind = T_IDENTIFIER;
             break;
         } else if (std::isdigit(ch)) {
-            const char *yytext = _currentChar - 1;
+            //const char *yytext = _currentChar - 1;
             while (_yychar) {
                 if (_yychar == 'e' || _yychar == 'E') {
                     yyinp();
@@ -646,7 +646,7 @@ void Lexer::scan_helper(Token *tok)
                     break;
                 }
             }
-            int yylen = _currentChar - yytext;
+            //int yylen = _currentChar - yytext;
             tok->f.kind = T_NUMERIC_LITERAL;
             break;
         } else {
