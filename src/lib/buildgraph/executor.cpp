@@ -206,19 +206,16 @@ void Executor::setEngine(QbsEngine *engine)
 
 void Executor::setBuildOptions(const BuildOptions &buildOptions)
 {
-    if (buildOptions == m_buildOptions)
-        return;
-    const int oldMaxJobCount = m_buildOptions.maxJobCount;
     m_buildOptions = buildOptions;
-    if (oldMaxJobCount != m_buildOptions.maxJobCount) {
-        qbsDebug("[EXEC] preparing executor for %d jobs in parallel", m_buildOptions.maxJobCount);
-        int actualJobNumber = m_availableJobs.count() + m_processingJobs.count();
-        if (actualJobNumber > m_buildOptions.maxJobCount) {
-            removeExecutorJobs(actualJobNumber - m_buildOptions.maxJobCount);
-        } else {
-            addExecutorJobs(m_buildOptions.maxJobCount - actualJobNumber);
-        }
+
+    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", m_buildOptions.maxJobCount);
+    const int actualJobNumber = m_availableJobs.count() + m_processingJobs.count();
+    if (actualJobNumber > m_buildOptions.maxJobCount) {
+        removeExecutorJobs(actualJobNumber - m_buildOptions.maxJobCount);
+    } else {
+        addExecutorJobs(m_buildOptions.maxJobCount - actualJobNumber);
     }
+
     foreach (ExecutorJob * const job, m_availableJobs)
         job->setDryRun(m_buildOptions.dryRun);
 }
@@ -505,8 +502,6 @@ void Executor::cancelJobs()
 
 void Executor::addExecutorJobs(int jobNumber)
 {
-    Q_ASSERT(jobNumber > 0);
-
     for (int i = 1; i <= jobNumber; i++) {
         ExecutorJob *job = new ExecutorJob(this);
         if (m_engine)
