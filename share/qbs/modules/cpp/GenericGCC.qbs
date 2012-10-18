@@ -84,8 +84,9 @@ CppModule {
             for (i in inputs.framework) {
                 fileName = inputs.framework[i].fileName;
                 frameworkPaths.push(FileInfo.path(fileName));
-                fileName = FileInfo.fileName(fileName);
-                fileName = fileName.substr(3, fileName.length - 6);
+                fileName = Gcc.removePrefixAndSuffix(FileInfo.fileName(fileName),
+                                                     product.module.dynamicLibraryPrefix,
+                                                     product.module.dynamicLibrarySuffix);
                 frameworksI.push(fileName);
             }
 
@@ -211,8 +212,9 @@ CppModule {
             for (i in inputs.framework) {
                 fileName = inputs.framework[i].fileName;
                 frameworkPaths.push(FileInfo.path(fileName));
-                fileName = FileInfo.fileName(fileName);
-                fileName = fileName.substr(3, fileName.length - 6);
+                fileName = Gcc.removePrefixAndSuffix(FileInfo.fileName(fileName),
+                                                     product.module.dynamicLibraryPrefix,
+                                                     product.module.dynamicLibrarySuffix);
                 frameworksI.push(fileName);
             }
 
