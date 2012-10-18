@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = tst_tools
-DESTDIR = $$OUT_PWD
+DESTDIR = ./
 DEPENDPATH += .
 INCLUDEPATH += . ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

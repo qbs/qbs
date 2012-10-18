@@ -40,7 +40,7 @@ static QString initQbsExecutableFilePath()
 }
 
 TestBlackbox::TestBlackbox()
-    : testDataDir(QCoreApplication::applicationDirPath() + "/testdata"),
+    : testDataDir(QCoreApplication::applicationDirPath() + "/testWorkDir"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       buildProfile(QLatin1String("qbs_autotests")),
@@ -148,6 +148,7 @@ void TestBlackbox::initTestCase()
 
 void TestBlackbox::init()
 {
+    QVERIFY(testDataDir != testSourceDir);
     rmDirR(testDataDir);
     QDir().mkpath(testDataDir);
     ccp(testSourceDir, testDataDir);
