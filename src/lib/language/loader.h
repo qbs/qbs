@@ -222,16 +222,23 @@ private:
     QScriptValue m_value;
 };
 
+class Scope;
+typedef std::set<Scope *> ScopesCache;
+typedef QSharedPointer<ScopesCache> ScopesCachePtr;
+
 class Scope : public QScriptClass
 {
     Q_DISABLE_COPY(Scope)
     Q_DECLARE_TR_FUNCTIONS(Scope)
-    Scope(QScriptEngine *engine, const QString &name);
+    Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name);
+
+    ScopesCachePtr m_scopesCache;
+
 public:
     typedef QSharedPointer<Scope> Ptr;
-    static std::set<Scope *> scopesWithEvaluatedProperties;
 
-    static Ptr create(QScriptEngine *engine, const QString &name, ProjectFile *owner);
+    static Ptr create(QScriptEngine *engine, ScopesCachePtr cache, const QString &name,
+                      ProjectFile *owner);
     ~Scope();
 
     QString name() const;
@@ -372,6 +379,7 @@ protected:
 
     ProjectFile::Ptr parseFile(const QString &fileName);
 
+    void clearScopesCache();
     Scope::Ptr buildFileContext(ProjectFile *file);
     bool existsModuleInSearchPath(const QString &moduleName);
     Module::Ptr searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
@@ -446,6 +454,7 @@ private:
     QStringList m_searchPaths;
     QStringList m_moduleSearchPaths;
     QbsEngine *m_engine;
+    ScopesCachePtr m_scopesWithEvaluatedProperties;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;
     QScriptValue m_jsFunction_getenv;
