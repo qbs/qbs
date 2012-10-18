@@ -46,9 +46,9 @@ Application *Application::instance()
 
 void Application::init()
 {
-    setApplicationName("qbs");
-    setOrganizationName("Nokia");
-    setOrganizationDomain("qt.nokia.com");
+    setApplicationName(QLatin1String("qbs"));
+    setOrganizationName(QLatin1String("QtProject"));
+    setOrganizationDomain(QLatin1String("qt-project.org"));
 }
 
 void Application::setExecutor(Executor *e)

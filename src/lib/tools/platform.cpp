@@ -29,6 +29,8 @@
 
 #include "platform.h"
 
+#include <tools/fileinfo.h>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
@@ -67,10 +69,22 @@ QHash<QString, Platform::Ptr> Platform::platforms()
 
 QString Platform::configBaseDir()
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_MAC)
-    QString localSettingsPath = QDir::homePath() + "/.config/Nokia/qbs/platforms";
-#elif defined(Q_OS_WIN)
     QString localSettingsPath;
+#if defined(Q_OS_UNIX)
+    localSettingsPath = QDir::homePath() + QLatin1String("/.config/QtProject/qbs/platforms");
+
+    // TODO: Remove in 0.4.
+    if (!FileInfo(localSettingsPath).exists()) {
+        const QString oldSettingsPath = QDir::homePath()
+                + QLatin1String("/.config/Nokia/qbs/platforms");
+        if (FileInfo(oldSettingsPath).exists()) {
+            QString error;
+            if (!copyFileRecursion(oldSettingsPath, localSettingsPath, &error))
+                qWarning("Failed to transfer settings: %s", qPrintable(error));
+        }
+    }
+
+#elif defined(Q_OS_WIN)
     wchar_t wszPath[MAX_PATH];
     if (SHGetSpecialFolderPath(NULL, wszPath, CSIDL_APPDATA, TRUE))
         localSettingsPath = QString::fromUtf16(reinterpret_cast<ushort*>(wszPath)) + "/qbs/platforms";

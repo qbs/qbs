@@ -44,10 +44,17 @@ Settings::Settings()
     : m_globalSettings(0),
       m_localSettings(0)
 {
-    m_globalSettings = new QSettings(QSettings::UserScope,
-                                     QLatin1String("Nokia"),
-                                     QLatin1String("qbs"));
+    m_globalSettings = new QSettings(QSettings::UserScope, QLatin1String("QtProject"),
+            QLatin1String("qbs"));
     m_globalSettings->setFallbacksEnabled(false);
+
+    // Fetch data from old Nokia settings, if necessary. TODO: Remove in 0.4.
+    if (m_globalSettings->allKeys().isEmpty()) {
+        QSettings oldSettings(QSettings::UserScope, QLatin1String("Nokia"), QLatin1String("qbs"));
+        oldSettings.setFallbacksEnabled(false);
+        foreach (const QString &key, oldSettings.allKeys())
+            m_globalSettings->setValue(key, oldSettings.value(key));
+    }
 }
 
 Settings::~Settings()

@@ -162,8 +162,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationName("qbs");
-    app.setOrganizationName("Nokia");
-    app.setOrganizationDomain("qt.nokia.com");
+    app.setOrganizationName("QtProject");
+    app.setOrganizationDomain("qt-project.org");
 
     // read commandline
     QStringList arguments = app.arguments();

@@ -188,7 +188,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.").arg(qtVersionName);
     printf("%s\n", qPrintable(msg));
 
-    QSettings qbsSettings(QLatin1String("Nokia"), QLatin1String("qbs"));
+    QSettings qbsSettings(QLatin1String("QtProject"), QLatin1String("qbs"));
     QString settingsTemplate(qtVersionName + QLatin1String("/qt/core/%1"));
 
     qbsSettings.beginGroup(QLatin1String("profiles"));

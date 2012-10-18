@@ -316,7 +316,7 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
     if (srcFileInfo.isDir()) {
         QDir targetDir(tgtFilePath);
         targetDir.cdUp();
-        if (!targetDir.mkdir(QFileInfo(tgtFilePath).fileName())) {
+        if (!targetDir.mkpath(QFileInfo(tgtFilePath).fileName())) {
             *errorMessage = FileInfo::tr("The directory '%1' could not be created.")
                .arg(QDir::toNativeSeparators(tgtFilePath));
             return false;
