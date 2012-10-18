@@ -47,7 +47,7 @@ function configFlags(config) {
         args.push('-w');
     if (config.module.warningLevel === 'all') {
         args.push('-Wall');
-        args.push('-W');
+        args.push('-Wextra');
     }
     if (config.module.treatWarningsAsErrors)
         args.push('-Werror');
