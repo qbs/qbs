@@ -241,6 +241,7 @@ CppModule {
 
         prepare: {
             var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
             var cFlags = ModUtils.appendAll(input, 'cFlags');
             var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
             var objcFlags = ModUtils.appendAll(input, 'objcFlags');
@@ -300,7 +301,7 @@ CppModule {
                 if (cFlags)
                     args = args.concat(cFlags);
             }
-            args = args.concat(Gcc.additionalFlags(product, includePaths, input.fileName, output))
+            args = args.concat(Gcc.additionalFlags(product, includePaths, systemIncludePaths, input.fileName, output))
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
@@ -318,11 +319,12 @@ CppModule {
         prepare: {
             var args = Gcc.configFlags(product);
             var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
             args.push('-x');
             args.push('c++-header');
             if (product.module.cxxFlags)
                 args = args.concat(product.module.cxxFlags);
-            args = args.concat(Gcc.additionalFlags(product, includePaths,
+            args = args.concat(Gcc.additionalFlags(product, includePaths, systemIncludePaths,
                     product.module.precompiledHeader, output));
             var cmd = new Command(product.module.compilerPath, args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);

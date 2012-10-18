@@ -20,6 +20,7 @@ Module {
     }
 
     property pathList includePaths
+    property pathList systemIncludePaths
     property pathList libraryPaths
     property pathList frameworkPaths
     property string compilerPath

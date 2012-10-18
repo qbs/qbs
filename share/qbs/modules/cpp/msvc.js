@@ -1,4 +1,4 @@
-function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
+function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
 {
     var i;
     var optimization = input.module.optimization
@@ -35,6 +35,8 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args.push('/Wall')
     for (i in includePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(includePaths[i]))
+    for (i in systemIncludePaths)
+        args.push('/I' + FileInfo.toWindowsSeparators(systemIncludePaths[i]))
     for (i in platformDefines)
         args.push('/D' + platformDefines[i])
     for (i in defines)

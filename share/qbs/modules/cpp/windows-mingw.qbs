@@ -39,6 +39,7 @@ GenericGCC {
             var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var defines = ModUtils.appendAll(input, 'defines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
             var args = [];
             var i;
             for (i in platformDefines) {
@@ -52,6 +53,10 @@ GenericGCC {
             for (i in includePaths) {
                 args.push('-I');
                 args.push(includePaths[i]);
+            }
+            for (i in systemIncludePaths) {
+                args.push('-isystem');
+                args.push(systemIncludePaths[i]);
             }
 
             args = args.concat(['-i', input.fileName, '-o', output.fileName]);

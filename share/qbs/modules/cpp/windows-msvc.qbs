@@ -81,9 +81,10 @@ CppModule {
             var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var defines = ModUtils.appendAll(input, 'defines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var systemIncludePaths: ModUtils.appendAll(input, 'systemIncludePaths');
             var cFlags = ModUtils.appendAll(input, 'cFlags');
             var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
-            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
         }
     }
 
@@ -101,9 +102,10 @@ CppModule {
             var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var defines = ModUtils.appendAll(input, 'defines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var systemIncludePaths: ModUtils.appendAll(input, 'systemIncludePaths');
             var cFlags = ModUtils.appendAll(input, 'cFlags');
             var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
-            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, cFlags, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
         }
     }
 
@@ -215,6 +217,7 @@ CppModule {
             var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var defines = ModUtils.appendAll(input, 'defines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
+            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
             var args = [];
             var i;
             for (i in platformDefines) {
@@ -228,6 +231,10 @@ CppModule {
             for (i in includePaths) {
                 args.push('/i');
                 args.push(includePaths[i]);
+            }
+            for (i in systemIncludePaths) {
+                args.push('/i');
+                args.push(systemIncludePaths[i]);
             }
 
             args = args.concat(['/fo', output.fileName, input.fileName]);
