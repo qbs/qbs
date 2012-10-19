@@ -27,54 +27,33 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTORJOB_H
-#define EXECUTORJOB_H
+#ifndef JSCOMMANDEXECUTOR_H
+#define JSCOMMANDEXECUTOR_H
 
-#include <QObject>
-
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
+#include "abstractcommandexecutor.h"
 
 namespace qbs {
-class AbstractCommandExecutor;
-class BuildProduct;
-class JsCommandExecutor;
-class ProcessCommandExecutor;
-class Transformer;
+class JavaScriptCommand;
+class JavaScriptCommandFutureWatcher;
 
-class ExecutorJob : public QObject
+class JsCommandExecutor : public AbstractCommandExecutor
 {
     Q_OBJECT
 public:
-    ExecutorJob(QObject *parent);
-    ~ExecutorJob();
-
-    void setMainThreadScriptEngine(QScriptEngine *engine);
-    void setDryRun(bool enabled);
-    void run(Transformer *t, const BuildProduct *buildProduct);
-    void cancel();
-    void waitForFinished();
-
-signals:
-    void error(QString errorString);
-    void success();
+    explicit JsCommandExecutor(QObject *parent = 0);
 
 private slots:
-    void runNextCommand();
-    void onCommandError(QString errorString);
-    void onCommandFinished();
+    void onJavaScriptCommandFinished();
 
 private:
-    void setInactive();
+    void doStart();
+    void waitForFinished();
 
-    AbstractCommandExecutor *m_currentCommandExecutor;
-    ProcessCommandExecutor *m_processCommandExecutor;
-    JsCommandExecutor *m_jsCommandExecutor;
-    Transformer *m_transformer;
-    int m_currentCommandIdx;
+    const JavaScriptCommand *jsCommand() const;
+
+    JavaScriptCommandFutureWatcher *m_jsFutureWatcher;
 };
 
 } // namespace qbs
 
-#endif // EXECUTORJOB_H
+#endif // JSCOMMANDEXECUTOR_H

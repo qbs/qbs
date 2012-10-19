@@ -27,54 +27,52 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTORJOB_H
-#define EXECUTORJOB_H
+#ifndef PROCESSCOMMANDEXECUTOR_H
+#define PROCESSCOMMANDEXECUTOR_H
 
-#include <QObject>
+#include "abstractcommandexecutor.h"
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
+#include <QProcess>
+#include <QString>
 
 namespace qbs {
-class AbstractCommandExecutor;
-class BuildProduct;
-class JsCommandExecutor;
-class ProcessCommandExecutor;
-class Transformer;
+class ProcessCommand;
 
-class ExecutorJob : public QObject
+class ProcessCommandExecutor : public AbstractCommandExecutor
 {
     Q_OBJECT
 public:
-    ExecutorJob(QObject *parent);
-    ~ExecutorJob();
+    explicit ProcessCommandExecutor(QObject *parent = 0);
 
-    void setMainThreadScriptEngine(QScriptEngine *engine);
-    void setDryRun(bool enabled);
-    void run(Transformer *t, const BuildProduct *buildProduct);
-    void cancel();
-    void waitForFinished();
-
-signals:
-    void error(QString errorString);
-    void success();
+    void setProcessEnvironment(const QProcessEnvironment &processEnvironment);
 
 private slots:
-    void runNextCommand();
-    void onCommandError(QString errorString);
-    void onCommandFinished();
+    void onProcessError();
+    void onProcessFinished(int exitCode);
 
 private:
-    void setInactive();
+    void doStart();
+    void waitForFinished();
 
-    AbstractCommandExecutor *m_currentCommandExecutor;
-    ProcessCommandExecutor *m_processCommandExecutor;
-    JsCommandExecutor *m_jsCommandExecutor;
-    Transformer *m_transformer;
-    int m_currentCommandIdx;
+    void printCommandInfo(AbstractCommand *cmd);
+    void startProcessCommand();
+    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
+    void sendProcessOutput(bool dueToError);
+    void removeResponseFile();
+    QString findProcessCommandInPath();
+    QString findProcessCommandBySuffix();
+    bool findProcessCandidateCheck(const QString &directory, const QString &program,
+            QString &fullProgramPath);
+    const ProcessCommand *processCommand() const;
+
+private:
+    static const QStringList m_executableSuffixes;
+
+    QString m_commandLine;
+    QProcess m_process;
+    QString m_responseFileName;
 };
 
 } // namespace qbs
 
-#endif // EXECUTORJOB_H
+#endif // PROCESSCOMMANDEXECUTOR_H

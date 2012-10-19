@@ -27,79 +27,53 @@
 **
 ****************************************************************************/
 
-#ifndef COMMANDEXECUTOR_H
-#define COMMANDEXECUTOR_H
+#ifndef ABSTRACTCOMMANDEXECUTOR_H
+#define ABSTRACTCOMMANDEXECUTOR_H
 
 #include <QObject>
-#include <QProcess>
 
 QT_BEGIN_NAMESPACE
-class QProcess;
 class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
-
 class AbstractCommand;
-class ProcessCommand;
-class JavaScriptCommand;
-class JavaScriptCommandFutureWatcher;
-class ResolvedProduct;
 class Transformer;
 
-class CommandExecutor : public QObject
+class AbstractCommandExecutor : public QObject
 {
     Q_OBJECT
 public:
-    explicit CommandExecutor(QObject *parent = 0);
+    explicit AbstractCommandExecutor(QObject *parent = 0);
 
     void setMainThreadScriptEngine(QScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
-    void setDryRunEnabled(bool enabled) { dryRun = enabled; }
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment);
-    void waitForFinished();
+    void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
+
+    virtual void waitForFinished() = 0;
+
+public slots:
+    void start(Transformer *transformer, const AbstractCommand *cmd);
 
 signals:
     void error(QString errorString);
     void finished();
 
-public slots:
-    void start(Transformer *transformer, AbstractCommand *cmd);
-
 protected:
-    void printCommandInfo(AbstractCommand *cmd);
-    void startProcessCommand();
-    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void sendProcessOutput(bool dueToError);
-    void startJavaScriptCommand();
-
-protected slots:
-    void onProcessError(QProcess::ProcessError);
-    void onProcessFinished(int exitCode);
-    void onJavaScriptCommandFinished();
+    const AbstractCommand *command() const { return m_command; }
+    Transformer *transformer() const { return m_transformer; }
+    QScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
 
 private:
-    void removeResponseFile();
-    QString findProcessCommandInPath();
-    QString findProcessCommandBySuffix();
-    bool findProcessCandidateCheck(const QString &directory, const QString &program, QString &fullProgramPath);
+    virtual void doStart() = 0;
+    void printCommandInfo();
 
 private:
-    static const QStringList m_executableSuffixes;
+    const AbstractCommand *m_command;
     Transformer *m_transformer;
-    bool dryRun;
-
-    // members for executing ProcessCommand
-    ProcessCommand *m_processCommand;
-    QString m_commandLine;
-    QProcess m_process;
-    QString m_responseFileName;
     QScriptEngine *m_mainThreadScriptEngine;
-
-    // members for executing JavaScriptCommand members
-    JavaScriptCommand *m_jsCommand;
-    JavaScriptCommandFutureWatcher *m_jsFutureWatcher;
+    bool m_dryRun; // TODO: Use
 };
 
 } // namespace qbs
 
-#endif // COMMANDEXECUTOR_H
+#endif // ABSTRACTCOMMANDEXECUTOR_H

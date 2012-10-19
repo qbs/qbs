@@ -27,54 +27,48 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTORJOB_H
-#define EXECUTORJOB_H
+#include "abstractcommandexecutor.h"
 
-#include <QObject>
+#include "command.h"
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
+#include <logging/logger.h>
 
 namespace qbs {
-class AbstractCommandExecutor;
-class BuildProduct;
-class JsCommandExecutor;
-class ProcessCommandExecutor;
-class Transformer;
 
-class ExecutorJob : public QObject
+AbstractCommandExecutor::AbstractCommandExecutor(QObject *parent)
+    : QObject(parent)
+    , m_command(0)
+    , m_transformer(0)
+    , m_mainThreadScriptEngine(0)
 {
-    Q_OBJECT
-public:
-    ExecutorJob(QObject *parent);
-    ~ExecutorJob();
+}
 
-    void setMainThreadScriptEngine(QScriptEngine *engine);
-    void setDryRun(bool enabled);
-    void run(Transformer *t, const BuildProduct *buildProduct);
-    void cancel();
-    void waitForFinished();
+void AbstractCommandExecutor::start(Transformer *transformer, const AbstractCommand *cmd)
+{
+    m_transformer = transformer;
+    m_command = cmd;
+    printCommandInfo();
+    doStart();
+}
 
-signals:
-    void error(QString errorString);
-    void success();
+static QHash<QString, TextColor> setupColorTable()
+{
+    QHash<QString, TextColor> colorTable;
+    colorTable["compiler"] = TextColorDefault;
+    colorTable["linker"] = TextColorDarkGreen;
+    colorTable["codegen"] = TextColorDarkYellow;
+    colorTable["filegen"] = TextColorDarkYellow;
+    return colorTable;
+}
 
-private slots:
-    void runNextCommand();
-    void onCommandError(QString errorString);
-    void onCommandFinished();
-
-private:
-    void setInactive();
-
-    AbstractCommandExecutor *m_currentCommandExecutor;
-    ProcessCommandExecutor *m_processCommandExecutor;
-    JsCommandExecutor *m_jsCommandExecutor;
-    Transformer *m_transformer;
-    int m_currentCommandIdx;
-};
+void AbstractCommandExecutor::printCommandInfo()
+{
+    if (!m_command->description().isEmpty()) {
+        static QHash<QString, TextColor> colorTable = setupColorTable();
+        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
+                  << colorTable.value(command()->highlight(), TextColorDefault)
+                  << m_command->description();
+    }
+}
 
 } // namespace qbs
-
-#endif // EXECUTORJOB_H

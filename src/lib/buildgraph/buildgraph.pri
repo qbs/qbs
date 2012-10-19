@@ -8,7 +8,9 @@ SOURCES += \
     $$PWD/scanresultcache.cpp \
     $$PWD/artifactlist.cpp \
     $$PWD/command.cpp \
-    $$PWD/commandexecutor.cpp \
+    $$PWD/abstractcommandexecutor.cpp \
+    $$PWD/processcommandexecutor.cpp \
+    $$PWD/jscommandexecutor.cpp \
     $$PWD/transformer.cpp \
     $$PWD/artifact.cpp \
     $$PWD/inputartifactscanner.cpp
@@ -22,7 +24,9 @@ HEADERS += \
     $$PWD/scanresultcache.h \
     $$PWD/artifactlist.h \
     $$PWD/command.h \
-    $$PWD/commandexecutor.h \
+    $$PWD/abstractcommandexecutor.h \
+    $$PWD/processcommandexecutor.h \
+    $$PWD/jscommandexecutor.h \
     $$PWD/transformer.h \
     $$PWD/artifact.h \
     $$PWD/inputartifactscanner.h

@@ -28,23 +28,27 @@
 ****************************************************************************/
 
 #include "executorjob.h"
-#include "executor.h"
-#include "commandexecutor.h"
-#include <buildgraph/transformer.h>
+
+#include "buildgraph.h"
+#include "command.h"
+#include "jscommandexecutor.h"
+#include "processcommandexecutor.h"
+#include "transformer.h"
+
 #include <QThread>
 
 namespace qbs {
 
-ExecutorJob::ExecutorJob(Executor *parent)
+ExecutorJob::ExecutorJob(QObject *parent)
     : QObject(parent)
-    , m_executor(parent)
-    , m_commandExecutor(new CommandExecutor(this))
-    , m_transformer(0)
-    , m_lastUsedProduct(0)
-    , m_currentCommandIdx(-1)
+    , m_processCommandExecutor(new ProcessCommandExecutor(this))
+    , m_jsCommandExecutor(new JsCommandExecutor(this))
 {
-    connect(m_commandExecutor, SIGNAL(error(QString)), SLOT(onCommandError(QString)));
-    connect(m_commandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
+    connect(m_processCommandExecutor, SIGNAL(error(QString)), SLOT(onCommandError(QString)));
+    connect(m_processCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
+    connect(m_jsCommandExecutor, SIGNAL(error(QString)), SLOT(onCommandError(QString)));
+    connect(m_jsCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
+    setInactive();
 }
 
 ExecutorJob::~ExecutorJob()
@@ -53,15 +57,17 @@ ExecutorJob::~ExecutorJob()
 
 void ExecutorJob::setMainThreadScriptEngine(QScriptEngine *engine)
 {
-    m_commandExecutor->setMainThreadScriptEngine(engine);
+    m_processCommandExecutor->setMainThreadScriptEngine(engine);
+    m_jsCommandExecutor->setMainThreadScriptEngine(engine);
 }
 
 void ExecutorJob::setDryRun(bool enabled)
 {
-    m_commandExecutor->setDryRunEnabled(enabled);
+    m_processCommandExecutor->setDryRunEnabled(enabled);
+    m_jsCommandExecutor->setDryRunEnabled(enabled);
 }
 
-void ExecutorJob::run(Transformer *t, BuildProduct *buildProduct)
+void ExecutorJob::run(Transformer *t, const BuildProduct *buildProduct)
 {
     Q_ASSERT(m_currentCommandIdx == -1);
 
@@ -70,8 +76,7 @@ void ExecutorJob::run(Transformer *t, BuildProduct *buildProduct)
         return;
     }
 
-    if (m_lastUsedProduct != buildProduct)
-        m_commandExecutor->setProcessEnvironment(buildProduct->rProduct->buildEnvironment);
+    m_processCommandExecutor->setProcessEnvironment(buildProduct->rProduct->buildEnvironment);
 
     m_transformer = t;
     runNextCommand();
@@ -86,27 +91,38 @@ void ExecutorJob::cancel()
 
 void ExecutorJob::waitForFinished()
 {
-    m_commandExecutor->waitForFinished();
+    if (m_currentCommandExecutor)
+        m_currentCommandExecutor->waitForFinished();
 }
 
 void ExecutorJob::runNextCommand()
 {
     ++m_currentCommandIdx;
-    if (m_currentCommandIdx >= m_transformer->commands.count()) {
-        m_transformer = 0;
-        m_currentCommandIdx = -1;
+    Q_ASSERT(m_currentCommandIdx <= m_transformer->commands.count());
+    if (m_currentCommandIdx == m_transformer->commands.count()) {
+        setInactive();
         emit success();
         return;
     }
 
-    AbstractCommand *command = m_transformer->commands.at(m_currentCommandIdx);
-    m_commandExecutor->start(m_transformer, command);
+    const AbstractCommand * const command = m_transformer->commands.at(m_currentCommandIdx);
+    switch (command->type()) {
+    case AbstractCommand::ProcessCommandType:
+        m_currentCommandExecutor = m_processCommandExecutor;
+        break;
+    case AbstractCommand::JavaScriptCommandType:
+        m_currentCommandExecutor = m_jsCommandExecutor;
+        break;
+    default:
+        qFatal("Missing implementation for command type %d", command->type());
+    }
+
+    m_currentCommandExecutor->start(m_transformer, command);
 }
 
 void ExecutorJob::onCommandError(QString errorString)
 {
-    m_transformer = 0;
-    m_currentCommandIdx = -1;
+    setInactive();
     emit error(errorString);
 }
 
@@ -115,6 +131,13 @@ void ExecutorJob::onCommandFinished()
     if (!m_transformer)
         return;
     runNextCommand();
+}
+
+void ExecutorJob::setInactive()
+{
+    m_transformer = 0;
+    m_currentCommandExecutor = 0;
+    m_currentCommandIdx = -1;
 }
 
 } // namespace qbs
