@@ -463,7 +463,6 @@ private:
     Settings::Ptr m_settings;
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;
-    QHash<QString, QScriptValue> m_jsImports;   // ### remove
     QHash<QString, QVariantMap> m_productModules;
     QHash<QString, QStringList> m_moduleDirListCache;
 };
