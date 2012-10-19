@@ -51,7 +51,7 @@
 
 #include <cstdio>
 
-void showUsage()
+static void showUsage()
 {
     QTextStream s(stderr);
     s   << "platform [action]\n"
@@ -64,6 +64,18 @@ void showUsage()
         << "                                         and construct qbs platforms for each compiler found\n"
         << "  print-config-base-dir              --  prints the base dir of the platform configurations\n"
         ;
+}
+
+static QString toInternalSeparators(const QString &variable)
+{
+    QString transformedVar = variable;
+    return transformedVar.replace(QLatin1Char('.'), QLatin1Char('/'));
+}
+
+static QString toExternalSeparators(const QString &variable)
+{
+    QString transformedVar = variable;
+    return transformedVar.replace(QLatin1Char('/'), QLatin1Char('.'));
 }
 
 int probe(const QString &settingsPath, QHash<QString, qbs::Platform::Ptr> &platforms);
@@ -193,19 +205,21 @@ int main(int argc, char **argv)
         }
         qbs::Platform::Ptr p = platforms.value(platformName);
         if (arguments.count()) {
-            QString key = arguments.takeFirst();
+            const QString key = toInternalSeparators(arguments.takeFirst());
             if (arguments.count()) {
                 QString value = arguments.takeFirst();
                 p->settings.setValue(key, value);
             }
             if (!p->settings.contains(key)) {
-                qbs::qbsError("No such configuration key '%s'.", qPrintable(key));
+                qbs::qbsError("No such configuration key '%s'.",
+                        qPrintable(toExternalSeparators(key)));
                 return 7;
             }
             qstdout << p->settings.value(key).toString() << "\n";
         } else {
             foreach (const QString &key, p->settings.allKeys()) {
-                qstdout << key << "=" << p->settings.value(key).toString() << "\n";
+                qstdout << toExternalSeparators(key)
+                        << "=" << p->settings.value(key).toString() << "\n";
             }
         }
 
