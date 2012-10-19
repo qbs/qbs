@@ -813,7 +813,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
-    foreach (const SourceArtifact::ConstPtr &sourceArtifact, rProduct->sources) {
+    foreach (const SourceArtifact::ConstPtr &sourceArtifact, rProduct->allFiles()) {
         QString filePath = sourceArtifact->absoluteFilePath;
         if (product->lookupArtifact(filePath)) {
             // ignore duplicate artifacts
@@ -899,30 +899,26 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
     QList<Artifact *> addedArtifacts, artifactsToRemove;
     QHash<QString, SourceArtifact::ConstPtr> oldArtifacts, newArtifacts;
 
-    // Update list of found files by patterns
-    product->rProduct->groups = changedProduct->groups;
-
-    foreach (const SourceArtifact::ConstPtr &a, product->rProduct->sources)
+    const QList<SourceArtifact::Ptr> oldProductAllFiles = product->rProduct->allFiles();
+    foreach (const SourceArtifact::ConstPtr &a, oldProductAllFiles)
         oldArtifacts.insert(a->absoluteFilePath, a);
-    foreach (const SourceArtifact::Ptr &a, changedProduct->sources) {
+    foreach (const SourceArtifact::Ptr &a, changedProduct->allFiles()) {
         newArtifacts.insert(a->absoluteFilePath, a);
         if (!oldArtifacts.contains(a->absoluteFilePath)) {
             // artifact added
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' added to product " << product->rProduct->name;
-            product->rProduct->sources.insert(a);
             addedArtifacts += createArtifact(product, a);
             addedSourceArtifacts += a;
         }
     }
-    QList<SourceArtifact::Ptr> sourceArtifactsToRemove;
-    foreach (const SourceArtifact::Ptr &a, product->rProduct->sources) {
+
+    foreach (const SourceArtifact::Ptr &a, oldProductAllFiles) {
         const SourceArtifact::ConstPtr changedArtifact = newArtifacts.value(a->absoluteFilePath);
         if (!changedArtifact) {
             // artifact removed
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' removed from product " << product->rProduct->name;
             Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
             Q_ASSERT(artifact);
-            sourceArtifactsToRemove += a;
             removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
             continue;
         }
@@ -958,9 +954,9 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
         }
     }
 
-    // remove all source artifacts from the product that have been removed from the project file
-    foreach (const SourceArtifact::Ptr &sourceArtifact, sourceArtifactsToRemove)
-        product->rProduct->sources.remove(sourceArtifact);
+    // Discard groups of the old product. Use the groups of the new one.
+    product->rProduct->groups = changedProduct->groups;
+    product->rProduct->configuration = changedProduct->configuration;
 
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)
@@ -1196,13 +1192,19 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
             referencedProductRemoved = true;
         } else if (bgfi.lastModified() < pfi.lastModified()) {
             changedProducts += product;
-        } else if (!resolvedProduct->groups.isEmpty()) {
-            foreach (const Group::ConstPtr &group, resolvedProduct->groups) {
-                QSet<QString> files = Loader::resolveFiles(group, resolvedProduct->sourceDirectory);
-                if (files != group->files) {
-                    changedProducts += product;
-                    break;
-                }
+        } else {
+            foreach (const Group::Ptr &group, resolvedProduct->groups) {
+                if (!group->wildcards)
+                    continue;
+                const QSet<QString> files = Loader::resolveFiles(group->wildcards,
+                                                                 resolvedProduct->sourceDirectory);
+                QSet<QString> wcFiles;
+                foreach (const SourceArtifact::ConstPtr &sourceArtifact, group->wildcards->files)
+                    wcFiles += sourceArtifact->absoluteFilePath;
+                if (files == wcFiles)
+                    continue;
+                changedProducts += product;
+                break;
             }
         }
     }

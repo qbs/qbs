@@ -1881,36 +1881,39 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
         }
 
         // Apply file taggers.
-        foreach (const SourceArtifact::Ptr &artifact, rproduct->sources)
+        foreach (const SourceArtifact::Ptr &artifact, rproduct->allFiles())
             applyFileTaggers(artifact, rproduct);
         foreach (const ResolvedTransformer::Ptr &transformer, rproduct->transformers)
             foreach (const SourceArtifact::Ptr &artifact, transformer->outputs)
                 applyFileTaggers(artifact, rproduct);
 
         // Merge duplicate artifacts.
-        QHash<QString, SourceArtifact::Ptr> uniqueArtifacts;
-        foreach (const SourceArtifact::Ptr &artifact, rproduct->sources) {
-            SourceArtifact::Ptr existing = uniqueArtifacts.value(artifact->absoluteFilePath);
-            if (existing) {
-                // if an artifact is in the product and in a group, prefer the group configuration
-                if (existing->configuration == rproduct->configuration) {
-                    existing->configuration = artifact->configuration;
-                } else if (artifact->configuration != rproduct->configuration) {
-                    throw Error(tr("Artifact '%1' is in more than one group.").arg(artifact->absoluteFilePath),
-                                       CodeLocation(m_project->fileName));
+        QHash<QString, QPair<Group::Ptr, SourceArtifact::Ptr> > uniqueArtifacts;
+        foreach (const Group::Ptr &group, rproduct->groups) {
+            Q_ASSERT(group->configuration);
+
+            QList<SourceArtifact::Ptr> artifactsInGroup = group->files;
+            if (group->wildcards)
+                artifactsInGroup += group->wildcards->files;
+
+            foreach (const SourceArtifact::Ptr &artifact, artifactsInGroup) {
+                QPair<Group::Ptr, SourceArtifact::Ptr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
+                SourceArtifact::Ptr existing = p.second;
+                if (existing) {
+                    // if an artifact is in the product and in a group, prefer the group configuration
+                    if (existing->configuration != rproduct->configuration)
+                        throw Error(tr("Artifact '%1' is in more than one group.").arg(artifact->absoluteFilePath),
+                                           CodeLocation(m_project->fileName));
+
+                    // Remove the artifact that's in the product's group.
+                    p.first->files.removeOne(existing);
+
+                    // Merge artifacts.
+                    artifact->fileTags.unite(existing->fileTags);
                 }
-
-                existing->fileTags.unite(artifact->fileTags);
+                uniqueArtifacts.insert(artifact->absoluteFilePath, qMakePair(group, artifact));
             }
-            else
-                uniqueArtifacts.insert(artifact->absoluteFilePath, artifact);
         }
-        rproduct->sources = uniqueArtifacts.values().toSet();
-
-        // fix up source artifact configurations
-        foreach (SourceArtifact::Ptr artifact, rproduct->sources)
-            if (!artifact->configuration)
-                artifact->configuration = rproduct->configuration;
 
         rproject->products.insert(rproduct);
     }
@@ -2029,7 +2032,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 rproduct->configuration->setValue(productConfigValue);
 
                 // insert the configuration of the ProductModule into the artifact configurations
-                foreach (SourceArtifact::Ptr artifact, rproduct->sources) {
+                foreach (SourceArtifact::Ptr artifact, rproduct->allFiles()) {
                     QVariantMap sourceArtifactConfigValue = artifact->configuration->value();
                     QVariantMap modules = sourceArtifactConfigValue.value("modules").toMap();
                     modules.insert(usedProductName, productModuleConfig);
@@ -2067,16 +2070,19 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
             if (fileName.isEmpty())
                 throw Error(tr("Source file %0 does not exist.").arg(fileName));
             SourceArtifact::Ptr artifact;
-            foreach (SourceArtifact::Ptr a, rproduct->sources) {
+            foreach (SourceArtifact::Ptr a, rproduct->allFiles()) {
                 if (a->absoluteFilePath == fileName) {
                     artifact = a;
                     break;
                 }
             }
             if (!artifact) {
+                Q_ASSERT(rproduct->groups.count() > 0);
+                Group::Ptr group = rproduct->groups.first();
                 artifact = SourceArtifact::create();
+                artifact->configuration = group->configuration;
                 artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
-                rproduct->sources += artifact;
+                group->files += artifact;
             }
             artifact->fileTags += child->scope->stringListValue("fileTags").toSet();
         } else {
@@ -2122,14 +2128,14 @@ static QVariantMap evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduc
     return values;
 }
 
-QSet<QString> Loader::resolveFiles(const Group::ConstPtr &group, const QString &baseDir)
+QSet<QString> Loader::resolveFiles(const SourceWildCards::ConstPtr &group, const QString &baseDir)
 {
     QSet<QString> files = resolveFiles(group, group->patterns, baseDir);
     files -= resolveFiles(group, group->excludePatterns, baseDir);
     return files;
 }
 
-QSet<QString> Loader::resolveFiles(const Group::ConstPtr &group, const QStringList &patterns, const QString &baseDir)
+QSet<QString> Loader::resolveFiles(const SourceWildCards::ConstPtr &group, const QStringList &patterns, const QString &baseDir)
 {
     QSet<QString> files;
     foreach (QString pattern, patterns) {
@@ -2174,6 +2180,21 @@ void Loader::resolveFiles(QSet<QString> &files, const QString &baseDir, bool rec
         else
             files.insert(it.next());
     }
+}
+
+static void createSourceArtifact(const ResolvedProduct::ConstPtr &rproduct,
+                                 const Configuration::Ptr &configuration,
+                                 const QString &fileName,
+                                 const QSet<QString> &fileTags,
+                                 bool overrideTags,
+                                 QList<SourceArtifact::Ptr> &artifactList)
+{
+    SourceArtifact::Ptr artifact = SourceArtifact::create();
+    artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
+    artifact->fileTags = fileTags;
+    artifact->overrideFileTags = overrideTags;
+    artifact->configuration = configuration;
+    artifactList += artifact;
 }
 
 /**
@@ -2246,29 +2267,31 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     if (isGroup)
         overrideTags = group->scope->boolValue("overrideTags", true);
 
+    Group::Ptr resolvedGroup = Group::create();
     if (!patterns.isEmpty()) {
-        Group::Ptr buildGroup = Group::create();
+        SourceWildCards::Ptr wildcards = SourceWildCards::create();
         if (isGroup) {
-            buildGroup->recursive = group->scope->boolValue("recursive");
-            buildGroup->excludePatterns = group->scope->stringListValue("excludeFiles");
+            wildcards->recursive = group->scope->boolValue("recursive");
+            wildcards->excludePatterns = group->scope->stringListValue("excludeFiles");
         }
-        buildGroup->name = group->scope->stringValue("name");
-        buildGroup->prefix = prefix;
-        buildGroup->patterns = patterns;
-        buildGroup->files = resolveFiles(buildGroup, rproduct->sourceDirectory);
-        foreach (const QString &file, buildGroup->files)
-            files.append(file);
-        rproduct->groups.append(buildGroup);
+        wildcards->prefix = prefix;
+        wildcards->patterns = patterns;
+        QSet<QString> files = resolveFiles(wildcards, rproduct->sourceDirectory);
+        foreach (const QString &fileName, files)
+            createSourceArtifact(rproduct, configuration, fileName,
+                                 fileTags, overrideTags, wildcards->files);
+        resolvedGroup->wildcards = wildcards;
     }
 
-    foreach (const QString &fileName, files) {
-        SourceArtifact::Ptr artifact = SourceArtifact::create();
-        artifact->configuration = configuration;
-        artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
-        artifact->fileTags = fileTags;
-        artifact->overrideFileTags = overrideTags;
-        rproduct->sources.insert(artifact);
-    }
+    foreach (const QString &fileName, files)
+        createSourceArtifact(rproduct, configuration, fileName,
+                             fileTags, overrideTags, resolvedGroup->files);
+
+    resolvedGroup->name = group->scope->stringValue("name");
+    if (resolvedGroup->name.isEmpty())
+        resolvedGroup->name = tr("Group %1").arg(rproduct->groups.count());
+    resolvedGroup->configuration = configuration;
+    rproduct->groups += resolvedGroup;
 }
 
 void Loader::resolveProductModule(const ResolvedProduct::ConstPtr &rproduct,

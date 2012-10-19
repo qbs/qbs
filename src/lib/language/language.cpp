@@ -119,6 +119,48 @@ void SourceArtifact::store(PersistentPool &pool, QDataStream &s) const
     pool.store(configuration);
 }
 
+void SourceWildCards::load(PersistentPool &pool, QDataStream &s)
+{
+    s >> recursive;
+    prefix = pool.idLoadString();
+    patterns = pool.idLoadStringList();
+    excludePatterns = pool.idLoadStringList();
+    loadContainerS(files, s, pool);
+}
+
+void SourceWildCards::store(PersistentPool &pool, QDataStream &s) const
+{
+    s << recursive;
+    pool.storeString(prefix);
+    pool.storeStringList(patterns);
+    pool.storeStringList(excludePatterns);
+    storeContainer(files, s, pool);
+}
+
+QList<SourceArtifact::Ptr> Group::allFiles() const
+{
+    QList<SourceArtifact::Ptr> lst = files;
+    if (wildcards)
+        lst.append(wildcards->files);
+    return lst;
+}
+
+void Group::load(PersistentPool &pool, QDataStream &s)
+{
+    name = pool.idLoadString();
+    loadContainerS(files, s, pool);
+    wildcards = pool.idLoadS<SourceWildCards>(s);
+    configuration = pool.idLoadS<Configuration>(s);
+}
+
+void Group::store(PersistentPool &pool, QDataStream &s) const
+{
+    pool.storeString(name);
+    storeContainer(files, s, pool);
+    pool.store(wildcards);
+    pool.store(configuration);
+}
+
 void RuleArtifact::load(PersistentPool &pool, QDataStream &s)
 {
     Q_UNUSED(pool);
@@ -226,29 +268,17 @@ void Rule::store(PersistentPool &pool, QDataStream &s) const
     storeContainer(artifacts, s, pool);
 }
 
-void Group::load(PersistentPool &pool, QDataStream &s)
-{
-    name = pool.idLoadString();
-    prefix = pool.idLoadString();
-    patterns = pool.idLoadStringList();
-    excludePatterns = pool.idLoadStringList();
-    files = pool.idLoadStringSet();
-    s >> recursive;
-}
-
-void Group::store(PersistentPool &pool, QDataStream &s) const
-{
-    pool.storeString(name);
-    pool.storeString(prefix);
-    pool.storeStringList(patterns);
-    pool.storeStringList(excludePatterns);
-    pool.storeStringSet(files);
-    s << recursive;
-}
-
 ResolvedProduct::ResolvedProduct()
     : project(0)
 {
+}
+
+QList<SourceArtifact::Ptr> ResolvedProduct::allFiles() const
+{
+    QList<SourceArtifact::Ptr> lst;
+    foreach (const Group::ConstPtr &group, groups)
+        lst += group->allFiles();
+    return lst;
 }
 
 QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) const
@@ -273,7 +303,6 @@ void ResolvedProduct::load(PersistentPool &pool, QDataStream &s)
         >> qbsFile;
 
     configuration = pool.idLoadS<Configuration>(s);
-    loadContainerS(sources, s, pool);
     loadContainerS(rules, s, pool);
     loadContainerS(uses, s, pool);
     loadContainerS(fileTaggers, s, pool);
@@ -292,7 +321,6 @@ void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
         << qbsFile;
 
     pool.store(configuration);
-    storeContainer(sources, s, pool);
     storeContainer(rules, s, pool);
     storeContainer(uses, s, pool);
     storeContainer(fileTaggers, s, pool);

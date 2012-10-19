@@ -152,13 +152,30 @@ void TestLanguage::groupName()
                                                               buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
-        ResolvedProduct::Ptr product = *products.begin();
+        QCOMPARE(products.count(), 2);
+
+        ResolvedProduct::Ptr product = products.value("MyProduct");
         QVERIFY(product);
-        QCOMPARE(product->groups.count(), 1);
-        Group::ConstPtr group = *product->groups.begin();
+        QCOMPARE(product->groups.count(), 2);
+        Group::ConstPtr group = product->groups.at(0);
+        QVERIFY(group);
+        QCOMPARE(group->name, QString("MyProduct"));
+        group = product->groups.at(1);
         QVERIFY(group);
         QCOMPARE(group->name, QString("MyProduct.MyGroup"));
+
+        product = products.value("My2ndProduct");
+        QVERIFY(product);
+        QCOMPARE(product->groups.count(), 3);
+        group = product->groups.at(0);
+        QVERIFY(group);
+        QCOMPARE(group->name, QString("My2ndProduct"));
+        group = product->groups.at(1);
+        QVERIFY(group);
+        QCOMPARE(group->name, QString("My2ndProduct.MyGroup"));
+        group = product->groups.at(2);
+        QVERIFY(group);
+        QCOMPARE(group->name, QString("Group 2"));
     }
     catch (const Error &e) {
         exceptionCaught = true;
@@ -239,16 +256,17 @@ void TestLanguage::propertiesBlocks()
 
 void TestLanguage::fileTags_data()
 {
+    QTest::addColumn<int>("numberOfGroups");
     QTest::addColumn<QStringList>("expectedFileTags");
 
-    QTest::newRow("init") << QStringList();
-    QTest::newRow("filetagger_project_scope") << (QStringList() << "cpp");
-    QTest::newRow("filetagger_product_scope") << (QStringList() << "asm");
-    QTest::newRow("unknown_file_tag") << (QStringList() << "unknown-file-tag");
-    QTest::newRow("set_file_tag_via_group") << (QStringList() << "c++");
-    QTest::newRow("add_file_tag_via_group") << (QStringList() << "cpp" << "zzz");
-    QTest::newRow("add_file_tag_via_group_and_file_ref") << (QStringList() << "cpp" << "zzz");
-    QTest::newRow("cleanup") << QStringList();
+    QTest::newRow("init") << 0 << QStringList();
+    QTest::newRow("filetagger_project_scope") << 1 << (QStringList() << "cpp");
+    QTest::newRow("filetagger_product_scope") << 1 << (QStringList() << "asm");
+    QTest::newRow("unknown_file_tag") << 1 << (QStringList() << "unknown-file-tag");
+    QTest::newRow("set_file_tag_via_group") << 2 << (QStringList() << "c++");
+    QTest::newRow("add_file_tag_via_group") << 2 << (QStringList() << "cpp" << "zzz");
+    QTest::newRow("add_file_tag_via_group_and_file_ref") << 2 << (QStringList() << "cpp" << "zzz");
+    QTest::newRow("cleanup") << 0 << QStringList();
 }
 
 void TestLanguage::fileTags()
@@ -273,12 +291,16 @@ void TestLanguage::fileTags()
     }
 
     QVERIFY(project);
+    QFETCH(int, numberOfGroups);
     QFETCH(QStringList, expectedFileTags);
     QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
     ResolvedProduct::Ptr product;
     QVERIFY(product = products.value(productName));
-    QCOMPARE(product->sources.count(), 1);
-    SourceArtifact::ConstPtr sourceFile = *product->sources.begin();
+    QCOMPARE(product->groups.count(), numberOfGroups);
+    Group::Ptr group = product->groups.last();
+    QVERIFY(group);
+    QCOMPARE(group->files.count(), 1);
+    SourceArtifact::ConstPtr sourceFile = group->files.first();
     QStringList fileTags = sourceFile->fileTags.toList();
     fileTags.sort();
     QCOMPARE(fileTags, expectedFileTags);

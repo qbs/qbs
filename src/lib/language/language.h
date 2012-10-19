@@ -137,6 +137,8 @@ private:
     void store(PersistentPool &pool, QDataStream &s) const;
 };
 
+class Group;
+
 class SourceArtifact : public PersistentObject
 {
 public:
@@ -152,6 +154,49 @@ public:
 
 private:
     SourceArtifact() : overrideFileTags(true) {}
+
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
+};
+
+class SourceWildCards : public PersistentObject
+{
+public:
+    typedef QSharedPointer<SourceWildCards> Ptr;
+    typedef QSharedPointer<const SourceWildCards> ConstPtr;
+
+    static Ptr create() { return Ptr(new SourceWildCards); }
+
+    bool recursive;
+    QString prefix;
+    QStringList patterns;
+    QStringList excludePatterns;
+    QList<SourceArtifact::Ptr> files;
+
+private:
+    SourceWildCards() : recursive(false) {}
+
+    void load(PersistentPool &pool, QDataStream &s);
+    void store(PersistentPool &pool, QDataStream &s) const;
+};
+
+class Group : public PersistentObject
+{
+public:
+    typedef QSharedPointer<Group> Ptr;
+    typedef QSharedPointer<const Group> ConstPtr;
+
+    static Ptr create() { return Ptr(new Group); }
+
+    QString name;
+    QList<SourceArtifact::Ptr> files;
+    SourceWildCards::Ptr wildcards;     // can be null
+    Configuration::Ptr configuration;
+
+    QList<SourceArtifact::Ptr> allFiles() const;
+
+private:
+    Group() {}
 
     void load(PersistentPool &pool, QDataStream &s);
     void store(PersistentPool &pool, QDataStream &s) const;
@@ -241,28 +286,6 @@ private:
     void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-class Group : public PersistentObject
-{
-public:
-    typedef QSharedPointer<Group> Ptr;
-    typedef QSharedPointer<const Group> ConstPtr;
-
-    static Ptr create() { return Ptr(new Group); }
-
-    QString name;
-    QString prefix;
-    bool recursive;
-    QStringList patterns;
-    QStringList excludePatterns;
-    QSet<QString> files;
-
-private:
-    Group() : recursive(false) {}
-
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
-};
-
 class ResolvedTransformer
 {
 public:
@@ -300,18 +323,18 @@ public:
     QString qbsFile;
     ResolvedProject *project;
     Configuration::Ptr configuration;
-    QSet<SourceArtifact::Ptr> sources;
     QSet<Rule::Ptr> rules;
     QSet<ResolvedProduct::Ptr> uses;
     QSet<FileTagger::ConstPtr> fileTaggers;
     QList<ResolvedModule::ConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
-    QList<Group::ConstPtr> groups;
+    QList<Group::Ptr> groups;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved
     QHash<QString, QString> executablePathCache;
 
+    QList<SourceArtifact::Ptr> allFiles() const;
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
     void setupBuildEnvironment(QbsEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
     void setupRunEnvironment(QbsEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;

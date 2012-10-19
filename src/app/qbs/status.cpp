@@ -118,7 +118,7 @@ int printStatus(const QString &projectFilePath, const SourceProject &sourceProje
     BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
     foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
         qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << buildProduct->rProduct->name;
-        QList<SourceArtifact::Ptr> sourceFiles = buildProduct->rProduct->sources.toList();
+        QList<SourceArtifact::Ptr> sourceFiles = buildProduct->rProduct->allFiles();
         qSort(sourceFiles.begin(), sourceFiles.end(), lessThanSourceFile);
         foreach (const SourceArtifact::ConstPtr &sourceFile, sourceFiles) {
             QString fileTags = QStringList(sourceFile->fileTags.toList()).join(", ");
