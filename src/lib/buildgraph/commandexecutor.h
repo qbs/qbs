@@ -68,8 +68,8 @@ public slots:
 protected:
     void printCommandInfo(AbstractCommand *cmd);
     void startProcessCommand();
-    QByteArray filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void sendProcessOutput(bool logCommandLine = false);
+    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
+    void sendProcessOutput(bool dueToError);
     void startJavaScriptCommand();
 
 protected slots:
@@ -90,6 +90,7 @@ private:
 
     // members for executing ProcessCommand
     ProcessCommand *m_processCommand;
+    QString m_commandLine;
     QProcess m_process;
     QString m_responseFileName;
     QScriptEngine *m_mainThreadScriptEngine;

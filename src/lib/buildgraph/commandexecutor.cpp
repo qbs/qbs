@@ -167,16 +167,15 @@ void CommandExecutor::startProcessCommand()
     Q_ASSERT(m_process.state() == QProcess::NotRunning);
 
     printCommandInfo(m_processCommand);
-    if (!m_processCommand->isSilent()) {
-        QString commandLine = m_processCommand->program() + QLatin1Char(' ') + commandArgsToString(m_processCommand->arguments());
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut << commandLine;
-    }
-    if (qbsLogLevel(LoggerDebug)) {
-        qbsDebug() << "[EXEC] " << m_processCommand->program() + QLatin1Char(' ') + commandArgsToString(m_processCommand->arguments());
-    }
+    m_commandLine = m_processCommand->program();
+    QStringList arguments = m_processCommand->arguments();
+    if (!arguments.isEmpty())
+        m_commandLine.append(QLatin1Char(' ')).append(commandArgsToString(arguments));
+    if (!m_processCommand->isSilent())
+        qbsInfo() << DontPrintLogLevel << LogOutputStdOut << m_commandLine;
+    qbsDebug() << "[EXEC] " << m_commandLine;
 
     // Automatically use response files, if the command line gets to long.
-    QStringList arguments = m_processCommand->arguments();
     if (!m_processCommand->responseFileUsagePrefix().isEmpty()) {
         int commandLineLength = m_processCommand->program().length() + 1;
         for (int i = m_processCommand->arguments().count(); --i >= 0;)
@@ -221,8 +220,9 @@ void CommandExecutor::startProcessCommand()
     m_process.start(program, arguments);
 }
 
-QByteArray CommandExecutor::filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource)
+QString CommandExecutor::filterProcessOutput(const QByteArray &_output, const QString &filterFunctionSource)
 {
+    const QString output = QString::fromLocal8Bit(_output);
     if (filterFunctionSource.isEmpty())
         return output;
 
@@ -233,30 +233,27 @@ QByteArray CommandExecutor::filterProcessOutput(const QByteArray &output, const 
     }
 
     QScriptValue outputArg = m_mainThreadScriptEngine->newArray(1);
-    outputArg.setProperty(0, m_mainThreadScriptEngine->toScriptValue(QString::fromLatin1(output)));
+    outputArg.setProperty(0, m_mainThreadScriptEngine->toScriptValue(output));
     QScriptValue filteredOutput = filterFunction.call(m_mainThreadScriptEngine->undefinedValue(), outputArg);
     if (filteredOutput.isError()) {
         emit error(QString("Error when calling ouput filter function: %1").arg(filteredOutput.toString()));
         return output;
     }
 
-    return filteredOutput.toString().toLocal8Bit();
+    return filteredOutput.toString();
 }
 
-void CommandExecutor::sendProcessOutput(bool logCommandLine)
+void CommandExecutor::sendProcessOutput(bool dueToError)
 {
-    QString commandLine = m_processCommand->program();
-    if (!m_processCommand->arguments().isEmpty())
-        commandLine += QLatin1Char(' ') + commandArgsToString(m_processCommand->arguments());
-
-    QByteArray processStdOut = filterProcessOutput(m_process.readAllStandardOutput(), m_processCommand->stdoutFilterFunction());
-    QByteArray processStdErr = filterProcessOutput(m_process.readAllStandardError(), m_processCommand->stderrFilterFunction());
-
-    bool processOutputEmpty = processStdOut.isEmpty() && processStdErr.isEmpty();
-    if (logCommandLine || !processOutputEmpty) {
-        qbsInfo() << DontPrintLogLevel << commandLine << (processOutputEmpty ? "" : "\n")
-                  << processStdOut << processStdErr;
-    }
+    const QString processStdOut = filterProcessOutput(m_process.readAllStandardOutput(),
+            m_processCommand->stdoutFilterFunction());
+    const QString processStdErr = filterProcessOutput(m_process.readAllStandardError(),
+            m_processCommand->stderrFilterFunction());
+    const bool processOutputEmpty = processStdOut.isEmpty() && processStdErr.isEmpty();
+    if (processOutputEmpty && !dueToError)
+        return;
+    (dueToError ? qbsError() : qbsInfo()) << DontPrintLogLevel << m_commandLine
+            << (processOutputEmpty ? "" : "\n") << processStdOut << processStdErr;
 }
 
 void CommandExecutor::onProcessError(QProcess::ProcessError processError)
