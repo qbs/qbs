@@ -400,6 +400,7 @@ protected:
                             ScopeChain::Ptr moduleScope = ScopeChain::Ptr(), const QVariantMap &userProperties = QVariantMap());
     void fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties);
     void fillEvaluationObjectBasics(const ScopeChain::Ptr &scope, LanguageObject *object, EvaluationObject *evaluationObject);
+    void setupBuiltinDeclarations();
     void setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject);
     void resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module);
     void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
@@ -447,8 +448,6 @@ private:
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_configurationValue(QScriptContext *context, QScriptEngine *engine);
 
-    static QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
-    static QHash<QString, PropertyDeclaration> m_groupPropertyDeclarations;
 
     ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;
@@ -463,6 +462,9 @@ private:
     Settings::Ptr m_settings;
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;
+    QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
+    QHash<QString, PropertyDeclaration> m_groupPropertyDeclarations;
+    QHash<QString, QList<PropertyDeclaration> > m_builtinDeclarations;
     QHash<QString, QVariantMap> m_productModules;
     QHash<QString, QStringList> m_moduleDirListCache;
 };

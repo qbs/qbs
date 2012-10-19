@@ -675,9 +675,6 @@ static const uint hashName_Properties = qHash(name_Properties);
 static const uint hashName_PropertyOptions = qHash(name_PropertyOptions);
 static const uint hashName_Depends = qHash(name_Depends);
 static const uint hashName_Probe = qHash(name_Probe);
-QHash<QString, PropertyDeclaration> Loader::m_dependsPropertyDeclarations;
-QHash<QString, PropertyDeclaration> Loader::m_groupPropertyDeclarations;
-
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
@@ -697,37 +694,7 @@ Loader::Loader(QbsEngine *engine)
     m_jsFunction_getenv = m_engine->newFunction(js_getenv, 0);
     m_jsFunction_configurationValue = m_engine->newFunction(js_configurationValue, 2);
 
-    if (m_dependsPropertyDeclarations.isEmpty()) {
-        QList<PropertyDeclaration> decls;
-        decls += PropertyDeclaration("name", PropertyDeclaration::String);
-        decls += PropertyDeclaration("submodules", PropertyDeclaration::Variant);
-        decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        decls += PropertyDeclaration("required", PropertyDeclaration::Boolean);
-        decls += PropertyDeclaration("failureMessage", PropertyDeclaration::String);
-        foreach (const PropertyDeclaration &pd, decls)
-            m_dependsPropertyDeclarations.insert(pd.name, pd);
-
-        decls.clear();
-        decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        decls += PropertyDeclaration("name", PropertyDeclaration::String, PropertyDeclaration::PropertyNotAvailableInConfig);
-        decls += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        decls += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
-        recursiveProperty.initialValueSource = "false";
-        decls += recursiveProperty;
-        decls += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        decls += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-
-        PropertyDeclaration declaration;
-        declaration.name = "overrideTags";
-        declaration.type = PropertyDeclaration::Boolean;
-        declaration.flags = PropertyDeclaration::PropertyNotAvailableInConfig;
-        declaration.initialValueSource = "true";
-        decls += declaration;
-
-        foreach (const PropertyDeclaration &pd, decls)
-            m_groupPropertyDeclarations.insert(pd.name, pd);
-    }
+    setupBuiltinDeclarations();
 }
 
 Loader::~Loader()
@@ -1015,89 +982,11 @@ static void applyBindings(LanguageObject *object, const ScopeChain::Ptr &scopeCh
 
 void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject)
 {
-    // special builtins
-    static QHash<QString, QList<PropertyDeclaration> > builtinDeclarations;
-    if (builtinDeclarations.isEmpty()) {
-        builtinDeclarations.insert(name_Depends, m_dependsPropertyDeclarations.values());
-        builtinDeclarations.insert(name_Group, m_groupPropertyDeclarations.values());
-        PropertyDeclaration conditionProperty("condition", PropertyDeclaration::Boolean);
-
-        QList<PropertyDeclaration> project;
-        project += PropertyDeclaration("references", PropertyDeclaration::Variant);
-        project += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant);
-        builtinDeclarations.insert(name_Project, project);
-
-        QList<PropertyDeclaration> product;
-        product += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        product += PropertyDeclaration("type", PropertyDeclaration::String);
-        product += PropertyDeclaration("name", PropertyDeclaration::String);
-        PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
-        decl.initialValueSource = "name";
-        product += decl;
-        product += PropertyDeclaration("destination", PropertyDeclaration::String);
-        product += PropertyDeclaration("consoleApplication", PropertyDeclaration::Boolean);
-        product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-        product += PropertyDeclaration("module", PropertyDeclaration::Variant);
-        product += PropertyDeclaration("modules", PropertyDeclaration::Variant);
-        product += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant);
-        builtinDeclarations.insert(name_Product, product);
-
-        QList<PropertyDeclaration> fileTagger;
-        fileTagger += PropertyDeclaration("pattern", PropertyDeclaration::String);
-        fileTagger += PropertyDeclaration("fileTags", PropertyDeclaration::Variant);
-        builtinDeclarations.insert(name_FileTagger, fileTagger);
-
-        QList<PropertyDeclaration> artifact;
-        artifact += conditionProperty;
-        artifact += PropertyDeclaration("fileName", PropertyDeclaration::Verbatim);
-        artifact += PropertyDeclaration("fileTags", PropertyDeclaration::Variant);
-        builtinDeclarations.insert(name_Artifact, artifact);
-
-        QList<PropertyDeclaration> rule;
-        rule += PropertyDeclaration("multiplex", PropertyDeclaration::Boolean);
-        rule += PropertyDeclaration("inputs", PropertyDeclaration::Variant);
-        rule += PropertyDeclaration("usings", PropertyDeclaration::Variant);
-        rule += PropertyDeclaration("explicitlyDependsOn", PropertyDeclaration::Variant);
-        rule += PropertyDeclaration("prepare", PropertyDeclaration::Verbatim);
-        builtinDeclarations.insert(name_Rule, rule);
-
-        QList<PropertyDeclaration> transformer;
-        transformer += PropertyDeclaration("inputs", PropertyDeclaration::Variant);
-        transformer += PropertyDeclaration("prepare", PropertyDeclaration::Verbatim);
-        transformer += conditionProperty;
-        builtinDeclarations.insert(name_Transformer, transformer);
-
-        QList<PropertyDeclaration> productModule;
-        builtinDeclarations.insert(name_ProductModule, productModule);
-
-        QList<PropertyDeclaration> module;
-        module += PropertyDeclaration("name", PropertyDeclaration::String);
-        module += PropertyDeclaration("setupBuildEnvironment", PropertyDeclaration::Verbatim);
-        module += PropertyDeclaration("setupRunEnvironment", PropertyDeclaration::Verbatim);
-        module += PropertyDeclaration("additionalProductFileTags", PropertyDeclaration::Variant);
-        module += conditionProperty;
-        builtinDeclarations.insert(name_Module, module);
-
-        QList<PropertyDeclaration> propertyOptions;
-        propertyOptions += PropertyDeclaration("name", PropertyDeclaration::String);
-        propertyOptions += PropertyDeclaration("allowedValues", PropertyDeclaration::Variant);
-        propertyOptions += PropertyDeclaration("description", PropertyDeclaration::String);
-        builtinDeclarations.insert(name_PropertyOptions, propertyOptions);
-
-        QList<PropertyDeclaration> probe;
-        probe += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
-        PropertyDeclaration foundProperty("found", PropertyDeclaration::Boolean);
-        foundProperty.initialValueSource = "false";
-        probe += foundProperty;
-        probe += PropertyDeclaration("configure", PropertyDeclaration::Verbatim);
-        builtinDeclarations.insert(name_Probe, probe);
-    }
-
-    if (!builtinDeclarations.contains(evaluationObject->prototype))
+    if (!m_builtinDeclarations.contains(evaluationObject->prototype))
         throw Error(tr("Type name '%1' is unknown.").arg(evaluationObject->prototype),
                            evaluationObject->instantiatingObject()->prototypeLocation);
 
-    foreach (const PropertyDeclaration &pd, builtinDeclarations.value(evaluationObject->prototype)) {
+    foreach (const PropertyDeclaration &pd, m_builtinDeclarations.value(evaluationObject->prototype)) {
         evaluationObject->scope->declarations.insert(pd.name, pd);
         evaluationObject->scope->properties.insert(pd.name, Property(m_engine->undefinedValue()));
 
@@ -1257,6 +1146,113 @@ void Loader::fillEvaluationObjectBasics(const ScopeChain::Ptr &scopeChain, Langu
 
     applyFunctions(m_engine, object, evaluationObject, scopeChain);
     applyBindings(object, scopeChain);
+}
+
+void Loader::setupBuiltinDeclarations()
+{
+    QList<PropertyDeclaration> decls;
+    decls += PropertyDeclaration("name", PropertyDeclaration::String);
+    decls += PropertyDeclaration("submodules", PropertyDeclaration::Variant);
+    decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+    decls += PropertyDeclaration("required", PropertyDeclaration::Boolean);
+    decls += PropertyDeclaration("failureMessage", PropertyDeclaration::String);
+    foreach (const PropertyDeclaration &pd, decls)
+        m_dependsPropertyDeclarations.insert(pd.name, pd);
+
+    decls.clear();
+    decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+    decls += PropertyDeclaration("name", PropertyDeclaration::String, PropertyDeclaration::PropertyNotAvailableInConfig);
+    decls += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    decls += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
+    recursiveProperty.initialValueSource = "false";
+    decls += recursiveProperty;
+    decls += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    decls += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+
+    PropertyDeclaration declaration;
+    declaration.name = "overrideTags";
+    declaration.type = PropertyDeclaration::Boolean;
+    declaration.flags = PropertyDeclaration::PropertyNotAvailableInConfig;
+    declaration.initialValueSource = "true";
+    decls += declaration;
+
+    foreach (const PropertyDeclaration &pd, decls)
+        m_groupPropertyDeclarations.insert(pd.name, pd);
+
+    m_builtinDeclarations.insert(name_Depends, m_dependsPropertyDeclarations.values());
+    m_builtinDeclarations.insert(name_Group, m_groupPropertyDeclarations.values());
+    PropertyDeclaration conditionProperty("condition", PropertyDeclaration::Boolean);
+
+    QList<PropertyDeclaration> project;
+    project += PropertyDeclaration("references", PropertyDeclaration::Variant);
+    project += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant);
+    m_builtinDeclarations.insert(name_Project, project);
+
+    QList<PropertyDeclaration> product;
+    product += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+    product += PropertyDeclaration("type", PropertyDeclaration::String);
+    product += PropertyDeclaration("name", PropertyDeclaration::String);
+    PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
+    decl.initialValueSource = "name";
+    product += decl;
+    product += PropertyDeclaration("destination", PropertyDeclaration::String);
+    product += PropertyDeclaration("consoleApplication", PropertyDeclaration::Boolean);
+    product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    product += PropertyDeclaration("module", PropertyDeclaration::Variant);
+    product += PropertyDeclaration("modules", PropertyDeclaration::Variant);
+    product += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant);
+    m_builtinDeclarations.insert(name_Product, product);
+
+    QList<PropertyDeclaration> fileTagger;
+    fileTagger += PropertyDeclaration("pattern", PropertyDeclaration::String);
+    fileTagger += PropertyDeclaration("fileTags", PropertyDeclaration::Variant);
+    m_builtinDeclarations.insert(name_FileTagger, fileTagger);
+
+    QList<PropertyDeclaration> artifact;
+    artifact += conditionProperty;
+    artifact += PropertyDeclaration("fileName", PropertyDeclaration::Verbatim);
+    artifact += PropertyDeclaration("fileTags", PropertyDeclaration::Variant);
+    m_builtinDeclarations.insert(name_Artifact, artifact);
+
+    QList<PropertyDeclaration> rule;
+    rule += PropertyDeclaration("multiplex", PropertyDeclaration::Boolean);
+    rule += PropertyDeclaration("inputs", PropertyDeclaration::Variant);
+    rule += PropertyDeclaration("usings", PropertyDeclaration::Variant);
+    rule += PropertyDeclaration("explicitlyDependsOn", PropertyDeclaration::Variant);
+    rule += PropertyDeclaration("prepare", PropertyDeclaration::Verbatim);
+    m_builtinDeclarations.insert(name_Rule, rule);
+
+    QList<PropertyDeclaration> transformer;
+    transformer += PropertyDeclaration("inputs", PropertyDeclaration::Variant);
+    transformer += PropertyDeclaration("prepare", PropertyDeclaration::Verbatim);
+    transformer += conditionProperty;
+    m_builtinDeclarations.insert(name_Transformer, transformer);
+
+    QList<PropertyDeclaration> productModule;
+    m_builtinDeclarations.insert(name_ProductModule, productModule);
+
+    QList<PropertyDeclaration> module;
+    module += PropertyDeclaration("name", PropertyDeclaration::String);
+    module += PropertyDeclaration("setupBuildEnvironment", PropertyDeclaration::Verbatim);
+    module += PropertyDeclaration("setupRunEnvironment", PropertyDeclaration::Verbatim);
+    module += PropertyDeclaration("additionalProductFileTags", PropertyDeclaration::Variant);
+    module += conditionProperty;
+    m_builtinDeclarations.insert(name_Module, module);
+
+    QList<PropertyDeclaration> propertyOptions;
+    propertyOptions += PropertyDeclaration("name", PropertyDeclaration::String);
+    propertyOptions += PropertyDeclaration("allowedValues", PropertyDeclaration::Variant);
+    propertyOptions += PropertyDeclaration("description", PropertyDeclaration::String);
+    m_builtinDeclarations.insert(name_PropertyOptions, propertyOptions);
+
+    QList<PropertyDeclaration> probe;
+    probe += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+    PropertyDeclaration foundProperty("found", PropertyDeclaration::Boolean);
+    foundProperty.initialValueSource = "false";
+    probe += foundProperty;
+    probe += PropertyDeclaration("configure", PropertyDeclaration::Verbatim);
+    m_builtinDeclarations.insert(name_Probe, probe);
 }
 
 void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
