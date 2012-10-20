@@ -33,7 +33,7 @@
 
 namespace qbs {
 
-QString Error::toString() const
+QString ErrorData::toString() const
 {
     QString str;
     if (!file.isEmpty()) {
@@ -53,10 +53,25 @@ QString Error::toString() const
 
 void Error::clear()
 {
-    description.clear();
-    file.clear();
-    line = 0;
-    column = 0;
+    data.clear();
+}
+
+void Error::append(const QString &_description, const QString &_file, int _line, int _column)
+{
+    data.append(ErrorData(_description, _file, _line, _column));
+}
+
+void Error::append(const QString &_description, const CodeLocation &location)
+{
+    data.append(ErrorData(_description, location.fileName, location.line, location.column));
+}
+
+QString Error::toString() const
+{
+    QStringList lines;
+    foreach (const ErrorData &e, data)
+        lines.append(e.toString());
+    return lines.join(QLatin1String("\n"));
 }
 
 }

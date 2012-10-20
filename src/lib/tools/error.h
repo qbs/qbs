@@ -34,44 +34,67 @@
 
 namespace qbs {
 
-class Error
+class ErrorData
 {
 public:
-    Error()
-        : line(0), column(0)
-    {}
+    ErrorData() :
+        line(0),
+        column(0)
+    { }
 
-    Error(const Error &rhs)
+    ErrorData(const QString &_description, const QString &_file = QString(),
+              int _line = 0, int _column = 0)
+        : description(_description)
+        , file(_file)
+        , line(_line)
+        , column(_column)
+    { }
+
+    ErrorData(const ErrorData &rhs)
         : description(rhs.description)
         , file(rhs.file)
         , line(rhs.line)
         , column(rhs.column)
-    {}
-
-    Error(const QString &_description,
-            const QString &_file = QString(),
-            int _line = 0, int _column = 0)
-            : description(_description)
-            , file(_file)
-            , line(_line)
-            , column(_column)
-    {
-    }
-
-    Error(const QString &_description, const CodeLocation &location)
-            : description(_description)
-            , file(location.fileName)
-            , line(location.line)
-            , column(location.column)
-    {
-    }
+    { }
 
     QString toString() const;
-    void clear();
 
     QString description;
     QString file;
     int line, column;
+};
+
+class Error
+{
+public:
+    Error()
+    { }
+
+    Error(const Error &rhs)
+        : data(rhs.data)
+    { }
+
+    Error(const QString &_description,
+          const QString &_file = QString(),
+          int _line = 0, int _column = 0)
+    {
+        append(_description, _file, _line, _column);
+    }
+
+    Error(const QString &_description, const CodeLocation &location)
+    {
+        append(_description, location.fileName, location.line, location.column);
+    }
+
+    void append(const QString &_description,
+                const QString &_file = QString(),
+                int _line = 0, int _column = 0);
+    void append(const QString &_description, const CodeLocation &location);
+
+    QString toString() const;
+    void clear();
+
+    QList<ErrorData> data;
 };
 
 } // namespace qbs

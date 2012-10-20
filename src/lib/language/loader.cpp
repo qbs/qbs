@@ -2766,11 +2766,10 @@ ProjectFile::Ptr Loader::parseFile(const QString &fileName)
 
     QList<QmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
     if (!parserMessages.isEmpty()) {
-        QString errorLines;
+        Error err;
         foreach (const QmlJS::DiagnosticMessage &msg, parserMessages)
-            errorLines += Error(msg.message, fileName, msg.loc.startLine, msg.loc.startColumn).toString()
-                    + QLatin1Char('\n');
-        throw Error(tr("Parsing errors:\n%1").arg(errorLines), fileName);
+            err.append(msg.message, fileName, msg.loc.startLine, msg.loc.startColumn);
+        throw err;
     }
 
     result = bindFile(code, fileName, parser.ast(), m_searchPaths);
@@ -2919,7 +2918,6 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
         // load referenced files
         foreach (const QString &reference, evaluationObject->scope->stringListValue("references")) {
-
             QString projectFileDir = FileInfo::path(projectFileName);
             QString absReferencePath = FileInfo::resolvePath(projectFileDir, reference);
             ProjectFile::Ptr referencedFile = parseFile(absReferencePath);
