@@ -1,8 +1,8 @@
 import qbs.base 1.0
+import "imports/Foo.qbs" as Foo
 
 Project {
     moduleSearchPaths: "subdir"
-//    moduleSearchPaths: ["subdir"]
     Foo {
         files: "main.cpp"
     }

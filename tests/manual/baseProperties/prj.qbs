@@ -1,4 +1,5 @@
 import qbs.base 1.0
+import "imports/Foo.qbs" as Foo
 
 Project {
     Foo {
