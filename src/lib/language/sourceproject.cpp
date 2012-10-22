@@ -35,8 +35,6 @@
 #include <tools/scripttools.h>
 #include <tools/platform.h>
 
-#include <QElapsedTimer>
-
 namespace qbs {
 
 class SourceProjectPrivate : public QSharedData
@@ -196,8 +194,7 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
         if (!loadResult.discardLoadedProject)
             bProject = loadResult.loadedProject;
         if (!bProject) {
-            QElapsedTimer timer;
-            timer.start();
+            TimedActivityLogger loadLogger(QLatin1String("Loading project"));
             if (!projectFile)
                 projectFile = loader.loadProject(projectFileName);
             qbs::ResolvedProject::Ptr rProject;
@@ -207,12 +204,11 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
                 rProject = loader.resolveProject(projectFile, buildDirectoryRoot, buildCfg);
             if (rProject->products.isEmpty())
                 throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
-            qbsDebug() << "Project loaded in " << timer.elapsed() << "ms.";
-            timer.start();
+            loadLogger.finishActivity();
+            TimedActivityLogger resolveLogger(QLatin1String("Resolving project"));
             bProject = d->buildGraph->resolveProject(rProject);
             if (loadResult.loadedProject)
                 bProject->rescueDependencies(loadResult.loadedProject);
-            qbsDebug() << "Build graph took " << timer.elapsed() << "ms.";
         }
 
         // copy the environment from the platform config into the project's config

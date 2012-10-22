@@ -34,6 +34,7 @@
 #include "logger.h"
 
 #include <QByteArray>
+#include <QElapsedTimer>
 #include <QMutex>
 #include <QSet>
 #include <QVariant>
@@ -295,6 +296,58 @@ LogWriter operator<<(LogWriter w, TextColor color)
 {
     w.setTextColor(color);
     return w;
+}
+
+struct TimedActivityLogger::TimedActivityLoggerPrivate
+{
+    QString prefix;
+    QString activity;
+    LoggerLevel logLevel;
+    QElapsedTimer timer;
+};
+
+TimedActivityLogger::TimedActivityLogger(const QString &activity, const QString &prefix,
+        LoggerLevel logLevel)
+    : d(0)
+{
+    if (!qbsLogLevel(logLevel))
+        return;
+    d = new TimedActivityLoggerPrivate;
+    d->prefix = prefix;
+    d->activity = activity;
+    d->logLevel = logLevel;
+    LogWriter(d->logLevel) << QString::fromLocal8Bit("%1Starting activity '%2'.")
+            .arg(d->prefix, d->activity);
+    d->timer.start();
+}
+
+void TimedActivityLogger::finishActivity()
+{
+    if (!d)
+        return;
+    qint64 ms = d->timer.elapsed();
+    qint64 s = ms/1000;
+    ms -= s*1000;
+    qint64 m = s/60;
+    s -= m*60;
+    const qint64 h = m/60;
+    m -= h*60;
+    QString timeString = QString::fromLocal8Bit("%1ms").arg(ms);
+    if (h || m || s)
+        timeString.prepend(QString::fromLocal8Bit("%1s, ").arg(s));
+    if (h || m)
+        timeString.prepend(QString::fromLocal8Bit("%1m, ").arg(m));
+    if (h)
+        timeString.prepend(QString::fromLocal8Bit("%1h, ").arg(h));
+    LogWriter(d->logLevel) << QString::fromLocal8Bit("%1Activity '%2' took %3.")
+            .arg(d->prefix, d->activity, timeString);
+    delete d;
+    d = 0;
+}
+
+TimedActivityLogger::~TimedActivityLogger()
+{
+    finishActivity();
 }
 
 } // namespace qbs

@@ -100,8 +100,11 @@ static int buildProject(qbs::Application &app, const qbs::SourceProject sourcePr
     QObject::connect(&executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
     executor.setEngine(sourceProject.engine());
     executor.setBuildOptions(buildOptions);
+    qbs::TimedActivityLogger buildLogger(QLatin1String("Building project"), QString(),
+            qbs::LoggerInfo);
     executor.build(sourceProject.buildProjects());
     app.exec();
+    buildLogger.finishActivity();
     app.setExecutor(0);
     if (executor.state() == qbs::Executor::ExecutorError)
         return ExitCodeErrorExecutionFailed;

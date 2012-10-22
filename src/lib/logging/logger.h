@@ -89,6 +89,19 @@ private:
     mutable LogMessage m_logMessage;
 };
 
+class TimedActivityLogger
+{
+public:
+    TimedActivityLogger(const QString &activity, const QString &prefix = QString(),
+            LoggerLevel logLevel = LoggerDebug);
+    void finishActivity();
+    ~TimedActivityLogger();
+
+private:
+    struct TimedActivityLoggerPrivate;
+    TimedActivityLoggerPrivate *d;
+};
+
 enum LogModifier
 {
     DontPrintLogLevel

@@ -46,7 +46,6 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QDataStream>
-#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QMutex>
 #include <QScriptProgram>
@@ -261,21 +260,13 @@ void BuildGraph::applyRules(BuildProduct *product, QMap<QString, QSet<Artifact *
   */
 void BuildGraph::detectCycle(BuildProject *project)
 {
-    QElapsedTimer *t = 0;
-    if (qbsLogLevel(LoggerTrace)) {
-        t = new QElapsedTimer;
-        t->start();
-        qbsTrace() << "[BG] running cycle detection on project '" + project->resolvedProject()->id() + "'";
-    }
+    const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
+                .arg(project->resolvedProject()->id());
+    TimedActivityLogger timeLogger(description, QLatin1String("[BG] "), LoggerTrace);
 
-    foreach (BuildProduct::Ptr product, project->buildProducts())
+    foreach (BuildProduct::Ptr product, project->buildProducts()) {
         foreach (Artifact *artifact, product->targetArtifacts)
             detectCycle(artifact);
-
-    if (qbsLogLevel(LoggerTrace)) {
-        qint64 elapsed = t->elapsed();
-        qbsTrace() << "[BG] cycle detection for project '" + project->resolvedProject()->id() + "' took " << elapsed << " ms";
-        delete t;
     }
 }
 
