@@ -122,10 +122,7 @@ public:
     void onProductRemoved(const BuildProduct::Ptr &product);
 
 private:
-    static QString storedProjectFilePath(BuildGraph *bg, const QString &configId);
-    static QStringList storedProjectFiles(BuildGraph *bg);
-    static void restoreBuildGraph(const QString &buildGraphFilePath,
-                                  BuildGraph *buildGraph,
+    static void restoreBuildGraph(BuildGraph *buildGraph,
                                   const FileTime &minTimeStamp,
                                   const QVariantMap &configuration,
                                   const QStringList &loaderSearchPaths,
@@ -175,8 +172,9 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void setOutputDirectoryRoot(const QString &buildDirectoryRoot) { m_outputDirectoryRoot = buildDirectoryRoot; }
     const QString &outputDirectoryRoot() const { return m_outputDirectoryRoot; }
-    QString buildDirectoryRoot() const;
     QString resolveOutPath(const QString &path, BuildProduct *) const;
+    QString buildDirectory(const QString &projectId) const;
+    QString buildGraphFilePath(const QString &projectId) const;
 
     static void connect(Artifact *p, Artifact *c);
     static void loggedConnect(Artifact *u, Artifact *v);

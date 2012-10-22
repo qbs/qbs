@@ -183,7 +183,6 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
     loader.setSearchPaths(d->settings->searchPaths());
     d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph(d->engine));
     d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
-    const QString buildDirectoryRoot = d->buildGraph->buildDirectoryRoot();
 
     ProjectFile::Ptr projectFile;
     foreach (const QVariantMap &buildCfg, buildConfigs) {
@@ -198,10 +197,13 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
             if (!projectFile)
                 projectFile = loader.loadProject(projectFileName);
             qbs::ResolvedProject::Ptr rProject;
-            if (loadResult.changedResolvedProject)
+            if (loadResult.changedResolvedProject) {
                 rProject = loadResult.changedResolvedProject;
-            else
-                rProject = loader.resolveProject(projectFile, buildDirectoryRoot, buildCfg);
+            } else {
+                const QString buildDir = d->buildGraph->buildDirectory(
+                        ResolvedProject::deriveId(buildCfg));
+                rProject = loader.resolveProject(projectFile, buildDir, buildCfg);
+            }
             if (rProject->products.isEmpty())
                 throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
             loadLogger.finishActivity();

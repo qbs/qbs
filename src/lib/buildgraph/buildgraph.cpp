@@ -228,7 +228,7 @@ void BuildGraph::setupScriptEngineForArtifact(BuildProduct *product, Artifact *a
         QDir sourceDir(product->rProduct->sourceDirectory);
         basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
     } else {
-        QDir buildDir(product->project->buildGraph()->buildDirectoryRoot() + product->project->resolvedProject()->id());
+        QDir buildDir(product->project->buildGraph()->buildDirectory(product->project->resolvedProject()->id()));
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
@@ -565,15 +565,6 @@ void BuildGraph::createTransformerCommands(const RuleScript::ConstPtr &script, T
     }
 
     transformer->commands = commands;
-}
-
-QString BuildGraph::buildDirectoryRoot() const
-{
-    Q_ASSERT(!m_outputDirectoryRoot.isEmpty());
-    QString path = FileInfo::resolvePath(m_outputDirectoryRoot, QLatin1String("build"));
-    if (!path.endsWith('/'))
-        path.append(QLatin1Char('/'));
-    return path;
 }
 
 /*
@@ -1026,6 +1017,17 @@ QString BuildGraph::resolveOutPath(const QString &path, BuildProduct *product) c
     return result;
 }
 
+QString BuildGraph::buildDirectory(const QString &projectId) const
+{
+    Q_ASSERT(!m_outputDirectoryRoot.isEmpty());
+    return FileInfo::resolvePath(m_outputDirectoryRoot, projectId);
+}
+
+QString BuildGraph::buildGraphFilePath(const QString &projectId) const
+{
+    return buildDirectory(projectId) + QLatin1Char('/') + projectId + QLatin1String(".bg");
+}
+
 void Transformer::load(PersistentPool &pool, QDataStream &s)
 {
     rule = pool.idLoadS<Rule>(s);
@@ -1150,13 +1152,31 @@ BuildProject::~BuildProject()
     qDeleteAll(m_dependencyArtifacts);
 }
 
-void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
-                                     BuildGraph *bg,
+static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
+{
+    QVariantMap::const_iterator it = userCfg.begin();
+    for (; it != userCfg.end(); ++it) {
+        if (it.value().type() == QVariant::Map) {
+            if (!isConfigCompatible(it.value().toMap(), projectCfg.value(it.key()).toMap()))
+                return false;
+        } else {
+            QVariant value = projectCfg.value(it.key());
+            if (!value.isNull() && value != it.value()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void BuildProject::restoreBuildGraph(BuildGraph *bg,
                                      const FileTime &minTimeStamp,
                                      const QVariantMap &cfg,
                                      const QStringList &loaderSearchPaths,
                                      LoadResult *loadResult)
 {
+    const QString projectId = ResolvedProject::deriveId(cfg);
+    const QString buildGraphFilePath = bg->buildGraphFilePath(projectId);
     if (buildGraphFilePath.isNull()) {
         qbsDebug() << "[BG] No stored build graph found that's compatible to the desired build configuration.";
         return;
@@ -1165,13 +1185,14 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
     PersistentPool pool;
     BuildProject::Ptr project;
     qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
-    FileInfo bgfi(buildGraphFilePath);
-    if (!bgfi.exists()) {
-        qbsDebug() << "[BG] stored build graph file does not exist";
+    if (!pool.load(buildGraphFilePath))
+        return;
+    if (!isConfigCompatible(cfg, pool.headData().projectConfig)) {
+        qbsDebug() << "[BG] Cannot use stored build graph: Incompatible project configuration.";
         return;
     }
-    if (!pool.load(buildGraphFilePath))
-        throw Error("Cannot load stored build graph.");
+
+    FileInfo bgfi(buildGraphFilePath);
     project = BuildProject::Ptr(new BuildProject(bg));
     project->load(pool, pool.stream());
     project->resolvedProject()->setConfiguration(pool.headData().projectConfig);
@@ -1214,7 +1235,8 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
         Loader ldr(bg->engine());
         ldr.setSearchPaths(loaderSearchPaths);
         ProjectFile::Ptr projectFile = ldr.loadProject(project->resolvedProject()->qbsFile);
-        ResolvedProject::Ptr changedProject = ldr.resolveProject(projectFile, bg->buildDirectoryRoot(), cfg);
+        ResolvedProject::Ptr changedProject = ldr.resolveProject(projectFile,
+                bg->buildDirectory(projectId), cfg);
         if (!changedProject) {
             QString msg("Trying to load '%1' failed.");
             throw Error(msg.arg(project->resolvedProject()->qbsFile));
@@ -1255,43 +1277,12 @@ void BuildProject::restoreBuildGraph(const QString &buildGraphFilePath,
     }
 }
 
-static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
-{
-    QVariantMap::const_iterator it = userCfg.begin();
-    for (; it != userCfg.end(); ++it) {
-        if (it.value().type() == QVariant::Map) {
-            if (!isConfigCompatible(it.value().toMap(), projectCfg.value(it.key()).toMap()))
-                return false;
-        } else {
-            QVariant value = projectCfg.value(it.key());
-            if (!value.isNull() && value != it.value()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp,
                                             const QVariantMap &cfg, const QStringList &loaderSearchPaths)
 {
     LoadResult result;
     result.discardLoadedProject = false;
-
-    PersistentPool pool;
-    QString fileName;
-    QStringList bgFiles = storedProjectFiles(bg);
-    foreach (const QString &fn, bgFiles) {
-        if (!pool.load(fn))
-            continue;
-        PersistentPool::HeadData headData = pool.headData();
-        if (isConfigCompatible(cfg, headData.projectConfig)) {
-            fileName = fn;
-            break;
-        }
-    }
-
-    restoreBuildGraph(fileName, bg, minTimeStamp, cfg, loaderSearchPaths, &result);
+    restoreBuildGraph(bg, minTimeStamp, cfg, loaderSearchPaths, &result);
     return result;
 }
 
@@ -1301,7 +1292,7 @@ void BuildProject::store() const
         qbsDebug() << "[BG] build graph is unchanged in project " << resolvedProject()->id() << ".";
         return;
     }
-    const QString fileName = storedProjectFilePath(buildGraph(), resolvedProject()->id());
+    const QString fileName = buildGraph()->buildGraphFilePath(resolvedProject()->id());
     qbsDebug() << "[BG] storing: " << fileName;
     PersistentPool pool;
     PersistentPool::HeadData headData;
@@ -1309,20 +1300,6 @@ void BuildProject::store() const
     pool.setHeadData(headData);
     pool.setupWriteStream(fileName);
     store(pool, pool.stream());
-}
-
-QString BuildProject::storedProjectFilePath(BuildGraph *bg, const QString &projectId)
-{
-    return bg->buildDirectoryRoot() + projectId + ".bg";
-}
-
-QStringList BuildProject::storedProjectFiles(BuildGraph *bg)
-{
-    QStringList result;
-    QDirIterator dirit(bg->buildDirectoryRoot(), QStringList() << "*.bg", QDir::Files);
-    while (dirit.hasNext())
-        result += dirit.next();
-    return result;
 }
 
 void BuildProject::load(PersistentPool &pool, QDataStream &s)

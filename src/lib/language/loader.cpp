@@ -1785,10 +1785,10 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
-ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
+ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectory,
                                             const QVariantMap &userProperties, bool resolveProductDependencies)
 {
-    Q_ASSERT(FileInfo::isAbsolute(buildDirectoryRoot));
+    Q_ASSERT(FileInfo::isAbsolute(buildDirectory));
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
     m_project = projectFile;
@@ -1829,7 +1829,6 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
         rproduct->name = productProps->stringValue("name");
         rproduct->targetName = productProps->stringValue("targetName");
-        QString buildDirectory = FileInfo::resolvePath(buildDirectoryRoot, rproject->id());
 
         // insert property "buildDirectory"
         {

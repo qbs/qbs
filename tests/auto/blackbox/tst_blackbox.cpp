@@ -44,7 +44,7 @@ TestBlackbox::TestBlackbox()
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       buildProfile(QLatin1String("qbs_autotests")),
-      buildDir(QLatin1String("build/") + buildProfile + QLatin1String("-debug")),
+      buildDir(buildProfile + QLatin1String("-debug")),
 #ifdef Q_OS_WIN
         objectSuffix(QLatin1String(".obj"))
 #else
@@ -200,7 +200,7 @@ void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
-    const QString fileName = qbs::HostOsInfo::appendExecutableSuffix("build/" + buildProfile + "-debug/i");
+    const QString fileName = qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/i");
     QVERIFY2(QFile(fileName).exists(), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);

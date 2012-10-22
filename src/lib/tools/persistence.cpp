@@ -49,8 +49,10 @@ PersistentPool::~PersistentPool()
 bool PersistentPool::load(const QString &filePath)
 {
     QScopedPointer<QFile> file(new QFile(filePath));
-    if (!file->open(QFile::ReadOnly))
+    if (!file->open(QFile::ReadOnly)) {
+        qbsDebug() << "Could not open build graph file for reading: " << file->errorString();
         return false;
+    }
 
     m_stream.setDevice(file.data());
     QByteArray magic;
@@ -59,8 +61,7 @@ bool PersistentPool::load(const QString &filePath)
         file->close();
         file->remove();
         m_stream.setDevice(0);
-        qbsInfo() << DontPrintLogLevel
-                  << "The build graph format changed. The build graph will be regenerated.";
+        qbsInfo() << "Cannot use stored build graph: Incompatible file format.";
         return false;
     }
 
