@@ -1909,7 +1909,8 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                     p.first->files.removeOne(existing);
 
                     // Merge artifacts.
-                    artifact->fileTags.unite(existing->fileTags);
+                    if (!artifact->overrideFileTags)
+                        artifact->fileTags.unite(existing->fileTags);
                 }
                 uniqueArtifacts.insert(artifact->absoluteFilePath, qMakePair(group, artifact));
             }

@@ -34,9 +34,19 @@ Project {
     }
 
     Product {
+        name: "override_file_tag_via_group"
+        files: "main.cpp"   // gets file tag "cpp" through the FileTagger
+        Group {
+            files: product.files
+            fileTags: ["c++"]
+        }
+    }
+
+    Product {
         name: "add_file_tag_via_group"
         files: "main.cpp"
         Group {
+            overrideTags: false
             files: "main.cpp"
             fileTags: ["zzz"]
         }
@@ -46,6 +56,7 @@ Project {
         name: "add_file_tag_via_group_and_file_ref"
         files: "main.cpp"
         Group {
+            overrideTags: false
             files: product.files
             fileTags: ["zzz"]
         }

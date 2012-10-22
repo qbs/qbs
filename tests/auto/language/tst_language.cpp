@@ -264,6 +264,7 @@ void TestLanguage::fileTags_data()
     QTest::newRow("filetagger_product_scope") << 1 << (QStringList() << "asm");
     QTest::newRow("unknown_file_tag") << 1 << (QStringList() << "unknown-file-tag");
     QTest::newRow("set_file_tag_via_group") << 2 << (QStringList() << "c++");
+    QTest::newRow("override_file_tag_via_group") << 2 << (QStringList() << "c++");
     QTest::newRow("add_file_tag_via_group") << 2 << (QStringList() << "cpp" << "zzz");
     QTest::newRow("add_file_tag_via_group_and_file_ref") << 2 << (QStringList() << "cpp" << "zzz");
     QTest::newRow("cleanup") << 0 << QStringList();

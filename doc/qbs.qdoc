@@ -645,6 +645,21 @@
     another. For instance, the C++ compiler rule transforms artifacts with the file tag
     \c cpp to artifacts with the file tag \c{obj}.
 
+    It's possible to use file taggers to tag files and specify custom file tags in
+    addition:
+    \code
+        Product {
+            Depends: "cpp"
+            files: ["main.cpp"]         // Gets the file tag "cpp" through a FileTagger item.
+            Group {
+                overrideTags: false     // The overrideTags property defaults to true.
+                files: ["main.cpp"]
+                fileTags: ["foobar"]    // Gets the file tag "foobar" in addition to "cpp".
+            }
+            // ...
+        }
+    \endcode
+
     \section1 Rules
 
     A rule looks at the pool of artifacts (in the beginning it's just the set of
