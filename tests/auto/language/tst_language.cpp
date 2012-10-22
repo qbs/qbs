@@ -78,7 +78,7 @@ void TestLanguage::conditionalDepends()
     ResolvedModule::ConstPtr dependency;
     try {
         ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
+        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
                                                               buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
@@ -148,7 +148,7 @@ void TestLanguage::groupName()
     bool exceptionCaught = false;
     try {
         ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/groupname.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
+        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
                                                               buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
@@ -189,7 +189,7 @@ void TestLanguage::productConditions()
     bool exceptionCaught = false;
     try {
         ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/productconditions.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "someBuildDirectory",
+        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
                                                               buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
@@ -230,7 +230,7 @@ void TestLanguage::propertiesBlocks()
         bool exceptionCaught = false;
         try {
             ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
-            project = loader->resolveProject(projectFile, "someBuildDirectory", buildConfig);
+            project = loader->resolveProject(projectFile, "/some/build/directory", buildConfig);
             QVERIFY(project);
         } catch (const Error &e) {
             exceptionCaught = true;
@@ -277,7 +277,7 @@ void TestLanguage::fileTags()
         bool exceptionCaught = false;
         try {
             ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/filetags.qbs");
-            project = loader->resolveProject(projectFile, "someBuildDirectory", buildConfig);
+            project = loader->resolveProject(projectFile, "/some/build/directory", buildConfig);
             QVERIFY(project);
         }
         catch (const Error &e) {

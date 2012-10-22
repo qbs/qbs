@@ -148,18 +148,36 @@ bool FileInfo::isPattern(const QStringRef &str)
     return false;
 }
 
+/**
+ * Concatenates the paths \a base and \a rel.
+ * Base must be an absolute path.
+ * Double dots at the start of \a rel are handled.
+ * This function assumes that both paths are clean, that is they don't contain
+ * double slashes or redundant dot parts.
+ */
 QString FileInfo::resolvePath(const QString &base, const QString &rel)
 {
+    Q_ASSERT(isAbsolute(base));
     if (isAbsolute(rel))
         return rel;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))
         return base;
 
     QString r = base;
-    if (!r.endsWith(QLatin1Char('/')))
-        r.append(QLatin1Char('/'));
-    r.append(rel);
+    if (r.endsWith(QLatin1Char('/')))
+        r.chop(1);
 
+    QString s = rel;
+    while (s.startsWith(QLatin1String("../"))) {
+        s.remove(0, 3);
+        int idx = r.lastIndexOf(QLatin1Char('/'));
+        if (idx >= 0)
+            r.truncate(idx);
+    }
+
+    r.reserve(r.length() + 1 + s.length());
+    r += QLatin1Char('/');
+    r += s;
     return r;
 }
 

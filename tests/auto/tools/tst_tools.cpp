@@ -88,6 +88,9 @@ private slots:
         QVERIFY(qbs::FileInfo::isAbsolute("C:\\bla\\lol"));
 #endif
         QCOMPARE(qbs::FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
+        QCOMPARE(qbs::FileInfo::resolvePath("/abc/def/ghi/jkl/", "../foo/bar"), QString("/abc/def/ghi/foo/bar"));
+        QCOMPARE(qbs::FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));
+        QCOMPARE(qbs::FileInfo::resolvePath("/abc", "../../../foo/bar"), QString("/foo/bar"));
     }
 
     void testProjectFileLookup()

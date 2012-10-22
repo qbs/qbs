@@ -1788,6 +1788,7 @@ static bool checkCondition(EvaluationObject *object)
 ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectoryRoot,
                                             const QVariantMap &userProperties, bool resolveProductDependencies)
 {
+    Q_ASSERT(FileInfo::isAbsolute(buildDirectoryRoot));
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
     m_project = projectFile;
@@ -2082,6 +2083,7 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
                 Group::Ptr group = rproduct->groups.first();
                 artifact = SourceArtifact::create();
                 artifact->configuration = group->configuration;
+                fileName = QDir::cleanPath(fileName);
                 artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
                 group->files += artifact;
             }
