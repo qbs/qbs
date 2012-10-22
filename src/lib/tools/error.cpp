@@ -33,45 +33,86 @@
 
 namespace qbs {
 
+ErrorData::ErrorData()
+    : m_line(0)
+    , m_column(0)
+{
+}
+
+ErrorData::ErrorData(const QString &description, const QString &file, int line, int column)
+    : m_description(description)
+    , m_file(file)
+    , m_line(line)
+    , m_column(column)
+{
+}
+
+ErrorData::ErrorData(const ErrorData &rhs)
+    : m_description(rhs.m_description)
+    , m_file(rhs.m_file)
+    , m_line(rhs.m_line)
+    , m_column(rhs.m_column)
+{
+}
+
 QString ErrorData::toString() const
 {
     QString str;
-    if (!file.isEmpty()) {
-        str = QDir::toNativeSeparators(file);
+    if (!m_file.isEmpty()) {
+        str = QDir::toNativeSeparators(m_file);
         QString lineAndColumn;
-        if (line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(line);
-        if (column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(column);
+        if (m_line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(m_line);
+        if (m_column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(m_column);
         str += lineAndColumn;
-        str += QLatin1Char(' ') + description;
+        str += QLatin1Char(' ') + m_description;
     } else {
-        str = description;
+        str = m_description;
     }
     return str;
 }
 
+Error::Error()
+{
+}
+
+Error::Error(const Error &rhs)
+    : m_data(rhs.m_data)
+{
+}
+
+Error::Error(const QString &description, const QString &file, int line, int column)
+{
+    append(description, file, line, column);
+}
+
+Error::Error(const QString &description, const CodeLocation &location)
+{
+    append(description, location.fileName, location.line, location.column);
+}
+
+void Error::append(const QString &description, const QString &file, int line, int column)
+{
+    m_data.append(ErrorData(description, file, line, column));
+}
+
+void Error::append(const QString &description, const CodeLocation &location)
+{
+    m_data.append(ErrorData(description, location.fileName, location.line, location.column));
+}
+
 void Error::clear()
 {
-    data.clear();
-}
-
-void Error::append(const QString &_description, const QString &_file, int _line, int _column)
-{
-    data.append(ErrorData(_description, _file, _line, _column));
-}
-
-void Error::append(const QString &_description, const CodeLocation &location)
-{
-    data.append(ErrorData(_description, location.fileName, location.line, location.column));
+    m_data.clear();
 }
 
 QString Error::toString() const
 {
     QStringList lines;
-    foreach (const ErrorData &e, data)
+    foreach (const ErrorData &e, m_data)
         lines.append(e.toString());
     return lines.join(QLatin1String("\n"));
 }
 
-}
+} // namespace qbs

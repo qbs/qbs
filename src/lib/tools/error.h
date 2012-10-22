@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ERR
-#define QBS_ERR
+#ifndef QBS_ERROR
+#define QBS_ERROR
 
 #include "codelocation.h"
 
@@ -37,64 +37,39 @@ namespace qbs {
 class ErrorData
 {
 public:
-    ErrorData() :
-        line(0),
-        column(0)
-    { }
-
-    ErrorData(const QString &_description, const QString &_file = QString(),
-              int _line = 0, int _column = 0)
-        : description(_description)
-        , file(_file)
-        , line(_line)
-        , column(_column)
-    { }
-
-    ErrorData(const ErrorData &rhs)
-        : description(rhs.description)
-        , file(rhs.file)
-        , line(rhs.line)
-        , column(rhs.column)
-    { }
+    ErrorData();
+    ErrorData(const QString &description, const QString &file = QString(),
+              int line = 0, int column = 0);
+    ErrorData(const ErrorData &rhs);
 
     QString toString() const;
 
-    QString description;
-    QString file;
-    int line, column;
+private:
+    QString m_description;
+    QString m_file;
+    int m_line;
+    int m_column;
 };
 
 class Error
 {
 public:
-    Error()
-    { }
+    Error();
+    Error(const Error &rhs);
+    Error(const QString &description,
+          const QString &file = QString(),
+          int line = 0, int column = 0);
+    Error(const QString &description, const CodeLocation &location);
 
-    Error(const Error &rhs)
-        : data(rhs.data)
-    { }
-
-    Error(const QString &_description,
-          const QString &_file = QString(),
-          int _line = 0, int _column = 0)
-    {
-        append(_description, _file, _line, _column);
-    }
-
-    Error(const QString &_description, const CodeLocation &location)
-    {
-        append(_description, location.fileName, location.line, location.column);
-    }
-
-    void append(const QString &_description,
-                const QString &_file = QString(),
-                int _line = 0, int _column = 0);
-    void append(const QString &_description, const CodeLocation &location);
-
-    QString toString() const;
+    void append(const QString &description,
+                const QString &file = QString(),
+                int line = 0, int column = 0);
+    void append(const QString &description, const CodeLocation &location);
     void clear();
+    QString toString() const;
 
-    QList<ErrorData> data;
+private:
+    QList<ErrorData> m_data;
 };
 
 } // namespace qbs
@@ -102,4 +77,4 @@ public:
 #define QBS_TESTLIB_CATCH catch (qbs::Error &e) { \
     QFAIL(qPrintable(QString(QLatin1String("\n%1\n")).arg(e.toString())));}
 
-#endif
+#endif // QBS_ERROR
