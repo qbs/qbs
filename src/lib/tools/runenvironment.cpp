@@ -77,7 +77,7 @@ int RunEnvironment::runShell()
     const QString productId = m_resolvedProduct->name;
     qbsInfo() << tr("Starting shell for target '%1'.").arg(productId);
     const QProcessEnvironment environment = m_resolvedProduct->buildEnvironment;
-#ifdef Q_OS_UNIX
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
     clearenv();
 #endif
     foreach (const QString &key, environment.keys())
