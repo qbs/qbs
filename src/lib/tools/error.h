@@ -42,6 +42,10 @@ public:
               int line = 0, int column = 0);
     ErrorData(const ErrorData &rhs);
 
+    const QString &description() const { return m_description; }
+    const QString &file() const { return m_file; }
+    int line() const { return m_line; }
+    int column() const { return m_column; }
     QString toString() const;
 
 private:
@@ -65,6 +69,7 @@ public:
                 const QString &file = QString(),
                 int line = 0, int column = 0);
     void append(const QString &description, const CodeLocation &location);
+    const QList<ErrorData> &entries() const;
     void clear();
     QString toString() const;
 

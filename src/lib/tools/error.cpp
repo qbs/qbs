@@ -102,6 +102,11 @@ void Error::append(const QString &description, const CodeLocation &location)
     m_data.append(ErrorData(description, location.fileName, location.line, location.column));
 }
 
+const QList<ErrorData> &Error::entries() const
+{
+    return m_data;
+}
+
 void Error::clear()
 {
     m_data.clear();
