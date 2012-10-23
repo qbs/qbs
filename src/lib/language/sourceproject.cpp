@@ -41,15 +41,15 @@ class SourceProjectPrivate : public QSharedData
 {
 public:
     QbsEngine *engine;
-    QSharedPointer<qbs::BuildGraph> buildGraph;
+    QSharedPointer<BuildGraph> buildGraph;
     QList<BuildProject::Ptr> buildProjects;
-    qbs::Settings::Ptr settings;
+    Settings::Ptr settings;
 };
 
 SourceProject::SourceProject(QbsEngine *engine) : d(new SourceProjectPrivate)
 {
     d->engine = engine;
-    d->settings = qbs::Settings::create(); // fix it
+    d->settings = Settings::create(); // fix it
 }
 
 SourceProject::~SourceProject()
@@ -68,7 +68,7 @@ SourceProject &SourceProject::operator =(const SourceProject &other)
     return *this;
 }
 
-void SourceProject::setSettings(const qbs::Settings::Ptr &settings)
+void SourceProject::setSettings(const Settings::Ptr &settings)
 {
     d->settings = settings;
 }
@@ -82,7 +82,7 @@ void SourceProject::loadPlugins()
 
     QStringList pluginPaths;
     foreach (const QString &pluginPath, d->settings->pluginPaths()) {
-        if (!qbs::FileInfo::exists(pluginPath)) {
+        if (!FileInfo::exists(pluginPath)) {
             qbsWarning() << tr("Plugin path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(pluginPath));
         } else {
@@ -91,7 +91,7 @@ void SourceProject::loadPlugins()
     }
     foreach (const QString &pluginPath, pluginPaths)
         QCoreApplication::addLibraryPath(pluginPath);
-    qbs::ScannerPluginManager::instance()->loadPlugins(pluginPaths);
+    ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 }
 
 void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMap> buildConfigs)
@@ -99,7 +99,7 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
     if (buildConfigs.isEmpty())
         throw Error(tr("No build configuration given."));
 
-    QHash<QString, qbs::Platform::Ptr > platforms = Platform::platforms();
+    QHash<QString, Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty())
         throw Error(tr("No platforms configured. You must run 'qbs platforms probe' first."));
 
@@ -174,29 +174,29 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
                 newElements.append(nameElements.last());
                 nameElements = newElements;
             }
-            qbs::setConfigProperty(buildCfg, nameElements, buildCfg.value(property));
+            setConfigProperty(buildCfg, nameElements, buildCfg.value(property));
             buildCfg.remove(property);
         }
     }
 
-    qbs::Loader loader(d->engine);
+    Loader loader(d->engine);
     loader.setSearchPaths(d->settings->searchPaths());
-    d->buildGraph = QSharedPointer<qbs::BuildGraph>(new qbs::BuildGraph(d->engine));
+    d->buildGraph = QSharedPointer<BuildGraph>(new BuildGraph(d->engine));
     d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
 
     ProjectFile::Ptr projectFile;
     foreach (const QVariantMap &buildCfg, buildConfigs) {
-        qbs::BuildProject::Ptr bProject;
-        const qbs::FileTime projectFileTimeStamp = qbs::FileInfo(projectFileName).lastModified();
-        qbs::BuildProject::LoadResult loadResult;
-        loadResult = qbs::BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, buildCfg, d->settings->searchPaths());
+        BuildProject::Ptr bProject;
+        const FileTime projectFileTimeStamp = FileInfo(projectFileName).lastModified();
+        BuildProject::LoadResult loadResult;
+        loadResult = BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, buildCfg, d->settings->searchPaths());
         if (!loadResult.discardLoadedProject)
             bProject = loadResult.loadedProject;
         if (!bProject) {
             TimedActivityLogger loadLogger(QLatin1String("Loading project"));
             if (!projectFile)
                 projectFile = loader.loadProject(projectFileName);
-            qbs::ResolvedProject::Ptr rProject;
+            ResolvedProject::Ptr rProject;
             if (loadResult.changedResolvedProject) {
                 rProject = loadResult.changedResolvedProject;
             } else {
@@ -205,7 +205,7 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
                 rProject = loader.resolveProject(projectFile, buildDir, buildCfg);
             }
             if (rProject->products.isEmpty())
-                throw qbs::Error(QString("'%1' does not contain products.").arg(projectFileName));
+                throw Error(QString("'%1' does not contain products.").arg(projectFileName));
             loadLogger.finishActivity();
             TimedActivityLogger resolveLogger(QLatin1String("Resolving project"));
             bProject = d->buildGraph->resolveProject(rProject);
@@ -220,7 +220,7 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
         d->buildProjects.append(bProject);
 
         qbsDebug("for %s:", qPrintable(bProject->resolvedProject()->id()));
-        foreach (const qbs::ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
+        foreach (const ResolvedProduct::ConstPtr &p, bProject->resolvedProject()->products) {
             qbsDebug("  - [%s] %s as %s"
                    ,qPrintable(p->fileTags.join(", "))
                    ,qPrintable(p->name)
@@ -231,7 +231,7 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
     }
 }
 
-QList<qbs::BuildProject::Ptr> SourceProject::buildProjects() const
+QList<BuildProject::Ptr> SourceProject::buildProjects() const
 {
     return d->buildProjects;
 }

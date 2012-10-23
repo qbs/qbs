@@ -51,6 +51,8 @@
 
 #include <cstdio>
 
+using namespace qbs;
+
 static void showUsage()
 {
     QTextStream s(stderr);
@@ -78,19 +80,19 @@ static QString toExternalSeparators(const QString &variable)
     return transformedVar.replace(QLatin1Char('/'), QLatin1Char('.'));
 }
 
-int probe(const QString &settingsPath, QHash<QString, qbs::Platform::Ptr> &platforms);
+int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms);
 
 int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
     QTextStream qstdout(stdout);
 
-    qbs::ConsoleLogger cl;
+    ConsoleLogger cl;
 
-    qbs::Settings::Ptr settings = qbs::Settings::create();
+    Settings::Ptr settings = Settings::create();
     QString defaultPlatform = settings->value("modules/qbs/platform").toString();
 
-    QString localSettingsPath = qbs::Platform::configBaseDir();
+    QString localSettingsPath = Platform::configBaseDir();
     if (!localSettingsPath.endsWith(QLatin1Char('/')))
         localSettingsPath.append(QLatin1Char('/'));
     QDir().mkpath(localSettingsPath);
@@ -120,7 +122,7 @@ int main(int argc, char **argv)
         } else if (cmd == "list" || cmd == "ls") {
             action = ListPlatform;
         } else if (cmd == "print-config-base-dir") {
-            puts(qPrintable(QDir::toNativeSeparators(qbs::Platform::configBaseDir())));
+            puts(qPrintable(QDir::toNativeSeparators(Platform::configBaseDir())));
             return 0;
         } else {
             showUsage();
@@ -128,17 +130,17 @@ int main(int argc, char **argv)
         }
     }
 
-    QHash<QString, qbs::Platform::Ptr> platforms;
+    QHash<QString, Platform::Ptr> platforms;
     QDirIterator i(localSettingsPath, QDir::Dirs | QDir::NoDotAndDotDot);
     while (i.hasNext()) {
         i.next();
-        qbs::Platform::Ptr platform(new qbs::Platform(i.fileName(), i.filePath()));
+        Platform::Ptr platform(new Platform(i.fileName(), i.filePath()));
         platforms.insert(platform->name, platform);
     }
 
     if (action == ListPlatform) {
         qstdout << "Platforms:\n";
-        foreach (qbs::Platform::Ptr platform, platforms.values()) {
+        foreach (Platform::Ptr platform, platforms.values()) {
             qstdout << "\t- " << platform->name;
             if (platform->name == defaultPlatform)
                 qstdout << " (default)";
@@ -151,16 +153,16 @@ int main(int argc, char **argv)
         }
         QString from = arguments.takeFirst();
         if (!platforms.contains(from)) {
-            qbs::qbsError("Cannot rename: No such target '%s'.", qPrintable(from));
+            qbsError("Cannot rename: No such target '%s'.", qPrintable(from));
             return 5;
         }
         QString to = arguments.takeFirst();
         if (platforms.contains(to)) {
-            qbs::qbsError("Cannot rename: Target '%s' already exists.", qPrintable(to));
+            qbsError("Cannot rename: Target '%s' already exists.", qPrintable(to));
             return 5;
         }
         if (!QFile(localSettingsPath + from).rename(localSettingsPath + to)) {
-            qbs::qbsError("File error moving '%s'' to '%s'.",
+            qbsError("File error moving '%s'' to '%s'.",
                     qPrintable(localSettingsPath + from),
                     qPrintable(localSettingsPath + to)
                     );
@@ -174,7 +176,7 @@ int main(int argc, char **argv)
         }
         QString targetName = arguments.takeFirst();
         if (!platforms.contains(targetName)) {
-            qbs::qbsError("Cannot remove: No such target '%s'.", qPrintable(targetName));
+            qbsError("Cannot remove: No such target '%s'.", qPrintable(targetName));
             return 5;
         }
         QDirIterator i1(localSettingsPath + targetName,
@@ -200,10 +202,10 @@ int main(int argc, char **argv)
         }
         QString platformName = arguments.takeFirst();
         if (!platforms.contains(platformName)) {
-            qbs::qbsError("Unknown platform '%s'.", qPrintable(platformName));
+            qbsError("Unknown platform '%s'.", qPrintable(platformName));
             return 5;
         }
-        qbs::Platform::Ptr p = platforms.value(platformName);
+        Platform::Ptr p = platforms.value(platformName);
         if (arguments.count()) {
             const QString key = toInternalSeparators(arguments.takeFirst());
             if (arguments.count()) {
@@ -211,7 +213,7 @@ int main(int argc, char **argv)
                 p->settings.setValue(key, value);
             }
             if (!p->settings.contains(key)) {
-                qbs::qbsError("No such configuration key '%s'.",
+                qbsError("No such configuration key '%s'.",
                         qPrintable(toExternalSeparators(key)));
                 return 7;
             }
@@ -227,7 +229,7 @@ int main(int argc, char **argv)
         bool firstRun = platforms.isEmpty();
         probe(localSettingsPath, platforms);
         if (firstRun && !platforms.isEmpty()) {
-            settings->setValue(qbs::Settings::Global, "modules/qbs/platform", platforms.values().at(0)->name);
+            settings->setValue(Settings::Global, "modules/qbs/platform", platforms.values().at(0)->name);
         }
     }
     return 0;

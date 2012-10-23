@@ -49,9 +49,9 @@ AbstractCommand::~AbstractCommand()
 AbstractCommand *AbstractCommand::createByType(AbstractCommand::CommandType commandType)
 {
     switch (commandType) {
-    case qbs::AbstractCommand::ProcessCommandType:
+    case AbstractCommand::ProcessCommandType:
         return new ProcessCommand;
-    case qbs::AbstractCommand::JavaScriptCommandType:
+    case AbstractCommand::JavaScriptCommandType:
         return new JavaScriptCommand;
     }
     qFatal("%s: Invalid command type %d", Q_FUNC_INFO, commandType);

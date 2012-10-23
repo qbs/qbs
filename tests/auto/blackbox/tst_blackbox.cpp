@@ -30,12 +30,13 @@
 #include "tst_blackbox.h"
 #include <tools/hostosinfo.h>
 
+using namespace qbs;
 
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/../../../");
     filePath += "bin/qbs";
-    filePath = qbs::HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
+    filePath = HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
     return filePath;
 }
 
@@ -165,19 +166,19 @@ void TestBlackbox::build_project_data()
     QTest::addColumn<QString>("productFileName");
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
-            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
     QTest::newRow("Qt5 plugin")
             << QString("qt5plugin")
-            << QString(buildDir + QLatin1String("/") + qbs::HostOsInfo::dynamicLibraryName("echoplugin"));
+            << QString(buildDir + QLatin1String("/") + HostOsInfo::dynamicLibraryName("echoplugin"));
     QTest::newRow("Q_OBJECT in source")
             << QString("moc_cpp")
-            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_cpp"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_cpp"));
     QTest::newRow("Q_OBJECT in header")
             << QString("moc_hpp")
-            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp"));
     QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
             << QString("moc_hpp_included")
-            << QString(qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp_included"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp_included"));
 }
 
 void TestBlackbox::build_project()
@@ -200,7 +201,7 @@ void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
-    const QString fileName = qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/i");
+    const QString fileName = HostOsInfo::appendExecutableSuffix(buildDir + "/i");
     QVERIFY2(QFile(fileName).exists(), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);
@@ -223,7 +224,7 @@ void TestBlackbox::track_qobject_change()
     QVERIFY(QFile("bla_qobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    const QString productFilePath = qbs::HostOsInfo::appendExecutableSuffix(buildDir + "/i");
+    const QString productFilePath = HostOsInfo::appendExecutableSuffix(buildDir + "/i");
     QVERIFY2(QFile(productFilePath).exists(), qPrintable(productFilePath));
     QString moc_bla_objectFileName = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla" + objectSuffix;
     QVERIFY(QFile(moc_bla_objectFileName).exists());

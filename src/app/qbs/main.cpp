@@ -46,6 +46,8 @@
 #include <QDir>
 #include <QProcess>
 
+using namespace qbs;
+
 enum ExitCode
 {
     ExitCodeOK = 0,
@@ -61,7 +63,7 @@ static bool tryToRunTool(const QStringList &arguments, int &exitCode)
     if (arguments.isEmpty())
         return false;
     qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
-            + qbs::HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
+            + HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
     QStringList subProcessArgs = arguments;
     const QString subProcess = subProcessArgs.takeFirst();
     if (subProcess.startsWith(QLatin1Char('-')))
@@ -74,76 +76,76 @@ static int makeClean()
 {
     // ### TODO: take selected products into account!
     QString errorMessage;
-    const QString buildPath = qbs::FileInfo::resolvePath(QDir::currentPath(),
+    const QString buildPath = FileInfo::resolvePath(QDir::currentPath(),
             QLatin1String("build"));
-    if (!qbs::removeDirectoryWithContents(buildPath, &errorMessage)) {
-        qbs::qbsError() << errorMessage;
+    if (!removeDirectoryWithContents(buildPath, &errorMessage)) {
+        qbsError() << errorMessage;
         return ExitCodeErrorExecutionFailed;
     }
     return 0;
 }
 
-static int runShell(const qbs::SourceProject &sourceProject)
+static int runShell(const SourceProject &sourceProject)
 {
-    qbs::BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
-    qbs::BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
-    qbs::RunEnvironment run(sourceProject.engine(), buildProduct->rProduct);
+    BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
+    BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
+    RunEnvironment run(sourceProject.engine(), buildProduct->rProduct);
     return run.runShell();
 }
 
-static int buildProject(qbs::Application &app, const qbs::SourceProject sourceProject,
-        const qbs::BuildOptions &buildOptions)
+static int buildProject(Application &app, const SourceProject sourceProject,
+        const BuildOptions &buildOptions)
 {
-    qbs::Executor executor;
+    Executor executor;
     app.setExecutor(&executor);
     QObject::connect(&executor, SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
     QObject::connect(&executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
     executor.setEngine(sourceProject.engine());
     executor.setBuildOptions(buildOptions);
-    qbs::TimedActivityLogger buildLogger(QLatin1String("Building project"), QString(),
-            qbs::LoggerInfo);
+    TimedActivityLogger buildLogger(QLatin1String("Building project"), QString(),
+            LoggerInfo);
     executor.build(sourceProject.buildProjects());
     app.exec();
     buildLogger.finishActivity();
     app.setExecutor(0);
-    if (executor.state() == qbs::Executor::ExecutorError)
+    if (executor.state() == Executor::ExecutorError)
         return ExitCodeErrorExecutionFailed;
 
     // store the projects on disk
     try {
-        foreach (const qbs::BuildProject::ConstPtr &buildProject, sourceProject.buildProjects())
+        foreach (const BuildProject::ConstPtr &buildProject, sourceProject.buildProjects())
             buildProject->store();
-    } catch (const qbs::Error &e) {
-        qbs::qbsError() << e.toString();
+    } catch (const Error &e) {
+        qbsError() << e.toString();
         return ExitCodeErrorExecutionFailed;
     }
 
-    return executor.buildResult() == qbs::Executor::SuccessfulBuild ? 0 : ExitCodeErrorBuildFailure;
+    return executor.buildResult() == Executor::SuccessfulBuild ? 0 : ExitCodeErrorBuildFailure;
 }
 
-static qbs::Artifact *findTarget(const qbs::BuildProduct::ConstPtr &buildProduct,
+static Artifact *findTarget(const BuildProduct::ConstPtr &buildProduct,
                                  const QString &name)
 {
-    foreach (qbs::Artifact *artifact, buildProduct->targetArtifacts)
+    foreach (Artifact *artifact, buildProduct->targetArtifacts)
         if (artifact->filePath().endsWith(name))
             return artifact;
     return 0;
 }
 
-static int runTarget(const qbs::SourceProject &sourceProject, const QString &targetName,
+static int runTarget(const SourceProject &sourceProject, const QString &targetName,
         const QStringList &arguments)
 {
-    qbs::BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
-    qbs::BuildProduct::Ptr productToRun;
+    BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
+    BuildProduct::Ptr productToRun;
     QString productFileName;
 
     if (targetName.isEmpty()) {
-        qbs::Artifact *executable = 0;
-        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
-            foreach (qbs::Artifact *artifact, buildProduct->targetArtifacts) {
+        Artifact *executable = 0;
+        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+            foreach (Artifact *artifact, buildProduct->targetArtifacts) {
                 if (artifact->fileTags.contains("application")) {
                     if (executable) {
-                        qbs::qbsError() << QObject::tr("There's more than one executable target in "
+                        qbsError() << QObject::tr("There's more than one executable target in "
                                                        "the project. Please specify which target "
                                                        "you want to run.");
                         return EXIT_FAILURE;
@@ -152,22 +154,22 @@ static int runTarget(const qbs::SourceProject &sourceProject, const QString &tar
                 }
             }
         }
-        qbs::BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
+        BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
         if (!executable) {
-            qbs::qbsError() << QObject::tr("Cannot find executable target in product '%1'.")
+            qbsError() << QObject::tr("Cannot find executable target in product '%1'.")
                                .arg(productToRun->rProduct->name);
             return EXIT_FAILURE;
         }
         productToRun = buildProduct;
         productFileName = executable->filePath();
     } else {
-        qbs::Artifact *executable = 0;
-        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+        Artifact *executable = 0;
+        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
             executable = findTarget(buildProduct, targetName);
             if (!executable)
                 continue;
             if (!executable->fileTags.contains("application")) {
-                qbs::qbsError() << QObject::tr("%1 is not an executable target.").arg(executable->filePath());
+                qbsError() << QObject::tr("%1 is not an executable target.").arg(executable->filePath());
                 return EXIT_FAILURE;
             }
             productToRun = buildProduct;
@@ -177,22 +179,22 @@ static int runTarget(const qbs::SourceProject &sourceProject, const QString &tar
 
     if (!productToRun) {
         if (targetName.isEmpty())
-            qbs::qbsError() << QObject::tr("Can't find a suitable product to run.");
+            qbsError() << QObject::tr("Can't find a suitable product to run.");
         else
-            qbs::qbsError() << QObject::tr("No such target: '%1'").arg(targetName);
+            qbsError() << QObject::tr("No such target: '%1'").arg(targetName);
         return ExitCodeErrorBuildFailure;
     }
 
-    qbs::RunEnvironment run(sourceProject.engine(), productToRun->rProduct);
+    RunEnvironment run(sourceProject.engine(), productToRun->rProduct);
     return run.runTarget(productFileName, arguments);
 }
 
 
 int main(int argc, char *argv[])
 {
-    qbs::ConsoleLogger cl;
+    ConsoleLogger cl;
 
-    qbs::Application app(argc, argv);
+    Application app(argc, argv);
     app.init();
     QStringList arguments = app.arguments();
     arguments.removeFirst();
@@ -201,7 +203,7 @@ int main(int argc, char *argv[])
     if (tryToRunTool(arguments, toolExitCode))
         return toolExitCode;
 
-    qbs::CommandLineParser parser;
+    CommandLineParser parser;
     if (!parser.parseCommandLine(arguments)) {
         parser.printHelp();
         return ExitCodeErrorParsingCommandLine;
@@ -212,29 +214,29 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    qbs::QbsEngine engine;
-    qbs::SourceProject sourceProject(&engine);
+    QbsEngine engine;
+    SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(parser.settings());
         sourceProject.loadPlugins();
         sourceProject.loadProject(parser.projectFileName(), parser.buildConfigurations());
-    } catch (const qbs::Error &error) {
-        qbs::qbsError() << error.toString();
+    } catch (const Error &error) {
+        qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
     }
 
     switch (parser.command()) {
-    case qbs::CommandLineParser::CleanCommand:
+    case CommandLineParser::CleanCommand:
         return makeClean();
-    case qbs::CommandLineParser::StartShellCommand:
+    case CommandLineParser::StartShellCommand:
         return runShell(sourceProject);
-    case qbs::CommandLineParser::StatusCommand:
-        return qbs::printStatus(parser.projectFileName(), sourceProject);
-    case qbs::CommandLineParser::PropertiesCommand:
+    case CommandLineParser::StatusCommand:
+        return printStatus(parser.projectFileName(), sourceProject);
+    case CommandLineParser::PropertiesCommand:
         return showProperties(sourceProject, parser.buildOptions());
-    case qbs::CommandLineParser::BuildCommand:
+    case CommandLineParser::BuildCommand:
         return buildProject(app, sourceProject, parser.buildOptions());
-    case qbs::CommandLineParser::RunCommand: {
+    case CommandLineParser::RunCommand: {
         const int buildExitCode = buildProject(app, sourceProject, parser.buildOptions());
         if (buildExitCode != 0)
             return buildExitCode;

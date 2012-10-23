@@ -186,7 +186,7 @@ void CommandLineParser::doParse()
         qbsInfo() << tr("Your main project file has the old suffix '.qbp'. This does not "
                         "hurt, but the convention is now to use '.qbs'.");
 
-    qbsDebug() << qbs::DontPrintLogLevel << "Using project file '"
+    qbsDebug() << DontPrintLogLevel << "Using project file '"
                << QDir::toNativeSeparators(projectFileName()) << "'.";
 }
 

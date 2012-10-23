@@ -197,7 +197,7 @@ void Process::writeLine(const QString &str)
     if (!t->qstream)
         return;
     (*t->qstream) << str;
-    if (qbs::HostOsInfo::isWindowsHost())
+    if (HostOsInfo::isWindowsHost())
         (*t->qstream) << '\r';
     (*t->qstream) << '\n';
 }

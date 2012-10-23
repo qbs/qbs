@@ -717,7 +717,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
 {
     m_searchPaths.clear();
     foreach (const QString &searchPath, searchPaths) {
-        if (!qbs::FileInfo::exists(searchPath)) {
+        if (!FileInfo::exists(searchPath)) {
             qbsWarning() << tr("Search path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(searchPath));
         } else {

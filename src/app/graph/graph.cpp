@@ -62,6 +62,8 @@
 #include <QAbstractListModel>
 #include <QTimer>
 
+using namespace qbs;
+
 class QGV : public QGraphicsView
 {
 public:
@@ -90,7 +92,7 @@ protected:
 
 struct ArtifactC
 {
-    qbs::Artifact *artifact;
+    Artifact *artifact;
     QString text;
     QString label;
     int grade;
@@ -100,7 +102,7 @@ struct ArtifactC
     QGraphicsRectItem *graphicsRectItem;
 };
 
-QHash<qbs::Artifact *, ArtifactC *> cartifacts;
+QHash<Artifact *, ArtifactC *> cartifacts;
 const qreal SCALE = 100.0f;
 const qreal VSPACE = 200.0f;
 
@@ -156,7 +158,7 @@ private:
 };
 
 
-void targetToScene(QGraphicsScene *scene, qbs::BuildProduct *t);
+void targetToScene(QGraphicsScene *scene, BuildProduct *t);
 
 int main(int argc, char *argv[])
 {
@@ -169,8 +171,8 @@ int main(int argc, char *argv[])
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
-    qbs::ConsoleLogger cl;
-    qbs::CommandLineParser parser;
+    ConsoleLogger cl;
+    CommandLineParser parser;
     if (!parser.parseCommandLine(arguments)) {
         parser.printHelp();
         return 1;
@@ -180,20 +182,20 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    qbs::QbsEngine engine;
-    qbs::SourceProject sourceProject(&engine);
+    QbsEngine engine;
+    SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(parser.settings());
         sourceProject.loadPlugins();
         sourceProject.loadProject(parser.projectFileName(), parser.buildConfigurations());
-    } catch (const qbs::Error &error) {
-        qbs::qbsError() << error.toString();
+    } catch (const Error &error) {
+        qbsError() << error.toString();
         return 4;
     }
 
     QGraphicsScene scene;
-    foreach (const qbs::BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
-        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+    foreach (const BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
+        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
             targetToScene(&scene, buildProduct.data());
         }
     }
@@ -211,7 +213,7 @@ QMap<int, QMap<int, ArtifactC *> > table;
 
 int startcol = 0;
 int endcol = 0;
-void step1(qbs::Artifact *artifact, int l)
+void step1(Artifact *artifact, int l)
 {
     if (!cartifacts.contains(artifact)) {
         ArtifactC *nc =  new ArtifactC;
@@ -226,7 +228,7 @@ void step1(qbs::Artifact *artifact, int l)
         }
         table[l][col] = nc;
         endcol = qMax(endcol, col);
-        foreach (qbs::Artifact *n2, artifact->children) {
+        foreach (Artifact *n2, artifact->children) {
             step1(n2, l + 1);
         }
         startcol = endcol + 1;
@@ -239,7 +241,7 @@ QMap<int, int> layerx;
 QMap<int, int> layerC;
 QMultiMap<ArtifactC *, ArtifactC *> edges;
 
-void targetToScene(QGraphicsScene *scene, qbs::BuildProduct *t)
+void targetToScene(QGraphicsScene *scene, BuildProduct *t)
 {
     QFont sceneFont = scene->font();
     sceneFont.setPointSize(14);
@@ -248,7 +250,7 @@ void targetToScene(QGraphicsScene *scene, qbs::BuildProduct *t)
     QPen pen = QColor(Qt::black);
     QBrush brush = QColor(Qt::white);
 
-    foreach (qbs::Artifact *targetArtifact, t->targetArtifacts)
+    foreach (Artifact *targetArtifact, t->targetArtifacts)
         step1(targetArtifact, 1);
     startcol = endcol + 1;
     QFontMetricsF metrics(sceneFont);
@@ -287,7 +289,7 @@ void targetToScene(QGraphicsScene *scene, qbs::BuildProduct *t)
             slabel->setPos(textrect.topLeft());
 
             // insert edges
-            foreach (qbs::Artifact *c, nc->artifact->children) {
+            foreach (Artifact *c, nc->artifact->children) {
                 edges.insert(nc, cartifacts[c]);
             }
         }

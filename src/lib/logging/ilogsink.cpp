@@ -33,12 +33,12 @@ namespace qbs {
 
 void ILogSink::setGlobalLogSink(ILogSink *logSink)
 {
-    qbs::Logger::instance().setLogSink(logSink);
+    Logger::instance().setLogSink(logSink);
 }
 
 void ILogSink::cleanupGlobalLogSink()
 {
-    qbs::Logger::instance().setLogSink(0);
+    Logger::instance().setLogSink(0);
 }
 
 } // namespace qbs

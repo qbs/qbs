@@ -33,6 +33,8 @@
 #include <QDir>
 #include <QtTest>
 
+using namespace qbs;
+
 class TestTools : public QObject
 {
     Q_OBJECT
@@ -45,26 +47,26 @@ private slots:
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar";
         args << "-h";
-        qbs::CommandLineParser parser;
+        CommandLineParser parser;
         QVERIFY(parser.parseCommandLine(args));
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
-        QCOMPARE(parser.command(), qbs::CommandLineParser::BuildCommand);
+        QCOMPARE(Logger::instance().level(), LoggerTrace);
+        QCOMPARE(parser.command(), CommandLineParser::BuildCommand);
         QCOMPARE(parser.buildOptions().selectedProductNames, QStringList() << "blubb");
         QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
         QVERIFY(parser.buildOptions().keepGoing);
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqqh"));
-        QCOMPARE(qbs::Logger::instance().level(), qbs::Logger::defaultLevel());
+        QCOMPARE(Logger::instance().level(), Logger::defaultLevel());
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqqh"));
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerWarning);
+        QCOMPARE(Logger::instance().level(), LoggerWarning);
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqh"));
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerDebug);
+        QCOMPARE(Logger::instance().level(), LoggerDebug);
         QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << "-h"));
-        QCOMPARE(qbs::Logger::instance().level(), qbs::LoggerTrace);
+        QCOMPARE(Logger::instance().level(), LoggerTrace);
     }
 
     void testInvalidCommandLine()
     {
-        qbs::CommandLineParser parser;
+        CommandLineParser parser;
         QVERIFY(!parser.parseCommandLine(QStringList() << "-x")); // Unknown short option.
         QVERIFY(!parser.parseCommandLine(QStringList() << "--xyz")); // Unknown long option.
         QVERIFY(!parser.parseCommandLine(QStringList() << "-vjv")); // Invalid position.
@@ -77,20 +79,20 @@ private slots:
 
     void testFileInfo()
     {
-        QCOMPARE(qbs::FileInfo::fileName("C:/waffl/copter.exe"), QString("copter.exe"));
-        QCOMPARE(qbs::FileInfo::baseName("C:/waffl/copter.exe.lib"), QString("copter"));
-        QCOMPARE(qbs::FileInfo::completeBaseName("C:/waffl/copter.exe.lib"), QString("copter.exe"));
-        QCOMPARE(qbs::FileInfo::path("abc"), QString("."));
-        QCOMPARE(qbs::FileInfo::path("/abc/lol"), QString("/abc"));
-        QVERIFY(!qbs::FileInfo::isAbsolute("bla/lol"));
-        QVERIFY(qbs::FileInfo::isAbsolute("/bla/lol"));
+        QCOMPARE(FileInfo::fileName("C:/waffl/copter.exe"), QString("copter.exe"));
+        QCOMPARE(FileInfo::baseName("C:/waffl/copter.exe.lib"), QString("copter"));
+        QCOMPARE(FileInfo::completeBaseName("C:/waffl/copter.exe.lib"), QString("copter.exe"));
+        QCOMPARE(FileInfo::path("abc"), QString("."));
+        QCOMPARE(FileInfo::path("/abc/lol"), QString("/abc"));
+        QVERIFY(!FileInfo::isAbsolute("bla/lol"));
+        QVERIFY(FileInfo::isAbsolute("/bla/lol"));
 #ifdef Q_OS_WIN
-        QVERIFY(qbs::FileInfo::isAbsolute("C:\\bla\\lol"));
+        QVERIFY(FileInfo::isAbsolute("C:\\bla\\lol"));
 #endif
-        QCOMPARE(qbs::FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
-        QCOMPARE(qbs::FileInfo::resolvePath("/abc/def/ghi/jkl/", "../foo/bar"), QString("/abc/def/ghi/foo/bar"));
-        QCOMPARE(qbs::FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));
-        QCOMPARE(qbs::FileInfo::resolvePath("/abc", "../../../foo/bar"), QString("/foo/bar"));
+        QCOMPARE(FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
+        QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../foo/bar"), QString("/abc/def/ghi/foo/bar"));
+        QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));
+        QCOMPARE(FileInfo::resolvePath("/abc", "../../../foo/bar"), QString("/foo/bar"));
     }
 
     void testProjectFileLookup()
@@ -101,7 +103,7 @@ private slots:
         const QString multiProjectsDir = srcDir + QLatin1String("data/dirwithmultipleprojects");
         Q_ASSERT(QDir(noProjectsDir).exists() && QDir(oneProjectDir).exists()
                 && QDir(multiProjectsDir).exists());
-        qbs::CommandLineParser parser;
+        CommandLineParser parser;
         const QStringList args(QLatin1String("-f"));
         QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbs");
         QVERIFY(parser.parseCommandLine(args + QStringList(projectFilePath)));

@@ -73,18 +73,17 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
 
 static void dumpProperties(const BuildProduct::ConstPtr &buildProduct)
 {
-    const qbs::ResolvedProduct::ConstPtr rProduct = buildProduct->rProduct;
+    const ResolvedProduct::ConstPtr rProduct = buildProduct->rProduct;
     printf("--------%s--------\n", qPrintable(rProduct->name));
     dumpMap(rProduct->configuration->value());
 }
 
-int showProperties(const qbs::SourceProject &sourceProject,
-                   const qbs::BuildOptions &buildOptions)
+int showProperties(const SourceProject &sourceProject, const BuildOptions &buildOptions)
 {
     const QStringList &selectedProducts = buildOptions.selectedProductNames;
     const bool showAll = selectedProducts.isEmpty();
-    foreach (const qbs::BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
-        foreach (const qbs::BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+    foreach (const BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
+        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
             if (showAll || selectedProducts.contains(buildProduct->rProduct->name))
                 dumpProperties(buildProduct);
         }
