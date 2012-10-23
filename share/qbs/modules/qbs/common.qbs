@@ -3,6 +3,7 @@ import qbs.fileinfo 1.0 as FileInfo
 
 Module {
     property string buildVariant: "debug"
+    property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
     property string platform

@@ -10,7 +10,7 @@ GenericGCC {
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
-    platformDefines: ['UNICODE']
+    platformDefines: base.concat(['UNICODE'])
     compilerDefines: ['__GNUC__', 'WIN32', '_WIN32']
 
     property string windresName: 'windres'

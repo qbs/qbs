@@ -8,7 +8,7 @@ CppModule {
 
     id: module
 
-    platformDefines: ['UNICODE']
+    platformDefines: base.concat(['UNICODE'])
     compilerDefines: ['_WIN32']
     warningLevel: "default"
 

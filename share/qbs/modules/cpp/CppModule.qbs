@@ -12,7 +12,7 @@ Module {
     property path precompiledHeader
     property path precompiledHeaderDir: product.buildDirectory
     property var defines
-    property var platformDefines
+    property var platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
     property var compilerDefines
     PropertyOptions {
         name: "compilerDefines"
