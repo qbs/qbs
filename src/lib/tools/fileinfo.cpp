@@ -181,24 +181,13 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel)
     return r;
 }
 
-// QString doesn't have endsWith operator with QStringRef,
-// so we have to write own implementation.
-// It's really faster than call of QString::mid
-static bool fastStringEndsWith(const QString &fileName, const QStringRef &pattern)
-{
-    if (fileName.size() < pattern.size())
-        return false;
-    return fileName.midRef(fileName.size() - pattern.size(), pattern.size())
-            .compare(pattern, Qt::CaseInsensitive) == 0;
-}
-
 bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
 {
     const QString pattern = regexp.pattern();
     // May be it's simple wildcard, i.e. "*.cpp"?
     if (pattern.startsWith(QLatin1Char('*')) && !isPattern(pattern.midRef(1))) {
         // Yes, it's rather simple to just check the extension
-        return fastStringEndsWith(fileName, pattern.midRef(1));
+        return fileName.endsWith(pattern.midRef(1));
     }
     return regexp.exactMatch(fileName);
 }
