@@ -8,13 +8,13 @@ The main documentation is available as qdoc files in the doc subdirectory.
 For building qbs you need:
 
  - a C++ compiler
- - Qt >= 4.7
+ - Qt >= 4.8
 
 
 2. Building qbs
 ===============
 
- - qmake -r
+ - qmake -r qbs.pro
  - make
  - make docs
 
