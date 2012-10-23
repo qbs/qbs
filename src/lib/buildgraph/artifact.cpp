@@ -77,7 +77,7 @@ void Artifact::load(PersistentPool &pool, QDataStream &s)
 {
     setFilePath(pool.idLoadString());
     fileTags = pool.idLoadStringSet();
-    configuration = pool.idLoadS<Configuration>(s);
+    properties = pool.idLoadS<PropertyMap>(s);
     transformer = pool.idLoadS<Transformer>(s);
     quint8 n;
     s >> artifactType
@@ -89,7 +89,7 @@ void Artifact::store(PersistentPool &pool, QDataStream &s) const
 {
     pool.storeString(m_filePath);
     pool.storeStringSet(fileTags);
-    pool.store(configuration);
+    pool.store(properties);
     pool.store(transformer);
     s << artifactType
       << static_cast<quint8>(inputsScanned);

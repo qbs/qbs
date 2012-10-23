@@ -41,7 +41,7 @@ struct ScannerPlugin;
 namespace qbs {
 
 class Artifact;
-class Configuration;
+class PropertyMap;
 
 struct ResolvedDependency
 {
@@ -87,7 +87,7 @@ private:
         ResolvedDependenciesCache resolvedDependenciesCache;
     };
 
-    QHash<QSharedPointer<const Configuration>, CacheItem> cache;
+    QHash<QSharedPointer<const PropertyMap>, CacheItem> cache;
 
     friend class InputArtifactScanner;
 };

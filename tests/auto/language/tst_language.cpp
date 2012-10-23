@@ -51,7 +51,7 @@ QVariant TestLanguage::productPropertyValue(ResolvedProduct::Ptr product, QStrin
     QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
     if (propertyNameComponents.count() > 1)
         propertyNameComponents.prepend(QLatin1String("modules"));
-    return getConfigProperty(product->configuration->value(), propertyNameComponents);
+    return getConfigProperty(product->properties->value(), propertyNameComponents);
 }
 
 void TestLanguage::initTestCase()

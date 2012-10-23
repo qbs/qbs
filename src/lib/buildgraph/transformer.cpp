@@ -44,7 +44,7 @@ Transformer::~Transformer()
 
 QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
 {
-    QScriptValue config = artifact->configuration->toScriptValue(scriptEngine);
+    QScriptValue config = artifact->properties->toScriptValue(scriptEngine);
     QScriptValue artifactConfig = scriptEngine->newObject();
     artifactConfig.setPrototype(config);
     artifactConfig.setProperty(QLatin1String("fileName"), artifact->filePath());

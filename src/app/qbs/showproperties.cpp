@@ -75,7 +75,7 @@ static void dumpProperties(const BuildProduct::ConstPtr &buildProduct)
 {
     const ResolvedProduct::ConstPtr rProduct = buildProduct->rProduct;
     printf("--------%s--------\n", qPrintable(rProduct->name));
-    dumpMap(rProduct->configuration->value());
+    dumpMap(rProduct->properties->value());
 }
 
 int showProperties(const SourceProject &sourceProject, const BuildOptions &buildOptions)

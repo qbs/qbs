@@ -164,7 +164,7 @@ void InputArtifactScanner::scan()
         QStringList includePaths;
         bool includePathsCollected = false;
 
-        InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->configuration];
+        InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
 
         foreach (const QString &fileTag, inputArtifact->fileTags) {
             QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(fileTag);
@@ -175,7 +175,7 @@ void InputArtifactScanner::scan()
                         includePaths = cacheItem.includePaths;
                     } else {
                         //qDebug() << "CACHE MISS";
-                        includePaths = collectIncludePaths(inputArtifact->configuration->value().value("modules").toMap());
+                        includePaths = collectIncludePaths(inputArtifact->properties->value().value("modules").toMap());
                         cacheItem.includePaths = includePaths;
                         cacheItem.valid = true;
                     }
@@ -289,7 +289,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
             qbsTrace("[DEPSCAN]   + '%s'", qPrintable(dependency.filePath));
         dependency.artifact = new Artifact(m_artifact->project);
         dependency.artifact->artifactType = Artifact::FileDependency;
-        dependency.artifact->configuration = m_artifact->configuration;
+        dependency.artifact->properties = m_artifact->properties;
         dependency.artifact->setFilePath(dependency.filePath);
         m_artifact->project->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {

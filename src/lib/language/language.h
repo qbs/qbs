@@ -53,24 +53,22 @@ QT_END_NAMESPACE
 
 namespace qbs {
 
-class Rule;
-
-class Configuration: public PersistentObject
+class PropertyMap: public PersistentObject
 {
 public:
-    typedef QSharedPointer<Configuration> Ptr;
-    typedef QSharedPointer<const Configuration> ConstPtr;
+    typedef QSharedPointer<PropertyMap> Ptr;
+    typedef QSharedPointer<const PropertyMap> ConstPtr;
 
-    static Ptr create() { return Ptr(new Configuration); }
-    static Ptr create(const Configuration &other) { return Ptr(new Configuration(other)); }
+    static Ptr create() { return Ptr(new PropertyMap); }
+    Ptr clone() const { return Ptr(new PropertyMap(*this)); }
 
     const QVariantMap &value() const { return m_value; }
     void setValue(const QVariantMap &value);
     QScriptValue toScriptValue(QScriptEngine *scriptEngine) const;
 
 private:
-    Configuration();
-    Configuration(const Configuration &other);
+    PropertyMap();
+    PropertyMap(const PropertyMap &other);
 
     void load(PersistentPool &, QDataStream &s);
     void store(PersistentPool &, QDataStream &s) const;
@@ -118,7 +116,7 @@ public:
 
     static Ptr create() { return Ptr(new RuleArtifact); }
 
-    QString fileScript;
+    QString fileName;
     QStringList fileTags;
 
     struct Binding
@@ -137,8 +135,6 @@ private:
     void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-class Group;
-
 class SourceArtifact : public PersistentObject
 {
 public:
@@ -150,7 +146,7 @@ public:
     QString absoluteFilePath;
     QSet<QString> fileTags;
     bool overrideFileTags;
-    Configuration::Ptr configuration;
+    PropertyMap::Ptr properties;
 
 private:
     SourceArtifact() : overrideFileTags(true) {}
@@ -159,7 +155,6 @@ private:
     void store(PersistentPool &pool, QDataStream &s) const;
 };
 
-/** \brief Objects of this kind result from giving wildcards in a group's "files" binding. */
 class SourceWildCards : public PersistentObject
 {
 public:
@@ -170,13 +165,13 @@ public:
 
     QSet<QString> expandPatterns(const QString &baseDir) const;
 
-    // Inherited from the group. TODO: Use back pointer instead?
+    // TODO: Use back pointer to Group instead?
     bool recursive;
     QString prefix;
 
-    QStringList patterns; // All elements of the group's "files" binding that contain wildcards.
-    QStringList excludePatterns; // Corresponds to the group's "excludeFiles" binding.
-    QList<SourceArtifact::Ptr> files; // The source artifacts resulting from the expanded list of matching files.
+    QStringList patterns;
+    QStringList excludePatterns;
+    QList<SourceArtifact::Ptr> files;
 
 private:
     SourceWildCards() : recursive(false) {}
@@ -200,7 +195,7 @@ public:
     QString name;
     QList<SourceArtifact::Ptr> files;
     SourceWildCards::Ptr wildcards;     // can be null
-    Configuration::Ptr configuration;
+    PropertyMap::Ptr properties;
 
     QList<SourceArtifact::Ptr> allFiles() const;
 
@@ -325,7 +320,7 @@ public:
     QString destinationDirectory;
     QString qbsFile;
     ResolvedProject *project;
-    Configuration::Ptr configuration;
+    PropertyMap::Ptr properties;
     QSet<Rule::Ptr> rules;
     QSet<ResolvedProduct::Ptr> uses;
     QSet<FileTagger::ConstPtr> fileTaggers;
@@ -378,7 +373,7 @@ private:
 
 } // namespace qbs
 
-Q_DECLARE_METATYPE(qbs::ResolvedProject::Ptr);
+Q_DECLARE_METATYPE(qbs::ResolvedProject::Ptr)
 
 QT_BEGIN_NAMESPACE
 Q_DECLARE_TYPEINFO(qbs::JsImport, Q_MOVABLE_TYPE);

@@ -64,7 +64,7 @@ public:
     BuildProject *project;
     BuildProduct *product;          // Note: file dependency artifacts don't belong to a product.
     QSharedPointer<Transformer> transformer;
-    Configuration::Ptr configuration;
+    PropertyMap::Ptr properties;
 
     enum ArtifactType
     {

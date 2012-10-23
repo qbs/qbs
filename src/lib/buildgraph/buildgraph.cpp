@@ -199,7 +199,7 @@ void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
     if (lastSetupProduct != product.data()) {
         engine->setProperty("lastSetupProduct",
                 QVariant(reinterpret_cast<qulonglong>(product.data())));
-        productScriptValue = product->configuration->toScriptValue(engine);
+        productScriptValue = product->properties->toScriptValue(engine);
         productScriptValue.setProperty("name", product->name);
         QString destinationDirectory = product->destinationDirectory;
         if (destinationDirectory.isEmpty())
@@ -544,7 +544,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
         qbsFileArtifact = new Artifact(project);
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(rProduct->qbsFile);
-        qbsFileArtifact->configuration = rProduct->configuration;
+        qbsFileArtifact->properties = rProduct->properties;
         insert(product, qbsFileArtifact);
     }
     qbsFileArtifact->fileTags.insert("qbs");
@@ -594,7 +594,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
             RuleArtifact::Ptr ruleArtifact = RuleArtifact::create();
-            ruleArtifact->fileScript = outputArtifact->filePath();
+            ruleArtifact->fileName = outputArtifact->filePath();
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
             rule->artifacts += ruleArtifact;
         }
@@ -661,7 +661,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
             continue;
         }
         if (!addedSourceArtifacts.contains(changedArtifact)
-            && changedArtifact->configuration->value() != a->configuration->value())
+            && changedArtifact->properties->value() != a->properties->value())
         {
             qbsInfo("Some properties changed. Regenerating build graph.");
             qbsDebug("Artifact with changed properties: %s", qPrintable(changedArtifact->absoluteFilePath));
@@ -694,7 +694,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
 
     // Discard groups of the old product. Use the groups of the new one.
     product->rProduct->groups = changedProduct->groups;
-    product->rProduct->configuration = changedProduct->configuration;
+    product->rProduct->properties = changedProduct->properties;
 
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)
@@ -750,7 +750,7 @@ Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::
     artifact->artifactType = Artifact::SourceFile;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->fileTags = sourceArtifact->fileTags;
-    artifact->configuration = sourceArtifact->configuration;
+    artifact->properties = sourceArtifact->properties;
     insert(product, artifact);
     return artifact;
 }
@@ -1357,12 +1357,12 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
 
         // expose attributes of this artifact
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
-        outputArtifact->configuration = Configuration::create(*outputArtifact->configuration);
+        outputArtifact->properties = outputArtifact->properties->clone();
 
         scope().setProperty("fileName", engine()->toScriptValue(outputArtifact->filePath()));
         scope().setProperty("fileTags", toScriptValue(engine(), outputArtifact->fileTags));
 
-        QVariantMap artifactModulesCfg = outputArtifact->configuration->value().value("modules").toMap();
+        QVariantMap artifactModulesCfg = outputArtifact->properties->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
             const RuleArtifact::Binding &binding = ra->bindings.at(i);
             scriptValue = engine()->evaluate(binding.code);
@@ -1372,9 +1372,9 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
-        QVariantMap outputArtifactConfig = outputArtifact->configuration->value();
+        QVariantMap outputArtifactConfig = outputArtifact->properties->value();
         outputArtifactConfig.insert("modules", artifactModulesCfg);
-        outputArtifact->configuration->setValue(outputArtifactConfig);
+        outputArtifact->properties->setValue(outputArtifactConfig);
     }
 
     m_transformer->setupOutputs(engine(), scope());
@@ -1398,7 +1398,7 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
-    QScriptValue modulesScriptValue = artifact->configuration->toScriptValue(engine());
+    QScriptValue modulesScriptValue = artifact->properties->toScriptValue(engine());
     modulesScriptValue = modulesScriptValue.property("modules");
 
     // expose per file properties we want to use in an Artifact within a Rule
@@ -1417,7 +1417,7 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
 Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ruleArtifact,
         const QSet<Artifact *> &inputArtifacts)
 {
-    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileScript);
+    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (scriptValue.isError() || engine()->hasUncaughtException())
         throw Error("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
@@ -1467,9 +1467,9 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ru
         outputArtifact->fileTags = m_buildProduct->rProduct->fileTagsForFileName(outputArtifact->fileName());
 
     if (m_rule->multiplex)
-        outputArtifact->configuration = m_buildProduct->rProduct->configuration;
+        outputArtifact->properties = m_buildProduct->rProduct->properties;
     else
-        outputArtifact->configuration = (*inputArtifacts.constBegin())->configuration;
+        outputArtifact->properties= (*inputArtifacts.constBegin())->properties;
 
     foreach (Artifact *inputArtifact, inputArtifacts) {
         Q_ASSERT(outputArtifact != inputArtifact);

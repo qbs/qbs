@@ -348,7 +348,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
 {
     // Key: build variant, value: properties. Empty key used for global properties.
     typedef QMap<QString, QVariantMap> PropertyMaps;
-    PropertyMaps propertyMaps;
+    PropertyMaps properties;
 
     const QString buildVariantKey = QLatin1String("qbs.buildVariant");
     QString currentKey = QString();
@@ -356,7 +356,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     foreach (const QString &arg, m_positional) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
         if (sepPos == -1) { // New build variant found.
-            propertyMaps.insert(currentKey, currentProperties);
+            properties.insert(currentKey, currentProperties);
             currentKey = arg;
             currentProperties.clear();
             continue;
@@ -369,19 +369,19 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
         else
             currentProperties.insert(property, arg.mid(sepPos + 1));
     }
-    propertyMaps.insert(currentKey, currentProperties);
+    properties.insert(currentKey, currentProperties);
 
-    if (propertyMaps.count() == 1) // No build variant specified on command line.
-        propertyMaps.insert(m_settings->buildVariant(), QVariantMap());
+    if (properties.count() == 1) // No build variant specified on command line.
+        properties.insert(m_settings->buildVariant(), QVariantMap());
 
-    const PropertyMaps::Iterator globalMapIt = propertyMaps.find(QString());
-    Q_ASSERT(globalMapIt != propertyMaps.end());
+    const PropertyMaps::Iterator globalMapIt = properties.find(QString());
+    Q_ASSERT(globalMapIt != properties.end());
     const QVariantMap globalProperties = globalMapIt.value();
-    propertyMaps.erase(globalMapIt);
+    properties.erase(globalMapIt);
 
     QList<QVariantMap> buildConfigs;
-    for (PropertyMaps::ConstIterator mapsIt = propertyMaps.constBegin();
-             mapsIt != propertyMaps.constEnd(); ++mapsIt) {
+    for (PropertyMaps::ConstIterator mapsIt = properties.constBegin();
+             mapsIt != properties.constEnd(); ++mapsIt) {
         QVariantMap properties = mapsIt.value();
         for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
                  globalPropIt != globalProperties.constEnd(); ++globalPropIt) {
