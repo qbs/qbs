@@ -9,8 +9,8 @@ Module {
     property string architecture: qbs.architecture
     property string optimization: qbs.optimization
     property bool debugInformation: qbs.debugInformation
-    property string precompiledHeader
-    property paths precompiledHeaderDir: [product.buildDirectory]
+    property path precompiledHeader
+    property path precompiledHeaderDir: product.buildDirectory
     property var defines
     property var platformDefines
     property var compilerDefines
@@ -19,9 +19,9 @@ Module {
         description: "preprocessor macros that are defined when using this particular compiler"
     }
 
-    property paths includePaths
-    property paths libraryPaths
-    property paths frameworkPaths
+    property pathList includePaths
+    property pathList libraryPaths
+    property pathList frameworkPaths
     property string compilerPath
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix

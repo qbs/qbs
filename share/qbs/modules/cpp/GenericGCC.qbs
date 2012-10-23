@@ -263,7 +263,7 @@ CppModule {
             if (product.module.precompiledHeader) {
                 args.push('-include')
                 args.push(product.name)
-                var pchPath = product.module.precompiledHeaderDir[0]
+                var pchPath = product.module.precompiledHeaderDir
                 var pchPathIncluded = false
                 for (var i in includePaths) {
                     if (includePaths[i] == pchPath) {

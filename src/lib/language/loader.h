@@ -71,7 +71,8 @@ public:
     {
         UnknownType,
         Boolean,
-        Paths,
+        Path,
+        PathList,
         String,
         Variant,
         Verbatim

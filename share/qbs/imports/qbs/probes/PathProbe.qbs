@@ -5,9 +5,9 @@ import "utils.js" as Utils
 Probe {
     // Inputs
     property var names
-    property paths pathPrefixes
+    property pathList pathPrefixes
     property var pathSuffixes
-    property paths platformPaths: [ '/usr', '/usr/local' ]
+    property pathList platformPaths: [ '/usr', '/usr/local' ]
     property var environmentPaths
     property var platformEnvironmentPaths
 

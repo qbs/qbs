@@ -1713,6 +1713,12 @@ static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QS
     throw Error(msg);
 }
 
+static QString sourceDirPath(const Property &property, const ResolvedProduct::ConstPtr &rproduct)
+{
+    return property.sourceObject
+            ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
+}
+
 static QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct, const Scope::Ptr &properties)
 {
     QVariantMap result;
@@ -1740,10 +1746,13 @@ static QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct, const 
             value = scriptValue.toVariant();
         }
 
-        if (decl.type == PropertyDeclaration::Paths) {
+        if (decl.type == PropertyDeclaration::Path) {
+            QString fileName = value.toString();
+            if (!fileName.isEmpty())
+                value = FileInfo::resolvePath(sourceDirPath(property, rproduct), fileName);
+        } else if (decl.type == PropertyDeclaration::PathList) {
             QStringList lst = value.toStringList();
-            QString sourceDirPath = property.sourceObject ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
-            value = resolvePaths(lst, sourceDirPath);
+            value = resolvePaths(lst, sourceDirPath(property, rproduct));
         }
 
         result.insert(it.key(), value);
@@ -2566,8 +2575,10 @@ static PropertyDeclaration::Type propertyTypeFromString(const QString &typeName)
 {
     if (typeName == "bool")
         return PropertyDeclaration::Boolean;
-    if (typeName == "paths")
-        return PropertyDeclaration::Paths;
+    if (typeName == "path")
+        return PropertyDeclaration::Path;
+    if (typeName == "pathList")
+        return PropertyDeclaration::PathList;
     if (typeName == "string")
         return PropertyDeclaration::String;
     if (typeName == "var" || typeName == "variant")

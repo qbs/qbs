@@ -55,7 +55,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         } else {
             // use pch
             var pchHeaderName = FileInfo.toWindowsSeparators(product.module.precompiledHeader)
-            var pchName = FileInfo.toWindowsSeparators(product.module.precompiledHeaderDir[0] + "\\.obj\\" + product.name + "\\" + product.name + ".pch")
+            var pchName = FileInfo.toWindowsSeparators(product.module.precompiledHeaderDir + "\\.obj\\" + product.name + "\\" + product.name + ".pch")
             args.push("/FI" + pchHeaderName)
             args.push("/Yu" + pchHeaderName)
             args.push("/Fp" + pchName)
