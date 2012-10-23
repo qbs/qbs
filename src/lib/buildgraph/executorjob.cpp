@@ -97,9 +97,9 @@ void ExecutorJob::waitForFinished()
 
 void ExecutorJob::runNextCommand()
 {
-    ++m_currentCommandIdx;
     Q_ASSERT(m_currentCommandIdx <= m_transformer->commands.count());
-    if (m_currentCommandIdx == m_transformer->commands.count()) {
+    ++m_currentCommandIdx;
+    if (m_currentCommandIdx >= m_transformer->commands.count()) {
         setInactive();
         emit success();
         return;
