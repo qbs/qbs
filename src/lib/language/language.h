@@ -375,8 +375,6 @@ private:
 
 } // namespace qbs
 
-Q_DECLARE_METATYPE(qbs::ResolvedProject::Ptr);
-
 QT_BEGIN_NAMESPACE
 Q_DECLARE_TYPEINFO(qbs::JsImport, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(qbs::RuleArtifact::Binding, Q_MOVABLE_TYPE);
