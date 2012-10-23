@@ -62,12 +62,12 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
     return QString::fromLocal8Bit(p.readAll());
 }
 
-static int specific_probe(const QString &settingsPath,
-                          QHash<QString, Platform::Ptr> &platforms,
-                          QString cc,
-                          bool printComfortingMessage = false)
+static void specific_probe(const QString &settingsPath,
+                           QHash<QString, Platform::Ptr> &platforms,
+                           QString cc)
 {
     QTextStream qstdout(stdout);
+    qstdout << "Trying to detect " << cc << "..." << endl;
 
     QString toolchainType;
     if(cc.contains("clang"))
@@ -125,11 +125,8 @@ static int specific_probe(const QString &settingsPath,
         pathToGcc = searchPath(path, cc);
 
     if (!QFileInfo(pathToGcc).exists()) {
-        QString error = QString::fromLatin1("Cannot find '%1'.").arg(cc);
-        if (printComfortingMessage)
-            error += QLatin1String(" But that's not a problem. I've already found other platforms.");
-        qbsError() << error;
-        return 1;
+        qstdout << cc << " not found." << endl;
+        return;
     }
 
     Platform::Ptr s;
@@ -151,7 +148,7 @@ static int specific_probe(const QString &settingsPath,
             ) {
         qbs::qbsError("Detected '%s', but I don't understand its architecture '%s'.",
                 qPrintable(pathToGcc), qPrintable(compilerTriplet));
-                return 12;
+                return;
     }
 
     architecture = compilerTripletl.at(0);
@@ -243,7 +240,6 @@ static int specific_probe(const QString &settingsPath,
         s->settings.setValue("environment/LDFLAGS", ldflags);
 
     platforms.insert(s->name, s);
-    return 0;
 }
 
 static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
@@ -293,10 +289,8 @@ int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
         msvcProbe(settingsPath, platforms);
         mingwProbe(settingsPath, platforms);
     } else {
-        bool somethingFound = false;
-        if (specific_probe(settingsPath, platforms, "gcc") == 0)
-            somethingFound = true;
-        specific_probe(settingsPath, platforms, "clang", somethingFound);
+        specific_probe(settingsPath, platforms, "gcc");
+        specific_probe(settingsPath, platforms, "clang");
     }
     if (platforms.isEmpty())
         qbsWarning("Could not detect any platforms.");
