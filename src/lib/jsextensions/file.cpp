@@ -34,6 +34,8 @@
 #include <QFileInfo>
 #include <QScriptEngine>
 
+namespace qbs {
+
 void File::init(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
@@ -92,3 +94,5 @@ QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(errorMessage);
     return true;
 }
+
+} // namespace qbs

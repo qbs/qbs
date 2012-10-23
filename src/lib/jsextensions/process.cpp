@@ -36,6 +36,8 @@
 #include <QScriptValue>
 #include <QTextStream>
 
+namespace qbs {
+
 void Process::init(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
@@ -206,3 +208,5 @@ QProcessEnvironment &Process::ensureEnvironment()
         qenvironment = new QProcessEnvironment(QProcessEnvironment::systemEnvironment());
     return *qenvironment;
 }
+
+} // namespace qbs

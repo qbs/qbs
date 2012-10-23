@@ -33,6 +33,8 @@
 #include <QScriptContext>
 #include <QScriptValue>
 
+namespace qbs {
+
 class File
 {
     Q_DECLARE_TR_FUNCTIONS(File)
@@ -45,5 +47,7 @@ private:
     static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
 };
+
+} // namespace qbs
 
 #endif // FILE_H

@@ -40,6 +40,8 @@ class QProcessEnvironment;
 class QTextStream;
 QT_END_NAMESPACE
 
+namespace qbs {
+
 class Process : public QObject, public QScriptable
 {
     Q_OBJECT
@@ -71,6 +73,8 @@ private:
     QTextStream *qstream;
 };
 
-Q_DECLARE_METATYPE(Process *);
+} // namespace qbs
+
+Q_DECLARE_METATYPE(qbs::Process *)
 
 #endif // PROCESS_H
