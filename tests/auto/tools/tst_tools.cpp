@@ -30,6 +30,7 @@
 #include <app/shared/commandlineparser.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
+#include <tools/hostosinfo.h>
 #include <QDir>
 #include <QtTest>
 
@@ -86,9 +87,8 @@ private slots:
         QCOMPARE(FileInfo::path("/abc/lol"), QString("/abc"));
         QVERIFY(!FileInfo::isAbsolute("bla/lol"));
         QVERIFY(FileInfo::isAbsolute("/bla/lol"));
-#ifdef Q_OS_WIN
-        QVERIFY(FileInfo::isAbsolute("C:\\bla\\lol"));
-#endif
+        if (HostOsInfo::isWindowsHost())
+            QVERIFY(FileInfo::isAbsolute("C:\\bla\\lol"));
         QCOMPARE(FileInfo::resolvePath("/abc/lol", "waffl"), QString("/abc/lol/waffl"));
         QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../foo/bar"), QString("/abc/def/ghi/foo/bar"));
         QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));

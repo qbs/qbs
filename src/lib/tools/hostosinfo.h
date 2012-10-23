@@ -37,14 +37,17 @@
 #define QTC_HOST_EXE_SUFFIX ".exe"
 #define QTC_HOST_DYNAMICLIB_PREFIX ""
 #define QTC_HOST_DYNAMICLIB_SUFFIX ".dll"
+#define QTC_HOST_OBJECT_SUFFIX ".obj"
 #elif defined(Q_OS_MAC)
 #define QTC_HOST_EXE_SUFFIX ""
 #define QTC_HOST_DYNAMICLIB_PREFIX ""
 #define QTC_HOST_DYNAMICLIB_SUFFIX ".dylib"
+#define QTC_HOST_OBJECT_SUFFIX ".o"
 #else
 #define QTC_HOST_EXE_SUFFIX ""
 #define QTC_HOST_DYNAMICLIB_PREFIX "lib"
 #define QTC_HOST_DYNAMICLIB_SUFFIX ".so"
+#define QTC_HOST_OBJECT_SUFFIX ".o"
 #endif // Q_OS_WIN
 
 namespace qbs {
@@ -74,6 +77,11 @@ public:
     {
         return QLatin1String(QTC_HOST_DYNAMICLIB_PREFIX) + libraryBaseName
                 + QLatin1String(QTC_HOST_DYNAMICLIB_SUFFIX);
+    }
+
+    static QString objectName(const QString &baseName)
+    {
+        return baseName + QLatin1String(QTC_HOST_OBJECT_SUFFIX);
     }
 
     static Qt::CaseSensitivity fileNameCaseSensitivity()

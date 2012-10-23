@@ -36,10 +36,6 @@
 #include <QProcess>
 #include <QtTest>
 
-#ifdef Q_OS_LINUX
-#include <unistd.h>
-#endif
-
 class TestBlackbox : public QObject
 {
     Q_OBJECT
@@ -48,7 +44,6 @@ class TestBlackbox : public QObject
     const QString qbsExecutableFilePath;
     const QString buildProfile;
     const QString buildDir;
-    const QString objectSuffix;
 
 public:
     TestBlackbox();
