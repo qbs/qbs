@@ -29,20 +29,18 @@
 
 #ifndef FILE_H
 
-#include <QFile>
-#include <QMetaType>
-#include <QObject>
-#include <QScriptable>
+#include <QCoreApplication>
+#include <QScriptContext>
 #include <QScriptValue>
-#include <QTextStream>
 
-class File : public QObject, public QScriptable
+class File
 {
-Q_OBJECT
+    Q_DECLARE_TR_FUNCTIONS(File)
 public:
     static void init(QScriptValue extensionObject);
 
 private:
+    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);

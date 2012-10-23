@@ -37,11 +37,19 @@
 void File::init(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
-    QScriptValue fileObj = engine->newQObject(new File, QScriptEngine::ScriptOwnership);
+    QScriptValue fileObj = engine->newFunction(File::js_ctor);
     fileObj.setProperty("copy", engine->newFunction(File::js_copy));
     fileObj.setProperty("exists", engine->newFunction(File::js_exists));
     fileObj.setProperty("remove", engine->newFunction(File::js_remove));
     extensionObject.setProperty("File", fileObj);
+}
+
+QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
+{
+    // Add instance variables here etc., if needed.
+    Q_UNUSED(context);
+    Q_UNUSED(engine);
+    return true;
 }
 
 QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
