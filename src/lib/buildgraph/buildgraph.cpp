@@ -1195,7 +1195,7 @@ void BuildProject::restoreBuildGraph(BuildGraph *bg,
     FileInfo bgfi(buildGraphFilePath);
     project = BuildProject::Ptr(new BuildProject(bg));
     project->load(pool, pool.stream());
-    project->resolvedProject()->setConfiguration(pool.headData().projectConfig);
+    project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     loadResult->loadedProject = project;
     qbsDebug() << "[BG] stored project loaded.";
 
@@ -1296,7 +1296,7 @@ void BuildProject::store() const
     qbsDebug() << "[BG] storing: " << fileName;
     PersistentPool pool;
     PersistentPool::HeadData headData;
-    headData.projectConfig = resolvedProject()->configuration();
+    headData.projectConfig = resolvedProject()->buildConfiguration();
     pool.setHeadData(headData);
     pool.setupWriteStream(fileName);
     store(pool, pool.stream());

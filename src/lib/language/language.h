@@ -359,8 +359,8 @@ public:
     QVariantMap platformEnvironment;
     QList<ResolvedProduct::Ptr> products;
 
-    void setConfiguration(const QVariantMap &config);
-    QVariantMap configuration() const { return m_configuration->value(); }
+    void setBuildConfiguration(const QVariantMap &config);
+    const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
     QString id() const { return m_id; }
 
 private:
@@ -369,7 +369,7 @@ private:
     void load(PersistentPool &pool, QDataStream &s);
     void store(PersistentPool &pool, QDataStream &s) const;
 
-    Configuration::Ptr m_configuration;
+    QVariantMap m_buildConfiguration;
     QString m_id;
 };
 

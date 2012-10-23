@@ -489,11 +489,9 @@ QString ResolvedProject::deriveId(const QVariantMap &config)
     return profile + QLatin1Char('-') + buildVariant;
 }
 
-void ResolvedProject::setConfiguration(const QVariantMap &config)
+void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
 {
-    if (!m_configuration)
-        m_configuration = Configuration::create();
-    m_configuration->setValue(config);
+    m_buildConfiguration = config;
     m_id = deriveId(config);
 }
 

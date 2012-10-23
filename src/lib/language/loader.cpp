@@ -1805,7 +1805,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     m_scopesWithEvaluatedProperties->clear();
     ResolvedProject::Ptr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
-    rproject->setConfiguration(userProperties);
+    rproject->setBuildConfiguration(userProperties);
 
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
