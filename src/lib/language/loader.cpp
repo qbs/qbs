@@ -1925,7 +1925,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
             }
         }
 
-        rproject->products.insert(rproduct);
+        rproject->products.append(rproduct);
     }
 
     // Check, if the userProperties contain invalid items.

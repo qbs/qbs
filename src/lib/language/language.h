@@ -357,7 +357,7 @@ public:
 
     QString qbsFile;
     QVariantMap platformEnvironment;
-    QSet<ResolvedProduct::Ptr> products;
+    QList<ResolvedProduct::Ptr> products;
 
     void setConfiguration(const QVariantMap &config);
     QVariantMap configuration() const { return m_configuration->value(); }

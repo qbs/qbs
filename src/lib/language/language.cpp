@@ -510,7 +510,7 @@ void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
     for (; --count >= 0;) {
         ResolvedProduct::Ptr rProduct = pool.idLoadS<ResolvedProduct>(s);
         rProduct->project = this;
-        products.insert(rProduct);
+        products.append(rProduct);
     }
 }
 
