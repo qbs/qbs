@@ -373,11 +373,11 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
             QScriptValue baseValue;
             try {
                 baseValue = evaluate(engine(), baseProperty.valueSource);
-            }
-            catch (const Error &e)
-            {
+            } catch (const Error &e) {
                 baseValue = engine()->currentContext()->throwError(tr("error while evaluating:\n%1").arg(e.toString()));
             }
+            if (baseValue.isUndefined())
+                baseValue = engine()->newArray();
             engine()->globalObject().setProperty(baseValueName, baseValue);
         }
     }

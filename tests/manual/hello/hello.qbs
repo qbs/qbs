@@ -6,7 +6,7 @@ Application {
 
     Depends { name: 'cpp' }
 
-    cpp.defines: ['SOMETHING']
+    cpp.defines: base.concat(['SOMETHING'])
 
     files: [
         "src/foo.h",
