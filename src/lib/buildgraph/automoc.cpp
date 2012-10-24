@@ -90,7 +90,7 @@ void AutoMoc::apply(BuildProduct::Ptr product)
     }
 
     Artifact *pluginHeaderFile = 0;
-    QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
+    ArtifactsPerFileTagMap artifactsPerFileTag;
     for (int i = artifactsToMoc.count(); --i >= 0;) {
         const QPair<Artifact *, FileType> &p = artifactsToMoc.at(i);
         Artifact * const artifact = p.first;
