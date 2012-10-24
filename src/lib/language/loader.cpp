@@ -1296,6 +1296,118 @@ void Loader::evaluatePropertyOptions(LanguageObject *object)
     }
 }
 
+static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QScriptValue &value)
+{
+    if (!decl.allowedValues.isValid())
+        return;
+
+    if (decl.allowedValues.isArray()) {
+        QScriptValue length = decl.allowedValues.property("length");
+        if (length.isNumber()) {
+            const int c = length.toInt32();
+            for (int i = 0; i < c; ++i) {
+                QScriptValue allowedValue = decl.allowedValues.property(i);
+                if (allowedValue.equals(value))
+                    return;
+            }
+        }
+    } else if (decl.allowedValues.equals(value)) {
+        return;
+    }
+
+    QString msg = Loader::tr("value %1 not allowed in property %2").arg(value.toString(), decl.name);
+    throw Error(msg);
+}
+
+static QString sourceDirPath(const Property &property, const ResolvedProduct::ConstPtr &rproduct)
+{
+    return property.sourceObject
+            ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
+}
+
+QVariantMap Loader::evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
+                                const Scope::Ptr &properties)
+{
+    QVariantMap &result = m_convertedScopesCache[properties];
+    if (!result.isEmpty())
+        return result;
+
+    if (properties->fallbackScope)
+        result = evaluateAll(rproduct, properties->fallbackScope);
+
+    typedef QHash<QString, PropertyDeclaration>::const_iterator iter;
+    iter end = properties->declarations.end();
+    for (iter it = properties->declarations.begin(); it != end; ++it) {
+        const PropertyDeclaration &decl = it.value();
+        if (decl.type == PropertyDeclaration::Verbatim
+            || decl.flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
+        {
+            continue;
+        }
+
+        Property property = properties->properties.value(it.key());
+        if (!property.isValid())
+            continue;
+
+        QVariant value;
+        if (property.scope) {
+            value = evaluateAll(rproduct, property.scope);
+        } else {
+            QScriptValue scriptValue = properties->property(it.key());
+            checkAllowedPropertyValues(decl, scriptValue);
+            value = scriptValue.toVariant();
+        }
+
+        if (decl.type == PropertyDeclaration::Path) {
+            QString fileName = value.toString();
+            if (!fileName.isEmpty())
+                value = FileInfo::resolvePath(sourceDirPath(property, rproduct), fileName);
+        } else if (decl.type == PropertyDeclaration::PathList) {
+            QStringList lst = value.toStringList();
+            value = resolvePaths(lst, sourceDirPath(property, rproduct));
+        }
+
+        result.insert(it.key(), value);
+    }
+    return result;
+}
+
+static Scope::Ptr moduleScopeById(Scope::Ptr scope, const QStringList &moduleId)
+{
+    for (int i = 0; i < moduleId.count(); ++i) {
+        scope = scope->properties.value(moduleId.at(i)).scope;
+        if (!scope)
+            break;
+    }
+    return scope;
+}
+
+QVariantMap Loader::evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+                                         EvaluationObject *moduleContainer, Scope::Ptr objectScope)
+{
+    QVariantMap values;
+    QVariantMap modules;
+    for (QHash<QString, Module::Ptr>::const_iterator it = moduleContainer->modules.begin();
+         it != moduleContainer->modules.end(); ++it)
+    {
+        Module::Ptr module = it.value();
+        const QString name = module->name;
+        const QStringList id = module->id;
+        if (!id.isEmpty()) {
+            Scope::Ptr moduleScope = moduleScopeById(objectScope, id);
+            if (!moduleScope)
+                moduleScope = moduleScopeById(moduleContainer->scope, id);
+            if (!moduleScope)
+                continue;
+            modules.insert(name, evaluateAll(rproduct, moduleScope));
+        } else {
+            modules.insert(name, evaluateAll(rproduct, module->object->scope));
+        }
+    }
+    values.insert(QLatin1String("modules"), modules);
+    return values;
+}
+
 Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName,
                                ScopeChain::Ptr moduleBaseScope, const QVariantMap &userProperties,
                                const CodeLocation &dependsLocation)
@@ -1690,76 +1802,6 @@ static QHash<QString, ProjectFile *> findModuleDependencies(EvaluationObject *ro
     return result;
 }
 
-static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QScriptValue &value)
-{
-    if (!decl.allowedValues.isValid())
-        return;
-
-    if (decl.allowedValues.isArray()) {
-        QScriptValue length = decl.allowedValues.property("length");
-        if (length.isNumber()) {
-            const int c = length.toInt32();
-            for (int i = 0; i < c; ++i) {
-                QScriptValue allowedValue = decl.allowedValues.property(i);
-                if (allowedValue.equals(value))
-                    return;
-            }
-        }
-    } else if (decl.allowedValues.equals(value)) {
-        return;
-    }
-
-    QString msg = Loader::tr("value %1 not allowed in property %2").arg(value.toString(), decl.name);
-    throw Error(msg);
-}
-
-static QString sourceDirPath(const Property &property, const ResolvedProduct::ConstPtr &rproduct)
-{
-    return property.sourceObject
-            ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
-}
-
-static QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct, const Scope::Ptr &properties)
-{
-    QVariantMap result;
-
-    if (properties->fallbackScope)
-        result = evaluateAll(rproduct, properties->fallbackScope);
-
-    typedef QHash<QString, PropertyDeclaration>::const_iterator iter;
-    iter end = properties->declarations.end();
-    for (iter it = properties->declarations.begin(); it != end; ++it) {
-        const PropertyDeclaration &decl = it.value();
-        if (decl.type == PropertyDeclaration::Verbatim || decl.flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
-            continue;
-
-        Property property = properties->properties.value(it.key());
-        if (!property.isValid())
-            continue;
-
-        QVariant value;
-        if (property.scope) {
-            value = evaluateAll(rproduct, property.scope);
-        } else {
-            QScriptValue scriptValue = properties->property(it.key());
-            checkAllowedPropertyValues(decl, scriptValue);
-            value = scriptValue.toVariant();
-        }
-
-        if (decl.type == PropertyDeclaration::Path) {
-            QString fileName = value.toString();
-            if (!fileName.isEmpty())
-                value = FileInfo::resolvePath(sourceDirPath(property, rproduct), fileName);
-        } else if (decl.type == PropertyDeclaration::PathList) {
-            QStringList lst = value.toStringList();
-            value = resolvePaths(lst, sourceDirPath(property, rproduct));
-        }
-
-        result.insert(it.key(), value);
-    }
-    return result;
-}
-
 static void applyFileTaggers(const SourceArtifact::Ptr &artifact,
         const ResolvedProduct::ConstPtr &product)
 {
@@ -1803,6 +1845,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     m_project = projectFile;
     ScriptEngineContextPusher contextPusher(m_engine);
     m_scopesWithEvaluatedProperties->clear();
+    m_convertedScopesCache.clear();
     ResolvedProject::Ptr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
     rproject->setBuildConfiguration(userProperties);
@@ -2106,42 +2149,6 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
             throw Error(msg.arg(child->prototype));
         }
     }
-}
-
-static Scope::Ptr moduleScopeById(Scope::Ptr scope, const QStringList &moduleId)
-{
-    for (int i = 0; i < moduleId.count(); ++i) {
-        scope = scope->properties.value(moduleId.at(i)).scope;
-        if (!scope)
-            break;
-    }
-    return scope;
-}
-
-static QVariantMap evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
-        EvaluationObject *moduleContainer, Scope::Ptr objectScope)
-{
-    QVariantMap values;
-    QVariantMap modules;
-    for (QHash<QString, Module::Ptr>::const_iterator it = moduleContainer->modules.begin();
-         it != moduleContainer->modules.end(); ++it)
-    {
-        Module::Ptr module = it.value();
-        const QString name = module->name;
-        const QStringList id = module->id;
-        if (!id.isEmpty()) {
-            Scope::Ptr moduleScope = moduleScopeById(objectScope, id);
-            if (!moduleScope)
-                moduleScope = moduleScopeById(moduleContainer->scope, id);
-            if (!moduleScope)
-                continue;
-            modules.insert(name, evaluateAll(rproduct, moduleScope));
-        } else {
-            modules.insert(name, evaluateAll(rproduct, module->object->scope));
-        }
-    }
-    values.insert(QLatin1String("modules"), modules);
-    return values;
 }
 
 QSet<QString> Loader::resolveFiles(const SourceWildCards::ConstPtr &group, const QString &baseDir)

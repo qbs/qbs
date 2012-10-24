@@ -237,6 +237,7 @@ class Scope : public QScriptClass
 
 public:
     typedef QSharedPointer<Scope> Ptr;
+    typedef QSharedPointer<const Scope> ConstPtr;
 
     static Ptr create(QScriptEngine *engine, ScopesCachePtr cache, const QString &name,
                       ProjectFile *owner);
@@ -397,6 +398,10 @@ protected:
     void evaluateDependencyConditions(EvaluationObject *evaluationObject);
     void evaluateImports(Scope::Ptr target, const JsImports &jsImports);
     void evaluatePropertyOptions(LanguageObject *object);
+    QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
+                            const Scope::Ptr &properties);
+    QVariantMap evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+                                     EvaluationObject *moduleContainer, Scope::Ptr objectScope);
     void resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
                             ScopeChain::Ptr moduleScope = ScopeChain::Ptr(), const QVariantMap &userProperties = QVariantMap());
     void fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties);
@@ -468,6 +473,7 @@ private:
     QHash<QString, QList<PropertyDeclaration> > m_builtinDeclarations;
     QHash<QString, QVariantMap> m_productModules;
     QHash<QString, QStringList> m_moduleDirListCache;
+    QHash<Scope::ConstPtr, QVariantMap> m_convertedScopesCache;
 };
 
 } // namespace qbs
