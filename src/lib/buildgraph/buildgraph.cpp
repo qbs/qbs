@@ -513,7 +513,6 @@ void BuildGraph::applyRule(BuildProduct *product,
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
         outputArtifact->configuration = Configuration::create(*outputArtifact->configuration);
 
-        // ### clean m_engine first?
         m_scope.setProperty("fileName", m_engine->toScriptValue(outputArtifact->filePath()));
         m_scope.setProperty("fileTags", toScriptValue(m_engine, outputArtifact->fileTags));
 
