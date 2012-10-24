@@ -520,7 +520,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
 
     if (m_progressObserver) {
         if (m_progressObserver->canceled())
-            emit Error(tr("Build canceled."));
+            throw Error(tr("Build canceled."));
         m_progressObserver->incrementProgressValue();
     }
 
