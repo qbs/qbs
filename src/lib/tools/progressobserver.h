@@ -7,6 +7,8 @@ namespace qbs {
 class ProgressObserver
 {
 public:
+    virtual ~ProgressObserver() { }
+
     virtual void setProgressRange(int minimum, int maximum) = 0;
     virtual void setProgressValue(int value) = 0;
     virtual int progressValue() = 0;
@@ -14,6 +16,8 @@ public:
     {
         setProgressValue(progressValue() + increment);
     }
+
+    virtual bool canceled() const = 0;
 };
 
 } // namespace qbs

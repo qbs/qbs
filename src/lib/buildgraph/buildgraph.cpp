@@ -777,8 +777,11 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     if (product)
         return product;
 
-    if (m_progressObserver)
+    if (m_progressObserver) {
+        if (m_progressObserver->canceled())
+            emit Error(tr("Build canceled."));
         m_progressObserver->incrementProgressValue();
+    }
 
     product = BuildProduct::create();
     m_productCache.insert(rProduct, product);

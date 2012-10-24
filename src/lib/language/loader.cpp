@@ -1829,9 +1829,14 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     QSet<QString> uniqueStrings;
     QMultiMap<QString, ResolvedProduct::Ptr> resolvedProducts;
     QHash<ResolvedProduct::Ptr, ProductData>::iterator it = projectData.products.begin();
+    if (m_progressObserver)
+        m_progressObserver->setProgressRange(0, projectData.products.count());
     for (; it != projectData.products.end(); ++it) {
-        if (m_progressObserver)
+        if (m_progressObserver) {
+            if (m_progressObserver->canceled())
+                throw Error(tr("Loading canceled."));
             m_progressObserver->incrementProgressValue();
+        }
         ResolvedProduct::Ptr rproduct = it.key();
         ProductData &data = it.value();
         Scope *productProps = data.product->scope.data();

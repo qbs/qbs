@@ -174,8 +174,11 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild)
     if (success)
         initLeaves(changedArtifacts);
 
-    if (m_progressObserver)
+    if (m_progressObserver) {
+        if (m_progressObserver->canceled())
+            emit Error(tr("Build canceled."));
         m_progressObserver->setProgressRange(0 , m_leaves.count());
+    }
 
     if (success) {
         bool stillArtifactsToExecute = run();
