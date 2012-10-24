@@ -491,12 +491,15 @@ void BuildGraph::applyRule(BuildProduct *product,
     }
 
     // setup side-by-side artifacts
-    if (outputArtifacts.count() > 1)
-        foreach (Artifact *sbs1, outputArtifacts)
-            foreach (Artifact *sbs2, outputArtifacts)
-                if (sbs1 != sbs2)
-                    sbs1->sideBySideArtifacts.insert(sbs2);
-
+    for (int i = 0; i < outputArtifacts.count() - 1; ++i) {
+        for (int j = i + 1; j < outputArtifacts.count(); ++j) {
+            Artifact * const a1 = outputArtifacts.at(i);
+            Artifact * const a2 = outputArtifacts.at(j);
+            Q_ASSERT(a1 != a2);
+            a1->sideBySideArtifacts.insert(a2);
+            a2->sideBySideArtifacts.insert(a1);
+        }
+    }
     transformer->setupInputs(m_engine, m_scope);
 
     // change the transformer outputs according to the bindings in Artifact
