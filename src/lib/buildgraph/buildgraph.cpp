@@ -1267,11 +1267,10 @@ void RulesApplicator::applyRule(const Rule::ConstPtr &rule)
         if (!inputArtifacts.isEmpty())
             doApply(inputArtifacts);
     } else { // apply the rule once for each input
-        foreach (const QString &fileTag, rule->inputs) {
+        foreach (const QString &fileTag, m_rule->inputs) {
             foreach (Artifact *inputArtifact, m_artifactsPerFileTag.value(fileTag)) {
-                QSet<Artifact*> inputArtifacts;
-                inputArtifacts.insert(inputArtifact);
-                doApply(inputArtifacts);
+                setupScriptEngineForArtifact(inputArtifact);
+                doApply(QSet<Artifact*>() << inputArtifact);
             }
         }
     }
@@ -1307,25 +1306,10 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
 
     m_transformer.clear();
     // create the output artifacts from the set of input artifacts
-    if (m_rule->isMultiplexRule()) {
-        foreach (const RuleArtifact::ConstPtr &ruleArtifact, m_rule->artifacts) {
-            Artifact *const outputArtifact = createOutputArtifact(ruleArtifact,
-                    inputArtifacts);
-            outputArtifacts << outputArtifact;
-            ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
-        }
-    } else {
-        foreach (Artifact *inputArtifact, inputArtifacts) {
-            setupScriptEngineForArtifact(inputArtifact);
-            QSet<Artifact *> oneInputArtifact;
-            oneInputArtifact.insert(inputArtifact);
-            foreach (const RuleArtifact::ConstPtr &ruleArtifact, m_rule->artifacts) {
-                Artifact * const outputArtifact = createOutputArtifact(ruleArtifact,
-                        oneInputArtifact);
-                outputArtifacts << outputArtifact;
-                ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
-            }
-        }
+    foreach (const RuleArtifact::ConstPtr &ruleArtifact, m_rule->artifacts) {
+        Artifact * const outputArtifact = createOutputArtifact(ruleArtifact, inputArtifacts);
+        outputArtifacts << outputArtifact;
+        ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
     }
 
     foreach (Artifact *outputArtifact, outputArtifacts) {
