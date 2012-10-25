@@ -1260,18 +1260,16 @@ void RulesApplicator::applyRule(const Rule::ConstPtr &rule)
     Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
                "BG", "Product object is not in current scope.");
 
+    QSet<Artifact *> inputArtifacts;
+    foreach (const QString &fileTag, m_rule->inputs)
+        inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
     if (m_rule->isMultiplexRule()) { // apply the rule once for a set of inputs
-        QSet<Artifact*> inputArtifacts;
-        foreach (const QString &fileTag, m_rule->inputs)
-            inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
         if (!inputArtifacts.isEmpty())
             doApply(inputArtifacts);
     } else { // apply the rule once for each input
-        foreach (const QString &fileTag, m_rule->inputs) {
-            foreach (Artifact *inputArtifact, m_artifactsPerFileTag.value(fileTag)) {
-                setupScriptEngineForArtifact(inputArtifact);
-                doApply(QSet<Artifact*>() << inputArtifact);
-            }
+        foreach (Artifact * const inputArtifact, inputArtifacts) {
+            setupScriptEngineForArtifact(inputArtifact);
+            doApply(QSet<Artifact*>() << inputArtifact);
         }
     }
 }
