@@ -226,7 +226,6 @@ private:
     QScriptValue m_scope;
     QScriptValue m_prepareScriptScope;
     QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
-    QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QString, QScriptProgram> m_scriptProgramCache;
     mutable QSet<Artifact *> m_artifactsThatMustGetNewTransformers;
 
