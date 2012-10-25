@@ -248,8 +248,7 @@ void Rule::load(PersistentPool &pool, QDataStream &s)
         >> inputs
         >> usings
         >> explicitlyDependsOn
-        >> multiplex
-        >> objectId;
+        >> multiplex;
 
     loadContainerS(artifacts, s, pool);
 }
@@ -262,8 +261,7 @@ void Rule::store(PersistentPool &pool, QDataStream &s) const
         << inputs
         << usings
         << explicitlyDependsOn
-        << multiplex
-        << objectId;
+        << multiplex;
 
     storeContainer(artifacts, s, pool);
 }

@@ -265,7 +265,6 @@ public:
     QStringList usings;
     QStringList explicitlyDependsOn;
     bool multiplex;
-    QString objectId;
     QList<RuleArtifact::ConstPtr> artifacts;
 
     // members that we don't need to save
@@ -273,11 +272,6 @@ public:
 
     QString toString() const;
     QStringList outputFileTags() const;
-
-    inline bool isMultiplexRule() const
-    {
-        return multiplex;
-    }
 
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}

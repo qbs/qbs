@@ -2459,7 +2459,6 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
         ruleScript->location.line = binding.valueSource.firstLineNumber();
     }
 
-    rule->objectId = origObj->id;
     rule->jsImports = object->instantiatingObject()->file->jsImports;
     rule->script = ruleScript;
     rule->artifacts = artifacts;

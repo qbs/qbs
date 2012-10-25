@@ -1263,7 +1263,7 @@ void RulesApplicator::applyRule(const Rule::ConstPtr &rule)
     QSet<Artifact *> inputArtifacts;
     foreach (const QString &fileTag, m_rule->inputs)
         inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
-    if (m_rule->isMultiplexRule()) { // apply the rule once for a set of inputs
+    if (m_rule->multiplex) { // apply the rule once for a set of inputs
         if (!inputArtifacts.isEmpty())
             doApply(inputArtifacts);
     } else { // apply the rule once for each input
@@ -1433,7 +1433,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ru
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs += inputArtifacts;
 
-            if (m_transformer->inputs.count() > 1 && !m_rule->isMultiplexRule()) {
+            if (m_transformer->inputs.count() > 1 && !m_rule->multiplex) {
                 QString th = "[" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
                 QString e = tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
                 th = "[" + m_rule->inputs.join(", ")
@@ -1465,7 +1465,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ru
     if (outputArtifact->fileTags.isEmpty())
         outputArtifact->fileTags = m_buildProduct->rProduct->fileTagsForFileName(outputArtifact->fileName());
 
-    if (m_rule->isMultiplexRule())
+    if (m_rule->multiplex)
         outputArtifact->configuration = m_buildProduct->rProduct->configuration;
     else
         outputArtifact->configuration = (*inputArtifacts.constBegin())->configuration;
