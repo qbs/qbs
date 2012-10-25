@@ -907,7 +907,7 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
     return true;
 }
 
-void BuildProject::restoreBuildGraph(BuildGraph *bg,
+void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph *bg,
                                      const FileTime &minTimeStamp,
                                      const QVariantMap &cfg,
                                      const QStringList &loaderSearchPaths,
@@ -933,6 +933,7 @@ void BuildProject::restoreBuildGraph(BuildGraph *bg,
     FileInfo bgfi(buildGraphFilePath);
     project = BuildProject::Ptr(new BuildProject(bg));
     project->load(pool, pool.stream());
+    project->resolvedProject()->qbsFile = projectFilePath;
     project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     loadResult->loadedProject = project;
     qbsDebug() << "[BG] stored project loaded.";
@@ -1015,12 +1016,12 @@ void BuildProject::restoreBuildGraph(BuildGraph *bg,
     }
 }
 
-BuildProject::LoadResult BuildProject::load(BuildGraph *bg, const FileTime &minTimeStamp,
-                                            const QVariantMap &cfg, const QStringList &loaderSearchPaths)
+BuildProject::LoadResult BuildProject::load(const QString &projectFilePath, BuildGraph *bg,
+        const FileTime &minTimeStamp, const QVariantMap &cfg, const QStringList &loaderSearchPaths)
 {
     LoadResult result;
     result.discardLoadedProject = false;
-    restoreBuildGraph(bg, minTimeStamp, cfg, loaderSearchPaths, &result);
+    restoreBuildGraph(projectFilePath, bg, minTimeStamp, cfg, loaderSearchPaths, &result);
     return result;
 }
 

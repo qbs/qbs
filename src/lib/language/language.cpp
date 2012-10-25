@@ -496,7 +496,6 @@ void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
 void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
 {
     s >> m_id;
-    s >> qbsFile;
     s >> platformEnvironment;
 
     int count;
@@ -513,7 +512,6 @@ void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
 void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
 {
     s << m_id;
-    s << qbsFile;
     s << platformEnvironment;
 
     s << products.count();

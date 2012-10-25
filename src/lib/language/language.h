@@ -349,7 +349,7 @@ public:
 
     static QString deriveId(const QVariantMap &config);
 
-    QString qbsFile;
+    QString qbsFile; // Not saved.
     QVariantMap platformEnvironment;
     QList<ResolvedProduct::Ptr> products;
 

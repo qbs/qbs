@@ -189,7 +189,8 @@ void SourceProject::loadProject(const QString &projectFileName, QList<QVariantMa
         BuildProject::Ptr bProject;
         const FileTime projectFileTimeStamp = FileInfo(projectFileName).lastModified();
         BuildProject::LoadResult loadResult;
-        loadResult = BuildProject::load(d->buildGraph.data(), projectFileTimeStamp, buildCfg, d->settings->searchPaths());
+        loadResult = BuildProject::load(projectFileName, d->buildGraph.data(), projectFileTimeStamp,
+                                        buildCfg, d->settings->searchPaths());
         if (!loadResult.discardLoadedProject)
             bProject = loadResult.loadedProject;
         if (!bProject) {

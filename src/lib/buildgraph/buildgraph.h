@@ -103,7 +103,7 @@ public:
         bool discardLoadedProject;
     };
 
-    static LoadResult load(BuildGraph *bg,
+    static LoadResult load(const QString &projectFilePath, BuildGraph *bg,
                            const FileTime &minTimeStamp,
                            const QVariantMap &cfg,
                            const QStringList &loaderSearchPaths);
@@ -124,7 +124,7 @@ public:
     void onProductRemoved(const BuildProduct::Ptr &product);
 
 private:
-    static void restoreBuildGraph(BuildGraph *buildGraph,
+    static void restoreBuildGraph(const QString &projectFilePath, BuildGraph *buildGraph,
                                   const FileTime &minTimeStamp,
                                   const QVariantMap &configuration,
                                   const QStringList &loaderSearchPaths,
