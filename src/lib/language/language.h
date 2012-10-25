@@ -159,6 +159,7 @@ private:
     void store(PersistentPool &pool, QDataStream &s) const;
 };
 
+/** \brief Objects of this kind result from giving wildcards in a group's "files" binding. */
 class SourceWildCards : public PersistentObject
 {
 public:
@@ -167,14 +168,22 @@ public:
 
     static Ptr create() { return Ptr(new SourceWildCards); }
 
+    QSet<QString> expandPatterns(const QString &baseDir) const;
+
+    // Inherited from the group. TODO: Use back pointer instead?
     bool recursive;
     QString prefix;
-    QStringList patterns;
-    QStringList excludePatterns;
-    QList<SourceArtifact::Ptr> files;
+
+    QStringList patterns; // All elements of the group's "files" binding that contain wildcards.
+    QStringList excludePatterns; // Corresponds to the group's "excludeFiles" binding.
+    QList<SourceArtifact::Ptr> files; // The source artifacts resulting from the expanded list of matching files.
 
 private:
     SourceWildCards() : recursive(false) {}
+
+    QSet<QString> expandPatterns(const QStringList &patterns, const QString &baseDir) const;
+    void expandPatterns(QSet<QString> &files, const QString &baseDir, bool useRecursion,
+                      const QStringList &parts, int index = 0) const;
 
     void load(PersistentPool &pool, QDataStream &s);
     void store(PersistentPool &pool, QDataStream &s) const;

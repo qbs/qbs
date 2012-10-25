@@ -372,13 +372,7 @@ public:
     ProjectFile::Ptr loadProject(const QString &fileName);
     ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectory,
                                         const QVariantMap &userProperties, bool resolveProductDependencies = true);
-    static QSet<QString> resolveFiles(const SourceWildCards::ConstPtr &group, const QString &baseDir);
-
 protected:
-    static QSet<QString> resolveFiles(const SourceWildCards::ConstPtr &group, const QStringList &patterns, const QString &baseDir);
-    static void resolveFiles(QSet<QString> &files, const QString &baseDir, bool recursive,
-                             const QStringList &parts, int index = 0);
-
     ProjectFile::Ptr parseFile(const QString &fileName);
 
     void clearScopesCache();

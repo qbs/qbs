@@ -31,6 +31,8 @@
 #include "qbsengine.h"
 #include <tools/scripttools.h>
 #include <QCryptographicHash>
+#include <QDir>
+#include <QDirIterator>
 #include <QMutexLocker>
 #include <QScriptValue>
 #include <algorithm>
@@ -517,6 +519,61 @@ void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
     s << products.count();
     foreach (const ResolvedProduct::ConstPtr &product, products)
         pool.store(product);
+}
+
+QSet<QString> SourceWildCards::expandPatterns(const QString &baseDir) const
+{
+    QSet<QString> files = expandPatterns(patterns, baseDir);
+    files -= expandPatterns(excludePatterns, baseDir);
+    return files;
+}
+
+QSet<QString> SourceWildCards::expandPatterns(const QStringList &patterns,
+                                            const QString &baseDir) const
+{
+    QSet<QString> files;
+    foreach (QString pattern, patterns) {
+        pattern.prepend(prefix);
+        pattern.replace('\\', '/');
+        QStringList parts = pattern.split('/', QString::SkipEmptyParts);
+        QString basePath;
+        if (FileInfo::isAbsolute(pattern)) {
+            if (pattern.startsWith('/'))
+                basePath += '/';
+            while (!FileInfo::isPattern(parts.first())) {
+                basePath.append(parts.takeFirst());
+                basePath += '/';
+            }
+        } else {
+            basePath = baseDir;
+        }
+        expandPatterns(files, basePath, recursive, parts);
+    }
+    return files;
+}
+
+void SourceWildCards::expandPatterns(QSet<QString> &files, const QString &baseDir, bool useRecursion,
+                                   const QStringList &parts, int index) const
+{
+    QDir::Filters filter;
+    const bool isDirectory = index + 1 < parts.size();
+    if (isDirectory)
+        filter |= QDir::Dirs;
+    else
+        filter |= QDir::Files;
+    const QString &part = parts[index];
+    QDirIterator::IteratorFlags flags;
+    if (recursive && FileInfo::isPattern(part)) {
+        flags |= QDirIterator::Subdirectories;
+        useRecursion = false;
+    }
+    QDirIterator it(baseDir, QStringList(part), filter, flags);
+    while (it.hasNext()) {
+        if (isDirectory)
+            expandPatterns(files, it.next(), useRecursion, parts, index + 1);
+        else
+            files.insert(it.next());
+    }
 }
 
 } // namespace qbs

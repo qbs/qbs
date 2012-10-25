@@ -2151,60 +2151,6 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
     }
 }
 
-QSet<QString> Loader::resolveFiles(const SourceWildCards::ConstPtr &group, const QString &baseDir)
-{
-    QSet<QString> files = resolveFiles(group, group->patterns, baseDir);
-    files -= resolveFiles(group, group->excludePatterns, baseDir);
-    return files;
-}
-
-QSet<QString> Loader::resolveFiles(const SourceWildCards::ConstPtr &group, const QStringList &patterns, const QString &baseDir)
-{
-    QSet<QString> files;
-    foreach (QString pattern, patterns) {
-        if (!group->prefix.isEmpty())
-            pattern.prepend(group->prefix);
-        pattern.replace('\\', '/');
-        QStringList parts = pattern.split('/', QString::SkipEmptyParts);
-        QString basePath;
-        if (FileInfo::isAbsolute(pattern)) {
-            if (pattern.startsWith('/'))
-                basePath += '/';
-            while (!FileInfo::isPattern(parts.first())) {
-                basePath.append(parts.takeFirst());
-                basePath += '/';
-            }
-        } else {
-            basePath = baseDir;
-        }
-        resolveFiles(files, basePath, group->recursive, parts);
-    }
-    return files;
-}
-
-void Loader::resolveFiles(QSet<QString> &files, const QString &baseDir, bool recursive, const QStringList &parts, int index)
-{
-    QDir::Filters filter;
-    const bool isDirectory = index + 1 < parts.size();
-    if (isDirectory)
-        filter |= QDir::Dirs;
-    else
-        filter |= QDir::Files;
-    const QString &part = parts[index];
-    QDirIterator::IteratorFlags flags;
-    if (recursive && FileInfo::isPattern(part)) {
-        flags |= QDirIterator::Subdirectories;
-        recursive = false;
-    }
-    QDirIterator it(baseDir, QStringList(part), filter, flags);
-    while (it.hasNext()) {
-        if (isDirectory)
-            resolveFiles(files, it.next(), recursive, parts, index + 1);
-        else
-            files.insert(it.next());
-    }
-}
-
 static void createSourceArtifact(const ResolvedProduct::ConstPtr &rproduct,
                                  const Configuration::Ptr &configuration,
                                  const QString &fileName,
@@ -2299,7 +2245,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
         }
         wildcards->prefix = prefix;
         wildcards->patterns = patterns;
-        QSet<QString> files = resolveFiles(wildcards, rproduct->sourceDirectory);
+        QSet<QString> files = wildcards->expandPatterns(rproduct->sourceDirectory);
         foreach (const QString &fileName, files)
             createSourceArtifact(rproduct, configuration, fileName,
                                  fileTags, overrideTags, wildcards->files);

@@ -956,8 +956,8 @@ void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph 
             foreach (const Group::Ptr &group, resolvedProduct->groups) {
                 if (!group->wildcards)
                     continue;
-                const QSet<QString> files = Loader::resolveFiles(group->wildcards,
-                                                                 resolvedProduct->sourceDirectory);
+                const QSet<QString> files
+                        = group->wildcards->expandPatterns(resolvedProduct->sourceDirectory);
                 QSet<QString> wcFiles;
                 foreach (const SourceArtifact::ConstPtr &sourceArtifact, group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;
