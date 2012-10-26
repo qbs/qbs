@@ -2287,7 +2287,7 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     rtrafo->inputs = trafo->scope->stringListValue("inputs");
     for (int i=0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(rproduct->sourceDirectory, rtrafo->inputs[i]);
-    const RuleScript::Ptr transform = RuleScript::create();
+    const PrepareScript::Ptr transform = PrepareScript::create();
     transform->script = trafo->scope->verbatimValue("prepare");
     transform->location.fileName = trafo->instantiatingObject()->file->fileName;
     transform->location.column = 1;
@@ -2397,17 +2397,17 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
         }
     }
 
-    const RuleScript::Ptr ruleScript = RuleScript::create();
-    ruleScript->script = object->scope->verbatimValue("prepare");
-    ruleScript->location.fileName = object->instantiatingObject()->file->fileName;
-    ruleScript->location.column = 1;
+    const PrepareScript::Ptr prepareScript = PrepareScript::create();
+    prepareScript->script = object->scope->verbatimValue("prepare");
+    prepareScript->location.fileName = object->instantiatingObject()->file->fileName;
+    prepareScript->location.column = 1;
     {
         Binding binding = object->instantiatingObject()->bindings.value(QStringList("prepare"));
-        ruleScript->location.line = binding.valueSource.firstLineNumber();
+        prepareScript->location.line = binding.valueSource.firstLineNumber();
     }
 
     rule->jsImports = object->instantiatingObject()->file->jsImports;
-    rule->script = ruleScript;
+    rule->script = prepareScript;
     rule->artifacts = artifacts;
     rule->multiplex = object->scope->boolValue("multiplex", false);
     rule->inputs = object->scope->stringListValue("inputs");

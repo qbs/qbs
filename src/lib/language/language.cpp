@@ -166,6 +166,28 @@ void SourceWildCards::store(PersistentPool &pool) const
     pool.storeContainer(files);
 }
 
+/*!
+ * \class Group
+ * \brief The \c Group class corresponds to the respective item in a qbs source file.
+ */
+
+ /*!
+  * \variable Group::files
+  * \brief The files listed in the group item's "files" binding.
+  * Note that these do not include expanded wildcards.
+  */
+
+/*!
+ * \variable Group::wildcards
+ * \brief Represents the wildcard elements in this group's "files" binding.
+ *  If no wildcards are specified there, this variable is null.
+ * \sa SourceWildCards
+ */
+
+/*!
+ * \brief Returns all files specified in the group item as source artifacts.
+ * This includes the expanded list of wildcards.
+ */
 QList<SourceArtifact::Ptr> Group::allFiles() const
 {
     QList<SourceArtifact::Ptr> lst = files;
@@ -229,13 +251,32 @@ void RuleArtifact::store(PersistentPool &pool) const
     }
 }
 
-void RuleScript::load(PersistentPool &pool)
+/*!
+ * \class PrepareScript
+ * \brief The \c PrepareScript class represents the JavaScript code found in the "prepare" binding
+ *        of a \c Rule or \c Transformer item in a qbs file.
+ * \sa Rule
+ * \sa ResolvedTransformer
+ */
+
+ /*!
+  * \variable PrepareScript::script
+  * \brief The actual Javascript code, taken verbatim from the qbs source file.
+  */
+
+  /*!
+   * \variable PrepareScript::location
+   * \brief The exact location of the script in the qbs source file.
+   * This is mostly needed for diagnostics.
+   */
+
+void PrepareScript::load(PersistentPool &pool)
 {
     pool.stream() >> script;
     pool.stream() >> location;
 }
 
-void RuleScript::store(PersistentPool &pool) const
+void PrepareScript::store(PersistentPool &pool) const
 {
     pool.stream() << script;
     pool.stream() << location;
@@ -280,7 +321,7 @@ QStringList Rule::outputFileTags() const
 
 void Rule::load(PersistentPool &pool)
 {
-    script = pool.idLoadS<RuleScript>();
+    script = pool.idLoadS<PrepareScript>();
     module = pool.idLoadS<ResolvedModule>();
     pool.stream() >> jsImports
         >> inputs

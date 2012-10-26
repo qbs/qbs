@@ -194,7 +194,7 @@ public:
 
     QString name;
     QList<SourceArtifact::Ptr> files;
-    SourceWildCards::Ptr wildcards;     // can be null
+    SourceWildCards::Ptr wildcards;
     PropertyMap::Ptr properties;
 
     QList<SourceArtifact::Ptr> allFiles() const;
@@ -206,19 +206,19 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class RuleScript: public PersistentObject
+class PrepareScript: public PersistentObject
 {
 public:
-    typedef QSharedPointer<RuleScript> Ptr;
-    typedef QSharedPointer<const RuleScript> ConstPtr;
+    typedef QSharedPointer<PrepareScript> Ptr;
+    typedef QSharedPointer<const PrepareScript> ConstPtr;
 
-    static Ptr create() { return Ptr(new RuleScript); }
+    static Ptr create() { return Ptr(new PrepareScript); }
 
     QString script;
     CodeLocation location;
 
 private:
-    RuleScript() {}
+    PrepareScript() {}
 
     void load(PersistentPool &);
     void store(PersistentPool &) const;
@@ -264,7 +264,7 @@ public:
 
     ResolvedModule::ConstPtr module;
     JsImports jsImports;
-    RuleScript::ConstPtr script;
+    PrepareScript::ConstPtr script;
     QStringList inputs;
     QStringList usings;
     QStringList explicitlyDependsOn;
@@ -294,7 +294,7 @@ public:
     ResolvedModule::ConstPtr module;
     QStringList inputs;
     QList<SourceArtifact::Ptr> outputs;
-    RuleScript::ConstPtr transform;
+    PrepareScript::ConstPtr transform;
     JsImports jsImports;
 
 private:

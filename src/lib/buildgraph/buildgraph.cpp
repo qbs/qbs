@@ -279,7 +279,7 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
     return cmdBase;
 }
 
-void BuildGraph::createTransformerCommands(const RuleScript::ConstPtr &script, Transformer *transformer)
+void BuildGraph::createTransformerCommands(const PrepareScript::ConstPtr &script, Transformer *transformer)
 {
     QScriptProgram &scriptProgram = m_scriptProgramCache[script->script];
     if (scriptProgram.isNull())

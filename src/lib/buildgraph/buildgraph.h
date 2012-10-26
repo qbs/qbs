@@ -191,7 +191,7 @@ public:
     void removeFromArtifactsThatMustGetNewTransformers(Artifact *a) {
         m_artifactsThatMustGetNewTransformers -= a;
     }
-    void createTransformerCommands(const RuleScript::ConstPtr &script, Transformer *transformer);
+    void createTransformerCommands(const PrepareScript::ConstPtr &script, Transformer *transformer);
 
     static void setupScriptEngineForProduct(QbsEngine *scriptEngine,
                                             const ResolvedProduct::ConstPtr &product,
