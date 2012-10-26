@@ -154,7 +154,7 @@ void SourceWildCards::load(PersistentPool &pool)
     prefix = pool.idLoadString();
     patterns = pool.idLoadStringList();
     excludePatterns = pool.idLoadStringList();
-    loadContainerS(files, pool);
+    pool.loadContainerS(files);
 }
 
 void SourceWildCards::store(PersistentPool &pool) const
@@ -163,7 +163,7 @@ void SourceWildCards::store(PersistentPool &pool) const
     pool.storeString(prefix);
     pool.storeStringList(patterns);
     pool.storeStringList(excludePatterns);
-    storeContainer(files, pool);
+    pool.storeContainer(files);
 }
 
 QList<SourceArtifact::Ptr> Group::allFiles() const
@@ -177,7 +177,7 @@ QList<SourceArtifact::Ptr> Group::allFiles() const
 void Group::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
-    loadContainerS(files, pool);
+    pool.loadContainerS(files);
     wildcards = pool.idLoadS<SourceWildCards>();
     properties = pool.idLoadS<PropertyMap>();
 }
@@ -185,7 +185,7 @@ void Group::load(PersistentPool &pool)
 void Group::store(PersistentPool &pool) const
 {
     pool.storeString(name);
-    storeContainer(files, pool);
+    pool.storeContainer(files);
     pool.store(wildcards);
     pool.store(properties);
 }
@@ -288,7 +288,7 @@ void Rule::load(PersistentPool &pool)
         >> explicitlyDependsOn
         >> multiplex;
 
-    loadContainerS(artifacts, pool);
+    pool.loadContainerS(artifacts);
 }
 
 void Rule::store(PersistentPool &pool) const
@@ -301,7 +301,7 @@ void Rule::store(PersistentPool &pool) const
         << explicitlyDependsOn
         << multiplex;
 
-    storeContainer(artifacts, pool);
+    pool.storeContainer(artifacts);
 }
 
 ResolvedProduct::ResolvedProduct()
@@ -339,11 +339,11 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> qbsFile;
 
     properties = pool.idLoadS<PropertyMap>();
-    loadContainerS(rules, pool);
-    loadContainerS(uses, pool);
-    loadContainerS(fileTaggers, pool);
-    loadContainerS(modules, pool);
-    loadContainerS(groups, pool);
+    pool.loadContainerS(rules);
+    pool.loadContainerS(uses);
+    pool.loadContainerS(fileTaggers);
+    pool.loadContainerS(modules);
+    pool.loadContainerS(groups);
 }
 
 void ResolvedProduct::store(PersistentPool &pool) const
@@ -357,11 +357,11 @@ void ResolvedProduct::store(PersistentPool &pool) const
         << qbsFile;
 
     pool.store(properties);
-    storeContainer(rules, pool);
-    storeContainer(uses, pool);
-    storeContainer(fileTaggers, pool);
-    storeContainer(modules, pool);
-    storeContainer(groups, pool);
+    pool.storeContainer(rules);
+    pool.storeContainer(uses);
+    pool.storeContainer(fileTaggers);
+    pool.storeContainer(modules);
+    pool.storeContainer(groups);
 }
 
 QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,

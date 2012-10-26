@@ -40,9 +40,6 @@
 
 namespace qbs {
 
-typedef int PersistentObjectId;
-class PersistentPool;
-
 class PersistentPool
 {
 public:
@@ -60,71 +57,14 @@ public:
     void clear();
     QDataStream &stream();
 
-    template <typename T>
-    inline T *idLoad()
-    {
-        PersistentObjectId id;
-        stream() >> id;
-        return loadRaw<T>(id);
-    }
+    template <typename T> T *idLoad();
+    template <typename T> void loadContainer(T &container);
+    template <class T> typename T::Ptr idLoadS();
+    template <typename T> void loadContainerS(T &container);
 
-    template <class T>
-    inline T *loadRaw(PersistentObjectId id)
-    {
-        if (id < 0)
-            return 0;
-
-        PersistentObject *obj = 0;
-        if (id < m_loadedRaw.count()) {
-            obj = m_loadedRaw.value(id);
-        } else {
-            int i = m_loadedRaw.count();
-            m_loadedRaw.resize(id + 1);
-            for (; i < m_loadedRaw.count(); ++i)
-                m_loadedRaw[i] = 0;
-
-            obj = new T;
-            m_loadedRaw[id] = obj;
-            obj->load(*this);
-        }
-
-        return static_cast<T*>(obj);
-    }
-
-    template <class T>
-    inline typename T::Ptr idLoadS()
-    {
-        PersistentObjectId id;
-        m_stream >> id;
-        return load<T>(id);
-    }
-
-    template <class T>
-    inline QSharedPointer<T> load(PersistentObjectId id)
-    {
-        if (id < 0)
-            return QSharedPointer<T>();
-
-        QSharedPointer<PersistentObject> obj;
-        if (id < m_loaded.count()) {
-            obj = m_loaded.value(id);
-        } else {
-            m_loaded.resize(id + 1);
-            obj = T::create();
-            m_loaded[id] = obj;
-            obj->load(*this);
-        }
-
-        return obj.staticCast<T>();
-    }
-
-    template <class T>
-    void store(QSharedPointer<T> ptr)
-    {
-        store(ptr.data());
-    }
-
+    void store(const QSharedPointer<const PersistentObject> &ptr) { store(ptr.data()); }
     void store(const PersistentObject *object);
+    template <typename T> void storeContainer(T &container);
 
     void storeString(const QString &t);
     QString loadString(int id);
@@ -142,6 +82,16 @@ public:
     void setHeadData(const HeadData &hd) { m_headData = hd; }
 
 private:
+    typedef int PersistentObjectId;
+
+    template<typename T> struct RemovePointer { typedef T Type; };
+    template<typename T> struct RemovePointer<T*> { typedef T Type; };
+    template <class T> struct RemoveConst { typedef T Type; };
+    template <class T> struct RemoveConst<const T> { typedef T Type; };
+
+    template <class T> T *loadRaw(PersistentObjectId id);
+    template <class T> typename T::Ptr load(PersistentObjectId id);
+
     QDataStream m_stream;
     HeadData m_headData;
     QVector<PersistentObject *> m_loadedRaw;
@@ -154,41 +104,87 @@ private:
     PersistentObjectId m_lastStoredStringId;
 };
 
-template<typename T> struct RemovePointer { typedef T Type; };
-template<typename T> struct RemovePointer<T*> { typedef T Type; };
-template <class T> struct RemoveConst { typedef T Type; };
-template <class T> struct RemoveConst<const T> { typedef T Type; };
+template <typename T> inline T *PersistentPool::idLoad()
+{
+    PersistentObjectId id;
+    stream() >> id;
+    return loadRaw<T>(id);
+}
 
-template <typename T>
-void loadContainerS(T &container, PersistentPool &pool)
+template <typename T> inline void PersistentPool::loadContainer(T &container)
 {
     int count;
-    pool.stream() >> count;
+    stream() >> count;
     container.clear();
     container.reserve(count);
     for (int i = count; --i >= 0;)
-        container += pool.idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>();
+        container += idLoad<typename RemovePointer<typename T::value_type>::Type>();
 }
 
-template <typename T>
-void loadContainer(T &container, PersistentPool &pool)
+template <class T> inline typename T::Ptr PersistentPool::idLoadS()
+{
+    PersistentObjectId id;
+    m_stream >> id;
+    return load<T>(id);
+}
+
+template <typename T> inline void PersistentPool::loadContainerS(T &container)
 {
     int count;
-    pool.stream() >> count;
+    stream() >> count;
     container.clear();
     container.reserve(count);
     for (int i = count; --i >= 0;)
-        container += pool.idLoad<typename RemovePointer<typename T::value_type>::Type>();
+        container += idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>();
 }
 
-template <typename T>
-void storeContainer(T &container, PersistentPool &pool)
+template <typename T> inline void PersistentPool::storeContainer(T &container)
 {
-    pool.stream() << container.count();
+    stream() << container.count();
     typename T::const_iterator it = container.constBegin();
     const typename T::const_iterator itEnd = container.constEnd();
     for (; it != itEnd; ++it)
-        pool.store(*it);
+        store(*it);
+}
+
+template <class T> inline T *PersistentPool::loadRaw(PersistentObjectId id)
+{
+    if (id < 0)
+        return 0;
+
+    PersistentObject *obj = 0;
+    if (id < m_loadedRaw.count()) {
+        obj = m_loadedRaw.value(id);
+    } else {
+        int i = m_loadedRaw.count();
+        m_loadedRaw.resize(id + 1);
+        for (; i < m_loadedRaw.count(); ++i)
+            m_loadedRaw[i] = 0;
+
+        obj = new T;
+        m_loadedRaw[id] = obj;
+        obj->load(*this);
+    }
+
+    return static_cast<T*>(obj);
+}
+
+template <class T> inline typename T::Ptr PersistentPool::load(PersistentObjectId id)
+{
+    if (id < 0)
+        return typename T::Ptr();
+
+    QSharedPointer<PersistentObject> obj;
+    if (id < m_loaded.count()) {
+        obj = m_loaded.value(id);
+    } else {
+        m_loaded.resize(id + 1);
+        obj = T::create();
+        m_loaded[id] = obj;
+        obj->load(*this);
+    }
+
+    return obj.staticCast<T>();
 }
 
 } // namespace qbs

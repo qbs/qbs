@@ -769,8 +769,8 @@ QString BuildGraph::buildGraphFilePath(const QString &projectId) const
 void Transformer::load(PersistentPool &pool)
 {
     rule = pool.idLoadS<Rule>();
-    loadContainer(inputs, pool);
-    loadContainer(outputs, pool);
+    pool.loadContainer(inputs);
+    pool.loadContainer(outputs);
     int count, cmdType;
     pool.stream() >> count;
     commands.reserve(count);
@@ -785,8 +785,8 @@ void Transformer::load(PersistentPool &pool)
 void Transformer::store(PersistentPool &pool) const
 {
     pool.store(rule);
-    storeContainer(inputs, pool);
-    storeContainer(outputs, pool);
+    pool.storeContainer(inputs);
+    pool.storeContainer(outputs);
     pool.stream() << commands.count();
     foreach (AbstractCommand *cmd, commands) {
         pool.stream() << int(cmd->type());
@@ -837,7 +837,7 @@ void BuildProduct::load(PersistentPool &pool)
 
     // other data
     rProduct = pool.idLoadS<ResolvedProduct>();
-    loadContainer(targetArtifacts, pool);
+    pool.loadContainer(targetArtifacts);
 
     pool.stream() >> i;
     usings.clear();
@@ -875,8 +875,8 @@ void BuildProduct::store(PersistentPool &pool) const
 
     // other data
     pool.store(rProduct);
-    storeContainer(targetArtifacts, pool);
-    storeContainer(usings, pool);
+    pool.storeContainer(targetArtifacts);
+    pool.storeContainer(usings);
 }
 
 BuildProject::BuildProject(BuildGraph *bg)
@@ -1071,8 +1071,8 @@ void BuildProject::load(PersistentPool &pool)
 void BuildProject::store(PersistentPool &pool) const
 {
     pool.store(m_resolvedProject);
-    storeContainer(m_buildProducts, pool);
-    storeContainer(m_dependencyArtifacts, pool);
+    pool.storeContainer(m_buildProducts);
+    pool.storeContainer(m_dependencyArtifacts);
 }
 
 char **createCFileTags(const QSet<QString> &fileTags)
