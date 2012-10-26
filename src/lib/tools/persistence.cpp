@@ -28,8 +28,11 @@
 ****************************************************************************/
 
 #include "persistence.h"
+
 #include "fileinfo.h"
 #include <logging/logger.h>
+#include <tools/error.h>
+
 #include <QDir>
 #include <QScopedPointer>
 

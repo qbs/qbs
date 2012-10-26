@@ -26,57 +26,21 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-
-#ifndef TRANSFORMER_H
-#define TRANSFORMER_H
-
-#include <tools/persistentobject.h>
-
-#include <QSet>
-#include <QSharedPointer>
-#include <QScriptEngine>
-
-QT_BEGIN_NAMESPACE
-
-QT_END_NAMESPACE
+#ifndef PERSISTENTOBJECT_H
+#define PERSISTENTOBJECT_H
 
 namespace qbs {
 
-class Artifact;
-class AbstractCommand;
-class Rule;
+class PersistentPool;
 
-class Transformer : public PersistentObject
+class PersistentObject
 {
 public:
-    typedef QSharedPointer<Transformer> Ptr;
-
-    static Ptr create() { return Ptr(new Transformer); }
-
-    ~Transformer();
-
-    QSet<Artifact*> inputs; // can be different from "children of all outputs"
-    QSet<Artifact*> outputs;
-    QSharedPointer<const Rule> rule;
-    QList<AbstractCommand *> commands;
-
-    static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
-                                            Artifact *artifact,
-                                            const QString &defaultModuleName);
-    static QScriptValue translateInOutputs(QScriptEngine *scriptEngine,
-                                           const QSet<Artifact*> &artifacts,
-                                           const QString &defaultModuleName);
-
-    void setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
-    void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
-
-private:
-    Transformer();
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    virtual ~PersistentObject() {}
+    virtual void load(PersistentPool &) = 0;
+    virtual void store(PersistentPool &) const = 0;
 };
 
 } // namespace qbs
 
-#endif // TRANSFORMER_H
+#endif // PERSISTENTOBJECT_H

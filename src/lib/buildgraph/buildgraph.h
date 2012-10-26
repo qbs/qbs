@@ -34,7 +34,7 @@
 
 #include <language/language.h>
 #include <tools/error.h>
-#include <tools/persistence.h>
+#include <tools/persistentobject.h>
 
 #include <QCoreApplication>
 #include <QDir>

@@ -30,11 +30,9 @@
 #ifndef QBS_PERSISTENCE
 #define QBS_PERSISTENCE
 
-#include <tools/error.h>
+#include "persistentobject.h"
 
 #include <QDataStream>
-#include <QFile>
-#include <QMap>
 #include <QSharedPointer>
 #include <QString>
 #include <QVariantMap>
@@ -44,14 +42,6 @@ namespace qbs {
 
 typedef int PersistentObjectId;
 class PersistentPool;
-
-class PersistentObject
-{
-public:
-    virtual ~PersistentObject() {}
-    virtual void load(PersistentPool &) = 0;
-    virtual void store(PersistentPool &) const = 0;
-};
 
 class PersistentPool
 {
@@ -199,14 +189,6 @@ void storeContainer(T &container, PersistentPool &pool)
     const typename T::const_iterator itEnd = container.constEnd();
     for (; it != itEnd; ++it)
         pool.store(*it);
-}
-
-template <typename T>
-void storeHashContainer(T &container, PersistentPool &pool)
-{
-    pool.stream() << container.count();
-    foreach (const typename T::mapped_type &item, container)
-        pool.store(item);
 }
 
 } // namespace qbs

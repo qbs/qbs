@@ -31,6 +31,7 @@
 
 #include <language/qbsengine.h>
 #include <logging/logger.h>
+#include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/settings.h>
 

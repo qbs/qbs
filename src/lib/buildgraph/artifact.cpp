@@ -31,6 +31,8 @@
 #include "transformer.h"
 #include "buildgraph.h"
 
+#include <tools/persistence.h>
+
 QT_BEGIN_NAMESPACE
 
 static QDataStream &operator >>(QDataStream &s, qbs::Artifact::ArtifactType &t)

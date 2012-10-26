@@ -30,6 +30,8 @@
 #include "language.h"
 
 #include "qbsengine.h"
+#include <tools/error.h>
+#include <tools/persistence.h>
 #include <tools/scripttools.h>
 
 #include <QDir>

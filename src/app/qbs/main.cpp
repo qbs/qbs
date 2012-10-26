@@ -39,7 +39,6 @@
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
 #include <tools/hostosinfo.h>
-#include <tools/persistence.h>
 #include <tools/runenvironment.h>
 
 #include <QCoreApplication>

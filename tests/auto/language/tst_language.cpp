@@ -28,7 +28,9 @@
 ****************************************************************************/
 
 #include "tst_language.h"
+
 #include <language/qbsengine.h>
+#include <tools/error.h>
 
 QHash<QString, ResolvedProduct::Ptr> TestLanguage::productsFromProject(ResolvedProject::Ptr project)
 {

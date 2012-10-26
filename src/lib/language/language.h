@@ -32,7 +32,7 @@
 
 #include "jsimports.h"
 #include <tools/codelocation.h>
-#include <tools/persistence.h>
+#include <tools/persistentobject.h>
 #include <tools/settings.h>
 #include <tools/fileinfo.h>
 

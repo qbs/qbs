@@ -13,7 +13,8 @@ HEADERS += \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
-    $$PWD/runenvironment.h
+    $$PWD/runenvironment.h \
+    $$PWD/persistentobject.h
 
 SOURCES += \
     $$PWD/error.cpp \

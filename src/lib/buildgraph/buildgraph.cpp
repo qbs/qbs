@@ -932,11 +932,12 @@ void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph 
 
     FileInfo bgfi(buildGraphFilePath);
     project = BuildProject::Ptr(new BuildProject(bg));
+    TimedActivityLogger loadLogger(QLatin1String("Loading build graph"), QLatin1String("[BG] "));
     project->load(pool);
     project->resolvedProject()->qbsFile = projectFilePath;
     project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     loadResult->loadedProject = project;
-    qbsDebug() << "[BG] stored project loaded.";
+    loadLogger.finishActivity();
 
     bool projectFileChanged = false;
     if (bgfi.lastModified() < minTimeStamp) {
