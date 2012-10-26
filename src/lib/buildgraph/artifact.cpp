@@ -73,26 +73,24 @@ void Artifact::setFilePath(const QString &filePath)
     FileInfo::splitIntoDirectoryAndFileName(m_filePath, &m_dirPath, &m_fileName);
 }
 
-void Artifact::load(PersistentPool &pool, QDataStream &s)
+void Artifact::load(PersistentPool &pool)
 {
     setFilePath(pool.idLoadString());
     fileTags = pool.idLoadStringSet();
-    properties = pool.idLoadS<PropertyMap>(s);
-    transformer = pool.idLoadS<Transformer>(s);
+    properties = pool.idLoadS<PropertyMap>();
+    transformer = pool.idLoadS<Transformer>();
     quint8 n;
-    s >> artifactType
-      >> n;
+    pool.stream() >> artifactType >> n;
     inputsScanned = n;
 }
 
-void Artifact::store(PersistentPool &pool, QDataStream &s) const
+void Artifact::store(PersistentPool &pool) const
 {
     pool.storeString(m_filePath);
     pool.storeStringSet(fileTags);
     pool.store(properties);
     pool.store(transformer);
-    s << artifactType
-      << static_cast<quint8>(inputsScanned);
+    pool.stream() << artifactType << static_cast<quint8>(inputsScanned);
 }
 
 } // namespace qbs

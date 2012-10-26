@@ -766,89 +766,89 @@ QString BuildGraph::buildGraphFilePath(const QString &projectId) const
     return buildDirectory(projectId) + QLatin1Char('/') + projectId + QLatin1String(".bg");
 }
 
-void Transformer::load(PersistentPool &pool, QDataStream &s)
+void Transformer::load(PersistentPool &pool)
 {
-    rule = pool.idLoadS<Rule>(s);
-    loadContainer(inputs, s, pool);
-    loadContainer(outputs, s, pool);
+    rule = pool.idLoadS<Rule>();
+    loadContainer(inputs, pool);
+    loadContainer(outputs, pool);
     int count, cmdType;
-    s >> count;
+    pool.stream() >> count;
     commands.reserve(count);
     while (--count >= 0) {
-        s >> cmdType;
+        pool.stream() >> cmdType;
         AbstractCommand *cmd = AbstractCommand::createByType(static_cast<AbstractCommand::CommandType>(cmdType));
-        cmd->load(s);
+        cmd->load(pool.stream());
         commands += cmd;
     }
 }
 
-void Transformer::store(PersistentPool &pool, QDataStream &s) const
+void Transformer::store(PersistentPool &pool) const
 {
     pool.store(rule);
-    storeContainer(inputs, s, pool);
-    storeContainer(outputs, s, pool);
-    s << commands.count();
+    storeContainer(inputs, pool);
+    storeContainer(outputs, pool);
+    pool.stream() << commands.count();
     foreach (AbstractCommand *cmd, commands) {
-        s << int(cmd->type());
-        cmd->store(s);
+        pool.stream() << int(cmd->type());
+        cmd->store(pool.stream());
     }
 }
 
-void BuildProduct::load(PersistentPool &pool, QDataStream &s)
+void BuildProduct::load(PersistentPool &pool)
 {
     // artifacts
     int i;
-    s >> i;
+    pool.stream() >> i;
     artifacts.clear();
     for (; --i >= 0;) {
-        Artifact *artifact = pool.idLoad<Artifact>(s);
+        Artifact *artifact = pool.idLoad<Artifact>();
         artifacts.insert(artifact);
         artifact->product = this;
     }
 
     // edges
     for (i = artifacts.count(); --i >= 0;) {
-        Artifact *artifact = pool.idLoad<Artifact>(s);
+        Artifact *artifact = pool.idLoad<Artifact>();
         int k;
-        s >> k;
+        pool.stream() >> k;
         artifact->parents.clear();
         artifact->parents.reserve(k);
         for (; --k >= 0;)
-            artifact->parents.insert(pool.idLoad<Artifact>(s));
+            artifact->parents.insert(pool.idLoad<Artifact>());
 
-        s >> k;
+        pool.stream() >> k;
         artifact->children.clear();
         artifact->children.reserve(k);
         for (; --k >= 0;)
-            artifact->children.insert(pool.idLoad<Artifact>(s));
+            artifact->children.insert(pool.idLoad<Artifact>());
 
-        s >> k;
+        pool.stream() >> k;
         artifact->fileDependencies.clear();
         artifact->fileDependencies.reserve(k);
         for (; --k >= 0;)
-            artifact->fileDependencies.insert(pool.idLoad<Artifact>(s));
+            artifact->fileDependencies.insert(pool.idLoad<Artifact>());
 
-        s >> k;
+        pool.stream() >> k;
         artifact->sideBySideArtifacts.clear();
         artifact->sideBySideArtifacts.reserve(k);
         for (; --k >= 0;)
-            artifact->sideBySideArtifacts.insert(pool.idLoad<Artifact>(s));
+            artifact->sideBySideArtifacts.insert(pool.idLoad<Artifact>());
     }
 
     // other data
-    rProduct = pool.idLoadS<ResolvedProduct>(s);
-    loadContainer(targetArtifacts, s, pool);
+    rProduct = pool.idLoadS<ResolvedProduct>();
+    loadContainer(targetArtifacts, pool);
 
-    s >> i;
+    pool.stream() >> i;
     usings.clear();
     usings.reserve(i);
     for (; --i >= 0;)
-        usings += pool.idLoadS<BuildProduct>(s).data();
+        usings += pool.idLoadS<BuildProduct>().data();
 }
 
-void BuildProduct::store(PersistentPool &pool, QDataStream &s) const
+void BuildProduct::store(PersistentPool &pool) const
 {
-    s << artifacts.count();
+    pool.stream() << artifacts.count();
 
     //artifacts
     for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++)
@@ -859,24 +859,24 @@ void BuildProduct::store(PersistentPool &pool, QDataStream &s) const
         Artifact * artifact = *i;
         pool.store(artifact);
 
-        s << artifact->parents.count();
+        pool.stream() << artifact->parents.count();
         foreach (Artifact * n, artifact->parents)
             pool.store(n);
-        s << artifact->children.count();
+        pool.stream() << artifact->children.count();
         foreach (Artifact * n, artifact->children)
             pool.store(n);
-        s << artifact->fileDependencies.count();
+        pool.stream() << artifact->fileDependencies.count();
         foreach (Artifact * n, artifact->fileDependencies)
             pool.store(n);
-        s << artifact->sideBySideArtifacts.count();
+        pool.stream() << artifact->sideBySideArtifacts.count();
         foreach (Artifact *n, artifact->sideBySideArtifacts)
             pool.store(n);
     }
 
     // other data
     pool.store(rProduct);
-    storeContainer(targetArtifacts, s, pool);
-    storeContainer(usings, s, pool);
+    storeContainer(targetArtifacts, pool);
+    storeContainer(usings, pool);
 }
 
 BuildProject::BuildProject(BuildGraph *bg)
@@ -932,7 +932,7 @@ void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph 
 
     FileInfo bgfi(buildGraphFilePath);
     project = BuildProject::Ptr(new BuildProject(bg));
-    project->load(pool, pool.stream());
+    project->load(pool);
     project->resolvedProject()->qbsFile = projectFilePath;
     project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     loadResult->loadedProject = project;
@@ -1038,17 +1038,17 @@ void BuildProject::store() const
     headData.projectConfig = resolvedProject()->buildConfiguration();
     pool.setHeadData(headData);
     pool.setupWriteStream(fileName);
-    store(pool, pool.stream());
+    store(pool);
 }
 
-void BuildProject::load(PersistentPool &pool, QDataStream &s)
+void BuildProject::load(PersistentPool &pool)
 {
-    m_resolvedProject = pool.idLoadS<ResolvedProject>(s);
+    m_resolvedProject = pool.idLoadS<ResolvedProject>();
 
     int count;
-    s >> count;
+    pool.stream() >> count;
     for (; --count >= 0;) {
-        BuildProduct::Ptr product = pool.idLoadS<BuildProduct>(s);
+        BuildProduct::Ptr product = pool.idLoadS<BuildProduct>();
         product->project = this;
         foreach (Artifact *artifact, product->artifacts) {
             artifact->project = this;
@@ -1057,21 +1057,21 @@ void BuildProject::load(PersistentPool &pool, QDataStream &s)
         addBuildProduct(product);
     }
 
-    s >> count;
+    pool.stream() >> count;
     m_dependencyArtifacts.clear();
     m_dependencyArtifacts.reserve(count);
     for (; --count >= 0;) {
-        Artifact *artifact = pool.idLoad<Artifact>(s);
+        Artifact *artifact = pool.idLoad<Artifact>();
         artifact->project = this;
         insertFileDependency(artifact);
     }
 }
 
-void BuildProject::store(PersistentPool &pool, QDataStream &s) const
+void BuildProject::store(PersistentPool &pool) const
 {
     pool.store(m_resolvedProject);
-    storeContainer(m_buildProducts, s, pool);
-    storeContainer(m_dependencyArtifacts, s, pool);
+    storeContainer(m_buildProducts, pool);
+    storeContainer(m_dependencyArtifacts, pool);
 }
 
 char **createCFileTags(const QSet<QString> &fileTags)

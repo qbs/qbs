@@ -97,30 +97,28 @@ QScriptValue PropertyMap::toScriptValue(QScriptEngine *scriptEngine) const
     return result;
 }
 
-void PropertyMap::load(PersistentPool &, QDataStream &s)
+void PropertyMap::load(PersistentPool &pool)
 {
-    s >> m_value;
+    pool.stream() >> m_value;
 }
 
-void PropertyMap::store(PersistentPool &, QDataStream &s) const
+void PropertyMap::store(PersistentPool &pool) const
 {
-    s << m_value;
+    pool.stream() << m_value;
 }
 
 /*!
  * \class FileTagger
  * \brief The \c FileTagger class maps 1:1 to the respective item in a qbs source file.
  */
-void FileTagger::load(PersistentPool &pool, QDataStream &s)
+void FileTagger::load(PersistentPool &pool)
 {
-    Q_UNUSED(s);
     m_artifactExpression.setPattern(pool.idLoadString());
     m_fileTags = pool.idLoadStringList();
 }
 
-void FileTagger::store(PersistentPool &pool, QDataStream &s) const
+void FileTagger::store(PersistentPool &pool) const
 {
-    Q_UNUSED(s);
     pool.storeString(m_artifactExpression.pattern());
     pool.storeStringList(m_fileTags);
 }
@@ -134,36 +132,36 @@ void FileTagger::store(PersistentPool &pool, QDataStream &s) const
  * SourceArtifact could simply have a back pointer to the group in addition to the file path.)
  * \sa Group
  */
-void SourceArtifact::load(PersistentPool &pool, QDataStream &s)
+void SourceArtifact::load(PersistentPool &pool)
 {
-    s >> absoluteFilePath;
-    s >> fileTags;
-    properties = pool.idLoadS<PropertyMap>(s);
+    pool.stream() >> absoluteFilePath;
+    pool.stream() >> fileTags;
+    properties = pool.idLoadS<PropertyMap>();
 }
 
-void SourceArtifact::store(PersistentPool &pool, QDataStream &s) const
+void SourceArtifact::store(PersistentPool &pool) const
 {
-    s << absoluteFilePath;
-    s << fileTags;
+    pool.stream() << absoluteFilePath;
+    pool.stream() << fileTags;
     pool.store(properties);
 }
 
-void SourceWildCards::load(PersistentPool &pool, QDataStream &s)
+void SourceWildCards::load(PersistentPool &pool)
 {
-    s >> recursive;
+    pool.stream() >> recursive;
     prefix = pool.idLoadString();
     patterns = pool.idLoadStringList();
     excludePatterns = pool.idLoadStringList();
-    loadContainerS(files, s, pool);
+    loadContainerS(files, pool);
 }
 
-void SourceWildCards::store(PersistentPool &pool, QDataStream &s) const
+void SourceWildCards::store(PersistentPool &pool) const
 {
-    s << recursive;
+    pool.stream() << recursive;
     pool.storeString(prefix);
     pool.storeStringList(patterns);
     pool.storeStringList(excludePatterns);
-    storeContainer(files, s, pool);
+    storeContainer(files, pool);
 }
 
 QList<SourceArtifact::Ptr> Group::allFiles() const
@@ -174,18 +172,18 @@ QList<SourceArtifact::Ptr> Group::allFiles() const
     return lst;
 }
 
-void Group::load(PersistentPool &pool, QDataStream &s)
+void Group::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
-    loadContainerS(files, s, pool);
-    wildcards = pool.idLoadS<SourceWildCards>(s);
-    properties = pool.idLoadS<PropertyMap>(s);
+    loadContainerS(files, pool);
+    wildcards = pool.idLoadS<SourceWildCards>();
+    properties = pool.idLoadS<PropertyMap>();
 }
 
-void Group::store(PersistentPool &pool, QDataStream &s) const
+void Group::store(PersistentPool &pool) const
 {
     pool.storeString(name);
-    storeContainer(files, s, pool);
+    storeContainer(files, pool);
     pool.store(wildcards);
     pool.store(properties);
 }
@@ -199,66 +197,66 @@ void Group::store(PersistentPool &pool, QDataStream &s) const
  * are inserted into the corresponding \c Artifact's properties.
  * \sa Rule
  */
-void RuleArtifact::load(PersistentPool &pool, QDataStream &s)
+void RuleArtifact::load(PersistentPool &pool)
 {
     Q_UNUSED(pool);
-    s >> fileName;
-    s >> fileTags;
+    pool.stream() >> fileName;
+    pool.stream() >> fileTags;
 
     int i;
-    s >> i;
+    pool.stream() >> i;
     bindings.clear();
     bindings.reserve(i);
     Binding binding;
     for (; --i >= 0;) {
-        s >> binding.name >> binding.code >> binding.location;
+        pool.stream() >> binding.name >> binding.code >> binding.location;
         bindings += binding;
     }
 }
 
-void RuleArtifact::store(PersistentPool &pool, QDataStream &s) const
+void RuleArtifact::store(PersistentPool &pool) const
 {
     Q_UNUSED(pool);
-    s << fileName;
-    s << fileTags;
+    pool.stream() << fileName;
+    pool.stream() << fileTags;
 
-    s << bindings.count();
+    pool.stream() << bindings.count();
     for (int i = bindings.count(); --i >= 0;) {
         const Binding &binding = bindings.at(i);
-        s << binding.name << binding.code << binding.location;
+        pool.stream() << binding.name << binding.code << binding.location;
     }
 }
 
-void RuleScript::load(PersistentPool &, QDataStream &s)
+void RuleScript::load(PersistentPool &pool)
 {
-    s >> script;
-    s >> location;
+    pool.stream() >> script;
+    pool.stream() >> location;
 }
 
-void RuleScript::store(PersistentPool &, QDataStream &s) const
+void RuleScript::store(PersistentPool &pool) const
 {
-    s << script;
-    s << location;
+    pool.stream() << script;
+    pool.stream() << location;
 }
 
-void ResolvedModule::load(PersistentPool &pool, QDataStream &s)
+void ResolvedModule::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
     moduleDependencies = pool.idLoadStringList();
     setupBuildEnvironmentScript = pool.idLoadString();
     setupRunEnvironmentScript = pool.idLoadString();
-    s >> jsImports
+    pool.stream() >> jsImports
       >> setupBuildEnvironmentScript
       >> setupRunEnvironmentScript;
 }
 
-void ResolvedModule::store(PersistentPool &pool, QDataStream &s) const
+void ResolvedModule::store(PersistentPool &pool) const
 {
     pool.storeString(name);
     pool.storeStringList(moduleDependencies);
     pool.storeString(setupBuildEnvironmentScript);
     pool.storeString(setupRunEnvironmentScript);
-    s << jsImports
+    pool.stream() << jsImports
       << setupBuildEnvironmentScript
       << setupRunEnvironmentScript;
 }
@@ -278,30 +276,30 @@ QStringList Rule::outputFileTags() const
     return result;
 }
 
-void Rule::load(PersistentPool &pool, QDataStream &s)
+void Rule::load(PersistentPool &pool)
 {
-    script = pool.idLoadS<RuleScript>(s);
-    module = pool.idLoadS<ResolvedModule>(s);
-    s   >> jsImports
+    script = pool.idLoadS<RuleScript>();
+    module = pool.idLoadS<ResolvedModule>();
+    pool.stream() >> jsImports
         >> inputs
         >> usings
         >> explicitlyDependsOn
         >> multiplex;
 
-    loadContainerS(artifacts, s, pool);
+    loadContainerS(artifacts, pool);
 }
 
-void Rule::store(PersistentPool &pool, QDataStream &s) const
+void Rule::store(PersistentPool &pool) const
 {
     pool.store(script);
     pool.store(module);
-    s   << jsImports
+    pool.stream() << jsImports
         << inputs
         << usings
         << explicitlyDependsOn
         << multiplex;
 
-    storeContainer(artifacts, s, pool);
+    storeContainer(artifacts, pool);
 }
 
 ResolvedProduct::ResolvedProduct()
@@ -328,9 +326,9 @@ QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) cons
     return result;
 }
 
-void ResolvedProduct::load(PersistentPool &pool, QDataStream &s)
+void ResolvedProduct::load(PersistentPool &pool)
 {
-    s   >> fileTags
+    pool.stream() >> fileTags
         >> name
         >> targetName
         >> buildDirectory
@@ -338,17 +336,17 @@ void ResolvedProduct::load(PersistentPool &pool, QDataStream &s)
         >> destinationDirectory
         >> qbsFile;
 
-    properties = pool.idLoadS<PropertyMap>(s);
-    loadContainerS(rules, s, pool);
-    loadContainerS(uses, s, pool);
-    loadContainerS(fileTaggers, s, pool);
-    loadContainerS(modules, s, pool);
-    loadContainerS(groups, s, pool);
+    properties = pool.idLoadS<PropertyMap>();
+    loadContainerS(rules, pool);
+    loadContainerS(uses, pool);
+    loadContainerS(fileTaggers, pool);
+    loadContainerS(modules, pool);
+    loadContainerS(groups, pool);
 }
 
-void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
+void ResolvedProduct::store(PersistentPool &pool) const
 {
-    s   << fileTags
+    pool.stream() << fileTags
         << name
         << targetName
         << buildDirectory
@@ -357,11 +355,11 @@ void ResolvedProduct::store(PersistentPool &pool, QDataStream &s) const
         << qbsFile;
 
     pool.store(properties);
-    storeContainer(rules, s, pool);
-    storeContainer(uses, s, pool);
-    storeContainer(fileTaggers, s, pool);
-    storeContainer(modules, s, pool);
-    storeContainer(groups, s, pool);
+    storeContainer(rules, pool);
+    storeContainer(uses, pool);
+    storeContainer(fileTaggers, pool);
+    storeContainer(modules, pool);
+    storeContainer(groups, pool);
 }
 
 QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,
@@ -531,28 +529,28 @@ void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
     m_id = deriveId(config);
 }
 
-void ResolvedProject::load(PersistentPool &pool, QDataStream &s)
+void ResolvedProject::load(PersistentPool &pool)
 {
-    s >> m_id;
-    s >> platformEnvironment;
+    pool.stream() >> m_id;
+    pool.stream() >> platformEnvironment;
 
     int count;
-    s >> count;
+    pool.stream() >> count;
     products.clear();
     products.reserve(count);
     for (; --count >= 0;) {
-        ResolvedProduct::Ptr rProduct = pool.idLoadS<ResolvedProduct>(s);
+        ResolvedProduct::Ptr rProduct = pool.idLoadS<ResolvedProduct>();
         rProduct->project = this;
         products.append(rProduct);
     }
 }
 
-void ResolvedProject::store(PersistentPool &pool, QDataStream &s) const
+void ResolvedProject::store(PersistentPool &pool) const
 {
-    s << m_id;
-    s << platformEnvironment;
+    pool.stream() << m_id;
+    pool.stream() << platformEnvironment;
 
-    s << products.count();
+    pool.stream() << products.count();
     foreach (const ResolvedProduct::ConstPtr &product, products)
         pool.store(product);
 }

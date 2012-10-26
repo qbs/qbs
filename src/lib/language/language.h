@@ -70,8 +70,8 @@ private:
     PropertyMap();
     PropertyMap(const PropertyMap &other);
 
-    void load(PersistentPool &, QDataStream &s);
-    void store(PersistentPool &, QDataStream &s) const;
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
 
     QVariantMap m_value;
     mutable QHash<QScriptEngine *, QScriptValue> m_scriptValueCache;
@@ -101,8 +101,8 @@ private:
         : m_artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
     {}
 
-    void load(PersistentPool &, QDataStream &s);
-    void store(PersistentPool &, QDataStream &s) const;
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
 
     QRegExp m_artifactExpression;
     QStringList m_fileTags;
@@ -131,8 +131,8 @@ public:
 private:
     RuleArtifact() {}
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class SourceArtifact : public PersistentObject
@@ -151,8 +151,8 @@ public:
 private:
     SourceArtifact() : overrideFileTags(true) {}
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class SourceWildCards : public PersistentObject
@@ -180,8 +180,8 @@ private:
     void expandPatterns(QSet<QString> &files, const QString &baseDir, bool useRecursion,
                       const QStringList &parts, int index = 0) const;
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class Group : public PersistentObject
@@ -202,8 +202,8 @@ public:
 private:
     Group() {}
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class RuleScript: public PersistentObject
@@ -220,8 +220,8 @@ public:
 private:
     RuleScript() {}
 
-    void load(PersistentPool &, QDataStream &s);
-    void store(PersistentPool &, QDataStream &s) const;
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
 };
 
 class ResolvedModule : public PersistentObject
@@ -241,8 +241,8 @@ public:
 private:
     ResolvedModule() {}
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 /**
@@ -280,8 +280,8 @@ public:
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class ResolvedTransformer
@@ -340,8 +340,8 @@ public:
 private:
     ResolvedProduct();
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class ResolvedProject: public PersistentObject
@@ -364,8 +364,8 @@ public:
 private:
     ResolvedProject() {}
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 
     QVariantMap m_buildConfiguration;
     QString m_id;

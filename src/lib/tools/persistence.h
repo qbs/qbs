@@ -49,8 +49,8 @@ class PersistentObject
 {
 public:
     virtual ~PersistentObject() {}
-    virtual void load(PersistentPool &, QDataStream &) {}
-    virtual void store(PersistentPool &, QDataStream &) const {}
+    virtual void load(PersistentPool &) = 0;
+    virtual void store(PersistentPool &) const = 0;
 };
 
 class PersistentPool
@@ -71,10 +71,10 @@ public:
     QDataStream &stream();
 
     template <typename T>
-    inline T *idLoad(QDataStream &s)
+    inline T *idLoad()
     {
         PersistentObjectId id;
-        s >> id;
+        stream() >> id;
         return loadRaw<T>(id);
     }
 
@@ -95,17 +95,17 @@ public:
 
             obj = new T;
             m_loadedRaw[id] = obj;
-            obj->load(*this, m_stream);
+            obj->load(*this);
         }
 
         return static_cast<T*>(obj);
     }
 
     template <class T>
-    inline typename T::Ptr idLoadS(QDataStream &s)
+    inline typename T::Ptr idLoadS()
     {
         PersistentObjectId id;
-        s >> id;
+        m_stream >> id;
         return load<T>(id);
     }
 
@@ -122,7 +122,7 @@ public:
             m_loaded.resize(id + 1);
             obj = T::create();
             m_loaded[id] = obj;
-            obj->load(*this, m_stream);
+            obj->load(*this);
         }
 
         return obj.staticCast<T>();
@@ -170,31 +170,31 @@ template <class T> struct RemoveConst { typedef T Type; };
 template <class T> struct RemoveConst<const T> { typedef T Type; };
 
 template <typename T>
-void loadContainerS(T &container, QDataStream &s, PersistentPool &pool)
+void loadContainerS(T &container, PersistentPool &pool)
 {
     int count;
-    s >> count;
+    pool.stream() >> count;
     container.clear();
     container.reserve(count);
     for (int i = count; --i >= 0;)
-        container += pool.idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>(s);
+        container += pool.idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>();
 }
 
 template <typename T>
-void loadContainer(T &container, QDataStream &s, PersistentPool &pool)
+void loadContainer(T &container, PersistentPool &pool)
 {
     int count;
-    s >> count;
+    pool.stream() >> count;
     container.clear();
     container.reserve(count);
     for (int i = count; --i >= 0;)
-        container += pool.idLoad<typename RemovePointer<typename T::value_type>::Type>(s);
+        container += pool.idLoad<typename RemovePointer<typename T::value_type>::Type>();
 }
 
 template <typename T>
-void storeContainer(T &container, QDataStream &s, PersistentPool &pool)
+void storeContainer(T &container, PersistentPool &pool)
 {
-    s << container.count();
+    pool.stream() << container.count();
     typename T::const_iterator it = container.constBegin();
     const typename T::const_iterator itEnd = container.constEnd();
     for (; it != itEnd; ++it)
@@ -202,9 +202,9 @@ void storeContainer(T &container, QDataStream &s, PersistentPool &pool)
 }
 
 template <typename T>
-void storeHashContainer(T &container, QDataStream &s, PersistentPool &pool)
+void storeHashContainer(T &container, PersistentPool &pool)
 {
-    s << container.count();
+    pool.stream() << container.count();
     foreach (const typename T::mapped_type &item, container)
         pool.store(item);
 }

@@ -97,8 +97,8 @@ public:
     QString fileName() const { return m_fileName.toString(); }
 
 private:
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 
 private:
     QString m_filePath;

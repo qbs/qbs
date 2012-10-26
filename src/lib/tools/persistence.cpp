@@ -113,7 +113,7 @@ void PersistentPool::store(const PersistentObject *object)
         id = m_lastStoredObjectId++;
         m_storageIndices.insert(object, id);
         m_stream << id;
-        object->store(*this, stream());
+        object->store(*this);
     } else {
         m_stream << id;
     }

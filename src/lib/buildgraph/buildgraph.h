@@ -77,8 +77,8 @@ public:
 private:
     BuildProduct();
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 
 private:
     mutable QList<Rule::ConstPtr> m_topSortedRules;
@@ -129,8 +129,8 @@ private:
                                   const QVariantMap &configuration,
                                   const QStringList &loaderSearchPaths,
                                   LoadResult *loadResult);
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
     void markDirty();
     void addBuildProduct(const BuildProduct::Ptr &product);
     void setResolvedProject(const ResolvedProject::Ptr & resolvedProject);

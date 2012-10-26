@@ -73,8 +73,8 @@ public:
 private:
     Transformer();
 
-    void load(PersistentPool &pool, QDataStream &s);
-    void store(PersistentPool &pool, QDataStream &s) const;
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 } // namespace qbs
