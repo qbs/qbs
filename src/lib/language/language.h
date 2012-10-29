@@ -348,6 +348,7 @@ class ResolvedProject: public PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedProject> Ptr;
+    typedef QSharedPointer<const ResolvedProject> ConstPtr;
 
     static Ptr create() { return Ptr(new ResolvedProject); }
 

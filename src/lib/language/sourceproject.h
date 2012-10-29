@@ -58,12 +58,15 @@ public:
 
     // These may throw qbs::Error.
     void loadPlugins();
-    void loadProject(const QString &projectFileName, QList<QVariantMap> buildConfigs);
-
-    QList<BuildProject::Ptr> buildProjects() const;
-    QbsEngine *engine() const;
+    ResolvedProject::Ptr setupResolvedProject(const QString &projectFileName,
+                                              const QVariantMap &buildConfig);
+    BuildProject::Ptr setupBuildProject(const ResolvedProject::Ptr &resolvedProject);
 
 private:
+    QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig);
+    QVariantMap createBuildConfiguration(const QVariantMap &userBuildConfig);
+    Settings::Ptr settings();
+
     QExplicitlySharedDataPointer<SourceProjectPrivate> d;
 };
 

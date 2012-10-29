@@ -183,21 +183,25 @@ int main(int argc, char *argv[])
     }
 
     QbsEngine engine;
+    QList<BuildProject::Ptr> buildProjects;
     SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(parser.settings());
         sourceProject.loadPlugins();
-        sourceProject.loadProject(parser.projectFileName(), parser.buildConfigurations());
+        foreach (const QVariantMap &buildConfig, parser.buildConfigurations()) {
+            const ResolvedProject::Ptr resolvedProject
+                    = sourceProject.setupResolvedProject(parser.projectFileName(), buildConfig);
+            buildProjects << sourceProject.setupBuildProject(resolvedProject);
+        }
     } catch (const Error &error) {
         qbsError() << error.toString();
         return 4;
     }
 
     QGraphicsScene scene;
-    foreach (const BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
-        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+    foreach (const BuildProject::Ptr &buildProject, buildProjects) {
+        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts())
             targetToScene(&scene, buildProduct.data());
-        }
     }
     QRectF sr = scene.sceneRect();
     sr.adjust(-50, -50, 50, 50);

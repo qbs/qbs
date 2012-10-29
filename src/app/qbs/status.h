@@ -30,13 +30,13 @@
 #ifndef STATUS_H
 #define STATUS_H
 
+#include <language/language.h>
+
 #include <QString>
 
 namespace qbs {
 
-class SourceProject;
-
-int printStatus(const QString &projectFilePath, const SourceProject &sourceProject);
+int printStatus(const QString &projectFilePath, const QList<ResolvedProject::Ptr> &projects);
 
 } // namespace qbs
 

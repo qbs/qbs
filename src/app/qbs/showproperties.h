@@ -30,13 +30,15 @@
 #ifndef SHOWPROPERTIES_H
 #define SHOWPROPERTIES_H
 
-namespace qbs {
+#include <language/language.h>
 
-class SourceProject;
+#include <QList>
+
+namespace qbs {
 class BuildOptions;
 
-int showProperties(const qbs::SourceProject &sourceProject,
-                   const qbs::BuildOptions &buildOptions);
+int showProperties(const QList<ResolvedProject::Ptr> &projects,
+                   const BuildOptions &buildOptions);
 
 } // namespace qbs
 

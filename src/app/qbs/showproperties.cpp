@@ -28,7 +28,6 @@
 ****************************************************************************/
 
 #include "showproperties.h"
-#include <buildgraph/buildgraph.h>
 #include <language/language.h>
 #include <language/sourceproject.h>
 #include <tools/buildoptions.h>
@@ -71,21 +70,21 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
     }
 }
 
-static void dumpProperties(const BuildProduct::ConstPtr &buildProduct)
+static void dumpProperties(const ResolvedProduct::ConstPtr &product)
 {
-    const ResolvedProduct::ConstPtr rProduct = buildProduct->rProduct;
-    printf("--------%s--------\n", qPrintable(rProduct->name));
-    dumpMap(rProduct->properties->value());
+    printf("--------%s--------\n", qPrintable(product->name));
+    dumpMap(product->properties->value());
 }
 
-int showProperties(const SourceProject &sourceProject, const BuildOptions &buildOptions)
+int showProperties(const QList<ResolvedProject::Ptr> &projects,
+                   const BuildOptions &buildOptions)
 {
     const QStringList &selectedProducts = buildOptions.selectedProductNames;
     const bool showAll = selectedProducts.isEmpty();
-    foreach (const BuildProject::Ptr &buildProject, sourceProject.buildProjects()) {
-        foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
-            if (showAll || selectedProducts.contains(buildProduct->rProduct->name))
-                dumpProperties(buildProduct);
+    foreach (const ResolvedProject::Ptr &project, projects) {
+        foreach (const ResolvedProduct::ConstPtr &product, project->products) {
+            if (showAll || selectedProducts.contains(product->name))
+                dumpProperties(product);
         }
     }
     return 0;

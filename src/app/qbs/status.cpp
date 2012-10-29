@@ -108,17 +108,17 @@ inline bool lessThanSourceFile(const SourceArtifact::ConstPtr &first,
     return first->absoluteFilePath < second->absoluteFilePath;
 }
 
-int printStatus(const QString &projectFilePath, const SourceProject &sourceProject)
+int printStatus(const QString &projectFilePath, const QList<ResolvedProject::Ptr> &projects)
 {
     QString projectDirectory = FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
-    BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
-    foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
-        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << buildProduct->rProduct->name;
-        QList<SourceArtifact::Ptr> sourceFiles = buildProduct->rProduct->allFiles();
+    const ResolvedProject::ConstPtr project = projects.first();
+    foreach (const ResolvedProduct::ConstPtr &product, project->products) {
+        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product->name;
+        QList<SourceArtifact::Ptr> sourceFiles = product->allFiles();
         qSort(sourceFiles.begin(), sourceFiles.end(), lessThanSourceFile);
         foreach (const SourceArtifact::ConstPtr &sourceFile, sourceFiles) {
             QString fileTags = QStringList(sourceFile->fileTags.toList()).join(", ");

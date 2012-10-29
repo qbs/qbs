@@ -84,26 +84,25 @@ static int makeClean()
     return 0;
 }
 
-static int runShell(const SourceProject &sourceProject)
+static int runShell(const ResolvedProject::Ptr &project, QbsEngine *engine)
 {
-    BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
-    BuildProduct::Ptr buildProduct = *buildProject->buildProducts().begin();
-    RunEnvironment run(sourceProject.engine(), buildProduct->rProduct);
+    const ResolvedProduct::Ptr product = project->products.first();
+    RunEnvironment run(engine, product);
     return run.runShell();
 }
 
-static int buildProject(Application &app, const SourceProject sourceProject,
-        const BuildOptions &buildOptions)
+static int buildProject(Application &app, const QList<BuildProject::Ptr> &buildProjects,
+                        QbsEngine *engine, const BuildOptions &buildOptions)
 {
     Executor executor;
     app.setExecutor(&executor);
     QObject::connect(&executor, SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
     QObject::connect(&executor, SIGNAL(error()), &app, SLOT(quit()), Qt::QueuedConnection);
-    executor.setEngine(sourceProject.engine());
+    executor.setEngine(engine);
     executor.setBuildOptions(buildOptions);
     TimedActivityLogger buildLogger(QLatin1String("Building project"), QString(),
             LoggerInfo);
-    executor.build(sourceProject.buildProjects());
+    executor.build(buildProjects);
     app.exec();
     buildLogger.finishActivity();
     app.setExecutor(0);
@@ -112,7 +111,7 @@ static int buildProject(Application &app, const SourceProject sourceProject,
 
     // store the projects on disk
     try {
-        foreach (const BuildProject::ConstPtr &buildProject, sourceProject.buildProjects())
+        foreach (const BuildProject::ConstPtr &buildProject, buildProjects)
             buildProject->store();
     } catch (const Error &e) {
         qbsError() << e.toString();
@@ -131,10 +130,10 @@ static Artifact *findTarget(const BuildProduct::ConstPtr &buildProduct,
     return 0;
 }
 
-static int runTarget(const SourceProject &sourceProject, const QString &targetName,
-        const QStringList &arguments)
+static int runTarget(const QList<BuildProject::Ptr> &buildProjects, QbsEngine *engine,
+                     const QString &targetName, const QStringList &arguments)
 {
-    BuildProject::Ptr buildProject = sourceProject.buildProjects().first();
+    BuildProject::Ptr buildProject = buildProjects.first();
     BuildProduct::Ptr productToRun;
     QString productFileName;
 
@@ -184,8 +183,17 @@ static int runTarget(const SourceProject &sourceProject, const QString &targetNa
         return ExitCodeErrorBuildFailure;
     }
 
-    RunEnvironment run(sourceProject.engine(), productToRun->rProduct);
+    RunEnvironment run(engine, productToRun->rProduct);
     return run.runTarget(productFileName, arguments);
+}
+
+static QList<BuildProject::Ptr> setupBuildProjects(SourceProject &sourceProject,
+        const QList<ResolvedProject::Ptr> &resolvedProjects)
+{
+    QList<BuildProject::Ptr> buildProjects;
+    foreach (const ResolvedProject::Ptr &resolvedProject, resolvedProjects)
+        buildProjects << sourceProject.setupBuildProject(resolvedProject);
+    return buildProjects;
 }
 
 
@@ -214,11 +222,16 @@ int main(int argc, char *argv[])
     }
 
     QbsEngine engine;
+    QList<ResolvedProject::Ptr> resolvedProjects;
     SourceProject sourceProject(&engine);
     try {
         sourceProject.setSettings(parser.settings());
         sourceProject.loadPlugins();
-        sourceProject.loadProject(parser.projectFileName(), parser.buildConfigurations());
+        foreach (const QVariantMap &buildConfig, parser.buildConfigurations()) {
+            const ResolvedProject::Ptr resolvedProject
+                    = sourceProject.setupResolvedProject(parser.projectFileName(), buildConfig);
+            resolvedProjects << resolvedProject;
+        }
     } catch (const Error &error) {
         qbsError() << error.toString();
         return ExitCodeErrorLoadingProjectFailed;
@@ -228,18 +241,21 @@ int main(int argc, char *argv[])
     case CommandLineParser::CleanCommand:
         return makeClean();
     case CommandLineParser::StartShellCommand:
-        return runShell(sourceProject);
+        return runShell(resolvedProjects.first(), &engine);
     case CommandLineParser::StatusCommand:
-        return printStatus(parser.projectFileName(), sourceProject);
+        return printStatus(parser.projectFileName(), resolvedProjects);
     case CommandLineParser::PropertiesCommand:
-        return showProperties(sourceProject, parser.buildOptions());
+        return showProperties(resolvedProjects, parser.buildOptions());
     case CommandLineParser::BuildCommand:
-        return buildProject(app, sourceProject, parser.buildOptions());
+        return buildProject(app, setupBuildProjects(sourceProject, resolvedProjects), &engine,
+                            parser.buildOptions());
     case CommandLineParser::RunCommand: {
-        const int buildExitCode = buildProject(app, sourceProject, parser.buildOptions());
+        const QList<BuildProject::Ptr> buildProjects
+                = setupBuildProjects(sourceProject, resolvedProjects);
+        const int buildExitCode = buildProject(app, buildProjects, &engine, parser.buildOptions());
         if (buildExitCode != 0)
             return buildExitCode;
-        return runTarget(sourceProject, parser.runTargetName(), parser.runArgs());
+        return runTarget(buildProjects, &engine, parser.runTargetName(), parser.runArgs());
     }
     }
 }
