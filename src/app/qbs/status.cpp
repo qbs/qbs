@@ -108,7 +108,7 @@ inline bool lessThanSourceFile(const SourceArtifact::ConstPtr &first,
     return first->absoluteFilePath < second->absoluteFilePath;
 }
 
-int printStatus(const QString &projectFilePath, const QList<ResolvedProject::Ptr> &projects)
+int printStatus(const QString &projectFilePath, const QList<ResolvedProject::ConstPtr> &projects)
 {
     QString projectDirectory = FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();

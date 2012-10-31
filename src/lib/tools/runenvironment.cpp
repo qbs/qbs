@@ -44,9 +44,11 @@
 
 namespace qbs {
 
-RunEnvironment::RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product)
+RunEnvironment::RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product,
+                               const QProcessEnvironment &environment)
     : m_engine(engine)
     , m_resolvedProduct(product)
+    , m_environment(environment)
 {
 }
 
@@ -68,12 +70,7 @@ RunEnvironment &RunEnvironment::operator =(const RunEnvironment &other)
 
 int RunEnvironment::runShell()
 {
-    try {
-        m_resolvedProduct->setupBuildEnvironment(m_engine, QProcessEnvironment::systemEnvironment());
-    } catch (const Error &e) {
-        qbsError() << e.toString();
-        return EXIT_FAILURE;
-    }
+    m_resolvedProduct->setupBuildEnvironment(m_engine, m_environment);
 
     const QString productId = m_resolvedProduct->name;
     qbsInfo() << tr("Starting shell for target '%1'.").arg(productId);
@@ -123,12 +120,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         return EXIT_FAILURE;
     }
 
-    try {
-        m_resolvedProduct->setupRunEnvironment(m_engine, QProcessEnvironment::systemEnvironment());
-    } catch (const Error &e) {
-        qbsError() << e.toString();
-        return EXIT_FAILURE;
-    }
+    m_resolvedProduct->setupRunEnvironment(m_engine, m_environment);
 
     qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
     QProcess process;

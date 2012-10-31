@@ -36,7 +36,7 @@
 
 namespace qbs {
 
-int printStatus(const QString &projectFilePath, const QList<ResolvedProject::Ptr> &projects);
+int printStatus(const QString &projectFilePath, const QList<ResolvedProject::ConstPtr> &projects);
 
 } // namespace qbs
 

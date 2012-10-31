@@ -76,12 +76,12 @@ static void dumpProperties(const ResolvedProduct::ConstPtr &product)
     dumpMap(product->properties->value());
 }
 
-int showProperties(const QList<ResolvedProject::Ptr> &projects,
+int showProperties(const QList<ResolvedProject::ConstPtr> &projects,
                    const BuildOptions &buildOptions)
 {
     const QStringList &selectedProducts = buildOptions.selectedProductNames;
     const bool showAll = selectedProducts.isEmpty();
-    foreach (const ResolvedProject::Ptr &project, projects) {
+    foreach (const ResolvedProject::ConstPtr &project, projects) {
         foreach (const ResolvedProduct::ConstPtr &product, project->products) {
             if (showAll || selectedProducts.contains(product->name))
                 dumpProperties(product);

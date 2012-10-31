@@ -32,42 +32,47 @@
 
 #include "language.h"
 
-#include <buildgraph/buildgraph.h>
+#include <QList>
+#include <QStringList>
 
-#include <QExplicitlySharedDataPointer>
+QT_BEGIN_NAMESPACE
+class QProcessEnvironment;
+QT_END_NAMESPACE
 
 namespace qbs {
-class BuildProject;
-class Loader;
-class Settings;
-
+class BuildOptions;
+class RunEnvironment;
 class SourceProjectPrivate;
+class ProgressObserver;
 
 class SourceProject
 {
     Q_DECLARE_TR_FUNCTIONS(SourceProject)
+    Q_DISABLE_COPY(SourceProject)
     friend class BuildProject;
 public:
-    SourceProject(QbsEngine *engine);
+    SourceProject();
     ~SourceProject();
 
-    SourceProject(const SourceProject &other);
-    SourceProject &operator=(const SourceProject &other);
-
-    void setSettings(const Settings::Ptr &settings);
+    void setProgressObserver(ProgressObserver *observer);
+    void setBuildRoot(const QString &directory);
 
     // These may throw qbs::Error.
-    void loadPlugins();
-    ResolvedProject::Ptr setupResolvedProject(const QString &projectFileName,
+    ResolvedProject::ConstPtr setupResolvedProject(const QString &projectFileName,
                                               const QVariantMap &buildConfig);
-    BuildProject::Ptr setupBuildProject(const ResolvedProject::Ptr &resolvedProject);
+    void buildProjects(const QList<ResolvedProject::ConstPtr> &projects,
+                      const BuildOptions &buildOptions);
+    void buildProject(const ResolvedProject::ConstPtr &project, const BuildOptions &buildOptions) {
+        buildProjects(QList<ResolvedProject::ConstPtr>() << project, buildOptions);
+    }
+    RunEnvironment getRunEnvironment(const ResolvedProduct::ConstPtr &product,
+                                     const QProcessEnvironment &environment);
+
+    // Empty string if this product is not an application
+    QString targetExecutable(const ResolvedProduct::ConstPtr &product);
 
 private:
-    QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig);
-    QVariantMap createBuildConfiguration(const QVariantMap &userBuildConfig);
-    Settings::Ptr settings();
-
-    QExplicitlySharedDataPointer<SourceProjectPrivate> d;
+    SourceProjectPrivate * const d;
 };
 
 } // namespace qbs

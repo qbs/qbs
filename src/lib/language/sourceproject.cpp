@@ -29,102 +29,100 @@
 
 #include "sourceproject.h"
 
+#include <buildgraph/artifact.h>
+#include <buildgraph/executor.h>
+#include <language/qbsengine.h>
 #include <language/loader.h>
 #include <logging/logger.h>
+#include <tools/runenvironment.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
+#include <tools/settings.h>
 #include <tools/platform.h>
 
+#include <QEventLoop>
 #include <QHash>
 #include <QList>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QPair>
 
 namespace qbs {
 
 class SourceProjectPrivate : public QSharedData
 {
+    Q_DECLARE_TR_FUNCTIONS(SourceProjectPrivate)
 public:
-    QbsEngine *engine;
-    QSharedPointer<BuildGraph> buildGraph;
-    Settings::Ptr settings;
+    SourceProjectPrivate()
+        : observer(0), settings(Settings::create()), buildGraph(new BuildGraph(&engine)) {}
+
+    void loadPlugins();
+    BuildProject::Ptr setupBuildProject(const ResolvedProject::ConstPtr &project);
+    QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig);
+
+    QbsEngine engine;
+    ProgressObserver *observer;
+    QList<ResolvedProject::Ptr> resolvedProjects;
+    QList<BuildProject::Ptr> buildProjects;
+    const Settings::Ptr settings;
+    const QSharedPointer<BuildGraph> buildGraph;
+
+    // Potentially stored temporarily between calls to setupResolvedProject() and setupBuildProject().
+    QHash<ResolvedProject::ConstPtr, BuildProject::Ptr> discardedBuildProjects;
+
+private:
+    QVariantMap createBuildConfiguration(const QVariantMap &userBuildConfig);
 
     // First: Unexpanded config (coming in via the API), second: fully expanded config
     typedef QPair<QVariantMap, QVariantMap> BuildConfigPair;
-    QList<BuildConfigPair> buildConfigurations;
+    QList<BuildConfigPair> m_buildConfigurations;
 
-    // Potentially stored temporarily between calls to setupResolvedProject() and setupBuildProject().
-    QList<BuildProject::Ptr> restoredBuildProjects;
-    QHash<ResolvedProject::Ptr, BuildProject::Ptr> discardedBuildProjects;
+    static bool pluginsLoaded;
+    static QMutex pluginsLoadedMutex;
 };
 
-SourceProject::SourceProject(QbsEngine *engine) : d(new SourceProjectPrivate)
+bool SourceProjectPrivate::pluginsLoaded = false;
+QMutex SourceProjectPrivate::pluginsLoadedMutex;
+
+SourceProject::SourceProject() : d(new SourceProjectPrivate)
 {
-    d->engine = engine;
+    d->loadPlugins();
 }
 
 SourceProject::~SourceProject()
 {
+    delete d;
 }
 
-SourceProject::SourceProject(const SourceProject &other) : d(other.d)
+void SourceProject::setProgressObserver(ProgressObserver *observer)
 {
+    d->observer = observer;
+    d->buildGraph->setProgressObserver(observer);
 }
 
-SourceProject &SourceProject::operator =(const SourceProject &other)
+void SourceProject::setBuildRoot(const QString &directory)
 {
-    d = other.d;
-
-    return *this;
+    d->buildGraph->setOutputDirectoryRoot(directory);
 }
 
-void SourceProject::setSettings(const Settings::Ptr &settings)
-{
-    d->settings = settings;
-}
-
-void SourceProject::loadPlugins()
-{
-    static bool alreadyCalled = false;
-    if (alreadyCalled)
-        qbsWarning("qbs::SourceProject::loadPlugins was called more than once.");
-    alreadyCalled = true;
-
-    QStringList pluginPaths;
-    foreach (const QString &pluginPath, settings()->pluginPaths()) {
-        if (!FileInfo::exists(pluginPath)) {
-            qbsWarning() << tr("Plugin path '%1' does not exist.")
-                    .arg(QDir::toNativeSeparators(pluginPath));
-        } else {
-            pluginPaths << pluginPath;
-        }
-    }
-    foreach (const QString &pluginPath, pluginPaths)
-        QCoreApplication::addLibraryPath(pluginPath);
-    ScannerPluginManager::instance()->loadPlugins(pluginPaths);
-}
-
-ResolvedProject::Ptr SourceProject::setupResolvedProject(const QString &projectFileName,
+ResolvedProject::ConstPtr SourceProject::setupResolvedProject(const QString &projectFileName,
                                                          const QVariantMap &_buildConfig)
 {
-    Loader loader(d->engine);
-    loader.setSearchPaths(settings()->searchPaths());
-    if (!d->buildGraph) {
-        d->buildGraph = QSharedPointer<BuildGraph>(new BuildGraph(d->engine));
-        d->buildGraph->setOutputDirectoryRoot(QDir::currentPath());
-    }
+    Loader loader(&d->engine);
+    loader.setSearchPaths(d->settings->searchPaths());
 
     ProjectFile::Ptr projectFile;
-    const QVariantMap buildConfig = expandedBuildConfiguration(_buildConfig);
+    const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);
     const FileTime projectFileTimeStamp = FileInfo(projectFileName).lastModified();
     const BuildProject::LoadResult loadResult = BuildProject::load(projectFileName,
-            d->buildGraph.data(), projectFileTimeStamp, buildConfig, settings()->searchPaths());
+            d->buildGraph.data(), projectFileTimeStamp, buildConfig, d->settings->searchPaths());
 
     BuildProject::Ptr bProject;
     ResolvedProject::Ptr rProject;
     if (!loadResult.discardLoadedProject)
         bProject = loadResult.loadedProject;
     if (bProject) {
-        d->restoredBuildProjects << bProject;
+        d->buildProjects << bProject;
         rProject = bProject->resolvedProject();
     } else {
         TimedActivityLogger loadLogger(QLatin1String("Loading project"));
@@ -156,44 +154,149 @@ ResolvedProject::Ptr SourceProject::setupResolvedProject(const QString &projectF
     }
     qbsDebug("");
 
+    d->resolvedProjects << rProject;
     return rProject;
 }
 
-BuildProject::Ptr SourceProject::setupBuildProject(const ResolvedProject::Ptr &resolvedProject)
+void SourceProject::buildProjects(const QList<ResolvedProject::ConstPtr> &projects,
+                                  const BuildOptions &buildOptions)
 {
-    for (int i = 0; i < d->restoredBuildProjects.count(); ++i) {
-        const BuildProject::Ptr buildProject = d->restoredBuildProjects.at(i);
-        if (buildProject->resolvedProject() == resolvedProject) {
-            d->restoredBuildProjects.removeAt(i);
-            return buildProject;
+    QList<BuildProject::Ptr> buildProjects;
+    foreach (const ResolvedProject::ConstPtr &rProject, projects)
+        buildProjects << d->setupBuildProject(rProject);
+
+    Executor executor;
+    QEventLoop execLoop;
+    QObject::connect(&executor, SIGNAL(finished()), &execLoop, SLOT(quit()), Qt::QueuedConnection);
+    QObject::connect(&executor, SIGNAL(error()), &execLoop, SLOT(quit()), Qt::QueuedConnection);
+    executor.setEngine(&d->engine);
+    executor.setProgressObserver(d->observer);
+    executor.setBuildOptions(buildOptions);
+    TimedActivityLogger buildLogger(QLatin1String("Building project"), QString(), LoggerInfo);
+    executor.build(buildProjects);
+    execLoop.exec();
+    buildLogger.finishActivity();
+    if (executor.state() != Executor::ExecutorError) {
+        foreach (const BuildProject::ConstPtr &buildProject, buildProjects)
+            buildProject->store();
+    }
+    if (executor.buildResult() != Executor::SuccessfulBuild)
+        throw Error(tr("Build failed."));
+}
+
+RunEnvironment SourceProject::getRunEnvironment(const ResolvedProduct::ConstPtr &product,
+                                                const QProcessEnvironment &environment)
+{
+    foreach (const ResolvedProject::ConstPtr &rProject, d->resolvedProjects) {
+        if (product->project != rProject)
+            continue;
+        foreach (const ResolvedProduct::Ptr &p, rProject->products) {
+            if (p == product)
+                return RunEnvironment(&d->engine, p, environment);
         }
     }
+    throw Error(tr("Unknown product"));
+}
 
-    TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
-    const BuildProject::Ptr buildProject = d->buildGraph->resolveProject(resolvedProject);
-    const QHash<ResolvedProject::Ptr, BuildProject::Ptr>::Iterator it
-            = d->discardedBuildProjects.find(resolvedProject);
-    if (it != d->discardedBuildProjects.end()) {
-        buildProject->rescueDependencies(it.value());
-        d->discardedBuildProjects.erase(it);
+QString SourceProject::targetExecutable(const ResolvedProduct::ConstPtr &product)
+{
+    Q_ASSERT(product);
+
+    if (!product->fileTags.contains(QLatin1String("application")))
+        return QString();
+    ResolvedProject::ConstPtr resolvedProject;
+    foreach (const ResolvedProject::ConstPtr &p, d->resolvedProjects) {
+        if (p == product->project) {
+            resolvedProject = p;
+            break;
+        }
+    }
+    if (!resolvedProject)
+        throw Error(tr("Unknown product '%1'.").arg(product->name));
+
+    const BuildProject::ConstPtr buildProject = d->setupBuildProject(resolvedProject);
+    Q_ASSERT(buildProject->resolvedProject() == resolvedProject);
+    BuildProduct::ConstPtr buildProduct;
+    foreach (const BuildProduct::ConstPtr &bp, buildProject->buildProducts()) {
+        if (bp->rProduct == product) {
+            buildProduct = bp;
+            break;
+        }
+    }
+    Q_ASSERT(buildProduct);
+
+    foreach (const Artifact * const artifact, buildProduct->targetArtifacts) {
+        if (artifact->fileTags.contains(QLatin1String("application")))
+            return artifact->filePath();
+    }
+    return QString();
+}
+
+void SourceProjectPrivate::loadPlugins()
+{
+    QMutexLocker locker(&pluginsLoadedMutex);
+    if (pluginsLoaded)
+        return;
+
+    QStringList pluginPaths;
+    foreach (const QString &pluginPath, settings->pluginPaths()) {
+        if (!FileInfo::exists(pluginPath)) {
+            qbsWarning() << tr("Plugin path '%1' does not exist.")
+                    .arg(QDir::toNativeSeparators(pluginPath));
+        } else {
+            pluginPaths << pluginPath;
+        }
+    }
+    foreach (const QString &pluginPath, pluginPaths)
+        QCoreApplication::addLibraryPath(pluginPath); // TODO: Probably wrong to do it like this and possibly not needed at all.
+    ScannerPluginManager::instance()->loadPlugins(pluginPaths);
+
+    pluginsLoaded = true;
+}
+
+BuildProject::Ptr SourceProjectPrivate::setupBuildProject(const ResolvedProject::ConstPtr &project)
+{
+    foreach (const BuildProject::Ptr &buildProject, buildProjects) {
+        if (buildProject->resolvedProject() == project)
+            return buildProject;
     }
 
+    ResolvedProject::Ptr mutableRProject;
+    foreach (const ResolvedProject::Ptr &p, resolvedProjects) {
+        if (p == project) {
+            mutableRProject = p;
+            break;
+        }
+    }
+    if (!mutableRProject)
+        throw Error(tr("Unknown project."));
+
+    TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
+    const BuildProject::Ptr buildProject = buildGraph->resolveProject(mutableRProject);
+    const QHash<ResolvedProject::ConstPtr, BuildProject::Ptr>::Iterator it
+            = discardedBuildProjects.find(project);
+    if (it != discardedBuildProjects.end()) {
+        buildProject->rescueDependencies(it.value());
+        discardedBuildProjects.erase(it);
+    }
+
+    buildProjects << buildProject;
     return buildProject;
 }
 
-QVariantMap SourceProject::expandedBuildConfiguration(const QVariantMap &userBuildConfig)
+QVariantMap SourceProjectPrivate::expandedBuildConfiguration(const QVariantMap &userBuildConfig)
 {
-    foreach (const SourceProjectPrivate::BuildConfigPair &configPair, d->buildConfigurations) {
+    foreach (const SourceProjectPrivate::BuildConfigPair &configPair, m_buildConfigurations) {
         if (configPair.first == userBuildConfig)
             return configPair.second;
     }
     const SourceProjectPrivate::BuildConfigPair configPair
             = qMakePair(userBuildConfig, createBuildConfiguration(userBuildConfig));
-    d->buildConfigurations << configPair;
+    m_buildConfigurations << configPair;
     return configPair.second;
 }
 
-QVariantMap SourceProject::createBuildConfiguration(const QVariantMap &userBuildConfig)
+QVariantMap SourceProjectPrivate::createBuildConfiguration(const QVariantMap &userBuildConfig)
 {
     QHash<QString, Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty())
@@ -208,7 +311,7 @@ QVariantMap SourceProject::createBuildConfiguration(const QVariantMap &userBuild
     // 4) Any remaining keys from modules keyspace
     QString profileName = expandedConfig.value("qbs.profile").toString();
     if (profileName.isNull()) {
-        profileName = settings()->value("profile").toString();
+        profileName = settings->value("profile").toString();
         if (profileName.isNull())
             throw Error(tr("No profile given.\n"
                            "Either set the configuration value 'profile' to a valid profile's name\n"
@@ -218,20 +321,20 @@ QVariantMap SourceProject::createBuildConfiguration(const QVariantMap &userBuild
 
     // (2)
     const QString profileGroup = QString("profiles/%1").arg(profileName);
-    const QStringList profileKeys = settings()->allKeysWithPrefix(profileGroup);
+    const QStringList profileKeys = settings->allKeysWithPrefix(profileGroup);
     if (profileKeys.isEmpty())
         throw Error(tr("Unknown profile '%1'.").arg(profileName));
     foreach (const QString &profileKey, profileKeys) {
         QString fixedKey(profileKey);
         fixedKey.replace(QChar('/'), QChar('.'));
         if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings()->value(profileGroup + "/" + profileKey));
+            expandedConfig.insert(fixedKey, settings->value(profileGroup + "/" + profileKey));
     }
 
     // (3) Need to make sure we have a value for qbs.platform before going any further
     QVariant platformName = expandedConfig.value("qbs.platform");
     if (!platformName.isValid()) {
-        platformName = settings()->moduleValue("qbs/platform", profileName);
+        platformName = settings->moduleValue("qbs/platform", profileName);
         if (!platformName.isValid())
             throw Error(tr("No platform given and no default set."));
         expandedConfig.insert("qbs.platform", platformName);
@@ -250,11 +353,11 @@ QVariantMap SourceProject::createBuildConfiguration(const QVariantMap &userBuild
             expandedConfig.insert(fixedKey, platform->settings.value(key));
     }
     // Now finally do (4)
-    foreach (const QString &defaultKey, settings()->allKeysWithPrefix("modules")) {
+    foreach (const QString &defaultKey, settings->allKeysWithPrefix("modules")) {
         QString fixedKey(defaultKey);
         fixedKey.replace(QChar('/'), QChar('.'));
         if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings()->value(QString("modules/") + defaultKey));
+            expandedConfig.insert(fixedKey, settings->value(QString("modules/") + defaultKey));
     }
 
     if (!expandedConfig.value("qbs.buildVariant").isValid())
@@ -274,13 +377,6 @@ QVariantMap SourceProject::createBuildConfiguration(const QVariantMap &userBuild
     }
 
     return expandedConfig;
-}
-
-Settings::Ptr SourceProject::settings()
-{
-    if (!d->settings)
-        d->settings = Settings::create();
-    return d->settings;
 }
 
 } // namespace qbs

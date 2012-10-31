@@ -37,7 +37,7 @@
 namespace qbs {
 class BuildOptions;
 
-int showProperties(const QList<ResolvedProject::Ptr> &projects,
+int showProperties(const QList<ResolvedProject::ConstPtr> &projects,
                    const BuildOptions &buildOptions);
 
 } // namespace qbs

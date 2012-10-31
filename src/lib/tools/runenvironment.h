@@ -33,6 +33,7 @@
 #include <language/language.h>
 
 #include <QCoreApplication>
+#include <QProcessEnvironment>
 
 namespace qbs {
 
@@ -42,17 +43,20 @@ class RunEnvironment
 {
     Q_DECLARE_TR_FUNCTIONS(RunEnvironment)
 public:
-    RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product);
+    RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product,
+                   const QProcessEnvironment &environment);
     ~RunEnvironment();
     RunEnvironment(const RunEnvironment &other);
     RunEnvironment &operator =(const RunEnvironment &other);
 
+    // These can throw an Error
     int runShell();
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
     QbsEngine *m_engine;
     ResolvedProduct::Ptr m_resolvedProduct;
+    QProcessEnvironment m_environment;
 };
 
 } // namespace qbs
