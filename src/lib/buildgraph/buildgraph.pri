@@ -13,7 +13,8 @@ SOURCES += \
     $$PWD/jscommandexecutor.cpp \
     $$PWD/transformer.cpp \
     $$PWD/artifact.cpp \
-    $$PWD/inputartifactscanner.cpp
+    $$PWD/inputartifactscanner.cpp \
+    $$PWD/artifactvisitor.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -29,4 +30,5 @@ HEADERS += \
     $$PWD/jscommandexecutor.h \
     $$PWD/transformer.h \
     $$PWD/artifact.h \
-    $$PWD/inputartifactscanner.h
+    $$PWD/inputartifactscanner.h \
+    $$PWD/artifactvisitor.h

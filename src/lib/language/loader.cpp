@@ -1873,7 +1873,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     QMultiMap<QString, ResolvedProduct::Ptr> resolvedProducts;
     QHash<ResolvedProduct::Ptr, ProductData>::iterator it = projectData.products.begin();
     if (m_progressObserver)
-        m_progressObserver->setProgressRange(0, projectData.products.count());
+        m_progressObserver->initialize(tr("Loading project"), projectData.products.count());
     for (; it != projectData.products.end(); ++it) {
         if (m_progressObserver) {
             if (m_progressObserver->canceled())

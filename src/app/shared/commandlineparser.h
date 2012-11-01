@@ -64,6 +64,7 @@ public:
     const QStringList &runArgs() const { return m_runArgs; }
     bool isHelpSet() const { return m_help; }
     QList<QVariantMap> buildConfigurations() const;
+    bool showProgress() const { return m_showProgress; }
 
 private:
     void doParse();
@@ -88,6 +89,7 @@ private:
     BuildOptions m_buildOptions;
     bool m_help;
     int m_logLevel;
+    bool m_showProgress;
 };
 }
 #endif // OPTIONS_H

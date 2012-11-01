@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "application.h"
+#include "consoleprogressobserver.h"
 #include "showproperties.h"
 #include "status.h"
 
@@ -45,6 +46,7 @@
 #include <QObject>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QScopedPointer>
 #include <QTimer>
 
 using namespace qbs;
@@ -203,6 +205,11 @@ int main(int argc, char *argv[])
     QList<ResolvedProject::ConstPtr> resolvedProjects;
     SourceProject sourceProject;
     sourceProject.setBuildRoot(QDir::currentPath());
+    QScopedPointer<ConsoleProgressObserver> observer;
+    if (parser.showProgress()) {
+        observer.reset(new ConsoleProgressObserver);
+        sourceProject.setProgressObserver(observer.data());
+    }
     try {
         foreach (const QVariantMap &buildConfig, parser.buildConfigurations()) {
             const ResolvedProject::ConstPtr resolvedProject

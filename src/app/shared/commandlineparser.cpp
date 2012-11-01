@@ -40,7 +40,9 @@
 #include <QTextStream>
 #include <QThread>
 
-#include <cstdio>
+#ifdef Q_OS_UNIX
+#include <unistd.h>
+#endif
 
 namespace qbs {
 
@@ -80,6 +82,7 @@ CommandLineParser::CommandLineParser()
     m_settings = Settings::create();
 }
 
+// TODO: Symbolic constants for all option and command names.
 void CommandLineParser::printHelp() const
 {
     QTextStream stream(m_help ? stdout : stderr);
@@ -112,11 +115,14 @@ void CommandLineParser::printHelp() const
          "      .............. Assume these and only these files have changed.\n"
          "  --products name[,name...]\n"
          "      .............. Build only the specified products.\n"
+#ifdef Q_OS_UNIX
+         "  --show-progress  . Show a progress bar. Implies --log-level=%3.\n"
+#endif
          "  --log-level level\n"
          "      .............. Use the specified log level. Possible values are \"%1\".\n"
          "                     The default is \"%2\".\n")
              .arg(allLogLevelStrings().join(QLatin1String("\", \"")),
-                  logLevelToString(Logger::defaultLevel()));
+                  logLevelToString(Logger::defaultLevel()), logLevelToString(LoggerMinLevel));
 }
 
 /**
@@ -145,6 +151,7 @@ void CommandLineParser::doParse()
     if (m_buildOptions.maxJobCount <= 0)
         m_buildOptions.maxJobCount = QThread::idealThreadCount();
     m_help = false;
+    m_showProgress = false;
     m_logLevel = Logger::defaultLevel();
 
     while (!m_commandLine.isEmpty()) {
@@ -159,6 +166,11 @@ void CommandLineParser::doParse()
             parseArgument(arg);
     }
 
+    if (m_showProgress && m_logLevel != LoggerMinLevel) {
+        qbsInfo() << tr("Setting log level to \"%1\", because option \"--show-progress\""
+                           " has been given.").arg(logLevelToString(LoggerMinLevel));
+        m_logLevel = LoggerMinLevel;
+    }
     if (m_logLevel < LoggerMinLevel) {
         qbsWarning() << tr("Cannot decrease log level as much as specified; using \"%1\".")
                 .arg(logLevelToString(LoggerMinLevel));
@@ -212,6 +224,14 @@ void CommandLineParser::parseLongOption(const QString &option)
     } else if (optionName == QLatin1String("products") && (m_command == BuildCommand
             || m_command == CleanCommand || m_command == PropertiesCommand)) {
         m_buildOptions.selectedProductNames = getOptionArgumentAsList(option);
+#ifdef Q_OS_UNIX
+    } else if (optionName == QLatin1String("show-progress")) {
+        if (isatty(STDOUT_FILENO))
+            m_showProgress = true;
+        else
+            qbsWarning() << tr("Ignoring option \"--show-progress\", because standard output is "
+                               "not connected to a terminal.");
+#endif
     } else if (optionName == QLatin1String("log-level")) {
         m_logLevel = logLevelFromString(getOptionArgument(option));
     } else {

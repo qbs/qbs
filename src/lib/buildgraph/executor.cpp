@@ -27,6 +27,7 @@
 **
 ****************************************************************************/
 
+#include "artifactvisitor.h"
 #include "automoc.h"
 #include "executor.h"
 #include "executorjob.h"
@@ -39,11 +40,27 @@
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
 
+#include <QSet>
+
 #include <algorithm>
 
 namespace qbs {
 
 static QHashDummyValue hashDummy;
+
+class GeneratedArtifactCounter : public ArtifactVisitor
+{
+public:
+    GeneratedArtifactCounter() : ArtifactVisitor(Artifact::Generated) {}
+
+    int count() const { return m_artifacts.count(); }
+
+private:
+    void doVisit(const Artifact *artifact) { m_artifacts << artifact; }
+
+    QSet<const Artifact *> m_artifacts;
+};
+
 
 Executor::Executor()
     : m_engine(0)
@@ -179,7 +196,9 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild)
             setError(tr("Build canceled."));
             return;
         }
-        m_progressObserver->setProgressRange(0 , m_leaves.count());
+        GeneratedArtifactCounter counter;
+        counter.visit(projectsToBuild);
+        m_progressObserver->initialize(tr("Building"), counter.count());
     }
 
     if (success) {
@@ -284,8 +303,6 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
 bool Executor::run()
 {
     while (m_state == ExecutorRunning) {
-        if (m_progressObserver)
-            m_progressObserver->incrementProgressValue();
         if (m_leaves.isEmpty())
             return !m_processingJobs.isEmpty();
 
@@ -463,6 +480,9 @@ void Executor::finishArtifact(Artifact *leaf)
     foreach (Artifact *sideBySideArtifact, leaf->sideBySideArtifacts)
         if (leaf->transformer == sideBySideArtifact->transformer && sideBySideArtifact->buildState == Artifact::Building)
             finishArtifact(sideBySideArtifact);
+
+    if (m_progressObserver && leaf->artifactType == Artifact::Generated)
+        m_progressObserver->incrementProgressValue();
 }
 
 static void insertLeavesAfterAddingDependencies_recurse(Artifact *artifact, QSet<Artifact *> &seenArtifacts, QMap<Artifact *, QHashDummyValue> &leaves)

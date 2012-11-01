@@ -2,6 +2,12 @@
 #ifndef PROGRESSOBSERVER_H
 #define PROGRESSOBSERVER_H
 
+#include <QtGlobal>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
+
 namespace qbs {
 
 class ProgressObserver
@@ -9,7 +15,7 @@ class ProgressObserver
 public:
     virtual ~ProgressObserver() { }
 
-    virtual void setProgressRange(int minimum, int maximum) = 0;
+    virtual void initialize(const QString &task, int maximum) = 0;
     virtual void setProgressValue(int value) = 0;
     virtual int progressValue() = 0;
     virtual void incrementProgressValue(int increment = 1)

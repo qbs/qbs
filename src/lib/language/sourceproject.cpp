@@ -110,6 +110,7 @@ ResolvedProject::ConstPtr SourceProject::setupResolvedProject(const QString &pro
 {
     Loader loader(&d->engine);
     loader.setSearchPaths(d->settings->searchPaths());
+    loader.setProgressObserver(d->observer);
 
     ProjectFile::Ptr projectFile;
     const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);

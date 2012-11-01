@@ -505,6 +505,8 @@ BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
 {
     BuildProject::Ptr project = BuildProject::Ptr(new BuildProject(this));
     project->setResolvedProject(rProject);
+    if (m_progressObserver)
+        m_progressObserver->initialize(tr("Resolving project"), rProject->products.count());
     foreach (ResolvedProduct::Ptr rProduct, rProject->products) {
         resolveProduct(project.data(), rProduct);
     }
