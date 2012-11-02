@@ -61,21 +61,16 @@ CppModule {
         }
     }
 
-    Artifact {
-        // This adds the filename in precompiledHeader to the set of source files.
-        // If its already in there, then this makes sure it has the right file tag.
-        condition: precompiledHeader != null
-        fileName: precompiledHeader
-        fileTags: ["hpp_pch"]
-    }
-
-    Rule {
-        id: pchCompiler
-        inputs: ["hpp_pch"]
+    Transformer {
+        condition: precompiledHeader !== undefined
+        inputs: precompiledHeader
         Artifact {
             fileTags: ['obj']
-            // ### make the object file dir overridable
-            fileName: ".obj/" + product.name + "/" + input.baseName + '.obj'
+            fileName: {
+                var baseName = FileInfo.baseName(product.modules.cpp.precompiledHeader);
+                // ### make the object file dir overridable
+                return ".obj/" + product.name + "/" + baseName + '.obj'
+            }
         }
         Artifact {
             fileTags: ['c++_pch']
