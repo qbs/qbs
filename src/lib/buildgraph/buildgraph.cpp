@@ -512,6 +512,19 @@ BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
     return project;
 }
 
+static void setupSideBySideArtifacts(const QList<Artifact *> &outputArtifacts)
+{
+    for (int i = 0; i < outputArtifacts.count() - 1; ++i) {
+        for (int j = i + 1; j < outputArtifacts.count(); ++j) {
+            Artifact * const a1 = outputArtifacts.at(i);
+            Artifact * const a2 = outputArtifacts.at(j);
+            Q_ASSERT(a1 != a2);
+            a1->sideBySideArtifacts.insert(a2);
+            a2->sideBySideArtifacts.insert(a1);
+        }
+    }
+}
+
 BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProduct::Ptr rProduct)
 {
     BuildProduct::Ptr product = m_productCache.value(rProduct);
@@ -598,6 +611,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
             rule->artifacts += ruleArtifact;
         }
+        setupSideBySideArtifacts(transformer->outputs.toList());
         transformer->rule = rule;
 
         EngineInitializer initializer(this);
@@ -1337,16 +1351,7 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
         m_buildGraph->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
     }
 
-    // setup side-by-side artifacts
-    for (int i = 0; i < outputArtifacts.count() - 1; ++i) {
-        for (int j = i + 1; j < outputArtifacts.count(); ++j) {
-            Artifact * const a1 = outputArtifacts.at(i);
-            Artifact * const a2 = outputArtifacts.at(j);
-            Q_ASSERT(a1 != a2);
-            a1->sideBySideArtifacts.insert(a2);
-            a2->sideBySideArtifacts.insert(a1);
-        }
-    }
+    setupSideBySideArtifacts(outputArtifacts);
     m_transformer->setupInputs(engine(), scope());
 
     // change the transformer outputs according to the bindings in Artifact
