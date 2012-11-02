@@ -28,15 +28,20 @@
 ****************************************************************************/
 #include "artifactvisitor.h"
 
+#include "artifact.h"
+
 namespace qbs {
 
-ArtifactVisitor::ArtifactVisitor(Artifact::ArtifactType artifactType) : m_artifactType(artifactType)
+ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType)
 {
 }
 
 void ArtifactVisitor::visit(const Artifact *artifact)
 {
-    if (artifact->artifactType == m_artifactType)
+    if (m_allArtifacts.contains(artifact))
+        return;
+    m_allArtifacts << artifact;
+    if (m_artifactType & artifact->artifactType)
         doVisit(artifact);
     else if (m_artifactType == Artifact::Generated)
         return;

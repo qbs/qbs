@@ -47,6 +47,7 @@ class ConsoleProgressObserver : public ProgressObserver
     int m_maximum;
     int m_value;
     int m_percentage;
+    int m_hashesPrinted;
 };
 
 } // namespace qbs

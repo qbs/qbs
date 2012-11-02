@@ -48,17 +48,51 @@ namespace qbs {
 
 static QHashDummyValue hashDummy;
 
-class GeneratedArtifactCounter : public ArtifactVisitor
+class MocEffortCalculator : public ArtifactVisitor
 {
 public:
-    GeneratedArtifactCounter() : ArtifactVisitor(Artifact::Generated) {}
+    MocEffortCalculator() : ArtifactVisitor(Artifact::SourceFile), m_effort(0) {}
 
-    int count() const { return m_artifacts.count(); }
+    int effort() const { return m_effort; }
 
 private:
-    void doVisit(const Artifact *artifact) { m_artifacts << artifact; }
+    void doVisit(const Artifact *) { m_effort += 10; }
 
-    QSet<const Artifact *> m_artifacts;
+    int m_effort;
+};
+
+class ScanEffortCalculator : public ArtifactVisitor
+{
+public:
+    ScanEffortCalculator()
+        : ArtifactVisitor(Artifact::SourceFile | Artifact::FileDependency), m_effort(0) {}
+
+    int effort() const { return m_effort; }
+
+private:
+    void doVisit(const Artifact *) { ++m_effort; }
+
+    int m_effort;
+};
+
+class BuildEffortCalculator : public ArtifactVisitor
+{
+public:
+    BuildEffortCalculator() : ArtifactVisitor(Artifact::Generated), m_effort(0) {}
+
+    int effort() const { return m_effort; }
+
+    static int multiplier(const Artifact *artifact) {
+        return artifact->transformer->rule->multiplex ? 200 : 20;
+    }
+
+private:
+    void doVisit(const Artifact *artifact)
+    {
+        m_effort += multiplier(artifact);
+    }
+
+    int m_effort;
 };
 
 
@@ -171,6 +205,27 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild)
     // mark the artifacts we want to build
     prepareBuildGraph(initialBuildState);
 
+    int scanEffort;
+    int mocEffort;
+    if (m_progressObserver) {
+        if (m_progressObserver->canceled()) {
+            setError(tr("Build canceled."));
+            return;
+        }
+        ScanEffortCalculator scanEffortCalculator;
+        MocEffortCalculator mocEffortCalculator;
+        BuildEffortCalculator buildEffortCalculator;
+        foreach (const BuildProduct::ConstPtr &product, m_productsToBuild) {
+            scanEffortCalculator.visit(product);
+            mocEffortCalculator.visit(product);
+            buildEffortCalculator.visit(product);
+        }
+        scanEffort = scanEffortCalculator.effort();
+        mocEffort = mocEffortCalculator.effort();
+        const int totalEffort = scanEffort + mocEffort + buildEffortCalculator.effort();
+        m_progressObserver->initialize(tr("Building"), totalEffort);
+    }
+
     // determine which artifacts are out of date
     const bool changedFilesProvided = !m_buildOptions.changedFiles.isEmpty();
     if (changedFilesProvided) {
@@ -185,21 +240,16 @@ void Executor::build(const QList<BuildProject::Ptr> projectsToBuild)
     } else {
         doOutOfDateCheck();
     }
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue(scanEffort);
 
-    if (success)
+    if (success) {
         success = runAutoMoc();
+        if (m_progressObserver)
+            m_progressObserver->incrementProgressValue(mocEffort);
+    }
     if (success)
         initLeaves(changedArtifacts);
-
-    if (m_progressObserver) {
-        if (m_progressObserver->canceled()) {
-            setError(tr("Build canceled."));
-            return;
-        }
-        GeneratedArtifactCounter counter;
-        counter.visit(projectsToBuild);
-        m_progressObserver->initialize(tr("Building"), counter.count());
-    }
 
     if (success) {
         bool stillArtifactsToExecute = run();
@@ -482,7 +532,7 @@ void Executor::finishArtifact(Artifact *leaf)
             finishArtifact(sideBySideArtifact);
 
     if (m_progressObserver && leaf->artifactType == Artifact::Generated)
-        m_progressObserver->incrementProgressValue();
+        m_progressObserver->incrementProgressValue(BuildEffortCalculator::multiplier(leaf));
 }
 
 static void insertLeavesAfterAddingDependencies_recurse(Artifact *artifact, QSet<Artifact *> &seenArtifacts, QMap<Artifact *, QHashDummyValue> &leaves)

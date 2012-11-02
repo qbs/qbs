@@ -29,17 +29,18 @@
 #ifndef ARTIFACTVISITOR_H
 #define ARTIFACTVISITOR_H
 
-#include "artifact.h"
 #include "buildgraph.h"
 
 #include <QList>
+#include <QSet>
 
 namespace qbs {
+class Artifact;
 
 class ArtifactVisitor
 {
 public:
-    ArtifactVisitor(Artifact::ArtifactType artifactType);
+    ArtifactVisitor(int artifactType);
 
     virtual void visit(const Artifact *artifact);
     virtual void visit(const BuildProduct::ConstPtr &product);
@@ -50,7 +51,8 @@ public:
 private:
     virtual void doVisit(const Artifact *artifact) = 0;
 
-    const Artifact::ArtifactType m_artifactType;
+    const int m_artifactType;
+    QSet<const Artifact *> m_allArtifacts;
 };
 
 } // namespace qbs

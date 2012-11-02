@@ -28,6 +28,7 @@
 ****************************************************************************/
 #include "consoleprogressobserver.h"
 
+#include <QByteArray>
 #include <QString>
 
 #include <iostream>
@@ -39,6 +40,7 @@ void ConsoleProgressObserver::initialize(const QString &task, int max)
     m_maximum = max;
     m_value = 0;
     m_percentage = 0;
+    m_hashesPrinted = 0;
     std::cout << task.toLocal8Bit().constData() << ": 0%" << std::flush;
 }
 
@@ -73,8 +75,11 @@ void ConsoleProgressObserver::eraseCurrentPercentageString()
 void ConsoleProgressObserver::updateProgressBarIfNecessary()
 {
     static const int TotalHashCount = 50; // Should fit on most terminals without a line break.
-    if ((m_percentage % (100 / TotalHashCount)) == 0)
-        std::cout << "#";
+    const int hashesNeeded = (m_percentage * TotalHashCount) / 100;
+    if (m_hashesPrinted < hashesNeeded) {
+        std::cout << QByteArray(hashesNeeded - m_hashesPrinted, '#').constData();
+        m_hashesPrinted = hashesNeeded;
+    }
 }
 
 void ConsoleProgressObserver::writePercentageString()

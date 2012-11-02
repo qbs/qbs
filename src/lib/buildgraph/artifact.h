@@ -68,10 +68,10 @@ public:
 
     enum ArtifactType
     {
-        Unknown,
-        SourceFile,
-        Generated,
-        FileDependency
+        Unknown = 1,
+        SourceFile = 2,
+        Generated = 4,
+        FileDependency = 8
     };
     ArtifactType artifactType;
 
