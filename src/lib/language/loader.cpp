@@ -1886,6 +1886,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
         rproduct->name = productProps->stringValue("name");
         rproduct->targetName = productProps->stringValue("targetName");
+        rproduct->properties = PropertyMap::create();
 
         // insert property "buildDirectory"
         {
@@ -1913,8 +1914,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
         QList<EvaluationObject *> unresolvedChildren = resolveCommonItems(data.product->children, rproduct, dummyModule);
 
-        // build the product's configuration
-        rproduct->properties = PropertyMap::create();
+        // fill the product's configuration
         QVariantMap productCfg = evaluateAll(rproduct, data.product->scope);
         rproduct->properties->setValue(productCfg);
 
@@ -2299,7 +2299,7 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
         if (child->prototype != name_Artifact)
             throw Error(tr("Transformer: wrong child type '%0'.").arg(child->prototype));
         SourceArtifact::Ptr artifact = SourceArtifact::create();
-        artifact->properties = PropertyMap::create();
+        artifact->properties = rproduct->properties;
         QString fileName = child->scope->stringValue("fileName");
         if (fileName.isEmpty())
             throw Error(tr("Artifact fileName must not be empty."));
