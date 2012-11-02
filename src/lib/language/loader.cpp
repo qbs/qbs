@@ -2122,34 +2122,10 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
         rmodule->moduleDependencies.append(m->name);
     rproduct->modules.append(rmodule);
     QList<EvaluationObject *> unhandledChildren = resolveCommonItems(module->children, rproduct, rmodule);
-    foreach (EvaluationObject *child, unhandledChildren) {
-        if (child->prototype == name_Artifact) {
-            if (!checkCondition(child))
-                continue;
-            QString fileName = child->scope->stringValue("fileName");
-            if (fileName.isEmpty())
-                throw Error(tr("Source file %0 does not exist.").arg(fileName));
-            SourceArtifact::Ptr artifact;
-            foreach (SourceArtifact::Ptr a, rproduct->allFiles()) {
-                if (a->absoluteFilePath == fileName) {
-                    artifact = a;
-                    break;
-                }
-            }
-            if (!artifact) {
-                Q_ASSERT(rproduct->groups.count() > 0);
-                Group::Ptr group = rproduct->groups.first();
-                artifact = SourceArtifact::create();
-                artifact->properties = group->properties;
-                fileName = QDir::cleanPath(fileName);
-                artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
-                group->files += artifact;
-            }
-            artifact->fileTags += child->scope->stringListValue("fileTags").toSet();
-        } else {
-            QString msg = tr("Items of type %0 not allowed in a Module.");
-            throw Error(msg.arg(child->prototype));
-        }
+    if (!unhandledChildren.isEmpty()) {
+        EvaluationObject *child = unhandledChildren.first();
+        QString msg = tr("Items of type %0 not allowed in a Module.");
+        throw Error(msg.arg(child->prototype));
     }
 }
 
