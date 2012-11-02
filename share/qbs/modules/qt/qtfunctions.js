@@ -2,7 +2,7 @@
 
 function getLibraryName(qtModule, versionMajor, targetOS, debugInfo)
 {
-    var libName
+    var libName = qtModule
     if (targetOS === 'linux' || targetOS === 'mac') {
         libName = qtModule
     } else if (targetOS === 'windows') {

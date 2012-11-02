@@ -15,6 +15,8 @@ Module {
     property var targetPlatform: {
         if (targetOS === "linux")
             return [ "unix", "linux" ];
+        else if (targetOS === "android")
+            return [ "unix", "android" ];
         else if (targetOS === "mac")
             return [ "unix", "darwin", "mac" ];
         else if (targetOS === "windows")
