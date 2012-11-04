@@ -2,13 +2,11 @@
 
 function getLibraryName(qtModule, versionMajor, targetOS, debugInfo)
 {
-    var libName = qtModule
-    if (targetOS === 'linux' || targetOS === 'mac') {
-        libName = qtModule
-    } else if (targetOS === 'windows') {
-        libName = qtModule + (debugInfo ? 'd' : '') + versionMajor
+    var libName = qtModule;
+    if (targetOS === 'windows') {
+        libName = qtModule + (debugInfo ? 'd' : '') + versionMajor;
         if (qbs.toolchain !== "mingw")
-            libName += '.lib'
+            libName += '.lib';
     }
-    return libName
+    return libName;
 }
