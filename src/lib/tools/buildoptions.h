@@ -39,7 +39,6 @@ public:
     BuildOptions() : dryRun(false), keepGoing(false), maxJobCount(1) {}
 
     QStringList changedFiles;
-    QStringList selectedProductNames;
     bool dryRun;
     bool keepGoing;
     int maxJobCount;
@@ -48,7 +47,6 @@ public:
 inline bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
 {
     return bo1.changedFiles == bo2.changedFiles
-            && bo1.selectedProductNames == bo2.selectedProductNames
             && bo1.dryRun == bo2.dryRun
             && bo1.keepGoing == bo2.keepGoing
             && bo1.maxJobCount == bo2.maxJobCount;

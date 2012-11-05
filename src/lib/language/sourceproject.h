@@ -65,6 +65,11 @@ public:
     void buildProject(const ResolvedProject::ConstPtr &project, const BuildOptions &buildOptions) {
         buildProjects(QList<ResolvedProject::ConstPtr>() << project, buildOptions);
     }
+    void buildProducts(const QList<ResolvedProduct::ConstPtr> &products, const BuildOptions &buildOptions);
+    void buildProduct(const ResolvedProduct::ConstPtr &product, const BuildOptions &buildOptions) {
+        buildProducts(QList<ResolvedProduct::ConstPtr>() << product, buildOptions);
+    }
+
     RunEnvironment getRunEnvironment(const ResolvedProduct::ConstPtr &product,
                                      const QProcessEnvironment &environment);
 

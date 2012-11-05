@@ -150,6 +150,7 @@ void CommandLineParser::doParse()
 {
     m_command = BuildCommand;
     m_projectFileName.clear();
+    m_products.clear();
     m_buildOptions = BuildOptions();
     m_buildOptions.maxJobCount = m_settings->value("preferences/jobs", 0).toInt();
     if (m_buildOptions.maxJobCount <= 0)
@@ -227,7 +228,7 @@ void CommandLineParser::parseLongOption(const QString &option)
         }
     } else if (optionName == QLatin1String("products") && (m_command == BuildCommand
             || m_command == CleanCommand || m_command == PropertiesCommand)) {
-        m_buildOptions.selectedProductNames = getOptionArgumentAsList(option);
+        m_products = getOptionArgumentAsList(option);
 #ifdef Q_OS_UNIX
     } else if (optionName == QLatin1String("show-progress")) {
         if (isatty(STDOUT_FILENO))

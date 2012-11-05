@@ -30,7 +30,6 @@
 #include "showproperties.h"
 #include <language/language.h>
 #include <language/sourceproject.h>
-#include <tools/buildoptions.h>
 
 namespace qbs {
 
@@ -76,19 +75,11 @@ static void dumpProperties(const ResolvedProduct::ConstPtr &product)
     dumpMap(product->properties->value());
 }
 
-int showProperties(const QList<ResolvedProject::ConstPtr> &projects,
-                   const BuildOptions &buildOptions)
+int showProperties(const QList<ResolvedProduct::ConstPtr> &products)
 {
-    const QStringList &selectedProducts = buildOptions.selectedProductNames;
-    const bool showAll = selectedProducts.isEmpty();
-    foreach (const ResolvedProject::ConstPtr &project, projects) {
-        foreach (const ResolvedProduct::ConstPtr &product, project->products) {
-            if (showAll || selectedProducts.contains(product->name))
-                dumpProperties(product);
-        }
-    }
+    foreach (const ResolvedProduct::ConstPtr &product, products)
+        dumpProperties(product);
     return 0;
 }
-
 
 } // namespace qbs

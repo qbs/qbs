@@ -59,6 +59,10 @@ public:
     void loadPlugins();
     BuildProject::Ptr setupBuildProject(const ResolvedProject::ConstPtr &project);
     QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig);
+    void buildProducts(const QList<BuildProduct::Ptr> &buildProducts,
+                       const BuildOptions &buildOptions);
+    void buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
+                       const BuildOptions &buildOptions, bool needsDepencencyResolving);
 
     QbsEngine engine;
     ProgressObserver *observer;
@@ -162,27 +166,18 @@ ResolvedProject::ConstPtr SourceProject::setupResolvedProject(const QString &pro
 void SourceProject::buildProjects(const QList<ResolvedProject::ConstPtr> &projects,
                                   const BuildOptions &buildOptions)
 {
-    QList<BuildProject::Ptr> buildProjects;
-    foreach (const ResolvedProject::ConstPtr &rProject, projects)
-        buildProjects << d->setupBuildProject(rProject);
-
-    Executor executor;
-    QEventLoop execLoop;
-    QObject::connect(&executor, SIGNAL(finished()), &execLoop, SLOT(quit()), Qt::QueuedConnection);
-    QObject::connect(&executor, SIGNAL(error()), &execLoop, SLOT(quit()), Qt::QueuedConnection);
-    executor.setEngine(&d->engine);
-    executor.setProgressObserver(d->observer);
-    executor.setBuildOptions(buildOptions);
-    TimedActivityLogger buildLogger(QLatin1String("Building project"), QString(), LoggerInfo);
-    executor.build(buildProjects);
-    execLoop.exec();
-    buildLogger.finishActivity();
-    if (executor.state() != Executor::ExecutorError) {
-        foreach (const BuildProject::ConstPtr &buildProject, buildProjects)
-            buildProject->store();
+    QList<ResolvedProduct::ConstPtr> products;
+    foreach (const ResolvedProject::ConstPtr &project, projects) {
+        foreach (const ResolvedProduct::ConstPtr &product, project->products)
+            products << product;
     }
-    if (executor.buildResult() != Executor::SuccessfulBuild)
-        throw Error(tr("Build failed."));
+    d->buildProducts(products, buildOptions, false);
+}
+
+void SourceProject::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
+                                  const BuildOptions &buildOptions)
+{
+    d->buildProducts(products, buildOptions, true);
 }
 
 RunEnvironment SourceProject::getRunEnvironment(const ResolvedProduct::ConstPtr &product,
@@ -295,6 +290,81 @@ QVariantMap SourceProjectPrivate::expandedBuildConfiguration(const QVariantMap &
             = qMakePair(userBuildConfig, createBuildConfiguration(userBuildConfig));
     m_buildConfigurations << configPair;
     return configPair.second;
+}
+
+void SourceProjectPrivate::buildProducts(const QList<BuildProduct::Ptr> &buildProducts,
+        const BuildOptions &buildOptions)
+{
+    Executor executor;
+    QEventLoop execLoop;
+    QObject::connect(&executor, SIGNAL(finished()), &execLoop, SLOT(quit()), Qt::QueuedConnection);
+    QObject::connect(&executor, SIGNAL(error()), &execLoop, SLOT(quit()), Qt::QueuedConnection);
+    executor.setEngine(&engine);
+    executor.setProgressObserver(observer);
+    executor.setBuildOptions(buildOptions);
+    TimedActivityLogger buildLogger(QLatin1String("Building products"), QString(), LoggerInfo);
+    executor.build(buildProducts);
+    execLoop.exec();
+    buildLogger.finishActivity();
+    if (executor.state() != Executor::ExecutorError) {
+        foreach (const BuildProject::ConstPtr &buildProject, buildProjects)
+            buildProject->store();
+    }
+    if (executor.buildResult() != Executor::SuccessfulBuild)
+        throw Error(tr("Build failed."));
+}
+
+void SourceProjectPrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
+        const BuildOptions &buildOptions, bool needsDepencencyResolving)
+{
+
+    // Make sure all products are set up first.
+    QSet<const ResolvedProject *> rProjects;
+    foreach (const ResolvedProduct::ConstPtr &product, products)
+        rProjects << product->project;
+    foreach (const ResolvedProject *rproject, rProjects) {
+
+        // TODO: This awful loop is there because we don't use weak pointers. Change that.
+        foreach (const ResolvedProject::ConstPtr &rProjectSp, resolvedProjects) {
+            if (rproject == rProjectSp) {
+                setupBuildProject(rProjectSp);
+                break;
+            }
+        }
+    }
+
+    // Gather build products.
+    QList<BuildProduct::Ptr> productsToBuild;
+    foreach (const ResolvedProduct::ConstPtr &rProduct, products) {
+        foreach (const BuildProject::ConstPtr &buildProject, buildProjects) {
+            foreach (const BuildProduct::Ptr &buildProduct, buildProject->buildProducts()) {
+                if (buildProduct->rProduct == rProduct)
+                    productsToBuild << buildProduct;
+            }
+        }
+    }
+
+    if (needsDepencencyResolving) {
+        for (int i = 0; i < productsToBuild.count(); ++i) {
+            const BuildProduct::ConstPtr &product = productsToBuild.at(i);
+            foreach (BuildProduct * const dependency, product->usings) {
+
+                // TODO: This awful loop is there because we don't use weak pointers. Change that.
+                BuildProduct::Ptr dependencySP;
+                foreach (const BuildProduct::Ptr &bp, productsToBuild) {
+                    if (bp == dependency) {
+                        dependencySP = bp;
+                        break;
+                    }
+                }
+
+                if (dependencySP)
+                    productsToBuild << dependencySP;
+            }
+        }
+    }
+
+    buildProducts(productsToBuild, buildOptions);
 }
 
 QVariantMap SourceProjectPrivate::createBuildConfiguration(const QVariantMap &userBuildConfig)

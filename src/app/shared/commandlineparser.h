@@ -62,6 +62,7 @@ public:
     const QString &runTargetName() const { return m_runTargetName; }
     const QString &projectFileName() const { return m_projectFileName; }
     const QStringList &runArgs() const { return m_runArgs; }
+    const QStringList &products() const { return m_products; }
     bool isHelpSet() const { return m_help; }
     QList<QVariantMap> buildConfigurations() const;
     bool showProgress() const { return m_showProgress; }
@@ -86,6 +87,7 @@ private:
     QStringList m_commandLine;
     QStringList m_positional;
     QStringList m_runArgs;
+    QStringList m_products;
     BuildOptions m_buildOptions;
     bool m_help;
     int m_logLevel;

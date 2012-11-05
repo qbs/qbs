@@ -35,10 +35,8 @@
 #include <QList>
 
 namespace qbs {
-class BuildOptions;
 
-int showProperties(const QList<ResolvedProject::ConstPtr> &projects,
-                   const BuildOptions &buildOptions);
+int showProperties(const QList<ResolvedProduct::ConstPtr> &products);
 
 } // namespace qbs
 

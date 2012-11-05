@@ -52,7 +52,7 @@ private slots:
         QVERIFY(parser.parseCommandLine(args));
         QCOMPARE(Logger::instance().level(), LoggerTrace);
         QCOMPARE(parser.command(), CommandLineParser::BuildCommand);
-        QCOMPARE(parser.buildOptions().selectedProductNames, QStringList() << "blubb");
+        QCOMPARE(parser.products(), QStringList() << "blubb");
         QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
         QVERIFY(parser.buildOptions().keepGoing);
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqqh"));

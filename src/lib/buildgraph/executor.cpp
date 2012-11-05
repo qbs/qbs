@@ -119,59 +119,27 @@ Executor::~Executor()
     delete m_inputArtifactScanContext;
 }
 
-void Executor::build(const QList<BuildProject::Ptr> projectsToBuild)
+void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
 {
     Q_ASSERT(m_buildOptions.maxJobCount > 0);
     Q_ASSERT(m_engine);
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
-    m_buildResult = SuccessfulBuild;
     bool success = true;
+    m_buildResult = SuccessfulBuild;
+    m_productsToBuild = productsToBuild;
 
     setState(ExecutorRunning);
     Artifact::BuildState initialBuildState = m_buildOptions.changedFiles.isEmpty()
             ? Artifact::Buildable : Artifact::Built;
 
-    // determine the products we want to build
-    m_projectsToBuild = projectsToBuild;
-    if (m_buildOptions.selectedProductNames.isEmpty()) {
-        // Use all products we have in the build graph.
-        m_productsToBuild.clear();
-        foreach (BuildProject::Ptr project, m_projectsToBuild)
-            foreach (BuildProduct::Ptr product, project->buildProducts())
-                m_productsToBuild += product;
-    } else {
-        // Try to find the selected products and their dependencies.
-        QHash<QString, BuildProduct::Ptr> productsPerName;
-        foreach (BuildProject::Ptr project, m_projectsToBuild)
-            foreach (BuildProduct::Ptr product, project->buildProducts())
-                productsPerName.insert(product->rProduct->name.toLower(), product);
-
-        QSet<BuildProduct::Ptr> selectedProducts;
-        foreach (const QString &productName, m_buildOptions.selectedProductNames) {
-            BuildProduct::Ptr product = productsPerName.value(productName.toLower());
-            if (!product) {
-                qbsWarning() << "Selected product " << productName << " not found.";
-                continue;
-            }
-            selectedProducts += product;
-        }
-        QSet<BuildProduct::Ptr> s = selectedProducts;
-        do {
-            QSet<BuildProduct::Ptr> t;
-            foreach (const BuildProduct::Ptr &product, s)
-                foreach (BuildProduct *dependency, product->usings)
-                    t += productsPerName.value(dependency->rProduct->name.toLower());
-            selectedProducts += t;
-            s = t;
-        } while (!s.isEmpty());
-        m_productsToBuild = selectedProducts.toList();
-    }
-
     QList<Artifact *> changedArtifacts;
     foreach (const QString &filePath, m_buildOptions.changedFiles) {
         QList<Artifact *> artifacts;
-        foreach (BuildProject::Ptr project, m_projectsToBuild)
+        QSet<const BuildProject *> projects;
+        foreach (const BuildProduct::ConstPtr &buildProduct, productsToBuild)
+            projects << buildProduct->project;
+        foreach (const BuildProject * const project, projects)
             artifacts.append(project->lookupArtifacts(filePath));
         if (artifacts.isEmpty()) {
             qbsWarning() << QString("Out of date file '%1' provided but not found.").arg(QDir::toNativeSeparators(filePath));
@@ -621,8 +589,8 @@ bool Executor::runAutoMoc()
         }
     }
     if (autoMocApplied)
-        foreach (BuildProject::Ptr prj, m_projectsToBuild)
-            BuildGraph::detectCycle(prj.data());
+        foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
+            BuildGraph::detectCycle(product);
 
     return true;
 }

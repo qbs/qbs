@@ -233,10 +233,14 @@ void BuildGraph::detectCycle(BuildProject *project)
                 .arg(project->resolvedProject()->id());
     TimedActivityLogger timeLogger(description, QLatin1String("[BG] "), LoggerTrace);
 
-    foreach (BuildProduct::Ptr product, project->buildProducts()) {
-        foreach (Artifact *artifact, product->targetArtifacts)
-            detectCycle(artifact);
-    }
+    foreach (const BuildProduct::ConstPtr &product, project->buildProducts())
+        detectCycle(product);
+}
+
+void BuildGraph::detectCycle(const BuildProduct::ConstPtr &product)
+{
+    foreach (Artifact *artifact, product->targetArtifacts)
+        detectCycle(artifact);
 }
 
 void BuildGraph::detectCycle(Artifact *a)

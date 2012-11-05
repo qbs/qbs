@@ -55,7 +55,7 @@ public:
     Executor();
     ~Executor();
 
-    void build(const QList<BuildProject::Ptr> projectsToBuild);
+    void build(const QList<BuildProduct::Ptr> &productsToBuild);
     void cancelBuild();
 
     enum ExecutorState {
@@ -120,7 +120,6 @@ private:
     ExecutorState m_state;
     BuildResult m_buildResult;
     bool m_printScanningMessage;
-    QList<BuildProject::Ptr> m_projectsToBuild;
     QList<BuildProduct::Ptr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QMap<Artifact *, QHashDummyValue> m_leaves;

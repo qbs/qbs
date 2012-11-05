@@ -169,6 +169,7 @@ public:
 
     void applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
     static void detectCycle(BuildProject *project);
+    static void detectCycle(const BuildProduct::ConstPtr &product);
     static void detectCycle(Artifact *a);
 
     void setProgressObserver(ProgressObserver *observer);

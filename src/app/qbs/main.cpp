@@ -61,6 +61,31 @@ enum ExitCode
     ExitCodeErrorBuildFailure = 5
 };
 
+static QList<ResolvedProduct::ConstPtr> productsToUse(const QList<ResolvedProject::ConstPtr> &projects,
+                                                        const QStringList &selectedProducts)
+{
+    QList<ResolvedProduct::ConstPtr> products;
+    QStringList productNames;
+    const bool useAll = selectedProducts.isEmpty();
+    foreach (const ResolvedProject::ConstPtr &project, projects) {
+        foreach (const ResolvedProduct::ConstPtr &product, project->products) {
+            if (useAll || selectedProducts.contains(product->name)) {
+                products << product;
+                productNames << product->name;
+            }
+        }
+    }
+
+    foreach (const QString &productName, selectedProducts) {
+        if (!productNames.contains(productName)) {
+            qbsWarning() << QCoreApplication::translate("qbs", "No such product '%1'.")
+                            .arg(productName);
+        }
+    }
+
+    return products;
+}
+
 static bool tryToRunTool(const QStringList &arguments, int &exitCode)
 {
     if (arguments.isEmpty())
@@ -100,21 +125,24 @@ static int runShell(SourceProject &sourceProject, const ResolvedProject::ConstPt
     }
 }
 
-class BuildRunner : public QObject
+class AbstractBuilder : public QObject
 {
     Q_OBJECT
-public:
-    BuildRunner(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
-                const BuildOptions &buildOptions)
-        : m_sourceProject(sourceProject), m_projects(projects), m_buildOptions(buildOptions)
+
+protected:
+    AbstractBuilder(SourceProject &sourceProject, const BuildOptions &buildOptions)
+        : m_sourceProject(sourceProject), m_buildOptions(buildOptions)
     {
     }
+
+    SourceProject &sourceProject() const { return m_sourceProject; }
+    const BuildOptions buildOptions() const { return m_buildOptions; }
 
 private slots:
     void build()
     {
         try {
-            m_sourceProject.buildProjects(m_projects, m_buildOptions);
+            doBuild();
             qApp->quit();
         } catch (const Error &error) {
             qbsError() << error.toString();
@@ -123,42 +151,78 @@ private slots:
     }
 
 private:
+    virtual void doBuild() = 0;
+
     SourceProject &m_sourceProject;
-    const QList<ResolvedProject::ConstPtr> m_projects;
     const BuildOptions m_buildOptions;
 };
 
-static int buildProjects(Application &app, SourceProject &sourceProject,
-        const QList<ResolvedProject::ConstPtr> &projects, const BuildOptions &buildOptions)
+class ProductsBuilder : public AbstractBuilder
 {
-    BuildRunner buildRunner(sourceProject, projects, buildOptions);
-    QTimer::singleShot(0, &buildRunner, SLOT(build()));
-    return app.exec();
+public:
+    ProductsBuilder(SourceProject &sourceProject, const QList<ResolvedProduct::ConstPtr> &products,
+                    const BuildOptions &buildOptions)
+        : AbstractBuilder(sourceProject, buildOptions), m_products(products)
+    {
+    }
+
+private:
+    void doBuild() { sourceProject().buildProducts(m_products, buildOptions()); }
+
+    const QList<ResolvedProduct::ConstPtr> m_products;
+};
+
+class ProjectsBuilder : public AbstractBuilder
+{
+public:
+    ProjectsBuilder(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
+                    const BuildOptions &buildOptions)
+        : AbstractBuilder(sourceProject, buildOptions), m_projects(projects)
+    {
+    }
+
+private:
+    void doBuild() { sourceProject().buildProjects(m_projects, buildOptions()); }
+
+    const QList<ResolvedProject::ConstPtr> m_projects;
+};
+
+static int build(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
+                 const QStringList &productsSetByUser, const BuildOptions &buildOptions)
+{
+    QScopedPointer<AbstractBuilder> builder;
+    if (productsSetByUser.isEmpty()) {
+        builder.reset(new ProjectsBuilder(sourceProject, projects, buildOptions));
+    } else {
+        const QList<ResolvedProduct::ConstPtr> products
+                = productsToUse(projects, productsSetByUser);
+        builder.reset(new ProductsBuilder(sourceProject, products, buildOptions));
+    }
+    QTimer::singleShot(0, builder.data(), SLOT(build()));
+    return qApp->exec();
 }
 
-static int runTarget(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
+static int runTarget(SourceProject &sourceProject, const QList<ResolvedProduct::ConstPtr> &products,
                      const QString &targetName, const QStringList &arguments)
 {
     try {
         ResolvedProduct::ConstPtr productToRun;
         QString productFileName;
 
-        foreach (const ResolvedProject::ConstPtr &project, projects) {
-            foreach (const ResolvedProduct::ConstPtr &product, project->products) {
-                const QString executable = sourceProject.targetExecutable(product);
-                if (executable.isEmpty())
-                    continue;
-                if (!targetName.isEmpty() && !executable.endsWith(targetName))
-                    continue;
-                if (!productFileName.isEmpty()) {
-                    qbsError() << QObject::tr("There is more than one executable target in "
-                                              "the project. Please specify which target "
-                                              "you want to run.");
-                    return EXIT_FAILURE;
-                }
-                productFileName = executable;
-                productToRun = product;
+        foreach (const ResolvedProduct::ConstPtr &product, products) {
+            const QString executable = sourceProject.targetExecutable(product);
+            if (executable.isEmpty())
+                continue;
+            if (!targetName.isEmpty() && !executable.endsWith(targetName))
+                continue;
+            if (!productFileName.isEmpty()) {
+                qbsError() << QObject::tr("There is more than one executable target in "
+                                          "the project. Please specify which target "
+                                          "you want to run.");
+                return EXIT_FAILURE;
             }
+            productFileName = executable;
+            productToRun = product;
         }
 
         if (!productToRun) {
@@ -229,15 +293,17 @@ int main(int argc, char *argv[])
     case CommandLineParser::StatusCommand:
         return printStatus(parser.projectFileName(), resolvedProjects);
     case CommandLineParser::PropertiesCommand:
-        return showProperties(resolvedProjects, parser.buildOptions());
+        return showProperties(productsToUse(resolvedProjects, parser.products()));
     case CommandLineParser::BuildCommand:
-        return buildProjects(app, sourceProject, resolvedProjects, parser.buildOptions());
+        return build(sourceProject, resolvedProjects, parser.products(), parser.buildOptions());
     case CommandLineParser::RunCommand: {
-        const int buildExitCode = buildProjects(app, sourceProject, resolvedProjects,
-                                                parser.buildOptions());
+        const int buildExitCode = build(sourceProject, resolvedProjects, parser.products(),
+                                        parser.buildOptions());
         if (buildExitCode != 0)
             return buildExitCode;
-        return runTarget(sourceProject, resolvedProjects, parser.runTargetName(), parser.runArgs());
+        const QList<ResolvedProduct::ConstPtr> products
+                = productsToUse(resolvedProjects, parser.products());
+        return runTarget(sourceProject, products, parser.runTargetName(), parser.runArgs());
     }
     }
 }
