@@ -59,7 +59,6 @@ public:
     ArtifactList parents;
     ArtifactList children;
     ArtifactList fileDependencies;
-    ArtifactList sideBySideArtifacts;     /// all artifacts that have been produced by the same rule
     QSet<QString> fileTags;
     BuildProject *project;
     BuildProduct *product;          // Note: file dependency artifacts don't belong to a product.

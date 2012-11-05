@@ -400,9 +400,10 @@ void Executor::execute(Artifact *artifact)
         return;
     }
 
-    // skip if side-by-side artifacts have been built
-    foreach (Artifact *sideBySideArtifact, artifact->sideBySideArtifacts) {
-        if (sideBySideArtifact->transformer != artifact->transformer)
+    // Skip if outputs of this transformer are already built.
+    // That means we already ran the transformation.
+    foreach (Artifact *sideBySideArtifact, artifact->transformer->outputs) {
+        if (sideBySideArtifact == artifact)
             continue;
         switch (sideBySideArtifact->buildState)
         {
@@ -495,9 +496,10 @@ void Executor::finishArtifact(Artifact *leaf)
         }
     }
 
-    foreach (Artifact *sideBySideArtifact, leaf->sideBySideArtifacts)
-        if (leaf->transformer == sideBySideArtifact->transformer && sideBySideArtifact->buildState == Artifact::Building)
-            finishArtifact(sideBySideArtifact);
+    if (leaf->transformer)
+        foreach (Artifact *sideBySideArtifact, leaf->transformer->outputs)
+            if (leaf != sideBySideArtifact && sideBySideArtifact->buildState == Artifact::Building)
+                finishArtifact(sideBySideArtifact);
 
     if (m_progressObserver && leaf->artifactType == Artifact::Generated)
         m_progressObserver->incrementProgressValue(BuildEffortCalculator::multiplier(leaf));

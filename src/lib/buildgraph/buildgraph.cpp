@@ -529,19 +529,6 @@ BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
     return project;
 }
 
-static void setupSideBySideArtifacts(const QList<Artifact *> &outputArtifacts)
-{
-    for (int i = 0; i < outputArtifacts.count() - 1; ++i) {
-        for (int j = i + 1; j < outputArtifacts.count(); ++j) {
-            Artifact * const a1 = outputArtifacts.at(i);
-            Artifact * const a2 = outputArtifacts.at(j);
-            Q_ASSERT(a1 != a2);
-            a1->sideBySideArtifacts.insert(a2);
-            a2->sideBySideArtifacts.insert(a1);
-        }
-    }
-}
-
 BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProduct::Ptr rProduct)
 {
     BuildProduct::Ptr product = m_productCache.value(rProduct);
@@ -628,7 +615,6 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             ruleArtifact->fileTags = outputArtifact->fileTags.toList();
             rule->artifacts += ruleArtifact;
         }
-        setupSideBySideArtifacts(transformer->outputs.toList());
         transformer->rule = rule;
 
         EngineInitializer initializer(this);
@@ -858,12 +844,6 @@ void BuildProduct::load(PersistentPool &pool)
         artifact->fileDependencies.reserve(k);
         for (; --k >= 0;)
             artifact->fileDependencies.insert(pool.idLoad<Artifact>());
-
-        pool.stream() >> k;
-        artifact->sideBySideArtifacts.clear();
-        artifact->sideBySideArtifacts.reserve(k);
-        for (; --k >= 0;)
-            artifact->sideBySideArtifacts.insert(pool.idLoad<Artifact>());
     }
 
     // other data
@@ -898,9 +878,6 @@ void BuildProduct::store(PersistentPool &pool) const
             pool.store(n);
         pool.stream() << artifact->fileDependencies.count();
         foreach (Artifact * n, artifact->fileDependencies)
-            pool.store(n);
-        pool.stream() << artifact->sideBySideArtifacts.count();
-        foreach (Artifact *n, artifact->sideBySideArtifacts)
             pool.store(n);
     }
 
@@ -1319,10 +1296,9 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
     if (!m_rule->usings.isEmpty()) {
         const QSet<QString> usingsFileTags = m_rule->usings.toSet();
         foreach (BuildProduct * const dep, m_buildProduct->dependencies) {
-            QList<Artifact *> artifactsToCheck = dep->targetArtifacts.toList();
+            QList<Artifact *> artifactsToCheck;
             foreach (Artifact *targetArtifact, dep->targetArtifacts)
-                foreach (Artifact *sbsArtifact, targetArtifact->sideBySideArtifacts)
-                    artifactsToCheck += sbsArtifact;
+                artifactsToCheck += targetArtifact->transformer->outputs.toList();
             foreach (Artifact *artifact, artifactsToCheck) {
                 QSet<QString> matchingFileTags = artifact->fileTags;
                 matchingFileTags.intersect(usingsFileTags);
@@ -1351,7 +1327,6 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
                 BuildGraph::loggedConnect(outputArtifact, dependency);
 
         // Transformer setup
-        m_transformer->outputs.insert(outputArtifact);
         for (ArtifactList::const_iterator it = usingArtifacts.constBegin();
              it != usingArtifacts.constEnd(); ++it)
         {
@@ -1359,11 +1334,11 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
             BuildGraph::loggedConnect(outputArtifact, dep);
             m_transformer->inputs.insert(dep);
         }
+        m_transformer->outputs.insert(outputArtifact);
 
         m_buildGraph->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
     }
 
-    setupSideBySideArtifacts(outputArtifacts);
     m_transformer->setupInputs(engine(), scope());
 
     // change the transformer outputs according to the bindings in Artifact
