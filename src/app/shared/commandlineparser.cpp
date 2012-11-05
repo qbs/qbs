@@ -122,7 +122,11 @@ void CommandLineParser::printHelp() const
          "      .............. Use the specified log level. Possible values are \"%1\".\n"
          "                     The default is \"%2\".\n")
              .arg(allLogLevelStrings().join(QLatin1String("\", \"")),
-                  logLevelToString(Logger::defaultLevel()), logLevelToString(LoggerMinLevel));
+                  logLevelToString(Logger::defaultLevel())
+#ifdef Q_OS_UNIX
+                  , logLevelToString(LoggerMinLevel)
+#endif
+                  );
 }
 
 /**
