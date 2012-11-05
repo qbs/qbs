@@ -71,7 +71,7 @@ public:
     BuildProject *project;
     ResolvedProduct::Ptr rProduct;
     QSet<Artifact *> targetArtifacts;
-    QList<BuildProduct *> usings;
+    QList<BuildProduct *> dependencies;
     ArtifactList artifacts;
 
 private:

@@ -347,7 +347,7 @@ void QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &pro
     if (needsDepencencyResolving) {
         for (int i = 0; i < productsToBuild.count(); ++i) {
             const BuildProduct::ConstPtr &product = productsToBuild.at(i);
-            foreach (BuildProduct * const dependency, product->usings) {
+            foreach (BuildProduct * const dependency, product->dependencies) {
 
                 // TODO: This awful loop is there because we don't use weak pointers. Change that.
                 BuildProduct::Ptr dependencySP;

@@ -322,7 +322,7 @@ public:
     ResolvedProject *project;
     PropertyMap::Ptr properties;
     QSet<Rule::Ptr> rules;
-    QSet<ResolvedProduct::Ptr> uses;
+    QSet<ResolvedProduct::Ptr> dependencies;
     QSet<FileTagger::ConstPtr> fileTaggers;
     QList<ResolvedModule::ConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;

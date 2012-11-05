@@ -381,7 +381,7 @@ void ResolvedProduct::load(PersistentPool &pool)
 
     properties = pool.idLoadS<PropertyMap>();
     pool.loadContainerS(rules);
-    pool.loadContainerS(uses);
+    pool.loadContainerS(dependencies);
     pool.loadContainerS(fileTaggers);
     pool.loadContainerS(modules);
     pool.loadContainerS(groups);
@@ -399,7 +399,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
 
     pool.store(properties);
     pool.storeContainer(rules);
-    pool.storeContainer(uses);
+    pool.storeContainer(dependencies);
     pool.storeContainer(fileTaggers);
     pool.storeContainer(modules);
     pool.storeContainer(groups);

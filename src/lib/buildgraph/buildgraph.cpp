@@ -549,12 +549,12 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
     product->rProduct = rProduct;
     QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
 
-    foreach (ResolvedProduct::Ptr t2, rProduct->uses) {
+    foreach (ResolvedProduct::Ptr t2, rProduct->dependencies) {
         if (t2 == rProduct) {
             throw Error(tr("circular using"));
         }
         BuildProduct::Ptr referencedProduct = resolveProduct(project, t2);
-        product->usings.append(referencedProduct.data());
+        product->dependencies.append(referencedProduct.data());
     }
 
     //add qbsFile artifact
@@ -860,10 +860,10 @@ void BuildProduct::load(PersistentPool &pool)
     pool.loadContainer(targetArtifacts);
 
     pool.stream() >> i;
-    usings.clear();
-    usings.reserve(i);
+    dependencies.clear();
+    dependencies.reserve(i);
     for (; --i >= 0;)
-        usings += pool.idLoadS<BuildProduct>().data();
+        dependencies += pool.idLoadS<BuildProduct>().data();
 }
 
 void BuildProduct::store(PersistentPool &pool) const
@@ -896,7 +896,7 @@ void BuildProduct::store(PersistentPool &pool) const
     // other data
     pool.store(rProduct);
     pool.storeContainer(targetArtifacts);
-    pool.storeContainer(usings);
+    pool.storeContainer(dependencies);
 }
 
 BuildProject::BuildProject(BuildGraph *bg)
@@ -1305,7 +1305,7 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
     QList<Artifact *> outputArtifacts;
 
     QSet<Artifact *> usingArtifacts;
-    foreach (BuildProduct * const dep, m_buildProduct->usings) {
+    foreach (BuildProduct * const dep, m_buildProduct->dependencies) {
         foreach (Artifact *targetArtifact, dep->targetArtifacts) {
             ArtifactList sbsArtifacts = targetArtifact->sideBySideArtifacts;
             sbsArtifacts.insert(targetArtifact);

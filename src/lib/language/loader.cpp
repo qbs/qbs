@@ -2076,7 +2076,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                     throw Error(tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
                                        CodeLocation(m_project->fileName));
                 ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
-                rproduct->uses.insert(usedProduct);
+                rproduct->dependencies.insert(usedProduct);
 
                 // insert the configuration of the ProductModule into the product's configuration
                 const QVariantMap productModuleConfig = m_productModules.value(usedProductName);
