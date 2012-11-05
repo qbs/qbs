@@ -155,6 +155,11 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
     cmd.responseFileThreshold = product.module.responseFileThreshold
     cmd.responseFileUsagePrefix = '@';
+    cmd.stdoutFilterFunction =
+            function(output)
+            {
+                return output.replace(/^ +Creating library.*\r\n$/, "");
+            };
     commands.push(cmd);
 
     if (generateManifestFiles) {
