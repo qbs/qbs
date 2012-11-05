@@ -115,18 +115,23 @@ void QbsEngine::importProgram(const QScriptProgram &program, const QScriptValue 
     if (result.isError())
         throw Error(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
 
-    if (targetObject.isValid() && !targetObject.isUndefined()) {
-        // try to merge imports with the same target into the same object
-        // it is necessary for library imports that have multiple js files
+    // If targetObject is already an object, it doesn't get overwritten but enhanced by the
+    // contents of the .js file.
+    // This is necessary for library imports that consist of multiple js files.
+    if (!targetObject.isObject())
+        targetObject = newObject();
+
+    // Copy every property of the activation object to the target object.
+    // We do not just save a reference to the activation object, because QScriptEngine contains
+    // special magic for activation objects that leads to unanticipated results.
+    {
         QScriptValueIterator it(activationObject);
         while (it.hasNext()) {
             it.next();
             if (debugJSImports)
-                qbsDebug() << "[ENGINE] Merge. Copying property " << it.name();
+                qbsDebug() << "[ENGINE] Copying property " << it.name();
             targetObject.setProperty(it.name(), it.value());
         }
-    } else {
-        targetObject = activationObject;
     }
 
     // Copy new global properties to the target object and remove them from

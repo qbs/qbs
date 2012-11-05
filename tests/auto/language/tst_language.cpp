@@ -186,6 +186,42 @@ void TestLanguage::groupName()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::jsImportUsedInMultipleScopes_data()
+{
+    QTest::addColumn<QString>("buildVariant");
+    QTest::addColumn<QString>("expectedProductName");
+    QTest::newRow("debug") << QString("debug") << QString("MyProduct_debug");
+    QTest::newRow("release") << QString("release") << QString("MyProduct");
+}
+
+void TestLanguage::jsImportUsedInMultipleScopes()
+{
+    QFETCH(QString, buildVariant);
+    QFETCH(QString, expectedProductName);
+
+    bool exceptionCaught = false;
+    try {
+        QVariantMap customBuildConfig = buildConfig;
+        setConfigProperty(customBuildConfig, QStringList() << "qbs" << "buildVariant",
+                          buildVariant);
+        ProjectFile::Ptr projectFile;
+        projectFile = loader->loadProject(SRCDIR "testdata/jsimportsinmultiplescopes.qbs");
+        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
+                                                              customBuildConfig);
+        QVERIFY(project);
+        QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+        ResolvedProduct::Ptr product = products.values().first();
+        QVERIFY(product);
+        QCOMPARE(product->name, expectedProductName);
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
 void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;

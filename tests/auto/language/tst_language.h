@@ -54,6 +54,8 @@ private slots:
     void cleanupTestCase();
     void conditionalDepends();
     void groupName();
+    void jsImportUsedInMultipleScopes_data();
+    void jsImportUsedInMultipleScopes();
     void productConditions();
     void propertiesBlocks_data();
     void propertiesBlocks();
