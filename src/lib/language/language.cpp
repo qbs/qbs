@@ -29,7 +29,7 @@
 
 #include "language.h"
 
-#include "qbsengine.h"
+#include "scriptengine.h"
 #include <tools/error.h>
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
@@ -448,7 +448,7 @@ enum EnvType
     BuildEnv, RunEnv
 };
 
-static QProcessEnvironment getProcessEnvironment(QbsEngine *engine, EnvType envType,
+static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
                                                  const QList<ResolvedModule::ConstPtr> &modules,
                                                  const PropertyMap::ConstPtr &productConfiguration,
                                                  ResolvedProject *project,
@@ -542,7 +542,7 @@ static QProcessEnvironment getProcessEnvironment(QbsEngine *engine, EnvType envT
     return procenv;
 }
 
-void ResolvedProduct::setupBuildEnvironment(QbsEngine *engine, const QProcessEnvironment &systemEnvironment) const
+void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcessEnvironment &systemEnvironment) const
 {
     if (!buildEnvironment.isEmpty())
         return;
@@ -550,7 +550,7 @@ void ResolvedProduct::setupBuildEnvironment(QbsEngine *engine, const QProcessEnv
     buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, properties, project, systemEnvironment);
 }
 
-void ResolvedProduct::setupRunEnvironment(QbsEngine *engine, const QProcessEnvironment &systemEnvironment) const
+void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEnvironment &systemEnvironment) const
 {
     if (!runEnvironment.isEmpty())
         return;

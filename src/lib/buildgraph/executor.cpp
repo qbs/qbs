@@ -35,7 +35,7 @@
 
 #include <buildgraph/transformer.h>
 #include <language/language.h>
-#include <language/qbsengine.h>
+#include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
@@ -268,7 +268,7 @@ void Executor::cancelBuild()
     cancelJobs();
 }
 
-void Executor::setEngine(QbsEngine *engine)
+void Executor::setEngine(ScriptEngine *engine)
 {
     if (m_engine == engine)
         return;

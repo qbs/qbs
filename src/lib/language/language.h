@@ -302,7 +302,7 @@ private:
 };
 
 class ResolvedProject;
-class QbsEngine;
+class ScriptEngine;
 
 class ResolvedProduct: public PersistentObject
 {
@@ -334,8 +334,8 @@ public:
 
     QList<SourceArtifact::Ptr> allFiles() const;
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
-    void setupBuildEnvironment(QbsEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
-    void setupRunEnvironment(QbsEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
+    void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
+    void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
 
 private:
     ResolvedProduct();

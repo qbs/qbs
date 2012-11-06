@@ -29,7 +29,7 @@
 
 #include "tst_language.h"
 
-#include <language/qbsengine.h>
+#include <language/scriptengine.h>
 #include <tools/error.h>
 
 QHash<QString, ResolvedProduct::Ptr> TestLanguage::productsFromProject(ResolvedProject::Ptr project)
@@ -60,7 +60,7 @@ void TestLanguage::initTestCase()
 {
     //Logger::instance().setLogSink(new ConsolePrintLogSink);
     //Logger::instance().setLevel(LoggerTrace);
-    QbsEngine *engine = new QbsEngine(this);
+    ScriptEngine *engine = new ScriptEngine(this);
     loader = new Loader(engine);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "../../../share/qbs")

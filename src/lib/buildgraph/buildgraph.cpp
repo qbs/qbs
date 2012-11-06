@@ -34,7 +34,7 @@
 #include "transformer.h"
 
 #include <language/loader.h>
-#include <language/qbsengine.h>
+#include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
@@ -124,7 +124,7 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
     return lookupArtifact(dirPath, fileName);
 }
 
-BuildGraph::BuildGraph(QbsEngine *engine)
+BuildGraph::BuildGraph(ScriptEngine *engine)
     : m_progressObserver(0)
     , m_engine(engine)
     , m_initEngineCalls(0)
@@ -177,7 +177,7 @@ void BuildGraph::insert(BuildProduct *product, Artifact *n) const
         qbsTrace("[BG] insert artifact '%s'", qPrintable(n->filePath()));
 }
 
-void BuildGraph::setupScriptEngineForProduct(QbsEngine *engine,
+void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
                                              const ResolvedProduct::ConstPtr &product,
                                              Rule::ConstPtr rule,
                                              QScriptValue targetObject)
