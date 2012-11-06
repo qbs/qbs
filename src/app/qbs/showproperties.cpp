@@ -29,7 +29,7 @@
 
 #include "showproperties.h"
 #include <language/language.h>
-#include <language/qbsengine.h>
+#include <language/sourceproject.h>
 #include <tools/buildoptions.h>
 
 namespace qbs {

@@ -37,13 +37,13 @@
 
 namespace qbs {
 
-class ScriptEngine;
+class QbsEngine;
 
 class RunEnvironment
 {
     Q_DECLARE_TR_FUNCTIONS(RunEnvironment)
 public:
-    RunEnvironment(ScriptEngine *engine, const ResolvedProduct::Ptr &product,
+    RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product,
                    const QProcessEnvironment &environment);
     ~RunEnvironment();
     RunEnvironment(const RunEnvironment &other);
@@ -54,7 +54,7 @@ public:
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
-    ScriptEngine *m_engine;
+    QbsEngine *m_engine;
     ResolvedProduct::Ptr m_resolvedProduct;
     QProcessEnvironment m_environment;
 };

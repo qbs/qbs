@@ -160,10 +160,10 @@ class BuildGraph
 {
     Q_DECLARE_TR_FUNCTIONS(BuildGraph)
 public:
-    BuildGraph(ScriptEngine *engine);
+    BuildGraph(QbsEngine *engine);
     ~BuildGraph();
 
-    ScriptEngine *engine() { return m_engine; }
+    QbsEngine *engine() { return m_engine; }
 
     BuildProject::Ptr resolveProject(ResolvedProject::Ptr);
 
@@ -193,7 +193,7 @@ public:
     }
     void createTransformerCommands(const PrepareScript::ConstPtr &script, Transformer *transformer);
 
-    static void setupScriptEngineForProduct(ScriptEngine *scriptEngine,
+    static void setupScriptEngineForProduct(QbsEngine *scriptEngine,
                                             const ResolvedProduct::ConstPtr &product,
                                             Rule::ConstPtr rule, QScriptValue targetObject);
     static void disconnect(Artifact *u, Artifact *v);
@@ -221,7 +221,7 @@ private:
 
     ProgressObserver *m_progressObserver;
     QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
-    ScriptEngine *m_engine;
+    QbsEngine *m_engine;
     unsigned int m_initEngineCalls;
     QScriptValue m_scope;
     QScriptValue m_prepareScriptScope;
@@ -249,7 +249,7 @@ private:
     QString resolveOutPath(const QString &path) const;
 
     QScriptValue scope() const;
-    ScriptEngine *engine() const { return m_buildGraph->engine(); }
+    QbsEngine *engine() const { return m_buildGraph->engine(); }
 
     BuildProduct * const m_buildProduct;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;

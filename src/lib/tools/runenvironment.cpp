@@ -29,7 +29,7 @@
 
 #include "runenvironment.h"
 
-#include <language/scriptengine.h>
+#include <language/qbsengine.h>
 #include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
@@ -44,7 +44,7 @@
 
 namespace qbs {
 
-RunEnvironment::RunEnvironment(ScriptEngine *engine, const ResolvedProduct::Ptr &product,
+RunEnvironment::RunEnvironment(QbsEngine *engine, const ResolvedProduct::Ptr &product,
                                const QProcessEnvironment &environment)
     : m_engine(engine)
     , m_resolvedProduct(product)

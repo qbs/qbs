@@ -35,7 +35,7 @@
 #include <app/shared/commandlineparser.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
-#include <language/qbsengine.h>
+#include <language/sourceproject.h>
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
 #include <tools/hostosinfo.h>
@@ -88,10 +88,10 @@ static int makeClean()
     return 0;
 }
 
-static int runShell(QbsEngine &qbsEngine, const ResolvedProject::ConstPtr &project)
+static int runShell(SourceProject &sourceProject, const ResolvedProject::ConstPtr &project)
 {
     try {
-        RunEnvironment runEnvironment = qbsEngine.getRunEnvironment(project->products.first(),
+        RunEnvironment runEnvironment = sourceProject.getRunEnvironment(project->products.first(),
                 QProcessEnvironment::systemEnvironment());
         return runEnvironment.runShell();
     } catch (const Error &error) {
@@ -104,9 +104,9 @@ class BuildRunner : public QObject
 {
     Q_OBJECT
 public:
-    BuildRunner(QbsEngine &qbsEngine, const QList<ResolvedProject::ConstPtr> &projects,
+    BuildRunner(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
                 const BuildOptions &buildOptions)
-        : m_qbsEngine(qbsEngine), m_projects(projects), m_buildOptions(buildOptions)
+        : m_sourceProject(sourceProject), m_projects(projects), m_buildOptions(buildOptions)
     {
     }
 
@@ -114,7 +114,7 @@ private slots:
     void build()
     {
         try {
-            m_qbsEngine.buildProjects(m_projects, m_buildOptions);
+            m_sourceProject.buildProjects(m_projects, m_buildOptions);
             qApp->quit();
         } catch (const Error &error) {
             qbsError() << error.toString();
@@ -123,20 +123,20 @@ private slots:
     }
 
 private:
-    QbsEngine &m_qbsEngine;
+    SourceProject &m_sourceProject;
     const QList<ResolvedProject::ConstPtr> m_projects;
     const BuildOptions m_buildOptions;
 };
 
-static int buildProjects(Application &app, QbsEngine &qbsEngine,
+static int buildProjects(Application &app, SourceProject &sourceProject,
         const QList<ResolvedProject::ConstPtr> &projects, const BuildOptions &buildOptions)
 {
-    BuildRunner buildRunner(qbsEngine, projects, buildOptions);
+    BuildRunner buildRunner(sourceProject, projects, buildOptions);
     QTimer::singleShot(0, &buildRunner, SLOT(build()));
     return app.exec();
 }
 
-static int runTarget(QbsEngine &qbsEngine, const QList<ResolvedProject::ConstPtr> &projects,
+static int runTarget(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
                      const QString &targetName, const QStringList &arguments)
 {
     try {
@@ -145,7 +145,7 @@ static int runTarget(QbsEngine &qbsEngine, const QList<ResolvedProject::ConstPtr
 
         foreach (const ResolvedProject::ConstPtr &project, projects) {
             foreach (const ResolvedProduct::ConstPtr &product, project->products) {
-                const QString executable = qbsEngine.targetExecutable(product);
+                const QString executable = sourceProject.targetExecutable(product);
                 if (executable.isEmpty())
                     continue;
                 if (!targetName.isEmpty() && !executable.endsWith(targetName))
@@ -169,7 +169,7 @@ static int runTarget(QbsEngine &qbsEngine, const QList<ResolvedProject::ConstPtr
             return ExitCodeErrorBuildFailure;
         }
 
-        RunEnvironment runEnvironment = qbsEngine.getRunEnvironment(productToRun,
+        RunEnvironment runEnvironment = sourceProject.getRunEnvironment(productToRun,
                                                                         QProcessEnvironment::systemEnvironment());
         return runEnvironment.runTarget(productFileName, arguments);
     } catch (const Error &error) {
@@ -203,17 +203,17 @@ int main(int argc, char *argv[])
     }
 
     QList<ResolvedProject::ConstPtr> resolvedProjects;
-    QbsEngine qbsEngine;
-    qbsEngine.setBuildRoot(QDir::currentPath());
+    SourceProject sourceProject;
+    sourceProject.setBuildRoot(QDir::currentPath());
     QScopedPointer<ConsoleProgressObserver> observer;
     if (parser.showProgress()) {
         observer.reset(new ConsoleProgressObserver);
-        qbsEngine.setProgressObserver(observer.data());
+        sourceProject.setProgressObserver(observer.data());
     }
     try {
         foreach (const QVariantMap &buildConfig, parser.buildConfigurations()) {
             const ResolvedProject::ConstPtr resolvedProject
-                    = qbsEngine.setupResolvedProject(parser.projectFileName(), buildConfig);
+                    = sourceProject.setupResolvedProject(parser.projectFileName(), buildConfig);
             resolvedProjects << resolvedProject;
         }
     } catch (const Error &error) {
@@ -225,19 +225,19 @@ int main(int argc, char *argv[])
     case CommandLineParser::CleanCommand:
         return makeClean();
     case CommandLineParser::StartShellCommand:
-        return runShell(qbsEngine, resolvedProjects.first());
+        return runShell(sourceProject, resolvedProjects.first());
     case CommandLineParser::StatusCommand:
         return printStatus(parser.projectFileName(), resolvedProjects);
     case CommandLineParser::PropertiesCommand:
         return showProperties(resolvedProjects, parser.buildOptions());
     case CommandLineParser::BuildCommand:
-        return buildProjects(app, qbsEngine, resolvedProjects, parser.buildOptions());
+        return buildProjects(app, sourceProject, resolvedProjects, parser.buildOptions());
     case CommandLineParser::RunCommand: {
-        const int buildExitCode = buildProjects(app, qbsEngine, resolvedProjects,
+        const int buildExitCode = buildProjects(app, sourceProject, resolvedProjects,
                                                 parser.buildOptions());
         if (buildExitCode != 0)
             return buildExitCode;
-        return runTarget(qbsEngine, resolvedProjects, parser.runTargetName(), parser.runArgs());
+        return runTarget(sourceProject, resolvedProjects, parser.runTargetName(), parser.runArgs());
     }
     }
 }

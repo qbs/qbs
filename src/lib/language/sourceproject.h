@@ -27,36 +27,54 @@
 **
 ****************************************************************************/
 
-#ifndef SCRIPTENGINE_H
-#define SCRIPTENGINE_H
+#ifndef QBSINTERFACE_H
+#define QBSINTERFACE_H
 
-#include "language.h" // ### remove
-#include <QScriptEngine>
+#include "language.h"
+
+#include <QList>
+#include <QStringList>
 
 QT_BEGIN_NAMESPACE
-class QScriptEngine;
+class QProcessEnvironment;
 QT_END_NAMESPACE
 
 namespace qbs {
+class BuildOptions;
+class RunEnvironment;
+class SourceProjectPrivate;
+class ProgressObserver;
 
-class ScriptEngine : public QScriptEngine
+class SourceProject
 {
-    Q_OBJECT
+    Q_DECLARE_TR_FUNCTIONS(SourceProject)
+    Q_DISABLE_COPY(SourceProject)
+    friend class BuildProject;
 public:
-    ScriptEngine(QObject *parent = 0);
-    ~ScriptEngine();
+    SourceProject();
+    ~SourceProject();
 
-    void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
-    void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
-    void clearImportsCache();
+    void setProgressObserver(ProgressObserver *observer);
+    void setBuildRoot(const QString &directory);
+
+    // These may throw qbs::Error.
+    ResolvedProject::ConstPtr setupResolvedProject(const QString &projectFileName,
+                                              const QVariantMap &buildConfig);
+    void buildProjects(const QList<ResolvedProject::ConstPtr> &projects,
+                      const BuildOptions &buildOptions);
+    void buildProject(const ResolvedProject::ConstPtr &project, const BuildOptions &buildOptions) {
+        buildProjects(QList<ResolvedProject::ConstPtr>() << project, buildOptions);
+    }
+    RunEnvironment getRunEnvironment(const ResolvedProduct::ConstPtr &product,
+                                     const QProcessEnvironment &environment);
+
+    // Empty string if this product is not an application
+    QString targetExecutable(const ResolvedProduct::ConstPtr &product);
 
 private:
-    void importProgram(const QScriptProgram &program, const QScriptValue &scope,
-                       QScriptValue &targetObject);
-
-    QHash<QString, QScriptValue> m_jsImportCache;
+    SourceProjectPrivate * const d;
 };
 
 } // namespace qbs
 
-#endif // SCRIPTENGINE_H
+#endif

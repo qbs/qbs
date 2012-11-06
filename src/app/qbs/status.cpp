@@ -30,7 +30,7 @@
 #include "status.h"
 
 #include <app/shared/commandlineparser.h>
-#include <language/qbsengine.h>
+#include <language/sourceproject.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
 

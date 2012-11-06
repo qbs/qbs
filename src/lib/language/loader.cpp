@@ -30,7 +30,7 @@
 #include "loader.h"
 
 #include "language.h"
-#include "scriptengine.h"
+#include "qbsengine.h"
 #include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
@@ -678,7 +678,7 @@ static const uint hashName_Probe = qHash(name_Probe);
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
-Loader::Loader(ScriptEngine *engine)
+Loader::Loader(QbsEngine *engine)
     : m_progressObserver(0)
     , m_engine(engine)
     , m_scopesWithEvaluatedProperties(new ScopesCache)

@@ -37,7 +37,7 @@
 #include <jsextensions/file.h>
 #include <jsextensions/process.h>
 #include <jsextensions/textfile.h>
-#include <language/scriptengine.h>
+#include <language/qbsengine.h>
 #include <logging/logger.h>
 #include <tools/codelocation.h>
 
@@ -77,7 +77,7 @@ public:
     {
         result_type result;
         result.success = true;
-        ScriptEngine * const scriptEngine = lookupEngine();
+        QbsEngine * const scriptEngine = lookupEngine();
         QString trafoPtrStr = QString::number((qulonglong)transformer);
         if (scriptEngine->globalObject().property("_qbs_transformer_ptr").toString() != trafoPtrStr) {
             scriptEngine->globalObject().setProperty("_qbs_transformer_ptr", scriptEngine->toScriptValue(trafoPtrStr));
@@ -108,13 +108,13 @@ public:
         return result;
     }
 
-    ScriptEngine *lookupEngine()
+    QbsEngine *lookupEngine()
     {
         QThread * const currentThread = QThread::currentThread();
         QMutexLocker locker(&m_cacheMutex);
-        ScriptEngine * scriptEngine = m_enginesPerThread.value(currentThread);
+        QbsEngine * scriptEngine = m_enginesPerThread.value(currentThread);
         if (!scriptEngine) {
-            scriptEngine = new ScriptEngine();
+            scriptEngine = new QbsEngine();
             const QScriptValue extensionObject = scriptEngine->globalObject();
             File::init(extensionObject);
             TextFile::init(extensionObject);
@@ -125,12 +125,12 @@ public:
     }
 
 private:
-    static QHash<QThread *, ScriptEngine *> m_enginesPerThread;
+    static QHash<QThread *, QbsEngine *> m_enginesPerThread;
     static QMutex m_cacheMutex;
     const JavaScriptCommand *m_jsCommand;
 };
 
-QHash<QThread *, ScriptEngine *> JSRunner::m_enginesPerThread;
+QHash<QThread *, QbsEngine *> JSRunner::m_enginesPerThread;
 QMutex JSRunner::m_cacheMutex;
 
 
