@@ -26,17 +26,38 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef PUBLICOBJECTSMAP_H
+#define PUBLICOBJECTSMAP_H
 
-#ifndef SHOWPROPERTIES_H
-#define SHOWPROPERTIES_H
+#include "language.h"
+#include "publictypes.h"
 
-#include <QList>
+#include <QtGlobal>
+#include <QHash>
 
 namespace qbs {
-class Product;
 
-int showProperties(const QList<Product> &products);
+class PublicObjectsMap
+{
+public:
+    void insertGroup(Group::Id id, const ResolvedGroup::Ptr &group) { m_groups.insert(id, group); }
+    void insertProduct(Product::Id id, const ResolvedProduct::Ptr &product) {
+        m_products.insert(id, product);
+    }
+    void insertProject(Project::Id id, const ResolvedProject::Ptr &project) {
+        m_projects.insert(id, project);
+    }
+
+    ResolvedGroup::Ptr group(Group::Id id) const { return m_groups.value(id); }
+    ResolvedProduct::Ptr product(Product::Id id) const { return m_products.value(id); }
+    ResolvedProject::Ptr project(Project::Id id) const { return m_projects.value(id); }
+
+private:
+    QHash<Group::Id, ResolvedGroup::Ptr> m_groups;
+    QHash<Product::Id, ResolvedProduct::Ptr> m_products;
+    QHash<Project::Id, ResolvedProject::Ptr> m_projects;
+};
 
 } // namespace qbs
 
-#endif // SHOWPROPERTIES_H
+#endif // PUBLICOBJECTSMAP_H

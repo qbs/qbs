@@ -28,7 +28,8 @@
 ****************************************************************************/
 
 #include "showproperties.h"
-#include <language/language.h>
+
+#include <qbs.h>
 
 namespace qbs {
 
@@ -68,15 +69,15 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
     }
 }
 
-static void dumpProperties(const ResolvedProduct::ConstPtr &product)
+static void dumpProperties(const Product &product)
 {
-    printf("--------%s--------\n", qPrintable(product->name));
-    dumpMap(product->properties->value());
+    printf("--------%s--------\n", qPrintable(product.name()));
+    dumpMap(product.properties());
 }
 
-int showProperties(const QList<ResolvedProduct::ConstPtr> &products)
+int showProperties(const QList<Product> &products)
 {
-    foreach (const ResolvedProduct::ConstPtr &product, products)
+    foreach (const Product &product, products)
         dumpProperties(product);
     return 0;
 }

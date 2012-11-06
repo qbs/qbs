@@ -962,7 +962,7 @@ void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph 
         } else if (bgfi.lastModified() < pfi.lastModified()) {
             changedProducts += product;
         } else {
-            foreach (const Group::Ptr &group, resolvedProduct->groups) {
+            foreach (const ResolvedGroup::Ptr &group, resolvedProduct->groups) {
                 if (!group->wildcards)
                     continue;
                 const QSet<QString> files

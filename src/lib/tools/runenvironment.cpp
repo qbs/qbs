@@ -29,6 +29,9 @@
 
 #include "runenvironment.h"
 
+#include <language/language.h>
+#include <language/publicobjectsmap.h>
+#include <language/publictypes.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/error.h>
@@ -37,6 +40,7 @@
 
 #include <QDir>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QScopedPointer>
 #include <QTemporaryFile>
 
@@ -44,37 +48,38 @@
 
 namespace qbs {
 
-RunEnvironment::RunEnvironment(ScriptEngine *engine, const ResolvedProduct::Ptr &product,
-                               const QProcessEnvironment &environment)
-    : m_engine(engine)
-    , m_resolvedProduct(product)
-    , m_environment(environment)
+class RunEnvironment::RunEnvironmentPrivate
 {
+public:
+    ScriptEngine *engine;
+    ResolvedProduct::Ptr resolvedProduct;
+    QProcessEnvironment environment;
+};
+
+RunEnvironment::RunEnvironment(ScriptEngine *engine, const Product &product,
+                               const PublicObjectsMap &publicObjectsMap,
+                               const QProcessEnvironment &environment)
+    : d(new RunEnvironmentPrivate)
+{
+    d->engine = engine;
+    d->resolvedProduct = publicObjectsMap.product(product.id());
+    if (!d->resolvedProduct)
+        throw Error(tr("Cannot run target: Invalid product."));
+    d->environment = environment;
 }
 
 RunEnvironment::~RunEnvironment()
 {
-}
-
-RunEnvironment::RunEnvironment(const RunEnvironment &other)
-    : m_resolvedProduct(other.m_resolvedProduct)
-{
-}
-
-RunEnvironment &RunEnvironment::operator =(const RunEnvironment &other)
-{
-    m_resolvedProduct = other.m_resolvedProduct;
-
-    return *this;
+    delete d;
 }
 
 int RunEnvironment::runShell()
 {
-    m_resolvedProduct->setupBuildEnvironment(m_engine, m_environment);
+    d->resolvedProduct->setupBuildEnvironment(d->engine, d->environment);
 
-    const QString productId = m_resolvedProduct->name;
+    const QString productId = d->resolvedProduct->name;
     qbsInfo() << tr("Starting shell for target '%1'.").arg(productId);
-    const QProcessEnvironment environment = m_resolvedProduct->buildEnvironment;
+    const QProcessEnvironment environment = d->resolvedProduct->buildEnvironment;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
     clearenv();
 #endif
@@ -120,11 +125,11 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         return EXIT_FAILURE;
     }
 
-    m_resolvedProduct->setupRunEnvironment(m_engine, m_environment);
+    d->resolvedProduct->setupRunEnvironment(d->engine, d->environment);
 
     qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
     QProcess process;
-    process.setProcessEnvironment(m_resolvedProduct->runEnvironment);
+    process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);
     process.start(targetBin, arguments);
     process.waitForFinished(-1);

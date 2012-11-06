@@ -29,7 +29,7 @@
 #ifndef QBS_H
 #define QBS_H
 
-#include "language/language.h"
+#include "language/publictypes.h"
 #include "language/qbsengine.h"
 #include "logging/logger.h"
 #include "tools/error.h"

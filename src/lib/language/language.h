@@ -184,13 +184,13 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class Group : public PersistentObject
+class ResolvedGroup : public PersistentObject
 {
 public:
-    typedef QSharedPointer<Group> Ptr;
-    typedef QSharedPointer<const Group> ConstPtr;
+    typedef QSharedPointer<ResolvedGroup> Ptr;
+    typedef QSharedPointer<const ResolvedGroup> ConstPtr;
 
-    static Ptr create() { return Ptr(new Group); }
+    static Ptr create() { return Ptr(new ResolvedGroup); }
 
     QString name;
     QList<SourceArtifact::Ptr> files;
@@ -200,7 +200,7 @@ public:
     QList<SourceArtifact::Ptr> allFiles() const;
 
 private:
-    Group() {}
+    ResolvedGroup() {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
@@ -326,7 +326,7 @@ public:
     QSet<FileTagger::ConstPtr> fileTaggers;
     QList<ResolvedModule::ConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
-    QList<Group::Ptr> groups;
+    QList<ResolvedGroup::Ptr> groups;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved

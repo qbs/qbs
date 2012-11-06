@@ -29,16 +29,18 @@
 
 #include "qbsengine.h"
 
+#include "publicobjectsmap.h"
+
 #include <buildgraph/artifact.h>
 #include <buildgraph/executor.h>
 #include <language/scriptengine.h>
 #include <language/loader.h>
 #include <logging/logger.h>
+#include <tools/platform.h>
 #include <tools/runenvironment.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
-#include <tools/platform.h>
 
 #include <QEventLoop>
 #include <QHash>
@@ -70,6 +72,7 @@ public:
     QList<BuildProject::Ptr> buildProjects;
     const Settings::Ptr settings;
     const QSharedPointer<BuildGraph> buildGraph;
+    PublicObjectsMap publicObjectsMap;
 
     // Potentially stored temporarily between calls to setupResolvedProject() and setupBuildProject().
     QHash<ResolvedProject::ConstPtr, BuildProject::Ptr> discardedBuildProjects;
@@ -109,8 +112,7 @@ void QbsEngine::setBuildRoot(const QString &directory)
     d->buildGraph->setOutputDirectoryRoot(directory);
 }
 
-ResolvedProject::ConstPtr QbsEngine::setupResolvedProject(const QString &projectFileName,
-                                                         const QVariantMap &_buildConfig)
+Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVariantMap &_buildConfig)
 {
     Loader loader(&d->engine);
     loader.setSearchPaths(d->settings->searchPaths());
@@ -160,61 +162,103 @@ ResolvedProject::ConstPtr QbsEngine::setupResolvedProject(const QString &project
     qbsDebug("");
 
     d->resolvedProjects << rProject;
-    return rProject;
+    const Project::Id id(quintptr(rProject.data()));
+    d->publicObjectsMap.insertProject(id, rProject);
+    return id;
 }
 
-void QbsEngine::buildProjects(const QList<ResolvedProject::ConstPtr> &projects,
-                                  const BuildOptions &buildOptions)
+void QbsEngine::buildProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions)
 {
     QList<ResolvedProduct::ConstPtr> products;
-    foreach (const ResolvedProject::ConstPtr &project, projects) {
-        foreach (const ResolvedProduct::ConstPtr &product, project->products)
+    foreach (const Project::Id projectId, projectIds) {
+        const ResolvedProject::ConstPtr resolvedProject = d->publicObjectsMap.project(projectId);
+        if (!resolvedProject)
+            throw Error(tr("Cannot build: No such project."));
+        foreach (const ResolvedProduct::ConstPtr &product, resolvedProject->products)
             products << product;
     }
     d->buildProducts(products, buildOptions, false);
 }
 
-void QbsEngine::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
-                                  const BuildOptions &buildOptions)
+void QbsEngine::buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions)
 {
-    d->buildProducts(products, buildOptions, true);
+    QList<Project::Id> projectIds;
+    foreach (const Project &project, projects)
+        projectIds << project.id();
+    buildProjects(projectIds, buildOptions);
 }
 
-RunEnvironment QbsEngine::getRunEnvironment(const ResolvedProduct::ConstPtr &product,
-                                                const QProcessEnvironment &environment)
+void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions &buildOptions)
 {
-    foreach (const ResolvedProject::ConstPtr &rProject, d->resolvedProjects) {
-        if (product->project != rProject)
-            continue;
-        foreach (const ResolvedProduct::Ptr &p, rProject->products) {
-            if (p == product)
-                return RunEnvironment(&d->engine, p, environment);
-        }
+    QList<ResolvedProduct::ConstPtr> resolvedProducts;
+    foreach (const Product &product, products) {
+        const ResolvedProduct::ConstPtr resolvedProduct = d->publicObjectsMap.product(product.id());
+        if (!resolvedProduct)
+            throw Error(tr("Cannot build: No such product."));
+        resolvedProducts << resolvedProduct;
     }
-    throw Error(tr("Unknown product"));
+    d->buildProducts(resolvedProducts, buildOptions, true);
 }
 
-QString QbsEngine::targetExecutable(const ResolvedProduct::ConstPtr &product)
+Project QbsEngine::retrieveProject(Project::Id projectId) const
 {
-    Q_ASSERT(product);
+    const ResolvedProject::ConstPtr resolvedProject = d->publicObjectsMap.project(projectId);
+    if (!resolvedProject)
+        throw Error(tr("Cannot retrieve project: No such project."));
+    Project project(projectId);
+    project.m_qbsFilePath = resolvedProject->qbsFile;
+    foreach (const ResolvedProduct::Ptr &resolvedProduct, resolvedProject->products) {
+        Product product(Product::Id(quintptr(resolvedProduct.data())));
+        product.m_name = resolvedProduct->name;
+        product.m_qbsFilePath = resolvedProduct->qbsFile;
+        product.m_fileTags = resolvedProduct->fileTags;
+        foreach (const ResolvedGroup::Ptr &resolvedGroup, resolvedProduct->groups) {
+            Group group(Group::Id(quintptr(resolvedGroup.data())));
+            group.m_name = resolvedGroup->name;
+            foreach (const SourceArtifact::ConstPtr &sa, resolvedGroup->files)
+                group.m_filePaths << sa->absoluteFilePath;
+            if (resolvedGroup->wildcards) {
+                foreach (const SourceArtifact::ConstPtr &sa, resolvedGroup->wildcards->files)
+                    group.m_expandedWildcards << sa->absoluteFilePath;
+            }
+            group.m_properties = resolvedGroup->properties->value();
+            product.m_groups << group;
+            d->publicObjectsMap.insertGroup(group.m_id, resolvedGroup);
+        }
+        project.m_products << product;
+        d->publicObjectsMap.insertProduct(product.m_id, resolvedProduct);
+    }
+    return project;
+}
 
-    if (!product->fileTags.contains(QLatin1String("application")))
+RunEnvironment QbsEngine::getRunEnvironment(const Product &product,
+                                            const QProcessEnvironment &environment)
+{
+    return RunEnvironment(&d->engine, product, d->publicObjectsMap, environment);
+}
+
+QString QbsEngine::targetExecutable(const Product &product)
+{
+    const ResolvedProduct::ConstPtr resolvedProduct = d->publicObjectsMap.product(product.id());
+    if (!resolvedProduct)
+        throw tr("Error: Unknown product.");
+    if (!resolvedProduct->fileTags.contains(QLatin1String("application")))
         return QString();
     ResolvedProject::ConstPtr resolvedProject;
     foreach (const ResolvedProject::ConstPtr &p, d->resolvedProjects) {
-        if (p == product->project) {
+        if (p == resolvedProduct->project) {
             resolvedProject = p;
             break;
         }
     }
     if (!resolvedProject)
-        throw Error(tr("Unknown product '%1'.").arg(product->name));
+        throw Error(tr("Unknown product '%1'.").arg(resolvedProduct->name));
 
     const BuildProject::ConstPtr buildProject = d->setupBuildProject(resolvedProject);
     Q_ASSERT(buildProject->resolvedProject() == resolvedProject);
     BuildProduct::ConstPtr buildProduct;
     foreach (const BuildProduct::ConstPtr &bp, buildProject->buildProducts()) {
-        if (bp->rProduct == product) {
+        if (bp->rProduct == resolvedProduct) {
             buildProduct = bp;
             break;
         }
@@ -317,7 +361,6 @@ void QbsEnginePrivate::buildProducts(const QList<BuildProduct::Ptr> &buildProduc
 void QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
         const BuildOptions &buildOptions, bool needsDepencencyResolving)
 {
-
     // Make sure all products are set up first.
     QSet<const ResolvedProject *> rProjects;
     foreach (const ResolvedProduct::ConstPtr &product, products)

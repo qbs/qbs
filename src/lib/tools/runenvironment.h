@@ -30,33 +30,35 @@
 #ifndef QBS_RUNENVIRONMENT_H
 #define QBS_RUNENVIRONMENT_H
 
-#include <language/language.h>
-
 #include <QCoreApplication>
-#include <QProcessEnvironment>
+
+QT_BEGIN_NAMESPACE
+class QProcessEnvironment;
+QT_END_NAMESPACE
 
 namespace qbs {
-
+class Product;
+class PublicObjectsMap;
 class ScriptEngine;
 
 class RunEnvironment
 {
     Q_DECLARE_TR_FUNCTIONS(RunEnvironment)
+    friend class QbsEngine;
 public:
-    RunEnvironment(ScriptEngine *engine, const ResolvedProduct::Ptr &product,
-                   const QProcessEnvironment &environment);
     ~RunEnvironment();
-    RunEnvironment(const RunEnvironment &other);
-    RunEnvironment &operator =(const RunEnvironment &other);
 
     // These can throw an Error
     int runShell();
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
-    ScriptEngine *m_engine;
-    ResolvedProduct::Ptr m_resolvedProduct;
-    QProcessEnvironment m_environment;
+    RunEnvironment(ScriptEngine *engine, const Product &product,
+                   const PublicObjectsMap &publicObjectsMap,
+                   const QProcessEnvironment &environment);
+
+    class RunEnvironmentPrivate;
+    RunEnvironmentPrivate * const d;
 };
 
 } // namespace qbs

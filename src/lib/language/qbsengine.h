@@ -32,6 +32,8 @@
 
 #include "language.h"
 
+#include "publictypes.h"
+
 #include <QList>
 #include <QStringList>
 
@@ -49,7 +51,6 @@ class QbsEngine
 {
     Q_DECLARE_TR_FUNCTIONS(QbsEngine)
     Q_DISABLE_COPY(QbsEngine)
-    friend class BuildProject;
 public:
     QbsEngine();
     ~QbsEngine();
@@ -57,24 +58,26 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void setBuildRoot(const QString &directory);
 
-    // These may throw qbs::Error.
-    ResolvedProject::ConstPtr setupResolvedProject(const QString &projectFileName,
-                                              const QVariantMap &buildConfig);
-    void buildProjects(const QList<ResolvedProject::ConstPtr> &projects,
-                      const BuildOptions &buildOptions);
-    void buildProject(const ResolvedProject::ConstPtr &project, const BuildOptions &buildOptions) {
-        buildProjects(QList<ResolvedProject::ConstPtr>() << project, buildOptions);
-    }
-    void buildProducts(const QList<ResolvedProduct::ConstPtr> &products, const BuildOptions &buildOptions);
-    void buildProduct(const ResolvedProduct::ConstPtr &product, const BuildOptions &buildOptions) {
-        buildProducts(QList<ResolvedProduct::ConstPtr>() << product, buildOptions);
+    // All of these may throw qbs::Error.
+    Project::Id setupProject(const QString &projectFileName, const QVariantMap &buildConfig);
+    void buildProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions);
+    void buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions);
+    void buildProject(Project::Id projectId, const BuildOptions &buildOptions) {
+        buildProjects(QList<Project::Id>() << projectId, buildOptions);
     }
 
-    RunEnvironment getRunEnvironment(const ResolvedProduct::ConstPtr &product,
+    void buildProducts(const QList<Product> &products, const BuildOptions &buildOptions);
+    void buildProduct(const Product &product, const BuildOptions &buildOptions) {
+        buildProducts(QList<Product>() << product, buildOptions);
+    }
+
+    Project retrieveProject(Project::Id projectId) const;
+
+    RunEnvironment getRunEnvironment(const Product &product,
                                      const QProcessEnvironment &environment);
 
     // Empty string if this product is not an application
-    QString targetExecutable(const ResolvedProduct::ConstPtr &product);
+    QString targetExecutable(const Product &product);
 
 private:
     QbsEnginePrivate * const d;

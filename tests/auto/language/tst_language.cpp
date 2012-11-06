@@ -159,7 +159,7 @@ void TestLanguage::groupName()
         ResolvedProduct::Ptr product = products.value("MyProduct");
         QVERIFY(product);
         QCOMPARE(product->groups.count(), 2);
-        Group::ConstPtr group = product->groups.at(0);
+        ResolvedGroup::ConstPtr group = product->groups.at(0);
         QVERIFY(group);
         QCOMPARE(group->name, QString("MyProduct"));
         group = product->groups.at(1);
@@ -336,7 +336,7 @@ void TestLanguage::fileTags()
     ResolvedProduct::Ptr product;
     QVERIFY(product = products.value(productName));
     QCOMPARE(product->groups.count(), numberOfGroups);
-    Group::Ptr group = product->groups.last();
+    ResolvedGroup::Ptr group = product->groups.last();
     QVERIFY(group);
     QCOMPARE(group->files.count(), 1);
     SourceArtifact::ConstPtr sourceFile = group->files.first();

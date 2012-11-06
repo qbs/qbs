@@ -1929,8 +1929,8 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 applyFileTaggers(artifact, rproduct);
 
         // Merge duplicate artifacts.
-        QHash<QString, QPair<Group::Ptr, SourceArtifact::Ptr> > uniqueArtifacts;
-        foreach (const Group::Ptr &group, rproduct->groups) {
+        QHash<QString, QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> > uniqueArtifacts;
+        foreach (const ResolvedGroup::Ptr &group, rproduct->groups) {
             Q_ASSERT(group->properties);
 
             QList<SourceArtifact::Ptr> artifactsInGroup = group->files;
@@ -1938,7 +1938,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 artifactsInGroup += group->wildcards->files;
 
             foreach (const SourceArtifact::Ptr &artifact, artifactsInGroup) {
-                QPair<Group::Ptr, SourceArtifact::Ptr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
+                QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
                 SourceArtifact::Ptr existing = p.second;
                 if (existing) {
                     // if an artifact is in the product and in a group, prefer the group configuration
@@ -2198,7 +2198,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     if (isGroup)
         overrideTags = group->scope->boolValue("overrideTags", true);
 
-    Group::Ptr resolvedGroup = Group::create();
+    ResolvedGroup::Ptr resolvedGroup = ResolvedGroup::create();
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
         if (isGroup) {

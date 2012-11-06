@@ -29,12 +29,12 @@
 
 #include "status.h"
 
-#include <app/shared/commandlineparser.h>
-#include <logging/logger.h>
-#include <tools/fileinfo.h>
+#include <qbs.h>
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
+#include <QString>
 #include <QRegExp>
 
 namespace qbs {
@@ -50,7 +50,6 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
     ignoreRegularExpressionList.append(QRegExp("*.so*", Qt::CaseSensitive, QRegExp::Wildcard));
     ignoreRegularExpressionList.append(QRegExp("*.o", Qt::CaseSensitive, QRegExp::Wildcard));
     QString ignoreFilePath = projectRootPath + "/.qbsignore";
-
 
     QFile ignoreFile(ignoreFilePath);
 
@@ -101,35 +100,38 @@ static QStringList allFilesInProject(const QString &projectRootPath)
     return allFilesInDirectoryRecursive(QDir(projectRootPath), ignoreRegularExpressionList);
 }
 
-inline bool lessThanSourceFile(const SourceArtifact::ConstPtr &first,
-                               const SourceArtifact::ConstPtr &second)
+QStringList allFiles(const Product &product)
 {
-    return first->absoluteFilePath < second->absoluteFilePath;
+    QStringList files;
+    foreach (const Group &group, product.groups())
+        files += group.allFilePaths();
+    return files;
 }
 
-int printStatus(const QString &projectFilePath, const QList<ResolvedProject::ConstPtr> &projects)
+int printStatus(const QList<Project> &projects)
 {
+    if (projects.isEmpty())
+        return 0;
+    const QString projectFilePath = projects.first().qbsFilePath();
     QString projectDirectory = FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
-    const ResolvedProject::ConstPtr project = projects.first();
-    foreach (const ResolvedProduct::ConstPtr &product, project->products) {
-        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product->name;
-        QList<SourceArtifact::Ptr> sourceFiles = product->allFiles();
-        qSort(sourceFiles.begin(), sourceFiles.end(), lessThanSourceFile);
-        foreach (const SourceArtifact::ConstPtr &sourceFile, sourceFiles) {
-            QString fileTags = QStringList(sourceFile->fileTags.toList()).join(", ");
+    const Project project = projects.first();
+    foreach (const Product &product, project.products()) {
+        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name();
+        QStringList sourceFiles = allFiles(product);
+        qSort(sourceFiles);
+        foreach (const QString &sourceFile, sourceFiles) {
             TextColor statusColor = TextColorDefault;
-            if (!FileInfo(sourceFile->absoluteFilePath).exists()) {
+            if (!QFileInfo(sourceFile).exists()) {
                 statusColor = TextColorRed;
-                missingFiles.append(sourceFile->absoluteFilePath);
+                missingFiles.append(sourceFile);
             }
             qbsInfo() << DontPrintLogLevel << statusColor << "  "
-                      << sourceFile->absoluteFilePath.mid(projectDirectoryPathLength + 1)
-                      << " [" + fileTags + "]";
-            untrackedFilesInProject.removeOne(sourceFile->absoluteFilePath);
+                      << sourceFile.mid(projectDirectoryPathLength + 1);
+            untrackedFilesInProject.removeOne(sourceFile);
         }
     }
 
