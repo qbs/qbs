@@ -1315,22 +1315,19 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
-    QSet<Artifact *> usingArtifacts;
-    foreach (BuildProduct * const dep, m_buildProduct->dependencies) {
-        foreach (Artifact *targetArtifact, dep->targetArtifacts) {
-            ArtifactList sbsArtifacts = targetArtifact->sideBySideArtifacts;
-            sbsArtifacts.insert(targetArtifact);
-            foreach (Artifact *artifact, sbsArtifacts) {
-                QString matchingTag;
-                foreach (const QString &tag, m_rule->usings) {
-                    if (artifact->fileTags.contains(tag)) {
-                        matchingTag = tag;
-                        break;
-                    }
-                }
-                if (matchingTag.isEmpty())
-                    continue;
-                usingArtifacts.insert(artifact);
+    ArtifactList usingArtifacts;
+    if (!m_rule->usings.isEmpty()) {
+        const QSet<QString> usingsFileTags = m_rule->usings.toSet();
+        foreach (BuildProduct * const dep, m_buildProduct->dependencies) {
+            QList<Artifact *> artifactsToCheck = dep->targetArtifacts.toList();
+            foreach (Artifact *targetArtifact, dep->targetArtifacts)
+                foreach (Artifact *sbsArtifact, targetArtifact->sideBySideArtifacts)
+                    artifactsToCheck += sbsArtifact;
+            foreach (Artifact *artifact, artifactsToCheck) {
+                QSet<QString> matchingFileTags = artifact->fileTags;
+                matchingFileTags.intersect(usingsFileTags);
+                if (!matchingFileTags.isEmpty())
+                    usingArtifacts.insert(artifact);
             }
         }
     }
@@ -1355,14 +1352,12 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
 
         // Transformer setup
         m_transformer->outputs.insert(outputArtifact);
-        for (QSet<Artifact *>::const_iterator it = usingArtifacts.constBegin(); it != usingArtifacts.constEnd(); ++it) {
+        for (ArtifactList::const_iterator it = usingArtifacts.constBegin();
+             it != usingArtifacts.constEnd(); ++it)
+        {
             Artifact *dep = *it;
             BuildGraph::loggedConnect(outputArtifact, dep);
             m_transformer->inputs.insert(dep);
-            foreach (Artifact *sideBySideDep, dep->sideBySideArtifacts) {
-                BuildGraph::loggedConnect(outputArtifact, sideBySideDep);
-                m_transformer->inputs.insert(sideBySideDep);
-            }
         }
 
         m_buildGraph->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
