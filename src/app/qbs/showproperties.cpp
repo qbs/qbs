@@ -29,7 +29,6 @@
 
 #include "showproperties.h"
 #include <language/language.h>
-#include <language/sourceproject.h>
 
 namespace qbs {
 

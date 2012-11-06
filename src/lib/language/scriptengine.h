@@ -27,38 +27,36 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_RUNENVIRONMENT_H
-#define QBS_RUNENVIRONMENT_H
+#ifndef SCRIPTENGINE_H
+#define SCRIPTENGINE_H
 
-#include <language/language.h>
+#include "language.h" // ### remove
+#include <QScriptEngine>
 
-#include <QCoreApplication>
-#include <QProcessEnvironment>
+QT_BEGIN_NAMESPACE
+class QScriptEngine;
+QT_END_NAMESPACE
 
 namespace qbs {
 
-class ScriptEngine;
-
-class RunEnvironment
+class ScriptEngine : public QScriptEngine
 {
-    Q_DECLARE_TR_FUNCTIONS(RunEnvironment)
+    Q_OBJECT
 public:
-    RunEnvironment(ScriptEngine *engine, const ResolvedProduct::Ptr &product,
-                   const QProcessEnvironment &environment);
-    ~RunEnvironment();
-    RunEnvironment(const RunEnvironment &other);
-    RunEnvironment &operator =(const RunEnvironment &other);
+    ScriptEngine(QObject *parent = 0);
+    ~ScriptEngine();
 
-    // These can throw an Error
-    int runShell();
-    int runTarget(const QString &targetBin, const QStringList &arguments);
+    void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
+    void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
+    void clearImportsCache();
 
 private:
-    ScriptEngine *m_engine;
-    ResolvedProduct::Ptr m_resolvedProduct;
-    QProcessEnvironment m_environment;
+    void importProgram(const QScriptProgram &program, const QScriptValue &scope,
+                       QScriptValue &targetObject);
+
+    QHash<QString, QScriptValue> m_jsImportCache;
 };
 
 } // namespace qbs
 
-#endif // QBS_RUNENVIRONMENT_H
+#endif // SCRIPTENGINE_H

@@ -359,13 +359,13 @@ public:
 };
 
 class ProgressObserver;
-class QbsEngine;
+class ScriptEngine;
 
 class Loader
 {
     Q_DECLARE_TR_FUNCTIONS(Loader)
 public:
-    Loader(QbsEngine *engine);
+    Loader(ScriptEngine *engine);
     ~Loader();
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
@@ -452,7 +452,7 @@ private:
     ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;
     QStringList m_moduleSearchPaths;
-    QbsEngine *m_engine;
+    ScriptEngine *m_engine;
     ScopesCachePtr m_scopesWithEvaluatedProperties;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;

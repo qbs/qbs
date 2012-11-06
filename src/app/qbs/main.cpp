@@ -35,7 +35,7 @@
 #include <app/shared/commandlineparser.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
-#include <language/sourceproject.h>
+#include <language/qbsengine.h>
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
 #include <tools/hostosinfo.h>
@@ -113,10 +113,10 @@ static int makeClean()
     return 0;
 }
 
-static int runShell(SourceProject &sourceProject, const ResolvedProject::ConstPtr &project)
+static int runShell(QbsEngine &qbsEngine, const ResolvedProject::ConstPtr &project)
 {
     try {
-        RunEnvironment runEnvironment = sourceProject.getRunEnvironment(project->products.first(),
+        RunEnvironment runEnvironment = qbsEngine.getRunEnvironment(project->products.first(),
                 QProcessEnvironment::systemEnvironment());
         return runEnvironment.runShell();
     } catch (const Error &error) {
@@ -130,12 +130,12 @@ class AbstractBuilder : public QObject
     Q_OBJECT
 
 protected:
-    AbstractBuilder(SourceProject &sourceProject, const BuildOptions &buildOptions)
-        : m_sourceProject(sourceProject), m_buildOptions(buildOptions)
+    AbstractBuilder(QbsEngine &qbsEngine, const BuildOptions &buildOptions)
+        : m_qbsEngine(qbsEngine), m_buildOptions(buildOptions)
     {
     }
 
-    SourceProject &sourceProject() const { return m_sourceProject; }
+    QbsEngine &qbsEngine() const { return m_qbsEngine; }
     const BuildOptions buildOptions() const { return m_buildOptions; }
 
 private slots:
@@ -153,21 +153,21 @@ private slots:
 private:
     virtual void doBuild() = 0;
 
-    SourceProject &m_sourceProject;
+    QbsEngine &m_qbsEngine;
     const BuildOptions m_buildOptions;
 };
 
 class ProductsBuilder : public AbstractBuilder
 {
 public:
-    ProductsBuilder(SourceProject &sourceProject, const QList<ResolvedProduct::ConstPtr> &products,
+    ProductsBuilder(QbsEngine &qbsEngine, const QList<ResolvedProduct::ConstPtr> &products,
                     const BuildOptions &buildOptions)
-        : AbstractBuilder(sourceProject, buildOptions), m_products(products)
+        : AbstractBuilder(qbsEngine, buildOptions), m_products(products)
     {
     }
 
 private:
-    void doBuild() { sourceProject().buildProducts(m_products, buildOptions()); }
+    void doBuild() { qbsEngine().buildProducts(m_products, buildOptions()); }
 
     const QList<ResolvedProduct::ConstPtr> m_products;
 };
@@ -175,34 +175,34 @@ private:
 class ProjectsBuilder : public AbstractBuilder
 {
 public:
-    ProjectsBuilder(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
+    ProjectsBuilder(QbsEngine &qbsEngine, const QList<ResolvedProject::ConstPtr> &projects,
                     const BuildOptions &buildOptions)
-        : AbstractBuilder(sourceProject, buildOptions), m_projects(projects)
+        : AbstractBuilder(qbsEngine, buildOptions), m_projects(projects)
     {
     }
 
 private:
-    void doBuild() { sourceProject().buildProjects(m_projects, buildOptions()); }
+    void doBuild() { qbsEngine().buildProjects(m_projects, buildOptions()); }
 
     const QList<ResolvedProject::ConstPtr> m_projects;
 };
 
-static int build(SourceProject &sourceProject, const QList<ResolvedProject::ConstPtr> &projects,
+static int build(QbsEngine &qbsEngine, const QList<ResolvedProject::ConstPtr> &projects,
                  const QStringList &productsSetByUser, const BuildOptions &buildOptions)
 {
     QScopedPointer<AbstractBuilder> builder;
     if (productsSetByUser.isEmpty()) {
-        builder.reset(new ProjectsBuilder(sourceProject, projects, buildOptions));
+        builder.reset(new ProjectsBuilder(qbsEngine, projects, buildOptions));
     } else {
         const QList<ResolvedProduct::ConstPtr> products
                 = productsToUse(projects, productsSetByUser);
-        builder.reset(new ProductsBuilder(sourceProject, products, buildOptions));
+        builder.reset(new ProductsBuilder(qbsEngine, products, buildOptions));
     }
     QTimer::singleShot(0, builder.data(), SLOT(build()));
     return qApp->exec();
 }
 
-static int runTarget(SourceProject &sourceProject, const QList<ResolvedProduct::ConstPtr> &products,
+static int runTarget(QbsEngine &qbsEngine, const QList<ResolvedProduct::ConstPtr> &products,
                      const QString &targetName, const QStringList &arguments)
 {
     try {
@@ -210,7 +210,7 @@ static int runTarget(SourceProject &sourceProject, const QList<ResolvedProduct::
         QString productFileName;
 
         foreach (const ResolvedProduct::ConstPtr &product, products) {
-            const QString executable = sourceProject.targetExecutable(product);
+            const QString executable = qbsEngine.targetExecutable(product);
             if (executable.isEmpty())
                 continue;
             if (!targetName.isEmpty() && !executable.endsWith(targetName))
@@ -233,7 +233,7 @@ static int runTarget(SourceProject &sourceProject, const QList<ResolvedProduct::
             return ExitCodeErrorBuildFailure;
         }
 
-        RunEnvironment runEnvironment = sourceProject.getRunEnvironment(productToRun,
+        RunEnvironment runEnvironment = qbsEngine.getRunEnvironment(productToRun,
                                                                         QProcessEnvironment::systemEnvironment());
         return runEnvironment.runTarget(productFileName, arguments);
     } catch (const Error &error) {
@@ -267,17 +267,17 @@ int main(int argc, char *argv[])
     }
 
     QList<ResolvedProject::ConstPtr> resolvedProjects;
-    SourceProject sourceProject;
-    sourceProject.setBuildRoot(QDir::currentPath());
+    QbsEngine qbsEngine;
+    qbsEngine.setBuildRoot(QDir::currentPath());
     QScopedPointer<ConsoleProgressObserver> observer;
     if (parser.showProgress()) {
         observer.reset(new ConsoleProgressObserver);
-        sourceProject.setProgressObserver(observer.data());
+        qbsEngine.setProgressObserver(observer.data());
     }
     try {
         foreach (const QVariantMap &buildConfig, parser.buildConfigurations()) {
             const ResolvedProject::ConstPtr resolvedProject
-                    = sourceProject.setupResolvedProject(parser.projectFileName(), buildConfig);
+                    = qbsEngine.setupResolvedProject(parser.projectFileName(), buildConfig);
             resolvedProjects << resolvedProject;
         }
     } catch (const Error &error) {
@@ -289,21 +289,21 @@ int main(int argc, char *argv[])
     case CommandLineParser::CleanCommand:
         return makeClean();
     case CommandLineParser::StartShellCommand:
-        return runShell(sourceProject, resolvedProjects.first());
+        return runShell(qbsEngine, resolvedProjects.first());
     case CommandLineParser::StatusCommand:
         return printStatus(parser.projectFileName(), resolvedProjects);
     case CommandLineParser::PropertiesCommand:
         return showProperties(productsToUse(resolvedProjects, parser.products()));
     case CommandLineParser::BuildCommand:
-        return build(sourceProject, resolvedProjects, parser.products(), parser.buildOptions());
+        return build(qbsEngine, resolvedProjects, parser.products(), parser.buildOptions());
     case CommandLineParser::RunCommand: {
-        const int buildExitCode = build(sourceProject, resolvedProjects, parser.products(),
+        const int buildExitCode = build(qbsEngine, resolvedProjects, parser.products(),
                                         parser.buildOptions());
         if (buildExitCode != 0)
             return buildExitCode;
         const QList<ResolvedProduct::ConstPtr> products
                 = productsToUse(resolvedProjects, parser.products());
-        return runTarget(sourceProject, products, parser.runTargetName(), parser.runArgs());
+        return runTarget(qbsEngine, products, parser.runTargetName(), parser.runArgs());
     }
     }
 }

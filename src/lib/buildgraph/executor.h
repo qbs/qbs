@@ -70,7 +70,7 @@ public:
         FailedBuild
     };
 
-    void setEngine(QbsEngine *engine);
+    void setEngine(ScriptEngine *engine);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
     ExecutorState state() const { return m_state; }
@@ -112,7 +112,7 @@ protected:
     void cancelJobs();
 
 private:
-    QbsEngine *m_engine;
+    ScriptEngine *m_engine;
     BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
     QList<ExecutorJob*> m_availableJobs;
