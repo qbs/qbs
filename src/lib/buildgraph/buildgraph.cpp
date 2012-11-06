@@ -254,13 +254,41 @@ void BuildGraph::setProgressObserver(ProgressObserver *observer)
     m_progressObserver = observer;
 }
 
+
+static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
+{
+    if (u == v) {
+        path.append(v);
+        return true;
+    }
+
+    for (ArtifactList::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
+        if (findPath(*it, v, path)) {
+            path.prepend(u);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void BuildGraph::detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch)
 {
     currentBranch += v;
     for (ArtifactList::const_iterator it = v->children.begin(); it != v->children.end(); ++it) {
         Artifact *u = *it;
-        if (currentBranch.contains(u))
-            throw Error("Cycle in build graph detected.");
+        if (currentBranch.contains(u)) {
+            Error error(tr("Cycle in build graph detected."));
+            QList<Artifact *> path;
+            findPath(u, v, path);
+            foreach (Artifact *a, path)
+                error.append(tr("path1: ") + a->filePath());
+            path.clear();
+            findPath(v, u, path);
+            foreach (Artifact *a, path)
+                error.append(tr("path2: ") + a->filePath());
+            throw error;
+        }
         if (!done.contains(u))
             detectCycle(u, done, currentBranch);
     }
@@ -340,23 +368,6 @@ void BuildGraph::loggedConnect(Artifact *u, Artifact *v)
                  qPrintable(fileName(u)),
                  qPrintable(fileName(v)));
     connect(u, v);
-}
-
-static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
-{
-    if (u == v) {
-        path.append(v);
-        return true;
-    }
-
-    for (ArtifactList::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
-        if (findPath(*it, v, path)) {
-            path.prepend(u);
-            return true;
-        }
-    }
-
-    return false;
 }
 
 static bool existsPath(Artifact *u, Artifact *v)
