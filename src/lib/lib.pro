@@ -16,3 +16,6 @@ include(parser/parser.pri)
 include(buildgraph/buildgraph.pri)
 include(language/language.pri)
 include(logging/logging.pri)
+
+HEADERS += \
+    qbs.h

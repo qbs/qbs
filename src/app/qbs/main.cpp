@@ -31,13 +31,10 @@
 #include "consoleprogressobserver.h"
 #include "showproperties.h"
 #include "status.h"
+#include "../shared/commandlineparser.h"
 
-#include <app/shared/commandlineparser.h>
-#include <buildgraph/buildgraph.h>
-#include <buildgraph/executor.h>
-#include <language/qbsengine.h>
+#include <qbs.h>
 #include <logging/consolelogger.h>
-#include <logging/logger.h>
 #include <tools/hostosinfo.h>
 #include <tools/runenvironment.h>
 
