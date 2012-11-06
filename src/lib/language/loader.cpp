@@ -455,23 +455,7 @@ QString Scope::stringValue(const QString &name) const
 
 QStringList Scope::stringListValue(const QString &name) const
 {
-    QScriptValue scriptValue = property(name);
-    if (scriptValue.isString()) {
-        return QStringList(scriptValue.toString());
-    } else if (scriptValue.isArray()) {
-        QStringList lst;
-        int i=0;
-        forever {
-            QScriptValue item = scriptValue.property(i++);
-            if (!item.isValid())
-                break;
-            if (!item.isString())
-                continue;
-            lst.append(item.toString());
-        }
-        return lst;
-    }
-    return QStringList();
+    return toStringList(property(name));
 }
 
 QString Scope::verbatimValue(const QString &name) const

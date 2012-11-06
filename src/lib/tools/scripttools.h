@@ -57,6 +57,8 @@ QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
     return v;
 }
 
+QStringList toStringList(const QScriptValue &scriptValue);
+
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
 
