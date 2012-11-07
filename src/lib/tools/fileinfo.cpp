@@ -339,9 +339,11 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
                 return false;
         }
     } else {
-        if (!QFile::copy(srcFilePath, tgtFilePath)) {
-            *errorMessage = FileInfo::tr("Could not copy file '%1' to '%2'.")
-                .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath));
+        QFile file(srcFilePath);
+        if (!file.copy(tgtFilePath)) {
+            *errorMessage = FileInfo::tr("Could not copy file '%1' to '%2'. %3")
+                .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath),
+                     file.errorString());
             return false;
         }
     }
