@@ -381,15 +381,19 @@ void Executor::execute(Artifact *artifact)
         return;
     }
 
-    // skip artifacts without transformer
-    if (!artifact->transformer) {
+    // skip non-generated artifacts
+    if (artifact->artifactType != Artifact::Generated) {
         if (!fileExists)
             qbsWarning() << tr("No transformer builds '%1'").arg(QDir::toNativeSeparators(artifact->filePath()));
         if (qbsLogLevel(LoggerDebug))
-            qbsDebug("[EXEC] No transformer. Skipping.");
+            qbsDebug("[EXEC] artifact type %s. Skipping.",
+                     qPrintable(toString(artifact->artifactType)));
         finishArtifact(artifact);
         return;
     }
+
+    // Every generated artifact must have a transformer.
+    Q_ASSERT(artifact->transformer);
 
     // skip artifacts that are up-to-date
     if (!isDirty) {
