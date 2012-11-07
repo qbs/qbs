@@ -85,7 +85,6 @@ signals:
 protected slots:
     void onProcessError(QString errorString);
     void onProcessSuccess();
-    void resetArtifactsToUntouched();
 
 protected:
     void prepareBuildGraph(Artifact::BuildState buildState);
@@ -102,6 +101,7 @@ protected:
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
+    void resetArtifactsToUntouched();
     void setState(ExecutorState);
     void setError(const QString &errorMessage);
     void addExecutorJobs(int jobNumber);

@@ -105,7 +105,6 @@ Executor::Executor()
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
     m_autoMoc->setScanResultCache(&m_scanResultCache);
-    connect(this, SIGNAL(finished()), SLOT(resetArtifactsToUntouched()));
 }
 
 Executor::~Executor()
@@ -655,6 +654,7 @@ void Executor::finish()
                   << "Build failed.";
     }
 
+    resetArtifactsToUntouched();
     setState(ExecutorIdle);
     emit finished();
 }
