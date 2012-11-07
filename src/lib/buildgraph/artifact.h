@@ -106,6 +106,22 @@ private:
 };
 
 // debugging helper
+inline QString toString(Artifact::ArtifactType t)
+{
+    switch (t) {
+    case Artifact::SourceFile:
+        return QLatin1String("SourceFile");
+    case Artifact::Generated:
+        return QLatin1String("Generated");
+    case Artifact::FileDependency:
+        return QLatin1String("FileDependency");
+    case Artifact::Unknown:
+    default:
+        return QLatin1String("Unknown");
+    }
+}
+
+// debugging helper
 inline QString toString(Artifact::BuildState s)
 {
     switch (s) {
