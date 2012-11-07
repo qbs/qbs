@@ -47,6 +47,7 @@
 #endif
 
 namespace qbs {
+using namespace Internal;
 
 Platform::Platform(const QString &_name, const QString& configpath)
     : name(_name)

@@ -57,7 +57,6 @@ private:
 
 template <int n> uint qHash(IdTemplate<n> id) { return QT_PREPEND_NAMESPACE(qHash)(id.m_id); }
 
-
 class Group
 {
     friend class QbsEngine;

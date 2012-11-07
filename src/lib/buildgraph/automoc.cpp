@@ -36,6 +36,7 @@
 #include <tools/scannerpluginmanager.h>
 
 namespace qbs {
+namespace Internal {
 
 AutoMoc::AutoMoc()
     : m_scanResultCache(0)
@@ -313,4 +314,5 @@ QList<ScannerPlugin *> AutoMoc::scanners() const
     return m_scanners;
 }
 
+} // namespace Internal
 } // namespace qbs

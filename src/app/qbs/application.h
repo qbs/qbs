@@ -30,10 +30,10 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <buildgraph/executor.h>
 #include <QCoreApplication>
 
 namespace qbs {
+namespace Internal { class Executor; }
 
 class Application : public QCoreApplication
 {
@@ -44,14 +44,14 @@ public:
     static Application *instance();
 
     void init();
-    void setExecutor(Executor *e);
-    Executor *executor() { return m_executor; }
+    void setExecutor(Internal::Executor *e);
+    Internal::Executor *executor() { return m_executor; }
 
 public slots:
     void userInterrupt();
 
 private:
-    Executor *m_executor;
+    Internal::Executor *m_executor;
 };
 
 } // namespace qbs

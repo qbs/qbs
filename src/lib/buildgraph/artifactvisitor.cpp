@@ -31,6 +31,7 @@
 #include "artifact.h"
 
 namespace qbs {
+namespace Internal {
 
 ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType)
 {
@@ -73,4 +74,5 @@ void ArtifactVisitor::visit(const QList<BuildProject::Ptr> &projects)
         visit(project);
 }
 
+} // namespace Internal
 } // namespace qbs

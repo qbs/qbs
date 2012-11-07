@@ -35,6 +35,7 @@
 struct ScannerPlugin;
 
 namespace qbs {
+namespace Internal {
 
 class ScanResultCache;
 
@@ -74,6 +75,7 @@ private:
     ScanResultCache *m_scanResultCache;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // AUTOMOC_H

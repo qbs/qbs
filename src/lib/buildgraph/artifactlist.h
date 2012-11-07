@@ -34,6 +34,7 @@
 #include <cstddef>
 
 namespace qbs {
+namespace Internal {
 
 class Artifact;
 
@@ -99,6 +100,7 @@ private:
     mutable std::set<Artifact *> m_data;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // ARTIFACTLIST_H

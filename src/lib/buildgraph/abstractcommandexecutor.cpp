@@ -34,6 +34,7 @@
 #include <logging/logger.h>
 
 namespace qbs {
+namespace Internal {
 
 AbstractCommandExecutor::AbstractCommandExecutor(QObject *parent)
     : QObject(parent)
@@ -71,4 +72,5 @@ void AbstractCommandExecutor::printCommandInfo()
     }
 }
 
+} // namespace Internal
 } // namespace qbs

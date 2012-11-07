@@ -40,6 +40,7 @@
 #endif
 
 namespace qbs {
+namespace Internal {
 
 void printfColored(TextColor color, const char *str, va_list vl)
 {
@@ -92,4 +93,5 @@ void fprintfColored(TextColor color, FILE *file, const char *str, ...)
     va_end(vl);
 }
 
+} // namespace Internal
 } // namespace qbs

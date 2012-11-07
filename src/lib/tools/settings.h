@@ -83,6 +83,6 @@ private:
     QSettings *m_localSettings;
 };
 
-}
+} // namespace qbs
 
 #endif // SETTINGS_H

@@ -5,6 +5,7 @@
 #include <QStringList>
 
 namespace qbs {
+namespace Internal {
 
 /**
   * Represents JavaScript import of the form
@@ -23,6 +24,7 @@ public:
 
 typedef QList<JsImport> JsImports;
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // JSIMPORTS_H

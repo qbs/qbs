@@ -46,7 +46,9 @@
 #include <QVector>
 
 namespace qbs {
+class ProgressObserver;
 
+namespace Internal {
 class Artifact;
 class Transformer;
 class BuildProject;
@@ -143,8 +145,6 @@ private:
     QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
     bool m_dirty;
 };
-
-class ProgressObserver;
 
 /**
  * N artifact, T transformer, parent -> child
@@ -276,6 +276,7 @@ static QStringList toStringList(const T &artifactContainer)
 char **createCFileTags(const QSet<QString> &fileTags);
 void freeCFileTags(char **cFileTags, int numFileTags);
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // BUILDGRAPH_H

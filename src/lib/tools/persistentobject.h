@@ -30,6 +30,7 @@
 #define PERSISTENTOBJECT_H
 
 namespace qbs {
+namespace Internal {
 
 class PersistentPool;
 
@@ -41,6 +42,7 @@ public:
     virtual void store(PersistentPool &) const = 0;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // PERSISTENTOBJECT_H

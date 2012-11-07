@@ -37,6 +37,7 @@
 #include <QScriptValue>
 
 namespace qbs {
+namespace Internal {
 
 class AbstractCommand
 {
@@ -147,6 +148,7 @@ private:
     CodeLocation m_codeLocation;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // COMMAND_H

@@ -44,7 +44,6 @@ QT_END_NAMESPACE
 namespace qbs {
 class BuildOptions;
 class RunEnvironment;
-class QbsEnginePrivate;
 class ProgressObserver;
 
 class QbsEngine
@@ -80,6 +79,7 @@ public:
     QString targetExecutable(const Product &product);
 
 private:
+    class QbsEnginePrivate;
     QbsEnginePrivate * const d;
 };
 

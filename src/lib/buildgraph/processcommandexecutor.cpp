@@ -45,6 +45,7 @@
 #include <QTemporaryFile>
 
 namespace qbs {
+namespace Internal {
 
 static QStringList populateExecutableSuffixes()
 {
@@ -316,4 +317,5 @@ const ProcessCommand *ProcessCommandExecutor::processCommand() const
     return static_cast<const ProcessCommand *>(command());
 }
 
+} // namespace Internal
 } // namespace qbs

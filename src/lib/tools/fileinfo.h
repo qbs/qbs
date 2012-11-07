@@ -42,6 +42,7 @@
 QT_FORWARD_DECLARE_CLASS(QFileInfo)
 
 namespace qbs {
+namespace Internal {
 
 class FileInfo
 {
@@ -85,6 +86,7 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
 bool removeDirectoryWithContents(const QString &path, QString *errorMessage);
 bool copyFileRecursion(const QString &sourcePath, const QString &targetPath, QString *errorMessage);
 
-}
+} // namespace Internal
+} // namespace qbs
 
 #endif

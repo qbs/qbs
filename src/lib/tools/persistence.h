@@ -39,6 +39,7 @@
 #include <QVector>
 
 namespace qbs {
+namespace Internal {
 
 class PersistentPool
 {
@@ -187,6 +188,7 @@ template <class T> inline typename T::Ptr PersistentPool::load(PersistentObjectI
     return obj.staticCast<T>();
 }
 
+} // namespace Internal
 } // namespace qbs
 
 #endif

@@ -41,6 +41,7 @@
 #include <QVariantMap>
 
 namespace qbs {
+namespace Internal {
 
 InputArtifactScannerContext::InputArtifactScannerContext(ScanResultCache *scanResultCache)
     : scanResultCache(scanResultCache)
@@ -325,4 +326,5 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     }
 }
 
+} // namespace Internal
 } // namespace qbs

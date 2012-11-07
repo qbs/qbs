@@ -40,6 +40,8 @@ class QLibrary;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
+
 class ScannerPluginManager
 {
 public:
@@ -55,6 +57,7 @@ private:
     QMap<QString, QList<ScannerPlugin*> > m_scannerPlugins;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif

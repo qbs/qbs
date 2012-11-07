@@ -45,6 +45,7 @@
 #include <algorithm>
 
 namespace qbs {
+namespace Internal {
 
 static QHashDummyValue hashDummy;
 
@@ -772,4 +773,5 @@ void Executor::setError(const QString &errorMessage)
     emit error();
 }
 
+} // namespace Internal
 } // namespace qbs

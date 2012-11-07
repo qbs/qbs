@@ -36,6 +36,7 @@
 #include <QString>
 
 namespace qbs {
+namespace Internal {
 class ProcessCommand;
 
 class ProcessCommandExecutor : public AbstractCommandExecutor
@@ -73,6 +74,7 @@ private:
     QString m_responseFileName;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // PROCESSCOMMANDEXECUTOR_H

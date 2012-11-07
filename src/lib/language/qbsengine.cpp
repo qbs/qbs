@@ -50,8 +50,9 @@
 #include <QPair>
 
 namespace qbs {
+using namespace Internal;
 
-class QbsEnginePrivate : public QSharedData
+class QbsEngine::QbsEnginePrivate
 {
     Q_DECLARE_TR_FUNCTIONS(QbsEnginePrivate)
 public:
@@ -88,8 +89,8 @@ private:
     static QMutex pluginsLoadedMutex;
 };
 
-bool QbsEnginePrivate::pluginsLoaded = false;
-QMutex QbsEnginePrivate::pluginsLoadedMutex;
+bool QbsEngine::QbsEnginePrivate::pluginsLoaded = false;
+QMutex QbsEngine::QbsEnginePrivate::pluginsLoadedMutex;
 
 QbsEngine::QbsEngine() : d(new QbsEnginePrivate)
 {
@@ -272,7 +273,7 @@ QString QbsEngine::targetExecutable(const Product &product)
     return QString();
 }
 
-void QbsEnginePrivate::loadPlugins()
+void QbsEngine::QbsEnginePrivate::loadPlugins()
 {
     QMutexLocker locker(&pluginsLoadedMutex);
     if (pluginsLoaded)
@@ -294,7 +295,7 @@ void QbsEnginePrivate::loadPlugins()
     pluginsLoaded = true;
 }
 
-BuildProject::Ptr QbsEnginePrivate::setupBuildProject(const ResolvedProject::ConstPtr &project)
+BuildProject::Ptr QbsEngine::QbsEnginePrivate::setupBuildProject(const ResolvedProject::ConstPtr &project)
 {
     foreach (const BuildProject::Ptr &buildProject, buildProjects) {
         if (buildProject->resolvedProject() == project)
@@ -324,7 +325,7 @@ BuildProject::Ptr QbsEnginePrivate::setupBuildProject(const ResolvedProject::Con
     return buildProject;
 }
 
-QVariantMap QbsEnginePrivate::expandedBuildConfiguration(const QVariantMap &userBuildConfig)
+QVariantMap QbsEngine::QbsEnginePrivate::expandedBuildConfiguration(const QVariantMap &userBuildConfig)
 {
     foreach (const QbsEnginePrivate::BuildConfigPair &configPair, m_buildConfigurations) {
         if (configPair.first == userBuildConfig)
@@ -336,7 +337,7 @@ QVariantMap QbsEnginePrivate::expandedBuildConfiguration(const QVariantMap &user
     return configPair.second;
 }
 
-void QbsEnginePrivate::buildProducts(const QList<BuildProduct::Ptr> &buildProducts,
+void QbsEngine::QbsEnginePrivate::buildProducts(const QList<BuildProduct::Ptr> &buildProducts,
         const BuildOptions &buildOptions)
 {
     Executor executor;
@@ -358,7 +359,7 @@ void QbsEnginePrivate::buildProducts(const QList<BuildProduct::Ptr> &buildProduc
         throw Error(tr("Build failed."));
 }
 
-void QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
+void QbsEngine::QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
         const BuildOptions &buildOptions, bool needsDepencencyResolving)
 {
     // Make sure all products are set up first.
@@ -410,7 +411,7 @@ void QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &pro
     buildProducts(productsToBuild, buildOptions);
 }
 
-QVariantMap QbsEnginePrivate::createBuildConfiguration(const QVariantMap &userBuildConfig)
+QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariantMap &userBuildConfig)
 {
     QHash<QString, Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty())

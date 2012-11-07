@@ -37,6 +37,7 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 class AbstractCommand;
 class Transformer;
 
@@ -74,6 +75,7 @@ private:
     bool m_dryRun; // TODO: Use
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // ABSTRACTCOMMANDEXECUTOR_H

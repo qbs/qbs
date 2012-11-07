@@ -35,6 +35,7 @@
 #include <QSet>
 
 namespace qbs {
+namespace Internal {
 class Artifact;
 
 class ArtifactVisitor
@@ -55,6 +56,7 @@ private:
     QSet<const Artifact *> m_allArtifacts;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // ARTIFACTVISITOR_H

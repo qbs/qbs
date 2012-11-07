@@ -39,6 +39,7 @@
 #include <algorithm>
 
 namespace qbs {
+using namespace Internal;
 
 Settings::Settings()
     : m_globalSettings(0),

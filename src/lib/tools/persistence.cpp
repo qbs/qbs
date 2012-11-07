@@ -37,6 +37,7 @@
 #include <QScopedPointer>
 
 namespace qbs {
+namespace Internal {
 
 static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE0_0_1__20";
 
@@ -204,4 +205,5 @@ QStringList PersistentPool::idLoadStringList()
     return result;
 }
 
+} // namespace Internal
 } // namespace qbs

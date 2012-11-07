@@ -33,6 +33,7 @@
 #include "abstractcommandexecutor.h"
 
 namespace qbs {
+namespace Internal {
 class JavaScriptCommand;
 class JavaScriptCommandFutureWatcher;
 
@@ -54,6 +55,7 @@ private:
     JavaScriptCommandFutureWatcher *m_jsFutureWatcher;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // JSCOMMANDEXECUTOR_H

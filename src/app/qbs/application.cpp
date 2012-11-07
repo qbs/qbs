@@ -30,7 +30,10 @@
 #include "application.h"
 #include "ctrlchandler.h"
 
+#include <buildgraph/executor.h>
+
 namespace qbs {
+using namespace Internal;
 
 Application::Application(int &argc, char **argv)
     : QCoreApplication(argc, argv)

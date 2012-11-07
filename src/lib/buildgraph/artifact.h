@@ -37,6 +37,7 @@
 #include <QString>
 
 namespace qbs {
+namespace Internal {
 
 class BuildProduct;
 class BuildProject;
@@ -138,6 +139,7 @@ inline QString toString(Artifact::BuildState s)
     }
 }
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // ARTIFACT_H

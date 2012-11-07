@@ -34,6 +34,7 @@
 #include <QSet>
 
 namespace qbs {
+namespace Internal {
 
 AbstractCommand::AbstractCommand()
     : m_description(defaultDescription()),
@@ -230,4 +231,5 @@ void JavaScriptCommand::store(QDataStream &s)
         << m_codeLocation;
 }
 
+} // namespace Internal
 } // namespace qbs

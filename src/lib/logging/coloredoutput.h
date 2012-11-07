@@ -34,6 +34,7 @@
 #include <cstdarg>
 
 namespace qbs {
+namespace Internal {
 
 // http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 enum TextColor {
@@ -61,6 +62,7 @@ void printfColored(TextColor color, const char *str, ...);
 void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl);
 void fprintfColored(TextColor color, FILE *file, const char *str, ...);
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // COLOREDOUTPUT_H

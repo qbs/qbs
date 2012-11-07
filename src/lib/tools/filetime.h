@@ -38,6 +38,7 @@
 #endif
 
 namespace qbs {
+namespace Internal {
 
 class FileTime
 {
@@ -91,11 +92,12 @@ inline bool FileTime::operator == (const FileTime &rhs) const
     return m_fileTime == rhs.m_fileTime;
 }
 
+} // namespace Internal
 } // namespace qbs
 
 QT_BEGIN_NAMESPACE
 
-inline QDataStream& operator>>(QDataStream &stream, qbs::FileTime &ft)
+inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::FileTime &ft)
 {
     quint64 u;
     stream >> u;
@@ -103,13 +105,13 @@ inline QDataStream& operator>>(QDataStream &stream, qbs::FileTime &ft)
     return stream;
 }
 
-inline QDataStream& operator<<(QDataStream &stream, const qbs::FileTime &ft)
+inline QDataStream& operator<<(QDataStream &stream, const qbs::Internal::FileTime &ft)
 {
     stream << (quint64)ft.m_fileTime;
     return stream;
 }
 
-inline QDebug operator<<(QDebug dbg, const qbs::FileTime &t)
+inline QDebug operator<<(QDebug dbg, const qbs::Internal::FileTime &t)
 {
     dbg.nospace() << t.toString();
     return dbg.space();

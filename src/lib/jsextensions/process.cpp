@@ -37,6 +37,7 @@
 #include <QTextStream>
 
 namespace qbs {
+namespace Internal {
 
 void Process::init(QScriptValue extensionObject)
 {
@@ -209,4 +210,5 @@ QProcessEnvironment &Process::ensureEnvironment()
     return *qenvironment;
 }
 
+} // namespace Internal
 } // namespace qbs

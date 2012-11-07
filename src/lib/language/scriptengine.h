@@ -38,6 +38,7 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 class ScriptEngine : public QScriptEngine
 {
@@ -57,6 +58,7 @@ private:
     QHash<QString, QScriptValue> m_jsImportCache;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // SCRIPTENGINE_H

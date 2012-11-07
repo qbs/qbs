@@ -37,6 +37,7 @@
 #include <QScriptValueIterator>
 
 namespace qbs {
+namespace Internal {
 
 const bool debugJSImports = false;
 
@@ -152,4 +153,5 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
     }
 }
 
+} // namespace Internal
 } // namespace qbs

@@ -38,6 +38,7 @@
 #include <QThread>
 
 namespace qbs {
+namespace Internal {
 
 ExecutorJob::ExecutorJob(QObject *parent)
     : QObject(parent)
@@ -140,4 +141,5 @@ void ExecutorJob::setInactive()
     m_currentCommandIdx = -1;
 }
 
+} // namespace Internal
 } // namespace qbs

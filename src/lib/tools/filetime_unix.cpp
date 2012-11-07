@@ -35,6 +35,7 @@
 #include <time.h>
 
 namespace qbs {
+namespace Internal {
 
 FileTime::FileTime()
     : m_fileTime(0)
@@ -67,4 +68,6 @@ QString FileTime::toString() const
     dt.setTime_t(m_fileTime);
     return dt.toString();
 }
-}
+
+} // namespace Internal
+} // namespace qbs

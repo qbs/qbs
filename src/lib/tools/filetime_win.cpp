@@ -35,11 +35,12 @@
 #include <strsafe.h>
 #endif // Q_CC_MSVC
 
+namespace qbs {
+namespace Internal {
+
 template<bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
-static CompileTimeAssert<sizeof(qbs::FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
-
-namespace qbs {
+static CompileTimeAssert<sizeof(FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
 
 FileTime::FileTime()
     : m_fileTime(0)
@@ -94,4 +95,6 @@ QString FileTime::toString() const
     return result;
 #endif // Q_CC_MSVC
 }
-}
+
+} // namespace Internal
+} // namespace qbs

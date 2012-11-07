@@ -36,6 +36,8 @@
 #include <QByteArray>
 
 namespace qbs {
+using namespace Internal;
+
 class Logger;
 
 enum LoggerLevel

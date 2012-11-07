@@ -32,6 +32,7 @@
 #include "command.h"
 
 namespace qbs {
+namespace Internal {
 
 Transformer::Transformer()
 {
@@ -106,4 +107,5 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     }
 }
 
+} // namespace Internal
 } // namespace qbs

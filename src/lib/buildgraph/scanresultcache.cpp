@@ -33,6 +33,7 @@
 #include <QMutexLocker>
 
 namespace qbs {
+namespace Internal {
 
 ScanResultCache::Dependency::Dependency(const QString &filePath, bool isLocal)
     : m_isLocal(isLocal)
@@ -55,4 +56,5 @@ void ScanResultCache::insert(const QString &fileName, const ScanResultCache::Res
     m_data.insert(fileName, value);
 }
 
+} // namespace Internal
 } // namespace qbs

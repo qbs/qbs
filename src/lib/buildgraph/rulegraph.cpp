@@ -31,6 +31,7 @@
 #include <tools/error.h>
 
 namespace qbs {
+namespace Internal {
 
 RuleGraph::RuleGraph()
 {
@@ -189,4 +190,5 @@ QList<Rule::ConstPtr> RuleGraph::topSort(const Rule::ConstPtr &rule)
     return result;
 }
 
+} // namespace Internal
 } // namespace qbs

@@ -44,8 +44,8 @@ QDataStream &operator>> (QDataStream &s, QScriptProgram &script);
 
 QT_END_NAMESPACE
 
-
 namespace qbs {
+namespace Internal {
 
 template <typename C>
 QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
@@ -83,6 +83,7 @@ private:
     QScriptEngine *m_scriptEngine;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // SCRIPTTOOLS_H

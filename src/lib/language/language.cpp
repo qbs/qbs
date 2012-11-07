@@ -42,7 +42,7 @@
 #include <algorithm>
 
 QT_BEGIN_NAMESPACE
-inline QDataStream& operator>>(QDataStream &stream, qbs::JsImport &jsImport)
+inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::JsImport &jsImport)
 {
     stream >> jsImport.scopeName
            >> jsImport.fileNames
@@ -50,7 +50,7 @@ inline QDataStream& operator>>(QDataStream &stream, qbs::JsImport &jsImport)
     return stream;
 }
 
-inline QDataStream& operator<<(QDataStream &stream, const qbs::JsImport &jsImport)
+inline QDataStream& operator<<(QDataStream &stream, const qbs::Internal::JsImport &jsImport)
 {
     return stream << jsImport.scopeName
                   << jsImport.fileNames
@@ -59,6 +59,7 @@ inline QDataStream& operator<<(QDataStream &stream, const qbs::JsImport &jsImpor
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 /*!
  * \class PropertyMap
@@ -689,4 +690,5 @@ void SourceWildCards::expandPatterns(QSet<QString> &files, const QString &baseDi
     }
 }
 
+} // namespace Internal
 } // namespace qbs

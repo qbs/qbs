@@ -36,11 +36,8 @@
 #include <QSharedPointer>
 #include <QScriptEngine>
 
-QT_BEGIN_NAMESPACE
-
-QT_END_NAMESPACE
-
 namespace qbs {
+namespace Internal {
 
 class Artifact;
 class AbstractCommand;
@@ -77,6 +74,7 @@ private:
     void store(PersistentPool &pool) const;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // TRANSFORMER_H

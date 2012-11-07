@@ -38,8 +38,11 @@ QT_END_NAMESPACE
 
 namespace qbs {
 class Product;
+
+namespace Internal {
 class PublicObjectsMap;
 class ScriptEngine;
+} // namespace Internal
 
 class RunEnvironment
 {
@@ -53,8 +56,8 @@ public:
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
-    RunEnvironment(ScriptEngine *engine, const Product &product,
-                   const PublicObjectsMap &publicObjectsMap,
+    RunEnvironment(Internal::ScriptEngine *engine, const Product &product,
+                   const Internal::PublicObjectsMap &publicObjectsMap,
                    const QProcessEnvironment &environment);
 
     class RunEnvironmentPrivate;

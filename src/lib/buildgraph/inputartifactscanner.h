@@ -39,6 +39,7 @@
 struct ScannerPlugin;
 
 namespace qbs {
+namespace Internal {
 
 class Artifact;
 class PropertyMap;
@@ -112,6 +113,7 @@ private:
     bool m_newDependencyAdded;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // INPUTARTIFACTSCANNER_H

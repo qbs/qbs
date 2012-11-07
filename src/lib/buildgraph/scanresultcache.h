@@ -37,6 +37,7 @@
 #include <QVector>
 
 namespace qbs {
+namespace Internal {
 
 class ScanResultCache
 {
@@ -78,6 +79,7 @@ private:
     QHash<QString, Result> m_data;
 };
 
+} // namespace qbs
 } // namespace qbs
 
 #endif // SCANRESULTCACHE_H

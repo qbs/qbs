@@ -35,6 +35,7 @@
 #include <QScriptEngine>
 
 namespace qbs {
+namespace Internal {
 
 void File::init(QScriptValue extensionObject)
 {
@@ -95,4 +96,5 @@ QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
     return true;
 }
 
+} // namespace Internal
 } // namespace qbs

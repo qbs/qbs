@@ -41,6 +41,7 @@ class QTextStream;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 class Process : public QObject, public QScriptable
 {
@@ -73,8 +74,9 @@ private:
     QTextStream *qstream;
 };
 
+} // namespace Internal
 } // namespace qbs
 
-Q_DECLARE_METATYPE(qbs::Process *)
+Q_DECLARE_METATYPE(qbs::Internal::Process *)
 
 #endif // PROCESS_H

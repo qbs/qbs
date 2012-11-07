@@ -36,6 +36,7 @@
 #include <QHash>
 
 namespace qbs {
+namespace Internal {
 
 class PublicObjectsMap
 {
@@ -58,6 +59,7 @@ private:
     QHash<Project::Id, ResolvedProject::Ptr> m_projects;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // PUBLICOBJECTSMAP_H

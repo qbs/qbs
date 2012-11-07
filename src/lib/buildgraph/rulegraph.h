@@ -36,6 +36,7 @@
 #include <QVector>
 
 namespace qbs {
+namespace Internal {
 
 class RuleGraph
 {
@@ -64,6 +65,7 @@ private:
     QSet<int> m_rootRules;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // RULEGRAPH_H

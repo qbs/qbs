@@ -46,6 +46,9 @@ class QScriptContext;
 QT_END_NAMESPACE
 
 namespace qbs {
+class ProgressObserver;
+
+namespace Internal {
 
 class Function
 {
@@ -358,7 +361,6 @@ public:
     QList<LanguageObject *> objects;
 };
 
-class ProgressObserver;
 class ScriptEngine;
 
 class Loader
@@ -470,6 +472,7 @@ private:
     QHash<Scope::ConstPtr, QVariantMap> m_convertedScopesCache;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif

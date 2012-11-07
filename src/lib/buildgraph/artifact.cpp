@@ -35,15 +35,15 @@
 
 QT_BEGIN_NAMESPACE
 
-static QDataStream &operator >>(QDataStream &s, qbs::Artifact::ArtifactType &t)
+static QDataStream &operator >>(QDataStream &s, qbs::Internal::Artifact::ArtifactType &t)
 {
     int i;
     s >> i;
-    t = static_cast<qbs::Artifact::ArtifactType>(i);
+    t = static_cast<qbs::Internal::Artifact::ArtifactType>(i);
     return s;
 }
 
-static QDataStream &operator <<(QDataStream &s, const qbs::Artifact::ArtifactType &t)
+static QDataStream &operator <<(QDataStream &s, const qbs::Internal::Artifact::ArtifactType &t)
 {
     return s << (int)t;
 }
@@ -51,6 +51,7 @@ static QDataStream &operator <<(QDataStream &s, const qbs::Artifact::ArtifactTyp
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 Artifact::Artifact(BuildProject *p)
     : project(p)
@@ -95,4 +96,5 @@ void Artifact::store(PersistentPool &pool) const
     pool.stream() << artifactType << static_cast<quint8>(inputsScanned);
 }
 
+} // namespace Internal
 } // namespace qbs

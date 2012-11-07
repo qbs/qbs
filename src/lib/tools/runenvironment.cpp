@@ -47,6 +47,7 @@
 #include <stdlib.h>
 
 namespace qbs {
+using namespace Internal;
 
 class RunEnvironment::RunEnvironmentPrivate
 {

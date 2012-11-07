@@ -34,5 +34,6 @@
 #include "logging/logger.h"
 #include "tools/error.h"
 #include "tools/progressobserver.h"
+#include "tools/settings.h"
 
 #endif // QBS_H

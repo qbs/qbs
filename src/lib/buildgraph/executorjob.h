@@ -37,6 +37,7 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 class AbstractCommandExecutor;
 class BuildProduct;
 class JsCommandExecutor;
@@ -75,6 +76,7 @@ private:
     int m_currentCommandIdx;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // EXECUTORJOB_H

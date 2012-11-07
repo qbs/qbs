@@ -37,6 +37,8 @@
 #include <QLibrary>
 
 namespace qbs {
+namespace Internal {
+
 ScannerPluginManager *ScannerPluginManager::instance()
 {
     static ScannerPluginManager *i = new ScannerPluginManager;
@@ -99,4 +101,5 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths)
     }
 }
 
+} // namespace Internal
 } // namespace qbs

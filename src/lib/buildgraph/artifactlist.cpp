@@ -31,6 +31,7 @@
 #include <algorithm>
 
 namespace qbs {
+namespace Internal {
 
 ArtifactList::ArtifactList()
 {}
@@ -46,4 +47,5 @@ void ArtifactList::remove(Artifact *artifact)
         m_data.erase(it);
 }
 
+} // namespace Internal
 } // namespace qbs

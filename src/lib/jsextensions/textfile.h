@@ -40,6 +40,7 @@ class QTextStream;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 class TextFile : public QObject, public QScriptable
 {
@@ -65,8 +66,9 @@ private:
     QTextStream *qstream;
 };
 
+} // namespace Internal
 } // namespace qbs
 
-Q_DECLARE_METATYPE(qbs::TextFile *)
+Q_DECLARE_METATYPE(qbs::Internal::TextFile *)
 
 #endif // TEXTFILE_H

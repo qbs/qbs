@@ -37,6 +37,7 @@
 #include <QTextStream>
 
 namespace qbs {
+namespace Internal {
 
 void TextFile::init(QScriptValue extensionObject)
 {
@@ -181,4 +182,5 @@ void TextFile::writeLine(const QString &str)
     (*t->qstream) << '\n';
 }
 
+} // namespace Internal
 } // namespace qbs

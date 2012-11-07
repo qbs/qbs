@@ -50,6 +50,7 @@
 #include <QThread>
 
 namespace qbs {
+namespace Internal {
 
 struct JavaScriptCommandFutureResult
 {
@@ -176,4 +177,5 @@ const JavaScriptCommand *JsCommandExecutor::jsCommand() const
     return static_cast<const JavaScriptCommand *>(command());
 }
 
+} // namespace Internal
 } // namespace qbs

@@ -41,11 +41,13 @@
 #include <QVariant>
 
 namespace qbs {
+class ProgressObserver;
+
+namespace Internal {
 
 class AutoMoc;
 class ExecutorJob;
 class InputArtifactScannerContext;
-class ProgressObserver;
 class ScanResultCache;
 
 class Executor : public QObject
@@ -131,6 +133,7 @@ private:
     friend class ExecutorJob;
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // BUILDGRAPHEXECUTOR_H

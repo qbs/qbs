@@ -34,6 +34,7 @@
 #include <QScriptValue>
 
 namespace qbs {
+namespace Internal {
 
 class File
 {
@@ -48,6 +49,7 @@ private:
     static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // FILE_H

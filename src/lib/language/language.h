@@ -52,6 +52,7 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 class PropertyMap: public PersistentObject
 {
@@ -372,13 +373,14 @@ private:
     QString m_id;
 };
 
+} // namespace Internal
 } // namespace qbs
 
-Q_DECLARE_METATYPE(qbs::ResolvedProject::Ptr)
+Q_DECLARE_METATYPE(qbs::Internal::ResolvedProject::Ptr)
 
 QT_BEGIN_NAMESPACE
-Q_DECLARE_TYPEINFO(qbs::JsImport, Q_MOVABLE_TYPE);
-Q_DECLARE_TYPEINFO(qbs::RuleArtifact::Binding, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(qbs::Internal::JsImport, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(qbs::Internal::RuleArtifact::Binding, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
 #endif

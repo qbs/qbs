@@ -53,6 +53,7 @@
 #include <QThread>
 
 namespace qbs {
+namespace Internal {
 
 BuildProduct::BuildProduct()
     : project(0)
@@ -1493,4 +1494,5 @@ QScriptValue RulesApplicator::scope() const
     return engine()->currentContext()->scopeChain().first();
 }
 
+} // namespace Internal
 } // namespace qbs

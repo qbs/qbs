@@ -55,6 +55,7 @@ QDataStream &operator>> (QDataStream &s, QScriptProgram &script)
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 QStringList toStringList(const QScriptValue &scriptValue)
 {
@@ -97,4 +98,5 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
     }
 }
 
+} // namespace Internal
 } // namespace qbs

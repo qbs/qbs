@@ -42,6 +42,7 @@
 #endif
 
 namespace qbs {
+namespace Internal {
 
 QString FileInfo::fileName(const QString &fp)
 {
@@ -353,4 +354,5 @@ QString qbsRootPath()
     return QDir::cleanPath(applicationDirPath() + QLatin1String("/../"));
 }
 
-}
+} // namespace Internal
+} // namespace qbs
