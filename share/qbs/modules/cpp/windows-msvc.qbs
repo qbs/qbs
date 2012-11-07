@@ -81,7 +81,7 @@ CppModule {
             var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var defines = ModUtils.appendAll(input, 'defines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var systemIncludePaths: ModUtils.appendAll(input, 'systemIncludePaths');
+            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
             var cFlags = ModUtils.appendAll(input, 'cFlags');
             var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
@@ -102,7 +102,7 @@ CppModule {
             var platformDefines = ModUtils.appendAll(input, 'platformDefines');
             var defines = ModUtils.appendAll(input, 'defines');
             var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var systemIncludePaths: ModUtils.appendAll(input, 'systemIncludePaths');
+            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
             var cFlags = ModUtils.appendAll(input, 'cFlags');
             var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
