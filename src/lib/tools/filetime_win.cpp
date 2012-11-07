@@ -82,9 +82,10 @@ QString FileTime::toString() const
 #ifdef Q_CC_MSVC
     WCHAR szString[512];
     HRESULT hr = StringCchPrintf(szString, sizeof(szString) / sizeof(WCHAR),
-                                 L"%02d.%02d.%d %02d:%02d:%02d",
+                                 L"%02d.%02d.%d %02d:%02d:%02d:%02d",
                                  stLocal.wDay, stLocal.wMonth, stLocal.wYear,
-                                 stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+                                 stLocal.wHour, stLocal.wMinute, stLocal.wSecond,
+                                 stLocal.wMilliseconds);
     return SUCCEEDED(hr) ? QString::fromWCharArray(szString) : QString();
 #else // Q_CC_MSVC
     const QString result = QString("%1.%2.%3 %4:%5:%6")
