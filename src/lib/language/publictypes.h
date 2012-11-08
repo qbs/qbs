@@ -37,11 +37,14 @@
 
 namespace qbs {
 
+template<int dummy> class IdTemplate;
+template<int n> uint qHash(IdTemplate<n> id);
+
 // Instantiate this template with a unique parameter to get a new type-safe id class.
 template<int dummy> class IdTemplate
 {
     friend class QbsEngine;
-    template<int n> friend uint qHash(IdTemplate<n> id);
+    friend uint qHash<>(IdTemplate<dummy> id);
 public:
     IdTemplate() : m_id(0) {}
 
@@ -55,7 +58,8 @@ private:
     quintptr m_id;
 };
 
-template <int n> uint qHash(IdTemplate<n> id) { return QT_PREPEND_NAMESPACE(qHash)(id.m_id); }
+template<int n> uint qHash(IdTemplate<n> id) { return QT_PREPEND_NAMESPACE(qHash)(id.m_id); }
+
 
 class Group
 {
