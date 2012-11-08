@@ -14,7 +14,8 @@ SOURCES += \
     $$PWD/transformer.cpp \
     $$PWD/artifact.cpp \
     $$PWD/inputartifactscanner.cpp \
-    $$PWD/artifactvisitor.cpp
+    $$PWD/artifactvisitor.cpp \
+    $$PWD/artifactcleaner.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -31,4 +32,5 @@ HEADERS += \
     $$PWD/transformer.h \
     $$PWD/artifact.h \
     $$PWD/inputartifactscanner.h \
-    $$PWD/artifactvisitor.h
+    $$PWD/artifactvisitor.h \
+    $$PWD/artifactcleaner.h

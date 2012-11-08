@@ -98,17 +98,11 @@ static bool tryToRunTool(const QStringList &arguments, int &exitCode)
     return exitCode != -2;
 }
 
-static int makeClean()
+static void makeClean(QbsEngine &qbsEngine, const QList<Project::Id> &projectIds,
+                     const QStringList &productsSetByUser, const BuildOptions &buildOptions)
 {
-    // ### TODO: take selected products into account!
-    QString errorMessage;
-    const QString buildPath = FileInfo::resolvePath(QDir::currentPath(),
-            QLatin1String("build"));
-    if (!removeDirectoryWithContents(buildPath, &errorMessage)) {
-        qbsError() << errorMessage;
-        return ExitCodeErrorExecutionFailed;
-    }
-    return 0;
+    const QList<Product> products = productsToUse(qbsEngine, projectIds, productsSetByUser);
+    qbsEngine.cleanProducts(products, buildOptions, QbsEngine::CleanupTemporaries);
 }
 
 // TODO: Don't take a random product.
@@ -286,7 +280,8 @@ int main(int argc, char *argv[])
     try {
         switch (parser.command()) {
         case CommandLineParser::CleanCommand:
-            return makeClean();
+            makeClean(qbsEngine, projectIds, parser.products(), parser.buildOptions());
+            break;
         case CommandLineParser::StartShellCommand:
             return runShell(qbsEngine, qbsEngine.retrieveProject(projectIds.first()));
         case CommandLineParser::StatusCommand: {
@@ -306,7 +301,6 @@ int main(int argc, char *argv[])
                 return buildExitCode;
             const QList<Product> products = productsToUse(qbsEngine, projectIds, parser.products());
             return runTarget(qbsEngine, products, parser.runTargetName(), parser.runArgs());
-            return 0;
         }
         }
     } catch (const Error &error) {

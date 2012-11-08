@@ -32,6 +32,7 @@
 #include "publicobjectsmap.h"
 
 #include <buildgraph/artifact.h>
+#include <buildgraph/artifactcleaner.h>
 #include <buildgraph/executor.h>
 #include <language/scriptengine.h>
 #include <language/loader.h>
@@ -181,12 +182,17 @@ void QbsEngine::buildProjects(const QList<Project::Id> &projectIds, const BuildO
     d->buildProducts(products, buildOptions, false);
 }
 
-void QbsEngine::buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions)
+static QList<Project::Id> projectListToIdList(const QList<Project> &projects)
 {
     QList<Project::Id> projectIds;
     foreach (const Project &project, projects)
         projectIds << project.id();
-    buildProjects(projectIds, buildOptions);
+    return projectIds;
+}
+
+void QbsEngine::buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions)
+{
+    buildProjects(projectListToIdList(projects), buildOptions);
 }
 
 void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions &buildOptions)
@@ -199,6 +205,60 @@ void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions
         resolvedProducts << resolvedProduct;
     }
     d->buildProducts(resolvedProducts, buildOptions, true);
+}
+
+void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
+                              const BuildOptions &buildOptions, CleanType cleanType)
+{
+    QList<BuildProduct::ConstPtr> products;
+    foreach (const Project::Id id, projectIds) {
+        const ResolvedProject::ConstPtr rProject = d->publicObjectsMap.project(id);
+        if (!rProject)
+            throw Error(tr("Cleaning up failed: Project not found."));
+        const BuildProject::ConstPtr bProject = d->setupBuildProject(rProject);
+        foreach (const BuildProduct::ConstPtr &product, bProject->buildProducts())
+            products << product;
+    }
+    ArtifactCleaner cleaner;
+    cleaner.cleanup(products, cleanType == CleanupAll, buildOptions);
+}
+
+void QbsEngine::cleanProjects(const QList<Project> &projects, const BuildOptions &buildOptions,
+                              CleanType cleanType)
+{
+    cleanProjects(projectListToIdList(projects), buildOptions, cleanType);
+}
+
+void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions &buildOptions,
+                              QbsEngine::CleanType cleanType)
+{
+    QList<BuildProduct::ConstPtr> buildProducts;
+    foreach (const Product &product, products) {
+        const ResolvedProduct::ConstPtr rProduct = d->publicObjectsMap.product(product.id());
+        if (!rProduct)
+            throw Error(tr("Cleaning up failed: Product not found."));
+
+        // TODO: Use of weak pointers will eliminate this loop.
+        ResolvedProject::ConstPtr rProject;
+        foreach (const ResolvedProject::ConstPtr &p, d->resolvedProjects) {
+            if (p == rProduct->project) {
+                rProject = p;
+                break;
+            }
+        }
+
+        Q_ASSERT(rProject);
+        const BuildProject::ConstPtr bProject = d->setupBuildProject(rProject);
+        foreach (const BuildProduct::ConstPtr &bProduct, bProject->buildProducts()) {
+            if (bProduct->rProduct == rProduct) {
+                buildProducts << bProduct;
+                break;
+            }
+        }
+    }
+
+    ArtifactCleaner cleaner;
+    cleaner.cleanup(buildProducts, cleanType == CleanupAll, buildOptions);
 }
 
 Project QbsEngine::retrieveProject(Project::Id projectId) const

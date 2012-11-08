@@ -64,10 +64,25 @@ public:
     void buildProject(Project::Id projectId, const BuildOptions &buildOptions) {
         buildProjects(QList<Project::Id>() << projectId, buildOptions);
     }
-
     void buildProducts(const QList<Product> &products, const BuildOptions &buildOptions);
     void buildProduct(const Product &product, const BuildOptions &buildOptions) {
         buildProducts(QList<Product>() << product, buildOptions);
+    }
+
+    enum CleanType { CleanupAll, CleanupTemporaries };
+    void cleanProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions,
+                       CleanType cleanType);
+    void cleanProjects(const QList<Project> &projects, const BuildOptions &buildOptions,
+                       CleanType cleanType);
+    void cleanProject(Project::Id projectId, const BuildOptions &buildOptions, CleanType cleanType)
+    {
+        cleanProjects(QList<Project::Id>() << projectId, buildOptions, cleanType);
+    }
+    void cleanProducts(const QList<Product> &products, const BuildOptions &buildOptions,
+                       CleanType cleanType);
+    void cleanProduct(const Product &product, const BuildOptions &buildOptions, CleanType cleanType)
+    {
+        cleanProducts(QList<Product>() << product, buildOptions, cleanType);
     }
 
     Project retrieveProject(Project::Id projectId) const;
