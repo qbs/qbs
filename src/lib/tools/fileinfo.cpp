@@ -210,6 +210,7 @@ FileInfo::FileInfo(const QString &fileName)
     if (!GetFileAttributesEx(reinterpret_cast<const WCHAR*>(fileName.utf16()),
                              GetFileExInfoStandard, &m_stat))
     {
+        ZeroMemory(z(m_stat), sizeof(WIN32_FILE_ATTRIBUTE_DATA));
         z(m_stat)->dwFileAttributes = INVALID_FILE_ATTRIBUTES;
     }
 }

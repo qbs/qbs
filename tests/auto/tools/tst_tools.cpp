@@ -93,6 +93,7 @@ private slots:
         QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../foo/bar"), QString("/abc/def/ghi/foo/bar"));
         QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));
         QCOMPARE(FileInfo::resolvePath("/abc", "../../../foo/bar"), QString("/foo/bar"));
+        QCOMPARE(FileInfo("/does/not/exist").lastModified(), FileTime());
     }
 
     void testProjectFileLookup()
