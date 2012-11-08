@@ -373,6 +373,7 @@ QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) cons
 void ResolvedProduct::load(PersistentPool &pool)
 {
     pool.stream() >> fileTags
+        >> additionalFileTags
         >> name
         >> targetName
         >> buildDirectory
@@ -391,6 +392,7 @@ void ResolvedProduct::load(PersistentPool &pool)
 void ResolvedProduct::store(PersistentPool &pool) const
 {
     pool.stream() << fileTags
+        << additionalFileTags
         << name
         << targetName
         << buildDirectory

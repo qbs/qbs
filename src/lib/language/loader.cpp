@@ -2099,8 +2099,8 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
     rmodule->setupRunEnvironmentScript = module->scope->verbatimValue("setupRunEnvironment");
     QStringList additionalProductFileTags = module->scope->stringListValue("additionalProductFileTags");
     if (!additionalProductFileTags.isEmpty()) {
-        rproduct->fileTags.append(additionalProductFileTags);
-        rproduct->fileTags = rproduct->fileTags.toSet().toList();
+        rproduct->additionalFileTags.append(additionalProductFileTags);
+        rproduct->additionalFileTags = rproduct->additionalFileTags.toSet().toList();
     }
     foreach (Module::Ptr m, module->modules)
         rmodule->moduleDependencies.append(m->name);

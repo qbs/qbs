@@ -314,6 +314,7 @@ public:
     static Ptr create() { return Ptr(new ResolvedProduct); }
 
     QStringList fileTags;
+    QStringList additionalFileTags;
     QString name;
     QString targetName;
     QString buildDirectory;

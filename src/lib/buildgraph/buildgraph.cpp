@@ -98,8 +98,12 @@ void BuildProduct::dump() const
 const QList<Rule::ConstPtr> &BuildProduct::topSortedRules() const
 {
     if (m_topSortedRules.isEmpty()) {
+        QStringList fileTags;
+        fileTags << rProduct->fileTags << rProduct->additionalFileTags;
+        fileTags.sort();
+        std::unique(fileTags.begin(), fileTags.end());
         RuleGraph ruleGraph;
-        ruleGraph.build(rProduct->rules, rProduct->fileTags);
+        ruleGraph.build(rProduct->rules, fileTags);
 //        ruleGraph.dump();
         m_topSortedRules = ruleGraph.topSorted();
 //        int i=0;
