@@ -404,12 +404,16 @@ bool BuildGraph::safeConnect(Artifact *u, Artifact *v)
 
 void BuildGraph::disconnect(Artifact *u, Artifact *v)
 {
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace("[BG] disconnect: '%s' '%s'", qPrintable(fileName(u)), qPrintable(fileName(v)));
     u->children.remove(v);
     v->parents.remove(u);
 }
 
 void BuildGraph::disconnectChildren(Artifact *u)
 {
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace("[BG] disconnectChildren: '%s'", qPrintable(fileName(u)));
     foreach (Artifact *child, u->children)
         child->parents.remove(u);
     u->children.clear();
@@ -417,6 +421,8 @@ void BuildGraph::disconnectChildren(Artifact *u)
 
 void BuildGraph::disconnectParents(Artifact *u)
 {
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace("[BG] disconnectParents: '%s'", qPrintable(fileName(u)));
     foreach (Artifact *parent, u->parents)
         parent->children.remove(u);
     u->parents.clear();
