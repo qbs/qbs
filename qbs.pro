@@ -22,7 +22,7 @@ defineTest(minQtVersion) {
 }
 
 !minQtVersion(4, 8, 0) {
-    message("Cannot build Qt Creator with Qt version $${QT_VERSION}.")
+    message("Cannot build qbs with Qt version $${QT_VERSION}.")
     error("Use at least Qt 4.8.0.")
 }
 
