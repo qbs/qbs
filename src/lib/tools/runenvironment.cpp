@@ -34,6 +34,7 @@
 #include <language/publictypes.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/settings.h>
@@ -65,7 +66,7 @@ RunEnvironment::RunEnvironment(ScriptEngine *engine, const Product &product,
     d->engine = engine;
     d->resolvedProduct = publicObjectsMap.product(product.id());
     if (!d->resolvedProduct)
-        throw Error(tr("Cannot run target: Invalid product."));
+        throw Error(Tr::tr("Cannot run target: Invalid product."));
     d->environment = environment;
 }
 
@@ -79,7 +80,7 @@ int RunEnvironment::runShell()
     d->resolvedProduct->setupBuildEnvironment(d->engine, d->environment);
 
     const QString productId = d->resolvedProduct->name;
-    qbsInfo() << tr("Starting shell for target '%1'.").arg(productId);
+    qbsInfo() << Tr::tr("Starting shell for target '%1'.").arg(productId);
     const QProcessEnvironment environment = d->resolvedProduct->buildEnvironment;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
     clearenv();
@@ -111,7 +112,7 @@ int RunEnvironment::runShell()
             envFile->close();
             qputenv("ENV", envFile->fileName().toLocal8Bit());
         } else {
-            qbsWarning() << tr("Setting custom shell prompt failed.");
+            qbsWarning() << Tr::tr("Setting custom shell prompt failed.");
         }
     }
 

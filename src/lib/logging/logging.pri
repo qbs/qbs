@@ -4,7 +4,8 @@ HEADERS += \
     $$PWD/logger.h \
     $$PWD/consolelogger.h \
     $$PWD/coloredoutput.h \
-    $$PWD/ilogsink.h
+    $$PWD/ilogsink.h \
+    $$PWD/translator.h
 
 SOURCES += \
     $$PWD/logger.cpp \

@@ -32,6 +32,7 @@
 #include "error.h"
 #include "fileinfo.h"
 #include "hostosinfo.h"
+#include <logging/translator.h>
 
 #include <QFileInfo>
 #include <QSettings>
@@ -192,9 +193,9 @@ void Settings::checkStatus(QSettings *s)
     case QSettings::NoError:
         break;
     case QSettings::AccessError:
-        throw Error(tr("%1 is not accessible.").arg(s->fileName()));
+        throw Error(Tr::tr("%1 is not accessible.").arg(s->fileName()));
     case QSettings::FormatError:
-        throw Error(tr("Format error in %1.").arg(s->fileName()));
+        throw Error(Tr::tr("Format error in %1.").arg(s->fileName()));
     }
 }
 

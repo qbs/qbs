@@ -34,7 +34,6 @@
 #include <tools/settings.h>
 #include <tools/codelocation.h>
 
-#include <QCoreApplication>
 #include <QScriptClass>
 #include <QStringList>
 #include <QVariant>
@@ -195,7 +194,6 @@ public:
 class ScopeChain : public QScriptClass
 {
     Q_DISABLE_COPY(ScopeChain)
-    Q_DECLARE_TR_FUNCTIONS(ScopeChain)
 public:
     typedef QSharedPointer<ScopeChain> Ptr;
 
@@ -233,7 +231,6 @@ typedef QSharedPointer<ScopesCache> ScopesCachePtr;
 class Scope : public QScriptClass
 {
     Q_DISABLE_COPY(Scope)
-    Q_DECLARE_TR_FUNCTIONS(Scope)
     Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name);
 
     ScopesCachePtr m_scopesCache;
@@ -275,7 +272,6 @@ public:
 class ProbeScope : public QScriptClass
 {
     Q_DISABLE_COPY(ProbeScope)
-    Q_DECLARE_TR_FUNCTIONS(ProbeScope)
     ProbeScope(QScriptEngine *engine, const Scope::Ptr &scope);
 public:
     typedef QSharedPointer<ProbeScope> Ptr;
@@ -365,7 +361,6 @@ class ScriptEngine;
 
 class Loader
 {
-    Q_DECLARE_TR_FUNCTIONS(Loader)
 public:
     Loader(ScriptEngine *engine);
     ~Loader();

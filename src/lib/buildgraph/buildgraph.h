@@ -36,7 +36,6 @@
 #include <tools/error.h>
 #include <tools/persistentobject.h>
 
-#include <QCoreApplication>
 #include <QDir>
 #include <QScriptValue>
 #include <QSet>
@@ -158,7 +157,6 @@ private:
  */
 class BuildGraph
 {
-    Q_DECLARE_TR_FUNCTIONS(BuildGraph)
 public:
     BuildGraph(ScriptEngine *engine);
     ~BuildGraph();
@@ -235,7 +233,6 @@ private:
 
 class RulesApplicator
 {
-    Q_DECLARE_TR_FUNCTIONS(RulesApplicator)
 public:
     RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
             BuildGraph *bg);

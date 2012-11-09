@@ -36,6 +36,7 @@
 #include <language/loader.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/scannerpluginmanager.h>
@@ -283,15 +284,15 @@ void BuildGraph::detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact 
     for (ArtifactList::const_iterator it = v->children.begin(); it != v->children.end(); ++it) {
         Artifact *u = *it;
         if (currentBranch.contains(u)) {
-            Error error(tr("Cycle in build graph detected."));
+            Error error(Tr::tr("Cycle in build graph detected."));
             QList<Artifact *> path;
             findPath(u, v, path);
             foreach (Artifact *a, path)
-                error.append(tr("path1: ") + a->filePath());
+                error.append(Tr::tr("path1: ") + a->filePath());
             path.clear();
             findPath(v, u, path);
             foreach (Artifact *a, path)
-                error.append(tr("path2: ") + a->filePath());
+                error.append(Tr::tr("path2: ") + a->filePath());
             throw error;
         }
         if (!done.contains(u))
@@ -532,7 +533,7 @@ BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
     BuildProject::Ptr project = BuildProject::Ptr(new BuildProject(this));
     project->setResolvedProject(rProject);
     if (m_progressObserver)
-        m_progressObserver->initialize(tr("Resolving project"), rProject->products.count());
+        m_progressObserver->initialize(Tr::tr("Resolving project"), rProject->products.count());
     foreach (ResolvedProduct::Ptr rProduct, rProject->products) {
         resolveProduct(project.data(), rProduct);
     }
@@ -548,7 +549,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
 
     if (m_progressObserver) {
         if (m_progressObserver->canceled())
-            throw Error(tr("Build canceled."));
+            throw Error(Tr::tr("Build canceled."));
         m_progressObserver->incrementProgressValue();
     }
 
@@ -560,7 +561,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
 
     foreach (ResolvedProduct::Ptr t2, rProduct->dependencies) {
         if (t2 == rProduct) {
-            throw Error(tr("circular using"));
+            throw Error(Tr::tr("circular using"));
         }
         BuildProduct::Ptr referencedProduct = resolveProduct(project, t2);
         product->dependencies.append(referencedProduct.data());
@@ -1440,7 +1441,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ru
 
             if (m_transformer->inputs.count() > 1 && !m_rule->multiplex) {
                 QString th = "[" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
-                QString e = tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
+                QString e = Tr::tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
                 th = "[" + m_rule->inputs.join(", ")
                    + "] -> [" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
 

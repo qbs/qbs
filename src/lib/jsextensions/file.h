@@ -29,7 +29,6 @@
 
 #ifndef FILE_H
 
-#include <QCoreApplication>
 #include <QScriptContext>
 #include <QScriptValue>
 
@@ -38,7 +37,6 @@ namespace Internal {
 
 class File
 {
-    Q_DECLARE_TR_FUNCTIONS(File)
 public:
     static void init(QScriptValue extensionObject);
 

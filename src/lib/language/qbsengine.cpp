@@ -37,6 +37,7 @@
 #include <language/scriptengine.h>
 #include <language/loader.h>
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/platform.h>
 #include <tools/runenvironment.h>
 #include <tools/scannerpluginmanager.h>
@@ -55,7 +56,6 @@ using namespace Internal;
 
 class QbsEngine::QbsEnginePrivate
 {
-    Q_DECLARE_TR_FUNCTIONS(QbsEnginePrivate)
 public:
     QbsEnginePrivate()
         : observer(0), settings(Settings::create()), buildGraph(new BuildGraph(&engine)) {}
@@ -175,7 +175,7 @@ void QbsEngine::buildProjects(const QList<Project::Id> &projectIds, const BuildO
     foreach (const Project::Id projectId, projectIds) {
         const ResolvedProject::ConstPtr resolvedProject = d->publicObjectsMap.project(projectId);
         if (!resolvedProject)
-            throw Error(tr("Cannot build: No such project."));
+            throw Error(Tr::tr("Cannot build: No such project."));
         foreach (const ResolvedProduct::ConstPtr &product, resolvedProject->products)
             products << product;
     }
@@ -201,7 +201,7 @@ void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions
     foreach (const Product &product, products) {
         const ResolvedProduct::ConstPtr resolvedProduct = d->publicObjectsMap.product(product.id());
         if (!resolvedProduct)
-            throw Error(tr("Cannot build: No such product."));
+            throw Error(Tr::tr("Cannot build: No such product."));
         resolvedProducts << resolvedProduct;
     }
     d->buildProducts(resolvedProducts, buildOptions, true);
@@ -214,7 +214,7 @@ void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
     foreach (const Project::Id id, projectIds) {
         const ResolvedProject::ConstPtr rProject = d->publicObjectsMap.project(id);
         if (!rProject)
-            throw Error(tr("Cleaning up failed: Project not found."));
+            throw Error(Tr::tr("Cleaning up failed: Project not found."));
         const BuildProject::ConstPtr bProject = d->setupBuildProject(rProject);
         foreach (const BuildProduct::ConstPtr &product, bProject->buildProducts())
             products << product;
@@ -236,7 +236,7 @@ void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions
     foreach (const Product &product, products) {
         const ResolvedProduct::ConstPtr rProduct = d->publicObjectsMap.product(product.id());
         if (!rProduct)
-            throw Error(tr("Cleaning up failed: Product not found."));
+            throw Error(Tr::tr("Cleaning up failed: Product not found."));
 
         // TODO: Use of weak pointers will eliminate this loop.
         ResolvedProject::ConstPtr rProject;
@@ -265,7 +265,7 @@ Project QbsEngine::retrieveProject(Project::Id projectId) const
 {
     const ResolvedProject::ConstPtr resolvedProject = d->publicObjectsMap.project(projectId);
     if (!resolvedProject)
-        throw Error(tr("Cannot retrieve project: No such project."));
+        throw Error(Tr::tr("Cannot retrieve project: No such project."));
     Project project(projectId);
     project.m_qbsFilePath = resolvedProject->qbsFile;
     foreach (const ResolvedProduct::Ptr &resolvedProduct, resolvedProject->products) {
@@ -302,7 +302,7 @@ QString QbsEngine::targetExecutable(const Product &product)
 {
     const ResolvedProduct::ConstPtr resolvedProduct = d->publicObjectsMap.product(product.id());
     if (!resolvedProduct)
-        throw tr("Error: Unknown product.");
+        throw Error(Tr::tr("Unknown product."));
     if (!resolvedProduct->fileTags.contains(QLatin1String("application")))
         return QString();
     ResolvedProject::ConstPtr resolvedProject;
@@ -313,7 +313,7 @@ QString QbsEngine::targetExecutable(const Product &product)
         }
     }
     if (!resolvedProject)
-        throw Error(tr("Unknown product '%1'.").arg(resolvedProduct->name));
+        throw Error(Tr::tr("Unknown product '%1'.").arg(resolvedProduct->name));
 
     const BuildProject::ConstPtr buildProject = d->setupBuildProject(resolvedProject);
     Q_ASSERT(buildProject->resolvedProject() == resolvedProject);
@@ -342,7 +342,7 @@ void QbsEngine::QbsEnginePrivate::loadPlugins()
     QStringList pluginPaths;
     foreach (const QString &pluginPath, settings->pluginPaths()) {
         if (!FileInfo::exists(pluginPath)) {
-            qbsWarning() << tr("Plugin path '%1' does not exist.")
+            qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(pluginPath));
         } else {
             pluginPaths << pluginPath;
@@ -370,7 +370,7 @@ BuildProject::Ptr QbsEngine::QbsEnginePrivate::setupBuildProject(const ResolvedP
         }
     }
     if (!mutableRProject)
-        throw Error(tr("Unknown project."));
+        throw Error(Tr::tr("Unknown project."));
 
     TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
     const BuildProject::Ptr buildProject = buildGraph->resolveProject(mutableRProject);
@@ -416,7 +416,7 @@ void QbsEngine::QbsEnginePrivate::buildProducts(const QList<BuildProduct::Ptr> &
             buildProject->store();
     }
     if (executor.buildResult() != Executor::SuccessfulBuild)
-        throw Error(tr("Build failed."));
+        throw Error(Tr::tr("Build failed."));
 }
 
 void QbsEngine::QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
@@ -475,7 +475,7 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
 {
     QHash<QString, Platform::Ptr > platforms = Platform::platforms();
     if (platforms.isEmpty())
-        throw Error(tr("No platforms configured. You must run 'qbs platforms probe' first."));
+        throw Error(Tr::tr("No platforms configured. You must run 'qbs platforms probe' first."));
 
     QVariantMap expandedConfig = userBuildConfig;
 
@@ -488,7 +488,7 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
     if (profileName.isNull()) {
         profileName = settings->value("profile").toString();
         if (profileName.isNull())
-            throw Error(tr("No profile given.\n"
+            throw Error(Tr::tr("No profile given.\n"
                            "Either set the configuration value 'profile' to a valid profile's name\n"
                            "or specify the profile with the command line parameter 'profile:name'."));
         expandedConfig.insert("qbs.profile", profileName);
@@ -498,7 +498,7 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
     const QString profileGroup = QString("profiles/%1").arg(profileName);
     const QStringList profileKeys = settings->allKeysWithPrefix(profileGroup);
     if (profileKeys.isEmpty())
-        throw Error(tr("Unknown profile '%1'.").arg(profileName));
+        throw Error(Tr::tr("Unknown profile '%1'.").arg(profileName));
     foreach (const QString &profileKey, profileKeys) {
         QString fixedKey(profileKey);
         fixedKey.replace(QChar('/'), QChar('.'));
@@ -511,12 +511,12 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
     if (!platformName.isValid()) {
         platformName = settings->moduleValue("qbs/platform", profileName);
         if (!platformName.isValid())
-            throw Error(tr("No platform given and no default set."));
+            throw Error(Tr::tr("No platform given and no default set."));
         expandedConfig.insert("qbs.platform", platformName);
     }
     Platform::Ptr platform = platforms.value(platformName.toString());
     if (platform.isNull())
-        throw Error(tr("Unknown platform '%1'.").arg(platformName.toString()));
+        throw Error(Tr::tr("Unknown platform '%1'.").arg(platformName.toString()));
     foreach (const QString &key, platform->settings.allKeys()) {
         if (key.startsWith(Platform::internalKey()))
             continue;
@@ -536,7 +536,7 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
     }
 
     if (!expandedConfig.value("qbs.buildVariant").isValid())
-        throw Error(tr("Property 'qbs.buildVariant' missing in build configuration."));
+        throw Error(Tr::tr("Property 'qbs.buildVariant' missing in build configuration."));
 
     foreach (const QString &property, expandedConfig.keys()) {
         QStringList nameElements = property.split('.');

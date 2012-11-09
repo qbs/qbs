@@ -30,7 +30,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <QCoreApplication>
 #include <QSharedPointer>
 #include <QStringList>
 #include <QVariant>
@@ -43,7 +42,6 @@ namespace qbs {
 
 class Settings
 {
-    Q_DECLARE_TR_FUNCTIONS(Settings)
 public:
     ~Settings();
 

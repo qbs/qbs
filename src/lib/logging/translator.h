@@ -26,43 +26,20 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef TRANSLATOR_H
+#define TRANSLATOR_H
 
-#ifndef QBS_RUNENVIRONMENT_H
-#define QBS_RUNENVIRONMENT_H
-
-#include <QStringList>
-
-QT_BEGIN_NAMESPACE
-class QProcessEnvironment;
-QT_END_NAMESPACE
+#include <QCoreApplication>
 
 namespace qbs {
-class Product;
-
 namespace Internal {
-class PublicObjectsMap;
-class ScriptEngine;
-} // namespace Internal
 
-class RunEnvironment
+class Tr // Name intended to be short.
 {
-    friend class QbsEngine;
-public:
-    ~RunEnvironment();
-
-    // These can throw an Error
-    int runShell();
-    int runTarget(const QString &targetBin, const QStringList &arguments);
-
-private:
-    RunEnvironment(Internal::ScriptEngine *engine, const Product &product,
-                   const Internal::PublicObjectsMap &publicObjectsMap,
-                   const QProcessEnvironment &environment);
-
-    class RunEnvironmentPrivate;
-    RunEnvironmentPrivate * const d;
+    Q_DECLARE_TR_FUNCTIONS(Qbs)
 };
 
+} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_RUNENVIRONMENT_H
+#endif // TRANSLATOR_H

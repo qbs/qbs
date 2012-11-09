@@ -32,6 +32,7 @@
 #include "language.h"
 #include "scriptengine.h"
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/settings.h>
@@ -244,7 +245,7 @@ QScriptValue ScopeChain::property(const QScriptValue &object, const QScriptStrin
     }
     value = engine()->globalObject().property(name);
     if (!value.isValid() || (value.isUndefined() && name.toString() != QLatin1String("undefined"))) {
-        QString msg = tr("Undefined property '%1'");
+        QString msg = Tr::tr("Undefined property '%1'");
         value = engine()->currentContext()->throwError(msg.arg(name.toString()));
     }
     return value;
@@ -252,7 +253,7 @@ QScriptValue ScopeChain::property(const QScriptValue &object, const QScriptStrin
 
 void ScopeChain::setProperty(QScriptValue &, const QScriptString &name, uint, const QScriptValue &)
 {
-    QString msg = tr("Removing or setting property '%1' in a binding is invalid.");
+    QString msg = Tr::tr("Removing or setting property '%1' in a binding is invalid.");
     engine()->currentContext()->throwError(msg.arg(name.toString()));
 }
 
@@ -328,7 +329,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
     if (id == 1)
         return fallbackScope.data()->property(object, name, 0);
     else if (id == 2) {
-        QString msg = tr("Property %0.%1 is undefined.");
+        QString msg = Tr::tr("Property %0.%1 is undefined.");
         return engine()->currentContext()->throwError(msg.arg(m_name, name));
     }
 
@@ -374,7 +375,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
             try {
                 baseValue = evaluate(engine(), baseProperty.valueSource);
             } catch (const Error &e) {
-                baseValue = engine()->currentContext()->throwError(tr("error while evaluating:\n%1").arg(e.toString()));
+                baseValue = engine()->currentContext()->throwError(Tr::tr("error while evaluating:\n%1").arg(e.toString()));
             }
             if (baseValue.isUndefined())
                 baseValue = engine()->newArray();
@@ -399,7 +400,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
     }
     catch (const Error &e)
     {
-        result = engine()->currentContext()->throwError(tr("error while evaluating:\n%1").arg(e.toString()));
+        result = engine()->currentContext()->throwError(Tr::tr("error while evaluating:\n%1").arg(e.toString()));
     }
 
     if (debugProperties) {
@@ -552,7 +553,7 @@ void ProbeScope::setProperty(QScriptValue &object, const QScriptString &name, ui
 {
     const QString nameString = name.toString();
     if (nameString == "configure") {
-        throw Error(tr("Can not access 'configure' property from itself"));
+        throw Error(Tr::tr("Can not access 'configure' property from itself"));
     } else if (m_scope->properties.contains(nameString)) {
         Property &property = m_scope->properties[nameString];
         property.value = value;
@@ -702,7 +703,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
     m_searchPaths.clear();
     foreach (const QString &searchPath, searchPaths) {
         if (!FileInfo::exists(searchPath)) {
-            qbsWarning() << tr("Search path '%1' does not exist.")
+            qbsWarning() << Tr::tr("Search path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(searchPath));
         } else {
             m_searchPaths << searchPath;
@@ -773,7 +774,7 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
 {
     if (object->prototypeFileName.isEmpty()) {
         if (object->prototype.size() != 1)
-            throw Error(tr("prototype with dots does not resolve to a file"), object->prototypeLocation);
+            throw Error(Tr::tr("prototype with dots does not resolve to a file"), object->prototypeLocation);
         evaluationObject->prototype = object->prototype.first();
 
         setupInternalPrototype(object, evaluationObject);
@@ -799,7 +800,7 @@ void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evalua
 
     // recurse to prototype's prototype
     if (evaluationObject->objects.contains(file->root)) {
-        QString msg = tr("circular prototypes in instantiation of '%1', '%2' recurred");
+        QString msg = Tr::tr("circular prototypes in instantiation of '%1', '%2' recurred");
         throw Error(msg.arg(evaluationObject->instantiatingObject()->prototype.join("."),
                                    object->prototype.join(".")));
     }
@@ -851,7 +852,7 @@ static bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &sco
     if (value.isBool())
         result = value.toBool();
     else
-        throw Error(Loader::tr("Condition return type must be boolean."), condition.codeLocation());
+        throw Error(Tr::tr("Condition return type must be boolean."), condition.codeLocation());
     if (debugCondition)
         qbsTrace() << "   result: " << value.toString();
 
@@ -897,7 +898,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
             return;
         QScriptValue targetValue = scopeChain->value().property(binding.name.first());
         if (!targetValue.isValid() || targetValue.isError()) {
-            QString msg = Loader::tr("Binding '%1' failed, no property '%2' in the scope of %3");
+            QString msg = Tr::tr("Binding '%1' failed, no property '%2' in the scope of %3");
             throw Error(msg.arg(binding.name.join("."),
                                        binding.name.first(),
                                        scopeChain->first()->name()),
@@ -905,7 +906,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
         }
         target = dynamic_cast<Scope *>(targetValue.scriptClass());
         if (!target) {
-            QString msg = Loader::tr("Binding '%1' failed, property '%2' in the scope of %3 has no properties");
+            QString msg = Tr::tr("Binding '%1' failed, property '%2' in the scope of %3 has no properties");
             throw Error(msg.arg(binding.name.join("."),
                                        binding.name.first(),
                                        scopeChain->first()->name()),
@@ -918,7 +919,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
         const QString &bindingName = binding.name.at(i);
         const QScriptValue &value = target->property(bindingName);
         if (!value.isValid()) {
-            QString msg = Loader::tr("Binding '%1' failed, no property '%2' in %3");
+            QString msg = Tr::tr("Binding '%1' failed, no property '%2' in %3");
             throw Error(msg.arg(binding.name.join("."),
                                        binding.name.at(i),
                                        target->name()),
@@ -926,7 +927,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
         }
         target = dynamic_cast<Scope *>(value.scriptClass());
         if (!target) {
-            QString msg = Loader::tr("Binding '%1' failed, property '%2' in %3 has no properties");
+            QString msg = Tr::tr("Binding '%1' failed, property '%2' in %3 has no properties");
             throw Error(msg.arg(binding.name.join("."),
                                        bindingName,
                                        oldTarget->name()),
@@ -937,7 +938,7 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
     const QString name = binding.name.last();
 
     if (!target->declarations.contains(name)) {
-        QString msg = Loader::tr("Binding '%1' failed, no property '%2' in %3");
+        QString msg = Tr::tr("Binding '%1' failed, no property '%2' in %3");
         throw Error(msg.arg(binding.name.join("."),
                                    name,
                                    target->name()),
@@ -967,7 +968,7 @@ static void applyBindings(LanguageObject *object, const ScopeChain::Ptr &scopeCh
 void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject)
 {
     if (!m_builtinDeclarations.contains(evaluationObject->prototype))
-        throw Error(tr("Type name '%1' is unknown.").arg(evaluationObject->prototype),
+        throw Error(Tr::tr("Type name '%1' is unknown.").arg(evaluationObject->prototype),
                            evaluationObject->instantiatingObject()->prototypeLocation);
 
     foreach (const PropertyDeclaration &pd, m_builtinDeclarations.value(evaluationObject->prototype)) {
@@ -1007,12 +1008,12 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
         childIt = object->children.erase(childIt);
 
         if (!propertiesItem->children.isEmpty())
-            throw Error(tr("Properties block may not have children"), propertiesItem->children.first()->prototypeLocation);
+            throw Error(Tr::tr("Properties block may not have children"), propertiesItem->children.first()->prototypeLocation);
 
         const QStringList conditionName("condition");
         const Binding condition = propertiesItem->bindings.value(conditionName);
         if (!condition.isValid())
-            throw Error(tr("Properties block must have a condition property"), propertiesItem->prototypeLocation);
+            throw Error(Tr::tr("Properties block must have a condition property"), propertiesItem->prototypeLocation);
 
         const QString conditionCode = condition.valueSource.sourceCode();
         QHashIterator<QStringList, Binding> it(propertiesItem->bindings);
@@ -1107,7 +1108,7 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
             Module::Ptr baseModule = searchAndLoadModule(QStringList("qbs"), QLatin1String("qbs"),
                                                          childScope, userProperties, CodeLocation(object->file->fileName));
             if (!baseModule)
-                throw Error(tr("Cannot load the qbs base module."));
+                throw Error(Tr::tr("Cannot load the qbs base module."));
             childEvObject->modules.insert(baseModule->name, baseModule);
             childEvObject->scope->properties.insert(baseModule->id.first(), Property(baseModule->object));
         }
@@ -1264,7 +1265,7 @@ void Loader::evaluatePropertyOptions(LanguageObject *object)
         const QString name = nameScriptValue.toString();
 
         if (!object->propertyDeclarations.contains(name))
-            throw Error(tr("no propery with name '%1' found").arg(name));
+            throw Error(Tr::tr("no propery with name '%1' found").arg(name));
 
         PropertyDeclaration &decl = object->propertyDeclarations[name];
 
@@ -1299,7 +1300,7 @@ static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QS
         return;
     }
 
-    QString msg = Loader::tr("value %1 not allowed in property %2").arg(value.toString(), decl.name);
+    QString msg = Tr::tr("value %1 not allowed in property %2").arg(value.toString(), decl.name);
     throw Error(msg);
 }
 
@@ -1454,7 +1455,7 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, c
     const QVariantMap userModuleProperties = userProperties.value(moduleName).toMap();
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin(); vmit != userModuleProperties.end(); ++vmit) {
         if (!module->object->scope->properties.contains(vmit.key()))
-            throw Error(tr("Unknown property: %1.%2").arg(module->id.join("."), vmit.key()));
+            throw Error(Tr::tr("Unknown property: %1.%2").arg(module->id.join("."), vmit.key()));
         module->object->scope->properties.insert(vmit.key(), Property(m_engine->toScriptValue(vmit.value())));
     }
 
@@ -1536,7 +1537,7 @@ Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QStri
         foreach (const QString &fileName, moduleFileNames) {
             ProjectFile::Ptr file = parseFile(fileName);
             if (!file)
-                throw Error(tr("Error while parsing file: %s").arg(fileName), dependsLocation);
+                throw Error(Tr::tr("Error while parsing file: %s").arg(fileName), dependsLocation);
 
             module = loadModule(file.data(), moduleId, moduleName, moduleBaseScope, userProperties, dependsLocation);
             if (module)
@@ -1577,7 +1578,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
         Module::Ptr baseModule = searchAndLoadModule(QStringList("qbs"), QLatin1String("qbs"),
                                                      moduleScope, userProperties, CodeLocation(object->file->fileName));
         if (!baseModule)
-            throw Error(tr("Cannot load the qbs base module."));
+            throw Error(Tr::tr("Cannot load the qbs base module."));
         evaluationObject->modules.insert(baseModule->name, baseModule);
         evaluationObject->scope->properties.insert(baseModule->id.first(), Property(baseModule->object));
     }
@@ -1630,7 +1631,7 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
         QScriptValue conditionValue = m_engine->evaluate(moduleBaseObject->condition);
         if (conditionValue.isError()) {
             CodeLocation location(moduleBaseObject->condition.fileName(), moduleBaseObject->condition.firstLineNumber());
-            throw Error(tr("Error while evaluating Depends.condition: %1").arg(conditionValue.toString()), location);
+            throw Error(Tr::tr("Error while evaluating Depends.condition: %1").arg(conditionValue.toString()), location);
         }
         if (!conditionValue.toBool()) {
             // condition is false, thus remove the module from evaluationObject
@@ -1666,7 +1667,7 @@ void Loader::checkModuleDependencies(const Module::Ptr &module)
 {
     if (!module->object->unknownModules.isEmpty()) {
         UnknownModule::Ptr missingModule = module->object->unknownModules.first();
-        throw Error(tr("Module '%1' cannot be loaded.").arg(missingModule->name),
+        throw Error(Tr::tr("Module '%1' cannot be loaded.").arg(missingModule->name),
                     missingModule->dependsLocation);
     }
 
@@ -1683,9 +1684,9 @@ QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChai
     // check for the use of undeclared properties
     foreach (const Binding &binding, depends->bindings) {
         if (binding.name.count() > 1)
-            throw Error(tr("Bindings with dots are forbidden in Depends."), dependsLocation);
+            throw Error(Tr::tr("Bindings with dots are forbidden in Depends."), dependsLocation);
         if (!m_dependsPropertyDeclarations.contains(binding.name.first()))
-            throw Error(tr("There's no property '%1' in Depends.").arg(binding.name.first()),
+            throw Error(Tr::tr("There's no property '%1' in Depends.").arg(binding.name.first()),
                                CodeLocation(depends->file->fileName, binding.valueSource.firstLineNumber()));
     }
 
@@ -1763,7 +1764,7 @@ static void findModuleDependencies_impl(const Module::Ptr &module, QHash<QString
     ProjectFile *file = module->file();
     ProjectFile *otherFile = result.value(moduleName);
     if (otherFile && otherFile != file) {
-        throw Error(Loader::tr("two different versions of '%1' were included: '%2' and '%3'").arg(
+        throw Error(Tr::tr("two different versions of '%1' were included: '%2' and '%3'").arg(
                                moduleName, file->fileName, otherFile->fileName));
     } else if (otherFile) {
         return;
@@ -1814,7 +1815,7 @@ static bool checkCondition(EvaluationObject *object)
         return scriptValue.toBool();
     } else if (scriptValue.isValid() && !scriptValue.isUndefined()) {
         const QScriptProgram &scriptProgram = object->objects.first()->bindings.value(QStringList("condition")).valueSource;
-        throw Error(Loader::tr("Invalid condition."), CodeLocation(scriptProgram.fileName(), scriptProgram.firstLineNumber()));
+        throw Error(Tr::tr("Invalid condition."), CodeLocation(scriptProgram.fileName(), scriptProgram.firstLineNumber()));
     }
     // no 'condition' property means 'the condition is true'
     return true;
@@ -1857,11 +1858,11 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     QMultiMap<QString, ResolvedProduct::Ptr> resolvedProducts;
     QHash<ResolvedProduct::Ptr, ProductData>::iterator it = projectData.products.begin();
     if (m_progressObserver)
-        m_progressObserver->initialize(tr("Loading project"), projectData.products.count());
+        m_progressObserver->initialize(Tr::tr("Loading project"), projectData.products.count());
     for (; it != projectData.products.end(); ++it) {
         if (m_progressObserver) {
             if (m_progressObserver->canceled())
-                throw Error(tr("Loading canceled."));
+                throw Error(Tr::tr("Loading canceled."));
             m_progressObserver->incrementProgressValue();
         }
         ResolvedProduct::Ptr rproduct = it.key();
@@ -1943,7 +1944,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 if (existing) {
                     // if an artifact is in the product and in a group, prefer the group configuration
                     if (existing->properties != rproduct->properties)
-                        throw Error(tr("Artifact '%1' is in more than one group.").arg(artifact->absoluteFilePath),
+                        throw Error(Tr::tr("Artifact '%1' is in more than one group.").arg(artifact->absoluteFilePath),
                                            CodeLocation(m_project->fileName));
 
                     // Remove the artifact that's in the product's group.
@@ -1988,7 +1989,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 continue;
             if (existsModuleInSearchPath(propertyName))
                 continue;
-            throw Error(tr("%1 is not a product or a module.").arg(propertyName));
+            throw Error(Tr::tr("%1 is not a product or a module.").arg(propertyName));
         }
     }
 
@@ -2026,11 +2027,11 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                                 qbsWarning() << unknownModule->failureMessage;
                             continue;
                         }
-                        throw Error(tr("Product dependency '%1' not found in '%2'.").arg(usedProductName, rproduct->qbsFile),
+                        throw Error(Tr::tr("Product dependency '%1' not found in '%2'.").arg(usedProductName, rproduct->qbsFile),
                                            CodeLocation(m_project->fileName));
                     }
                     if (usedProductCandidates.count() > 1)
-                        throw Error(tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
+                        throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
                                            CodeLocation(m_project->fileName));
                     ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
                     const ProductData &usedProductData = projectData.products.value(usedProduct);
@@ -2053,11 +2054,11 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                             qbsWarning() << unknownModule->failureMessage;
                         continue;
                     }
-                    throw Error(tr("Product dependency '%1' not found.").arg(usedProductName),
+                    throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
                                        CodeLocation(m_project->fileName));
                 }
                 if (usedProductCandidates.count() > 1)
-                    throw Error(tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
+                    throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
                                        CodeLocation(m_project->fileName));
                 ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
                 rproduct->dependencies.insert(usedProduct);
@@ -2108,7 +2109,7 @@ void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleN
     QList<EvaluationObject *> unhandledChildren = resolveCommonItems(module->children, rproduct, rmodule);
     if (!unhandledChildren.isEmpty()) {
         EvaluationObject *child = unhandledChildren.first();
-        QString msg = tr("Items of type %0 not allowed in a Module.");
+        QString msg = Tr::tr("Items of type %0 not allowed in a Module.");
         throw Error(msg.arg(child->prototype));
     }
 }
@@ -2176,7 +2177,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
             }
         }
         if (!filesBindingFound)
-            throw Error(tr("Group without files is not allowed."), group->instantiatingObject()->prototypeLocation);
+            throw Error(Tr::tr("Group without files is not allowed."), group->instantiatingObject()->prototypeLocation);
     }
     QStringList patterns;
     QString prefix;
@@ -2220,7 +2221,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
 
     resolvedGroup->name = group->scope->stringValue("name");
     if (resolvedGroup->name.isEmpty())
-        resolvedGroup->name = tr("Group %1").arg(rproduct->groups.count());
+        resolvedGroup->name = Tr::tr("Group %1").arg(rproduct->groups.count());
     resolvedGroup->properties = properties;
     rproduct->groups += resolvedGroup;
 }
@@ -2257,12 +2258,12 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
 
     foreach (EvaluationObject *child, trafo->children) {
         if (child->prototype != name_Artifact)
-            throw Error(tr("Transformer: wrong child type '%0'.").arg(child->prototype));
+            throw Error(Tr::tr("Transformer: wrong child type '%0'.").arg(child->prototype));
         SourceArtifact::Ptr artifact = SourceArtifact::create();
         artifact->properties = rproduct->properties;
         QString fileName = child->scope->stringValue("fileName");
         if (fileName.isEmpty())
-            throw Error(tr("Artifact fileName must not be empty."));
+            throw Error(Tr::tr("Artifact fileName must not be empty."));
         artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->buildDirectory,
                                                            fileName);
         artifact->fileTags = child->scope->stringListValue("fileTags").toSet();
@@ -2352,7 +2353,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
                 artifact->bindings.append(rabinding);
             }
         } else {
-            throw Error(tr("'Rule' can only have children of type 'Artifact'."),
+            throw Error(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->instantiatingObject()->prototypeLocation);
         }
     }
@@ -2400,7 +2401,7 @@ static void bindFunction(LanguageObject *result, const QString &source, Function
 {
     Function f;
     if (ast->name.isNull())
-        throw Error(Loader::tr("function decl without name"));
+        throw Error(Tr::tr("function decl without name"));
     f.name = ast->name.toString();
 
     // remove the name
@@ -2443,7 +2444,7 @@ static QScriptProgram bindingProgram(const QString &fileName, const QString &sou
 static void checkDuplicateBinding(LanguageObject *object, const QStringList &bindingName, const SourceLocation &sourceLocation)
 {
     if (object->bindings.contains(bindingName)) {
-        QString msg = Loader::tr("Duplicate binding for '%1'");
+        QString msg = Tr::tr("Duplicate binding for '%1'");
         throw Error(msg.arg(bindingName.join(".")),
                     toCodeLocation(object->file->fileName, sourceLocation));
     }
@@ -2453,17 +2454,17 @@ static void bindBinding(LanguageObject *result, const QString &source, UiScriptB
 {
     Binding p;
     if (!ast->qualifiedId || ast->qualifiedId->name.isEmpty())
-        throw Error(Loader::tr("script binding without name"));
+        throw Error(Tr::tr("script binding without name"));
     p.name = toStringList(ast->qualifiedId);
     checkDuplicateBinding(result, p.name, ast->qualifiedId->identifierToken);
 
     if (p.name == QStringList("id")) {
         ExpressionStatement *expStmt = cast<ExpressionStatement *>(ast->statement);
         if (!expStmt)
-            throw Error(Loader::tr("id: must be followed by identifier"));
+            throw Error(Tr::tr("id: must be followed by identifier"));
         IdentifierExpression *idExp = cast<IdentifierExpression *>(expStmt->expression);
         if (!idExp || idExp->name.isEmpty())
-            throw Error(Loader::tr("id: must be followed by identifier"));
+            throw Error(Tr::tr("id: must be followed by identifier"));
         result->id = idExp->name.toString();
         return;
     }
@@ -2477,7 +2478,7 @@ static void bindBinding(LanguageObject *result, const QString &source, UiPublicM
 {
     Binding p;
     if (ast->name.isNull())
-        throw Error(Loader::tr("public member without name"));
+        throw Error(Tr::tr("public member without name"));
     p.name = QStringList(ast->name.toString());
     checkDuplicateBinding(result, p.name, ast->identifierToken);
 
@@ -2508,17 +2509,17 @@ static void bindPropertyDeclaration(LanguageObject *result, UiPublicMember *ast)
 {
     PropertyDeclaration p;
     if (ast->name.isEmpty())
-        throw Error(Loader::tr("public member without name"));
+        throw Error(Tr::tr("public member without name"));
     if (ast->memberType.isEmpty())
-        throw Error(Loader::tr("public member without type"));
+        throw Error(Tr::tr("public member without type"));
     if (ast->type == UiPublicMember::Signal)
-        throw Error(Loader::tr("public member with signal type not supported"));
+        throw Error(Tr::tr("public member with signal type not supported"));
     p.name = ast->name.toString();
     p.type = propertyTypeFromString(ast->memberType.toString());
     if (ast->typeModifier.compare(QLatin1String("list")))
         p.flags |= PropertyDeclaration::ListProperty;
     else if (!ast->typeModifier.isEmpty())
-        throw Error(Loader::tr("public member with type modifier '%1' not supported").arg(ast->typeModifier.toString()));
+        throw Error(Tr::tr("public member with type modifier '%1' not supported").arg(ast->typeModifier.toString()));
 
     result->propertyDeclarations.insert(p.name, p);
 }
@@ -2536,7 +2537,7 @@ static LanguageObject *bindObject(ProjectFile::Ptr file, const QString &source, 
 //    );
 
     if (!ast->qualifiedTypeNameId || ast->qualifiedTypeNameId->name.isEmpty())
-        throw Error(Loader::tr("no prototype"));
+        throw Error(Tr::tr("no prototype"));
     result->prototype = toStringList(ast->qualifiedTypeNameId);
     result->prototypeLocation = toCodeLocation(file->fileName, ast->qualifiedTypeNameId->identifierToken);
 
@@ -2622,18 +2623,18 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
         QString as;
         if (isBase) {
             if (!import->importId.isNull()) {
-                throw Error(Loader::tr("Import of qbs.base must have no 'as <Name>'"),
+                throw Error(Tr::tr("Import of qbs.base must have no 'as <Name>'"),
                             toCodeLocation(fileName, import->importIdToken));
             }
         } else {
             if (import->importId.isNull()) {
-                throw Error(Loader::tr("Imports require 'as <Name>'"),
+                throw Error(Tr::tr("Imports require 'as <Name>'"),
                             toCodeLocation(fileName, import->importToken));
             }
 
             as = import->importId.toString();
             if (importAsNames.contains(as)) {
-                throw Error(Loader::tr("Can't import into the same name more than once."),
+                throw Error(Tr::tr("Can't import into the same name more than once."),
                             toCodeLocation(fileName, import->importIdToken));
             }
             importAsNames.insert(as);
@@ -2644,7 +2645,7 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
 
             QFileInfo fi(name);
             if (!fi.exists())
-                throw Error(Loader::tr("Can't find imported file %0.").arg(name),
+                throw Error(Tr::tr("Can't find imported file %0.").arg(name),
                             CodeLocation(fileName, import->fileNameToken.startLine, import->fileNameToken.startColumn));
             name = fi.canonicalFilePath();
             if (fi.isDir()) {
@@ -2658,7 +2659,7 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
                 } else if (name.endsWith(".qbs", Qt::CaseInsensitive)) {
                     prototypeToFile.insert(QStringList(as), name);
                 } else {
-                    throw Error(Loader::tr("Can only import .qbs and .js files"),
+                    throw Error(Tr::tr("Can only import .qbs and .js files"),
                                 CodeLocation(fileName, import->fileNameToken.startLine, import->fileNameToken.startColumn));
                 }
             }
@@ -2687,7 +2688,7 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
                 }
             }
             if (!found) {
-                throw Error(Loader::tr("import %1 not found").arg(importUri.join(".")),
+                throw Error(Tr::tr("import %1 not found").arg(importUri.join(".")),
                             toCodeLocation(fileName, import->fileNameToken));
             }
         }
@@ -2709,7 +2710,7 @@ ProjectFile::Ptr Loader::parseFile(const QString &fileName)
 
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly))
-        throw Error(tr("Couldn't open '%1'.").arg(fileName));
+        throw Error(Tr::tr("Couldn't open '%1'.").arg(fileName));
 
     const QString code = QTextStream(&file).readAll();
     QScopedPointer<QmlJS::Engine> engine(new QmlJS::Engine);
@@ -2866,7 +2867,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         const QVariantMap overriddenProperties = userProperties.value("project").toMap();
         for (QVariantMap::const_iterator it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it) {
             if (!evaluationObject->scope->properties.contains(it.key()))
-                throw Error(tr("No property '%1' in project scope.").arg(it.key()));
+                throw Error(Tr::tr("No property '%1' in project scope.").arg(it.key()));
             evaluationObject->scope->properties.insert(it.key(), Property(m_engine->toScriptValue(it.value())));
         }
 
@@ -2913,7 +2914,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
 
         return;
     } else if (evaluationObject->prototype != name_Product) {
-        QString msg = tr("'%1' is not allowed here.");
+        QString msg = Tr::tr("'%1' is not allowed here.");
         throw Error(msg.arg(evaluationObject->prototype),
                     evaluationObject->instantiatingObject()->prototypeLocation);
     }
@@ -2947,7 +2948,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     const QVariantMap overriddenProperties = userProperties.value(productData.originalProductName).toMap();
     for (QVariantMap::const_iterator it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it) {
         if (!evaluationObject->scope->properties.contains(it.key()))
-            throw Error(tr("No property '%1' in product '%2'.").arg(it.key(), productData.originalProductName));
+            throw Error(Tr::tr("No property '%1' in product '%2'.").arg(it.key(), productData.originalProductName));
         evaluationObject->scope->properties.insert(it.key(), Property(m_engine->toScriptValue(it.value())));
     }
 
@@ -2965,7 +2966,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         Module::Ptr moduleInProduct = productData.product->modules.value(it.key());
         if (moduleInProduct) {
             if (moduleInProduct->file() != it.value())
-                throw Error(tr("two different versions of '%1' were used: '%2' and '%3'").arg(
+                throw Error(Tr::tr("two different versions of '%1' were used: '%2' and '%3'").arg(
                                 it.key(), it.value()->fileName, moduleInProduct->file()->fileName));
             continue;
         }
@@ -2973,7 +2974,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
         Module::Ptr module = loadModule(it.value(), QStringList(), it.key(), moduleScope, userProperties,
                                         CodeLocation(object->file->fileName));
         if (!module) {
-            throw Error(tr("could not load module '%1' from file '%2' into product even though it was loaded into a submodule").arg(
+            throw Error(Tr::tr("could not load module '%1' from file '%2' into product even though it was loaded into a submodule").arg(
                                    it.key(), it.value()->fileName));
         }
         evaluationObject->modules.insert(module->name, module);

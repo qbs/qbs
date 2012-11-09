@@ -33,6 +33,7 @@
 #include <tools/buildoptions.h>
 #include <tools/settings.h>
 
+#include <QCoreApplication>
 #include <QPair>
 #include <QStringList>
 #include <QVariant>

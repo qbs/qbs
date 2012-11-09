@@ -29,6 +29,7 @@
 
 #include "file.h"
 
+#include <logging/translator.h>
 #include <tools/fileinfo.h>
 
 #include <QFileInfo>
@@ -60,7 +61,7 @@ QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
     Q_UNUSED(engine);
     if (context->argumentCount() < 2) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   tr("copy expects 2 arguments"));
+                                   Tr::tr("copy expects 2 arguments"));
     }
 
     const QString sourceFile = context->argument(0).toString();
@@ -76,7 +77,7 @@ QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
     Q_UNUSED(engine);
     if (context->argumentCount() < 1) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   tr("exist expects 1 argument"));
+                                   Tr::tr("exist expects 1 argument"));
     }
     return FileInfo::exists(context->argument(0).toString());
 }
@@ -86,7 +87,7 @@ QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
     Q_UNUSED(engine);
     if (context->argumentCount() < 1) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   tr("remove expects 1 argument"));
+                                   Tr::tr("remove expects 1 argument"));
     }
     QString fileName = context->argument(0).toString();
 

@@ -29,6 +29,7 @@
 
 #include "fileinfo.h"
 
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QCoreApplication>
@@ -276,14 +277,14 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
             removeFileRecursion(fi, errorMessage);
         QDir parent = f.absoluteDir();
         if (!parent.rmdir(f.fileName())) {
-            errorMessage->append(FileInfo::tr("The directory %1 could not be deleted.").
+            errorMessage->append(Tr::tr("The directory %1 could not be deleted.").
                                  arg(QDir::toNativeSeparators(f.absoluteFilePath())));
             return false;
         }
     } else if (!QFile::remove(f.absoluteFilePath())) {
         if (!errorMessage->isEmpty())
             errorMessage->append(QLatin1Char('\n'));
-        errorMessage->append(FileInfo::tr("The file %1 could not be deleted.").
+        errorMessage->append(Tr::tr("The file %1 could not be deleted.").
                              arg(QDir::toNativeSeparators(f.absoluteFilePath())));
         return false;
     }
@@ -294,7 +295,7 @@ bool removeDirectoryWithContents(const QString &path, QString *errorMessage)
 {
     QFileInfo f(path);
     if (f.exists() && !f.isDir()) {
-        *errorMessage = FileInfo::tr("%1 is not a directory.").arg(QDir::toNativeSeparators(path));
+        *errorMessage = Tr::tr("%1 is not a directory.").arg(QDir::toNativeSeparators(path));
         return false;
     }
     return removeFileRecursion(f, errorMessage);
@@ -326,7 +327,7 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
         QDir targetDir(tgtFilePath);
         targetDir.cdUp();
         if (!targetDir.mkpath(QFileInfo(tgtFilePath).fileName())) {
-            *errorMessage = FileInfo::tr("The directory '%1' could not be created.")
+            *errorMessage = Tr::tr("The directory '%1' could not be created.")
                .arg(QDir::toNativeSeparators(tgtFilePath));
             return false;
         }
@@ -342,7 +343,7 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
     } else {
         QFile file(srcFilePath);
         if (!file.copy(tgtFilePath)) {
-            *errorMessage = FileInfo::tr("Could not copy file '%1' to '%2'. %3")
+            *errorMessage = Tr::tr("Could not copy file '%1' to '%2'. %3")
                 .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath),
                      file.errorString());
             return false;

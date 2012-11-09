@@ -48,7 +48,6 @@ class ProgressObserver;
 
 class QbsEngine
 {
-    Q_DECLARE_TR_FUNCTIONS(QbsEngine)
     Q_DISABLE_COPY(QbsEngine)
 public:
     QbsEngine();

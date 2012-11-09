@@ -36,7 +36,6 @@
 #include <sys/stat.h>
 #endif
 
-#include <QCoreApplication> // for Q_DECLARE_TR_FUNCTIONS
 #include <QString>
 
 QT_FORWARD_DECLARE_CLASS(QFileInfo)
@@ -46,7 +45,6 @@ namespace Internal {
 
 class FileInfo
 {
-    Q_DECLARE_TR_FUNCTIONS(qbs::FileInfo)
 public:
     FileInfo(const QString &fileName);
 
