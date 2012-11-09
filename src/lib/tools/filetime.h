@@ -61,6 +61,7 @@ public:
     bool operator <= (const FileTime &rhs) const;
     bool operator >= (const FileTime &rhs) const;
     bool operator == (const FileTime &rhs) const;
+    bool operator != (const FileTime &rhs) const;
 
     void clear();
     bool isValid() const;
@@ -90,6 +91,11 @@ inline bool FileTime::operator >= (const FileTime &rhs) const
 inline bool FileTime::operator == (const FileTime &rhs) const
 {
     return m_fileTime == rhs.m_fileTime;
+}
+
+inline bool FileTime::operator != (const FileTime &rhs) const
+{
+    return !operator==(rhs);
 }
 
 } // namespace Internal
