@@ -38,6 +38,7 @@ class ConsoleProgressObserver : public ProgressObserver
     void initialize(const QString &task, int max);
     void setProgressValue(int value);
     int progressValue() { return m_value; }
+    int maximum() const { return m_maximum; }
     bool canceled() const { return false; }
 
     void eraseCurrentPercentageString();

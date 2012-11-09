@@ -661,6 +661,8 @@ void Executor::finish()
 
     resetArtifactsToUntouched();
     setState(ExecutorIdle);
+    if (m_progressObserver)
+        m_progressObserver->setFinished();
     emit finished();
 }
 

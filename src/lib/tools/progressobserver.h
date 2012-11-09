@@ -24,6 +24,9 @@ public:
     }
 
     virtual bool canceled() const = 0;
+    virtual int maximum() const = 0;
+
+    void setFinished() { setProgressValue(maximum()); }
 };
 
 } // namespace qbs
