@@ -159,9 +159,6 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
             setError(e.toString());
             return;
         }
-        foreach (Artifact *artifact, product->artifacts)
-            if (artifact->artifactType == Artifact::SourceFile)
-                artifact->buildState = initialBuildState;
     }
 
     // find the root nodes
