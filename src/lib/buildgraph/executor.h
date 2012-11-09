@@ -95,7 +95,6 @@ protected:
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
     void doOutOfDateCheck();
     void doOutOfDateCheck(Artifact *root);
-    static bool isLeaf(Artifact *artifact);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool run();

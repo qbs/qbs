@@ -259,14 +259,6 @@ void Executor::setBuildOptions(const BuildOptions &buildOptions)
         job->setDryRun(m_buildOptions.dryRun);
 }
 
-bool Executor::isLeaf(Artifact *artifact)
-{
-    foreach (Artifact *child, artifact->children)
-        if (child->buildState != Artifact::Built)
-            return false;
-    return true;
-}
-
 static void markAsOutOfDateBottomUp(Artifact *artifact)
 {
     if (artifact->buildState == Artifact::Untouched)
@@ -474,6 +466,14 @@ void Executor::execute(Artifact *artifact)
     job->run(artifact->transformer.data(), artifact->product);
 }
 
+static bool allChildrenBuilt(Artifact *artifact)
+{
+    foreach (Artifact *child, artifact->children)
+        if (child->buildState != Artifact::Built)
+            return false;
+    return true;
+}
+
 void Executor::finishArtifact(Artifact *leaf)
 {
     if (qbsLogLevel(LoggerTrace))
@@ -487,7 +487,7 @@ void Executor::finishArtifact(Artifact *leaf)
             continue;
         }
 
-        if (isLeaf(parent)) {
+        if (allChildrenBuilt(parent)) {
             m_leaves.insert(parent, hashDummy);
             if (qbsLogLevel(LoggerTrace))
                 qbsTrace() << "[EXEC] finishArtifact adds leaf " << fileName(parent) << " " << toString(parent->buildState);
