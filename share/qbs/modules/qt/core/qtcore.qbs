@@ -54,9 +54,9 @@ Module {
         if (qbs.targetOS === 'windows' && !product.consoleApplication)
             return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (qbs.toolchain !== "mingw" ? ".lib" : "")];
     }
-    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
+    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs, cpp)] : undefined
     cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
-    cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs.targetOS, cpp.debugInformation)] : undefined
+    cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('QtCore' + libInfix, versionMajor, qbs, cpp)] : undefined
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
 
