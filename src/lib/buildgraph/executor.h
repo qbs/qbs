@@ -89,16 +89,13 @@ protected slots:
     void onProcessSuccess();
 
 protected:
-    void prepareBuildGraph(Artifact::BuildState buildState);
-    void prepareBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState);
+    void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
+    void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void updateBuildGraph(Artifact::BuildState buildState);
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
-    void doOutOfDateCheck();
-    void doOutOfDateCheck(Artifact *root);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool run();
-    FileTime timeStamp(Artifact *artifact);
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
@@ -120,11 +117,9 @@ private:
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
     BuildResult m_buildResult;
-    bool m_printScanningMessage;
     QList<BuildProduct::Ptr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QMap<Artifact *, QHashDummyValue> m_leaves;
-    QHash<Artifact *, FileTime> m_timeStampCache;
     ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;

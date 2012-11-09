@@ -60,9 +60,7 @@ Artifact::Artifact(BuildProject *p)
     , artifactType(Unknown)
     , buildState(Untouched)
     , inputsScanned(false)
-    , outOfDateCheckPerformed(false)
-    , isOutOfDate(false)
-    , isExistingFile(false)
+    , timestampRetrieved(false)
 {
 }
 
@@ -82,9 +80,10 @@ void Artifact::load(PersistentPool &pool)
     fileTags = pool.idLoadStringSet();
     properties = pool.idLoadS<PropertyMap>();
     transformer = pool.idLoadS<Transformer>();
-    quint8 n;
-    pool.stream() >> artifactType >> n;
-    inputsScanned = n;
+    pool.stream()
+            >> artifactType
+            >> timestamp
+            >> autoMocTimestamp;
 }
 
 void Artifact::store(PersistentPool &pool) const
@@ -93,7 +92,10 @@ void Artifact::store(PersistentPool &pool) const
     pool.storeStringSet(fileTags);
     pool.store(properties);
     pool.store(transformer);
-    pool.stream() << artifactType << static_cast<quint8>(inputsScanned);
+    pool.stream()
+            << artifactType
+            << timestamp
+            << autoMocTimestamp;
 }
 
 } // namespace Internal

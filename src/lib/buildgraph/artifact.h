@@ -73,7 +73,6 @@ public:
         Generated = 4,
         FileDependency = 8
     };
-    ArtifactType artifactType;
 
     enum BuildState
     {
@@ -82,14 +81,15 @@ public:
         Building,
         Built
     };
+
+    ArtifactType artifactType;
+    FileTime timestamp;
+    FileTime autoMocTimestamp;
+
+    // Do not serialize the following members. They'll be refreshed for every build.
     BuildState buildState;
-
     bool inputsScanned : 1;
-
-    // the following members are not serialized
-    bool outOfDateCheckPerformed : 1;
-    bool isOutOfDate : 1;
-    bool isExistingFile : 1;
+    bool timestampRetrieved : 1;
 
     void setFilePath(const QString &filePath);
     const QString &filePath() const { return m_filePath; }

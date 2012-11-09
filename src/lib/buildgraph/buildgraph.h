@@ -115,6 +115,7 @@ public:
     ResolvedProject::Ptr resolvedProject() const;
     QSet<BuildProduct::Ptr> buildProducts() const;
     bool dirty() const;
+    void markDirty();
     void insertIntoArtifactLookupTable(Artifact *artifact);
     void removeFromArtifactLookupTable(Artifact *artifact);
     QList<Artifact *> lookupArtifacts(const QString &filePath) const;
@@ -132,7 +133,6 @@ private:
                                   LoadResult *loadResult);
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
-    void markDirty();
     void addBuildProduct(const BuildProduct::Ptr &product);
     void setResolvedProject(const ResolvedProject::Ptr & resolvedProject);
 
@@ -142,7 +142,7 @@ private:
     QSet<BuildProduct::Ptr> m_buildProducts;
     ArtifactList m_dependencyArtifacts;
     QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
-    bool m_dirty;
+    mutable bool m_dirty;
 };
 
 /**

@@ -57,6 +57,7 @@ void AutoMoc::apply(BuildProduct::Ptr product)
     Artifact *pchFile = 0;
     QList<QPair<Artifact *, FileType> > artifactsToMoc;
     QSet<QString> includedMocCppFiles;
+    const FileTime currentTime = FileTime::currentTime();
     ArtifactList::const_iterator it = product->artifacts.begin();
     for (; it != product->artifacts.end(); ++it) {
         Artifact *artifact = *it;
@@ -76,6 +77,9 @@ void AutoMoc::apply(BuildProduct::Ptr product)
         }
         if (artifact->artifactType != Artifact::SourceFile)
             continue;
+        if (artifact->timestamp < artifact->autoMocTimestamp)
+            continue;
+        artifact->autoMocTimestamp = currentTime;
         const FileType fileType = AutoMoc::fileType(artifact);
         if (fileType == UnknownFileType)
             continue;

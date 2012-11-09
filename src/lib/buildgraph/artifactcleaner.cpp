@@ -54,14 +54,26 @@ static void printRemovalMessage(const QString &path, bool dryRun)
         qbsDebug() << "Removing '" << path << "'.";
 }
 
-static void removeArtifactFromDisk(const Artifact *artifact, bool stopOnError, bool dryRun)
+static void invalidateArtifactTimestamp(Artifact *artifact)
+{
+    if (artifact->timestamp.isValid()) {
+        artifact->timestamp.clear();
+        artifact->project->markDirty();
+    }
+}
+
+static void removeArtifactFromDisk(Artifact *artifact, bool stopOnError, bool dryRun)
 {
     QFileInfo fileInfo(artifact->filePath());
-    if (!fileInfo.exists())
+    if (!fileInfo.exists()) {
+        if (!dryRun)
+            invalidateArtifactTimestamp(artifact);
         return;
+    }
     printRemovalMessage(fileInfo.filePath(), dryRun);
     if (dryRun)
         return;
+    invalidateArtifactTimestamp(artifact);
     QString errorMessage;
     if (!removeFileRecursion(fileInfo, &errorMessage)) {
         if (stopOnError)
@@ -91,7 +103,7 @@ public:
     const QSet<QString> &directories() const { return m_directories; }
 
 private:
-    void doVisit(const Artifact *artifact)
+    void doVisit(Artifact *artifact)
     {
         if (artifact->product != m_product)
             return;

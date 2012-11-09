@@ -37,7 +37,7 @@ ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType
 {
 }
 
-void ArtifactVisitor::visit(const Artifact *artifact)
+void ArtifactVisitor::visit(Artifact *artifact)
 {
     if (m_allArtifacts.contains(artifact))
         return;
@@ -46,13 +46,13 @@ void ArtifactVisitor::visit(const Artifact *artifact)
         doVisit(artifact);
     else if (m_artifactType == Artifact::Generated)
         return;
-    foreach (const Artifact * const child, artifact->children)
+    foreach (Artifact * const child, artifact->children)
         visit(child);
 }
 
 void ArtifactVisitor::visit(const BuildProduct::ConstPtr &product)
 {
-    foreach (const Artifact * const artifact, product->targetArtifacts)
+    foreach (Artifact * const artifact, product->targetArtifacts)
         visit(artifact);
 }
 

@@ -207,6 +207,19 @@ void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions
     d->buildProducts(resolvedProducts, buildOptions, true);
 }
 
+static void cleanBuildProducts(const QList<BuildProduct::ConstPtr> &buildProducts,
+                               const BuildOptions &buildOptions, QbsEngine::CleanType cleanType)
+{
+    ArtifactCleaner cleaner;
+    cleaner.cleanup(buildProducts, cleanType == QbsEngine::CleanupAll, buildOptions);
+
+    QSet<BuildProject *> buildProjects;
+    foreach (const BuildProduct::ConstPtr &bProduct, buildProducts)
+        buildProjects += bProduct->project;
+    foreach (BuildProject *bProject, buildProjects)
+        bProject->store();
+}
+
 void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
                               const BuildOptions &buildOptions, CleanType cleanType)
 {
@@ -219,8 +232,7 @@ void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
         foreach (const BuildProduct::ConstPtr &product, bProject->buildProducts())
             products << product;
     }
-    ArtifactCleaner cleaner;
-    cleaner.cleanup(products, cleanType == CleanupAll, buildOptions);
+    cleanBuildProducts(products, buildOptions, cleanType);
 }
 
 void QbsEngine::cleanProjects(const QList<Project> &projects, const BuildOptions &buildOptions,
@@ -256,9 +268,7 @@ void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions
             }
         }
     }
-
-    ArtifactCleaner cleaner;
-    cleaner.cleanup(buildProducts, cleanType == CleanupAll, buildOptions);
+    cleanBuildProducts(buildProducts, buildOptions, cleanType);
 }
 
 Project QbsEngine::retrieveProject(Project::Id projectId) const

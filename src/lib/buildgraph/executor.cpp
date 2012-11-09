@@ -57,7 +57,7 @@ public:
     int effort() const { return m_effort; }
 
 private:
-    void doVisit(const Artifact *) { m_effort += 10; }
+    void doVisit(Artifact *) { m_effort += 10; }
 
     int m_effort;
 };
@@ -71,7 +71,7 @@ public:
     int effort() const { return m_effort; }
 
 private:
-    void doVisit(const Artifact *) { ++m_effort; }
+    void doVisit(Artifact *) { ++m_effort; }
 
     int m_effort;
 };
@@ -88,7 +88,7 @@ public:
     }
 
 private:
-    void doVisit(const Artifact *artifact)
+    void doVisit(Artifact *artifact)
     {
         m_effort += multiplier(artifact);
     }
@@ -117,6 +117,19 @@ Executor::~Executor()
         delete job;
     delete m_autoMoc;
     delete m_inputArtifactScanContext;
+}
+
+static void retrieveSourceFileTimestamp(Artifact *artifact)
+{
+    Q_ASSERT(artifact->artifactType == Artifact::SourceFile);
+
+    const FileInfo fi(artifact->filePath());
+    artifact->timestamp = fi.lastModified();
+    artifact->timestampRetrieved = true;
+    if (!fi.exists()) {
+        const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
+        qbsWarning() << Executor::tr("File '%1' not found.").arg(nativeFilePath);
+    }
 }
 
 void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
@@ -163,12 +176,18 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
 
     // find the root nodes
     m_roots.clear();
-    foreach (BuildProduct::Ptr product, m_productsToBuild)
-        foreach (Artifact *rootArtifact, product->targetArtifacts)
-            m_roots += rootArtifact;
+    foreach (BuildProduct::Ptr product, m_productsToBuild) {
+        foreach (Artifact *targetArtifact, product->targetArtifacts) {
+            m_roots += targetArtifact;
 
-    // mark the artifacts we want to build
-    prepareBuildGraph(initialBuildState);
+            // The user expects that he can delete target artifacts and they get rebuilt.
+            // To achieve this we must invalidate their timestamps.
+            targetArtifact->timestamp.clear();
+        }
+    }
+
+    bool sourceFilesChanged;
+    prepareBuildGraph(initialBuildState, &sourceFilesChanged);
 
     int scanEffort;
     int mocEffort;
@@ -191,25 +210,12 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
         m_progressObserver->initialize(tr("Building"), totalEffort);
     }
 
-    // determine which artifacts are out of date
-    const bool changedFilesProvided = !m_buildOptions.changedFiles.isEmpty();
-    if (changedFilesProvided) {
-        m_printScanningMessage = true;
-        foreach (Artifact *artifact, changedArtifacts) {
-            if (!artifact->inputsScanned && artifact->artifactType == Artifact::Generated) {
-                printScanningMessageOnce();
-                InputArtifactScanner scanner(artifact, m_inputArtifactScanContext);
-                scanner.scan();
-            }
-        }
-    } else {
-        doOutOfDateCheck();
-    }
     if (m_progressObserver)
         m_progressObserver->incrementProgressValue(scanEffort);
 
     if (success) {
-        success = runAutoMoc();
+        if (sourceFilesChanged)
+            success = runAutoMoc();
         if (m_progressObserver)
             m_progressObserver->incrementProgressValue(mocEffort);
     }
@@ -259,16 +265,13 @@ void Executor::setBuildOptions(const BuildOptions &buildOptions)
         job->setDryRun(m_buildOptions.dryRun);
 }
 
-static void markAsOutOfDateBottomUp(Artifact *artifact)
+static void initArtifactsBottomUp(Artifact *artifact)
 {
     if (artifact->buildState == Artifact::Untouched)
         return;
     artifact->buildState = Artifact::Buildable;
-    artifact->outOfDateCheckPerformed = true;
-    artifact->isOutOfDate = true;
-    artifact->isExistingFile = FileInfo(artifact->filePath()).exists();
     foreach (Artifact *parent, artifact->parents)
-        markAsOutOfDateBottomUp(parent);
+        initArtifactsBottomUp(parent);
 }
 
 void Executor::initLeaves(const QList<Artifact *> &changedArtifacts)
@@ -280,7 +283,7 @@ void Executor::initLeaves(const QList<Artifact *> &changedArtifacts)
     } else {
         foreach (Artifact *artifact, changedArtifacts) {
             m_leaves.insert(artifact, hashDummy);
-            markAsOutOfDateBottomUp(artifact);
+            initArtifactsBottomUp(artifact);
         }
     }
 }
@@ -293,8 +296,11 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
 
     // Artifacts that appear in the build graph after
     // prepareBuildGraph() has been called, must be initialized.
-    if (artifact->buildState == Artifact::Untouched)
+    if (artifact->buildState == Artifact::Untouched) {
         artifact->buildState = Artifact::Buildable;
+        if (artifact->artifactType == Artifact::SourceFile)
+            retrieveSourceFileTimestamp(artifact);
+    }
 
     if (artifact->children.isEmpty()) {
         m_leaves.insert(artifact, hashDummy);
@@ -325,30 +331,43 @@ bool Executor::run()
     return false;
 }
 
-FileTime Executor::timeStamp(Artifact *artifact)
+static bool isUpToDate(Artifact *artifact)
 {
-    FileTime result = m_timeStampCache.value(artifact);
-    if (result.isValid())
-        return result;
+    Q_ASSERT(artifact->artifactType == Artifact::Generated);
 
-    FileInfo fi(artifact->filePath());
-    if (!fi.exists())
-        return FileTime::currentTime();
+    const bool debug = false;
+    if (debug) qbsDebug()
+            << "[UTD] check " << artifact->filePath() << " " << artifact->timestamp.toString();
 
-    result = fi.lastModified();
+    if (!artifact->timestamp.isValid()) {
+        FileInfo fi(artifact->filePath());
+        if (fi.exists()) {
+            artifact->timestamp = fi.lastModified();
+        } else {
+            if (debug) qbsDebug() << "[UTD] file doesn't exist. Out of date.";
+            return false;
+        }
+    }
+
     foreach (Artifact *child, artifact->children) {
-        const FileTime childTime = timeStamp(child);
-        if (result < childTime)
-            result = childTime;
-    }
-    foreach (Artifact *fileDependency, artifact->fileDependencies) {
-        const FileTime ft = timeStamp(fileDependency);
-        if (result < ft)
-            result = ft;
+        Q_ASSERT(child->timestamp.isValid());
+        if (debug) qbsDebug() << "[UTD] child timestamp " << child->timestamp.toString();
+        if (artifact->timestamp < child->timestamp)
+            return false;
     }
 
-    m_timeStampCache.insert(artifact, result);
-    return result;
+    foreach (Artifact *fileDependency, artifact->fileDependencies) {
+        if (!fileDependency->timestamp.isValid()) {
+            FileInfo fi(fileDependency->filePath());
+            fileDependency->timestamp = fi.lastModified();
+        }
+        if (debug) qbsDebug() << "[UTD] file dependency timestamp "
+                              << fileDependency->timestamp.toString();
+        if (artifact->timestamp < fileDependency->timestamp)
+            return false;
+    }
+
+    return true;
 }
 
 void Executor::execute(Artifact *artifact)
@@ -356,25 +375,16 @@ void Executor::execute(Artifact *artifact)
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[EXEC] " << fileName(artifact);
 
-//    artifact->project->buildGraph()->dump(*artifact->products.begin());
-
-    if (!artifact->outOfDateCheckPerformed)
-        doOutOfDateCheck(artifact);
-    bool fileExists = artifact->isExistingFile;
-    bool isDirty = artifact->isOutOfDate;
     m_leaves.remove(artifact);
 
-    // skip source artifacts
-    if (!fileExists && artifact->artifactType == Artifact::SourceFile) {
-        QString msg = QLatin1String("Can't find source file '%1', referenced in '%2'.");
-        setError(msg.arg(artifact->filePath(), artifact->product->rProduct->qbsFile));
-        return;
-    }
-
-    // skip non-generated artifacts
+    // skip artifacts without transformer
     if (artifact->artifactType != Artifact::Generated) {
-        if (!fileExists)
-            qbsWarning() << tr("No transformer builds '%1'").arg(QDir::toNativeSeparators(artifact->filePath()));
+        // For source artifacts, that were not reachable when initializing the build, we must
+        // retrieve timestamps. This can happen, if a dependency that's added during the build
+        // makes the source artifact reachable.
+        if (artifact->artifactType == Artifact::SourceFile && !artifact->timestampRetrieved)
+            retrieveSourceFileTimestamp(artifact);
+
         if (qbsLogLevel(LoggerDebug))
             qbsDebug("[EXEC] artifact type %s. Skipping.",
                      qPrintable(toString(artifact->artifactType)));
@@ -386,7 +396,7 @@ void Executor::execute(Artifact *artifact)
     Q_ASSERT(artifact->transformer);
 
     // skip artifacts that are up-to-date
-    if (!isDirty) {
+    if (isUpToDate(artifact)) {
         if (qbsLogLevel(LoggerDebug))
             qbsDebug("[EXEC] Up to date. Skipping.");
         finishArtifact(artifact);
@@ -598,15 +608,6 @@ bool Executor::runAutoMoc()
     return true;
 }
 
-void Executor::printScanningMessageOnce()
-{
-    if (m_printScanningMessage) {
-        m_printScanningMessage = false;
-        qbsInfo() << DontPrintLogLevel
-                  << tr("Scanning source files...");
-    }
-}
-
 void Executor::onProcessError(QString errorString)
 {
     m_buildResult = FailedBuild;
@@ -627,6 +628,13 @@ void Executor::onProcessSuccess()
     Q_ASSERT(processedArtifact);
     m_processingJobs.remove(job);
     m_availableJobs.append(job);
+
+    // Update the timestamps of the outputs of the transformer we just executed.
+    processedArtifact->project->markDirty();
+    const FileTime currentTime = FileTime::currentTime();
+    foreach (Artifact *sideBySideArtifact, processedArtifact->transformer->outputs)
+        sideBySideArtifact->timestamp = currentTime;
+
     finishArtifact(processedArtifact);
 
     if (m_state == ExecutorRunning && !run())
@@ -672,28 +680,47 @@ void Executor::resetArtifactsToUntouched()
     foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
         foreach (Artifact *artifact, product->artifacts) {
             artifact->buildState = Artifact::Untouched;
-            artifact->outOfDateCheckPerformed = false;
-            artifact->isExistingFile = false;
-            artifact->isOutOfDate = false;
+            artifact->inputsScanned = false;
+            artifact->timestampRetrieved = false;
+
+            // Timestamps of file dependencies must be invalid for every build.
+            foreach (Artifact *fileDependency, artifact->fileDependencies)
+                fileDependency->timestamp.clear();
         }
     }
 }
 
-void Executor::prepareBuildGraph(Artifact::BuildState buildState)
+/**
+ * Walk the build graph top-down from the roots and for each reachable node N
+ *  - mark N as buildable,
+ *  - retrieve the timestamps of N, if N is a source file.
+ *
+ * This function sets *sourceFilesChanged to true, if the timestamp of a reachable source artifact
+ * changed. Otherwise *sourceFilesChanged will be false.
+ */
+void Executor::prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged)
 {
+    *sourceFilesChanged = false;
     foreach (Artifact *root, m_roots)
-        prepareBuildGraph_impl(root, buildState);
+        prepareBuildGraph_impl(root, buildState, sourceFilesChanged);
 }
 
-void Executor::prepareBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState)
+void Executor::prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState,
+                                      bool *sourceFilesChanged)
 {
     if (artifact->buildState != Artifact::Untouched)
         return;
 
     artifact->buildState = buildState;
+    if (artifact->artifactType == Artifact::SourceFile) {
+        const FileTime oldTimestamp = artifact->timestamp;
+        retrieveSourceFileTimestamp(artifact);
+        if (oldTimestamp != artifact->timestamp)
+            *sourceFilesChanged = true;
+    }
 
     foreach (Artifact *child, artifact->children)
-        prepareBuildGraph_impl(child, buildState);
+        prepareBuildGraph_impl(child, buildState, sourceFilesChanged);
 }
 
 void Executor::updateBuildGraph(Artifact::BuildState buildState)
@@ -713,47 +740,6 @@ void Executor::updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState bu
 
     foreach (Artifact *child, artifact->children)
         updateBuildGraph_impl(child, buildState, seenArtifacts);
-}
-
-void Executor::doOutOfDateCheck()
-{
-    m_printScanningMessage = true;
-    foreach (Artifact *root, m_roots)
-        doOutOfDateCheck(root);
-}
-
-void Executor::doOutOfDateCheck(Artifact *artifact)
-{
-    if (artifact->outOfDateCheckPerformed)
-        return;
-
-    FileInfo fi(artifact->filePath());
-    artifact->isExistingFile = fi.exists();
-    if (!artifact->isExistingFile) {
-        artifact->isOutOfDate = true;
-    } else {
-        if (!artifact->inputsScanned && artifact->artifactType == Artifact::Generated) {
-            // The file exists but no dependency scan has been performed.
-            // This happens if the build graph is removed manually.
-            printScanningMessageOnce();
-            InputArtifactScanner scanner(artifact, m_inputArtifactScanContext);
-            scanner.scan();
-        }
-
-        FileTime artifactTimeStamp = fi.lastModified();
-        foreach (Artifact *child, artifact->children) {
-            if (artifactTimeStamp < timeStamp(child)) {
-                artifact->isOutOfDate = true;
-                break;
-            }
-        }
-    }
-
-    artifact->outOfDateCheckPerformed = true;
-    if (artifact->isOutOfDate)
-        artifact->inputsScanned = false;
-    foreach (Artifact *child, artifact->children)
-        doOutOfDateCheck(child);
 }
 
 void Executor::setState(ExecutorState s)

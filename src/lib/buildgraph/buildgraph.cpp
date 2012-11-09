@@ -1060,6 +1060,7 @@ void BuildProject::store() const
     pool.setHeadData(headData);
     pool.setupWriteStream(fileName);
     store(pool);
+    m_dirty = false;
 }
 
 void BuildProject::load(PersistentPool &pool)
