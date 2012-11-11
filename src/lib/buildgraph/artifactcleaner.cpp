@@ -94,10 +94,10 @@ public:
     {
     }
 
-    void visit(const BuildProduct::ConstPtr &product)
+    void visitProduct(const BuildProduct::ConstPtr &product)
     {
         m_product = product;
-        ArtifactVisitor::visit(product);
+        ArtifactVisitor::visitProduct(product);
     }
 
     const QSet<QString> &directories() const { return m_directories; }
@@ -128,7 +128,7 @@ void ArtifactCleaner::cleanup(const QList<BuildProduct::ConstPtr> &products, boo
     QSet<QString> directories;
     foreach (const BuildProduct::ConstPtr &product, products) {
         CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll);
-        visitor.visit(product);
+        visitor.visitProduct(product);
         directories.unite(visitor.directories());
     }
 

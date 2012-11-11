@@ -37,7 +37,7 @@ ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType
 {
 }
 
-void ArtifactVisitor::visit(Artifact *artifact)
+void ArtifactVisitor::visitArtifact(Artifact *artifact)
 {
     if (m_allArtifacts.contains(artifact))
         return;
@@ -47,31 +47,19 @@ void ArtifactVisitor::visit(Artifact *artifact)
     else if (m_artifactType == Artifact::Generated)
         return;
     foreach (Artifact * const child, artifact->children)
-        visit(child);
+        visitArtifact(child);
 }
 
-void ArtifactVisitor::visit(const BuildProduct::ConstPtr &product)
+void ArtifactVisitor::visitProduct(const BuildProduct::ConstPtr &product)
 {
     foreach (Artifact * const artifact, product->targetArtifacts)
-        visit(artifact);
+        visitArtifact(artifact);
 }
 
-void ArtifactVisitor::visit(const BuildProject::ConstPtr &project)
+void ArtifactVisitor::visitProject(const BuildProject::ConstPtr &project)
 {
     foreach (const BuildProduct::ConstPtr &product, project->buildProducts())
-        visit(product);
-}
-
-void ArtifactVisitor::visit(const QList<BuildProject::ConstPtr> &projects)
-{
-    foreach (const BuildProject::ConstPtr &project, projects)
-        visit(project);
-}
-
-void ArtifactVisitor::visit(const QList<BuildProject::Ptr> &projects)
-{
-    foreach (const BuildProject::ConstPtr &project, projects)
-        visit(project);
+        visitProduct(product);
 }
 
 } // namespace Internal

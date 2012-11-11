@@ -200,9 +200,9 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
         MocEffortCalculator mocEffortCalculator;
         BuildEffortCalculator buildEffortCalculator;
         foreach (const BuildProduct::ConstPtr &product, m_productsToBuild) {
-            scanEffortCalculator.visit(product);
-            mocEffortCalculator.visit(product);
-            buildEffortCalculator.visit(product);
+            scanEffortCalculator.visitProduct(product);
+            mocEffortCalculator.visitProduct(product);
+            buildEffortCalculator.visitProduct(product);
         }
         scanEffort = scanEffortCalculator.effort();
         mocEffort = mocEffortCalculator.effort();

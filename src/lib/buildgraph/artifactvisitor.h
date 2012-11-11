@@ -43,11 +43,9 @@ class ArtifactVisitor
 public:
     ArtifactVisitor(int artifactType);
 
-    virtual void visit(Artifact *artifact);
-    virtual void visit(const BuildProduct::ConstPtr &product);
-    virtual void visit(const BuildProject::ConstPtr &project);
-    virtual void visit(const QList<BuildProject::ConstPtr> &projects);
-    virtual void visit(const QList<BuildProject::Ptr> &projects);
+    virtual void visitArtifact(Artifact *artifact);
+    virtual void visitProduct(const BuildProduct::ConstPtr &product);
+    virtual void visitProject(const BuildProject::ConstPtr &project);
 
 private:
     virtual void doVisit(Artifact *artifact) = 0;
