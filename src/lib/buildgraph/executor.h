@@ -81,14 +81,13 @@ public:
 signals:
     void error();
     void finished();
-    void stateChanged(ExecutorState);
-    void progress(int jobsToDo, int jobCount, const QString &description);
 
-protected slots:
+private slots:
     void onProcessError(QString errorString);
     void onProcessSuccess();
 
-protected:
+private:
+    void doBuild(const QList<BuildProduct::Ptr> &productsToBuild);
     void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void updateBuildGraph(Artifact::BuildState buildState);
@@ -99,17 +98,17 @@ protected:
     void execute(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
-    void resetArtifactsToUntouched();
+    void initializeArtifactsState();
     void setState(ExecutorState);
     void setError(const QString &errorMessage);
     void addExecutorJobs(int jobNumber);
     void removeExecutorJobs(int jobNumber);
-    bool runAutoMoc();
+    void runAutoMoc();
     void printScanningMessageOnce();
     void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();
+    void setupProgressObserver(bool mocWillRun);
 
-private:
     ScriptEngine *m_engine;
     BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
@@ -123,6 +122,7 @@ private:
     ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;
+    int m_mocEffort;
 
     friend class ExecutorJob;
 };

@@ -38,6 +38,7 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
 
@@ -59,20 +60,6 @@ public:
 
 private:
     void doVisit(Artifact *) { m_effort += 10; }
-
-    int m_effort;
-};
-
-class ScanEffortCalculator : public ArtifactVisitor
-{
-public:
-    ScanEffortCalculator()
-        : ArtifactVisitor(Artifact::SourceFile | Artifact::FileDependency), m_effort(0) {}
-
-    int effort() const { return m_effort; }
-
-private:
-    void doVisit(Artifact *) { ++m_effort; }
 
     int m_effort;
 };
@@ -135,14 +122,24 @@ static void retrieveSourceFileTimestamp(Artifact *artifact)
 
 void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
 {
+    try {
+        doBuild(productsToBuild);
+    } catch (const Error &e) {
+        setError(e.toString());
+        return;
+    }
+}
+
+void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
+{
     Q_ASSERT(m_buildOptions.maxJobCount > 0);
     Q_ASSERT(m_engine);
     Q_ASSERT(m_state != ExecutorRunning);
     m_leaves.clear();
-    bool success = true;
     m_buildResult = SuccessfulBuild;
     m_productsToBuild = productsToBuild;
 
+    initializeArtifactsState();
     setState(ExecutorRunning);
     Artifact::BuildState initialBuildState = m_buildOptions.changedFiles.isEmpty()
             ? Artifact::Buildable : Artifact::Built;
@@ -166,14 +163,8 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
 
     // prepare products
     const QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
-    foreach (BuildProduct::Ptr product, m_productsToBuild) {
-        try {
-            product->rProduct->setupBuildEnvironment(m_engine, systemEnvironment);
-        } catch (const Error &e) {
-            setError(e.toString());
-            return;
-        }
-    }
+    foreach (BuildProduct::Ptr product, m_productsToBuild)
+        product->rProduct->setupBuildEnvironment(m_engine, systemEnvironment);
 
     // find the root nodes
     m_roots.clear();
@@ -189,55 +180,24 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
 
     bool sourceFilesChanged;
     prepareBuildGraph(initialBuildState, &sourceFilesChanged);
-
-    int scanEffort;
-    int mocEffort;
-    if (m_progressObserver) {
-        if (m_progressObserver->canceled()) {
-            setError(tr("Build canceled."));
-            return;
-        }
-        ScanEffortCalculator scanEffortCalculator;
-        MocEffortCalculator mocEffortCalculator;
-        BuildEffortCalculator buildEffortCalculator;
-        foreach (const BuildProduct::ConstPtr &product, m_productsToBuild) {
-            scanEffortCalculator.visitProduct(product);
-            mocEffortCalculator.visitProduct(product);
-            buildEffortCalculator.visitProduct(product);
-        }
-        scanEffort = scanEffortCalculator.effort();
-        mocEffort = mocEffortCalculator.effort();
-        const int totalEffort = scanEffort + mocEffort + buildEffortCalculator.effort();
-        m_progressObserver->initialize(tr("Building"), totalEffort);
-    }
-
-    if (m_progressObserver)
-        m_progressObserver->incrementProgressValue(scanEffort);
-
-    if (success) {
-        if (sourceFilesChanged)
-            success = runAutoMoc();
-        if (m_progressObserver)
-            m_progressObserver->incrementProgressValue(mocEffort);
-    }
-    if (success)
-        initLeaves(changedArtifacts);
-
-    if (success) {
-        bool stillArtifactsToExecute = run();
-
-        if (!stillArtifactsToExecute)
-            finish();
-    }
+    setupProgressObserver(sourceFilesChanged);
+    if (sourceFilesChanged)
+        runAutoMoc();
+    initLeaves(changedArtifacts);
+    bool stillArtifactsToExecute = run();
+    if (!stillArtifactsToExecute)
+        finish();
 }
 
 void Executor::cancelBuild()
 {
     if (m_state != ExecutorRunning)
         return;
-    qbsInfo() << "Build canceled.";
-    setState(ExecutorCanceled);
     cancelJobs();
+    m_buildResult = FailedBuild;
+    setState(ExecutorCanceled);
+    qbsError() << Tr::tr("Build canceled.");
+    emit error();
 }
 
 void Executor::setEngine(ScriptEngine *engine)
@@ -557,6 +517,23 @@ void Executor::cancelJobs()
         job->waitForFinished();
 }
 
+void Executor::setupProgressObserver(bool mocWillRun)
+{
+    if (!m_progressObserver)
+        return;
+    MocEffortCalculator mocEffortCalculator;
+    BuildEffortCalculator buildEffortCalculator;
+    foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
+        buildEffortCalculator.visitProduct(product);
+    if (mocWillRun) {
+        foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
+            mocEffortCalculator.visitProduct(product);
+    }
+    m_mocEffort = mocEffortCalculator.effort();
+    const int totalEffort = m_mocEffort + buildEffortCalculator.effort();
+    m_progressObserver->initialize(tr("Building"), totalEffort);
+}
+
 void Executor::addExecutorJobs(int jobNumber)
 {
     for (int i = 1; i <= jobNumber; i++) {
@@ -584,29 +561,25 @@ void Executor::removeExecutorJobs(int jobNumber)
     }
 }
 
-bool Executor::runAutoMoc()
+void Executor::runAutoMoc()
 {
     bool autoMocApplied = false;
     foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
         // HACK call the automoc thingy here only if we have use qt/core module
         foreach (const ResolvedModule::ConstPtr &m, product->rProduct->modules) {
             if (m->name == "qt/core") {
-                try {
-                    autoMocApplied = true;
-                    m_autoMoc->apply(product);
-                } catch (const Error &e) {
-                    setError(e.toString());
-                    return false;
-                }
+                autoMocApplied = true;
+                m_autoMoc->apply(product);
                 break;
             }
         }
     }
-    if (autoMocApplied)
+    if (autoMocApplied) {
         foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
             CycleDetector().visitProduct(product);
-
-    return true;
+    }
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue(m_mocEffort);
 }
 
 void Executor::onProcessError(QString errorString)
@@ -638,6 +611,11 @@ void Executor::onProcessSuccess()
 
     finishArtifact(processedArtifact);
 
+    if (m_progressObserver && m_progressObserver->canceled()) {
+        cancelBuild();
+        return;
+    }
+
     if (m_state == ExecutorRunning && !run())
         finish();
 }
@@ -665,7 +643,6 @@ void Executor::finish()
                   << "Build failed.";
     }
 
-    resetArtifactsToUntouched();
     setState(ExecutorIdle);
     if (m_progressObserver)
         m_progressObserver->setFinished();
@@ -673,10 +650,10 @@ void Executor::finish()
 }
 
 /**
-  * Resets the state of all artifacts in the graph to "untouched".
-  * This must be done before doing another build.
+  * Sets the state of all artifacts in the graph to "untouched".
+  * This must be done before doing a build.
   */
-void Executor::resetArtifactsToUntouched()
+void Executor::initializeArtifactsState()
 {
     foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
         foreach (Artifact *artifact, product->artifacts) {
@@ -748,7 +725,6 @@ void Executor::setState(ExecutorState s)
     if (m_state == s)
         return;
     m_state = s;
-    emit stateChanged(s);
 }
 
 void Executor::setError(const QString &errorMessage)
