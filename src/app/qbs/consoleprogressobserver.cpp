@@ -35,10 +35,16 @@
 
 namespace qbs {
 
+ConsoleProgressObserver::ConsoleProgressObserver() : m_showProgress(false), m_canceled(false)
+{
+}
+
 void ConsoleProgressObserver::initialize(const QString &task, int max)
 {
     m_maximum = max;
     m_value = 0;
+    if (!m_showProgress)
+        return;
     m_percentage = 0;
     m_hashesPrinted = 0;
     std::cout << task.toLocal8Bit().constData() << ": 0%" << std::flush;
@@ -49,6 +55,8 @@ void ConsoleProgressObserver::setProgressValue(int value)
     if (value > m_maximum || value <= m_value)
         return; // TODO: Should be an assertion, but the executor currently breaks it.
     m_value = value;
+    if (!m_showProgress)
+        return;
     const int newPercentage = (100 * m_value) / m_maximum;
     if (newPercentage == m_percentage)
         return;

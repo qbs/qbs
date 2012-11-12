@@ -28,23 +28,20 @@
 ****************************************************************************/
 
 #include "application.h"
+
+#include "consoleprogressobserver.h"
 #include "ctrlchandler.h"
 
-#include <buildgraph/executor.h>
+#include <logging/logger.h>
+#include <logging/translator.h>
 
 namespace qbs {
-using namespace Internal;
 
 Application::Application(int &argc, char **argv)
-    : QCoreApplication(argc, argv)
+    : QCoreApplication(argc, argv), m_observer(new ConsoleProgressObserver)
 {
     // ### TODO reactivate the Ctrl-C handler
-    //installCtrlCHandler();
-}
-
-Application *Application::instance()
-{
-    return qobject_cast<Application *>(QCoreApplication::instance());
+    // installCtrlCHandler();
 }
 
 void Application::init()
@@ -54,16 +51,11 @@ void Application::init()
     setOrganizationDomain(QLatin1String("qt-project.org"));
 }
 
-void Application::setExecutor(Executor *e)
-{
-    m_executor = e;
-}
-
 void Application::userInterrupt()
 {
-    fprintf(stderr, "qbs terminated by user (pid=%u)\n", (uint)QCoreApplication::applicationPid());
-    if (m_executor)
-        m_executor->cancelBuild();
+    qbsInfo() << Tr::tr("Received termination request from user; canceling build. [pid=%1]")
+                 .arg(applicationPid());
+    m_observer->setCanceled(true);
 }
 
 } // namespace qbs

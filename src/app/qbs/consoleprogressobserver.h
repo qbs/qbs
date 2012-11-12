@@ -35,11 +35,18 @@ namespace qbs {
 
 class ConsoleProgressObserver : public ProgressObserver
 {
+public:
+    ConsoleProgressObserver();
+
+    void setShowProgress(bool show) { m_showProgress = show; }
+    void setCanceled(bool cancel) { m_canceled = cancel; }
+
+private:
     void initialize(const QString &task, int max);
     void setProgressValue(int value);
     int progressValue() { return m_value; }
     int maximum() const { return m_maximum; }
-    bool canceled() const { return false; }
+    bool canceled() const { return m_canceled; }
 
     void eraseCurrentPercentageString();
     void updateProgressBarIfNecessary();
@@ -49,6 +56,8 @@ class ConsoleProgressObserver : public ProgressObserver
     int m_value;
     int m_percentage;
     int m_hashesPrinted;
+    bool m_showProgress;
+    bool m_canceled;
 };
 
 } // namespace qbs

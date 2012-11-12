@@ -58,7 +58,6 @@ public:
     ~Executor();
 
     void build(const QList<BuildProduct::Ptr> &productsToBuild);
-    void cancelBuild();
 
     enum ExecutorState {
         ExecutorIdle,
@@ -88,6 +87,7 @@ private slots:
 
 private:
     void doBuild(const QList<BuildProduct::Ptr> &productsToBuild);
+    void cancelBuild();
     void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void updateBuildGraph(Artifact::BuildState buildState);

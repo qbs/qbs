@@ -261,11 +261,9 @@ int main(int argc, char *argv[])
     QList<Project::Id> projectIds;
     QbsEngine qbsEngine;
     qbsEngine.setBuildRoot(QDir::currentPath());
-    QScopedPointer<ConsoleProgressObserver> observer;
-    if (parser.showProgress()) {
-        observer.reset(new ConsoleProgressObserver);
-        qbsEngine.setProgressObserver(observer.data());
-    }
+    if (parser.showProgress())
+        app.observer()->setShowProgress(true);
+    qbsEngine.setProgressObserver(app.observer());
     try {
         foreach (const QVariantMap &buildConfig, parser.buildConfigurations()) {
             const Project::Id projectId

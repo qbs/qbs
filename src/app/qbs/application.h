@@ -33,7 +33,7 @@
 #include <QCoreApplication>
 
 namespace qbs {
-namespace Internal { class Executor; }
+class ConsoleProgressObserver;
 
 class Application : public QCoreApplication
 {
@@ -41,17 +41,14 @@ class Application : public QCoreApplication
 public:
     Application(int &argc, char **argv);
 
-    static Application *instance();
-
     void init();
-    void setExecutor(Internal::Executor *e);
-    Internal::Executor *executor() { return m_executor; }
+    ConsoleProgressObserver *observer() const { return m_observer; }
 
 public slots:
     void userInterrupt();
 
 private:
-    Internal::Executor *m_executor;
+    ConsoleProgressObserver * const m_observer;
 };
 
 } // namespace qbs
