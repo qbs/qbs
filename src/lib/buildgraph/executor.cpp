@@ -29,6 +29,7 @@
 
 #include "artifactvisitor.h"
 #include "automoc.h"
+#include "cycledetector.h"
 #include "executor.h"
 #include "executorjob.h"
 #include "inputartifactscanner.h"
@@ -603,7 +604,7 @@ bool Executor::runAutoMoc()
     }
     if (autoMocApplied)
         foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
-            BuildGraph::detectCycle(product);
+            CycleDetector().visitProduct(product);
 
     return true;
 }

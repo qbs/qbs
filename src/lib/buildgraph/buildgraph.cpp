@@ -28,7 +28,9 @@
 ****************************************************************************/
 
 #include "buildgraph.h"
+
 #include "artifact.h"
+#include "cycledetector.h"
 #include "command.h"
 #include "rulegraph.h"
 #include "transformer.h"
@@ -230,38 +232,13 @@ void BuildGraph::applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artif
     rulesApplier.applyAllRules();
 }
 
-/*!
-  * Runs a cycle detection on the BG and throws an exception if there is one.
-  */
-void BuildGraph::detectCycle(BuildProject *project)
-{
-    const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
-                .arg(project->resolvedProject()->id());
-    TimedActivityLogger timeLogger(description, QLatin1String("[BG] "), LoggerTrace);
-
-    foreach (const BuildProduct::ConstPtr &product, project->buildProducts())
-        detectCycle(product);
-}
-
-void BuildGraph::detectCycle(const BuildProduct::ConstPtr &product)
-{
-    foreach (Artifact *artifact, product->targetArtifacts)
-        detectCycle(artifact);
-}
-
-void BuildGraph::detectCycle(Artifact *a)
-{
-    QSet<Artifact *> done, currentBranch;
-    detectCycle(a, done, currentBranch);
-}
-
 void BuildGraph::setProgressObserver(ProgressObserver *observer)
 {
     m_progressObserver = observer;
 }
 
 
-static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
+bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
 {
     if (u == v) {
         path.append(v);
@@ -276,30 +253,6 @@ static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
     }
 
     return false;
-}
-
-void BuildGraph::detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch)
-{
-    currentBranch += v;
-    for (ArtifactList::const_iterator it = v->children.begin(); it != v->children.end(); ++it) {
-        Artifact *u = *it;
-        if (currentBranch.contains(u)) {
-            Error error(Tr::tr("Cycle in build graph detected."));
-            QList<Artifact *> path;
-            findPath(u, v, path);
-            foreach (Artifact *a, path)
-                error.append(Tr::tr("path1: ") + a->filePath());
-            path.clear();
-            findPath(v, u, path);
-            foreach (Artifact *a, path)
-                error.append(Tr::tr("path2: ") + a->filePath());
-            throw error;
-        }
-        if (!done.contains(u))
-            detectCycle(u, done, currentBranch);
-    }
-    currentBranch -= v;
-    done += v;
 }
 
 static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptValue, const CodeLocation &codeLocation)
@@ -537,7 +490,7 @@ BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
     foreach (ResolvedProduct::Ptr rProduct, rProject->products) {
         resolveProduct(project.data(), rProduct);
     }
-    detectCycle(project.data());
+    CycleDetector().visitProject(project);
     return project;
 }
 
@@ -1033,7 +986,7 @@ void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph 
                     project->onProductRemoved(product);
         }
 
-        BuildGraph::detectCycle(project.data());
+        CycleDetector().visitProject(project);
     }
 }
 

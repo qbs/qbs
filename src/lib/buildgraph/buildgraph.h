@@ -166,9 +166,6 @@ public:
     BuildProject::Ptr resolveProject(ResolvedProject::Ptr);
 
     void applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
-    static void detectCycle(BuildProject *project);
-    static void detectCycle(const BuildProduct::ConstPtr &product);
-    static void detectCycle(Artifact *a);
 
     void setProgressObserver(ProgressObserver *observer);
     void setOutputDirectoryRoot(const QString &buildDirectoryRoot) { m_outputDirectoryRoot = buildDirectoryRoot; }
@@ -176,6 +173,7 @@ public:
     QString buildDirectory(const QString &projectId) const;
     QString buildGraphFilePath(const QString &projectId) const;
 
+    static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
     static void loggedConnect(Artifact *u, Artifact *v);
     static bool safeConnect(Artifact *u, Artifact *v);
@@ -206,7 +204,6 @@ private:
     BuildProduct::Ptr resolveProduct(BuildProject *, ResolvedProduct::Ptr);
     Artifact *createArtifact(BuildProduct::Ptr product, SourceArtifact::ConstPtr sourceArtifact);
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
-    static void detectCycle(Artifact *v, QSet<Artifact *> &done, QSet<Artifact *> &currentBranch);
 
     class EngineInitializer
     {
