@@ -171,8 +171,8 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
             m_roots += targetArtifact;
 
             // The user expects that he can delete target artifacts and they get rebuilt.
-            // To achieve this we must invalidate their timestamps.
-            targetArtifact->timestamp.clear();
+            // To achieve this we must retrieve their timestamps.
+            targetArtifact->timestamp = FileInfo(targetArtifact->filePath()).lastModified();
         }
     }
 
@@ -298,13 +298,8 @@ static bool isUpToDate(Artifact *artifact)
             << "[UTD] check " << artifact->filePath() << " " << artifact->timestamp.toString();
 
     if (!artifact->timestamp.isValid()) {
-        FileInfo fi(artifact->filePath());
-        if (fi.exists()) {
-            artifact->timestamp = fi.lastModified();
-        } else {
-            if (debug) qbsDebug() << "[UTD] file doesn't exist. Out of date.";
-            return false;
-        }
+        if (debug) qbsDebug() << "[UTD] invalid timestamp. Out of date.";
+        return false;
     }
 
     foreach (Artifact *child, artifact->children) {
