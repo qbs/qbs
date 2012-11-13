@@ -52,7 +52,7 @@ static bool cycleDetected(const BuildProduct::ConstPtr &product)
     try {
         CycleDetector().visitProduct(product);
         return false;
-    } catch (const Error &error) {
+    } catch (const Error &) {
         return true;
     }
 }
