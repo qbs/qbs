@@ -40,9 +40,16 @@ public:
     WeakPointer() : QWeakPointer<T>() {}
     WeakPointer(const QSharedPointer<T> &sharedPointer) : QWeakPointer<T>(sharedPointer) {}
 
-    operator T*() const { return QWeakPointer<T>::data(); }
-    T *operator->() const { return QWeakPointer<T>::data(); }
-    T operator*() const { return *QWeakPointer<T>::data(); }
+    operator T*() const { return checkedData(); }
+    T *operator->() const { return checkedData(); }
+    T operator*() const { return *checkedData(); }
+
+private:
+    T *checkedData() const {
+        T * const d = QWeakPointer<T>::data();
+        Q_ASSERT(d); // Calling code is not expecting this situation.
+        return d;
+    }
 };
 
 } // namespace Internal
