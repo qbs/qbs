@@ -347,7 +347,6 @@ void Rule::store(PersistentPool &pool) const
 }
 
 ResolvedProduct::ResolvedProduct()
-    : project(0)
 {
 }
 
@@ -586,7 +585,6 @@ void ResolvedProject::load(PersistentPool &pool)
     products.reserve(count);
     for (; --count >= 0;) {
         ResolvedProduct::Ptr rProduct = pool.idLoadS<ResolvedProduct>();
-        rProduct->project = this;
         products.append(rProduct);
     }
 }

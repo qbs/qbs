@@ -14,7 +14,8 @@ HEADERS += \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
     $$PWD/runenvironment.h \
-    $$PWD/persistentobject.h
+    $$PWD/persistentobject.h \
+    $$PWD/weakpointer.h
 
 SOURCES += \
     $$PWD/error.cpp \

@@ -32,9 +32,10 @@
 
 #include "jsimports.h"
 #include <tools/codelocation.h>
+#include <tools/fileinfo.h>
 #include <tools/persistentobject.h>
 #include <tools/settings.h>
-#include <tools/fileinfo.h>
+#include <tools/weakpointer.h>
 
 #include <QDataStream>
 #include <QMutex>
@@ -321,7 +322,7 @@ public:
     QString sourceDirectory;
     QString destinationDirectory;
     QString qbsFile;
-    ResolvedProject *project;
+    WeakPointer<ResolvedProject> project;
     PropertyMap::Ptr properties;
     QSet<Rule::Ptr> rules;
     QSet<ResolvedProduct::Ptr> dependencies;

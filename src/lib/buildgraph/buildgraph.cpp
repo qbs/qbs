@@ -59,7 +59,6 @@ namespace qbs {
 namespace Internal {
 
 BuildProduct::BuildProduct()
-    : project(0)
 {
 }
 
@@ -157,12 +156,12 @@ void BuildGraph::insert(BuildProduct *product, Artifact *n) const
     Q_ASSERT(!n->filePath().isEmpty());
     Q_ASSERT(!product->artifacts.contains(n));
 #ifdef QT_DEBUG
-    foreach (BuildProduct::Ptr otherProduct, product->project->buildProducts()) {
+    foreach (const BuildProduct::Ptr &otherProduct, product->project->buildProducts()) {
         if (otherProduct->lookupArtifact(n->filePath())) {
             if (n->artifactType == Artifact::Generated) {
                 QString pl;
                 pl.append(QString("  - %1 \n").arg(product->rProduct->name));
-                foreach (BuildProduct::Ptr p, product->project->buildProducts()) {
+                foreach (const BuildProduct::Ptr &p, product->project->buildProducts()) {
                     if (p->lookupArtifact(n->filePath())) {
                         pl.append(QString("  - %1 \n").arg(p->rProduct->name));
                     }
@@ -195,7 +194,7 @@ void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
 
     if (lastSetupProject != product->project) {
         engine->setProperty("lastSetupProject",
-                QVariant(reinterpret_cast<qulonglong>(product->project)));
+                QVariant(reinterpret_cast<qulonglong>(product->project.data())));
         QScriptValue projectScriptValue;
         projectScriptValue = engine->newObject();
         projectScriptValue.setProperty("filePath", product->project->qbsFile);
@@ -487,14 +486,14 @@ BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
     project->setResolvedProject(rProject);
     if (m_progressObserver)
         m_progressObserver->initialize(Tr::tr("Resolving project"), rProject->products.count());
-    foreach (ResolvedProduct::Ptr rProduct, rProject->products) {
-        resolveProduct(project.data(), rProduct);
-    }
+    foreach (ResolvedProduct::Ptr rProduct, rProject->products)
+        resolveProduct(project, rProduct);
     CycleDetector().visitProject(project);
     return project;
 }
 
-BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProduct::Ptr rProduct)
+BuildProduct::Ptr BuildGraph::resolveProduct(const BuildProject::Ptr &project,
+                                             const ResolvedProduct::Ptr &rProduct)
 {
     BuildProduct::Ptr product = m_productCache.value(rProduct);
     if (product)
@@ -517,13 +516,13 @@ BuildProduct::Ptr BuildGraph::resolveProduct(BuildProject *project, ResolvedProd
             throw Error(Tr::tr("circular using"));
         }
         BuildProduct::Ptr referencedProduct = resolveProduct(project, t2);
-        product->dependencies.append(referencedProduct.data());
+        product->dependencies.append(referencedProduct);
     }
 
     //add qbsFile artifact
     Artifact *qbsFileArtifact = product->lookupArtifact(rProduct->qbsFile);
     if (!qbsFileArtifact) {
-        qbsFileArtifact = new Artifact(project);
+        qbsFileArtifact = new Artifact(project.data());
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(rProduct->qbsFile);
         qbsFileArtifact->properties = rProduct->properties;
@@ -819,7 +818,7 @@ void BuildProduct::load(PersistentPool &pool)
     dependencies.clear();
     dependencies.reserve(i);
     for (; --i >= 0;)
-        dependencies += pool.idLoadS<BuildProduct>().data();
+        dependencies += pool.idLoadS<BuildProduct>();
 }
 
 void BuildProduct::store(PersistentPool &pool) const
@@ -907,6 +906,8 @@ void BuildProject::restoreBuildGraph(const QString &projectFilePath, BuildGraph 
     project = BuildProject::Ptr(new BuildProject(bg));
     TimedActivityLogger loadLogger(QLatin1String("Loading build graph"), QLatin1String("[BG] "));
     project->load(pool);
+    foreach (const BuildProduct::Ptr &bp, project->buildProducts())
+        bp->project = project;
     project->resolvedProject()->qbsFile = projectFilePath;
     project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     loadResult->loadedProject = project;
@@ -1019,12 +1020,13 @@ void BuildProject::store() const
 void BuildProject::load(PersistentPool &pool)
 {
     m_resolvedProject = pool.idLoadS<ResolvedProject>();
+    foreach (const ResolvedProduct::Ptr &product, m_resolvedProject->products)
+        product->project = m_resolvedProject;
 
     int count;
     pool.stream() >> count;
     for (; --count >= 0;) {
         BuildProduct::Ptr product = pool.idLoadS<BuildProduct>();
-        product->project = this;
         foreach (Artifact *artifact, product->artifacts) {
             artifact->project = this;
             insertIntoArtifactLookupTable(artifact);
@@ -1261,7 +1263,7 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
     ArtifactList usingArtifacts;
     if (!m_rule->usings.isEmpty()) {
         const QSet<QString> usingsFileTags = m_rule->usings.toSet();
-        foreach (BuildProduct * const dep, m_buildProduct->dependencies) {
+        foreach (const BuildProduct::Ptr &dep, m_buildProduct->dependencies) {
             QList<Artifact *> artifactsToCheck;
             foreach (Artifact *targetArtifact, dep->targetArtifacts)
                 artifactsToCheck += targetArtifact->transformer->outputs.toList();

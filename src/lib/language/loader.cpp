@@ -2925,7 +2925,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     const ResolvedProduct::Ptr rproduct = ResolvedProduct::create();
     rproduct->qbsFile = projectFileName;
     rproduct->sourceDirectory = QFileInfo(projectFileName).absolutePath();
-    rproduct->project = rproject.data();
+    rproduct->project = rproject;
 
     ProductData productData;
     productData.product = evaluationObject;

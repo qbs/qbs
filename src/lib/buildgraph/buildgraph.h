@@ -35,6 +35,7 @@
 #include <language/language.h>
 #include <tools/error.h>
 #include <tools/persistentobject.h>
+#include <tools/weakpointer.h>
 
 #include <QDir>
 #include <QScriptValue>
@@ -69,10 +70,10 @@ public:
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
 
-    BuildProject *project;
+    WeakPointer<BuildProject> project;
     ResolvedProduct::Ptr rProduct;
     QSet<Artifact *> targetArtifacts;
-    QList<BuildProduct *> dependencies;
+    QList<BuildProduct::Ptr> dependencies;
     ArtifactList artifacts;
 
 private:
@@ -201,7 +202,8 @@ public:
 private:
     void initEngine();
     void cleanupEngine();
-    BuildProduct::Ptr resolveProduct(BuildProject *, ResolvedProduct::Ptr);
+    BuildProduct::Ptr resolveProduct(const BuildProject::Ptr &project,
+                                     const ResolvedProduct::Ptr &rProduct);
     Artifact *createArtifact(BuildProduct::Ptr product, SourceArtifact::ConstPtr sourceArtifact);
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
 

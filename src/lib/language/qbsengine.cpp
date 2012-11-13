@@ -249,17 +249,7 @@ void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions
         const ResolvedProduct::ConstPtr rProduct = d->publicObjectsMap.product(product.id());
         if (!rProduct)
             throw Error(Tr::tr("Cleaning up failed: Product not found."));
-
-        // TODO: Use of weak pointers will eliminate this loop.
-        ResolvedProject::ConstPtr rProject;
-        foreach (const ResolvedProject::ConstPtr &p, d->resolvedProjects) {
-            if (p == rProduct->project) {
-                rProject = p;
-                break;
-            }
-        }
-
-        Q_ASSERT(rProject);
+        const ResolvedProject::ConstPtr rProject = rProduct->project.toStrongRef();
         const BuildProject::ConstPtr bProject = d->setupBuildProject(rProject);
         foreach (const BuildProduct::ConstPtr &bProduct, bProject->buildProducts()) {
             if (bProduct->rProduct == rProduct) {
@@ -431,19 +421,11 @@ void QbsEngine::QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::Con
         const BuildOptions &buildOptions, bool needsDepencencyResolving)
 {
     // Make sure all products are set up first.
-    QSet<const ResolvedProject *> rProjects;
+    QSet<ResolvedProject::ConstPtr> rProjects;
     foreach (const ResolvedProduct::ConstPtr &product, products)
-        rProjects << product->project;
-    foreach (const ResolvedProject *rproject, rProjects) {
-
-        // TODO: This awful loop is there because we don't use weak pointers. Change that.
-        foreach (const ResolvedProject::ConstPtr &rProjectSp, resolvedProjects) {
-            if (rproject == rProjectSp) {
-                setupBuildProject(rProjectSp);
-                break;
-            }
-        }
-    }
+        rProjects << product->project.toStrongRef();
+    foreach (const ResolvedProject::ConstPtr &rProject, rProjects)
+        setupBuildProject(rProject);
 
     // Gather build products.
     QList<BuildProduct::Ptr> productsToBuild;
@@ -459,20 +441,8 @@ void QbsEngine::QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::Con
     if (needsDepencencyResolving) {
         for (int i = 0; i < productsToBuild.count(); ++i) {
             const BuildProduct::ConstPtr &product = productsToBuild.at(i);
-            foreach (BuildProduct * const dependency, product->dependencies) {
-
-                // TODO: This awful loop is there because we don't use weak pointers. Change that.
-                BuildProduct::Ptr dependencySP;
-                foreach (const BuildProduct::Ptr &bp, productsToBuild) {
-                    if (bp == dependency) {
-                        dependencySP = bp;
-                        break;
-                    }
-                }
-
-                if (dependencySP)
-                    productsToBuild << dependencySP;
-            }
+            foreach (const BuildProduct::Ptr &dependency, product->dependencies)
+                productsToBuild << dependency;
         }
     }
 
