@@ -85,11 +85,10 @@ public:
     ArtifactType artifactType;
     FileTime timestamp;
     FileTime autoMocTimestamp;
-
-    // Do not serialize the following members. They'll be refreshed for every build.
-    BuildState buildState;
-    bool inputsScanned : 1;
-    bool timestampRetrieved : 1;
+    BuildState buildState;                  // Do not serialize. Will be refreshed for every build.
+    bool inputsScanned : 1;                 // Do not serialize. Will be refreshed for every build.
+    bool timestampRetrieved : 1;            // Do not serialize. Will be refreshed for every build.
+    bool alwaysUpdated : 1;
 
     void setFilePath(const QString &filePath);
     const QString &filePath() const { return m_filePath; }

@@ -120,6 +120,7 @@ public:
 
     QString fileName;
     QStringList fileTags;
+    bool alwaysUpdated;
 
     struct Binding
     {
@@ -131,7 +132,9 @@ public:
     QVector<Binding> bindings;
 
 private:
-    RuleArtifact() {}
+    RuleArtifact()
+        : alwaysUpdated(true)
+    {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

@@ -1198,6 +1198,7 @@ void Loader::setupBuiltinDeclarations()
     artifact += conditionProperty;
     artifact += PropertyDeclaration("fileName", PropertyDeclaration::Verbatim);
     artifact += PropertyDeclaration("fileTags", PropertyDeclaration::Variant);
+    artifact += PropertyDeclaration("alwaysUpdated", PropertyDeclaration::Boolean);
     m_builtinDeclarations.insert(name_Artifact, artifact);
 
     QList<PropertyDeclaration> rule;
@@ -2334,6 +2335,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
 
     // read artifacts
     QList<RuleArtifact::ConstPtr> artifacts;
+    bool hasAlwaysUpdatedArtifact = false;
     foreach (EvaluationObject *child, object->children) {
         const uint hashChildPrototypeName = qHash(child->prototype);
         if (hashChildPrototypeName == hashName_Artifact) {
@@ -2341,6 +2343,9 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
             artifacts.append(artifact);
             artifact->fileName = child->scope->verbatimValue("fileName");
             artifact->fileTags = child->scope->stringListValue("fileTags");
+            artifact->alwaysUpdated = child->scope->boolValue("alwaysUpdated", true);
+            if (artifact->alwaysUpdated)
+                hasAlwaysUpdatedArtifact = true;
             LanguageObject *origArtifactObj = child->instantiatingObject();
             foreach (const Binding &binding, origArtifactObj->bindings) {
                 if (binding.name.length() <= 1)
@@ -2357,6 +2362,11 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
                                child->instantiatingObject()->prototypeLocation);
         }
     }
+
+    if (!hasAlwaysUpdatedArtifact)
+        throw Error(Tr::tr("At least one output artifact of a rule "
+                           "must have alwaysUpdated set to true."),
+                    object->instantiatingObject()->prototypeLocation);
 
     const PrepareScript::Ptr prepareScript = PrepareScript::create();
     prepareScript->script = object->scope->verbatimValue("prepare");

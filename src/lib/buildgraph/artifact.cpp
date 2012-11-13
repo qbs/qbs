@@ -61,6 +61,7 @@ Artifact::Artifact(BuildProject *p)
     , buildState(Untouched)
     , inputsScanned(false)
     , timestampRetrieved(false)
+    , alwaysUpdated(true)
 {
 }
 
@@ -80,10 +81,13 @@ void Artifact::load(PersistentPool &pool)
     fileTags = pool.idLoadStringSet();
     properties = pool.idLoadS<PropertyMap>();
     transformer = pool.idLoadS<Transformer>();
+    unsigned char c;
     pool.stream()
             >> artifactType
             >> timestamp
-            >> autoMocTimestamp;
+            >> autoMocTimestamp
+            >> c;
+    alwaysUpdated = c;
 }
 
 void Artifact::store(PersistentPool &pool) const
@@ -95,7 +99,8 @@ void Artifact::store(PersistentPool &pool) const
     pool.stream()
             << artifactType
             << timestamp
-            << autoMocTimestamp;
+            << autoMocTimestamp
+            << static_cast<unsigned char>(alwaysUpdated);
 }
 
 } // namespace Internal

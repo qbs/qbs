@@ -1421,6 +1421,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ru
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags.toSet();
+        outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
         m_buildGraph->insert(m_buildProduct, outputArtifact);
     }
 

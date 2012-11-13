@@ -328,6 +328,18 @@ static bool isUpToDate(Artifact *artifact)
     return true;
 }
 
+static bool mustExecuteTransformer(const QSharedPointer<Transformer> &transformer)
+{
+    foreach (Artifact *artifact, transformer->outputs)
+        if (artifact->alwaysUpdated)
+            return !isUpToDate(artifact);
+
+    // All outputs of the transformer have alwaysUpdated == false.
+    // We need at least on output that is always updated.
+    Q_ASSERT(false);
+    return true;
+}
+
 void Executor::buildArtifact(Artifact *artifact)
 {
     if (qbsLogLevel(LoggerDebug))
@@ -358,14 +370,6 @@ void Executor::buildArtifact(Artifact *artifact)
     // Every generated artifact must have a transformer.
     Q_ASSERT(artifact->transformer);
 
-    // skip artifacts that are up-to-date
-    if (isUpToDate(artifact)) {
-        if (qbsLogLevel(LoggerDebug))
-            qbsDebug("[EXEC] Up to date. Skipping.");
-        finishArtifact(artifact);
-        return;
-    }
-
     // Skip if outputs of this transformer are already built.
     // That means we already ran the transformation.
     foreach (Artifact *sideBySideArtifact, artifact->transformer->outputs) {
@@ -387,6 +391,14 @@ void Executor::buildArtifact(Artifact *artifact)
             artifact->buildState = Artifact::Building;
             return;
         }
+    }
+
+    // Skip transformers that do not need to be built.
+    if (!mustExecuteTransformer(artifact->transformer)) {
+        if (qbsLogLevel(LoggerDebug))
+            qbsDebug("[EXEC] Up to date. Skipping.");
+        finishArtifact(artifact);
+        return;
     }
 
     // create the output directories
@@ -609,9 +621,12 @@ void Executor::onProcessSuccess()
 
     // Update the timestamps of the outputs of the transformer we just executed.
     processedArtifact->project->markDirty();
-    const FileTime currentTime = FileTime::currentTime();
-    foreach (Artifact *sideBySideArtifact, processedArtifact->transformer->outputs)
-        sideBySideArtifact->timestamp = currentTime;
+    foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
+        if (artifact->alwaysUpdated)
+            artifact->timestamp = FileTime::currentTime();
+        else
+            artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
+    }
 
     finishArtifact(processedArtifact);
 
