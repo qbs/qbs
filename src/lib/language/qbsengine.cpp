@@ -358,8 +358,6 @@ void QbsEngine::QbsEnginePrivate::loadPlugins()
             pluginPaths << pluginPath;
         }
     }
-    foreach (const QString &pluginPath, pluginPaths)
-        QCoreApplication::addLibraryPath(pluginPath); // TODO: Probably wrong to do it like this and possibly not needed at all.
     ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 
     pluginsLoaded = true;
