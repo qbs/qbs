@@ -142,8 +142,8 @@ CppModule {
         Artifact {
             fileTags: ["dynamiclibrary_import"]
             fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibraryImportSuffix
+            alwaysUpdated: false
         }
-
 
         prepare: {
             var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
