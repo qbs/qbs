@@ -53,7 +53,7 @@ class Artifact;
 class Transformer;
 class BuildProject;
 
-typedef QMap<QString, QSet<Artifact *> > ArtifactsPerFileTagMap;
+typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
 
 class BuildProduct : public PersistentObject
 {
@@ -239,10 +239,10 @@ public:
     void applyRule(const Rule::ConstPtr &rule);
 
 private:
-    void doApply(const QSet<Artifact *> &inputArtifacts);
+    void doApply(const ArtifactList &inputArtifacts);
     void setupScriptEngineForArtifact(Artifact *artifact);
     Artifact *createOutputArtifact(const RuleArtifact::ConstPtr &ruleArtifact,
-            const QSet<Artifact *> &inputArtifacts);
+            const ArtifactList &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
 
     QScriptValue scope() const;

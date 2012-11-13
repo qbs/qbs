@@ -402,7 +402,7 @@ void Executor::buildArtifact(Artifact *artifact)
     }
 
     // create the output directories
-    QSet<Artifact*>::const_iterator it = artifact->transformer->outputs.begin();
+    ArtifactList::const_iterator it = artifact->transformer->outputs.begin();
     for (; it != artifact->transformer->outputs.end(); ++it) {
         Artifact *output = *it;
         QDir outDir = QFileInfo(output->filePath()).absoluteDir();

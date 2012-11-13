@@ -28,7 +28,6 @@
 ****************************************************************************/
 
 #include "artifactlist.h"
-#include <algorithm>
 
 namespace qbs {
 namespace Internal {
@@ -39,6 +38,14 @@ ArtifactList::ArtifactList()
 ArtifactList::ArtifactList(const ArtifactList &other)
     : m_data(other.m_data)
 {}
+
+ArtifactList &ArtifactList::unite(const ArtifactList &other)
+{
+    std::set<Artifact *>::const_iterator it = other.m_data.begin();
+    for (; it != other.m_data.end(); ++it)
+        m_data.insert(*it);
+    return *this;
+}
 
 void ArtifactList::remove(Artifact *artifact)
 {

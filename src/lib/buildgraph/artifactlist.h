@@ -48,6 +48,8 @@ public:
     ArtifactList();
     ArtifactList(const ArtifactList &other);
 
+    ArtifactList &unite(const ArtifactList &other);
+
     typedef std::set<Artifact *>::const_iterator const_iterator;
     typedef std::set<Artifact *>::iterator iterator;
     typedef Artifact * value_type;
@@ -97,7 +99,7 @@ public:
     }
 
 private:
-    mutable std::set<Artifact *> m_data;
+    std::set<Artifact *> m_data;
 };
 
 } // namespace Internal

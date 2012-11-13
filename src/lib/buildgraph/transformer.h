@@ -30,9 +30,9 @@
 #ifndef TRANSFORMER_H
 #define TRANSFORMER_H
 
+#include "artifactlist.h"
 #include <tools/persistentobject.h>
 
-#include <QSet>
 #include <QSharedPointer>
 #include <QScriptEngine>
 
@@ -52,8 +52,8 @@ public:
 
     ~Transformer();
 
-    QSet<Artifact*> inputs; // can be different from "children of all outputs"
-    QSet<Artifact*> outputs;
+    ArtifactList inputs; // can be different from "children of all outputs"
+    ArtifactList outputs;
     QSharedPointer<const Rule> rule;
     QList<AbstractCommand *> commands;
 
@@ -61,7 +61,7 @@ public:
                                             Artifact *artifact,
                                             const QString &defaultModuleName);
     static QScriptValue translateInOutputs(QScriptEngine *scriptEngine,
-                                           const QSet<Artifact*> &artifacts,
+                                           const ArtifactList &artifacts,
                                            const QString &defaultModuleName);
 
     void setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);

@@ -159,7 +159,7 @@ void InputArtifactScanner::scan()
         BuildGraph::disconnect(m_artifact, dependency);
     }
 
-    QSet<Artifact*>::const_iterator it = m_artifact->transformer->inputs.begin();
+    ArtifactList::const_iterator it = m_artifact->transformer->inputs.begin();
     for (; it != m_artifact->transformer->inputs.end(); ++it) {
         Artifact *inputArtifact = *it;
         QStringList includePaths;

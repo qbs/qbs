@@ -56,7 +56,7 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
     return artifactConfig;
 }
 
-QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const QSet<Artifact*> &artifacts, const QString &defaultModuleName)
+QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const ArtifactList &artifacts, const QString &defaultModuleName)
 {
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
     TagArtifactsMap tagArtifactsMap;

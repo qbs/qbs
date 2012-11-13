@@ -509,7 +509,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(const BuildProject::Ptr &project,
     m_productCache.insert(rProduct, product);
     product->project = project;
     product->rProduct = rProduct;
-    QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
+    ArtifactsPerFileTagMap artifactsPerFileTag;
 
     foreach (ResolvedProduct::Ptr t2, rProduct->dependencies) {
         if (t2 == rProduct) {
@@ -547,7 +547,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(const BuildProject::Ptr &project,
 
     // read manually added transformers
     foreach (const ResolvedTransformer::Ptr rtrafo, rProduct->transformers) {
-        QList<Artifact *> inputArtifacts;
+        ArtifactList inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
             Artifact *artifact = product->lookupArtifact(inputFileName);
             if (!artifact)
@@ -555,7 +555,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(const BuildProject::Ptr &project,
             inputArtifacts += artifact;
         }
         Transformer::Ptr transformer = Transformer::create();
-        transformer->inputs = inputArtifacts.toSet();
+        transformer->inputs = inputArtifacts;
         const Rule::Ptr rule = Rule::create();
         rule->inputs = rtrafo->inputs;
         rule->jsImports = rtrafo->jsImports;
@@ -613,7 +613,7 @@ void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Pt
     qbsDebug() << "[BG] product '" << product->rProduct->name << "' changed.";
 
     *discardStoredProject = false;
-    QMap<QString, QSet<Artifact *> > artifactsPerFileTag;
+    ArtifactsPerFileTagMap artifactsPerFileTag;
     QSet<SourceArtifact::ConstPtr> addedSourceArtifacts;
     QList<Artifact *> addedArtifacts, artifactsToRemove;
     QHash<QString, SourceArtifact::ConstPtr> oldArtifacts, newArtifacts;
@@ -1238,21 +1238,24 @@ void RulesApplicator::applyRule(const Rule::ConstPtr &rule)
     Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
                "BG", "Product object is not in current scope.");
 
-    QSet<Artifact *> inputArtifacts;
+    ArtifactList inputArtifacts;
     foreach (const QString &fileTag, m_rule->inputs)
         inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         if (!inputArtifacts.isEmpty())
             doApply(inputArtifacts);
     } else { // apply the rule once for each input
+        ArtifactList lst;
         foreach (Artifact * const inputArtifact, inputArtifacts) {
             setupScriptEngineForArtifact(inputArtifact);
-            doApply(QSet<Artifact*>() << inputArtifact);
+            lst += inputArtifact;
+            doApply(lst);
+            lst.clear();
         }
     }
 }
 
-void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
+void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 {
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] apply rule " << m_rule->toString() << " " << toStringList(inputArtifacts).join(",\n            ");
@@ -1264,9 +1267,9 @@ void RulesApplicator::doApply(const QSet<Artifact *> &inputArtifacts)
     if (!m_rule->usings.isEmpty()) {
         const QSet<QString> usingsFileTags = m_rule->usings.toSet();
         foreach (const BuildProduct::Ptr &dep, m_buildProduct->dependencies) {
-            QList<Artifact *> artifactsToCheck;
+            ArtifactList artifactsToCheck;
             foreach (Artifact *targetArtifact, dep->targetArtifacts)
-                artifactsToCheck += targetArtifact->transformer->outputs.toList();
+                artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
                 QSet<QString> matchingFileTags = artifact->fileTags;
                 matchingFileTags.intersect(usingsFileTags);
@@ -1376,7 +1379,7 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
 }
 
 Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ruleArtifact,
-        const QSet<Artifact *> &inputArtifacts)
+        const ArtifactList &inputArtifacts)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (scriptValue.isError() || engine()->hasUncaughtException())
@@ -1393,7 +1396,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifact::ConstPtr &ru
             if (qbsLogLevel(LoggerTrace))
                 qbsTrace("[BG] regenerating transformer for '%s'", qPrintable(fileName(outputArtifact)));
             m_transformer = outputArtifact->transformer;
-            m_transformer->inputs += inputArtifacts;
+            m_transformer->inputs.unite(inputArtifacts);
 
             if (m_transformer->inputs.count() > 1 && !m_rule->multiplex) {
                 QString th = "[" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
