@@ -58,7 +58,7 @@ class QbsEngine::QbsEnginePrivate
 {
 public:
     QbsEnginePrivate()
-        : observer(0), settings(Settings::create()), buildGraph(new BuildGraph(&engine)) {}
+        : observer(0), buildGraph(new BuildGraph(&engine)) {}
 
     void loadPlugins();
     BuildProject::Ptr setupBuildProject(const ResolvedProject::ConstPtr &project);
@@ -72,7 +72,7 @@ public:
     ProgressObserver *observer;
     QList<ResolvedProject::Ptr> resolvedProjects;
     QList<BuildProject::Ptr> buildProjects;
-    const Settings::Ptr settings;
+    Settings settings;
     const QSharedPointer<BuildGraph> buildGraph;
     PublicObjectsMap publicObjectsMap;
 
@@ -117,14 +117,14 @@ void QbsEngine::setBuildRoot(const QString &directory)
 Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVariantMap &_buildConfig)
 {
     Loader loader(&d->engine);
-    loader.setSearchPaths(d->settings->searchPaths());
+    loader.setSearchPaths(d->settings.searchPaths());
     loader.setProgressObserver(d->observer);
 
     ProjectFile::Ptr projectFile;
     const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);
     const FileTime projectFileTimeStamp = FileInfo(projectFileName).lastModified();
     const BuildProject::LoadResult loadResult = BuildProject::load(projectFileName,
-            d->buildGraph.data(), projectFileTimeStamp, buildConfig, d->settings->searchPaths());
+            d->buildGraph.data(), projectFileTimeStamp, buildConfig, d->settings.searchPaths());
 
     BuildProject::Ptr bProject;
     ResolvedProject::Ptr rProject;
@@ -340,7 +340,7 @@ void QbsEngine::QbsEnginePrivate::loadPlugins()
         return;
 
     QStringList pluginPaths;
-    foreach (const QString &pluginPath, settings->pluginPaths()) {
+    foreach (const QString &pluginPath, settings.pluginPaths()) {
         if (!FileInfo::exists(pluginPath)) {
             qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(pluginPath));
@@ -464,7 +464,7 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
     // 4) Any remaining keys from modules keyspace
     QString profileName = expandedConfig.value("qbs.profile").toString();
     if (profileName.isNull()) {
-        profileName = settings->value("profile").toString();
+        profileName = settings.value("profile").toString();
         if (profileName.isNull())
             throw Error(Tr::tr("No profile given.\n"
                            "Either set the configuration value 'profile' to a valid profile's name\n"
@@ -474,20 +474,20 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
 
     // (2)
     const QString profileGroup = QString("profiles/%1").arg(profileName);
-    const QStringList profileKeys = settings->allKeysWithPrefix(profileGroup);
+    const QStringList profileKeys = settings.allKeysWithPrefix(profileGroup);
     if (profileKeys.isEmpty())
         throw Error(Tr::tr("Unknown profile '%1'.").arg(profileName));
     foreach (const QString &profileKey, profileKeys) {
         QString fixedKey(profileKey);
         fixedKey.replace(QChar('/'), QChar('.'));
         if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings->value(profileGroup + "/" + profileKey));
+            expandedConfig.insert(fixedKey, settings.value(profileGroup + "/" + profileKey));
     }
 
     // (3) Need to make sure we have a value for qbs.platform before going any further
     QVariant platformName = expandedConfig.value("qbs.platform");
     if (!platformName.isValid()) {
-        platformName = settings->moduleValue("qbs/platform", profileName);
+        platformName = settings.moduleValue("qbs/platform", profileName);
         if (!platformName.isValid())
             throw Error(Tr::tr("No platform given and no default set."));
         expandedConfig.insert("qbs.platform", platformName);
@@ -506,11 +506,11 @@ QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariant
             expandedConfig.insert(fixedKey, platform->settings.value(key));
     }
     // Now finally do (4)
-    foreach (const QString &defaultKey, settings->allKeysWithPrefix("modules")) {
+    foreach (const QString &defaultKey, settings.allKeysWithPrefix("modules")) {
         QString fixedKey(defaultKey);
         fixedKey.replace(QChar('/'), QChar('.'));
         if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings->value(QString("modules/") + defaultKey));
+            expandedConfig.insert(fixedKey, settings.value(QString("modules/") + defaultKey));
     }
 
     if (!expandedConfig.value("qbs.buildVariant").isValid())

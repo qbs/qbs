@@ -30,7 +30,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <QSharedPointer>
 #include <QStringList>
 #include <QVariant>
 
@@ -43,10 +42,8 @@ namespace qbs {
 class Settings
 {
 public:
+    Settings();
     ~Settings();
-
-    typedef QSharedPointer<Settings> Ptr;
-    static Ptr create() { return Ptr(new Settings); }
 
     enum Scope
     {
@@ -73,7 +70,6 @@ public:
     QString buildVariant() const;
 
 private:
-    Settings();
     static void checkStatus(QSettings *s);
     QStringList pathList(const QString &key, const QString &defaultValue) const;
 

@@ -81,7 +81,7 @@ void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char
 
 ConsoleLogger::ConsoleLogger()
 {
-    m_logSink.setColoredOutputEnabled(Settings::create()->useColoredOutput());
+    m_logSink.setColoredOutputEnabled(Settings().useColoredOutput());
     ILogSink::setGlobalLogSink(&m_logSink);
 }
 

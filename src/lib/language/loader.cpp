@@ -668,8 +668,6 @@ Loader::Loader(ScriptEngine *engine)
     , m_engine(engine)
     , m_scopesWithEvaluatedProperties(new ScopesCache)
 {
-    m_settings = Settings::create();
-
     QVariant v;
     v.setValue(static_cast<void*>(this));
     m_engine->setProperty(szLoaderPropertyName, v);
@@ -718,7 +716,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
 ProjectFile::Ptr Loader::loadProject(const QString &fileName)
 {
     m_moduleDirListCache.clear();
-    m_settings->loadProjectSettings(fileName);
+    m_settings.loadProjectSettings(fileName);
     m_project = parseFile(fileName);
     return m_project;
 }
@@ -2804,7 +2802,7 @@ QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngin
                                    QString("configurationValue expects 1 or 2 arguments"));
     }
 
-    Settings::Ptr settings = Loader::get(engine)->m_settings;
+    const Settings &settings = Loader::get(engine)->m_settings;
     const bool defaultValueProvided = context->argumentCount() > 1;
     const QString key = context->argument(0).toString();
     QString defaultValue;
@@ -2813,7 +2811,7 @@ QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngin
         if (!arg.isUndefined())
             defaultValue = arg.toString();
     }
-    QVariant v = settings->value(key, defaultValue);
+    QVariant v = settings.value(key, defaultValue);
     if (!defaultValueProvided && v.isNull())
         return context->throwError(QScriptContext::SyntaxError,
                                    QString("configuration value '%1' does not exist").arg(context->argument(0).toString()));

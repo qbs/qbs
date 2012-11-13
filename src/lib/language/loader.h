@@ -456,7 +456,7 @@ private:
     QScriptValue m_jsFunction_getenv;
     QScriptValue m_jsFunction_configurationValue;
     QScriptValue m_probeScriptScope;
-    Settings::Ptr m_settings;
+    Settings m_settings;
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;
     QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;

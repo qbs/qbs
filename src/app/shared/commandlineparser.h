@@ -81,7 +81,7 @@ private:
     QString propertyName(const QString &aCommandLineName) const;
     void setRealProjectFile();
 
-    Settings::Ptr m_settings;
+    Settings m_settings;
     Command m_command;
     QString m_runTargetName;
     QString m_projectFileName;

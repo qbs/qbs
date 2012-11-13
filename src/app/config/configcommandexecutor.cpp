@@ -41,7 +41,7 @@
 
 using namespace qbs;
 
-ConfigCommandExecutor::ConfigCommandExecutor() : m_settings(Settings::create())
+ConfigCommandExecutor::ConfigCommandExecutor()
 {
 }
 
@@ -65,20 +65,20 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
     case ConfigCommand::CfgGet:
         if (command.scope == Settings::Local)
             loadLocalSettings(true);
-        puts(qPrintable(m_settings->value(command.scope,
+        puts(qPrintable(m_settings.value(command.scope,
                 toInternalSeparators(command.varNames.first())).toString()));
         break;
     case ConfigCommand::CfgSet:
         if (command.scope == Settings::Local)
             loadLocalSettings(true);
-        m_settings->setValue(command.scope, toInternalSeparators(command.varNames.first()),
+        m_settings.setValue(command.scope, toInternalSeparators(command.varNames.first()),
                 command.varValue);
         break;
     case ConfigCommand::CfgUnset:
         if (command.scope == Settings::Local)
             loadLocalSettings(true);
         foreach (const QString &varName, command.varNames)
-            m_settings->remove(command.scope, toInternalSeparators(varName));
+            m_settings.remove(command.scope, toInternalSeparators(varName));
         break;
     case ConfigCommand::CfgExport:
         exportGlobalSettings(command.fileName);
@@ -108,9 +108,9 @@ void ConfigCommandExecutor::printSettings(Settings::Scope scope)
         printf("global variables:\n");
     else
         printf("local variables:\n");
-    foreach (const QString &key, m_settings->allKeys(scope)) {
+    foreach (const QString &key, m_settings.allKeys(scope)) {
         printf("%s: %s\n", qPrintable(toExternalSeparators(key)),
-               qPrintable(m_settings->value(scope, key).toString()));
+               qPrintable(m_settings.value(scope, key).toString()));
     }
 }
 
@@ -135,9 +135,9 @@ void ConfigCommandExecutor::exportGlobalSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings->allKeys(Settings::Global)) {
+    foreach (const QString &key, m_settings.allKeys(Settings::Global)) {
         stream << toExternalSeparators(key) << ": "
-               << m_settings->value(Settings::Global, key).toString() << endl;
+               << m_settings.value(Settings::Global, key).toString() << endl;
     }
 }
 
@@ -149,8 +149,8 @@ void ConfigCommandExecutor::importGlobalSettings(const QString &filename)
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     // Remove all current settings
-    foreach (const QString &key, m_settings->allKeys(Settings::Global)) {
-        m_settings->remove(Settings::Global, key);
+    foreach (const QString &key, m_settings.allKeys(Settings::Global)) {
+        m_settings.remove(Settings::Global, key);
     }
 
     QTextStream stream(&file);
@@ -161,7 +161,7 @@ void ConfigCommandExecutor::importGlobalSettings(const QString &filename)
         if (colon >= 0 && !line.startsWith("#")) {
             const QString key = line.left(colon).trimmed();
             const QString value = line.mid(colon + 1).trimmed();
-            m_settings->setValue(Settings::Global, toInternalSeparators(key), value);
+            m_settings.setValue(Settings::Global, toInternalSeparators(key), value);
         }
     }
 }

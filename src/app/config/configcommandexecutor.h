@@ -51,7 +51,7 @@ private:
     void exportGlobalSettings(const QString &filename);
     void importGlobalSettings(const QString &filename);
 
-    const qbs::Settings::Ptr m_settings;
+    qbs::Settings m_settings;
 };
 
 #endif // CONFIGCOMMANDEXECUTOR_H

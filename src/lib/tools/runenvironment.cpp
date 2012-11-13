@@ -96,8 +96,7 @@ int RunEnvironment::runShell()
         const QString prompt = environment.value(QLatin1String("PROMPT"));
         command += QLatin1String(" /k prompt [qbs] ") + prompt;
     } else {
-        const Settings::Ptr settings = Settings::create();
-        command = settings->value(QLatin1String("shell")).toString();
+        command = Settings().value(QLatin1String("shell")).toString();
         if (command.isEmpty())
             command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
 
