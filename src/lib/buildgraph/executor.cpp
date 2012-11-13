@@ -49,8 +49,6 @@
 namespace qbs {
 namespace Internal {
 
-static QHashDummyValue hashDummy;
-
 class MocEffortCalculator : public ArtifactVisitor
 {
 public:
@@ -243,7 +241,7 @@ void Executor::initLeaves(const QList<Artifact *> &changedArtifacts)
             initLeavesTopDown(root, seenArtifacts);
     } else {
         foreach (Artifact *artifact, changedArtifacts) {
-            m_leaves.insert(artifact, hashDummy);
+            m_leaves.append(artifact);
             initArtifactsBottomUp(artifact);
         }
     }
@@ -264,7 +262,7 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
     }
 
     if (artifact->children.isEmpty()) {
-        m_leaves.insert(artifact, hashDummy);
+        m_leaves.append(artifact);
     } else {
         foreach (Artifact *child, artifact->children)
             initLeavesTopDown(child, seenArtifacts);
@@ -286,8 +284,7 @@ bool Executor::run()
             return true;
         }
 
-        Artifact *leaf = m_leaves.begin().key();
-        execute(leaf);
+        buildArtifact(m_leaves.takeFirst());
     }
     return false;
 }
@@ -331,12 +328,17 @@ static bool isUpToDate(Artifact *artifact)
     return true;
 }
 
-void Executor::execute(Artifact *artifact)
+void Executor::buildArtifact(Artifact *artifact)
 {
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[EXEC] " << fileName(artifact);
 
-    m_leaves.remove(artifact);
+    // Skip artifacts that are already built.
+    if (artifact->buildState == Artifact::Built) {
+        if (qbsLogLevel(LoggerDebug))
+            qbsDebug("[EXEC] artifact already built. Skipping.");
+        return;
+    }
 
     // skip artifacts without transformer
     if (artifact->artifactType != Artifact::Generated) {
@@ -459,7 +461,7 @@ void Executor::finishArtifact(Artifact *leaf)
         }
 
         if (allChildrenBuilt(parent)) {
-            m_leaves.insert(parent, hashDummy);
+            m_leaves.append(parent);
             if (qbsLogLevel(LoggerTrace))
                 qbsTrace() << "[EXEC] finishArtifact adds leaf " << fileName(parent) << " " << toString(parent->buildState);
         } else {
@@ -477,11 +479,13 @@ void Executor::finishArtifact(Artifact *leaf)
         m_progressObserver->incrementProgressValue(BuildEffortCalculator::multiplier(leaf));
 }
 
-static void insertLeavesAfterAddingDependencies_recurse(Artifact *artifact, QSet<Artifact *> &seenArtifacts, QMap<Artifact *, QHashDummyValue> &leaves)
+static void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
+                                                        QSet<Artifact *> *seenArtifacts,
+                                                        QList<Artifact *> *leaves)
 {
-    if (seenArtifacts.contains(artifact))
+    if (seenArtifacts->contains(artifact))
         return;
-    seenArtifacts += artifact;
+    seenArtifacts->insert(artifact);
 
     if (artifact->buildState == Artifact::Untouched)
         artifact->buildState = Artifact::Buildable;
@@ -497,7 +501,7 @@ static void insertLeavesAfterAddingDependencies_recurse(Artifact *artifact, QSet
     if (isLeaf) {
         if (qbsLogLevel(LoggerDebug))
             qbsDebug() << "[EXEC] adding leaf " << fileName(artifact);
-        leaves.insert(artifact, hashDummy);
+        leaves->append(artifact);
     }
 }
 
@@ -505,7 +509,7 @@ void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependenc
 {
     QSet<Artifact *> seenArtifacts;
     foreach (Artifact *dependency, dependencies)
-        insertLeavesAfterAddingDependencies_recurse(dependency, seenArtifacts, m_leaves);
+        insertLeavesAfterAddingDependencies_recurse(dependency, &seenArtifacts, &m_leaves);
 }
 
 void Executor::cancelJobs()

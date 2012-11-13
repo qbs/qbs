@@ -95,7 +95,7 @@ private:
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool run();
-    void execute(Artifact *artifact);
+    void buildArtifact(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
     void initializeArtifactsState();
@@ -118,7 +118,7 @@ private:
     BuildResult m_buildResult;
     QList<BuildProduct::Ptr> m_productsToBuild;
     QList<Artifact *> m_roots;
-    QMap<Artifact *, QHashDummyValue> m_leaves;
+    QList<Artifact *> m_leaves;
     ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;
