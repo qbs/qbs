@@ -63,6 +63,7 @@ protected:
     const AbstractCommand *command() const { return m_command; }
     Transformer *transformer() const { return m_transformer; }
     QScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
+    bool dryRun() const { return m_dryRun; }
 
 private:
     virtual void doStart() = 0;
@@ -72,7 +73,7 @@ private:
     const AbstractCommand *m_command;
     Transformer *m_transformer;
     QScriptEngine *m_mainThreadScriptEngine;
-    bool m_dryRun; // TODO: Use
+    bool m_dryRun;
 };
 
 } // namespace Internal

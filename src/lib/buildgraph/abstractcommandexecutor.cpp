@@ -41,6 +41,7 @@ AbstractCommandExecutor::AbstractCommandExecutor(QObject *parent)
     , m_command(0)
     , m_transformer(0)
     , m_mainThreadScriptEngine(0)
+    , m_dryRun(false)
 {
 }
 

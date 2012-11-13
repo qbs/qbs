@@ -397,12 +397,14 @@ void Executor::buildArtifact(Artifact *artifact)
     }
 
     // create the output directories
-    ArtifactList::const_iterator it = artifact->transformer->outputs.begin();
-    for (; it != artifact->transformer->outputs.end(); ++it) {
-        Artifact *output = *it;
-        QDir outDir = QFileInfo(output->filePath()).absoluteDir();
-        if (!outDir.exists())
-            outDir.mkpath(".");
+    if (!m_buildOptions.dryRun) {
+        ArtifactList::const_iterator it = artifact->transformer->outputs.begin();
+        for (; it != artifact->transformer->outputs.end(); ++it) {
+            Artifact *output = *it;
+            QDir outDir = QFileInfo(output->filePath()).absoluteDir();
+            if (!outDir.exists())
+                outDir.mkpath(".");
+        }
     }
 
     // scan all input artifacts

@@ -44,6 +44,7 @@ class TestBlackbox : public QObject
     const QString qbsExecutableFilePath;
     const QString buildProfile;
     const QString buildDir;
+    const QString buildGraphPath;
 
 public:
     TestBlackbox();
@@ -61,6 +62,8 @@ public slots:
 private slots:
     void build_project_data();
     void build_project();
+    void build_project_dry_run_data();
+    void build_project_dry_run();
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();

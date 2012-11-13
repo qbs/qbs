@@ -42,7 +42,7 @@ class Artifact;
 class ArtifactCleaner
 {
 public:
-    void cleanup(const QList<BuildProduct::ConstPtr> &products, bool removeAll,
+    void cleanup(const QList<BuildProduct::Ptr> &products, bool removeAll,
                  const BuildOptions &buildOptions);
 };
 

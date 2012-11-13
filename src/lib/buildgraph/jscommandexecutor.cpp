@@ -149,6 +149,10 @@ void JsCommandExecutor::waitForFinished()
 
 void JsCommandExecutor::doStart()
 {
+    if (dryRun()) {
+        emit finished();
+        return;
+    }
     QFuture<JSRunner::result_type> future = QtConcurrent::run(JSRunner(jsCommand()), transformer());
     if (!m_jsFutureWatcher) {
         m_jsFutureWatcher = new JavaScriptCommandFutureWatcher(this);

@@ -120,7 +120,7 @@ private:
     QSet<QString> m_directories;
 };
 
-void ArtifactCleaner::cleanup(const QList<BuildProduct::ConstPtr> &products, bool removeAll,
+void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool removeAll,
                               const BuildOptions &buildOptions)
 {
     TimedActivityLogger logger(QLatin1String("Cleaning up"));

@@ -67,6 +67,11 @@ public:
                        const BuildOptions &buildOptions);
     void buildProducts(const QList<ResolvedProduct::ConstPtr> &products,
                        const BuildOptions &buildOptions, bool needsDepencencyResolving);
+    void cleanBuildProducts(const QList<BuildProduct::Ptr> &buildProducts,
+                            const BuildOptions &buildOptions, QbsEngine::CleanType cleanType);
+
+    void storeBuildGraphs(const QList<BuildProduct::Ptr> &buildProducts,
+                          const BuildOptions &buildOptions);
 
     ScriptEngine engine;
     ProgressObserver *observer;
@@ -207,32 +212,19 @@ void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions
     d->buildProducts(resolvedProducts, buildOptions, true);
 }
 
-static void cleanBuildProducts(const QList<BuildProduct::ConstPtr> &buildProducts,
-                               const BuildOptions &buildOptions, QbsEngine::CleanType cleanType)
-{
-    ArtifactCleaner cleaner;
-    cleaner.cleanup(buildProducts, cleanType == QbsEngine::CleanupAll, buildOptions);
-
-    QSet<BuildProject *> buildProjects;
-    foreach (const BuildProduct::ConstPtr &bProduct, buildProducts)
-        buildProjects += bProduct->project;
-    foreach (BuildProject *bProject, buildProjects)
-        bProject->store();
-}
-
 void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
                               const BuildOptions &buildOptions, CleanType cleanType)
 {
-    QList<BuildProduct::ConstPtr> products;
+    QList<BuildProduct::Ptr> products;
     foreach (const Project::Id id, projectIds) {
         const ResolvedProject::ConstPtr rProject = d->publicObjectsMap.project(id);
         if (!rProject)
             throw Error(Tr::tr("Cleaning up failed: Project not found."));
         const BuildProject::ConstPtr bProject = d->setupBuildProject(rProject);
-        foreach (const BuildProduct::ConstPtr &product, bProject->buildProducts())
+        foreach (const BuildProduct::Ptr &product, bProject->buildProducts())
             products << product;
     }
-    cleanBuildProducts(products, buildOptions, cleanType);
+    d->cleanBuildProducts(products, buildOptions, cleanType);
 }
 
 void QbsEngine::cleanProjects(const QList<Project> &projects, const BuildOptions &buildOptions,
@@ -244,21 +236,21 @@ void QbsEngine::cleanProjects(const QList<Project> &projects, const BuildOptions
 void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions &buildOptions,
                               QbsEngine::CleanType cleanType)
 {
-    QList<BuildProduct::ConstPtr> buildProducts;
+    QList<BuildProduct::Ptr> buildProducts;
     foreach (const Product &product, products) {
         const ResolvedProduct::ConstPtr rProduct = d->publicObjectsMap.product(product.id());
         if (!rProduct)
             throw Error(Tr::tr("Cleaning up failed: Product not found."));
         const ResolvedProject::ConstPtr rProject = rProduct->project.toStrongRef();
         const BuildProject::ConstPtr bProject = d->setupBuildProject(rProject);
-        foreach (const BuildProduct::ConstPtr &bProduct, bProject->buildProducts()) {
+        foreach (const BuildProduct::Ptr &bProduct, bProject->buildProducts()) {
             if (bProduct->rProduct == rProduct) {
                 buildProducts << bProduct;
                 break;
             }
         }
     }
-    cleanBuildProducts(buildProducts, buildOptions, cleanType);
+    d->cleanBuildProducts(buildProducts, buildOptions, cleanType);
 }
 
 Project QbsEngine::retrieveProject(Project::Id projectId) const
@@ -409,10 +401,7 @@ void QbsEngine::QbsEnginePrivate::buildProducts(const QList<BuildProduct::Ptr> &
     executor.build(buildProducts);
     execLoop.exec();
     buildLogger.finishActivity();
-    if (executor.state() != Executor::ExecutorError) {
-        foreach (const BuildProject::ConstPtr &buildProject, buildProjects)
-            buildProject->store();
-    }
+    storeBuildGraphs(buildProducts, buildOptions);
     if (executor.buildResult() != Executor::SuccessfulBuild)
         throw Error(Tr::tr("Build failed."));
 }
@@ -447,6 +436,31 @@ void QbsEngine::QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::Con
     }
 
     buildProducts(productsToBuild, buildOptions);
+}
+
+void QbsEngine::QbsEnginePrivate::cleanBuildProducts(const QList<BuildProduct::Ptr> &buildProducts,
+        const BuildOptions &buildOptions, QbsEngine::CleanType cleanType)
+{
+    try {
+        ArtifactCleaner cleaner;
+        cleaner.cleanup(buildProducts, cleanType == QbsEngine::CleanupAll, buildOptions);
+    } catch (const Error &error) {
+        storeBuildGraphs(buildProducts, buildOptions);
+        throw;
+    }
+    storeBuildGraphs(buildProducts, buildOptions);
+}
+
+void QbsEngine::QbsEnginePrivate::storeBuildGraphs(const QList<BuildProduct::Ptr> &buildProducts,
+                                                   const BuildOptions &buildOptions)
+{
+    if (buildOptions.dryRun)
+        return;
+    QSet<BuildProject *> buildProjects;
+    foreach (const BuildProduct::ConstPtr &bProduct, buildProducts)
+        buildProjects += bProduct->project;
+    foreach (const BuildProject * const bProject, buildProjects)
+        bProject->store();
 }
 
 QVariantMap QbsEngine::QbsEnginePrivate::createBuildConfiguration(const QVariantMap &userBuildConfig)

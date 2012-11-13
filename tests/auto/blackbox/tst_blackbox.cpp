@@ -45,7 +45,8 @@ TestBlackbox::TestBlackbox()
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       buildProfile(QLatin1String("qbs_autotests")),
-      buildDir(buildProfile + QLatin1String("-debug"))
+      buildDir(buildProfile + QLatin1String("-debug")),
+      buildGraphPath(buildDir + QLatin1Char('/') + buildDir + QLatin1String(".bg"))
 {
 }
 
@@ -187,9 +188,31 @@ void TestBlackbox::build_project()
 
     QCOMPARE(runQbs(), 0);
     QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY(QFile::exists(buildGraphPath));
     QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
     QCOMPARE(runQbs(), 0);
     QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY(QFile::exists(buildGraphPath));
+}
+
+void TestBlackbox::build_project_dry_run_data()
+{
+    build_project_data();
+}
+
+void TestBlackbox::build_project_dry_run()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+    if (!projectSubDir.startsWith('/'))
+        projectSubDir.prepend('/');
+    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
+    QDir::setCurrent(testDataDir + projectSubDir);
+
+    QCOMPARE(runQbs(QStringList() << "-n"), 0);
+    const QStringList &buildDirContents
+            = QDir(buildDir).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
+    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
 }
 
 void TestBlackbox::track_qrc()

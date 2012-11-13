@@ -102,6 +102,10 @@ void ProcessCommandExecutor::doStart()
     if (!cmd->isSilent())
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << m_commandLine;
     qbsDebug() << "[EXEC] " << m_commandLine;
+    if (dryRun()) {
+        emit finished();
+        return;
+    }
 
     // Automatically use response files, if the command line gets to long.
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
