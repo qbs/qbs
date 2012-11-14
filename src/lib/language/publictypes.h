@@ -30,7 +30,9 @@
 #define PUBLICTYPES_H
 
 #include <QtGlobal>
+#include <QDateTime>
 #include <QList>
+#include <QPair>
 #include <QString>
 #include <QStringList>
 #include <QVariantMap>
@@ -46,19 +48,23 @@ template<int dummy> class IdTemplate
     friend class QbsEngine;
     friend uint qHash<>(IdTemplate<dummy> id);
 public:
-    IdTemplate() : m_id(0) {}
+    IdTemplate() : m_id(0), m_timeStamp(0) {}
 
     bool isValid() const { return m_id; }
-
-    bool operator==(IdTemplate<dummy> other) const { return m_id == other.m_id; }
+    bool operator==(IdTemplate<dummy> other) const {
+        return m_id == other.m_id && m_timeStamp == other.m_timeStamp;
+    }
 
 private:
-    explicit IdTemplate(quintptr id) : m_id(id) {}
+    explicit IdTemplate(quintptr id) : m_id(id), m_timeStamp(QDateTime::currentMSecsSinceEpoch()) {}
 
     quintptr m_id;
+    qint64 m_timeStamp;
 };
 
-template<int n> uint qHash(IdTemplate<n> id) { return QT_PREPEND_NAMESPACE(qHash)(id.m_id); }
+template<int n> uint qHash(IdTemplate<n> id) {
+    return QT_PREPEND_NAMESPACE(qHash)(qMakePair(id.m_id, id.m_timeStamp));
+}
 
 
 class Group
