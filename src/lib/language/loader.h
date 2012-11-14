@@ -367,7 +367,7 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
     ProjectFile::Ptr loadProject(const QString &fileName);
-    ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectory,
+    ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildRoot,
                                         const QVariantMap &userProperties, bool resolveProductDependencies = true);
 protected:
     ProjectFile::Ptr parseFile(const QString &fileName);

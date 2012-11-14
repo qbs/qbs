@@ -105,12 +105,11 @@ public:
         bool discardLoadedProject;
     };
 
-    static LoadResult load(const QString &projectFilePath, BuildGraph *bg,
-                           const FileTime &minTimeStamp,
-                           const QVariantMap &cfg,
-                           const QStringList &loaderSearchPaths);
+    static LoadResult load(const QString &projectFilePath, BuildGraph *bg, const QString &buildRoot,
+                           const QVariantMap &cfg, const QStringList &loaderSearchPaths);
     void store() const;
-
+    static QString deriveBuildGraphFilePath(const QString &buildDir, const QString projectId);
+    QString buildGraphFilePath() const;
 
     BuildGraph *buildGraph() const;
     ResolvedProject::Ptr resolvedProject() const;
@@ -127,11 +126,6 @@ public:
     void onProductRemoved(const BuildProduct::Ptr &product);
 
 private:
-    static void restoreBuildGraph(const QString &projectFilePath, BuildGraph *buildGraph,
-                                  const FileTime &minTimeStamp,
-                                  const QVariantMap &configuration,
-                                  const QStringList &loaderSearchPaths,
-                                  LoadResult *loadResult);
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
     void addBuildProduct(const BuildProduct::Ptr &product);
@@ -169,10 +163,6 @@ public:
     void applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
 
     void setProgressObserver(ProgressObserver *observer);
-    void setOutputDirectoryRoot(const QString &buildDirectoryRoot) { m_outputDirectoryRoot = buildDirectoryRoot; }
-    const QString &outputDirectoryRoot() const { return m_outputDirectoryRoot; }
-    QString buildDirectory(const QString &projectId) const;
-    QString buildGraphFilePath(const QString &projectId) const;
 
     static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
@@ -218,7 +208,6 @@ private:
     };
 
     ProgressObserver *m_progressObserver;
-    QString m_outputDirectoryRoot;   /// The directory where the 'build' and 'targets' subdirectories end up.
     ScriptEngine *m_engine;
     unsigned int m_initEngineCalls;
     QScriptValue m_scope;

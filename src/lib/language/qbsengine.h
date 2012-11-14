@@ -54,10 +54,10 @@ public:
     ~QbsEngine();
 
     void setProgressObserver(ProgressObserver *observer);
-    void setBuildRoot(const QString &directory);
 
     // All of these may throw qbs::Error.
-    Project::Id setupProject(const QString &projectFileName, const QVariantMap &buildConfig);
+    Project::Id setupProject(const QString &projectFileName, const QVariantMap &buildConfig,
+                             const QString &buildRoot);
     void buildProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions);
     void buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions);
     void buildProject(Project::Id projectId, const BuildOptions &buildOptions) {

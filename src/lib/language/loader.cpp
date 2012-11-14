@@ -1820,10 +1820,10 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
-ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildDirectory,
+ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildRoot,
                                             const QVariantMap &userProperties, bool resolveProductDependencies)
 {
-    Q_ASSERT(FileInfo::isAbsolute(buildDirectory));
+    Q_ASSERT(FileInfo::isAbsolute(buildRoot));
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
     m_project = projectFile;
@@ -1833,6 +1833,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     ResolvedProject::Ptr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
     rproject->setBuildConfiguration(userProperties);
+    rproject->buildDirectory = ResolvedProject::deriveBuildDirectory(buildRoot, rproject->id());
 
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
@@ -1874,13 +1875,12 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
 
         // insert property "buildDirectory"
         {
-            Property p(m_engine->toScriptValue(buildDirectory));
+            Property p(m_engine->toScriptValue(rproject->buildDirectory));
             productProps->properties.insert("buildDirectory", p);
         }
 
         rproduct->fileTags = productProps->stringListValue("type");
         rproduct->destinationDirectory = productProps->stringValue("destination");
-        rproduct->buildDirectory = buildDirectory;
         foreach (const Rule::Ptr &rule, globalRules)
             rproduct->rules.insert(rule);
         foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
@@ -1996,17 +1996,6 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     foreach (ResolvedProduct::Ptr rproduct, rproject->products)
         foreach (Module::Ptr module, projectData.products.value(rproduct).product->modules)
             checkModuleDependencies(module);
-
-    // Change build directory for products with the same name.
-    foreach (const QString &name, uniqueStrings) {
-        QList<ResolvedProduct::Ptr> products = resolvedProducts.values(name);
-        if (products.count() < 2)
-            continue;
-        foreach (ResolvedProduct::Ptr product, products) {
-            product->buildDirectory.append('/');
-            product->buildDirectory.append(product->fileTags.join("-"));
-        }
-    }
 
     // Resolve inter-product dependencies.
     if (resolveProductDependencies) {
@@ -2263,7 +2252,7 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
         QString fileName = child->scope->stringValue("fileName");
         if (fileName.isEmpty())
             throw Error(Tr::tr("Artifact fileName must not be empty."));
-        artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->buildDirectory,
+        artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->project->buildDirectory,
                                                            fileName);
         artifact->fileTags = child->scope->stringListValue("fileTags").toSet();
         rtrafo->outputs += artifact;

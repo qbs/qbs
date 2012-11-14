@@ -375,7 +375,6 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> additionalFileTags
         >> name
         >> targetName
-        >> buildDirectory
         >> sourceDirectory
         >> destinationDirectory
         >> qbsFile;
@@ -394,7 +393,6 @@ void ResolvedProduct::store(PersistentPool &pool) const
         << additionalFileTags
         << name
         << targetName
-        << buildDirectory
         << sourceDirectory
         << destinationDirectory
         << qbsFile;
@@ -566,6 +564,11 @@ QString ResolvedProject::deriveId(const QVariantMap &config)
     const QString buildVariant = qbsProperties.value(QLatin1String("buildVariant")).toString();
     const QString profile = qbsProperties.value(QLatin1String("profile")).toString();
     return profile + QLatin1Char('-') + buildVariant;
+}
+
+QString ResolvedProject::deriveBuildDirectory(const QString &buildRoot, const QString &id)
+{
+    return buildRoot + QLatin1Char('/') + id;
 }
 
 void ResolvedProject::setBuildConfiguration(const QVariantMap &config)

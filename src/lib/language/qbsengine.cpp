@@ -114,22 +114,13 @@ void QbsEngine::setProgressObserver(ProgressObserver *observer)
     d->buildGraph->setProgressObserver(observer);
 }
 
-void QbsEngine::setBuildRoot(const QString &directory)
+Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVariantMap &_buildConfig,
+                                    const QString &buildRoot)
 {
-    d->buildGraph->setOutputDirectoryRoot(directory);
-}
-
-Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVariantMap &_buildConfig)
-{
-    Loader loader(&d->engine);
-    loader.setSearchPaths(d->settings.searchPaths());
-    loader.setProgressObserver(d->observer);
-
     ProjectFile::Ptr projectFile;
     const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);
-    const FileTime projectFileTimeStamp = FileInfo(projectFileName).lastModified();
     const BuildProject::LoadResult loadResult = BuildProject::load(projectFileName,
-            d->buildGraph.data(), projectFileTimeStamp, buildConfig, d->settings.searchPaths());
+            d->buildGraph.data(), buildRoot, buildConfig, d->settings.searchPaths());
 
     BuildProject::Ptr bProject;
     ResolvedProject::Ptr rProject;
@@ -140,14 +131,14 @@ Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVaria
         rProject = bProject->resolvedProject();
     } else {
         TimedActivityLogger loadLogger(QLatin1String("Loading project"));
+        Loader loader(&d->engine);
+        loader.setSearchPaths(d->settings.searchPaths());
+        loader.setProgressObserver(d->observer);
         projectFile = loader.loadProject(projectFileName);
-        if (loadResult.changedResolvedProject) {
+        if (loadResult.changedResolvedProject)
             rProject = loadResult.changedResolvedProject;
-        } else {
-            const QString buildDir = d->buildGraph->buildDirectory(
-                        ResolvedProject::deriveId(buildConfig));
-            rProject = loader.resolveProject(projectFile, buildDir, buildConfig);
-        }
+        else
+            rProject = loader.resolveProject(projectFile, buildRoot, buildConfig);
         if (rProject->products.isEmpty())
             throw Error(QString("'%1' does not contain products.").arg(projectFileName));
         if (loadResult.loadedProject)

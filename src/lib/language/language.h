@@ -321,7 +321,6 @@ public:
     QStringList additionalFileTags;
     QString name;
     QString targetName;
-    QString buildDirectory;
     QString sourceDirectory;
     QString destinationDirectory;
     QString qbsFile;
@@ -359,8 +358,10 @@ public:
     static Ptr create() { return Ptr(new ResolvedProject); }
 
     static QString deriveId(const QVariantMap &config);
+    static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
 
     QString qbsFile; // Not saved.
+    QString buildDirectory; // Not saved
     QVariantMap platformEnvironment;
     QList<ResolvedProduct::Ptr> products;
 
@@ -380,8 +381,6 @@ private:
 
 } // namespace Internal
 } // namespace qbs
-
-Q_DECLARE_METATYPE(qbs::Internal::ResolvedProject::Ptr)
 
 QT_BEGIN_NAMESPACE
 Q_DECLARE_TYPEINFO(qbs::Internal::JsImport, Q_MOVABLE_TYPE);
