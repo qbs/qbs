@@ -929,8 +929,8 @@ BuildProject::LoadResult BuildProject::load(const QString &projectFilePath, Buil
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
         Loader ldr(bg->engine());
         ldr.setSearchPaths(loaderSearchPaths);
-        ProjectFile::Ptr projectFile = ldr.loadProject(project->resolvedProject()->qbsFile);
-        const ResolvedProject::Ptr changedProject = ldr.resolveProject(projectFile, buildRoot, cfg);
+        const ResolvedProject::Ptr changedProject
+                = ldr.loadProject(project->resolvedProject()->qbsFile, buildRoot, cfg);
         result.changedResolvedProject = changedProject;
 
         QMap<QString, ResolvedProduct::Ptr> changedProductsMap;

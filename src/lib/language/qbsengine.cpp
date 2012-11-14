@@ -117,7 +117,6 @@ void QbsEngine::setProgressObserver(ProgressObserver *observer)
 Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVariantMap &_buildConfig,
                                     const QString &buildRoot)
 {
-    ProjectFile::Ptr projectFile;
     const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);
     const BuildProject::LoadResult loadResult = BuildProject::load(projectFileName,
             d->buildGraph.data(), buildRoot, buildConfig, d->settings.searchPaths());
@@ -130,15 +129,15 @@ Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVaria
         d->buildProjects << bProject;
         rProject = bProject->resolvedProject();
     } else {
-        TimedActivityLogger loadLogger(QLatin1String("Loading project"));
-        Loader loader(&d->engine);
-        loader.setSearchPaths(d->settings.searchPaths());
-        loader.setProgressObserver(d->observer);
-        projectFile = loader.loadProject(projectFileName);
-        if (loadResult.changedResolvedProject)
+        if (loadResult.changedResolvedProject) {
             rProject = loadResult.changedResolvedProject;
-        else
-            rProject = loader.resolveProject(projectFile, buildRoot, buildConfig);
+        } else {
+            TimedActivityLogger loadLogger(QLatin1String("Loading project"));
+            Loader loader(&d->engine);
+            loader.setSearchPaths(d->settings.searchPaths());
+            loader.setProgressObserver(d->observer);
+            rProject = loader.loadProject(projectFileName, buildRoot, buildConfig);
+        }
         if (rProject->products.isEmpty())
             throw Error(QString("'%1' does not contain products.").arg(projectFileName));
         if (loadResult.loadedProject)

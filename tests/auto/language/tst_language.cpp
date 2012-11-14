@@ -79,9 +79,8 @@ void TestLanguage::conditionalDepends()
     ResolvedProduct::Ptr product;
     ResolvedModule::ConstPtr dependency;
     try {
-        ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
-                                                              buildConfig);
+        project = loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs",
+                "/some/build/directory", buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
 
@@ -149,9 +148,8 @@ void TestLanguage::groupName()
 {
     bool exceptionCaught = false;
     try {
-        ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/groupname.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
-                                                              buildConfig);
+        ResolvedProject::Ptr project = loader->loadProject(SRCDIR "testdata/groupname.qbs",
+                                                           "/some/build/directory", buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
         QCOMPARE(products.count(), 2);
@@ -204,10 +202,8 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         QVariantMap customBuildConfig = buildConfig;
         setConfigProperty(customBuildConfig, QStringList() << "qbs" << "buildVariant",
                           buildVariant);
-        ProjectFile::Ptr projectFile;
-        projectFile = loader->loadProject(SRCDIR "testdata/jsimportsinmultiplescopes.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
-                                                              customBuildConfig);
+        ResolvedProject::Ptr project = loader->loadProject(SRCDIR "testdata/jsimportsinmultiplescopes.qbs",
+                "/some/build/directory", customBuildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
@@ -226,9 +222,8 @@ void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;
     try {
-        ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/productconditions.qbs");
-        ResolvedProject::Ptr project = loader->resolveProject(projectFile, "/some/build/directory",
-                                                              buildConfig);
+        ResolvedProject::Ptr project = loader->loadProject(SRCDIR "testdata/productconditions.qbs",
+                                                              "/some/build/directory", buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProduct::Ptr> products = productsFromProject(project);
         QCOMPARE(products.count(), 3);
@@ -267,8 +262,8 @@ void TestLanguage::propertiesBlocks()
     if (productName == "init") {
         bool exceptionCaught = false;
         try {
-            ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs");
-            project = loader->resolveProject(projectFile, "/some/build/directory", buildConfig);
+            project = loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs",
+                                          "/some/build/directory", buildConfig);
             QVERIFY(project);
         } catch (const Error &e) {
             exceptionCaught = true;
@@ -314,8 +309,8 @@ void TestLanguage::fileTags()
     if (productName == QLatin1String("init")) {
         bool exceptionCaught = false;
         try {
-            ProjectFile::Ptr projectFile = loader->loadProject(SRCDIR "testdata/filetags.qbs");
-            project = loader->resolveProject(projectFile, "/some/build/directory", buildConfig);
+            project = loader->loadProject(SRCDIR "testdata/filetags.qbs", "/some/build/directory",
+                                          buildConfig);
             QVERIFY(project);
         }
         catch (const Error &e) {

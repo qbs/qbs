@@ -31,31 +31,34 @@
 
 #include "language.h"
 #include "scriptengine.h"
+
+#include <jsextensions/file.h>
+#include <jsextensions/process.h>
+#include <jsextensions/textfile.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
+#include <parser/qmljsengine_p.h>
+#include <parser/qmljsnodepool_p.h>
+#include <parser/qmljslexer_p.h>
+#include <parser/qmljsparser_p.h>
+#include <tools/codelocation.h>
 #include <tools/error.h>
-#include <tools/hostosinfo.h>
-#include <tools/settings.h>
 #include <tools/fileinfo.h>
-#include <tools/scripttools.h>
+#include <tools/hostosinfo.h>
 #include <tools/progressobserver.h>
+#include <tools/scripttools.h>
+#include <tools/settings.h>
 
 #include <QCoreApplication>
 #include <QDirIterator>
-#include <QSettings>
+#include <QMultiMap>
+#include <QScriptClass>
 #include <QScriptProgram>
 #include <QScriptValueIterator>
-#include <QStringList>
+#include <QSettings>
 #include <QVariant>
 
-#include <parser/qmljsparser_p.h>
-#include <parser/qmljsnodepool_p.h>
-#include <parser/qmljsengine_p.h>
-#include <parser/qmljslexer_p.h>
-
-#include <jsextensions/file.h>
-#include <jsextensions/textfile.h>
-#include <jsextensions/process.h>
+#include <set>
 
 QT_BEGIN_NAMESPACE
 static uint qHash(const QStringList &list)
@@ -69,8 +72,430 @@ QT_END_NAMESPACE
 
 using namespace QmlJS::AST;
 
-
 namespace qbs {
+namespace Internal {
+
+class Function
+{
+public:
+    QString name;
+    QScriptProgram source;
+};
+
+class Binding
+{
+public:
+    QStringList name;
+    QScriptProgram valueSource;
+
+    bool isValid() const { return !name.isEmpty(); }
+    CodeLocation codeLocation() const;
+};
+
+class PropertyDeclaration
+{
+public:
+    enum Type
+    {
+        UnknownType,
+        Boolean,
+        Path,
+        PathList,
+        String,
+        Variant,
+        Verbatim
+    };
+
+    enum Flag
+    {
+        DefaultFlags = 0,
+        ListProperty = 0x1,
+        PropertyNotAvailableInConfig = 0x2     // Is this property part of a project, product or file configuration?
+    };
+    Q_DECLARE_FLAGS(Flags, Flag)
+
+    PropertyDeclaration();
+    PropertyDeclaration(const QString &name, Type type, Flags flags = DefaultFlags);
+    ~PropertyDeclaration();
+
+    bool isValid() const;
+
+    QString name;
+    Type type;
+    Flags flags;
+    QScriptValue allowedValues;
+    QString description;
+    QString initialValueSource;
+};
+
+class ProjectFile;
+
+class LanguageObject
+{
+public:
+    LanguageObject(ProjectFile *owner);
+    LanguageObject(const LanguageObject &other);
+    ~LanguageObject();
+
+    QString id;
+
+    QStringList prototype;
+    QString prototypeFileName;
+    CodeLocation prototypeLocation;
+    ProjectFile *file;
+
+    QList<LanguageObject *> children;
+    QHash<QStringList, Binding> bindings;
+    QHash<QString, Function> functions;
+    QHash<QString, PropertyDeclaration> propertyDeclarations;
+};
+
+class EvaluationObject;
+class Scope;
+
+/**
+  * Represents a qbs project file.
+  * Owns all the language objects.
+  */
+class ProjectFile
+{
+public:
+    typedef QSharedPointer<ProjectFile> Ptr;
+
+    ProjectFile();
+    ~ProjectFile();
+
+    JsImports jsImports;
+    LanguageObject *root;
+    QString fileName;
+
+    bool isValid() const { return !root->prototype.isEmpty(); }
+    bool isDestructing() const { return m_destructing; }
+
+    void registerScope(QSharedPointer<Scope> scope) { m_scopes += scope; }
+    void registerEvaluationObject(EvaluationObject *eo) { m_evaluationObjects += eo; }
+    void unregisterEvaluationObject(EvaluationObject *eo) { m_evaluationObjects.removeOne(eo); }
+    void registerLanguageObject(LanguageObject *eo) { m_languageObjects += eo; }
+    void unregisterLanguageObject(LanguageObject *eo) { m_languageObjects.removeOne(eo); }
+
+private:
+    bool m_destructing;
+    QList<QSharedPointer<Scope> > m_scopes;
+    QList<EvaluationObject *> m_evaluationObjects;
+    QList<LanguageObject *> m_languageObjects;
+};
+
+
+// evaluation objects
+
+class ScopeChain;
+class Scope;
+
+class Property
+{
+public:
+    explicit Property(LanguageObject *sourceObject = 0);
+    explicit Property(QSharedPointer<Scope> scope);
+    explicit Property(EvaluationObject *object);
+    explicit Property(const QScriptValue &scriptValue);
+
+    // ids, project. etc, JS imports and
+    // where properties get resolved to
+    QSharedPointer<ScopeChain> scopeChain;
+    QScriptProgram valueSource;
+    QList<Property> baseProperties;
+
+    // value once it's been evaluated
+    QScriptValue value;
+
+    // if value is a scope
+    QSharedPointer<Scope> scope;
+
+    // where this property is set
+    LanguageObject *sourceObject;
+
+    bool isValid() const { return scopeChain || scope || value.isValid(); }
+};
+
+class ScopeChain : public QScriptClass
+{
+    Q_DISABLE_COPY(ScopeChain)
+public:
+    typedef QSharedPointer<ScopeChain> Ptr;
+
+    ScopeChain(QScriptEngine *engine, const QSharedPointer<Scope> &root = QSharedPointer<Scope>());
+    ~ScopeChain();
+
+    ScopeChain *clone() const;
+    QScriptValue value();
+    QSharedPointer<Scope> first() const;
+    QSharedPointer<Scope> last() const;
+    // returns this
+    ScopeChain *prepend(const QSharedPointer<Scope> &newTop);
+
+    QSharedPointer<Scope> findNonEmpty(const QString &name) const;
+    QSharedPointer<Scope> find(const QString &name) const;
+
+    Property lookupProperty(const QString &name) const;
+
+protected:
+    // QScriptClass interface
+    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+                             QueryFlags flags, uint *id);
+    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
+    void setProperty(QScriptValue &object, const QScriptString &name, uint id, const QScriptValue &m_value);
+
+private:
+    QList<QWeakPointer<Scope> > m_scopes;
+    QScriptValue m_value;
+};
+
+class Scope;
+typedef std::set<Scope *> ScopesCache;
+typedef QSharedPointer<ScopesCache> ScopesCachePtr;
+
+class Scope : public QScriptClass
+{
+    Q_DISABLE_COPY(Scope)
+    Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name);
+
+    ScopesCachePtr m_scopesCache;
+
+public:
+    typedef QSharedPointer<Scope> Ptr;
+    typedef QSharedPointer<const Scope> ConstPtr;
+
+    static Ptr create(QScriptEngine *engine, ScopesCachePtr cache, const QString &name,
+                      ProjectFile *owner);
+    ~Scope();
+
+    QString name() const;
+
+protected:
+    // QScriptClass interface
+    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+                             QueryFlags flags, uint *id);
+    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
+
+public:
+    QScriptValue property(const QString &name) const;
+    bool boolValue(const QString &name, bool defaultValue = false) const;
+    QString stringValue(const QString &name) const;
+    QStringList stringListValue(const QString &name) const;
+    QString verbatimValue(const QString &name) const;
+    void dump(const QByteArray &indent) const;
+    void insertAndDeclareProperty(const QString &propertyName, const Property &property,
+                                  PropertyDeclaration::Type propertyType = PropertyDeclaration::Variant);
+
+    QHash<QString, Property> properties;
+    QHash<QString, PropertyDeclaration> declarations;
+
+    QString m_name;
+    QWeakPointer<Scope> fallbackScope;
+    QScriptValue value;
+};
+
+class ProbeScope : public QScriptClass
+{
+    Q_DISABLE_COPY(ProbeScope)
+    ProbeScope(QScriptEngine *engine, const Scope::Ptr &scope);
+public:
+    typedef QSharedPointer<ProbeScope> Ptr;
+
+    static Ptr create(QScriptEngine *engine, const Scope::Ptr &scope);
+    ~ProbeScope();
+
+    QScriptValue value();
+
+protected:
+    // QScriptClass interface
+    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+                             QueryFlags flags, uint *id);
+    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
+    void setProperty(QScriptValue &object, const QScriptString &name, uint id, const QScriptValue &value);
+
+private:
+    Scope::Ptr m_scope;
+    QSharedPointer<QScriptClass> m_scopeChain;
+    QScriptValue m_value;
+};
+
+class ModuleBase
+{
+public:
+    typedef QSharedPointer<ModuleBase> Ptr;
+
+    virtual ~ModuleBase() {}
+    QString name;
+    QScriptProgram condition;
+    ScopeChain::Ptr conditionScopeChain;
+    CodeLocation dependsLocation;
+};
+
+class UnknownModule : public ModuleBase
+{
+public:
+    typedef QSharedPointer<UnknownModule> Ptr;
+
+    bool required;
+    QString failureMessage;
+};
+
+class EvaluationObject;
+
+class Module : public ModuleBase
+{
+    Q_DISABLE_COPY(Module)
+public:
+    typedef QSharedPointer<Module> Ptr;
+
+    Module();
+    ~Module();
+
+    ProjectFile *file() const;
+    void dump(QByteArray &indent);
+
+    QStringList id;
+    Scope::Ptr context;
+    EvaluationObject *object;
+    uint dependsCount;
+};
+
+class EvaluationObject
+{
+    Q_DISABLE_COPY(EvaluationObject)
+public:
+    EvaluationObject(LanguageObject *instantiatingObject);
+    ~EvaluationObject();
+
+    LanguageObject *instantiatingObject() const;
+    void dump(QByteArray &indent);
+
+    QString prototype;
+
+    Scope::Ptr scope;
+    QList<EvaluationObject *> children;
+    QHash<QString, Module::Ptr> modules;
+    QList<UnknownModule::Ptr> unknownModules;
+
+    // the source objects that generated this object
+    // the object that triggered the instantiation is first, followed by prototypes
+    QList<LanguageObject *> objects;
+};
+
+class Loader::LoaderPrivate
+{
+public:
+    LoaderPrivate(ScriptEngine *engine);
+
+    void loadProject(const QString &fileName);
+    ResolvedProject::Ptr resolveProject(const QString &buildRoot,
+                                        const QVariantMap &userProperties);
+    ProjectFile::Ptr parseFile(const QString &fileName);
+
+    void clearScopesCache();
+    Scope::Ptr buildFileContext(ProjectFile *file);
+    bool existsModuleInSearchPath(const QString &moduleName);
+    Module::Ptr searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleScope,
+                                    const QVariantMap &userProperties, const CodeLocation &dependsLocation,
+                                    const QStringList &extraSearchPaths = QStringList());
+    Module::Ptr loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
+                           const QVariantMap &userProperties, const CodeLocation &dependsLocation);
+    void insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance = Scope::Ptr());
+    QList<Module::Ptr> evaluateDependency(LanguageObject *depends, ScopeChain::Ptr conditionScopeChain,
+                                          ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
+                                          QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties);
+    void evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
+                              ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule = true);
+    void evaluateDependencyConditions(EvaluationObject *evaluationObject);
+    void evaluateImports(Scope::Ptr target, const JsImports &jsImports);
+    void evaluatePropertyOptions(LanguageObject *object);
+    QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
+                            const Scope::Ptr &properties);
+    QVariantMap evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+                                     EvaluationObject *moduleContainer, Scope::Ptr objectScope);
+    void resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
+                            ScopeChain::Ptr moduleScope = ScopeChain::Ptr(), const QVariantMap &userProperties = QVariantMap());
+    void fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties);
+    void fillEvaluationObjectBasics(const ScopeChain::Ptr &scope, LanguageObject *object, EvaluationObject *evaluationObject);
+    void setupBuiltinDeclarations();
+    void setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject);
+    void resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module);
+    void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
+    void resolveProductModule(const ResolvedProduct::ConstPtr &rproduct, EvaluationObject *group);
+    void resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module);
+    void resolveProbe(EvaluationObject *node);
+    QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
+                                                    ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module);
+    Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module);
+    FileTagger::ConstPtr resolveFileTagger(EvaluationObject *evaluationObject);
+    void buildModulesProperty(EvaluationObject *evaluationObject);
+    void checkModuleDependencies(const Module::Ptr &module);
+
+    class ProductData
+    {
+    public:
+        QString originalProductName;
+        EvaluationObject *product;
+        QList<UnknownModule::Ptr> usedProducts;
+        QList<UnknownModule::Ptr> usedProductsFromProductModule;
+
+        void addUsedProducts(const QList<UnknownModule::Ptr> &additionalUsedProducts, bool *productsAdded);
+    };
+
+    struct ProjectData
+    {
+        QHash<ResolvedProduct::Ptr, ProductData> products;
+        QList<ProductData> removedProducts;
+    };
+
+    void resolveTopLevel(const ResolvedProject::Ptr &rproject,
+                         LanguageObject *object,
+                         const QString &projectFileName,
+                         ProjectData *projectData,
+                         QList<Rule::Ptr> *globalRules,
+                         QList<FileTagger::ConstPtr> *globalFileTaggers,
+                         const QVariantMap &userProperties,
+                         const ScopeChain::Ptr &scope,
+                         const ResolvedModule::ConstPtr &dummyModule);
+
+    void checkUserProperties(const ProjectData &projectData, const QVariantMap &userProperties);
+    typedef QMultiMap<QString, ResolvedProduct::Ptr> ProductMap;
+    void resolveProduct(const ResolvedProduct::Ptr &product, const ResolvedProject::Ptr &project,
+                        ProductData &data, ProductMap &products,
+                        const QList<Rule::Ptr> &globalRules,
+                        const QList<FileTagger::ConstPtr> &globalFileTaggers,
+                        const ResolvedModule::ConstPtr &dummyModule);
+    void resolveProductDependencies(const ResolvedProject::Ptr &project, ProjectData &projectData,
+                                    const ProductMap &resolvedProducts);
+
+    static LoaderPrivate *get(QScriptEngine *engine);
+    static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_configurationValue(QScriptContext *context, QScriptEngine *engine);
+
+    ProgressObserver *m_progressObserver;
+    QStringList m_searchPaths;
+    QStringList m_moduleSearchPaths;
+    ScriptEngine * const m_engine;
+    ScopesCachePtr m_scopesWithEvaluatedProperties;
+    QScriptValue m_jsFunction_getHostOS;
+    QScriptValue m_jsFunction_getHostDefaultArchitecture;
+    QScriptValue m_jsFunction_getenv;
+    QScriptValue m_jsFunction_configurationValue;
+    QScriptValue m_probeScriptScope;
+    Settings m_settings;
+    ProjectFile::Ptr m_project;
+    QHash<QString, ProjectFile::Ptr> m_parsedFiles;
+    QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
+    QHash<QString, PropertyDeclaration> m_groupPropertyDeclarations;
+    QHash<QString, QList<PropertyDeclaration> > m_builtinDeclarations;
+    QHash<QString, QVariantMap> m_productModules;
+    QHash<QString, QStringList> m_moduleDirListCache;
+    QHash<Scope::ConstPtr, QVariantMap> m_convertedScopesCache;
+    QHash<QString, ProjectFile::Ptr> m_projectFiles;
+};
 
 const QString dumpIndent("  ");
 const QString moduleSearchSubDir = QLatin1String("modules");
@@ -663,30 +1088,18 @@ static const uint hashName_Probe = qHash(name_Probe);
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
-Loader::Loader(ScriptEngine *engine)
-    : m_progressObserver(0)
-    , m_engine(engine)
-    , m_scopesWithEvaluatedProperties(new ScopesCache)
+Loader::Loader(ScriptEngine *engine) : d(new LoaderPrivate(engine))
 {
-    QVariant v;
-    v.setValue(static_cast<void*>(this));
-    m_engine->setProperty(szLoaderPropertyName, v);
-
-    m_jsFunction_getHostOS  = m_engine->newFunction(js_getHostOS, 0);
-    m_jsFunction_getHostDefaultArchitecture = m_engine->newFunction(js_getHostDefaultArchitecture, 0);
-    m_jsFunction_getenv = m_engine->newFunction(js_getenv, 0);
-    m_jsFunction_configurationValue = m_engine->newFunction(js_configurationValue, 2);
-
-    setupBuiltinDeclarations();
 }
 
 Loader::~Loader()
 {
+    delete d;
 }
 
 void Loader::setProgressObserver(ProgressObserver *observer)
 {
-    m_progressObserver = observer;
+    d->m_progressObserver = observer;
 }
 
 static bool compare(const QStringList &list, const QString &value)
@@ -698,27 +1111,50 @@ static bool compare(const QStringList &list, const QString &value)
 
 void Loader::setSearchPaths(const QStringList &searchPaths)
 {
-    m_searchPaths.clear();
+    d->m_searchPaths.clear();
     foreach (const QString &searchPath, searchPaths) {
         if (!FileInfo::exists(searchPath)) {
             qbsWarning() << Tr::tr("Search path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(searchPath));
         } else {
-            m_searchPaths << searchPath;
+            d->m_searchPaths << searchPath;
         }
     }
 
-    m_moduleSearchPaths.clear();
-    foreach (const QString &path, m_searchPaths)
-        m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
+    d->m_moduleSearchPaths.clear();
+    foreach (const QString &path, d->m_searchPaths)
+        d->m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 
-ProjectFile::Ptr Loader::loadProject(const QString &fileName)
+ResolvedProject::Ptr Loader::loadProject(const QString &fileName, const QString &buildRoot,
+                                         const QVariantMap &userProperties)
+{
+    TimedActivityLogger loadLogger(QLatin1String("Loading project"));
+    d->loadProject(fileName);
+    return d->resolveProject(buildRoot, userProperties);
+}
+
+
+Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine)
+    : m_progressObserver(0), m_engine(engine), m_scopesWithEvaluatedProperties(new ScopesCache)
+{
+    QVariant v;
+    v.setValue(static_cast<void*>(this));
+    engine->setProperty(szLoaderPropertyName, v);
+
+    m_jsFunction_getHostOS  = engine->newFunction(js_getHostOS, 0);
+    m_jsFunction_getHostDefaultArchitecture
+            = engine->newFunction(js_getHostDefaultArchitecture, 0);
+    m_jsFunction_getenv = engine->newFunction(js_getenv, 0);
+    m_jsFunction_configurationValue = engine->newFunction(js_configurationValue, 2);
+    setupBuiltinDeclarations();
+}
+
+void Loader::LoaderPrivate::loadProject(const QString &fileName)
 {
     m_moduleDirListCache.clear();
     m_settings.loadProjectSettings(fileName);
     m_project = parseFile(fileName);
-    return m_project;
 }
 
 static void setPathAndFilePath(const Scope::Ptr &scope, const QString &filePath, const QString &prefix = QString())
@@ -733,7 +1169,7 @@ static void setPathAndFilePath(const Scope::Ptr &scope, const QString &filePath,
     scope->properties.insert(pathPropertyName, Property(QScriptValue(FileInfo::path(filePath))));
 }
 
-void Loader::clearScopesCache()
+void Loader::LoaderPrivate::clearScopesCache()
 {
     QScriptValue nullScriptValue;
     ScopesCache::const_iterator it = m_scopesWithEvaluatedProperties->begin();
@@ -749,7 +1185,7 @@ void Loader::clearScopesCache()
     m_scopesWithEvaluatedProperties->clear();
 }
 
-Scope::Ptr Loader::buildFileContext(ProjectFile *file)
+Scope::Ptr Loader::LoaderPrivate::buildFileContext(ProjectFile *file)
 {
     Scope::Ptr context = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
                                        QLatin1String("global file context"), file);
@@ -759,7 +1195,7 @@ Scope::Ptr Loader::buildFileContext(ProjectFile *file)
     return context;
 }
 
-bool Loader::existsModuleInSearchPath(const QString &moduleName)
+bool Loader::LoaderPrivate::existsModuleInSearchPath(const QString &moduleName)
 {
     foreach (const QString &dirPath, m_moduleSearchPaths)
         if (FileInfo(dirPath + QLatin1Char('/') + moduleName).exists())
@@ -767,7 +1203,7 @@ bool Loader::existsModuleInSearchPath(const QString &moduleName)
     return false;
 }
 
-void Loader::resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
+void Loader::LoaderPrivate::resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
                                 ScopeChain::Ptr moduleScope, const QVariantMap &userProperties)
 {
     if (object->prototypeFileName.isEmpty()) {
@@ -963,7 +1399,7 @@ static void applyBindings(LanguageObject *object, const ScopeChain::Ptr &scopeCh
         applyBinding(object, binding, scopeChain);
 }
 
-void Loader::setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject)
+void Loader::LoaderPrivate::setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject)
 {
     if (!m_builtinDeclarations.contains(evaluationObject->prototype))
         throw Error(Tr::tr("Type name '%1' is unknown.").arg(evaluationObject->prototype),
@@ -991,7 +1427,7 @@ struct ConditionalBinding
     QString rhs;
 };
 
-void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties)
+void Loader::LoaderPrivate::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *object, Scope::Ptr ids, EvaluationObject *evaluationObject, const QVariantMap &userProperties)
 {
     // filter Properties items
     typedef QHash<QStringList, QVector<ConditionalBinding> > ConditionalBindings;
@@ -1118,7 +1554,7 @@ void Loader::fillEvaluationObject(const ScopeChain::Ptr &scope, LanguageObject *
     fillEvaluationObjectBasics(scope, object, evaluationObject);
 }
 
-void Loader::fillEvaluationObjectBasics(const ScopeChain::Ptr &scopeChain, LanguageObject *object, EvaluationObject *evaluationObject)
+void Loader::LoaderPrivate::fillEvaluationObjectBasics(const ScopeChain::Ptr &scopeChain, LanguageObject *object, EvaluationObject *evaluationObject)
 {
     // append the property declarations
     foreach (const PropertyDeclaration &pd, object->propertyDeclarations) {
@@ -1131,7 +1567,7 @@ void Loader::fillEvaluationObjectBasics(const ScopeChain::Ptr &scopeChain, Langu
     applyBindings(object, scopeChain);
 }
 
-void Loader::setupBuiltinDeclarations()
+void Loader::LoaderPrivate::setupBuiltinDeclarations()
 {
     QList<PropertyDeclaration> decls;
     decls += PropertyDeclaration("name", PropertyDeclaration::String);
@@ -1239,7 +1675,7 @@ void Loader::setupBuiltinDeclarations()
     m_builtinDeclarations.insert(name_Probe, probe);
 }
 
-void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
+void Loader::LoaderPrivate::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
 {
     QScriptValue importScope;
     for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it) {
@@ -1249,7 +1685,7 @@ void Loader::evaluateImports(Scope::Ptr target, const JsImports &jsImports)
     }
 }
 
-void Loader::evaluatePropertyOptions(LanguageObject *object)
+void Loader::LoaderPrivate::evaluatePropertyOptions(LanguageObject *object)
 {
     foreach (LanguageObject *child, object->children) {
         if (child->prototype.last() != name_PropertyOptions)
@@ -1309,7 +1745,7 @@ static QString sourceDirPath(const Property &property, const ResolvedProduct::Co
             ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
 }
 
-QVariantMap Loader::evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
+QVariantMap Loader::LoaderPrivate::evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
                                 const Scope::Ptr &properties)
 {
     QVariantMap &result = m_convertedScopesCache[properties];
@@ -1366,7 +1802,7 @@ static Scope::Ptr moduleScopeById(Scope::Ptr scope, const QStringList &moduleId)
     return scope;
 }
 
-QVariantMap Loader::evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+QVariantMap Loader::LoaderPrivate::evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
                                          EvaluationObject *moduleContainer, Scope::Ptr objectScope)
 {
     QVariantMap values;
@@ -1392,7 +1828,7 @@ QVariantMap Loader::evaluateModuleValues(const ResolvedProduct::ConstPtr &rprodu
     return values;
 }
 
-Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName,
+Module::Ptr Loader::LoaderPrivate::loadModule(ProjectFile *file, const QStringList &moduleId, const QString &moduleName,
                                ScopeChain::Ptr moduleBaseScope, const QVariantMap &userProperties,
                                const CodeLocation &dependsLocation)
 {
@@ -1464,7 +1900,7 @@ Module::Ptr Loader::loadModule(ProjectFile *file, const QStringList &moduleId, c
 /**
  * Set up the module and submodule properties in \a targetScope.
  */
-void Loader::insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance)
+void Loader::LoaderPrivate::insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module::Ptr &module, Scope::Ptr moduleInstance)
 {
     if (!moduleInstance)
         moduleInstance = module->object->scope;
@@ -1488,7 +1924,7 @@ void Loader::insertModulePropertyIntoScope(Scope::Ptr targetScope, const Module:
 }
 
 /// load all module.qbs files, checking their conditions
-Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
+Module::Ptr Loader::LoaderPrivate::searchAndLoadModule(const QStringList &moduleId, const QString &moduleName, ScopeChain::Ptr moduleBaseScope,
                                         const QVariantMap &userProperties, const CodeLocation &dependsLocation,
                                         const QStringList &extraSearchPaths)
 {
@@ -1547,7 +1983,7 @@ Module::Ptr Loader::searchAndLoadModule(const QStringList &moduleId, const QStri
     return module;
 }
 
-void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
+void Loader::LoaderPrivate::evaluateDependencies(LanguageObject *object, EvaluationObject *evaluationObject, const ScopeChain::Ptr &localScope,
                                   ScopeChain::Ptr moduleScope, const QVariantMap &userProperties, bool loadBaseModule)
 {
     // check for additional module search paths in the product
@@ -1600,7 +2036,7 @@ void Loader::evaluateDependencies(LanguageObject *object, EvaluationObject *eval
     }
 }
 
-void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
+void Loader::LoaderPrivate::evaluateDependencyConditions(EvaluationObject *evaluationObject)
 {
     bool mustEvaluateConditions = false;
     QVector<Module::Ptr> modules;
@@ -1646,7 +2082,7 @@ void Loader::evaluateDependencyConditions(EvaluationObject *evaluationObject)
     context->setActivationObject(activationObject);
 }
 
-void Loader::buildModulesProperty(EvaluationObject *evaluationObject)
+void Loader::LoaderPrivate::buildModulesProperty(EvaluationObject *evaluationObject)
 {
     // set up a XXX.modules property
     Scope::Ptr modules = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
@@ -1662,7 +2098,7 @@ void Loader::buildModulesProperty(EvaluationObject *evaluationObject)
     evaluationObject->scope->declarations.insert("modules", PropertyDeclaration("modules", PropertyDeclaration::Variant));
 }
 
-void Loader::checkModuleDependencies(const Module::Ptr &module)
+void Loader::LoaderPrivate::checkModuleDependencies(const Module::Ptr &module)
 {
     if (!module->object->unknownModules.isEmpty()) {
         UnknownModule::Ptr missingModule = module->object->unknownModules.first();
@@ -1674,7 +2110,7 @@ void Loader::checkModuleDependencies(const Module::Ptr &module)
         checkModuleDependencies(dependency);
 }
 
-QList<Module::Ptr> Loader::evaluateDependency(LanguageObject *depends, ScopeChain::Ptr conditionScopeChain,
+QList<Module::Ptr> Loader::LoaderPrivate::evaluateDependency(LanguageObject *depends, ScopeChain::Ptr conditionScopeChain,
                                               ScopeChain::Ptr moduleScope, const QStringList &extraSearchPaths,
                                               QList<UnknownModule::Ptr> *unknownModules, const QVariantMap &userProperties)
 {
@@ -1820,13 +2256,12 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
-ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildRoot,
-                                            const QVariantMap &userProperties)
+ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildRoot,
+                                                           const QVariantMap &userProperties)
 {
     Q_ASSERT(FileInfo::isAbsolute(buildRoot));
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolving " << m_project->fileName;
-    m_project = projectFile;
     ScriptEngineContextPusher contextPusher(m_engine);
     m_scopesWithEvaluatedProperties->clear();
     m_convertedScopesCache.clear();
@@ -1882,7 +2317,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
     return rproject;
 }
 
-void Loader::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module)
+void Loader::LoaderPrivate::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module)
 {
     ResolvedModule::Ptr rmodule = ResolvedModule::create();
     rmodule->name = moduleName;
@@ -1923,7 +2358,7 @@ static void createSourceArtifact(const ResolvedProduct::ConstPtr &rproduct,
 /**
   * Resolve Group {} and the files part of Product {}.
   */
-void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group)
+void Loader::LoaderPrivate::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group)
 {
     const bool isGroup = product != group;
 
@@ -2017,7 +2452,7 @@ void Loader::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *produ
     rproduct->groups += resolvedGroup;
 }
 
-void Loader::resolveProductModule(const ResolvedProduct::ConstPtr &rproduct,
+void Loader::LoaderPrivate::resolveProductModule(const ResolvedProduct::ConstPtr &rproduct,
         EvaluationObject *productModule)
 {
     Q_ASSERT(!rproduct->name.isEmpty());
@@ -2028,7 +2463,7 @@ void Loader::resolveProductModule(const ResolvedProduct::ConstPtr &rproduct,
     m_productModules.insert(rproduct->name.toLower(), moduleValues);
 }
 
-void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module)
+void Loader::LoaderPrivate::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module)
 {
     if (!checkCondition(trafo))
         return;
@@ -2063,7 +2498,7 @@ void Loader::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject 
     rproduct->transformers += rtrafo;
 }
 
-void Loader::resolveProbe(EvaluationObject *node)
+void Loader::LoaderPrivate::resolveProbe(EvaluationObject *node)
 {
     if (!checkCondition(node))
         return;
@@ -2088,7 +2523,7 @@ void Loader::resolveProbe(EvaluationObject *node)
 /**
  *Resolve stuff that Module and Product have in common.
  */
-QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObject *> &objects,
+QList<EvaluationObject *> Loader::LoaderPrivate::resolveCommonItems(const QList<EvaluationObject *> &objects,
                                                         ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module)
 {
     QList<Rule::Ptr> rules;
@@ -2116,7 +2551,7 @@ QList<EvaluationObject *> Loader::resolveCommonItems(const QList<EvaluationObjec
     return unhandledObjects;
 }
 
-Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module)
+Rule::Ptr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module)
 {
     Rule::Ptr rule = Rule::create();
 
@@ -2179,7 +2614,7 @@ Rule::Ptr Loader::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr
     return rule;
 }
 
-FileTagger::ConstPtr Loader::resolveFileTagger(EvaluationObject *evaluationObject)
+FileTagger::ConstPtr Loader::LoaderPrivate::resolveFileTagger(EvaluationObject *evaluationObject)
 {
     const Scope::Ptr scope = evaluationObject->scope;
     return FileTagger::create(QRegExp(scope->stringValue("pattern")),
@@ -2502,7 +2937,7 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
     return file;
 }
 
-ProjectFile::Ptr Loader::parseFile(const QString &fileName)
+ProjectFile::Ptr Loader::LoaderPrivate::parseFile(const QString &fileName)
 {
     ProjectFile::Ptr result = m_parsedFiles.value(fileName);
     if (result)
@@ -2535,13 +2970,13 @@ ProjectFile::Ptr Loader::parseFile(const QString &fileName)
     return result;
 }
 
-Loader *Loader::get(QScriptEngine *engine)
+Loader::LoaderPrivate *Loader::LoaderPrivate::get(QScriptEngine *engine)
 {
     QVariant v = engine->property(szLoaderPropertyName);
-    return static_cast<Loader*>(v.value<void*>());
+    return static_cast<LoaderPrivate*>(v.value<void*>());
 }
 
-QScriptValue Loader::js_getHostOS(QScriptContext *context, QScriptEngine *engine)
+QScriptValue Loader::LoaderPrivate::js_getHostOS(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(context);
     QString hostSystem;
@@ -2559,7 +2994,7 @@ QScriptValue Loader::js_getHostOS(QScriptContext *context, QScriptEngine *engine
     return engine->toScriptValue(hostSystem);
 }
 
-QScriptValue Loader::js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine)
+QScriptValue Loader::LoaderPrivate::js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine)
 {
     // ### TODO implement properly, do not hard-code
     Q_UNUSED(context);
@@ -2576,7 +3011,7 @@ QScriptValue Loader::js_getHostDefaultArchitecture(QScriptContext *context, QScr
     return engine->toScriptValue(architecture);
 }
 
-QScriptValue Loader::js_getenv(QScriptContext *context, QScriptEngine *engine)
+QScriptValue Loader::LoaderPrivate::js_getenv(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() < 1) {
         return context->throwError(QScriptContext::SyntaxError,
@@ -2587,14 +3022,14 @@ QScriptValue Loader::js_getenv(QScriptContext *context, QScriptEngine *engine)
     return value.isNull() ? engine->undefinedValue() : QString::fromLocal8Bit(value);
 }
 
-QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngine *engine)
+QScriptValue Loader::LoaderPrivate::js_configurationValue(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() < 1 || context->argumentCount() > 2) {
         return context->throwError(QScriptContext::SyntaxError,
                                    QString("configurationValue expects 1 or 2 arguments"));
     }
 
-    const Settings &settings = Loader::get(engine)->m_settings;
+    const Settings &settings = get(engine)->m_settings;
     const bool defaultValueProvided = context->argumentCount() > 1;
     const QString key = context->argument(0).toString();
     QString defaultValue;
@@ -2610,7 +3045,7 @@ QScriptValue Loader::js_configurationValue(QScriptContext *context, QScriptEngin
     return engine->toScriptValue(v);
 }
 
-void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
+void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProject::Ptr &rproject,
                              LanguageObject *object,
                              const QString &projectFileName,
                              ProjectData *projectData,
@@ -2794,7 +3229,7 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     projectData->products.insert(rproduct, productData);
 }
 
-void Loader::checkUserProperties(const Loader::ProjectData &projectData,
+void Loader::LoaderPrivate::checkUserProperties(const Loader::LoaderPrivate::ProjectData &projectData,
                                  const QVariantMap &userProperties)
 {
     QSet<QString> allowedUserPropertyNames;
@@ -2827,8 +3262,8 @@ void Loader::checkUserProperties(const Loader::ProjectData &projectData,
     }
 }
 
-void Loader::resolveProduct(const ResolvedProduct::Ptr &rproduct,
-        const ResolvedProject::Ptr &project, ProductData &data, Loader::ProductMap &products,
+void Loader::LoaderPrivate::resolveProduct(const ResolvedProduct::Ptr &rproduct,
+        const ResolvedProject::Ptr &project, ProductData &data, Loader::LoaderPrivate::ProductMap &products,
         const QList<Rule::Ptr> &globalRules, const QList<FileTagger::ConstPtr> &globalFileTaggers,
         const ResolvedModule::ConstPtr &dummyModule)
 {
@@ -2925,7 +3360,7 @@ void Loader::resolveProduct(const ResolvedProduct::Ptr &rproduct,
     project->products.append(rproduct);
 }
 
-void Loader::resolveProductDependencies(const ResolvedProject::Ptr &project,
+void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProject::Ptr &project,
         ProjectData &projectData, const ProductMap &resolvedProducts)
 {
     // Collect product dependencies from ProductModules.
@@ -3016,7 +3451,7 @@ ProjectFile::~ProjectFile()
     qDeleteAll(m_languageObjects);
 }
 
-void Loader::ProductData::addUsedProducts(const QList<UnknownModule::Ptr> &additionalUsedProducts, bool *productsAdded)
+void Loader::LoaderPrivate::ProductData::addUsedProducts(const QList<UnknownModule::Ptr> &additionalUsedProducts, bool *productsAdded)
 {
     int oldCount = usedProducts.count();
     QSet<QString> usedProductNames;
@@ -3028,6 +3463,7 @@ void Loader::ProductData::addUsedProducts(const QList<UnknownModule::Ptr> &addit
     *productsAdded = (oldCount != usedProducts.count());
 }
 
+} // namespace Internal
 } // namespace qbs
 
 QT_BEGIN_NAMESPACE
