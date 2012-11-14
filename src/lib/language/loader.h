@@ -34,6 +34,7 @@
 #include <tools/settings.h>
 #include <tools/codelocation.h>
 
+#include <QMultiMap>
 #include <QScriptClass>
 #include <QStringList>
 #include <QVariant>
@@ -368,8 +369,8 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     ProjectFile::Ptr loadProject(const QString &fileName);
     ResolvedProject::Ptr resolveProject(ProjectFile::Ptr projectFile, const QString &buildRoot,
-                                        const QVariantMap &userProperties, bool resolveProductDependencies = true);
-protected:
+                                        const QVariantMap &userProperties);
+private:
     ProjectFile::Ptr parseFile(const QString &fileName);
 
     void clearScopesCache();
@@ -438,13 +439,21 @@ protected:
                          const ScopeChain::Ptr &scope,
                          const ResolvedModule::ConstPtr &dummyModule);
 
-private:
+    void checkUserProperties(const ProjectData &projectData, const QVariantMap &userProperties);
+    typedef QMultiMap<QString, ResolvedProduct::Ptr> ProductMap;
+    void resolveProduct(const ResolvedProduct::Ptr &product, const ResolvedProject::Ptr &project,
+                        ProductData &data, ProductMap &products,
+                        const QList<Rule::Ptr> &globalRules,
+                        const QList<FileTagger::ConstPtr> &globalFileTaggers,
+                        const ResolvedModule::ConstPtr &dummyModule);
+    void resolveProductDependencies(const ResolvedProject::Ptr &project, ProjectData &projectData,
+                                    const ProductMap &resolvedProducts);
+
     static Loader *get(QScriptEngine *engine);
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_configurationValue(QScriptContext *context, QScriptEngine *engine);
-
 
     ProgressObserver *m_progressObserver;
     QStringList m_searchPaths;

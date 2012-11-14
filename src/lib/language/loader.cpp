@@ -1821,7 +1821,7 @@ static bool checkCondition(EvaluationObject *object)
 }
 
 ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const QString &buildRoot,
-                                            const QVariantMap &userProperties, bool resolveProductDependencies)
+                                            const QVariantMap &userProperties)
 {
     Q_ASSERT(FileInfo::isAbsolute(buildRoot));
     if (qbsLogLevel(LoggerTrace))
@@ -1854,8 +1854,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                     scope,
                     dummyModule);
 
-    QSet<QString> uniqueStrings;
-    QMultiMap<QString, ResolvedProduct::Ptr> resolvedProducts;
+    ProductMap resolvedProducts;
     QHash<ResolvedProduct::Ptr, ProductData>::iterator it = projectData.products.begin();
     if (m_progressObserver)
         m_progressObserver->initialize(Tr::tr("Loading project"), projectData.products.count());
@@ -1865,132 +1864,12 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
                 throw Error(Tr::tr("Loading canceled."));
             m_progressObserver->incrementProgressValue();
         }
-        ResolvedProduct::Ptr rproduct = it.key();
-        ProductData &data = it.value();
-        Scope *productProps = data.product->scope.data();
-
-        rproduct->name = productProps->stringValue("name");
-        rproduct->targetName = productProps->stringValue("targetName");
-        rproduct->properties = PropertyMap::create();
-
-        // insert property "buildDirectory"
-        {
-            Property p(m_engine->toScriptValue(rproject->buildDirectory));
-            productProps->properties.insert("buildDirectory", p);
-        }
-
-        rproduct->fileTags = productProps->stringListValue("type");
-        rproduct->destinationDirectory = productProps->stringValue("destination");
-        foreach (const Rule::Ptr &rule, globalRules)
-            rproduct->rules.insert(rule);
-        foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
-            rproduct->fileTaggers.insert(fileTagger);
-        const QString lowerProductName = rproduct->name.toLower();
-        uniqueStrings.insert(lowerProductName);
-        resolvedProducts.insert(lowerProductName, rproduct);
-
-        // resolve the modules for this product
-        for (QHash<QString, Module::Ptr>::const_iterator modIt = data.product->modules.begin();
-             modIt != data.product->modules.end(); ++modIt)
-        {
-            resolveModule(rproduct, modIt.key(), modIt.value()->object);
-        }
-
-        QList<EvaluationObject *> unresolvedChildren = resolveCommonItems(data.product->children, rproduct, dummyModule);
-
-        // fill the product's configuration
-        QVariantMap productCfg = evaluateAll(rproduct, data.product->scope);
-        rproduct->properties->setValue(productCfg);
-
-        // handle the 'Product.files' property
-        {
-            QScriptValue files = data.product->scope->property("files");
-            if (files.isValid()) {
-                resolveGroup(rproduct, data.product, data.product);
-            }
-        }
-
-        foreach (EvaluationObject *child, unresolvedChildren) {
-            const uint prototypeNameHash = qHash(child->prototype);
-            if (prototypeNameHash == hashName_Group) {
-                resolveGroup(rproduct, data.product, child);
-            } else if (prototypeNameHash == hashName_ProductModule) {
-                child->scope->properties.insert("product", Property(data.product));
-                resolveProductModule(rproduct, child);
-                data.usedProductsFromProductModule += child->unknownModules;
-            }
-        }
-
-        // Apply file taggers.
-        foreach (const SourceArtifact::Ptr &artifact, rproduct->allFiles())
-            applyFileTaggers(artifact, rproduct);
-        foreach (const ResolvedTransformer::Ptr &transformer, rproduct->transformers)
-            foreach (const SourceArtifact::Ptr &artifact, transformer->outputs)
-                applyFileTaggers(artifact, rproduct);
-
-        // Merge duplicate artifacts.
-        QHash<QString, QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> > uniqueArtifacts;
-        foreach (const ResolvedGroup::Ptr &group, rproduct->groups) {
-            Q_ASSERT(group->properties);
-
-            QList<SourceArtifact::Ptr> artifactsInGroup = group->files;
-            if (group->wildcards)
-                artifactsInGroup += group->wildcards->files;
-
-            foreach (const SourceArtifact::Ptr &artifact, artifactsInGroup) {
-                QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
-                SourceArtifact::Ptr existing = p.second;
-                if (existing) {
-                    // if an artifact is in the product and in a group, prefer the group configuration
-                    if (existing->properties != rproduct->properties)
-                        throw Error(Tr::tr("Artifact '%1' is in more than one group.").arg(artifact->absoluteFilePath),
-                                           CodeLocation(m_project->fileName));
-
-                    // Remove the artifact that's in the product's group.
-                    p.first->files.removeOne(existing);
-
-                    // Merge artifacts.
-                    if (!artifact->overrideFileTags)
-                        artifact->fileTags.unite(existing->fileTags);
-                }
-                uniqueArtifacts.insert(artifact->absoluteFilePath, qMakePair(group, artifact));
-            }
-        }
-
-        rproject->products.append(rproduct);
+        resolveProduct(it.key(), rproject, it.value(), resolvedProducts, globalRules,
+                       globalFileTaggers, dummyModule);
     }
 
     // Check, if the userProperties contain invalid items.
-    {
-        QSet<QString> allowedUserPropertyNames;
-        allowedUserPropertyNames << QLatin1String("project");
-        for (QHash<ResolvedProduct::Ptr, ProductData>::const_iterator it = projectData.products.constBegin();
-             it != projectData.products.constEnd(); ++it)
-        {
-            const ResolvedProduct::Ptr &product = it.key();
-            const ProductData &productData = it.value();
-            allowedUserPropertyNames += product->name;
-            allowedUserPropertyNames += productData.originalProductName;
-            foreach (const ResolvedModule::ConstPtr &module, product->modules) {
-                allowedUserPropertyNames += module->name;
-                foreach (const QString &dependency, module->moduleDependencies)
-                    allowedUserPropertyNames += dependency;
-            }
-        }
-        foreach (const ProductData &productData, projectData.removedProducts) {
-            allowedUserPropertyNames += productData.originalProductName;
-            allowedUserPropertyNames += productData.product->scope->stringValue("name");
-        }
-
-        for (QVariantMap::const_iterator it = userProperties.begin(); it != userProperties.end(); ++it) {
-            const QString &propertyName = it.key();
-            if (allowedUserPropertyNames.contains(propertyName))
-                continue;
-            if (existsModuleInSearchPath(propertyName))
-                continue;
-            throw Error(Tr::tr("%1 is not a product or a module.").arg(propertyName));
-        }
-    }
+    checkUserProperties(projectData, userProperties);
 
     // Check all modules for unresolved dependencies.
     foreach (ResolvedProduct::Ptr rproduct, rproject->products)
@@ -1998,83 +1877,7 @@ ResolvedProject::Ptr Loader::resolveProject(ProjectFile::Ptr projectFile, const 
             checkModuleDependencies(module);
 
     // Resolve inter-product dependencies.
-    if (resolveProductDependencies) {
-
-        // Collect product dependencies from ProductModules.
-        bool productDependenciesAdded;
-        do {
-            productDependenciesAdded = false;
-            foreach (ResolvedProduct::Ptr rproduct, rproject->products) {
-                ProductData &productData = projectData.products[rproduct];
-                foreach (const UnknownModule::Ptr &unknownModule, productData.usedProducts) {
-                    const QString &usedProductName = unknownModule->name;
-                    QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
-                    if (usedProductCandidates.count() < 1) {
-                        if (!unknownModule->required) {
-                            if (!unknownModule->failureMessage.isEmpty())
-                                qbsWarning() << unknownModule->failureMessage;
-                            continue;
-                        }
-                        throw Error(Tr::tr("Product dependency '%1' not found in '%2'.").arg(usedProductName, rproduct->qbsFile),
-                                           CodeLocation(m_project->fileName));
-                    }
-                    if (usedProductCandidates.count() > 1)
-                        throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
-                                           CodeLocation(m_project->fileName));
-                    ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
-                    const ProductData &usedProductData = projectData.products.value(usedProduct);
-                    bool added;
-                    productData.addUsedProducts(usedProductData.usedProductsFromProductModule, &added);
-                    if (added)
-                        productDependenciesAdded = true;
-                }
-            }
-        } while (productDependenciesAdded);
-
-        // Resolve all inter-product dependencies.
-        foreach (ResolvedProduct::Ptr rproduct, rproject->products) {
-            foreach (const UnknownModule::Ptr &unknownModule, projectData.products.value(rproduct).usedProducts) {
-                const QString &usedProductName = unknownModule->name;
-                QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
-                if (usedProductCandidates.count() < 1) {
-                    if (!unknownModule->required) {
-                        if (!unknownModule->failureMessage.isEmpty())
-                            qbsWarning() << unknownModule->failureMessage;
-                        continue;
-                    }
-                    throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
-                                       CodeLocation(m_project->fileName));
-                }
-                if (usedProductCandidates.count() > 1)
-                    throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
-                                       CodeLocation(m_project->fileName));
-                ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
-                rproduct->dependencies.insert(usedProduct);
-
-                // insert the configuration of the ProductModule into the product's configuration
-                const QVariantMap productModuleConfig = m_productModules.value(usedProductName);
-                if (productModuleConfig.isEmpty())
-                    continue;
-
-                QVariantMap productProperties = rproduct->properties->value();
-                QVariantMap modules = productProperties.value("modules").toMap();
-                modules.insert(usedProductName, productModuleConfig);
-                productProperties.insert("modules", modules);
-                rproduct->properties->setValue(productProperties);
-
-                // insert the configuration of the ProductModule into the artifact configurations
-                foreach (SourceArtifact::Ptr artifact, rproduct->allFiles()) {
-                    if (artifact->properties == rproduct->properties)
-                        continue; // Already inserted above.
-                    QVariantMap sourceArtifactProperties = artifact->properties->value();
-                    QVariantMap modules = sourceArtifactProperties.value("modules").toMap();
-                    modules.insert(usedProductName, productModuleConfig);
-                    sourceArtifactProperties.insert("modules", modules);
-                    artifact->properties->setValue(sourceArtifactProperties);
-                }
-            }
-        }
-    }
+    resolveProductDependencies(rproject, projectData, resolvedProducts);
 
     return rproject;
 }
@@ -2989,6 +2792,216 @@ void Loader::resolveTopLevel(const ResolvedProject::Ptr &rproject,
     }
 
     projectData->products.insert(rproduct, productData);
+}
+
+void Loader::checkUserProperties(const Loader::ProjectData &projectData,
+                                 const QVariantMap &userProperties)
+{
+    QSet<QString> allowedUserPropertyNames;
+    allowedUserPropertyNames << QLatin1String("project");
+    for (QHash<ResolvedProduct::Ptr, ProductData>::const_iterator it = projectData.products.constBegin();
+         it != projectData.products.constEnd(); ++it)
+    {
+        const ResolvedProduct::Ptr &product = it.key();
+        const ProductData &productData = it.value();
+        allowedUserPropertyNames += product->name;
+        allowedUserPropertyNames += productData.originalProductName;
+        foreach (const ResolvedModule::ConstPtr &module, product->modules) {
+            allowedUserPropertyNames += module->name;
+            foreach (const QString &dependency, module->moduleDependencies)
+                allowedUserPropertyNames += dependency;
+        }
+    }
+    foreach (const ProductData &productData, projectData.removedProducts) {
+        allowedUserPropertyNames += productData.originalProductName;
+        allowedUserPropertyNames += productData.product->scope->stringValue("name");
+    }
+
+    for (QVariantMap::const_iterator it = userProperties.begin(); it != userProperties.end(); ++it) {
+        const QString &propertyName = it.key();
+        if (allowedUserPropertyNames.contains(propertyName))
+            continue;
+        if (existsModuleInSearchPath(propertyName))
+            continue;
+        throw Error(Tr::tr("%1 is not a product or a module.").arg(propertyName));
+    }
+}
+
+void Loader::resolveProduct(const ResolvedProduct::Ptr &rproduct,
+        const ResolvedProject::Ptr &project, ProductData &data, Loader::ProductMap &products,
+        const QList<Rule::Ptr> &globalRules, const QList<FileTagger::ConstPtr> &globalFileTaggers,
+        const ResolvedModule::ConstPtr &dummyModule)
+{
+    Scope *productProps = data.product->scope.data();
+
+    rproduct->name = productProps->stringValue("name");
+    rproduct->targetName = productProps->stringValue("targetName");
+    rproduct->properties = PropertyMap::create();
+
+    // insert property "buildDirectory"
+    {
+        Property p(m_engine->toScriptValue(project->buildDirectory));
+        productProps->properties.insert("buildDirectory", p);
+    }
+
+    rproduct->fileTags = productProps->stringListValue("type");
+    rproduct->destinationDirectory = productProps->stringValue("destination");
+    foreach (const Rule::Ptr &rule, globalRules)
+        rproduct->rules.insert(rule);
+    foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
+        rproduct->fileTaggers.insert(fileTagger);
+    const QString lowerProductName = rproduct->name.toLower();
+    products.insert(lowerProductName, rproduct);
+
+    // resolve the modules for this product
+    for (QHash<QString, Module::Ptr>::const_iterator modIt = data.product->modules.begin();
+         modIt != data.product->modules.end(); ++modIt)
+    {
+        resolveModule(rproduct, modIt.key(), modIt.value()->object);
+    }
+
+    QList<EvaluationObject *> unresolvedChildren
+            = resolveCommonItems(data.product->children, rproduct, dummyModule);
+
+    // fill the product's configuration
+    QVariantMap productCfg = evaluateAll(rproduct, data.product->scope);
+    rproduct->properties->setValue(productCfg);
+
+    // handle the 'Product.files' property
+    {
+        QScriptValue files = data.product->scope->property("files");
+        if (files.isValid()) {
+            resolveGroup(rproduct, data.product, data.product);
+        }
+    }
+
+    foreach (EvaluationObject *child, unresolvedChildren) {
+        const uint prototypeNameHash = qHash(child->prototype);
+        if (prototypeNameHash == hashName_Group) {
+            resolveGroup(rproduct, data.product, child);
+        } else if (prototypeNameHash == hashName_ProductModule) {
+            child->scope->properties.insert("product", Property(data.product));
+            resolveProductModule(rproduct, child);
+            data.usedProductsFromProductModule += child->unknownModules;
+        }
+    }
+
+    // Apply file taggers.
+    foreach (const SourceArtifact::Ptr &artifact, rproduct->allFiles())
+        applyFileTaggers(artifact, rproduct);
+    foreach (const ResolvedTransformer::Ptr &transformer, rproduct->transformers)
+        foreach (const SourceArtifact::Ptr &artifact, transformer->outputs)
+            applyFileTaggers(artifact, rproduct);
+
+    // Merge duplicate artifacts.
+    QHash<QString, QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> > uniqueArtifacts;
+    foreach (const ResolvedGroup::Ptr &group, rproduct->groups) {
+        Q_ASSERT(group->properties);
+
+        QList<SourceArtifact::Ptr> artifactsInGroup = group->files;
+        if (group->wildcards)
+            artifactsInGroup += group->wildcards->files;
+
+        foreach (const SourceArtifact::Ptr &artifact, artifactsInGroup) {
+            QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
+            SourceArtifact::Ptr existing = p.second;
+            if (existing) {
+                // if an artifact is in the product and in a group, prefer the group configuration
+                if (existing->properties != rproduct->properties)
+                    throw Error(Tr::tr("Artifact '%1' is in more than one group.").arg(artifact->absoluteFilePath),
+                                CodeLocation(m_project->fileName));
+
+                // Remove the artifact that's in the product's group.
+                p.first->files.removeOne(existing);
+
+                // Merge artifacts.
+                if (!artifact->overrideFileTags)
+                    artifact->fileTags.unite(existing->fileTags);
+            }
+            uniqueArtifacts.insert(artifact->absoluteFilePath, qMakePair(group, artifact));
+        }
+    }
+
+    project->products.append(rproduct);
+}
+
+void Loader::resolveProductDependencies(const ResolvedProject::Ptr &project,
+        ProjectData &projectData, const ProductMap &resolvedProducts)
+{
+    // Collect product dependencies from ProductModules.
+    bool productDependenciesAdded;
+    do {
+        productDependenciesAdded = false;
+        foreach (ResolvedProduct::Ptr rproduct, project->products) {
+            ProductData &productData = projectData.products[rproduct];
+            foreach (const UnknownModule::Ptr &unknownModule, productData.usedProducts) {
+                const QString &usedProductName = unknownModule->name;
+                QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
+                if (usedProductCandidates.count() < 1) {
+                    if (!unknownModule->required) {
+                        if (!unknownModule->failureMessage.isEmpty())
+                            qbsWarning() << unknownModule->failureMessage;
+                        continue;
+                    }
+                    throw Error(Tr::tr("Product dependency '%1' not found in '%2'.").arg(usedProductName, rproduct->qbsFile),
+                                CodeLocation(m_project->fileName));
+                }
+                if (usedProductCandidates.count() > 1)
+                    throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
+                                CodeLocation(m_project->fileName));
+                ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
+                const ProductData &usedProductData = projectData.products.value(usedProduct);
+                bool added;
+                productData.addUsedProducts(usedProductData.usedProductsFromProductModule, &added);
+                if (added)
+                    productDependenciesAdded = true;
+            }
+        }
+    } while (productDependenciesAdded);
+
+    // Resolve all inter-product dependencies.
+    foreach (ResolvedProduct::Ptr rproduct, project->products) {
+        foreach (const UnknownModule::Ptr &unknownModule, projectData.products.value(rproduct).usedProducts) {
+            const QString &usedProductName = unknownModule->name;
+            QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
+            if (usedProductCandidates.count() < 1) {
+                if (!unknownModule->required) {
+                    if (!unknownModule->failureMessage.isEmpty())
+                        qbsWarning() << unknownModule->failureMessage;
+                    continue;
+                }
+                throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
+                            CodeLocation(m_project->fileName));
+            }
+            if (usedProductCandidates.count() > 1)
+                throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
+                            CodeLocation(m_project->fileName));
+            ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
+            rproduct->dependencies.insert(usedProduct);
+
+            // insert the configuration of the ProductModule into the product's configuration
+            const QVariantMap productModuleConfig = m_productModules.value(usedProductName);
+            if (productModuleConfig.isEmpty())
+                continue;
+
+            QVariantMap productProperties = rproduct->properties->value();
+            QVariantMap modules = productProperties.value("modules").toMap();
+            modules.insert(usedProductName, productModuleConfig);
+            productProperties.insert("modules", modules);
+            rproduct->properties->setValue(productProperties);
+
+            // insert the configuration of the ProductModule into the artifact configurations
+            foreach (SourceArtifact::Ptr artifact, rproduct->allFiles()) {
+                if (artifact->properties == rproduct->properties)
+                    continue; // Already inserted above.
+                QVariantMap sourceArtifactProperties = artifact->properties->value();
+                QVariantMap modules = sourceArtifactProperties.value("modules").toMap();
+                modules.insert(usedProductName, productModuleConfig);
+                sourceArtifactProperties.insert("modules", modules);
+                artifact->properties->setValue(sourceArtifactProperties);
+            }
+        }
+    }
 }
 
 ProjectFile::ProjectFile()
