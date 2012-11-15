@@ -3,11 +3,10 @@ DEFINES += CPLUSPLUS_NO_PARSER
 DESTDIR= ../../../../plugins/
 TEMPLATE = lib
 TARGET = qbs_cpp_scanner
-DEPENDPATH += .
-INCLUDEPATH += .
 
 QT = core
 
+CONFIG += depend_includepath
 unix: CONFIG += plugin
 
 HEADERS += CPlusPlusForwardDeclarations.h Lexer.h Token.h ../scanner.h \

@@ -32,12 +32,6 @@ INCLUDEPATH += \
     $$PWD \
     $$PWD/..
 
-DEPENDPATH += \
-    $$PWD/buildgraph\
-    $$PWD/Qbs\
-    $$PWD/l2\
-    $$PWD/parser\
-    $$PWD/tools\
-    $$INCLUDEPATH
+CONFIG += depend_includepath
 
 DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS

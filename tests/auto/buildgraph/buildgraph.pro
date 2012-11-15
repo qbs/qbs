@@ -1,12 +1,11 @@
 TEMPLATE = app
 TARGET = tst_buildgraph
 DESTDIR = ./
-DEPENDPATH += .
-INCLUDEPATH += . ../../../src/lib/
+INCLUDEPATH += ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 QT = core testlib
-CONFIG += testcase
+CONFIG += depend_includepath testcase
 
 include(../../../src/lib/use.pri)
 
