@@ -27,42 +27,32 @@
 **
 ****************************************************************************/
 
-#ifndef TST_LANGUAGE_H
-#define TST_LANGUAGE_H
+#ifndef IDENTIFIERSEARCHVISITOR_H
+#define IDENTIFIERSEARCHVISITOR_H
 
-#include <language/loader.h>
-#include <logging/consolelogger.h>
-#include <logging/logger.h>
-#include <tools/scripttools.h>
-#include <QtTest>
+#include <parser/qmljsastfwd_p.h>
+#include <parser/qmljsastvisitor_p.h>
+#include <QMap>
+#include <QString>
 
-using namespace qbs;
+namespace qbs {
+namespace Internal {
 
-class TestLanguage : public QObject
+class IdentifierSearch : private QmlJS::AST::Visitor
 {
-    Q_OBJECT
-    Loader *loader;
-    ResolvedProject::Ptr project;
-    QVariantMap buildConfig;
+public:
+    IdentifierSearch();
+    void start(QmlJS::AST::Node *node);
+    void add(const QString &name, bool *found);
 
-    QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project);
-    ResolvedModule::ConstPtr findModuleByName(ResolvedProduct::Ptr product, const QString &name);
-    QVariant productPropertyValue(ResolvedProduct::Ptr product, QString propertyName);
+private:
+    bool visit(QmlJS::AST::IdentifierExpression *e);
 
-private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void conditionalDepends();
-    void groupName();
-    void identifierSearch_data();
-    void identifierSearch();
-    void jsImportUsedInMultipleScopes_data();
-    void jsImportUsedInMultipleScopes();
-    void productConditions();
-    void propertiesBlocks_data();
-    void propertiesBlocks();
-    void fileTags_data();
-    void fileTags();
+    QMap<QString, bool *> m_requests;
+    int m_numberOfFoundIds;
 };
 
-#endif // TST_LANGUAGE_H
+} // namespace Internal
+} // namespace qbs
+
+#endif // IDENTIFIERSEARCHVISITOR_H

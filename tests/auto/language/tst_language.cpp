@@ -29,7 +29,10 @@
 
 #include "tst_language.h"
 
+#include <language/identifiersearch.h>
 #include <language/scriptengine.h>
+#include <parser/qmljslexer_p.h>
+#include <parser/qmljsparser_p.h>
 #include <tools/error.h>
 
 QHash<QString, ResolvedProduct::Ptr> TestLanguage::productsFromProject(ResolvedProject::Ptr project)
@@ -182,6 +185,68 @@ void TestLanguage::groupName()
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::identifierSearch_data()
+{
+    QTest::addColumn<bool>("expectedHasNarf");
+    QTest::addColumn<bool>("expectedHasZort");
+    QTest::addColumn<QString>("sourceCode");
+    QTest::newRow("no narf, no zort") << false << false << QString(
+                                  "Product {\n"
+                                  "    name: {\n"
+                                  "        var foo = 'bar';\n"
+                                  "        print(foo);\n"
+                                  "        return foo;\n"
+                                  "    }\n"
+                                  "}\n");
+    QTest::newRow("narf, no zort") << true << false << QString(
+                                  "Product {\n"
+                                  "    name: {\n"
+                                  "        var foo = 'zort';\n"
+                                  "        print(narf + foo);\n"
+                                  "        return foo;\n"
+                                  "    }\n"
+                                  "}\n");
+    QTest::newRow("no narf, zort") << false << true << QString(
+                                  "Product {\n"
+                                  "    name: {\n"
+                                  "        var foo = 'narf';\n"
+                                  "        print(zort + foo);\n"
+                                  "        return foo;\n"
+                                  "    }\n"
+                                  "}\n");
+    QTest::newRow("narf, zort") << true << true << QString(
+                                  "Product {\n"
+                                  "    name: {\n"
+                                  "        var foo = narf;\n"
+                                  "        foo = foo + zort;\n"
+                                  "        return foo;\n"
+                                  "    }\n"
+                                  "}\n");
+}
+
+void TestLanguage::identifierSearch()
+{
+    QFETCH(bool, expectedHasNarf);
+    QFETCH(bool, expectedHasZort);
+    QFETCH(QString, sourceCode);
+
+    bool hasNarf = !expectedHasNarf;
+    bool hasZort = !expectedHasZort;
+    IdentifierSearch isearch;
+    isearch.add("narf", &hasNarf);
+    isearch.add("zort", &hasZort);
+
+    QmlJS::Engine engine;
+    QmlJS::Lexer lexer(&engine);
+    lexer.setCode(sourceCode, 1);
+    QmlJS::Parser parser(&engine);
+    QVERIFY(parser.parse());
+    QVERIFY(parser.ast());
+    isearch.start(parser.ast());
+    QCOMPARE(hasNarf, expectedHasNarf);
+    QCOMPARE(hasZort, expectedHasZort);
 }
 
 void TestLanguage::jsImportUsedInMultipleScopes_data()

@@ -29,6 +29,7 @@
 
 #include "loader.h"
 
+#include "identifiersearch.h"
 #include "language.h"
 #include "scriptengine.h"
 
@@ -87,6 +88,8 @@ class Binding
 public:
     QStringList name;
     QScriptProgram valueSource;
+    bool valueSourceUsesBase;
+    bool valueSourceUsesOuter;
 
     bool isValid() const { return !name.isEmpty(); }
     CodeLocation codeLocation() const;
@@ -203,6 +206,8 @@ public:
     // where properties get resolved to
     QSharedPointer<ScopeChain> scopeChain;
     QScriptProgram valueSource;
+    bool valueSourceUsesBase;
+    bool valueSourceUsesOuter;
     QList<Property> baseProperties;
 
     // value once it's been evaluated
@@ -556,22 +561,30 @@ LanguageObject::~LanguageObject()
 }
 
 Property::Property(LanguageObject *sourceObject)
-    : sourceObject(sourceObject)
+    : valueSourceUsesBase(false)
+    , valueSourceUsesOuter(false)
+    , sourceObject(sourceObject)
 {}
 
 Property::Property(QSharedPointer<Scope> scope)
-    : scope(scope)
+    : valueSourceUsesBase(false)
+    , valueSourceUsesOuter(false)
+    , scope(scope)
     , sourceObject(0)
 {}
 
 Property::Property(EvaluationObject *object)
-    : scope(object->scope)
+    : valueSourceUsesBase(false)
+    , valueSourceUsesOuter(false)
+    , scope(object->scope)
     , sourceObject(0)
 {
 }
 
 Property::Property(const QScriptValue &scriptValue)
-    : value(scriptValue)
+    : valueSourceUsesBase(false)
+    , valueSourceUsesOuter(false)
+    , value(scriptValue)
     , sourceObject(0)
 {
 }
@@ -788,12 +801,10 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
         qbsTrace() << " : evaluating now: " << property.valueSource.sourceCode();
     QScriptContext *context = engine()->currentContext();
     const QScriptValue oldActivation = context->activationObject();
-    const QString &sourceCode = property.valueSource.sourceCode();
 
     // evaluate base properties
     QLatin1String baseValueName("base");
-    const bool usesBaseProperty = sourceCode.contains(baseValueName);
-    if (usesBaseProperty) {
+    if (property.valueSourceUsesBase) {
         foreach (const Property &baseProperty, property.baseProperties) {
             context->setActivationObject(baseProperty.scopeChain->value());
             QScriptValue baseValue;
@@ -811,7 +822,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
     context->setActivationObject(property.scopeChain->value());
 
     QLatin1String oldValueName("outer");
-    const bool usesOldProperty = fallbackScope && sourceCode.contains(oldValueName);
+    const bool usesOldProperty = fallbackScope && property.valueSourceUsesOuter;
     if (usesOldProperty) {
         QScriptValue oldValue = fallbackScope.data()->value.property(name);
         if (oldValue.isValid() && !oldValue.isError())
@@ -840,7 +851,7 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
 
     if (usesOldProperty)
         engine()->globalObject().setProperty(oldValueName, engine()->undefinedValue());
-    if (usesBaseProperty)
+    if (property.valueSourceUsesBase)
         engine()->globalObject().setProperty(baseValueName, engine()->undefinedValue());
     context->setActivationObject(oldActivation);
 
@@ -1381,6 +1392,8 @@ static void applyBinding(LanguageObject *object, const Binding &binding, const S
 
     Property newProperty;
     newProperty.valueSource = binding.valueSource;
+    newProperty.valueSourceUsesBase = binding.valueSourceUsesBase;
+    newProperty.valueSourceUsesOuter = binding.valueSourceUsesOuter;
     newProperty.scopeChain = scopeChain;
     newProperty.sourceObject = object;
 
@@ -2705,6 +2718,11 @@ static void bindBinding(LanguageObject *result, const QString &source, UiScriptB
     }
 
     p.valueSource = bindingProgram(result->file->fileName, source, ast->statement);
+
+    IdentifierSearch idsearch;
+    idsearch.add(QLatin1String("base"), &p.valueSourceUsesBase);
+    idsearch.add(QLatin1String("outer"), &p.valueSourceUsesOuter);
+    idsearch.start(ast->statement);
 
     result->bindings.insert(p.name, p);
 }

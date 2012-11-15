@@ -7,11 +7,13 @@ HEADERS += \
     $$PWD/qbsengine.h \
     $$PWD/scriptengine.h \
     $$PWD/publictypes.h \
-    $$PWD/publicobjectsmap.h
+    $$PWD/publicobjectsmap.h \
+    $$PWD/identifiersearch.h
 
 SOURCES += \
     $$PWD/loader.cpp \
     $$PWD/language.cpp \
     $$PWD/qbsengine.cpp \
     $$PWD/scriptengine.cpp \
-    $$PWD/publictypes.cpp
+    $$PWD/publictypes.cpp \
+    $$PWD/identifiersearch.cpp

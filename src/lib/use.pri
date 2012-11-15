@@ -39,3 +39,5 @@ DEPENDPATH += \
     $$PWD/parser\
     $$PWD/tools\
     $$INCLUDEPATH
+
+DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS

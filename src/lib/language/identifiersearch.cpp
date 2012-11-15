@@ -27,42 +27,38 @@
 **
 ****************************************************************************/
 
-#ifndef TST_LANGUAGE_H
-#define TST_LANGUAGE_H
+#include "identifiersearch.h"
+#include <parser/qmljsast_p.h>
 
-#include <language/loader.h>
-#include <logging/consolelogger.h>
-#include <logging/logger.h>
-#include <tools/scripttools.h>
-#include <QtTest>
+namespace qbs {
+namespace Internal {
 
-using namespace qbs;
-
-class TestLanguage : public QObject
+IdentifierSearch::IdentifierSearch()
 {
-    Q_OBJECT
-    Loader *loader;
-    ResolvedProject::Ptr project;
-    QVariantMap buildConfig;
+}
 
-    QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project);
-    ResolvedModule::ConstPtr findModuleByName(ResolvedProduct::Ptr product, const QString &name);
-    QVariant productPropertyValue(ResolvedProduct::Ptr product, QString propertyName);
+void IdentifierSearch::start(QmlJS::AST::Node *node)
+{
+    foreach (bool *found, m_requests)
+        *found = false;
+    m_numberOfFoundIds = 0;
+    node->accept(this);
+}
 
-private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void conditionalDepends();
-    void groupName();
-    void identifierSearch_data();
-    void identifierSearch();
-    void jsImportUsedInMultipleScopes_data();
-    void jsImportUsedInMultipleScopes();
-    void productConditions();
-    void propertiesBlocks_data();
-    void propertiesBlocks();
-    void fileTags_data();
-    void fileTags();
-};
+void IdentifierSearch::add(const QString &name, bool *found)
+{
+    m_requests.insert(name, found);
+}
 
-#endif // TST_LANGUAGE_H
+bool IdentifierSearch::visit(QmlJS::AST::IdentifierExpression *e)
+{
+    bool *found = m_requests.value(e->name.toString());
+    if (found) {
+        *found = true;
+        m_numberOfFoundIds++;
+    }
+    return m_numberOfFoundIds < m_requests.count();
+}
+
+} // namespace Internal
+} // namespace qbs
