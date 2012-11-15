@@ -132,7 +132,6 @@ Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVaria
         if (loadResult.changedResolvedProject) {
             rProject = loadResult.changedResolvedProject;
         } else {
-            TimedActivityLogger loadLogger(QLatin1String("Loading project"));
             Loader loader(&d->engine);
             loader.setSearchPaths(d->settings.searchPaths());
             loader.setProgressObserver(d->observer);

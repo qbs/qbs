@@ -998,6 +998,7 @@ QString BuildProject::buildGraphFilePath() const
 
 void BuildProject::load(PersistentPool &pool)
 {
+    TimedActivityLogger logger(QLatin1String("Loading project from disk."));
     m_resolvedProject = pool.idLoadS<ResolvedProject>();
     foreach (const ResolvedProduct::Ptr &product, m_resolvedProject->products)
         product->project = m_resolvedProject;
