@@ -29,14 +29,24 @@
 #ifndef BUILDOPTIONS_H
 #define BUILDOPTIONS_H
 
+#include <tools/settings.h>
+
 #include <QStringList>
+#include <QThread>
 
 namespace qbs {
 
 class BuildOptions
 {
 public:
-    BuildOptions() : dryRun(false), keepGoing(false), maxJobCount(1) {}
+    BuildOptions()
+        : dryRun(false)
+        , keepGoing(false)
+        , maxJobCount(Settings().value(QLatin1String("preferences/jobs"), 0).toInt())
+    {
+        if (maxJobCount <= 0)
+            maxJobCount = QThread::idealThreadCount();
+    }
 
     QStringList changedFiles;
     bool dryRun;

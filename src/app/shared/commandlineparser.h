@@ -31,7 +31,6 @@
 #define OPTIONS_H
 
 #include <tools/buildoptions.h>
-#include <tools/settings.h>
 
 #include <QCoreApplication>
 #include <QPair>
@@ -81,7 +80,6 @@ private:
     QString propertyName(const QString &aCommandLineName) const;
     void setRealProjectFile();
 
-    Settings m_settings;
     Command m_command;
     QString m_runTargetName;
     QString m_projectFileName;

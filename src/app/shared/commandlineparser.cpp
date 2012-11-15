@@ -32,13 +32,13 @@
 #include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/platform.h>
 #include <tools/hostosinfo.h>
+#include <tools/platform.h>
+#include <tools/settings.h>
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QTextStream>
-#include <QThread>
 
 #ifdef Q_OS_UNIX
 #include <unistd.h>
@@ -151,9 +151,6 @@ void CommandLineParser::doParse()
     m_projectFileName.clear();
     m_products.clear();
     m_buildOptions = BuildOptions();
-    m_buildOptions.maxJobCount = m_settings.value("preferences/jobs", 0).toInt();
-    if (m_buildOptions.maxJobCount <= 0)
-        m_buildOptions.maxJobCount = QThread::idealThreadCount();
     m_help = false;
     m_showProgress = false;
     m_logLevel = Logger::defaultLevel();
@@ -396,7 +393,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     properties.insert(currentKey, currentProperties);
 
     if (properties.count() == 1) // No build variant specified on command line.
-        properties.insert(m_settings.buildVariant(), QVariantMap());
+        properties.insert(Settings().buildVariant(), QVariantMap());
 
     const PropertyMaps::Iterator globalMapIt = properties.find(QString());
     Q_ASSERT(globalMapIt != properties.end());
