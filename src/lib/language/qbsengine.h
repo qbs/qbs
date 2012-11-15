@@ -55,41 +55,30 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
 
-    // All of these may throw qbs::Error.
-    Project::Id setupProject(const QString &projectFileName, const QVariantMap &buildConfig,
+    Project::Id setupProject(const QString &projectFilePath, const QVariantMap &buildConfig,
                              const QString &buildRoot);
     void buildProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions);
     void buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions);
-    void buildProject(Project::Id projectId, const BuildOptions &buildOptions) {
-        buildProjects(QList<Project::Id>() << projectId, buildOptions);
-    }
+    void buildProject(Project::Id projectId, const BuildOptions &buildOptions);
     void buildProducts(const QList<Product> &products, const BuildOptions &buildOptions);
-    void buildProduct(const Product &product, const BuildOptions &buildOptions) {
-        buildProducts(QList<Product>() << product, buildOptions);
-    }
+    void buildProduct(const Product &product, const BuildOptions &buildOptions);
 
     enum CleanType { CleanupAll, CleanupTemporaries };
     void cleanProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions,
                        CleanType cleanType);
     void cleanProjects(const QList<Project> &projects, const BuildOptions &buildOptions,
                        CleanType cleanType);
-    void cleanProject(Project::Id projectId, const BuildOptions &buildOptions, CleanType cleanType)
-    {
-        cleanProjects(QList<Project::Id>() << projectId, buildOptions, cleanType);
-    }
+    void cleanProject(Project::Id projectId, const BuildOptions &buildOptions, CleanType cleanType);
     void cleanProducts(const QList<Product> &products, const BuildOptions &buildOptions,
                        CleanType cleanType);
-    void cleanProduct(const Product &product, const BuildOptions &buildOptions, CleanType cleanType)
-    {
-        cleanProducts(QList<Product>() << product, buildOptions, cleanType);
-    }
+    void cleanProduct(const Product &product, const BuildOptions &buildOptions,
+                      CleanType cleanType);
 
     Project retrieveProject(Project::Id projectId) const;
 
     RunEnvironment getRunEnvironment(const Product &product,
                                      const QProcessEnvironment &environment);
 
-    // Empty string if this product is not an application
     QString targetExecutable(const Product &product);
 
 private:

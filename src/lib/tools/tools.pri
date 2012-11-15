@@ -25,7 +25,9 @@ SOURCES += \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
-    $$PWD/runenvironment.cpp
+    $$PWD/runenvironment.cpp \
+    $$PWD/progressobserver.cpp \
+    $$PWD/buildoptions.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

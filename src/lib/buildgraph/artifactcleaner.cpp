@@ -79,7 +79,7 @@ static void removeArtifactFromDisk(Artifact *artifact, bool stopOnError, bool dr
         if (stopOnError)
             throw Error(errorMessage);
         else
-            qbsWarning() << errorMessage;
+            qbsWarning() << errorMessage; // TODO: Needs to set some retrievable error state as well.
     }
 }
 
@@ -125,6 +125,7 @@ void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool rem
 {
     TimedActivityLogger logger(QLatin1String("Cleaning up"));
 
+    // TODO: Parallelize?
     QSet<QString> directories;
     foreach (const BuildProduct::ConstPtr &product, products) {
         CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll);

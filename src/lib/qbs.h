@@ -32,6 +32,7 @@
 #include "language/publictypes.h"
 #include "language/qbsengine.h"
 #include "logging/logger.h"
+#include "tools/buildoptions.h"
 #include "tools/error.h"
 #include "tools/progressobserver.h"
 #include "tools/settings.h"

@@ -29,24 +29,14 @@
 #ifndef BUILDOPTIONS_H
 #define BUILDOPTIONS_H
 
-#include <tools/settings.h>
-
 #include <QStringList>
-#include <QThread>
 
 namespace qbs {
 
 class BuildOptions
 {
 public:
-    BuildOptions()
-        : dryRun(false)
-        , keepGoing(false)
-        , maxJobCount(Settings().value(QLatin1String("preferences/jobs"), 0).toInt())
-    {
-        if (maxJobCount <= 0)
-            maxJobCount = QThread::idealThreadCount();
-    }
+    BuildOptions();
 
     QStringList changedFiles;
     bool dryRun;
@@ -54,18 +44,8 @@ public:
     int maxJobCount;
 };
 
-inline bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
-{
-    return bo1.changedFiles == bo2.changedFiles
-            && bo1.dryRun == bo2.dryRun
-            && bo1.keepGoing == bo2.keepGoing
-            && bo1.maxJobCount == bo2.maxJobCount;
-}
-
-inline bool operator!=(const BuildOptions &bo1, const BuildOptions &bo2)
-{
-    return !(bo1 == bo2);
-}
+bool operator==(const BuildOptions &bo1, const BuildOptions &bo2);
+inline bool operator!=(const BuildOptions &bo1, const BuildOptions &bo2) { return !(bo1 == bo2); }
 
 } // namespace qbs
 

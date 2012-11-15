@@ -33,6 +33,13 @@
 
 namespace qbs {
 
+/*!
+ * \class ErrorData
+ * \brief The \c ErrorData class describes (part of) an error resulting from a qbs operation.
+ * It is always delivered as part of an \c Error.
+ * \sa Error
+ */
+
 ErrorData::ErrorData()
     : m_line(0)
     , m_column(0)
@@ -55,6 +62,29 @@ ErrorData::ErrorData(const ErrorData &rhs)
 {
 }
 
+/*!
+ * \fn const QString &ErrorData::description() const
+ * \brief A general description of the error.
+ */
+
+ /*!
+  * \fn const QString &ErrorData::file() const
+  * \brief The file in which the error occurred, if it is file-related. Otherwise an empty string.
+  */
+
+/*!
+ * \fn int ErrorData::line() const
+ * \brief The line in the file in which the error occurred, if applicable. Otherwise 0.
+ */
+
+/*!
+ * \fn int ErrorData::column() const
+ * \brief The column in the file in which the error occurred, if applicable. Otherwise 0.
+ */
+
+/*!
+ * \brief A full textual description of the error using all available information.
+ */
 QString ErrorData::toString() const
 {
     QString str;
@@ -72,6 +102,13 @@ QString ErrorData::toString() const
     }
     return str;
 }
+
+/*!
+ * \class Error
+ * \brief Represents an error resulting from a qbs operation.
+ * It is made up of one or more \c ErrorData objects.
+ * \sa ErrorData
+ */
 
 Error::Error()
 {
@@ -102,6 +139,11 @@ void Error::append(const QString &description, const CodeLocation &location)
     m_data.append(ErrorData(description, location.fileName, location.line, location.column));
 }
 
+/*!
+ * \brief A list of concrete error description.
+ * Most often, there will be one element in this list, but there can be more e.g. to illustrate
+ * how an error condition propagates through several source files.
+ */
 const QList<ErrorData> &Error::entries() const
 {
     return m_data;
@@ -112,6 +154,11 @@ void Error::clear()
     m_data.clear();
 }
 
+/*!
+ * \brief A complete textual description of the error.
+ * All "sub-errors" will be represented.
+ * \sa Error::entries()
+ */
 QString Error::toString() const
 {
     QStringList lines;

@@ -98,27 +98,61 @@ private:
 bool QbsEngine::QbsEnginePrivate::pluginsLoaded = false;
 QMutex QbsEngine::QbsEnginePrivate::pluginsLoadedMutex;
 
+
+/*!
+ * \class QbsEngine
+ * \brief The \c QbsEngine class is the central facility of the qbs API.
+ * It offers services such as building a project and accessing its structure.
+ */
+
+/*!
+ * \fn QbsEngine::QbsEngine()
+ * \brief Creates a \c QbsEngine object.
+ */
 QbsEngine::QbsEngine() : d(new QbsEnginePrivate)
 {
     d->loadPlugins();
 }
 
+/*!
+ * \fn QbsEngine::~QbsEngine()
+ * \brief Destroys a \c QbsEngine object.
+ */
 QbsEngine::~QbsEngine()
 {
     delete d;
 }
 
+/*!
+ * \brief Sets an observer to be used in subsequent operations.
+ */
 void QbsEngine::setProgressObserver(ProgressObserver *observer)
 {
     d->observer = observer;
     d->buildGraph->setProgressObserver(observer);
 }
 
-Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVariantMap &_buildConfig,
+/*!
+ * \brief Reads a project from a source file.
+ * The \a projectFilePath parameter is the path to the project file, typically ending in ".qbs".
+ * The \a buildConfig parameter is the set of properties used for resolving the project. Note that
+ * calling this function with the same \a projectFilePath and a different \a buildConfig will
+ * result in two distinct projects, since the different properties will potentially cause the
+ * bindings in the project file to evaluate to different values.
+ * The \a buildRoot parameter is the base directory for building the project. It will be used
+ * to derive the actual build directory and is required here because the project information might
+ * already exist on disk, in which case it will be available faster. If you know that the project
+ * has never been built and you do not plan to do so later, \a buildRoot can be an arbitrary string.
+ * The return value is the unique id of the resolved project, which can then be used for
+ * services related to the project.
+ * This function will throw qbs::Error if something goes wrong.
+ * \sa Error
+ */
+Project::Id QbsEngine::setupProject(const QString &projectFilePath, const QVariantMap &_buildConfig,
                                     const QString &buildRoot)
 {
     const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);
-    const BuildProject::LoadResult loadResult = BuildProject::load(projectFileName,
+    const BuildProject::LoadResult loadResult = BuildProject::load(projectFilePath,
             d->buildGraph.data(), buildRoot, buildConfig, d->settings.searchPaths());
 
     BuildProject::Ptr bProject;
@@ -135,10 +169,10 @@ Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVaria
             Loader loader(&d->engine);
             loader.setSearchPaths(d->settings.searchPaths());
             loader.setProgressObserver(d->observer);
-            rProject = loader.loadProject(projectFileName, buildRoot, buildConfig);
+            rProject = loader.loadProject(projectFilePath, buildRoot, buildConfig);
         }
         if (rProject->products.isEmpty())
-            throw Error(QString("'%1' does not contain products.").arg(projectFileName));
+            throw Error(QString("'%1' does not contain products.").arg(projectFilePath));
         if (loadResult.loadedProject)
             d->discardedBuildProjects.insert(rProject, loadResult.loadedProject);
     }
@@ -163,6 +197,12 @@ Project::Id QbsEngine::setupProject(const QString &projectFileName, const QVaria
     return id;
 }
 
+/*!
+ * \brief Builds a number of projects set up earlier via setupProject().
+ * Building potentially happens in parallel. If something goes wrong, qbs::Error is thrown.
+ * \sa QbsEngine::setupProject()
+ * \sa Error
+ */
 void QbsEngine::buildProjects(const QList<Project::Id> &projectIds, const BuildOptions &buildOptions)
 {
     QList<ResolvedProduct::ConstPtr> products;
@@ -184,11 +224,31 @@ static QList<Project::Id> projectListToIdList(const QList<Project> &projects)
     return projectIds;
 }
 
+/*!
+ * \brief Convenience function taking a list of projects instead of ids.
+ * \sa QbsEngine::buildProjects(const QList<Project::Id> &, const BuildOptions &)
+ */
 void QbsEngine::buildProjects(const QList<Project> &projects, const BuildOptions &buildOptions)
 {
     buildProjects(projectListToIdList(projects), buildOptions);
 }
 
+/*!
+ * \brief Convenience function for building a single project.
+ * \sa QbsEngine::buildProjects(const QList<Project::Id> &, const BuildOptions &)
+ */
+void QbsEngine::buildProject(Project::Id projectId, const BuildOptions &buildOptions)
+{
+    buildProjects(QList<Project::Id>() << projectId, buildOptions);
+}
+
+/*!
+ * \brief Builds a number of products.
+ * Use this function if you want to build only a subset of a project's products. If any of
+ * \a products depend on other products not listed in \a products, those will be added.
+ * This function will throw qbs::Error if something goes wrong.
+ * \sa Error
+ */
 void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions &buildOptions)
 {
     QList<ResolvedProduct::ConstPtr> resolvedProducts;
@@ -201,6 +261,29 @@ void QbsEngine::buildProducts(const QList<Product> &products, const BuildOptions
     d->buildProducts(resolvedProducts, buildOptions, true);
 }
 
+/*!
+ * \brief Convenience function for building a single product.
+ * \sa QbsEngine::buildProducts(const QList<Product> &, const BuildOptions &)
+ */
+void QbsEngine::buildProduct(const Product &product, const BuildOptions &buildOptions)
+{
+    buildProducts(QList<Product>() << product, buildOptions);
+}
+
+/*!
+ * \enum QbsEngine::CleanType
+ * This enum type specifies which kind of build artifacts to remove.
+ * \value CleanupAll Indicates that all files created by the build process should be removed.
+ * \value CleanupTemporaries Indicates that only intermediate build artifacts should be removed.
+ *        If, for example, the product to clean up for is a Linux shared library, the .so file
+ *        would be left on the disk, but the .o files would be removed.
+ */
+
+/*!
+ * \brief Removes the build artifacts of the given projects.
+ * This function will throw qbs::Error if something goes wrong.
+ * \sa Error
+ */
 void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
                               const BuildOptions &buildOptions, CleanType cleanType)
 {
@@ -216,12 +299,31 @@ void QbsEngine::cleanProjects(const QList<Project::Id> &projectIds,
     d->cleanBuildProducts(products, buildOptions, cleanType);
 }
 
+/*!
+ * \brief Convenience function taking a list of projects instead of ids.
+ * \sa QbsEngine::cleanProjects(const QList<Project::Id> &, const BuildOptions &, CleanType)
+ */
 void QbsEngine::cleanProjects(const QList<Project> &projects, const BuildOptions &buildOptions,
                               CleanType cleanType)
 {
     cleanProjects(projectListToIdList(projects), buildOptions, cleanType);
 }
 
+/*!
+ * Convenience function taking a single project id.
+ * \sa QbsEngine::cleanProjects(const QList<Project::Id> &, const BuildOptions &, QbsEngine::CleanType)
+ */
+void QbsEngine::cleanProject(Project::Id projectId, const BuildOptions &buildOptions,
+                             QbsEngine::CleanType cleanType)
+{
+    cleanProjects(QList<Project::Id>() << projectId, buildOptions, cleanType);
+}
+
+/*!
+ * \brief Removes the build artifacts of the given products.
+ * This function will throw qbs::Error if something goes wrong.
+ * \sa Error
+ */
 void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions &buildOptions,
                               QbsEngine::CleanType cleanType)
 {
@@ -242,6 +344,22 @@ void QbsEngine::cleanProducts(const QList<Product> &products, const BuildOptions
     d->cleanBuildProducts(buildProducts, buildOptions, cleanType);
 }
 
+/*!
+ * \brief Convenience function taking a single product
+ * \sa QbsEngine::cleanProducts(const QList<Product> &, const BuildOptions &, QbsEngine::CleanType)
+ */
+void QbsEngine::cleanProduct(const Product &product, const BuildOptions &buildOptions, QbsEngine::CleanType cleanType)
+{
+    cleanProducts(QList<Product>() << product, buildOptions, cleanType);
+}
+
+/*!
+ * \brief Retrieves information for a given project.
+ * Call this function if you need insight into the project structure, e.g. because you want to know
+ * which products or files are in it. If you just want to build it, the id is enough.
+ * This function will throw qbs::Error if something goes wrong.
+ * \sa Error
+ */
 Project QbsEngine::retrieveProject(Project::Id projectId) const
 {
     const ResolvedProject::ConstPtr resolvedProject = d->publicObjectsMap.project(projectId);
@@ -279,6 +397,12 @@ RunEnvironment QbsEngine::getRunEnvironment(const Product &product,
     return RunEnvironment(&d->engine, product, d->publicObjectsMap, environment);
 }
 
+/*!
+ * \brief Returns the file path of the executable associated with the given product.
+ * If the product is not an application, an empty string is returned.
+ * This function will throw qbs::Error if something goes wrong.
+ * \sa Error
+ */
 QString QbsEngine::targetExecutable(const Product &product)
 {
     const ResolvedProduct::ConstPtr resolvedProduct = d->publicObjectsMap.product(product.id());
