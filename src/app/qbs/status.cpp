@@ -30,7 +30,6 @@
 #include "status.h"
 
 #include <language/language.h>
-
 #include <qbs.h>
 
 #include <QDir>
@@ -102,15 +101,15 @@ static QStringList allFilesInProject(const QString &projectRootPath)
     return allFilesInDirectoryRecursive(QDir(projectRootPath), ignoreRegularExpressionList);
 }
 
-QStringList allFiles(const Product &product)
+QStringList allFiles(const ProductData &product)
 {
     QStringList files;
-    foreach (const Group &group, product.groups())
+    foreach (const GroupData &group, product.groups())
         files += group.allFilePaths();
     return files;
 }
 
-int printStatus(const QList<Project> &projects)
+int printStatus(const QList<ProjectData> &projects)
 {
     if (projects.isEmpty())
         return 0;
@@ -120,11 +119,11 @@ int printStatus(const QList<Project> &projects)
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
-    const Project project = projects.first();
-    foreach (const Product &product, project.products()) {
+    const ProjectData project = projects.first();
+    foreach (const ProductData &product, project.products()) {
         qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name()
                   << " (" << product.qbsFilePath() << ":" << product.qbsLine() << ")";
-        foreach (const Group &group, product.groups()) {
+        foreach (const GroupData &group, product.groups()) {
             qbsInfo() << DontPrintLogLevel << TextColorBlue << "  Group: " << group.name()
                       << " (" << group.qbsLine() << ")";
             QStringList sourceFiles = group.allFilePaths();

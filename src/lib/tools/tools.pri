@@ -13,7 +13,6 @@ HEADERS += \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
-    $$PWD/runenvironment.h \
     $$PWD/persistentobject.h \
     $$PWD/weakpointer.h
 
@@ -25,7 +24,6 @@ SOURCES += \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
-    $$PWD/runenvironment.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/buildoptions.cpp
 

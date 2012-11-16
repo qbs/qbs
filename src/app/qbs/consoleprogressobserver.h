@@ -29,25 +29,22 @@
 #ifndef CONSOLEPROGRESSOBSERVER_H
 #define CONSOLEPROGRESSOBSERVER_H
 
-#include <tools/progressobserver.h>
+#include <QtGlobal>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 
-class ConsoleProgressObserver : public ProgressObserver
+class ConsoleProgressObserver
 {
 public:
-    ConsoleProgressObserver();
-
-    void setShowProgress(bool show) { m_showProgress = show; }
-    void setCanceled(bool cancel) { m_canceled = cancel; }
-
-private:
     void initialize(const QString &task, int max);
     void setProgressValue(int value);
-    int progressValue() { return m_value; }
-    int maximum() const { return m_maximum; }
-    bool canceled() const { return m_canceled; }
+    void incrementProgressValue() { setProgressValue(m_value + 1); }
 
+private:
     void eraseCurrentPercentageString();
     void updateProgressBarIfNecessary();
     void writePercentageString();
@@ -57,7 +54,6 @@ private:
     int m_percentage;
     int m_hashesPrinted;
     bool m_showProgress;
-    bool m_canceled;
 };
 
 } // namespace qbs

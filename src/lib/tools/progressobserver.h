@@ -36,6 +36,7 @@ class QString;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
 class ProgressObserver
 {
@@ -54,6 +55,7 @@ public:
     void setFinished();
 };
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // PROGRESSOBSERVER_H

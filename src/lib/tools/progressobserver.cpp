@@ -29,6 +29,7 @@
 #include "progressobserver.h"
 
 namespace qbs {
+namespace Internal {
 
 /*!
  * \class ProgressObserver
@@ -90,4 +91,5 @@ void ProgressObserver::setFinished()
     setProgressValue(maximum());
 }
 
+} // namespace Internal
 } // namespace qbs

@@ -131,18 +131,24 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
     return lookupArtifact(dirPath, fileName);
 }
 
-BuildGraph::BuildGraph(ScriptEngine *engine)
+BuildGraph::BuildGraph()
     : m_progressObserver(0)
-    , m_engine(engine)
+    , m_engine(0)
     , m_initEngineCalls(0)
 {
-    m_prepareScriptScope = m_engine->newObject();
-    ProcessCommand::setupForJavaScript(m_prepareScriptScope);
-    JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
 }
 
 BuildGraph::~BuildGraph()
 {
+}
+
+void BuildGraph::setEngine(ScriptEngine *engine)
+{
+    m_scriptProgramCache.clear();
+    m_engine = engine;
+    m_prepareScriptScope = m_engine->newObject();
+    ProcessCommand::setupForJavaScript(m_prepareScriptScope);
+    JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
 }
 
 void BuildGraph::insert(BuildProduct::Ptr product, Artifact *n) const
@@ -282,9 +288,10 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 
 void BuildGraph::createTransformerCommands(const PrepareScript::ConstPtr &script, Transformer *transformer)
 {
-    QScriptProgram &scriptProgram = m_scriptProgramCache[script->script];
-    if (scriptProgram.isNull())
-        scriptProgram = QScriptProgram(script->script);
+//    QScriptProgram &scriptProgram = m_scriptProgramCache[script->script];
+//    if (scriptProgram.isNull())
+//        scriptProgram = QScriptProgram(script->script);
+    QScriptProgram scriptProgram = QScriptProgram(script->script);
 
     QScriptValue scriptValue = m_engine->evaluate(scriptProgram);
     if (m_engine->hasUncaughtException())

@@ -33,7 +33,7 @@
 #include <QCoreApplication>
 
 namespace qbs {
-class ConsoleProgressObserver;
+class CommandLineFrontend;
 
 class Application : public QCoreApplication
 {
@@ -43,12 +43,11 @@ public:
 
     static Application *instance();
 
-    void init();
+    void setCommandLineFrontend(CommandLineFrontend *clFrontend);
     void userInterrupt();
-    ConsoleProgressObserver *observer() const { return m_observer; }
 
 private:
-    ConsoleProgressObserver * const m_observer;
+    CommandLineFrontend *m_clFrontend;
 };
 
 } // namespace qbs

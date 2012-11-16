@@ -41,20 +41,18 @@
 #include <QVariant>
 
 namespace qbs {
-class ProgressObserver;
-
 namespace Internal {
-
 class AutoMoc;
 class ExecutorJob;
 class InputArtifactScannerContext;
+class ProgressObserver;
 class ScanResultCache;
 
 class Executor : public QObject
 {
     Q_OBJECT
 public:
-    Executor();
+    Executor(QObject *parent = 0);
     ~Executor();
 
     void build(const QList<BuildProduct::Ptr> &productsToBuild);
@@ -78,7 +76,7 @@ public:
     BuildResult buildResult() const { return m_buildResult; }
 
 signals:
-    void error();
+    void error(const Error &error);
     void finished();
 
 private slots:
@@ -101,7 +99,7 @@ private:
     void finish();
     void initializeArtifactsState();
     void setState(ExecutorState);
-    void setError(const QString &errorMessage);
+    void setError(const Error &e);
     void addExecutorJobs(int jobNumber);
     void removeExecutorJobs(int jobNumber);
     void runAutoMoc();

@@ -60,9 +60,9 @@ BuildOptions::BuildOptions()
  /*!
   * \variable BuildOptions::dryRun
   * \brief if true, qbs will not actually execute any commands, but just show what would happen
-  * Note that the next call to build() on the same QbsEngine object will do nothing, since the
+  * Note that the next call to build() on the same \c Project object will do nothing, since the
   * internal state needs to be updated the same way as if an actual build has happened. You'll
-  * need to use a new QbsEngine object to do a real build.
+  * need to create a new \c Project object to do a real build.
   */
 
 /*!

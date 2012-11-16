@@ -46,12 +46,12 @@
 #include <QVector>
 
 namespace qbs {
-class ProgressObserver;
 
 namespace Internal {
 class Artifact;
-class Transformer;
 class BuildProject;
+class ProgressObserver;
+class Transformer;
 
 typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
 
@@ -153,9 +153,10 @@ private:
 class BuildGraph
 {
 public:
-    BuildGraph(ScriptEngine *engine);
+    BuildGraph();
     ~BuildGraph();
 
+    void setEngine(ScriptEngine *engine);
     ScriptEngine *engine() { return m_engine; }
 
     BuildProject::Ptr resolveProject(ResolvedProject::Ptr);

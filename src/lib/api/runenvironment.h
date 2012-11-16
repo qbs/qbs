@@ -30,6 +30,7 @@
 #ifndef QBS_RUNENVIRONMENT_H
 #define QBS_RUNENVIRONMENT_H
 
+#include <QSharedPointer>
 #include <QStringList>
 
 QT_BEGIN_NAMESPACE
@@ -37,16 +38,14 @@ class QProcessEnvironment;
 QT_END_NAMESPACE
 
 namespace qbs {
-class Product;
 
 namespace Internal {
-class PublicObjectsMap;
-class ScriptEngine;
+class ResolvedProduct;
 } // namespace Internal
 
 class RunEnvironment
 {
-    friend class QbsEngine;
+    friend class Project;
 public:
     ~RunEnvironment();
 
@@ -55,8 +54,7 @@ public:
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
-    RunEnvironment(Internal::ScriptEngine *engine, const Product &product,
-                   const Internal::PublicObjectsMap &publicObjectsMap,
+    RunEnvironment(const QSharedPointer<Internal::ResolvedProduct> &product,
                    const QProcessEnvironment &environment);
 
     class RunEnvironmentPrivate;

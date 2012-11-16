@@ -26,40 +26,63 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef PUBLICOBJECTSMAP_H
-#define PUBLICOBJECTSMAP_H
+#ifndef COMMANDLINEFRONTEND_H
+#define COMMANDLINEFRONTEND_H
 
-#include "language.h"
-#include "publictypes.h"
+#include "../shared/commandlineparser.h"
+#include <api/project.h>
+#include <api/projectdata.h>
 
-#include <QtGlobal>
 #include <QHash>
+#include <QList>
+#include <QObject>
 
 namespace qbs {
-namespace Internal {
+class AbstractJob;
+class ConsoleProgressObserver;
 
-class PublicObjectsMap
+class CommandLineFrontend : public QObject
 {
+    Q_OBJECT
 public:
-    void insertGroup(Group::Id id, const ResolvedGroup::Ptr &group) { m_groups.insert(id, group); }
-    void insertProduct(Product::Id id, const ResolvedProduct::Ptr &product) {
-        m_products.insert(id, product);
-    }
-    void insertProject(Project::Id id, const ResolvedProject::Ptr &project) {
-        m_projects.insert(id, project);
-    }
+    explicit CommandLineFrontend(const CommandLineParser &parser, QObject *parent = 0);
 
-    ResolvedGroup::Ptr group(Group::Id id) const { return m_groups.value(id); }
-    ResolvedProduct::Ptr product(Product::Id id) const { return m_products.value(id); }
-    ResolvedProject::Ptr project(Project::Id id) const { return m_projects.value(id); }
+    void cancel();
+
+private slots:
+    void start();
+    void handleJobFinished(bool success, qbs::AbstractJob *job);
+    void handleNewTaskStarted(const QString &description, int totalEffort);
+    void handleTaskProgress(int value, qbs::AbstractJob *job);
 
 private:
-    QHash<Group::Id, ResolvedGroup::Ptr> m_groups;
-    QHash<Product::Id, ResolvedProduct::Ptr> m_products;
-    QHash<Project::Id, ResolvedProject::Ptr> m_projects;
+    typedef QHash<Project, QList<ProductData> > ProductMap;
+    ProductMap productsToUse() const;
+
+    bool resolvingMultipleProjects() const;
+    bool isResolving() const;
+    bool isBuilding() const;
+    void handleProjectsResolved();
+    void makeClean();
+    int runShell();
+    void build();
+    int runTarget();
+    void connectBuildJobs();
+    void connectJob(AbstractJob *job);
+
+    const CommandLineParser m_parser;
+    QList<AbstractJob *> m_resolveJobs;
+    QList<AbstractJob *> m_buildJobs;
+    QList<Project> m_projects;
+
+    ConsoleProgressObserver *m_observer;
+    int m_buildEffortsNeeded;
+    int m_buildEffortsRetrieved;
+    int m_totalBuildEffort;
+    int m_currentBuildEffort;
+    QHash<AbstractJob *, int> m_buildEfforts;
 };
 
-} // namespace Internal
 } // namespace qbs
 
-#endif // PUBLICOBJECTSMAP_H
+#endif // COMMANDLINEFRONTEND_H

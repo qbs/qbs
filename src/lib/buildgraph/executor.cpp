@@ -83,8 +83,9 @@ private:
 };
 
 
-Executor::Executor()
-    : m_engine(0)
+Executor::Executor(QObject *parent)
+    : QObject(parent)
+    , m_engine(0)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
     , m_buildResult(SuccessfulBuild)
@@ -123,8 +124,7 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
     try {
         doBuild(productsToBuild);
     } catch (const Error &e) {
-        setError(e.toString());
-        return;
+        setError(e);
     }
 }
 
@@ -137,6 +137,14 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
     m_buildResult = SuccessfulBuild;
     m_productsToBuild = productsToBuild;
 
+    QSet<BuildProject *> projects;
+    foreach (const BuildProduct::ConstPtr &buildProduct, productsToBuild)
+        projects << buildProduct->project;
+    foreach (BuildProject * const project, projects) {
+        project->buildGraph()->setEngine(m_engine);
+        project->buildGraph()->setProgressObserver(m_progressObserver);
+    }
+
     initializeArtifactsState();
     setState(ExecutorRunning);
     Artifact::BuildState initialBuildState = m_buildOptions.changedFiles.isEmpty()
@@ -145,9 +153,6 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
     QList<Artifact *> changedArtifacts;
     foreach (const QString &filePath, m_buildOptions.changedFiles) {
         QList<Artifact *> artifacts;
-        QSet<const BuildProject *> projects;
-        foreach (const BuildProduct::ConstPtr &buildProduct, productsToBuild)
-            projects << buildProduct->project;
         foreach (const BuildProject * const project, projects)
             artifacts.append(project->lookupArtifacts(filePath));
         if (artifacts.isEmpty()) {
@@ -193,8 +198,7 @@ void Executor::cancelBuild()
     setState(ExecutorCanceled);
     cancelJobs();
     m_buildResult = FailedBuild;
-    qbsError() << Tr::tr("Build canceled.");
-    emit error();
+    emit error(Error(Tr::tr("Build canceled.")));
 }
 
 void Executor::setEngine(ScriptEngine *engine)
@@ -625,7 +629,7 @@ void Executor::onProcessError(QString errorString)
         ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
         finishJob(job);
     } else {
-        setError(errorString);
+        setError(Error(errorString));
         finish();
     }
 }
@@ -756,12 +760,11 @@ void Executor::setState(ExecutorState s)
     m_state = s;
 }
 
-void Executor::setError(const QString &errorMessage)
+void Executor::setError(const Error &e)
 {
     setState(ExecutorError);
-    qbsError() << errorMessage;
     cancelJobs();
-    emit error();
+    emit error(e);
 }
 
 } // namespace Internal

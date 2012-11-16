@@ -35,9 +35,8 @@
 #include <QVariantMap>
 
 namespace qbs {
-class ProgressObserver;
-
 namespace Internal {
+class ProgressObserver;
 class ScriptEngine;
 
 class Loader

@@ -29,9 +29,9 @@
 
 #include "runenvironment.h"
 
+#include <api/projectdata.h>
+#include <buildgraph/buildgraph.h>
 #include <language/language.h>
-#include <language/publicobjectsmap.h>
-#include <language/publictypes.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -53,20 +53,16 @@ using namespace Internal;
 class RunEnvironment::RunEnvironmentPrivate
 {
 public:
-    ScriptEngine *engine;
+    ScriptEngine engine;
     ResolvedProduct::Ptr resolvedProduct;
     QProcessEnvironment environment;
 };
 
-RunEnvironment::RunEnvironment(ScriptEngine *engine, const Product &product,
-                               const PublicObjectsMap &publicObjectsMap,
+RunEnvironment::RunEnvironment(const ResolvedProduct::Ptr &product,
                                const QProcessEnvironment &environment)
     : d(new RunEnvironmentPrivate)
 {
-    d->engine = engine;
-    d->resolvedProduct = publicObjectsMap.product(product.id());
-    if (!d->resolvedProduct)
-        throw Error(Tr::tr("Cannot run target: Invalid product."));
+    d->resolvedProduct = product;
     d->environment = environment;
 }
 
@@ -77,7 +73,7 @@ RunEnvironment::~RunEnvironment()
 
 int RunEnvironment::runShell()
 {
-    d->resolvedProduct->setupBuildEnvironment(d->engine, d->environment);
+    d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
 
     const QString productId = d->resolvedProduct->name;
     qbsInfo() << Tr::tr("Starting shell for target '%1'.").arg(productId);
@@ -126,7 +122,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         return EXIT_FAILURE;
     }
 
-    d->resolvedProduct->setupRunEnvironment(d->engine, d->environment);
+    d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
 
     qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
     QProcess process;

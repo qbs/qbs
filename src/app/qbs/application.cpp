@@ -29,7 +29,7 @@
 
 #include "application.h"
 
-#include "consoleprogressobserver.h"
+#include "commandlinefrontend.h"
 #include "ctrlchandler.h"
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -39,10 +39,11 @@ namespace qbs {
 static QString cancelMessageTemplate = Tr::tr("Received termination request "
         "from user; canceling build. [pid=%1]");
 
-Application::Application(int &argc, char **argv)
-    : QCoreApplication(argc, argv), m_observer(new ConsoleProgressObserver)
+Application::Application(int &argc, char **argv) : QCoreApplication(argc, argv), m_clFrontend(0)
 {
-    installCtrlCHandler();
+    setApplicationName(QLatin1String("qbs"));
+    setOrganizationName(QLatin1String("QtProject"));
+    setOrganizationDomain(QLatin1String("qt-project.org"));
 }
 
 Application *Application::instance()
@@ -50,11 +51,10 @@ Application *Application::instance()
     return qobject_cast<Application *>(QCoreApplication::instance());
 }
 
-void Application::init()
+void Application::setCommandLineFrontend(CommandLineFrontend *clFrontend)
 {
-    setApplicationName(QLatin1String("qbs"));
-    setOrganizationName(QLatin1String("QtProject"));
-    setOrganizationDomain(QLatin1String("qt-project.org"));
+    installCtrlCHandler();
+    m_clFrontend = clFrontend;
 }
 
 /**
@@ -62,11 +62,9 @@ void Application::init()
  */
 void Application::userInterrupt()
 {
-    if (!m_observer)
-        return;
-
     qbsInfo() << cancelMessageTemplate.arg(applicationPid());
-    m_observer->setCanceled(true);
+    Q_ASSERT(m_clFrontend);
+    m_clFrontend->cancel();
 }
 
 } // namespace qbs

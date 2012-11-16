@@ -37,9 +37,9 @@ class QString;
 QT_END_NAMESPACE
 
 namespace qbs {
-class Project;
+class ProjectData;
 
-int printStatus(const QList<Project> &projects);
+int printStatus(const QList<ProjectData> &projects);
 
 } // namespace qbs
 

@@ -69,15 +69,15 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
     }
 }
 
-static void dumpProperties(const Product &product)
+static void dumpProperties(const ProductData &product)
 {
     printf("--------%s--------\n", qPrintable(product.name()));
     dumpMap(product.properties());
 }
 
-int showProperties(const QList<Product> &products)
+int showProperties(const QList<ProductData> &products)
 {
-    foreach (const Product &product, products)
+    foreach (const ProductData &product, products)
         dumpProperties(product);
     return 0;
 }

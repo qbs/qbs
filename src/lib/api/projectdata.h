@@ -29,8 +29,6 @@
 #ifndef PUBLICTYPES_H
 #define PUBLICTYPES_H
 
-#include <QtGlobal>
-#include <QDateTime>
 #include <QList>
 #include <QPair>
 #include <QString>
@@ -38,44 +36,16 @@
 #include <QVariantMap>
 
 namespace qbs {
+namespace Internal { class ProjectPrivate; }
 
-template<int dummy> class IdTemplate;
-template<int n> uint qHash(IdTemplate<n> id);
+// TODO: explicitly shared?
 
-// Instantiate this template with a unique parameter to get a new type-safe id class.
-template<int dummy> class IdTemplate
+class GroupData
 {
-    friend class QbsEngine;
-    friend uint qHash<>(IdTemplate<dummy> id);
+    friend class Internal::ProjectPrivate;
 public:
-    IdTemplate() : m_id(0), m_timeStamp(0) {}
+    GroupData();
 
-    bool isValid() const { return m_id; }
-    bool operator==(IdTemplate<dummy> other) const {
-        return m_id == other.m_id && m_timeStamp == other.m_timeStamp;
-    }
-
-private:
-    explicit IdTemplate(quintptr id) : m_id(id), m_timeStamp(QDateTime::currentMSecsSinceEpoch()) {}
-
-    quintptr m_id;
-    qint64 m_timeStamp;
-};
-
-template<int n> uint qHash(IdTemplate<n> id) {
-    return QT_PREPEND_NAMESPACE(qHash)(qMakePair(id.m_id, id.m_timeStamp));
-}
-
-
-class Group
-{
-    friend class QbsEngine;
-public:
-    typedef IdTemplate<0> Id;
-
-    Group();
-
-    Id id() const { return m_id; }
     int qbsLine() const { return m_qbsLine; }
     QString name() const { return m_name; }
     QStringList filePaths() const { return m_filePaths; }
@@ -86,9 +56,6 @@ public:
     QStringList allFilePaths() const { return filePaths() + expandedWildcards(); }
 
 private:
-    explicit Group(Id id) : m_id(id) {}
-
-    Id m_id;
     QString m_name;
     int m_qbsLine;
     QStringList m_filePaths;
@@ -97,53 +64,41 @@ private:
 };
 
 
-class Product
+class ProductData
 {
-    friend class QbsEngine;
+    friend class Internal::ProjectPrivate;
 public:
-    typedef IdTemplate<1> Id;
+    ProductData();
 
-    Product();
-
-    Id id() const { return m_id; }
     QString name() const { return m_name; }
     QString qbsFilePath() const { return m_qbsFilePath; }
     int qbsLine() const { return m_qbsLine; }
     QStringList fileTags() const { return m_fileTags; }
     QVariantMap properties() const { return m_properties; }
-    QList<Group> groups() const { return m_groups; }
+    QList<GroupData> groups() const { return m_groups; }
 
 private:
-    explicit Product(Id id) : m_id(id) {}
-
-    Id m_id;
     QString m_name;
     QString m_qbsFilePath;
     int m_qbsLine;
     QStringList m_fileTags;
     QVariantMap m_properties;
-    QList<Group> m_groups;
+    QList<GroupData> m_groups;
 };
 
 
-class Project
+class ProjectData
 {
-    friend class QbsEngine;
+    friend class Internal::ProjectPrivate;
 public:
-    typedef IdTemplate<2> Id;
+    ProjectData();
 
-    Project();
-
-    Id id() const { return m_id; }
     QString qbsFilePath() const { return m_qbsFilePath; }
-    QList<Product> products() const { return m_products; }
+    QList<ProductData> products() const { return m_products; }
 
 private:
-    explicit Project(Id id) : m_id(id) {}
-
-    Id m_id;
     QString m_qbsFilePath;
-    QList<Product> m_products;
+    QList<ProductData> m_products;
 };
 
 } // namespace qbs

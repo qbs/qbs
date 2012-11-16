@@ -26,113 +26,108 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "publictypes.h"
+#include "projectdata.h"
 
 namespace qbs {
 
 // These are not inline because MSVC does not like it when source files have no content.
-Group::Group() { }
-Product::Product() { }
-Project::Project() { }
+GroupData::GroupData() { }
+ProductData::ProductData() { }
+ProjectData::ProjectData() { }
 
 /*!
- * \class Group
- * \brief The \c Group class corresponds to the respective item in a qbs source file.
+ * \class GroupData
+ * \brief The \c GroupData class corresponds to the Group item in a qbs source file.
  */
 
  /*!
-  * \fn ObjectId Group::id() const
-  * \brief Uniquely identifies a group.
-  */
-
- /*!
-  * \fn QString Group::name() const
+  * \fn QString GroupData::name() const
   * \brief The name of the group.
   */
 
+/*!
+ * \fn int GroupData::qbsLine() const
+ * \brief The line at which the group is defined in the respective source file.
+ */
+
  /*!
-  * \fn QStringList Group::filePaths() const
+  * \fn QStringList GroupData::filePaths() const
   * \brief The files listed in the group item's "files" binding.
   * Note that these do not include expanded wildcards.
-  * \sa Group::expandedWildcards
+  * \sa GroupData::expandedWildcards
   */
 
 /*!
- * \fn QStringList Group::expandedWildcards() const
+ * \fn QStringList GroupData::expandedWildcards() const
  * \brief The list of files resulting from expanding all wildcard patterns in the group.
  */
 
 /*!
- * \fn QVariantMap Group::properties() const
+ * \fn QVariantMap GroupData::properties() const
  * \brief The set of properties valid in this group.
- * Typically, most of them are inherited from the respective \c Product.
+ * Typically, most of them are inherited from the respective Product.
  */
 
  /*!
-  * \fn QStringList Group::allFilePaths() const
+  * \fn QStringList GroupData::allFilePaths() const
   * \brief All files in this group, regardless of how whether they were given explicitly
   *        or via wildcards.
-  * \sa Group::filePaths
-  * \sa Group::expandedWildcards
+  * \sa GroupData::filePaths
+  * \sa GroupData::expandedWildcards
   */
 
 
 /*!
- * \class Product
- * \brief The \c Product class corresponds to the respective item in a qbs source file.
+ * \class ProductData
+ * \brief The \c ProductData class corresponds to the Product item in a qbs source file.
  */
 
- /*!
-  * \fn ObjectId Product::id() const
-  * \brief Uniquely identifies a product.
-  */
-
 /*!
- * \fn QString Product::name() const
+ * \fn QString ProductData::name() const
  * \brief The name of the product as given in the qbs source file.
  */
 
 /*!
- * \fn QString Product::qbsFilePath() const
+ * \fn QString ProductData::qbsFilePath() const
  * \brief The qbs source file in which the product is defined.
  */
 
 /*!
- * \fn QString Product::fileTags() const
+ * \fn int ProductData::qbsLine() const
+ * \brief The line in at which the product is defined in the source file.
+ */
+
+/*!
+ * \fn QString ProductData::fileTags() const
  * \brief The file tags of this product. Corresponds to a Product's "type" property in
  *        a qbs source file.
  */
 
 /*!
- * \fn QVariantMap product::properties() const
+ * \fn QVariantMap ProductData::properties() const
  * \brief The set of properties valid in this product.
- * Note that a \c Group can override product properties.
- * \sa Group::properties()
+ * Note that product properties can be overwritten in a Group.
+ * \sa GroupData::properties()
  */
 
 /*!
- * \fn QList<Group> groups() const
- * \brief The list of \c Groups in this product.
+ * \fn QList<GroupData> groups() const
+ * \brief The list of \c GroupData in this product.
  */
 
 
 /*!
- * \class Project
- * \brief The \c Project class corresponds to the respective item in a qbs source file.
+ * \class ProjectData
+ * \brief The \c ProjectData class corresponds to the Project item in a qbs source file.
  */
 
 /*!
- * \fn ObjectId Project::id() const
- * \brief Uniquely identifies a project.
- */
-
-/*!
- * \fn QString Project::qbsFilePath() const
+ * \fn QString ProjectData::qbsFilePath() const
  * \brief The qbs source file in which the project is defined.
  */
 
 /*!
- * \fn QList<Product> Project::products() const
+ * \fn QList<ProductData> ProjectData::products() const
  * \brief The products in this project.
  */
 } // namespace qbs

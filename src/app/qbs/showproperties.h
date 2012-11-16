@@ -33,9 +33,9 @@
 #include <QList>
 
 namespace qbs {
-class Product;
+class ProductData;
 
-int showProperties(const QList<Product> &products);
+int showProperties(const QList<ProductData> &products);
 
 } // namespace qbs
 
