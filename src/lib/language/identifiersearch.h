@@ -46,6 +46,7 @@ public:
     void add(const QString &name, bool *found);
 
 private:
+    bool preVisit(QmlJS::AST::Node *);
     bool visit(QmlJS::AST::IdentifierExpression *e);
 
     QMap<QString, bool *> m_requests;

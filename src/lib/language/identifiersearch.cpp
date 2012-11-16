@@ -50,6 +50,11 @@ void IdentifierSearch::add(const QString &name, bool *found)
     m_requests.insert(name, found);
 }
 
+bool IdentifierSearch::preVisit(QmlJS::AST::Node *)
+{
+    return m_numberOfFoundIds < m_requests.count();
+}
+
 bool IdentifierSearch::visit(QmlJS::AST::IdentifierExpression *e)
 {
     bool *found = m_requests.value(e->name.toString());
