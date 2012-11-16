@@ -57,8 +57,7 @@ using namespace Internal;
 class QbsEngine::QbsEnginePrivate
 {
 public:
-    QbsEnginePrivate()
-        : observer(0), buildGraph(new BuildGraph(&engine)) {}
+    QbsEnginePrivate() : observer(0) {}
 
     void loadPlugins();
     BuildProject::Ptr setupBuildProject(const ResolvedProject::ConstPtr &project);
@@ -78,7 +77,6 @@ public:
     QList<ResolvedProject::Ptr> resolvedProjects;
     QList<BuildProject::Ptr> buildProjects;
     Settings settings;
-    const QSharedPointer<BuildGraph> buildGraph;
     PublicObjectsMap publicObjectsMap;
 
     // Potentially stored temporarily between calls to setupResolvedProject() and setupBuildProject().
@@ -129,7 +127,6 @@ QbsEngine::~QbsEngine()
 void QbsEngine::setProgressObserver(ProgressObserver *observer)
 {
     d->observer = observer;
-    d->buildGraph->setProgressObserver(observer);
 }
 
 /*!
@@ -152,11 +149,15 @@ Project::Id QbsEngine::setupProject(const QString &projectFilePath, const QVaria
                                     const QString &buildRoot)
 {
     const QVariantMap buildConfig = d->expandedBuildConfiguration(_buildConfig);
+    QScopedPointer<BuildGraph> buildGraph(new BuildGraph(&d->engine));
+    buildGraph->setProgressObserver(d->observer);
     const BuildProject::LoadResult loadResult = BuildProject::load(projectFilePath,
-            d->buildGraph.data(), buildRoot, buildConfig, d->settings.searchPaths());
+            buildGraph.data(), buildRoot, buildConfig, d->settings.searchPaths());
 
     BuildProject::Ptr bProject;
     ResolvedProject::Ptr rProject;
+    if (loadResult.loadedProject)
+        buildGraph.take();
     if (!loadResult.discardLoadedProject)
         bProject = loadResult.loadedProject;
     if (bProject) {
@@ -476,6 +477,8 @@ BuildProject::Ptr QbsEngine::QbsEnginePrivate::setupBuildProject(const ResolvedP
         throw Error(Tr::tr("Unknown project."));
 
     TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
+    BuildGraph * const buildGraph = new BuildGraph(&engine);
+    buildGraph->setProgressObserver(observer);
     const BuildProject::Ptr buildProject = buildGraph->resolveProject(mutableRProject);
     const QHash<ResolvedProject::ConstPtr, BuildProject::Ptr>::Iterator it
             = discardedBuildProjects.find(project);

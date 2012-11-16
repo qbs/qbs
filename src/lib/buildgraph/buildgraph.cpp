@@ -848,6 +848,7 @@ BuildProject::BuildProject(BuildGraph *bg)
 
 BuildProject::~BuildProject()
 {
+    delete m_buildGraph;
     qDeleteAll(m_dependencyArtifacts);
 }
 
