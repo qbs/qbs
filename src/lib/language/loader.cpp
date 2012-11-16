@@ -2735,10 +2735,15 @@ static void bindBinding(LanguageObject *result, const QString &source, UiPublicM
     p.name = QStringList(ast->name.toString());
     checkDuplicateBinding(result, p.name, ast->identifierToken);
 
-    if (ast->statement)
+    if (ast->statement) {
         p.valueSource = bindingProgram(result->file->fileName, source, ast->statement);
-    else
+        IdentifierSearch idsearch;
+        idsearch.add(QLatin1String("base"), &p.valueSourceUsesBase);
+        idsearch.add(QLatin1String("outer"), &p.valueSourceUsesOuter);
+        idsearch.start(ast->statement);
+    } else {
         p.valueSource = QScriptProgram("undefined");
+    }
 
     result->bindings.insert(p.name, p);
 }
