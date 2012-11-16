@@ -53,7 +53,7 @@ void IdentifierSearch::add(const QString &name, bool *found)
 bool IdentifierSearch::visit(QmlJS::AST::IdentifierExpression *e)
 {
     bool *found = m_requests.value(e->name.toString());
-    if (found) {
+    if (found && !*found) {
         *found = true;
         m_numberOfFoundIds++;
     }

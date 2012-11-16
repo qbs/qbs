@@ -224,6 +224,14 @@ void TestLanguage::identifierSearch_data()
                                   "        return foo;\n"
                                   "    }\n"
                                   "}\n");
+    QTest::newRow("2 narfs, 1 zort") << true << true << QString(
+                                  "Product {\n"
+                                  "    name: {\n"
+                                  "        var foo = narf;\n"
+                                  "        foo = narf + foo + zort;\n"
+                                  "        return foo;\n"
+                                  "    }\n"
+                                  "}\n");
 }
 
 void TestLanguage::identifierSearch()
