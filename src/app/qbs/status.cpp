@@ -29,6 +29,8 @@
 
 #include "status.h"
 
+#include <language/language.h>
+
 #include <qbs.h>
 
 #include <QDir>

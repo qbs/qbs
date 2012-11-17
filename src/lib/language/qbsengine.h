@@ -30,8 +30,6 @@
 #ifndef QBSINTERFACE_H
 #define QBSINTERFACE_H
 
-#include "language.h"
-
 #include "publictypes.h"
 
 #include <QList>
