@@ -29,7 +29,7 @@
 
 #include "../scanner.h"
 #include "cpp_global.h"
-#include <Lexer.h>
+#include "Lexer.h"
 
 using namespace CPlusPlus;
 
