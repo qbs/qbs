@@ -560,7 +560,7 @@ void QbsEngine::QbsEnginePrivate::cleanBuildProducts(const QList<BuildProduct::P
     try {
         ArtifactCleaner cleaner;
         cleaner.cleanup(buildProducts, cleanType == QbsEngine::CleanupAll, buildOptions);
-    } catch (const Error &error) {
+    } catch (const Error &) {
         storeBuildGraphs(buildProducts, buildOptions);
         throw;
     }
