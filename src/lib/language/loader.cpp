@@ -71,6 +71,8 @@ static uint qHash(const QStringList &list)
 }
 QT_END_NAMESPACE
 
+const char QBS_LANGUAGE_VERSION[] = "1.0";
+
 using namespace QmlJS::AST;
 
 namespace qbs {
@@ -1145,6 +1147,65 @@ ResolvedProject::Ptr Loader::loadProject(const QString &fileName, const QString 
     return d->resolveProject(buildRoot, userProperties);
 }
 
+QByteArray Loader::qmlTypeInfo()
+{
+    // Header:
+    QByteArray result;
+    result.append("import QtQuick.tooling 1.0\n\n");
+    result.append("// This file describes the plugin-supplied types contained in the library.\n");
+    result.append("// It is used for QML tooling purposes only.\n\n");
+    result.append("Module {\n");
+
+    // Individual Components:
+    foreach (const QString &component, d->m_builtinDeclarations.keys()) {
+        QByteArray componentName = component.toUtf8();
+        result.append("    Component {\n");
+        result.append(QByteArray("        name: \"") + componentName + QByteArray("\"\n"));
+        result.append("        exports: [ \"qbs/");
+        result.append(componentName);
+        result.append(" ");
+        result.append(QBS_LANGUAGE_VERSION);
+        result.append("\" ]\n");
+        result.append("        prototype: \"QQuickItem\"\n");
+
+        QList<PropertyDeclaration> propertyList = d->m_builtinDeclarations.value(component);
+        foreach (const PropertyDeclaration &property, propertyList) {
+            result.append("        Property { name=\"");
+            result.append(property.name.toUtf8());
+            result.append("\"; ");
+            switch (property.type) {
+            case qbs::Internal::PropertyDeclaration::UnknownType:
+                result.append("type=\"unknown\"");
+                break;
+            case qbs::Internal::PropertyDeclaration::Boolean:
+                result.append("type=\"bool\"");
+                break;
+            case qbs::Internal::PropertyDeclaration::Path:
+                result.append("type=\"string\"");
+                break;
+            case qbs::Internal::PropertyDeclaration::PathList:
+                result.append("type=\"string\"; isList=true");
+                break;
+            case qbs::Internal::PropertyDeclaration::String:
+                result.append("type=\"string\"");
+                break;
+            case qbs::Internal::PropertyDeclaration::Variant:
+                result.append("type=\"QVariant\"");
+                break;
+            case qbs::Internal::PropertyDeclaration::Verbatim:
+                result.append("type=\"string\"");
+                break;
+            }
+            result.append(" }\n"); // Property
+        }
+
+        result.append("    }\n"); // Component
+    }
+
+    // Footer:
+    result.append("}\n"); // Module
+    return result;
+}
 
 Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine)
     : m_progressObserver(0), m_engine(engine), m_scopesWithEvaluatedProperties(new ScopesCache)

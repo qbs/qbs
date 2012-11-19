@@ -26,38 +26,25 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef  LOADER_H
-#define  LOADER_H
 
-#include "language.h"
+#include <language/scriptengine.h>
+#include <language/loader.h>
 
-#include <QStringList>
-#include <QVariantMap>
+#include <QCoreApplication>
+#include <QByteArray>
 
-namespace qbs {
-class ProgressObserver;
+#include <iostream>
 
-namespace Internal {
-class ScriptEngine;
+using namespace qbs;
 
-class Loader
+int main(int argc, char *argv[])
 {
-public:
-    Loader(ScriptEngine *engine);
-    ~Loader();
+    QCoreApplication app(argc, argv);
 
-    void setProgressObserver(ProgressObserver *observer);
-    void setSearchPaths(const QStringList &searchPaths);
-    ResolvedProject::Ptr loadProject(const QString &fileName, const QString &buildRoot,
-                                     const QVariantMap &userProperties);
-    QByteArray qmlTypeInfo();
+    Internal::ScriptEngine engine;
+    QByteArray typeData = Internal::Loader(&engine).qmlTypeInfo();
 
-private:
-    class LoaderPrivate;
-    LoaderPrivate * const d;
-};
+    std::cout << typeData.constData();
 
-} // namespace Internal
-} // namespace qbs
-
-#endif // LOADER_H
+    return 0;
+}

@@ -4,4 +4,5 @@ SUBDIRS =\
     platforms \
     setupmaddeplatforms \
     qbs-setup-qt \
-    config
+    config \
+    qbs-qmltypes \
