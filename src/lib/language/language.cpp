@@ -200,6 +200,7 @@ QList<SourceArtifact::Ptr> ResolvedGroup::allFiles() const
 void ResolvedGroup::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
+    pool.stream() >> qbsLine;
     pool.loadContainerS(files);
     wildcards = pool.idLoadS<SourceWildCards>();
     properties = pool.idLoadS<PropertyMap>();
@@ -208,6 +209,7 @@ void ResolvedGroup::load(PersistentPool &pool)
 void ResolvedGroup::store(PersistentPool &pool) const
 {
     pool.storeString(name);
+    pool.stream() << qbsLine;
     pool.storeContainer(files);
     pool.store(wildcards);
     pool.store(properties);
@@ -377,7 +379,8 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> targetName
         >> sourceDirectory
         >> destinationDirectory
-        >> qbsFile;
+        >> qbsFile
+        >> qbsLine;
 
     properties = pool.idLoadS<PropertyMap>();
     pool.loadContainerS(rules);
@@ -395,7 +398,8 @@ void ResolvedProduct::store(PersistentPool &pool) const
         << targetName
         << sourceDirectory
         << destinationDirectory
-        << qbsFile;
+        << qbsFile
+        << qbsLine;
 
     pool.store(properties);
     pool.storeContainer(rules);

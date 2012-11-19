@@ -2439,6 +2439,8 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProduct::Ptr rproduct, Evaluati
         overrideTags = group->scope->boolValue("overrideTags", true);
 
     ResolvedGroup::Ptr resolvedGroup = ResolvedGroup::create();
+    resolvedGroup->qbsLine = group->instantiatingObject()->prototypeLocation.line;
+
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
         if (isGroup) {
@@ -3179,6 +3181,7 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProject::Ptr &rproject
 
     const ResolvedProduct::Ptr rproduct = ResolvedProduct::create();
     rproduct->qbsFile = projectFileName;
+    rproduct->qbsLine = evaluationObject->instantiatingObject()->prototypeLocation.line;
     rproduct->sourceDirectory = QFileInfo(projectFileName).absolutePath();
     rproduct->project = rproject;
 

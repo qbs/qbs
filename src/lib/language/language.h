@@ -197,6 +197,8 @@ public:
 
     static Ptr create() { return Ptr(new ResolvedGroup); }
 
+    int qbsLine;
+
     QString name;
     QList<SourceArtifact::Ptr> files;
     SourceWildCards::Ptr wildcards;
@@ -324,6 +326,7 @@ public:
     QString sourceDirectory;
     QString destinationDirectory;
     QString qbsFile;
+    int qbsLine;
     WeakPointer<ResolvedProject> project;
     PropertyMap::Ptr properties;
     QSet<Rule::Ptr> rules;

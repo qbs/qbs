@@ -372,10 +372,12 @@ Project QbsEngine::retrieveProject(Project::Id projectId) const
         Product product(Product::Id(quintptr(resolvedProduct.data())));
         product.m_name = resolvedProduct->name;
         product.m_qbsFilePath = resolvedProduct->qbsFile;
+        product.m_qbsLine = resolvedProduct->qbsLine;
         product.m_fileTags = resolvedProduct->fileTags;
         foreach (const ResolvedGroup::Ptr &resolvedGroup, resolvedProduct->groups) {
             Group group(Group::Id(quintptr(resolvedGroup.data())));
             group.m_name = resolvedGroup->name;
+            group.m_qbsLine = resolvedGroup->qbsLine;
             foreach (const SourceArtifact::ConstPtr &sa, resolvedGroup->files)
                 group.m_filePaths << sa->absoluteFilePath;
             if (resolvedGroup->wildcards) {

@@ -122,18 +122,23 @@ int printStatus(const QList<Project> &projects)
     QStringList missingFiles;
     const Project project = projects.first();
     foreach (const Product &product, project.products()) {
-        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name();
-        QStringList sourceFiles = allFiles(product);
-        qSort(sourceFiles);
-        foreach (const QString &sourceFile, sourceFiles) {
-            TextColor statusColor = TextColorDefault;
-            if (!QFileInfo(sourceFile).exists()) {
-                statusColor = TextColorRed;
-                missingFiles.append(sourceFile);
+        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name()
+                  << " (" << product.qbsFilePath() << ":" << product.qbsLine() << ")";
+        foreach (const Group &group, product.groups()) {
+            qbsInfo() << DontPrintLogLevel << TextColorBlue << "  Group: " << group.name()
+                      << " (" << group.qbsLine() << ")";
+            QStringList sourceFiles = group.allFilePaths();
+            qSort(sourceFiles);
+            foreach (const QString &sourceFile, sourceFiles) {
+                TextColor statusColor = TextColorDefault;
+                if (!QFileInfo(sourceFile).exists()) {
+                    statusColor = TextColorRed;
+                    missingFiles.append(sourceFile);
+                }
+                qbsInfo() << DontPrintLogLevel << statusColor << "    "
+                          << sourceFile.mid(projectDirectoryPathLength + 1);
+                untrackedFilesInProject.removeOne(sourceFile);
             }
-            qbsInfo() << DontPrintLogLevel << statusColor << "  "
-                      << sourceFile.mid(projectDirectoryPathLength + 1);
-            untrackedFilesInProject.removeOne(sourceFile);
         }
     }
 

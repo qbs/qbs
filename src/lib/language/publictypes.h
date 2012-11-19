@@ -76,6 +76,7 @@ public:
     Group();
 
     Id id() const { return m_id; }
+    int qbsLine() const { return m_qbsLine; }
     QString name() const { return m_name; }
     QStringList filePaths() const { return m_filePaths; }
     QStringList expandedWildcards() const { return m_expandedWildcards; }
@@ -89,6 +90,7 @@ private:
 
     Id m_id;
     QString m_name;
+    int m_qbsLine;
     QStringList m_filePaths;
     QStringList m_expandedWildcards;
     QVariantMap m_properties;
@@ -106,6 +108,7 @@ public:
     Id id() const { return m_id; }
     QString name() const { return m_name; }
     QString qbsFilePath() const { return m_qbsFilePath; }
+    int qbsLine() const { return m_qbsLine; }
     QStringList fileTags() const { return m_fileTags; }
     QVariantMap properties() const { return m_properties; }
     QList<Group> groups() const { return m_groups; }
@@ -116,6 +119,7 @@ private:
     Id m_id;
     QString m_name;
     QString m_qbsFilePath;
+    int m_qbsLine;
     QStringList m_fileTags;
     QVariantMap m_properties;
     QList<Group> m_groups;
