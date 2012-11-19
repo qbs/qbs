@@ -2568,9 +2568,6 @@ Rule::Ptr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedM
 {
     Rule::Ptr rule = Rule::create();
 
-    LanguageObject *origObj = object->instantiatingObject();
-    Q_ASSERT(origObj);
-
     // read artifacts
     QList<RuleArtifact::ConstPtr> artifacts;
     bool hasAlwaysUpdatedArtifact = false;
