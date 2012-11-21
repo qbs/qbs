@@ -59,7 +59,7 @@ public:
         QString sysrootDir;
         QString qtBinDir;
         QString qtIncDir;
-        QString qtMkspecsDir;
+        QString qtMkspecPath;
         QHash<QString, QString> environment;
     };
 

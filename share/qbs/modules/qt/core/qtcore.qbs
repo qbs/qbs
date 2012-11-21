@@ -19,7 +19,7 @@ Module {
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
-    property string mkspecsPath: path ? FileInfo.joinPaths(path, 'qtbase',  "mkspecs") : undefined
+    property string mkspecPath
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: {
         if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
@@ -41,7 +41,7 @@ Module {
         return defines;
     }
     cpp.includePaths: {
-        var paths = [mkspecsPath + '/default'];
+        var paths = [mkspecPath];
         if (qbs.targetOS === "mac")
             paths.push(libPath + '/QtCore' + libInfix + '.framework/Versions/' + versionMajor + '/Headers');
         paths.push(incPath + '/QtCore');
@@ -70,8 +70,8 @@ Module {
             throw "qt.core.incPath not set. Set qt.core.incPath or qt.core.path in your profile.";
         if (!libPath)
             throw "qt.core.libPath not set. Set qt.core.libPath or qt.core.path in your profile.";
-        if (!mkspecsPath)
-            throw "qt.core.mkspecsPath not set. Set qt.core.mkspecsPath or qt.core.path in your profile.";
+        if (!mkspecPath)
+            throw "qt.core.mkspecPath not set. Set qt.core.mkspecPath in your profile.";
     }
 
     setupRunEnvironment: {

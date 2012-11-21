@@ -242,7 +242,7 @@
     qbs config --global modules.qt.core.binPath /usr/bin
     qbs config --global modules.qt.core.incPath /usr/include/qt4
     qbs config --global modules.qt.core.libPath /usr/lib/x86_64-linux-gnu
-    qbs config --global modules.qt.core.mkspecsPath /usr/share/qt4/mkspecs
+    qbs config --global modules.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
     \endcode
 
     If you're using Qt 5, you must specify the version number.

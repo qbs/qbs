@@ -149,7 +149,8 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
     platformInfo.compilerName = QLatin1String("g++");
     platformInfo.qtBinDir = platformInfo.toolchainDir;
     platformInfo.qtIncDir = platformInfo.sysrootDir + QLatin1String("/usr/include/qt4");
-    platformInfo.qtMkspecsDir = platformInfo.sysrootDir + QLatin1String("/usr/share/qt4/mkspecs");
+    platformInfo.qtMkspecPath = platformInfo.sysrootDir
+            + QLatin1String("/usr/share/qt4/mkspecs/default");
     platformInfo.environment.insert(QLatin1String("SYSROOT_DIR"), platformInfo.sysrootDir);
     const QString maddeMadLibDir = baseDirectory() + QLatin1String("/madlib");
     platformInfo.environment.insert(QLatin1String("PERL5LIB"), maddeMadLibDir + QLatin1String("/perl5"));

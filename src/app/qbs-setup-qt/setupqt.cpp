@@ -44,6 +44,17 @@ namespace qbs {
 
 const QString qmakeExecutableName = QLatin1String("qmake" QTC_HOST_EXE_SUFFIX);
 
+struct Version
+{
+    Version()
+        : majorVersion(0), minorVersion(0), patchLevel(0)
+    {}
+
+    int majorVersion;
+    int minorVersion;
+    int patchLevel;
+};
+
 static QStringList collectQmakePaths()
 {
     QStringList qmakePaths;
@@ -101,11 +112,11 @@ static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
     return ret;
 }
 
-static QByteArray mkSpecContent(const QByteArray &mkSpecPath)
+static QByteArray readFileContent(const QString &filePath)
 {
-    QFile qconfigFile(mkSpecPath + "/qconfig.pri");
-    if (qconfigFile.open(QFile::ReadOnly))
-        return qconfigFile.readAll();
+    QFile file(filePath);
+    if (file.open(QFile::ReadOnly))
+        return file.readAll();
 
     return QByteArray();
 }
@@ -130,20 +141,15 @@ static QByteArray configVariable(const QByteArray &configContent, const QByteArr
     return QByteArray();
 }
 
-static QByteArray qmakeConfContent(const QByteArray &mkSpecPath)
+static Version extractVersion(const QString &versionString)
 {
-    QFile qconfigFile(mkSpecPath + "/default/qmake.conf");
-    if (qconfigFile.open(QFile::ReadOnly))
-        return qconfigFile.readAll();
-
-    return QByteArray();
-}
-
-static QString mkSpecPath(const QByteArray &mkspecsPath)
-{
-    if (HostOsInfo::isWindowsHost())
-        return configVariable(qmakeConfContent(mkspecsPath), "QMAKESPEC_ORIGINAL");
-    return QFileInfo(mkspecsPath + "/default").symLinkTarget();
+    Version v;
+    const QStringList parts = versionString.split('.', QString::SkipEmptyParts);
+    const QList<int *> vparts = QList<int *>() << &v.majorVersion << &v.minorVersion << &v.patchLevel;
+    const int c = qMin(parts.count(), vparts.count());
+    for (int i = 0; i < c; ++i)
+        *vparts[i] = parts.at(i).toInt();
+    return v;
 }
 
 QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
@@ -160,25 +166,39 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qmlImportPath = queryOutput.value("QT_INSTALL_IMPORTS");
     qtEnvironment.qtVersion = queryOutput.value("QT_VERSION");
 
-    QByteArray mkspecsPath = queryOutput.value("QMAKE_MKSPECS");
-    if (mkspecsPath.isEmpty()) {
-        mkspecsPath = queryOutput.value("QT_INSTALL_PREFIX");
-        if (mkspecsPath.isEmpty())
-            throw Error(tr("Cannot extract the mkspecs directory."));
-        mkspecsPath += "/mkspecs";
-    }
-    qtEnvironment.mkspecsPath = mkspecsPath;
+    const Version qtVersion = extractVersion(qtEnvironment.qtVersion);
 
-    QByteArray qconfigContent = mkSpecContent(mkspecsPath);
+    QByteArray mkspecsBasePath;
+    if (qtVersion.majorVersion >= 5)
+        mkspecsBasePath = queryOutput.value("QT_HOST_DATA") + "/mkspecs";
+    else
+        mkspecsBasePath = queryOutput.value("QT_INSTALL_DATA") + "/mkspecs";
+
+    if (!QFile::exists(mkspecsBasePath))
+        throw Error(tr("Cannot extract the mkspecs directory."));
+
+    const QByteArray qconfigContent = readFileContent(mkspecsBasePath + "/qconfig.pri");
     qtEnvironment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
     qtEnvironment.qtMinorVersion = configVariable(qconfigContent, "QT_MINOR_VERSION").toInt();
     qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
-    qtEnvironment.mkspec = mkSpecPath(mkspecsPath);
 
-    if (!QFileInfo(qtEnvironment.mkspec).exists())
-        throw Error(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspec));
+    // read mkspec
+    if (qtVersion.majorVersion >= 5) {
+        const QString mkspecName = queryOutput.value("QMAKE_SPEC");
+        qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
+    } else {
+        if (HostOsInfo::isWindowsHost()) {
+            const QByteArray fileContent = readFileContent(mkspecsBasePath + "/default/qmake.conf");
+            qtEnvironment.mkspecPath = configVariable(fileContent, "QMAKESPEC_ORIGINAL");
+        } else {
+            qtEnvironment.mkspecPath = QFileInfo(mkspecsBasePath + "/default").symLinkTarget();
+        }
+    }
+
+    if (!QFileInfo(qtEnvironment.mkspecPath).exists())
+        throw Error(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
 
     return qtEnvironment;
 }
@@ -195,7 +215,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     qbsSettings.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
     qbsSettings.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libaryPath);
     qbsSettings.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);
-    qbsSettings.setValue(settingsTemplate.arg("mkspecsPath"), qtEnviroment.mkspecsPath);
+    qbsSettings.setValue(settingsTemplate.arg("mkspecPath"), qtEnviroment.mkspecPath);
     qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     qbsSettings.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     qbsSettings.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
