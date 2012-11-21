@@ -226,16 +226,8 @@
     That's described in this section.
 
     If you have only one install of Qt you don't need to use profiles and can
-    use:
+    set the binPath, libPath etc. globally:
 
-    \code
-    qbs config --global modules.qt.core.path ~/dev/qt/4.7-build
-    \endcode
-
-    This is the case where the bin, include, lib and mkspecs directories
-    of your Qt build are below the Qt path. This is usually the case on Windows
-    or if you build Qt yourself without installing it.
-    For installed Qt versions we need to set up some more paths.
     Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
 
     \code
@@ -257,32 +249,30 @@
     three different profiles, each for a different Qt build:
 
     \code
-    qbs config --global profiles.4_7.qt.core.path ~/dev/qt/4.7
-    qbs config --global profiles.4_8.qt.core.path ~/dev/qt/4.8
-    qbs config --global profiles.5_0.qt.core.path ~/dev/qt/5.0
-    qbs config --global profiles.5_0.qt.core.version 5.0.0
+    qbs setup-qt ~/dev/qt/4.7/bin/qmake qt47
+    qbs setup-qt ~/dev/qt/4.8/bin/qmake qt48
+    qbs setup-qt ~/dev/qt/5.0/qtbase/bin/qmake qt5
     \endcode
 
     You can set the default Qt build you want to use like this:
 
     \code
-    qbs config --global profile 5_0
+    qbs config --global profile qt5
     \endcode
 
     To choose a Qt build that's different from the default, use:
 
     \code
-    qbs build profile:4_8
+    qbs build profile:qt48
     \endcode
 
     You can set other properties in a profile not just Qt ones, in the same way
     you could override them from the command-line. For example:
 
     \code
-    qbs config --global profiles.x64.qt.core.path ~/dev/qt/5.0_64
-    qbs config --global profiles.x64.qt.core.version 5.0.0
-    qbs config --global profiles.x64.qbs.architecture x86_64
-    qbs config --global profiles.x64.qbs.platform msvc2010
+    qbs setup-qt C:\Qt\5.0.0\qtbase\bin\qmake.exe qt5
+    qbs config profiles.qt5.qbs.architecture x86_64
+    qbs config profiles.qt5.qbs.platform msvc2010
     \endcode
 
     \section1 Customized Qt Settings

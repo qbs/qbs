@@ -9,17 +9,16 @@ Module {
 
     property string namespace
     property string libInfix: ""
-    property string path
     property string repository: versionMajor === 5 ? "qtbase" : undefined
-    property string binPath: path ? FileInfo.joinPaths(path, "bin") : undefined
-    property string incPath: path ? FileInfo.joinPaths(path, "include") : undefined
-    property string libPath: path ? FileInfo.joinPaths(path, "lib") : undefined
+    property string binPath
+    property string incPath
+    property string libPath
+    property string mkspecPath
     property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
-    property string mkspecPath
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: {
         if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
@@ -65,11 +64,11 @@ Module {
     setupBuildEnvironment: {
         // Not really a setup in this case. Just some sanity checks.
         if (!binPath)
-            throw "qt.core.binPath not set. Set qt.core.binPath or qt.core.path in your profile.";
+            throw "qt.core.binPath not set. Set qt.core.binPath in your profile.";
         if (!incPath)
-            throw "qt.core.incPath not set. Set qt.core.incPath or qt.core.path in your profile.";
+            throw "qt.core.incPath not set. Set qt.core.incPath in your profile.";
         if (!libPath)
-            throw "qt.core.libPath not set. Set qt.core.libPath or qt.core.path in your profile.";
+            throw "qt.core.libPath not set. Set qt.core.libPath in your profile.";
         if (!mkspecPath)
             throw "qt.core.mkspecPath not set. Set qt.core.mkspecPath in your profile.";
     }
