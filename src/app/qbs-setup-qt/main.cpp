@@ -96,8 +96,8 @@ int main(int argc, char *argv[])
         } else {
             printHelp();
         }
-    } catch (const Exception &e) {
-        qbsError() << "qbs-setup-qt: " << qPrintable(e.message());
+    } catch (const Error &e) {
+        qbsError() << "qbs-setup-qt: " << qPrintable(e.toString());
         return EXIT_FAILURE;
     }
 

@@ -30,7 +30,7 @@
 #ifndef QBS_SETUPQT_H
 #define QBS_SETUPQT_H
 
-#include <QString>
+#include <tools/error.h>
 #include <QCoreApplication>
 
 namespace qbs {
@@ -52,22 +52,6 @@ struct QtEnviroment {
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
-};
-
-class Exception
-{
-public:
-    Exception(const QString &message)
-        : m_message(message)
-    {}
-
-    const QString &message() const
-    {
-        return m_message;
-    }
-
-private:
-    QString m_message;
 };
 
 class SetupQt

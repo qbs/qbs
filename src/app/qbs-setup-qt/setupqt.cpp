@@ -164,7 +164,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     if (mkspecsPath.isEmpty()) {
         mkspecsPath = queryOutput.value("QT_INSTALL_PREFIX");
         if (mkspecsPath.isEmpty())
-            throw Exception(tr("Cannot extract the mkspecs directory."));
+            throw Error(tr("Cannot extract the mkspecs directory."));
         mkspecsPath += "/mkspecs";
     }
     qtEnvironment.mkspecsPath = mkspecsPath;
@@ -178,7 +178,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.mkspec = mkSpecPath(mkspecsPath);
 
     if (!QFileInfo(qtEnvironment.mkspec).exists())
-        throw Exception(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspec));
+        throw Error(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspec));
 
     return qtEnvironment;
 }
