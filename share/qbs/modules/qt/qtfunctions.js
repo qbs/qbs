@@ -2,9 +2,14 @@
 
 function getLibraryName(qtModule, versionMajor, qbs, cpp)
 {
-    var libName = qtModule;
+    var libName = "Qt";
+    if (versionMajor >= 5)
+        libName += versionMajor;
+    libName += qtModule;
     if (qbs.targetOS === 'windows') {
-        libName = qtModule + (cpp.debugInformation ? 'd' : '') + versionMajor;
+        libName += (cpp.debugInformation ? 'd' : '');
+        if (versionMajor < 5)
+            libName += versionMajor;
         if (qbs.toolchain !== "mingw")
             libName += '.lib';
     }

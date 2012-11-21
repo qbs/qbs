@@ -14,20 +14,20 @@ Module {
     property string libPath: qt.core.libPath
     property string qtLibInfix: qt.core.libInfix
     property string repository: qt.core.versionMajor === 5 ? 'qtbase' : undefined
-    property string internalQtModuleName: 'Qt' + qtModuleName
-    property string internalLibraryName: QtFunctions.getLibraryName(internalQtModuleName + qtLibInfix, qt.core.versionMajor, qbs, cpp)
+    property string includeDirName: 'Qt' + qtModuleName
+    property string internalLibraryName: QtFunctions.getLibraryName(qtModuleName + qtLibInfix, qt.core.versionMajor, qbs, cpp)
     property string qtVersion: qt.core.version
 
     Properties {
         condition: qtModuleName != undefined
 
         cpp.includePaths: {
-            var modulePath = FileInfo.joinPaths(incPath, internalQtModuleName);
+            var modulePath = FileInfo.joinPaths(incPath, includeDirName);
             var paths = [incPath, modulePath];
             if (qt.core.versionMajor >= 5)
-                paths.unshift(FileInfo.joinPaths(modulePath, qtVersion, internalQtModuleName));
+                paths.unshift(FileInfo.joinPaths(modulePath, qtVersion, includeDirName));
             if (qbs.targetOS === "mac")
-                paths.unshift(libPath + '/' + internalQtModuleName + qtLibInfix + '.framework/Versions/' + qt.core.versionMajor + '/Headers');
+                paths.unshift(libPath + '/' + includeDirName + qtLibInfix + '.framework/Versions/' + qt.core.versionMajor + '/Headers');
             return paths;
         }
 
