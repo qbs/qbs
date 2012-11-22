@@ -631,7 +631,7 @@ void Executor::onProcessSuccess()
         return;
     }
 
-    if (m_state == ExecutorRunning && !buildNextArtifact())
+    if (!buildNextArtifact())
         finish();
 }
 
