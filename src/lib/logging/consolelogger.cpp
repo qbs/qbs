@@ -65,6 +65,7 @@ void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &
         }
     }
     fprintfWrapper(message.textColor, file, "%s\n", message.data.data());
+    fflush(file);
 }
 
 void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
