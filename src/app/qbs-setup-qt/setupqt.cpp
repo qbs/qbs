@@ -186,7 +186,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
 
     // read mkspec
     if (qtVersion.majorVersion >= 5) {
-        const QString mkspecName = queryOutput.value("QMAKE_SPEC");
+        const QString mkspecName = queryOutput.value("QMAKE_XSPEC");
         qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
     } else {
         if (HostOsInfo::isWindowsHost()) {
