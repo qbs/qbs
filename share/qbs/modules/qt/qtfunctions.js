@@ -1,13 +1,13 @@
 // helper functions for the Qt modules
 
-function getLibraryName(qtModule, versionMajor, qbs, cpp)
+function getLibraryName(qtModule, versionMajor, qbs)
 {
     var libName = "Qt";
     if (versionMajor >= 5)
         libName += versionMajor;
     libName += qtModule;
     if (qbs.targetOS === 'windows') {
-        libName += (cpp.debugInformation ? 'd' : '');
+        libName += (qbs.enableDebugCode ? 'd' : '');
         if (versionMajor < 5)
             libName += versionMajor;
         if (qbs.toolchain !== "mingw")

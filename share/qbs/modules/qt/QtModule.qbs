@@ -15,7 +15,7 @@ Module {
     property string qtLibInfix: qt.core.libInfix
     property string repository: qt.core.versionMajor === 5 ? 'qtbase' : undefined
     property string includeDirName: 'Qt' + qtModuleName
-    property string internalLibraryName: QtFunctions.getLibraryName(qtModuleName + qtLibInfix, qt.core.versionMajor, qbs, cpp)
+    property string internalLibraryName: QtFunctions.getLibraryName(qtModuleName + qtLibInfix, qt.core.versionMajor, qbs)
     property string qtVersion: qt.core.version
 
     Properties {
