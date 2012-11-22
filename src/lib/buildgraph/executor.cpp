@@ -447,6 +447,27 @@ void Executor::buildArtifact(Artifact *artifact)
     job->run(artifact->transformer.data(), artifact->product);
 }
 
+void Executor::finishJob(ExecutorJob *job)
+{
+    Q_ASSERT(job);
+
+    Artifact *processedArtifact = m_processingJobs.value(job);
+    Q_ASSERT(processedArtifact);
+
+    m_processingJobs.remove(job);
+    m_availableJobs.append(job);
+
+    finishArtifact(processedArtifact);
+
+    if (m_progressObserver && m_progressObserver->canceled()) {
+        cancelBuild();
+        return;
+    }
+
+    if (!buildNextArtifact())
+        finish();
+}
+
 static bool allChildrenBuilt(Artifact *artifact)
 {
     foreach (Artifact *child, artifact->children)
@@ -457,6 +478,8 @@ static bool allChildrenBuilt(Artifact *artifact)
 
 void Executor::finishArtifact(Artifact *leaf)
 {
+    Q_ASSERT(leaf);
+
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[EXEC] finishArtifact " << fileName(leaf);
 
@@ -599,7 +622,8 @@ void Executor::onProcessError(QString errorString)
     m_buildResult = FailedBuild;
     if (m_buildOptions.keepGoing) {
         qbsWarning() << tr("ignoring error: %1").arg(errorString);
-        onProcessSuccess();
+        ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
+        finishJob(job);
     } else {
         setError(errorString);
         finish();
@@ -612,8 +636,6 @@ void Executor::onProcessSuccess()
     Q_ASSERT(job);
     Artifact *processedArtifact = m_processingJobs.value(job);
     Q_ASSERT(processedArtifact);
-    m_processingJobs.remove(job);
-    m_availableJobs.append(job);
 
     // Update the timestamps of the outputs of the transformer we just executed.
     processedArtifact->project->markDirty();
@@ -624,15 +646,7 @@ void Executor::onProcessSuccess()
             artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
     }
 
-    finishArtifact(processedArtifact);
-
-    if (m_progressObserver && m_progressObserver->canceled()) {
-        cancelBuild();
-        return;
-    }
-
-    if (!buildNextArtifact())
-        finish();
+    finishJob(job);
 }
 
 void Executor::finish()

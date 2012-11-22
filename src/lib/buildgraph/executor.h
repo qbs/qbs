@@ -96,6 +96,7 @@ private:
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool buildNextArtifact();
     void buildArtifact(Artifact *artifact);
+    void finishJob(ExecutorJob *job);
     void finishArtifact(Artifact *artifact);
     void finish();
     void initializeArtifactsState();
