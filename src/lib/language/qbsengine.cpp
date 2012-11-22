@@ -553,6 +553,7 @@ void QbsEngine::QbsEnginePrivate::buildProducts(const QList<ResolvedProduct::Con
         }
     }
 
+    productsToBuild = productsToBuild.toSet().toList();     // make products unique
     buildProducts(productsToBuild, buildOptions);
 }
 
