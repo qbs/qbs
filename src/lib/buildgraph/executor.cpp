@@ -182,8 +182,7 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
     if (sourceFilesChanged)
         runAutoMoc();
     initLeaves(changedArtifacts);
-    bool stillArtifactsToExecute = run();
-    if (!stillArtifactsToExecute)
+    if (!buildNextArtifact())
         finish();
 }
 
@@ -272,7 +271,7 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
 /**
   * Returns true if there are still artifacts to traverse.
   */
-bool Executor::run()
+bool Executor::buildNextArtifact()
 {
     while (m_state == ExecutorRunning) {
         if (m_leaves.isEmpty())
@@ -632,7 +631,7 @@ void Executor::onProcessSuccess()
         return;
     }
 
-    if (m_state == ExecutorRunning && !run())
+    if (m_state == ExecutorRunning && !buildNextArtifact())
         finish();
 }
 

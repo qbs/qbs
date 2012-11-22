@@ -94,7 +94,7 @@ private:
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
-    bool run();
+    bool buildNextArtifact();
     void buildArtifact(Artifact *artifact);
     void finishArtifact(Artifact *artifact);
     void finish();
