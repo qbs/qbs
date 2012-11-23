@@ -27,10 +27,14 @@
 **
 ****************************************************************************/
 
-#include <QtGlobal>
-#include <QCoreApplication>
-#include <QDebug>
-#include <QTimer>
+#include "application.h"
+
+static void cancel()
+{
+    qbs::Application * const app = qbs::Application::instance();
+    if (app)
+        app->userInterrupt();
+}
 
 #if defined(Q_OS_WIN) && defined(Q_CC_MSVC)
 
@@ -39,7 +43,7 @@
 static BOOL WINAPI consoleCtrlHandlerRoutine(__in  DWORD dwCtrlType)
 {
     Q_UNUSED(dwCtrlType);
-    QTimer::singleShot(0, qApp, SLOT(userInterrupt()));
+    cancel();
     return TRUE;
 }
 
@@ -55,7 +59,7 @@ void installCtrlCHandler()
 static void sigIntHandler(int sig)
 {
     Q_UNUSED(sig);
-    QTimer::singleShot(0, qApp, SLOT(userInterrupt()));
+    cancel();
 }
 
 void installCtrlCHandler()

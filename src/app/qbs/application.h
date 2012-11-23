@@ -44,10 +44,8 @@ public:
     static Application *instance();
 
     void init();
-    ConsoleProgressObserver *observer() const { return m_observer; }
-
-public slots:
     void userInterrupt();
+    ConsoleProgressObserver *observer() const { return m_observer; }
 
 private:
     ConsoleProgressObserver * const m_observer;

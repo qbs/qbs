@@ -31,7 +31,6 @@
 
 #include "consoleprogressobserver.h"
 #include "ctrlchandler.h"
-
 #include <logging/logger.h>
 #include <logging/translator.h>
 
@@ -55,8 +54,14 @@ void Application::init()
     setOrganizationDomain(QLatin1String("qt-project.org"));
 }
 
+/**
+ * Interrupt the application. This is directly called from a signal handler.
+ */
 void Application::userInterrupt()
 {
+    if (!m_observer)
+        return;
+
     qbsInfo() << Tr::tr("Received termination request from user; canceling build. [pid=%1]")
                  .arg(applicationPid());
     m_observer->setCanceled(true);
