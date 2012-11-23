@@ -41,6 +41,8 @@ class Application : public QCoreApplication
 public:
     Application(int &argc, char **argv);
 
+    static Application *instance();
+
     void init();
     ConsoleProgressObserver *observer() const { return m_observer; }
 

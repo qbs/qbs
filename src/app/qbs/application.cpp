@@ -43,6 +43,11 @@ Application::Application(int &argc, char **argv)
     installCtrlCHandler();
 }
 
+Application *Application::instance()
+{
+    return qobject_cast<Application *>(QCoreApplication::instance());
+}
+
 void Application::init()
 {
     setApplicationName(QLatin1String("qbs"));
