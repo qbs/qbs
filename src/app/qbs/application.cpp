@@ -40,8 +40,7 @@ namespace qbs {
 Application::Application(int &argc, char **argv)
     : QCoreApplication(argc, argv), m_observer(new ConsoleProgressObserver)
 {
-    // ### TODO reactivate the Ctrl-C handler
-    // installCtrlCHandler();
+    installCtrlCHandler();
 }
 
 void Application::init()
