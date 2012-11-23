@@ -35,6 +35,9 @@
 #include <logging/translator.h>
 
 namespace qbs {
+// QString::toLocal8Bit() hangs when called from a signal handler, so we pre-allocate the string.
+static QString cancelMessageTemplate = Tr::tr("Received termination request "
+        "from user; canceling build. [pid=%1]");
 
 Application::Application(int &argc, char **argv)
     : QCoreApplication(argc, argv), m_observer(new ConsoleProgressObserver)
@@ -62,8 +65,7 @@ void Application::userInterrupt()
     if (!m_observer)
         return;
 
-    qbsInfo() << Tr::tr("Received termination request from user; canceling build. [pid=%1]")
-                 .arg(applicationPid());
+    qbsInfo() << cancelMessageTemplate.arg(applicationPid());
     m_observer->setCanceled(true);
 }
 
