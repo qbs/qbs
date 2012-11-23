@@ -190,9 +190,9 @@ void Executor::cancelBuild()
 {
     if (m_state != ExecutorRunning)
         return;
+    setState(ExecutorCanceled);
     cancelJobs();
     m_buildResult = FailedBuild;
-    setState(ExecutorCanceled);
     qbsError() << Tr::tr("Build canceled.");
     emit error();
 }
