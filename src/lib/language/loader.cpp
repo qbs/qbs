@@ -400,6 +400,7 @@ public:
                                         const QVariantMap &userProperties);
     ProjectFile::Ptr parseFile(const QString &fileName);
 
+    void checkCancelation() const;
     void clearScopesCache();
     Scope::Ptr buildFileContext(ProjectFile *file);
     bool existsModuleInSearchPath(const QString &moduleName);
@@ -1822,6 +1823,7 @@ static QString sourceDirPath(const Property &property, const ResolvedProduct::Co
 QVariantMap Loader::LoaderPrivate::evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
                                 const Scope::Ptr &properties)
 {
+    checkCancelation();
     QVariantMap &result = m_convertedScopesCache[properties];
     if (!result.isEmpty())
         return result;
@@ -1906,6 +1908,7 @@ Module::Ptr Loader::LoaderPrivate::loadModule(ProjectFile *file, const QStringLi
                                ScopeChain::Ptr moduleBaseScope, const QVariantMap &userProperties,
                                const CodeLocation &dependsLocation)
 {
+    checkCancelation();
     const bool isBaseModule = (moduleName == "qbs");
 
     Module::Ptr module = Module::Ptr(new Module);
@@ -2369,8 +2372,7 @@ ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildR
         m_progressObserver->initialize(Tr::tr("Loading project"), projectData.products.count());
     for (; it != projectData.products.end(); ++it) {
         if (m_progressObserver) {
-            if (m_progressObserver->canceled())
-                throw Error(Tr::tr("Loading canceled."));
+            checkCancelation();
             m_progressObserver->incrementProgressValue();
         }
         resolveProduct(it.key(), rproject, it.value(), resolvedProducts, globalRules,
@@ -3051,6 +3053,12 @@ ProjectFile::Ptr Loader::LoaderPrivate::parseFile(const QString &fileName)
         m_parsedFiles.insert(result->fileName, result);
     }
     return result;
+}
+
+void Loader::LoaderPrivate::checkCancelation() const
+{
+    if (m_progressObserver && m_progressObserver->canceled())
+        throw Error(Tr::tr("Loading canceled."));
 }
 
 Loader::LoaderPrivate *Loader::LoaderPrivate::get(QScriptEngine *engine)

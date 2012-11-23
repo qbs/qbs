@@ -236,6 +236,17 @@ void BuildGraph::setProgressObserver(ProgressObserver *observer)
     m_progressObserver = observer;
 }
 
+const ProgressObserver *BuildGraph::progressObserver() const
+{
+    return m_progressObserver;
+}
+
+void BuildGraph::checkCancelation() const
+{
+    if (m_progressObserver && m_progressObserver->canceled())
+        throw Error(Tr::tr("Build canceled."));
+}
+
 
 bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
 {
@@ -500,8 +511,7 @@ BuildProduct::Ptr BuildGraph::resolveProduct(const BuildProject::Ptr &project,
         return product;
 
     if (m_progressObserver) {
-        if (m_progressObserver->canceled())
-            throw Error(Tr::tr("Build canceled."));
+        checkCancelation();
         m_progressObserver->incrementProgressValue();
     }
 
@@ -1238,6 +1248,8 @@ void RulesApplicator::applyRule(const Rule::ConstPtr &rule)
 
 void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 {
+    m_buildGraph->checkCancelation();
+
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] apply rule " << m_rule->toString() << " " << toStringList(inputArtifacts).join(",\n            ");
 

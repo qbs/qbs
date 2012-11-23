@@ -163,6 +163,8 @@ public:
     void applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
 
     void setProgressObserver(ProgressObserver *observer);
+    const ProgressObserver *progressObserver() const;
+    void checkCancelation() const;
 
     static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
