@@ -37,7 +37,7 @@ namespace qbs {
 
 struct QtEnviroment {
     QString installPrefixPath;
-    QString libaryPath;
+    QString libraryPath;
     QString includePath;
     QString binaryPath;
     QString qmlImportPath;

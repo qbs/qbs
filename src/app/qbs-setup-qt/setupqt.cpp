@@ -160,7 +160,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.installPrefixPath = queryOutput.value("QT_INSTALL_PREFIX");
     qtEnvironment.documentationPath = queryOutput.value("QT_INSTALL_DOCS");
     qtEnvironment.includePath = queryOutput.value("QT_INSTALL_HEADERS");
-    qtEnvironment.libaryPath = queryOutput.value("QT_INSTALL_LIBS");
+    qtEnvironment.libraryPath = queryOutput.value("QT_INSTALL_LIBS");
     qtEnvironment.binaryPath = queryOutput.value("QT_INSTALL_BINS");
     qtEnvironment.pluginPath = queryOutput.value("QT_INSTALL_PLUGINS");
     qtEnvironment.qmlImportPath = queryOutput.value("QT_INSTALL_IMPORTS");
@@ -213,7 +213,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
 
     qbsSettings.beginGroup(QLatin1String("profiles"));
     qbsSettings.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
-    qbsSettings.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libaryPath);
+    qbsSettings.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libraryPath);
     qbsSettings.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);
     qbsSettings.setValue(settingsTemplate.arg("mkspecPath"), qtEnviroment.mkspecPath);
     qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
