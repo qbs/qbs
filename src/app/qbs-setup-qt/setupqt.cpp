@@ -200,6 +200,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
         throw Error(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
 
+    qtEnvironment.mkspecPath = QDir::toNativeSeparators(qtEnvironment.mkspecPath);
     return qtEnvironment;
 }
 
