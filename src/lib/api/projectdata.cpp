@@ -32,8 +32,50 @@ namespace qbs {
 
 // These are not inline because MSVC does not like it when source files have no content.
 GroupData::GroupData() { }
+
+bool operator==(const GroupData &lhs, const GroupData &rhs)
+{
+    return lhs.name() == rhs.name()
+            && lhs.qbsLine() == rhs.qbsLine()
+            && lhs.filePaths() == rhs.filePaths()
+            && lhs.expandedWildcards() == rhs.expandedWildcards()
+            && lhs.properties() == rhs.properties();
+}
+
+bool operator!=(const GroupData &lhs, const GroupData &rhs)
+{
+    return !(lhs == rhs);
+}
+
 ProductData::ProductData() { }
+
+bool operator==(const ProductData &lhs, const ProductData &rhs)
+{
+    return lhs.name() == rhs.name()
+            && lhs.qbsFilePath() == rhs.qbsFilePath()
+            && lhs.qbsLine() == rhs.qbsLine()
+            && lhs.fileTags() == rhs.fileTags()
+            && lhs.properties() == rhs.properties()
+            && lhs.groups() == rhs.groups();
+}
+
+bool operator!=(const ProductData &lhs, const ProductData &rhs)
+{
+    return !(lhs == rhs);
+}
+
 ProjectData::ProjectData() { }
+
+bool operator==(const ProjectData &lhs, const ProjectData &rhs)
+{
+    return lhs.qbsFilePath() == rhs.qbsFilePath()
+            && lhs.products() == rhs.products();
+}
+
+bool operator!=(const ProjectData &lhs, const ProjectData &rhs)
+{
+    return !(lhs == rhs);
+}
 
 /*!
  * \class GroupData

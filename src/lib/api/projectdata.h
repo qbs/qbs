@@ -63,6 +63,8 @@ private:
     QVariantMap m_properties;
 };
 
+bool operator==(const GroupData &lhs, const GroupData &rhs);
+bool operator!=(const GroupData &lhs, const GroupData &rhs);
 
 class ProductData
 {
@@ -86,6 +88,8 @@ private:
     QList<GroupData> m_groups;
 };
 
+bool operator==(const ProductData &lhs, const ProductData &rhs);
+bool operator!=(const ProductData &lhs, const ProductData &rhs);
 
 class ProjectData
 {
@@ -100,6 +104,9 @@ private:
     QString m_qbsFilePath;
     QList<ProductData> m_products;
 };
+
+bool operator==(const ProjectData &lhs, const ProjectData &rhs);
+bool operator!=(const ProjectData &lhs, const ProjectData &rhs);
 
 } // namespace qbs
 
