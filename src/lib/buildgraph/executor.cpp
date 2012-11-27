@@ -43,6 +43,7 @@
 #include <tools/progressobserver.h>
 
 #include <QSet>
+#include <QTimer>
 
 #include <algorithm>
 
@@ -88,7 +89,6 @@ Executor::Executor(QObject *parent)
     , m_engine(0)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
-    , m_buildResult(SuccessfulBuild)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
@@ -124,7 +124,8 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
     try {
         doBuild(productsToBuild);
     } catch (const Error &e) {
-        setError(e);
+        m_error = e;
+        QTimer::singleShot(0, this, SLOT(finish()));
     }
 }
 
@@ -132,10 +133,11 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
 {
     Q_ASSERT(m_buildOptions.maxJobCount > 0);
     Q_ASSERT(m_engine);
-    Q_ASSERT(m_state != ExecutorRunning);
+    Q_ASSERT(m_state == ExecutorIdle);
     m_leaves.clear();
-    m_buildResult = SuccessfulBuild;
     m_productsToBuild = productsToBuild;
+    m_error.clear();
+    m_explicitlyCanceled = false;
 
     QSet<BuildProject *> projects;
     foreach (const BuildProduct::ConstPtr &buildProduct, productsToBuild)
@@ -187,18 +189,10 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
     if (sourceFilesChanged)
         runAutoMoc();
     initLeaves(changedArtifacts);
-    if (!buildNextArtifact())
-        finish();
-}
-
-void Executor::cancelBuild()
-{
-    if (m_state != ExecutorRunning)
-        return;
-    setState(ExecutorCanceled);
-    cancelJobs();
-    m_buildResult = FailedBuild;
-    emit error(Error(Tr::tr("Build canceled.")));
+    if (!scheduleJobs()) {
+        qbsTrace() << "Nothing to do at all, finishing.";
+        QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
+    }
 }
 
 void Executor::setEngine(ScriptEngine *engine)
@@ -272,24 +266,13 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
     }
 }
 
-/**
-  * Returns true if there are still artifacts to traverse.
-  */
-bool Executor::buildNextArtifact()
+// Returns true if some artifacts are still waiting to be built or currently building.
+bool Executor::scheduleJobs()
 {
-    while (m_state == ExecutorRunning) {
-        if (m_leaves.isEmpty())
-            return !m_processingJobs.isEmpty();
-
-        if (m_availableJobs.isEmpty()) {
-            if (qbsLogLevel(LoggerDebug))
-                qbsDebug("[EXEC] No jobs available. Trying later.");
-            return true;
-        }
-
+    Q_ASSERT(m_state == ExecutorRunning);
+    while (!m_leaves.isEmpty() && !m_availableJobs.isEmpty())
         buildArtifact(m_leaves.takeFirst());
-    }
-    return false;
+    return !m_leaves.isEmpty() || !m_processingJobs.isEmpty();
 }
 
 static bool isUpToDate(Artifact *artifact)
@@ -340,6 +323,8 @@ static bool mustExecuteTransformer(const QSharedPointer<Transformer> &transforme
 
 void Executor::buildArtifact(Artifact *artifact)
 {
+    Q_ASSERT(!m_availableJobs.isEmpty());
+
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[EXEC] " << fileName(artifact);
 
@@ -451,25 +436,39 @@ void Executor::buildArtifact(Artifact *artifact)
     job->run(artifact->transformer.data(), artifact->product);
 }
 
-void Executor::finishJob(ExecutorJob *job)
+void Executor::finishJob(ExecutorJob *job, bool success)
 {
     Q_ASSERT(job);
+    Q_ASSERT(m_state != ExecutorIdle);
 
-    Artifact *processedArtifact = m_processingJobs.value(job);
-    Q_ASSERT(processedArtifact);
-
-    m_processingJobs.remove(job);
+    const QHash<ExecutorJob *, Artifact *>::Iterator it = m_processingJobs.find(job);
+    Q_ASSERT(it != m_processingJobs.end());
+    if (success)
+        finishArtifact(it.value());
+    m_processingJobs.erase(it);
     m_availableJobs.append(job);
 
-    finishArtifact(processedArtifact);
+    if (!success)
+        cancelJobs();
 
-    if (m_progressObserver && m_progressObserver->canceled()) {
-        cancelBuild();
+    if (m_state == ExecutorRunning && m_progressObserver && m_progressObserver->canceled()) {
+        qbsTrace() << "Received cancel request; canceling build.";
+        m_explicitlyCanceled = true;
+        cancelJobs();
+    }
+
+    if (m_state == ExecutorCanceling) {
+        if (m_processingJobs.isEmpty()) {
+            qbsTrace() << "All pending jobs are done, finishing.";
+            finish();
+        }
         return;
     }
 
-    if (!buildNextArtifact())
+    if (!scheduleJobs()) {
+        qbsTrace() << "Nothing left to build; finishing.";
         finish();
+    }
 }
 
 static bool allChildrenBuilt(Artifact *artifact)
@@ -549,11 +548,11 @@ void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependenc
 
 void Executor::cancelJobs()
 {
+    qbsTrace() << "Canceling all jobs.";
+    setState(ExecutorCanceling);
     QList<ExecutorJob *> jobs = m_processingJobs.keys();
     foreach (ExecutorJob *job, jobs)
         job->cancel();
-    foreach (ExecutorJob *job, jobs)
-        job->waitForFinished();
 }
 
 void Executor::setupProgressObserver(bool mocWillRun)
@@ -581,10 +580,8 @@ void Executor::addExecutorJobs(int jobNumber)
             job->setMainThreadScriptEngine(m_engine);
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
         m_availableJobs.append(job);
-        connect(job, SIGNAL(error(QString)),
-                this, SLOT(onProcessError(QString)));
-        connect(job, SIGNAL(success()),
-                this, SLOT(onProcessSuccess()));
+        connect(job, SIGNAL(error(QString)), this, SLOT(onProcessError(QString)));
+        connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()));
     }
 }
 
@@ -621,17 +618,14 @@ void Executor::runAutoMoc()
         m_progressObserver->incrementProgressValue(m_mocEffort);
 }
 
-void Executor::onProcessError(QString errorString)
+void Executor::onProcessError(const QString &errorString)
 {
-    m_buildResult = FailedBuild;
-    if (m_buildOptions.keepGoing) {
-        qbsWarning() << tr("ignoring error: %1").arg(errorString);
-        ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
-        finishJob(job);
-    } else {
-        setError(Error(errorString));
-        finish();
-    }
+    if (m_buildOptions.keepGoing)
+        qbsWarning() << Tr::tr("ignoring error: %1").arg(errorString);
+    else
+        qbsError() << errorString;
+    ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
+    finishJob(job, false);
 }
 
 void Executor::onProcessSuccess()
@@ -650,13 +644,12 @@ void Executor::onProcessSuccess()
             artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
     }
 
-    finishJob(job);
+    finishJob(job, true);
 }
 
 void Executor::finish()
 {
-    if (m_state == ExecutorIdle)
-        return;
+    Q_ASSERT(m_state != ExecutorIdle);
 
     QStringList unbuiltProductNames;
     foreach (BuildProduct::Ptr buildProduct, m_productsToBuild) {
@@ -669,13 +662,14 @@ void Executor::finish()
     }
     if (unbuiltProductNames.isEmpty()) {
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << TextColorGreen
-                  << "Build done.";
+                  << Tr::tr("Build done.");
     } else {
-        qbsError() << tr("The following products could not be built: %1.").arg(unbuiltProductNames.join(", "));
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut << TextColorRed
-                  << "Build failed.";
+        m_error = Error(Tr::tr("The following products could not be built: %1.")
+                 .arg(unbuiltProductNames.join(", ")));
     }
 
+    if (m_explicitlyCanceled)
+        m_error.append(Tr::tr("Build was canceled due to user request."));
     setState(ExecutorIdle);
     if (m_progressObserver)
         m_progressObserver->setFinished();
@@ -758,15 +752,6 @@ void Executor::setState(ExecutorState s)
     if (m_state == s)
         return;
     m_state = s;
-}
-
-void Executor::setError(const Error &e)
-{
-    if (m_state != ExecutorRunning)
-        return;
-    setState(ExecutorError);
-    cancelJobs();
-    emit error(e);
 }
 
 } // namespace Internal

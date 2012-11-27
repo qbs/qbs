@@ -48,6 +48,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QThread>
+#include <QTimer>
 
 namespace qbs {
 namespace Internal {
@@ -150,7 +151,7 @@ void JsCommandExecutor::waitForFinished()
 void JsCommandExecutor::doStart()
 {
     if (dryRun()) {
-        emit finished();
+        QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
     }
     QFuture<JSRunner::result_type> future = QtConcurrent::run(JSRunner(jsCommand()), transformer());

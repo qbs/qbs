@@ -225,25 +225,19 @@ void InternalBuildJob::build(const QList<BuildProduct::Ptr> &products,
 
 void InternalBuildJob::start()
 {
-    Executor * const executor = new Executor(this);
-    connect(executor, SIGNAL(finished()), SLOT(handleFinished()));
-    connect(executor, SIGNAL(error(Error)), SLOT(handleError(Error)));
-    executor->setEngine(new ScriptEngine(this));
-    executor->setBuildOptions(buildOptions());
-    executor->setProgressObserver(observer());
-    executor->build(products());
+    m_executor = new Executor(this);
+    connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));
+    m_executor->setEngine(new ScriptEngine(this));
+    m_executor->setBuildOptions(buildOptions());
+    m_executor->setProgressObserver(observer());
+    m_executor->build(products());
 }
 
 void InternalBuildJob::handleFinished()
 {
     storeBuildGraph();
-    if (!hasError()) // Already emitted finished() in that case.
-        emit finished(this);
-}
-
-void InternalBuildJob::handleError(const Error &error)
-{
-    setError(error);
+    if (m_executor->hasError())
+        setError(m_executor->error());
     emit finished(this);
 }
 

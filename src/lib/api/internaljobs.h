@@ -41,6 +41,7 @@
 namespace qbs {
 
 namespace Internal {
+class Executor;
 class JobObserver;
 
 class InternalJob : public QObject
@@ -130,7 +131,9 @@ public:
 private slots:
     void start();
     void handleFinished();
-    void handleError(const Error &error);
+
+private:
+    Executor *m_executor;
 };
 
 

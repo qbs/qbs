@@ -43,6 +43,7 @@
 #include <QScriptEngine>
 #include <QScriptValue>
 #include <QTemporaryFile>
+#include <QTimer>
 
 namespace qbs {
 namespace Internal {
@@ -103,7 +104,7 @@ void ProcessCommandExecutor::doStart()
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << m_commandLine;
     qbsDebug() << "[EXEC] " << m_commandLine;
     if (dryRun()) {
-        emit finished();
+        QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
     }
 

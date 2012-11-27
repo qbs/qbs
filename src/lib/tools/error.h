@@ -60,7 +60,7 @@ class Error
 public:
     Error();
     Error(const Error &rhs);
-    Error(const QString &description,
+    explicit Error(const QString &description,
           const QString &file = QString(),
           int line = 0, int column = 0);
     Error(const QString &description, const CodeLocation &location);

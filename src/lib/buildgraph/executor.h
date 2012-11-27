@@ -35,6 +35,7 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/scanresultcache.h>
 #include <tools/buildoptions.h>
+#include <tools/error.h>
 #include <tools/settings.h>
 
 #include <QObject>
@@ -57,53 +58,40 @@ public:
 
     void build(const QList<BuildProduct::Ptr> &productsToBuild);
 
-    enum ExecutorState {
-        ExecutorIdle,
-        ExecutorRunning,
-        ExecutorCanceled,
-        ExecutorError
-    };
-
-    enum BuildResult {
-        SuccessfulBuild,
-        FailedBuild
-    };
-
     void setEngine(ScriptEngine *engine);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
-    ExecutorState state() const { return m_state; }
-    BuildResult buildResult() const { return m_buildResult; }
+
+    Error error() const { return m_error; }
+    bool hasError() const { return !error().entries().isEmpty(); }
 
 signals:
-    void error(const Error &error);
     void finished();
 
 private slots:
-    void onProcessError(QString errorString);
+    void onProcessError(const QString &errorString);
     void onProcessSuccess();
+    void finish();
 
 private:
+    enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
+
     void doBuild(const QList<BuildProduct::Ptr> &productsToBuild);
-    void cancelBuild();
     void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void updateBuildGraph(Artifact::BuildState buildState);
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
-    bool buildNextArtifact();
+    bool scheduleJobs();
     void buildArtifact(Artifact *artifact);
-    void finishJob(ExecutorJob *job);
+    void finishJob(ExecutorJob *job, bool success);
     void finishArtifact(Artifact *artifact);
-    void finish();
     void initializeArtifactsState();
     void setState(ExecutorState);
-    void setError(const Error &e);
     void addExecutorJobs(int jobNumber);
     void removeExecutorJobs(int jobNumber);
     void runAutoMoc();
-    void printScanningMessageOnce();
     void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();
     void setupProgressObserver(bool mocWillRun);
@@ -114,7 +102,6 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
-    BuildResult m_buildResult;
     QList<BuildProduct::Ptr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QList<Artifact *> m_leaves;
@@ -122,8 +109,8 @@ private:
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;
     int m_mocEffort;
-
-    friend class ExecutorJob;
+    Error m_error;
+    bool m_explicitlyCanceled;
 };
 
 } // namespace Internal
