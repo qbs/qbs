@@ -48,6 +48,8 @@ public:
 private:
     void removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
                                 bool *isEmpty = 0);
+
+    bool m_hasError;
 };
 
 } // namespace Internal

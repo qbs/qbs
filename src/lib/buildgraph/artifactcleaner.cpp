@@ -64,7 +64,7 @@ static void invalidateArtifactTimestamp(Artifact *artifact)
     }
 }
 
-static void removeArtifactFromDisk(Artifact *artifact, bool stopOnError, bool dryRun)
+static void removeArtifactFromDisk(Artifact *artifact, bool dryRun)
 {
     QFileInfo fileInfo(artifact->filePath());
     if (!fileInfo.exists()) {
@@ -77,12 +77,8 @@ static void removeArtifactFromDisk(Artifact *artifact, bool stopOnError, bool dr
         return;
     invalidateArtifactTimestamp(artifact);
     QString errorMessage;
-    if (!removeFileRecursion(fileInfo, &errorMessage)) {
-        if (stopOnError)
-            throw Error(errorMessage);
-        else
-            qbsWarning() << errorMessage; // TODO: Needs to set some retrievable error state as well.
-    }
+    if (!removeFileRecursion(fileInfo, &errorMessage))
+        throw Error(errorMessage);
 }
 
 class CleanupVisitor : public ArtifactVisitor
@@ -93,6 +89,7 @@ public:
         , m_stopOnError(stopOnError)
         , m_dryRun(dryRun)
         , m_removeAll(removeAll)
+        , m_hasError(false)
     {
     }
 
@@ -103,6 +100,7 @@ public:
     }
 
     const QSet<QString> &directories() const { return m_directories; }
+    bool hasError() const { return m_hasError; }
 
 private:
     void doVisit(Artifact *artifact)
@@ -111,13 +109,21 @@ private:
             return;
         if (artifact->parents.isEmpty() && !m_removeAll)
             return;
-        removeArtifactFromDisk(artifact, m_stopOnError, m_dryRun);
+        try {
+            removeArtifactFromDisk(artifact, m_dryRun);
+        } catch (const Error &error) {
+            if (m_stopOnError)
+                throw;
+            qbsWarning() << error.toString();
+            m_hasError = true;
+        }
         m_directories << artifact->dirPath();
     }
 
     const bool m_stopOnError;
     const bool m_dryRun;
     const bool m_removeAll;
+    bool m_hasError;
     BuildProduct::ConstPtr m_product;
     QSet<QString> m_directories;
 };
@@ -125,6 +131,7 @@ private:
 void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool removeAll,
                               const BuildOptions &buildOptions)
 {
+    m_hasError = false;
     TimedActivityLogger logger(QLatin1String("Cleaning up"));
 
     QSet<QString> directories;
@@ -132,6 +139,8 @@ void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool rem
         CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());
+        if (visitor.hasError())
+            m_hasError = true;
     }
 
     // Directories created during the build are not artifacts (TODO: should they be?),
@@ -140,6 +149,9 @@ void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool rem
         if (FileInfo(dir).exists())
             removeEmptyDirectories(dir, buildOptions);
     }
+
+    if (m_hasError)
+        throw Error(Tr::tr("Failed to remove some files."));
 }
 
 void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
@@ -158,10 +170,10 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Build
         printRemovalMessage(rootDir, options.dryRun);
         if (!QDir::root().rmdir(rootDir)) {
             Error error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
-            if (options.keepGoing)
-                qbsWarning() << error.toString();
-            else
-                throw Error(error);
+            if (!options.keepGoing)
+                throw error;
+            qbsWarning() << error.toString();
+            m_hasError = true;
         }
     } else if (isEmpty) {
         *isEmpty = subTreeIsEmpty;
