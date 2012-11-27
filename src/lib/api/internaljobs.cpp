@@ -128,7 +128,7 @@ void InternalSetupProjectJob::doResolve()
     try {
         execute();
     } catch (const Error &error) {
-        setError(error.toString());
+        setError(error);
     }
     QMutexLocker locker(&m_runMutex);
     m_running = false;
