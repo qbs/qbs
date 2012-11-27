@@ -161,7 +161,7 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Build
     QDirIterator it(rootDir, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
     while (it.hasNext()) {
         it.next();
-        if (it.fileInfo().isDir())
+        if (!it.fileInfo().isSymLink() && it.fileInfo().isDir())
             removeEmptyDirectories(it.filePath(), options, &subTreeIsEmpty);
         else
             subTreeIsEmpty = false;
@@ -174,10 +174,11 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Build
                 throw error;
             qbsWarning() << error.toString();
             m_hasError = true;
+            subTreeIsEmpty = false;
         }
-    } else if (isEmpty) {
-        *isEmpty = subTreeIsEmpty;
     }
+    if (!subTreeIsEmpty && isEmpty)
+        *isEmpty = false;
 }
 
 } // namespace Internal
