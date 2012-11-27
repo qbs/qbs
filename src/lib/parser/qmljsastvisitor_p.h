@@ -46,7 +46,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS { namespace AST {
+namespace QbsQmlJS { namespace AST {
 
 class QML_PARSER_EXPORT Visitor
 {
@@ -86,7 +86,7 @@ public:
     virtual void endVisit(UiArrayMemberList *) {}
     virtual void endVisit(UiQualifiedId *) {}
 
-    // QmlJS
+    // QbsQmlJS
     virtual bool visit(ThisExpression *) { return true; }
     virtual void endVisit(ThisExpression *) {}
 

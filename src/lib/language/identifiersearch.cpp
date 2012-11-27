@@ -37,7 +37,7 @@ IdentifierSearch::IdentifierSearch()
 {
 }
 
-void IdentifierSearch::start(QmlJS::AST::Node *node)
+void IdentifierSearch::start(QbsQmlJS::AST::Node *node)
 {
     foreach (bool *found, m_requests)
         *found = false;
@@ -50,12 +50,12 @@ void IdentifierSearch::add(const QString &name, bool *found)
     m_requests.insert(name, found);
 }
 
-bool IdentifierSearch::preVisit(QmlJS::AST::Node *)
+bool IdentifierSearch::preVisit(QbsQmlJS::AST::Node *)
 {
     return m_numberOfFoundIds < m_requests.count();
 }
 
-bool IdentifierSearch::visit(QmlJS::AST::IdentifierExpression *e)
+bool IdentifierSearch::visit(QbsQmlJS::AST::IdentifierExpression *e)
 {
     bool *found = m_requests.value(e->name.toString());
     if (found && !*found) {

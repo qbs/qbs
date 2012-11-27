@@ -246,10 +246,10 @@ void TestLanguage::identifierSearch()
     isearch.add("narf", &hasNarf);
     isearch.add("zort", &hasZort);
 
-    QmlJS::Engine engine;
-    QmlJS::Lexer lexer(&engine);
+    QbsQmlJS::Engine engine;
+    QbsQmlJS::Lexer lexer(&engine);
     lexer.setCode(sourceCode, 1);
-    QmlJS::Parser parser(&engine);
+    QbsQmlJS::Parser parser(&engine);
     QVERIFY(parser.parse());
     QVERIFY(parser.ast());
     isearch.start(parser.ast());

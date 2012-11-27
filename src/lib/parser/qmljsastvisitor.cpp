@@ -31,7 +31,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS { namespace AST {
+namespace QbsQmlJS { namespace AST {
 
 Visitor::Visitor()
 {
@@ -41,6 +41,6 @@ Visitor::~Visitor()
 {
 }
 
-} } // namespace QmlJS::AST
+} } // namespace QbsQmlJS::AST
 
 QT_QML_END_NAMESPACE

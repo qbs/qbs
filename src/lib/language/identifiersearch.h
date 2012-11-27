@@ -38,16 +38,16 @@
 namespace qbs {
 namespace Internal {
 
-class IdentifierSearch : private QmlJS::AST::Visitor
+class IdentifierSearch : private QbsQmlJS::AST::Visitor
 {
 public:
     IdentifierSearch();
-    void start(QmlJS::AST::Node *node);
+    void start(QbsQmlJS::AST::Node *node);
     void add(const QString &name, bool *found);
 
 private:
-    bool preVisit(QmlJS::AST::Node *);
-    bool visit(QmlJS::AST::IdentifierExpression *e);
+    bool preVisit(QbsQmlJS::AST::Node *);
+    bool visit(QbsQmlJS::AST::IdentifierExpression *e);
 
     QMap<QString, bool *> m_requests;
     int m_numberOfFoundIds;

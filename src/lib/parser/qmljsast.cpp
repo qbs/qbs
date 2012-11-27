@@ -33,7 +33,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS { namespace AST {
+namespace QbsQmlJS { namespace AST {
 
 void Node::accept(Visitor *visitor)
 {
@@ -912,7 +912,7 @@ void UiSourceElement::accept0(Visitor *visitor)
     visitor->endVisit(this);
 }
 
-} } // namespace QmlJS::AST
+} } // namespace QbsQmlJS::AST
 
 QT_QML_END_NAMESPACE
 

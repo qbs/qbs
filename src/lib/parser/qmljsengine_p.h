@@ -50,7 +50,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 class Lexer;
 class Directives;
@@ -112,7 +112,7 @@ public:
 
 double integerFromString(const char *buf, int size, int radix);
 
-} // end of namespace QmlJS
+} // end of namespace QbsQmlJS
 
 QT_QML_END_NAMESPACE
 

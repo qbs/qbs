@@ -47,7 +47,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS { namespace AST {
+namespace QbsQmlJS { namespace AST {
 
 class SourceLocation
 {

@@ -51,7 +51,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 class QML_PARSER_EXPORT MemoryPool : public QSharedData
 {
@@ -154,7 +154,7 @@ public:
     void operator delete(void *, MemoryPool *) {}
 };
 
-} // namespace QmlJS
+} // namespace QbsQmlJS
 
 QT_QML_END_NAMESPACE
 

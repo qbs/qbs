@@ -36,7 +36,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 static int toDigit(char c)
 {
@@ -120,9 +120,9 @@ void Engine::setCode(const QString &code)
 { _code = code; }
 
 void Engine::addComment(int pos, int len, int line, int col)
-{ if (len > 0) _comments.append(QmlJS::AST::SourceLocation(pos, len, line, col)); }
+{ if (len > 0) _comments.append(QbsQmlJS::AST::SourceLocation(pos, len, line, col)); }
 
-QList<QmlJS::AST::SourceLocation> Engine::comments() const
+QList<QbsQmlJS::AST::SourceLocation> Engine::comments() const
 { return _comments; }
 
 Lexer *Engine::lexer() const
@@ -150,6 +150,6 @@ QStringRef Engine::newStringRef(const QString &text)
 QStringRef Engine::newStringRef(const QChar *chars, int size)
 { return newStringRef(QString(chars, size)); }
 
-} // end of namespace QmlJS
+} // end of namespace QbsQmlJS
 
 QT_QML_END_NAMESPACE

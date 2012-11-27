@@ -95,7 +95,7 @@ enum Op {
 
 } // namespace QSOperator
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 namespace AST {
 

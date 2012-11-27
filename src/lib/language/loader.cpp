@@ -73,7 +73,7 @@ QT_END_NAMESPACE
 
 const char QBS_LANGUAGE_VERSION[] = "1.0";
 
-using namespace QmlJS::AST;
+using namespace QbsQmlJS::AST;
 
 namespace qbs {
 namespace Internal {
@@ -2927,8 +2927,8 @@ static ProjectFile::Ptr bindFile(const QString &source, const QString &fileName,
     QSet<QString> importAsNames;
     QHash<QString, JsImport> jsImports;
 
-    for (const QmlJS::AST::UiImportList *it = ast->imports; it; it = it->next) {
-        const QmlJS::AST::UiImport *const import = it->import;
+    for (const QbsQmlJS::AST::UiImportList *it = ast->imports; it; it = it->next) {
+        const QbsQmlJS::AST::UiImport *const import = it->import;
 
         QStringList importUri;
         bool isBase = false;
@@ -3033,16 +3033,16 @@ ProjectFile::Ptr Loader::LoaderPrivate::parseFile(const QString &fileName)
         throw Error(Tr::tr("Couldn't open '%1'.").arg(fileName));
 
     const QString code = QTextStream(&file).readAll();
-    QScopedPointer<QmlJS::Engine> engine(new QmlJS::Engine);
-    QmlJS::Lexer lexer(engine.data());
+    QScopedPointer<QbsQmlJS::Engine> engine(new QbsQmlJS::Engine);
+    QbsQmlJS::Lexer lexer(engine.data());
     lexer.setCode(code, 1);
-    QmlJS::Parser parser(engine.data());
+    QbsQmlJS::Parser parser(engine.data());
     parser.parse();
 
-    QList<QmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
+    QList<QbsQmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
     if (!parserMessages.isEmpty()) {
         Error err;
-        foreach (const QmlJS::DiagnosticMessage &msg, parserMessages)
+        foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
             err.append(msg.message, fileName, msg.loc.startLine, msg.loc.startColumn);
         throw err;
     }

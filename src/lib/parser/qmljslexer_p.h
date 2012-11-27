@@ -47,7 +47,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 class Engine;
 
@@ -230,7 +230,7 @@ private:
     bool _qmlMode;
 };
 
-} // end of namespace QmlJS
+} // end of namespace QbsQmlJS
 
 QT_QML_END_NAMESPACE
 

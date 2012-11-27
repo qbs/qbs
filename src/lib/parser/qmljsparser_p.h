@@ -57,7 +57,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 class Engine;
 
@@ -221,7 +221,7 @@ protected:
     QList<DiagnosticMessage> diagnostic_messages;
 };
 
-} // end of namespace QmlJS
+} // end of namespace QbsQmlJS
 
 
 

@@ -47,7 +47,7 @@
 // Changes will be lost.
 //
 
-using namespace QmlJS;
+using namespace QbsQmlJS;
 
 QT_QML_BEGIN_NAMESPACE
 

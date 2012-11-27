@@ -52,7 +52,7 @@
 
 QT_QML_BEGIN_NAMESPACE
 
-namespace QmlJS {
+namespace QbsQmlJS {
 
 namespace AST {
 class Node;
@@ -123,7 +123,7 @@ private:
     Q_DISABLE_COPY(NodePool)
 };
 
-} // namespace QmlJS
+} // namespace QbsQmlJS
 
 QT_QML_END_NAMESPACE
 
