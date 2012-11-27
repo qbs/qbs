@@ -29,6 +29,8 @@
 #ifndef QBS_PROJECTDATA_H
 #define QBS_PROJECTDATA_H
 
+#include <tools/codelocation.h>
+
 #include <QList>
 #include <QPair>
 #include <QString>
@@ -46,7 +48,7 @@ class GroupData
 public:
     GroupData();
 
-    int qbsLine() const { return m_qbsLine; }
+    CodeLocation location() const { return m_location; }
     QString name() const { return m_name; }
     QStringList filePaths() const { return m_filePaths; }
     QStringList expandedWildcards() const { return m_expandedWildcards; }
@@ -57,7 +59,7 @@ public:
 
 private:
     QString m_name;
-    int m_qbsLine;
+    CodeLocation m_location;
     QStringList m_filePaths;
     QStringList m_expandedWildcards;
     QVariantMap m_properties;
@@ -74,16 +76,14 @@ public:
     ProductData();
 
     QString name() const { return m_name; }
-    QString qbsFilePath() const { return m_qbsFilePath; }
-    int qbsLine() const { return m_qbsLine; }
+    CodeLocation location() const { return m_location; }
     QStringList fileTags() const { return m_fileTags; }
     QVariantMap properties() const { return m_properties; }
     QList<GroupData> groups() const { return m_groups; }
 
 private:
     QString m_name;
-    QString m_qbsFilePath;
-    int m_qbsLine;
+    CodeLocation m_location;
     QStringList m_fileTags;
     QVariantMap m_properties;
     QList<GroupData> m_groups;
@@ -99,11 +99,11 @@ class ProjectData
 public:
     ProjectData();
 
-    QString qbsFilePath() const { return m_qbsFilePath; }
+    CodeLocation location() const { return m_location; }
     QList<ProductData> products() const { return m_products; }
 
 private:
-    QString m_qbsFilePath;
+    CodeLocation m_location;
     QList<ProductData> m_products;
 };
 

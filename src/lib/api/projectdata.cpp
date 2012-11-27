@@ -36,8 +36,7 @@ GroupData::GroupData() { }
 bool operator==(const GroupData &lhs, const GroupData &rhs)
 {
     return lhs.name() == rhs.name()
-            && lhs.qbsLine() == rhs.qbsLine()
-            && lhs.filePaths() == rhs.filePaths()
+            && lhs.location() == rhs.location()
             && lhs.expandedWildcards() == rhs.expandedWildcards()
             && lhs.properties() == rhs.properties();
 }
@@ -52,8 +51,7 @@ ProductData::ProductData() { }
 bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() == rhs.name()
-            && lhs.qbsFilePath() == rhs.qbsFilePath()
-            && lhs.qbsLine() == rhs.qbsLine()
+            && lhs.location() == rhs.location()
             && lhs.fileTags() == rhs.fileTags()
             && lhs.properties() == rhs.properties()
             && lhs.groups() == rhs.groups();
@@ -73,7 +71,7 @@ ProjectData::ProjectData() { }
 
 bool operator==(const ProjectData &lhs, const ProjectData &rhs)
 {
-    return lhs.qbsFilePath() == rhs.qbsFilePath()
+    return lhs.location() == rhs.location()
             && lhs.products() == rhs.products();
 }
 

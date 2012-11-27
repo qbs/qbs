@@ -52,9 +52,15 @@ struct CodeLocation
         return !fileName.isEmpty();
     }
 
+    bool operator == (const CodeLocation &rhs) const
+    {
+        return fileName == rhs.fileName
+                && line == rhs.line
+                && column == rhs.column;
+    }
     bool operator != (const CodeLocation &rhs) const
     {
-        return fileName != rhs.fileName || line != rhs.line || column != rhs.column;
+        return !operator==(rhs);
     }
 
     QString fileName;

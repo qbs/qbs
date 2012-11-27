@@ -239,19 +239,18 @@ BuildProductPtr ProjectPrivate::internalProduct(const ProductData &product) cons
 
 void ProjectPrivate::retrieveProjectData()
 {
-    m_projectData.m_qbsFilePath = internalProject->resolvedProject()->qbsFile;
+    m_projectData.m_location = internalProject->resolvedProject()->location;
     foreach (const BuildProductPtr &buildProduct, internalProject->buildProducts()) {
         const ResolvedProductConstPtr resolvedProduct = buildProduct->rProduct;
         ProductData product;
         product.m_name = resolvedProduct->name;
-        product.m_qbsFilePath = resolvedProduct->qbsFile;
-        product.m_qbsLine = resolvedProduct->qbsLine;
+        product.m_location = resolvedProduct->location;
         product.m_fileTags = resolvedProduct->fileTags;
         product.m_properties = resolvedProduct->properties->value();
         foreach (const ResolvedGroup::Ptr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
             group.m_name = resolvedGroup->name;
-            group.m_qbsLine = resolvedGroup->qbsLine;
+            group.m_location = resolvedGroup->location;
             foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
                 group.m_filePaths << sa->absoluteFilePath;
             if (resolvedGroup->wildcards) {

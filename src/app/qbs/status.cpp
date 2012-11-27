@@ -113,7 +113,7 @@ int printStatus(const QList<ProjectData> &projects)
 {
     if (projects.isEmpty())
         return 0;
-    const QString projectFilePath = projects.first().qbsFilePath();
+    const QString projectFilePath = projects.first().location().fileName;
     QString projectDirectory = FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();
 
@@ -122,10 +122,10 @@ int printStatus(const QList<ProjectData> &projects)
     const ProjectData project = projects.first();
     foreach (const ProductData &product, project.products()) {
         qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name()
-                  << " (" << product.qbsFilePath() << ":" << product.qbsLine() << ")";
+                  << " (" << product.location().fileName << ":" << product.location().line << ")";
         foreach (const GroupData &group, product.groups()) {
             qbsInfo() << DontPrintLogLevel << TextColorBlue << "  Group: " << group.name()
-                      << " (" << group.qbsLine() << ")";
+                      << " (" << group.location().fileName << ":" << group.location().line << ")";
             QStringList sourceFiles = group.allFilePaths();
             qSort(sourceFiles);
             foreach (const QString &sourceFile, sourceFiles) {

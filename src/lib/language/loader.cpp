@@ -2343,7 +2343,7 @@ ResolvedProjectPtr Loader::LoaderPrivate::resolveProject(const QString &buildRoo
     m_scopesWithEvaluatedProperties->clear();
     m_convertedScopesCache.clear();
     ResolvedProjectPtr rproject = ResolvedProject::create();
-    rproject->qbsFile = m_project->fileName;
+    rproject->location = CodeLocation(m_project->fileName, 1, 1);
     rproject->setBuildConfiguration(userProperties);
     rproject->buildDirectory = ResolvedProject::deriveBuildDirectory(buildRoot, rproject->id());
 
@@ -2502,7 +2502,7 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
         overrideTags = group->scope->boolValue("overrideTags", true);
 
     ResolvedGroup::Ptr resolvedGroup = ResolvedGroup::create();
-    resolvedGroup->qbsLine = group->instantiatingObject()->prototypeLocation.line;
+    resolvedGroup->location = group->instantiatingObject()->prototypeLocation;
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
@@ -3249,8 +3249,7 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProjectPtr &rproject,
     setPathAndFilePath(evaluationObject->scope, object->file->fileName);
 
     const ResolvedProductPtr rproduct = ResolvedProduct::create();
-    rproduct->qbsFile = projectFileName;
-    rproduct->qbsLine = evaluationObject->instantiatingObject()->prototypeLocation.line;
+    rproduct->location = evaluationObject->instantiatingObject()->prototypeLocation;
     rproduct->sourceDirectory = QFileInfo(projectFileName).absolutePath();
     rproduct->project = rproject;
 
@@ -3470,7 +3469,8 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProjectPtr 
                             qbsWarning() << unknownModule->failureMessage;
                         continue;
                     }
-                    throw Error(Tr::tr("Product dependency '%1' not found in '%2'.").arg(usedProductName, rproduct->qbsFile),
+                    throw Error(Tr::tr("Product dependency '%1' not found in '%2'.")
+                                .arg(usedProductName, rproduct->location.fileName),
                                 CodeLocation(m_project->fileName));
                 }
                 if (usedProductCandidates.count() > 1)

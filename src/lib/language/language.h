@@ -191,7 +191,7 @@ public:
 
     static Ptr create() { return Ptr(new ResolvedGroup); }
 
-    int qbsLine;
+    CodeLocation location;
 
     QString name;
     QList<SourceArtifactPtr> files;
@@ -308,8 +308,7 @@ public:
     QString targetName;
     QString sourceDirectory;
     QString destinationDirectory;
-    QString qbsFile;
-    int qbsLine;
+    CodeLocation location;
     WeakPointer<ResolvedProject> project;
     PropertyMapPtr properties;
     QSet<RulePtr> rules;
@@ -343,7 +342,7 @@ public:
     static QString deriveId(const QVariantMap &config);
     static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
 
-    QString qbsFile; // Not saved.
+    CodeLocation location; // Not saved.
     QString buildDirectory; // Not saved
     QVariantMap platformEnvironment;
     QList<ResolvedProductPtr> products;

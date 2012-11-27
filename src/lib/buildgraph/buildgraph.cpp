@@ -214,8 +214,8 @@ void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
                 QVariant(reinterpret_cast<qulonglong>(product->project.data())));
         QScriptValue projectScriptValue;
         projectScriptValue = engine->newObject();
-        projectScriptValue.setProperty("filePath", product->project->qbsFile);
-        projectScriptValue.setProperty("path", FileInfo::path(product->project->qbsFile));
+        projectScriptValue.setProperty("filePath", product->project->location.fileName);
+        projectScriptValue.setProperty("path", FileInfo::path(product->project->location.fileName));
         targetObject.setProperty("project", projectScriptValue);
     }
 
@@ -1067,11 +1067,11 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     }
 
     //add qbsFile artifact
-    Artifact *qbsFileArtifact = product->lookupArtifact(rProduct->qbsFile);
+    Artifact *qbsFileArtifact = product->lookupArtifact(rProduct->location.fileName);
     if (!qbsFileArtifact) {
         qbsFileArtifact = new Artifact(m_project.data());
         qbsFileArtifact->artifactType = Artifact::SourceFile;
-        qbsFileArtifact->setFilePath(rProduct->qbsFile);
+        qbsFileArtifact->setFilePath(rProduct->location.fileName);
         qbsFileArtifact->properties = rProduct->properties;
         product->insertArtifact(qbsFileArtifact);
     }
@@ -1183,7 +1183,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
     project->load(pool);
     foreach (const BuildProductPtr &bp, project->buildProducts())
         bp->project = project;
-    project->resolvedProject()->qbsFile = projectFilePath;
+    project->resolvedProject()->location = CodeLocation(projectFilePath, 1, 1);
     project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     project->resolvedProject()->buildDirectory = buildDir;
     m_result.loadedProject = project;
@@ -1196,7 +1196,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
     QList<BuildProductPtr> changedProducts;
     foreach (BuildProductPtr product, project->buildProducts()) {
         const ResolvedProductConstPtr &resolvedProduct = product->rProduct;
-        const FileInfo pfi(resolvedProduct->qbsFile);
+        const FileInfo pfi(resolvedProduct->location.fileName);
         if (!pfi.exists()) {
             referencedProductRemoved = true;
         } else if (bgfi.lastModified() < pfi.lastModified()) {
@@ -1222,7 +1222,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
         Loader ldr(bg->engine());
         ldr.setSearchPaths(loaderSearchPaths);
         const ResolvedProjectPtr changedProject
-                = ldr.loadProject(project->resolvedProject()->qbsFile, buildRoot, cfg);
+                = ldr.loadProject(project->resolvedProject()->location.fileName, buildRoot, cfg);
         m_result.changedResolvedProject = changedProject;
 
         QMap<QString, ResolvedProductPtr> changedProductsMap;
