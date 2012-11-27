@@ -35,6 +35,7 @@
 
 #include <qbs.h>
 #include <api/runenvironment.h>
+#include <logging/translator.h>
 
 #include <QDir>
 #include <QProcessEnvironment>
@@ -58,6 +59,17 @@ void CommandLineFrontend::cancel()
 void CommandLineFrontend::start()
 {
     try {
+        if (m_parser.buildConfigurations().count() > 1) {
+            QString command;
+            if (m_parser.command() == CommandLineParser::RunCommand)
+                command = QLatin1String("run");
+            else if (m_parser.command() == CommandLineParser::StartShellCommand)
+                command = QLatin1String("shell");
+            if (!command.isEmpty()) {
+                throw Error(Tr::tr("Ambiguous command: '%1' needs exactly one "
+                                   "build configuration.").arg(command));
+            }
+        }
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
@@ -240,8 +252,10 @@ void CommandLineFrontend::makeClean()
 
 int CommandLineFrontend::runShell()
 {
-    // TODO: Don't take a random product.
+    Q_ASSERT(m_projects.count() == 1);
     const Project &project = m_projects.first();
+
+    // TODO: Don't take a random product.
     RunEnvironment runEnvironment = project.getRunEnvironment(project.projectData().products().first(),
             QProcessEnvironment::systemEnvironment());
     return runEnvironment.runShell();
@@ -271,13 +285,13 @@ void CommandLineFrontend::build()
     m_currentBuildEffort = 0;
 }
 
-// TODO: Don't pick a random project
 int CommandLineFrontend::runTarget()
 {
     ProductData productToRun;
     QString productFileName;
 
     const QString targetName = m_parser.runTargetName();
+    Q_ASSERT(m_projects.count() == 1);
     const Project &project = m_projects.first();
     foreach (const ProductData &product, productsToUse().value(project)) {
         const QString executable = project.targetExecutable(product);
