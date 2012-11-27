@@ -48,6 +48,8 @@ public:
     static Logger &instance();
 
     static LoggerLevel defaultLevel() { return LoggerInfo; }
+    static QByteArray logLevelTag(LoggerLevel level);
+    static QString logLevelName(LoggerLevel level);
 
     void setLevel(int level);
     void setLevel(LoggerLevel level);

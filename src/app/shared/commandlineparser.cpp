@@ -46,25 +46,12 @@
 
 namespace qbs {
 
-static QString logLevelToString(LoggerLevel level)
-{
-    switch (level) {
-    case LoggerError: return QLatin1String("error");
-    case LoggerWarning: return QLatin1String("warning");
-    case LoggerInfo: return QLatin1String("info");
-    case LoggerDebug: return QLatin1String("debug");
-    case LoggerTrace: return QLatin1String("trace");
-    default: qFatal("%s: Missing case in switch statement", Q_FUNC_INFO);
-    }
-    return QString(); // Never reached.
-}
-
 static LoggerLevel logLevelFromString(const QString &logLevelString)
 {
     const QList<LoggerLevel> levels = QList<LoggerLevel>() << LoggerError << LoggerWarning
             << LoggerInfo << LoggerDebug << LoggerTrace;
     foreach (LoggerLevel l, levels) {
-        if (logLevelToString(l) == logLevelString)
+        if (Logger::logLevelName(l) == logLevelString)
             return l;
     }
     throw Error(CommandLineParser::tr("Invalid log level '%1'.").arg(logLevelString));
@@ -72,9 +59,10 @@ static LoggerLevel logLevelFromString(const QString &logLevelString)
 
 static QStringList allLogLevelStrings()
 {
-    return QStringList() << logLevelToString(LoggerError) << logLevelToString(LoggerWarning)
-            << logLevelToString(LoggerInfo) << logLevelToString(LoggerDebug)
-            << logLevelToString(LoggerTrace);
+    QStringList result;
+    for (int i = static_cast<int>(LoggerMinLevel); i <= static_cast<int>(LoggerMaxLevel); ++i)
+        result << Logger::logLevelName(static_cast<LoggerLevel>(i));
+    return result;
 }
 
 CommandLineParser::CommandLineParser()
@@ -121,9 +109,9 @@ void CommandLineParser::printHelp() const
          "      .............. Use the specified log level. Possible values are \"%1\".\n"
          "                     The default is \"%2\".\n")
              .arg(allLogLevelStrings().join(QLatin1String("\", \"")),
-                  logLevelToString(Logger::defaultLevel())
+                  Logger::logLevelName(Logger::defaultLevel())
 #ifdef Q_OS_UNIX
-                  , logLevelToString(LoggerMinLevel)
+                  , Logger::logLevelName(LoggerMinLevel)
 #endif
                   );
 }
@@ -169,16 +157,16 @@ void CommandLineParser::doParse()
 
     if (m_showProgress && m_logLevel != LoggerMinLevel) {
         qbsInfo() << tr("Setting log level to \"%1\", because option \"--show-progress\""
-                           " has been given.").arg(logLevelToString(LoggerMinLevel));
+                           " has been given.").arg(Logger::logLevelName(LoggerMinLevel));
         m_logLevel = LoggerMinLevel;
     }
     if (m_logLevel < LoggerMinLevel) {
         qbsWarning() << tr("Cannot decrease log level as much as specified; using \"%1\".")
-                .arg(logLevelToString(LoggerMinLevel));
+                .arg(Logger::logLevelName(LoggerMinLevel));
         m_logLevel = LoggerMinLevel;
     } else if (m_logLevel > LoggerMaxLevel) {
         qbsWarning() << tr("Cannot increase log level as much as specified; using \"%1\".")
-                .arg(logLevelToString(LoggerMaxLevel));
+                .arg(Logger::logLevelName(LoggerMaxLevel));
         m_logLevel = LoggerMaxLevel;
     }
     Logger::instance().setLevel(m_logLevel);

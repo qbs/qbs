@@ -50,6 +50,33 @@ Logger &Logger::instance()
     return instance;
 }
 
+QByteArray Logger::logLevelTag(LoggerLevel level)
+{
+    QString str = logLevelName(level).toUpper();
+    if (!str.isEmpty())
+        str.append(QLatin1String(": "));
+    return str.toUtf8();
+}
+
+QString Logger::logLevelName(LoggerLevel level)
+{
+    switch (level) {
+    case qbs::LoggerError:
+        return QLatin1String("error");
+    case qbs::LoggerWarning:
+        return QLatin1String("warning");
+    case qbs::LoggerInfo:
+        return QLatin1String("info");
+    case qbs::LoggerDebug:
+        return QLatin1String("debug");
+    case qbs::LoggerTrace:
+        return QLatin1String("trace");
+    default:
+        break;
+    }
+    return QString();
+}
+
 Logger::Logger()
     : m_logSink(0)
     , m_level(defaultLevel())

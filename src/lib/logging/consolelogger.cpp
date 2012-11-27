@@ -46,23 +46,20 @@ void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &
         file = stderr;
 
     if (message.printLogLevel) {
+        QByteArray data = Logger::logLevelTag(level);
+        TextColor color = TextColorDefault;
         switch (level) {
-        case LoggerError:
-            fprintfWrapper(TextColorRed, file, "ERROR: ");
+        case qbs::LoggerError:
+            color = TextColorRed;
             break;
-        case LoggerWarning:
-            fprintfWrapper(TextColorYellow, file, "WARNING: ");
+        case qbs::LoggerWarning:
+            color = TextColorYellow;
             break;
-        case LoggerInfo:
-            fprintf(file, "INFO: ");
-            break;
-        case LoggerDebug:
-            fprintf(file, "DEBUG: ");
-            break;
-        case LoggerTrace:
-            fprintf(file, "TRACE: ");
+        default:
             break;
         }
+
+        fprintfWrapper(color, file, data);
     }
     fprintfWrapper(message.textColor, file, "%s\n", message.data.data());
     fflush(file);
