@@ -44,6 +44,10 @@ class ArtifactCleaner
 public:
     void cleanup(const QList<BuildProduct::Ptr> &products, bool removeAll,
                  const BuildOptions &buildOptions);
+
+private:
+    void removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
+                                bool *isEmpty = 0);
 };
 
 } // namespace Internal

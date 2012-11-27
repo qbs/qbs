@@ -34,11 +34,13 @@
 #include "transformer.h"
 
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QSet>
 #include <QString>
@@ -49,7 +51,7 @@ namespace Internal {
 static void printRemovalMessage(const QString &path, bool dryRun)
 {
     if (dryRun)
-        qbsInfo() << QCoreApplication::translate("qbs", "Would remove '%1'.").arg(path);
+        qbsInfo() << Tr::tr("Would remove '%1'.").arg(path);
     else
         qbsDebug() << "Removing '" << path << "'.";
 }
@@ -125,7 +127,6 @@ void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool rem
 {
     TimedActivityLogger logger(QLatin1String("Cleaning up"));
 
-    // TODO: Parallelize?
     QSet<QString> directories;
     foreach (const BuildProduct::ConstPtr &product, products) {
         CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll);
@@ -136,11 +137,35 @@ void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool rem
     // Directories created during the build are not artifacts (TODO: should they be?),
     // so we have to clean them up manually.
     foreach (const QString &dir, directories) {
-        printRemovalMessage(dir, buildOptions.dryRun);
-        if (!buildOptions.dryRun)
-            QDir(dir).rmdir(QLatin1String(".")); // Failure non-fatal?
+        if (FileInfo(dir).exists())
+            removeEmptyDirectories(dir, buildOptions);
     }
+}
 
+void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
+                                             bool *isEmpty)
+{
+    bool subTreeIsEmpty = true;
+    QDirIterator it(rootDir, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    while (it.hasNext()) {
+        it.next();
+        if (it.fileInfo().isDir())
+            removeEmptyDirectories(it.filePath(), options, &subTreeIsEmpty);
+        else
+            subTreeIsEmpty = false;
+    }
+    if (subTreeIsEmpty) {
+        printRemovalMessage(rootDir, options.dryRun);
+        if (!QDir::root().rmdir(rootDir)) {
+            Error error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
+            if (options.keepGoing)
+                qbsWarning() << error.toString();
+            else
+                throw Error(error);
+        }
+    } else if (isEmpty) {
+        *isEmpty = subTreeIsEmpty;
+    }
 }
 
 } // namespace Internal
