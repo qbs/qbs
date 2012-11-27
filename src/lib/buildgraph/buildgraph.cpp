@@ -151,12 +151,12 @@ void BuildGraph::setEngine(ScriptEngine *engine)
     JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
 }
 
-void BuildGraph::insert(BuildProduct::Ptr product, Artifact *n) const
+void BuildGraph::insert(BuildProduct::Ptr product, Artifact *n)
 {
     insert(product.data(), n);
 }
 
-void BuildGraph::insert(BuildProduct *product, Artifact *n) const
+void BuildGraph::insert(BuildProduct *product, Artifact *n)
 {
     Q_ASSERT(n->product == 0);
     Q_ASSERT(!n->filePath().isEmpty());
@@ -240,11 +240,6 @@ void BuildGraph::applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artif
 void BuildGraph::setProgressObserver(ProgressObserver *observer)
 {
     m_progressObserver = observer;
-}
-
-const ProgressObserver *BuildGraph::progressObserver() const
-{
-    return m_progressObserver;
 }
 
 void BuildGraph::checkCancelation() const
@@ -459,31 +454,6 @@ void BuildGraph::remove(Artifact *artifact) const
     artifact->project->markDirty();
 }
 
-/**
-  * Removes the artifact and all the artifacts that depend exclusively on it.
-  * Example: if you remove a cpp artifact then the obj artifact is removed but
-  * not the resulting application (if there's more then one cpp artifact).
-  */
-void BuildGraph::removeArtifactAndExclusiveDependents(Artifact *artifact, QList<Artifact*> *removedArtifacts)
-{
-    if (removedArtifacts)
-        removedArtifacts->append(artifact);
-    foreach (Artifact *parent, artifact->parents) {
-        bool removeParent = false;
-        disconnect(parent, artifact);
-        if (parent->children.isEmpty()) {
-            removeParent = true;
-        } else if (parent->transformer) {
-            m_artifactsThatMustGetNewTransformers += parent;
-            parent->transformer->inputs.remove(artifact);
-            removeParent = parent->transformer->inputs.isEmpty();
-        }
-        if (removeParent)
-            removeArtifactAndExclusiveDependents(parent, removedArtifacts);
-    }
-    remove(artifact);
-}
-
 void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
 {
     if (artifact->artifactType != Artifact::Generated)
@@ -496,221 +466,6 @@ void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
     qbsDebug() << "removing " << artifact->fileName();
     if (!file.remove())
         qbsWarning("Cannot remove '%s'.", qPrintable(artifact->filePath()));
-}
-
-BuildProject::Ptr BuildGraph::resolveProject(ResolvedProject::Ptr rProject)
-{
-    BuildProject::Ptr project = BuildProject::Ptr(new BuildProject(this));
-    project->setResolvedProject(rProject);
-    if (m_progressObserver)
-        m_progressObserver->initialize(Tr::tr("Resolving project"), rProject->products.count());
-    foreach (ResolvedProduct::Ptr rProduct, rProject->products)
-        resolveProduct(project, rProduct);
-    CycleDetector().visitProject(project);
-    return project;
-}
-
-BuildProduct::Ptr BuildGraph::resolveProduct(const BuildProject::Ptr &project,
-                                             const ResolvedProduct::Ptr &rProduct)
-{
-    BuildProduct::Ptr product = m_productCache.value(rProduct);
-    if (product)
-        return product;
-
-    if (m_progressObserver) {
-        checkCancelation();
-        m_progressObserver->incrementProgressValue();
-    }
-
-    product = BuildProduct::create();
-    m_productCache.insert(rProduct, product);
-    product->project = project;
-    product->rProduct = rProduct;
-    ArtifactsPerFileTagMap artifactsPerFileTag;
-
-    foreach (ResolvedProduct::Ptr t2, rProduct->dependencies) {
-        if (t2 == rProduct) {
-            throw Error(Tr::tr("circular using"));
-        }
-        BuildProduct::Ptr referencedProduct = resolveProduct(project, t2);
-        product->dependencies.append(referencedProduct);
-    }
-
-    //add qbsFile artifact
-    Artifact *qbsFileArtifact = product->lookupArtifact(rProduct->qbsFile);
-    if (!qbsFileArtifact) {
-        qbsFileArtifact = new Artifact(project.data());
-        qbsFileArtifact->artifactType = Artifact::SourceFile;
-        qbsFileArtifact->setFilePath(rProduct->qbsFile);
-        qbsFileArtifact->properties = rProduct->properties;
-        insert(product, qbsFileArtifact);
-    }
-    qbsFileArtifact->fileTags.insert("qbs");
-    artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
-
-    // read sources
-    foreach (const SourceArtifact::ConstPtr &sourceArtifact, rProduct->allFiles()) {
-        QString filePath = sourceArtifact->absoluteFilePath;
-        if (product->lookupArtifact(filePath)) {
-            // ignore duplicate artifacts
-            continue;
-        }
-
-        Artifact *artifact = createArtifact(product, sourceArtifact);
-
-        foreach (const QString &fileTag, artifact->fileTags)
-            artifactsPerFileTag[fileTag].insert(artifact);
-    }
-
-    // read manually added transformers
-    foreach (const ResolvedTransformer::Ptr rtrafo, rProduct->transformers) {
-        ArtifactList inputArtifacts;
-        foreach (const QString &inputFileName, rtrafo->inputs) {
-            Artifact *artifact = product->lookupArtifact(inputFileName);
-            if (!artifact)
-                throw Error(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
-            inputArtifacts += artifact;
-        }
-        Transformer::Ptr transformer = Transformer::create();
-        transformer->inputs = inputArtifacts;
-        const Rule::Ptr rule = Rule::create();
-        rule->inputs = rtrafo->inputs;
-        rule->jsImports = rtrafo->jsImports;
-        ResolvedModule::Ptr module = ResolvedModule::create();
-        module->name = rtrafo->module->name;
-        rule->module = module;
-        rule->script = rtrafo->transform;
-        foreach (const SourceArtifact::ConstPtr &sourceArtifact, rtrafo->outputs) {
-            Artifact *outputArtifact = createArtifact(product, sourceArtifact);
-            outputArtifact->artifactType = Artifact::Generated;
-            outputArtifact->transformer = transformer;
-            transformer->outputs += outputArtifact;
-            product->targetArtifacts += outputArtifact;
-            foreach (Artifact *inputArtifact, inputArtifacts)
-                safeConnect(outputArtifact, inputArtifact);
-            foreach (const QString &fileTag, outputArtifact->fileTags)
-                artifactsPerFileTag[fileTag].insert(outputArtifact);
-
-            RuleArtifact::Ptr ruleArtifact = RuleArtifact::create();
-            ruleArtifact->fileName = outputArtifact->filePath();
-            ruleArtifact->fileTags = outputArtifact->fileTags.toList();
-            rule->artifacts += ruleArtifact;
-        }
-        transformer->rule = rule;
-
-        EngineInitializer initializer(this);
-        setupScriptEngineForProduct(m_engine, rProduct, transformer->rule, m_scope);
-        transformer->setupInputs(m_engine, m_scope);
-        transformer->setupOutputs(m_engine, m_scope);
-        createTransformerCommands(rtrafo->transform, transformer.data());
-        if (transformer->commands.isEmpty())
-            throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
-    }
-
-    applyRules(product.data(), artifactsPerFileTag);
-
-    QSet<Artifact *> productArtifactCandidates;
-    for (int i=0; i < product->rProduct->fileTags.count(); ++i)
-        foreach (Artifact *artifact, artifactsPerFileTag.value(product->rProduct->fileTags.at(i)))
-            if (artifact->artifactType == Artifact::Generated)
-                productArtifactCandidates += artifact;
-
-    if (productArtifactCandidates.isEmpty()) {
-        QString msg = QLatin1String("No artifacts generated for product '%1'.");
-        throw Error(msg.arg(product->rProduct->name));
-    }
-
-    product->targetArtifacts += productArtifactCandidates;
-    project->addBuildProduct(product);
-    return product;
-}
-
-void BuildGraph::onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct, bool *discardStoredProject)
-{
-    qbsDebug() << "[BG] product '" << product->rProduct->name << "' changed.";
-
-    *discardStoredProject = false;
-    ArtifactsPerFileTagMap artifactsPerFileTag;
-    QSet<SourceArtifact::ConstPtr> addedSourceArtifacts;
-    QList<Artifact *> addedArtifacts, artifactsToRemove;
-    QHash<QString, SourceArtifact::ConstPtr> oldArtifacts, newArtifacts;
-
-    const QList<SourceArtifact::Ptr> oldProductAllFiles = product->rProduct->allFiles();
-    foreach (const SourceArtifact::ConstPtr &a, oldProductAllFiles)
-        oldArtifacts.insert(a->absoluteFilePath, a);
-    foreach (const SourceArtifact::Ptr &a, changedProduct->allFiles()) {
-        newArtifacts.insert(a->absoluteFilePath, a);
-        if (!oldArtifacts.contains(a->absoluteFilePath)) {
-            // artifact added
-            qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' added to product " << product->rProduct->name;
-            addedArtifacts += createArtifact(product, a);
-            addedSourceArtifacts += a;
-        }
-    }
-
-    foreach (const SourceArtifact::Ptr &a, oldProductAllFiles) {
-        const SourceArtifact::ConstPtr changedArtifact = newArtifacts.value(a->absoluteFilePath);
-        if (!changedArtifact) {
-            // artifact removed
-            qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' removed from product " << product->rProduct->name;
-            Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
-            Q_ASSERT(artifact);
-            removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
-            continue;
-        }
-        if (!addedSourceArtifacts.contains(changedArtifact)
-            && changedArtifact->properties->value() != a->properties->value())
-        {
-            qbsInfo("Some properties changed. Regenerating build graph.");
-            qbsDebug("Artifact with changed properties: %s", qPrintable(changedArtifact->absoluteFilePath));
-            *discardStoredProject = true;
-            return;
-        }
-        if (changedArtifact->fileTags != a->fileTags) {
-            // artifact's filetags have changed
-            qbsDebug() << "[BG] filetags have changed for artifact '" << a->absoluteFilePath
-                       << "' from " << a->fileTags << " to " << changedArtifact->fileTags;
-            Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
-            Q_ASSERT(artifact);
-
-            // handle added filetags
-            foreach (const QString &addedFileTag, changedArtifact->fileTags - a->fileTags)
-                artifactsPerFileTag[addedFileTag] += artifact;
-
-            // handle removed filetags
-            foreach (const QString &removedFileTag, a->fileTags - changedArtifact->fileTags) {
-                artifact->fileTags -= removedFileTag;
-                foreach (Artifact *parent, artifact->parents) {
-                    if (parent->transformer && parent->transformer->rule->inputs.contains(removedFileTag)) {
-                        // this parent has been created because of the removed filetag
-                        removeArtifactAndExclusiveDependents(parent, &artifactsToRemove);
-                    }
-                }
-            }
-        }
-    }
-
-    // Discard groups of the old product. Use the groups of the new one.
-    product->rProduct->groups = changedProduct->groups;
-    product->rProduct->properties = changedProduct->properties;
-
-    // apply rules for new artifacts
-    foreach (Artifact *artifact, addedArtifacts)
-        foreach (const QString &ft, artifact->fileTags)
-            artifactsPerFileTag[ft] += artifact;
-    applyRules(product.data(), artifactsPerFileTag);
-
-    // parents of removed artifacts must update their transformers
-    foreach (Artifact *removedArtifact, artifactsToRemove)
-        foreach (Artifact *parent, removedArtifact->parents)
-            m_artifactsThatMustGetNewTransformers += parent;
-    updateNodesThatMustGetNewTransformer();
-
-    // delete all removed artifacts physically from the disk
-    foreach (Artifact *artifact, artifactsToRemove) {
-        removeGeneratedArtifactFromDisk(artifact);
-        delete artifact;
-    }
 }
 
 void BuildGraph::updateNodesThatMustGetNewTransformer()
@@ -742,7 +497,8 @@ void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
     rulesApplier.applyRule(rule);
 }
 
-Artifact *BuildGraph::createArtifact(BuildProduct::Ptr product, SourceArtifact::ConstPtr sourceArtifact)
+Artifact *BuildGraph::createArtifact(const BuildProduct::Ptr &product,
+                                     const SourceArtifact::ConstPtr &sourceArtifact)
 {
     Artifact *artifact = new Artifact(product->project);
     artifact->artifactType = Artifact::SourceFile;
@@ -886,107 +642,6 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
     return true;
 }
 
-BuildProject::LoadResult BuildProject::load(const QString &projectFilePath, BuildGraph *bg,
-        const QString &buildRoot, const QVariantMap &cfg, const QStringList &loaderSearchPaths)
-{
-    LoadResult result;
-    result.discardLoadedProject = false;
-    const QString projectId = ResolvedProject::deriveId(cfg);
-    const QString buildDir = ResolvedProject::deriveBuildDirectory(buildRoot, projectId);
-    const QString buildGraphFilePath = deriveBuildGraphFilePath(buildDir, projectId);
-
-    PersistentPool pool;
-    qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
-    if (!pool.load(buildGraphFilePath))
-        return result;
-    if (!isConfigCompatible(cfg, pool.headData().projectConfig)) {
-        qbsDebug() << "[BG] Cannot use stored build graph: Incompatible project configuration.";
-        return result;
-    }
-
-    const Ptr project = BuildProject::Ptr(new BuildProject(bg));
-    TimedActivityLogger loadLogger(QLatin1String("Loading build graph"), QLatin1String("[BG] "));
-    project->load(pool);
-    foreach (const BuildProduct::Ptr &bp, project->buildProducts())
-        bp->project = project;
-    project->resolvedProject()->qbsFile = projectFilePath;
-    project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
-    project->resolvedProject()->buildDirectory = buildDir;
-    result.loadedProject = project;
-    loadLogger.finishActivity();
-
-    const FileInfo bgfi(buildGraphFilePath);
-    const bool projectFileChanged = bgfi.lastModified() < FileInfo(projectFilePath).lastModified();
-
-    bool referencedProductRemoved = false;
-    QList<BuildProduct::Ptr> changedProducts;
-    foreach (BuildProduct::Ptr product, project->buildProducts()) {
-        const ResolvedProduct::ConstPtr &resolvedProduct = product->rProduct;
-        const FileInfo pfi(resolvedProduct->qbsFile);
-        if (!pfi.exists()) {
-            referencedProductRemoved = true;
-        } else if (bgfi.lastModified() < pfi.lastModified()) {
-            changedProducts += product;
-        } else {
-            foreach (const ResolvedGroup::Ptr &group, resolvedProduct->groups) {
-                if (!group->wildcards)
-                    continue;
-                const QSet<QString> files
-                        = group->wildcards->expandPatterns(resolvedProduct->sourceDirectory);
-                QSet<QString> wcFiles;
-                foreach (const SourceArtifact::ConstPtr &sourceArtifact, group->wildcards->files)
-                    wcFiles += sourceArtifact->absoluteFilePath;
-                if (files == wcFiles)
-                    continue;
-                changedProducts += product;
-                break;
-            }
-        }
-    }
-
-    if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
-        Loader ldr(bg->engine());
-        ldr.setSearchPaths(loaderSearchPaths);
-        const ResolvedProject::Ptr changedProject
-                = ldr.loadProject(project->resolvedProject()->qbsFile, buildRoot, cfg);
-        result.changedResolvedProject = changedProject;
-
-        QMap<QString, ResolvedProduct::Ptr> changedProductsMap;
-        foreach (BuildProduct::Ptr product, changedProducts) {
-            if (changedProductsMap.isEmpty())
-                foreach (ResolvedProduct::Ptr cp, changedProject->products)
-                    changedProductsMap.insert(cp->name, cp);
-            ResolvedProduct::Ptr changedProduct = changedProductsMap.value(product->rProduct->name);
-            if (!changedProduct)
-                continue;
-            bg->onProductChanged(product, changedProduct, &result.discardLoadedProject);
-            if (result.discardLoadedProject)
-                return result;
-        }
-
-        QSet<QString> oldProductNames, newProductNames;
-        foreach (const BuildProduct::Ptr &product, project->buildProducts())
-            oldProductNames += product->rProduct->name;
-        foreach (const ResolvedProduct::ConstPtr &product, changedProject->products)
-            newProductNames += product->name;
-        QSet<QString> addedProductNames = newProductNames - oldProductNames;
-        if (!addedProductNames.isEmpty()) {
-            result.discardLoadedProject = true;
-            return result;
-        }
-        QSet<QString> removedProductsNames = oldProductNames - newProductNames;
-        if (!removedProductsNames.isEmpty()) {
-            foreach (const BuildProduct::Ptr &product, project->buildProducts())
-                if (removedProductsNames.contains(product->rProduct->name))
-                    project->onProductRemoved(product);
-        }
-
-        CycleDetector().visitProject(project);
-    }
-
-    return result;
-}
-
 void BuildProject::store() const
 {
     if (!dirty()) {
@@ -1122,20 +777,6 @@ void BuildProject::insertFileDependency(Artifact *artifact)
     Q_ASSERT(artifact->artifactType == Artifact::FileDependency);
     m_dependencyArtifacts += artifact;
     insertIntoArtifactLookupTable(artifact);
-}
-
-void BuildProject::onProductRemoved(const BuildProduct::Ptr &product)
-{
-    qbsDebug() << "[BG] product '" << product->rProduct->name << "' removed.";
-
-    m_dirty = true;
-    m_buildProducts.remove(product);
-
-    // delete all removed artifacts physically from the disk
-    foreach (Artifact *artifact, product->artifacts) {
-        BuildGraph::disconnectAll(artifact);
-        BuildGraph::removeGeneratedArtifactFromDisk(artifact);
-    }
 }
 
 /**
@@ -1463,6 +1104,372 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
 QScriptValue RulesApplicator::scope() const
 {
     return engine()->currentContext()->scopeChain().first();
+}
+
+
+BuildProject::Ptr BuildProjectResolver::resolveProject(const ResolvedProject::Ptr &resolvedProject,
+        BuildGraph *buildgraph, ProgressObserver *observer)
+{
+    m_productCache.clear();
+    m_observer = observer;
+    m_project = BuildProject::Ptr(new BuildProject(buildgraph));
+    m_project->setResolvedProject(resolvedProject);
+    if (m_observer)
+        m_observer->initialize(Tr::tr("Resolving project"), resolvedProject->products.count());
+    foreach (ResolvedProduct::Ptr rProduct, resolvedProject->products) {
+        resolveProduct(rProduct);
+        if (m_observer)
+            m_observer->incrementProgressValue();
+    }
+    CycleDetector().visitProject(m_project);
+    return m_project;
+}
+
+BuildProduct::Ptr BuildProjectResolver::resolveProduct(const ResolvedProduct::Ptr &rProduct)
+{
+    BuildProduct::Ptr product = m_productCache.value(rProduct);
+    if (product)
+        return product;
+
+    if (m_observer && m_observer->canceled())
+        throw Error(Tr::tr("Build canceled."));
+
+    product = BuildProduct::create();
+    m_productCache.insert(rProduct, product);
+    product->project = m_project;
+    product->rProduct = rProduct;
+    ArtifactsPerFileTagMap artifactsPerFileTag;
+
+    foreach (ResolvedProduct::Ptr dependency, rProduct->dependencies) {
+        if (dependency == rProduct)
+            throw Error(Tr::tr("circular using"));
+        BuildProduct::Ptr referencedProduct = resolveProduct(dependency);
+        product->dependencies.append(referencedProduct);
+    }
+
+    //add qbsFile artifact
+    Artifact *qbsFileArtifact = product->lookupArtifact(rProduct->qbsFile);
+    if (!qbsFileArtifact) {
+        qbsFileArtifact = new Artifact(m_project.data());
+        qbsFileArtifact->artifactType = Artifact::SourceFile;
+        qbsFileArtifact->setFilePath(rProduct->qbsFile);
+        qbsFileArtifact->properties = rProduct->properties;
+        buildGraph()->insert(product, qbsFileArtifact);
+    }
+    qbsFileArtifact->fileTags.insert("qbs");
+    artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
+
+    // read sources
+    foreach (const SourceArtifact::ConstPtr &sourceArtifact, rProduct->allFiles()) {
+        QString filePath = sourceArtifact->absoluteFilePath;
+        if (product->lookupArtifact(filePath))
+            continue; // ignore duplicate artifacts
+
+        Artifact *artifact = buildGraph()->createArtifact(product, sourceArtifact);
+        foreach (const QString &fileTag, artifact->fileTags)
+            artifactsPerFileTag[fileTag].insert(artifact);
+    }
+
+    // read manually added transformers
+    foreach (const ResolvedTransformer::Ptr rtrafo, rProduct->transformers) {
+        ArtifactList inputArtifacts;
+        foreach (const QString &inputFileName, rtrafo->inputs) {
+            Artifact *artifact = product->lookupArtifact(inputFileName);
+            if (!artifact)
+                throw Error(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
+            inputArtifacts += artifact;
+        }
+        Transformer::Ptr transformer = Transformer::create();
+        transformer->inputs = inputArtifacts;
+        const Rule::Ptr rule = Rule::create();
+        rule->inputs = rtrafo->inputs;
+        rule->jsImports = rtrafo->jsImports;
+        ResolvedModule::Ptr module = ResolvedModule::create();
+        module->name = rtrafo->module->name;
+        rule->module = module;
+        rule->script = rtrafo->transform;
+        foreach (const SourceArtifact::ConstPtr &sourceArtifact, rtrafo->outputs) {
+            Artifact *outputArtifact = buildGraph()->createArtifact(product, sourceArtifact);
+            outputArtifact->artifactType = Artifact::Generated;
+            outputArtifact->transformer = transformer;
+            transformer->outputs += outputArtifact;
+            product->targetArtifacts += outputArtifact;
+            foreach (Artifact *inputArtifact, inputArtifacts)
+                buildGraph()->safeConnect(outputArtifact, inputArtifact);
+            foreach (const QString &fileTag, outputArtifact->fileTags)
+                artifactsPerFileTag[fileTag].insert(outputArtifact);
+
+            RuleArtifact::Ptr ruleArtifact = RuleArtifact::create();
+            ruleArtifact->fileName = outputArtifact->filePath();
+            ruleArtifact->fileTags = outputArtifact->fileTags.toList();
+            rule->artifacts += ruleArtifact;
+        }
+        transformer->rule = rule;
+
+        BuildGraph::EngineInitializer initializer(buildGraph());
+        buildGraph()->setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
+        transformer->setupInputs(engine(), scope());
+        transformer->setupOutputs(engine(), scope());
+        buildGraph()->createTransformerCommands(rtrafo->transform, transformer.data());
+        if (transformer->commands.isEmpty())
+            throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
+    }
+
+    buildGraph()->applyRules(product.data(), artifactsPerFileTag);
+
+    QSet<Artifact *> productArtifactCandidates;
+    for (int i = 0; i < product->rProduct->fileTags.count(); ++i)
+        foreach (Artifact *artifact, artifactsPerFileTag.value(product->rProduct->fileTags.at(i)))
+            if (artifact->artifactType == Artifact::Generated)
+                productArtifactCandidates += artifact;
+
+    if (productArtifactCandidates.isEmpty()) {
+        QString msg = QLatin1String("No artifacts generated for product '%1'.");
+        throw Error(msg.arg(product->rProduct->name));
+    }
+
+    product->targetArtifacts += productArtifactCandidates;
+    m_project->addBuildProduct(product);
+    return product;
+}
+
+QScriptValue BuildProjectResolver::scope() const
+{
+    return engine()->currentContext()->scopeChain().first();
+}
+
+BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFilePath,
+        BuildGraph *bg, const QString &buildRoot, const QVariantMap &cfg,
+        const QStringList &loaderSearchPaths)
+{
+    m_result = LoadResult();
+
+    const QString projectId = ResolvedProject::deriveId(cfg);
+    const QString buildDir = ResolvedProject::deriveBuildDirectory(buildRoot, projectId);
+    const QString buildGraphFilePath = BuildProject::deriveBuildGraphFilePath(buildDir, projectId);
+
+    PersistentPool pool;
+    qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
+    if (!pool.load(buildGraphFilePath))
+        return m_result;
+    if (!isConfigCompatible(cfg, pool.headData().projectConfig)) {
+        qbsDebug() << "[BG] Cannot use stored build graph: Incompatible project configuration.";
+        return m_result;
+    }
+
+    const BuildProject::Ptr project = BuildProject::Ptr(new BuildProject(bg));
+    TimedActivityLogger loadLogger(QLatin1String("Loading build graph"), QLatin1String("[BG] "));
+    project->load(pool);
+    foreach (const BuildProduct::Ptr &bp, project->buildProducts())
+        bp->project = project;
+    project->resolvedProject()->qbsFile = projectFilePath;
+    project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
+    project->resolvedProject()->buildDirectory = buildDir;
+    m_result.loadedProject = project;
+    loadLogger.finishActivity();
+
+    const FileInfo bgfi(buildGraphFilePath);
+    const bool projectFileChanged = bgfi.lastModified() < FileInfo(projectFilePath).lastModified();
+
+    bool referencedProductRemoved = false;
+    QList<BuildProduct::Ptr> changedProducts;
+    foreach (BuildProduct::Ptr product, project->buildProducts()) {
+        const ResolvedProduct::ConstPtr &resolvedProduct = product->rProduct;
+        const FileInfo pfi(resolvedProduct->qbsFile);
+        if (!pfi.exists()) {
+            referencedProductRemoved = true;
+        } else if (bgfi.lastModified() < pfi.lastModified()) {
+            changedProducts += product;
+        } else {
+            foreach (const ResolvedGroup::Ptr &group, resolvedProduct->groups) {
+                if (!group->wildcards)
+                    continue;
+                const QSet<QString> files
+                        = group->wildcards->expandPatterns(resolvedProduct->sourceDirectory);
+                QSet<QString> wcFiles;
+                foreach (const SourceArtifact::ConstPtr &sourceArtifact, group->wildcards->files)
+                    wcFiles += sourceArtifact->absoluteFilePath;
+                if (files == wcFiles)
+                    continue;
+                changedProducts += product;
+                break;
+            }
+        }
+    }
+
+    if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
+        Loader ldr(bg->engine());
+        ldr.setSearchPaths(loaderSearchPaths);
+        const ResolvedProject::Ptr changedProject
+                = ldr.loadProject(project->resolvedProject()->qbsFile, buildRoot, cfg);
+        m_result.changedResolvedProject = changedProject;
+
+        QMap<QString, ResolvedProduct::Ptr> changedProductsMap;
+        foreach (BuildProduct::Ptr product, changedProducts) {
+            if (changedProductsMap.isEmpty())
+                foreach (ResolvedProduct::Ptr cp, changedProject->products)
+                    changedProductsMap.insert(cp->name, cp);
+            ResolvedProduct::Ptr changedProduct = changedProductsMap.value(product->rProduct->name);
+            if (!changedProduct)
+                continue;
+            onProductChanged(product, changedProduct);
+            if (m_result.discardLoadedProject)
+                return m_result;
+        }
+
+        QSet<QString> oldProductNames, newProductNames;
+        foreach (const BuildProduct::Ptr &product, project->buildProducts())
+            oldProductNames += product->rProduct->name;
+        foreach (const ResolvedProduct::ConstPtr &product, changedProject->products)
+            newProductNames += product->name;
+        QSet<QString> addedProductNames = newProductNames - oldProductNames;
+        if (!addedProductNames.isEmpty()) {
+            m_result.discardLoadedProject = true;
+            return m_result;
+        }
+        QSet<QString> removedProductsNames = oldProductNames - newProductNames;
+        if (!removedProductsNames.isEmpty()) {
+            foreach (const BuildProduct::Ptr &product, project->buildProducts()) {
+                if (removedProductsNames.contains(product->rProduct->name))
+                    onProductRemoved(product);
+            }
+        }
+
+        CycleDetector().visitProject(project);
+    }
+
+    return m_result;
+}
+
+void BuildProjectLoader::onProductRemoved(const BuildProduct::Ptr &product)
+{
+    qbsDebug() << "[BG] product '" << product->rProduct->name << "' removed.";
+
+    product->project->markDirty();
+    product->project->m_buildProducts.remove(product);
+
+    // delete all removed artifacts physically from the disk
+    foreach (Artifact *artifact, product->artifacts) {
+        BuildGraph::disconnectAll(artifact);
+        BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+    }
+}
+
+void BuildProjectLoader::onProductChanged(const BuildProduct::Ptr &product,
+                                          const ResolvedProduct::Ptr &changedProduct)
+{
+    qbsDebug() << "[BG] product '" << product->rProduct->name << "' changed.";
+
+    ArtifactsPerFileTagMap artifactsPerFileTag;
+    QSet<SourceArtifact::ConstPtr> addedSourceArtifacts;
+    QList<Artifact *> addedArtifacts, artifactsToRemove;
+    QHash<QString, SourceArtifact::ConstPtr> oldArtifacts, newArtifacts;
+
+    const QList<SourceArtifact::Ptr> oldProductAllFiles = product->rProduct->allFiles();
+    foreach (const SourceArtifact::ConstPtr &a, oldProductAllFiles)
+        oldArtifacts.insert(a->absoluteFilePath, a);
+    foreach (const SourceArtifact::Ptr &a, changedProduct->allFiles()) {
+        newArtifacts.insert(a->absoluteFilePath, a);
+        if (!oldArtifacts.contains(a->absoluteFilePath)) {
+            // artifact added
+            qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' added to product " << product->rProduct->name;
+            addedArtifacts += BuildGraph::createArtifact(product, a);
+            addedSourceArtifacts += a;
+        }
+    }
+
+    foreach (const SourceArtifact::Ptr &a, oldProductAllFiles) {
+        const SourceArtifact::ConstPtr changedArtifact = newArtifacts.value(a->absoluteFilePath);
+        if (!changedArtifact) {
+            // artifact removed
+            qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' removed from product " << product->rProduct->name;
+            Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
+            Q_ASSERT(artifact);
+            removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
+            continue;
+        }
+        if (!addedSourceArtifacts.contains(changedArtifact)
+            && changedArtifact->properties->value() != a->properties->value())
+        {
+            qbsInfo("Some properties changed. Regenerating build graph.");
+            qbsDebug("Artifact with changed properties: %s", qPrintable(changedArtifact->absoluteFilePath));
+            m_result.discardLoadedProject = true;
+            return;
+        }
+        if (changedArtifact->fileTags != a->fileTags) {
+            // artifact's filetags have changed
+            qbsDebug() << "[BG] filetags have changed for artifact '" << a->absoluteFilePath
+                       << "' from " << a->fileTags << " to " << changedArtifact->fileTags;
+            Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
+            Q_ASSERT(artifact);
+
+            // handle added filetags
+            foreach (const QString &addedFileTag, changedArtifact->fileTags - a->fileTags)
+                artifactsPerFileTag[addedFileTag] += artifact;
+
+            // handle removed filetags
+            foreach (const QString &removedFileTag, a->fileTags - changedArtifact->fileTags) {
+                artifact->fileTags -= removedFileTag;
+                foreach (Artifact *parent, artifact->parents) {
+                    if (parent->transformer && parent->transformer->rule->inputs.contains(removedFileTag)) {
+                        // this parent has been created because of the removed filetag
+                        removeArtifactAndExclusiveDependents(parent, &artifactsToRemove);
+                    }
+                }
+            }
+        }
+    }
+
+    // Discard groups of the old product. Use the groups of the new one.
+    product->rProduct->groups = changedProduct->groups;
+    product->rProduct->properties = changedProduct->properties;
+
+    BuildGraph * const bg = product->project->buildGraph();
+
+    // apply rules for new artifacts
+    foreach (Artifact *artifact, addedArtifacts)
+        foreach (const QString &ft, artifact->fileTags)
+            artifactsPerFileTag[ft] += artifact;
+    bg->applyRules(product.data(), artifactsPerFileTag);
+
+    // parents of removed artifacts must update their transformers
+    foreach (Artifact *removedArtifact, artifactsToRemove)
+        foreach (Artifact *parent, removedArtifact->parents)
+            bg->addToArtifactsThatMustGetNewTransformers(parent);
+    bg->updateNodesThatMustGetNewTransformer();
+
+    // delete all removed artifacts physically from the disk
+    foreach (Artifact *artifact, artifactsToRemove) {
+        bg->removeGeneratedArtifactFromDisk(artifact);
+        delete artifact;
+    }
+}
+
+/**
+  * Removes the artifact and all the artifacts that depend exclusively on it.
+  * Example: if you remove a cpp artifact then the obj artifact is removed but
+  * not the resulting application (if there's more then one cpp artifact).
+  */
+void BuildProjectLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
+                                                              QList<Artifact*> *removedArtifacts)
+{
+    BuildGraph * const bg = artifact->project->buildGraph();
+    if (removedArtifacts)
+        removedArtifacts->append(artifact);
+    foreach (Artifact *parent, artifact->parents) {
+        bool removeParent = false;
+        BuildGraph::disconnect(parent, artifact);
+        if (parent->children.isEmpty()) {
+            removeParent = true;
+        } else if (parent->transformer) {
+            bg->addToArtifactsThatMustGetNewTransformers(parent);
+            parent->transformer->inputs.remove(artifact);
+            removeParent = parent->transformer->inputs.isEmpty();
+        }
+        if (removeParent)
+            removeArtifactAndExclusiveDependents(parent, removedArtifacts);
+    }
+    bg->remove(artifact);
 }
 
 } // namespace Internal

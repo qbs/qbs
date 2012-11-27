@@ -142,7 +142,7 @@ void InternalSetupProjectJob::execute()
     buildGraph->setEngine(&scriptEngine);
     buildGraph->setProgressObserver(observer());
     const QStringList searchPaths = Settings().searchPaths();
-    const BuildProject::LoadResult loadResult = BuildProject::load(m_projectFilePath,
+    const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
             buildGraph.data(), m_buildRoot, m_buildConfig, searchPaths);
 
     ResolvedProject::Ptr rProject;
@@ -182,7 +182,7 @@ void InternalSetupProjectJob::execute()
         return;
 
     TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
-    m_buildProject = buildGraph.data()->resolveProject(rProject);
+    m_buildProject = BuildProjectResolver().resolveProject(rProject, buildGraph.data(), observer());
     if (loadResult.loadedProject)
         m_buildProject->rescueDependencies(loadResult.loadedProject);
     buildGraph.take();

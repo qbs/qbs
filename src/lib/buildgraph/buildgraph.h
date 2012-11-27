@@ -87,10 +87,13 @@ private:
 };
 
 class BuildGraph;
+class BuildProjectLoader;
+class BuildProjectResolver;
 
 class BuildProject : public PersistentObject
 {
-    friend class BuildGraph;
+    friend class BuildProjectLoader;
+    friend class BuildProjectResolver;
 public:
     typedef QSharedPointer<BuildProject> Ptr;
     typedef QSharedPointer<const BuildProject> ConstPtr;
@@ -98,15 +101,6 @@ public:
     BuildProject(BuildGraph *bg);
     ~BuildProject();
 
-    struct LoadResult
-    {
-        ResolvedProject::Ptr changedResolvedProject;
-        BuildProject::Ptr loadedProject;
-        bool discardLoadedProject;
-    };
-
-    static LoadResult load(const QString &projectFilePath, BuildGraph *bg, const QString &buildRoot,
-                           const QVariantMap &cfg, const QStringList &loaderSearchPaths);
     void store() const;
     static QString deriveBuildGraphFilePath(const QString &buildDir, const QString projectId);
     QString buildGraphFilePath() const;
@@ -122,8 +116,6 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     void insertFileDependency(Artifact *artifact);
     void rescueDependencies(const BuildProject::Ptr &other);
-
-    void onProductRemoved(const BuildProduct::Ptr &product);
 
 private:
     void load(PersistentPool &pool);
@@ -153,35 +145,47 @@ private:
 class BuildGraph
 {
 public:
+    class EngineInitializer
+    {
+    public:
+        EngineInitializer(BuildGraph *bg);
+        ~EngineInitializer();
+
+    private:
+        BuildGraph *buildGraph;
+    };
+
     BuildGraph();
     ~BuildGraph();
 
     void setEngine(ScriptEngine *engine);
     ScriptEngine *engine() { return m_engine; }
 
-    BuildProject::Ptr resolveProject(ResolvedProject::Ptr);
-
     void applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
 
     void setProgressObserver(ProgressObserver *observer);
-    const ProgressObserver *progressObserver() const;
     void checkCancelation() const;
+
+    static Artifact *createArtifact(const BuildProduct::Ptr &product,
+                                    const SourceArtifact::ConstPtr &sourceArtifact);
 
     static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
     static void loggedConnect(Artifact *u, Artifact *v);
     static bool safeConnect(Artifact *u, Artifact *v);
-    void insert(BuildProduct::Ptr target, Artifact *n) const;
-    void insert(BuildProduct *target, Artifact *n) const;
+    static void insert(BuildProduct::Ptr target, Artifact *n);
+    static void insert(BuildProduct *target, Artifact *n);
     void remove(Artifact *artifact) const;
-    void removeArtifactAndExclusiveDependents(Artifact *artifact, QList<Artifact*> *removedArtifacts = 0);
     static void removeGeneratedArtifactFromDisk(Artifact *artifact);
 
-    void onProductChanged(BuildProduct::Ptr product, ResolvedProduct::Ptr changedProduct, bool *discardStoredProject);
     void updateNodesThatMustGetNewTransformer();
     void removeFromArtifactsThatMustGetNewTransformers(Artifact *a) {
         m_artifactsThatMustGetNewTransformers -= a;
     }
+    void addToArtifactsThatMustGetNewTransformers(Artifact *a) {
+        m_artifactsThatMustGetNewTransformers += a;
+    }
+
     void createTransformerCommands(const PrepareScript::ConstPtr &script, Transformer *transformer);
 
     static void setupScriptEngineForProduct(ScriptEngine *scriptEngine,
@@ -195,27 +199,13 @@ public:
 private:
     void initEngine();
     void cleanupEngine();
-    BuildProduct::Ptr resolveProduct(const BuildProject::Ptr &project,
-                                     const ResolvedProduct::Ptr &rProduct);
-    Artifact *createArtifact(BuildProduct::Ptr product, SourceArtifact::ConstPtr sourceArtifact);
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
-
-    class EngineInitializer
-    {
-    public:
-        EngineInitializer(BuildGraph *bg);
-        ~EngineInitializer();
-
-    private:
-        BuildGraph *buildGraph;
-    };
 
     ProgressObserver *m_progressObserver;
     ScriptEngine *m_engine;
     unsigned int m_initEngineCalls;
     QScriptValue m_scope;
     QScriptValue m_prepareScriptScope;
-    QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
     QHash<QString, QScriptProgram> m_scriptProgramCache;
     mutable QSet<Artifact *> m_artifactsThatMustGetNewTransformers;
 
@@ -246,6 +236,49 @@ private:
 
     Rule::ConstPtr m_rule;
     QSharedPointer<Transformer> m_transformer;
+};
+
+class BuildProjectResolver
+{
+public:
+    BuildProject::Ptr resolveProject(const ResolvedProject::Ptr &resolvedProject,
+                                     BuildGraph *buildgraph, ProgressObserver *observer = 0);
+
+private:
+    BuildProduct::Ptr resolveProduct(const ResolvedProduct::Ptr &rProduct);
+
+    BuildGraph *buildGraph() const { return m_project->buildGraph(); }
+    ScriptEngine *engine() const { return buildGraph()->engine(); }
+    QScriptValue scope() const;
+
+    BuildProject::Ptr m_project;
+    ProgressObserver *m_observer;
+    QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
+};
+
+class BuildProjectLoader
+{
+public:
+    struct LoadResult
+    {
+        LoadResult() : discardLoadedProject(false) {}
+
+        ResolvedProject::Ptr changedResolvedProject;
+        BuildProject::Ptr loadedProject;
+        bool discardLoadedProject;
+    };
+
+    LoadResult load(const QString &projectFilePath, BuildGraph *bg, const QString &buildRoot,
+                    const QVariantMap &cfg, const QStringList &loaderSearchPaths);
+
+private:
+    void onProductRemoved(const BuildProduct::Ptr &product);
+    void onProductChanged(const BuildProduct::Ptr &product,
+                          const ResolvedProduct::Ptr &changedProduct);
+    void removeArtifactAndExclusiveDependents(Artifact *artifact,
+                                              QList<Artifact*> *removedArtifacts = 0);
+
+    LoadResult m_result;
 };
 
 // debugging helper
