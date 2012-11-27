@@ -762,6 +762,8 @@ void Executor::setState(ExecutorState s)
 
 void Executor::setError(const Error &e)
 {
+    if (m_state != ExecutorRunning)
+        return;
     setState(ExecutorError);
     cancelJobs();
     emit error(e);
