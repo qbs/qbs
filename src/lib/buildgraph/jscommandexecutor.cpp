@@ -37,6 +37,7 @@
 #include <jsextensions/file.h>
 #include <jsextensions/process.h>
 #include <jsextensions/textfile.h>
+#include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/codelocation.h>
@@ -86,7 +87,7 @@ public:
 
             Artifact *someOutputArtifact = *transformer->outputs.begin();
             if (someOutputArtifact->product) {
-                const ResolvedProduct::ConstPtr product = someOutputArtifact->product->rProduct;
+                const ResolvedProductConstPtr product = someOutputArtifact->product->rProduct;
                 BuildGraph::setupScriptEngineForProduct(scriptEngine, product, transformer->rule,
                                                         scriptEngine->globalObject());
             }

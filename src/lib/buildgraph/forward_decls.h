@@ -26,35 +26,29 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef CYCLEDETECTOR_H
-#define CYCLEDETECTOR_H
+#ifndef QBS_BG_FORWARD_DECLS_H
+#define QBS_BG_FORWARD_DECLS_H
 
-#include "artifactvisitor.h"
-
-#include <QSet>
+#include <QSharedPointer>
 
 namespace qbs {
 namespace Internal {
 
-class CycleDetector : public ArtifactVisitor
-{
-public:
-    CycleDetector();
+class Artifact;
 
-    void visitProject(const BuildProjectConstPtr &project);
-    void visitArtifact(Artifact *artifact);
+class BuildProject;
+typedef QSharedPointer<BuildProject> BuildProjectPtr;
+typedef QSharedPointer<const BuildProject> BuildProjectConstPtr;
 
-private:
-    void doVisit(Artifact *artifact);
+class BuildProduct;
+typedef QSharedPointer<BuildProduct> BuildProductPtr;
+typedef QSharedPointer<const BuildProduct> BuildProductConstPtr;
 
-    QList<Artifact *> cycle(Artifact *doubleEntry);
-
-    QSet<Artifact *> m_allArtifacts;
-    QSet<Artifact *> m_artifactsInCurrentPath;
-    Artifact *m_parent;
-};
+class Transformer;
+typedef QSharedPointer<Transformer> TransformerPtr;
+typedef QSharedPointer<const Transformer> TransformerConstPtr;
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // CYCLEDETECTOR_H
+#endif // QBS_BG_FORWARD_DECLS_H

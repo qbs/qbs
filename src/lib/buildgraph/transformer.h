@@ -31,9 +31,10 @@
 #define TRANSFORMER_H
 
 #include "artifactlist.h"
+#include "forward_decls.h"
+#include <language/forward_decls.h>
 #include <tools/persistentobject.h>
 
-#include <QSharedPointer>
 #include <QScriptEngine>
 
 namespace qbs {
@@ -46,15 +47,13 @@ class Rule;
 class Transformer : public PersistentObject
 {
 public:
-    typedef QSharedPointer<Transformer> Ptr;
-
-    static Ptr create() { return Ptr(new Transformer); }
+    static TransformerPtr create() { return TransformerPtr(new Transformer); }
 
     ~Transformer();
 
     ArtifactList inputs; // can be different from "children of all outputs"
     ArtifactList outputs;
-    QSharedPointer<const Rule> rule;
+    RuleConstPtr rule;
     QList<AbstractCommand *> commands;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,

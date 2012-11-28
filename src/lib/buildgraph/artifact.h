@@ -31,7 +31,10 @@
 #define ARTIFACT_H
 
 #include "artifactlist.h"
-#include <language/language.h>
+#include "forward_decls.h"
+#include <language/forward_decls.h>
+#include <tools/filetime.h>
+#include <tools/persistentobject.h>
 
 #include <QSet>
 #include <QString>
@@ -63,8 +66,8 @@ public:
     QSet<QString> fileTags;
     BuildProject *project;
     BuildProduct *product;          // Note: file dependency artifacts don't belong to a product.
-    QSharedPointer<Transformer> transformer;
-    PropertyMap::Ptr properties;
+    TransformerPtr transformer;
+    PropertyMapPtr properties;
 
     enum ArtifactType
     {

@@ -30,6 +30,7 @@
 #include "transformer.h"
 #include "artifact.h"
 #include "command.h"
+#include <language/language.h>
 
 namespace qbs {
 namespace Internal {

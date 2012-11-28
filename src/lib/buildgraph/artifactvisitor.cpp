@@ -29,6 +29,8 @@
 #include "artifactvisitor.h"
 
 #include "artifact.h"
+#include "buildgraph.h"
+#include <language/language.h>
 
 namespace qbs {
 namespace Internal {
@@ -50,15 +52,15 @@ void ArtifactVisitor::visitArtifact(Artifact *artifact)
         visitArtifact(child);
 }
 
-void ArtifactVisitor::visitProduct(const BuildProduct::ConstPtr &product)
+void ArtifactVisitor::visitProduct(const BuildProductConstPtr &product)
 {
     foreach (Artifact * const artifact, product->targetArtifacts)
         visitArtifact(artifact);
 }
 
-void ArtifactVisitor::visitProject(const BuildProject::ConstPtr &project)
+void ArtifactVisitor::visitProject(const BuildProjectConstPtr &project)
 {
-    foreach (const BuildProduct::ConstPtr &product, project->buildProducts())
+    foreach (const BuildProductConstPtr &product, project->buildProducts())
         visitProduct(product);
 }
 

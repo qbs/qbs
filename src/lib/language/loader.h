@@ -29,7 +29,7 @@
 #ifndef  LOADER_H
 #define  LOADER_H
 
-#include "language.h"
+#include "forward_decls.h"
 
 #include <QStringList>
 #include <QVariantMap>
@@ -47,7 +47,7 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
-    ResolvedProject::Ptr loadProject(const QString &fileName, const QString &buildRoot,
+    ResolvedProjectPtr loadProject(const QString &fileName, const QString &buildRoot,
                                      const QVariantMap &userProperties);
     QByteArray qmlTypeInfo();
 

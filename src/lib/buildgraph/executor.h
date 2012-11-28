@@ -30,8 +30,7 @@
 #ifndef BUILDGRAPHEXECUTOR_H
 #define BUILDGRAPHEXECUTOR_H
 
-#include "buildgraph.h"
-
+#include "forward_decls.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/scanresultcache.h>
 #include <tools/buildoptions.h>
@@ -48,6 +47,7 @@ class ExecutorJob;
 class InputArtifactScannerContext;
 class ProgressObserver;
 class ScanResultCache;
+class ScriptEngine;
 
 class Executor : public QObject
 {
@@ -56,7 +56,7 @@ public:
     Executor(QObject *parent = 0);
     ~Executor();
 
-    void build(const QList<BuildProduct::Ptr> &productsToBuild);
+    void build(const QList<BuildProductPtr> &productsToBuild);
 
     void setEngine(ScriptEngine *engine);
     void setBuildOptions(const BuildOptions &buildOptions);
@@ -76,7 +76,7 @@ private slots:
 private:
     enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
 
-    void doBuild(const QList<BuildProduct::Ptr> &productsToBuild);
+    void doBuild(const QList<BuildProductPtr> &productsToBuild);
     void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void updateBuildGraph(Artifact::BuildState buildState);
@@ -102,7 +102,7 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
-    QList<BuildProduct::Ptr> m_productsToBuild;
+    QList<BuildProductPtr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QList<Artifact *> m_leaves;
     ScanResultCache m_scanResultCache;

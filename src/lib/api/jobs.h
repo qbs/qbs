@@ -29,16 +29,15 @@
 #ifndef JOBS_H
 #define JOBS_H
 
+#include <buildgraph/forward_decls.h>
 #include <tools/error.h>
 
 #include <QObject>
-#include <QSharedPointer>
 #include <QVariantMap>
 
 namespace qbs {
 class BuildOptions;
 namespace Internal {
-class BuildProduct;
 class InternalJob;
 class ProjectPrivate;
 } // namespace Internal
@@ -101,8 +100,7 @@ class BuildJob : public AbstractJob
 private:
     BuildJob(QObject *parent);
 
-    void build(const QList<QSharedPointer<Internal::BuildProduct> > &products,
-               const BuildOptions &options);
+    void build(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options);
 };
 
 
@@ -113,8 +111,8 @@ class CleanJob : public AbstractJob
 private:
     CleanJob(QObject *parent);
 
-    void clean(const QList<QSharedPointer<Internal::BuildProduct> > &products,
-               const BuildOptions &options, bool cleanAll);
+    void clean(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
+               bool cleanAll);
 };
 } // namespace qbs
 

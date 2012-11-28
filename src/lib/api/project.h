@@ -29,9 +29,10 @@
 #ifndef QBS_PROJECT_H
 #define QBS_PROJECT_H
 
+#include <buildgraph/forward_decls.h>
+
 #include <QExplicitlySharedDataPointer>
 #include <QList>
-#include <QSharedPointer>
 #include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
@@ -88,7 +89,7 @@ public:
 
 private:
     Project();
-    Project(const QSharedPointer<Internal::BuildProject> &internalProject);
+    Project(const Internal::BuildProjectPtr &internalProject);
 
     QExplicitlySharedDataPointer<Internal::ProjectPrivate> d;
 };

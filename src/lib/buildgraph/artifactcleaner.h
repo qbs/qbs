@@ -31,18 +31,17 @@
 
 #include <QList>
 
-#include "buildgraph.h"
+#include "forward_decls.h"
 
 namespace qbs {
 class BuildOptions;
 
 namespace Internal {
-class Artifact;
 
 class ArtifactCleaner
 {
 public:
-    void cleanup(const QList<BuildProduct::Ptr> &products, bool removeAll,
+    void cleanup(const QList<BuildProductPtr> &products, bool removeAll,
                  const BuildOptions &buildOptions);
 
 private:

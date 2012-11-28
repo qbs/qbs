@@ -31,6 +31,7 @@
 #include "artifact.h"
 #include "buildgraph.h"
 
+#include <language/language.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 
@@ -41,7 +42,7 @@ CycleDetector::CycleDetector() : ArtifactVisitor(0), m_parent(0)
 {
 }
 
-void CycleDetector::visitProject(const BuildProject::ConstPtr &project)
+void CycleDetector::visitProject(const BuildProjectConstPtr &project)
 {
     const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
                 .arg(project->resolvedProject()->id());

@@ -31,6 +31,8 @@
 #include "transformer.h"
 #include "buildgraph.h"
 
+#include <language/language.h>
+#include <tools/fileinfo.h>
 #include <tools/persistence.h>
 
 QT_BEGIN_NAMESPACE

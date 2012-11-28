@@ -30,6 +30,7 @@
 #ifndef TST_LANGUAGE_H
 #define TST_LANGUAGE_H
 
+#include <language/forward_decls.h>
 #include <language/loader.h>
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
@@ -42,12 +43,12 @@ class TestLanguage : public QObject
 {
     Q_OBJECT
     Loader *loader;
-    ResolvedProject::Ptr project;
+    ResolvedProjectPtr project;
     QVariantMap buildConfig;
 
-    QHash<QString, ResolvedProduct::Ptr> productsFromProject(ResolvedProject::Ptr project);
-    ResolvedModule::ConstPtr findModuleByName(ResolvedProduct::Ptr product, const QString &name);
-    QVariant productPropertyValue(ResolvedProduct::Ptr product, QString propertyName);
+    QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
+    ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
+    QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
 
 private slots:
     void initTestCase();

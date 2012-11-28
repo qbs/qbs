@@ -2,6 +2,7 @@ QT = core script
 greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 TEMPLATE = lib
 DESTDIR = ../../lib
+INCLUDEPATH += $$PWD
 TARGET = qbscore
 
 CONFIG += static depend_includepath

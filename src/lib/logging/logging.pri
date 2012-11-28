@@ -1,5 +1,3 @@
-INCLUDEPATH += $$PWD/..  $$PWD/../..
-
 HEADERS += \
     $$PWD/logger.h \
     $$PWD/consolelogger.h \

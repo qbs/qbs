@@ -30,13 +30,12 @@
 #ifndef AUTOMOC_H
 #define AUTOMOC_H
 
-#include "buildgraph.h"
+#include "forward_decls.h"
 
 struct ScannerPlugin;
 
 namespace qbs {
 namespace Internal {
-
 class ScanResultCache;
 
 /**
@@ -53,7 +52,7 @@ public:
     AutoMoc();
 
     void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(BuildProduct::Ptr product);
+    void apply(BuildProductPtr product);
 
 private:
     enum FileType

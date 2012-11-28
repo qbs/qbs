@@ -26,11 +26,12 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "executor.h"
 
 #include "artifactvisitor.h"
 #include "automoc.h"
+#include "buildgraph.h"
 #include "cycledetector.h"
-#include "executor.h"
 #include "executorjob.h"
 #include "inputartifactscanner.h"
 
@@ -119,7 +120,7 @@ static void retrieveSourceFileTimestamp(Artifact *artifact)
     }
 }
 
-void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
+void Executor::build(const QList<BuildProductPtr> &productsToBuild)
 {
     try {
         doBuild(productsToBuild);
@@ -129,7 +130,7 @@ void Executor::build(const QList<BuildProduct::Ptr> &productsToBuild)
     }
 }
 
-void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
+void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
 {
     Q_ASSERT(m_buildOptions.maxJobCount > 0);
     Q_ASSERT(m_engine);
@@ -140,7 +141,7 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
     m_explicitlyCanceled = false;
 
     QSet<BuildProject *> projects;
-    foreach (const BuildProduct::ConstPtr &buildProduct, productsToBuild)
+    foreach (const BuildProductConstPtr &buildProduct, productsToBuild)
         projects << buildProduct->project;
     foreach (BuildProject * const project, projects) {
         project->buildGraph()->setEngine(m_engine);
@@ -168,12 +169,12 @@ void Executor::doBuild(const QList<BuildProduct::Ptr> &productsToBuild)
 
     // prepare products
     const QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
-    foreach (BuildProduct::Ptr product, m_productsToBuild)
+    foreach (BuildProductPtr product, m_productsToBuild)
         product->rProduct->setupBuildEnvironment(m_engine, systemEnvironment);
 
     // find the root nodes
     m_roots.clear();
-    foreach (BuildProduct::Ptr product, m_productsToBuild) {
+    foreach (BuildProductPtr product, m_productsToBuild) {
         foreach (Artifact *targetArtifact, product->targetArtifacts) {
             m_roots += targetArtifact;
 
@@ -309,7 +310,7 @@ static bool isUpToDate(Artifact *artifact)
     return true;
 }
 
-static bool mustExecuteTransformer(const QSharedPointer<Transformer> &transformer)
+static bool mustExecuteTransformer(const TransformerPtr &transformer)
 {
     foreach (Artifact *artifact, transformer->outputs)
         if (artifact->alwaysUpdated)
@@ -561,10 +562,10 @@ void Executor::setupProgressObserver(bool mocWillRun)
         return;
     MocEffortCalculator mocEffortCalculator;
     BuildEffortCalculator buildEffortCalculator;
-    foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
+    foreach (const BuildProductConstPtr &product, m_productsToBuild)
         buildEffortCalculator.visitProduct(product);
     if (mocWillRun) {
-        foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
+        foreach (const BuildProductConstPtr &product, m_productsToBuild)
             mocEffortCalculator.visitProduct(product);
     }
     m_mocEffort = mocEffortCalculator.effort();
@@ -600,9 +601,9 @@ void Executor::removeExecutorJobs(int jobNumber)
 void Executor::runAutoMoc()
 {
     bool autoMocApplied = false;
-    foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
+    foreach (const BuildProductPtr &product, m_productsToBuild) {
         // HACK call the automoc thingy here only if we have use qt/core module
-        foreach (const ResolvedModule::ConstPtr &m, product->rProduct->modules) {
+        foreach (const ResolvedModuleConstPtr &m, product->rProduct->modules) {
             if (m->name == "qt/core") {
                 autoMocApplied = true;
                 m_autoMoc->apply(product);
@@ -611,7 +612,7 @@ void Executor::runAutoMoc()
         }
     }
     if (autoMocApplied) {
-        foreach (const BuildProduct::ConstPtr &product, m_productsToBuild)
+        foreach (const BuildProductConstPtr &product, m_productsToBuild)
             CycleDetector().visitProduct(product);
     }
     if (m_progressObserver)
@@ -652,7 +653,7 @@ void Executor::finish()
     Q_ASSERT(m_state != ExecutorIdle);
 
     QStringList unbuiltProductNames;
-    foreach (BuildProduct::Ptr buildProduct, m_productsToBuild) {
+    foreach (BuildProductPtr buildProduct, m_productsToBuild) {
         foreach (Artifact *artifact, buildProduct->targetArtifacts) {
             if (artifact->buildState != Artifact::Built) {
                 unbuiltProductNames += buildProduct->rProduct->name;
@@ -682,7 +683,7 @@ void Executor::finish()
   */
 void Executor::initializeArtifactsState()
 {
-    foreach (const BuildProduct::Ptr &product, m_productsToBuild) {
+    foreach (const BuildProductPtr &product, m_productsToBuild) {
         foreach (Artifact *artifact, product->artifacts) {
             artifact->buildState = Artifact::Untouched;
             artifact->inputsScanned = false;

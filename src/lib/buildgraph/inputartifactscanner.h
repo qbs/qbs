@@ -31,10 +31,10 @@
 #define INPUTARTIFACTSCANNER_H
 
 #include "scanresultcache.h"
+#include <language/forward_decls.h>
 
 #include <QHash>
 #include <QStringList>
-#include <QSharedPointer>
 
 struct ScannerPlugin;
 
@@ -88,7 +88,7 @@ private:
         ResolvedDependenciesCache resolvedDependenciesCache;
     };
 
-    QHash<QSharedPointer<const PropertyMap>, CacheItem> cache;
+    QHash<PropertyMapConstPtr, CacheItem> cache;
 
     friend class InputArtifactScanner;
 };

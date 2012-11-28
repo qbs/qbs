@@ -30,9 +30,12 @@
 #ifndef RULEGRAPH_H
 #define RULEGRAPH_H
 
-#include <language.h>
+#include <language/forward_decls.h>
 
+#include <QList>
+#include <QMap>
 #include <QSet>
+#include <QString>
 #include <QVector>
 
 namespace qbs {
@@ -43,23 +46,23 @@ class RuleGraph
 public:
     RuleGraph();
 
-    void build(const QSet<Rule::Ptr> &rules, const QStringList &productFileTag);
-    QList<Rule::ConstPtr> topSorted();
+    void build(const QSet<RulePtr> &rules, const QStringList &productFileTag);
+    QList<RuleConstPtr> topSorted();
 
     void dump() const;
 
 private:
     void dump_impl(QByteArray &indent, int rootIndex) const;
-    int insert(const Rule::Ptr &rule);
+    int insert(const RulePtr &rule);
     void connect(const Rule *creatingRule, const Rule *consumingRule);
     void remove(Rule *rule);
     void removeParents(const Rule *rule);
     void removeSiblings(const Rule *rule);
-    QList<Rule::ConstPtr> topSort(const Rule::ConstPtr &rule);
+    QList<RuleConstPtr> topSort(const RuleConstPtr &rule);
 
 private:
     QMap<QString, QList<const Rule*> > m_outputFileTagToRule;
-    QVector<Rule::Ptr> m_artifacts;
+    QVector<RulePtr> m_artifacts;
     QVector< QVector<int> > m_parents;
     QVector< QVector<int> > m_children;
     QSet<int> m_rootRules;

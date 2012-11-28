@@ -31,16 +31,17 @@
 #define BUILDGRAPH_H
 
 #include "artifactlist.h"
+#include "forward_decls.h"
 
-#include <language/language.h>
+#include <language/forward_decls.h>
 #include <tools/error.h>
 #include <tools/persistentobject.h>
 #include <tools/weakpointer.h>
 
 #include <QDir>
+#include <QScriptProgram>
 #include <QScriptValue>
 #include <QSet>
-#include <QSharedPointer>
 #include <QStringList>
 #include <QVariant>
 #include <QVector>
@@ -48,9 +49,8 @@
 namespace qbs {
 
 namespace Internal {
-class Artifact;
-class BuildProject;
 class ProgressObserver;
+class ScriptEngine;
 class Transformer;
 
 typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
@@ -58,22 +58,19 @@ typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
 class BuildProduct : public PersistentObject
 {
 public:
-    typedef QSharedPointer<BuildProduct> Ptr;
-    typedef QSharedPointer<const BuildProduct> ConstPtr;
-
-    static Ptr create() { return Ptr(new BuildProduct); }
+    static BuildProductPtr create() { return BuildProductPtr(new BuildProduct); }
 
     ~BuildProduct();
 
     void dump() const;
-    const QList<Rule::ConstPtr> &topSortedRules() const;
+    const QList<RuleConstPtr> &topSortedRules() const;
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
 
     WeakPointer<BuildProject> project;
-    ResolvedProduct::Ptr rProduct;
+    ResolvedProductPtr rProduct;
     QSet<Artifact *> targetArtifacts;
-    QList<BuildProduct::Ptr> dependencies;
+    QList<BuildProductPtr> dependencies;
     ArtifactList artifacts;
 
 private:
@@ -83,7 +80,7 @@ private:
     void store(PersistentPool &pool) const;
 
 private:
-    mutable QList<Rule::ConstPtr> m_topSortedRules;
+    mutable QList<RuleConstPtr> m_topSortedRules;
 };
 
 class BuildGraph;
@@ -95,9 +92,6 @@ class BuildProject : public PersistentObject
     friend class BuildProjectLoader;
     friend class BuildProjectResolver;
 public:
-    typedef QSharedPointer<BuildProject> Ptr;
-    typedef QSharedPointer<const BuildProject> ConstPtr;
-
     BuildProject(BuildGraph *bg);
     ~BuildProject();
 
@@ -106,8 +100,8 @@ public:
     QString buildGraphFilePath() const;
 
     BuildGraph *buildGraph() const;
-    ResolvedProject::Ptr resolvedProject() const;
-    QSet<BuildProduct::Ptr> buildProducts() const;
+    ResolvedProjectPtr resolvedProject() const;
+    QSet<BuildProductPtr> buildProducts() const;
     bool dirty() const;
     void markDirty();
     void insertIntoArtifactLookupTable(Artifact *artifact);
@@ -115,18 +109,18 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &filePath) const;
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     void insertFileDependency(Artifact *artifact);
-    void rescueDependencies(const BuildProject::Ptr &other);
+    void rescueDependencies(const BuildProjectPtr &other);
 
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
-    void addBuildProduct(const BuildProduct::Ptr &product);
-    void setResolvedProject(const ResolvedProject::Ptr & resolvedProject);
+    void addBuildProduct(const BuildProductPtr &product);
+    void setResolvedProject(const ResolvedProjectPtr &resolvedProject);
 
 private:
     BuildGraph *m_buildGraph;
-    ResolvedProject::Ptr m_resolvedProject;
-    QSet<BuildProduct::Ptr> m_buildProducts;
+    ResolvedProjectPtr m_resolvedProject;
+    QSet<BuildProductPtr> m_buildProducts;
     ArtifactList m_dependencyArtifacts;
     QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
     mutable bool m_dirty;
@@ -166,14 +160,14 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void checkCancelation() const;
 
-    static Artifact *createArtifact(const BuildProduct::Ptr &product,
-                                    const SourceArtifact::ConstPtr &sourceArtifact);
+    static Artifact *createArtifact(const BuildProductPtr &product,
+                                    const SourceArtifactConstPtr &sourceArtifact);
 
     static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
     static void loggedConnect(Artifact *u, Artifact *v);
     static bool safeConnect(Artifact *u, Artifact *v);
-    static void insert(BuildProduct::Ptr target, Artifact *n);
+    static void insert(BuildProductPtr target, Artifact *n);
     static void insert(BuildProduct *target, Artifact *n);
     void remove(Artifact *artifact) const;
     static void removeGeneratedArtifactFromDisk(Artifact *artifact);
@@ -186,11 +180,11 @@ public:
         m_artifactsThatMustGetNewTransformers += a;
     }
 
-    void createTransformerCommands(const PrepareScript::ConstPtr &script, Transformer *transformer);
+    void createTransformerCommands(const PrepareScriptConstPtr &script, Transformer *transformer);
 
     static void setupScriptEngineForProduct(ScriptEngine *scriptEngine,
-                                            const ResolvedProduct::ConstPtr &product,
-                                            Rule::ConstPtr rule, QScriptValue targetObject);
+                                            const ResolvedProductConstPtr &product,
+                                            RuleConstPtr rule, QScriptValue targetObject);
     static void disconnect(Artifact *u, Artifact *v);
     static void disconnectChildren(Artifact *u);
     static void disconnectParents(Artifact *u);
@@ -218,12 +212,12 @@ public:
     RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
             BuildGraph *bg);
     void applyAllRules();
-    void applyRule(const Rule::ConstPtr &rule);
+    void applyRule(const RuleConstPtr &rule);
 
 private:
     void doApply(const ArtifactList &inputArtifacts);
     void setupScriptEngineForArtifact(Artifact *artifact);
-    Artifact *createOutputArtifact(const RuleArtifact::ConstPtr &ruleArtifact,
+    Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
             const ArtifactList &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
 
@@ -234,26 +228,26 @@ private:
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
     BuildGraph * const m_buildGraph;
 
-    Rule::ConstPtr m_rule;
-    QSharedPointer<Transformer> m_transformer;
+    RuleConstPtr m_rule;
+    TransformerPtr m_transformer;
 };
 
 class BuildProjectResolver
 {
 public:
-    BuildProject::Ptr resolveProject(const ResolvedProject::Ptr &resolvedProject,
+    BuildProjectPtr resolveProject(const ResolvedProjectPtr &resolvedProject,
                                      BuildGraph *buildgraph, ProgressObserver *observer = 0);
 
 private:
-    BuildProduct::Ptr resolveProduct(const ResolvedProduct::Ptr &rProduct);
+    BuildProductPtr resolveProduct(const ResolvedProductPtr &rProduct);
 
     BuildGraph *buildGraph() const { return m_project->buildGraph(); }
     ScriptEngine *engine() const { return buildGraph()->engine(); }
     QScriptValue scope() const;
 
-    BuildProject::Ptr m_project;
+    BuildProjectPtr m_project;
     ProgressObserver *m_observer;
-    QHash<ResolvedProduct::Ptr, BuildProduct::Ptr> m_productCache;
+    QHash<ResolvedProductPtr, BuildProductPtr> m_productCache;
 };
 
 class BuildProjectLoader
@@ -263,8 +257,8 @@ public:
     {
         LoadResult() : discardLoadedProject(false) {}
 
-        ResolvedProject::Ptr changedResolvedProject;
-        BuildProject::Ptr loadedProject;
+        ResolvedProjectPtr changedResolvedProject;
+        BuildProjectPtr loadedProject;
         bool discardLoadedProject;
     };
 
@@ -272,9 +266,9 @@ public:
                     const QVariantMap &cfg, const QStringList &loaderSearchPaths);
 
 private:
-    void onProductRemoved(const BuildProduct::Ptr &product);
-    void onProductChanged(const BuildProduct::Ptr &product,
-                          const ResolvedProduct::Ptr &changedProduct);
+    void onProductRemoved(const BuildProductPtr &product);
+    void onProductChanged(const BuildProductPtr &product,
+                          const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
                                               QList<Artifact*> *removedArtifacts = 0);
 

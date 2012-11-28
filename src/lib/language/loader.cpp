@@ -396,7 +396,7 @@ public:
     LoaderPrivate(ScriptEngine *engine);
 
     void loadProject(const QString &fileName);
-    ResolvedProject::Ptr resolveProject(const QString &buildRoot,
+    ResolvedProjectPtr resolveProject(const QString &buildRoot,
                                         const QVariantMap &userProperties);
     ProjectFile::Ptr parseFile(const QString &fileName);
 
@@ -418,9 +418,9 @@ public:
     void evaluateDependencyConditions(EvaluationObject *evaluationObject);
     void evaluateImports(Scope::Ptr target, const JsImports &jsImports);
     void evaluatePropertyOptions(LanguageObject *object);
-    QVariantMap evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
+    QVariantMap evaluateAll(const ResolvedProductConstPtr &rproduct,
                             const Scope::Ptr &properties);
-    QVariantMap evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+    QVariantMap evaluateModuleValues(const ResolvedProductConstPtr &rproduct,
                                      EvaluationObject *moduleContainer, Scope::Ptr objectScope);
     void resolveInheritance(LanguageObject *object, EvaluationObject *evaluationObject,
                             ScopeChain::Ptr moduleScope = ScopeChain::Ptr(), const QVariantMap &userProperties = QVariantMap());
@@ -428,14 +428,14 @@ public:
     void fillEvaluationObjectBasics(const ScopeChain::Ptr &scope, LanguageObject *object, EvaluationObject *evaluationObject);
     void setupBuiltinDeclarations();
     void setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject);
-    void resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module);
-    void resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group);
-    void resolveProductModule(const ResolvedProduct::ConstPtr &rproduct, EvaluationObject *group);
-    void resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module);
+    void resolveModule(ResolvedProductPtr rproduct, const QString &moduleName, EvaluationObject *module);
+    void resolveGroup(ResolvedProductPtr rproduct, EvaluationObject *product, EvaluationObject *group);
+    void resolveProductModule(const ResolvedProductConstPtr &rproduct, EvaluationObject *group);
+    void resolveTransformer(ResolvedProductPtr rproduct, EvaluationObject *trafo, ResolvedModuleConstPtr module);
     void resolveProbe(EvaluationObject *node);
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
-                                                    ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module);
-    Rule::Ptr resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module);
+                                                    ResolvedProductPtr rproduct, const ResolvedModuleConstPtr &module);
+    RulePtr resolveRule(EvaluationObject *object, ResolvedModuleConstPtr module);
     FileTagger::ConstPtr resolveFileTagger(EvaluationObject *evaluationObject);
     void buildModulesProperty(EvaluationObject *evaluationObject);
     void checkModuleDependencies(const Module::Ptr &module);
@@ -453,28 +453,28 @@ public:
 
     struct ProjectData
     {
-        QHash<ResolvedProduct::Ptr, ProductData> products;
+        QHash<ResolvedProductPtr, ProductData> products;
         QList<ProductData> removedProducts;
     };
 
-    void resolveTopLevel(const ResolvedProject::Ptr &rproject,
+    void resolveTopLevel(const ResolvedProjectPtr &rproject,
                          LanguageObject *object,
                          const QString &projectFileName,
                          ProjectData *projectData,
-                         QList<Rule::Ptr> *globalRules,
+                         QList<RulePtr> *globalRules,
                          QList<FileTagger::ConstPtr> *globalFileTaggers,
                          const QVariantMap &userProperties,
                          const ScopeChain::Ptr &scope,
-                         const ResolvedModule::ConstPtr &dummyModule);
+                         const ResolvedModuleConstPtr &dummyModule);
 
     void checkUserProperties(const ProjectData &projectData, const QVariantMap &userProperties);
-    typedef QMultiMap<QString, ResolvedProduct::Ptr> ProductMap;
-    void resolveProduct(const ResolvedProduct::Ptr &product, const ResolvedProject::Ptr &project,
+    typedef QMultiMap<QString, ResolvedProductPtr> ProductMap;
+    void resolveProduct(const ResolvedProductPtr &product, const ResolvedProjectPtr &project,
                         ProductData &data, ProductMap &products,
-                        const QList<Rule::Ptr> &globalRules,
+                        const QList<RulePtr> &globalRules,
                         const QList<FileTagger::ConstPtr> &globalFileTaggers,
-                        const ResolvedModule::ConstPtr &dummyModule);
-    void resolveProductDependencies(const ResolvedProject::Ptr &project, ProjectData &projectData,
+                        const ResolvedModuleConstPtr &dummyModule);
+    void resolveProductDependencies(const ResolvedProjectPtr &project, ProjectData &projectData,
                                     const ProductMap &resolvedProducts);
 
     static LoaderPrivate *get(QScriptEngine *engine);
@@ -1140,7 +1140,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
         d->m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 
-ResolvedProject::Ptr Loader::loadProject(const QString &fileName, const QString &buildRoot,
+ResolvedProjectPtr Loader::loadProject(const QString &fileName, const QString &buildRoot,
                                          const QVariantMap &userProperties)
 {
     TimedActivityLogger loadLogger(QLatin1String("Loading project"));
@@ -1814,13 +1814,13 @@ static void checkAllowedPropertyValues(const PropertyDeclaration &decl, const QS
     throw Error(msg);
 }
 
-static QString sourceDirPath(const Property &property, const ResolvedProduct::ConstPtr &rproduct)
+static QString sourceDirPath(const Property &property, const ResolvedProductConstPtr &rproduct)
 {
     return property.sourceObject
             ? FileInfo::path(property.sourceObject->file->fileName) : rproduct->sourceDirectory;
 }
 
-QVariantMap Loader::LoaderPrivate::evaluateAll(const ResolvedProduct::ConstPtr &rproduct,
+QVariantMap Loader::LoaderPrivate::evaluateAll(const ResolvedProductConstPtr &rproduct,
                                 const Scope::Ptr &properties)
 {
     checkCancelation();
@@ -1878,7 +1878,7 @@ static Scope::Ptr moduleScopeById(Scope::Ptr scope, const QStringList &moduleId)
     return scope;
 }
 
-QVariantMap Loader::LoaderPrivate::evaluateModuleValues(const ResolvedProduct::ConstPtr &rproduct,
+QVariantMap Loader::LoaderPrivate::evaluateModuleValues(const ResolvedProductConstPtr &rproduct,
                                          EvaluationObject *moduleContainer, Scope::Ptr objectScope)
 {
     QVariantMap values;
@@ -2299,8 +2299,8 @@ static QHash<QString, ProjectFile *> findModuleDependencies(EvaluationObject *ro
     return result;
 }
 
-static void applyFileTaggers(const SourceArtifact::Ptr &artifact,
-        const ResolvedProduct::ConstPtr &product)
+static void applyFileTaggers(const SourceArtifactPtr &artifact,
+        const ResolvedProductConstPtr &product)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         QSet<QString> fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
@@ -2333,7 +2333,7 @@ static bool checkCondition(EvaluationObject *object)
     return true;
 }
 
-ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildRoot,
+ResolvedProjectPtr Loader::LoaderPrivate::resolveProject(const QString &buildRoot,
                                                            const QVariantMap &userProperties)
 {
     Q_ASSERT(FileInfo::isAbsolute(buildRoot));
@@ -2342,7 +2342,7 @@ ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildR
     ScriptEngineContextPusher contextPusher(m_engine);
     m_scopesWithEvaluatedProperties->clear();
     m_convertedScopesCache.clear();
-    ResolvedProject::Ptr rproject = ResolvedProject::create();
+    ResolvedProjectPtr rproject = ResolvedProject::create();
     rproject->qbsFile = m_project->fileName;
     rproject->setBuildConfiguration(userProperties);
     rproject->buildDirectory = ResolvedProject::deriveBuildDirectory(buildRoot, rproject->id());
@@ -2350,9 +2350,9 @@ ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildR
     Scope::Ptr context = buildFileContext(m_project.data());
     ScopeChain::Ptr scope(new ScopeChain(m_engine, context));
 
-    ResolvedModule::Ptr dummyModule = ResolvedModule::create();
+    ResolvedModulePtr dummyModule = ResolvedModule::create();
     dummyModule->jsImports = m_project->jsImports;
-    QList<Rule::Ptr> globalRules;
+    QList<RulePtr> globalRules;
     QList<FileTagger::ConstPtr> globalFileTaggers;
 
     ProjectData projectData;
@@ -2367,7 +2367,7 @@ ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildR
                     dummyModule);
 
     ProductMap resolvedProducts;
-    QHash<ResolvedProduct::Ptr, ProductData>::iterator it = projectData.products.begin();
+    QHash<ResolvedProductPtr, ProductData>::iterator it = projectData.products.begin();
     if (m_progressObserver)
         m_progressObserver->initialize(Tr::tr("Loading project"), projectData.products.count());
     for (; it != projectData.products.end(); ++it) {
@@ -2383,7 +2383,7 @@ ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildR
     checkUserProperties(projectData, userProperties);
 
     // Check all modules for unresolved dependencies.
-    foreach (ResolvedProduct::Ptr rproduct, rproject->products)
+    foreach (ResolvedProductPtr rproduct, rproject->products)
         foreach (Module::Ptr module, projectData.products.value(rproduct).product->modules)
             checkModuleDependencies(module);
 
@@ -2393,9 +2393,9 @@ ResolvedProject::Ptr Loader::LoaderPrivate::resolveProject(const QString &buildR
     return rproject;
 }
 
-void Loader::LoaderPrivate::resolveModule(ResolvedProduct::Ptr rproduct, const QString &moduleName, EvaluationObject *module)
+void Loader::LoaderPrivate::resolveModule(ResolvedProductPtr rproduct, const QString &moduleName, EvaluationObject *module)
 {
-    ResolvedModule::Ptr rmodule = ResolvedModule::create();
+    ResolvedModulePtr rmodule = ResolvedModule::create();
     rmodule->name = moduleName;
     rmodule->jsImports = module->instantiatingObject()->file->jsImports;
     rmodule->setupBuildEnvironmentScript = module->scope->verbatimValue("setupBuildEnvironment");
@@ -2416,14 +2416,14 @@ void Loader::LoaderPrivate::resolveModule(ResolvedProduct::Ptr rproduct, const Q
     }
 }
 
-static void createSourceArtifact(const ResolvedProduct::ConstPtr &rproduct,
-                                 const PropertyMap::Ptr &properties,
+static void createSourceArtifact(const ResolvedProductConstPtr &rproduct,
+                                 const PropertyMapPtr &properties,
                                  const QString &fileName,
                                  const QSet<QString> &fileTags,
                                  bool overrideTags,
-                                 QList<SourceArtifact::Ptr> &artifactList)
+                                 QList<SourceArtifactPtr> &artifactList)
 {
-    SourceArtifact::Ptr artifact = SourceArtifact::create();
+    SourceArtifactPtr artifact = SourceArtifact::create();
     artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
     artifact->fileTags = fileTags;
     artifact->overrideFileTags = overrideTags;
@@ -2434,11 +2434,11 @@ static void createSourceArtifact(const ResolvedProduct::ConstPtr &rproduct,
 /**
   * Resolve Group {} and the files part of Product {}.
   */
-void Loader::LoaderPrivate::resolveGroup(ResolvedProduct::Ptr rproduct, EvaluationObject *product, EvaluationObject *group)
+void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, EvaluationObject *product, EvaluationObject *group)
 {
     const bool isGroup = product != group;
 
-    PropertyMap::Ptr properties = rproduct->properties;
+    PropertyMapPtr properties = rproduct->properties;
 
     if (isGroup) {
         clearScopesCache();
@@ -2530,7 +2530,7 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProduct::Ptr rproduct, Evaluati
     rproduct->groups += resolvedGroup;
 }
 
-void Loader::LoaderPrivate::resolveProductModule(const ResolvedProduct::ConstPtr &rproduct,
+void Loader::LoaderPrivate::resolveProductModule(const ResolvedProductConstPtr &rproduct,
         EvaluationObject *productModule)
 {
     Q_ASSERT(!rproduct->name.isEmpty());
@@ -2541,7 +2541,7 @@ void Loader::LoaderPrivate::resolveProductModule(const ResolvedProduct::ConstPtr
     m_productModules.insert(rproduct->name.toLower(), moduleValues);
 }
 
-void Loader::LoaderPrivate::resolveTransformer(ResolvedProduct::Ptr rproduct, EvaluationObject *trafo, ResolvedModule::ConstPtr module)
+void Loader::LoaderPrivate::resolveTransformer(ResolvedProductPtr rproduct, EvaluationObject *trafo, ResolvedModuleConstPtr module)
 {
     if (!checkCondition(trafo))
         return;
@@ -2552,7 +2552,7 @@ void Loader::LoaderPrivate::resolveTransformer(ResolvedProduct::Ptr rproduct, Ev
     rtrafo->inputs = trafo->scope->stringListValue("inputs");
     for (int i=0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(rproduct->sourceDirectory, rtrafo->inputs[i]);
-    const PrepareScript::Ptr transform = PrepareScript::create();
+    const PrepareScriptPtr transform = PrepareScript::create();
     transform->script = trafo->scope->verbatimValue("prepare");
     transform->location.fileName = trafo->instantiatingObject()->file->fileName;
     transform->location.column = 1;
@@ -2563,7 +2563,7 @@ void Loader::LoaderPrivate::resolveTransformer(ResolvedProduct::Ptr rproduct, Ev
     foreach (EvaluationObject *child, trafo->children) {
         if (child->prototype != name_Artifact)
             throw Error(Tr::tr("Transformer: wrong child type '%0'.").arg(child->prototype));
-        SourceArtifact::Ptr artifact = SourceArtifact::create();
+        SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = rproduct->properties;
         QString fileName = child->scope->stringValue("fileName");
         if (fileName.isEmpty())
@@ -2602,9 +2602,9 @@ void Loader::LoaderPrivate::resolveProbe(EvaluationObject *node)
  *Resolve stuff that Module and Product have in common.
  */
 QList<EvaluationObject *> Loader::LoaderPrivate::resolveCommonItems(const QList<EvaluationObject *> &objects,
-                                                        ResolvedProduct::Ptr rproduct, const ResolvedModule::ConstPtr &module)
+                                                        ResolvedProductPtr rproduct, const ResolvedModuleConstPtr &module)
 {
-    QList<Rule::Ptr> rules;
+    QList<RulePtr> rules;
 
     QList<EvaluationObject *> unhandledObjects;
     foreach (EvaluationObject *object, objects) {
@@ -2612,7 +2612,7 @@ QList<EvaluationObject *> Loader::LoaderPrivate::resolveCommonItems(const QList<
         if (hashPrototypeName == hashName_FileTagger) {
             rproduct->fileTaggers.insert(resolveFileTagger(object));
         } else if (hashPrototypeName == hashName_Rule) {
-            const Rule::Ptr rule = resolveRule(object, module);
+            const RulePtr rule = resolveRule(object, module);
             rproduct->rules.insert(rule);
             rules.append(rule);
         } else if (hashPrototypeName == hashName_Transformer) {
@@ -2629,17 +2629,17 @@ QList<EvaluationObject *> Loader::LoaderPrivate::resolveCommonItems(const QList<
     return unhandledObjects;
 }
 
-Rule::Ptr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedModule::ConstPtr module)
+RulePtr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedModuleConstPtr module)
 {
-    Rule::Ptr rule = Rule::create();
+    RulePtr rule = Rule::create();
 
     // read artifacts
-    QList<RuleArtifact::ConstPtr> artifacts;
+    QList<RuleArtifactConstPtr> artifacts;
     bool hasAlwaysUpdatedArtifact = false;
     foreach (EvaluationObject *child, object->children) {
         const uint hashChildPrototypeName = qHash(child->prototype);
         if (hashChildPrototypeName == hashName_Artifact) {
-            RuleArtifact::Ptr artifact = RuleArtifact::create();
+            RuleArtifactPtr artifact = RuleArtifact::create();
             artifacts.append(artifact);
             artifact->fileName = child->scope->verbatimValue("fileName");
             artifact->fileTags = child->scope->stringListValue("fileTags");
@@ -2668,7 +2668,7 @@ Rule::Ptr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedM
                            "must have alwaysUpdated set to true."),
                     object->instantiatingObject()->prototypeLocation);
 
-    const PrepareScript::Ptr prepareScript = PrepareScript::create();
+    const PrepareScriptPtr prepareScript = PrepareScript::create();
     prepareScript->script = object->scope->verbatimValue("prepare");
     prepareScript->location.fileName = object->instantiatingObject()->file->fileName;
     prepareScript->location.column = 1;
@@ -3136,15 +3136,15 @@ QScriptValue Loader::LoaderPrivate::js_configurationValue(QScriptContext *contex
     return engine->toScriptValue(v);
 }
 
-void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProject::Ptr &rproject,
+void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProjectPtr &rproject,
                              LanguageObject *object,
                              const QString &projectFileName,
                              ProjectData *projectData,
-                             QList<Rule::Ptr> *globalRules,
+                             QList<RulePtr> *globalRules,
                              QList<FileTagger::ConstPtr> *globalFileTaggers,
                              const QVariantMap &userProperties,
                              const ScopeChain::Ptr &scope,
-                             const ResolvedModule::ConstPtr &dummyModule)
+                             const ResolvedModuleConstPtr &dummyModule)
 {
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[LDR] resolve top-level " << object->file->fileName;
@@ -3248,7 +3248,7 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProject::Ptr &rproject
     // set the 'path' and 'filePath' properties
     setPathAndFilePath(evaluationObject->scope, object->file->fileName);
 
-    const ResolvedProduct::Ptr rproduct = ResolvedProduct::create();
+    const ResolvedProductPtr rproduct = ResolvedProduct::create();
     rproduct->qbsFile = projectFileName;
     rproduct->qbsLine = evaluationObject->instantiatingObject()->prototypeLocation.line;
     rproduct->sourceDirectory = QFileInfo(projectFileName).absolutePath();
@@ -3326,14 +3326,14 @@ void Loader::LoaderPrivate::checkUserProperties(const Loader::LoaderPrivate::Pro
 {
     QSet<QString> allowedUserPropertyNames;
     allowedUserPropertyNames << QLatin1String("project");
-    for (QHash<ResolvedProduct::Ptr, ProductData>::const_iterator it = projectData.products.constBegin();
+    for (QHash<ResolvedProductPtr, ProductData>::const_iterator it = projectData.products.constBegin();
          it != projectData.products.constEnd(); ++it)
     {
-        const ResolvedProduct::Ptr &product = it.key();
+        const ResolvedProductPtr &product = it.key();
         const ProductData &productData = it.value();
         allowedUserPropertyNames += product->name;
         allowedUserPropertyNames += productData.originalProductName;
-        foreach (const ResolvedModule::ConstPtr &module, product->modules) {
+        foreach (const ResolvedModuleConstPtr &module, product->modules) {
             allowedUserPropertyNames += module->name;
             foreach (const QString &dependency, module->moduleDependencies)
                 allowedUserPropertyNames += dependency;
@@ -3354,10 +3354,10 @@ void Loader::LoaderPrivate::checkUserProperties(const Loader::LoaderPrivate::Pro
     }
 }
 
-void Loader::LoaderPrivate::resolveProduct(const ResolvedProduct::Ptr &rproduct,
-        const ResolvedProject::Ptr &project, ProductData &data, Loader::LoaderPrivate::ProductMap &products,
-        const QList<Rule::Ptr> &globalRules, const QList<FileTagger::ConstPtr> &globalFileTaggers,
-        const ResolvedModule::ConstPtr &dummyModule)
+void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
+        const ResolvedProjectPtr &project, ProductData &data, Loader::LoaderPrivate::ProductMap &products,
+        const QList<RulePtr> &globalRules, const QList<FileTagger::ConstPtr> &globalFileTaggers,
+        const ResolvedModuleConstPtr &dummyModule)
 {
     Scope *productProps = data.product->scope.data();
 
@@ -3373,7 +3373,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProduct::Ptr &rproduct,
 
     rproduct->fileTags = productProps->stringListValue("type");
     rproduct->destinationDirectory = productProps->stringValue("destination");
-    foreach (const Rule::Ptr &rule, globalRules)
+    foreach (const RulePtr &rule, globalRules)
         rproduct->rules.insert(rule);
     foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
         rproduct->fileTaggers.insert(fileTagger);
@@ -3414,24 +3414,24 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProduct::Ptr &rproduct,
     }
 
     // Apply file taggers.
-    foreach (const SourceArtifact::Ptr &artifact, rproduct->allFiles())
+    foreach (const SourceArtifactPtr &artifact, rproduct->allFiles())
         applyFileTaggers(artifact, rproduct);
     foreach (const ResolvedTransformer::Ptr &transformer, rproduct->transformers)
-        foreach (const SourceArtifact::Ptr &artifact, transformer->outputs)
+        foreach (const SourceArtifactPtr &artifact, transformer->outputs)
             applyFileTaggers(artifact, rproduct);
 
     // Merge duplicate artifacts.
-    QHash<QString, QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> > uniqueArtifacts;
+    QHash<QString, QPair<ResolvedGroup::Ptr, SourceArtifactPtr> > uniqueArtifacts;
     foreach (const ResolvedGroup::Ptr &group, rproduct->groups) {
         Q_ASSERT(group->properties);
 
-        QList<SourceArtifact::Ptr> artifactsInGroup = group->files;
+        QList<SourceArtifactPtr> artifactsInGroup = group->files;
         if (group->wildcards)
             artifactsInGroup += group->wildcards->files;
 
-        foreach (const SourceArtifact::Ptr &artifact, artifactsInGroup) {
-            QPair<ResolvedGroup::Ptr, SourceArtifact::Ptr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
-            SourceArtifact::Ptr existing = p.second;
+        foreach (const SourceArtifactPtr &artifact, artifactsInGroup) {
+            QPair<ResolvedGroup::Ptr, SourceArtifactPtr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
+            SourceArtifactPtr existing = p.second;
             if (existing) {
                 // if an artifact is in the product and in a group, prefer the group configuration
                 if (existing->properties != rproduct->properties)
@@ -3452,18 +3452,18 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProduct::Ptr &rproduct,
     project->products.append(rproduct);
 }
 
-void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProject::Ptr &project,
+void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProjectPtr &project,
         ProjectData &projectData, const ProductMap &resolvedProducts)
 {
     // Collect product dependencies from ProductModules.
     bool productDependenciesAdded;
     do {
         productDependenciesAdded = false;
-        foreach (ResolvedProduct::Ptr rproduct, project->products) {
+        foreach (ResolvedProductPtr rproduct, project->products) {
             ProductData &productData = projectData.products[rproduct];
             foreach (const UnknownModule::Ptr &unknownModule, productData.usedProducts) {
                 const QString &usedProductName = unknownModule->name;
-                QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
+                QList<ResolvedProductPtr> usedProductCandidates = resolvedProducts.values(usedProductName);
                 if (usedProductCandidates.count() < 1) {
                     if (!unknownModule->required) {
                         if (!unknownModule->failureMessage.isEmpty())
@@ -3476,7 +3476,7 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProject::Pt
                 if (usedProductCandidates.count() > 1)
                     throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
                                 CodeLocation(m_project->fileName));
-                ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
+                ResolvedProductPtr usedProduct = usedProductCandidates.first();
                 const ProductData &usedProductData = projectData.products.value(usedProduct);
                 bool added;
                 productData.addUsedProducts(usedProductData.usedProductsFromProductModule, &added);
@@ -3487,10 +3487,10 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProject::Pt
     } while (productDependenciesAdded);
 
     // Resolve all inter-product dependencies.
-    foreach (ResolvedProduct::Ptr rproduct, project->products) {
+    foreach (ResolvedProductPtr rproduct, project->products) {
         foreach (const UnknownModule::Ptr &unknownModule, projectData.products.value(rproduct).usedProducts) {
             const QString &usedProductName = unknownModule->name;
-            QList<ResolvedProduct::Ptr> usedProductCandidates = resolvedProducts.values(usedProductName);
+            QList<ResolvedProductPtr> usedProductCandidates = resolvedProducts.values(usedProductName);
             if (usedProductCandidates.count() < 1) {
                 if (!unknownModule->required) {
                     if (!unknownModule->failureMessage.isEmpty())
@@ -3503,7 +3503,7 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProject::Pt
             if (usedProductCandidates.count() > 1)
                 throw Error(Tr::tr("Product dependency '%1' is ambiguous.").arg(usedProductName),
                             CodeLocation(m_project->fileName));
-            ResolvedProduct::Ptr usedProduct = usedProductCandidates.first();
+            ResolvedProductPtr usedProduct = usedProductCandidates.first();
             rproduct->dependencies.insert(usedProduct);
 
             // insert the configuration of the ProductModule into the product's configuration
@@ -3518,7 +3518,7 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProject::Pt
             rproduct->properties->setValue(productProperties);
 
             // insert the configuration of the ProductModule into the artifact configurations
-            foreach (SourceArtifact::Ptr artifact, rproduct->allFiles()) {
+            foreach (SourceArtifactPtr artifact, rproduct->allFiles()) {
                 if (artifact->properties == rproduct->properties)
                     continue; // Already inserted above.
                 QVariantMap sourceArtifactProperties = artifact->properties->value();

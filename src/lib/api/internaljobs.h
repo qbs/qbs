@@ -30,9 +30,9 @@
 #define QBSJOB_H
 
 #include "projectdata.h"
+#include <buildgraph/forward_decls.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
-#include <buildgraph/buildgraph.h>
 
 #include <QMutex>
 #include <QObject>
@@ -80,7 +80,7 @@ public:
     void resolve(const QString &projectFilePath, const QString &buildRoot,
                  const QVariantMap &buildConfig);
 
-    BuildProject::Ptr buildProject() const { return m_buildProject; }
+    BuildProjectPtr buildProject() const;
 
 private slots:
     void start();
@@ -97,7 +97,7 @@ private:
     QString m_projectFilePath;
     QString m_buildRoot;
     QVariantMap m_buildConfig;
-    BuildProject::Ptr m_buildProject;
+    BuildProjectPtr m_buildProject;
 };
 
 
@@ -105,17 +105,17 @@ class BuildGraphTouchingJob : public InternalJob
 {
     Q_OBJECT
 public:
-    const QList<BuildProduct::Ptr> &products() const { return m_products; }
+    const QList<BuildProductPtr> &products() const { return m_products; }
 
 protected:
     BuildGraphTouchingJob(QObject *parent = 0);
 
-    void setup(const QList<BuildProduct::Ptr> &products, const BuildOptions &buildOptions);
+    void setup(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions);
     const BuildOptions &buildOptions() const { return m_buildOptions; }
     void storeBuildGraph();
 
 private:
-    QList<BuildProduct::Ptr> m_products;
+    QList<BuildProductPtr> m_products;
     BuildOptions m_buildOptions;
 };
 
@@ -126,7 +126,7 @@ class InternalBuildJob : public BuildGraphTouchingJob
 public:
     InternalBuildJob(QObject *parent = 0);
 
-    void build(const QList<BuildProduct::Ptr> &products, const BuildOptions &buildOptions);
+    void build(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions);
 
 private slots:
     void start();
@@ -143,7 +143,7 @@ class InternalCleanJob : public BuildGraphTouchingJob
 public:
     InternalCleanJob(QObject *parent = 0);
 
-    void clean(const QList<BuildProduct::Ptr> &products, const BuildOptions &buildOptions,
+    void clean(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
                bool cleanAll);
 
 private slots:

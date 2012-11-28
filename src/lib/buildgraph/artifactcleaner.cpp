@@ -30,11 +30,13 @@
 
 #include "artifact.h"
 #include "artifactvisitor.h"
-#include "buildoptions.h"
+#include "buildgraph.h"
 #include "transformer.h"
 
+#include <language/language.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
+#include <tools/buildoptions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 
@@ -93,7 +95,7 @@ public:
     {
     }
 
-    void visitProduct(const BuildProduct::ConstPtr &product)
+    void visitProduct(const BuildProductConstPtr &product)
     {
         m_product = product;
         ArtifactVisitor::visitProduct(product);
@@ -124,18 +126,18 @@ private:
     const bool m_dryRun;
     const bool m_removeAll;
     bool m_hasError;
-    BuildProduct::ConstPtr m_product;
+    BuildProductConstPtr m_product;
     QSet<QString> m_directories;
 };
 
-void ArtifactCleaner::cleanup(const QList<BuildProduct::Ptr> &products, bool removeAll,
+void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, bool removeAll,
                               const BuildOptions &buildOptions)
 {
     m_hasError = false;
     TimedActivityLogger logger(QLatin1String("Cleaning up"));
 
     QSet<QString> directories;
-    foreach (const BuildProduct::ConstPtr &product, products) {
+    foreach (const BuildProductConstPtr &product, products) {
         CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());

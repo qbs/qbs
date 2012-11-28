@@ -189,9 +189,9 @@ void SourceWildCards::store(PersistentPool &pool) const
  * \brief Returns all files specified in the group item as source artifacts.
  * This includes the expanded list of wildcards.
  */
-QList<SourceArtifact::Ptr> ResolvedGroup::allFiles() const
+QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
 {
-    QList<SourceArtifact::Ptr> lst = files;
+    QList<SourceArtifactPtr> lst = files;
     if (wildcards)
         lst.append(wildcards->files);
     return lst;
@@ -315,7 +315,7 @@ QString Rule::toString() const
 QStringList Rule::outputFileTags() const
 {
     QStringList result;
-    foreach (const RuleArtifact::ConstPtr &artifact, artifacts)
+    foreach (const RuleArtifactConstPtr &artifact, artifacts)
         result.append(artifact->fileTags);
     result.sort();
     std::unique(result.begin(), result.end());
@@ -352,9 +352,9 @@ ResolvedProduct::ResolvedProduct()
 {
 }
 
-QList<SourceArtifact::Ptr> ResolvedProduct::allFiles() const
+QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
-    QList<SourceArtifact::Ptr> lst;
+    QList<SourceArtifactPtr> lst;
     foreach (const ResolvedGroup::ConstPtr &group, groups)
         lst += group->allFiles();
     return lst;
@@ -453,8 +453,8 @@ enum EnvType
 };
 
 static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
-                                                 const QList<ResolvedModule::ConstPtr> &modules,
-                                                 const PropertyMap::ConstPtr &productConfiguration,
+                                                 const QList<ResolvedModuleConstPtr> &modules,
+                                                 const PropertyMapConstPtr &productConfiguration,
                                                  ResolvedProject *project,
                                                  const QProcessEnvironment &systemEnvironment)
 {
@@ -466,12 +466,12 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         procenv.insert(it.key(), it.value().toString());
 
     QMap<QString, const ResolvedModule *> moduleMap;
-    foreach (const ResolvedModule::ConstPtr &module, modules)
+    foreach (const ResolvedModuleConstPtr &module, modules)
         moduleMap.insert(module->name, module.data());
 
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
-    foreach (ResolvedModule::ConstPtr module, modules) {
+    foreach (ResolvedModuleConstPtr module, modules) {
         foreach (const QString &moduleName, module->moduleDependencies) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
             moduleParents[depmod].append(module.data());
@@ -480,7 +480,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     }
 
     QList<const ResolvedModule *> rootModules;
-    foreach (ResolvedModule::ConstPtr module, modules)
+    foreach (ResolvedModuleConstPtr module, modules)
         if (moduleParents.value(module.data()).isEmpty())
             rootModules.append(module.data());
 
@@ -591,7 +591,7 @@ void ResolvedProject::load(PersistentPool &pool)
     products.clear();
     products.reserve(count);
     for (; --count >= 0;) {
-        ResolvedProduct::Ptr rProduct = pool.idLoadS<ResolvedProduct>();
+        ResolvedProductPtr rProduct = pool.idLoadS<ResolvedProduct>();
         products.append(rProduct);
     }
 }
@@ -602,7 +602,7 @@ void ResolvedProject::store(PersistentPool &pool) const
     pool.stream() << platformEnvironment;
 
     pool.stream() << products.count();
-    foreach (const ResolvedProduct::ConstPtr &product, products)
+    foreach (const ResolvedProductConstPtr &product, products)
         pool.store(product);
 }
 

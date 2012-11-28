@@ -30,12 +30,9 @@
 #ifndef SCRIPTENGINE_H
 #define SCRIPTENGINE_H
 
-#include "language.h" // ### remove
-#include <QScriptEngine>
+#include "jsimports.h"
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
+#include <QScriptEngine>
 
 namespace qbs {
 namespace Internal {

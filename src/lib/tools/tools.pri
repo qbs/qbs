@@ -1,4 +1,4 @@
-INCLUDEPATH += $$PWD $$PWD/..  $$PWD/../..  $$PWD/../../..
+INCLUDEPATH += $$PWD/../.. # for plugins
 
 HEADERS += \
     $$PWD/codelocation.h \

@@ -30,7 +30,8 @@
 #ifndef QBS_RUNENVIRONMENT_H
 #define QBS_RUNENVIRONMENT_H
 
-#include <QSharedPointer>
+#include <language/forward_decls.h>
+
 #include <QStringList>
 
 QT_BEGIN_NAMESPACE
@@ -54,7 +55,7 @@ public:
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
 private:
-    RunEnvironment(const QSharedPointer<Internal::ResolvedProduct> &product,
+    RunEnvironment(const Internal::ResolvedProductPtr &product,
                    const QProcessEnvironment &environment);
 
     class RunEnvironmentPrivate;

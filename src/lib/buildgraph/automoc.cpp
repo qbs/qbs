@@ -28,11 +28,14 @@
 ****************************************************************************/
 
 #include "automoc.h"
+#include "buildgraph.h"
 #include "scanresultcache.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
+#include <language/language.h>
 #include <logging/logger.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
 
 namespace qbs {
@@ -48,7 +51,7 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
     m_scanResultCache = scanResultCache;
 }
 
-void AutoMoc::apply(BuildProduct::Ptr product)
+void AutoMoc::apply(BuildProductPtr product)
 {
     if (scanners().isEmpty())
         throw Error("C++ scanner cannot be loaded.");

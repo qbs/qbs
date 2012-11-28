@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "rulegraph.h"
+#include <language/language.h>
 #include <tools/error.h>
 
 namespace qbs {
@@ -37,11 +38,11 @@ RuleGraph::RuleGraph()
 {
 }
 
-void RuleGraph::build(const QSet<Rule::Ptr> &rules, const QStringList &productFileTags)
+void RuleGraph::build(const QSet<RulePtr> &rules, const QStringList &productFileTags)
 {
     QMap<QString, QList<const Rule *> > inputFileTagToRule;
     m_artifacts.reserve(rules.count());
-    foreach (const Rule::Ptr &rule, rules) {
+    foreach (const RulePtr &rule, rules) {
         foreach (const QString &fileTag, rule->outputFileTags())
             m_outputFileTagToRule[fileTag].append(rule.data());
         insert(rule);
@@ -50,7 +51,7 @@ void RuleGraph::build(const QSet<Rule::Ptr> &rules, const QStringList &productFi
     m_parents.resize(rules.count());
     m_children.resize(rules.count());
 
-    foreach (const Rule::ConstPtr &rule, m_artifacts) {
+    foreach (const RuleConstPtr &rule, m_artifacts) {
         QStringList inFileTags = rule->inputs;
         inFileTags += rule->explicitlyDependsOn;
         foreach (const QString &fileTag, inFileTags) {
@@ -71,12 +72,12 @@ void RuleGraph::build(const QSet<Rule::Ptr> &rules, const QStringList &productFi
         m_rootRules += r->ruleGraphId;
 }
 
-QList<Rule::ConstPtr> RuleGraph::topSorted()
+QList<RuleConstPtr> RuleGraph::topSorted()
 {
     QSet<int> rootRules = m_rootRules;
-    QList<Rule::ConstPtr> result;
+    QList<RuleConstPtr> result;
     foreach (int rootIndex, rootRules) {
-        Rule::ConstPtr rule = m_artifacts.at(rootIndex);
+        RuleConstPtr rule = m_artifacts.at(rootIndex);
         result.append(topSort(rule));
     }
 
@@ -100,7 +101,7 @@ void RuleGraph::dump() const
     QByteArray indent;
     printf("---rule graph dump:\n");
     QSet<int> rootRules;
-    foreach (const Rule::ConstPtr &rule, m_artifacts)
+    foreach (const RuleConstPtr &rule, m_artifacts)
         if (m_parents[rule->ruleGraphId].isEmpty())
             rootRules += rule->ruleGraphId;
     foreach (int idx, rootRules) {
@@ -110,7 +111,7 @@ void RuleGraph::dump() const
 
 void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 {
-    const Rule::ConstPtr r = m_artifacts[rootIndex];
+    const RuleConstPtr r = m_artifacts[rootIndex];
     printf("%s", indent.constData());
     printf("%s", qPrintable(r->toString()));
     printf("\n");
@@ -121,7 +122,7 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
     indent.chop(2);
 }
 
-int RuleGraph::insert(const Rule::Ptr &rule)
+int RuleGraph::insert(const RulePtr &rule)
 {
     rule->ruleGraphId = m_artifacts.count();
     m_artifacts.append(rule);
@@ -144,14 +145,14 @@ void RuleGraph::remove(Rule *rule)
 {
     m_parents[rule->ruleGraphId].clear();
     m_children[rule->ruleGraphId].clear();
-    m_artifacts[rule->ruleGraphId] = Rule::Ptr();
+    m_artifacts[rule->ruleGraphId] = RulePtr();
     rule->ruleGraphId = -1;
 }
 
 void RuleGraph::removeParents(const Rule *rule)
 {
     foreach (int parentIndex, m_parents[rule->ruleGraphId]) {
-        const Rule::Ptr parent = m_artifacts.at(parentIndex);
+        const RulePtr parent = m_artifacts.at(parentIndex);
         removeParents(parent.data());
         remove(parent.data());
     }
@@ -161,10 +162,10 @@ void RuleGraph::removeParents(const Rule *rule)
 void RuleGraph::removeSiblings(const Rule *rule)
 {
     foreach (int childIndex, m_children[rule->ruleGraphId]) {
-        const Rule::ConstPtr child = m_artifacts.at(childIndex);
+        const RuleConstPtr child = m_artifacts.at(childIndex);
         QList<int> toRemove;
         foreach (int siblingIndex, m_parents.at(child->ruleGraphId)) {
-            const Rule::Ptr sibling = m_artifacts.at(siblingIndex);
+            const RulePtr sibling = m_artifacts.at(siblingIndex);
             if (sibling == rule)
                 continue;
             toRemove.append(sibling->ruleGraphId);
@@ -180,9 +181,9 @@ void RuleGraph::removeSiblings(const Rule *rule)
     }
 }
 
-QList<Rule::ConstPtr> RuleGraph::topSort(const Rule::ConstPtr &rule)
+QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule)
 {
-    QList<Rule::ConstPtr> result;
+    QList<RuleConstPtr> result;
     foreach (int childIndex, m_children.at(rule->ruleGraphId))
         result.append(topSort(m_artifacts.at(childIndex)));
 

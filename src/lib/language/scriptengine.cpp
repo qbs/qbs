@@ -35,6 +35,8 @@
 #include <QFile>
 #include <QScriptProgram>
 #include <QScriptValueIterator>
+#include <QSet>
+#include <QTextStream>
 
 namespace qbs {
 namespace Internal {

@@ -29,7 +29,9 @@
 #include "tst_buildgraph.h"
 
 #include <buildgraph/artifact.h>
+#include <buildgraph/buildgraph.h>
 #include <buildgraph/cycledetector.h>
+#include <language/language.h>
 #include <tools/error.h>
 
 #include <QtTest>
@@ -47,7 +49,7 @@ void TestBuildGraph::cleanupTestCase()
 }
 
 
-static bool cycleDetected(const BuildProduct::ConstPtr &product)
+static bool cycleDetected(const BuildProductConstPtr &product)
 {
     try {
         CycleDetector().visitProduct(product);
@@ -57,19 +59,19 @@ static bool cycleDetected(const BuildProduct::ConstPtr &product)
     }
 }
 
-BuildProduct::ConstPtr TestBuildGraph::productWithDirectCycle()
+BuildProductConstPtr TestBuildGraph::productWithDirectCycle()
 {
     Artifact * const root = new Artifact;
     Artifact * const child = new Artifact;
     m_artifacts << root << child;
     root->children.insert(child);
     child->children.insert(root);
-    const BuildProduct::Ptr product = BuildProduct::create();
+    const BuildProductPtr product = BuildProduct::create();
     product->targetArtifacts.insert(root);
     return product;
 }
 
-BuildProduct::ConstPtr TestBuildGraph::productWithLessDirectCycle()
+BuildProductConstPtr TestBuildGraph::productWithLessDirectCycle()
 {
     Artifact * const root = new Artifact;
     Artifact * const child = new Artifact;
@@ -78,19 +80,19 @@ BuildProduct::ConstPtr TestBuildGraph::productWithLessDirectCycle()
     root->children.insert(child);
     child->children.insert(grandchild);
     grandchild->children.insert(root);
-    const BuildProduct::Ptr product = BuildProduct::create();
+    const BuildProductPtr product = BuildProduct::create();
     product->targetArtifacts << root;
     return product;
 }
 
 // root appears as a child, but in a different tree
-BuildProduct::ConstPtr TestBuildGraph::productWithNoCycle()
+BuildProductConstPtr TestBuildGraph::productWithNoCycle()
 {
     Artifact * const root = new Artifact;
     Artifact * const root2 = new Artifact;
     m_artifacts << root << root2;
     root2->children.insert(root);
-    const BuildProduct::Ptr product = BuildProduct::create();
+    const BuildProductPtr product = BuildProduct::create();
     product->targetArtifacts << root << root2;
     return product;
 }

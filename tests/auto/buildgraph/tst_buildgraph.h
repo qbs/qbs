@@ -29,12 +29,10 @@
 #ifndef TST_BUILDGRAPH_H
 #define TST_BUILDGRAPH_H
 
-#include <buildgraph/buildgraph.h>
+#include <buildgraph/forward_decls.h>
 
 #include <QList>
 #include <QObject>
-
-namespace qbs { namespace Internal { class Artifact; } }
 
 class TestBuildGraph : public QObject
 {
@@ -47,9 +45,9 @@ private slots:
     void testCycle();
 
 private:
-    qbs::Internal::BuildProduct::ConstPtr productWithDirectCycle();
-    qbs::Internal::BuildProduct::ConstPtr productWithLessDirectCycle();
-    qbs::Internal::BuildProduct::ConstPtr productWithNoCycle();
+    qbs::Internal::BuildProductConstPtr productWithDirectCycle();
+    qbs::Internal::BuildProductConstPtr productWithLessDirectCycle();
+    qbs::Internal::BuildProductConstPtr productWithNoCycle();
 
     QList<qbs::Internal::Artifact *> m_artifacts;
 };

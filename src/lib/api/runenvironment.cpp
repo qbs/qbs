@@ -54,11 +54,11 @@ class RunEnvironment::RunEnvironmentPrivate
 {
 public:
     ScriptEngine engine;
-    ResolvedProduct::Ptr resolvedProduct;
+    ResolvedProductPtr resolvedProduct;
     QProcessEnvironment environment;
 };
 
-RunEnvironment::RunEnvironment(const ResolvedProduct::Ptr &product,
+RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
                                const QProcessEnvironment &environment)
     : d(new RunEnvironmentPrivate)
 {

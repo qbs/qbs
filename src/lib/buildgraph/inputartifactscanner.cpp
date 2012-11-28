@@ -33,7 +33,9 @@
 #include "buildgraph.h"
 #include "transformer.h"
 
+#include <language/language.h>
 #include <logging/logger.h>
+#include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
 
 #include <QSet>

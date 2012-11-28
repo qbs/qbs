@@ -34,6 +34,7 @@
 #include "jscommandexecutor.h"
 #include "processcommandexecutor.h"
 #include "transformer.h"
+#include <language/language.h>
 
 #include <QThread>
 

@@ -28,7 +28,7 @@
 ****************************************************************************/
 
 #include "scanresultcache.h"
-#include "fileinfo.h"
+#include <tools/fileinfo.h>
 
 #include <QMutexLocker>
 

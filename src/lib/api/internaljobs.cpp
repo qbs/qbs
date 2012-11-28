@@ -29,6 +29,7 @@
 #include "internaljobs.h"
 
 #include <buildgraph/artifactcleaner.h>
+#include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
 #include <language/language.h>
 #include <language/loader.h>
@@ -110,6 +111,11 @@ void InternalSetupProjectJob::resolve(const QString &projectFilePath, const QStr
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
+BuildProjectPtr InternalSetupProjectJob::buildProject() const
+{
+    return m_buildProject;
+}
+
 void InternalSetupProjectJob::start()
 {
     m_running = true;
@@ -145,7 +151,7 @@ void InternalSetupProjectJob::execute()
     const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
             buildGraph.data(), m_buildRoot, m_buildConfig, searchPaths);
 
-    ResolvedProject::Ptr rProject;
+    ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
         m_buildProject = loadResult.loadedProject;
     if (m_buildProject) {
@@ -169,7 +175,7 @@ void InternalSetupProjectJob::execute()
     rProject->platformEnvironment = platformEnvironment;
 
     qbsDebug("for %s:", qPrintable(rProject->id()));
-    foreach (const ResolvedProduct::ConstPtr &p, rProject->products) {
+    foreach (const ResolvedProductConstPtr &p, rProject->products) {
         qbsDebug("  - [%s] %s as %s"
                  ,qPrintable(p->fileTags.join(", "))
                  ,qPrintable(p->name)
@@ -193,7 +199,7 @@ BuildGraphTouchingJob::BuildGraphTouchingJob(QObject *parent) : InternalJob(pare
 {
 }
 
-void BuildGraphTouchingJob::setup(const QList<BuildProduct::Ptr> &products,
+void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products,
                                   const BuildOptions &buildOptions)
 {
     m_products = products;
@@ -216,7 +222,7 @@ InternalBuildJob::InternalBuildJob(QObject *parent) : BuildGraphTouchingJob(pare
 {
 }
 
-void InternalBuildJob::build(const QList<BuildProduct::Ptr> &products,
+void InternalBuildJob::build(const QList<BuildProductPtr> &products,
                      const BuildOptions &buildOptions)
 {
     setup(products, buildOptions);
@@ -246,7 +252,7 @@ InternalCleanJob::InternalCleanJob(QObject *parent) : BuildGraphTouchingJob(pare
 {
 }
 
-void InternalCleanJob::clean(const QList<BuildProduct::Ptr> &products, const BuildOptions &buildOptions,
+void InternalCleanJob::clean(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
                      bool cleanAll)
 {
     setup(products, buildOptions);

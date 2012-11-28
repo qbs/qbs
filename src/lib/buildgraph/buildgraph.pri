@@ -1,4 +1,3 @@
-INCLUDEPATH += $$PWD
 SOURCES += \
     $$PWD/automoc.cpp\
     $$PWD/buildgraph.cpp\
@@ -35,4 +34,5 @@ HEADERS += \
     $$PWD/inputartifactscanner.h \
     $$PWD/artifactvisitor.h \
     $$PWD/artifactcleaner.h \
-    $$PWD/cycledetector.h
+    $$PWD/cycledetector.h \
+    $$PWD/forward_decls.h

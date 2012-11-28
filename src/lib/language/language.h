@@ -30,6 +30,7 @@
 #ifndef L2_LANGUAGE_HPP
 #define L2_LANGUAGE_HPP
 
+#include "forward_decls.h"
 #include "jsimports.h"
 #include <tools/codelocation.h>
 #include <tools/fileinfo.h>
@@ -43,7 +44,6 @@
 #include <QScriptProgram>
 #include <QScriptValue>
 #include <QSet>
-#include <QSharedPointer>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -55,7 +55,7 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-class PropertyMap: public PersistentObject
+class PropertyMap : public PersistentObject
 {
 public:
     typedef QSharedPointer<PropertyMap> Ptr;
@@ -113,10 +113,7 @@ private:
 class RuleArtifact : public PersistentObject
 {
 public:
-    typedef QSharedPointer<RuleArtifact> Ptr;
-    typedef QSharedPointer<const RuleArtifact> ConstPtr;
-
-    static Ptr create() { return Ptr(new RuleArtifact); }
+    static RuleArtifactPtr create() { return RuleArtifactPtr(new RuleArtifact); }
 
     QString fileName;
     QStringList fileTags;
@@ -143,15 +140,12 @@ private:
 class SourceArtifact : public PersistentObject
 {
 public:
-    typedef QSharedPointer<SourceArtifact> Ptr;
-    typedef QSharedPointer<const SourceArtifact> ConstPtr;
-
-    static Ptr create() { return Ptr(new SourceArtifact); }
+    static SourceArtifactPtr create() { return SourceArtifactPtr(new SourceArtifact); }
 
     QString absoluteFilePath;
     QSet<QString> fileTags;
     bool overrideFileTags;
-    PropertyMap::Ptr properties;
+    PropertyMapPtr properties;
 
 private:
     SourceArtifact() : overrideFileTags(true) {}
@@ -176,7 +170,7 @@ public:
 
     QStringList patterns;
     QStringList excludePatterns;
-    QList<SourceArtifact::Ptr> files;
+    QList<SourceArtifactPtr> files;
 
 private:
     SourceWildCards() : recursive(false) {}
@@ -200,11 +194,11 @@ public:
     int qbsLine;
 
     QString name;
-    QList<SourceArtifact::Ptr> files;
+    QList<SourceArtifactPtr> files;
     SourceWildCards::Ptr wildcards;
-    PropertyMap::Ptr properties;
+    PropertyMapPtr properties;
 
-    QList<SourceArtifact::Ptr> allFiles() const;
+    QList<SourceArtifactPtr> allFiles() const;
 
 private:
     ResolvedGroup() {}
@@ -216,10 +210,7 @@ private:
 class PrepareScript: public PersistentObject
 {
 public:
-    typedef QSharedPointer<PrepareScript> Ptr;
-    typedef QSharedPointer<const PrepareScript> ConstPtr;
-
-    static Ptr create() { return Ptr(new PrepareScript); }
+    static PrepareScriptPtr create() { return PrepareScriptPtr(new PrepareScript); }
 
     QString script;
     CodeLocation location;
@@ -234,10 +225,7 @@ private:
 class ResolvedModule : public PersistentObject
 {
 public:
-    typedef QSharedPointer<ResolvedModule> Ptr;
-    typedef QSharedPointer<const ResolvedModule> ConstPtr;
-
-    static Ptr create() { return Ptr(new ResolvedModule); }
+    static ResolvedModulePtr create() { return ResolvedModulePtr(new ResolvedModule); }
 
     QString name;
     QStringList moduleDependencies;
@@ -264,19 +252,16 @@ private:
 class Rule : public PersistentObject
 {
 public:
-    typedef QSharedPointer<Rule> Ptr;
-    typedef QSharedPointer<const Rule> ConstPtr;
+    static RulePtr create() { return RulePtr(new Rule); }
 
-    static Ptr create() { return Ptr(new Rule); }
-
-    ResolvedModule::ConstPtr module;
+    ResolvedModuleConstPtr module;
     JsImports jsImports;
-    PrepareScript::ConstPtr script;
+    PrepareScriptConstPtr script;
     QStringList inputs;
     QStringList usings;
     QStringList explicitlyDependsOn;
     bool multiplex;
-    QList<RuleArtifact::ConstPtr> artifacts;
+    QList<RuleArtifactConstPtr> artifacts;
 
     // members that we don't need to save
     int ruleGraphId;
@@ -298,10 +283,10 @@ public:
 
     static Ptr create() { return Ptr(new ResolvedTransformer); }
 
-    ResolvedModule::ConstPtr module;
+    ResolvedModuleConstPtr module;
     QStringList inputs;
-    QList<SourceArtifact::Ptr> outputs;
-    PrepareScript::ConstPtr transform;
+    QList<SourceArtifactPtr> outputs;
+    PrepareScriptConstPtr transform;
     JsImports jsImports;
 
 private:
@@ -311,13 +296,10 @@ private:
 class ResolvedProject;
 class ScriptEngine;
 
-class ResolvedProduct: public PersistentObject
+class ResolvedProduct : public PersistentObject
 {
 public:
-    typedef QSharedPointer<ResolvedProduct> Ptr;
-    typedef QSharedPointer<const ResolvedProduct> ConstPtr;
-
-    static Ptr create() { return Ptr(new ResolvedProduct); }
+    static ResolvedProductPtr create() { return ResolvedProductPtr(new ResolvedProduct); }
 
     QStringList fileTags;
     QStringList additionalFileTags;
@@ -328,11 +310,11 @@ public:
     QString qbsFile;
     int qbsLine;
     WeakPointer<ResolvedProject> project;
-    PropertyMap::Ptr properties;
-    QSet<Rule::Ptr> rules;
-    QSet<ResolvedProduct::Ptr> dependencies;
+    PropertyMapPtr properties;
+    QSet<RulePtr> rules;
+    QSet<ResolvedProductPtr> dependencies;
     QSet<FileTagger::ConstPtr> fileTaggers;
-    QList<ResolvedModule::ConstPtr> modules;
+    QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
     QList<ResolvedGroup::Ptr> groups;
 
@@ -340,7 +322,7 @@ public:
     mutable QProcessEnvironment runEnvironment; // must not be saved
     QHash<QString, QString> executablePathCache;
 
-    QList<SourceArtifact::Ptr> allFiles() const;
+    QList<SourceArtifactPtr> allFiles() const;
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
     void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
@@ -355,10 +337,7 @@ private:
 class ResolvedProject: public PersistentObject
 {
 public:
-    typedef QSharedPointer<ResolvedProject> Ptr;
-    typedef QSharedPointer<const ResolvedProject> ConstPtr;
-
-    static Ptr create() { return Ptr(new ResolvedProject); }
+    static ResolvedProjectPtr create() { return ResolvedProjectPtr(new ResolvedProject); }
 
     static QString deriveId(const QVariantMap &config);
     static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
@@ -366,7 +345,7 @@ public:
     QString qbsFile; // Not saved.
     QString buildDirectory; // Not saved
     QVariantMap platformEnvironment;
-    QList<ResolvedProduct::Ptr> products;
+    QList<ResolvedProductPtr> products;
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }

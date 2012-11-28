@@ -26,35 +26,47 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef CYCLEDETECTOR_H
-#define CYCLEDETECTOR_H
+#ifndef QBS_LANG_FORWARD_DECLS_H
+#define QBS_LANG_FORWARD_DECLS_H
 
-#include "artifactvisitor.h"
-
-#include <QSet>
+#include <QSharedPointer>
 
 namespace qbs {
 namespace Internal {
 
-class CycleDetector : public ArtifactVisitor
-{
-public:
-    CycleDetector();
+class PropertyMap;
+typedef QSharedPointer<PropertyMap> PropertyMapPtr;
+typedef QSharedPointer<const PropertyMap> PropertyMapConstPtr;
 
-    void visitProject(const BuildProjectConstPtr &project);
-    void visitArtifact(Artifact *artifact);
+class ResolvedProduct;
+typedef QSharedPointer<ResolvedProduct> ResolvedProductPtr;
+typedef QSharedPointer<const ResolvedProduct> ResolvedProductConstPtr;
 
-private:
-    void doVisit(Artifact *artifact);
+class ResolvedProject;
+typedef QSharedPointer<ResolvedProject> ResolvedProjectPtr;
+typedef QSharedPointer<const ResolvedProject> ResolvedProjectConstPtr;
 
-    QList<Artifact *> cycle(Artifact *doubleEntry);
+class Rule;
+typedef QSharedPointer<Rule> RulePtr;
+typedef QSharedPointer<const Rule> RuleConstPtr;
 
-    QSet<Artifact *> m_allArtifacts;
-    QSet<Artifact *> m_artifactsInCurrentPath;
-    Artifact *m_parent;
-};
+class SourceArtifact;
+typedef QSharedPointer<SourceArtifact> SourceArtifactPtr;
+typedef QSharedPointer<const SourceArtifact> SourceArtifactConstPtr;
+
+class PrepareScript;
+typedef QSharedPointer<PrepareScript> PrepareScriptPtr;
+typedef QSharedPointer<const PrepareScript> PrepareScriptConstPtr;
+
+class RuleArtifact;
+typedef QSharedPointer<RuleArtifact> RuleArtifactPtr;
+typedef QSharedPointer<const RuleArtifact> RuleArtifactConstPtr;
+
+class ResolvedModule;
+typedef QSharedPointer<ResolvedModule> ResolvedModulePtr;
+typedef QSharedPointer<const ResolvedModule> ResolvedModuleConstPtr;
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // CYCLEDETECTOR_H
+#endif // QBS_LANG_FORWARD_DECLS_H

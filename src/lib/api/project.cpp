@@ -163,20 +163,20 @@ static QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig
 class ProjectPrivate : public QSharedData
 {
 public:
-    ProjectPrivate(const BuildProject::Ptr &internalProject)
+    ProjectPrivate(const BuildProjectPtr &internalProject)
         : internalProject(internalProject), m_projectDataRetrieved(false)
     {
     }
 
     ProjectData projectData();
-    BuildJob *buildProducts(const QList<BuildProduct::Ptr> &products, const BuildOptions &options,
+    BuildJob *buildProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
                             bool needsDepencencyResolving, QObject *jobOwner);
-    CleanJob *cleanProducts(const QList<BuildProduct::Ptr> &products, const BuildOptions &options,
+    CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
                             Project::CleanType cleanType, QObject *jobOwner);
-    QList<BuildProduct::Ptr> internalProducts(const QList<ProductData> &products) const;
-    BuildProduct::Ptr internalProduct(const ProductData &product) const;
+    QList<BuildProductPtr> internalProducts(const QList<ProductData> &products) const;
+    BuildProductPtr internalProduct(const ProductData &product) const;
 
-    const BuildProject::Ptr internalProject;
+    const BuildProjectPtr internalProject;
 
 private:
     void retrieveProjectData();
@@ -192,14 +192,14 @@ ProjectData ProjectPrivate::projectData()
     return m_projectData;
 }
 
-BuildJob *ProjectPrivate::buildProducts(const QList<BuildProduct::Ptr> &products,
+BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
         const BuildOptions &options, bool needsDepencencyResolving, QObject *jobOwner)
 {
-    QList<BuildProduct::Ptr> productsToBuild = products;
+    QList<BuildProductPtr> productsToBuild = products;
     if (needsDepencencyResolving) {
         for (int i = 0; i < productsToBuild.count(); ++i) {
-            const BuildProduct::ConstPtr &product = productsToBuild.at(i);
-            foreach (const BuildProduct::Ptr &dependency, product->dependencies) {
+            const BuildProductConstPtr &product = productsToBuild.at(i);
+            foreach (const BuildProductPtr &dependency, product->dependencies) {
                 if (!productsToBuild.contains(dependency))
                     productsToBuild << dependency;
             }
@@ -211,7 +211,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<BuildProduct::Ptr> &products
     return job;
 }
 
-CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProduct::Ptr> &products,
+CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
         const BuildOptions &options, Project::CleanType cleanType, QObject *jobOwner)
 {
     CleanJob * const job = new CleanJob(jobOwner);
@@ -219,29 +219,29 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProduct::Ptr> &products
     return job;
 }
 
-QList<BuildProduct::Ptr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
+QList<BuildProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
 {
-    QList<Internal::BuildProduct::Ptr> internalProducts;
+    QList<Internal::BuildProductPtr> internalProducts;
     foreach (const ProductData &product, products)
         internalProducts << internalProduct(product);
     return internalProducts;
 }
 
-BuildProduct::Ptr ProjectPrivate::internalProduct(const ProductData &product) const
+BuildProductPtr ProjectPrivate::internalProduct(const ProductData &product) const
 {
-    foreach (const Internal::BuildProduct::Ptr &buildProduct, internalProject->buildProducts()) {
+    foreach (const Internal::BuildProductPtr &buildProduct, internalProject->buildProducts()) {
         if (product.name() == buildProduct->rProduct->name)
             return buildProduct;
     }
     qFatal("No build product '%s'", qPrintable(product.name()));
-    return BuildProduct::Ptr();
+    return BuildProductPtr();
 }
 
 void ProjectPrivate::retrieveProjectData()
 {
     m_projectData.m_qbsFilePath = internalProject->resolvedProject()->qbsFile;
-    foreach (const BuildProduct::Ptr &buildProduct, internalProject->buildProducts()) {
-        const ResolvedProduct::ConstPtr resolvedProduct = buildProduct->rProduct;
+    foreach (const BuildProductPtr &buildProduct, internalProject->buildProducts()) {
+        const ResolvedProductConstPtr resolvedProduct = buildProduct->rProduct;
         ProductData product;
         product.m_name = resolvedProduct->name;
         product.m_qbsFilePath = resolvedProduct->qbsFile;
@@ -252,10 +252,10 @@ void ProjectPrivate::retrieveProjectData()
             GroupData group;
             group.m_name = resolvedGroup->name;
             group.m_qbsLine = resolvedGroup->qbsLine;
-            foreach (const SourceArtifact::ConstPtr &sa, resolvedGroup->files)
+            foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
                 group.m_filePaths << sa->absoluteFilePath;
             if (resolvedGroup->wildcards) {
-                foreach (const SourceArtifact::ConstPtr &sa, resolvedGroup->wildcards->files)
+                foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
                     group.m_expandedWildcards << sa->absoluteFilePath;
             }
             group.m_properties = resolvedGroup->properties->value();
@@ -283,7 +283,7 @@ void ProjectPrivate::retrieveProjectData()
   * \brief The \c Project class provides services related to a qbs project.
   */
 
-Project::Project(const Internal::BuildProject::Ptr &internalProject)
+Project::Project(const Internal::BuildProjectPtr &internalProject)
     : d(new Internal::ProjectPrivate(internalProject))
 {
 }
@@ -341,7 +341,7 @@ ProjectData Project::projectData() const
  */
 QString Project::targetExecutable(const ProductData &product) const
 {
-    const Internal::BuildProduct::ConstPtr buildProduct = d->internalProduct(product);
+    const Internal::BuildProductConstPtr buildProduct = d->internalProduct(product);
     if (!buildProduct->rProduct->fileTags.contains(QLatin1String("application")))
         return QString();
 
@@ -355,7 +355,7 @@ QString Project::targetExecutable(const ProductData &product) const
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
                                           const QProcessEnvironment &environment) const
 {
-    const Internal::ResolvedProduct::Ptr resolvedProduct = d->internalProduct(product)->rProduct;
+    const Internal::ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
     return RunEnvironment(resolvedProduct, environment);
 }
 

@@ -30,6 +30,8 @@
 
 #include "internaljobs.h"
 #include "project.h"
+#include <buildgraph/buildgraph.h>
+#include <language/language.h>
 #include <language/scriptengine.h>
 
 namespace qbs {
@@ -200,7 +202,7 @@ BuildJob::BuildJob(QObject *parent) : AbstractJob(new InternalBuildJob, parent)
 {
 }
 
-void BuildJob::build(const QList<BuildProduct::Ptr> &products, const BuildOptions &options)
+void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions &options)
 {
     qobject_cast<InternalBuildJob *>(internalJob())->build(products, options);
 }
@@ -215,7 +217,7 @@ CleanJob::CleanJob(QObject *parent) : AbstractJob(new InternalCleanJob, parent)
 {
 }
 
-void CleanJob::clean(const QList<BuildProduct::Ptr> &products,
+void CleanJob::clean(const QList<BuildProductPtr> &products,
                      const BuildOptions &options, bool cleanAll)
 {
     qobject_cast<InternalCleanJob *>(internalJob())->clean(products, options, cleanAll);
