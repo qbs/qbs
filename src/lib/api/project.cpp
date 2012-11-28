@@ -247,6 +247,7 @@ void ProjectPrivate::retrieveProjectData()
         product.m_qbsFilePath = resolvedProduct->qbsFile;
         product.m_qbsLine = resolvedProduct->qbsLine;
         product.m_fileTags = resolvedProduct->fileTags;
+        product.m_properties = resolvedProduct->properties->value();
         foreach (const ResolvedGroup::Ptr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
             group.m_name = resolvedGroup->name;
