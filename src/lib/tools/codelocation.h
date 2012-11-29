@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef SOURCELOCATION_H
-#define SOURCELOCATION_H
+#ifndef QBS_SOURCELOCATION_H
+#define QBS_SOURCELOCATION_H
 
 #include <QDataStream>
 #include <QString>
@@ -82,4 +82,4 @@ inline QDataStream &operator>> (QDataStream &s, qbs::CodeLocation &o)
 }
 QT_END_NAMESPACE
 
-#endif // SOURCELOCATION_H
+#endif // QBS_SOURCELOCATION_H

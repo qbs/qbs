@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef ABSTRACTCOMMANDEXECUTOR_H
-#define ABSTRACTCOMMANDEXECUTOR_H
+#ifndef QBS_ABSTRACTCOMMANDEXECUTOR_H
+#define QBS_ABSTRACTCOMMANDEXECUTOR_H
 
 #include <QObject>
 
@@ -79,4 +79,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // ABSTRACTCOMMANDEXECUTOR_H
+#endif // QBS_ABSTRACTCOMMANDEXECUTOR_H

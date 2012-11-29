@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef QBS_COMMAND_H
+#define QBS_COMMAND_H
 
 #include <tools/codelocation.h>
 
@@ -151,4 +151,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // COMMAND_H
+#endif // QBS_COMMAND_H

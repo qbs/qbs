@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef INPUTARTIFACTSCANNER_H
-#define INPUTARTIFACTSCANNER_H
+#ifndef QBS_INPUTARTIFACTSCANNER_H
+#define QBS_INPUTARTIFACTSCANNER_H
 
 #include "scanresultcache.h"
 #include <language/forward_decls.h>
@@ -116,4 +116,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // INPUTARTIFACTSCANNER_H
+#endif // QBS_INPUTARTIFACTSCANNER_H

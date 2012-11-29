@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef TRANSFORMER_H
-#define TRANSFORMER_H
+#ifndef QBS_TRANSFORMER_H
+#define QBS_TRANSFORMER_H
 
 #include "artifactlist.h"
 #include "forward_decls.h"
@@ -76,4 +76,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // TRANSFORMER_H
+#endif // QBS_TRANSFORMER_H

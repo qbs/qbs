@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef COLOREDOUTPUT_H
-#define COLOREDOUTPUT_H
+#ifndef QBS_COLOREDOUTPUT_H
+#define QBS_COLOREDOUTPUT_H
 
 #include <cstdio>
 #include <cstdarg>
@@ -65,4 +65,4 @@ void fprintfColored(TextColor color, FILE *file, const char *str, ...);
 } // namespace Internal
 } // namespace qbs
 
-#endif // COLOREDOUTPUT_H
+#endif // QBS_COLOREDOUTPUT_H

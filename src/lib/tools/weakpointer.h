@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef WEAKPOINTER_H
-#define WEAKPOINTER_H
+#ifndef QBS_WEAKPOINTER_H
+#define QBS_WEAKPOINTER_H
 
 #include <QWeakPointer>
 
@@ -55,4 +55,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // WEAKPOINTER_H
+#endif // QBS_WEAKPOINTER_H

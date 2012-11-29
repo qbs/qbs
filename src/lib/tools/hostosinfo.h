@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef HOSTOSINFO_H
-#define HOSTOSINFO_H
+#ifndef QBS_HOSTOSINFO_H
+#define QBS_HOSTOSINFO_H
 
 #include <QtGlobal>
 #include <QString>
@@ -126,4 +126,4 @@ bool HostOsInfo::isAnyUnixHost()
 
 } // namespace qbs
 
-#endif // HOSTOSINFO_H
+#endif // QBS_HOSTOSINFO_H

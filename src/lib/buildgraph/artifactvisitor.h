@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef ARTIFACTVISITOR_H
-#define ARTIFACTVISITOR_H
+#ifndef QBS_ARTIFACTVISITOR_H
+#define QBS_ARTIFACTVISITOR_H
 
 #include "forward_decls.h"
 
@@ -56,4 +56,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // ARTIFACTVISITOR_H
+#endif // QBS_ARTIFACTVISITOR_H

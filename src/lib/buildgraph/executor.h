@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef BUILDGRAPHEXECUTOR_H
-#define BUILDGRAPHEXECUTOR_H
+#ifndef QBS_BUILDGRAPHEXECUTOR_H
+#define QBS_BUILDGRAPHEXECUTOR_H
 
 #include "forward_decls.h"
 #include <buildgraph/artifact.h>
@@ -116,4 +116,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // BUILDGRAPHEXECUTOR_H
+#endif // QBS_BUILDGRAPHEXECUTOR_H

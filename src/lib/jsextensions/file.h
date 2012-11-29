@@ -27,7 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef FILE_H
+#ifndef QBS_FILE_H
+#define QBS_FILE_H
 
 #include <QScriptContext>
 #include <QScriptValue>
@@ -50,4 +51,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // FILE_H
+#endif // QBS_FILE_H

@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef PLUGINS_H
-#define PLUGINS_H
+#ifndef QBS_PLUGINS_H
+#define QBS_PLUGINS_H
 
 #include <plugins/scanner/scanner.h>
 

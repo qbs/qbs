@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef  LOADER_H
-#define  LOADER_H
+#ifndef  QBS_LOADER_H
+#define  QBS_LOADER_H
 
 #include "forward_decls.h"
 
@@ -59,4 +59,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // LOADER_H
+#endif // QBS_LOADER_H

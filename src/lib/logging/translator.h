@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef TRANSLATOR_H
-#define TRANSLATOR_H
+#ifndef QBS_TRANSLATOR_H
+#define QBS_TRANSLATOR_H
 
 #include <QCoreApplication>
 
@@ -42,4 +42,4 @@ class Tr // Name intended to be short.
 } // namespace Internal
 } // namespace qbs
 
-#endif // TRANSLATOR_H
+#endif // QBS_TRANSLATOR_H

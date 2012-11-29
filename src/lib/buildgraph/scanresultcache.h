@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCANRESULTCACHE_H
-#define SCANRESULTCACHE_H
+#ifndef QBS_SCANRESULTCACHE_H
+#define QBS_SCANRESULTCACHE_H
 
 #include <QHash>
 #include <QMutex>
@@ -82,4 +82,4 @@ private:
 } // namespace qbs
 } // namespace qbs
 
-#endif // SCANRESULTCACHE_H
+#endif // QBS_SCANRESULTCACHE_H

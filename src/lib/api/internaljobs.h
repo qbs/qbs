@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBSJOB_H
-#define QBSJOB_H
+#ifndef QBS_INTERNALJOBS_H
+#define QBS_INTERNALJOBS_H
 
 #include "projectdata.h"
 #include <buildgraph/forward_decls.h>
@@ -172,4 +172,4 @@ private slots:
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBSJOB_H
+#endif // QBS_INTERNALJOBS_H

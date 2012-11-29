@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef ARTIFACT_H
-#define ARTIFACT_H
+#ifndef QBS_ARTIFACT_H
+#define QBS_ARTIFACT_H
 
 #include "artifactlist.h"
 #include "forward_decls.h"
@@ -144,4 +144,4 @@ inline QString toString(Artifact::BuildState s)
 } // namespace Internal
 } // namespace qbs
 
-#endif // ARTIFACT_H
+#endif // QBS_ARTIFACT_H

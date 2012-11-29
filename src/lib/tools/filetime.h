@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef FILETIME_H
-#define FILETIME_H
+#ifndef QBS_FILETIME_H
+#define QBS_FILETIME_H
 
 #include <QDataStream>
 #include <QDebug>
@@ -125,4 +125,4 @@ inline QDebug operator<<(QDebug dbg, const qbs::Internal::FileTime &t)
 
 QT_END_NAMESPACE
 
-#endif // FILETIME_H
+#endif // QBS_FILETIME_H

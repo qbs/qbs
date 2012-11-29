@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef L2_LANGUAGE_HPP
-#define L2_LANGUAGE_HPP
+#ifndef QBS_L2_LANGUAGE_HPP
+#define QBS_L2_LANGUAGE_HPP
 
 #include "forward_decls.h"
 #include "jsimports.h"

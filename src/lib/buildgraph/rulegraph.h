@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef RULEGRAPH_H
-#define RULEGRAPH_H
+#ifndef QBS_RULEGRAPH_H
+#define QBS_RULEGRAPH_H
 
 #include <language/forward_decls.h>
 
@@ -71,4 +71,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // RULEGRAPH_H
+#endif // QBS_RULEGRAPH_H

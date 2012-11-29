@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef PROCESSCOMMANDEXECUTOR_H
-#define PROCESSCOMMANDEXECUTOR_H
+#ifndef QBS_PROCESSCOMMANDEXECUTOR_H
+#define QBS_PROCESSCOMMANDEXECUTOR_H
 
 #include "abstractcommandexecutor.h"
 
@@ -77,4 +77,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // PROCESSCOMMANDEXECUTOR_H
+#endif // QBS_PROCESSCOMMANDEXECUTOR_H

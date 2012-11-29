@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef PERSISTENTOBJECT_H
-#define PERSISTENTOBJECT_H
+#ifndef QBS_PERSISTENTOBJECT_H
+#define QBS_PERSISTENTOBJECT_H
 
 namespace qbs {
 namespace Internal {
@@ -45,4 +45,4 @@ public:
 } // namespace Internal
 } // namespace qbs
 
-#endif // PERSISTENTOBJECT_H
+#endif // QBS_PERSISTENTOBJECT_H

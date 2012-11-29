@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef TEXTFILE_H
-#define TEXTFILE_H
+#ifndef QBS_TEXTFILE_H
+#define QBS_TEXTFILE_H
 
 #include <QObject>
 #include <QScriptable>
@@ -71,4 +71,4 @@ private:
 
 Q_DECLARE_METATYPE(qbs::Internal::TextFile *)
 
-#endif // TEXTFILE_H
+#endif // QBS_TEXTFILE_H

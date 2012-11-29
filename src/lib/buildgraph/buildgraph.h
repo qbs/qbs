@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef BUILDGRAPH_H
-#define BUILDGRAPH_H
+#ifndef QBS_BUILDGRAPH_H
+#define QBS_BUILDGRAPH_H
 
 #include "artifactlist.h"
 #include "forward_decls.h"
@@ -294,4 +294,4 @@ void freeCFileTags(char **cFileTags, int numFileTags);
 } // namespace Internal
 } // namespace qbs
 
-#endif // BUILDGRAPH_H
+#endif // QBS_BUILDGRAPH_H

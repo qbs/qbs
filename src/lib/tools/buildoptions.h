@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef BUILDOPTIONS_H
-#define BUILDOPTIONS_H
+#ifndef QBS_BUILDOPTIONS_H
+#define QBS_BUILDOPTIONS_H
 
 #include <QStringList>
 
@@ -49,4 +49,4 @@ inline bool operator!=(const BuildOptions &bo1, const BuildOptions &bo2) { retur
 
 } // namespace qbs
 
-#endif // BUILDOPTIONS_H
+#endif // QBS_BUILDOPTIONS_H

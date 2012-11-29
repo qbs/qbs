@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef PROGRESSOBSERVER_H
-#define PROGRESSOBSERVER_H
+#ifndef QBS_PROGRESSOBSERVER_H
+#define QBS_PROGRESSOBSERVER_H
 
 #include <QtGlobal>
 
@@ -58,4 +58,4 @@ public:
 } // namespace Internal
 } // namespace qbs
 
-#endif // PROGRESSOBSERVER_H
+#endif // QBS_PROGRESSOBSERVER_H

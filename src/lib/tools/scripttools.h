@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCRIPTTOOLS_H
-#define SCRIPTTOOLS_H
+#ifndef QBS_SCRIPTTOOLS_H
+#define QBS_SCRIPTTOOLS_H
 
 #include <QScriptEngine>
 #include <QScriptProgram>
@@ -86,4 +86,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // SCRIPTTOOLS_H
+#endif // QBS_SCRIPTTOOLS_H

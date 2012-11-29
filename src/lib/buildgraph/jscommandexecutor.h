@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef JSCOMMANDEXECUTOR_H
-#define JSCOMMANDEXECUTOR_H
+#ifndef QBS_JSCOMMANDEXECUTOR_H
+#define QBS_JSCOMMANDEXECUTOR_H
 
 #include "abstractcommandexecutor.h"
 
@@ -58,4 +58,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // JSCOMMANDEXECUTOR_H
+#endif // QBS_JSCOMMANDEXECUTOR_H

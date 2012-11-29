@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef QBS_SETTINGS_H
+#define QBS_SETTINGS_H
 
 #include <QStringList>
 #include <QVariant>
@@ -79,4 +79,4 @@ private:
 
 } // namespace qbs
 
-#endif // SETTINGS_H
+#endif // QBS_SETTINGS_H

@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef CYCLEDETECTOR_H
-#define CYCLEDETECTOR_H
+#ifndef QBS_CYCLEDETECTOR_H
+#define QBS_CYCLEDETECTOR_H
 
 #include "artifactvisitor.h"
 
@@ -57,4 +57,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // CYCLEDETECTOR_H
+#endif // QBS_CYCLEDETECTOR_H

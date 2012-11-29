@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef ARTIFACTLIST_H
-#define ARTIFACTLIST_H
+#ifndef QBS_ARTIFACTLIST_H
+#define QBS_ARTIFACTLIST_H
 
 #include <set>
 #include <cstddef>
@@ -105,4 +105,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // ARTIFACTLIST_H
+#endif // QBS_ARTIFACTLIST_H

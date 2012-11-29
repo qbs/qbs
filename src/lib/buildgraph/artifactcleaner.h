@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef ARTIFACTCLEANER_H
-#define ARTIFACTCLEANER_H
+#ifndef QBS_ARTIFACTCLEANER_H
+#define QBS_ARTIFACTCLEANER_H
 
 #include <QList>
 
@@ -54,4 +54,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // ARTIFACTCLEANER_H
+#endif // QBS_ARTIFACTCLEANER_H

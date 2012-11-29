@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef AUTOMOC_H
-#define AUTOMOC_H
+#ifndef QBS_AUTOMOC_H
+#define QBS_AUTOMOC_H
 
 #include "forward_decls.h"
 
@@ -77,4 +77,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // AUTOMOC_H
+#endif // QBS_AUTOMOC_H

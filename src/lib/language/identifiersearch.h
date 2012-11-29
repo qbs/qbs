@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef IDENTIFIERSEARCHVISITOR_H
-#define IDENTIFIERSEARCHVISITOR_H
+#ifndef QBS_IDENTIFIERSEARCHVISITOR_H
+#define QBS_IDENTIFIERSEARCHVISITOR_H
 
 #include <parser/qmljsastfwd_p.h>
 #include <parser/qmljsastvisitor_p.h>
@@ -56,4 +56,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // IDENTIFIERSEARCHVISITOR_H
+#endif // QBS_IDENTIFIERSEARCHVISITOR_H

@@ -1,5 +1,5 @@
-#ifndef JSIMPORTS_H
-#define JSIMPORTS_H
+#ifndef QBS_JSIMPORTS_H
+#define QBS_JSIMPORTS_H
 
 #include <tools/codelocation.h>
 #include <QStringList>
@@ -27,4 +27,4 @@ typedef QList<JsImport> JsImports;
 } // namespace Internal
 } // namespace qbs
 
-#endif // JSIMPORTS_H
+#endif // QBS_JSIMPORTS_H

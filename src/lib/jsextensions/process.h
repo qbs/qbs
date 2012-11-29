@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef PROCESS_H
-#define PROCESS_H
+#ifndef QBS_PROCESS_H
+#define QBS_PROCESS_H
 
 #include <QObject>
 #include <QScriptable>
@@ -79,4 +79,4 @@ private:
 
 Q_DECLARE_METATYPE(qbs::Internal::Process *)
 
-#endif // PROCESS_H
+#endif // QBS_PROCESS_H

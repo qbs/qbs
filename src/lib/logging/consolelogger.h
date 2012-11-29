@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef LOGSINK_H
-#define LOGSINK_H
+#ifndef QBS_LOGSINK_H
+#define QBS_LOGSINK_H
 
 #include "ilogsink.h"
 #include "logger.h"
@@ -64,4 +64,4 @@ private:
 
 } // namespace qbs
 
-#endif // LOGSINK_H
+#endif // QBS_LOGSINK_H

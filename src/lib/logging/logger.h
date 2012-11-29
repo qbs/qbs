@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef QBS_LOGGER_H
+#define QBS_LOGGER_H
 
 #include "ilogsink.h"
 
@@ -137,4 +137,4 @@ LogWriter operator<<(LogWriter w, TextColor);
 
 } // namespace qbs
 
-#endif // LOGGER_H
+#endif // QBS_LOGGER_H

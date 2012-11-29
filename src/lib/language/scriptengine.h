@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCRIPTENGINE_H
-#define SCRIPTENGINE_H
+#ifndef QBS_SCRIPTENGINE_H
+#define QBS_SCRIPTENGINE_H
 
 #include "jsimports.h"
 
@@ -58,4 +58,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // SCRIPTENGINE_H
+#endif // QBS_SCRIPTENGINE_H

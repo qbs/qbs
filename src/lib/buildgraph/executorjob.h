@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTORJOB_H
-#define EXECUTORJOB_H
+#ifndef QBS_EXECUTORJOB_H
+#define QBS_EXECUTORJOB_H
 
 #include <QObject>
 
@@ -79,4 +79,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // EXECUTORJOB_H
+#endif // QBS_EXECUTORJOB_H

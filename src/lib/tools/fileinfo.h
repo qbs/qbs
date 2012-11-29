@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef FILEINFO_H
-#define FILEINFO_H
+#ifndef QBS_FILEINFO_H
+#define QBS_FILEINFO_H
 
 #include "filetime.h"
 

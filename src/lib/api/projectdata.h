@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef PUBLICTYPES_H
-#define PUBLICTYPES_H
+#ifndef QBS_PROJECTDATA_H
+#define QBS_PROJECTDATA_H
 
 #include <QList>
 #include <QPair>
@@ -110,4 +110,4 @@ bool operator!=(const ProjectData &lhs, const ProjectData &rhs);
 
 } // namespace qbs
 
-#endif // PUBLICTYPES_H
+#endif // QBS_PROJECTDATA_H
