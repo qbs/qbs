@@ -67,9 +67,9 @@ CppModule {
         Artifact {
             fileTags: ['obj']
             fileName: {
-                var baseName = FileInfo.baseName(product.modules.cpp.precompiledHeader);
+                var completeBaseName = FileInfo.completeBaseName(product.modules.cpp.precompiledHeader);
                 // ### make the object file dir overridable
-                return ".obj/" + product.name + "/" + baseName + '.obj'
+                return ".obj/" + product.name + "/" + completeBaseName + '.obj'
             }
         }
         Artifact {
@@ -95,7 +95,7 @@ CppModule {
         Artifact {
             fileTags: ['obj']
             // ### make the object file dir overridable
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.baseName + ".obj"
+            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".obj"
         }
  
         prepare: {
@@ -209,7 +209,7 @@ CppModule {
         inputs: ["rc"]
 
         Artifact {
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.baseName + ".res"
+            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".res"
             fileTags: ["obj"]
         }
 
