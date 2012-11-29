@@ -64,6 +64,11 @@ bool operator!=(const ProductData &lhs, const ProductData &rhs)
     return !(lhs == rhs);
 }
 
+bool operator<(const GroupData &lhs, const GroupData &rhs)
+{
+    return lhs.name() < rhs.name();
+}
+
 ProjectData::ProjectData() { }
 
 bool operator==(const ProjectData &lhs, const ProjectData &rhs)
@@ -75,6 +80,11 @@ bool operator==(const ProjectData &lhs, const ProjectData &rhs)
 bool operator!=(const ProjectData &lhs, const ProjectData &rhs)
 {
     return !(lhs == rhs);
+}
+
+bool operator<(const ProductData &lhs, const ProductData &rhs)
+{
+    return lhs.name() < rhs.name();
 }
 
 /*!

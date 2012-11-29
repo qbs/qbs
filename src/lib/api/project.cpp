@@ -258,11 +258,15 @@ void ProjectPrivate::retrieveProjectData()
                 foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
                     group.m_expandedWildcards << sa->absoluteFilePath;
             }
+            qSort(group.m_filePaths);
+            qSort(group.m_expandedWildcards);
             group.m_properties = resolvedGroup->properties->value();
             product.m_groups << group;
         }
+        qSort(product.m_groups);
         m_projectData.m_products << product;
     }
+    qSort(m_projectData.m_products);
     m_projectDataRetrieved = true;
 }
 

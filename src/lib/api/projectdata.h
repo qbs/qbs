@@ -65,6 +65,7 @@ private:
 
 bool operator==(const GroupData &lhs, const GroupData &rhs);
 bool operator!=(const GroupData &lhs, const GroupData &rhs);
+bool operator<(const GroupData &lhs, const GroupData &rhs);
 
 class ProductData
 {
@@ -90,6 +91,7 @@ private:
 
 bool operator==(const ProductData &lhs, const ProductData &rhs);
 bool operator!=(const ProductData &lhs, const ProductData &rhs);
+bool operator<(const ProductData &lhs, const ProductData &rhs);
 
 class ProjectData
 {
