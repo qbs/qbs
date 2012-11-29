@@ -26,60 +26,49 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "cycledetector.h"
+#ifndef QBS_RULESAPPLICATOR_H
+#define QBS_RULESAPPLICATOR_H
 
-#include "artifact.h"
-#include "buildgraph.h"
-#include "buildproject.h"
+#include "artifactlist.h"
+#include "forward_decls.h"
+#include <language/forward_decls.h>
 
-#include <language/language.h>
-#include <logging/logger.h>
-#include <logging/translator.h>
-#include <tools/error.h>
+#include <QMap>
+#include <QScriptValue>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
+class RulesEvaluationContext;
+class ScriptEngine;
 
-CycleDetector::CycleDetector() : ArtifactVisitor(0), m_parent(0)
+typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
+
+class RulesApplicator
 {
-}
+public:
+    RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
+    void applyAllRules();
+    void applyRule(const RuleConstPtr &rule);
 
-void CycleDetector::visitProject(const BuildProjectConstPtr &project)
-{
-    const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
-                .arg(project->resolvedProject()->id());
-    TimedActivityLogger timeLogger(description, QLatin1String("[BG] "), LoggerTrace);
-    ArtifactVisitor::visitProject(project);
-}
+private:
+    void doApply(const ArtifactList &inputArtifacts);
+    void setupScriptEngineForArtifact(Artifact *artifact);
+    Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
+                                   const ArtifactList &inputArtifacts);
+    QString resolveOutPath(const QString &path) const;
+    RulesEvaluationContext *evalContext() const;
+    ScriptEngine *engine() const;
+    QScriptValue scope() const;
 
-void CycleDetector::visitArtifact(Artifact *artifact)
-{
-    if (m_artifactsInCurrentPath.contains(artifact)) {
-        Error error(Tr::tr("Cycle in build graph detected."));
-        foreach (const Artifact * const a, cycle(artifact))
-            error.append(a->filePath());
-        throw error;
-    }
+    BuildProduct * const m_buildProduct;
+    ArtifactsPerFileTagMap &m_artifactsPerFileTag;
 
-    if (m_allArtifacts.contains(artifact))
-        return;
-
-    m_artifactsInCurrentPath += artifact;
-    m_parent = artifact;
-    foreach (Artifact * const child, artifact->children)
-        visitArtifact(child);
-    m_artifactsInCurrentPath -= artifact;
-    m_allArtifacts += artifact;
-}
-
-void CycleDetector::doVisit(Artifact *) { }
-
-QList<Artifact *> CycleDetector::cycle(Artifact *doubleEntry)
-{
-    QList<Artifact *> path;
-    BuildGraph::findPath(doubleEntry, m_parent, path);
-    return path << doubleEntry;
-}
+    RuleConstPtr m_rule;
+    TransformerPtr m_transformer;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_RULESAPPLICATOR_H

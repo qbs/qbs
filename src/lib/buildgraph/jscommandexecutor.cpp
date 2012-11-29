@@ -31,6 +31,7 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
+#include "buildproduct.h"
 #include "command.h"
 #include "transformer.h"
 

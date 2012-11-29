@@ -29,7 +29,8 @@
 #include "internaljobs.h"
 
 #include <buildgraph/artifactcleaner.h>
-#include <buildgraph/buildgraph.h>
+#include <buildgraph/buildproduct.h>
+#include <buildgraph/buildproject.h>
 #include <buildgraph/executor.h>
 #include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>

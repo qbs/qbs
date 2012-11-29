@@ -28,7 +28,10 @@
 ****************************************************************************/
 
 #include "automoc.h"
+#include "buildproduct.h"
+#include "buildproject.h"
 #include "buildgraph.h"
+#include "rulesapplicator.h"
 #include "scanresultcache.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
@@ -40,6 +43,29 @@
 
 namespace qbs {
 namespace Internal {
+
+static char **createCFileTags(const QSet<QString> &fileTags)
+{
+    if (fileTags.isEmpty())
+        return 0;
+
+    char **buf = new char*[fileTags.count()];
+    size_t i = 0;
+    foreach (const QString &fileTag, fileTags) {
+        buf[i] = qstrdup(fileTag.toLocal8Bit().data());
+        ++i;
+    }
+    return buf;
+}
+
+static void freeCFileTags(char **cFileTags, int numFileTags)
+{
+    if (!cFileTags)
+        return;
+    for (int i = numFileTags; --i >= 0;)
+        delete[] cFileTags[i];
+    delete[] cFileTags;
+}
 
 AutoMoc::AutoMoc()
     : m_scanResultCache(0)
@@ -130,7 +156,7 @@ void AutoMoc::apply(const BuildProductPtr &product)
         artifactsPerFileTag[QLatin1String("c++_pch")] += pchFile;
     if (!artifactsPerFileTag.isEmpty()) {
         qbsInfo() << DontPrintLogLevel << "Applying moc rules for '" << product->rProduct->name << "'.";
-        product->applyRules(artifactsPerFileTag);
+        RulesApplicator(product.data(), artifactsPerFileTag).applyAllRules();
     }
     if (pluginHeaderFile && pluginMetaDataFile) {
         // Make every artifact that is dependent of the header file also
@@ -171,7 +197,7 @@ AutoMoc::FileType AutoMoc::fileType(Artifact *artifact)
 void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles)
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] checks " << fileName(artifact);
+        qbsTrace() << "[AUTOMOC] checks " << BuildGraph::fileName(artifact);
 
     hasQObjectMacro = false;
     const int numFileTags = artifact->fileTags.count();
@@ -266,7 +292,7 @@ bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foun
 void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] unmoc'ing " << fileName(artifact);
+        qbsTrace() << "[AUTOMOC] unmoc'ing " << BuildGraph::fileName(artifact);
 
     artifact->fileTags.remove(mocFileTag);
 
@@ -300,13 +326,13 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
             qbsTrace() << "[AUTOMOC] generated moc obj artifact could not be found";
         } else {
             if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[AUTOMOC] removing moc obj artifact " << fileName(mocObjArtifact);
+                qbsTrace() << "[AUTOMOC] removing moc obj artifact " << BuildGraph::fileName(mocObjArtifact);
             artifact->project->removeArtifact(mocObjArtifact);
         }
     }
 
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] removing generated artifact " << fileName(generatedMocArtifact);
+        qbsTrace() << "[AUTOMOC] removing generated artifact " << BuildGraph::fileName(generatedMocArtifact);
     artifact->project->removeArtifact(generatedMocArtifact);
     delete generatedMocArtifact;
 }

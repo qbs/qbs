@@ -32,7 +32,8 @@
 #include "projectdata.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
-#include <buildgraph/buildgraph.h>
+#include <buildgraph/buildproduct.h>
+#include <buildgraph/buildproject.h>
 #include <language/language.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -43,6 +44,7 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
+#include <QDir>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QSharedData>

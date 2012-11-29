@@ -30,7 +30,6 @@
 #include "runenvironment.h"
 
 #include <api/projectdata.h>
-#include <buildgraph/buildgraph.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>

@@ -109,7 +109,7 @@ void Artifact::store(PersistentPool &pool) const
 void Artifact::disconnectChildren()
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] disconnectChildren: '%s'", qPrintable(qbs::Internal::fileName(this)));
+        qbsTrace("[BG] disconnectChildren: '%s'", qPrintable(BuildGraph::fileName(this)));
     foreach (Artifact * const child, children)
         child->parents.remove(this);
     children.clear();
@@ -118,7 +118,7 @@ void Artifact::disconnectChildren()
 void Artifact::disconnectParents()
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] disconnectParents: '%s'", qPrintable(qbs::Internal::fileName(this)));
+        qbsTrace("[BG] disconnectParents: '%s'", qPrintable(BuildGraph::fileName(this)));
     foreach (Artifact * const parent, parents)
         parent->children.remove(this);
     parents.clear();

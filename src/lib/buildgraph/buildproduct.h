@@ -26,60 +26,53 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "cycledetector.h"
+#ifndef QBS_BUILDPRODUCT_H
+#define QBS_BUILDPRODUCT_H
 
-#include "artifact.h"
-#include "buildgraph.h"
-#include "buildproject.h"
+#include "artifactlist.h"
+#include "forward_decls.h"
+#include <language/forward_decls.h>
+#include <tools/weakpointer.h>
 
-#include <language/language.h>
-#include <logging/logger.h>
-#include <logging/translator.h>
-#include <tools/error.h>
+#include <tools/persistentobject.h>
+
+#include <QList>
+#include <QSet>
 
 namespace qbs {
 namespace Internal {
 
-CycleDetector::CycleDetector() : ArtifactVisitor(0), m_parent(0)
+class BuildProduct : public PersistentObject
 {
-}
+public:
+    static BuildProductPtr create() { return BuildProductPtr(new BuildProduct); }
 
-void CycleDetector::visitProject(const BuildProjectConstPtr &project)
-{
-    const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
-                .arg(project->resolvedProject()->id());
-    TimedActivityLogger timeLogger(description, QLatin1String("[BG] "), LoggerTrace);
-    ArtifactVisitor::visitProject(project);
-}
+    ~BuildProduct();
 
-void CycleDetector::visitArtifact(Artifact *artifact)
-{
-    if (m_artifactsInCurrentPath.contains(artifact)) {
-        Error error(Tr::tr("Cycle in build graph detected."));
-        foreach (const Artifact * const a, cycle(artifact))
-            error.append(a->filePath());
-        throw error;
-    }
+    void dump() const;
+    const QList<RuleConstPtr> &topSortedRules() const;
+    Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
+    Artifact *lookupArtifact(const QString &filePath) const;
+    Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact);
+    void insertArtifact(Artifact *n);
 
-    if (m_allArtifacts.contains(artifact))
-        return;
+    WeakPointer<BuildProject> project;
+    ResolvedProductPtr rProduct;
+    QSet<Artifact *> targetArtifacts;
+    QList<BuildProductPtr> dependencies;
+    ArtifactList artifacts;
 
-    m_artifactsInCurrentPath += artifact;
-    m_parent = artifact;
-    foreach (Artifact * const child, artifact->children)
-        visitArtifact(child);
-    m_artifactsInCurrentPath -= artifact;
-    m_allArtifacts += artifact;
-}
+private:
+    BuildProduct();
 
-void CycleDetector::doVisit(Artifact *) { }
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 
-QList<Artifact *> CycleDetector::cycle(Artifact *doubleEntry)
-{
-    QList<Artifact *> path;
-    BuildGraph::findPath(doubleEntry, m_parent, path);
-    return path << doubleEntry;
-}
+private:
+    mutable QList<RuleConstPtr> m_topSortedRules;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_BUILDPRODUCT_H

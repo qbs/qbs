@@ -30,7 +30,7 @@
 
 #include "internaljobs.h"
 #include "project.h"
-#include <buildgraph/buildgraph.h>
+#include <buildgraph/buildproject.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 

@@ -30,7 +30,8 @@
 
 #include "artifact.h"
 #include "artifactvisitor.h"
-#include "buildgraph.h"
+#include "buildproduct.h"
+#include "buildproject.h"
 #include "transformer.h"
 
 #include <language/language.h>

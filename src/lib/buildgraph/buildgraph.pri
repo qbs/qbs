@@ -16,7 +16,10 @@ SOURCES += \
     $$PWD/artifactvisitor.cpp \
     $$PWD/artifactcleaner.cpp \
     $$PWD/cycledetector.cpp \
-    $$PWD/rulesevaluationcontext.cpp
+    $$PWD/rulesevaluationcontext.cpp \
+    $$PWD/buildproduct.cpp \
+    $$PWD/buildproject.cpp \
+    $$PWD/rulesapplicator.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -37,4 +40,7 @@ HEADERS += \
     $$PWD/artifactcleaner.h \
     $$PWD/cycledetector.h \
     $$PWD/forward_decls.h \
-    $$PWD/rulesevaluationcontext.h
+    $$PWD/rulesevaluationcontext.h \
+    $$PWD/buildproduct.h \
+    $$PWD/buildproject.h \
+    $$PWD/rulesapplicator.h

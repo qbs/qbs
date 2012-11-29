@@ -29,7 +29,8 @@
 #include "artifactvisitor.h"
 
 #include "artifact.h"
-#include "buildgraph.h"
+#include "buildproduct.h"
+#include "buildproject.h"
 #include <language/language.h>
 
 namespace qbs {

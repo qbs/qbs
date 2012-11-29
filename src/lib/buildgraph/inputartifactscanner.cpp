@@ -31,6 +31,8 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
+#include "buildproduct.h"
+#include "buildproject.h"
 #include "transformer.h"
 
 #include <language/language.h>
@@ -38,6 +40,7 @@
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
 
+#include <QDir>
 #include <QSet>
 #include <QStringList>
 #include <QVariantMap>

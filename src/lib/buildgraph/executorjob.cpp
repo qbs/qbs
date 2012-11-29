@@ -29,7 +29,7 @@
 
 #include "executorjob.h"
 
-#include "buildgraph.h"
+#include "buildproduct.h"
 #include "command.h"
 #include "jscommandexecutor.h"
 #include "processcommandexecutor.h"

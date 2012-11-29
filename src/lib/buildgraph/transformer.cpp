@@ -33,6 +33,7 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <tools/error.h>
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -152,6 +153,34 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script, ScriptEngi
         AbstractCommand *cmd = createCommandFromScriptValue(scriptValue, script->location);
         if (cmd)
             commands += cmd;
+    }
+}
+
+void Transformer::load(PersistentPool &pool)
+{
+    rule = pool.idLoadS<Rule>();
+    pool.loadContainer(inputs);
+    pool.loadContainer(outputs);
+    int count, cmdType;
+    pool.stream() >> count;
+    commands.reserve(count);
+    while (--count >= 0) {
+        pool.stream() >> cmdType;
+        AbstractCommand *cmd = AbstractCommand::createByType(static_cast<AbstractCommand::CommandType>(cmdType));
+        cmd->load(pool.stream());
+        commands += cmd;
+    }
+}
+
+void Transformer::store(PersistentPool &pool) const
+{
+    pool.store(rule);
+    pool.storeContainer(inputs);
+    pool.storeContainer(outputs);
+    pool.stream() << commands.count();
+    foreach (AbstractCommand *cmd, commands) {
+        pool.stream() << int(cmd->type());
+        cmd->store(pool.stream());
     }
 }
 

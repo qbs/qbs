@@ -29,7 +29,6 @@
 #include "rulesevaluationcontext.h"
 
 #include "artifact.h"
-#include "buildgraph.h"
 #include "command.h"
 #include "transformer.h"
 #include <language/language.h>
