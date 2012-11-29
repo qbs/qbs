@@ -47,9 +47,9 @@
 #include <QVector>
 
 namespace qbs {
-
 namespace Internal {
 class ProgressObserver;
+class RulesEvaluationContext;
 class ScriptEngine;
 class Transformer;
 
@@ -68,8 +68,7 @@ public:
     Artifact *lookupArtifact(const QString &filePath) const;
     Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact);
     void insertArtifact(Artifact *n);
-    void applyRules(ArtifactsPerFileTagMap &artifactsPerFileTag, ScriptEngine *engine,
-                    ProgressObserver *observer);
+    void applyRules(ArtifactsPerFileTagMap &artifactsPerFileTag);
 
     WeakPointer<BuildProject> project;
     ResolvedProductPtr rProduct;
@@ -96,14 +95,16 @@ class BuildProject : public PersistentObject
     friend class BuildProjectLoader;
     friend class BuildProjectResolver;
 public:
-    BuildProject(BuildGraph *bg);
+    BuildProject();
     ~BuildProject();
 
     void store() const;
     static QString deriveBuildGraphFilePath(const QString &buildDir, const QString projectId);
     QString buildGraphFilePath() const;
 
-    BuildGraph *buildGraph() const;
+    void setEvaluationContext(RulesEvaluationContext *evalContext);
+    RulesEvaluationContext *evaluationContext() const { return m_evalContext; }
+
     ResolvedProjectPtr resolvedProject() const;
     QSet<BuildProductPtr> buildProducts() const;
     bool dirty() const;
@@ -115,7 +116,7 @@ public:
     void insertFileDependency(Artifact *artifact);
     void rescueDependencies(const BuildProjectPtr &other);
     void removeArtifact(Artifact *artifact);
-    void updateNodesThatMustGetNewTransformer(ScriptEngine *engine, ProgressObserver *observer);
+    void updateNodesThatMustGetNewTransformer();
     void removeFromArtifactsThatMustGetNewTransformers(Artifact *a) {
         m_artifactsThatMustGetNewTransformers -= a;
     }
@@ -128,11 +129,10 @@ private:
     void store(PersistentPool &pool) const;
     void addBuildProduct(const BuildProductPtr &product);
     void setResolvedProject(const ResolvedProjectPtr &resolvedProject);
-    void updateNodeThatMustGetNewTransformer(Artifact *artifact, ScriptEngine *engine,
-                                             ProgressObserver *observer);
+    void updateNodeThatMustGetNewTransformer(Artifact *artifact);
 
 private:
-    BuildGraph *m_buildGraph;
+    RulesEvaluationContext *m_evalContext;
     ResolvedProjectPtr m_resolvedProject;
     QSet<BuildProductPtr> m_buildProducts;
     ArtifactList m_dependencyArtifacts;
@@ -154,54 +154,24 @@ private:
 class BuildGraph
 {
 public:
-    class EngineInitializer
-    {
-    public:
-        EngineInitializer(BuildGraph *bg);
-        ~EngineInitializer();
-
-    private:
-        BuildGraph *buildGraph;
-    };
-
-    BuildGraph();
-    ~BuildGraph();
-
-    void setEngine(ScriptEngine *engine);
-    ScriptEngine *engine() { return m_engine; }
-
-    void setProgressObserver(ProgressObserver *observer);
-    ProgressObserver *observer() const { return m_progressObserver; }
-
     static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
     static void loggedConnect(Artifact *u, Artifact *v);
     static bool safeConnect(Artifact *u, Artifact *v);
     static void removeGeneratedArtifactFromDisk(Artifact *artifact);
-
-    static void setupScriptEngineForProduct(ScriptEngine *scriptEngine,
-                                            const ResolvedProductConstPtr &product,
-                                            RuleConstPtr rule, QScriptValue targetObject);
     static void disconnect(Artifact *u, Artifact *v);
+    static void setupScriptEngineForProduct(ScriptEngine *engine,
+            const ResolvedProductConstPtr &product, const RuleConstPtr &rule,
+            QScriptValue targetObject);
 
 private:
-    void initEngine();
-    void cleanupEngine();
-
-    ProgressObserver *m_progressObserver;
-    ScriptEngine *m_engine;
-    unsigned int m_initEngineCalls;
-    QScriptValue m_scope;
-    QScriptValue m_prepareScriptScope;
-
-    friend class EngineInitializer;
+    BuildGraph();
 };
 
 class RulesApplicator
 {
 public:
-    RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-                    ScriptEngine *engine, ProgressObserver *observer);
+    RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
     void applyAllRules();
     void applyRule(const RuleConstPtr &rule);
 
@@ -211,13 +181,12 @@ private:
     Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
             const ArtifactList &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
-
+    RulesEvaluationContext *evalContext() const;
+    ScriptEngine *engine() const;
     QScriptValue scope() const;
 
     BuildProduct * const m_buildProduct;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
-    ScriptEngine * const m_engine;
-    ProgressObserver * const m_observer;
 
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;
@@ -227,17 +196,16 @@ class BuildProjectResolver
 {
 public:
     BuildProjectPtr resolveProject(const ResolvedProjectPtr &resolvedProject,
-                                     BuildGraph *buildgraph, ProgressObserver *observer = 0);
+                                   RulesEvaluationContext *evalContext);
 
 private:
     BuildProductPtr resolveProduct(const ResolvedProductPtr &rProduct);
 
-    BuildGraph *buildGraph() const { return m_project->buildGraph(); }
-    ScriptEngine *engine() const { return buildGraph()->engine(); }
+    RulesEvaluationContext *evalContext() const;
+    ScriptEngine *engine() const;
     QScriptValue scope() const;
 
     BuildProjectPtr m_project;
-    ProgressObserver *m_observer;
     QHash<ResolvedProductPtr, BuildProductPtr> m_productCache;
 };
 
@@ -253,8 +221,9 @@ public:
         bool discardLoadedProject;
     };
 
-    LoadResult load(const QString &projectFilePath, BuildGraph *bg, const QString &buildRoot,
-                    const QVariantMap &cfg, const QStringList &loaderSearchPaths);
+    LoadResult load(const QString &projectFilePath, RulesEvaluationContext *evalContext,
+                    const QString &buildRoot, const QVariantMap &cfg,
+                    const QStringList &loaderSearchPaths);
 
 private:
     void onProductRemoved(const BuildProductPtr &product);
@@ -263,8 +232,7 @@ private:
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
                                               QList<Artifact*> *removedArtifacts = 0);
 
-    ScriptEngine *m_engine;
-    ProgressObserver *m_observer;
+    RulesEvaluationContext *m_evalContext;
     LoadResult m_result;
 };
 

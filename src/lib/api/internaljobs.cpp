@@ -31,9 +31,9 @@
 #include <buildgraph/artifactcleaner.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/executor.h>
+#include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/loader.h>
-#include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -143,25 +143,23 @@ void InternalSetupProjectJob::doResolve()
 
 void InternalSetupProjectJob::execute()
 {
-    ScriptEngine scriptEngine;
-    QScopedPointer<BuildGraph> buildGraph(new BuildGraph);
-    buildGraph->setEngine(&scriptEngine);
-    buildGraph->setProgressObserver(observer());
+    QScopedPointer<RulesEvaluationContext> evalContext(new RulesEvaluationContext);
+    evalContext->setObserver(observer());
     const QStringList searchPaths = Settings().searchPaths();
     const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
-            buildGraph.data(), m_buildRoot, m_buildConfig, searchPaths);
+            evalContext.data(), m_buildRoot, m_buildConfig, searchPaths);
 
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
         m_buildProject = loadResult.loadedProject;
     if (m_buildProject) {
-        buildGraph.take();
+        evalContext.take();
         rProject = m_buildProject->resolvedProject();
     } else {
         if (loadResult.changedResolvedProject) {
             rProject = loadResult.changedResolvedProject;
         } else {
-            Loader loader(&scriptEngine);
+            Loader loader(evalContext->engine());
             loader.setSearchPaths(searchPaths);
             loader.setProgressObserver(observer());
             rProject = loader.loadProject(m_projectFilePath, m_buildRoot, m_buildConfig);
@@ -188,10 +186,10 @@ void InternalSetupProjectJob::execute()
         return;
 
     TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
-    m_buildProject = BuildProjectResolver().resolveProject(rProject, buildGraph.data(), observer());
+    m_buildProject = BuildProjectResolver().resolveProject(rProject, evalContext.data());
     if (loadResult.loadedProject)
         m_buildProject->rescueDependencies(loadResult.loadedProject);
-    buildGraph.take();
+    evalContext.take();
 }
 
 
@@ -237,7 +235,6 @@ void InternalBuildJob::start()
 {
     m_executor = new Executor(this);
     connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));
-    m_executor->setEngine(new ScriptEngine(this));
     m_executor->setBuildOptions(buildOptions());
     m_executor->setProgressObserver(observer());
     m_executor->build(products());

@@ -51,8 +51,7 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
     m_scanResultCache = scanResultCache;
 }
 
-void AutoMoc::apply(const BuildProductPtr &product, ScriptEngine *engine,
-                    ProgressObserver *observer)
+void AutoMoc::apply(const BuildProductPtr &product)
 {
     if (scanners().isEmpty())
         throw Error("C++ scanner cannot be loaded.");
@@ -131,7 +130,7 @@ void AutoMoc::apply(const BuildProductPtr &product, ScriptEngine *engine,
         artifactsPerFileTag[QLatin1String("c++_pch")] += pchFile;
     if (!artifactsPerFileTag.isEmpty()) {
         qbsInfo() << DontPrintLogLevel << "Applying moc rules for '" << product->rProduct->name << "'.";
-        product->applyRules(artifactsPerFileTag, engine, observer);
+        product->applyRules(artifactsPerFileTag);
     }
     if (pluginHeaderFile && pluginMetaDataFile) {
         // Make every artifact that is dependent of the header file also
@@ -140,7 +139,7 @@ void AutoMoc::apply(const BuildProductPtr &product, ScriptEngine *engine,
             BuildGraph::loggedConnect(outputOfHeader, pluginMetaDataFile);
     }
 
-    product->project->updateNodesThatMustGetNewTransformer(engine, observer);
+    product->project->updateNodesThatMustGetNewTransformer();
 }
 
 QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)

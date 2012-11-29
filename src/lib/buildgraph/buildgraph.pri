@@ -15,7 +15,8 @@ SOURCES += \
     $$PWD/inputartifactscanner.cpp \
     $$PWD/artifactvisitor.cpp \
     $$PWD/artifactcleaner.cpp \
-    $$PWD/cycledetector.cpp
+    $$PWD/cycledetector.cpp \
+    $$PWD/rulesevaluationcontext.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -35,4 +36,5 @@ HEADERS += \
     $$PWD/artifactvisitor.h \
     $$PWD/artifactcleaner.h \
     $$PWD/cycledetector.h \
-    $$PWD/forward_decls.h
+    $$PWD/forward_decls.h \
+    $$PWD/rulesevaluationcontext.h

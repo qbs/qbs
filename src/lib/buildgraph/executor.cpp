@@ -34,6 +34,7 @@
 #include "cycledetector.h"
 #include "executorjob.h"
 #include "inputartifactscanner.h"
+#include "rulesevaluationcontext.h"
 
 #include <buildgraph/transformer.h>
 #include <language/language.h>
@@ -87,13 +88,15 @@ private:
 
 Executor::Executor(QObject *parent)
     : QObject(parent)
-    , m_engine(0)
+    , m_evalContext(new RulesEvaluationContext)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
     m_autoMoc->setScanResultCache(&m_scanResultCache);
+    foreach (ExecutorJob *job, findChildren<ExecutorJob *>())
+        job->setMainThreadScriptEngine(m_evalContext->engine());
 }
 
 Executor::~Executor()
@@ -133,7 +136,6 @@ void Executor::build(const QList<BuildProductPtr> &productsToBuild)
 void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
 {
     Q_ASSERT(m_buildOptions.maxJobCount > 0);
-    Q_ASSERT(m_engine);
     Q_ASSERT(m_state == ExecutorIdle);
     m_leaves.clear();
     m_productsToBuild = productsToBuild;
@@ -143,10 +145,8 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     QSet<BuildProject *> projects;
     foreach (const BuildProductConstPtr &buildProduct, productsToBuild)
         projects << buildProduct->project;
-    foreach (BuildProject * const project, projects) {
-        project->buildGraph()->setEngine(m_engine);
-        project->buildGraph()->setProgressObserver(m_progressObserver);
-    }
+    foreach (BuildProject * const project, projects)
+        project->setEvaluationContext(m_evalContext);
 
     initializeArtifactsState();
     setState(ExecutorRunning);
@@ -170,7 +170,7 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     // prepare products
     const QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
     foreach (BuildProductPtr product, m_productsToBuild)
-        product->rProduct->setupBuildEnvironment(m_engine, systemEnvironment);
+        product->rProduct->setupBuildEnvironment(m_evalContext->engine(), systemEnvironment);
 
     // find the root nodes
     m_roots.clear();
@@ -194,16 +194,6 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
         qbsTrace() << "Nothing to do at all, finishing.";
         QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
     }
-}
-
-void Executor::setEngine(ScriptEngine *engine)
-{
-    if (m_engine == engine)
-        return;
-
-    m_engine = engine;
-    foreach (ExecutorJob *job, findChildren<ExecutorJob *>())
-        job->setMainThreadScriptEngine(engine);
 }
 
 void Executor::setBuildOptions(const BuildOptions &buildOptions)
@@ -577,8 +567,7 @@ void Executor::addExecutorJobs(int jobNumber)
 {
     for (int i = 1; i <= jobNumber; i++) {
         ExecutorJob *job = new ExecutorJob(this);
-        if (m_engine)
-            job->setMainThreadScriptEngine(m_engine);
+        job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
         m_availableJobs.append(job);
         connect(job, SIGNAL(error(QString)), this, SLOT(onProcessError(QString)));
@@ -606,7 +595,7 @@ void Executor::runAutoMoc()
         foreach (const ResolvedModuleConstPtr &m, product->rProduct->modules) {
             if (m->name == "qt/core") {
                 autoMocApplied = true;
-                m_autoMoc->apply(product, m_engine, m_progressObserver);
+                m_autoMoc->apply(product);
                 break;
             }
         }

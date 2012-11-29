@@ -26,55 +26,56 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_RULESEVALUATIONCONTEXT_H
+#define QBS_RULESEVALUATIONCONTEXT_H
 
-#ifndef QBS_AUTOMOC_H
-#define QBS_AUTOMOC_H
+#include <language/forward_decls.h>
 
-#include "forward_decls.h"
-
-struct ScannerPlugin;
+#include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
-class ScanResultCache;
+class ProgressObserver;
+class ScriptEngine;
 
-/**
-  * Scans cpp and hpp files for the Q_OBJECT / Q_GADGET macro and
-  * applies the corresponding rule then.
-  * Also scans the files for moc_XXX.cpp files to find out if we must
-  * compile and link a moc_XXX.cpp file or not.
-  *
-  * This whole thing is an ugly hack, I know.
-  */
-class AutoMoc
+class RulesEvaluationContext
 {
 public:
-    AutoMoc();
+    RulesEvaluationContext();
+    ~RulesEvaluationContext();
 
-    void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(const BuildProductPtr &product);
-
-private:
-    enum FileType
+    class Scope
     {
-        UnknownFileType,
-        HppFileType,
-        CppFileType
+    public:
+        Scope(RulesEvaluationContext *evalContext);
+        ~Scope();
+
+    private:
+        RulesEvaluationContext * const m_evalContext;
     };
 
-private:
-    static QString generateMocFileName(Artifact *artifact, FileType fileType);
-    static FileType fileType(Artifact *artifact);
-    void scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles);
-    bool isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foundMocFileTag);
-    void unmoc(Artifact *artifact, const QString &mocFileTag);
-    QList<ScannerPlugin *> scanners() const;
+    ScriptEngine *engine() const { return m_engine; }
+    QScriptValue scope() const { return m_scope; }
 
-    mutable QList<ScannerPlugin *> m_scanners;
-    ScanResultCache *m_scanResultCache;
+    void setObserver(ProgressObserver *observer) { m_observer = observer; }
+    void initializeObserver(const QString &description, int maximumProgress);
+    void incrementProgressValue();
+    void checkForCancelation();
+
+private:
+    friend class Scope;
+
+    void initScope();
+    void cleanupScope();
+
+    ScriptEngine * const m_engine;
+    ProgressObserver *m_observer;
+    unsigned int m_initScopeCalls;
+    QScriptValue m_scope;
+    QScriptValue m_prepareScriptScope;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_AUTOMOC_H
+#endif // QBS_RULESEVALUATIONCONTEXT_H

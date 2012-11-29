@@ -33,6 +33,7 @@
 #include "cycledetector.h"
 #include "command.h"
 #include "rulegraph.h"
+#include "rulesevaluationcontext.h"
 #include "transformer.h"
 
 #include <language/language.h>
@@ -173,37 +174,17 @@ void BuildProduct::insertArtifact(Artifact *artifact)
         qbsTrace("[BG] insert artifact '%s'", qPrintable(artifact->filePath()));
 }
 
-void BuildProduct::applyRules(ArtifactsPerFileTagMap &artifactsPerFileTag, ScriptEngine *engine,
-                              ProgressObserver *observer)
+void BuildProduct::applyRules(ArtifactsPerFileTagMap &artifactsPerFileTag)
 {
-    BuildGraph::EngineInitializer engineInitializer(project->buildGraph());
-    RulesApplicator rulesApplier(this, artifactsPerFileTag, engine, observer);
+    RulesEvaluationContext::Scope s(project->evaluationContext());
+    RulesApplicator rulesApplier(this, artifactsPerFileTag);
     rulesApplier.applyAllRules();
 }
 
 
-BuildGraph::BuildGraph()
-    : m_progressObserver(0)
-    , m_engine(0)
-    , m_initEngineCalls(0)
-{
-}
-
-BuildGraph::~BuildGraph()
-{
-}
-
-void BuildGraph::setEngine(ScriptEngine *engine)
-{
-    m_engine = engine;
-    m_prepareScriptScope = m_engine->newObject();
-    ProcessCommand::setupForJavaScript(m_prepareScriptScope);
-    JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
-}
-
 void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
                                              const ResolvedProductConstPtr &product,
-                                             RuleConstPtr rule,
+                                             const RuleConstPtr &rule,
                                              QScriptValue targetObject)
 {
     const ResolvedProject *lastSetupProject = reinterpret_cast<ResolvedProject *>(engine->property("lastSetupProject").toULongLong());
@@ -239,11 +220,6 @@ void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
         productScriptValue.setProperty("module", productScriptValue.property("modules").property(rule->module->name));
 
     engine->import(rule->jsImports, targetObject, targetObject);
-}
-
-void BuildGraph::setProgressObserver(ProgressObserver *observer)
-{
-    m_progressObserver = observer;
 }
 
 bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
@@ -327,32 +303,6 @@ void BuildGraph::disconnect(Artifact *u, Artifact *v)
         qbsTrace("[BG] disconnect: '%s' '%s'", qPrintable(fileName(u)), qPrintable(fileName(v)));
     u->children.remove(v);
     v->parents.remove(u);
-}
-
-void BuildGraph::initEngine()
-{
-    if (m_initEngineCalls++ > 0)
-        return;
-
-    m_engine->setProperty("lastSetupProject", QVariant());
-    m_engine->setProperty("lastSetupProduct", QVariant());
-
-    m_engine->clearImportsCache();
-    m_engine->pushContext();
-    m_scope = m_engine->newObject();
-    m_scope.setPrototype(m_prepareScriptScope);
-    m_engine->currentContext()->pushScope(m_scope);
-}
-
-void BuildGraph::cleanupEngine()
-{
-    Q_ASSERT(m_initEngineCalls > 0);
-    if (--m_initEngineCalls > 0)
-        return;
-
-    m_scope = QScriptValue();
-    m_engine->currentContext()->popScope();
-    m_engine->popContext();
 }
 
 void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
@@ -473,15 +423,13 @@ void BuildProduct::store(PersistentPool &pool) const
     pool.storeContainer(dependencies);
 }
 
-BuildProject::BuildProject(BuildGraph *bg)
-    : m_buildGraph(bg)
-    , m_dirty(false)
+BuildProject::BuildProject() : m_evalContext(0), m_dirty(false)
 {
 }
 
 BuildProject::~BuildProject()
 {
-    delete m_buildGraph;
+    delete m_evalContext;
     qDeleteAll(m_dependencyArtifacts);
 }
 
@@ -527,6 +475,12 @@ QString BuildProject::deriveBuildGraphFilePath(const QString &buildDir, const QS
 QString BuildProject::buildGraphFilePath() const
 {
     return deriveBuildGraphFilePath(resolvedProject()->buildDirectory, resolvedProject()->id());
+}
+
+void BuildProject::setEvaluationContext(RulesEvaluationContext *evalContext)
+{
+    delete m_evalContext;
+    m_evalContext = evalContext;
 }
 
 void BuildProject::load(PersistentPool &pool)
@@ -585,11 +539,6 @@ void freeCFileTags(char **cFileTags, int numFileTags)
     for (int i = numFileTags; --i >= 0;)
         delete[] cFileTags[i];
     delete[] cFileTags;
-}
-
-BuildGraph * BuildProject::buildGraph() const
-{
-    return m_buildGraph;
 }
 
 ResolvedProjectPtr BuildProject::resolvedProject() const
@@ -717,17 +666,15 @@ void BuildProject::removeArtifact(Artifact *artifact)
     markDirty();
 }
 
-void BuildProject::updateNodesThatMustGetNewTransformer(ScriptEngine *engine,
-                                                        ProgressObserver *observer)
+void BuildProject::updateNodesThatMustGetNewTransformer()
 {
-    BuildGraph::EngineInitializer engineInitializer(buildGraph());
+    RulesEvaluationContext::Scope s(evaluationContext());
     foreach (Artifact *artifact, m_artifactsThatMustGetNewTransformers)
-        updateNodeThatMustGetNewTransformer(artifact, engine, observer);
+        updateNodeThatMustGetNewTransformer(artifact);
     m_artifactsThatMustGetNewTransformers.clear();
 }
 
-void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact, ScriptEngine *engine,
-                                                       ProgressObserver *observer)
+void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact)
 {
     Q_ASSERT(artifact->transformer);
 
@@ -745,7 +692,7 @@ void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact, Scrip
         foreach (const QString &fileTag, input->fileTags)
             artifactsPerFileTag[fileTag] += input;
     }
-    RulesApplicator rulesApplier(artifact->product, artifactsPerFileTag, engine, observer);
+    RulesApplicator rulesApplier(artifact->product, artifactsPerFileTag);
     rulesApplier.applyRule(rule);
 }
 
@@ -761,23 +708,9 @@ QString fileName(Artifact *n)
     return str;
 }
 
-BuildGraph::EngineInitializer::EngineInitializer(BuildGraph *bg)
-    : buildGraph(bg)
-{
-    buildGraph->initEngine();
-}
-
-BuildGraph::EngineInitializer::~EngineInitializer()
-{
-    buildGraph->cleanupEngine();
-}
-
-RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-                                 ScriptEngine *engine, ProgressObserver *observer)
+RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag)
     : m_buildProduct(product)
     , m_artifactsPerFileTag(artifactsPerFileTag)
-    , m_engine(engine)
-    , m_observer(observer)
 {
 }
 
@@ -790,8 +723,8 @@ void RulesApplicator::applyAllRules()
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
-    BuildGraph::setupScriptEngineForProduct(m_engine, m_buildProduct->rProduct, m_rule, scope());
-    Q_ASSERT_X(scope().property("product").strictlyEquals(m_engine->evaluate("product")),
+    BuildGraph::setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scope());
+    Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
                "BG", "Product object is not in current scope.");
 
     ArtifactList inputArtifacts;
@@ -813,8 +746,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
 
 void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 {
-    if (m_observer && m_observer->canceled())
-        throw Error(Tr::tr("Build canceled."));
+    evalContext()->checkForCancelation();
 
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] apply rule " << m_rule->toString() << " "
@@ -870,7 +802,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         m_buildProduct->project->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
     }
 
-    m_transformer->setupInputs(m_engine, scope());
+    m_transformer->setupInputs(engine(), scope());
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
@@ -883,13 +815,13 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
         outputArtifact->properties = outputArtifact->properties->clone();
 
-        scope().setProperty("fileName", m_engine->toScriptValue(outputArtifact->filePath()));
-        scope().setProperty("fileTags", toScriptValue(m_engine, outputArtifact->fileTags));
+        scope().setProperty("fileName", engine()->toScriptValue(outputArtifact->filePath()));
+        scope().setProperty("fileTags", toScriptValue(engine(), outputArtifact->fileTags));
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
             const RuleArtifact::Binding &binding = ra->bindings.at(i);
-            scriptValue = m_engine->evaluate(binding.code);
+            scriptValue = engine()->evaluate(binding.code);
             if (scriptValue.isError()) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
                 throw Error(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
@@ -901,8 +833,8 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         outputArtifact->properties->setValue(outputArtifactConfig);
     }
 
-    m_transformer->setupOutputs(m_engine, scope());
-    m_transformer->createCommands(m_rule->script, m_engine);
+    m_transformer->setupOutputs(engine(), scope());
+    m_transformer->createCommands(m_rule->script, engine());
     if (m_transformer->commands.isEmpty())
         throw Error(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
 }
@@ -922,11 +854,11 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
-    QScriptValue modulesScriptValue = artifact->properties->toScriptValue(m_engine);
+    QScriptValue modulesScriptValue = artifact->properties->toScriptValue(engine());
     modulesScriptValue = modulesScriptValue.property("modules");
 
     // expose per file properties we want to use in an Artifact within a Rule
-    QScriptValue scriptValue = m_engine->newObject();
+    QScriptValue scriptValue = engine()->newObject();
     scriptValue.setProperty("fileName", inFileName);
     scriptValue.setProperty("baseName", inBaseName);
     scriptValue.setProperty("completeBaseName", inCompleteBaseName);
@@ -934,15 +866,15 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
     scriptValue.setProperty("modules", modulesScriptValue);
 
     scope().setProperty("input", scriptValue);
-    Q_ASSERT_X(scriptValue.strictlyEquals(m_engine->evaluate("input")),
+    Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate("input")),
                "BG", "The input object is not in current scope.");
 }
 
 Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
         const ArtifactList &inputArtifacts)
 {
-    QScriptValue scriptValue = m_engine->evaluate(ruleArtifact->fileName);
-    if (scriptValue.isError() || m_engine->hasUncaughtException())
+    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
+    if (scriptValue.isError() || engine()->hasUncaughtException())
         throw Error("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
@@ -1020,25 +952,33 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
     return result;
 }
 
+RulesEvaluationContext *RulesApplicator::evalContext() const
+{
+    return m_buildProduct->project->evaluationContext();
+}
+
+ScriptEngine *RulesApplicator::engine() const
+{
+    return evalContext()->engine();
+}
+
 QScriptValue RulesApplicator::scope() const
 {
-    return m_engine->currentContext()->scopeChain().first();
+    return evalContext()->scope();
 }
 
 
 BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &resolvedProject,
-        BuildGraph *buildgraph, ProgressObserver *observer)
+                                                     RulesEvaluationContext *evalContext)
 {
     m_productCache.clear();
-    m_observer = observer;
-    m_project = BuildProjectPtr(new BuildProject(buildgraph));
+    m_project = BuildProjectPtr(new BuildProject);
+    m_project->setEvaluationContext(evalContext);
     m_project->setResolvedProject(resolvedProject);
-    if (m_observer)
-        m_observer->initialize(Tr::tr("Resolving project"), resolvedProject->products.count());
+    evalContext->initializeObserver(Tr::tr("Resolving project"), resolvedProject->products.count());
     foreach (ResolvedProductPtr rProduct, resolvedProject->products) {
         resolveProduct(rProduct);
-        if (m_observer)
-            m_observer->incrementProgressValue();
+        evalContext->incrementProgressValue();
     }
     CycleDetector().visitProject(m_project);
     return m_project;
@@ -1050,8 +990,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     if (product)
         return product;
 
-    if (m_observer && m_observer->canceled())
-        throw Error(Tr::tr("Build canceled."));
+    evalContext()->checkForCancelation();
 
     product = BuildProduct::create();
     m_productCache.insert(rProduct, product);
@@ -1114,7 +1053,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
             transformer->outputs += outputArtifact;
             product->targetArtifacts += outputArtifact;
             foreach (Artifact *inputArtifact, inputArtifacts)
-                buildGraph()->safeConnect(outputArtifact, inputArtifact);
+                BuildGraph::safeConnect(outputArtifact, inputArtifact);
             foreach (const QString &fileTag, outputArtifact->fileTags)
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
@@ -1125,16 +1064,16 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         }
         transformer->rule = rule;
 
-        BuildGraph::EngineInitializer initializer(buildGraph());
-        buildGraph()->setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
+        RulesEvaluationContext::Scope s(evalContext());
+        BuildGraph::setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
         transformer->setupInputs(engine(), scope());
         transformer->setupOutputs(engine(), scope());
-        transformer->createCommands(rtrafo->transform, buildGraph()->engine());
+        transformer->createCommands(rtrafo->transform, engine());
         if (transformer->commands.isEmpty())
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
     }
 
-    product->applyRules(artifactsPerFileTag, buildGraph()->engine(), m_observer);
+    product->applyRules(artifactsPerFileTag);
 
     QSet<Artifact *> productArtifactCandidates;
     for (int i = 0; i < product->rProduct->fileTags.count(); ++i)
@@ -1152,18 +1091,27 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     return product;
 }
 
+RulesEvaluationContext *BuildProjectResolver::evalContext() const
+{
+    return m_project->evaluationContext();
+}
+
+ScriptEngine *BuildProjectResolver::engine() const
+{
+    return evalContext()->engine();
+}
+
 QScriptValue BuildProjectResolver::scope() const
 {
-    return engine()->currentContext()->scopeChain().first();
+    return evalContext()->scope();
 }
 
 BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFilePath,
-        BuildGraph *bg, const QString &buildRoot, const QVariantMap &cfg,
+        RulesEvaluationContext *evalContext, const QString &buildRoot, const QVariantMap &cfg,
         const QStringList &loaderSearchPaths)
 {
     m_result = LoadResult();
-    m_engine = bg->engine();
-    m_observer = bg->observer();
+    m_evalContext = evalContext;
 
     const QString projectId = ResolvedProject::deriveId(cfg);
     const QString buildDir = ResolvedProject::deriveBuildDirectory(buildRoot, projectId);
@@ -1178,7 +1126,8 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
         return m_result;
     }
 
-    const BuildProjectPtr project = BuildProjectPtr(new BuildProject(bg));
+    const BuildProjectPtr project = BuildProjectPtr(new BuildProject);
+    project->setEvaluationContext(evalContext);
     TimedActivityLogger loadLogger(QLatin1String("Loading build graph"), QLatin1String("[BG] "));
     project->load(pool);
     foreach (const BuildProductPtr &bp, project->buildProducts())
@@ -1219,7 +1168,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
     }
 
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
-        Loader ldr(bg->engine());
+        Loader ldr(evalContext->engine());
         ldr.setSearchPaths(loaderSearchPaths);
         const ResolvedProjectPtr changedProject
                 = ldr.loadProject(project->resolvedProject()->location.fileName, buildRoot, cfg);
@@ -1349,13 +1298,13 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
     foreach (Artifact *artifact, addedArtifacts)
         foreach (const QString &ft, artifact->fileTags)
             artifactsPerFileTag[ft] += artifact;
-    product->applyRules(artifactsPerFileTag, m_engine, m_observer);
+    product->applyRules(artifactsPerFileTag);
 
     // parents of removed artifacts must update their transformers
     foreach (Artifact *removedArtifact, artifactsToRemove)
         foreach (Artifact *parent, removedArtifact->parents)
             product->project->addToArtifactsThatMustGetNewTransformers(parent);
-    product->project->updateNodesThatMustGetNewTransformer(m_engine, m_observer);
+    product->project->updateNodesThatMustGetNewTransformer();
 
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, artifactsToRemove) {

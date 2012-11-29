@@ -46,8 +46,8 @@ class AutoMoc;
 class ExecutorJob;
 class InputArtifactScannerContext;
 class ProgressObserver;
+class RulesEvaluationContext;
 class ScanResultCache;
-class ScriptEngine;
 
 class Executor : public QObject
 {
@@ -58,7 +58,6 @@ public:
 
     void build(const QList<BuildProductPtr> &productsToBuild);
 
-    void setEngine(ScriptEngine *engine);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
 
@@ -96,7 +95,7 @@ private:
     void cancelJobs();
     void setupProgressObserver(bool mocWillRun);
 
-    ScriptEngine *m_engine;
+    RulesEvaluationContext *m_evalContext;
     BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
     QList<ExecutorJob*> m_availableJobs;
