@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     QStringList arguments = app.arguments();
     arguments.removeFirst();
 
-    int toolExitCode;
+    int toolExitCode = 0;
     if (tryToRunTool(arguments, toolExitCode))
         return toolExitCode;
 
