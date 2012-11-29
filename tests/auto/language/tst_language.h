@@ -42,6 +42,11 @@ using namespace qbs;
 class TestLanguage : public QObject
 {
     Q_OBJECT
+public:
+    TestLanguage();
+    ~TestLanguage();
+
+private:
     Loader *loader;
     ResolvedProjectPtr project;
     QVariantMap buildConfig;

@@ -109,6 +109,7 @@ public:
 
 protected:
     BuildGraphTouchingJob(QObject *parent = 0);
+    ~BuildGraphTouchingJob();
 
     void setup(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions);
     const BuildOptions &buildOptions() const { return m_buildOptions; }

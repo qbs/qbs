@@ -199,6 +199,10 @@ BuildGraphTouchingJob::BuildGraphTouchingJob(QObject *parent) : InternalJob(pare
 {
 }
 
+BuildGraphTouchingJob::~BuildGraphTouchingJob()
+{
+}
+
 void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products,
                                   const BuildOptions &buildOptions)
 {

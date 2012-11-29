@@ -36,6 +36,14 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
 
+TestLanguage::TestLanguage()
+{
+}
+
+TestLanguage::~TestLanguage()
+{
+}
+
 QHash<QString, ResolvedProductPtr> TestLanguage::productsFromProject(ResolvedProjectPtr project)
 {
     QHash<QString, ResolvedProductPtr> result;
