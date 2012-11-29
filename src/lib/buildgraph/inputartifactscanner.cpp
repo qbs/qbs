@@ -320,10 +320,9 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     } else {
         if (m_artifact->children.contains(dependency.artifact))
             return;
-        BuildGraph *buildGraph = product->project->buildGraph();
         if (insertIntoProduct && !product->artifacts.contains(dependency.artifact))
-            buildGraph->insert(product, dependency.artifact);
-        buildGraph->safeConnect(m_artifact, dependency.artifact);
+            product->insertArtifact(dependency.artifact);
+        BuildGraph::safeConnect(m_artifact, dependency.artifact);
         m_newDependencyAdded = true;
     }
 }

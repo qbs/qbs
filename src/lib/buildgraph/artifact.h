@@ -44,7 +44,6 @@ namespace Internal {
 
 class BuildProduct;
 class BuildProject;
-class Transformer;
 
 /**
  * The Artifact class
@@ -97,10 +96,14 @@ public:
     const QString &filePath() const { return m_filePath; }
     QString dirPath() const { return m_dirPath.toString(); }
     QString fileName() const { return m_fileName.toString(); }
+    void disconnectAll();
 
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+    void disconnectChildren();
+    void disconnectParents();
 
 private:
     QString m_filePath;

@@ -31,6 +31,8 @@
 #include "artifact.h"
 #include "command.h"
 #include <language/language.h>
+#include <language/scriptengine.h>
+#include <tools/error.h>
 
 namespace qbs {
 namespace Internal {
@@ -105,6 +107,51 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
         QScriptValue outputsForFileTag = scriptValue.property(*fileTags.begin());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
         targetScriptValue.setProperty("output", outputScriptValue);
+    }
+}
+
+static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptValue,
+                                                     const CodeLocation &codeLocation)
+{
+    if (scriptValue.isUndefined() || !scriptValue.isValid())
+        return 0;
+    AbstractCommand *cmdBase = 0;
+    QString className = scriptValue.property("className").toString();
+    if (className == "Command")
+        cmdBase = new ProcessCommand;
+    else if (className == "JavaScriptCommand")
+        cmdBase = new JavaScriptCommand;
+    if (cmdBase)
+        cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
+    return cmdBase;
+}
+
+void Transformer::createCommands(const PrepareScriptConstPtr &script, ScriptEngine *engine)
+{
+//    if (script->cachedScript.isNull())
+        script->cachedScript = QScriptProgram(script->script);
+
+    QScriptValue scriptValue = engine->evaluate(script->cachedScript);
+    if (engine->hasUncaughtException())
+        throw Error("evaluating prepare script: " + engine->uncaughtException().toString(),
+                    CodeLocation(script->location.fileName,
+                                 script->location.line + engine->uncaughtExceptionLineNumber() - 1));
+
+    commands.clear();
+    if (scriptValue.isArray()) {
+        const int count = scriptValue.property("length").toInt32();
+        for (qint32 i = 0; i < count; ++i) {
+            QScriptValue item = scriptValue.property(i);
+            if (item.isValid() && !item.isUndefined()) {
+                AbstractCommand *cmd = createCommandFromScriptValue(item, script->location);
+                if (cmd)
+                    commands += cmd;
+            }
+        }
+    } else {
+        AbstractCommand *cmd = createCommandFromScriptValue(scriptValue, script->location);
+        if (cmd)
+            commands += cmd;
     }
 }
 

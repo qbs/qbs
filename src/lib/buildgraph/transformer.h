@@ -39,10 +39,10 @@
 
 namespace qbs {
 namespace Internal {
-
 class Artifact;
 class AbstractCommand;
 class Rule;
+class ScriptEngine;
 
 class Transformer : public PersistentObject
 {
@@ -65,6 +65,7 @@ public:
 
     void setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
     void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
+    void createCommands(const PrepareScriptConstPtr &script, ScriptEngine *engine);
 
 private:
     Transformer();

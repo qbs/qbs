@@ -36,7 +36,9 @@ struct ScannerPlugin;
 
 namespace qbs {
 namespace Internal {
+class ProgressObserver;
 class ScanResultCache;
+class ScriptEngine;
 
 /**
   * Scans cpp and hpp files for the Q_OBJECT / Q_GADGET macro and
@@ -52,7 +54,7 @@ public:
     AutoMoc();
 
     void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(BuildProductPtr product);
+    void apply(const BuildProductPtr &product, ScriptEngine *engine, ProgressObserver *observer);
 
 private:
     enum FileType

@@ -51,7 +51,8 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
     m_scanResultCache = scanResultCache;
 }
 
-void AutoMoc::apply(BuildProductPtr product)
+void AutoMoc::apply(const BuildProductPtr &product, ScriptEngine *engine,
+                    ProgressObserver *observer)
 {
     if (scanners().isEmpty())
         throw Error("C++ scanner cannot be loaded.");
@@ -128,19 +129,18 @@ void AutoMoc::apply(BuildProductPtr product)
 
     if (pchFile)
         artifactsPerFileTag[QLatin1String("c++_pch")] += pchFile;
-    BuildGraph *buildGraph = product->project->buildGraph();
     if (!artifactsPerFileTag.isEmpty()) {
         qbsInfo() << DontPrintLogLevel << "Applying moc rules for '" << product->rProduct->name << "'.";
-        buildGraph->applyRules(product.data(), artifactsPerFileTag);
+        product->applyRules(artifactsPerFileTag, engine, observer);
     }
     if (pluginHeaderFile && pluginMetaDataFile) {
         // Make every artifact that is dependent of the header file also
         // dependent of the plugin metadata file.
         foreach (Artifact *outputOfHeader, pluginHeaderFile->parents)
-            buildGraph->loggedConnect(outputOfHeader, pluginMetaDataFile);
+            BuildGraph::loggedConnect(outputOfHeader, pluginMetaDataFile);
     }
 
-    buildGraph->updateNodesThatMustGetNewTransformer();
+    product->project->updateNodesThatMustGetNewTransformer(engine, observer);
 }
 
 QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)
@@ -286,7 +286,6 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
         return;
     }
 
-    BuildGraph *buildGraph = artifact->project->buildGraph();
     if (mocFileTag == "moc_hpp") {
         Artifact *mocObjArtifact = 0;
         foreach (Artifact *parent, generatedMocArtifact->parents) {
@@ -303,13 +302,13 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
         } else {
             if (qbsLogLevel(LoggerTrace))
                 qbsTrace() << "[AUTOMOC] removing moc obj artifact " << fileName(mocObjArtifact);
-            buildGraph->remove(mocObjArtifact);
+            artifact->project->removeArtifact(mocObjArtifact);
         }
     }
 
     if (qbsLogLevel(LoggerTrace))
         qbsTrace() << "[AUTOMOC] removing generated artifact " << fileName(generatedMocArtifact);
-    buildGraph->remove(generatedMocArtifact);
+    artifact->project->removeArtifact(generatedMocArtifact);
     delete generatedMocArtifact;
 }
 

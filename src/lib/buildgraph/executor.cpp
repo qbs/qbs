@@ -606,7 +606,7 @@ void Executor::runAutoMoc()
         foreach (const ResolvedModuleConstPtr &m, product->rProduct->modules) {
             if (m->name == "qt/core") {
                 autoMocApplied = true;
-                m_autoMoc->apply(product);
+                m_autoMoc->apply(product, m_engine, m_progressObserver);
                 break;
             }
         }

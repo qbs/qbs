@@ -66,6 +66,10 @@ public:
     const QList<RuleConstPtr> &topSortedRules() const;
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
+    Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact);
+    void insertArtifact(Artifact *n);
+    void applyRules(ArtifactsPerFileTagMap &artifactsPerFileTag, ScriptEngine *engine,
+                    ProgressObserver *observer);
 
     WeakPointer<BuildProject> project;
     ResolvedProductPtr rProduct;
@@ -110,12 +114,22 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     void insertFileDependency(Artifact *artifact);
     void rescueDependencies(const BuildProjectPtr &other);
+    void removeArtifact(Artifact *artifact);
+    void updateNodesThatMustGetNewTransformer(ScriptEngine *engine, ProgressObserver *observer);
+    void removeFromArtifactsThatMustGetNewTransformers(Artifact *a) {
+        m_artifactsThatMustGetNewTransformers -= a;
+    }
+    void addToArtifactsThatMustGetNewTransformers(Artifact *a) {
+        m_artifactsThatMustGetNewTransformers += a;
+    }
 
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
     void addBuildProduct(const BuildProductPtr &product);
     void setResolvedProject(const ResolvedProjectPtr &resolvedProject);
+    void updateNodeThatMustGetNewTransformer(Artifact *artifact, ScriptEngine *engine,
+                                             ProgressObserver *observer);
 
 private:
     BuildGraph *m_buildGraph;
@@ -123,6 +137,7 @@ private:
     QSet<BuildProductPtr> m_buildProducts;
     ArtifactList m_dependencyArtifacts;
     QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
+    QSet<Artifact *> m_artifactsThatMustGetNewTransformers;
     mutable bool m_dirty;
 };
 
@@ -155,53 +170,29 @@ public:
     void setEngine(ScriptEngine *engine);
     ScriptEngine *engine() { return m_engine; }
 
-    void applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
-
     void setProgressObserver(ProgressObserver *observer);
-    void checkCancelation() const;
-
-    static Artifact *createArtifact(const BuildProductPtr &product,
-                                    const SourceArtifactConstPtr &sourceArtifact);
+    ProgressObserver *observer() const { return m_progressObserver; }
 
     static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
     static void connect(Artifact *p, Artifact *c);
     static void loggedConnect(Artifact *u, Artifact *v);
     static bool safeConnect(Artifact *u, Artifact *v);
-    static void insert(BuildProductPtr target, Artifact *n);
-    static void insert(BuildProduct *target, Artifact *n);
-    void remove(Artifact *artifact) const;
     static void removeGeneratedArtifactFromDisk(Artifact *artifact);
-
-    void updateNodesThatMustGetNewTransformer();
-    void removeFromArtifactsThatMustGetNewTransformers(Artifact *a) {
-        m_artifactsThatMustGetNewTransformers -= a;
-    }
-    void addToArtifactsThatMustGetNewTransformers(Artifact *a) {
-        m_artifactsThatMustGetNewTransformers += a;
-    }
-
-    void createTransformerCommands(const PrepareScriptConstPtr &script, Transformer *transformer);
 
     static void setupScriptEngineForProduct(ScriptEngine *scriptEngine,
                                             const ResolvedProductConstPtr &product,
                                             RuleConstPtr rule, QScriptValue targetObject);
     static void disconnect(Artifact *u, Artifact *v);
-    static void disconnectChildren(Artifact *u);
-    static void disconnectParents(Artifact *u);
-    static void disconnectAll(Artifact *u);
 
 private:
     void initEngine();
     void cleanupEngine();
-    void updateNodeThatMustGetNewTransformer(Artifact *artifact);
 
     ProgressObserver *m_progressObserver;
     ScriptEngine *m_engine;
     unsigned int m_initEngineCalls;
     QScriptValue m_scope;
     QScriptValue m_prepareScriptScope;
-    QHash<QString, QScriptProgram> m_scriptProgramCache;
-    mutable QSet<Artifact *> m_artifactsThatMustGetNewTransformers;
 
     friend class EngineInitializer;
 };
@@ -210,7 +201,7 @@ class RulesApplicator
 {
 public:
     RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-            BuildGraph *bg);
+                    ScriptEngine *engine, ProgressObserver *observer);
     void applyAllRules();
     void applyRule(const RuleConstPtr &rule);
 
@@ -222,11 +213,11 @@ private:
     QString resolveOutPath(const QString &path) const;
 
     QScriptValue scope() const;
-    ScriptEngine *engine() const { return m_buildGraph->engine(); }
 
     BuildProduct * const m_buildProduct;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
-    BuildGraph * const m_buildGraph;
+    ScriptEngine * const m_engine;
+    ProgressObserver * const m_observer;
 
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;
@@ -272,6 +263,8 @@ private:
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
                                               QList<Artifact*> *removedArtifacts = 0);
 
+    ScriptEngine *m_engine;
+    ProgressObserver *m_observer;
     LoadResult m_result;
 };
 

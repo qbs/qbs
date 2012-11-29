@@ -214,6 +214,7 @@ public:
 
     QString script;
     CodeLocation location;
+    mutable QScriptProgram cachedScript;
 
 private:
     PrepareScript() {}

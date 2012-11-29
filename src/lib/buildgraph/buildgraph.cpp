@@ -132,6 +132,56 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
     return lookupArtifact(dirPath, fileName);
 }
 
+Artifact *BuildProduct::createArtifact(const SourceArtifactConstPtr &sourceArtifact)
+{
+    Artifact *artifact = new Artifact(project);
+    artifact->artifactType = Artifact::SourceFile;
+    artifact->setFilePath(sourceArtifact->absoluteFilePath);
+    artifact->fileTags = sourceArtifact->fileTags;
+    artifact->properties = sourceArtifact->properties;
+    insertArtifact(artifact);
+    return artifact;
+}
+
+void BuildProduct::insertArtifact(Artifact *artifact)
+{
+    Q_ASSERT(!artifact->product);
+    Q_ASSERT(!artifact->filePath().isEmpty());
+    Q_ASSERT(!artifacts.contains(artifact));
+#ifdef QT_DEBUG
+    foreach (const BuildProductPtr &otherProduct, project->buildProducts()) {
+        if (otherProduct->lookupArtifact(artifact->filePath())) {
+            if (artifact->artifactType == Artifact::Generated) {
+                QString pl;
+                pl.append(QString("  - %1 \n").arg(rProduct->name));
+                foreach (const BuildProductPtr &p, project->buildProducts()) {
+                    if (p->lookupArtifact(artifact->filePath()))
+                        pl.append(QString("  - %1 \n").arg(p->rProduct->name));
+                }
+                throw Error(QString ("BUG: already inserted in this project: %1\n%2")
+                            .arg(artifact->filePath()).arg(pl));
+            }
+        }
+    }
+#endif
+    artifacts.insert(artifact);
+    artifact->product = this;
+    project->insertIntoArtifactLookupTable(artifact);
+    project->markDirty();
+
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace("[BG] insert artifact '%s'", qPrintable(artifact->filePath()));
+}
+
+void BuildProduct::applyRules(ArtifactsPerFileTagMap &artifactsPerFileTag, ScriptEngine *engine,
+                              ProgressObserver *observer)
+{
+    BuildGraph::EngineInitializer engineInitializer(project->buildGraph());
+    RulesApplicator rulesApplier(this, artifactsPerFileTag, engine, observer);
+    rulesApplier.applyAllRules();
+}
+
+
 BuildGraph::BuildGraph()
     : m_progressObserver(0)
     , m_engine(0)
@@ -145,50 +195,10 @@ BuildGraph::~BuildGraph()
 
 void BuildGraph::setEngine(ScriptEngine *engine)
 {
-    m_scriptProgramCache.clear();
     m_engine = engine;
     m_prepareScriptScope = m_engine->newObject();
     ProcessCommand::setupForJavaScript(m_prepareScriptScope);
     JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
-}
-
-void BuildGraph::insert(BuildProductPtr product, Artifact *n)
-{
-    insert(product.data(), n);
-}
-
-void BuildGraph::insert(BuildProduct *product, Artifact *n)
-{
-    Q_ASSERT(n->product == 0);
-    Q_ASSERT(!n->filePath().isEmpty());
-    Q_ASSERT(!product->artifacts.contains(n));
-#ifdef QT_DEBUG
-    foreach (const BuildProductPtr &otherProduct, product->project->buildProducts()) {
-        if (otherProduct->lookupArtifact(n->filePath())) {
-            if (n->artifactType == Artifact::Generated) {
-                QString pl;
-                pl.append(QString("  - %1 \n").arg(product->rProduct->name));
-                foreach (const BuildProductPtr &p, product->project->buildProducts()) {
-                    if (p->lookupArtifact(n->filePath())) {
-                        pl.append(QString("  - %1 \n").arg(p->rProduct->name));
-                    }
-                }
-                throw Error(QString ("BUG: already inserted in this project: %1\n%2"
-                            )
-                        .arg(n->filePath())
-                        .arg(pl)
-                        );
-            }
-        }
-    }
-#endif
-    product->artifacts.insert(n);
-    n->product = product;
-    product->project->insertIntoArtifactLookupTable(n);
-    product->project->markDirty();
-
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] insert artifact '%s'", qPrintable(n->filePath()));
 }
 
 void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
@@ -231,24 +241,10 @@ void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
     engine->import(rule->jsImports, targetObject, targetObject);
 }
 
-void BuildGraph::applyRules(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag)
-{
-    EngineInitializer engineInitializer(this);
-    RulesApplicator rulesApplier(product, artifactsPerFileTag, this);
-    rulesApplier.applyAllRules();
-}
-
 void BuildGraph::setProgressObserver(ProgressObserver *observer)
 {
     m_progressObserver = observer;
 }
-
-void BuildGraph::checkCancelation() const
-{
-    if (m_progressObserver && m_progressObserver->canceled())
-        throw Error(Tr::tr("Build canceled."));
-}
-
 
 bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
 {
@@ -265,54 +261,6 @@ bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
     }
 
     return false;
-}
-
-static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptValue, const CodeLocation &codeLocation)
-{
-    if (scriptValue.isUndefined() || !scriptValue.isValid())
-        return 0;
-    AbstractCommand *cmdBase = 0;
-    QString className = scriptValue.property("className").toString();
-    if (className == "Command")
-        cmdBase = new ProcessCommand;
-    else if (className == "JavaScriptCommand")
-        cmdBase = new JavaScriptCommand;
-    if (cmdBase)
-        cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
-    return cmdBase;
-}
-
-void BuildGraph::createTransformerCommands(const PrepareScriptConstPtr &script, Transformer *transformer)
-{
-//    QScriptProgram &scriptProgram = m_scriptProgramCache[script->script];
-//    if (scriptProgram.isNull())
-//        scriptProgram = QScriptProgram(script->script);
-    QScriptProgram scriptProgram = QScriptProgram(script->script);
-
-    QScriptValue scriptValue = m_engine->evaluate(scriptProgram);
-    if (m_engine->hasUncaughtException())
-        throw Error("evaluating prepare script: " + m_engine->uncaughtException().toString(),
-                    CodeLocation(script->location.fileName,
-                                 script->location.line + m_engine->uncaughtExceptionLineNumber() - 1));
-
-    QList<AbstractCommand*> commands;
-    if (scriptValue.isArray()) {
-        const int count = scriptValue.property("length").toInt32();
-        for (qint32 i=0; i < count; ++i) {
-            QScriptValue item = scriptValue.property(i);
-            if (item.isValid() && !item.isUndefined()) {
-                AbstractCommand *cmd = createCommandFromScriptValue(item, script->location);
-                if (cmd)
-                    commands += cmd;
-            }
-        }
-    } else {
-        AbstractCommand *cmd = createCommandFromScriptValue(scriptValue, script->location);
-        if (cmd)
-            commands += cmd;
-    }
-
-    transformer->commands = commands;
 }
 
 /*
@@ -381,30 +329,6 @@ void BuildGraph::disconnect(Artifact *u, Artifact *v)
     v->parents.remove(u);
 }
 
-void BuildGraph::disconnectChildren(Artifact *u)
-{
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] disconnectChildren: '%s'", qPrintable(fileName(u)));
-    foreach (Artifact *child, u->children)
-        child->parents.remove(u);
-    u->children.clear();
-}
-
-void BuildGraph::disconnectParents(Artifact *u)
-{
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] disconnectParents: '%s'", qPrintable(fileName(u)));
-    foreach (Artifact *parent, u->parents)
-        parent->children.remove(u);
-    u->parents.clear();
-}
-
-void BuildGraph::disconnectAll(Artifact *u)
-{
-    disconnectChildren(u);
-    disconnectParents(u);
-}
-
 void BuildGraph::initEngine()
 {
     if (m_initEngineCalls++ > 0)
@@ -431,30 +355,6 @@ void BuildGraph::cleanupEngine()
     m_engine->popContext();
 }
 
-void BuildGraph::remove(Artifact *artifact) const
-{
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[BG] remove artifact " << fileName(artifact);
-
-    removeGeneratedArtifactFromDisk(artifact);
-    artifact->product->artifacts.remove(artifact);
-    artifact->project->removeFromArtifactLookupTable(artifact);
-    artifact->product->targetArtifacts.remove(artifact);
-    foreach (Artifact *parent, artifact->parents) {
-        parent->children.remove(artifact);
-        if (parent->transformer) {
-            parent->transformer->inputs.remove(artifact);
-            m_artifactsThatMustGetNewTransformers += parent;
-        }
-    }
-    foreach (Artifact *child, artifact->children) {
-        child->parents.remove(artifact);
-    }
-    artifact->children.clear();
-    artifact->parents.clear();
-    artifact->project->markDirty();
-}
-
 void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
 {
     if (artifact->artifactType != Artifact::Generated)
@@ -467,47 +367,6 @@ void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
     qbsDebug() << "removing " << artifact->fileName();
     if (!file.remove())
         qbsWarning("Cannot remove '%s'.", qPrintable(artifact->filePath()));
-}
-
-void BuildGraph::updateNodesThatMustGetNewTransformer()
-{
-    EngineInitializer engineInitializer(this);
-    foreach (Artifact *artifact, m_artifactsThatMustGetNewTransformers)
-        updateNodeThatMustGetNewTransformer(artifact);
-    m_artifactsThatMustGetNewTransformers.clear();
-}
-
-void BuildGraph::updateNodeThatMustGetNewTransformer(Artifact *artifact)
-{
-    Q_ASSERT(artifact->transformer);
-
-    if (qbsLogLevel(LoggerDebug))
-        qbsDebug() << "[BG] updating transformer for " << fileName(artifact);
-
-    removeGeneratedArtifactFromDisk(artifact);
-
-    const RuleConstPtr rule = artifact->transformer->rule;
-    artifact->product->project->markDirty();
-    artifact->transformer = TransformerPtr();
-
-    ArtifactsPerFileTagMap artifactsPerFileTag;
-    foreach (Artifact *input, artifact->children)
-        foreach (const QString &fileTag, input->fileTags)
-            artifactsPerFileTag[fileTag] += input;
-    RulesApplicator rulesApplier(artifact->product, artifactsPerFileTag, this);
-    rulesApplier.applyRule(rule);
-}
-
-Artifact *BuildGraph::createArtifact(const BuildProductPtr &product,
-                                     const SourceArtifactConstPtr &sourceArtifact)
-{
-    Artifact *artifact = new Artifact(product->project);
-    artifact->artifactType = Artifact::SourceFile;
-    artifact->setFilePath(sourceArtifact->absoluteFilePath);
-    artifact->fileTags = sourceArtifact->fileTags;
-    artifact->properties = sourceArtifact->properties;
-    insert(product, artifact);
-    return artifact;
 }
 
 void Transformer::load(PersistentPool &pool)
@@ -835,6 +694,62 @@ void BuildProject::setResolvedProject(const ResolvedProjectPtr &resolvedProject)
     m_resolvedProject = resolvedProject;
 }
 
+void BuildProject::removeArtifact(Artifact *artifact)
+{
+    if (qbsLogLevel(LoggerTrace))
+        qbsTrace() << "[BG] remove artifact " << fileName(artifact);
+
+    BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+    artifact->product->artifacts.remove(artifact);
+    removeFromArtifactLookupTable(artifact);
+    artifact->product->targetArtifacts.remove(artifact);
+    foreach (Artifact *parent, artifact->parents) {
+        parent->children.remove(artifact);
+        if (parent->transformer) {
+            parent->transformer->inputs.remove(artifact);
+            m_artifactsThatMustGetNewTransformers += parent;
+        }
+    }
+    foreach (Artifact *child, artifact->children)
+        child->parents.remove(artifact);
+    artifact->children.clear();
+    artifact->parents.clear();
+    markDirty();
+}
+
+void BuildProject::updateNodesThatMustGetNewTransformer(ScriptEngine *engine,
+                                                        ProgressObserver *observer)
+{
+    BuildGraph::EngineInitializer engineInitializer(buildGraph());
+    foreach (Artifact *artifact, m_artifactsThatMustGetNewTransformers)
+        updateNodeThatMustGetNewTransformer(artifact, engine, observer);
+    m_artifactsThatMustGetNewTransformers.clear();
+}
+
+void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact, ScriptEngine *engine,
+                                                       ProgressObserver *observer)
+{
+    Q_ASSERT(artifact->transformer);
+
+    if (qbsLogLevel(LoggerDebug))
+        qbsDebug() << "[BG] updating transformer for " << fileName(artifact);
+
+    BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+
+    const RuleConstPtr rule = artifact->transformer->rule;
+    markDirty();
+    artifact->transformer = TransformerPtr();
+
+    ArtifactsPerFileTagMap artifactsPerFileTag;
+    foreach (Artifact *input, artifact->children) {
+        foreach (const QString &fileTag, input->fileTags)
+            artifactsPerFileTag[fileTag] += input;
+    }
+    RulesApplicator rulesApplier(artifact->product, artifactsPerFileTag, engine, observer);
+    rulesApplier.applyRule(rule);
+}
+
+
 QString fileName(Artifact *n)
 {
     const QString &buildDir = n->project->resolvedProject()->buildDirectory;
@@ -858,10 +773,11 @@ BuildGraph::EngineInitializer::~EngineInitializer()
 }
 
 RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-        BuildGraph *bg)
-    : m_buildProduct(product),
-      m_artifactsPerFileTag(artifactsPerFileTag),
-      m_buildGraph(bg)
+                                 ScriptEngine *engine, ProgressObserver *observer)
+    : m_buildProduct(product)
+    , m_artifactsPerFileTag(artifactsPerFileTag)
+    , m_engine(engine)
+    , m_observer(observer)
 {
 }
 
@@ -874,8 +790,8 @@ void RulesApplicator::applyAllRules()
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
-    BuildGraph::setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scope());
-    Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
+    BuildGraph::setupScriptEngineForProduct(m_engine, m_buildProduct->rProduct, m_rule, scope());
+    Q_ASSERT_X(scope().property("product").strictlyEquals(m_engine->evaluate("product")),
                "BG", "Product object is not in current scope.");
 
     ArtifactList inputArtifacts;
@@ -897,10 +813,12 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
 
 void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 {
-    m_buildGraph->checkCancelation();
+    if (m_observer && m_observer->canceled())
+        throw Error(Tr::tr("Build canceled."));
 
     if (qbsLogLevel(LoggerDebug))
-        qbsDebug() << "[BG] apply rule " << m_rule->toString() << " " << toStringList(inputArtifacts).join(",\n            ");
+        qbsDebug() << "[BG] apply rule " << m_rule->toString() << " "
+                   << toStringList(inputArtifacts).join(",\n            ");
 
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
@@ -949,10 +867,10 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         }
         m_transformer->outputs.insert(outputArtifact);
 
-        m_buildGraph->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
+        m_buildProduct->project->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
     }
 
-    m_transformer->setupInputs(engine(), scope());
+    m_transformer->setupInputs(m_engine, scope());
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
@@ -965,13 +883,13 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
         outputArtifact->properties = outputArtifact->properties->clone();
 
-        scope().setProperty("fileName", engine()->toScriptValue(outputArtifact->filePath()));
-        scope().setProperty("fileTags", toScriptValue(engine(), outputArtifact->fileTags));
+        scope().setProperty("fileName", m_engine->toScriptValue(outputArtifact->filePath()));
+        scope().setProperty("fileTags", toScriptValue(m_engine, outputArtifact->fileTags));
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
             const RuleArtifact::Binding &binding = ra->bindings.at(i);
-            scriptValue = engine()->evaluate(binding.code);
+            scriptValue = m_engine->evaluate(binding.code);
             if (scriptValue.isError()) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
                 throw Error(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
@@ -983,8 +901,8 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         outputArtifact->properties->setValue(outputArtifactConfig);
     }
 
-    m_transformer->setupOutputs(engine(), scope());
-    m_buildGraph->createTransformerCommands(m_rule->script, m_transformer.data());
+    m_transformer->setupOutputs(m_engine, scope());
+    m_transformer->createCommands(m_rule->script, m_engine);
     if (m_transformer->commands.isEmpty())
         throw Error(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
 }
@@ -1004,11 +922,11 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
-    QScriptValue modulesScriptValue = artifact->properties->toScriptValue(engine());
+    QScriptValue modulesScriptValue = artifact->properties->toScriptValue(m_engine);
     modulesScriptValue = modulesScriptValue.property("modules");
 
     // expose per file properties we want to use in an Artifact within a Rule
-    QScriptValue scriptValue = engine()->newObject();
+    QScriptValue scriptValue = m_engine->newObject();
     scriptValue.setProperty("fileName", inFileName);
     scriptValue.setProperty("baseName", inBaseName);
     scriptValue.setProperty("completeBaseName", inCompleteBaseName);
@@ -1016,15 +934,15 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
     scriptValue.setProperty("modules", modulesScriptValue);
 
     scope().setProperty("input", scriptValue);
-    Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate("input")),
+    Q_ASSERT_X(scriptValue.strictlyEquals(m_engine->evaluate("input")),
                "BG", "The input object is not in current scope.");
 }
 
 Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
         const ArtifactList &inputArtifacts)
 {
-    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
-    if (scriptValue.isError() || engine()->hasUncaughtException())
+    QScriptValue scriptValue = m_engine->evaluate(ruleArtifact->fileName);
+    if (scriptValue.isError() || m_engine->hasUncaughtException())
         throw Error("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
@@ -1067,7 +985,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags.toSet();
         outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
-        m_buildGraph->insert(m_buildProduct, outputArtifact);
+        m_buildProduct->insertArtifact(outputArtifact);
     }
 
     if (outputArtifact->fileTags.isEmpty())
@@ -1104,7 +1022,7 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
 
 QScriptValue RulesApplicator::scope() const
 {
-    return engine()->currentContext()->scopeChain().first();
+    return m_engine->currentContext()->scopeChain().first();
 }
 
 
@@ -1155,7 +1073,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(rProduct->qbsFile);
         qbsFileArtifact->properties = rProduct->properties;
-        buildGraph()->insert(product, qbsFileArtifact);
+        product->insertArtifact(qbsFileArtifact);
     }
     qbsFileArtifact->fileTags.insert("qbs");
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
@@ -1166,7 +1084,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         if (product->lookupArtifact(filePath))
             continue; // ignore duplicate artifacts
 
-        Artifact *artifact = buildGraph()->createArtifact(product, sourceArtifact);
+        Artifact *artifact = product->createArtifact(sourceArtifact);
         foreach (const QString &fileTag, artifact->fileTags)
             artifactsPerFileTag[fileTag].insert(artifact);
     }
@@ -1190,7 +1108,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         rule->module = module;
         rule->script = rtrafo->transform;
         foreach (const SourceArtifactConstPtr &sourceArtifact, rtrafo->outputs) {
-            Artifact *outputArtifact = buildGraph()->createArtifact(product, sourceArtifact);
+            Artifact *outputArtifact = product->createArtifact(sourceArtifact);
             outputArtifact->artifactType = Artifact::Generated;
             outputArtifact->transformer = transformer;
             transformer->outputs += outputArtifact;
@@ -1211,12 +1129,12 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         buildGraph()->setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
         transformer->setupInputs(engine(), scope());
         transformer->setupOutputs(engine(), scope());
-        buildGraph()->createTransformerCommands(rtrafo->transform, transformer.data());
+        transformer->createCommands(rtrafo->transform, buildGraph()->engine());
         if (transformer->commands.isEmpty())
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
     }
 
-    buildGraph()->applyRules(product.data(), artifactsPerFileTag);
+    product->applyRules(artifactsPerFileTag, buildGraph()->engine(), m_observer);
 
     QSet<Artifact *> productArtifactCandidates;
     for (int i = 0; i < product->rProduct->fileTags.count(); ++i)
@@ -1244,6 +1162,8 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
         const QStringList &loaderSearchPaths)
 {
     m_result = LoadResult();
+    m_engine = bg->engine();
+    m_observer = bg->observer();
 
     const QString projectId = ResolvedProject::deriveId(cfg);
     const QString buildDir = ResolvedProject::deriveBuildDirectory(buildRoot, projectId);
@@ -1351,7 +1271,7 @@ void BuildProjectLoader::onProductRemoved(const BuildProductPtr &product)
 
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, product->artifacts) {
-        BuildGraph::disconnectAll(artifact);
+        artifact->disconnectAll();
         BuildGraph::removeGeneratedArtifactFromDisk(artifact);
     }
 }
@@ -1374,7 +1294,7 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
         if (!oldArtifacts.contains(a->absoluteFilePath)) {
             // artifact added
             qbsDebug() << "[BG] artifact '" << a->absoluteFilePath << "' added to product " << product->rProduct->name;
-            addedArtifacts += BuildGraph::createArtifact(product, a);
+            addedArtifacts += product->createArtifact(a);
             addedSourceArtifacts += a;
         }
     }
@@ -1425,23 +1345,21 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
     product->rProduct->groups = changedProduct->groups;
     product->rProduct->properties = changedProduct->properties;
 
-    BuildGraph * const bg = product->project->buildGraph();
-
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)
         foreach (const QString &ft, artifact->fileTags)
             artifactsPerFileTag[ft] += artifact;
-    bg->applyRules(product.data(), artifactsPerFileTag);
+    product->applyRules(artifactsPerFileTag, m_engine, m_observer);
 
     // parents of removed artifacts must update their transformers
     foreach (Artifact *removedArtifact, artifactsToRemove)
         foreach (Artifact *parent, removedArtifact->parents)
-            bg->addToArtifactsThatMustGetNewTransformers(parent);
-    bg->updateNodesThatMustGetNewTransformer();
+            product->project->addToArtifactsThatMustGetNewTransformers(parent);
+    product->project->updateNodesThatMustGetNewTransformer(m_engine, m_observer);
 
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, artifactsToRemove) {
-        bg->removeGeneratedArtifactFromDisk(artifact);
+        BuildGraph::removeGeneratedArtifactFromDisk(artifact);
         delete artifact;
     }
 }
@@ -1454,7 +1372,6 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
 void BuildProjectLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
                                                               QList<Artifact*> *removedArtifacts)
 {
-    BuildGraph * const bg = artifact->project->buildGraph();
     if (removedArtifacts)
         removedArtifacts->append(artifact);
     foreach (Artifact *parent, artifact->parents) {
@@ -1463,14 +1380,14 @@ void BuildProjectLoader::removeArtifactAndExclusiveDependents(Artifact *artifact
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
-            bg->addToArtifactsThatMustGetNewTransformers(parent);
+            artifact->project->addToArtifactsThatMustGetNewTransformers(parent);
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.isEmpty();
         }
         if (removeParent)
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
-    bg->remove(artifact);
+    artifact->project->removeArtifact(artifact);
 }
 
 } // namespace Internal
