@@ -52,7 +52,6 @@ BuildProject::BuildProject() : m_evalContext(0), m_dirty(false)
 
 BuildProject::~BuildProject()
 {
-    delete m_evalContext;
     qDeleteAll(m_dependencyArtifacts);
 }
 
@@ -83,9 +82,8 @@ QString BuildProject::buildGraphFilePath() const
     return deriveBuildGraphFilePath(resolvedProject()->buildDirectory, resolvedProject()->id());
 }
 
-void BuildProject::setEvaluationContext(RulesEvaluationContext *evalContext)
+void BuildProject::setEvaluationContext(const RulesEvaluationContextPtr &evalContext)
 {
-    delete m_evalContext;
     m_evalContext = evalContext;
 }
 
@@ -216,7 +214,7 @@ void BuildProject::removeArtifact(Artifact *artifact)
 
 void BuildProject::updateNodesThatMustGetNewTransformer()
 {
-    RulesEvaluationContext::Scope s(evaluationContext());
+    RulesEvaluationContext::Scope s(evaluationContext().data());
     foreach (Artifact *artifact, m_artifactsThatMustGetNewTransformers)
         updateNodeThatMustGetNewTransformer(artifact);
     m_artifactsThatMustGetNewTransformers.clear();
@@ -281,7 +279,7 @@ void BuildProject::store(PersistentPool &pool) const
 
 
 BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &resolvedProject,
-                                                     RulesEvaluationContext *evalContext)
+                                                     const RulesEvaluationContextPtr &evalContext)
 {
     m_productCache.clear();
     m_project = BuildProjectPtr(new BuildProject);
@@ -376,11 +374,11 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         }
         transformer->rule = rule;
 
-        RulesEvaluationContext::Scope s(evalContext());
+        RulesEvaluationContext::Scope s(evalContext().data());
         BuildGraph::setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
         transformer->setupInputs(engine(), scope());
         transformer->setupOutputs(engine(), scope());
-        transformer->createCommands(rtrafo->transform, engine());
+        transformer->createCommands(rtrafo->transform, evalContext());
         if (transformer->commands.isEmpty())
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
     }
@@ -403,7 +401,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     return product;
 }
 
-RulesEvaluationContext *BuildProjectResolver::evalContext() const
+RulesEvaluationContextPtr BuildProjectResolver::evalContext() const
 {
     return m_project->evaluationContext();
 }
@@ -437,7 +435,7 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
 }
 
 BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFilePath,
-        RulesEvaluationContext *evalContext, const QString &buildRoot, const QVariantMap &cfg,
+        const RulesEvaluationContextPtr &evalContext, const QString &buildRoot, const QVariantMap &cfg,
         const QStringList &loaderSearchPaths)
 {
     m_result = LoadResult();

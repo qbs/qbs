@@ -46,7 +46,6 @@ namespace qbs {
 namespace Internal {
 class BuildProjectLoader;
 class BuildProjectResolver;
-class RulesEvaluationContext;
 class ScriptEngine;
 
 class BuildProject : public PersistentObject
@@ -61,8 +60,8 @@ public:
     static QString deriveBuildGraphFilePath(const QString &buildDir, const QString &projectId);
     QString buildGraphFilePath() const;
 
-    void setEvaluationContext(RulesEvaluationContext *evalContext);
-    RulesEvaluationContext *evaluationContext() const { return m_evalContext; }
+    void setEvaluationContext(const RulesEvaluationContextPtr &evalContext);
+    RulesEvaluationContextPtr evaluationContext() const { return m_evalContext; }
 
     ResolvedProjectPtr resolvedProject() const;
     QSet<BuildProductPtr> buildProducts() const;
@@ -91,7 +90,7 @@ private:
     void updateNodeThatMustGetNewTransformer(Artifact *artifact);
 
 private:
-    RulesEvaluationContext *m_evalContext;
+    RulesEvaluationContextPtr m_evalContext;
     ResolvedProjectPtr m_resolvedProject;
     QSet<BuildProductPtr> m_buildProducts;
     ArtifactList m_dependencyArtifacts;
@@ -105,12 +104,12 @@ class BuildProjectResolver
 {
 public:
     BuildProjectPtr resolveProject(const ResolvedProjectPtr &resolvedProject,
-                                   RulesEvaluationContext *evalContext);
+                                   const RulesEvaluationContextPtr &evalContext);
 
 private:
     BuildProductPtr resolveProduct(const ResolvedProductPtr &rProduct);
 
-    RulesEvaluationContext *evalContext() const;
+    RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
 
@@ -131,7 +130,7 @@ public:
         bool discardLoadedProject;
     };
 
-    LoadResult load(const QString &projectFilePath, RulesEvaluationContext *evalContext,
+    LoadResult load(const QString &projectFilePath, const RulesEvaluationContextPtr &evalContext,
                     const QString &buildRoot, const QVariantMap &cfg,
                     const QStringList &loaderSearchPaths);
 
@@ -142,7 +141,7 @@ private:
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
                                               QList<Artifact*> *removedArtifacts = 0);
 
-    RulesEvaluationContext *m_evalContext;
+    RulesEvaluationContextPtr m_evalContext;
     LoadResult m_result;
 };
 

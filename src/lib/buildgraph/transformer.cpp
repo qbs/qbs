@@ -26,10 +26,11 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-
 #include "transformer.h"
+
 #include "artifact.h"
 #include "command.h"
+#include "rulesevaluationcontext.h"
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <tools/error.h>
@@ -127,12 +128,12 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
     return cmdBase;
 }
 
-void Transformer::createCommands(const PrepareScriptConstPtr &script, ScriptEngine *engine)
+void Transformer::createCommands(const PrepareScriptConstPtr &script,
+                                 const RulesEvaluationContextPtr &evalContext)
 {
-//    if (script->cachedScript.isNull())
-        script->cachedScript = QScriptProgram(script->script);
-
-    QScriptValue scriptValue = engine->evaluate(script->cachedScript);
+    QScriptProgram scriptProgram = evalContext->scriptProgram(script->script);
+    ScriptEngine * const engine = evalContext->engine();
+    QScriptValue scriptValue = engine->evaluate(scriptProgram);
     if (engine->hasUncaughtException())
         throw Error("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName,

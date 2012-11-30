@@ -39,7 +39,6 @@
 
 namespace qbs {
 namespace Internal {
-class RulesEvaluationContext;
 class ScriptEngine;
 
 typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
@@ -57,7 +56,7 @@ private:
     Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
                                    const ArtifactList &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
-    RulesEvaluationContext *evalContext() const;
+    RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
 

@@ -48,6 +48,9 @@ class Transformer;
 typedef QSharedPointer<Transformer> TransformerPtr;
 typedef QSharedPointer<const Transformer> TransformerConstPtr;
 
+class RulesEvaluationContext;
+typedef QSharedPointer<RulesEvaluationContext> RulesEvaluationContextPtr;
+
 } // namespace Internal
 } // namespace qbs
 

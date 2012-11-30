@@ -54,7 +54,7 @@ RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &
 
 void RulesApplicator::applyAllRules()
 {
-    RulesEvaluationContext::Scope s(m_buildProduct->project->evaluationContext());
+    RulesEvaluationContext::Scope s(m_buildProduct->project->evaluationContext().data());
     foreach (const RuleConstPtr &rule, m_buildProduct->topSortedRules())
         applyRule(rule);
 }
@@ -173,7 +173,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
     }
 
     m_transformer->setupOutputs(engine(), scope());
-    m_transformer->createCommands(m_rule->script, engine());
+    m_transformer->createCommands(m_rule->script, evalContext());
     if (m_transformer->commands.isEmpty())
         throw Error(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
 }
@@ -291,7 +291,7 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
     return result;
 }
 
-RulesEvaluationContext *RulesApplicator::evalContext() const
+RulesEvaluationContextPtr RulesApplicator::evalContext() const
 {
     return m_buildProduct->project->evaluationContext();
 }

@@ -144,17 +144,16 @@ void InternalSetupProjectJob::doResolve()
 
 void InternalSetupProjectJob::execute()
 {
-    QScopedPointer<RulesEvaluationContext> evalContext(new RulesEvaluationContext);
+    RulesEvaluationContextPtr evalContext(new RulesEvaluationContext);
     evalContext->setObserver(observer());
     const QStringList searchPaths = Settings().searchPaths();
     const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
-            evalContext.data(), m_buildRoot, m_buildConfig, searchPaths);
+            evalContext, m_buildRoot, m_buildConfig, searchPaths);
 
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
         m_buildProject = loadResult.loadedProject;
     if (m_buildProject) {
-        evalContext.take();
         rProject = m_buildProject->resolvedProject();
     } else {
         if (loadResult.changedResolvedProject) {
@@ -183,14 +182,15 @@ void InternalSetupProjectJob::execute()
     }
     qbsDebug("");
 
-    if (m_buildProject)
-        return;
+    if (!m_buildProject) {
+        TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
+        m_buildProject = BuildProjectResolver().resolveProject(rProject, evalContext);
+        if (loadResult.loadedProject)
+            m_buildProject->rescueDependencies(loadResult.loadedProject);
+    }
 
-    TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
-    m_buildProject = BuildProjectResolver().resolveProject(rProject, evalContext.data());
-    if (loadResult.loadedProject)
-        m_buildProject->rescueDependencies(loadResult.loadedProject);
-    evalContext.take();
+    // The evalutation context cannot be re-used for building, which runs in a different thread.
+    m_buildProject->setEvaluationContext(RulesEvaluationContextPtr());
 }
 
 

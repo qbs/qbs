@@ -46,7 +46,6 @@ class AutoMoc;
 class ExecutorJob;
 class InputArtifactScannerContext;
 class ProgressObserver;
-class RulesEvaluationContext;
 class ScanResultCache;
 
 class Executor : public QObject
@@ -89,13 +88,13 @@ private:
     void initializeArtifactsState();
     void setState(ExecutorState);
     void addExecutorJobs(int jobNumber);
-    void removeExecutorJobs(int jobNumber);
     void runAutoMoc();
     void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();
     void setupProgressObserver(bool mocWillRun);
+    void doSanityChecks();
 
-    RulesEvaluationContext *m_evalContext;
+    RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
     QList<ExecutorJob*> m_availableJobs;

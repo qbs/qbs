@@ -91,15 +91,12 @@ private:
 
 Executor::Executor(QObject *parent)
     : QObject(parent)
-    , m_evalContext(new RulesEvaluationContext)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
     m_autoMoc->setScanResultCache(&m_scanResultCache);
-    foreach (ExecutorJob *job, findChildren<ExecutorJob *>())
-        job->setMainThreadScriptEngine(m_evalContext->engine());
 }
 
 Executor::~Executor()
@@ -145,22 +142,35 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     m_error.clear();
     m_explicitlyCanceled = false;
 
-    QSet<BuildProject *> projects;
-    foreach (const BuildProductConstPtr &buildProduct, productsToBuild)
-        projects << buildProduct->project;
-    foreach (BuildProject * const project, projects)
+    setState(ExecutorRunning);
+
+    if (productsToBuild.isEmpty()) {
+        qbsTrace() << "No products to build, finishing.";
+        QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
+        return;
+    }
+
+    doSanityChecks();
+    BuildProject * const project = productsToBuild.first()->project;
+    m_evalContext = project->evaluationContext();
+    if (!m_evalContext) { // Is null before the first build.
+        m_evalContext = RulesEvaluationContextPtr(new RulesEvaluationContext);
         project->setEvaluationContext(m_evalContext);
+    }
+
+    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", m_buildOptions.maxJobCount);
+    addExecutorJobs(m_buildOptions.maxJobCount);
+    foreach (ExecutorJob * const job, m_availableJobs)
+        job->setDryRun(m_buildOptions.dryRun);
 
     initializeArtifactsState();
-    setState(ExecutorRunning);
     Artifact::BuildState initialBuildState = m_buildOptions.changedFiles.isEmpty()
             ? Artifact::Buildable : Artifact::Built;
 
     QList<Artifact *> changedArtifacts;
     foreach (const QString &filePath, m_buildOptions.changedFiles) {
         QList<Artifact *> artifacts;
-        foreach (const BuildProject * const project, projects)
-            artifacts.append(project->lookupArtifacts(filePath));
+        artifacts.append(project->lookupArtifacts(filePath));
         if (artifacts.isEmpty()) {
             qbsWarning() << QString("Out of date file '%1' provided but not found.").arg(QDir::toNativeSeparators(filePath));
             continue;
@@ -202,17 +212,6 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
 void Executor::setBuildOptions(const BuildOptions &buildOptions)
 {
     m_buildOptions = buildOptions;
-
-    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", m_buildOptions.maxJobCount);
-    const int actualJobNumber = m_availableJobs.count() + m_processingJobs.count();
-    if (actualJobNumber > m_buildOptions.maxJobCount) {
-        removeExecutorJobs(actualJobNumber - m_buildOptions.maxJobCount);
-    } else {
-        addExecutorJobs(m_buildOptions.maxJobCount - actualJobNumber);
-    }
-
-    foreach (ExecutorJob * const job, m_availableJobs)
-        job->setDryRun(m_buildOptions.dryRun);
 }
 
 static void initArtifactsBottomUp(Artifact *artifact)
@@ -566,6 +565,14 @@ void Executor::setupProgressObserver(bool mocWillRun)
     m_progressObserver->initialize(tr("Building"), totalEffort);
 }
 
+void Executor::doSanityChecks()
+{
+    Q_ASSERT(!m_productsToBuild.isEmpty());
+    BuildProject * const p = m_productsToBuild.first()->project;
+    for (int i = 1; i < m_productsToBuild.count(); ++i)
+        Q_ASSERT(m_productsToBuild.at(i)->project == p);
+}
+
 void Executor::addExecutorJobs(int jobNumber)
 {
     for (int i = 1; i <= jobNumber; i++) {
@@ -575,18 +582,6 @@ void Executor::addExecutorJobs(int jobNumber)
         m_availableJobs.append(job);
         connect(job, SIGNAL(error(QString)), this, SLOT(onProcessError(QString)));
         connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()));
-    }
-}
-
-void Executor::removeExecutorJobs(int jobNumber)
-{
-    if (jobNumber >= m_availableJobs.count()) {
-        qDeleteAll(m_availableJobs);
-        m_availableJobs.clear();
-    } else {
-        for (int i = 1; i <= jobNumber; i++) {
-            delete m_availableJobs.takeLast();
-        }
     }
 }
 

@@ -56,6 +56,14 @@ RulesEvaluationContext::~RulesEvaluationContext()
     delete m_engine;
 }
 
+QScriptProgram RulesEvaluationContext::scriptProgram(const QString &script)
+{
+    QScriptProgram p = m_scriptHash[script];
+    if (p.isNull())
+        p = QScriptProgram(script);
+    return p;
+}
+
 void RulesEvaluationContext::initializeObserver(const QString &description, int maximumProgress)
 {
     if (m_observer)
