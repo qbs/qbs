@@ -9,8 +9,6 @@ CONFIG += depend_includepath testcase
 
 include(../../../src/lib/use.pri)
 include(../../../qbs_version.pri)
+include(../../../src/app/qbs/parser/parser.pri)
 
-HEADERS += \
-    ../../../src/app/shared/commandlineparser.h
-SOURCES += tst_tools.cpp \
-    ../../../src/app/shared/commandlineparser.cpp
+SOURCES += tst_tools.cpp

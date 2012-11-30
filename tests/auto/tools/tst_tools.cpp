@@ -27,11 +27,13 @@
 **
 ****************************************************************************/
 
-#include <app/shared/commandlineparser.h>
+#include <app/qbs/parser/commandlineparser.h>
 #include <logging/logger.h>
+#include <tools/buildoptions.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <QDir>
+#include <QTemporaryFile>
 #include <QtTest>
 
 using namespace qbs;
@@ -42,40 +44,45 @@ class TestTools : public QObject
 private slots:
     void testValidCommandLine()
     {
+        QTemporaryFile projectFile;
+        QVERIFY(projectFile.open());
+        const QStringList fileArgs = QStringList() << "-f" << projectFile.fileName();
         QStringList args;
         args.append("-vvk");
         args.append("-v");
         args << "--products" << "blubb";
-        args << "--changed-files" << "foo,bar";
-        args << "-h";
+        args << "--changed-files" << "foo,bar" << fileArgs;
         CommandLineParser parser;
         QVERIFY(parser.parseCommandLine(args));
         QCOMPARE(Logger::instance().level(), LoggerTrace);
-        QCOMPARE(parser.command(), CommandLineParser::BuildCommand);
+        QCOMPARE(parser.command(), BuildCommandType);
         QCOMPARE(parser.products(), QStringList() << "blubb");
         QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
         QVERIFY(parser.buildOptions().keepGoing);
-        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqqh"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << fileArgs));
         QCOMPARE(Logger::instance().level(), Logger::defaultLevel());
-        QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqqh"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqq" << fileArgs));
         QCOMPARE(Logger::instance().level(), LoggerWarning);
-        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqh"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqq" << fileArgs));
         QCOMPARE(Logger::instance().level(), LoggerDebug);
-        QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << "-h"));
+        QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << fileArgs));
         QCOMPARE(Logger::instance().level(), LoggerTrace);
     }
 
     void testInvalidCommandLine()
     {
+        QTemporaryFile projectFile;
+        QVERIFY(projectFile.open());
+        const QStringList fileArgs = QStringList() << "-f" << projectFile.fileName();
         CommandLineParser parser;
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-x")); // Unknown short option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--xyz")); // Unknown long option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-vjv")); // Invalid position.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-j"));  // Missing argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0")); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--products"));  // Missing argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << ",")); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb")); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-x" << fileArgs)); // Unknown short option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--xyz" << fileArgs)); // Unknown long option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-vjv" << fileArgs)); // Invalid position.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << fileArgs));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0" << fileArgs)); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--products" << fileArgs));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << "," << fileArgs)); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << fileArgs)); // Wrong argument.
     }
 
     void testFileInfo()
@@ -108,10 +115,10 @@ private slots:
         const QStringList args(QLatin1String("-f"));
         QString projectFilePath = multiProjectsDir + QLatin1String("/project.qbs");
         QVERIFY(parser.parseCommandLine(args + QStringList(projectFilePath)));
-        QCOMPARE(projectFilePath, parser.projectFileName());
+        QCOMPARE(projectFilePath, parser.projectFilePath());
         projectFilePath = oneProjectDir + QLatin1String("/project.qbs");
         QVERIFY(parser.parseCommandLine(args + QStringList(oneProjectDir)));
-        QCOMPARE(projectFilePath, parser.projectFileName());
+        QCOMPARE(projectFilePath, parser.projectFilePath());
         QVERIFY(!parser.parseCommandLine(args + QStringList(noProjectsDir)));
         QVERIFY(!parser.parseCommandLine(args + QStringList(multiProjectsDir)));
     }

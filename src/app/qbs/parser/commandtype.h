@@ -26,57 +26,16 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef COMMANDTYPE_H
+#define COMMANDTYPE_H
 
-#include "application.h"
-#include "commandlinefrontend.h"
-#include "parser/commandlineparser.h"
+namespace qbs {
 
-#include <qbs.h>
-#include <logging/consolelogger.h>
-#include <tools/hostosinfo.h>
+enum CommandType {
+    BuildCommandType, CleanCommandType, RunCommandType, ShellCommandType,
+    PropertiesCommandType, StatusCommandType, HelpCommandType
+};
 
-#include <QProcess>
-#include <QTimer>
+} // namespace qbs
 
-using namespace qbs;
-
-static bool tryToRunTool(const QStringList &arguments, int &exitCode)
-{
-    if (arguments.isEmpty())
-        return false;
-    qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
-            + HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
-    QStringList subProcessArgs = arguments;
-    const QString subProcess = subProcessArgs.takeFirst();
-    if (subProcess.startsWith(QLatin1Char('-')))
-        return false;
-    exitCode = QProcess::execute(QLatin1String("qbs-") + subProcess, subProcessArgs);
-    return exitCode != -2;
-}
-
-int main(int argc, char *argv[])
-{
-    ConsoleLogger cl;
-
-    Application app(argc, argv);
-    QStringList arguments = app.arguments();
-    arguments.removeFirst();
-
-    int toolExitCode = 0;
-    if (tryToRunTool(arguments, toolExitCode))
-        return toolExitCode;
-
-    CommandLineParser parser;
-    if (!parser.parseCommandLine(arguments))
-        return EXIT_FAILURE;
-
-    if (parser.command() == HelpCommandType) {
-        parser.printHelp();
-        return 0;
-    }
-
-    CommandLineFrontend clFrontend(parser);
-    app.setCommandLineFrontend(&clFrontend);
-    QTimer::singleShot(0, &clFrontend, SLOT(start()));
-    return app.exec();
-}
+#endif // COMMANDTYPE_H

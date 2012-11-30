@@ -29,7 +29,7 @@
 #ifndef COMMANDLINEFRONTEND_H
 #define COMMANDLINEFRONTEND_H
 
-#include "../shared/commandlineparser.h"
+#include "parser/commandlineparser.h"
 #include <api/project.h>
 #include <api/projectdata.h>
 
@@ -70,7 +70,7 @@ private:
     void connectBuildJobs();
     void connectJob(AbstractJob *job);
 
-    const CommandLineParser m_parser;
+    const CommandLineParser &m_parser;
     QList<AbstractJob *> m_resolveJobs;
     QList<AbstractJob *> m_buildJobs;
     QList<Project> m_projects;

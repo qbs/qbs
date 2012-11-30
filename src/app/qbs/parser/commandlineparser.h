@@ -26,71 +26,43 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_COMMANDLINEPARSER_H
+#define QBS_COMMANDLINEPARSER_H
 
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#include "commandtype.h"
 
-#include <tools/buildoptions.h>
-
-#include <QCoreApplication>
-#include <QPair>
 #include <QStringList>
 #include <QVariant>
 
 namespace qbs {
+class BuildOptions;
 
 class CommandLineParser
 {
-    Q_DECLARE_TR_FUNCTIONS(CommandLineParser)
+    Q_DISABLE_COPY(CommandLineParser)
 public:
     CommandLineParser();
-
-    enum Command {
-        BuildCommand,
-        CleanCommand,
-        StartShellCommand,
-        RunCommand,
-        StatusCommand,
-        PropertiesCommand
-    };
+    ~CommandLineParser();
 
     bool parseCommandLine(const QStringList &args);
     void printHelp() const;
 
-    Command command() const { return m_command;}
-    BuildOptions buildOptions() const { return m_buildOptions; }
-    const QString &runTargetName() const { return m_runTargetName; }
-    const QString &projectFileName() const { return m_projectFileName; }
-    const QStringList &runArgs() const { return m_runArgs; }
-    const QStringList &products() const { return m_products; }
-    bool isHelpSet() const { return m_help; }
+    CommandType command() const;
+    QString commandName() const;
+    QString commandDescription() const;
+    QString projectFilePath() const;
+    BuildOptions buildOptions() const;
+    QString runTargetName() const;
+    QStringList runArgs() const;
+    QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;
-    bool showProgress() const { return m_showProgress; }
+    bool showProgress() const;
 
 private:
-    void doParse();
-    void parseLongOption(const QString &option);
-    void parseShortOptions(const QString &options);
-    QString getShortOptionArgument(const QString &options, int optionPos);
-    QString getOptionArgument(const QString &option);
-    QStringList getOptionArgumentAsList(const QString &option);
-    void parseArgument(const QString &arg);
-
-    QString guessProjectFileName();
-    QString propertyName(const QString &aCommandLineName) const;
-    void setRealProjectFile();
-
-    Command m_command;
-    QString m_runTargetName;
-    QString m_projectFileName;
-    QStringList m_commandLine;
-    QStringList m_positional;
-    QStringList m_runArgs;
-    QStringList m_products;
-    BuildOptions m_buildOptions;
-    bool m_help;
-    int m_logLevel;
-    bool m_showProgress;
+    class CommandLineParserPrivate;
+    CommandLineParserPrivate *d;
 };
-}
-#endif // OPTIONS_H
+
+} // namespace qbs
+
+#endif // QBS_COMMANDLINEPARSER_H

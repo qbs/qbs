@@ -52,7 +52,7 @@ TestBlackbox::TestBlackbox()
 
 int TestBlackbox::runQbs(QStringList arguments, bool expectFailure)
 {
-    arguments.prepend(QLatin1String("profile:") + buildProfile);
+    arguments.append(QLatin1String("profile:") + buildProfile);
     QString cmdLine = qbsExecutableFilePath;
     foreach (const QString &str, arguments)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');

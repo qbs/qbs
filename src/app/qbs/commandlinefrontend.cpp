@@ -59,21 +59,32 @@ void CommandLineFrontend::cancel()
 void CommandLineFrontend::start()
 {
     try {
-        if (m_parser.buildConfigurations().count() > 1) {
-            QString command;
-            if (m_parser.command() == CommandLineParser::RunCommand)
-                command = QLatin1String("run");
-            else if (m_parser.command() == CommandLineParser::StartShellCommand)
-                command = QLatin1String("shell");
-            if (!command.isEmpty()) {
-                throw Error(Tr::tr("Ambiguous command: '%1' needs exactly one "
-                                   "build configuration.").arg(command));
+        switch (m_parser.command()) {
+        case ShellCommandType:
+            if (m_parser.products().count() > 1) {
+                throw Error(Tr::tr("Invalid use of command '%1': Cannot use more than one "
+                                   "product.\nUsage: %2")
+                            .arg(m_parser.commandName(), m_parser.commandDescription()));
             }
+            // Fall-through intended.
+        case RunCommandType:
+        case PropertiesCommandType:
+        case StatusCommandType:
+            if (m_parser.buildConfigurations().count() > 1) {
+                QString error = Tr::tr("Invalid use of command '%1': There can be only one "
+                               "build configuration.\n").arg(m_parser.commandName());
+                error += Tr::tr("Usage: %1").arg(m_parser.commandDescription());
+                throw Error(error);
+            }
+            break;
+        default:
+            break;
         }
+
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
-            SetupProjectJob * const job = Project::setupProject(m_parser.projectFileName(),
+            SetupProjectJob * const job = Project::setupProject(m_parser.projectFilePath(),
                                                                 buildConfig, QDir::currentPath(), this);
             connectJob(job);
             m_resolveJobs << job;
@@ -120,7 +131,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
     } else { // Build or clean.
         m_buildJobs.removeOne(job);
         if (m_buildJobs.isEmpty()) {
-            if (m_parser.command() == CommandLineParser::RunCommand)
+            if (m_parser.command() == RunCommandType)
                 qApp->exit(runTarget());
             else
                 qApp->quit();
@@ -187,10 +198,8 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
     }
 
     foreach (const QString &productName, m_parser.products()) {
-        if (!productNames.contains(productName)) {
-            qbsWarning() << QCoreApplication::translate("qbs", "No such product '%1'.")
-                            .arg(productName);
-        }
+        if (!productNames.contains(productName))
+            throw Error(Tr::tr("No such product '%1'.").arg(productName));
     }
 
     return products;
@@ -200,20 +209,23 @@ void CommandLineFrontend::handleProjectsResolved()
 {
     try {
         switch (m_parser.command()) {
-        case CommandLineParser::CleanCommand:
+        case CleanCommandType:
             makeClean();
             break;
-        case CommandLineParser::StartShellCommand:
+        case ShellCommandType:
+            if (m_parser.products().count() == 0
+                    && m_projects.first().projectData().products().count() > 1) {
+                throw Error(Tr::tr("Ambiguous use of command '%1': No product given for project "
+                                   "with more than one product.\nUsage: %2")
+                            .arg(m_parser.commandName(), m_parser.commandDescription()));
+            }
             qApp->exit(runShell());
             break;
-        case CommandLineParser::StatusCommand: {
-            QList<ProjectData> projects;
-            foreach (const Project &project, m_projects)
-                projects << project.projectData();
-            qApp->exit(printStatus(projects));
+        case StatusCommandType: {
+            qApp->exit(printStatus(m_projects.first().projectData()));
             break;
         }
-        case CommandLineParser::PropertiesCommand: {
+        case PropertiesCommandType: {
             QList<ProductData> products;
             const ProductMap &p = productsToUse();
             foreach (const QList<ProductData> &pProducts, p)
@@ -221,10 +233,12 @@ void CommandLineFrontend::handleProjectsResolved()
             qApp->exit(showProperties(products));
             break;
         }
-        case CommandLineParser::BuildCommand:
-        case CommandLineParser::RunCommand:
+        case BuildCommandType:
+        case RunCommandType:
             build();
             break;
+        case HelpCommandType:
+            Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
         }
     } catch (const Error &error) {
         qbsError() << error.toString();
@@ -252,11 +266,12 @@ void CommandLineFrontend::makeClean()
 
 int CommandLineFrontend::runShell()
 {
-    Q_ASSERT(m_projects.count() == 1);
-    const Project &project = m_projects.first();
-
-    // TODO: Don't take a random product.
-    RunEnvironment runEnvironment = project.getRunEnvironment(project.projectData().products().first(),
+    const ProductMap &productMap = productsToUse();
+    Q_ASSERT(productMap.count() == 1);
+    const Project &project = productMap.begin().key();
+    const QList<ProductData> &products = productMap.begin().value();
+    Q_ASSERT(products.count() == 1);
+    RunEnvironment runEnvironment = project.getRunEnvironment(products.first(),
             QProcessEnvironment::systemEnvironment());
     return runEnvironment.runShell();
 }

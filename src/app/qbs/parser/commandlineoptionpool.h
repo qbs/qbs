@@ -26,57 +26,36 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_COMMANDLINEOPTIONPOOL_H
+#define QBS_COMMANDLINEOPTIONPOOL_H
 
-#include "application.h"
-#include "commandlinefrontend.h"
-#include "parser/commandlineparser.h"
+#include "commandlineoption.h"
 
-#include <qbs.h>
-#include <logging/consolelogger.h>
-#include <tools/hostosinfo.h>
+#include <QHash>
 
-#include <QProcess>
-#include <QTimer>
+namespace qbs {
 
-using namespace qbs;
-
-static bool tryToRunTool(const QStringList &arguments, int &exitCode)
+class CommandLineOptionPool
 {
-    if (arguments.isEmpty())
-        return false;
-    qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
-            + HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
-    QStringList subProcessArgs = arguments;
-    const QString subProcess = subProcessArgs.takeFirst();
-    if (subProcess.startsWith(QLatin1Char('-')))
-        return false;
-    exitCode = QProcess::execute(QLatin1String("qbs-") + subProcess, subProcessArgs);
-    return exitCode != -2;
-}
+public:
+    ~CommandLineOptionPool();
 
-int main(int argc, char *argv[])
-{
-    ConsoleLogger cl;
+    CommandLineOption *getOption(CommandLineOption::Type type) const;
+    FileOption *fileOption() const;
+    LogLevelOption *logLevelOption() const;
+    VerboseOption *verboseOption() const;
+    QuietOption *quietOption() const;
+    ShowProgressOption *showProgressOption() const;
+    DryRunOption *dryRunOption() const;
+    ChangedFilesOption *changedFilesOption() const;
+    KeepGoingOption *keepGoingOption() const;
+    JobsOption *jobsOption() const;
+    ProductsOption *productsOption() const;
 
-    Application app(argc, argv);
-    QStringList arguments = app.arguments();
-    arguments.removeFirst();
+private:
+    mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;
+};
 
-    int toolExitCode = 0;
-    if (tryToRunTool(arguments, toolExitCode))
-        return toolExitCode;
+} // namespace qbs
 
-    CommandLineParser parser;
-    if (!parser.parseCommandLine(arguments))
-        return EXIT_FAILURE;
-
-    if (parser.command() == HelpCommandType) {
-        parser.printHelp();
-        return 0;
-    }
-
-    CommandLineFrontend clFrontend(parser);
-    app.setCommandLineFrontend(&clFrontend);
-    QTimer::singleShot(0, &clFrontend, SLOT(start()));
-    return app.exec();
-}
+#endif // QBS_COMMANDLINEOPTIONPOOL_H

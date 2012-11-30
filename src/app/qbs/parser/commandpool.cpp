@@ -26,57 +26,50 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "commandpool.h"
 
-#include "application.h"
-#include "commandlinefrontend.h"
-#include "parser/commandlineparser.h"
+#include "command.h"
 
-#include <qbs.h>
-#include <logging/consolelogger.h>
-#include <tools/hostosinfo.h>
+namespace qbs {
 
-#include <QProcess>
-#include <QTimer>
-
-using namespace qbs;
-
-static bool tryToRunTool(const QStringList &arguments, int &exitCode)
+CommandPool::CommandPool(CommandLineOptionPool &optionPool) : m_optionPool(optionPool)
 {
-    if (arguments.isEmpty())
-        return false;
-    qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
-            + HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
-    QStringList subProcessArgs = arguments;
-    const QString subProcess = subProcessArgs.takeFirst();
-    if (subProcess.startsWith(QLatin1Char('-')))
-        return false;
-    exitCode = QProcess::execute(QLatin1String("qbs-") + subProcess, subProcessArgs);
-    return exitCode != -2;
 }
 
-int main(int argc, char *argv[])
+CommandPool::~CommandPool()
 {
-    ConsoleLogger cl;
+    qDeleteAll(m_commands);
+}
 
-    Application app(argc, argv);
-    QStringList arguments = app.arguments();
-    arguments.removeFirst();
-
-    int toolExitCode = 0;
-    if (tryToRunTool(arguments, toolExitCode))
-        return toolExitCode;
-
-    CommandLineParser parser;
-    if (!parser.parseCommandLine(arguments))
-        return EXIT_FAILURE;
-
-    if (parser.command() == HelpCommandType) {
-        parser.printHelp();
-        return 0;
+qbs::Command *CommandPool::getCommand(CommandType type) const
+{
+    Command *& command = m_commands[type];
+    if (!command) {
+        switch (type) {
+        case BuildCommandType:
+            command = new BuildCommand(m_optionPool);
+            break;
+        case CleanCommandType:
+            command = new CleanCommand(m_optionPool);
+            break;
+        case RunCommandType:
+            command = new RunCommand(m_optionPool);
+            break;
+        case ShellCommandType:
+            command = new ShellCommand(m_optionPool);
+            break;
+        case PropertiesCommandType:
+            command = new PropertiesCommand(m_optionPool);
+            break;
+        case StatusCommandType:
+            command = new StatusCommand(m_optionPool);
+            break;
+        case HelpCommandType:
+            command = new HelpCommand(m_optionPool);
+            break;
+        }
     }
-
-    CommandLineFrontend clFrontend(parser);
-    app.setCommandLineFrontend(&clFrontend);
-    QTimer::singleShot(0, &clFrontend, SLOT(start()));
-    return app.exec();
+    return command;
 }
+
+} // namespace qbs

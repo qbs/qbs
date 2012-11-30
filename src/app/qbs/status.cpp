@@ -109,17 +109,14 @@ QStringList allFiles(const ProductData &product)
     return files;
 }
 
-int printStatus(const QList<ProjectData> &projects)
+int printStatus(const ProjectData &project)
 {
-    if (projects.isEmpty())
-        return 0;
-    const QString projectFilePath = projects.first().location().fileName;
+    const QString projectFilePath = project.location().fileName;
     QString projectDirectory = FileInfo::path(projectFilePath);
     int projectDirectoryPathLength = projectDirectory.length();
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
-    const ProjectData project = projects.first();
     foreach (const ProductData &product, project.products()) {
         qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name()
                   << " (" << product.location().fileName << ":" << product.location().line << ")";
