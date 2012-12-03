@@ -15,8 +15,7 @@ QtModule {
 
         Artifact {
 //  ### TODO we want to access the module's property "qt.core.generatedFilesDir" here. But without evaluating all available properties a priori.
-//            fileName: input.baseDir + '/qrc_' + input.baseName + '.cpp'
-            fileName: 'GeneratedFiles/' + product.name + '/ui_' + input.baseName + '.h'
+            fileName: 'GeneratedFiles/' + product.name + '/ui_' + input.completeBaseName + '.h'
             fileTags: ["hpp"]
         }
 

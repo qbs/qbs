@@ -99,8 +99,7 @@ Module {
         inputs: ["moc_cpp"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/' + input.baseName + '.moc'
-//            fileName: input.baseDir + '/' + input.baseName + '.moc'
+            fileName: 'GeneratedFiles/' + product.name + '/' + input.completeBaseName + '.moc'
             fileTags: ["hpp"]
         }
 
@@ -116,7 +115,7 @@ Module {
         inputs: ["moc_hpp"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/moc_' + input.baseName + '.cpp'
+            fileName: 'GeneratedFiles/' + product.name + '/moc_' + input.completeBaseName + '.cpp'
             fileTags: [ "cpp" ]
         }
 
@@ -132,7 +131,7 @@ Module {
         inputs: ["moc_hpp_inc"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/moc_' + input.baseName + '.cpp'
+            fileName: 'GeneratedFiles/' + product.name + '/moc_' + input.completeBaseName + '.cpp'
             fileTags: [ "hpp" ]
         }
 
@@ -149,11 +148,14 @@ Module {
 
         Artifact {
 //  ### TODO we want to access the module's property "generatedFilesDir" here. But without evaluating all available properties a priori.
-            fileName: 'GeneratedFiles/' + product.name + '/qrc_' + input.baseName + '.cpp'
+            fileName: 'GeneratedFiles/' + product.name + '/qrc_' + input.completeBaseName + '.cpp'
             fileTags: ["cpp"]
         }
         prepare: {
-            var cmd = new Command(product.module.binPath + '/rcc', [input.fileName, '-name', FileInfo.baseName(input.fileName), '-o', output.fileName]);
+            var cmd = new Command(product.module.binPath + '/rcc',
+                                  [input.fileName, '-name',
+                                   FileInfo.completeBaseName(input.fileName),
+                                   '-o', output.fileName]);
             cmd.description = 'rcc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -164,7 +166,7 @@ Module {
         inputs: ["ts"]
 
         Artifact {
-            fileName: FileInfo.joinPaths(product.module.qmFilesDir, input.baseName + ".qm")
+            fileName: FileInfo.joinPaths(product.module.qmFilesDir, input.completeBaseName + ".qm")
             fileTags: ["qm"]
         }
 
