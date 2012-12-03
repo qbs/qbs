@@ -90,6 +90,14 @@ void InternalJob::cancel()
     m_observer->cancel();
 }
 
+void InternalJob::storeBuildGraph(const BuildProject *buildProject)
+{
+    try {
+        buildProject->store();
+    } catch (const Error &error) {
+        qbsWarning() << error.toString();
+    }
+}
 
 InternalSetupProjectJob::InternalSetupProjectJob(QObject *parent)
     : InternalJob(parent), m_running(false)
@@ -189,6 +197,8 @@ void InternalSetupProjectJob::execute()
             m_buildProject->rescueDependencies(loadResult.loadedProject);
     }
 
+    storeBuildGraph(m_buildProject.data());
+
     // The evalutation context cannot be re-used for building, which runs in a different thread.
     m_buildProject->setEvaluationContext(RulesEvaluationContextPtr());
 }
@@ -211,15 +221,9 @@ void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products,
 
 void BuildGraphTouchingJob::storeBuildGraph()
 {
-    try {
-        if (m_buildOptions.dryRun)
-            return;
-        m_products.first()->project->store();
-    } catch (const Error &error) {
-        qbsWarning() << error.toString();
-    }
+    if (!m_buildOptions.dryRun)
+        InternalJob::storeBuildGraph(m_products.first()->project);
 }
-
 
 InternalBuildJob::InternalBuildJob(QObject *parent) : BuildGraphTouchingJob(parent)
 {

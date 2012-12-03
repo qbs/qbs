@@ -58,6 +58,7 @@ protected:
 
     JobObserver *observer() const { return m_observer; }
     void setError(const Error &error) { m_error = error; }
+    void storeBuildGraph(const BuildProject *buildProject);
 
 signals:
     void finished(Internal::InternalJob *job);

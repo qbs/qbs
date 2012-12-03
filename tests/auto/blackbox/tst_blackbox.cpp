@@ -216,7 +216,7 @@ void TestBlackbox::build_project_dry_run()
     QCOMPARE(runQbs(QStringList() << "-n"), 0);
     const QStringList &buildDirContents
             = QDir(buildDir).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
-    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
+    QVERIFY2(buildDirContents.count() == 1, qPrintable(buildDirContents.join(" ")));
 }
 
 void TestBlackbox::track_qrc()
