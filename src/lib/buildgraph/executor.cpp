@@ -568,9 +568,8 @@ void Executor::setupProgressObserver(bool mocWillRun)
 void Executor::doSanityChecks()
 {
     Q_ASSERT(!m_productsToBuild.isEmpty());
-    BuildProject * const p = m_productsToBuild.first()->project;
     for (int i = 1; i < m_productsToBuild.count(); ++i)
-        Q_ASSERT(m_productsToBuild.at(i)->project == p);
+        Q_ASSERT(m_productsToBuild.at(i)->project == m_productsToBuild.first()->project);
 }
 
 void Executor::addExecutorJobs(int jobNumber)

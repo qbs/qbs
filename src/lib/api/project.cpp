@@ -150,7 +150,9 @@ static QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig
         if (nameElements.count() == 1 && nameElements.first() != "project") // ### Still need this because platform doesn't supply fully-qualified properties (yet), need to fix this
             nameElements.prepend("qbs");
         if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
-            QStringList newElements(QStringList(nameElements.mid(0, nameElements.count()-1)).join("/"));
+            QStringList allButLast = nameElements;
+            allButLast.removeLast();
+            QStringList newElements(allButLast.join("/"));
             newElements.append(nameElements.last());
             nameElements = newElements;
         }

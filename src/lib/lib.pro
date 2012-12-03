@@ -9,6 +9,8 @@ CONFIG += static depend_includepath
 DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS
 
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
+win32-msvc*|win32-icc:QMAKE_CXXFLAGS += /WX
+else:*g++*|*clang*|*icc*:QMAKE_CXXFLAGS += -Werror
 
 include(../../qbs_version.pri)
 include(api/api.pri)
