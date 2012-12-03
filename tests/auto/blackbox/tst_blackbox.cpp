@@ -163,6 +163,10 @@ void TestBlackbox::build_project_data()
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
+    QTest::newRow("lots of dots")
+            << QString("lotsofdots")
+            << QString(buildDir + QLatin1String("/")
+                       + HostOsInfo::appendExecutableSuffix("lots.of.dots"));
     QTest::newRow("Qt5 plugin")
             << QString("qt5plugin")
             << QString(buildDir + QLatin1String("/") + HostOsInfo::dynamicLibraryName("echoplugin"));

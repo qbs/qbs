@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/bernadotte">
+        <file>m.a.i.n.cpp</file>
+    </qresource>
+</RCC>
