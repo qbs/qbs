@@ -165,26 +165,36 @@ void InputArtifactScanner::scan()
     for (; it != m_artifact->transformer->inputs.end(); ++it) {
         Artifact *inputArtifact = *it;
         QStringList includePaths;
-        bool includePathsCollected = false;
+        bool mustCollectIncludePaths = false;
+
+        QSet<ScannerPlugin *> scanners;
+        foreach (const QString &fileTag, inputArtifact->fileTags) {
+            foreach (ScannerPlugin *scanner, ScannerPluginManager::scannersForFileTag(fileTag)) {
+                scanners += scanner;
+                if (scanner->usesCppIncludePaths)
+                    mustCollectIncludePaths = true;
+            }
+        }
 
         InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
-
-        foreach (const QString &fileTag, inputArtifact->fileTags) {
-            QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag(fileTag);
-            foreach (ScannerPlugin *scanner, scanners) {
-                if (scanner->usesCppIncludePaths && !includePathsCollected) {
-                    if (cacheItem.valid) {
-                        //qDebug() << "CACHE HIT";
-                        includePaths = cacheItem.includePaths;
-                    } else {
-                        //qDebug() << "CACHE MISS";
-                        includePaths = collectIncludePaths(inputArtifact->properties->value().value("modules").toMap());
-                        cacheItem.includePaths = includePaths;
-                        cacheItem.valid = true;
-                    }
-                }
-                scanForFileDependencies(scanner, includePaths, inputArtifact, cacheItem.resolvedDependenciesCache);
+        if (mustCollectIncludePaths) {
+            if (cacheItem.valid) {
+                //qDebug() << "CACHE HIT";
+                includePaths = cacheItem.includePaths;
+            } else {
+                //qDebug() << "CACHE MISS";
+                includePaths = collectIncludePaths(inputArtifact->properties->value().value("modules").toMap());
+                cacheItem.includePaths = includePaths;
+                cacheItem.valid = true;
             }
+        }
+
+        const QStringList emptyIncludePaths;
+        foreach (ScannerPlugin *scanner, scanners) {
+            scanForFileDependencies(scanner,
+                                    scanner->usesCppIncludePaths ? includePaths : emptyIncludePaths,
+                                    inputArtifact,
+                                    cacheItem.resolvedDependenciesCache[scanner]);
         }
     }
 }

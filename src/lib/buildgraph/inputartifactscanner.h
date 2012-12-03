@@ -85,7 +85,7 @@ private:
 
         bool valid;
         QStringList includePaths;
-        ResolvedDependenciesCache resolvedDependenciesCache;
+        QHash<ScannerPlugin *, ResolvedDependenciesCache> resolvedDependenciesCache;
     };
 
     QHash<PropertyMapConstPtr, CacheItem> cache;
