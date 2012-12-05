@@ -33,6 +33,8 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args.push('/w')
     if (warningLevel === 'all')
         args.push('/Wall')
+    if (input.module.treatWarningsAsErrors)
+        args.push('/WX')
     for (i in includePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(includePaths[i]))
     for (i in systemIncludePaths)
