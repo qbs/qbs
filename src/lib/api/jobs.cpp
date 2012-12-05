@@ -31,6 +31,7 @@
 #include "internaljobs.h"
 #include "project.h"
 #include <buildgraph/buildproject.h>
+#include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 
