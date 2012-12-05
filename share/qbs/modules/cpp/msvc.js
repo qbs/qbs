@@ -5,7 +5,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     var debugInformation = input.module.debugInformation
     var architecture = input.module.architecture
 
-    var args = ['/nologo', '/c', '/Zm200', '/Zc:wchar_t-']
+    var args = ['/nologo', '/c']
 
     // C or C++
     var isCxx = true;

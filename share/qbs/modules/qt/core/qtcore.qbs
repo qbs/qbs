@@ -58,6 +58,15 @@ Module {
     cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)] : undefined
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
+    cpp.cxxFlags: {
+        var flags;
+        if (qbs.toolchain === 'msvc') {
+            flags = ['/Zm200'];
+            if (versionMajor < 5)
+                flags.push('/Zc:wchar_t-');
+        }
+        return flags;
+    }
 
     additionalProductFileTags: ["qm"]
 
