@@ -64,7 +64,7 @@ void Command::addAllToAdditionalArguments(QStringList &input)
 void Command::addOneToAdditionalArguments(const QString &argument)
 {
     if (argument.startsWith(QLatin1Char('-'))) {
-        throw Error(Tr::tr("Invalid use of command '%1': Encountered option '%2'', expected a "
+        throw Error(Tr::tr("Invalid use of command '%1': Encountered option '%2', expected a "
                            "build variant or property.\nUsage: %3")
                            .arg(representation(), argument, longDescription()));
     }
