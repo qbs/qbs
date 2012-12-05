@@ -32,6 +32,7 @@
 #include "buildproject.h"
 #include "buildgraph.h"
 #include "rulesapplicator.h"
+#include "rulesevaluationcontext.h"
 #include "scanresultcache.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>

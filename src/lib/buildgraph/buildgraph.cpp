@@ -30,6 +30,7 @@
 
 #include "artifact.h"
 #include "buildproject.h"
+#include "rulesevaluationcontext.h"
 
 #include <language/language.h>
 #include <language/scriptengine.h>

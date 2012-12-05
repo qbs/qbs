@@ -32,6 +32,7 @@
 #include "artifactvisitor.h"
 #include "buildproduct.h"
 #include "buildproject.h"
+#include "rulesevaluationcontext.h"
 #include "transformer.h"
 
 #include <language/language.h>

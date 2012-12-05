@@ -31,6 +31,7 @@
 #include "artifact.h"
 #include "buildproduct.h"
 #include "buildproject.h"
+#include "rulesevaluationcontext.h"
 #include <language/language.h>
 
 namespace qbs {

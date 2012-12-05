@@ -31,6 +31,7 @@
 #include "artifact.h"
 #include "buildproject.h"
 #include "rulegraph.h"
+#include "rulesevaluationcontext.h"
 #include <language/language.h>
 #include <logging/logger.h>
 #include <tools/error.h>

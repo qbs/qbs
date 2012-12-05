@@ -34,6 +34,7 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildproduct.h>
 #include <buildgraph/buildproject.h>
+#include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
