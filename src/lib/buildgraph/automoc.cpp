@@ -162,7 +162,7 @@ void AutoMoc::apply(const BuildProductPtr &product)
         // Make every artifact that is dependent of the header file also
         // dependent of the plugin metadata file.
         foreach (Artifact *outputOfHeader, pluginHeaderFile->parents)
-            BuildGraph::loggedConnect(outputOfHeader, pluginMetaDataFile);
+            loggedConnect(outputOfHeader, pluginMetaDataFile);
     }
 
     product->project->updateNodesThatMustGetNewTransformer();
@@ -197,7 +197,7 @@ AutoMoc::FileType AutoMoc::fileType(Artifact *artifact)
 void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles)
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] checks " << BuildGraph::fileName(artifact);
+        qbsTrace() << "[AUTOMOC] checks " << relativeArtifactFileName(artifact);
 
     hasQObjectMacro = false;
     const int numFileTags = artifact->fileTags.count();
@@ -292,7 +292,7 @@ bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foun
 void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] unmoc'ing " << BuildGraph::fileName(artifact);
+        qbsTrace() << "[AUTOMOC] unmoc'ing " << relativeArtifactFileName(artifact);
 
     artifact->fileTags.remove(mocFileTag);
 
@@ -326,13 +326,13 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
             qbsTrace() << "[AUTOMOC] generated moc obj artifact could not be found";
         } else {
             if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[AUTOMOC] removing moc obj artifact " << BuildGraph::fileName(mocObjArtifact);
+                qbsTrace() << "[AUTOMOC] removing moc obj artifact " << relativeArtifactFileName(mocObjArtifact);
             artifact->project->removeArtifact(mocObjArtifact);
         }
     }
 
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] removing generated artifact " << BuildGraph::fileName(generatedMocArtifact);
+        qbsTrace() << "[AUTOMOC] removing generated artifact " << relativeArtifactFileName(generatedMocArtifact);
     artifact->project->removeArtifact(generatedMocArtifact);
     delete generatedMocArtifact;
 }

@@ -167,7 +167,7 @@ void BuildProject::rescueDependencies(const BuildProjectPtr &other)
                 QList<Artifact *> children = lookupArtifacts(otherChild->dirPath(), otherChild->fileName());
                 foreach (Artifact *child, children) {
                     if (!artifact->children.contains(child))
-                        BuildGraph::safeConnect(artifact, child);
+                        safeConnect(artifact, child);
                 }
             }
         }
@@ -192,9 +192,9 @@ void BuildProject::setResolvedProject(const ResolvedProjectPtr &resolvedProject)
 void BuildProject::removeArtifact(Artifact *artifact)
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[BG] remove artifact " << BuildGraph::fileName(artifact);
+        qbsTrace() << "[BG] remove artifact " << relativeArtifactFileName(artifact);
 
-    BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+    removeGeneratedArtifactFromDisk(artifact);
     artifact->product->artifacts.remove(artifact);
     removeFromArtifactLookupTable(artifact);
     artifact->product->targetArtifacts.remove(artifact);
@@ -225,9 +225,9 @@ void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact)
     Q_ASSERT(artifact->transformer);
 
     if (qbsLogLevel(LoggerDebug))
-        qbsDebug() << "[BG] updating transformer for " << BuildGraph::fileName(artifact);
+        qbsDebug() << "[BG] updating transformer for " << relativeArtifactFileName(artifact);
 
-    BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+    removeGeneratedArtifactFromDisk(artifact);
 
     const RuleConstPtr rule = artifact->transformer->rule;
     markDirty();
@@ -363,7 +363,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
             transformer->outputs += outputArtifact;
             product->targetArtifacts += outputArtifact;
             foreach (Artifact *inputArtifact, inputArtifacts)
-                BuildGraph::safeConnect(outputArtifact, inputArtifact);
+                safeConnect(outputArtifact, inputArtifact);
             foreach (const QString &fileTag, outputArtifact->fileTags)
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
@@ -375,7 +375,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         transformer->rule = rule;
 
         RulesEvaluationContext::Scope s(evalContext().data());
-        BuildGraph::setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
+        setupScriptEngineForProduct(engine(), rProduct, transformer->rule, scope());
         transformer->setupInputs(engine(), scope());
         transformer->setupOutputs(engine(), scope());
         transformer->createCommands(rtrafo->transform, evalContext());
@@ -549,7 +549,7 @@ void BuildProjectLoader::onProductRemoved(const BuildProductPtr &product)
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, product->artifacts) {
         artifact->disconnectAll();
-        BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+        removeGeneratedArtifactFromDisk(artifact);
     }
 }
 
@@ -636,7 +636,7 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
 
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, artifactsToRemove) {
-        BuildGraph::removeGeneratedArtifactFromDisk(artifact);
+        removeGeneratedArtifactFromDisk(artifact);
         delete artifact;
     }
 }
@@ -653,7 +653,7 @@ void BuildProjectLoader::removeArtifactAndExclusiveDependents(Artifact *artifact
         removedArtifacts->append(artifact);
     foreach (Artifact *parent, artifact->parents) {
         bool removeParent = false;
-        BuildGraph::disconnect(parent, artifact);
+        disconnect(parent, artifact);
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {

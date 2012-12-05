@@ -77,7 +77,7 @@ void CycleDetector::doVisit(Artifact *) { }
 QList<Artifact *> CycleDetector::cycle(Artifact *doubleEntry)
 {
     QList<Artifact *> path;
-    BuildGraph::findPath(doubleEntry, m_parent, path);
+    findPath(doubleEntry, m_parent, path);
     return path << doubleEntry;
 }
 

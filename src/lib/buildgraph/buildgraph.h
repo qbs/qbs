@@ -40,43 +40,25 @@ namespace Internal {
 class Artifact;
 class ScriptEngine;
 
-/**
- * N artifact, T transformer, parent -> child
- * parent depends on child, child is a dependency of parent,
- * parent is a dependent of child.
- *
- * N a.out -> N main.o -> N main.cpp
- *
- * Every artifact can point to a transformer which contains the commands.
- * Multiple artifacts can point to the same transformer.
- */
-class BuildGraph
+bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
+void connect(Artifact *p, Artifact *c);
+void loggedConnect(Artifact *u, Artifact *v);
+bool safeConnect(Artifact *u, Artifact *v);
+void removeGeneratedArtifactFromDisk(Artifact *artifact);
+void disconnect(Artifact *u, Artifact *v);
+
+void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
+                                 const RuleConstPtr &rule, QScriptValue targetObject);
+QString relativeArtifactFileName(const Artifact *n); // Debugging helpers
+
+template <typename T>
+QStringList toStringList(const T &artifactContainer)
 {
-public:
-    static bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
-    static void connect(Artifact *p, Artifact *c);
-    static void loggedConnect(Artifact *u, Artifact *v);
-    static bool safeConnect(Artifact *u, Artifact *v);
-    static void removeGeneratedArtifactFromDisk(Artifact *artifact);
-    static void disconnect(Artifact *u, Artifact *v);
-
-    static void setupScriptEngineForProduct(ScriptEngine *engine,
-            const ResolvedProductConstPtr &product, const RuleConstPtr &rule,
-            QScriptValue targetObject);
-
-    static QString fileName(const Artifact *n); // Debugging helpers
-    template <typename T>
-    static QStringList toStringList(const T &artifactContainer)
-    {
-        QStringList l;
-        foreach (Artifact *n, artifactContainer)
-            l.append(fileName(n));
-        return l;
-    }
-
-private:
-    BuildGraph();
-};
+    QStringList l;
+    foreach (Artifact *n, artifactContainer)
+        l.append(relativeArtifactFileName(n));
+    return l;
+}
 
 } // namespace Internal
 } // namespace qbs

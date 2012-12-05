@@ -89,7 +89,7 @@ public:
             Artifact *someOutputArtifact = *transformer->outputs.begin();
             if (someOutputArtifact->product) {
                 const ResolvedProductConstPtr product = someOutputArtifact->product->rProduct;
-                BuildGraph::setupScriptEngineForProduct(scriptEngine, product, transformer->rule,
+                setupScriptEngineForProduct(scriptEngine, product, transformer->rule,
                                                         scriptEngine->globalObject());
             }
             transformer->setupInputs(scriptEngine, scriptEngine->globalObject());

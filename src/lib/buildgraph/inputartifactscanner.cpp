@@ -161,7 +161,7 @@ void InputArtifactScanner::scan()
     foreach (Artifact *dependency, m_artifact->children) {
         if (m_artifact->transformer->inputs.contains(dependency))
             continue;
-        BuildGraph::disconnect(m_artifact, dependency);
+        disconnect(m_artifact, dependency);
     }
 
     ArtifactList::const_iterator it = m_artifact->transformer->inputs.begin();
@@ -335,7 +335,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
             return;
         if (insertIntoProduct && !product->artifacts.contains(dependency.artifact))
             product->insertArtifact(dependency.artifact);
-        BuildGraph::safeConnect(m_artifact, dependency.artifact);
+        safeConnect(m_artifact, dependency.artifact);
         m_newDependencyAdded = true;
     }
 }

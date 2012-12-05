@@ -319,7 +319,7 @@ void Executor::buildArtifact(Artifact *artifact)
     Q_ASSERT(!m_availableJobs.isEmpty());
 
     if (qbsLogLevel(LoggerDebug))
-        qbsDebug() << "[EXEC] " << BuildGraph::fileName(artifact);
+        qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
 
     // Skip artifacts that are already built.
     if (artifact->buildState == Artifact::Built) {
@@ -477,23 +477,23 @@ void Executor::finishArtifact(Artifact *leaf)
     Q_ASSERT(leaf);
 
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[EXEC] finishArtifact " << BuildGraph::fileName(leaf);
+        qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
 
     leaf->buildState = Artifact::Built;
     foreach (Artifact *parent, leaf->parents) {
         if (parent->buildState != Artifact::Buildable) {
             if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[EXEC] parent " << BuildGraph::fileName(parent) << " build state: " << toString(parent->buildState);
+                qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent) << " build state: " << toString(parent->buildState);
             continue;
         }
 
         if (allChildrenBuilt(parent)) {
             m_leaves.append(parent);
             if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[EXEC] finishArtifact adds leaf " << BuildGraph::fileName(parent) << " " << toString(parent->buildState);
+                qbsTrace() << "[EXEC] finishArtifact adds leaf " << relativeArtifactFileName(parent) << " " << toString(parent->buildState);
         } else {
             if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[EXEC] parent " << BuildGraph::fileName(parent) << " build state: " << toString(parent->buildState);
+                qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent) << " build state: " << toString(parent->buildState);
         }
     }
 
@@ -527,7 +527,7 @@ static void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact
 
     if (isLeaf) {
         if (qbsLogLevel(LoggerDebug))
-            qbsDebug() << "[EXEC] adding leaf " << BuildGraph::fileName(artifact);
+            qbsDebug() << "[EXEC] adding leaf " << relativeArtifactFileName(artifact);
         leaves->append(artifact);
     }
 }

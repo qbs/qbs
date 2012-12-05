@@ -62,7 +62,7 @@ void RulesApplicator::applyAllRules()
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
-    BuildGraph::setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scope());
+    setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scope());
     Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
                "BG", "Product object is not in current scope.");
 
@@ -89,7 +89,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 
     if (qbsLogLevel(LoggerDebug))
         qbsDebug() << "[BG] apply rule " << m_rule->toString() << " "
-                   << BuildGraph::toStringList(inputArtifacts).join(",\n            ");
+                   << toStringList(inputArtifacts).join(",\n            ");
 
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
@@ -126,14 +126,14 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         // connect artifacts that match the file tags in explicitlyDependsOn
         foreach (const QString &fileTag, m_rule->explicitlyDependsOn)
             foreach (Artifact *dependency, m_artifactsPerFileTag.value(fileTag))
-                BuildGraph::loggedConnect(outputArtifact, dependency);
+                loggedConnect(outputArtifact, dependency);
 
         // Transformer setup
         for (ArtifactList::const_iterator it = usingArtifacts.constBegin();
              it != usingArtifacts.constEnd(); ++it)
         {
             Artifact *dep = *it;
-            BuildGraph::loggedConnect(outputArtifact, dep);
+            loggedConnect(outputArtifact, dep);
             m_transformer->inputs.insert(dep);
         }
         m_transformer->outputs.insert(outputArtifact);
@@ -225,7 +225,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
             // This can happen when applying rules after scanning for additional file tags.
             // We just regenerate the transformer.
             if (qbsLogLevel(LoggerTrace))
-                qbsTrace("[BG] regenerating transformer for '%s'", qPrintable(BuildGraph::fileName(outputArtifact)));
+                qbsTrace("[BG] regenerating transformer for '%s'", qPrintable(relativeArtifactFileName(outputArtifact)));
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs.unite(inputArtifacts);
 
@@ -269,7 +269,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 
     foreach (Artifact *inputArtifact, inputArtifacts) {
         Q_ASSERT(outputArtifact != inputArtifact);
-        BuildGraph::loggedConnect(outputArtifact, inputArtifact);
+        loggedConnect(outputArtifact, inputArtifact);
     }
 
     // create transformer if not already done so

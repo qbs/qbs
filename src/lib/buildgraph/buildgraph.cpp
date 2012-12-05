@@ -41,13 +41,13 @@
 namespace qbs {
 namespace Internal {
 
-void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
-                                             const ResolvedProductConstPtr &product,
-                                             const RuleConstPtr &rule,
-                                             QScriptValue targetObject)
+void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
+                                 const RuleConstPtr &rule, QScriptValue targetObject)
 {
-    const ResolvedProject *lastSetupProject = reinterpret_cast<ResolvedProject *>(engine->property("lastSetupProject").toULongLong());
-    const ResolvedProduct *lastSetupProduct = reinterpret_cast<ResolvedProduct *>(engine->property("lastSetupProduct").toULongLong());
+    const ResolvedProject *lastSetupProject
+            = reinterpret_cast<ResolvedProject *>(engine->property("lastSetupProject").toULongLong());
+    const ResolvedProduct *lastSetupProduct
+            = reinterpret_cast<ResolvedProduct *>(engine->property("lastSetupProduct").toULongLong());
 
     if (lastSetupProject != product->project) {
         engine->setProperty("lastSetupProject",
@@ -75,13 +75,15 @@ void BuildGraph::setupScriptEngineForProduct(ScriptEngine *engine,
     }
 
     // If the Rule is in a Module, set up the 'module' property
-    if (!rule->module->name.isEmpty())
-        productScriptValue.setProperty("module", productScriptValue.property("modules").property(rule->module->name));
+    if (!rule->module->name.isEmpty()) {
+        productScriptValue.setProperty("module",
+                productScriptValue.property("modules").property(rule->module->name));
+    }
 
     engine->import(rule->jsImports, targetObject, targetObject);
 }
 
-bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
+bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
 {
     if (u == v) {
         path.append(v);
@@ -107,7 +109,7 @@ bool BuildGraph::findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
  * also:  children means i depend on or i am produced by
  *        parent means "produced by me" or "depends on me"
  */
-void BuildGraph::connect(Artifact *p, Artifact *c)
+void connect(Artifact *p, Artifact *c)
 {
     Q_ASSERT(p != c);
     p->children.insert(c);
@@ -115,13 +117,13 @@ void BuildGraph::connect(Artifact *p, Artifact *c)
     p->project->markDirty();
 }
 
-void BuildGraph::loggedConnect(Artifact *u, Artifact *v)
+void loggedConnect(Artifact *u, Artifact *v)
 {
     Q_ASSERT(u != v);
     if (qbsLogLevel(LoggerTrace))
         qbsTrace("[BG] connect '%s' -> '%s'",
-                 qPrintable(fileName(u)),
-                 qPrintable(fileName(v)));
+                 qPrintable(relativeArtifactFileName(u)),
+                 qPrintable(relativeArtifactFileName(v)));
     connect(u, v);
 }
 
@@ -137,13 +139,13 @@ static bool existsPath(Artifact *u, Artifact *v)
     return false;
 }
 
-bool BuildGraph::safeConnect(Artifact *u, Artifact *v)
+bool safeConnect(Artifact *u, Artifact *v)
 {
     Q_ASSERT(u != v);
     if (qbsLogLevel(LoggerTrace))
         qbsTrace("[BG] safeConnect: '%s' '%s'",
-                 qPrintable(fileName(u)),
-                 qPrintable(fileName(v)));
+                 qPrintable(relativeArtifactFileName(u)),
+                 qPrintable(relativeArtifactFileName(v)));
 
     if (existsPath(v, u)) {
         QList<Artifact *> circle;
@@ -156,15 +158,15 @@ bool BuildGraph::safeConnect(Artifact *u, Artifact *v)
     return true;
 }
 
-void BuildGraph::disconnect(Artifact *u, Artifact *v)
+void disconnect(Artifact *u, Artifact *v)
 {
     if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] disconnect: '%s' '%s'", qPrintable(fileName(u)), qPrintable(fileName(v)));
+        qbsTrace("[BG] disconnect: '%s' '%s'", qPrintable(relativeArtifactFileName(u)), qPrintable(relativeArtifactFileName(v)));
     u->children.remove(v);
     v->parents.remove(u);
 }
 
-void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
+void removeGeneratedArtifactFromDisk(Artifact *artifact)
 {
     if (artifact->artifactType != Artifact::Generated)
         return;
@@ -178,7 +180,7 @@ void BuildGraph::removeGeneratedArtifactFromDisk(Artifact *artifact)
         qbsWarning("Cannot remove '%s'.", qPrintable(artifact->filePath()));
 }
 
-QString BuildGraph::fileName(const Artifact *n)
+QString relativeArtifactFileName(const Artifact *n)
 {
     const QString &buildDir = n->project->resolvedProject()->buildDirectory;
     QString str = n->filePath();
