@@ -86,6 +86,8 @@ void Command::parseOptions(QStringList &input)
         const QString optionString = input.first();
         if (!optionString.startsWith(QLatin1Char('-')))
             break;
+        if (optionString == QLatin1String("--"))
+            break;
         input.removeFirst();
         if (optionString.count() == 1) {
             throw Error(Tr::tr("Invalid use of command '%1': Empty options are not allowed.\n"
