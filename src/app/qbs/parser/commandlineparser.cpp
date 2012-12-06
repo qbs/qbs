@@ -348,7 +348,7 @@ void CommandLineParser::CommandLineParserPrivate::setupProgress()
     const ShowProgressOption * const option = optionPool.showProgressOption();
     showProgress = option->enabled();
 #ifdef Q_OS_UNIX
-    if (!isatty(STDOUT_FILENO)) {
+    if (showProgress && !isatty(STDOUT_FILENO)) {
         showProgress = false;
         qbsWarning() << Tr::tr("Ignoring option '%1', because standard output is "
                                "not connected to a terminal.").arg(option->longRepresentation());
