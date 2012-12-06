@@ -31,13 +31,8 @@
 
 #include "commandlinefrontend.h"
 #include "ctrlchandler.h"
-#include <logging/logger.h>
-#include <logging/translator.h>
 
 namespace qbs {
-// QString::toLocal8Bit() hangs when called from a signal handler, so we pre-allocate the string.
-static QString cancelMessageTemplate = Tr::tr("Received termination request "
-        "from user; canceling build. [pid=%1]");
 
 Application::Application(int &argc, char **argv) : QCoreApplication(argc, argv), m_clFrontend(0)
 {
@@ -62,7 +57,6 @@ void Application::setCommandLineFrontend(CommandLineFrontend *clFrontend)
  */
 void Application::userInterrupt()
 {
-    qbsInfo() << cancelMessageTemplate.arg(applicationPid());
     Q_ASSERT(m_clFrontend);
     m_clFrontend->cancel();
 }

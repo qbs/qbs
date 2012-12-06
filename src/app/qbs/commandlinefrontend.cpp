@@ -44,16 +44,19 @@
 namespace qbs {
 
 CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, QObject *parent)
-    : QObject(parent), m_parser(parser), m_observer(0)
+    : QObject(parent), m_parser(parser), m_observer(0), m_canceled(false)
 {
 }
 
 void CommandLineFrontend::cancel()
 {
+    if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty())
+        std::exit(EXIT_FAILURE);
     foreach (AbstractJob * const job, m_resolveJobs)
         job->cancel();
     foreach (AbstractJob * const job, m_buildJobs)
         job->cancel();
+    m_canceled = true;
 }
 
 void CommandLineFrontend::start()
@@ -208,6 +211,8 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
 void CommandLineFrontend::handleProjectsResolved()
 {
     try {
+        if (m_canceled)
+            throw Error(Tr::tr("Execution canceled due to user request."));
         switch (m_parser.command()) {
         case CleanCommandType:
             makeClean();

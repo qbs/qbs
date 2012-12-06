@@ -77,6 +77,7 @@ private:
     QList<Project> m_projects;
 
     ConsoleProgressObserver *m_observer;
+    bool m_canceled;
     int m_buildEffortsNeeded;
     int m_buildEffortsRetrieved;
     int m_totalBuildEffort;
