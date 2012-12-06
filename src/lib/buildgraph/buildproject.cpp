@@ -294,6 +294,21 @@ BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &r
     return m_project;
 }
 
+static void addTargetArtifacts(const BuildProductPtr &product,
+                              ArtifactsPerFileTagMap &artifactsPerFileTag)
+{
+    foreach (const QString &fileTag, product->rProduct->fileTags) {
+        foreach (Artifact * const artifact, artifactsPerFileTag.value(fileTag)) {
+            if (artifact->artifactType == Artifact::Generated)
+                product->targetArtifacts += artifact;
+        }
+    }
+    if (product->targetArtifacts.isEmpty()) {
+        QString msg = Tr::tr("No artifacts generated for product '%1'.");
+        throw Error(msg.arg(product->rProduct->name));
+    }
+}
+
 BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &rProduct)
 {
     BuildProductPtr product = m_productCache.value(rProduct);
@@ -384,19 +399,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     }
 
     RulesApplicator(product.data(), artifactsPerFileTag).applyAllRules();
-
-    QSet<Artifact *> productArtifactCandidates;
-    for (int i = 0; i < product->rProduct->fileTags.count(); ++i)
-        foreach (Artifact *artifact, artifactsPerFileTag.value(product->rProduct->fileTags.at(i)))
-            if (artifact->artifactType == Artifact::Generated)
-                productArtifactCandidates += artifact;
-
-    if (productArtifactCandidates.isEmpty()) {
-        QString msg = QLatin1String("No artifacts generated for product '%1'.");
-        throw Error(msg.arg(product->rProduct->name));
-    }
-
-    product->targetArtifacts += productArtifactCandidates;
+    addTargetArtifacts(product, artifactsPerFileTag);
     m_project->addBuildProduct(product);
     return product;
 }
@@ -627,6 +630,8 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
         foreach (const QString &ft, artifact->fileTags)
             artifactsPerFileTag[ft] += artifact;
     RulesApplicator(product.data(), artifactsPerFileTag).applyAllRules();
+
+    addTargetArtifacts(product, artifactsPerFileTag);
 
     // parents of removed artifacts must update their transformers
     foreach (Artifact *removedArtifact, artifactsToRemove)

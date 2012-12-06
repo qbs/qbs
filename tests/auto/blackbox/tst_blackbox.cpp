@@ -449,4 +449,15 @@ void TestBlackbox::trackAddMocInclude()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::wildcardRenaming()
+{
+    QDir::setCurrent(testDataDir + "/wildcard_renaming");
+    QCOMPARE(runQbs(QStringList()), 0);
+    QVERIFY(QFileInfo(buildDir + "/pioniere.txt").exists());
+    QFile::rename(QDir::currentPath() + "/pioniere.txt", QDir::currentPath() + "/fdj.txt");
+    QCOMPARE(runQbs(QStringList()), 0);
+    QVERIFY(!QFileInfo(buildDir + "/pioniere.txt").exists());
+    QVERIFY(QFileInfo(buildDir + "/fdj.txt").exists());
+}
+
 QTEST_MAIN(TestBlackbox)

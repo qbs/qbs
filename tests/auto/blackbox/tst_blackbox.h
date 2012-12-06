@@ -71,6 +71,7 @@ private slots:
     void trackAddFileTag();
     void trackRemoveFileTag();
     void trackAddMocInclude();
+    void wildcardRenaming();
 };
 
 #endif // TST_BLACKBOX_H
