@@ -33,7 +33,7 @@
 #include "buildproduct.h"
 #include "buildproject.h"
 #include "rulesevaluationcontext.h"
-
+#include <language/language.h>
 #include <tools/filetime.h>
 
 #include <QFile>
