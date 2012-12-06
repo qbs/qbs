@@ -35,6 +35,7 @@
 #include <buildgraph/buildproduct.h>
 #include <buildgraph/buildproject.h>
 #include <buildgraph/rulesevaluationcontext.h>
+#include <buildgraph/timestampsupdater.h>
 #include <language/language.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -427,6 +428,15 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const BuildOption
                                    CleanType cleanType, QObject *jobOwner) const
 {
     return cleanSomeProducts(QList<ProductData>() << product, options, cleanType, jobOwner);
+}
+
+/*!
+ * \brief Updates the timestamps of all build artifacts in the given products.
+ * Afterwards, the build graph will have the same state as if a successful build had been done.
+ */
+void Project::updateTimestamps(const QList<ProductData> &products)
+{
+    TimestampsUpdater().updateTimestamps(d->internalProducts(products));
 }
 
 } // namespace qbs

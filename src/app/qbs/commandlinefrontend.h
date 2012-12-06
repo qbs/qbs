@@ -67,6 +67,7 @@ private:
     int runShell();
     void build();
     int runTarget();
+    void updateTimestamps();
     void connectBuildJobs();
     void connectJob(AbstractJob *job);
 

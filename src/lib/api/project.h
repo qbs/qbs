@@ -85,6 +85,8 @@ public:
     CleanJob *cleanOneProduct(const ProductData &product, const BuildOptions &options,
                               CleanType cleanType, QObject *jobOwner = 0) const;
 
+    void updateTimestamps(const QList<ProductData> &products);
+
     bool operator==(const Project &other) const { return d.data() == other.d.data(); }
 
 private:

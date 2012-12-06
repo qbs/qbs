@@ -460,4 +460,12 @@ void TestBlackbox::wildcardRenaming()
     QVERIFY(QFileInfo(buildDir + "/fdj.txt").exists());
 }
 
+void TestBlackbox::updateTimestamps()
+{
+    QDir::setCurrent(testDataDir + "/update_timestamps");
+    QVERIFY(runQbs(QStringList(), true) != 0); // Is not valid source code.
+    QCOMPARE(runQbs(QStringList() << "update-timestamps"), 0);
+    QCOMPARE(runQbs(QStringList()), 0); // Build graph now up to date.
+}
+
 QTEST_MAIN(TestBlackbox)

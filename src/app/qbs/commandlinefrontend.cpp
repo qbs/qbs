@@ -237,6 +237,10 @@ void CommandLineFrontend::handleProjectsResolved()
         case RunCommandType:
             build();
             break;
+        case UpdateTimestampsCommandType:
+            updateTimestamps();
+            qApp->quit();
+            break;
         case HelpCommandType:
             Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
         }
@@ -335,6 +339,15 @@ int CommandLineFrontend::runTarget()
     RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
             QProcessEnvironment::systemEnvironment());
     return runEnvironment.runTarget(productFileName, m_parser.runArgs());
+}
+
+void CommandLineFrontend::updateTimestamps()
+{
+    const ProductMap &products = productsToUse();
+    for (ProductMap::ConstIterator it = products.constBegin(); it != products.constEnd(); ++it) {
+        Project p = it.key();
+        p.updateTimestamps(it.value());
+    }
 }
 
 void CommandLineFrontend::connectBuildJobs()

@@ -262,6 +262,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(ShellCommandType)
             << commandPool.getCommand(PropertiesCommandType)
             << commandPool.getCommand(StatusCommandType)
+            << commandPool.getCommand(UpdateTimestampsCommandType)
             << commandPool.getCommand(HelpCommandType);
 }
 
@@ -272,7 +273,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     foreach (const Command * command, allCommands()) {
         help.append(QLatin1String("  ")).append(command->representation());
         const QString indentation
-                = QString(15 - command->representation().count(), QLatin1Char(' '));
+                = QString(20 - command->representation().count(), QLatin1Char(' '));
         help.append(indentation).append(command->shortDescription()).append(QLatin1Char('\n'));
     }
     return help;

@@ -33,7 +33,7 @@ namespace qbs {
 
 enum CommandType {
     BuildCommandType, CleanCommandType, RunCommandType, ShellCommandType,
-    PropertiesCommandType, StatusCommandType, HelpCommandType
+    PropertiesCommandType, StatusCommandType, UpdateTimestampsCommandType, HelpCommandType
 };
 
 } // namespace qbs

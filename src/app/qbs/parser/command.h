@@ -152,6 +152,19 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const;
 };
 
+class UpdateTimestampsCommand : public Command
+{
+public:
+    UpdateTimestampsCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const { return UpdateTimestampsCommandType; }
+    QString shortDescription() const;
+    QString longDescription() const;
+    QString representation() const;
+    QList<CommandLineOption::Type> supportedOptions() const;
+};
+
 class HelpCommand : public Command
 {
 public:

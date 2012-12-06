@@ -147,7 +147,7 @@ QString BuildCommand::shortDescription() const
 
 QString BuildCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...]\n")
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
             .arg(representation());
     description += Tr::tr("Builds a project in one or more configuration(s).\n");
     return description += supportedOptionsDescription();
@@ -348,6 +348,38 @@ QList<CommandLineOption::Type> StatusCommand::supportedOptions() const
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType
             << CommandLineOption::ShowProgressOptionType;
+}
+
+QString UpdateTimestampsCommand::shortDescription() const
+{
+    return Tr::tr("Mark the build as up to date.");
+}
+
+QString UpdateTimestampsCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+            .arg(representation());
+    return description += Tr::tr("Update the timestamps of all build artifacts, causing the next "
+            "builds of the project to do nothing if no updates to source files happen in between.\n"
+            "This functionality is useful if you know that the current changes to source files "
+            "are irrelevant to the build.\n"
+            "NOTE: Doing this causes a discrepancy between the \"real world\" and the information "
+            "in the build graph, so use with care.\n");
+}
+
+QString UpdateTimestampsCommand::representation() const
+{
+    return QLatin1String("update-timestamps");
+}
+
+QList<CommandLineOption::Type> UpdateTimestampsCommand::supportedOptions() const
+{
+    return QList<CommandLineOption::Type>()
+            << CommandLineOption::FileOptionType
+            << CommandLineOption::LogLevelOptionType
+            << CommandLineOption::VerboseOptionType
+            << CommandLineOption::QuietOptionType
+            << CommandLineOption::ProductsOptionType;
 }
 
 QString HelpCommand::shortDescription() const

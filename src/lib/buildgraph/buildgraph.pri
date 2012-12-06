@@ -19,7 +19,8 @@ SOURCES += \
     $$PWD/rulesevaluationcontext.cpp \
     $$PWD/buildproduct.cpp \
     $$PWD/buildproject.cpp \
-    $$PWD/rulesapplicator.cpp
+    $$PWD/rulesapplicator.cpp \
+    $$PWD/timestampsupdater.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -43,4 +44,5 @@ HEADERS += \
     $$PWD/rulesevaluationcontext.h \
     $$PWD/buildproduct.h \
     $$PWD/buildproject.h \
-    $$PWD/rulesapplicator.h
+    $$PWD/rulesapplicator.h \
+    $$PWD/timestampsupdater.h

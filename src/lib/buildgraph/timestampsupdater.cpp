@@ -26,53 +26,55 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "commandpool.h"
+#include "timestampsupdater.h"
 
-#include "command.h"
+#include "artifact.h"
+#include "artifactvisitor.h"
+#include "buildproduct.h"
+#include "buildproject.h"
+#include "rulesevaluationcontext.h"
+
+#include <tools/filetime.h>
+
+#include <QFile>
 
 namespace qbs {
+namespace Internal {
 
-CommandPool::CommandPool(CommandLineOptionPool &optionPool) : m_optionPool(optionPool)
+class TimestampsUpdateVisitor : public ArtifactVisitor
 {
-}
+public:
+    TimestampsUpdateVisitor()
+        : ArtifactVisitor(Artifact::Generated), m_now(FileTime::currentTime()) {}
 
-CommandPool::~CommandPool()
-{
-    qDeleteAll(m_commands);
-}
+    void visitProduct(const BuildProductConstPtr &product)
+    {
+        ArtifactVisitor::visitProduct(product);
 
-qbs::Command *CommandPool::getCommand(CommandType type) const
-{
-    Command *& command = m_commands[type];
-    if (!command) {
-        switch (type) {
-        case BuildCommandType:
-            command = new BuildCommand(m_optionPool);
-            break;
-        case CleanCommandType:
-            command = new CleanCommand(m_optionPool);
-            break;
-        case RunCommandType:
-            command = new RunCommand(m_optionPool);
-            break;
-        case ShellCommandType:
-            command = new ShellCommand(m_optionPool);
-            break;
-        case PropertiesCommandType:
-            command = new PropertiesCommand(m_optionPool);
-            break;
-        case StatusCommandType:
-            command = new StatusCommand(m_optionPool);
-            break;
-        case UpdateTimestampsCommandType:
-            command = new UpdateTimestampsCommand(m_optionPool);
-            break;
-        case HelpCommandType:
-            command = new HelpCommand(m_optionPool);
-            break;
-        }
+        // For target artifacts, we have to update the on-disk timestamp, because
+        // the executor will look at it.
+        foreach (Artifact * const targetArtifact, product->targetArtifacts)
+            QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
     }
-    return command;
+
+private:
+    void doVisit(Artifact *artifact)
+    {
+        artifact->timestamp = m_now;
+    }
+
+    FileTime m_now;
+};
+
+void TimestampsUpdater::updateTimestamps(const QList<BuildProductPtr> &products)
+{
+    TimestampsUpdateVisitor v;
+    foreach (const BuildProductPtr &product, products)
+        v.visitProduct(product);
+    BuildProject * const project = products.first()->project;
+    project->markDirty();
+    project->store();
 }
 
+} // namespace Internal
 } // namespace qbs
