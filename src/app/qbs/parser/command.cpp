@@ -214,9 +214,11 @@ QString RunCommand::shortDescription() const
 QString RunCommand::longDescription() const
 {
     QString description = Tr::tr("qbs %1 [options] [variant] [property:value] ... "
-                                 "-- <target> <args>\n").arg(representation());
-    description += Tr::tr("Runs the specified target with the specified arguments.\n");
-    description += Tr::tr("The project will be built if it is not up to date; "
+                                 "[ -- <arguments>]\n").arg(representation());
+    description += Tr::tr("Run the specified product's executable with the specified arguments.\n");
+    description += Tr::tr("If the project has only one product, the '%1' option may be omitted.\n")
+            .arg(optionPool().productsOption()->longRepresentation());
+    description += Tr::tr("The product will be built if it is not up to date; "
                           "see the '%2' command.\n").arg(buildCommandRepresentation());
     return description += supportedOptionsDescription();
 }
@@ -251,11 +253,6 @@ void RunCommand::parseMore(QStringList &input)
         addOneToAdditionalArguments(arg);
     }
 
-    if (input.isEmpty()) {
-        throw Error(Tr::tr("Invalid use of command '%1': Needs an executable to run.\nUsage: %2")
-                    .arg(representation(), longDescription()));
-    }
-    m_targetName = input.takeFirst();
     m_targetParameters = input;
     input.clear();
 }

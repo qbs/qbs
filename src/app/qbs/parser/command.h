@@ -97,7 +97,6 @@ class RunCommand : public Command
 {
 public:
     RunCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
-    QString targetName() const { return m_targetName; }
     QStringList targetParameters() const { return m_targetParameters; }
 
 private:
@@ -108,7 +107,6 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const;
     void parseMore(QStringList &input);
 
-    QString m_targetName;
     QStringList m_targetParameters;
 };
 

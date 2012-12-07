@@ -63,6 +63,7 @@ void CommandLineFrontend::start()
 {
     try {
         switch (m_parser.command()) {
+        case RunCommandType:
         case ShellCommandType:
             if (m_parser.products().count() > 1) {
                 throw Error(Tr::tr("Invalid use of command '%1': Cannot use more than one "
@@ -70,7 +71,6 @@ void CommandLineFrontend::start()
                             .arg(m_parser.commandName(), m_parser.commandDescription()));
             }
             // Fall-through intended.
-        case RunCommandType:
         case PropertiesCommandType:
         case StatusCommandType:
             if (m_parser.buildConfigurations().count() > 1) {
@@ -218,12 +218,7 @@ void CommandLineFrontend::handleProjectsResolved()
             makeClean();
             break;
         case ShellCommandType:
-            if (m_parser.products().count() == 0
-                    && m_projects.first().projectData().products().count() > 1) {
-                throw Error(Tr::tr("Ambiguous use of command '%1': No product given for project "
-                                   "with more than one product.\nUsage: %2")
-                            .arg(m_parser.commandName(), m_parser.commandDescription()));
-            }
+            checkForExactlyOneProduct();
             qApp->exit(runShell());
             break;
         case StatusCommandType: {
@@ -311,39 +306,26 @@ void CommandLineFrontend::build()
 
 int CommandLineFrontend::runTarget()
 {
-    ProductData productToRun;
-    QString productFileName;
-
-    const QString targetName = m_parser.runTargetName();
-    Q_ASSERT(m_projects.count() == 1);
-    const Project &project = m_projects.first();
-    foreach (const ProductData &product, productsToUse().value(project)) {
-        const QString executable = project.targetExecutable(product);
-        if (executable.isEmpty())
-            continue;
-        if (!targetName.isEmpty() && !executable.endsWith(targetName))
-            continue;
-        if (!productFileName.isEmpty()) {
-            qbsError() << tr("There is more than one executable target in "
-                                      "the project. Please specify which target "
-                                      "you want to run.");
-            return EXIT_FAILURE;
+    try {
+        checkForExactlyOneProduct();
+        const ProductMap &productMap = productsToUse();
+        Q_ASSERT(productMap.count() == 1);
+        const Project &project = productMap.begin().key();
+        const QList<ProductData> &products = productMap.begin().value();
+        Q_ASSERT(products.count() == 1);
+        const ProductData productToRun = products.first();
+        const QString executableFilePath = project.targetExecutable(productToRun);
+        if (executableFilePath.isEmpty()) {
+            throw Error(Tr::tr("Cannot run: Product '%1' is not an application.")
+                        .arg(productToRun.name()));
         }
-        productFileName = executable;
-        productToRun = product;
-    }
-
-    if (productToRun.name().isEmpty()) {
-        if (targetName.isEmpty())
-            qbsError() << tr("Can't find a suitable product to run.");
-        else
-            qbsError() << tr("No such target: '%1'").arg(targetName);
+        RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
+                QProcessEnvironment::systemEnvironment());
+        return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
+    } catch (const Error &error) {
+        qbsError() << error.toString();
         return EXIT_FAILURE;
     }
-
-    RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
-            QProcessEnvironment::systemEnvironment());
-    return runEnvironment.runTarget(productFileName, m_parser.runArgs());
 }
 
 void CommandLineFrontend::updateTimestamps()
@@ -370,6 +352,16 @@ void CommandLineFrontend::connectJob(AbstractJob *job)
                 SLOT(handleNewTaskStarted(QString,int)));
         connect(job, SIGNAL(taskProgress(int,qbs::AbstractJob*)),
                 SLOT(handleTaskProgress(int,qbs::AbstractJob*)));
+    }
+}
+
+void CommandLineFrontend::checkForExactlyOneProduct()
+{
+    if (m_parser.products().count() == 0
+            && m_projects.first().projectData().products().count() > 1) {
+        throw Error(Tr::tr("Ambiguous use of command '%1': No product given for project "
+                           "with more than one product.\nUsage: %2")
+                    .arg(m_parser.commandName(), m_parser.commandDescription()));
     }
 }
 

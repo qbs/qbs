@@ -233,7 +233,7 @@ QString ChangedFilesOption::longRepresentation() const
 QString ProductsOption::description(CommandType command) const
 {
     const QString prefix = Tr::tr("%1|%2").arg(longRepresentation(), shortRepresentation());
-    if (command == ShellCommandType) {
+    if (command == ShellCommandType || command == RunCommandType) {
         return Tr::tr("%1 <name>\n"
                       "\tUse the specified product.\n").arg(prefix);
     }

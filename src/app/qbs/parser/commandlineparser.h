@@ -52,7 +52,6 @@ public:
     QString commandDescription() const;
     QString projectFilePath() const;
     BuildOptions buildOptions() const;
-    QString runTargetName() const;
     QStringList runArgs() const;
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;

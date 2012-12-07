@@ -70,6 +70,7 @@ private:
     void updateTimestamps();
     void connectBuildJobs();
     void connectJob(AbstractJob *job);
+    void checkForExactlyOneProduct();
 
     const CommandLineParser &m_parser;
     QList<AbstractJob *> m_resolveJobs;

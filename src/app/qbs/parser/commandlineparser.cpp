@@ -118,12 +118,6 @@ BuildOptions CommandLineParser::buildOptions() const
     return d->buildOptions;
 }
 
-QString CommandLineParser::runTargetName() const
-{
-    Q_ASSERT(d->command->type() == RunCommandType);
-    return static_cast<RunCommand *>(d->command)->targetName();
-}
-
 QStringList CommandLineParser::runArgs() const
 {
     Q_ASSERT(d->command->type() == RunCommandType);
