@@ -2015,7 +2015,7 @@ Module::Ptr Loader::LoaderPrivate::searchAndLoadModule(const QStringList &module
         QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
         if (moduleFileNames.isEmpty()) {
             QString origDirPath = dirPath;
-            QFileInfo dirInfo(dirPath);
+            FileInfo dirInfo(dirPath);
             if (!dirInfo.isDir()) {
                 bool found = false;
                 if (HostOsInfo::isWindowsHost()) {

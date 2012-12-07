@@ -460,6 +460,20 @@ void TestBlackbox::wildcardRenaming()
     QVERIFY(QFileInfo(buildDir + "/fdj.txt").exists());
 }
 
+void TestBlackbox::recursiveRenaming()
+{
+    QDir::setCurrent(testDataDir + "/recursive_renaming");
+    QCOMPARE(runQbs(QStringList()), 0);
+    QVERIFY(QFileInfo(buildDir + "/dir/wasser.txt").exists());
+    QVERIFY(QFileInfo(buildDir + "/dir/subdir/blubb.txt").exists());
+    QTest::qWait(1000);
+    QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
+    QCOMPARE(runQbs(QStringList()), 0);
+    QVERIFY(!QFileInfo(buildDir + "/dir/wasser.txt").exists());
+    QVERIFY(QFileInfo(buildDir + "/dir/wein.txt").exists());
+    QVERIFY(QFileInfo(buildDir + "/dir/subdir/blubb.txt").exists());
+}
+
 void TestBlackbox::updateTimestamps()
 {
     QDir::setCurrent(testDataDir + "/update_timestamps");

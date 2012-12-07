@@ -227,6 +227,16 @@ FileTime FileInfo::lastModified() const
         &z(m_stat)->ftLastWriteTime));
 }
 
+FileTime FileInfo::lastStatusChange() const
+{
+    return lastModified();
+}
+
+bool FileInfo::isDir() const
+{
+    return z(m_stat)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+}
+
 static QString resolveSymlinks(const QString &fileName)
 {
     QFileInfo fi(fileName);
@@ -257,6 +267,16 @@ bool FileInfo::exists() const
 FileTime FileInfo::lastModified() const
 {
     return m_stat.st_mtime;
+}
+
+FileTime FileInfo::lastStatusChange() const
+{
+    return m_stat.st_ctime;
+}
+
+bool FileInfo::isDir() const
+{
+    return S_ISDIR(m_stat.st_mode);
 }
 
 QString applicationDirPath()

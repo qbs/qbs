@@ -72,6 +72,7 @@ private slots:
     void trackRemoveFileTag();
     void trackAddMocInclude();
     void wildcardRenaming();
+    void recursiveRenaming();
     void updateTimestamps();
 };
 

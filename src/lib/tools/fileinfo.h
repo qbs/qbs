@@ -50,6 +50,8 @@ public:
 
     bool exists() const;
     FileTime lastModified() const;
+    FileTime lastStatusChange() const;
+    bool isDir() const;
 
     static QString fileName(const QString &fp);
     static QString baseName(const QString &fp);

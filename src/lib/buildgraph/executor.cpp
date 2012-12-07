@@ -110,17 +110,35 @@ Executor::~Executor()
     delete m_inputArtifactScanContext;
 }
 
+
+static FileTime recursiveFileTime(const QString &filePath)
+{
+    FileTime newest;
+    FileInfo fileInfo(filePath);
+    if (!fileInfo.exists()) {
+        const QString nativeFilePath = QDir::toNativeSeparators(filePath);
+        qbsWarning() << Tr::tr("File '%1' not found.").arg(nativeFilePath);
+        return newest;
+    }
+    newest = qMax(fileInfo.lastModified(), fileInfo.lastStatusChange());
+    if (!fileInfo.isDir())
+        return newest;
+    const QStringList dirContents = QDir(filePath)
+            .entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    foreach (const QString &curFileName, dirContents) {
+        const FileTime ft = recursiveFileTime(filePath + QLatin1Char('/') + curFileName);
+        if (ft > newest)
+            newest = ft;
+    }
+    return newest;
+}
+
 static void retrieveSourceFileTimestamp(Artifact *artifact)
 {
     Q_ASSERT(artifact->artifactType == Artifact::SourceFile);
 
-    const FileInfo fi(artifact->filePath());
-    artifact->timestamp = fi.lastModified();
+    artifact->timestamp = recursiveFileTime(artifact->filePath());
     artifact->timestampRetrieved = true;
-    if (!fi.exists()) {
-        const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
-        qbsWarning() << Executor::tr("File '%1' not found.").arg(nativeFilePath);
-    }
 }
 
 void Executor::build(const QList<BuildProductPtr> &productsToBuild)
