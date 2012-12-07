@@ -73,6 +73,7 @@ private slots:
     void trackAddMocInclude();
     void wildcardRenaming();
     void recursiveRenaming();
+    void recursiveWildcards();
     void updateTimestamps();
 };
 

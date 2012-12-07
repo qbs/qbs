@@ -474,6 +474,13 @@ void TestBlackbox::recursiveRenaming()
     QVERIFY(QFileInfo(buildDir + "/dir/subdir/blubb.txt").exists());
 }
 
+void TestBlackbox::recursiveWildcards()
+{
+    QDir::setCurrent(testDataDir + "/recursive_wildcards");
+    QCOMPARE(runQbs(QStringList()), 0);
+    QVERIFY(QFileInfo(buildDir + "/dir/subdir/file.txt").exists());
+}
+
 void TestBlackbox::updateTimestamps()
 {
     QDir::setCurrent(testDataDir + "/update_timestamps");

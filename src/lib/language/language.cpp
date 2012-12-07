@@ -665,30 +665,25 @@ QSet<QString> SourceWildCards::expandPatterns(const QStringList &patterns,
         } else {
             basePath = baseDir;
         }
-        expandPatterns(files, basePath, recursive, parts);
+        expandPatterns(files, basePath, parts);
     }
     return files;
 }
 
-void SourceWildCards::expandPatterns(QSet<QString> &files, const QString &baseDir, bool useRecursion,
-                                   const QStringList &parts, int index) const
+void SourceWildCards::expandPatterns(QSet<QString> &files, const QString &baseDir,
+                                     QStringList parts) const
 {
-    QDir::Filters filter;
-    const bool isDirectory = index + 1 < parts.size();
-    if (isDirectory)
+    const QString part = parts.takeFirst();
+    const bool isDirectory = !parts.isEmpty();
+    QDir::Filters filter = QDir::NoDotAndDotDot;
+    if (isDirectory || (FileInfo::isPattern(part) && recursive))
         filter |= QDir::Dirs;
-    else
+    if (!isDirectory)
         filter |= QDir::Files;
-    const QString &part = parts[index];
-    QDirIterator::IteratorFlags flags;
-    if (recursive && FileInfo::isPattern(part)) {
-        flags |= QDirIterator::Subdirectories;
-        useRecursion = false;
-    }
-    QDirIterator it(baseDir, QStringList(part), filter, flags);
+    QDirIterator it(baseDir, QStringList(part), filter);
     while (it.hasNext()) {
         if (isDirectory)
-            expandPatterns(files, it.next(), useRecursion, parts, index + 1);
+            expandPatterns(files, it.next(), parts);
         else
             files.insert(it.next());
     }

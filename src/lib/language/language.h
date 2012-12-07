@@ -176,8 +176,7 @@ private:
     SourceWildCards() : recursive(false) {}
 
     QSet<QString> expandPatterns(const QStringList &patterns, const QString &baseDir) const;
-    void expandPatterns(QSet<QString> &files, const QString &baseDir, bool useRecursion,
-                      const QStringList &parts, int index = 0) const;
+    void expandPatterns(QSet<QString> &files, const QString &baseDir, QStringList parts) const;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
