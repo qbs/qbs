@@ -257,17 +257,17 @@ void CommandLineFrontend::handleProjectsResolved()
 
 void CommandLineFrontend::makeClean()
 {
+    const Project::CleanType cleanType = m_parser.cleanAll()
+            ? Project::CleanupAll : Project::CleanupTemporaries;
     if (m_parser.products().isEmpty()) {
         foreach (const Project &project, m_projects) {
-            m_buildJobs << project.cleanAllProducts(m_parser.buildOptions(),
-                                                     Project::CleanupTemporaries, this);
+            m_buildJobs << project.cleanAllProducts(m_parser.buildOptions(), cleanType, this);
         }
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it) {
             m_buildJobs << it.key().cleanSomeProducts(it.value(), m_parser.buildOptions(),
-                                                      Project::CleanupTemporaries, this);
-
+                                                      cleanType, this);
         }
     }
     connectBuildJobs();

@@ -140,6 +140,12 @@ bool CommandLineParser::showProgress() const
     return d->showProgress;
 }
 
+bool CommandLineParser::cleanAll() const
+{
+    Q_ASSERT(d->command->type() == CleanCommandType);
+    return d->optionPool.allArtifactsOption()->enabled();
+}
+
 QString CommandLineParser::commandName() const
 {
     return d->command->representation();

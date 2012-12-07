@@ -202,7 +202,8 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
             << CommandLineOption::ShowProgressOptionType
             << CommandLineOption::KeepGoingOptionType
             << CommandLineOption::DryRunOptionType
-            << CommandLineOption::ProductsOptionType;
+            << CommandLineOption::ProductsOptionType
+            << CommandLineOption::AllArtifactsOptionType;
 }
 
 QString RunCommand::shortDescription() const

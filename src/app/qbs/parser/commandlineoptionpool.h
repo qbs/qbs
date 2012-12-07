@@ -51,6 +51,7 @@ public:
     KeepGoingOption *keepGoingOption() const;
     JobsOption *jobsOption() const;
     ProductsOption *productsOption() const;
+    AllArtifactsOption *allArtifactsOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

@@ -293,4 +293,16 @@ void LogLevelOption::doParse(const QString &representation, QStringList &input)
                 .arg(representation, levelString, description(command())));
 }
 
+QString AllArtifactsOption::description(CommandType command) const
+{
+    Q_ASSERT(command == CleanCommandType);
+    return Tr::tr("%1\n\tRemove all build artifacts, not just intermediate ones.\n")
+            .arg(longRepresentation());
+}
+
+QString AllArtifactsOption::longRepresentation() const
+{
+    return QLatin1String("--all-artifacts");
+}
+
 } // namespace qbs
