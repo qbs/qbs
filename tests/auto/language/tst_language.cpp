@@ -526,9 +526,6 @@ void TestLanguage::wildcards()
     QFETCH(bool, recursive);
     QFETCH(QStringList, expected);
 
-    if (!useGroup && !excludePatterns.isEmpty())
-        QSKIP("Broken. See QBS-176.", SkipSingle);
-
     // create test directory
     const QString wildcardsTestDir = "_wildcards_test_dir_";
     {

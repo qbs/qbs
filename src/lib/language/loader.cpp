@@ -1693,6 +1693,7 @@ void Loader::LoaderPrivate::setupBuiltinDeclarations()
     product += PropertyDeclaration("destination", PropertyDeclaration::String);
     product += PropertyDeclaration("consoleApplication", PropertyDeclaration::Boolean);
     product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    product += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     product += PropertyDeclaration("module", PropertyDeclaration::Variant);
     product += PropertyDeclaration("modules", PropertyDeclaration::Variant);
     product += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant);
@@ -2508,8 +2509,8 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
         if (isGroup) {
             wildcards->recursive = group->scope->boolValue("recursive");
-            wildcards->excludePatterns = group->scope->stringListValue("excludeFiles");
         }
+        wildcards->excludePatterns = group->scope->stringListValue("excludeFiles");
         wildcards->prefix = prefix;
         wildcards->patterns = patterns;
         QSet<QString> files = wildcards->expandPatterns(rproduct->sourceDirectory);
