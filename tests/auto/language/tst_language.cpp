@@ -34,6 +34,7 @@
 #include <language/scriptengine.h>
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
+#include <tools/scripttools.h>
 #include <tools/error.h>
 
 TestLanguage::TestLanguage()
@@ -420,6 +421,210 @@ void TestLanguage::fileTags()
     QStringList fileTags = sourceFile->fileTags.toList();
     fileTags.sort();
     QCOMPARE(fileTags, expectedFileTags);
+}
+
+void TestLanguage::wildcards_data()
+{
+    QTest::addColumn<bool>("useGroup");
+    QTest::addColumn<QStringList>("filesToCreate");
+    QTest::addColumn<QString>("prefix");
+    QTest::addColumn<QStringList>("patterns");
+    QTest::addColumn<QStringList>("excludePatterns");
+    QTest::addColumn<bool>("recursive");
+    QTest::addColumn<QStringList>("expected");
+
+    const bool useGroup = true;
+    const bool recursive = true;
+
+    for (int i = 0; i <= 1; ++i) {
+        const bool useGroup = i;
+        const QByteArray dataTagSuffix = useGroup ? " group" : " nogroup";
+        QTest::newRow(QByteArray("simple 1") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
+                << (QStringList() << "*.h")
+                << QStringList()
+                << !recursive
+                << (QStringList() << "foo.h" << "bar.h");
+        QTest::newRow(QByteArray("simple 2") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
+                << (QStringList() << "foo.*")
+                << QStringList()
+                << !recursive
+                << (QStringList() << "foo.h" << "foo.cpp");
+        QTest::newRow(QByteArray("simple 3") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
+                << (QStringList() << "*.h" << "*.cpp")
+                << QStringList()
+                << !recursive
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
+        QTest::newRow(QByteArray("exclude 1") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
+                << (QStringList() << "*.h" << "*.cpp")
+                << (QStringList() << "bar*")
+                << !recursive
+                << (QStringList() << "foo.h" << "foo.cpp");
+        QTest::newRow(QByteArray("exclude 2") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
+                << (QStringList() << "*")
+                << (QStringList() << "*.qbs")
+                << !recursive
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
+        QTest::newRow(QByteArray("multipattern") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "subdir/foo.h" << "subdir/foo.cpp" << "subdir/bar.h"
+                    << "subdir/bar.cpp")
+                << QString()
+                << (QStringList() << "s*b?ir/*.h")
+                << QStringList()
+                << !recursive
+                << (QStringList() << "subdir/foo.h" << "subdir/bar.h");
+        QTest::newRow(QByteArray("non-recursive") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
+                << QString()
+                << (QStringList() << "a/*")
+                << QStringList()
+                << !recursive
+                << (QStringList() << "a/foo.h" << "a/foo.cpp");
+    }
+    QTest::newRow(QByteArray("recursive"))
+            << useGroup
+            << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
+            << QString()
+            << (QStringList() << "a/*")
+            << QStringList()
+            << recursive
+            << (QStringList() << "a/b" << "a/foo.h" << "a/foo.cpp");
+    QTest::newRow(QByteArray("prefix"))
+            << useGroup
+            << (QStringList() << "subdir/foo.h" << "subdir/foo.cpp" << "subdir/bar.h"
+                << "subdir/bar.cpp")
+            << QString("subdir/")
+            << (QStringList() << "*.h")
+            << QStringList()
+            << !recursive
+            << (QStringList() << "subdir/foo.h" << "subdir/bar.h");
+}
+
+void TestLanguage::wildcards()
+{
+    QFETCH(bool, useGroup);
+    QFETCH(QStringList, filesToCreate);
+    QFETCH(QString, prefix);
+    QFETCH(QStringList, patterns);
+    QFETCH(QStringList, excludePatterns);
+    QFETCH(bool, recursive);
+    QFETCH(QStringList, expected);
+
+    if (!useGroup && !excludePatterns.isEmpty())
+        QSKIP("Broken. See QBS-176.", SkipSingle);
+
+    // create test directory
+    const QString wildcardsTestDir = "_wildcards_test_dir_";
+    {
+        QString errorMessage;
+        if (QFile::exists(wildcardsTestDir)) {
+            if (!removeDirectoryWithContents(wildcardsTestDir, &errorMessage)) {
+                qDebug() << errorMessage;
+                QVERIFY2(false, "removeDirectoryWithContents failed");
+            }
+        }
+        QDir().mkdir(wildcardsTestDir);
+    }
+
+    // create project file
+    const QString groupName = "Keks";
+    QString dataTag = QString::fromLocal8Bit(QTest::currentDataTag());
+    dataTag.replace(' ', '_');
+    const QString projectFilePath = wildcardsTestDir + "/test_" + dataTag + ".qbs";
+    {
+        QFile projectFile(projectFilePath);
+        QVERIFY(projectFile.open(QIODevice::WriteOnly));
+        QTextStream s(&projectFile);
+        s << "import qbs.base 1.0" << endl << endl
+          << "Application {" << endl
+          << "  name: \"MyProduct\"" << endl;
+        if (useGroup) {
+            s << "  Group {" << endl
+              << "     name: " << toJSLiteral(groupName) << endl
+              << "     recursive: " << toJSLiteral(recursive) << endl;
+        }
+        if (!prefix.isEmpty())
+            s << "  prefix: " << toJSLiteral(prefix) << endl;
+        if (!patterns.isEmpty())
+            s << "  files: " << toJSLiteral(patterns) << endl;
+        if (!excludePatterns.isEmpty())
+            s << "  excludeFiles: " << toJSLiteral(excludePatterns) << endl;
+        if (useGroup)
+            s << "  }" << endl;
+        s << "}" << endl << endl;
+    }
+
+    // create files
+    {
+        foreach (QString filePath, filesToCreate) {
+            filePath.prepend(wildcardsTestDir + '/');
+            QFileInfo fi(filePath);
+            QVERIFY(fi.isRelative());
+            if (!QDir(fi.path()).exists())
+                QVERIFY(QDir().mkpath(fi.path()));
+            QFile file(filePath);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+        }
+    }
+
+    // read the project
+    bool exceptionCaught = false;
+    ResolvedProductPtr product;
+    try {
+        project = loader->loadProject(projectFilePath, "/some/build/directory", buildConfig);
+        QVERIFY(project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        product = products.value("MyProduct");
+        QVERIFY(product);
+        ResolvedGroup::Ptr group;
+        if (useGroup) {
+            QCOMPARE(product->groups.count(), 2);
+            foreach (const ResolvedGroup::Ptr &rg, product->groups) {
+                if (rg->name == groupName) {
+                    group = rg;
+                    break;
+                }
+            }
+        } else {
+            QCOMPARE(product->groups.count(), 1);
+            group = product->groups.first();
+        }
+        QVERIFY(group);
+        QCOMPARE(group->files.count(), 0);
+        SourceWildCards::Ptr wildcards = group->wildcards;
+        QVERIFY(wildcards);
+        QStringList actualFilePaths;
+        foreach (const SourceArtifactConstPtr &artifact, wildcards->files) {
+            QString str = artifact->absoluteFilePath;
+            int idx = str.indexOf(wildcardsTestDir);
+            if (idx != -1)
+                str.remove(0, idx + wildcardsTestDir.count() + 1);
+            actualFilePaths << str;
+        }
+        actualFilePaths.sort();
+        expected.sort();
+        QCOMPARE(actualFilePaths, expected);
+    } catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
 }
 
 QTEST_MAIN(TestLanguage)

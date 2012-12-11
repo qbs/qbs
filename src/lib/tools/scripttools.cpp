@@ -98,5 +98,31 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
     }
 }
 
+QString toJSLiteral(const bool b)
+{
+    return b ? "true" : "false";
+}
+
+QString toJSLiteral(const QString &str)
+{
+    QString js = str;
+    js.replace(QRegExp("([\\\\\"])"), "\\\\1");
+    js.prepend('"');
+    js.append('"');
+    return js;
+}
+
+QString toJSLiteral(const QStringList &strs)
+{
+    QString js = "[";
+    for (int i = 0; i < strs.count(); ++i) {
+        if (i != 0)
+            js.append(", ");
+        js.append(toJSLiteral(strs.at(i)));
+    }
+    js.append(']');
+    return js;
+}
+
 } // namespace Internal
 } // namespace qbs

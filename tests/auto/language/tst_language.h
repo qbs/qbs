@@ -34,7 +34,6 @@
 #include <language/loader.h>
 #include <logging/consolelogger.h>
 #include <logging/logger.h>
-#include <tools/scripttools.h>
 #include <QtTest>
 
 using namespace qbs;
@@ -69,6 +68,8 @@ private slots:
     void propertiesBlocks();
     void fileTags_data();
     void fileTags();
+    void wildcards_data();
+    void wildcards();
 };
 
 #endif // TST_LANGUAGE_H

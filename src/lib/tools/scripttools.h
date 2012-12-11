@@ -62,6 +62,10 @@ QStringList toStringList(const QScriptValue &scriptValue);
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
 
+QString toJSLiteral(const bool b);
+QString toJSLiteral(const QString &str);
+QString toJSLiteral(const QStringList &strs);
+
 /**
  * @brief push/pop a QScriptEngine's context the RAII way.
  */
