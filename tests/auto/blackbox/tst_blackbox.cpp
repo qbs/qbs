@@ -28,9 +28,11 @@
 ****************************************************************************/
 
 #include "tst_blackbox.h"
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 
-using namespace qbs;
+using qbs::HostOsInfo;
+using qbs::Internal::removeDirectoryWithContents;
 
 static QString initQbsExecutableFilePath()
 {
@@ -97,16 +99,8 @@ static void ccp(const QString &from, const QString &to)
 
 void TestBlackbox::rmDirR(const QString &dir)
 {
-    QDirIterator it(dir, QDir::Files | QDir::NoDotAndDotDot  | QDir::Hidden);
-    while (it.hasNext()) {
-        QFile(it.next()).remove();
-    }
-
-    QDirIterator it2(dir, QDir::Dirs | QDir::NoDotAndDotDot  | QDir::Hidden);
-    while (it2.hasNext()) {
-        rmDirR(it2.next());
-    }
-    QDir().rmdir(dir);
+    QString errorMessage;
+    removeDirectoryWithContents(dir, &errorMessage);
 }
 
 void TestBlackbox::touch(const QString &fn)
