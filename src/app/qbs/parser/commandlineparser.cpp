@@ -228,8 +228,16 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
         try {
             command = commandFromString(commandLine.first());
             commandLine.removeFirst();
-        } catch (const Error &) { // No command given, use default.
-            command = commandPool.getCommand(BuildCommandType);
+        } catch (const Error &) { // No command given.
+            // As an exception to the command-based syntax, we allow -h or --help as the
+            // sole contents of the command line, because people are used to this working.
+            if (commandLine.count() == 1 && (commandLine.first() == QLatin1String("-h")
+                                             || commandLine.first() == QLatin1String("--help"))) {
+                command = commandPool.getCommand(HelpCommandType);
+                commandLine.clear();
+            } else {
+                command = commandPool.getCommand(BuildCommandType);
+            }
         }
     }
     command->parse(commandLine);
