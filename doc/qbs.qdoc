@@ -167,8 +167,8 @@
     \code
     QBS_SOURCE_DIR=/path/to/qbs-source
     QBS_BUILD_DIR=/path/to/qbs-build
-    qbs config --global preferences.qbsPath $QBS_SOURCE_DIR/share/qbs
-    qbs config --global preferences.pluginsPath $QBS_BUILD_DIR/plugins
+    qbs config preferences.qbsPath $QBS_SOURCE_DIR/share/qbs
+    qbs config preferences.pluginsPath $QBS_BUILD_DIR/plugins
     \endcode
 
     Currently, you also must tell qbs where it can find Qt.
@@ -231,15 +231,15 @@
     Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
 
     \code
-    qbs config --global modules.qt.core.binPath /usr/bin
-    qbs config --global modules.qt.core.incPath /usr/include/qt4
-    qbs config --global modules.qt.core.libPath /usr/lib/x86_64-linux-gnu
-    qbs config --global modules.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
+    qbs config modules.qt.core.binPath /usr/bin
+    qbs config modules.qt.core.incPath /usr/include/qt4
+    qbs config modules.qt.core.libPath /usr/lib/x86_64-linux-gnu
+    qbs config modules.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
     \endcode
 
     If you're using Qt 5, you must specify the version number.
     \code
-    qbs config --global modules.qt.core.version 5.0.0
+    qbs config modules.qt.core.version 5.0.0
     \endcode
 
     \section1 Multiple Qt builds
@@ -257,7 +257,7 @@
     You can set the default Qt build you want to use like this:
 
     \code
-    qbs config --global profile qt5
+    qbs config profile qt5
     \endcode
 
     To choose a Qt build that's different from the default, use:
@@ -281,7 +281,7 @@
     then you must set the following config value.
 
     \code
-    qbs config --global modules.qt.core.namespace MyNamespace
+    qbs config modules.qt.core.namespace MyNamespace
     \endcode
 
     (or if the namespace was only relevant for a particular profile, you'd set
@@ -290,7 +290,7 @@
     The same goes for the -qtlibinfix option.
 
     \code
-    qbs config --global modules.qt.core.libInfix MyInfix
+    qbs config modules.qt.core.libInfix MyInfix
     \endcode
 */
 
@@ -546,7 +546,7 @@
     \endtable
 
     You can set these properties on the command line, or by using a profile or
-    setting the \a modules.qbs.<propertyName> global config item. The property \a
+    setting the \a modules.qbs.<propertyName> config item. The property \a
     qbs.buildVariant is handled in a special way.
 
     \code

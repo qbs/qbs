@@ -1226,7 +1226,6 @@ Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine)
 void Loader::LoaderPrivate::loadProject(const QString &fileName)
 {
     m_moduleDirListCache.clear();
-    m_settings.loadProjectSettings(fileName);
     m_project = parseFile(fileName);
 }
 

@@ -45,23 +45,13 @@ public:
     Settings();
     ~Settings();
 
-    enum Scope
-    {
-        Local, Global
-    };
-
-    void loadProjectSettings(const QString &projectFileName);
-    bool hasProjectSettings() const { return m_localSettings; }
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QVariant value(Scope scope, const QString &key, const QVariant &defaultValue = QVariant()) const;
     QVariant moduleValue(const QString &key, const QString &profile,
             const QVariant &defaultValue = QVariant());
     QStringList allKeys() const;
-    QStringList allKeys(Scope scope) const;
     QStringList allKeysWithPrefix(const QString &group);
     void setValue(const QString &key, const QVariant &value);
-    void setValue(Scope scope, const QString &key, const QVariant &value);
-    void remove(Scope scope, const QString &key);
+    void remove(const QString &key);
 
     // Add convenience functions here.
     bool useColoredOutput() const;
@@ -70,11 +60,10 @@ public:
     QString buildVariant() const;
 
 private:
-    static void checkStatus(QSettings *s);
+    void checkStatus();
     QStringList pathList(const QString &key, const QString &defaultValue) const;
 
-    QSettings *m_globalSettings;
-    QSettings *m_localSettings;
+    QSettings * const m_settings;
 };
 
 } // namespace qbs

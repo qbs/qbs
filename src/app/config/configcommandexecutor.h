@@ -44,12 +44,11 @@ public:
     void execute(const ConfigCommand &command);
 
 private:
-    void loadLocalSettings(bool throwExceptionOnFailure);
-    void printSettings(qbs::Settings::Scope scope);
+    void printSettings();
     QString toInternalSeparators(const QString &variable);
     QString toExternalSeparators(const QString &variable);
-    void exportGlobalSettings(const QString &filename);
-    void importGlobalSettings(const QString &filename);
+    void exportSettings(const QString &filename);
+    void importSettings(const QString &filename);
 
     qbs::Settings m_settings;
 };

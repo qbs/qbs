@@ -51,12 +51,6 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             setCommand(ConfigCommand::CfgList);
         } else if (arg == "unset") {
             setCommand(ConfigCommand::CfgUnset);
-        } else if (arg == "global") {
-            m_command.scope = Settings::Global;
-            m_command.scopeSet = true;
-        } else if (arg == "local") {
-            m_command.scope = Settings::Local;
-            m_command.scopeSet = true;
         } else if (arg == "export") {
             setCommand(ConfigCommand::CfgExport);
         } else if (arg == "import") {
@@ -113,13 +107,9 @@ void ConfigCommandLineParser::printHelp() const
 {
     puts("usage: qbs config [options]\n"
          "\n"
-         "Config file location:\n"
-         "    --global    choose global configuration file (default)\n"
-         "    --local     choose local configuration file\n"
-         "\n"
-         "Actions:\n"
+         "Options:\n"
          "    --list           list all variables\n"
          "    --unset <name>   remove variable with given name\n"
-         "    --import <file>  import global settings from given file\n"
-         "    --export <file>  export global settings to given file\n");
+         "    --import <file>  import settings from given file\n"
+         "    --export <file>  export settings to given file\n");
 }

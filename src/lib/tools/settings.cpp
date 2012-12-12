@@ -43,47 +43,28 @@ namespace qbs {
 using namespace Internal;
 
 Settings::Settings()
-    : m_globalSettings(0),
-      m_localSettings(0)
+    : m_settings(new QSettings(QSettings::UserScope, QLatin1String("QtProject"),
+                               QLatin1String("qbs")))
 {
-    m_globalSettings = new QSettings(QSettings::UserScope, QLatin1String("QtProject"),
-            QLatin1String("qbs"));
-    m_globalSettings->setFallbacksEnabled(false);
+    m_settings->setFallbacksEnabled(false);
 
     // Fetch data from old Nokia settings, if necessary. TODO: Remove in 0.4.
-    if (m_globalSettings->allKeys().isEmpty()) {
+    if (m_settings->allKeys().isEmpty()) {
         QSettings oldSettings(QSettings::UserScope, QLatin1String("Nokia"), QLatin1String("qbs"));
         oldSettings.setFallbacksEnabled(false);
         foreach (const QString &key, oldSettings.allKeys())
-            m_globalSettings->setValue(key, oldSettings.value(key));
+            m_settings->setValue(key, oldSettings.value(key));
     }
 }
 
 Settings::~Settings()
 {
-    delete m_globalSettings;
-    delete m_localSettings;
-}
-
-void Settings::loadProjectSettings(const QString &projectFileName)
-{
-    delete m_localSettings;
-    m_localSettings = new QSettings(QFileInfo(projectFileName).path()
-            + "/.qbs/config", QSettings::IniFormat);
-    m_localSettings->setFallbacksEnabled(false);
+    delete m_settings;
 }
 
 QVariant Settings::value(const QString &key, const QVariant &defaultValue) const
 {
-    if (m_localSettings && m_localSettings->contains(key))
-        return m_localSettings->value(key, defaultValue);
-    return m_globalSettings->value(key, defaultValue);
-}
-
-QVariant Settings::value(Scope scope, const QString &key, const QVariant &defaultValue) const
-{
-    QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
-    return s ? s->value(key, defaultValue) : defaultValue;
+    return m_settings->value(key, defaultValue);
 }
 
 QVariant Settings::moduleValue(const QString &key, const QString &profile,
@@ -99,10 +80,7 @@ QVariant Settings::moduleValue(const QString &key, const QString &profile,
 
 QStringList Settings::allKeys() const
 {
-    QStringList keys;
-    if (m_localSettings)
-        keys = m_localSettings->allKeys();
-    keys.append(m_globalSettings->allKeys());
+    QStringList keys  = m_settings->allKeys();
     keys.sort();
     std::unique(keys.begin(), keys.end());
     return keys;
@@ -110,49 +88,25 @@ QStringList Settings::allKeys() const
 
 QStringList Settings::allKeysWithPrefix(const QString &group)
 {
-    QStringList keys;
-    if (m_localSettings) {
-        m_localSettings->beginGroup(group);
-        keys = m_localSettings->allKeys();
-        m_localSettings->endGroup();
-    }
-
-    m_globalSettings->beginGroup(group);
-    keys.append(m_globalSettings->allKeys());
-    m_globalSettings->endGroup();
+    m_settings->beginGroup(group);
+    QStringList keys = m_settings->allKeys();
+    m_settings->endGroup();
     keys.sort();
     std::unique(keys.begin(), keys.end());
     keys.removeDuplicates();
     return keys;
 }
 
-QStringList Settings::allKeys(Scope scope) const
-{
-    QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
-    return s ? s->allKeys() : QStringList();
-}
-
 void Settings::setValue(const QString &key, const QVariant &value)
 {
-    setValue(Global, key, value);
+    m_settings->setValue(key, value);
+    checkStatus();
 }
 
-void Settings::setValue(Scope scope, const QString &key, const QVariant &value)
+void Settings::remove(const QString &key)
 {
-    QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
-    if (s) {
-        s->setValue(key, value);
-        checkStatus(s);
-    }
-}
-
-void Settings::remove(Settings::Scope scope, const QString &key)
-{
-    QSettings *s = (scope == Global ? m_globalSettings : m_localSettings);
-    if (s) {
-        s->remove(key);
-        checkStatus(s);
-    }
+    m_settings->remove(key);
+    checkStatus();
 }
 
 bool Settings::useColoredOutput() const
@@ -186,16 +140,16 @@ QString Settings::buildVariant() const
     return value(QLatin1String("modules/qbs/buildVariant"), QLatin1String("debug")).toString();
 }
 
-void Settings::checkStatus(QSettings *s)
+void Settings::checkStatus()
 {
-    s->sync();
-    switch (s->status()) {
+    m_settings->sync();
+    switch (m_settings->status()) {
     case QSettings::NoError:
         break;
     case QSettings::AccessError:
-        throw Error(Tr::tr("%1 is not accessible.").arg(s->fileName()));
+        throw Error(Tr::tr("%1 is not accessible.").arg(m_settings->fileName()));
     case QSettings::FormatError:
-        throw Error(Tr::tr("Format error in %1.").arg(s->fileName()));
+        throw Error(Tr::tr("Format error in %1.").arg(m_settings->fileName()));
     }
 }
 

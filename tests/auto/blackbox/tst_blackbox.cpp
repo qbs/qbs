@@ -117,7 +117,7 @@ void TestBlackbox::initTestCase()
 {
     QVERIFY(QFile::exists(qbsExecutableFilePath));
     QProcess process;
-    process.start(qbsExecutableFilePath, QStringList() << "config" << "--global" << "--list");
+    process.start(qbsExecutableFilePath, QStringList() << "config" << "--list");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);

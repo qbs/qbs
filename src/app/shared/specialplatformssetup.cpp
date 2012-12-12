@@ -59,7 +59,7 @@ void SpecialPlatformsSetup::setup()
     foreach (const PlatformInfo &pi, gatherPlatformInfo()) {
         writeConfigFile(pi, configBaseDir);
         const QString registerCommandLine = QString::fromLocal8Bit("%1 config "
-                "--global profiles.%2.qbs.platform %2").arg(qbsPath, pi.name);
+                "profiles.%2.qbs.platform %2").arg(qbsPath, pi.name);
         runProcess(registerCommandLine, QProcessEnvironment::systemEnvironment());
     }
 }

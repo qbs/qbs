@@ -38,11 +38,9 @@ struct ConfigCommand
 {
     enum Command { CfgSet, CfgGet, CfgUnset, CfgList, CfgExport, CfgImport, CfgNone };
 
-    ConfigCommand() : command(CfgNone), scope(qbs::Settings::Global), scopeSet(false) {}
+    ConfigCommand() : command(CfgNone) {}
 
     Command command;
-    qbs::Settings::Scope scope;
-    bool scopeSet;
     QStringList varNames;
     QString varValue;
     QString fileName;
