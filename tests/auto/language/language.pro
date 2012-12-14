@@ -16,4 +16,5 @@ SOURCES += \
     tst_language.cpp
 
 OTHER_FILES += \
-    $$PWD/testdata/*
+    $$PWD/testdata/* \
+    testdata/outerInGroup.qbs

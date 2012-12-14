@@ -301,6 +301,42 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::outerInGroup()
+{
+    bool exceptionCaught = false;
+    try {
+        ResolvedProjectPtr project = loader->loadProject(SRCDIR "testdata/outerInGroup.qbs",
+                                                              "/some/build/directory", buildConfig);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+        ResolvedProductPtr product = products.value("OuterInGroup");
+        QVERIFY(product);
+        QCOMPARE(product->groups.count(), 2);
+        ResolvedGroup::Ptr group = product->groups.at(0);
+        QVERIFY(group);
+        QCOMPARE(group->name, product->name);
+        QCOMPARE(group->files.count(), 1);
+        SourceArtifactConstPtr artifact = group->files.first();
+        QVariant installPrefix = getConfigProperty(artifact->properties->value(),
+                                                   QStringList() << "modules" << "qbs" << "installPrefix");
+        QCOMPARE(installPrefix.toString(), QString("/somewhere"));
+        group = product->groups.at(1);
+        QVERIFY(group);
+        QCOMPARE(group->name, QString("Special Group"));
+        QCOMPARE(group->files.count(), 1);
+        artifact = group->files.first();
+        installPrefix = getConfigProperty(artifact->properties->value(),
+                                          QStringList() << "modules" << "qbs" << "installPrefix");
+        QCOMPARE(installPrefix.toString(), QString("/somewhere/else"));
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;
