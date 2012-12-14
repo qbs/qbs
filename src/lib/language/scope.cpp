@@ -39,21 +39,6 @@
 namespace qbs {
 namespace Internal {
 
-// ### remove in subsequent commit
-static QScriptValue evaluate(QScriptEngine *engine, const QScriptProgram &expression)
-{
-    QScriptValue result = engine->evaluate(expression);
-    if (engine->hasUncaughtException()) {
-        QString errorMessage = engine->uncaughtException().toString();
-        int errorLine = engine->uncaughtExceptionLineNumber();
-        engine->clearExceptions();
-        throw Error(errorMessage, expression.fileName(), errorLine);
-    }
-    if (result.isError())
-        throw Error(result.toString());
-    return result;
-}
-
 Scope::Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name)
     : QScriptClass(engine)
     , m_scopesCache(cache)
@@ -152,12 +137,9 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
     if (property.valueSourceUsesBase) {
         foreach (const Property &baseProperty, property.baseProperties) {
             context->setActivationObject(baseProperty.scopeChain->value());
-            QScriptValue baseValue;
-            try {
-                baseValue = evaluate(engine(), baseProperty.valueSource);
-            } catch (const Error &e) {
-                baseValue = engine()->currentContext()->throwError(Tr::tr("error while evaluating:\n%1").arg(e.toString()));
-            }
+            QScriptValue baseValue = engine()->evaluate(baseProperty.valueSource);
+            if (baseValue.isError())
+                return baseValue;
             if (baseValue.isUndefined())
                 baseValue = engine()->newArray();
             engine()->globalObject().setProperty(baseValueName, baseValue);
@@ -174,15 +156,9 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
             engine()->globalObject().setProperty(oldValueName, oldValue);
     }
 
-    QScriptValue result;
-    // Do not throw exceptions through the depths of the script engine.
-    try {
-        result = evaluate(engine(), property.valueSource);
-    }
-    catch (const Error &e)
-    {
-        result = engine()->currentContext()->throwError(Tr::tr("error while evaluating:\n%1").arg(e.toString()));
-    }
+    QScriptValue result = engine()->evaluate(property.valueSource);
+    if (result.isError())
+        return result;
 
     if (debugProperties) {
         qbsTrace() << "PROPERTIES: evaluated " << nameString << " to " << result.toVariant() << " " << result.toString();
