@@ -1,7 +1,6 @@
 import qbs.base 1.0
 
 Application {
-    type: 'application'
     name: 'HelloWorld'
 
     Depends { name: 'cpp' }
