@@ -31,8 +31,10 @@
 
 #include <buildgraph/forward_decls.h>
 #include <tools/error.h>
+#include <tools/processresult.h>
 
 #include <QObject>
+#include <QProcess>
 #include <QVariantMap>
 
 namespace qbs {
@@ -92,11 +94,17 @@ private:
                const QVariantMap &buildConfig);
 };
 
-
 class BuildJob : public AbstractJob
 {
     Q_OBJECT
     friend class Internal::ProjectPrivate;
+
+signals:
+    void warning(const qbs::CodeLocation &location, const QString &message);
+    void reportCommandDescription(const QString &highlight, const QString &message);
+    void reportProcessResult(const qbs::ProcessResult &result);
+    void reportWarning(const qbs::CodeLocation &location, const QString &message);
+
 private:
     BuildJob(QObject *parent);
 
@@ -108,6 +116,7 @@ class CleanJob : public AbstractJob
 {
     Q_OBJECT
     friend class Internal::ProjectPrivate;
+
 private:
     CleanJob(QObject *parent);
 

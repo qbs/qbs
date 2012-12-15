@@ -49,28 +49,8 @@ void AbstractCommandExecutor::start(Transformer *transformer, const AbstractComm
 {
     m_transformer = transformer;
     m_command = cmd;
-    printCommandInfo();
+    emit reportCommandDescription(m_command->highlight(), m_command->description());
     doStart();
-}
-
-static QHash<QString, TextColor> setupColorTable()
-{
-    QHash<QString, TextColor> colorTable;
-    colorTable["compiler"] = TextColorDefault;
-    colorTable["linker"] = TextColorDarkGreen;
-    colorTable["codegen"] = TextColorDarkYellow;
-    colorTable["filegen"] = TextColorDarkYellow;
-    return colorTable;
-}
-
-void AbstractCommandExecutor::printCommandInfo()
-{
-    if (!m_command->description().isEmpty()) {
-        static QHash<QString, TextColor> colorTable = setupColorTable();
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << colorTable.value(command()->highlight(), TextColorDefault)
-                  << m_command->description();
-    }
 }
 
 } // namespace Internal

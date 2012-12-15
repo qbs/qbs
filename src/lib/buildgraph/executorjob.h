@@ -30,6 +30,8 @@
 #ifndef QBS_EXECUTORJOB_H
 #define QBS_EXECUTORJOB_H
 
+#include <tools/error.h>
+
 #include <QObject>
 
 QT_BEGIN_NAMESPACE
@@ -37,6 +39,9 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
+class CodeLocation;
+class ProcessResult;
+
 namespace Internal {
 class AbstractCommandExecutor;
 class BuildProduct;
@@ -58,12 +63,14 @@ public:
     void waitForFinished();
 
 signals:
-    void error(QString errorString);
+    void reportCommandDescription(const QString &highlight, const QString &message);
+    void reportProcessResult(const qbs::ProcessResult &result);
+    void error(const qbs::Error &error);
     void success();
 
 private slots:
     void runNextCommand();
-    void onCommandError(QString errorString);
+    void onCommandError(const qbs::Error &err);
     void onCommandFinished();
 
 private:

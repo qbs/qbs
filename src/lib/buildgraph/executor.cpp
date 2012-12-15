@@ -43,6 +43,7 @@
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
+#include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
 
@@ -96,6 +97,8 @@ Executor::Executor(QObject *parent)
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
     m_autoMoc = new AutoMoc;
+    connect(m_autoMoc, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SIGNAL(reportCommandDescription(QString,QString)));
     m_autoMoc->setScanResultCache(&m_scanResultCache);
 }
 
@@ -106,7 +109,7 @@ Executor::~Executor()
         delete job;
     foreach (ExecutorJob *job, m_processingJobs.keys())
         delete job;
-    delete m_autoMoc;
+    delete m_autoMoc; // delete before shared scan result cache
     delete m_inputArtifactScanContext;
 }
 
@@ -597,7 +600,12 @@ void Executor::addExecutorJobs(int jobNumber)
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
         m_availableJobs.append(job);
-        connect(job, SIGNAL(error(QString)), this, SLOT(onProcessError(QString)));
+        connect(job, SIGNAL(reportCommandDescription(QString,QString)),
+                this, SIGNAL(reportCommandDescription(QString,QString)));
+        connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+                this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+        connect(job, SIGNAL(error(qbs::Error)),
+                this, SLOT(onProcessError(qbs::Error)));
         connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()));
     }
 }
@@ -625,12 +633,15 @@ void Executor::runAutoMoc()
         m_progressObserver->incrementProgressValue(m_mocEffort);
 }
 
-void Executor::onProcessError(const QString &errorString)
+void Executor::onProcessError(const qbs::Error &err)
 {
-    if (m_buildOptions.keepGoing)
-        qbsWarning() << Tr::tr("ignoring error: %1").arg(errorString);
-    else
-        qbsError() << errorString;
+    if (m_buildOptions.keepGoing) {
+        emit reportWarning(CodeLocation(), Tr::tr("ignoring the following errors on user request:"));
+        foreach (const qbs::ErrorData &entry, err.entries())
+            emit reportWarning(CodeLocation(entry.file(), entry.line(), entry.column()), entry.description());
+    } else {
+        m_error = err;
+    }
     ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
     finishJob(job, false);
 }

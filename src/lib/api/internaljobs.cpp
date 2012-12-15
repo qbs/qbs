@@ -28,6 +28,8 @@
 ****************************************************************************/
 #include "internaljobs.h"
 
+#include "jobs.h"
+
 #include <buildgraph/artifactcleaner.h>
 #include <buildgraph/buildproduct.h>
 #include <buildgraph/buildproject.h>
@@ -240,6 +242,13 @@ void InternalBuildJob::start()
 {
     m_executor = new Executor(this);
     connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));
+    connect(m_executor, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SIGNAL(reportCommandDescription(QString,QString)));
+    connect(m_executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+    connect(m_executor, SIGNAL(reportWarning(qbs::CodeLocation,QString)),
+            this, SIGNAL(reportWarning(qbs::CodeLocation,QString)));
+
     m_executor->setBuildOptions(buildOptions());
     m_executor->setProgressObserver(observer());
     m_executor->build(products());
@@ -248,11 +257,9 @@ void InternalBuildJob::start()
 void InternalBuildJob::handleFinished()
 {
     storeBuildGraph();
-    if (m_executor->hasError())
-        setError(m_executor->error());
+    setError(m_executor->error());
     emit finished(this);
 }
-
 
 InternalCleanJob::InternalCleanJob(QObject *parent) : BuildGraphTouchingJob(parent)
 {
@@ -287,6 +294,7 @@ void InternalCleanJob::doClean()
         setError(error);
     }
     storeBuildGraph();
+    emit finished(this);
 }
 
 

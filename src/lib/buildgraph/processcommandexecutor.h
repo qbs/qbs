@@ -36,6 +36,8 @@
 #include <QString>
 
 namespace qbs {
+class ProcessResult;
+
 namespace Internal {
 class ProcessCommand;
 
@@ -47,6 +49,9 @@ public:
 
     void setProcessEnvironment(const QProcessEnvironment &processEnvironment);
 
+signals:
+    void reportProcessResult(const qbs::ProcessResult &result);
+
 private slots:
     void onProcessError();
     void onProcessFinished(int exitCode);
@@ -55,10 +60,9 @@ private:
     void doStart();
     void waitForFinished();
 
-    void printCommandInfo(AbstractCommand *cmd);
     void startProcessCommand();
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void sendProcessOutput(bool dueToError);
+    void sendProcessOutput(bool success);
     void removeResponseFile();
     QString findProcessCommandInPath();
     QString findProcessCommandBySuffix();

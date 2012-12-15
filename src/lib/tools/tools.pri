@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
+    $$PWD/processresult.h \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \

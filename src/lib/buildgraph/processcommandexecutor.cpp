@@ -36,8 +36,11 @@
 
 #include <language/language.h>
 #include <logging/logger.h>
+#include <logging/translator.h>
+#include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/processresult.h>
 
 #include <QDir>
 #include <QScriptEngine>
@@ -129,8 +132,8 @@ void ProcessCommandExecutor::doStart()
             responseFile.setAutoRemove(false);
             responseFile.setFileTemplate(QDir::tempPath() + "/qbsresp");
             if (!responseFile.open()) {
-                QString errorMessage = "Cannot create response file.";
-                emit error(errorMessage);
+                emit error(Error(Tr::tr("Cannot create response file '%1'.")
+                                 .arg(responseFile.fileName())));
                 return;
             }
             for (int i = 0; i < cmd->arguments().count(); ++i) {
@@ -169,8 +172,8 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
 
     QScriptValue filterFunction = scriptEngine()->evaluate("var f = " + filterFunctionSource + "; f");
     if (!filterFunction.isFunction()) {
-        emit error(QString("Error in filter function: %1.\n%2")
-                .arg(filterFunctionSource, filterFunction.toString()));
+        emit error(Error(Tr::tr("Error in filter function: %1.\n%2")
+                         .arg(filterFunctionSource, filterFunction.toString())));
         return output;
     }
 
@@ -178,70 +181,85 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     outputArg.setProperty(0, scriptEngine()->toScriptValue(output));
     QScriptValue filteredOutput = filterFunction.call(scriptEngine()->undefinedValue(), outputArg);
     if (filteredOutput.isError()) {
-        emit error(QString("Error when calling ouput filter function: %1")
-                .arg(filteredOutput.toString()));
+        emit error(Error(Tr::tr("Error when calling output filter function: %1")
+                         .arg(filteredOutput.toString())));
         return output;
     }
 
     return filteredOutput.toString();
 }
 
-void ProcessCommandExecutor::sendProcessOutput(bool dueToError)
+void ProcessCommandExecutor::sendProcessOutput(bool success)
 {
-    const QString processStdOut = filterProcessOutput(m_process.readAllStandardOutput(),
-            processCommand()->stdoutFilterFunction());
-    const QString processStdErr = filterProcessOutput(m_process.readAllStandardError(),
-            processCommand()->stderrFilterFunction());
-    const bool processOutputEmpty = processStdOut.isEmpty() && processStdErr.isEmpty();
-    if (processOutputEmpty && !dueToError)
-        return;
-    (dueToError ? qbsError() : qbsInfo())
-            << DontPrintLogLevel
-            << m_program << commandArgsToString(m_arguments)
-            << (processOutputEmpty ? QString() : QString::fromLatin1("\n"))
-            << processStdOut << processStdErr;
+    ProcessResult result;
+    result.binary = m_program;
+    result.arguments = m_arguments;
+    result.workingDirectory = m_process.workingDirectory();
+    if (result.workingDirectory.isEmpty())
+        result.workingDirectory = QDir::currentPath();
+    result.exitCode = m_process.exitCode();
+    result.exitStatus = m_process.exitStatus();
+    result.success = success;
+
+    QString tmp = filterProcessOutput(m_process.readAllStandardOutput(),
+                                      processCommand()->stdoutFilterFunction());
+    if (!tmp.isEmpty()) {
+        if (tmp.endsWith(QLatin1Char('\n')))
+            tmp.chop(1);
+        result.stdOut = tmp.split(QLatin1Char('\n'));
+    }
+    tmp = filterProcessOutput(m_process.readAllStandardError(),
+                              processCommand()->stderrFilterFunction());
+    if (!tmp.isEmpty()) {
+        if (tmp.endsWith(QLatin1Char('\n')))
+            tmp.chop(1);
+        result.stdErr = tmp.split(QLatin1Char('\n'));
+    }
+
+    emit reportProcessResult(result);
 }
 
 void ProcessCommandExecutor::onProcessError()
 {
+    sendProcessOutput(false);
     removeResponseFile();
-    sendProcessOutput(true);
     QString errorMessage;
     const QString binary = QDir::toNativeSeparators(processCommand()->program());
     switch (m_process.error()) {
     case QProcess::FailedToStart:
-        errorMessage = QString::fromLatin1("The process '%1' could not be started: %2").
+        errorMessage = Tr::tr("The process '%1' could not be started: %2").
                 arg(binary, m_process.errorString());
         break;
     case QProcess::Crashed:
-        errorMessage = QString::fromLatin1("The process '%1' crashed.").arg(binary);
+        errorMessage = Tr::tr("The process '%1' crashed.").arg(binary);
         break;
     case QProcess::Timedout:
-        errorMessage = QString::fromLatin1("The process '%1' timed out.").arg(binary);
+        errorMessage = Tr::tr("The process '%1' timed out.").arg(binary);
         break;
     case QProcess::ReadError:
-        errorMessage = QString::fromLatin1("Error reading process output from '%1'.").arg(binary);
+        errorMessage = Tr::tr("Error reading process output from '%1'.").arg(binary);
         break;
     case QProcess::WriteError:
-        errorMessage = QString::fromLatin1("Error writing to process '%1'.").arg(binary);
+        errorMessage = Tr::tr("Error writing to process '%1'.").arg(binary);
         break;
     default:
-        errorMessage = QString::fromLatin1("Unknown process error running '%1'.").arg(binary);
+        errorMessage = Tr::tr("Unknown process error running '%1'.").arg(binary);
         break;
     }
-    emit error(errorMessage);
+    emit error(Error(errorMessage));
 }
 
 void ProcessCommandExecutor::onProcessFinished(int exitCode)
 {
     removeResponseFile();
     const bool errorOccurred = exitCode > processCommand()->maxExitCode();
-    sendProcessOutput(errorOccurred);
+    sendProcessOutput(!errorOccurred);
+
     if (errorOccurred) {
-        QString msg = "Process failed with exit code %1.";
-        emit error(msg.arg(exitCode));
+        emit error(Error(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
         return;
     }
+
 
     emit finished();
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -26,59 +26,29 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_PROCESSRESULT_H
+#define QBS_PROCESSRESULT_H
 
-#ifndef QBS_ABSTRACTCOMMANDEXECUTOR_H
-#define QBS_ABSTRACTCOMMANDEXECUTOR_H
-
-#include <QObject>
-
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
+#include <QProcess>
+#include <QString>
+#include <QStringList>
 
 namespace qbs {
-class Error;
 
-namespace Internal {
-class AbstractCommand;
-class Transformer;
-
-class AbstractCommandExecutor : public QObject
-{
-    Q_OBJECT
+class ProcessResult {
 public:
-    explicit AbstractCommandExecutor(QObject *parent = 0);
+    bool success;
 
-    void setMainThreadScriptEngine(QScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
-    void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
+    QString binary;
+    QStringList arguments;
+    QString workingDirectory;
 
-    virtual void waitForFinished() = 0;
-
-public slots:
-    void start(Transformer *transformer, const AbstractCommand *cmd);
-
-signals:
-    void reportCommandDescription(const QString &highlight, const QString &message);
-    void error(const qbs::Error &err);
-    void finished();
-
-protected:
-    const AbstractCommand *command() const { return m_command; }
-    Transformer *transformer() const { return m_transformer; }
-    QScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
-    bool dryRun() const { return m_dryRun; }
-
-private:
-    virtual void doStart() = 0;
-
-private:
-    const AbstractCommand *m_command;
-    Transformer *m_transformer;
-    QScriptEngine *m_mainThreadScriptEngine;
-    bool m_dryRun;
+    QProcess::ExitStatus exitStatus;
+    int exitCode;
+    QStringList stdOut;
+    QStringList stdErr;
 };
 
-} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ABSTRACTCOMMANDEXECUTOR_H
+#endif // QBS_PROCESSRESULT_H

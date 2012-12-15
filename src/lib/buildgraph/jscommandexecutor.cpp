@@ -42,6 +42,7 @@
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/codelocation.h>
+#include <tools/error.h>
 
 #include <QtConcurrentRun>
 #include <QDir>
@@ -167,16 +168,14 @@ void JsCommandExecutor::doStart()
 void JsCommandExecutor::onJavaScriptCommandFinished()
 {
     JavaScriptCommandFutureResult result = m_jsFutureWatcher->future().result();
-    if (result.success) {
-        emit finished();
-    } else {
+    if (!result.success) {
         qbsDebug() << DontPrintLogLevel << "JS context:\n" << jsCommand()->properties();
         qbsDebug() << DontPrintLogLevel << "JS code:\n" << jsCommand()->sourceCode();
-        QString msg = "Error while executing JavaScriptCommand (%1:%2):\n";
+        QString msg = "Error while executing JavaScriptCommand:\n";
         msg += result.errorMessage;
-        emit error(msg.arg(QDir::toNativeSeparators(result.errorLocation.fileName))
-                .arg(result.errorLocation.line));
+        emit error(Error(msg, result.errorLocation));
     }
+    emit finished();
 }
 
 const JavaScriptCommand *JsCommandExecutor::jsCommand() const

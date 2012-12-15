@@ -41,6 +41,8 @@
 #include <QVariant>
 
 namespace qbs {
+class ProcessResult;
+
 namespace Internal {
 class AutoMoc;
 class ExecutorJob;
@@ -64,10 +66,14 @@ public:
     bool hasError() const { return !error().entries().isEmpty(); }
 
 signals:
+    void reportCommandDescription(const QString &highlight, const QString &message);
+    void reportProcessResult(const qbs::ProcessResult &result);
+    void reportWarning(const qbs::CodeLocation &location, const QString &message);
+
     void finished();
 
 private slots:
-    void onProcessError(const QString &errorString);
+    void onProcessError(const qbs::Error &err);
     void onProcessSuccess();
     void finish();
 

@@ -32,7 +32,11 @@
 
 #include "abstractcommandexecutor.h"
 
+#include <QString>
+
 namespace qbs {
+class CodeLocation;
+
 namespace Internal {
 class JavaScriptCommand;
 class JavaScriptCommandFutureWatcher;

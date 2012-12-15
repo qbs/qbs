@@ -193,14 +193,51 @@ void SetupProjectJob::resolve(const QString &projectFilePath, const QString &bui
     job->resolve(projectFilePath, buildRoot, buildConfig);
 }
 
+/*!
+ * \class ProcessResult
+ * \brief The \c ProcessResult class represents the result of one external program run by Qbs.
+ *
+ * The \c ProcessResult class represents all the information on one external program that was
+ * run by Qbs. It includes the command line used to start the program, the working directory
+ * as well as output and exit codes.
+ */
 
 /*!
  * \class BuildJob
  * \brief The \c BuildJob class represents a build operation.
  */
 
+/*!
+ * \fn void BuildJob::warning(const qbs::CodeLocation &location, const QString &message)
+ * \brief Signals that a warning was triggered by the build job
+ * The \a location parameter provides information on who triggered the warning. The
+ * \a location may be invalid. The receiver should check for this.
+ * The \a message parameter is the localized warning to print.
+ */
+
+/*!
+ * \fn void BuildJob::reportCommandDescription(const QString &highlight, const QString &message)
+ * \brief Signals that a new command is being worked on.
+ * The \a highlight parameter is used to decide on the colors and font styles to be used to
+ * print the message.
+ * The \a message parameter is the localized message to print.
+ */
+
+/*!
+ * \fn void BuildJob::reportProcessResult(const qbs::ProcessResult &result)
+ * \brief Signals that an external command has finished.
+ * The \a result parameter contains all details on the process that was run by Qbs.
+ */
+
 BuildJob::BuildJob(QObject *parent) : AbstractJob(new InternalBuildJob, parent)
 {
+    InternalBuildJob *job = static_cast<InternalBuildJob *>(internalJob());
+    connect(job, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SIGNAL(reportCommandDescription(QString,QString)));
+    connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+    connect(job, SIGNAL(reportWarning(qbs::CodeLocation,QString)),
+            this, SIGNAL(reportWarning(qbs::CodeLocation,QString)));
 }
 
 void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions &options)

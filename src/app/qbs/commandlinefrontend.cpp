@@ -112,6 +112,25 @@ void CommandLineFrontend::start()
     }
 }
 
+static QHash<QString, TextColor> setupColorTable()
+{
+    QHash<QString, TextColor> colorTable;
+    colorTable["compiler"] = TextColorDefault;
+    colorTable["linker"] = TextColorDarkGreen;
+    colorTable["codegen"] = TextColorDarkYellow;
+    colorTable["filegen"] = TextColorDarkYellow;
+    return colorTable;
+}
+
+void CommandLineFrontend::handleCommandDescriptionReport(const QString &highlight, const QString &message)
+{
+    if (!message.isEmpty()) {
+        static QHash<QString, TextColor> colorTable = setupColorTable();
+        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
+                  << colorTable.value(highlight, TextColorDefault) << message;
+    }
+}
+
 void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
 {
     job->deleteLater();
@@ -167,6 +186,28 @@ void CommandLineFrontend::handleTaskProgress(int value, AbstractJob *job)
     } else if (!resolvingMultipleProjects()) {
         m_observer->setProgressValue(value);
     }
+}
+
+void CommandLineFrontend::handleWarningReport(const qbs::CodeLocation &loc, const QString &msg)
+{
+    if (loc.isValid())
+        qbsWarning() << loc.fileName << QString::fromLatin1(":") << loc.line << QString::fromLatin1(":")  << msg;
+    else
+        qbsWarning() << msg;
+}
+
+void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &result)
+{
+    bool hasOutput = !result.stdOut.isEmpty() || !result.stdErr.isEmpty();
+    if (!hasOutput && result.success)
+        return;
+
+    (result.success ? qbsInfo() : qbsError())
+            << DontPrintLogLevel
+            << result.binary << result.arguments.join(QLatin1String(" "))
+            << (hasOutput ? QString::fromLatin1("\n") : QString())
+            << (result.stdOut.isEmpty() ? QString() : result.stdOut.join(QLatin1String("\n")))
+            << (result.stdErr.isEmpty() ? QString() : result.stdErr.join(QLatin1String("\n")));
 }
 
 bool CommandLineFrontend::resolvingMultipleProjects() const
@@ -340,7 +381,23 @@ void CommandLineFrontend::updateTimestamps()
 void CommandLineFrontend::connectBuildJobs()
 {
     foreach (AbstractJob * const job, m_buildJobs)
-        connectJob(job);
+        connectBuildJob(job);
+}
+
+void CommandLineFrontend::connectBuildJob(AbstractJob *job)
+{
+    connectJob(job);
+
+    BuildJob *bjob = qobject_cast<BuildJob *>(job);
+    if (!bjob)
+        return;
+
+    connect(bjob, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SLOT(handleCommandDescriptionReport(QString,QString)));
+    connect(bjob, SIGNAL(reportWarning(qbs::CodeLocation,QString)),
+            this, SLOT(handleWarningReport(qbs::CodeLocation,QString)));
+    connect(bjob, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+            this, SLOT(handleProcessResultReport(qbs::ProcessResult)));
 }
 
 void CommandLineFrontend::connectJob(AbstractJob *job)

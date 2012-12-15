@@ -39,6 +39,7 @@
 #include <QWaitCondition>
 
 namespace qbs {
+class ProcessResult;
 
 namespace Internal {
 class Executor;
@@ -107,6 +108,11 @@ class BuildGraphTouchingJob : public InternalJob
     Q_OBJECT
 public:
     const QList<BuildProductPtr> &products() const { return m_products; }
+
+signals:
+    void reportCommandDescription(const QString &highlight, const QString &message);
+    void reportProcessResult(const qbs::ProcessResult &result);
+    void reportWarning(const qbs::CodeLocation &location, const QString &message);
 
 protected:
     BuildGraphTouchingJob(QObject *parent = 0);

@@ -40,6 +40,7 @@
 namespace qbs {
 class AbstractJob;
 class ConsoleProgressObserver;
+class ProcessResult;
 
 class CommandLineFrontend : public QObject
 {
@@ -51,9 +52,12 @@ public:
 
 private slots:
     void start();
+    void handleCommandDescriptionReport(const QString &highlight, const QString &message);
     void handleJobFinished(bool success, qbs::AbstractJob *job);
     void handleNewTaskStarted(const QString &description, int totalEffort);
     void handleTaskProgress(int value, qbs::AbstractJob *job);
+    void handleWarningReport(const qbs::CodeLocation &loc, const QString &msg);
+    void handleProcessResultReport(const qbs::ProcessResult &result);
 
 private:
     typedef QHash<Project, QList<ProductData> > ProductMap;
@@ -69,6 +73,7 @@ private:
     int runTarget();
     void updateTimestamps();
     void connectBuildJobs();
+    void connectBuildJob(AbstractJob *job);
     void connectJob(AbstractJob *job);
     void checkForExactlyOneProduct();
 

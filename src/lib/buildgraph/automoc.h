@@ -32,6 +32,8 @@
 
 #include "forward_decls.h"
 
+#include <QObject>
+
 struct ScannerPlugin;
 
 namespace qbs {
@@ -46,13 +48,18 @@ class ScanResultCache;
   *
   * This whole thing is an ugly hack, I know.
   */
-class AutoMoc
+class AutoMoc : public QObject
 {
+    Q_OBJECT
+
 public:
-    AutoMoc();
+    AutoMoc(QObject *parent = 0);
 
     void setScanResultCache(ScanResultCache *scanResultCache);
     void apply(const BuildProductPtr &product);
+
+signals:
+    void reportCommandDescription(const QString &highlight, const QString &message);
 
 private:
     enum FileType

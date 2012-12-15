@@ -35,6 +35,7 @@
 #include "processcommandexecutor.h"
 #include "transformer.h"
 #include <language/language.h>
+#include <tools/error.h>
 
 #include <QThread>
 
@@ -46,9 +47,17 @@ ExecutorJob::ExecutorJob(QObject *parent)
     , m_processCommandExecutor(new ProcessCommandExecutor(this))
     , m_jsCommandExecutor(new JsCommandExecutor(this))
 {
-    connect(m_processCommandExecutor, SIGNAL(error(QString)), SLOT(onCommandError(QString)));
+    connect(m_processCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SIGNAL(reportCommandDescription(QString,QString)));
+    connect(m_processCommandExecutor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+    connect(m_processCommandExecutor, SIGNAL(error(qbs::Error)),
+            this, SLOT(onCommandError(qbs::Error)));
     connect(m_processCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
-    connect(m_jsCommandExecutor, SIGNAL(error(QString)), SLOT(onCommandError(QString)));
+    connect(m_jsCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SIGNAL(reportCommandDescription(QString,QString)));
+    connect(m_jsCommandExecutor, SIGNAL(error(qbs::Error)),
+            this, SLOT(onCommandError(qbs::Error)));
     connect(m_jsCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
     setInactive();
 }
@@ -122,10 +131,10 @@ void ExecutorJob::runNextCommand()
     m_currentCommandExecutor->start(m_transformer, command);
 }
 
-void ExecutorJob::onCommandError(QString errorString)
+void ExecutorJob::onCommandError(const Error &err)
 {
     setInactive();
-    emit error(errorString);
+    emit error(err);
 }
 
 void ExecutorJob::onCommandFinished()

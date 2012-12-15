@@ -38,6 +38,7 @@
 #include <buildgraph/transformer.h>
 #include <language/language.h>
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
@@ -68,8 +69,9 @@ static void freeCFileTags(char **cFileTags, int numFileTags)
     delete[] cFileTags;
 }
 
-AutoMoc::AutoMoc()
-    : m_scanResultCache(0)
+AutoMoc::AutoMoc(QObject *parent)
+    : QObject(parent)
+    , m_scanResultCache(0)
 {
 }
 
@@ -156,7 +158,9 @@ void AutoMoc::apply(const BuildProductPtr &product)
     if (pchFile)
         artifactsPerFileTag[QLatin1String("c++_pch")] += pchFile;
     if (!artifactsPerFileTag.isEmpty()) {
-        qbsInfo() << DontPrintLogLevel << "Applying moc rules for '" << product->rProduct->name << "'.";
+        emit reportCommandDescription(QLatin1String("automoc"),
+                                      Tr::tr("Applying moc rules for '%1'.")
+                                      .arg(product->rProduct->name));
         RulesApplicator(product.data(), artifactsPerFileTag).applyAllRules();
     }
     if (pluginHeaderFile && pluginMetaDataFile) {
