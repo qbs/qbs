@@ -258,7 +258,7 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
             return command;
         }
     }
-    throw Error(Tr::tr("No such command '%1'.\n%2").arg(commandString), generalHelp());
+    throw Error(Tr::tr("No such command '%1'.\n%2").arg(commandString, generalHelp()));
 }
 
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const
