@@ -19,6 +19,7 @@ Module {
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
+    property bool frameworkBuild: qbs.targetOS === 'mac'
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: {
         if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
@@ -41,7 +42,7 @@ Module {
     }
     cpp.includePaths: {
         var paths = [mkspecPath];
-        if (qbs.targetOS === "mac")
+        if (frameworkBuild)
             paths.push(libPath + '/QtCore' + libInfix + '.framework/Versions/' + versionMajor + '/Headers');
         paths.push(incPath + '/QtCore');
         paths.push(incPath);
@@ -53,9 +54,9 @@ Module {
         if (qbs.targetOS === 'windows' && !product.consoleApplication)
             return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (qbs.toolchain !== "mingw" ? ".lib" : "")];
     }
-    cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)] : undefined
-    cpp.frameworkPaths: qbs.targetOS === 'mac' ? [libPath] : undefined
-    cpp.frameworks: qbs.targetOS === 'mac' ? [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)] : undefined
+    cpp.dynamicLibraries: frameworkBuild ? undefined : [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)]
+    cpp.frameworkPaths: frameworkBuild ? [libPath] : undefined
+    cpp.frameworks: frameworkBuild ? [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)] : undefined
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
     cpp.cxxFlags: {

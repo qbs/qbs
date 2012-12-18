@@ -26,13 +26,13 @@ Module {
             var paths = [incPath, modulePath];
             if (qt.core.versionMajor >= 5)
                 paths.unshift(FileInfo.joinPaths(modulePath, qtVersion, includeDirName));
-            if (qbs.targetOS === "mac")
+            if (qt.core.frameworkBuild)
                 paths.unshift(libPath + '/' + includeDirName + qtLibInfix + '.framework/Versions/' + qt.core.versionMajor + '/Headers');
             return paths;
         }
 
-        cpp.dynamicLibraries: qbs.targetOS !== 'mac' ? [internalLibraryName] : undefined
-        cpp.frameworks: qbs.targetOS === 'mac' ? [internalLibraryName] : undefined
+        cpp.dynamicLibraries: qt.core.frameworkBuild ? undefined : [internalLibraryName]
+        cpp.frameworks: qt.core.frameworkBuild ? [internalLibraryName] : undefined
         cpp.defines: [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
     }
 }
