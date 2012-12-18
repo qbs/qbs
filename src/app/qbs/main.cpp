@@ -58,25 +58,30 @@ int main(int argc, char *argv[])
 {
     ConsoleLogger cl;
 
-    Application app(argc, argv);
-    QStringList arguments = app.arguments();
-    arguments.removeFirst();
+    try {
+        Application app(argc, argv);
+        QStringList arguments = app.arguments();
+        arguments.removeFirst();
 
-    int toolExitCode = 0;
-    if (tryToRunTool(arguments, toolExitCode))
-        return toolExitCode;
+        int toolExitCode = 0;
+        if (tryToRunTool(arguments, toolExitCode))
+            return toolExitCode;
 
-    CommandLineParser parser;
-    if (!parser.parseCommandLine(arguments))
+        CommandLineParser parser;
+        if (!parser.parseCommandLine(arguments))
+            return EXIT_FAILURE;
+
+        if (parser.command() == HelpCommandType) {
+            parser.printHelp();
+            return 0;
+        }
+
+        CommandLineFrontend clFrontend(parser);
+        app.setCommandLineFrontend(&clFrontend);
+        QTimer::singleShot(0, &clFrontend, SLOT(start()));
+        return app.exec();
+    } catch (const Error &error) {
+        qbsError() << error.toString();
         return EXIT_FAILURE;
-
-    if (parser.command() == HelpCommandType) {
-        parser.printHelp();
-        return 0;
     }
-
-    CommandLineFrontend clFrontend(parser);
-    app.setCommandLineFrontend(&clFrontend);
-    QTimer::singleShot(0, &clFrontend, SLOT(start()));
-    return app.exec();
 }
