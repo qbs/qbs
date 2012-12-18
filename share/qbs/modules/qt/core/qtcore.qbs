@@ -5,6 +5,8 @@ import "moc.js" 1.0 as Moc
 import '../qtfunctions.js' as QtFunctions
 
 Module {
+    id: qtcore
+
     Depends { name: "cpp" }
 
     property string namespace
@@ -54,9 +56,9 @@ Module {
         if (qbs.targetOS === 'windows' && !product.consoleApplication)
             return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (qbs.toolchain !== "mingw" ? ".lib" : "")];
     }
-    cpp.dynamicLibraries: frameworkBuild ? undefined : [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)]
+    cpp.dynamicLibraries: frameworkBuild ? undefined : [QtFunctions.getLibraryName('Core' + libInfix, qtcore, qbs)]
     cpp.frameworkPaths: frameworkBuild ? [libPath] : undefined
-    cpp.frameworks: frameworkBuild ? [QtFunctions.getLibraryName('Core' + libInfix, versionMajor, qbs)] : undefined
+    cpp.frameworks: frameworkBuild ? [QtFunctions.getLibraryName('Core' + libInfix, qtcore, qbs)] : undefined
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
     cpp.cxxFlags: {
