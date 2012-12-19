@@ -295,6 +295,7 @@ void LogLevelOption::doParse(const QString &representation, QStringList &input)
 
 QString AllArtifactsOption::description(CommandType command) const
 {
+    Q_UNUSED(command);
     Q_ASSERT(command == CleanCommandType);
     return Tr::tr("%1\n\tRemove all build artifacts, not just intermediate ones.\n")
             .arg(longRepresentation());
