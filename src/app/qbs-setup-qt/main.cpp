@@ -68,8 +68,12 @@ int main(int argc, char *argv[])
 
                 foreach (const QtEnviroment &qtEnvironment, qtEnvironments) {
                     QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
-                    if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments))
-                        profileName += QLatin1String("-") + qtEnvironment.installPrefixPath.split("/").last();
+                    if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
+                        QStringList prefixPathParts = qtEnvironment.installPrefixPath.split("/", QString::SkipEmptyParts);
+                        if (!prefixPathParts.isEmpty())
+                            profileName += QLatin1String("-") + prefixPathParts.last();
+                    }
+
                     SetupQt::saveToQbsSettings(profileName, qtEnvironment);
                 }
             } else {
