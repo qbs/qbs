@@ -192,7 +192,7 @@ void SpecialPlatformsSetup::writeConfigFile(const PlatformInfo &platformInfo,
     settings.setValue(QLatin1String("libPath"),
         platformInfo.sysrootDir + QLatin1String("/usr/lib"));
     settings.setValue(QLatin1String("incPath"), platformInfo.qtIncDir);
-    settings.setValue(QLatin1String("mkspec"), platformInfo.qtMkspecPath);
+    settings.setValue(QLatin1String("mkspecPath"), platformInfo.qtMkspecPath);
     settings.setValue(QLatin1String("namespace"), QString());
     settings.setValue(QLatin1String("libInfix"), QString());
     settings.endGroup();
