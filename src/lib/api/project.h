@@ -61,6 +61,7 @@ class Project
 public:
     static SetupProjectJob *setupProject(const QString &projectFilePath,
             const QVariantMap &buildConfig, const QString &buildRoot, QObject *jobOwner);
+    static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig);
 
     Project(const Project &other);
     Project &operator=(const Project &other);

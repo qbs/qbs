@@ -79,93 +79,6 @@ static void loadPlugins()
 }
 
 
-static QVariantMap expandedBuildConfiguration(const QVariantMap &userBuildConfig)
-{
-    QHash<QString, Platform::Ptr > platforms = Platform::platforms();
-    if (platforms.isEmpty())
-        throw Error(Tr::tr("No platforms configured. You must run 'qbs platforms probe' first."));
-
-    Settings settings;
-    QVariantMap expandedConfig = userBuildConfig;
-
-    // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
-    // 1) Things specified on command line (already in buildCfg at this point)
-    // 2) Everything from the profile key (in reverse order)
-    // 3) Everything from the platform
-    // 4) Any remaining keys from modules keyspace
-    QString profileName = expandedConfig.value("qbs.profile").toString();
-    if (profileName.isNull()) {
-        profileName = settings.value("profile").toString();
-        if (profileName.isNull())
-            throw Error(Tr::tr("No profile given.\n"
-                           "Either set the configuration value 'profile' to a valid profile's name\n"
-                           "or specify the profile with the command line parameter 'profile:name'."));
-        expandedConfig.insert("qbs.profile", profileName);
-    }
-
-    // (2)
-    const QString profileGroup = QString("profiles/%1").arg(profileName);
-    const QStringList profileKeys = settings.allKeysWithPrefix(profileGroup);
-    if (profileKeys.isEmpty())
-        throw Error(Tr::tr("Unknown profile '%1'.").arg(profileName));
-    foreach (const QString &profileKey, profileKeys) {
-        QString fixedKey(profileKey);
-        fixedKey.replace(QChar('/'), QChar('.'));
-        if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings.value(profileGroup + "/" + profileKey));
-    }
-
-    // (3) Need to make sure we have a value for qbs.platform before going any further
-    QVariant platformName = expandedConfig.value("qbs.platform");
-    if (!platformName.isValid()) {
-        platformName = settings.moduleValue("qbs/platform", profileName);
-        if (!platformName.isValid())
-            throw Error(Tr::tr("No platform given and no default set."));
-        expandedConfig.insert("qbs.platform", platformName);
-    }
-    Platform::Ptr platform = platforms.value(platformName.toString());
-    if (platform.isNull())
-        throw Error(Tr::tr("Unknown platform '%1'.").arg(platformName.toString()));
-    foreach (const QString &key, platform->settings.allKeys()) {
-        if (key.startsWith(Platform::internalKey()))
-            continue;
-        QString fixedKey = key;
-        int idx = fixedKey.lastIndexOf(QChar('/'));
-        if (idx > 0)
-            fixedKey[idx] = QChar('.');
-        if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, platform->settings.value(key));
-    }
-    // Now finally do (4)
-    foreach (const QString &defaultKey, settings.allKeysWithPrefix("modules")) {
-        QString fixedKey(defaultKey);
-        fixedKey.replace(QChar('/'), QChar('.'));
-        if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings.value(QString("modules/") + defaultKey));
-    }
-
-    if (!expandedConfig.value("qbs.buildVariant").isValid())
-        throw Error(Tr::tr("Property 'qbs.buildVariant' missing in build configuration."));
-
-    foreach (const QString &property, expandedConfig.keys()) {
-        QStringList nameElements = property.split('.');
-        if (nameElements.count() == 1 && nameElements.first() != "project") // ### Still need this because platform doesn't supply fully-qualified properties (yet), need to fix this
-            nameElements.prepend("qbs");
-        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
-            QStringList allButLast = nameElements;
-            allButLast.removeLast();
-            QStringList newElements(allButLast.join("/"));
-            newElements.append(nameElements.last());
-            nameElements = newElements;
-        }
-        setConfigProperty(expandedConfig, nameElements, expandedConfig.value(property));
-        expandedConfig.remove(property);
-    }
-
-    return expandedConfig;
-}
-
-
 class ProjectPrivate : public QSharedData
 {
 public:
@@ -330,8 +243,100 @@ SetupProjectJob *Project::setupProject(const QString &projectFilePath,
 {
     loadPlugins();
     SetupProjectJob * const job = new SetupProjectJob(jobOwner);
-    job->resolve(projectFilePath, buildRoot, expandedBuildConfiguration(buildConfig));
+    job->resolve(projectFilePath, buildRoot, expandBuildConfiguration(buildConfig));
     return job;
+}
+
+/*!
+ * \brief Project::expandBuildConfiguration generates a full build configuration from user input
+ * \param buildConfig is the base build configuration that will be expanded with settings from the
+ * configuration
+ * \return The expanded build configuration
+ */
+QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
+{
+    QHash<QString, Platform::Ptr > platforms = Platform::platforms();
+    if (platforms.isEmpty())
+        throw Error(Tr::tr("No platforms configured. You must run 'qbs platforms probe' first."));
+
+    Settings settings;
+    QVariantMap expandedConfig = buildConfig;
+
+    // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
+    // 1) Things specified on command line (already in buildCfg at this point)
+    // 2) Everything from the profile key (in reverse order)
+    // 3) Everything from the platform
+    // 4) Any remaining keys from modules keyspace
+    QString profileName = expandedConfig.value("qbs.profile").toString();
+    if (profileName.isNull()) {
+        profileName = settings.value("profile").toString();
+        if (profileName.isNull())
+            throw Error(Tr::tr("No profile given.\n"
+                           "Either set the configuration value 'profile' to a valid profile's name\n"
+                           "or specify the profile with the command line parameter 'profile:name'."));
+        expandedConfig.insert("qbs.profile", profileName);
+    }
+
+    // (2)
+    const QString profileGroup = QString("profiles/%1").arg(profileName);
+    const QStringList profileKeys = settings.allKeysWithPrefix(profileGroup);
+    if (profileKeys.isEmpty())
+        throw Error(Tr::tr("Unknown profile '%1'.").arg(profileName));
+    foreach (const QString &profileKey, profileKeys) {
+        QString fixedKey(profileKey);
+        fixedKey.replace(QChar('/'), QChar('.'));
+        if (!expandedConfig.contains(fixedKey))
+            expandedConfig.insert(fixedKey, settings.value(profileGroup + "/" + profileKey));
+    }
+
+    // (3) Need to make sure we have a value for qbs.platform before going any further
+    QVariant platformName = expandedConfig.value("qbs.platform");
+    if (!platformName.isValid()) {
+        platformName = settings.moduleValue("qbs/platform", profileName);
+        if (!platformName.isValid())
+            throw Error(Tr::tr("No platform given and no default set."));
+        expandedConfig.insert("qbs.platform", platformName);
+    }
+    Platform::Ptr platform = platforms.value(platformName.toString());
+    if (platform.isNull())
+        throw Error(Tr::tr("Unknown platform '%1'.").arg(platformName.toString()));
+    foreach (const QString &key, platform->settings.allKeys()) {
+        if (key.startsWith(Platform::internalKey()))
+            continue;
+        QString fixedKey = key;
+        int idx = fixedKey.lastIndexOf(QChar('/'));
+        if (idx > 0)
+            fixedKey[idx] = QChar('.');
+        if (!expandedConfig.contains(fixedKey))
+            expandedConfig.insert(fixedKey, platform->settings.value(key));
+    }
+    // Now finally do (4)
+    foreach (const QString &defaultKey, settings.allKeysWithPrefix("modules")) {
+        QString fixedKey(defaultKey);
+        fixedKey.replace(QChar('/'), QChar('.'));
+        if (!expandedConfig.contains(fixedKey))
+            expandedConfig.insert(fixedKey, settings.value(QString("modules/") + defaultKey));
+    }
+
+    if (!expandedConfig.value("qbs.buildVariant").isValid())
+        throw Error(Tr::tr("Property 'qbs.buildVariant' missing in build configuration."));
+
+    foreach (const QString &property, expandedConfig.keys()) {
+        QStringList nameElements = property.split('.');
+        if (nameElements.count() == 1 && nameElements.first() != "project") // ### Still need this because platform doesn't supply fully-qualified properties (yet), need to fix this
+            nameElements.prepend("qbs");
+        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
+            QStringList allButLast = nameElements;
+            allButLast.removeLast();
+            QStringList newElements(allButLast.join("/"));
+            newElements.append(nameElements.last());
+            nameElements = newElements;
+        }
+        setConfigProperty(expandedConfig, nameElements, expandedConfig.value(property));
+        expandedConfig.remove(property);
+    }
+
+    return expandedConfig;
 }
 
 /*!
