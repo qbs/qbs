@@ -1,6 +1,7 @@
 .qbs
 build
 *.dll
+*.dylib
 *.exe
 *.exp
 *.ilk
@@ -22,5 +23,6 @@ Makefile*
 testOptions
 testTools
 
+*.app/
 bin/*
 doc/html/*
