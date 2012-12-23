@@ -53,7 +53,6 @@ private:
     int m_value;
     int m_percentage;
     int m_hashesPrinted;
-    bool m_showProgress;
 };
 
 } // namespace qbs
