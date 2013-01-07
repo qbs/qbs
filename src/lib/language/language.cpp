@@ -84,6 +84,13 @@ PropertyMap::PropertyMap(const PropertyMap &other)
 {
 }
 
+QVariant PropertyMap::qbsPropertyValue(const QString &key)
+{
+    const QStringList fullKey
+            = QStringList() << QLatin1String("modules") << QLatin1String("qbs") << key;
+    return getConfigProperty(value(), fullKey);
+}
+
 void PropertyMap::setValue(const QVariantMap &map)
 {
     m_value = map;

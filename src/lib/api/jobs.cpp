@@ -259,4 +259,18 @@ void CleanJob::clean(const QList<BuildProductPtr> &products,
     qobject_cast<InternalCleanJob *>(internalJob())->clean(products, options, cleanAll);
 }
 
+/*!
+ * \class InstallJob
+ * \brief The \c InstallJob class represents an operation installing files.
+ */
+
+InstallJob::InstallJob(QObject *parent) : AbstractJob(new InternalInstallJob, parent)
+{
+}
+
+void InstallJob::install(const QList<BuildProductPtr> &products, const InstallOptions &options)
+{
+    qobject_cast<InternalInstallJob *>(internalJob())->install(products, options);
+}
+
 } // namespace qbs

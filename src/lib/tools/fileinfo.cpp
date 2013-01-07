@@ -343,11 +343,11 @@ bool removeDirectoryWithContents(const QString &path, QString *errorMessage)
 bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
     QString *errorMessage)
 {
-    QFileInfo srcFileInfo(srcFilePath);
+    FileInfo srcFileInfo(srcFilePath);
     if (srcFileInfo.isDir()) {
         QDir targetDir(tgtFilePath);
         targetDir.cdUp();
-        if (!targetDir.mkpath(QFileInfo(tgtFilePath).fileName())) {
+        if (!targetDir.mkpath(FileInfo::fileName(tgtFilePath))) {
             *errorMessage = Tr::tr("The directory '%1' could not be created.")
                .arg(QDir::toNativeSeparators(tgtFilePath));
             return false;
@@ -362,7 +362,15 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
                 return false;
         }
     } else {
+        FileInfo tgtFileInfo(tgtFilePath);
+        if (tgtFileInfo.exists() && srcFileInfo.lastModified() <= tgtFileInfo.lastModified())
+            return true;
         QFile file(srcFilePath);
+        QFile targetFile(tgtFilePath);
+        if (targetFile.exists() && !targetFile.remove()) {
+            *errorMessage = Tr::tr("Could not remove file '%1'. %2")
+                .arg(QDir::toNativeSeparators(tgtFilePath), targetFile.errorString());
+        }
         if (!file.copy(tgtFilePath)) {
             *errorMessage = Tr::tr("Could not copy file '%1' to '%2'. %3")
                 .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath),

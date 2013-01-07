@@ -47,7 +47,8 @@ public:
         ShowProgressOptionType,
         ChangedFilesOptionType,
         ProductsOptionType,
-        AllArtifactsOptionType
+        AllArtifactsOptionType,
+        InstallRootOptionType, RemoveFirstOptionType
     };
 
     virtual ~CommandLineOption();
@@ -209,6 +210,29 @@ private:
     void doParse(const QString &representation, QStringList &input);
 
     int m_logLevel;
+};
+
+class InstallRootOption : public CommandLineOption
+{
+public:
+    QString installRoot() const { return m_installRoot; }
+
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+
+private:
+    void doParse(const QString &representation, QStringList &input);
+
+    QString m_installRoot;
+};
+
+class RemoveFirstOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
 };
 
 } // namespace qbs

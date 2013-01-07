@@ -1,9 +1,8 @@
 Product {
-    type: "installed_content"
     Group {
-        fileTags: "install"
         files: "dir/*"
         recursive: true
+        qbs.install: true
         qbs.installDir: "dir"
     }
 }

@@ -34,6 +34,7 @@
 #include <buildgraph/buildproduct.h>
 #include <buildgraph/buildproject.h>
 #include <buildgraph/executor.h>
+#include <buildgraph/productinstaller.h>
 #include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/loader.h>
@@ -298,6 +299,43 @@ void InternalCleanJob::doClean()
     storeBuildGraph();
 }
 
+
+InternalInstallJob::InternalInstallJob(QObject *parent) : InternalJob(parent)
+{
+}
+
+InternalInstallJob::~InternalInstallJob()
+{
+}
+
+void InternalInstallJob::install(const QList<BuildProductPtr> &products,
+                                 const InstallOptions &options)
+{
+    m_products = products;
+    m_options = options;
+    QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
+}
+
+void InternalInstallJob::handleFinished()
+{
+    emit finished(this);
+}
+
+void InternalInstallJob::start()
+{
+    QFutureWatcher<void> * const watcher = new QFutureWatcher<void>(this);
+    connect(watcher, SIGNAL(finished()), SLOT(handleFinished()));
+    watcher->setFuture(QtConcurrent::run(this, &InternalInstallJob::doInstall));
+}
+
+void InternalInstallJob::doInstall()
+{
+    try {
+        ProductInstaller(m_products, m_options, observer()).install();
+    } catch (const Error &error) {
+        setError(error);
+    }
+}
 
 ErrorJob::ErrorJob(QObject *parent) : InternalJob(parent)
 {

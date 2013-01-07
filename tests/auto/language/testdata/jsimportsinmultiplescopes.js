@@ -6,7 +6,7 @@ function getName(qbsModule)
         return "MyProduct";
 }
 
-function getInstallPrefix()
+function getInstallDir()
 {
     return "somewhere";
 }

@@ -52,6 +52,8 @@ public:
     JobsOption *jobsOption() const;
     ProductsOption *productsOption() const;
     AllArtifactsOption *allArtifactsOption() const;
+    InstallRootOption *installRootOption() const;
+    RemoveFirstOption *removeFirstoption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

@@ -31,6 +31,7 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/installoptions.h>
 
 namespace qbs {
 using namespace Internal;
@@ -233,12 +234,15 @@ QString ChangedFilesOption::longRepresentation() const
 QString ProductsOption::description(CommandType command) const
 {
     const QString prefix = Tr::tr("%1|%2").arg(longRepresentation(), shortRepresentation());
-    if (command == ShellCommandType || command == RunCommandType) {
-        return Tr::tr("%1 <name>\n"
-                      "\tUse the specified product.\n").arg(prefix);
+    switch (command) {
+    case InstallCommandType:
+    case RunCommandType:
+    case ShellCommandType:
+        return Tr::tr("%1 <name>\n\tUse the specified product.\n").arg(prefix);
+    default:
+        return Tr::tr("%1 <name>[,<name>...]\n"
+                      "\tTake only the specified products into account.\n").arg(prefix);
     }
-    return Tr::tr("%1 <name>[,<name>...]\n"
-                  "\tTake only the specified products into account.\n").arg(prefix);
 }
 
 QString ProductsOption::shortRepresentation() const
@@ -304,6 +308,44 @@ QString AllArtifactsOption::description(CommandType command) const
 QString AllArtifactsOption::longRepresentation() const
 {
     return QLatin1String("--all-artifacts");
+}
+
+QString InstallRootOption::description(CommandType command) const
+{
+    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
+    Q_UNUSED(command);
+    return Tr::tr("%1 <directory>\n"
+                  "\tInstall into the given directory. The default value is qbs.sysroot, "
+                  "if it is defined; otherwise '<build dir>/%2' is used.\n"
+                  "\tIf the directory does not exist, it will be created.\n")
+            .arg(longRepresentation(), InstallOptions::defaultInstallRoot());
+}
+
+QString InstallRootOption::longRepresentation() const
+{
+    return QLatin1String("--install-root");
+}
+
+void InstallRootOption::doParse(const QString &representation, QStringList &input)
+{
+    if (input.isEmpty()) {
+        throw Error(Tr::tr("Invalid use of option '%1: Argument expected.\n"
+                           "Usage: %2").arg(representation, description(command())));
+    }
+    m_installRoot = input.takeFirst();
+}
+
+QString RemoveFirstOption::description(CommandType command) const
+{
+    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tRemove the installation base directory before installing.\n")
+            .arg(longRepresentation());
+}
+
+QString RemoveFirstOption::longRepresentation() const
+{
+    return QLatin1String("--remove-first");
 }
 
 } // namespace qbs

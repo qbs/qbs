@@ -26,56 +26,36 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "commandpool.h"
+#ifndef QBS_PRODUCT_INSTALLER_H
+#define QBS_PRODUCT_INSTALLER_H
 
-#include "command.h"
+#include "forward_decls.h"
+#include <tools/installoptions.h>
+
+#include <QList>
 
 namespace qbs {
+namespace Internal {
+class ProgressObserver;
 
-CommandPool::CommandPool(CommandLineOptionPool &optionPool) : m_optionPool(optionPool)
+class ProductInstaller
 {
-}
+public:
+    ProductInstaller(const QList<BuildProductPtr> &products, const InstallOptions &options,
+                     ProgressObserver *observer);
+    void install();
 
-CommandPool::~CommandPool()
-{
-    qDeleteAll(m_commands);
-}
+private:
+    void removeInstallRoot();
+    void copyFile(const Artifact *artifact);
+    void handleError(const QString &message);
 
-qbs::Command *CommandPool::getCommand(CommandType type) const
-{
-    Command *& command = m_commands[type];
-    if (!command) {
-        switch (type) {
-        case BuildCommandType:
-            command = new BuildCommand(m_optionPool);
-            break;
-        case CleanCommandType:
-            command = new CleanCommand(m_optionPool);
-            break;
-        case RunCommandType:
-            command = new RunCommand(m_optionPool);
-            break;
-        case ShellCommandType:
-            command = new ShellCommand(m_optionPool);
-            break;
-        case PropertiesCommandType:
-            command = new PropertiesCommand(m_optionPool);
-            break;
-        case StatusCommandType:
-            command = new StatusCommand(m_optionPool);
-            break;
-        case UpdateTimestampsCommandType:
-            command = new UpdateTimestampsCommand(m_optionPool);
-            break;
-        case InstallCommandType:
-            command = new InstallCommand(m_optionPool);
-            break;
-        case HelpCommandType:
-            command = new HelpCommand(m_optionPool);
-            break;
-        }
-    }
-    return command;
-}
+    const QList<BuildProductPtr> m_products;
+    InstallOptions m_options;
+    ProgressObserver * const m_observer;
+};
 
+} // namespace Internal
 } // namespace qbs
+
+#endif // Header guard

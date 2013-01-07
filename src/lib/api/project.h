@@ -44,6 +44,8 @@ namespace qbs {
 class BuildJob;
 class BuildOptions;
 class CleanJob;
+class InstallJob;
+class InstallOptions;
 class ProductData;
 class ProjectData;
 class RunEnvironment;
@@ -68,7 +70,8 @@ public:
     ~Project();
 
     ProjectData projectData() const;
-    QString targetExecutable(const ProductData &product) const;
+    QString targetExecutable(const ProductData &product,
+                             const QString &installRoot = QString()) const;
     RunEnvironment getRunEnvironment(const ProductData &product,
                                      const QProcessEnvironment &environment) const;
 
@@ -86,6 +89,12 @@ public:
                                 CleanType cleanType, QObject *jobOwner = 0) const;
     CleanJob *cleanOneProduct(const ProductData &product, const BuildOptions &options,
                               CleanType cleanType, QObject *jobOwner = 0) const;
+
+    InstallJob *installAllProducts(const InstallOptions &options, QObject *jobOwner = 0) const;
+    InstallJob *installSomeProducts(const QList<ProductData> &products,
+                                    const InstallOptions &options, QObject *jobOwner = 0) const;
+    InstallJob *installOneProduct(const ProductData &product, const InstallOptions &options,
+                                  QObject *jobOwner = 0) const;
 
     void updateTimestamps(const QList<ProductData> &products);
 

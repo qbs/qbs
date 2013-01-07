@@ -73,6 +73,12 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::AllArtifactsOptionType:
             option = new AllArtifactsOption;
             break;
+        case CommandLineOption::InstallRootOptionType:
+            option = new InstallRootOption;
+            break;
+        case CommandLineOption::RemoveFirstOptionType:
+            option = new RemoveFirstOption;
+            break;
         }
     }
     return option;
@@ -131,6 +137,16 @@ ProductsOption *CommandLineOptionPool::productsOption() const
 AllArtifactsOption *CommandLineOptionPool::allArtifactsOption() const
 {
     return static_cast<AllArtifactsOption *>(getOption(CommandLineOption::AllArtifactsOptionType));
+}
+
+InstallRootOption *CommandLineOptionPool::installRootOption() const
+{
+    return static_cast<InstallRootOption *>(getOption(CommandLineOption::InstallRootOptionType));
+}
+
+RemoveFirstOption *CommandLineOptionPool::removeFirstoption() const
+{
+    return static_cast<RemoveFirstOption *>(getOption(CommandLineOption::RemoveFirstOptionType));
 }
 
 } // namespace qbs

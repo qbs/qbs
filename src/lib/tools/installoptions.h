@@ -26,56 +26,25 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "commandpool.h"
+#ifndef QBS_INSTALLOPTIONS_H
+#define QBS_INSTALLOPTIONS_H
 
-#include "command.h"
+#include <QString>
 
 namespace qbs {
 
-CommandPool::CommandPool(CommandLineOptionPool &optionPool) : m_optionPool(optionPool)
+class InstallOptions
 {
-}
+public:
+    InstallOptions();
 
-CommandPool::~CommandPool()
-{
-    qDeleteAll(m_commands);
-}
-
-qbs::Command *CommandPool::getCommand(CommandType type) const
-{
-    Command *& command = m_commands[type];
-    if (!command) {
-        switch (type) {
-        case BuildCommandType:
-            command = new BuildCommand(m_optionPool);
-            break;
-        case CleanCommandType:
-            command = new CleanCommand(m_optionPool);
-            break;
-        case RunCommandType:
-            command = new RunCommand(m_optionPool);
-            break;
-        case ShellCommandType:
-            command = new ShellCommand(m_optionPool);
-            break;
-        case PropertiesCommandType:
-            command = new PropertiesCommand(m_optionPool);
-            break;
-        case StatusCommandType:
-            command = new StatusCommand(m_optionPool);
-            break;
-        case UpdateTimestampsCommandType:
-            command = new UpdateTimestampsCommand(m_optionPool);
-            break;
-        case InstallCommandType:
-            command = new InstallCommand(m_optionPool);
-            break;
-        case HelpCommandType:
-            command = new HelpCommand(m_optionPool);
-            break;
-        }
-    }
-    return command;
-}
+    static QString defaultInstallRoot();
+    QString installRoot;
+    bool removeFirst;
+    bool dryRun;
+    bool keepGoing;
+};
 
 } // namespace qbs
+
+#endif // QBS_INSTALLOPTIONS_H

@@ -93,6 +93,19 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const;
 };
 
+class InstallCommand : public Command
+{
+public:
+    InstallCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const { return InstallCommandType; }
+    QString shortDescription() const;
+    QString longDescription() const;
+    QString representation() const;
+    QList<CommandLineOption::Type> supportedOptions() const;
+};
+
 class RunCommand : public Command
 {
 public:

@@ -73,6 +73,7 @@ void CommandLineFrontend::start()
             // Fall-through intended.
         case PropertiesCommandType:
         case StatusCommandType:
+        case InstallCommandType:
             if (m_parser.buildConfigurations().count() > 1) {
                 QString error = Tr::tr("Invalid use of command '%1': There can be only one "
                                "build configuration.\n").arg(m_parser.commandName());
@@ -150,13 +151,32 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
             m_observer->incrementProgressValue();
         if (m_resolveJobs.isEmpty())
             handleProjectsResolved();
+    } else if (qobject_cast<InstallJob *>(job)) {
+        if (m_parser.command() == RunCommandType)
+            qApp->exit(runTarget());
+        else
+            qApp->quit();
     } else { // Build or clean.
         m_buildJobs.removeOne(job);
         if (m_buildJobs.isEmpty()) {
-            if (m_parser.command() == RunCommandType)
-                qApp->exit(runTarget());
-            else
+            switch (m_parser.command()) {
+            case RunCommandType:
+            case InstallCommandType: {
+                Q_ASSERT(m_projects.count() == 1);
+                const Project project = m_projects.first();
+                const ProductMap products = productsToUse();
+                InstallJob * const installJob = project.installSomeProducts(
+                            products.value(m_projects.first()), m_parser.installOptions());
+                connectJob(installJob);
+                break;
+            }
+            case BuildCommandType:
+            case CleanCommandType:
                 qApp->quit();
+                break;
+            default:
+                Q_ASSERT_X(false, Q_FUNC_INFO, "Missing case in switch statement");
+            }
         }
     }
 }
@@ -272,6 +292,7 @@ void CommandLineFrontend::handleProjectsResolved()
             break;
         }
         case BuildCommandType:
+        case InstallCommandType:
         case RunCommandType:
             build();
             break;
@@ -353,7 +374,8 @@ int CommandLineFrontend::runTarget()
         const QList<ProductData> &products = productMap.begin().value();
         Q_ASSERT(products.count() == 1);
         const ProductData productToRun = products.first();
-        const QString executableFilePath = project.targetExecutable(productToRun);
+        const QString executableFilePath = project.targetExecutable(productToRun,
+                m_parser.installOptions().installRoot);
         if (executableFilePath.isEmpty()) {
             throw Error(Tr::tr("Cannot run: Product '%1' is not an application.")
                         .arg(productToRun.name()));

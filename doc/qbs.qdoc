@@ -68,7 +68,7 @@
                \li  \l{Language Introduction}
                \li  \l{Building Applications with Qbs}
                \li  \l{Running Applications}
-               \li  \l{Using Qbs Graph}
+               \li  \l{Installing Files}
                \li  \l{Using Qbs Shell}
            \endlist
        \li  \l{Reference}
@@ -306,7 +306,7 @@
         \li  \l{Language Introduction}
         \li  \l{Building Applications with Qbs}
         \li  \l{Running Applications}
-        \li  \l{Using Qbs Graph}
+        \li  \l{Installing Files}
         \li  \l{Using Qbs Shell}
     \endlist
 
@@ -671,7 +671,7 @@
     \contentspage index.html
     \previouspage qbs-language-introduction.html
     \page qbs-building-applications.html
-    \nextpage qbs-running-applications.html
+    \nextpage qbs-installing-files.html
 
     \title Building Applications with Qbs
 
@@ -695,12 +695,51 @@
     This assumes you have already set up a profile called "Symbian".
 */
 
-
 /*!
     \contentspage index.html
     \previouspage qbs-building-applications.html
+    \page qbs-installing-files.html
+    \nextpage qbs-running.html
+
+    \title Installing Files
+
+    If you want to install your project, the first thing to do is to specify the necessary
+    information in the project file:
+    \code
+    Application {
+        Group {
+            name: "Runtime resources"
+            files: "*.qml"
+            qbs.install: true
+            qbs.installDir: "share/myproject"
+        }
+        Group {
+            name: "The App itself"
+            fileTagsFilter: "application"
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
+    }
+    \endcode
+
+    In this example, we want to install a couple of QML files and an executable.
+    The actual installation is then done like this (using the default profile):
+
+    \code
+    qbs install --install-root /tmp/myProjectRoot --remove-first
+    \endcode
+
+    Here, we want the "installDir" properties from the project file to be interpreted relative
+    to the directory "/tmp/myProjectRoot", and we want that directory to be removed first.
+    If the "--install-root" option is not given, a default is being used, namely the value of the
+    property "qbs.sysroot" or, if that one is not set, "<build root>/install-root".
+*/
+
+/*!
+    \contentspage index.html
+    \previouspage qbs-installing-files.html
     \page qbs-running-applications.html
-    \nextpage qbs-graph.html
+    \nextpage qbs-shell.html
 
     \title Running Applications
 
@@ -713,36 +752,13 @@
     qbs run --products CollidingMice
     \endcode
 
+    This command also builds and installs the given product, if necessary.
 */
 
 
 /*!
     \contentspage index.html
     \previouspage qbs-running-applications.html
-    \page qbs-graph.html
-    \nextpage qbs-shell.html
-
-    \title Using Qbs Graph
-
-    Qbs uses a very simple graph drawing algorithm to visualize the
-    build graph.
-
-    This is currently mostly used to debug Qbs.
-
-    Download and install dot and add it to the system PATH.
-
-    To visualize the project structure, enter the following command:
-
-    \code
-    qbs graph
-    \endcode
-
-*/
-
-
-/*!
-    \contentspage index.html
-    \previouspage qbs-graph.html
     \page qbs-shell.html
     \nextpage qbs-reference.html
 
@@ -854,8 +870,7 @@
 
     This item is attached to a product and is used to group files that have something in common. For instance:
      \code
-     Product {
-         type: ["application", "installed_content"]
+     Application {
          Group {
              name: "common files"
              files: ["myclass.h", "myclass_common_impl.cpp"]
@@ -872,7 +887,8 @@
          }
          Group {
              name: "Files to install"
-             fileTags: "install"
+             qbs.install: true
+             qbs.installDir: "share"
              files "runtime_resource.txt"
          }
      }
@@ -886,11 +902,24 @@
          name: "Word processing documents"
          files: ["*.doc", "*.rtf"]
          recursive: true
-         fileTags: "install"
+         qbs.install: true
+         qbs.installDir: "share"
          excludeFiles: "do_not_install_this_file.*"
      }
      \endcode
      \note Wildcards can match only regular files, not directories.
+
+     A group can also be used to attach properties to build artifacts such as executables or
+     libraries. In the following example, an application is installed to "<install root>/bin".
+     \code
+     Application {
+         Group {
+             fileTagsFilter: "application"
+             qbs.install: true
+             qbs.installDir: "bin"
+         }
+     }
+     \endcode
 
     \section1 Group Properties
 
@@ -909,12 +938,19 @@
         \li files
         \li list
         \li empty list
-        \li The files in the group.
+        \li The files in the group. Mutually exclusive with fileTagsFilter.
     \row
         \li prefix
         \li string
         \li empty string
         \li A prefix to append to all files. Slashes are allowed and have directory semantics.
+    \row
+        \li fileTagsFilter
+        \li list
+        \li empty list
+        \li Artifact file tags to match. Any properties set in this group will be applied
+            to the product's generated artifacts whose file tags intersect with the ones
+            listed here. Mutually exclusive with files.
     \row
         \li condition
         \li bool

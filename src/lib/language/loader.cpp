@@ -1612,11 +1612,9 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
             if (!files.isEmpty())
                 throw Error(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                             group->instantiatingObject()->prototypeLocation);
-
             ArtifactPropertiesPtr aprops = ArtifactProperties::create();
             aprops->setFileTagsFilter(fileTagsFilter);
-            QVariantMap cfgval = evaluateAll(rproduct, group->scope);
-            cfgval.remove("fileTagsFilter");
+            QVariantMap cfgval = evaluateModuleValues(rproduct, product, group->scope);
             PropertyMapPtr cfg = PropertyMap::create();
             cfg->setValue(cfgval);
             aprops->setPropertyMap(cfg);

@@ -35,6 +35,7 @@
 #include "logging/logger.h"
 #include "tools/buildoptions.h"
 #include "tools/error.h"
+#include "tools/installoptions.h"
 #include "tools/settings.h"
 
 #endif // QBS_H

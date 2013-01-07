@@ -44,6 +44,7 @@ class TestBlackbox : public QObject
     const QString qbsExecutableFilePath;
     const QString buildProfile;
     const QString buildDir;
+    const QString defaultInstallRoot;
     const QString buildGraphPath;
 
 public:
@@ -76,6 +77,7 @@ private slots:
     void recursiveWildcards();
     void invalidWildcards();
     void updateTimestamps();
+    void installedApp();
 
 private:
     QByteArray m_qbsStderr;

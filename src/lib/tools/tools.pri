@@ -15,6 +15,7 @@ HEADERS += \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
+    $$PWD/installoptions.h \
     $$PWD/persistentobject.h \
     $$PWD/weakpointer.h
 
@@ -28,7 +29,8 @@ SOURCES += \
     $$PWD/preferences.cpp \
     $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
-    $$PWD/buildoptions.cpp
+    $$PWD/buildoptions.cpp \
+    $$PWD/installoptions.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

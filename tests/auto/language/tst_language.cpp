@@ -318,17 +318,15 @@ void TestLanguage::outerInGroup()
         QCOMPARE(group->name, product->name);
         QCOMPARE(group->files.count(), 1);
         SourceArtifactConstPtr artifact = group->files.first();
-        QVariant installPrefix = getConfigProperty(artifact->properties->value(),
-                                                   QStringList() << "modules" << "qbs" << "installPrefix");
-        QCOMPARE(installPrefix.toString(), QString("/somewhere"));
+        QVariant installDir = artifact->properties->qbsPropertyValue("installDir");
+        QCOMPARE(installDir.toString(), QString("/somewhere"));
         group = product->groups.at(1);
         QVERIFY(group);
         QCOMPARE(group->name, QString("Special Group"));
         QCOMPARE(group->files.count(), 1);
         artifact = group->files.first();
-        installPrefix = getConfigProperty(artifact->properties->value(),
-                                          QStringList() << "modules" << "qbs" << "installPrefix");
-        QCOMPARE(installPrefix.toString(), QString("/somewhere/else"));
+        installDir = artifact->properties->qbsPropertyValue("installDir");
+        QCOMPARE(installDir.toString(), QString("/somewhere/else"));
     }
     catch (const Error &e) {
         exceptionCaught = true;

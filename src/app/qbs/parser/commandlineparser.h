@@ -36,6 +36,7 @@
 
 namespace qbs {
 class BuildOptions;
+class InstallOptions;
 
 class CommandLineParser
 {
@@ -52,6 +53,7 @@ public:
     QString commandDescription() const;
     QString projectFilePath() const;
     BuildOptions buildOptions() const;
+    InstallOptions installOptions() const;
     QStringList runArgs() const;
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;

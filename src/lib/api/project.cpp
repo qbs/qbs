@@ -41,6 +41,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/scannerpluginmanager.h>
@@ -94,6 +95,8 @@ public:
                             QObject *jobOwner);
     CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
                             Project::CleanType cleanType, QObject *jobOwner);
+    InstallJob *installProducts(const QList<BuildProductPtr> &products,
+                                const InstallOptions &options, QObject *jobOwner);
     QList<BuildProductPtr> internalProducts(const QList<ProductData> &products) const;
     BuildProductPtr internalProduct(const ProductData &product) const;
 
@@ -138,6 +141,14 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
 {
     CleanJob * const job = new CleanJob(jobOwner);
     job->clean(products, options, cleanType == Project::CleanupAll);
+    return job;
+}
+
+InstallJob *ProjectPrivate::installProducts(const QList<BuildProductPtr> &products,
+                                            const InstallOptions &options, QObject *jobOwner)
+{
+    InstallJob * const job = new InstallJob(jobOwner);
+    job->install(products, options);
     return job;
 }
 
@@ -321,8 +332,10 @@ ProjectData Project::projectData() const
 /*!
  * \brief Returns the file path of the executable associated with the given product.
  * If the product is not an application, an empty string is returned.
+ * The \a installRoot parameter is used to look up the executable in case it is installable;
+ * otherwise the parameter is ignored. To specify the default install root, leave it empty.
  */
-QString Project::targetExecutable(const ProductData &product) const
+QString Project::targetExecutable(const ProductData &product, const QString &_installRoot) const
 {
     if (!product.isEnabled())
         return QString();
@@ -331,8 +344,30 @@ QString Project::targetExecutable(const ProductData &product) const
         return QString();
 
     foreach (const Internal::Artifact * const artifact, buildProduct->targetArtifacts) {
-        if (artifact->fileTags.contains(QLatin1String("application")))
-            return artifact->filePath();
+        if (artifact->fileTags.contains(QLatin1String("application"))) {
+            if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
+                return artifact->filePath();
+            const QString fileName = FileInfo::fileName(artifact->filePath());
+            QString installRoot = _installRoot;
+
+            if (installRoot.isEmpty()) {
+                // Yes, the executable is unlikely to run in this case. But we should still
+                // follow the protocol.
+                installRoot = artifact->properties
+                        ->qbsPropertyValue(QLatin1String("sysroot")).toString();
+            }
+
+            if (installRoot.isEmpty()) {
+                installRoot = artifact->product->project->resolvedProject()->buildDirectory
+                        + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
+            }
+            QString installDir = artifact->properties
+                    ->qbsPropertyValue(QLatin1String("installDir")).toString();
+            if (!installDir.startsWith(QLatin1Char('/')))
+                installDir.prepend(QLatin1Char('/'));
+            installDir.prepend(installRoot);
+            return installDir.append(QLatin1Char('/')).append(fileName);
+        }
     }
     return QString();
 }
@@ -392,7 +427,7 @@ CleanJob *Project::cleanAllProducts(const BuildOptions &options, CleanType clean
 
 /*!
  * \brief Removes the build artifacts of the given products.
- * The function will finish immediately, returning a \c BuildJob identifiying this operation.
+ * The function will finish immediately, returning a \c CleanJob identifiying this operation.
  */
 CleanJob *Project::cleanSomeProducts(const QList<ProductData> &products,
         const BuildOptions &options, CleanType cleanType, QObject *jobOwner) const
@@ -408,6 +443,35 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const BuildOption
                                    CleanType cleanType, QObject *jobOwner) const
 {
     return cleanSomeProducts(QList<ProductData>() << product, options, cleanType, jobOwner);
+}
+
+/*!
+ * \brief Installs the installable files of all products in the project.
+ * The function will finish immediately, returning an \c InstallJob identifiying this operation.
+ */
+InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *jobOwner) const
+{
+    return d->installProducts(d->internalProject->buildProducts().toList(), options, jobOwner);
+}
+
+/*!
+ * \brief Installs the installable files of the given products.
+ * The function will finish immediately, returning an \c InstallJob identifiying this operation.
+ */
+InstallJob *Project::installSomeProducts(const QList<ProductData> &products,
+                                         const InstallOptions &options, QObject *jobOwner) const
+{
+    return d->installProducts(d->internalProducts(products), options, jobOwner);
+}
+
+/*!
+ * \brief Convenience function for \c installSomeProducts().
+ * \sa Project::installSomeProducts().
+ */
+InstallJob *Project::installOneProduct(const ProductData &product, const InstallOptions &options,
+                                       QObject *jobOwner) const
+{
+    return installSomeProducts(QList<ProductData>() << product, options, jobOwner);
 }
 
 /*!

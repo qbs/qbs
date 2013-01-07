@@ -39,6 +39,7 @@
 
 namespace qbs {
 class BuildOptions;
+class InstallOptions;
 namespace Internal {
 class InternalJob;
 class ProjectPrivate;
@@ -123,6 +124,17 @@ private:
     void clean(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
                bool cleanAll);
 };
+
+class InstallJob : public AbstractJob
+{
+    Q_OBJECT
+    friend class Internal::ProjectPrivate;
+private:
+    InstallJob(QObject *parent);
+
+    void install(const QList<Internal::BuildProductPtr> &products, const InstallOptions &options);
+};
+
 } // namespace qbs
 
 #endif // QBS_JOBS_H

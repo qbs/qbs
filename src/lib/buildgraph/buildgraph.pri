@@ -15,6 +15,7 @@ SOURCES += \
     $$PWD/inputartifactscanner.cpp \
     $$PWD/artifactvisitor.cpp \
     $$PWD/artifactcleaner.cpp \
+    $$PWD/productinstaller.cpp \
     $$PWD/cycledetector.cpp \
     $$PWD/rulesevaluationcontext.cpp \
     $$PWD/buildproduct.cpp \
@@ -39,6 +40,7 @@ HEADERS += \
     $$PWD/inputartifactscanner.h \
     $$PWD/artifactvisitor.h \
     $$PWD/artifactcleaner.h \
+    $$PWD/productinstaller.h \
     $$PWD/cycledetector.h \
     $$PWD/forward_decls.h \
     $$PWD/rulesevaluationcontext.h \

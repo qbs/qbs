@@ -65,6 +65,7 @@ public:
     Ptr clone() const { return Ptr(new PropertyMap(*this)); }
 
     const QVariantMap &value() const { return m_value; }
+    QVariant qbsPropertyValue(const QString &key); // Convenience function.
     void setValue(const QVariantMap &value);
     QScriptValue toScriptValue(QScriptEngine *scriptEngine) const;
 

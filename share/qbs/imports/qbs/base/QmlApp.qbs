@@ -1,7 +1,7 @@
 import qbs.base 1.0
 
 Product {
-    type: [qbs.targetOS == 'mac' ? "applicationbundle" : "application", "installed_content"]
+    type: [qbs.targetOS == 'mac' ? "applicationbundle" : "application"]
     Depends { name: "qt"; submodules: ["core", "declarative"] }
     Depends { name: "cpp" }
     property string appViewerPath: localPath + "/qmlapplicationviewer"
@@ -21,11 +21,6 @@ Product {
             appViewerPath + "/qmlapplicationviewer_qt5.h",
             appViewerPath + "/qmlapplicationviewer_qt5.cpp"
         ]
-    }
-
-    FileTagger {
-        pattern: "*.qml"
-        fileTags: ["install"]
     }
 }
 

@@ -160,7 +160,7 @@ QString BuildCommand::representation() const
     return buildCommandRepresentation();
 }
 
-QList<CommandLineOption::Type> BuildCommand::supportedOptions() const
+static QList<CommandLineOption::Type> buildOptions()
 {
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
@@ -173,6 +173,11 @@ QList<CommandLineOption::Type> BuildCommand::supportedOptions() const
             << CommandLineOption::DryRunOptionType
             << CommandLineOption::ProductsOptionType
             << CommandLineOption::ChangedFilesOptionType;
+}
+
+QList<CommandLineOption::Type> BuildCommand::supportedOptions() const
+{
+    return buildOptions();
 }
 
 QString CleanCommand::shortDescription() const
@@ -194,16 +199,41 @@ QString CleanCommand::representation() const
 
 QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::KeepGoingOptionType
-            << CommandLineOption::DryRunOptionType
-            << CommandLineOption::ProductsOptionType
-            << CommandLineOption::AllArtifactsOptionType;
+    QList<CommandLineOption::Type> options = buildOptions();
+    options.removeOne(CommandLineOption::ChangedFilesOptionType);
+    return options;
+}
+
+QString InstallCommand::shortDescription() const
+{
+    return Tr::tr("Install (parts of) a project.");
+}
+
+QString InstallCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...]\n")
+            .arg(representation());
+    description += Tr::tr("Install all files marked as installable "
+                          "to their respective destinations.\n"
+                          "The project is built first, if necessary.\n");
+    return description += supportedOptionsDescription();
+}
+
+QString InstallCommand::representation() const
+{
+    return QLatin1String("install");
+}
+
+QList<CommandLineOption::Type> installOptions()
+{
+    return buildOptions()
+            << CommandLineOption::InstallRootOptionType
+            << CommandLineOption::RemoveFirstOptionType;
+}
+
+QList<CommandLineOption::Type> InstallCommand::supportedOptions() const
+{
+    return installOptions();
 }
 
 QString RunCommand::shortDescription() const
@@ -230,17 +260,7 @@ QString RunCommand::representation() const
 
 QList<CommandLineOption::Type> RunCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::JobsOptionType
-            << CommandLineOption::KeepGoingOptionType
-            << CommandLineOption::DryRunOptionType
-            << CommandLineOption::ProductsOptionType
-            << CommandLineOption::ChangedFilesOptionType;
+    return installOptions();
 }
 
 void RunCommand::parseMore(QStringList &input)
@@ -357,12 +377,13 @@ QString UpdateTimestampsCommand::longDescription() const
 {
     QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
             .arg(representation());
-    return description += Tr::tr("Update the timestamps of all build artifacts, causing the next "
+    description += Tr::tr("Update the timestamps of all build artifacts, causing the next "
             "builds of the project to do nothing if no updates to source files happen in between.\n"
             "This functionality is useful if you know that the current changes to source files "
             "are irrelevant to the build.\n"
             "NOTE: Doing this causes a discrepancy between the \"real world\" and the information "
             "in the build graph, so use with care.\n");
+    return description += supportedOptionsDescription();
 }
 
 QString UpdateTimestampsCommand::representation() const

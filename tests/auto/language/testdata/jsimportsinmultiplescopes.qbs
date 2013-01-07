@@ -2,6 +2,6 @@ import "jsimportsinmultiplescopes.js" as MyFunctions
 
 Product {
     name: MyFunctions.getName(qbs)
-    qbs.installPrefix: MyFunctions.getInstallPrefix()
+    qbs.installDir: MyFunctions.getInstallDir()
     files: "main.cpp"
 }

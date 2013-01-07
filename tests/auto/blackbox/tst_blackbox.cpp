@@ -30,11 +30,13 @@
 #include "tst_blackbox.h"
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/installoptions.h>
 
 #include <QLocale>
 #include <QTemporaryFile>
 
 using qbs::HostOsInfo;
+using qbs::InstallOptions;
 using qbs::Internal::removeDirectoryWithContents;
 
 static QString initQbsExecutableFilePath()
@@ -51,6 +53,7 @@ TestBlackbox::TestBlackbox()
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       buildProfile(QLatin1String("qbs_autotests")),
       buildDir(buildProfile + QLatin1String("-debug")),
+      defaultInstallRoot(buildDir + QLatin1Char('/') + InstallOptions::defaultInstallRoot()),
       buildGraphPath(buildDir + QLatin1Char('/') + buildDir + QLatin1String(".bg"))
 {
     QLocale::setDefault(QLocale::c());
@@ -452,34 +455,34 @@ void TestBlackbox::trackAddMocInclude()
 void TestBlackbox::wildcardRenaming()
 {
     QDir::setCurrent(testDataDir + "/wildcard_renaming");
-    QCOMPARE(runQbs(QStringList()), 0);
-    QVERIFY(QFileInfo(buildDir + "/pioniere.txt").exists());
+    QCOMPARE(runQbs(QStringList("install")), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     QFile::rename(QDir::currentPath() + "/pioniere.txt", QDir::currentPath() + "/fdj.txt");
-    QCOMPARE(runQbs(QStringList()), 0);
-    QVERIFY(!QFileInfo(buildDir + "/pioniere.txt").exists());
-    QVERIFY(QFileInfo(buildDir + "/fdj.txt").exists());
+    QCOMPARE(runQbs(QStringList("install") << "--remove-first"), 0);
+    QVERIFY(!QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/fdj.txt").exists());
 }
 
 void TestBlackbox::recursiveRenaming()
 {
     QDir::setCurrent(testDataDir + "/recursive_renaming");
-    QCOMPARE(runQbs(QStringList()), 0);
-    QVERIFY(QFileInfo(buildDir + "/dir/wasser.txt").exists());
-    QVERIFY(QFileInfo(buildDir + "/dir/subdir/blubb.txt").exists());
+    QCOMPARE(runQbs(QStringList("install")), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
     QTest::qWait(1000);
     QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
-    QCOMPARE(runQbs(QStringList()), 0);
-    QVERIFY(!QFileInfo(buildDir + "/dir/wasser.txt").exists());
-    QVERIFY(QFileInfo(buildDir + "/dir/wein.txt").exists());
-    QVERIFY(QFileInfo(buildDir + "/dir/subdir/blubb.txt").exists());
+    QCOMPARE(runQbs(QStringList("install") << "--remove-first"), 0);
+    QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wein.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
 }
 
 void TestBlackbox::recursiveWildcards()
 {
     QDir::setCurrent(testDataDir + "/recursive_wildcards");
-    QCOMPARE(runQbs(QStringList()), 0);
-    QVERIFY(QFileInfo(buildDir + "/dir/file1.txt").exists());
-    QVERIFY(QFileInfo(buildDir + "/dir/file2.txt").exists());
+    QCOMPARE(runQbs(QStringList("install")), 0);
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file1.txt").exists());
+    QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
 void TestBlackbox::invalidWildcards()
@@ -502,6 +505,27 @@ void TestBlackbox::updateTimestamps()
     QVERIFY(runQbs(QStringList(), true) != 0); // Is not valid source code.
     QCOMPARE(runQbs(QStringList() << "update-timestamps"), 0);
     QCOMPARE(runQbs(QStringList()), 0); // Build graph now up to date.
+}
+
+void TestBlackbox::installedApp()
+{
+    QDir::setCurrent(testDataDir + "/installed_artifact");
+
+    QCOMPARE(runQbs(QStringList("install")), 0);
+    QVERIFY(QFile::exists(defaultInstallRoot
+            + HostOsInfo::appendExecutableSuffix(QLatin1String("/bin/installedApp"))));
+
+    QCOMPARE(runQbs(QStringList("install") << "--install-root" << (testDataDir + "/installed-app")), 0);
+    QVERIFY(QFile::exists(testDataDir + "/installed-app/bin/installedApp"));
+
+    QFile addedFile(defaultInstallRoot + QLatin1String("/blubb.txt"));
+    QVERIFY(addedFile.open(QIODevice::WriteOnly));
+    addedFile.close();
+    QVERIFY(addedFile.exists());
+    QCOMPARE(runQbs(QStringList("install") << "--remove-first"), 0);
+    QVERIFY(QFile::exists(defaultInstallRoot
+            + HostOsInfo::appendExecutableSuffix(QLatin1String("/bin/installedApp"))));
+    QVERIFY(!addedFile.exists());
 }
 
 QTEST_MAIN(TestBlackbox)

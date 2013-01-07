@@ -32,8 +32,10 @@
 #include "projectdata.h"
 #include <buildgraph/forward_decls.h>
 #include <tools/buildoptions.h>
+#include <tools/installoptions.h>
 #include <tools/error.h>
 
+#include <QList>
 #include <QMutex>
 #include <QObject>
 #include <QProcessEnvironment>
@@ -167,6 +169,28 @@ private:
     bool m_cleanAll;
 };
 
+
+// TODO: Common base class for all jobs that need to start a thread?
+class InternalInstallJob : public InternalJob
+{
+    Q_OBJECT
+public:
+    InternalInstallJob(QObject *parent = 0);
+    ~InternalInstallJob();
+
+    void install(const QList<BuildProductPtr> &products, const InstallOptions &options);
+
+private slots:
+    void handleFinished();
+
+private:
+    Q_INVOKABLE void start();
+    void doInstall();
+
+private:
+    QList<BuildProductPtr> m_products;
+    InstallOptions m_options;
+};
 
 class ErrorJob : public InternalJob
 {

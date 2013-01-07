@@ -40,6 +40,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/installoptions.h>
 #include <tools/settings.h>
 
 #include <QCoreApplication>
@@ -115,6 +116,17 @@ QString CommandLineParser::projectFilePath() const
 BuildOptions CommandLineParser::buildOptions() const
 {
     return d->buildOptions;
+}
+
+InstallOptions CommandLineParser::installOptions() const
+{
+    Q_ASSERT(command() == InstallCommandType || command() == RunCommandType);
+    InstallOptions options;
+    options.removeFirst = d->optionPool.removeFirstoption()->enabled();
+    options.installRoot = d->optionPool.installRootOption()->installRoot();
+    options.dryRun = buildOptions().dryRun;
+    options.keepGoing = buildOptions().keepGoing;
+    return options;
 }
 
 QStringList CommandLineParser::runArgs() const
@@ -270,6 +282,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(PropertiesCommandType)
             << commandPool.getCommand(StatusCommandType)
             << commandPool.getCommand(UpdateTimestampsCommandType)
+            << commandPool.getCommand(InstallCommandType)
             << commandPool.getCommand(HelpCommandType);
 }
 
