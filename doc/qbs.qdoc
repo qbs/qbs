@@ -55,27 +55,27 @@
     \l{http://bugreports.qt-project.org/}{Qt Bug Tracker}.
 
     \list
-       \o  \l{Introducing Qbs}
-       \o  \l{Setting Up Qbs}
+       \li  \l{Introducing Qbs}
+       \li  \l{Setting Up Qbs}
            \list
-               \o  \l{System Requirements}
-               \o  \l{Building Qbs}
-               \o  \l{Configuring Qbs}
-               \o  \l{Managing Qt Versions}
+               \li  \l{System Requirements}
+               \li  \l{Building Qbs}
+               \li  \l{Configuring Qbs}
+               \li  \l{Managing Qt Versions}
            \endlist
-       \o  \l{Using Qbs}
+       \li  \l{Using Qbs}
            \list
-               \o  \l{Language Introduction}
-               \o  \l{Building Applications with Qbs}
-               \o  \l{Running Applications}
-               \o  \l{Using Qbs Graph}
-               \o  \l{Using Qbs Shell}
+               \li  \l{Language Introduction}
+               \li  \l{Building Applications with Qbs}
+               \li  \l{Running Applications}
+               \li  \l{Using Qbs Graph}
+               \li  \l{Using Qbs Shell}
            \endlist
-       \o  \l{Reference}
+       \li  \l{Reference}
            \list
-               \o  \l{Qbs Functions}
-               \o  \l{Rules}
-               \o  \l{Products}
+               \li  \l{Qbs Functions}
+               \li  \l{Rules}
+               \li  \l{Products}
            \endlist
     \endlist
 */
@@ -105,10 +105,10 @@
     \title Setting Up Qbs
 
     \list
-        \o  \l{System Requirements}
-        \o  \l{Building Qbs}
-        \o  \l{Configuring Qbs}
-        \o  \l{Managing Qt Versions}
+        \li  \l{System Requirements}
+        \li  \l{Building Qbs}
+        \li  \l{Configuring Qbs}
+        \li  \l{Managing Qt Versions}
     \endlist
 */
 
@@ -125,7 +125,7 @@
 
     \list
 
-        \o  Qt 4.8
+        \li  Qt 4.8
 
     \endlist
 
@@ -144,7 +144,7 @@
 
     \list 1
 
-        \o  Enter the following command:
+        \li  Enter the following command:
             \c {qmake -r qbs.pro && make}
 
     \endlist
@@ -303,11 +303,11 @@
     \title Using Qbs
 
     \list
-        \o  \l{Language Introduction}
-        \o  \l{Building Applications with Qbs}
-        \o  \l{Running Applications}
-        \o  \l{Using Qbs Graph}
-        \o  \l{Using Qbs Shell}
+        \li  \l{Language Introduction}
+        \li  \l{Building Applications with Qbs}
+        \li  \l{Running Applications}
+        \li  \l{Using Qbs Graph}
+        \li  \l{Using Qbs Shell}
     \endlist
 
 */
@@ -523,26 +523,26 @@
 
     \table
     \header
-        \o Property
-        \o Type
-        \o Default
-        \o Description
+        \li Property
+        \li Type
+        \li Default
+        \li Description
     \row
-        \o buildVariant
-        \o string
-        \o "debug"
-        \o Name of the current build variant. By default "debug" and "release"
+        \li buildVariant
+        \li string
+        \li "debug"
+        \li Name of the current build variant. By default "debug" and "release"
         are valid values but the user can add more in a project file.
     \row
-        \o hostOS
-        \o string
-        \o platform-dependent
-        \o The host operating system. Currently "windows", "linux" or "mac".
+        \li hostOS
+        \li string
+        \li platform-dependent
+        \li The host operating system. Currently "windows", "linux" or "mac".
     \row
-        \o targetOS
-        \o string
-        \o platform-dependent
-        \o The target operating system. Currently "windows", "linux" or "mac".
+        \li targetOS
+        \li string
+        \li platform-dependent
+        \li The target operating system. Currently "windows", "linux" or "mac".
     \endtable
 
     You can set these properties on the command line, or by using a profile or
@@ -765,9 +765,9 @@
     \title Reference
 
     \list
-        \o \l{Qbs Functions}
-        \o \l{Rules}
-        \o \l{Products}
+        \li \l{Qbs Functions}
+        \li \l{Rules}
+        \li \l{Products}
     \endlist
 */
 
@@ -790,28 +790,28 @@
 
     \table
     \header
-        \o Property
-        \o Type
-        \o Default
-        \o Description
+        \li Property
+        \li Type
+        \li Default
+        \li Description
     \row
-        \o multiplex
-        \o bool
-        \o false
-        \o Determines if this is a multiplex rule.
+        \li multiplex
+        \li bool
+        \li false
+        \li Determines if this is a multiplex rule.
     \row
-        \o inputs
-        \o string list
-        \o undefined
-        \o File tags the input artifacts must match.
+        \li inputs
+        \li string list
+        \li undefined
+        \li File tags the input artifacts must match.
            All output artifacts will depend on all artifacts in the product with
            the given input file tags. Also these artifacts are available in the
            inputs variable of the prepare script.
     \row
-        \o usings
-        \o string list
-        \o undefined
-        \o File tags the artifacts of product dependencies must match.
+        \li usings
+        \li string list
+        \li undefined
+        \li File tags the artifacts of product dependencies must match.
            Let there be a product \a foo which appears as
            \code
             Depends {
@@ -823,22 +823,22 @@
            script. Also, every output artifact of this rule will be dependent on
            those artifacts.
     \row
-        \o explicitlyDependsOn
-        \o string list
-        \o undefined
-        \o Every artifact that matches the file tags in \a explicitlyDependsOn
+        \li explicitlyDependsOn
+        \li string list
+        \li undefined
+        \li Every artifact that matches the file tags in \a explicitlyDependsOn
            is added to the dependencies of every output node.
     \row
-        \o scanners
-        \o string list
-        \o undefined
-        \o List of dependency scanner ids for this rule. The scanners are
+        \li scanners
+        \li string list
+        \li undefined
+        \li List of dependency scanner ids for this rule. The scanners are
            running just before the prepare script is executed.
     \row
-        \o prepare
-        \o script
-        \o undefined
-        \o Script that prepares the commands to transform the inputs to outputs.
+        \li prepare
+        \li script
+        \li undefined
+        \li Script that prepares the commands to transform the inputs to outputs.
     \endtable
 
 */
@@ -862,66 +862,66 @@
 
     \table
         \header
-            \o Product Item
-            \o Description
-            \o Property
-            \o Property Description
+            \li Product Item
+            \li Description
+            \li Property
+            \li Property Description
         \row
-            \o Product
-            \o Generic product.
-            \o
-            \o
+            \li Product
+            \li Generic product.
+            \li
+            \li
         \row
-            \o
-            \o
-            \o condition
-            \o Boolean value. If false, the product is excluded from build. Default is true.
+            \li
+            \li
+            \li condition
+            \li Boolean value. If false, the product is excluded from build. Default is true.
         \row
-            \o
-            \o
-            \o name
-            \o The name of the product for referencing it in Depends items.
+            \li
+            \li
+            \li name
+            \li The name of the product for referencing it in Depends items.
         \row
-            \o
-            \o
-            \o type
-            \o A list of file tags the product is going to create.
+            \li
+            \li
+            \li type
+            \li A list of file tags the product is going to create.
         \row
-            \o
-            \o
-            \o targetName
-            \o The base file name of the generated file. If not set, \a name is used.
+            \li
+            \li
+            \li targetName
+            \li The base file name of the generated file. If not set, \a name is used.
         \row
-            \o
-            \o
-            \o destination
-            \o The destination directory of the produced file. Relative to the build dir.
+            \li
+            \li
+            \li destination
+            \li The destination directory of the produced file. Relative to the build dir.
         \row
-            \o
-            \o
-            \o files
-            \o List of source files.
+            \li
+            \li
+            \li files
+            \li List of source files.
         \row
-            \o
-            \o
-            \o consoleApplication
-            \o Boolean value. If set to true, a console application is generated.
+            \li
+            \li
+            \li consoleApplication
+            \li Boolean value. If set to true, a console application is generated.
                If false, a GUI application is generated. Default is undefined / not set,
                which means the linker decides. This only has an effect on Windows.
         \row
-            \o Application
-            \o Product with type "application" or "applicationbundle" on Mac.
-            \o
-            \o
+            \li Application
+            \li Product with type "application" or "applicationbundle" on Mac.
+            \li
+            \li
         \row
-            \o DynamicLibrary
-            \o Product with type "dynamiclibrary". Produces a DLL or shared object.
-            \o
-            \o
+            \li DynamicLibrary
+            \li Product with type "dynamiclibrary". Produces a DLL or shared object.
+            \li
+            \li
         \row
-            \o StaticLibrary
-            \o Product with type "staticlibrary". Produces a static library.
-            \o
-            \o
+            \li StaticLibrary
+            \li Product with type "staticlibrary". Produces a static library.
+            \li
+            \li
     \endtable
 */
