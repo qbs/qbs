@@ -17,7 +17,7 @@ sources.fileextensions  = "qbs.qdoc"
 
 qhp.projects            = Qbs
 qhp.Qbs.file             = qbs.qhp
-qhp.Qbs.namespace        = com.nokia.qbs.$QTC_VERSION_TAG
+qhp.Qbs.namespace        = org.qt-project.qbs.$QTC_VERSION_TAG
 qhp.Qbs.virtualFolder    = doc
 qhp.Qbs.indexTitle       = Qt Build System
 qhp.Qbs.filterAttributes = qbs $QTC_VERSION
