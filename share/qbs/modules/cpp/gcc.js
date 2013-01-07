@@ -62,7 +62,7 @@ function removePrefixAndSuffix(str, prefix, suffix)
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function additionalFlags(product, includePaths, systemIncludePaths, fileName, output)
+function additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, fileName, output)
 {
     var args = []
     if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
@@ -89,6 +89,8 @@ function additionalFlags(product, includePaths, systemIncludePaths, fileName, ou
         args.push('-D' + defines[i]);
     for (i in includePaths)
         args.push('-I' + includePaths[i]);
+    for (i in frameworkPaths)
+        args.push('-F' + frameworkPaths[i]);
     for (i in systemIncludePaths)
         args.push('-isystem' + systemIncludePaths[i]);
     args.push('-c');
