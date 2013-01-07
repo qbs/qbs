@@ -78,7 +78,7 @@ PropertyMap::PropertyMap()
 }
 
 PropertyMap::PropertyMap(const PropertyMap &other)
-    : m_value(other.m_value), m_scriptValueCache(other.m_scriptValueCache)
+    : PersistentObject(other), m_value(other.m_value), m_scriptValueCache(other.m_scriptValueCache)
 {
 }
 
