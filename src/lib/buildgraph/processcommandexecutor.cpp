@@ -72,16 +72,13 @@ void ProcessCommandExecutor::setProcessEnvironment(const QProcessEnvironment &pr
     m_process.setProcessEnvironment(processEnvironment);
 }
 
+// returns an empty string or one that starts with a space!
 static QString commandArgsToString(const QStringList &args)
 {
     QString result;
     QRegExp ws("\\s");
-    bool first = true;
     foreach (const QString &arg, args) {
-        if (first)
-            first = false;
-        else
-            result += QLatin1Char(' ');
+        result += QLatin1Char(' ');
 
         if (arg.contains(ws))
             result += QLatin1Char('"') + arg + QLatin1Char('"');
@@ -96,13 +93,21 @@ void ProcessCommandExecutor::doStart()
     Q_ASSERT(m_process.state() == QProcess::NotRunning);
 
     const ProcessCommand * const cmd = processCommand();
-    m_commandLine = cmd->program();
+    QString program = cmd->program();
+    if (FileInfo::isAbsolute(cmd->program())) {
+        if (HostOsInfo::isWindowsHost())
+            program = findProcessCommandBySuffix();
+    } else {
+        program = findProcessCommandInPath();
+    }
+
     QStringList arguments = cmd->arguments();
-    if (!arguments.isEmpty())
-        m_commandLine.append(QLatin1Char(' ')).append(commandArgsToString(arguments));
-    if (!cmd->isSilent())
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut << m_commandLine;
-    qbsDebug() << "[EXEC] " << m_commandLine;
+    QString argString = commandArgsToString(arguments);
+
+    if (!cmd->isSilent()) {
+        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
+                  << program << argString;
+    }
     if (dryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
@@ -110,9 +115,7 @@ void ProcessCommandExecutor::doStart()
 
     // Automatically use response files, if the command line gets to long.
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
-        int commandLineLength = cmd->program().length() + 1;
-        for (int i = cmd->arguments().count(); --i >= 0;)
-            commandLineLength += cmd->arguments().at(i).length();
+        const int commandLineLength = program.length() + argString.length();
         if (cmd->responseFileThreshold() >= 0 && commandLineLength > cmd->responseFileThreshold()) {
             if (qbsLogLevel(LoggerDebug)) {
                 qbsDebug("[EXEC] Using response file. Threshold is %d. Command line length %d.",
@@ -139,20 +142,17 @@ void ProcessCommandExecutor::doStart()
             arguments.clear();
             arguments += QDir::toNativeSeparators(cmd->responseFileUsagePrefix()
                     + responseFile.fileName());
-            qbsDebug("[EXEC] command line with response file: %s %s",
+            qbsDebug("[EXEC] command line with response file: %s%s",
                      qPrintable(cmd->program()),
                      qPrintable(commandArgsToString(arguments)));
         }
     }
 
-    QString program;
-    if (FileInfo::isAbsolute(cmd->program()))
-        program = HostOsInfo::isWindowsHost() ? findProcessCommandBySuffix() : cmd->program();
-    else
-        program = findProcessCommandInPath();
-
     m_process.setWorkingDirectory(cmd->workingDir());
     m_process.start(program, arguments);
+
+    m_program = program;
+    m_arguments = arguments;
 }
 
 void ProcessCommandExecutor::waitForFinished()
@@ -195,8 +195,11 @@ void ProcessCommandExecutor::sendProcessOutput(bool dueToError)
     const bool processOutputEmpty = processStdOut.isEmpty() && processStdErr.isEmpty();
     if (processOutputEmpty && !dueToError)
         return;
-    (dueToError ? qbsError() : qbsInfo()) << DontPrintLogLevel << m_commandLine
-            << (processOutputEmpty ? "" : "\n") << processStdOut << processStdErr;
+    (dueToError ? qbsError() : qbsInfo())
+            << DontPrintLogLevel
+            << m_program << commandArgsToString(m_arguments)
+            << (processOutputEmpty ? QString() : QString::fromLatin1("\n"))
+            << processStdOut << processStdErr;
 }
 
 void ProcessCommandExecutor::onProcessError()

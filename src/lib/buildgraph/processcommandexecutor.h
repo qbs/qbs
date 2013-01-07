@@ -68,8 +68,9 @@ private:
 
 private:
     static const QStringList m_executableSuffixes;
+    QString m_program;
+    QStringList m_arguments;
 
-    QString m_commandLine;
     QProcess m_process;
     QString m_responseFileName;
 };
