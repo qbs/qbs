@@ -293,23 +293,23 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
     QVariant platformName = expandedConfig.value("qbs.platform");
     if (!platformName.isValid()) {
         platformName = settings.moduleValue("qbs/platform", profileName);
-        if (!platformName.isValid())
-            throw Error(Tr::tr("No platform given and no default set."));
-        expandedConfig.insert("qbs.platform", platformName);
+        if (platformName.isValid())
+            expandedConfig.insert("qbs.platform", platformName);
     }
     Platform::Ptr platform = platforms.value(platformName.toString());
-    if (platform.isNull())
-        throw Error(Tr::tr("Unknown platform '%1'.").arg(platformName.toString()));
-    foreach (const QString &key, platform->settings.allKeys()) {
-        if (key.startsWith(Platform::internalKey()))
-            continue;
-        QString fixedKey = key;
-        int idx = fixedKey.lastIndexOf(QChar('/'));
-        if (idx > 0)
-            fixedKey[idx] = QChar('.');
-        if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, platform->settings.value(key));
+    if (!platform.isNull()) {
+        foreach (const QString &key, platform->settings.allKeys()) {
+            if (key.startsWith(Platform::internalKey()))
+                continue;
+            QString fixedKey = key;
+            int idx = fixedKey.lastIndexOf(QChar('/'));
+            if (idx > 0)
+                fixedKey[idx] = QChar('.');
+            if (!expandedConfig.contains(fixedKey))
+                expandedConfig.insert(fixedKey, platform->settings.value(key));
+        }
     }
+
     // Now finally do (4)
     foreach (const QString &defaultKey, settings.allKeysWithPrefix("modules")) {
         QString fixedKey(defaultKey);
