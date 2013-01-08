@@ -708,10 +708,10 @@
     Running ./targets/debug/CollidingMice fails if Qt 4.8 is not in your PATH
     (in Windows) or LD_LIBRARY_PATH (in Linux).
 
-    Therefore, enter the following command:
+    Therefore, enter the following command to run an application:
 
     \code
-    qbs run CollidingMice
+    qbs run --products CollidingMice
     \endcode
 
 */
