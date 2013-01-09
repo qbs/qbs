@@ -325,8 +325,9 @@ LogWriter operator<<(LogWriter w, TextColor color)
     return w;
 }
 
-struct TimedActivityLogger::TimedActivityLoggerPrivate
+class TimedActivityLogger::TimedActivityLoggerPrivate
 {
+public:
     QString prefix;
     QString activity;
     LoggerLevel logLevel;

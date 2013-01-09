@@ -39,15 +39,17 @@ namespace qbs {
 class SpecialPlatformsSetup
 {
 public:
-    struct Exception
+    class Exception
     {
+    public:
         Exception(const QString &msg) : errorMessage(msg) {}
 
         const QString errorMessage;
     };
 
-    struct PlatformInfo
+    class PlatformInfo
     {
+    public:
         QString name;
         QString targetOS;
         QStringList targetPlatform;

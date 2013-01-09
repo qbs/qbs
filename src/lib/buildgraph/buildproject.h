@@ -121,8 +121,9 @@ private:
 class BuildProjectLoader
 {
 public:
-    struct LoadResult
+    class LoadResult
     {
+    public:
         LoadResult() : discardLoadedProject(false) {}
 
         ResolvedProjectPtr changedResolvedProject;

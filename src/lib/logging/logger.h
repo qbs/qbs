@@ -100,7 +100,7 @@ public:
     ~TimedActivityLogger();
 
 private:
-    struct TimedActivityLoggerPrivate;
+    class TimedActivityLoggerPrivate;
     TimedActivityLoggerPrivate *d;
 };
 

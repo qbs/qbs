@@ -44,8 +44,9 @@ namespace Internal {
 class Artifact;
 class PropertyMap;
 
-struct ResolvedDependency
+class ResolvedDependency
 {
+public:
     ResolvedDependency()
         : artifact(0)
     {}

@@ -47,8 +47,9 @@ public:
     PersistentPool();
     ~PersistentPool();
 
-    struct HeadData
+    class HeadData
     {
+    public:
         QVariantMap projectConfig;
     };
 

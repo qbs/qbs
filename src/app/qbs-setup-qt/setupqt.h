@@ -35,7 +35,8 @@
 
 namespace qbs {
 
-struct QtEnviroment {
+class QtEnviroment {
+public:
     QString installPrefixPath;
     QString libraryPath;
     QString includePath;

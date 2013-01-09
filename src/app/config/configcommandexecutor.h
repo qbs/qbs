@@ -33,7 +33,7 @@
 
 #include <QCoreApplication>
 
-struct ConfigCommand;
+class ConfigCommand;
 
 class ConfigCommandExecutor
 {

@@ -34,8 +34,9 @@
 #include <QString>
 #include <QStringList>
 
-struct ConfigCommand
+class ConfigCommand
 {
+public:
     enum Command { CfgSet, CfgGet, CfgUnset, CfgList, CfgExport, CfgImport, CfgNone };
 
     ConfigCommand() : command(CfgNone) {}

@@ -119,8 +119,9 @@ public:
     QStringList fileTags;
     bool alwaysUpdated;
 
-    struct Binding
+    class Binding
     {
+    public:
         QStringList name;
         QString code;
         CodeLocation location;

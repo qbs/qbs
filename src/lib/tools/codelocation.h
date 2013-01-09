@@ -35,8 +35,9 @@
 
 namespace qbs {
 
-struct CodeLocation
+class CodeLocation
 {
+public:
     CodeLocation()
         : line(0), column(0)
     {}

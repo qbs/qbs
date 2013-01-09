@@ -57,8 +57,9 @@ enum LogOutputChannel
     LogOutputStdErr
 };
 
-struct LogMessage
+class LogMessage
 {
+public:
     LogMessage()
         : printLogLevel(true)
         , outputChannel(LogOutputStdErr)

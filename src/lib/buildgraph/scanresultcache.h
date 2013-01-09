@@ -61,8 +61,9 @@ public:
         bool m_isClean;
     };
 
-    struct Result
+    class Result
     {
+    public:
         Result()
             : valid(false)
         {}
