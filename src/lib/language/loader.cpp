@@ -44,7 +44,6 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <parser/qmljsengine_p.h>
-#include <parser/qmljsnodepool_p.h>
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/codelocation.h>
