@@ -170,7 +170,7 @@ void TestLanguage::groupName()
         ResolvedProductPtr product = products.value("MyProduct");
         QVERIFY(product);
         QCOMPARE(product->groups.count(), 2);
-        ResolvedGroup::ConstPtr group = product->groups.at(0);
+        GroupConstPtr group = product->groups.at(0);
         QVERIFY(group);
         QCOMPARE(group->name, QString("MyProduct"));
         group = product->groups.at(1);
@@ -313,7 +313,7 @@ void TestLanguage::outerInGroup()
         ResolvedProductPtr product = products.value("OuterInGroup");
         QVERIFY(product);
         QCOMPARE(product->groups.count(), 2);
-        ResolvedGroup::Ptr group = product->groups.at(0);
+        GroupPtr group = product->groups.at(0);
         QVERIFY(group);
         QCOMPARE(group->name, product->name);
         QCOMPARE(group->files.count(), 1);
@@ -450,7 +450,7 @@ void TestLanguage::fileTags()
     ResolvedProductPtr product;
     QVERIFY(product = products.value(productName));
     QCOMPARE(product->groups.count(), numberOfGroups);
-    ResolvedGroup::Ptr group = product->groups.last();
+    GroupPtr group = product->groups.last();
     QVERIFY(group);
     QCOMPARE(group->files.count(), 1);
     SourceArtifactConstPtr sourceFile = group->files.first();
@@ -515,15 +515,6 @@ void TestLanguage::wildcards_data()
                 << (QStringList() << "*.qbs")
                 << !recursive
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
-        QTest::newRow(QByteArray("multipattern") + dataTagSuffix)
-                << useGroup
-                << (QStringList() << "subdir/foo.h" << "subdir/foo.cpp" << "subdir/bar.h"
-                    << "subdir/bar.cpp")
-                << QString()
-                << (QStringList() << "s*b?ir/*.h")
-                << QStringList()
-                << !recursive
-                << (QStringList() << "subdir/foo.h" << "subdir/bar.h");
         QTest::newRow(QByteArray("non-recursive") + dataTagSuffix)
                 << useGroup
                 << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
@@ -540,7 +531,7 @@ void TestLanguage::wildcards_data()
             << (QStringList() << "a/*")
             << QStringList()
             << recursive
-            << (QStringList() << "a/b" << "a/foo.h" << "a/foo.cpp");
+            << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp");
     QTest::newRow(QByteArray("prefix"))
             << useGroup
             << (QStringList() << "subdir/foo.h" << "subdir/foo.cpp" << "subdir/bar.h"
@@ -625,10 +616,10 @@ void TestLanguage::wildcards()
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         product = products.value("MyProduct");
         QVERIFY(product);
-        ResolvedGroup::Ptr group;
+        GroupPtr group;
         if (useGroup) {
             QCOMPARE(product->groups.count(), 2);
-            foreach (const ResolvedGroup::Ptr &rg, product->groups) {
+            foreach (const GroupPtr &rg, product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
                     break;

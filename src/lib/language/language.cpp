@@ -30,6 +30,7 @@
 #include "language.h"
 
 #include "scriptengine.h"
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
@@ -355,7 +356,7 @@ ResolvedProduct::ResolvedProduct()
 QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     QList<SourceArtifactPtr> lst;
-    foreach (const ResolvedGroup::ConstPtr &group, groups)
+    foreach (const GroupConstPtr &group, groups)
         lst += group->allFiles();
     return lst;
 }
@@ -639,54 +640,44 @@ void ResolvedProject::store(PersistentPool &pool) const
  * \brief The \c SourceArtifacts resulting from the expanded list of matching files.
  */
 
-QSet<QString> SourceWildCards::expandPatterns(const QString &baseDir) const
+QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
+                                              const QString &baseDir) const
 {
-    QSet<QString> files = expandPatterns(patterns, baseDir);
-    files -= expandPatterns(excludePatterns, baseDir);
+    QSet<QString> files = expandPatterns(group, patterns, baseDir);
+    files -= expandPatterns(group, excludePatterns, baseDir);
     return files;
 }
 
-QSet<QString> SourceWildCards::expandPatterns(const QStringList &patterns,
-                                            const QString &baseDir) const
+QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
+        const QStringList &patterns, const QString &baseDir) const
 {
     QSet<QString> files;
     foreach (QString pattern, patterns) {
         pattern.prepend(prefix);
         pattern.replace('\\', '/');
-        QStringList parts = pattern.split('/', QString::SkipEmptyParts);
-        QString basePath;
-        if (FileInfo::isAbsolute(pattern)) {
-            if (pattern.startsWith('/'))
-                basePath += '/';
-            while (!FileInfo::isPattern(parts.first())) {
-                basePath.append(parts.takeFirst());
-                basePath += '/';
+        const int lastSepIndex = pattern.lastIndexOf(QLatin1Char('/'));
+        QString dir = baseDir;
+        if (lastSepIndex != -1) {
+            const QString dirPart = pattern.left(lastSepIndex);
+            if (FileInfo::isPattern(dirPart)) {
+                throw Error(Tr::tr("Invalid file pattern in group defined at line %1: "
+                                   "Wildcards are not allowed in directory names ('%2').")
+                            .arg(group->location.line).arg(dirPart), group->location.fileName);
             }
-        } else {
-            basePath = baseDir;
+            dir.append(QLatin1Char('/')).append(dirPart);
         }
-        expandPatterns(files, basePath, parts);
+        const QString filePattern = pattern.mid(lastSepIndex + 1);
+        const QDirIterator::IteratorFlags itFlags = recursive
+                ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
+        QDirIterator it(dir, QStringList(filePattern), QDir::Files, itFlags);
+        while (it.hasNext()) {
+            const QString filePath = it.next();
+            if (!FileInfo(filePath).isDir())
+                files += filePath;
+        }
     }
-    return files;
-}
 
-void SourceWildCards::expandPatterns(QSet<QString> &files, const QString &baseDir,
-                                     QStringList parts) const
-{
-    const QString part = parts.takeFirst();
-    const bool isDirectory = !parts.isEmpty();
-    QDir::Filters filter = QDir::NoDotAndDotDot;
-    if (isDirectory || (FileInfo::isPattern(part) && recursive))
-        filter |= QDir::Dirs;
-    if (!isDirectory)
-        filter |= QDir::Files;
-    QDirIterator it(baseDir, QStringList(part), filter);
-    while (it.hasNext()) {
-        if (isDirectory)
-            expandPatterns(files, it.next(), parts);
-        else
-            files.insert(it.next());
-    }
+    return files;
 }
 
 } // namespace Internal

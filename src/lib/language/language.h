@@ -163,7 +163,7 @@ public:
 
     static Ptr create() { return Ptr(new SourceWildCards); }
 
-    QSet<QString> expandPatterns(const QString &baseDir) const;
+    QSet<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir) const;
 
     // TODO: Use back pointer to Group instead?
     bool recursive;
@@ -176,8 +176,8 @@ public:
 private:
     SourceWildCards() : recursive(false) {}
 
-    QSet<QString> expandPatterns(const QStringList &patterns, const QString &baseDir) const;
-    void expandPatterns(QSet<QString> &files, const QString &baseDir, QStringList parts) const;
+    QSet<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
+                                 const QString &baseDir) const;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
@@ -186,10 +186,7 @@ private:
 class ResolvedGroup : public PersistentObject
 {
 public:
-    typedef QSharedPointer<ResolvedGroup> Ptr;
-    typedef QSharedPointer<const ResolvedGroup> ConstPtr;
-
-    static Ptr create() { return Ptr(new ResolvedGroup); }
+    static GroupPtr create() { return GroupPtr(new ResolvedGroup); }
 
     CodeLocation location;
 
@@ -315,7 +312,7 @@ public:
     QSet<FileTagger::ConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
-    QList<ResolvedGroup::Ptr> groups;
+    QList<GroupPtr> groups;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved

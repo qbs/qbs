@@ -166,7 +166,7 @@ void ProjectPrivate::retrieveProjectData()
         product.m_location = resolvedProduct->location;
         product.m_fileTags = resolvedProduct->fileTags;
         product.m_properties = resolvedProduct->properties->value();
-        foreach (const ResolvedGroup::Ptr &resolvedGroup, resolvedProduct->groups) {
+        foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
             group.m_name = resolvedGroup->name;
             group.m_location = resolvedGroup->location;

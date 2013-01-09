@@ -66,6 +66,10 @@ class ResolvedModule;
 typedef QSharedPointer<ResolvedModule> ResolvedModulePtr;
 typedef QSharedPointer<const ResolvedModule> ResolvedModuleConstPtr;
 
+class ResolvedGroup;
+typedef QSharedPointer<ResolvedGroup> GroupPtr;
+typedef QSharedPointer<const ResolvedGroup> GroupConstPtr;
+
 } // namespace Internal
 } // namespace qbs
 

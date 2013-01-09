@@ -31,6 +31,9 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 
+#include <QLocale>
+#include <QTemporaryFile>
+
 using qbs::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
 
@@ -50,6 +53,7 @@ TestBlackbox::TestBlackbox()
       buildDir(buildProfile + QLatin1String("-debug")),
       buildGraphPath(buildDir + QLatin1Char('/') + buildDir + QLatin1String(".bg"))
 {
+    QLocale::setDefault(QLocale::c());
 }
 
 int TestBlackbox::runQbs(QStringList arguments, bool expectFailure)
@@ -59,17 +63,19 @@ int TestBlackbox::runQbs(QStringList arguments, bool expectFailure)
     foreach (const QString &str, arguments)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
     QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
     process.start(cmdLine);
     if (!process.waitForStarted() || !process.waitForFinished()) {
+        m_qbsStderr = process.readAllStandardError();
         if (!expectFailure)
             qDebug("%s", qPrintable(process.errorString()));
         return -1;
     }
 
+    m_qbsStderr = process.readAllStandardError();
     if ((process.exitStatus() != QProcess::NormalExit
              || process.exitCode() != 0) && !expectFailure) {
-        qDebug("%s", process.readAll().constData());
+        qDebug("%s", m_qbsStderr.constData());
+        qDebug("%s", process.readAllStandardOutput().constData());
     }
     return process.exitCode();
 }
@@ -472,7 +478,22 @@ void TestBlackbox::recursiveWildcards()
 {
     QDir::setCurrent(testDataDir + "/recursive_wildcards");
     QCOMPARE(runQbs(QStringList()), 0);
-    QVERIFY(QFileInfo(buildDir + "/dir/subdir/file.txt").exists());
+    QVERIFY(QFileInfo(buildDir + "/dir/file1.txt").exists());
+    QVERIFY(QFileInfo(buildDir + "/dir/file2.txt").exists());
+}
+
+void TestBlackbox::invalidWildcards()
+{
+    QDir::setCurrent("/tmp");
+    const QByteArray projectContent = "Product {\n\tGroup {\n\t\tfiles: 'dir*/*'\n\n\t}\n }\n";
+    QTemporaryFile projectFile;
+    QVERIFY(projectFile.open());
+    projectFile.write(projectContent);
+    projectFile.close();
+    QCOMPARE(projectFile.error(), QFile::NoError);
+    QVERIFY(runQbs(QStringList() << "-f" << projectFile.fileName(), true) != 0);
+    QVERIFY2(m_qbsStderr.contains("Wildcards are not allowed in directory names"),
+             qPrintable(m_qbsStderr.constData()));
 }
 
 void TestBlackbox::updateTimestamps()

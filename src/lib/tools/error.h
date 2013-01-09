@@ -38,8 +38,11 @@ class ErrorData
 {
 public:
     ErrorData();
+
+    // TODO: Use CodeLocation here.
     ErrorData(const QString &description, const QString &file = QString(),
               int line = 0, int column = 0);
+
     ErrorData(const ErrorData &rhs);
 
     const QString &description() const { return m_description; }

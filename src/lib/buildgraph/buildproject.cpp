@@ -482,11 +482,11 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
         } else if (bgfi.lastModified() < pfi.lastModified()) {
             changedProducts += product;
         } else {
-            foreach (const ResolvedGroup::Ptr &group, resolvedProduct->groups) {
+            foreach (const GroupPtr &group, resolvedProduct->groups) {
                 if (!group->wildcards)
                     continue;
                 const QSet<QString> files
-                        = group->wildcards->expandPatterns(resolvedProduct->sourceDirectory);
+                        = group->wildcards->expandPatterns(group, resolvedProduct->sourceDirectory);
                 QSet<QString> wcFiles;
                 foreach (const SourceArtifactConstPtr &sourceArtifact, group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;

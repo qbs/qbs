@@ -1646,7 +1646,7 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
     if (isGroup)
         overrideTags = group->scope->boolValue("overrideTags", true);
 
-    ResolvedGroup::Ptr resolvedGroup = ResolvedGroup::create();
+    GroupPtr resolvedGroup = ResolvedGroup::create();
     resolvedGroup->location = group->instantiatingObject()->prototypeLocation;
 
     if (!patterns.isEmpty()) {
@@ -1657,7 +1657,7 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
         wildcards->excludePatterns = group->scope->stringListValue("excludeFiles");
         wildcards->prefix = prefix;
         wildcards->patterns = patterns;
-        QSet<QString> files = wildcards->expandPatterns(rproduct->sourceDirectory);
+        QSet<QString> files = wildcards->expandPatterns(resolvedGroup, rproduct->sourceDirectory);
         foreach (const QString &fileName, files)
             createSourceArtifact(rproduct, properties, fileName,
                                  fileTags, overrideTags, wildcards->files);
@@ -2565,8 +2565,8 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
             applyFileTaggers(artifact, rproduct);
 
     // Merge duplicate artifacts.
-    QHash<QString, QPair<ResolvedGroup::Ptr, SourceArtifactPtr> > uniqueArtifacts;
-    foreach (const ResolvedGroup::Ptr &group, rproduct->groups) {
+    QHash<QString, QPair<GroupPtr, SourceArtifactPtr> > uniqueArtifacts;
+    foreach (const GroupPtr &group, rproduct->groups) {
         Q_ASSERT(group->properties);
 
         QList<SourceArtifactPtr> artifactsInGroup = group->files;
@@ -2574,7 +2574,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
             artifactsInGroup += group->wildcards->files;
 
         foreach (const SourceArtifactPtr &artifact, artifactsInGroup) {
-            QPair<ResolvedGroup::Ptr, SourceArtifactPtr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
+            QPair<GroupPtr, SourceArtifactPtr> p = uniqueArtifacts.value(artifact->absoluteFilePath);
             SourceArtifactPtr existing = p.second;
             if (existing) {
                 // if an artifact is in the product and in a group, prefer the group configuration

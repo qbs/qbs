@@ -74,7 +74,11 @@ private slots:
     void wildcardRenaming();
     void recursiveRenaming();
     void recursiveWildcards();
+    void invalidWildcards();
     void updateTimestamps();
+
+private:
+    QByteArray m_qbsStderr;
 };
 
 #endif // TST_BLACKBOX_H
