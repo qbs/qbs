@@ -304,8 +304,8 @@ static void addTargetArtifacts(const BuildProductPtr &product,
         }
     }
     if (product->targetArtifacts.isEmpty()) {
-        QString msg = Tr::tr("No artifacts generated for product '%1'.");
-        throw Error(msg.arg(product->rProduct->name));
+        const QString msg = QString::fromLocal8Bit("No artifacts generated for product '%1'.");
+        qbsDebug() << msg.arg(product->rProduct->name);
     }
 }
 
