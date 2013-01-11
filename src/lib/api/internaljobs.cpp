@@ -294,7 +294,6 @@ void InternalCleanJob::doClean()
         setError(error);
     }
     storeBuildGraph();
-    emit finished(this);
 }
 
 
