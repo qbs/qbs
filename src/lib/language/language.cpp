@@ -201,7 +201,9 @@ QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
 void ResolvedGroup::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
-    pool.stream() >> location;
+    pool.stream()
+            >> enabled
+            >> location;
     pool.loadContainerS(files);
     wildcards = pool.idLoadS<SourceWildCards>();
     properties = pool.idLoadS<PropertyMap>();
@@ -210,7 +212,9 @@ void ResolvedGroup::load(PersistentPool &pool)
 void ResolvedGroup::store(PersistentPool &pool) const
 {
     pool.storeString(name);
-    pool.stream() << location;
+    pool.stream()
+            << enabled
+            << location;
     pool.storeContainer(files);
     pool.store(wildcards);
     pool.store(properties);
@@ -353,11 +357,29 @@ ResolvedProduct::ResolvedProduct()
 {
 }
 
+/*!
+ * \brief Returns all files of all groups as source artifacts.
+ * This includes the expanded list of wildcards.
+ */
 QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     QList<SourceArtifactPtr> lst;
     foreach (const GroupConstPtr &group, groups)
         lst += group->allFiles();
+    return lst;
+}
+
+/*!
+ * \brief Returns all files of all enabled groups as source artifacts.
+ * \sa ResolvedProduct::allFiles()
+ */
+QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
+{
+    QList<SourceArtifactPtr> lst;
+    foreach (const GroupConstPtr &group, groups) {
+        if (group->enabled)
+            lst += group->allFiles();
+    }
     return lst;
 }
 

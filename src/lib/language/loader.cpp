@@ -1588,9 +1588,6 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
     if (isGroup) {
         clearScopesCache();
 
-        if (!checkCondition(group))
-            return;
-
         // Walk through all bindings and check if we set anything
         // that required a separate config for this group.
         bool createNewConfig = false;
@@ -1647,6 +1644,7 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
         overrideTags = group->scope->boolValue("overrideTags", true);
 
     GroupPtr resolvedGroup = ResolvedGroup::create();
+    resolvedGroup->enabled = (!isGroup || checkCondition(group));
     resolvedGroup->location = group->instantiatingObject()->prototypeLocation;
 
     if (!patterns.isEmpty()) {
@@ -2558,7 +2556,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
     }
 
     // Apply file taggers.
-    foreach (const SourceArtifactPtr &artifact, rproduct->allFiles())
+    foreach (const SourceArtifactPtr &artifact, rproduct->allEnabledFiles())
         applyFileTaggers(artifact, rproduct);
     foreach (const ResolvedTransformer::Ptr &transformer, rproduct->transformers)
         foreach (const SourceArtifactPtr &artifact, transformer->outputs)
@@ -2663,7 +2661,7 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProjectPtr 
             rproduct->properties->setValue(productProperties);
 
             // insert the configuration of the ProductModule into the artifact configurations
-            foreach (SourceArtifactPtr artifact, rproduct->allFiles()) {
+            foreach (SourceArtifactPtr artifact, rproduct->allEnabledFiles()) {
                 if (artifact->properties == rproduct->properties)
                     continue; // Already inserted above.
                 QVariantMap sourceArtifactProperties = artifact->properties->value();

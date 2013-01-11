@@ -343,7 +343,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
-    foreach (const SourceArtifactConstPtr &sourceArtifact, rProduct->allFiles()) {
+    foreach (const SourceArtifactConstPtr &sourceArtifact, rProduct->allEnabledFiles()) {
         QString filePath = sourceArtifact->absoluteFilePath;
         if (product->lookupArtifact(filePath))
             continue; // ignore duplicate artifacts
@@ -566,10 +566,10 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
     QList<Artifact *> addedArtifacts, artifactsToRemove;
     QHash<QString, SourceArtifactConstPtr> oldArtifacts, newArtifacts;
 
-    const QList<SourceArtifactPtr> oldProductAllFiles = product->rProduct->allFiles();
+    const QList<SourceArtifactPtr> oldProductAllFiles = product->rProduct->allEnabledFiles();
     foreach (const SourceArtifactConstPtr &a, oldProductAllFiles)
         oldArtifacts.insert(a->absoluteFilePath, a);
-    foreach (const SourceArtifactPtr &a, changedProduct->allFiles()) {
+    foreach (const SourceArtifactPtr &a, changedProduct->allEnabledFiles()) {
         newArtifacts.insert(a->absoluteFilePath, a);
         if (!oldArtifacts.contains(a->absoluteFilePath)) {
             // artifact added

@@ -191,6 +191,7 @@ public:
     CodeLocation location;
 
     QString name;
+    bool enabled;
     QList<SourceArtifactPtr> files;
     SourceWildCards::Ptr wildcards;
     PropertyMapPtr properties;
@@ -319,6 +320,7 @@ public:
     QHash<QString, QString> executablePathCache;
 
     QList<SourceArtifactPtr> allFiles() const;
+    QList<SourceArtifactPtr> allEnabledFiles() const;
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
     void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
