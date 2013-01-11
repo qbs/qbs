@@ -202,9 +202,8 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     std::unique(changedArtifacts.begin(), changedArtifacts.end());
 
     // prepare products
-    const QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
     foreach (BuildProductPtr product, m_productsToBuild)
-        product->rProduct->setupBuildEnvironment(m_evalContext->engine(), systemEnvironment);
+        product->rProduct->setupBuildEnvironment(m_evalContext->engine(), m_baseEnvironment);
 
     // find the root nodes
     m_roots.clear();

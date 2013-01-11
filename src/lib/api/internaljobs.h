@@ -36,6 +36,7 @@
 
 #include <QMutex>
 #include <QObject>
+#include <QProcessEnvironment>
 #include <QWaitCondition>
 
 namespace qbs {
@@ -134,7 +135,8 @@ class InternalBuildJob : public BuildGraphTouchingJob
 public:
     InternalBuildJob(QObject *parent = 0);
 
-    void build(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions);
+    void build(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
+               const QProcessEnvironment &env);
 
 private slots:
     void start();
@@ -142,6 +144,7 @@ private slots:
 
 private:
     Executor *m_executor;
+    QProcessEnvironment m_environment;
 };
 
 

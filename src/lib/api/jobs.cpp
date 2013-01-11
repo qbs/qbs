@@ -240,9 +240,10 @@ BuildJob::BuildJob(QObject *parent) : AbstractJob(new InternalBuildJob, parent)
             this, SIGNAL(reportWarning(qbs::CodeLocation,QString)));
 }
 
-void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions &options)
+void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions &options,
+                     const QProcessEnvironment &env)
 {
-    qobject_cast<InternalBuildJob *>(internalJob())->build(products, options);
+    qobject_cast<InternalBuildJob *>(internalJob())->build(products, options, env);
 }
 
 

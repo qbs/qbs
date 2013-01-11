@@ -323,13 +323,14 @@ int CommandLineFrontend::runShell()
 
 void CommandLineFrontend::build()
 {
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     if (m_parser.products().isEmpty()) {
         foreach (const Project &project, m_projects)
-            m_buildJobs << project.buildAllProducts(m_parser.buildOptions(), this);
+            m_buildJobs << project.buildAllProducts(m_parser.buildOptions(), env, this);
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it)
-            m_buildJobs << it.key().buildSomeProducts(it.value(), m_parser.buildOptions(), this);
+            m_buildJobs << it.key().buildSomeProducts(it.value(), m_parser.buildOptions(), env, this);
     }
     connectBuildJobs();
 

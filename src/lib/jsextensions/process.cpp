@@ -58,6 +58,12 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
     }
 
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
+
+    // Get environment
+    QVariant v = engine->property("_qbs_procenv");
+    t->qenvironment
+            = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
+
     return obj;
 }
 
@@ -65,7 +71,6 @@ Process::~Process()
 {
     delete qstream;
     delete qprocess;
-    delete qenvironment;
 }
 
 Process::Process(QScriptContext *context)
@@ -75,26 +80,19 @@ Process::Process(QScriptContext *context)
     Process *t = this;
 
     t->qprocess = new QProcess;
-    t->qenvironment = 0;
     t->qstream = new QTextStream(t->qprocess);
 }
 
 QString Process::getEnv(const QString &name)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-
-    QProcessEnvironment &environment = t->ensureEnvironment();
-    return environment.value(name);
+    return qenvironment.value(name);
 }
 
 void Process::setEnv(const QString &name, const QString &value)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-
-    QProcessEnvironment &environment = t->ensureEnvironment();
-    environment.insert(name, value);
+    qenvironment.insert(name, value);
 }
 
 bool Process::start(const QString &program, const QStringList &arguments)
@@ -102,8 +100,7 @@ bool Process::start(const QString &program, const QStringList &arguments)
     Q_ASSERT(thisObject().engine() == engine());
     Process *t = qscriptvalue_cast<Process*>(thisObject());
 
-    if (t->qenvironment)
-        t->qprocess->setProcessEnvironment(*t->qenvironment);
+    t->qprocess->setProcessEnvironment(qenvironment);
     t->qprocess->start(program, arguments);
     return t->qprocess->waitForStarted();
 }
@@ -113,8 +110,7 @@ int Process::exec(const QString &program, const QStringList &arguments)
     Q_ASSERT(thisObject().engine() == engine());
     Process *t = qscriptvalue_cast<Process*>(thisObject());
 
-    if (t->qenvironment)
-        t->qprocess->setProcessEnvironment(*t->qenvironment);
+    t->qprocess->setProcessEnvironment(qenvironment);
     t->qprocess->start(program, arguments);
     if (!t->qprocess->waitForStarted())
         return -1;
@@ -129,8 +125,6 @@ void Process::close()
     Process *t = qscriptvalue_cast<Process*>(thisObject());
     delete t->qprocess;
     t->qprocess = 0;
-    delete t->qenvironment;
-    t->qenvironment = 0;
     delete t->qstream;
     t->qstream = 0;
 }
@@ -201,13 +195,6 @@ void Process::writeLine(const QString &str)
     if (HostOsInfo::isWindowsHost())
         (*t->qstream) << '\r';
     (*t->qstream) << '\n';
-}
-
-QProcessEnvironment &Process::ensureEnvironment()
-{
-    if (!qenvironment)
-        qenvironment = new QProcessEnvironment(QProcessEnvironment::systemEnvironment());
-    return *qenvironment;
 }
 
 } // namespace Internal

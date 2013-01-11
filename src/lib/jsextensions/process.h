@@ -31,12 +31,12 @@
 #define QBS_PROCESS_H
 
 #include <QObject>
+#include <QProcessEnvironment>
 #include <QScriptable>
 #include <QVariant>
 
 QT_BEGIN_NAMESPACE
 class QProcess;
-class QProcessEnvironment;
 class QTextStream;
 QT_END_NAMESPACE
 
@@ -67,10 +67,8 @@ public:
     Q_INVOKABLE void writeLine(const QString &str);
 
 private:
-    QProcessEnvironment &ensureEnvironment();
-
     QProcess *qprocess;
-    QProcessEnvironment *qenvironment;
+    QProcessEnvironment qenvironment;
     QTextStream *qstream;
 };
 

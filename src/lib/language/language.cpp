@@ -481,9 +481,9 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
                                                  const QList<ResolvedModuleConstPtr> &modules,
                                                  const PropertyMapConstPtr &productConfiguration,
                                                  ResolvedProject *project,
-                                                 const QProcessEnvironment &systemEnvironment)
+                                                 const QProcessEnvironment &env)
 {
-    QProcessEnvironment procenv = systemEnvironment;
+    QProcessEnvironment procenv = env;
 
     // Copy the environment of the platform configuration to the process environment.
     const QVariantMap &platformEnv = project->platformEnvironment;
@@ -571,20 +571,20 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     return procenv;
 }
 
-void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcessEnvironment &systemEnvironment) const
+void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcessEnvironment &env) const
 {
     if (!buildEnvironment.isEmpty())
         return;
 
-    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, properties, project, systemEnvironment);
+    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, properties, project, env);
 }
 
-void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEnvironment &systemEnvironment) const
+void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEnvironment &env) const
 {
     if (!runEnvironment.isEmpty())
         return;
 
-    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, properties, project, systemEnvironment);
+    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, properties, project, env);
 }
 
 QString ResolvedProject::deriveId(const QVariantMap &config)

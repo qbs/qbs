@@ -46,6 +46,7 @@
 #include <QtConcurrentRun>
 #include <QFutureWatcher>
 #include <QMutexLocker>
+#include <QProcessEnvironment>
 #include <QScopedPointer>
 #include <QTimer>
 
@@ -232,9 +233,10 @@ InternalBuildJob::InternalBuildJob(QObject *parent) : BuildGraphTouchingJob(pare
 }
 
 void InternalBuildJob::build(const QList<BuildProductPtr> &products,
-                     const BuildOptions &buildOptions)
+                             const BuildOptions &buildOptions, const QProcessEnvironment &env)
 {
     setup(products, buildOptions);
+    m_environment = env;
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
@@ -251,6 +253,7 @@ void InternalBuildJob::start()
 
     m_executor->setBuildOptions(buildOptions());
     m_executor->setProgressObserver(observer());
+    m_executor->setBaseEnvironment(m_environment);
     m_executor->build(products());
 }
 

@@ -64,6 +64,11 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
     if (lastSetupProduct != product.data()) {
         engine->setProperty("lastSetupProduct",
                 QVariant(reinterpret_cast<qulonglong>(product.data())));
+        {
+            QVariant v;
+            v.setValue<void*>(&product->buildEnvironment);
+            engine->setProperty("_qbs_procenv", v);
+        }
         productScriptValue = product->properties->toScriptValue(engine);
         productScriptValue.setProperty("name", product->name);
         QString destinationDirectory = product->destinationDirectory;

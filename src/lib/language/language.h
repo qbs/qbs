@@ -323,8 +323,8 @@ public:
     QList<SourceArtifactPtr> allFiles() const;
     QList<SourceArtifactPtr> allEnabledFiles() const;
     QSet<QString> fileTagsForFileName(const QString &fileName) const;
-    void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
-    void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &systemEnvironment) const;
+    void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
+    void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 
 private:
     ResolvedProduct();

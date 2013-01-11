@@ -38,6 +38,7 @@
 #include <tools/settings.h>
 
 #include <QObject>
+#include <QProcessEnvironment>
 #include <QVariant>
 
 namespace qbs {
@@ -61,6 +62,7 @@ public:
 
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
+    void setBaseEnvironment(const QProcessEnvironment &env) { m_baseEnvironment = env; }
 
     Error error() const { return m_error; }
     bool hasError() const { return !error().entries().isEmpty(); }
@@ -103,6 +105,7 @@ private:
     RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
     ProgressObserver *m_progressObserver;
+    QProcessEnvironment m_baseEnvironment;
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;

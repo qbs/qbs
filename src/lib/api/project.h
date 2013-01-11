@@ -72,11 +72,12 @@ public:
     RunEnvironment getRunEnvironment(const ProductData &product,
                                      const QProcessEnvironment &environment) const;
 
-    BuildJob *buildAllProducts(const BuildOptions &options, QObject *jobOwner = 0) const;
+    BuildJob *buildAllProducts(const BuildOptions &options, const QProcessEnvironment &env,
+                               QObject *jobOwner = 0) const;
     BuildJob *buildSomeProducts(const QList<ProductData> &products, const BuildOptions &options,
-                                QObject *jobOwner = 0) const;
+                                const QProcessEnvironment &env, QObject *jobOwner = 0) const;
     BuildJob *buildOneProduct(const ProductData &product, const BuildOptions &options,
-                              QObject *jobOwner = 0) const;
+                              const QProcessEnvironment &env, QObject *jobOwner = 0) const;
 
     enum CleanType { CleanupAll, CleanupTemporaries };
     CleanJob *cleanAllProducts(const BuildOptions &options, CleanType cleanType,

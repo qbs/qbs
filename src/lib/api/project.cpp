@@ -90,7 +90,8 @@ public:
 
     ProjectData projectData();
     BuildJob *buildProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
-                            bool needsDepencencyResolving, QObject *jobOwner);
+                            bool needsDepencencyResolving, const QProcessEnvironment &env,
+                            QObject *jobOwner);
     CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
                             Project::CleanType cleanType, QObject *jobOwner);
     QList<BuildProductPtr> internalProducts(const QList<ProductData> &products) const;
@@ -113,7 +114,8 @@ ProjectData ProjectPrivate::projectData()
 }
 
 BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
-        const BuildOptions &options, bool needsDepencencyResolving, QObject *jobOwner)
+                                        const BuildOptions &options, bool needsDepencencyResolving,
+                                        const QProcessEnvironment &env, QObject *jobOwner)
 {
     QList<BuildProductPtr> productsToBuild = products;
     if (needsDepencencyResolving) {
@@ -127,7 +129,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
     }
 
     BuildJob * const job = new BuildJob(jobOwner);
-    job->build(productsToBuild, options);
+    job->build(productsToBuild, options, env);
     return job;
 }
 
@@ -378,9 +380,11 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
  * \brief Causes all products of this project to be built, if necessary.
  * The function will finish immediately, returning a \c BuildJob identifiying the operation.
  */
-BuildJob *Project::buildAllProducts(const BuildOptions &options, QObject *jobOwner) const
+BuildJob *Project::buildAllProducts(const BuildOptions &options, const QProcessEnvironment &env,
+                                    QObject *jobOwner) const
 {
-    return d->buildProducts(d->internalProject->buildProducts().toList(), options, false, jobOwner);
+    return d->buildProducts(d->internalProject->buildProducts().toList(), options, false, env,
+                            jobOwner);
 }
 
 /*!
@@ -390,9 +394,10 @@ BuildJob *Project::buildAllProducts(const BuildOptions &options, QObject *jobOwn
  * The function will finish immediately, returning a \c BuildJob identifiying the operation.
  */
 BuildJob *Project::buildSomeProducts(const QList<ProductData> &products,
-                                     const BuildOptions &options, QObject *jobOwner) const
+                                     const BuildOptions &options,
+                                     const QProcessEnvironment &env, QObject *jobOwner) const
 {
-    return d->buildProducts(d->internalProducts(products), options, true, jobOwner);
+    return d->buildProducts(d->internalProducts(products), options, true, env, jobOwner);
 }
 
 /*!
@@ -400,9 +405,9 @@ BuildJob *Project::buildSomeProducts(const QList<ProductData> &products,
  * \sa Project::buildSomeProducts().
  */
 BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOptions &options,
-                                   QObject *jobOwner) const
+                                   const QProcessEnvironment &env, QObject *jobOwner) const
 {
-    return buildSomeProducts(QList<ProductData>() << product, options, jobOwner);
+    return buildSomeProducts(QList<ProductData>() << product, options, env, jobOwner);
 }
 
 /*!

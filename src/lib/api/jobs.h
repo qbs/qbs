@@ -108,7 +108,8 @@ signals:
 private:
     BuildJob(QObject *parent);
 
-    void build(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options);
+    void build(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
+               const QProcessEnvironment &env);
 };
 
 
