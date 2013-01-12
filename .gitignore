@@ -20,8 +20,10 @@ moc_*.cpp
 *.cpp.orig
 
 Makefile*
-testOptions
-testTools
+/tests/auto/blackbox/tst_blackbox
+/tests/auto/buildgraph/tst_buildgraph
+/tests/auto/language/tst_language
+/tests/auto/tools/tst_tools
 
 *.app/
 bin/*
