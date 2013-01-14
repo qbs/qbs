@@ -42,6 +42,12 @@ void ConsoleProgressObserver::initialize(const QString &task, int max)
     m_percentage = 0;
     m_hashesPrinted = 0;
     std::cout << task.toLocal8Bit().constData() << ": 0%" << std::flush;
+    if (max == 0) {
+        m_percentage = 100;
+        updateProgressBarIfNecessary();
+        writePercentageString();
+        std::cout << std::endl;
+    }
 }
 
 void ConsoleProgressObserver::setProgressValue(int value)
