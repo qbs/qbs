@@ -38,6 +38,11 @@ defineReplace(cleanPath) {
 }
 
 # For use in custom compilers which just copy files
+isEqual(QT_MAJOR_VERSION, 5) {
+defineReplace(stripSrcDir) {
+    return($$relative_path($$absolute_path($$1, $$OUT_PWD), $$_PRO_FILE_PWD_))
+}
+} else { # qt5
 win32:i_flag = i
 defineReplace(stripSrcDir) {
     win32 {
@@ -46,9 +51,10 @@ defineReplace(stripSrcDir) {
         !contains(1, ^/.*):1 = $$OUT_PWD/$$1
     }
     out = $$cleanPath($$1)
-    out ~= s|^$$re_escape($$PWD/)||$$i_flag
+    out ~= s|^$$re_escape($$_PRO_FILE_PWD_/)||$$i_flag
     return($$out)
 }
+} # qt5
 
 for(data_dir, DATA_DIRS) {
     files = $$files($$PWD/$$data_dir/*, true)
