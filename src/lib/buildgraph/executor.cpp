@@ -462,7 +462,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     m_processingJobs.erase(it);
     m_availableJobs.append(job);
 
-    if (!success)
+    if (!success && !m_buildOptions.keepGoing)
         cancelJobs();
 
     if (m_state == ExecutorRunning && m_progressObserver && m_progressObserver->canceled()) {
