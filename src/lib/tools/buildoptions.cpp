@@ -28,9 +28,7 @@
 ****************************************************************************/
 #include "buildoptions.h"
 
-#include <tools/settings.h>
-
-#include <QThread>
+#include <tools/preferences.h>
 
 namespace qbs {
 
@@ -46,10 +44,8 @@ namespace qbs {
 BuildOptions::BuildOptions()
     : dryRun(false)
     , keepGoing(false)
-    , maxJobCount(Settings().value(QLatin1String("preferences/jobs"), 0).toInt())
+    , maxJobCount(Preferences().jobs())
 {
-    if (maxJobCount <= 0)
-        maxJobCount = QThread::idealThreadCount();
 }
 
 /*!

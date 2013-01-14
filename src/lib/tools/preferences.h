@@ -26,42 +26,34 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
+#ifndef QBS_PREFERENCES_H
+#define QBS_PREFERENCES_H
 
 #include <QStringList>
 #include <QVariant>
 
-QT_BEGIN_NAMESPACE
-class QSettings;
-QT_END_NAMESPACE
-
 namespace qbs {
+class Settings;
 
-class Settings
+class Preferences
 {
 public:
-    Settings();
-    ~Settings();
+    explicit Preferences(Settings *settings);
+    Preferences();
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QVariant moduleValue(const QString &key, const QString &profile,
-            const QVariant &defaultValue = QVariant());
-    QStringList allKeys() const;
-    QStringList allKeysWithPrefix(const QString &group);
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
-
-    // Add convenience functions here.
-    QString buildVariant() const;
+    bool useColoredOutput() const;
+    int jobs() const;
+    QStringList searchPaths() const;
+    QStringList pluginPaths() const;
 
 private:
-    void checkStatus();
+    QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;
+    QStringList pathList(const QString &key, const QString &defaultValue) const;
 
-    QSettings * const m_settings;
+    Settings *m_settings;
 };
 
 } // namespace qbs
 
-#endif // QBS_SETTINGS_H
+
+#endif // Header guard

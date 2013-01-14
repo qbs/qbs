@@ -41,7 +41,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/progressobserver.h>
-#include <tools/settings.h>
+#include <tools/preferences.h>
 
 #include <QtConcurrentRun>
 #include <QFutureWatcher>
@@ -156,7 +156,7 @@ void InternalSetupProjectJob::execute()
 {
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext);
     evalContext->setObserver(observer());
-    const QStringList searchPaths = Settings().searchPaths();
+    const QStringList searchPaths = Preferences().searchPaths();
     const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
             evalContext, m_buildRoot, m_buildConfig, searchPaths);
 

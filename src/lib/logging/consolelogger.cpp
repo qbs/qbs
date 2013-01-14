@@ -31,7 +31,7 @@
 #include "logger.h"
 #include "coloredoutput.h"
 
-#include <tools/settings.h>
+#include <tools/preferences.h>
 
 #include <QHash>
 
@@ -79,7 +79,7 @@ void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char
 
 ConsoleLogger::ConsoleLogger()
 {
-    m_logSink.setColoredOutputEnabled(Settings().useColoredOutput());
+    m_logSink.setColoredOutputEnabled(Preferences().useColoredOutput());
     ILogSink::setGlobalLogSink(&m_logSink);
 }
 

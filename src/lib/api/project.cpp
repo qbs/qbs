@@ -42,6 +42,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/platform.h>
+#include <tools/preferences.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
@@ -64,7 +65,7 @@ static void loadPlugins()
         return;
 
     QStringList pluginPaths;
-    const QStringList settingsPluginPaths = Settings().pluginPaths();
+    const QStringList settingsPluginPaths = Preferences().pluginPaths();
     foreach (const QString &pluginPath, settingsPluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
             qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")

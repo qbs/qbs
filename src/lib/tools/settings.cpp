@@ -30,11 +30,8 @@
 #include "settings.h"
 
 #include "error.h"
-#include "fileinfo.h"
-#include "hostosinfo.h"
 #include <logging/translator.h>
 
-#include <QFileInfo>
 #include <QSettings>
 
 #include <algorithm>
@@ -107,32 +104,6 @@ void Settings::remove(const QString &key)
 {
     m_settings->remove(key);
     checkStatus();
-}
-
-bool Settings::useColoredOutput() const
-{
-    return value(QLatin1String("preferences/useColoredOutput"), true).toBool();
-}
-
-QStringList Settings::searchPaths() const
-{
-    return pathList(QLatin1String("preferences/qbsPath"),
-            qbsRootPath() + QLatin1String("/share/qbs/"));
-}
-
-QStringList Settings::pluginPaths() const
-{
-    return pathList(QLatin1String("preferences/pluginsPath"),
-                    qbsRootPath() + QLatin1String("/plugins/"));
-}
-
-QStringList Settings::pathList(const QString &key, const QString &defaultValue) const
-{
-    QStringList paths = value(key).toString().split(HostOsInfo::pathListSeparator(),
-                                                    QString::SkipEmptyParts);
-    if (paths.isEmpty())
-        paths << defaultValue;
-    return paths;
 }
 
 QString Settings::buildVariant() const

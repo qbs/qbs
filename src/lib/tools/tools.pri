@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
+    $$PWD/preferences.h \
     $$PWD/processresult.h \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
@@ -25,6 +26,7 @@ SOURCES += \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
+    $$PWD/preferences.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/buildoptions.cpp
 
