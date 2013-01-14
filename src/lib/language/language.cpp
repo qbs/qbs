@@ -354,6 +354,7 @@ void Rule::store(PersistentPool &pool) const
 }
 
 ResolvedProduct::ResolvedProduct()
+    : enabled(true)
 {
 }
 
@@ -396,7 +397,9 @@ QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) cons
 
 void ResolvedProduct::load(PersistentPool &pool)
 {
-    pool.stream() >> fileTags
+    pool.stream()
+        >> enabled
+        >> fileTags
         >> additionalFileTags
         >> name
         >> targetName
@@ -413,7 +416,9 @@ void ResolvedProduct::load(PersistentPool &pool)
 
 void ResolvedProduct::store(PersistentPool &pool) const
 {
-    pool.stream() << fileTags
+    pool.stream()
+        << enabled
+        << fileTags
         << additionalFileTags
         << name
         << targetName

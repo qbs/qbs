@@ -287,7 +287,8 @@ BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &r
     m_project->setResolvedProject(resolvedProject);
     evalContext->initializeObserver(Tr::tr("Resolving project"), resolvedProject->products.count());
     foreach (ResolvedProductPtr rProduct, resolvedProject->products) {
-        resolveProduct(rProduct);
+        if (rProduct->enabled)
+            resolveProduct(rProduct);
         evalContext->incrementProgressValue();
     }
     CycleDetector().visitProject(m_project);
@@ -326,6 +327,10 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
     foreach (ResolvedProductPtr dependency, rProduct->dependencies) {
         if (dependency == rProduct)
             throw Error(Tr::tr("circular using"));
+        if (!dependency->enabled) {
+            QString msg = Tr::tr("Product '%1' depends on '%2' but '%2' is disabled.");
+            throw Error(msg.arg(rProduct->name, dependency->name));
+        }
         BuildProductPtr referencedProduct = resolveProduct(dependency);
         product->dependencies.append(referencedProduct);
     }

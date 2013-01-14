@@ -137,7 +137,6 @@ public:
     struct ProjectData
     {
         QHash<ResolvedProductPtr, ProductData> products;
-        QList<ProductData> removedProducts;
     };
 
     void resolveTopLevel(const ResolvedProjectPtr &rproject,
@@ -2451,14 +2450,9 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProjectPtr &rproject,
     buildModulesProperty(evaluationObject);
 
     // check the product's condition
-    if (!checkCondition(evaluationObject)) {
-        // Remove product from configuration if it is disabled
-        const QString productName = evaluationObject->scope->stringValue("name");
-        projectData->removedProducts += productData;
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace() << "[LDR] condition for product '" << productName << "' is false.";
-        return;
-    }
+    rproduct->enabled = checkCondition(evaluationObject);
+    if (!rproduct->enabled && qbsLogLevel(LoggerTrace))
+        qbsTrace() << "[LDR] condition for product '" << rproduct->name << "' is false.";
 
     projectData->products.insert(rproduct, productData);
 }
@@ -2480,10 +2474,6 @@ void Loader::LoaderPrivate::checkUserProperties(const Loader::LoaderPrivate::Pro
             foreach (const QString &dependency, module->moduleDependencies)
                 allowedUserPropertyNames += dependency;
         }
-    }
-    foreach (const ProductData &productData, projectData.removedProducts) {
-        allowedUserPropertyNames += productData.originalProductName;
-        allowedUserPropertyNames += productData.product->scope->stringValue("name");
     }
 
     for (QVariantMap::const_iterator it = userProperties.begin(); it != userProperties.end(); ++it) {
