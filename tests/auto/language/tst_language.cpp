@@ -345,10 +345,23 @@ void TestLanguage::productConditions()
                                                               "/some/build/directory", buildConfig);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 3);
-        QVERIFY(products.value("product_no_condition"));
-        QVERIFY(products.value("product_true_condition"));
-        QVERIFY(products.value("product_condition_dependent_of_module"));
+        QCOMPARE(products.count(), 4);
+        ResolvedProductPtr product;
+        product = products.value("product_no_condition");
+        QVERIFY(product);
+        QVERIFY(product->enabled);
+
+        product = products.value("product_true_condition");
+        QVERIFY(product);
+        QVERIFY(product->enabled);
+
+        product = products.value("product_condition_dependent_of_module");
+        QVERIFY(product);
+        QVERIFY(product->enabled);
+
+        product = products.value("product_false_condition");
+        QVERIFY(product);
+        QVERIFY(!product->enabled);
     }
     catch (const Error &e) {
         exceptionCaught = true;
