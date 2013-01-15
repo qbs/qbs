@@ -226,27 +226,24 @@
     All what the setup-qt tool does can be done manually.
     That's described in this section.
 
-    If you have only one install of Qt you don't need to use profiles and can
-    set the binPath, libPath etc. globally:
-
-    Here's an example for registering Qt, installed on Ubuntu GNU/Linux:
+    Here's an example for registering Qt, installed on Ubuntu GNU/Linux, again using a profile "myqt":
 
     \code
-    qbs config modules.qt.core.binPath /usr/bin
-    qbs config modules.qt.core.incPath /usr/include/qt4
-    qbs config modules.qt.core.libPath /usr/lib/x86_64-linux-gnu
-    qbs config modules.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
+    qbs config profiles.myqt.qt.core.binPath /usr/bin
+    qbs config profiles.myqt.qt.core.incPath /usr/include/qt4
+    qbs config profiles.myqt.qt.core.libPath /usr/lib/x86_64-linux-gnu
+    qbs config profiles.myqt.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
     \endcode
 
     If you're using Qt 5, you must specify the version number.
     \code
-    qbs config modules.qt.core.version 5.0.0
+    qbs config profiles.myqt.qt.core.version 5.0.0
     \endcode
 
     \section1 Multiple Qt builds
 
     To support multiple Qt builds, or in fact any combination of settings you
-    need to set together, you need to use a profile. This is how you'd set up
+    need to set together, you need to create several profiles. This is how you'd set up
     three different profiles, each for a different Qt build:
 
     \code
@@ -282,16 +279,13 @@
     then you must set the following config value.
 
     \code
-    qbs config modules.qt.core.namespace MyNamespace
+    qbs config profiles.myqt.qt.core.namespace MyNamespace
     \endcode
-
-    (or if the namespace was only relevant for a particular profile, you'd set
-    profiles.<profileName>.qt.core.namespace instead.)
 
     The same goes for the -qtlibinfix option.
 
     \code
-    qbs config modules.qt.core.libInfix MyInfix
+    qbs config profiles.myqt.qt.core.libInfix MyInfix
     \endcode
 */
 
@@ -546,8 +540,7 @@
         \li The target operating system. Currently "windows", "linux" or "mac".
     \endtable
 
-    You can set these properties on the command line, or by using a profile or
-    setting the \a modules.qbs.<propertyName> config item. The property \a
+    You can set these properties on the command line or by using a profile. The property \a
     qbs.buildVariant is handled in a special way.
 
     \code

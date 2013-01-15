@@ -267,9 +267,8 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
 
     // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
     // 1) Things specified on command line (already in buildCfg at this point)
-    // 2) Everything from the profile key (in reverse order)
+    // 2) Everything from the profile key
     // 3) Everything from the platform
-    // 4) Any remaining keys from modules keyspace
     QString profileName = expandedConfig.value("qbs.profile").toString();
     if (profileName.isNull()) {
         profileName = settings.value("profile").toString();
@@ -311,14 +310,6 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
             if (!expandedConfig.contains(fixedKey))
                 expandedConfig.insert(fixedKey, platform->settings.value(key));
         }
-    }
-
-    // Now finally do (4)
-    foreach (const QString &defaultKey, settings.allKeysWithPrefix("modules")) {
-        QString fixedKey(defaultKey);
-        fixedKey.replace(QChar('/'), QChar('.'));
-        if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings.value(QString("modules/") + defaultKey));
     }
 
     if (!expandedConfig.value("qbs.buildVariant").isValid())

@@ -53,9 +53,6 @@ public:
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
 
-    // Add convenience functions here.
-    QString buildVariant() const;
-
 private:
     void checkStatus();
 

@@ -178,7 +178,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     properties.insert(currentKey, currentProperties);
 
     if (properties.count() == 1) // No build variant specified on command line.
-        properties.insert(Settings().buildVariant(), QVariantMap());
+        properties.insert(QLatin1String("debug"), QVariantMap());
 
     const PropertyMaps::Iterator globalMapIt = properties.find(QString());
     Q_ASSERT(globalMapIt != properties.end());
