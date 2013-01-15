@@ -44,11 +44,24 @@ public:
 
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
     void setValue(const QString &key, const QVariant &value);
-    QStringList allKeys() const;
+    void remove(const QString &key);
+
+    QString prototype() const;
+    void setPrototype(const QString &prototype);
+    void removePrototype();
+
+    enum KeySelection { KeySelectionRecursive,  KeySelectionNonRecursive };
+    QStringList allKeys(KeySelection selection) const;
 
 private:
     QString profileKey() const;
+    QString prototypeKey() const;
+    QVariant localValue(const QString &key) const;
     QString fullyQualifiedKey(const QString &key) const;
+    QVariant possiblyInheritedValue(const QString &key, const QVariant &defaultValue,
+                                    QStringList profileChain) const;
+    QStringList allKeysInternal(KeySelection selection, QStringList profileChain) const;
+    void extendAndCheckProfileChain(QStringList &chain) const;
 
     QString m_name;
     Settings *m_settings;

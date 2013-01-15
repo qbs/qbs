@@ -30,8 +30,11 @@
 #include <app/qbs/parser/commandlineparser.h>
 #include <logging/logger.h>
 #include <tools/buildoptions.h>
+#include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/profile.h>
+#include <tools/settings.h>
 #include <QDir>
 #include <QTemporaryFile>
 #include <QtTest>
@@ -121,6 +124,61 @@ private slots:
         QCOMPARE(projectFilePath, parser.projectFilePath());
         QVERIFY(!parser.parseCommandLine(args + QStringList(noProjectsDir)));
         QVERIFY(!parser.parseCommandLine(args + QStringList(multiProjectsDir)));
+    }
+
+    void testProfiles()
+    {
+        bool exceptionCaught;
+        Settings settings;
+        Profile parentProfile("parent", &settings);
+        Profile childProfile("child", &settings);
+        try {
+            parentProfile.removePrototype();
+            parentProfile.remove("testKey");
+            QCOMPARE(parentProfile.value("testKey", "none").toString(), QLatin1String("none"));
+            parentProfile.setValue("testKey", "testValue");
+            QCOMPARE(parentProfile.value("testKey").toString(), QLatin1String("testValue"));
+
+            childProfile.remove("testKey");
+            childProfile.removePrototype();
+            QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
+            childProfile.setPrototype("blubb");
+            QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
+            childProfile.setPrototype("parent");
+            QCOMPARE(childProfile.value("testKey").toString(), QLatin1String("testValue"));
+            childProfile.setPrototype("foo");
+            QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
+            exceptionCaught = false;
+        } catch (Error &) {
+            exceptionCaught = true;
+        }
+        QVERIFY(!exceptionCaught);
+
+        try {
+            childProfile.setPrototype("parent");
+            parentProfile.setPrototype("child");
+            QVERIFY(!childProfile.value("blubb").isValid());
+            exceptionCaught = false;
+        } catch (Error &) {
+            exceptionCaught = true;
+        }
+        QVERIFY(exceptionCaught);
+
+        try {
+            QVERIFY(!childProfile.allKeys(Profile::KeySelectionNonRecursive).isEmpty());
+            exceptionCaught = false;
+        } catch (Error &) {
+            exceptionCaught = true;
+        }
+        QVERIFY(!exceptionCaught);
+
+        try {
+            QVERIFY(!childProfile.allKeys(Profile::KeySelectionRecursive).isEmpty());
+            exceptionCaught = false;
+        } catch (Error &) {
+            exceptionCaught = true;
+        }
+        QVERIFY(exceptionCaught);
     }
 };
 

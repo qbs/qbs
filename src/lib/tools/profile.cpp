@@ -30,11 +30,23 @@
 
 #include "settings.h"
 
+#include <logging/translator.h>
+#include <tools/error.h>
+
 namespace qbs {
 
 /*!
  * \class Profile
  * \brief The \c Profile class gives access to the settings of a given profile.
+ */
+
+ /*!
+ * \enum Profile::KeySelection
+ * This enum type specifies whether to enumerate keys recursively.
+ * \value KeySelectionRecursive Indicates that key enumeration should happen recursively, i.e.
+ *        it should go up the profile prototype chain.
+ * \value KeySelectionNonRecursive Indicates that only keys directly attached to a profile
+ *        should be listed.
  */
 
 /*!
@@ -63,7 +75,7 @@ Profile::~Profile()
 // TODO: Take untranslated key (using dots), let Settings class handle conversion
 QVariant Profile::value(const QString &key, const QVariant &defaultValue) const
 {
-    return m_settings->value(fullyQualifiedKey(key), defaultValue);
+    return possiblyInheritedValue(key, defaultValue, QStringList());
 }
 
 /*!
@@ -75,11 +87,46 @@ void Profile::setValue(const QString &key, const QVariant &value)
 }
 
 /*!
- * \brief Returns all property keys in this profile.
+ * \brief Removes a key and the associated value from this profile.
  */
-QStringList Profile::allKeys() const
+void Profile::remove(const QString &key)
 {
-    return m_settings->allKeysWithPrefix(profileKey());
+    m_settings->remove(fullyQualifiedKey(key));
+}
+
+/*!
+ * \brief Returns all property keys in this profile.
+ * If and only if selection is Profile::KeySelectionRecursive, this will also list keys defined
+ * in prototype profiles.
+ */
+QStringList Profile::allKeys(KeySelection selection) const
+{
+    return allKeysInternal(selection, QStringList());
+}
+
+/*!
+ * \brief Returns the name of this profile's prototype.
+ * The returned value is empty if the profile does not have a prototype.
+ */
+QString Profile::prototype() const
+{
+    return localValue(prototypeKey()).toString();
+}
+
+/*!
+ * Sets a new prototype for this profile.
+ */
+void Profile::setPrototype(const QString &prototype)
+{
+    setValue(prototypeKey(), prototype);
+}
+
+/*!
+ * Removes this profile's prototype.
+ */
+void Profile::removePrototype()
+{
+    remove(prototypeKey());
 }
 
 QString Profile::profileKey() const
@@ -87,9 +134,59 @@ QString Profile::profileKey() const
     return QLatin1String("profiles/") + m_name;
 }
 
+QString Profile::prototypeKey() const
+{
+    return QLatin1String("prototype");
+}
+
+QVariant Profile::localValue(const QString &key) const
+{
+    return m_settings->value(fullyQualifiedKey(key));
+}
+
 QString Profile::fullyQualifiedKey(const QString &key) const
 {
     return profileKey() + QLatin1Char('/') + key;
+}
+
+QVariant Profile::possiblyInheritedValue(const QString &key, const QVariant &defaultValue,
+                                         QStringList profileChain) const
+{
+    extendAndCheckProfileChain(profileChain);
+    const QVariant v = localValue(key);
+    if (v.isValid())
+        return v;
+    const QString prototypeName = prototype();
+    if (prototypeName.isEmpty())
+        return defaultValue;
+    Profile parentProfile(prototypeName, m_settings);
+    return parentProfile.possiblyInheritedValue(key, defaultValue, profileChain);
+}
+
+QStringList Profile::allKeysInternal(Profile::KeySelection selection,
+                                     QStringList profileChain) const
+{
+    extendAndCheckProfileChain(profileChain);
+    QStringList keys = m_settings->allKeysWithPrefix(profileKey());
+    if (selection == KeySelectionNonRecursive)
+        return keys;
+    const QString prototypeName = prototype();
+    if (prototypeName.isEmpty())
+        return keys;
+    Profile parentProfile(prototypeName, m_settings);
+    keys += parentProfile.allKeysInternal(KeySelectionRecursive, profileChain);
+    keys.removeDuplicates();
+    keys.sort();
+    return keys;
+}
+
+void Profile::extendAndCheckProfileChain(QStringList &chain) const
+{
+    chain << m_name;
+    if (chain.count(m_name) > 1) {
+        throw Error(Internal::Tr::tr("Circular profile inheritance. Cycle is '%1'.")
+                    .arg(chain.join(QLatin1String(" -> "))));
+    }
 }
 
 } // namespace qbs

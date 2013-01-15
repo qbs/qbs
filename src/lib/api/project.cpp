@@ -283,7 +283,7 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
 
     // (2)
     const Profile profile(profileName, &settings);
-    const QStringList profileKeys = profile.allKeys();
+    const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive);
     if (profileKeys.isEmpty())
         throw Error(Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
     foreach (const QString &profileKey, profileKeys) {
