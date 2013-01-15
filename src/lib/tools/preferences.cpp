@@ -96,7 +96,7 @@ QStringList Preferences::pluginPaths() const
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const
 {
-    return m_settings->value(QLatin1String("preference/") + key, defaultValue);
+    return m_settings->value(QLatin1String("preferences/") + key, defaultValue);
 }
 
 QStringList Preferences::pathList(const QString &key, const QString &defaultValue) const
