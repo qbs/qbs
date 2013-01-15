@@ -64,13 +64,6 @@ QVariant Settings::value(const QString &key, const QVariant &defaultValue) const
     return m_settings->value(key, defaultValue);
 }
 
-QVariant Settings::moduleValue(const QString &key, const QString &profile,
-        const QVariant &defaultValue)
-{
-    const QString profileKey = QString::fromLatin1("profiles/%1/%2").arg(profile, key);
-    return value(profileKey, defaultValue);
-}
-
 QStringList Settings::allKeys() const
 {
     QStringList keys  = m_settings->allKeys();
@@ -100,6 +93,11 @@ void Settings::remove(const QString &key)
 {
     m_settings->remove(key);
     checkStatus();
+}
+
+QString Settings::defaultProfile() const
+{
+    return value(QLatin1String("profile")).toString();
 }
 
 void Settings::checkStatus()

@@ -30,6 +30,7 @@
 #include "setupqt.h"
 
 #include <tools/hostosinfo.h>
+#include <tools/profile.h>
 
 #include <QByteArrayMatcher>
 #include <QCoreApplication>
@@ -37,7 +38,6 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QStringList>
-#include <QSettings>
 #include <QtDebug>
 
 namespace qbs {
@@ -209,18 +209,15 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.").arg(qtVersionName);
     printf("%s\n", qPrintable(msg));
 
-    QSettings qbsSettings(QLatin1String("QtProject"), QLatin1String("qbs"));
-    QString settingsTemplate(qtVersionName + QLatin1String("/qt/core/%1"));
-
-    qbsSettings.beginGroup(QLatin1String("profiles"));
-    qbsSettings.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
-    qbsSettings.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libraryPath);
-    qbsSettings.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);
-    qbsSettings.setValue(settingsTemplate.arg("mkspecPath"), qtEnviroment.mkspecPath);
-    qbsSettings.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
-    qbsSettings.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
-    qbsSettings.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
-    qbsSettings.endGroup();
+    Profile profile(qtVersionName);
+    const QString settingsTemplate(QLatin1String("qt/core/%1"));
+    profile.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
+    profile.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libraryPath);
+    profile.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);
+    profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnviroment.mkspecPath);
+    profile.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
+    profile.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
+    profile.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
 }
 
 bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion, const QList<QtEnviroment> &qtEnviroments)

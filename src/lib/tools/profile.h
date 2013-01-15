@@ -26,39 +26,35 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_PROFILE_H
+#define QBS_PROFILE_H
 
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
-
+#include <QString>
 #include <QStringList>
 #include <QVariant>
 
-QT_BEGIN_NAMESPACE
-class QSettings;
-QT_END_NAMESPACE
-
 namespace qbs {
+class Settings;
 
-class Settings
+class Profile
 {
 public:
-    Settings();
-    ~Settings();
+    explicit Profile(const QString &name, Settings *settings = 0);
+    ~Profile();
 
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList allKeysWithPrefix(const QString &group);
     void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
-
-    QString defaultProfile() const;
+    QStringList allKeys() const;
 
 private:
-    void checkStatus();
+    QString profileKey() const;
+    QString fullyQualifiedKey(const QString &key) const;
 
-    QSettings * const m_settings;
+    QString m_name;
+    Settings *m_settings;
+    bool m_deleteSettings;
 };
 
 } // namespace qbs
 
-#endif // QBS_SETTINGS_H
+#endif // Header guard

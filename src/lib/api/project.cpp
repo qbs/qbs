@@ -43,6 +43,7 @@
 #include <tools/fileinfo.h>
 #include <tools/platform.h>
 #include <tools/preferences.h>
+#include <tools/profile.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
@@ -271,30 +272,31 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
     // 3) Everything from the platform
     QString profileName = expandedConfig.value("qbs.profile").toString();
     if (profileName.isNull()) {
-        profileName = settings.value("profile").toString();
-        if (profileName.isNull())
-            throw Error(Tr::tr("No profile given.\n"
-                           "Either set the configuration value 'profile' to a valid profile's name\n"
-                           "or specify the profile with the command line parameter 'profile:name'."));
+        profileName = settings.defaultProfile();
+        if (profileName.isNull()) {
+            throw Error(Tr::tr("No profile given and no default profile set.\n"
+                    "Either set the configuration value 'profile' to a valid profile's name\n"
+                    "or specify the profile with the command line parameter 'profile:name'."));
+        }
         expandedConfig.insert("qbs.profile", profileName);
     }
 
     // (2)
-    const QString profileGroup = QString("profiles/%1").arg(profileName);
-    const QStringList profileKeys = settings.allKeysWithPrefix(profileGroup);
+    const Profile profile(profileName, &settings);
+    const QStringList profileKeys = profile.allKeys();
     if (profileKeys.isEmpty())
-        throw Error(Tr::tr("Unknown profile '%1'.").arg(profileName));
+        throw Error(Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
     foreach (const QString &profileKey, profileKeys) {
         QString fixedKey(profileKey);
         fixedKey.replace(QChar('/'), QChar('.'));
         if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, settings.value(profileGroup + "/" + profileKey));
+            expandedConfig.insert(fixedKey, profile.value(profileKey));
     }
 
     // (3) Need to make sure we have a value for qbs.platform before going any further
     QVariant platformName = expandedConfig.value("qbs.platform");
     if (!platformName.isValid()) {
-        platformName = settings.moduleValue("qbs/platform", profileName);
+        platformName = profile.value("qbs/platform");
         if (platformName.isValid())
             expandedConfig.insert("qbs.platform", platformName);
     }

@@ -11,6 +11,7 @@ HEADERS += \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
     $$PWD/preferences.h \
+    $$PWD/profile.h \
     $$PWD/processresult.h \
     $$PWD/progressobserver.h \
     $$PWD/hostosinfo.h \
@@ -27,6 +28,7 @@ SOURCES += \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
     $$PWD/preferences.cpp \
+    $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/buildoptions.cpp
 
