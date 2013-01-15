@@ -42,12 +42,21 @@ using namespace Internal;
  * \brief The \c Preferences class gives access to all general qbs preferences.
  */
 
-Preferences::Preferences(Settings *settings) : m_settings(settings)
+Preferences::Preferences(Settings *settings)
 {
+    if (settings) {
+        m_settings = settings;
+        m_deleteSettings = false;
+    } else {
+        m_settings = new Settings;
+        m_deleteSettings = true;
+    }
 }
 
-Preferences::Preferences() : m_settings(new Settings)
+Preferences::~Preferences()
 {
+    if (m_deleteSettings)
+        delete m_settings;
 }
 
 /*!

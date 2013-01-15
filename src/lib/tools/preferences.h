@@ -38,8 +38,8 @@ class Settings;
 class Preferences
 {
 public:
-    explicit Preferences(Settings *settings);
-    Preferences();
+    explicit Preferences(Settings *settings = 0);
+    ~Preferences();
 
     bool useColoredOutput() const;
     int jobs() const;
@@ -51,6 +51,7 @@ private:
     QStringList pathList(const QString &key, const QString &defaultValue) const;
 
     Settings *m_settings;
+    bool m_deleteSettings;
 };
 
 } // namespace qbs
