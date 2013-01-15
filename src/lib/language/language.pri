@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/artifactproperties.h \
     $$PWD/evaluationobject.h \
     $$PWD/forward_decls.h \
     $$PWD/identifiersearch.h \
@@ -17,6 +18,7 @@ HEADERS += \
     $$PWD/scriptengine.h
 
 SOURCES += \
+    $$PWD/artifactproperties.cpp \
     $$PWD/evaluationobject.cpp \
     $$PWD/identifiersearch.cpp \
     $$PWD/language.cpp \
@@ -31,4 +33,3 @@ SOURCES += \
     $$PWD/scope.cpp \
     $$PWD/scopechain.cpp \
     $$PWD/scriptengine.cpp
-

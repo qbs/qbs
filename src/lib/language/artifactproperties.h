@@ -26,55 +26,39 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_LANG_FORWARD_DECLS_H
-#define QBS_LANG_FORWARD_DECLS_H
 
-#include <QSharedPointer>
+#ifndef QBS_ARTIFACTPROPERTIES_H
+#define QBS_ARTIFACTPROPERTIES_H
+
+#include "language.h"
+#include "forward_decls.h"
+#include <tools/persistentobject.h>
 
 namespace qbs {
 namespace Internal {
 
-class PropertyMap;
-typedef QSharedPointer<PropertyMap> PropertyMapPtr;
-typedef QSharedPointer<const PropertyMap> PropertyMapConstPtr;
+class ArtifactProperties : public PersistentObject
+{
+public:
+    static ArtifactPropertiesPtr create();
 
-class ResolvedProduct;
-typedef QSharedPointer<ResolvedProduct> ResolvedProductPtr;
-typedef QSharedPointer<const ResolvedProduct> ResolvedProductConstPtr;
+    void setFileTagsFilter(const QStringList &filter) { m_fileTagsFilter = filter; }
+    QStringList fileTagsFilter() const { return m_fileTagsFilter; }
 
-class ResolvedProject;
-typedef QSharedPointer<ResolvedProject> ResolvedProjectPtr;
-typedef QSharedPointer<const ResolvedProject> ResolvedProjectConstPtr;
+    PropertyMapPtr propertyMap() const { return m_propertyMap; }
+    void setPropertyMap(const PropertyMapPtr &pmap) { m_propertyMap = pmap; }
 
-class Rule;
-typedef QSharedPointer<Rule> RulePtr;
-typedef QSharedPointer<const Rule> RuleConstPtr;
+private:
+    ArtifactProperties();
 
-class SourceArtifact;
-typedef QSharedPointer<SourceArtifact> SourceArtifactPtr;
-typedef QSharedPointer<const SourceArtifact> SourceArtifactConstPtr;
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
 
-class PrepareScript;
-typedef QSharedPointer<PrepareScript> PrepareScriptPtr;
-typedef QSharedPointer<const PrepareScript> PrepareScriptConstPtr;
-
-class RuleArtifact;
-typedef QSharedPointer<RuleArtifact> RuleArtifactPtr;
-typedef QSharedPointer<const RuleArtifact> RuleArtifactConstPtr;
-
-class ResolvedModule;
-typedef QSharedPointer<ResolvedModule> ResolvedModulePtr;
-typedef QSharedPointer<const ResolvedModule> ResolvedModuleConstPtr;
-
-class ResolvedGroup;
-typedef QSharedPointer<ResolvedGroup> GroupPtr;
-typedef QSharedPointer<const ResolvedGroup> GroupConstPtr;
-
-class ArtifactProperties;
-typedef QSharedPointer<ArtifactProperties> ArtifactPropertiesPtr;
-typedef QSharedPointer<const ArtifactProperties> ArtifactPropertiesConstPtr;
+    QStringList m_fileTagsFilter;
+    PropertyMapPtr m_propertyMap;
+};
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_LANG_FORWARD_DECLS_H
+#endif // QBS_ARTIFACTPROPERTIES_H

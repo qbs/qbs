@@ -34,6 +34,7 @@
 #include "buildproject.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
+#include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
@@ -266,6 +267,15 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         outputArtifact->properties = m_buildProduct->rProduct->properties;
     else
         outputArtifact->properties= (*inputArtifacts.constBegin())->properties;
+
+    for (int i = 0; i < m_buildProduct->rProduct->artifactProperties.count(); ++i) {
+        const ArtifactPropertiesConstPtr &props = m_buildProduct->rProduct->artifactProperties.at(i);
+        QSet<QString> filter = props->fileTagsFilter().toSet();
+        if (!filter.intersect(outputArtifact->fileTags).isEmpty()) {
+            outputArtifact->properties = props->propertyMap();
+            break;
+        }
+    }
 
     foreach (Artifact *inputArtifact, inputArtifacts) {
         Q_ASSERT(outputArtifact != inputArtifact);

@@ -29,6 +29,7 @@
 
 #include "loader.h"
 
+#include "artifactproperties.h"
 #include "evaluationobject.h"
 #include "identifiersearch.h"
 #include "language.h"
@@ -800,6 +801,7 @@ void Loader::LoaderPrivate::setupBuiltinDeclarations()
     decls += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
     decls += PropertyDeclaration("name", PropertyDeclaration::String, PropertyDeclaration::PropertyNotAvailableInConfig);
     decls += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    decls += PropertyDeclaration("fileTagsFilter", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     decls += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
     recursiveProperty.initialValueSource = "false";
@@ -1582,8 +1584,8 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
 {
     const bool isGroup = product != group;
 
+    QStringList files = group->scope->stringListValue("files");
     PropertyMapPtr properties = rproduct->properties;
-
     if (isGroup) {
         clearScopesCache();
 
@@ -1604,10 +1606,26 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
             properties = PropertyMap::create();
             properties->setValue(evaluateModuleValues(rproduct, product, group->scope));
         }
+
+        const QStringList fileTagsFilter = group->scope->stringListValue("fileTagsFilter");
+        if (!fileTagsFilter.isEmpty()) {
+            if (!files.isEmpty())
+                throw Error(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
+                            group->instantiatingObject()->prototypeLocation);
+
+            ArtifactPropertiesPtr aprops = ArtifactProperties::create();
+            aprops->setFileTagsFilter(fileTagsFilter);
+            QVariantMap cfgval = evaluateAll(rproduct, group->scope);
+            cfgval.remove("fileTagsFilter");
+            PropertyMapPtr cfg = PropertyMap::create();
+            cfg->setValue(cfgval);
+            aprops->setPropertyMap(cfg);
+            rproduct->artifactProperties += aprops;
+            return;
+        }
     }
 
     // Products can have 'files' but not 'fileTags'
-    QStringList files = group->scope->stringListValue("files");
     if (isGroup && files.isEmpty()) {
         // Yield an error if Group without files binding is encountered.
         // An empty files value is OK but a binding must exist.

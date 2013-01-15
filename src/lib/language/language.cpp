@@ -29,6 +29,7 @@
 
 #include "language.h"
 
+#include "artifactproperties.h"
 #include "scriptengine.h"
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -412,6 +413,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.loadContainerS(fileTaggers);
     pool.loadContainerS(modules);
     pool.loadContainerS(groups);
+    pool.loadContainerS(artifactProperties);
 }
 
 void ResolvedProduct::store(PersistentPool &pool) const
@@ -432,6 +434,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeContainer(fileTaggers);
     pool.storeContainer(modules);
     pool.storeContainer(groups);
+    pool.storeContainer(artifactProperties);
 }
 
 QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,

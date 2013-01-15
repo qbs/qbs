@@ -315,6 +315,7 @@ public:
     QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
     QList<GroupPtr> groups;
+    QList<ArtifactPropertiesPtr> artifactProperties;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved
