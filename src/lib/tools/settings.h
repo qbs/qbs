@@ -54,6 +54,9 @@ public:
     QString defaultProfile() const;
 
 private:
+    QString internalRepresentation(const QString &externalKey) const;
+    QString externalRepresentation(const QString &internalKey) const;
+    void fixupKeys(QStringList &keys) const;
     void checkStatus();
 
     QSettings * const m_settings;

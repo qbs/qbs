@@ -210,7 +210,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     printf("%s\n", qPrintable(msg));
 
     Profile profile(qtVersionName);
-    const QString settingsTemplate(QLatin1String("qt/core/%1"));
+    const QString settingsTemplate(QLatin1String("qt.core.%1"));
     profile.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
     profile.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libraryPath);
     profile.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);

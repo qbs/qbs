@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     ConsoleLogger cl;
 
     Settings settings;
-    QString defaultPlatform = settings.value("modules/qbs/platform").toString();
+    QString defaultPlatform = settings.value("modules.qbs.platform").toString();
 
     QString localSettingsPath = Platform::configBaseDir();
     if (!localSettingsPath.endsWith(QLatin1Char('/')))
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
         bool firstRun = platforms.isEmpty();
         probe(localSettingsPath, platforms);
         if (firstRun && !platforms.isEmpty()) {
-            settings.setValue(QLatin1String("modules/qbs/platform"),
+            settings.setValue(QLatin1String("modules.qbs.platform"),
                               platforms.values().at(0)->name);
         }
     }

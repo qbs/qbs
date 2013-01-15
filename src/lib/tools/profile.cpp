@@ -72,7 +72,6 @@ Profile::~Profile()
 /*!
  * \brief Returns the value for property \c key in this profile.
  */
-// TODO: Take untranslated key (using dots), let Settings class handle conversion
 QVariant Profile::value(const QString &key, const QVariant &defaultValue) const
 {
     return possiblyInheritedValue(key, defaultValue, QStringList());
@@ -131,7 +130,7 @@ void Profile::removePrototype()
 
 QString Profile::profileKey() const
 {
-    return QLatin1String("profiles/") + m_name;
+    return QLatin1String("profiles.") + m_name;
 }
 
 QString Profile::prototypeKey() const
@@ -146,7 +145,7 @@ QVariant Profile::localValue(const QString &key) const
 
 QString Profile::fullyQualifiedKey(const QString &key) const
 {
-    return profileKey() + QLatin1Char('/') + key;
+    return profileKey() + QLatin1Char('.') + key;
 }
 
 QVariant Profile::possiblyInheritedValue(const QString &key, const QVariant &defaultValue,

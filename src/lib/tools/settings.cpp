@@ -61,43 +61,61 @@ Settings::~Settings()
 
 QVariant Settings::value(const QString &key, const QVariant &defaultValue) const
 {
-    return m_settings->value(key, defaultValue);
+    return m_settings->value(internalRepresentation(key), defaultValue);
 }
 
 QStringList Settings::allKeys() const
 {
     QStringList keys  = m_settings->allKeys();
-    keys.sort();
-    std::unique(keys.begin(), keys.end());
+    fixupKeys(keys);
     return keys;
 }
 
 QStringList Settings::allKeysWithPrefix(const QString &group)
 {
-    m_settings->beginGroup(group);
+    m_settings->beginGroup(internalRepresentation(group));
     QStringList keys = m_settings->allKeys();
     m_settings->endGroup();
-    keys.sort();
-    std::unique(keys.begin(), keys.end());
-    keys.removeDuplicates();
+    fixupKeys(keys);
     return keys;
 }
 
 void Settings::setValue(const QString &key, const QVariant &value)
 {
-    m_settings->setValue(key, value);
+    m_settings->setValue(internalRepresentation(key), value);
     checkStatus();
 }
 
 void Settings::remove(const QString &key)
 {
-    m_settings->remove(key);
+    m_settings->remove(internalRepresentation(key));
     checkStatus();
 }
 
 QString Settings::defaultProfile() const
 {
     return value(QLatin1String("profile")).toString();
+}
+
+QString Settings::internalRepresentation(const QString &externalKey) const
+{
+    QString internalKey = externalKey;
+    return internalKey.replace(QLatin1Char('.'), QLatin1Char('/'));
+}
+
+QString Settings::externalRepresentation(const QString &internalKey) const
+{
+    QString externalKey = internalKey;
+    return externalKey.replace(QLatin1Char('/'), QLatin1Char('.'));
+}
+
+void Settings::fixupKeys(QStringList &keys) const
+{
+    keys.sort();
+    std::unique(keys.begin(), keys.end());
+    keys.removeDuplicates();
+    for (QStringList::Iterator it = keys.begin(); it != keys.end(); ++it)
+        *it = externalRepresentation(*it);
 }
 
 void Settings::checkStatus()

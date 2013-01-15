@@ -52,14 +52,14 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         printSettings();
         break;
     case ConfigCommand::CfgGet:
-        puts(qPrintable(m_settings.value(toInternalSeparators(command.varNames.first())).toString()));
+        puts(qPrintable(m_settings.value(command.varNames.first()).toString()));
         break;
     case ConfigCommand::CfgSet:
-        m_settings.setValue(toInternalSeparators(command.varNames.first()), command.varValue);
+        m_settings.setValue(command.varNames.first(), command.varValue);
         break;
     case ConfigCommand::CfgUnset:
         foreach (const QString &varName, command.varNames)
-            m_settings.remove(toInternalSeparators(varName));
+            m_settings.remove(varName);
         break;
     case ConfigCommand::CfgExport:
         exportSettings(command.fileName);
@@ -81,21 +81,9 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
 void ConfigCommandExecutor::printSettings()
 {
     foreach (const QString &key, m_settings.allKeys()) {
-        printf("%s: %s\n", qPrintable(toExternalSeparators(key)),
+        printf("%s: %s\n", qPrintable(key),
                qPrintable(m_settings.value(key).toString()));
     }
-}
-
-QString ConfigCommandExecutor::toInternalSeparators(const QString &variable)
-{
-    QString transformedVar = variable;
-    return transformedVar.replace(QLatin1Char('.'), QLatin1Char('/'));
-}
-
-QString ConfigCommandExecutor::toExternalSeparators(const QString &variable)
-{
-    QString transformedVar = variable;
-    return transformedVar.replace(QLatin1Char('/'), QLatin1Char('.'));
 }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
@@ -107,10 +95,8 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings.allKeys()) {
-        stream << toExternalSeparators(key) << ": "
-               << m_settings.value(key).toString() << endl;
-    }
+    foreach (const QString &key, m_settings.allKeys())
+        stream << key << ": " << m_settings.value(key).toString() << endl;
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)
@@ -132,7 +118,7 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
         if (colon >= 0 && !line.startsWith("#")) {
             const QString key = line.left(colon).trimmed();
             const QString value = line.mid(colon + 1).trimmed();
-            m_settings.setValue(toInternalSeparators(key), value);
+            m_settings.setValue(key, value);
         }
     }
 }

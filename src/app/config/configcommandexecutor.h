@@ -45,8 +45,6 @@ public:
 
 private:
     void printSettings();
-    QString toInternalSeparators(const QString &variable);
-    QString toExternalSeparators(const QString &variable);
     void exportSettings(const QString &filename);
     void importSettings(const QString &filename);
 

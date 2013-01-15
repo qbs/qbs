@@ -287,18 +287,17 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
     if (profileKeys.isEmpty())
         throw Error(Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
     foreach (const QString &profileKey, profileKeys) {
-        QString fixedKey(profileKey);
-        fixedKey.replace(QChar('/'), QChar('.'));
-        if (!expandedConfig.contains(fixedKey))
-            expandedConfig.insert(fixedKey, profile.value(profileKey));
+        if (!expandedConfig.contains(profileKey))
+            expandedConfig.insert(profileKey, profile.value(profileKey));
     }
 
     // (3) Need to make sure we have a value for qbs.platform before going any further
     QVariant platformName = expandedConfig.value("qbs.platform");
     if (!platformName.isValid()) {
-        platformName = profile.value("qbs/platform");
+        const QString platformKey = QLatin1String("qbs.platform");
+        platformName = profile.value(platformKey);
         if (platformName.isValid())
-            expandedConfig.insert("qbs.platform", platformName);
+            expandedConfig.insert(platformKey, platformName);
     }
     Platform::Ptr platform = platforms.value(platformName.toString());
     if (!platform.isNull()) {
