@@ -38,7 +38,8 @@ bool operator==(const GroupData &lhs, const GroupData &rhs)
     return lhs.name() == rhs.name()
             && lhs.location() == rhs.location()
             && lhs.expandedWildcards() == rhs.expandedWildcards()
-            && lhs.properties() == rhs.properties();
+            && lhs.properties() == rhs.properties()
+            && lhs.isEnabled() == rhs.isEnabled();
 }
 
 bool operator!=(const GroupData &lhs, const GroupData &rhs)
@@ -54,7 +55,8 @@ bool operator==(const ProductData &lhs, const ProductData &rhs)
             && lhs.location() == rhs.location()
             && lhs.fileTags() == rhs.fileTags()
             && lhs.properties() == rhs.properties()
-            && lhs.groups() == rhs.groups();
+            && lhs.groups() == rhs.groups()
+            && lhs.isEnabled() == rhs.isEnabled();
 }
 
 bool operator!=(const ProductData &lhs, const ProductData &rhs)
@@ -126,6 +128,17 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
   * \sa GroupData::expandedWildcards
   */
 
+/*!
+ * \fn bool GroupData::isEnabled() const
+ * \brief Returns true if this Group is enabled in Qbs
+ * This method returns the "condition" property of the Group definition. If the group is enabled
+ * then the files in this Group will be processed, provided the Product it belongs to is also
+ * enabled.
+ *
+ * Note that a Group can be enabled, even if the Product it belongs to is not. In this case
+ * the files in the Group will not be processed.
+ * \sa ProductData::isEnabled()
+ */
 
 /*!
  * \class ProductData
@@ -180,4 +193,13 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
  * \fn QList<ProductData> ProjectData::products() const
  * \brief The products in this project.
  */
+
+/*!
+ * \fn bool ProductData::isEnabled() const
+ * \brief Returns true if this Product is enabled in Qbs.
+ * This method returns the "condition" property of the Product definition. If a product is
+ * enabled, then it will be built in the current configuration.
+ * \sa GroupData::isEnabled()
+ */
+
 } // namespace qbs

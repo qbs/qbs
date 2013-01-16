@@ -53,6 +53,7 @@ public:
     QStringList filePaths() const { return m_filePaths; }
     QStringList expandedWildcards() const { return m_expandedWildcards; }
     QVariantMap properties() const { return m_properties; }
+    bool isEnabled() const { return m_isEnabled; }
 
     // TODO: Filter out double entries here or somewhere else?
     QStringList allFilePaths() const { return filePaths() + expandedWildcards(); }
@@ -63,6 +64,7 @@ private:
     QStringList m_filePaths;
     QStringList m_expandedWildcards;
     QVariantMap m_properties;
+    bool m_isEnabled;
 };
 
 bool operator==(const GroupData &lhs, const GroupData &rhs);
@@ -80,6 +82,7 @@ public:
     QStringList fileTags() const { return m_fileTags; }
     QVariantMap properties() const { return m_properties; }
     QList<GroupData> groups() const { return m_groups; }
+    bool isEnabled() const { return m_isEnabled; }
 
 private:
     QString m_name;
@@ -87,6 +90,7 @@ private:
     QStringList m_fileTags;
     QVariantMap m_properties;
     QList<GroupData> m_groups;
+    bool m_isEnabled;
 };
 
 bool operator==(const ProductData &lhs, const ProductData &rhs);

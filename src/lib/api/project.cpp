@@ -162,13 +162,14 @@ BuildProductPtr ProjectPrivate::internalProduct(const ProductData &product) cons
 void ProjectPrivate::retrieveProjectData()
 {
     m_projectData.m_location = internalProject->resolvedProject()->location;
-    foreach (const BuildProductPtr &buildProduct, internalProject->buildProducts()) {
-        const ResolvedProductConstPtr resolvedProduct = buildProduct->rProduct;
+    foreach (const ResolvedProductConstPtr &resolvedProduct,
+             internalProject->resolvedProject()->products) {
         ProductData product;
         product.m_name = resolvedProduct->name;
         product.m_location = resolvedProduct->location;
         product.m_fileTags = resolvedProduct->fileTags;
         product.m_properties = resolvedProduct->properties->value();
+        product.m_isEnabled = resolvedProduct->enabled;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
             group.m_name = resolvedGroup->name;
@@ -182,6 +183,7 @@ void ProjectPrivate::retrieveProjectData()
             qSort(group.m_filePaths);
             qSort(group.m_expandedWildcards);
             group.m_properties = resolvedGroup->properties->value();
+            group.m_isEnabled = resolvedGroup->enabled;
             product.m_groups << group;
         }
         qSort(product.m_groups);
