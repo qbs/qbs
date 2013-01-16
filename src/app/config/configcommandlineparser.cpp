@@ -91,6 +91,9 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             throw Error("Need name of file from which to import.");
         m_command.fileName = args.first();
         break;
+    case ConfigCommand::CfgList:
+        m_command.varNames = args;
+        break;
     default:
         break;
     }
@@ -108,8 +111,8 @@ void ConfigCommandLineParser::printHelp() const
     puts("usage: qbs config [options]\n"
          "\n"
          "Options:\n"
-         "    --list           list all variables\n"
-         "    --unset <name>   remove variable with given name\n"
-         "    --import <file>  import settings from given file\n"
-         "    --export <file>  export settings to given file\n");
+         "    --list [<root> ...] list variables under key <root> or all variables\n"
+         "    --unset <name>      remove variable with given name\n"
+         "    --import <file>     import settings from given file\n"
+         "    --export <file>     export settings to given file\n");
 }

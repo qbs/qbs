@@ -44,7 +44,8 @@ public:
     void execute(const ConfigCommand &command);
 
 private:
-    void printSettings();
+    void printSettings(const ConfigCommand &command);
+    void printOneSetting(const QString &key);
     void exportSettings(const QString &filename);
     void importSettings(const QString &filename);
 

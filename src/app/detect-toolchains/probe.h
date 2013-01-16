@@ -26,28 +26,9 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_PROBE_H
+#define QBS_PROBE_H
 
-#ifndef QBS_PLATFORM_H
-#define QBS_PLATFORM_H
+int probe();
 
-#include <QSettings>
-#include <QSharedPointer>
-#include <QTextStream>
-
-namespace qbs {
-
-class Platform
-{
-public:
-    typedef QSharedPointer<Platform> Ptr;
-    Platform(const QString &name, const QString& configpath);
-    QString name;
-    QSettings settings;
-    static QHash<QString, Platform::Ptr> platforms();
-    static QString configBaseDir();
-    static QString internalKey();
-};
-
-} // namespace qbs
-
-#endif
+#endif // Header guard

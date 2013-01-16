@@ -44,7 +44,7 @@ namespace qbs {
  * \enum Profile::KeySelection
  * This enum type specifies whether to enumerate keys recursively.
  * \value KeySelectionRecursive Indicates that key enumeration should happen recursively, i.e.
- *        it should go up the profile prototype chain.
+ *        it should go up the base profile chain.
  * \value KeySelectionNonRecursive Indicates that only keys directly attached to a profile
  *        should be listed.
  */
@@ -94,9 +94,17 @@ void Profile::remove(const QString &key)
 }
 
 /*!
+ * \brief Returns the name of this profile.
+ */
+QString Profile::name() const
+{
+    return m_name;
+}
+
+/*!
  * \brief Returns all property keys in this profile.
  * If and only if selection is Profile::KeySelectionRecursive, this will also list keys defined
- * in prototype profiles.
+ * in base profiles.
  */
 QStringList Profile::allKeys(KeySelection selection) const
 {
@@ -104,28 +112,36 @@ QStringList Profile::allKeys(KeySelection selection) const
 }
 
 /*!
- * \brief Returns the name of this profile's prototype.
- * The returned value is empty if the profile does not have a prototype.
+ * \brief Returns the name of this profile's base profile.
+ * The returned value is empty if the profile does not have a base profile.
  */
-QString Profile::prototype() const
+QString Profile::baseProfile() const
 {
-    return localValue(prototypeKey()).toString();
+    return localValue(baseProfileKey()).toString();
 }
 
 /*!
- * Sets a new prototype for this profile.
+ * \brief Sets a new base profile for this profile.
  */
-void Profile::setPrototype(const QString &prototype)
+void Profile::setBaseProfile(const QString &baseProfile)
 {
-    setValue(prototypeKey(), prototype);
+    setValue(baseProfileKey(), baseProfile);
 }
 
 /*!
- * Removes this profile's prototype.
+ * \brief Removes this profile's base profile setting.
  */
-void Profile::removePrototype()
+void Profile::removeBaseProfile()
 {
-    remove(prototypeKey());
+    remove(baseProfileKey());
+}
+
+/*!
+ * \brief Removes this profile from the settings.
+ */
+void Profile::removeProfile()
+{
+    remove(profileKey());
 }
 
 QString Profile::profileKey() const
@@ -133,9 +149,9 @@ QString Profile::profileKey() const
     return QLatin1String("profiles.") + m_name;
 }
 
-QString Profile::prototypeKey() const
+QString Profile::baseProfileKey()
 {
-    return QLatin1String("prototype");
+    return QLatin1String("baseProfile");
 }
 
 QVariant Profile::localValue(const QString &key) const
@@ -155,10 +171,10 @@ QVariant Profile::possiblyInheritedValue(const QString &key, const QVariant &def
     const QVariant v = localValue(key);
     if (v.isValid())
         return v;
-    const QString prototypeName = prototype();
-    if (prototypeName.isEmpty())
+    const QString baseProfileName = baseProfile();
+    if (baseProfileName.isEmpty())
         return defaultValue;
-    Profile parentProfile(prototypeName, m_settings);
+    Profile parentProfile(baseProfileName, m_settings);
     return parentProfile.possiblyInheritedValue(key, defaultValue, profileChain);
 }
 
@@ -169,12 +185,13 @@ QStringList Profile::allKeysInternal(Profile::KeySelection selection,
     QStringList keys = m_settings->allKeysWithPrefix(profileKey());
     if (selection == KeySelectionNonRecursive)
         return keys;
-    const QString prototypeName = prototype();
-    if (prototypeName.isEmpty())
+    const QString baseProfileName = baseProfile();
+    if (baseProfileName.isEmpty())
         return keys;
-    Profile parentProfile(prototypeName, m_settings);
+    Profile parentProfile(baseProfileName, m_settings);
     keys += parentProfile.allKeysInternal(KeySelectionRecursive, profileChain);
     keys.removeDuplicates();
+    keys.removeOne(baseProfileKey());
     keys.sort();
     return keys;
 }

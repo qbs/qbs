@@ -49,7 +49,7 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
 {
     switch (command.command) {
     case ConfigCommand::CfgList:
-        printSettings();
+        printSettings(command);
         break;
     case ConfigCommand::CfgGet:
         puts(qPrintable(m_settings.value(command.varNames.first()).toString()));
@@ -67,10 +67,10 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
     case ConfigCommand::CfgImport:
         // Display old and new settings, in case import fails or user accidentally nukes everything
         printf("old "); // Will end up as "old settings:"
-        printSettings();
+        printSettings(command);
         importSettings(command.fileName);
         printf("\nnew ");
-        printSettings();
+        printSettings(command);
         break;
     case ConfigCommand::CfgNone:
         qFatal("%s: Impossible command value.", Q_FUNC_INFO);
@@ -78,13 +78,27 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
     }
 }
 
-void ConfigCommandExecutor::printSettings()
+void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 {
-    foreach (const QString &key, m_settings.allKeys()) {
-        printf("%s: %s\n", qPrintable(key),
-               qPrintable(m_settings.value(key).toString()));
+    if (command.varNames.isEmpty()) {
+        foreach (const QString &key, m_settings.allKeys())
+            printOneSetting(key);
+    } else {
+        foreach (const QString &parentKey, command.varNames) {
+            if (m_settings.value(parentKey).isValid()) { // Key is a leaf.
+                printOneSetting(parentKey);
+            } else {                                     // Key is a node.
+                foreach (const QString &key, m_settings.allKeysWithPrefix(parentKey))
+                    printOneSetting(parentKey + QLatin1Char('.') + key);
+            }
+        }
     }
 }
+
+void ConfigCommandExecutor::printOneSetting(const QString &key)
+{
+    printf("%s: %s\n", qPrintable(key), qPrintable(m_settings.value(key).toString()));
+ }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
 {

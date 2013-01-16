@@ -40,7 +40,6 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
-#include <tools/platform.h>
 #include <tools/settings.h>
 
 #include <QCoreApplication>

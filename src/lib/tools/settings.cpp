@@ -94,7 +94,7 @@ void Settings::remove(const QString &key)
 
 QString Settings::defaultProfile() const
 {
-    return value(QLatin1String("profile")).toString();
+    return value(QLatin1String("defaultProfile")).toString();
 }
 
 QString Settings::internalRepresentation(const QString &externalKey) const

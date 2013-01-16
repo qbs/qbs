@@ -6,7 +6,6 @@ Module {
     property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
-    property string platform
     property string hostOS: getHostOS()
     property string hostArchitecture: getHostDefaultArchitecture()
     property string pathListSeparator: hostOS === "windows" ? ";" : ":"

@@ -133,20 +133,20 @@ private slots:
         Profile parentProfile("parent", &settings);
         Profile childProfile("child", &settings);
         try {
-            parentProfile.removePrototype();
+            parentProfile.removeBaseProfile();
             parentProfile.remove("testKey");
             QCOMPARE(parentProfile.value("testKey", "none").toString(), QLatin1String("none"));
             parentProfile.setValue("testKey", "testValue");
             QCOMPARE(parentProfile.value("testKey").toString(), QLatin1String("testValue"));
 
             childProfile.remove("testKey");
-            childProfile.removePrototype();
+            childProfile.removeBaseProfile();
             QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
-            childProfile.setPrototype("blubb");
+            childProfile.setBaseProfile("blubb");
             QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
-            childProfile.setPrototype("parent");
+            childProfile.setBaseProfile("parent");
             QCOMPARE(childProfile.value("testKey").toString(), QLatin1String("testValue"));
-            childProfile.setPrototype("foo");
+            childProfile.setBaseProfile("foo");
             QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
             exceptionCaught = false;
         } catch (Error &) {
@@ -155,8 +155,8 @@ private slots:
         QVERIFY(!exceptionCaught);
 
         try {
-            childProfile.setPrototype("parent");
-            parentProfile.setPrototype("child");
+            childProfile.setBaseProfile("parent");
+            parentProfile.setBaseProfile("child");
             QVERIFY(!childProfile.value("blubb").isValid());
             exceptionCaught = false;
         } catch (Error &) {

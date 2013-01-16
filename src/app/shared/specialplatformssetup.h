@@ -87,7 +87,7 @@ private:
     void setupBaseDir();
     void handleProcessError(const QString &commandLine, const QString &message,
         const QByteArray &output);
-    void writeConfigFile(const PlatformInfo &platformInfo, const QString &configBaseDir);
+    void registerProfile(const PlatformInfo &platformInfo);
 
     QString m_baseDir;
     QTextStream m_stdout;

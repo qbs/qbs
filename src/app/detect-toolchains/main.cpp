@@ -26,52 +26,34 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROFILE_H
-#define QBS_PROFILE_H
 
-#include <QString>
-#include <QStringList>
-#include <QVariant>
+#include "probe.h"
 
-namespace qbs {
-class Settings;
+#include <logging/consolelogger.h>
+#include <logging/translator.h>
+#include <tools/error.h>
 
-class Profile
+#include <QCoreApplication>
+
+#include <cstdlib>
+
+using namespace qbs;
+
+int main(int argc, char **argv)
 {
-public:
-    explicit Profile(const QString &name, Settings *settings = 0);
-    ~Profile();
+    QCoreApplication app(argc, argv);
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
+    ConsoleLogger cl;
+    if (app.arguments().count() > 1) {
+        qbsWarning() << Internal::Tr::tr("You supplied command-line arguments, "
+                                         "but this tool does not use any.");
+    }
 
-    QString name() const;
-
-    QString baseProfile() const;
-    void setBaseProfile(const QString &baseProfile);
-    void removeBaseProfile();
-
-    void removeProfile();
-
-    enum KeySelection { KeySelectionRecursive,  KeySelectionNonRecursive };
-    QStringList allKeys(KeySelection selection) const;
-
-private:
-    static QString baseProfileKey();
-    QString profileKey() const;
-    QVariant localValue(const QString &key) const;
-    QString fullyQualifiedKey(const QString &key) const;
-    QVariant possiblyInheritedValue(const QString &key, const QVariant &defaultValue,
-                                    QStringList profileChain) const;
-    QStringList allKeysInternal(KeySelection selection, QStringList profileChain) const;
-    void extendAndCheckProfileChain(QStringList &chain) const;
-
-    QString m_name;
-    Settings *m_settings;
-    bool m_deleteSettings;
-};
-
-} // namespace qbs
-
-#endif // Header guard
+    try {
+        probe();
+        return EXIT_SUCCESS;
+    } catch (const Error &error) {
+        qbsError() << Tr::tr("Probing for toolchains failed: %1").arg(error.toString());
+        return EXIT_FAILURE;
+    }
+}

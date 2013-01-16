@@ -30,8 +30,13 @@
 #ifndef MSVCPROBE_H
 #define MSVCPROBE_H
 
-#include <tools/platform.h>
+#include <QList>
 
-void msvcProbe(const QString &settingsPath, QHash<QString, qbs::Platform::Ptr> &platforms);
+namespace qbs {
+class Profile;
+class Settings;
+}
+
+void msvcProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
 #endif // MSVCPROBE_H

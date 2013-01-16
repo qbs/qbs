@@ -161,7 +161,7 @@
 
     \title Configuring Qbs
 
-    When you run Qbs from an in-source build most paths are set up
+    When you run Qbs from an in-source build, most paths are set up
     automatically. If you do not build in-source, configure the following
     paths:
 
@@ -178,13 +178,13 @@
     Now open a build shell (on Windows open an MSVC command prompt,
     on other platforms the default shell is usually ok):
     \code
-    qbs platforms probe
+    qbs detect-toolchains
     \endcode
 
-    The platform prober will automatically choose a name for the detected
-    platforms. You can list the detected platforms by running
+    The toolchain detector will automatically set up a profile for each detected toolchain.
+    You can list the existing profiles by running
     \code
-    qbs platforms list
+    qbs config --list profiles
     \endcode
 
     Now you should be ready to build your first project with qbs.
@@ -255,7 +255,7 @@
     You can set the default Qt build you want to use like this:
 
     \code
-    qbs config profile qt5
+    qbs config defaultProfile qt5
     \endcode
 
     To choose a Qt build that's different from the default, use:
@@ -264,14 +264,18 @@
     qbs build profile:qt48
     \endcode
 
-    You can set other properties in a profile not just Qt ones, in the same way
+    You can set other properties in a profile (not just Qt ones), in the same way
     you could override them from the command-line. For example:
 
     \code
     qbs setup-qt C:\Qt\5.0.0\qtbase\bin\qmake.exe qt5
     qbs config profiles.qt5.qbs.architecture x86_64
-    qbs config profiles.qt5.qbs.platform msvc2010
+    qbs config profiles.qt5.qbs.baseProfile msvc2010
     \endcode
+
+    The last example uses the inheritance feature of profiles: All settings in the profile
+    set as "baseProfile" are known in the derived profile as well.
+    They can of course be overridden there.
 
     \section1 Customized Qt Settings
 

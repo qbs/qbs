@@ -28,6 +28,8 @@
 ****************************************************************************/
 #include "specialplatformssetup.h"
 
+#include <tools/profile.h>
+
 #include <QBuffer>
 #include <QCoreApplication>
 #include <QDir>
@@ -35,7 +37,6 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QProcessEnvironment>
-#include <QSettings>
 
 #include <cstdio>
 
@@ -51,17 +52,8 @@ void SpecialPlatformsSetup::setup()
         return;
     setupBaseDir();
 
-    const QString qbsPath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
-    const QString commandLine = qbsPath + QLatin1String(" platforms print-config-base-dir");
-    const QString configBaseDir = QString::fromLocal8Bit(runProcess(commandLine,
-        QProcessEnvironment::systemEnvironment())).trimmed();
-
-    foreach (const PlatformInfo &pi, gatherPlatformInfo()) {
-        writeConfigFile(pi, configBaseDir);
-        const QString registerCommandLine = QString::fromLocal8Bit("%1 config "
-                "profiles.%2.qbs.platform %2").arg(qbsPath, pi.name);
-        runProcess(registerCommandLine, QProcessEnvironment::systemEnvironment());
-    }
+    foreach (const PlatformInfo &pi, gatherPlatformInfo())
+        registerProfile(pi);
 }
 
 QString SpecialPlatformsSetup::helpString() const
@@ -147,68 +139,31 @@ void SpecialPlatformsSetup::handleProcessError(const QString &commandLine, const
     throw Exception(completeMsg);
 }
 
-void SpecialPlatformsSetup::writeConfigFile(const PlatformInfo &platformInfo,
-    const QString &configBaseDir)
+void SpecialPlatformsSetup::registerProfile(const PlatformInfo &platformInfo)
 {
-    m_stdout << tr("Setting up platform '%1'...").arg(platformInfo.name) << endl;
+    m_stdout << tr("Setting up profile '%1'...").arg(platformInfo.name) << endl;
 
-    const QString configDir = configBaseDir + QLatin1Char('/') + platformInfo.name;
+    Profile profile(platformInfo.name);
+    profile.removeProfile();
+    profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
+    profile.setValue(QLatin1String("qbs.endianness"), QLatin1String("little-endian"));
+    profile.setValue(QLatin1String("qbs.targetOS"), platformInfo.targetOS);
+    profile.setValue(QLatin1String("qbs.targetPlatform"), platformInfo.targetPlatform);
+    profile.setValue(QLatin1String("qbs.sysroot"), platformInfo.sysrootDir);
 
-    /*
-     * A more correct solution would be to recursively remove and then recreate the directory.
-     * However, since it only contains one file, that currently seems like overkill.
-     */
-    if (!QDir::root().mkpath(configDir)) {
-        throw Exception(tr("Directory '%1' could not be created.")
-            .arg(QDir::toNativeSeparators(configDir)));
-    }
-    const QString configFilePath = configDir + QLatin1String("/setup.ini");
-    if (QFileInfo(configFilePath).exists()) {
-        QFile configFile(configFilePath);
-        if (!configFile.remove()) {
-            throw Exception(tr("Failed to remove old config file '%1': %2.")
-                .arg(QDir::toNativeSeparators(configFilePath), configFile.errorString()));
-        }
-    }
+    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), platformInfo.toolchainDir);
+    profile.setValue(QLatin1String("cpp.compilerName"), platformInfo.compilerName);
+    profile.setValue(QLatin1String("cpp.cFlags"), platformInfo.cFlags);
+    profile.setValue(QLatin1String("cpp.cxxFlags"), platformInfo.cxxFlags);
+    profile.setValue(QLatin1String("cpp.linkerFlags"), platformInfo.ldFlags);
 
-    QSettings settings(configFilePath, QSettings::IniFormat);
-
-    settings.setValue(QLatin1String("toolchain"), QLatin1String("gcc"));
-    settings.setValue(QLatin1String("endianness"), QLatin1String("little-endian"));
-    settings.setValue(QLatin1String("targetOS"), platformInfo.targetOS);
-    settings.setValue(QLatin1String("targetPlatform"), platformInfo.targetPlatform);
-    settings.setValue(QLatin1String("sysroot"), platformInfo.sysrootDir);
-
-    settings.beginGroup(QLatin1String("cpp"));
-    settings.setValue(QLatin1String("toolchainInstallPath"), platformInfo.toolchainDir);
-    settings.setValue(QLatin1String("compilerName"), platformInfo.compilerName);
-    settings.setValue(QLatin1String("cFlags"), platformInfo.cFlags);
-    settings.setValue(QLatin1String("cxxFlags"), platformInfo.cxxFlags);
-    settings.setValue(QLatin1String("linkerFlags"), platformInfo.ldFlags);
-    settings.endGroup();
-
-    settings.beginGroup(QLatin1String("qt/core"));
-    settings.setValue(QLatin1String("binPath"), platformInfo.qtBinDir);
-    settings.setValue(QLatin1String("libPath"),
-        platformInfo.sysrootDir + QLatin1String("/usr/lib"));
-    settings.setValue(QLatin1String("incPath"), platformInfo.qtIncDir);
-    settings.setValue(QLatin1String("mkspecPath"), platformInfo.qtMkspecPath);
-    settings.setValue(QLatin1String("namespace"), QString());
-    settings.setValue(QLatin1String("libInfix"), QString());
-    settings.endGroup();
-
-    settings.beginGroup(QLatin1String("environment"));
-    for (QHash<QString, QString>::ConstIterator it = platformInfo.environment.constBegin();
-         it != platformInfo.environment.constEnd(); ++it) {
-        settings.setValue(it.key(), it.value());
-    }
-    settings.endGroup();
-
-    settings.sync();
-    if (settings.status() != QSettings::NoError) {
-        throw Exception(tr("Failed to write platform config file '%1'.")
-            .arg(QDir::toNativeSeparators(configFilePath)));
-    }
+    profile.setValue(QLatin1String("qt.core.binPath"), platformInfo.qtBinDir);
+    profile.setValue(QLatin1String("qt.core.libPath"),
+                     platformInfo.sysrootDir + QLatin1String("/usr/lib"));
+    profile.setValue(QLatin1String("qt.core.incPath"), platformInfo.qtIncDir);
+    profile.setValue(QLatin1String("qt.core.mkspecPath"), platformInfo.qtMkspecPath);
+    profile.setValue(QLatin1String("qt.core.namespace"), QString());
+    profile.setValue(QLatin1String("qt.core.libInfix"), QString());
 }
 
 } // namespace qbs

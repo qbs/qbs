@@ -29,6 +29,11 @@
 
 #include "msvcprobe.h"
 
+#include <logging/logger.h>
+#include <logging/translator.h>
+#include <tools/profile.h>
+#include <tools/settings.h>
+
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
@@ -56,25 +61,22 @@ Q_DECLARE_TYPEINFO(WinSDK, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(MSVC, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
-static void addMSVCPlatform(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms, const QString &platformName, const QString &installPath, const QString &winSDKPath)
+static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, const QString &name,
+                            const QString &installPath, const QString &winSDKPath)
 {
-    Platform::Ptr platform = platforms.value(platformName);
-    if (!platform) {
-       platform = Platform::Ptr(new Platform(platformName, settingsPath + "/" + platformName));
-       platforms.insert(platform->name, platform);
-    }
-    platform->settings.setValue("targetOS", "windows");
-    platform->settings.setValue("cpp/toolchainInstallPath", installPath);
-    platform->settings.setValue("toolchain", "msvc");
-    platform->settings.setValue("cpp/windowsSDKPath", winSDKPath);
-    QTextStream qstdout(stdout);
-    qstdout << "Setting up platform " << platformName << endl;
+    qbsInfo() << DontPrintLogLevel << Tr::tr("Setting up profile '%1'.").arg(name);
+    Profile p(name, settings);
+    p.removeProfile();
+    p.setValue("qbs.targetOS", "windows");
+    p.setValue("cpp.toolchainInstallPath", installPath);
+    p.setValue("qbs.toolchain", "msvc");
+    p.setValue("cpp.windowsSDKPath", winSDKPath);
+    profiles << p;
 }
 
-void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
+void msvcProbe(Settings *settings, QList<Profile> &profiles)
 {
-    QTextStream qstdout(stdout);
-    qstdout << "Detecting MSVC toolchains..." << endl;
+    qbsInfo() << DontPrintLogLevel << Tr::tr("Detecting MSVC toolchains...");
 
     // 1) Installed SDKs preferred over standalone Visual studio
     QVector<WinSDK> winSDKs;
@@ -100,13 +102,13 @@ void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platf
     }
 
     foreach (const WinSDK &sdk, winSDKs) {
-        qstdout << "  Windows SDK detected:\n"
-                << "    version " << sdk.version << endl
-                << "    installed in " << sdk.installPath << endl;
+        qbsInfo() << DontPrintLogLevel << Tr::tr("  Windows SDK detected:\n"
+                            "    version %1\n"
+                            "    installed in %2").arg(sdk.version, sdk.installPath);
         if (sdk.hasCompiler)
-            qstdout << "    This SDK contains C++ compiler(s)." << endl;
+            qbsInfo() << DontPrintLogLevel << Tr::tr("    This SDK contains C++ compiler(s).");
         if (sdk.isDefault)
-            qstdout << "    This is the default SDK on this machine." << endl;
+            qbsInfo() << DontPrintLogLevel << Tr::tr("    This is the default SDK on this machine.");
     }
 
     // 2) Installed MSVCs
@@ -148,7 +150,7 @@ void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platf
         }
 
         if (msvc.version.isEmpty()) {
-            qstdout << "  Unknown MSVC version " << nVersion << " found." << endl;
+            qbsInfo() << DontPrintLogLevel << Tr::tr("  Unknown MSVC version %1 found.").arg(nVersion);
             continue;
         }
 
@@ -160,20 +162,27 @@ void msvcProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platf
         msvcs += msvc;
     }
 
-    foreach (const MSVC &msvc, msvcs)
-        qstdout << "  MSVC detected:\n"
-                << "    version " << msvc.version << endl
-                << "    installed in " << msvc.installPath << endl;
+    foreach (const MSVC &msvc, msvcs) {
+        qbsInfo() << DontPrintLogLevel << Tr::tr("  MSVC detected:\n"
+                            "    version %1\n"
+                            "    installed in %2").arg(msvc.version, msvc.installPath);
+    }
 
     if (winSDKs.isEmpty() && msvcs.isEmpty()) {
-        qstdout << "Could not detect an installation of the Windows SDK nor Visual Studio." << endl;
+        qbsInfo() << DontPrintLogLevel << Tr::tr("Could not detect an installation of "
+                                                 "the Windows SDK or Visual Studio.");
         return;
     }
 
-    foreach (const WinSDK &sdk, winSDKs)
-        if (sdk.hasCompiler)
-            addMSVCPlatform(settingsPath, platforms, QLatin1String("WinSDK") + sdk.version, sdk.installPath, defaultWinSDK.installPath);
+    foreach (const WinSDK &sdk, winSDKs) {
+        if (sdk.hasCompiler) {
+            addMSVCPlatform(settings, profiles, QLatin1String("WinSDK") + sdk.version,
+                            sdk.installPath, defaultWinSDK.installPath);
+        }
+    }
 
-    foreach (const MSVC &msvc, msvcs)
-        addMSVCPlatform(settingsPath, platforms, QLatin1String("MSVC") + msvc.version, msvc.installPath, defaultWinSDK.installPath);
+    foreach (const MSVC &msvc, msvcs) {
+        addMSVCPlatform(settings, profiles, QLatin1String("MSVC") + msvc.version,
+                        msvc.installPath, defaultWinSDK.installPath);
+    }
 }

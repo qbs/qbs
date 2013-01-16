@@ -26,19 +26,21 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "probe.h"
+
+#include "msvcprobe.h"
 
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
-#include <tools/platform.h>
-#include "msvcprobe.h"
+#include <tools/profile.h>
+#include <tools/settings.h>
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QProcess>
-#include <QSettings>
 #include <QStringList>
-#include <QTextStream>
 
 using namespace qbs;
 
@@ -62,15 +64,12 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
     return QString::fromLocal8Bit(p.readAll());
 }
 
-static void specific_probe(const QString &settingsPath,
-                           QHash<QString, Platform::Ptr> &platforms,
-                           QString cc)
+static void specific_probe(Settings *settings, QList<Profile> &profiles, QString cc)
 {
-    QTextStream qstdout(stdout);
-    qstdout << "Trying to detect " << cc << "..." << endl;
+    qbsInfo() << DontPrintLogLevel << Tr::tr("Trying to detect %1...").arg(cc);
 
     QString toolchainType;
-    if(cc.contains("clang"))
+    if (cc.contains("clang"))
         toolchainType = "clang";
     else if (cc.contains("gcc"))
         toolchainType = "gcc";
@@ -78,18 +77,12 @@ static void specific_probe(const QString &settingsPath,
     QString path       = QString::fromLocal8Bit(qgetenv("PATH"));
     QString cxx        = QString::fromLocal8Bit(qgetenv("CXX"));
     QString ld         = QString::fromLocal8Bit(qgetenv("LD"));
-    QString cflags     = QString::fromLocal8Bit(qgetenv("CFLAGS"));
-    QString cxxflags   = QString::fromLocal8Bit(qgetenv("CXXFLAGS"));
-    QString ldflags    = QString::fromLocal8Bit(qgetenv("LDFLAGS"));
     QString cross      = QString::fromLocal8Bit(qgetenv("CROSS_COMPILE"));
     QString arch       = QString::fromLocal8Bit(qgetenv("ARCH"));
 
     QString pathToGcc;
     QString architecture;
     QString endianness;
-
-    QString name;
-    QString sysroot;
 
     QString uname = qsystem("uname", QStringList() << "-m").simplified();
 
@@ -125,19 +118,8 @@ static void specific_probe(const QString &settingsPath,
         pathToGcc = searchPath(path, cc);
 
     if (!QFileInfo(pathToGcc).exists()) {
-        qstdout << cc << " not found." << endl;
+        qbsInfo() << DontPrintLogLevel << Tr::tr("%1 not found.").arg(cc);
         return;
-    }
-
-    Platform::Ptr s;
-    foreach (Platform::Ptr p, platforms.values()) {
-        QString path = p->settings.value(Platform::internalKey() + "/completeccpath").toString();
-        if (path == pathToGcc) {
-            name = p->name;
-            s = p;
-            name = s->name;
-            break;
-        }
     }
 
     QString compilerTriplet = qsystem(pathToGcc, QStringList() << "-dumpmachine").simplified();
@@ -146,9 +128,9 @@ static void specific_probe(const QString &settingsPath,
             !(compilerTripletl.at(0).contains(QRegExp(".86")) ||
               compilerTripletl.at(0).contains("arm") )
             ) {
-        qbs::qbsError("Detected '%s', but I don't understand its architecture '%s'.",
+        qbsError("Detected '%s', but I don't understand its architecture '%s'.",
                 qPrintable(pathToGcc), qPrintable(compilerTriplet));
-                return;
+        return;
     }
 
     architecture = compilerTripletl.at(0);
@@ -161,88 +143,44 @@ static void specific_probe(const QString &settingsPath,
     QStringList pathToGccL = pathToGcc.split('/');
     QString compilerName = pathToGccL.takeLast().replace(cc, cxx);
 
-    if (cflags.contains("--sysroot")) {
-        QStringList flagl = cflags.split(' ');
-
-        bool nextitis = false;
-        foreach (const QString &flag, flagl) {
-            if (nextitis) {
-                sysroot = flag;
-                break;
-            }
-            if (flag == "--sysroot") {
-                nextitis = true;
-            }
-        }
-    }
-
-    qstdout << "==> " << (s?"reconfiguring " + name :"detected")
-            << " " << pathToGcc << "\n"
-            << "     triplet:  " << compilerTriplet << "\n"
-            << "     arch:     " << architecture << "\n"
-            << "     bin:      " << pathToGccL.join("/") << "\n"
-            << "     cc:       " << cc << "\n"
-            ;
-
+    qbsInfo() << DontPrintLogLevel << Tr::tr("Toolchain detected:\n"
+                        "    binary: %1\n"
+                        "    triplet: %2\n"
+                        "    arch: %3\n"
+                        "    cc: %4").arg(pathToGcc, compilerTriplet, architecture, cc);
     if (!cxx.isEmpty())
-       qstdout << "     cxx:      " << cxx << "\n";
+        qbsInfo() << DontPrintLogLevel << Tr::tr("    cxx: %1").arg(cxx);
     if (!ld.isEmpty())
-       qstdout << "     ld:       " << ld << "\n";
+       qbsInfo() << DontPrintLogLevel << Tr::tr("    ld: %1").arg(ld);
 
-    if (!sysroot.isEmpty())
-        qstdout << "     sysroot:  " << sysroot << "\n";
-    if (!cflags.isEmpty())
-            qstdout << "     CFLAGS:   " << cflags << "\n";
-    if (!cxxflags.isEmpty())
-            qstdout << "     CXXFLAGS: " << cxxflags << "\n";
-    if (!ldflags.isEmpty())
-            qstdout << "     CXXFLAGS: " << ldflags << "\n";
-
-    qstdout  << flush;
-
-    if (!s) {
-        if (name.isEmpty())
-            name = toolchainType;
-       s = Platform::Ptr(new Platform(name, settingsPath + "/" + name));
-    }
+    Profile profile(toolchainType, settings);
+    profile.removeProfile();
 
     // fixme should be cpp.toolchain
     // also there is no toolchain:clang
-    s->settings.setValue("toolchain", "gcc");
-    s->settings.setValue(Platform::internalKey() + "/completeccpath", pathToGcc);
-    s->settings.setValue(Platform::internalKey() + "/target-triplet", compilerTriplet);
-    s->settings.setValue("architecture", architecture);
-    s->settings.setValue("endianness", endianness);
+    profile.setValue("qbs.toolchain", "gcc");
+    profile.setValue("qbs.architecture", architecture);
+    profile.setValue("qbs.endianness", endianness);
 
     if (HostOsInfo::isMacHost())
-        s->settings.setValue("targetOS", "mac");
+        profile.setValue("qbs.targetOS", "mac");
     else if (HostOsInfo::isLinuxHost())
-        s->settings.setValue("targetOS", "linux");
+        profile.setValue("qbs.targetOS", "linux");
     else
-        s->settings.setValue("targetOS", "unknown"); //fixme
+        profile.setValue("qbs.targetOS", "unknown"); //fixme
 
     if (compilerName.contains('-')) {
         QStringList nl = compilerName.split('-');
-        s->settings.setValue("cpp/compilerName", nl.takeLast());
-        s->settings.setValue("cpp/toolchainPrefix", nl.join("-") + '-');
+        profile.setValue("cpp.compilerName", nl.takeLast());
+        profile.setValue("cpp.toolchainPrefix", nl.join("-") + '-');
     } else {
-        s->settings.setValue("cpp/compilerName", compilerName);
+        profile.setValue("cpp.compilerName", compilerName);
     }
-    s->settings.setValue("cpp/toolchainInstallPath", pathToGccL.join("/"));
-
-    if (!cross.isEmpty())
-        s->settings.setValue("environment/CROSS_COMPILE", cross);
-    if (!cflags.isEmpty())
-        s->settings.setValue("environment/CFLAGS", cflags);
-    if (!cxxflags.isEmpty())
-        s->settings.setValue("environment/CXXFLAGS", cxxflags);
-    if (!ldflags.isEmpty())
-        s->settings.setValue("environment/LDFLAGS", ldflags);
-
-    platforms.insert(s->name, s);
+    profile.setValue("cpp.toolchainInstallPath", pathToGccL.join("/"));
+    profiles << profile;
 }
 
-static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
+static void mingwProbe(Settings *settings, QList<Profile> &profiles)
 {
     QString mingwPath;
     QString mingwBinPath;
@@ -272,27 +210,33 @@ static void mingwProbe(const QString &settingsPath, QHash<QString, Platform::Ptr
         return;
     }
 
-    Platform::Ptr platform = platforms.value(gccMachineName);
-    printf("Platform '%s' detected in '%s'.", gccMachineName.data(), qPrintable(QDir::toNativeSeparators(mingwPath)));
-    if (!platform) {
-       platform = Platform::Ptr(new Platform(gccMachineName, settingsPath + "/" + gccMachineName));
-       platforms.insert(platform->name, platform);
-    }
-    platform->settings.setValue("targetOS", "windows");
-    platform->settings.setValue("cpp/toolchainInstallPath", QDir::toNativeSeparators(mingwBinPath));
-    platform->settings.setValue("toolchain", "mingw");
+
+    Profile profile(QString::fromLocal8Bit(gccMachineName), settings);
+    qbsInfo() << DontPrintLogLevel
+              << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
+    profile.setValue("qbs.targetOS", "windows");
+    profile.setValue("cpp.toolchainInstallPath", mingwBinPath);
+    profile.setValue("qbs.toolchain", "mingw");
+    profiles << profile;
 }
 
-int probe(const QString &settingsPath, QHash<QString, Platform::Ptr> &platforms)
+int probe()
 {
+    QList<Profile> profiles;
+    Settings settings;
     if (HostOsInfo::isWindowsHost()) {
-        msvcProbe(settingsPath, platforms);
-        mingwProbe(settingsPath, platforms);
+        msvcProbe(&settings, profiles);
+        mingwProbe(&settings, profiles);
     } else {
-        specific_probe(settingsPath, platforms, "gcc");
-        specific_probe(settingsPath, platforms, "clang");
+        specific_probe(&settings, profiles, QLatin1String("gcc"));
+        specific_probe(&settings, profiles, QLatin1String("clang"));
     }
-    if (platforms.isEmpty())
-        qbsWarning("Could not detect any platforms.");
+
+    if (profiles.isEmpty()) {
+        qbsWarning() << Tr::tr("Could not detect any toolchains. No profile created.");
+    } else if (profiles.count() == 1 && settings.defaultProfile().isEmpty()) {
+        qbsInfo() << DontPrintLogLevel << Tr::tr("Making profile '%1' the default.");
+        settings.setValue(QLatin1String("defaultProfile"), profiles.first().name());
+    }
     return 0;
 }
