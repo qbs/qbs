@@ -63,18 +63,10 @@
      When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
      By default, matching files are only picked up directly from the parent directory, but you can tell qbs to
      consider the whole directory tree. It is also possible to exclude certain files from the list.
+     The pattern ** used in a pathname expansion context will match all files and zero or more
+     directories and subdirectories.
      Here's an example:
-     \code
-     Group {
-         name: "Word processing documents"
-         files: ["*.doc", "*.rtf"]
-         recursive: true
-         qbs.install: true
-         qbs.installDir: "share"
-         excludeFiles: "do_not_install_this_file.*"
-     }
-     \endcode
-     \note Wildcards can match only regular files, not directories.
+     \snippet items/group.qbs 0
 
      A group can also be used to attach properties to build artifacts such as executables or
      libraries. In the following example, an application is installed to "<install root>/bin".
@@ -137,11 +129,6 @@
             a group and this property is true, then the file tags set via the group
             replace the ones set via the product. If it is false, the "group tags" are are added to
             the "product tags".
-    \row
-        \li recursive
-        \li bool
-        \li false
-        \li For use with wildcards; determines whether to descend into subdirectories.
     \row
         \li excludeFiles
         \li list

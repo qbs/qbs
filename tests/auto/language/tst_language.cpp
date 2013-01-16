@@ -477,11 +477,9 @@ void TestLanguage::wildcards_data()
     QTest::addColumn<QString>("prefix");
     QTest::addColumn<QStringList>("patterns");
     QTest::addColumn<QStringList>("excludePatterns");
-    QTest::addColumn<bool>("recursive");
     QTest::addColumn<QStringList>("expected");
 
     const bool useGroup = true;
-    const bool recursive = true;
 
     for (int i = 0; i <= 1; ++i) {
         const bool useGroup = i;
@@ -492,7 +490,6 @@ void TestLanguage::wildcards_data()
                 << QString()
                 << (QStringList() << "*.h")
                 << QStringList()
-                << !recursive
                 << (QStringList() << "foo.h" << "bar.h");
         QTest::newRow(QByteArray("simple 2") + dataTagSuffix)
                 << useGroup
@@ -500,7 +497,6 @@ void TestLanguage::wildcards_data()
                 << QString()
                 << (QStringList() << "foo.*")
                 << QStringList()
-                << !recursive
                 << (QStringList() << "foo.h" << "foo.cpp");
         QTest::newRow(QByteArray("simple 3") + dataTagSuffix)
                 << useGroup
@@ -508,7 +504,6 @@ void TestLanguage::wildcards_data()
                 << QString()
                 << (QStringList() << "*.h" << "*.cpp")
                 << QStringList()
-                << !recursive
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
         QTest::newRow(QByteArray("exclude 1") + dataTagSuffix)
                 << useGroup
@@ -516,7 +511,6 @@ void TestLanguage::wildcards_data()
                 << QString()
                 << (QStringList() << "*.h" << "*.cpp")
                 << (QStringList() << "bar*")
-                << !recursive
                 << (QStringList() << "foo.h" << "foo.cpp");
         QTest::newRow(QByteArray("exclude 2") + dataTagSuffix)
                 << useGroup
@@ -524,7 +518,6 @@ void TestLanguage::wildcards_data()
                 << QString()
                 << (QStringList() << "*")
                 << (QStringList() << "*.qbs")
-                << !recursive
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
         QTest::newRow(QByteArray("non-recursive") + dataTagSuffix)
                 << useGroup
@@ -532,16 +525,34 @@ void TestLanguage::wildcards_data()
                 << QString()
                 << (QStringList() << "a/*")
                 << QStringList()
-                << !recursive
                 << (QStringList() << "a/foo.h" << "a/foo.cpp");
     }
-    QTest::newRow(QByteArray("recursive"))
+    QTest::newRow(QByteArray("recursive 1"))
             << useGroup
             << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
             << QString()
-            << (QStringList() << "a/*")
+            << (QStringList() << "a/**")
             << QStringList()
-            << recursive
+            << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp");
+    QTest::newRow(QByteArray("recursive 2"))
+            << useGroup
+            << (QStringList()
+                << "d/1.h" << "b/d/1.h" << "b/c/d/1.h"
+                << "d/e/1.h" << "b/d/e/1.h" << "b/c/d/e/1.h"
+                << "a/d/1.h" << "a/b/d/1.h" << "a/b/c/d/1.h"
+                << "a/d/e/1.h" << "a/b/d/e/1.h" << "a/b/c/d/e/1.h"
+                << "a/d/1.cpp" << "a/b/d/1.cpp" << "a/b/c/d/1.h"
+                << "a/d/e/1.cpp" << "a/b/d/e/1.cpp" << "a/b/c/d/e/1.cpp")
+            << QString()
+            << (QStringList() << "a/**/d/*.h")
+            << QStringList()
+            << (QStringList() << "a/d/1.h" << "a/b/d/1.h" << "a/b/c/d/1.h");
+    QTest::newRow(QByteArray("recursive 3"))
+            << useGroup
+            << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
+            << QString()
+            << (QStringList() << "a/**/**/**")
+            << QStringList()
             << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp");
     QTest::newRow(QByteArray("prefix"))
             << useGroup
@@ -550,7 +561,6 @@ void TestLanguage::wildcards_data()
             << QString("subdir/")
             << (QStringList() << "*.h")
             << QStringList()
-            << !recursive
             << (QStringList() << "subdir/foo.h" << "subdir/bar.h");
 }
 
@@ -561,7 +571,6 @@ void TestLanguage::wildcards()
     QFETCH(QString, prefix);
     QFETCH(QStringList, patterns);
     QFETCH(QStringList, excludePatterns);
-    QFETCH(bool, recursive);
     QFETCH(QStringList, expected);
 
     // create test directory
@@ -591,8 +600,7 @@ void TestLanguage::wildcards()
           << "  name: \"MyProduct\"" << endl;
         if (useGroup) {
             s << "  Group {" << endl
-              << "     name: " << toJSLiteral(groupName) << endl
-              << "     recursive: " << toJSLiteral(recursive) << endl;
+              << "     name: " << toJSLiteral(groupName) << endl;
         }
         if (!prefix.isEmpty())
             s << "  prefix: " << toJSLiteral(prefix) << endl;

@@ -805,9 +805,6 @@ void Loader::LoaderPrivate::setupBuiltinDeclarations()
     decls += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     decls += PropertyDeclaration("fileTagsFilter", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     decls += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-    PropertyDeclaration recursiveProperty("recursive", PropertyDeclaration::Boolean, PropertyDeclaration::PropertyNotAvailableInConfig);
-    recursiveProperty.initialValueSource = "false";
-    decls += recursiveProperty;
     decls += PropertyDeclaration("fileTags", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     decls += PropertyDeclaration("prefix", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
 
@@ -1666,9 +1663,6 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
-        if (isGroup) {
-            wildcards->recursive = group->scope->boolValue("recursive");
-        }
         wildcards->excludePatterns = group->scope->stringListValue("excludeFiles");
         wildcards->prefix = prefix;
         wildcards->patterns = patterns;

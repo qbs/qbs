@@ -164,7 +164,6 @@ public:
     QSet<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir) const;
 
     // TODO: Use back pointer to Group instead?
-    bool recursive;
     QString prefix;
 
     QStringList patterns;
@@ -172,10 +171,12 @@ public:
     QList<SourceArtifactPtr> files;
 
 private:
-    SourceWildCards() : recursive(false) {}
+    SourceWildCards() {}
 
     QSet<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
                                  const QString &baseDir) const;
+    void expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
+                        const QStringList &parts, const QString &baseDir) const;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

@@ -160,7 +160,6 @@ void SourceArtifact::store(PersistentPool &pool) const
 
 void SourceWildCards::load(PersistentPool &pool)
 {
-    pool.stream() >> recursive;
     prefix = pool.idLoadString();
     patterns = pool.idLoadStringList();
     excludePatterns = pool.idLoadStringList();
@@ -169,7 +168,6 @@ void SourceWildCards::load(PersistentPool &pool)
 
 void SourceWildCards::store(PersistentPool &pool) const
 {
-    pool.stream() << recursive;
     pool.storeString(prefix);
     pool.storeStringList(patterns);
     pool.storeStringList(excludePatterns);
@@ -652,12 +650,6 @@ void ResolvedProject::store(PersistentPool &pool) const
  * \sa ResolvedGroup
  */
 
- /*!
-  * \variable SourceWildCards::recursive
-  * \brief Inherited from the \c ResolvedGroup
-  * \sa ResolvedGroup
-  */
-
 /*!
   * \variable SourceWildCards::prefix
   * \brief Inherited from the \c ResolvedGroup
@@ -696,29 +688,54 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
     foreach (QString pattern, patterns) {
         pattern.prepend(prefix);
         pattern.replace('\\', '/');
-        const int lastSepIndex = pattern.lastIndexOf(QLatin1Char('/'));
-        QString dir = baseDir;
-        if (lastSepIndex != -1) {
-            const QString dirPart = pattern.left(lastSepIndex);
-            if (FileInfo::isPattern(dirPart)) {
-                throw Error(Tr::tr("Invalid file pattern in group defined at line %1: "
-                                   "Wildcards are not allowed in directory names ('%2').")
-                            .arg(group->location.line).arg(dirPart), group->location.fileName);
-            }
-            dir.append(QLatin1Char('/')).append(dirPart);
-        }
-        const QString filePattern = pattern.mid(lastSepIndex + 1);
-        const QDirIterator::IteratorFlags itFlags = recursive
-                ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
-        QDirIterator it(dir, QStringList(filePattern), QDir::Files, itFlags);
-        while (it.hasNext()) {
-            const QString filePath = it.next();
-            if (!FileInfo(filePath).isDir())
-                files += filePath;
-        }
+        QStringList parts = pattern.split(QLatin1Char('/'));
+        expandPatterns(files, group, parts, baseDir);
     }
 
     return files;
+}
+
+void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
+                                     const QStringList &parts,
+                                     const QString &baseDir) const
+{
+    QStringList changed_parts = parts;
+    bool recursive = false;
+    QString part = changed_parts.takeFirst();
+
+    while (part == QLatin1String("**")) {
+        recursive = true;
+
+        if (changed_parts.isEmpty()) {
+            part = QLatin1String("*");
+            break;
+        }
+
+        part = changed_parts.takeFirst();
+    }
+
+    const bool isDir = !changed_parts.isEmpty();
+
+    const QString &filePattern = part;
+    const QDirIterator::IteratorFlags itFlags = recursive
+            ? QDirIterator::Subdirectories
+            : QDirIterator::NoIteratorFlags;
+    QDir::Filters itFilters = isDir
+            ? QDir::Dirs
+            : QDir::Files;
+
+    if (filePattern != QLatin1String("..") && filePattern != QLatin1String("."))
+        itFilters |= QDir::NoDotAndDotDot;
+
+    QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);
+    while (it.hasNext()) {
+        const QString filePath = it.next();
+        Q_ASSERT(FileInfo(filePath).isDir() == isDir);
+        if (isDir)
+            expandPatterns(result, group, changed_parts, filePath);
+        else
+            result += filePath;
+    }
 }
 
 } // namespace Internal
