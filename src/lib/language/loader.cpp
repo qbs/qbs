@@ -196,7 +196,7 @@ static QScriptValue evaluate(QScriptEngine *engine, const QScriptProgram &expres
         QString errorMessage = engine->uncaughtException().toString();
         int errorLine = engine->uncaughtExceptionLineNumber();
         engine->clearExceptions();
-        throw Error(errorMessage, expression.fileName(), errorLine);
+        throw Error(errorMessage, CodeLocation(expression.fileName(), errorLine));
     }
     if (result.isError())
         throw Error(result.toString());
@@ -2185,7 +2185,7 @@ ProjectFile::Ptr Loader::LoaderPrivate::parseFile(const QString &fileName)
     if (!parserMessages.isEmpty()) {
         Error err;
         foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
-            err.append(msg.message, fileName, msg.loc.startLine, msg.loc.startColumn);
+            err.append(msg.message, CodeLocation(fileName, msg.loc.startLine, msg.loc.startColumn));
         throw err;
     }
 

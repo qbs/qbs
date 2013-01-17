@@ -41,24 +41,18 @@ namespace qbs {
  */
 
 ErrorData::ErrorData()
-    : m_line(0)
-    , m_column(0)
 {
 }
 
-ErrorData::ErrorData(const QString &description, const QString &file, int line, int column)
+ErrorData::ErrorData(const QString &description, const CodeLocation &codeLocation)
     : m_description(description)
-    , m_file(file)
-    , m_line(line)
-    , m_column(column)
+    , m_codeLocation(codeLocation)
 {
 }
 
 ErrorData::ErrorData(const ErrorData &rhs)
     : m_description(rhs.m_description)
-    , m_file(rhs.m_file)
-    , m_line(rhs.m_line)
-    , m_column(rhs.m_column)
+    , m_codeLocation(rhs.m_codeLocation)
 {
 }
 
@@ -68,19 +62,10 @@ ErrorData::ErrorData(const ErrorData &rhs)
  */
 
  /*!
-  * \fn const QString &ErrorData::file() const
-  * \brief The file in which the error occurred, if it is file-related. Otherwise an empty string.
+  * \fn const QString &ErrorData::codeLocation() const
+  * \brief The location at which file in which the error occurred.
+  * \note This information might not be applicable, in which case location().isValid() returns false
   */
-
-/*!
- * \fn int ErrorData::line() const
- * \brief The line in the file in which the error occurred, if applicable. Otherwise 0.
- */
-
-/*!
- * \fn int ErrorData::column() const
- * \brief The column in the file in which the error occurred, if applicable. Otherwise 0.
- */
 
 /*!
  * \brief A full textual description of the error using all available information.
@@ -88,13 +73,13 @@ ErrorData::ErrorData(const ErrorData &rhs)
 QString ErrorData::toString() const
 {
     QString str;
-    if (!m_file.isEmpty()) {
-        str = QDir::toNativeSeparators(m_file);
+    if (!m_codeLocation.fileName.isEmpty()) {
+        str = QDir::toNativeSeparators(m_codeLocation.fileName);
         QString lineAndColumn;
-        if (m_line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(m_line);
-        if (m_column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(m_column);
+        if (m_codeLocation.line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(m_codeLocation.line);
+        if (m_codeLocation.column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(m_codeLocation.column);
         str += lineAndColumn;
         str += QLatin1Char(' ') + m_description;
     } else {
@@ -119,24 +104,14 @@ Error::Error(const Error &rhs)
 {
 }
 
-Error::Error(const QString &description, const QString &file, int line, int column)
-{
-    append(description, file, line, column);
-}
-
 Error::Error(const QString &description, const CodeLocation &location)
 {
-    append(description, location.fileName, location.line, location.column);
-}
-
-void Error::append(const QString &description, const QString &file, int line, int column)
-{
-    m_data.append(ErrorData(description, file, line, column));
+    append(description, location);
 }
 
 void Error::append(const QString &description, const CodeLocation &location)
 {
-    m_data.append(ErrorData(description, location.fileName, location.line, location.column));
+    m_data.append(ErrorData(description, location));
 }
 
 /*!

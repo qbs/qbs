@@ -38,24 +38,16 @@ class ErrorData
 {
 public:
     ErrorData();
-
-    // TODO: Use CodeLocation here.
-    ErrorData(const QString &description, const QString &file = QString(),
-              int line = -1, int column = -1);
-
+    explicit ErrorData(const QString &description, const CodeLocation &codeLocation);
     ErrorData(const ErrorData &rhs);
 
     const QString &description() const { return m_description; }
-    const QString &file() const { return m_file; }
-    int line() const { return m_line; }
-    int column() const { return m_column; }
+    CodeLocation codeLocation() const { return m_codeLocation; }
     QString toString() const;
 
 private:
     QString m_description;
-    QString m_file;
-    int m_line;
-    int m_column;
+    CodeLocation m_codeLocation;
 };
 
 class Error
@@ -63,15 +55,9 @@ class Error
 public:
     Error();
     Error(const Error &rhs);
-    explicit Error(const QString &description,
-          const QString &file = QString(),
-          int line = -1, int column = -1);
-    Error(const QString &description, const CodeLocation &location);
+    Error(const QString &description, const CodeLocation &location = CodeLocation());
 
-    void append(const QString &description,
-                const QString &file = QString(),
-                int line = 0, int column = 0);
-    void append(const QString &description, const CodeLocation &location);
+    void append(const QString &description, const CodeLocation &location = CodeLocation());
     const QList<ErrorData> &entries() const;
     void clear();
     QString toString() const;

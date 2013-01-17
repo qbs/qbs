@@ -637,7 +637,7 @@ void Executor::onProcessError(const qbs::Error &err)
     if (m_buildOptions.keepGoing) {
         emit reportWarning(CodeLocation(), Tr::tr("ignoring the following errors on user request:"));
         foreach (const qbs::ErrorData &entry, err.entries())
-            emit reportWarning(CodeLocation(entry.file(), entry.line(), entry.column()), entry.description());
+            emit reportWarning(entry.codeLocation(), entry.description());
     } else {
         m_error = err;
     }

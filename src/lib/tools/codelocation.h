@@ -38,8 +38,7 @@ namespace qbs {
 class CodeLocation
 {
 public:
-    CodeLocation()
-        : line(0), column(0)
+    CodeLocation() : line(-1), column(-1)
     {}
 
     CodeLocation(const QString &aFileName, int aLine = -1, int aColumn = -1)
