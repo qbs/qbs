@@ -41,7 +41,7 @@ public:
 
     // TODO: Use CodeLocation here.
     ErrorData(const QString &description, const QString &file = QString(),
-              int line = 0, int column = 0);
+              int line = -1, int column = -1);
 
     ErrorData(const ErrorData &rhs);
 
@@ -65,7 +65,7 @@ public:
     Error(const Error &rhs);
     explicit Error(const QString &description,
           const QString &file = QString(),
-          int line = 0, int column = 0);
+          int line = -1, int column = -1);
     Error(const QString &description, const CodeLocation &location);
 
     void append(const QString &description,
