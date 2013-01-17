@@ -113,7 +113,7 @@ public:
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
     void reportProcessResult(const qbs::ProcessResult &result);
-    void reportWarning(const qbs::CodeLocation &location, const QString &message);
+    void reportWarning(const qbs::Error &warning);
 
 protected:
     BuildGraphTouchingJob(QObject *parent = 0);

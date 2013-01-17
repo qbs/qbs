@@ -58,6 +58,7 @@ public:
     Error(const QString &description, const CodeLocation &location = CodeLocation());
 
     void append(const QString &description, const CodeLocation &location = CodeLocation());
+    void prepend(const QString &description, const CodeLocation &location = CodeLocation());
     const QList<ErrorData> &entries() const;
     void clear();
     QString toString() const;

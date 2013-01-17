@@ -188,12 +188,9 @@ void CommandLineFrontend::handleTaskProgress(int value, AbstractJob *job)
     }
 }
 
-void CommandLineFrontend::handleWarningReport(const qbs::CodeLocation &loc, const QString &msg)
+void CommandLineFrontend::handleWarningReport(const qbs::Error &warning)
 {
-    if (loc.isValid())
-        qbsWarning() << loc.fileName << QString::fromLatin1(":") << loc.line << QString::fromLatin1(":")  << msg;
-    else
-        qbsWarning() << msg;
+    qbsWarning() << warning.toString() << "\n";
 }
 
 void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &result)
@@ -395,8 +392,7 @@ void CommandLineFrontend::connectBuildJob(AbstractJob *job)
 
     connect(bjob, SIGNAL(reportCommandDescription(QString,QString)),
             this, SLOT(handleCommandDescriptionReport(QString,QString)));
-    connect(bjob, SIGNAL(reportWarning(qbs::CodeLocation,QString)),
-            this, SLOT(handleWarningReport(qbs::CodeLocation,QString)));
+    connect(bjob, SIGNAL(reportWarning(qbs::Error)), this, SLOT(handleWarningReport(qbs::Error)));
     connect(bjob, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SLOT(handleProcessResultReport(qbs::ProcessResult)));
 }

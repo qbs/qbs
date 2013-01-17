@@ -40,6 +40,7 @@
 namespace qbs {
 class AbstractJob;
 class ConsoleProgressObserver;
+class Error;
 class ProcessResult;
 
 class CommandLineFrontend : public QObject
@@ -56,7 +57,7 @@ private slots:
     void handleJobFinished(bool success, qbs::AbstractJob *job);
     void handleNewTaskStarted(const QString &description, int totalEffort);
     void handleTaskProgress(int value, qbs::AbstractJob *job);
-    void handleWarningReport(const qbs::CodeLocation &loc, const QString &msg);
+    void handleWarningReport(const qbs::Error &warning);
     void handleProcessResultReport(const qbs::ProcessResult &result);
 
 private:

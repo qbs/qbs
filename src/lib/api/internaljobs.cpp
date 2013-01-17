@@ -248,8 +248,7 @@ void InternalBuildJob::start()
             this, SIGNAL(reportCommandDescription(QString,QString)));
     connect(m_executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(m_executor, SIGNAL(reportWarning(qbs::CodeLocation,QString)),
-            this, SIGNAL(reportWarning(qbs::CodeLocation,QString)));
+    connect(m_executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 
     m_executor->setBuildOptions(buildOptions());
     m_executor->setProgressObserver(observer());

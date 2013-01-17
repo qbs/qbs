@@ -114,6 +114,11 @@ void Error::append(const QString &description, const CodeLocation &location)
     m_data.append(ErrorData(description, location));
 }
 
+void Error::prepend(const QString &description, const CodeLocation &location)
+{
+    m_data.prepend(ErrorData(description, location));
+}
+
 /*!
  * \brief A list of concrete error description.
  * Most often, there will be one element in this list, but there can be more e.g. to illustrate

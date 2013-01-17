@@ -635,9 +635,9 @@ void Executor::runAutoMoc()
 void Executor::onProcessError(const qbs::Error &err)
 {
     if (m_buildOptions.keepGoing) {
-        emit reportWarning(CodeLocation(), Tr::tr("ignoring the following errors on user request:"));
-        foreach (const qbs::ErrorData &entry, err.entries())
-            emit reportWarning(entry.codeLocation(), entry.description());
+        Error fullWarning(err);
+        fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
+        emit reportWarning(fullWarning);
     } else {
         m_error = err;
     }

@@ -208,11 +208,9 @@ void SetupProjectJob::resolve(const QString &projectFilePath, const QString &bui
  */
 
 /*!
- * \fn void BuildJob::warning(const qbs::CodeLocation &location, const QString &message)
+ * \fn void BuildJob::reportWarning(const qbs::Error &warning)
  * \brief Signals that a warning was triggered by the build job
- * The \a location parameter provides information on who triggered the warning. The
- * \a location may be invalid. The receiver should check for this.
- * The \a message parameter is the localized warning to print.
+ * The \a warning parameter provides the necessary details.
  */
 
 /*!
@@ -236,8 +234,7 @@ BuildJob::BuildJob(QObject *parent) : AbstractJob(new InternalBuildJob, parent)
             this, SIGNAL(reportCommandDescription(QString,QString)));
     connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(job, SIGNAL(reportWarning(qbs::CodeLocation,QString)),
-            this, SIGNAL(reportWarning(qbs::CodeLocation,QString)));
+    connect(job, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 }
 
 void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions &options,
