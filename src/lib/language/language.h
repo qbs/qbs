@@ -299,6 +299,8 @@ class ResolvedProduct : public PersistentObject
 public:
     static ResolvedProductPtr create() { return ResolvedProductPtr(new ResolvedProduct); }
 
+    ~ResolvedProduct();
+
     bool enabled;
     QStringList fileTags;
     QStringList additionalFileTags;

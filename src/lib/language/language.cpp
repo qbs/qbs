@@ -359,6 +359,10 @@ ResolvedProduct::ResolvedProduct()
 {
 }
 
+ResolvedProduct::~ResolvedProduct()
+{
+}
+
 /*!
  * \brief Returns all files of all groups as source artifacts.
  * This includes the expanded list of wildcards.
