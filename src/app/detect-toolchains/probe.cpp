@@ -235,8 +235,10 @@ int probe()
     if (profiles.isEmpty()) {
         qbsWarning() << Tr::tr("Could not detect any toolchains. No profile created.");
     } else if (profiles.count() == 1 && settings.defaultProfile().isEmpty()) {
-        qbsInfo() << DontPrintLogLevel << Tr::tr("Making profile '%1' the default.");
-        settings.setValue(QLatin1String("defaultProfile"), profiles.first().name());
+        const QString profileName = profiles.first().name();
+        qbsInfo() << DontPrintLogLevel << Tr::tr("Making profile '%1' the default.")
+                     .arg(profileName);
+        settings.setValue(QLatin1String("defaultProfile"), profileName);
     }
     return 0;
 }
