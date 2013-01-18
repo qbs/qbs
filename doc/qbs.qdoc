@@ -76,6 +76,7 @@
                \li  \l{Qbs Functions}
                \li  \l{Rule Item}
                \li  \l{Group Item}
+               \li  \l{FileTagger Item}
                \li  \l{Product Item}
            \endlist
     \endlist
@@ -766,6 +767,7 @@
         \li \l{Qbs Functions}
         \li \l{Rule Item}
         \li \l{Group Item}
+        \li \l{FileTagger Item}
         \li \l{Product Item}
     \endlist
 */
@@ -846,7 +848,7 @@
     \contentspage index.html
     \previouspage qbs-rule-item.html
     \page qbs-group-item.html
-    \nextpage qbs-product-item.html
+    \nextpage qbs-filetagger-item.html
 
     \title Group Item
 
@@ -909,6 +911,11 @@
         \li empty list
         \li The files in the group.
     \row
+        \li prefix
+        \li string
+        \li empty string
+        \li A prefix to append to all files. Slashes are allowed and have directory semantics.
+    \row
         \li condition
         \li bool
         \li true
@@ -942,6 +949,61 @@
 
 /*!
     \contentspage index.html
+    \previouspage qbs-group-item.html
+    \page qbs-filetagger-item.html
+    \nextpage qbs-product-item.html
+
+    \title FileTagger Item
+
+    This item maps file patterns to tags. It can be attached to a product or a module.
+    In the latter case, its effect is the same as if it had been attached to all products having
+    a dependency on the respective module. For instance, qbs' cpp module has, among others,
+    the following file tagger:
+    \code
+    FileTagger {
+        pattern: "*.cpp"
+        fileTags: ["cpp"]
+    }
+    \endcode
+    As a result, all files ending with ".cpp" in products depending on the cpp module automatically
+    get the "cpp" tag, which will cause them to be compiled, because a C++ compiler rule
+    has "cpp" in its list of matching input tags.
+
+    File taggers are disabled if file tags are set explicitly in a product or group.
+    For example, cpp files in the following product will not get the "cpp" tag:
+    \code
+    Product {
+        Depends { name: "cpp" }
+        Group {
+            files: "*.cpp"
+            fileTags: "other"
+        }
+    }
+    \endcode
+
+    \section1 FileTagger Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li pattern
+        \li string
+        \li none
+        \li The pattern to match against. Supports the usual wildcards '*', '?' and '[]'.
+    \row
+        \li fileTags
+        \li list
+        \li empty list
+        \li Tags to attach to a product's files. These can then be matched by a rule.
+    \endtable
+*/
+
+/*!
+    \contentspage index.html
     \previouspage qbs-reference.html
     \page qbs-functions.html
     \nextpage qbs-rule-item.html
@@ -952,7 +1014,7 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-group-item.html
+    \previouspage qbs-filetagger-item.html
     \page qbs-product-item.html
 
     \title Product Item
