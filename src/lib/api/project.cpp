@@ -144,8 +144,10 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
 QList<BuildProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
 {
     QList<Internal::BuildProductPtr> internalProducts;
-    foreach (const ProductData &product, products)
-        internalProducts << internalProduct(product);
+    foreach (const ProductData &product, products) {
+        if (product.isEnabled())
+            internalProducts << internalProduct(product);
+    }
     return internalProducts;
 }
 
@@ -322,6 +324,8 @@ ProjectData Project::projectData() const
  */
 QString Project::targetExecutable(const ProductData &product) const
 {
+    if (!product.isEnabled())
+        return QString();
     const Internal::BuildProductConstPtr buildProduct = d->internalProduct(product);
     if (!buildProduct->rProduct->fileTags.contains(QLatin1String("application")))
         return QString();
@@ -336,6 +340,7 @@ QString Project::targetExecutable(const ProductData &product) const
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
                                           const QProcessEnvironment &environment) const
 {
+    Q_ASSERT(product.isEnabled());
     const Internal::ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
     return RunEnvironment(resolvedProduct, environment);
 }
