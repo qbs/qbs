@@ -61,7 +61,8 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
 
     // Get environment
     QVariant v = engine->property("_qbs_procenv");
-    t->qenvironment
+    if (!v.isNull())
+        t->qenvironment
             = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
 
     return obj;
