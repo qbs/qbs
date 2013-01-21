@@ -38,6 +38,7 @@ bool operator==(const GroupData &lhs, const GroupData &rhs)
     return lhs.name() == rhs.name()
             && lhs.location() == rhs.location()
             && lhs.expandedWildcards() == rhs.expandedWildcards()
+            && lhs.filePaths() == rhs.filePaths()
             && lhs.properties() == rhs.properties()
             && lhs.isEnabled() == rhs.isEnabled();
 }
