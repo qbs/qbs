@@ -12,7 +12,7 @@ include(macros.qdocconf)
 include(qt-cpp-ignore.qdocconf)
 include(qt-defines.qdocconf)
 
-sources.fileextensions  = "qbs.qdoc"
+sources.fileextensions  = "*.qdoc"
 
 
 qhp.projects            = Qbs

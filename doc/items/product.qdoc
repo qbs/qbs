@@ -1,0 +1,100 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \previouspage qbs-filetagger-item.html
+    \page qbs-product-item.html
+
+    \title Product Item
+
+    \table
+        \header
+            \li Product Item
+            \li Description
+            \li Property
+            \li Property Description
+        \row
+            \li Product
+            \li Generic product.
+            \li
+            \li
+        \row
+            \li
+            \li
+            \li condition
+            \li Boolean value. If false, the product is excluded from build. Default is true.
+        \row
+            \li
+            \li
+            \li name
+            \li The name of the product for referencing it in Depends items.
+        \row
+            \li
+            \li
+            \li type
+            \li A list of file tags the product is going to create.
+        \row
+            \li
+            \li
+            \li targetName
+            \li The base file name of the generated file. If not set, \a name is used.
+        \row
+            \li
+            \li
+            \li destination
+            \li The destination directory of the produced file. Relative to the build dir.
+        \row
+            \li
+            \li
+            \li files
+            \li List of source files.
+        \row
+            \li
+            \li
+            \li consoleApplication
+            \li Boolean value. If set to true, a console application is generated.
+               If false, a GUI application is generated. Default is undefined / not set,
+               which means the linker decides. This only has an effect on Windows.
+        \row
+            \li Application
+            \li Product with type "application" or "applicationbundle" on Mac.
+            \li
+            \li
+        \row
+            \li DynamicLibrary
+            \li Product with type "dynamiclibrary". Produces a DLL or shared object.
+            \li
+            \li
+        \row
+            \li StaticLibrary
+            \li Product with type "staticlibrary". Produces a static library.
+            \li
+            \li
+    \endtable
+*/

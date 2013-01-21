@@ -1,0 +1,98 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \previouspage qbs-functions.html
+    \page qbs-rule-item.html
+    \nextpage qbs-group-item.html
+
+    \title Rule Item
+
+    A "multiplex rule" creates one transformer that takes all
+    input artifacts with the matching input file tag and creates
+    one or more artifacts (e.g. C++ linker).
+    A "non-multiplex rule" creates one transformer per matching input file (e.g. C++
+    compiler).
+
+    \section1 Rule properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li multiplex
+        \li bool
+        \li false
+        \li Determines if this is a multiplex rule.
+    \row
+        \li inputs
+        \li string list
+        \li undefined
+        \li File tags the input artifacts must match.
+           All output artifacts will depend on all artifacts in the product with
+           the given input file tags. Also these artifacts are available in the
+           inputs variable of the prepare script.
+    \row
+        \li usings
+        \li string list
+        \li undefined
+        \li File tags the artifacts of product dependencies must match.
+           Let there be a product \a foo which appears as
+           \code
+            Depends {
+                name: "foo"
+            }
+           \endcode
+           in the current product. All artifacts of \a foo that match the given
+           file tags will appear in the \a inputs variable of the prepare
+           script. Also, every output artifact of this rule will be dependent on
+           those artifacts.
+    \row
+        \li explicitlyDependsOn
+        \li string list
+        \li undefined
+        \li Every artifact that matches the file tags in \a explicitlyDependsOn
+           is added to the dependencies of every output node.
+    \row
+        \li scanners
+        \li string list
+        \li undefined
+        \li List of dependency scanner ids for this rule. The scanners are
+           running just before the prepare script is executed.
+    \row
+        \li prepare
+        \li script
+        \li undefined
+        \li Script that prepares the commands to transform the inputs to outputs.
+    \endtable
+
+*/

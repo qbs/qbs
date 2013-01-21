@@ -1,0 +1,82 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \previouspage qbs-group-item.html
+    \page qbs-filetagger-item.html
+    \nextpage qbs-product-item.html
+
+    \title FileTagger Item
+
+    This item maps file patterns to tags. It can be attached to a product or a module.
+    In the latter case, its effect is the same as if it had been attached to all products having
+    a dependency on the respective module. For instance, qbs' cpp module has, among others,
+    the following file tagger:
+    \code
+    FileTagger {
+        pattern: "*.cpp"
+        fileTags: ["cpp"]
+    }
+    \endcode
+    As a result, all files ending with ".cpp" in products depending on the cpp module automatically
+    get the "cpp" tag, which will cause them to be compiled, because a C++ compiler rule
+    has "cpp" in its list of matching input tags.
+
+    File taggers are disabled if file tags are set explicitly in a product or group.
+    For example, cpp files in the following product will not get the "cpp" tag:
+    \code
+    Product {
+        Depends { name: "cpp" }
+        Group {
+            files: "*.cpp"
+            fileTags: "other"
+        }
+    }
+    \endcode
+
+    \section1 FileTagger Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li pattern
+        \li string
+        \li none
+        \li The pattern to match against. Supports the usual wildcards '*', '?' and '[]'.
+    \row
+        \li fileTags
+        \li list
+        \li empty list
+        \li Tags to attach to a product's files. These can then be matched by a rule.
+    \endtable
+*/

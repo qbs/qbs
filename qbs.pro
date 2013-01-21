@@ -39,7 +39,10 @@ SUBDIRS += \
     tests
 
 OTHER_FILES += \
-    doc/qbs.qdoc
+    doc/*.qdoc \
+    doc/items/*.qdoc \
+    doc/qbs.qdocconf \
+    doc/config/qbs-project.qdocconf
 
 include(qbs_version.pri)
 include(doc/doc.pri)
