@@ -484,7 +484,7 @@ void TestBlackbox::recursiveWildcards()
 
 void TestBlackbox::invalidWildcards()
 {
-    QDir::setCurrent("/tmp");
+    QVERIFY(QDir::setCurrent(QDir::tempPath()));
     const QByteArray projectContent = "Product {\n\tGroup {\n\t\tfiles: 'dir*/*'\n\n\t}\n }\n";
     QTemporaryFile projectFile;
     QVERIFY(projectFile.open());
