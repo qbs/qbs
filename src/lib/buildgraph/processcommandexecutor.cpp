@@ -145,12 +145,11 @@ void ProcessCommandExecutor::doStart()
             arguments.clear();
             arguments += QDir::toNativeSeparators(cmd->responseFileUsagePrefix()
                     + responseFile.fileName());
-            qbsDebug("[EXEC] command line with response file: %s%s",
-                     qPrintable(cmd->program()),
-                     qPrintable(commandArgsToString(arguments)));
         }
     }
 
+    qbsDebug() << "[EXEC] Running external process; full command line is: " << program
+               << " " << commandArgsToString(arguments);
     m_process.setWorkingDirectory(cmd->workingDir());
     m_process.start(program, arguments);
 
