@@ -516,7 +516,8 @@ void TestBlackbox::installedApp()
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/bin/installedApp"))));
 
     QCOMPARE(runQbs(QStringList("install") << "--install-root" << (testDataDir + "/installed-app")), 0);
-    QVERIFY(QFile::exists(testDataDir + "/installed-app/bin/installedApp"));
+    QVERIFY(QFile::exists(testDataDir
+            + HostOsInfo::appendExecutableSuffix("/installed-app/bin/installedApp")));
 
     QFile addedFile(defaultInstallRoot + QLatin1String("/blubb.txt"));
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
