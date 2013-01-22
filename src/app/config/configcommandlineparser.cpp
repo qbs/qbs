@@ -28,11 +28,13 @@
 ****************************************************************************/
 #include "configcommandlineparser.h"
 
+#include <logging/translator.h>
 #include <tools/error.h>
 
 #include <cstdio>
 
 using namespace qbs;
+using namespace Internal;
 
 void ConfigCommandLineParser::parse(const QStringList &commandLine)
 {
@@ -40,7 +42,10 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
     m_helpRequested = false;
 
     QStringList args = commandLine;
-    if (args.isEmpty()) {
+    if (args.isEmpty())
+        throw Error(Tr::tr("No parameters supplied."));
+    if (args.count() == 1 && (args.first() == QLatin1String("--help")
+                              || args.first() == QLatin1String("-h"))) {
         m_helpRequested = true;
         return;
     }
@@ -62,10 +67,8 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 
     switch (command().command) {
     case ConfigCommand::CfgNone:
-        if (args.isEmpty()) {
-            m_helpRequested = true;
-            break;
-        }
+        if (args.isEmpty())
+            throw Error(Tr::tr("No parameters supplied."));
         if (args.count() > 2)
             throw Error("Too many arguments.");
         m_command.varNames << args.first();
@@ -106,13 +109,16 @@ void ConfigCommandLineParser::setCommand(ConfigCommand::Command command)
     m_command.command = command;
 }
 
-void ConfigCommandLineParser::printHelp() const
+void ConfigCommandLineParser::printUsage() const
 {
-    puts("usage: qbs config [options]\n"
-         "\n"
+    puts("Usage:\n"
+        "    qbs config <options>\n"
+        "    qbs config <key>\n"
+        "    qbs config <key> <value>"
+        "\n"
          "Options:\n"
-         "    --list [<root> ...] list variables under key <root> or all variables\n"
-         "    --unset <name>      remove variable with given name\n"
+         "    --list [<root> ...] list keys under key <root> or all keys\n"
+         "    --unset <name>      remove key with given name\n"
          "    --import <file>     import settings from given file\n"
          "    --export <file>     export settings to given file\n");
 }

@@ -41,7 +41,7 @@ public:
     ConfigCommand command() const { return m_command; }
 
     bool helpRequested() const { return m_helpRequested; }
-    void printHelp() const;
+    void printUsage() const;
 
 private:
     void setCommand(ConfigCommand::Command command);

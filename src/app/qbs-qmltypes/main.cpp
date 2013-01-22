@@ -29,6 +29,8 @@
 
 #include <language/scriptengine.h>
 #include <language/loader.h>
+#include <logging/consolelogger.h>
+#include <logging/translator.h>
 
 #include <QCoreApplication>
 #include <QByteArray>
@@ -40,6 +42,22 @@ using namespace qbs;
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+
+    ConsoleLogger cl;
+    const QStringList args = app.arguments().mid(1);
+    if (args.count() == 1 && (args.first() == QLatin1String("--help")
+                              || args.first() == QLatin1String("-h"))) {
+        qbsInfo() << DontPrintLogLevel
+                  << Tr::tr("This tool dumps information about the QML types supported by qbs.\n"
+                            "It takes no command-line parameters.\n"
+                            "The output is intended to be processed by other tools and has "
+                            "little value for humans.");
+        return EXIT_SUCCESS;
+    }
+    if (!args.isEmpty()) {
+        qbsWarning() << Tr::tr("You supplied command-line parameters, "
+                               "but this tool does not use any.");
+    }
 
     Internal::ScriptEngine engine;
     QByteArray typeData = Internal::Loader(&engine).qmlTypeInfo();

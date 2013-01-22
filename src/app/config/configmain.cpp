@@ -31,6 +31,7 @@
 #include "configcommandexecutor.h"
 
 #include <logging/consolelogger.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 
 #include <QCoreApplication>
@@ -47,13 +48,14 @@ int main(int argc, char *argv[])
     try {
         parser.parse(app.arguments().mid(1));
         if (parser.helpRequested()) {
-            parser.printHelp();
+            qbsInfo() << DontPrintLogLevel << Tr::tr("This tool manages qbs settings.");
+            parser.printUsage();
             return EXIT_SUCCESS;
         }
         ConfigCommandExecutor().execute(parser.command());
     } catch (const Error &e) {
         qbsError() << e.toString();
-        parser.printHelp();
+        parser.printUsage();
         return EXIT_FAILURE;
     }
 }

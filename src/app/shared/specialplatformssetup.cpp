@@ -58,14 +58,14 @@ void SpecialPlatformsSetup::setup()
 
 QString SpecialPlatformsSetup::helpString() const
 {
-    return tr("This tool sets up qbs platform definitions for all installed "
-        "targets in a given %1 installation.\n").arg(platformTypeName()) + usageString();
+    return tr("This tool sets up a qbs profile for each installed "
+        "target in a given %1 installation.\n").arg(platformTypeName()) + usageString();
 }
 
 QString SpecialPlatformsSetup::usageString() const
 {
-    QString s = tr("Usage: ") + QCoreApplication::applicationFilePath() + ' '
-        + tr("[-h|<base directory>]");
+    QString s = tr("Usage: %1 [-h|<base directory>]")
+            .arg(QFileInfo(QCoreApplication::applicationFilePath()).fileName());
     const QString &defaultDir = defaultBaseDirectory();
     if (!defaultDir.isEmpty() == 1)
         s += QLatin1Char('\n') + tr("The default base directory is '%1'.").arg(defaultDir);

@@ -38,15 +38,25 @@
 #include <cstdlib>
 
 using namespace qbs;
+using namespace Internal;
 
 int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
 
     ConsoleLogger cl;
-    if (app.arguments().count() > 1) {
-        qbsWarning() << Internal::Tr::tr("You supplied command-line arguments, "
-                                         "but this tool does not use any.");
+    const QStringList args = app.arguments().mid(1);
+    if (args.count() == 1 && (args.first() == QLatin1String("--help")
+                              || args.first() == QLatin1String("-h"))) {
+        qbsInfo() << DontPrintLogLevel
+                  << Tr::tr("This tool tries to auto-detect known toolchains in your system.\n"
+                            "It takes no command-line parameters.");
+        return EXIT_SUCCESS;
+    }
+
+    if (!args.isEmpty()) {
+        qbsWarning() << Tr::tr("You supplied command-line parameters, "
+                               "but this tool does not use any.");
     }
 
     try {
