@@ -243,24 +243,30 @@ void InternalBuildJob::build(const QList<BuildProductPtr> &products,
 
 void InternalBuildJob::start()
 {
-    m_executor = new Executor(this);
-    connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));
-    connect(m_executor, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(m_executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(m_executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
-
-    m_executor->setBuildOptions(buildOptions());
-    m_executor->setProgressObserver(observer());
-    m_executor->setBaseEnvironment(m_environment);
-    m_executor->build(products());
+    QtConcurrent::run(this, &InternalBuildJob::execute);
 }
 
-void InternalBuildJob::handleFinished()
+void InternalBuildJob::execute()
 {
+    Executor executor;
+    QEventLoop loop;
+    connect(&executor, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(&executor, SIGNAL(reportCommandDescription(QString,QString)),
+            this, SIGNAL(reportCommandDescription(QString,QString)));
+    connect(&executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+            this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+    connect(&executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
+
+    executor.setBuildOptions(buildOptions());
+    executor.setProgressObserver(observer());
+    executor.setBaseEnvironment(m_environment);
+    executor.build(products());
+    loop.exec();
+    if (executor.hasError())
+        setError(executor.error());
+    if (!products().isEmpty())
+        products().first()->project->setEvaluationContext(RulesEvaluationContextPtr());
     storeBuildGraph();
-    setError(m_executor->error());
     emit finished(this);
 }
 

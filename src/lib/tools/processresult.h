@@ -29,6 +29,7 @@
 #ifndef QBS_PROCESSRESULT_H
 #define QBS_PROCESSRESULT_H
 
+#include <QMetaType>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
@@ -50,5 +51,7 @@ public:
 };
 
 } // namespace qbs
+
+Q_DECLARE_METATYPE(qbs::ProcessResult)
 
 #endif // QBS_PROCESSRESULT_H

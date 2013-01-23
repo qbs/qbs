@@ -43,6 +43,7 @@
 #include <tools/fileinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
+#include <tools/processresult.h>
 #include <tools/profile.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
@@ -78,6 +79,7 @@ static void loadPlugins(Settings *settings)
     }
     ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 
+    qRegisterMetaType<ProcessResult>("qbs::ProcessResult");
     pluginsLoaded = true;
 }
 

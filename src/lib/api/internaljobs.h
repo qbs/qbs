@@ -47,7 +47,6 @@ class ProcessResult;
 class Settings;
 
 namespace Internal {
-class Executor;
 class JobObserver;
 
 class InternalJob : public QObject
@@ -142,10 +141,10 @@ public:
 
 private slots:
     void start();
-    void handleFinished();
 
 private:
-    Executor *m_executor;
+    void execute();
+
     QProcessEnvironment m_environment;
 };
 
