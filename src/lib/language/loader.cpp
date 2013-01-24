@@ -160,6 +160,8 @@ public:
     void resolveProductDependencies(const ResolvedProjectPtr &project, ProjectData &projectData,
                                     const ProductMap &resolvedProducts);
 
+    static void insertIntoProductMap(const ResolvedProductPtr &rproduct, ProductMap &products);
+
     static LoaderPrivate *get(QScriptEngine *engine);
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine);
@@ -2502,8 +2504,20 @@ void Loader::LoaderPrivate::checkUserProperties(const Loader::LoaderPrivate::Pro
     }
 }
 
+void Loader::LoaderPrivate::insertIntoProductMap(const ResolvedProductPtr &rproduct,
+                                                 ProductMap &products)
+{
+    const QString lowerProductName = rproduct->name.toLower();
+    const ResolvedProductConstPtr other = products.value(lowerProductName);
+    if (other) {
+        throw Error(Tr::tr("Illegal redefinition of product '%1', previously defined at %2.")
+                    .arg(lowerProductName).arg(other->location.toString()), rproduct->location);
+    }
+    products.insert(lowerProductName, rproduct);
+}
+
 void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
-        const ResolvedProjectPtr &project, ProductData &data, Loader::LoaderPrivate::ProductMap &products,
+        const ResolvedProjectPtr &project, ProductData &data, ProductMap &products,
         const QList<RulePtr> &globalRules, const QList<FileTagger::ConstPtr> &globalFileTaggers,
         const ResolvedModuleConstPtr &dummyModule)
 {
@@ -2525,8 +2539,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
         rproduct->rules.insert(rule);
     foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
         rproduct->fileTaggers.insert(fileTagger);
-    const QString lowerProductName = rproduct->name.toLower();
-    products.insert(lowerProductName, rproduct);
+    insertIntoProductMap(rproduct, products);
 
     // resolve the modules for this product
     for (QHash<QString, Module::Ptr>::const_iterator modIt = data.product->modules.begin();

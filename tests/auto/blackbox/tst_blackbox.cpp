@@ -182,6 +182,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
             << QString("moc_hpp_included")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp_included"));
+    QTest::newRow("app and lib with same source file")
+            << QString("lib_samesource")
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorldApp"));
 }
 
 void TestBlackbox::build_project()

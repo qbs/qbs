@@ -3,7 +3,7 @@ import qbs.base 1.0
 Project {
     Product {
         type: "application"
-        name : "HelloWorld"
+        name : "HelloWorldApp"
         Depends { name: 'cpp' }
         Group {
             files : [ "main.cpp" ]
@@ -12,7 +12,7 @@ Project {
 
     Product {
         type: "staticlibrary"
-        name : "HelloWorld"
+        name : "HelloWorldLib"
         Depends { name: 'cpp' }
         Group {
             files : [ "main.cpp" ]
