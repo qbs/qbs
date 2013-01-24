@@ -221,7 +221,7 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
 
     (result.success ? qbsInfo() : qbsError())
             << DontPrintLogLevel
-            << result.binary << result.arguments.join(QLatin1String(" "))
+            << result.binary << " " << result.arguments.join(QLatin1String(" "))
             << (hasOutput ? QString::fromLatin1("\n") : QString())
             << (result.stdOut.isEmpty() ? QString() : result.stdOut.join(QLatin1String("\n")))
             << (result.stdErr.isEmpty() ? QString() : result.stdErr.join(QLatin1String("\n")));
