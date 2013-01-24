@@ -32,6 +32,8 @@
 
 #include "codelocation.h"
 
+#include <QList>
+
 namespace qbs {
 
 class ErrorData

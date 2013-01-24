@@ -20,6 +20,7 @@ HEADERS += \
     $$PWD/weakpointer.h
 
 SOURCES += \
+    $$PWD/codelocation.cpp \
     $$PWD/error.cpp \
     $$PWD/fileinfo.cpp \
     $$PWD/persistence.cpp \

@@ -26,38 +26,67 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "codelocation.h"
 
-#ifndef QBS_SOURCELOCATION_H
-#define QBS_SOURCELOCATION_H
-
-#include <QString>
-
-QT_BEGIN_NAMESPACE
-class QDataStream;
-QT_END_NAMESPACE
+#include <QDataStream>
+#include <QDir>
+#include <QRegExp>
 
 namespace qbs {
 
-class CodeLocation
+CodeLocation::CodeLocation() : line(-1), column(-1)
+{}
+
+CodeLocation::CodeLocation(const QString &aFileName, int aLine, int aColumn)
+    : fileName(aFileName),
+      line(aLine),
+      column(aColumn)
+{}
+
+bool CodeLocation::isValid() const
 {
-public:
-    CodeLocation();
-    CodeLocation(const QString &aFileName, int aLine = -1, int aColumn = -1);
+    return !fileName.isEmpty();
+}
 
-    bool isValid() const;
-    QString toString() const;
+QString CodeLocation::toString() const
+{
+    QString str;
+    if (isValid()) {
+        str = QDir::toNativeSeparators(fileName);
+        QString lineAndColumn;
+        if (line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(line);
+        if (column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(column);
+        str += lineAndColumn;
+    }
+    return str;
+}
 
-    QString fileName;
-    int line;
-    int column;
-};
+bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
+{
+    return cl1.fileName == cl2.fileName && cl1.line == cl2.line && cl1.column == cl2.column;
+}
 
-bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
-bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
+bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
+{
+    return !(cl1 == cl2);
+}
 
-QDataStream &operator<<(QDataStream &s, const CodeLocation &o);
-QDataStream &operator>>(QDataStream &s, CodeLocation &o);
+QDataStream &operator<<(QDataStream &s, const CodeLocation &o)
+{
+    s << o.fileName;
+    s << o.line;
+    s << o.column;
+    return s;
+}
+
+QDataStream &operator>>(QDataStream &s, CodeLocation &o)
+{
+    s >> o.fileName;
+    s >> o.line;
+    s >> o.column;
+    return s;
+}
 
 } // namespace qbs
-
-#endif // QBS_SOURCELOCATION_H

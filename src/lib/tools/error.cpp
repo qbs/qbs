@@ -29,7 +29,7 @@
 
 #include "error.h"
 
-#include <QDir>
+#include <QStringList>
 
 namespace qbs {
 
@@ -72,20 +72,10 @@ ErrorData::ErrorData(const ErrorData &rhs)
  */
 QString ErrorData::toString() const
 {
-    QString str;
-    if (!m_codeLocation.fileName.isEmpty()) {
-        str = QDir::toNativeSeparators(m_codeLocation.fileName);
-        QString lineAndColumn;
-        if (m_codeLocation.line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(m_codeLocation.line);
-        if (m_codeLocation.column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(m_codeLocation.column);
-        str += lineAndColumn;
-        str += QLatin1Char(' ') + m_description;
-    } else {
-        str = m_description;
-    }
-    return str;
+    QString str = m_codeLocation.toString();
+    if (!str.isEmpty())
+        str += QLatin1Char(' ');
+    return str += m_description;
 }
 
 /*!
