@@ -681,7 +681,7 @@ void Executor::finish()
         qbsInfo() << DontPrintLogLevel << LogOutputStdOut << TextColorGreen
                   << Tr::tr("Build done.");
     } else {
-        m_error = Error(Tr::tr("The following products could not be built: %1.")
+        m_error.append(Tr::tr("The following products could not be built: %1.")
                  .arg(unbuiltProductNames.join(", ")));
     }
 
