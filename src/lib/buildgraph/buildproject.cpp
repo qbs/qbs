@@ -523,13 +523,17 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
                 return m_result;
         }
 
+        // TODO: What about changed properties?
+        // TODO: Are there less drastic measures than throwing away the loaded project if a product is added?
+        // TODO: This algorithm does not catch two products exchanging their names; do we need a unique identifier?
         QSet<QString> oldProductNames, newProductNames;
-        foreach (const BuildProductPtr &product, project->buildProducts())
-            oldProductNames += product->rProduct->name;
+        foreach (const ResolvedProductConstPtr &product, project->resolvedProject()->products)
+            oldProductNames += product->name;
         foreach (const ResolvedProductConstPtr &product, changedProject->products)
             newProductNames += product->name;
         QSet<QString> addedProductNames = newProductNames - oldProductNames;
         if (!addedProductNames.isEmpty()) {
+            qbsDebug() << "New products were added, discarding the loaded project.";
             m_result.discardLoadedProject = true;
             return m_result;
         }
