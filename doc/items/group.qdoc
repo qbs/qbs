@@ -110,7 +110,7 @@
         \li prefix
         \li string
         \li empty string
-        \li A prefix to append to all files. Slashes are allowed and have directory semantics.
+        \li A string to prepend to all files. Slashes are allowed and have directory semantics.
     \row
         \li fileTagsFilter
         \li list

@@ -33,68 +33,91 @@
 
     \title Product Item
 
+    A Product typically represents the result of a build process. It specifies a set of
+    input and output files and a way to transform the former into the latter. For example, the
+    following product sets up a very simple C++ application:
+    \code
+    Product {
+        name: "helloworld"
+        type: "application"
+        files: "main.cpp"
+        Depends { name: "cpp" }
+    }
+    \endcode
+    The \c type property specifies what will be built (an executable). The \c files property specifies
+    the input files (one C++ source file), and the \c Depends item pulls in the logic from the \c cpp module
+    about how to do the necessary transformations.
+    For some often-used types of products, qbs pre-defines special derived items that save
+    users some typing. These are:
+    \list
+        \o Application
+        \o CppApplication
+        \o DynamicLibrary
+        \o StaticLibrary
+    \endlist
+    Therefore, the above example could also be written like this:
+    \code
+    CppApplication {
+        name: "helloworld"
+        files: "main.cpp"
+    }
+    \endcode
+
     \table
         \header
-            \li Product Item
-            \li Description
             \li Property
-            \li Property Description
+            \li Type
+            \li Default
+            \li Description
         \row
-            \li Product
-            \li Generic product.
-            \li
-            \li
-        \row
-            \li
-            \li
             \li condition
-            \li Boolean value. If false, the product is excluded from build. Default is true.
+            \li bool
+            \li true
+            \li If false, the product will not be built.
         \row
-            \li
-            \li
             \li name
-            \li The name of the product for referencing it in Depends items.
+            \li string
+            \li empty string
+            \li The name of the product. Used to identify the product in a \c Depends item, for example.
         \row
-            \li
-            \li
             \li type
-            \li A list of file tags the product is going to create.
+            \li list of strings
+            \li empty list
+            \li The file tags matching the product's target artifacts.
         \row
-            \li
-            \li
             \li targetName
-            \li The base file name of the generated file. If not set, \a name is used.
+            \li string
+            \li \c name
+            \li The base file name of the product's target artifacts.
         \row
-            \li
-            \li
             \li destination
-            \li The destination directory of the produced file. Relative to the build dir.
+            \li string
+            \li "."
+            \li The directory where the target artifacts will be located. Relative to the build directory.
         \row
-            \li
-            \li
             \li files
-            \li List of source files.
+            \li list of strings
+            \li empty list
+            \li A list of source files. Syntactic sugar to save a \c Group item for simple products.
         \row
-            \li
-            \li
+            \li excludeFiles
+            \li list of strings
+            \li empty list
+            \li A list of source files not to include. Useful with wildcards. See the \c Group
+                item for more information.
+        \row
             \li consoleApplication
-            \li Boolean value. If set to true, a console application is generated.
-               If false, a GUI application is generated. Default is undefined / not set,
-               which means the linker decides. This only has an effect on Windows.
+            \li bool
+            \li linker-dependent
+            \li If true, a console application is generated. If false, a GUI application is generated.
+                Only takes effect on Windows.
         \row
-            \li Application
-            \li Product with type "application" or "applicationbundle" on Mac.
-            \li
-            \li
-        \row
-            \li DynamicLibrary
-            \li Product with type "dynamiclibrary". Produces a DLL or shared object.
-            \li
-            \li
-        \row
-            \li StaticLibrary
-            \li Product with type "staticlibrary". Produces a static library.
-            \li
-            \li
+            \li moduleSearchPaths
+            \li list of strings
+            \li empty
+            \li The paths that are searched when looking for a module this product depends on.
+                In addition to what is given here, qbs will also look in the directory where
+                the qbs file defining this product is located, as well as in the paths
+                listed in the \c preferences.qbsPath setting.
     \endtable
 */
