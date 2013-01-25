@@ -1,0 +1,98 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \previouspage qbs-rule-item.html
+    \page qbs-transformer-item.html
+
+    \title Transformer Item
+
+    A \c Transformer takes one or more inputs and produces one or more output artifacts
+    from them. The following transformer creates one output file from one input file:
+    \code
+    Transformer {
+        inputs: "raw_input.txt"
+        Artifact {
+            fileName: "processed_input.txt"
+            fileTags: "processed_file"
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "Processing '" + input.fileName + "'";
+            cmd.highlight = "codegen";
+            cmd.sourceCode = function() {
+                var file = new TextFile(input.fileName);
+                var content = file.readAll();
+                content = content.replace(/\r\n/g, "\n");
+                file = new TextFile(output.fileName, TextFile.WriteOnly);
+                file.truncate();
+                file.write(content);
+                file.close();
+            }
+            return cmd;
+        }
+    }
+    \endcode
+    This example exhibits some interesting features of transformers:
+    \list
+        \li If there is only one input file, the property \c input is available to refer to it;
+           the \c inputs property is disabled.
+        \li The filenames of the output artifacts are available as \c outputs, unless there is
+           only one of them, in which case the same rule applies as for inputs.
+    \endlist
+
+    A \c Transformer is always attached to a \c Product, possibly indirectly via a \c Module.
+
+    \section1 Transformer properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li inputs
+        \li list of strings
+        \li empty list
+        \li The list of inputs to the transformer.
+    \row
+        \li prepare
+        \li list of Javascript commands
+        \li empty list
+        \li The commands that the transformer runs. These typically read from the input files and
+            write to the output files in some way.
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li If true, the transformer is enabled, otherwise it does nothing.
+    \endtable
+
+*/

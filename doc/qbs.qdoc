@@ -77,7 +77,9 @@
                \li  \l{FileTagger Item}
                \li  \l{Group Item}
                \li  \l{Product Item}
+               \li  \l{Project Item}
                \li  \l{Rule Item}
+               \li  \l{Transformer Item}
            \endlist
     \endlist
 */
@@ -784,7 +786,9 @@
         \li \l{FileTagger Item}
         \li \l{Group Item}
         \li \l{Product Item}
+        \li \l{Project Item}
         \li \l{Rule Item}
+        \li \l{Transformer Item}
     \endlist
 */
 

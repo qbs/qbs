@@ -51,10 +51,10 @@
     For some often-used types of products, qbs pre-defines special derived items that save
     users some typing. These are:
     \list
-        \o Application
-        \o CppApplication
-        \o DynamicLibrary
-        \o StaticLibrary
+        \li Application
+        \li CppApplication
+        \li DynamicLibrary
+        \li StaticLibrary
     \endlist
     Therefore, the above example could also be written like this:
     \code
