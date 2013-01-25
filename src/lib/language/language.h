@@ -68,6 +68,7 @@ public:
     QVariant qbsPropertyValue(const QString &key); // Convenience function.
     void setValue(const QVariantMap &value);
     QScriptValue toScriptValue(QScriptEngine *scriptEngine) const;
+    QString toJSLiteral() const;
 
 private:
     PropertyMap();

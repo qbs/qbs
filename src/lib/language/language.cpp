@@ -109,6 +109,30 @@ QScriptValue PropertyMap::toScriptValue(QScriptEngine *scriptEngine) const
     return result;
 }
 
+static QString toJSLiteral(const QVariantMap &vm, int level = 0)
+{
+    QString indent;
+    for (int i = 0; i < level; ++i)
+        indent += QLatin1String("    ");
+    QString str;
+    for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
+        if (it.value().type() == QVariant::Map) {
+            str += indent + it.key() + QLatin1String(": {\n");
+            str += toJSLiteral(it.value().toMap(), level + 1);
+            str += indent + QLatin1String("}\n");
+        } else {
+            str += indent + it.key() + QLatin1String(": ") + toJSLiteral(it.value())
+                    + QLatin1Char('\n');
+        }
+    }
+    return str;
+}
+
+QString PropertyMap::toJSLiteral() const
+{
+    return qbs::Internal::toJSLiteral(m_value);
+}
+
 void PropertyMap::load(PersistentPool &pool)
 {
     pool.stream() >> m_value;
