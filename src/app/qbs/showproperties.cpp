@@ -30,30 +30,9 @@
 #include "showproperties.h"
 
 #include <qbs.h>
+#include <tools/scripttools.h>
 
 namespace qbs {
-
-static QString variantDescription(const QVariant &val)
-{
-    if (!val.isValid()) {
-        return "undefined";
-    } else if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
-        QString res;
-        foreach (const QVariant &child, val.toList()) {
-            if (res.length()) res.append(", ");
-            res.append(variantDescription(child));
-        }
-        res.prepend("[");
-        res.append("]");
-        return res;
-    } else if (val.type() == QVariant::Bool) {
-        return val.toBool() ? "true" : "false";
-    } else if (val.canConvert(QVariant::String)) {
-        return QString("'%1'").arg(val.toString());
-    } else {
-        return QString("Unconvertible type %1").arg(val.typeName());
-    }
-}
 
 static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
 {
@@ -64,7 +43,7 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
         if (val.type() == QVariant::Map) {
             dumpMap(val.value<QVariantMap>(), prefix + key + ".");
         } else {
-            printf("%s%s: %s\n", qPrintable(prefix), qPrintable(key), qPrintable(variantDescription(val)));
+            printf("%s%s: %s\n", qPrintable(prefix), qPrintable(key), qPrintable(toJSLiteral(val)));
         }
     }
 }

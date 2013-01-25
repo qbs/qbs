@@ -124,5 +124,27 @@ QString toJSLiteral(const QStringList &strs)
     return js;
 }
 
+QString toJSLiteral(const QVariant &val)
+{
+    if (!val.isValid()) {
+        return "undefined";
+    } else if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
+        QString res;
+        foreach (const QVariant &child, val.toList()) {
+            if (res.length()) res.append(", ");
+            res.append(toJSLiteral(child));
+        }
+        res.prepend("[");
+        res.append("]");
+        return res;
+    } else if (val.type() == QVariant::Bool) {
+        return val.toBool() ? "true" : "false";
+    } else if (val.canConvert(QVariant::String)) {
+        return QLatin1Char('"') + val.toString() + QLatin1Char('"');
+    } else {
+        return QString("Unconvertible type %1").arg(val.typeName());
+    }
+}
+
 } // namespace Internal
 } // namespace qbs
