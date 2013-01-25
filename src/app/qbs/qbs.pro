@@ -12,7 +12,8 @@ SOURCES += main.cpp \
     showproperties.cpp \
     status.cpp \
     consoleprogressobserver.cpp \
-    commandlinefrontend.cpp
+    commandlinefrontend.cpp \
+    qbstool.cpp
 
 HEADERS += \
     ctrlchandler.h \
@@ -20,7 +21,8 @@ HEADERS += \
     showproperties.h \
     status.h \
     consoleprogressobserver.h \
-    commandlinefrontend.h
+    commandlinefrontend.h \
+    qbstool.h
 
 include(../../lib/use.pri)
 include(../../../qbs_version.pri)

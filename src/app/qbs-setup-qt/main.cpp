@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         }
         if (args.count() == 1 && (args.first() == QLatin1String("--help")
                                   || args.first() == QLatin1String("-h"))) {
-            qbsInfo() << DontPrintLogLevel
+            qbsInfo() << DontPrintLogLevel << LogOutputStdOut
                       << Tr::tr("This tool creates qbs profiles from Qt versions.");
             printUsage(appName);
             return EXIT_SUCCESS;

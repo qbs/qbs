@@ -48,7 +48,8 @@ int main(int argc, char *argv[])
     try {
         parser.parse(app.arguments().mid(1));
         if (parser.helpRequested()) {
-            qbsInfo() << DontPrintLogLevel << Tr::tr("This tool manages qbs settings.");
+            qbsInfo() << DontPrintLogLevel << LogOutputStdOut
+                      << Tr::tr("This tool manages qbs settings.");
             parser.printUsage();
             return EXIT_SUCCESS;
         }

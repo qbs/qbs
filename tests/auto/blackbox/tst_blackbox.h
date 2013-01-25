@@ -78,6 +78,7 @@ private slots:
     void invalidWildcards();
     void updateTimestamps();
     void installedApp();
+    void toolLookup();
 
 private:
     QByteArray m_qbsStderr;

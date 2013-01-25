@@ -27,42 +27,27 @@
 **
 ****************************************************************************/
 
-#include <language/scriptengine.h>
-#include <language/loader.h>
-#include <logging/consolelogger.h>
-#include <logging/translator.h>
+#include <QStringList>
 
-#include <QCoreApplication>
-#include <QByteArray>
-
-#include <iostream>
-
-using namespace qbs;
-
-int main(int argc, char *argv[])
+class QbsTool
 {
-    QCoreApplication app(argc, argv);
+public:
+    void runTool(const QString &toolName, const QStringList &arguments);
 
-    ConsoleLogger cl;
-    const QStringList args = app.arguments().mid(1);
-    if (args.count() == 1 && (args.first() == QLatin1String("--help")
-                              || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << Tr::tr("This tool dumps information about the QML types supported by qbs.\n"
-                            "It takes no command-line parameters.\n"
-                            "The output is intended to be processed by other tools and has "
-                            "little value for humans.");
-        return EXIT_SUCCESS;
-    }
-    if (!args.isEmpty()) {
-        qbsWarning() << Tr::tr("You supplied command-line parameters, "
-                               "but this tool does not use any.");
-    }
+    bool failedToStart() const { return m_failedToStart; }
+    bool failedToFinish() const { return m_failedToFinish; }
+    int exitCode() const { return m_exitCode; }
+    QString stdOut() const { return m_stdout; }
+    QString stdErr() const { return m_stderr; }
 
-    Internal::ScriptEngine engine;
-    QByteArray typeData = Internal::Loader(&engine).qmlTypeInfo();
+    static QStringList allToolNames();
+    static bool tryToRunTool(const QString &toolName, const QStringList &arguments,
+                             int *exitCode = 0);
 
-    std::cout << typeData.constData();
-
-    return 0;
-}
+private:
+    bool m_failedToStart;
+    bool m_failedToFinish;
+    int m_exitCode;
+    QString m_stdout;
+    QString m_stderr;
+};

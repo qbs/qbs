@@ -532,4 +532,9 @@ void TestBlackbox::installedApp()
     QVERIFY(!addedFile.exists());
 }
 
+void TestBlackbox::toolLookup()
+{
+    QCOMPARE(runQbs(QStringList("detect-toolchains") << "--help"), 0);
+}
+
 QTEST_MAIN(TestBlackbox)

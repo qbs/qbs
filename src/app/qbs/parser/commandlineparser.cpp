@@ -33,6 +33,7 @@
 #include "commandlineoption.h"
 #include "commandlineoptionpool.h"
 #include "commandpool.h"
+#include "../qbstool.h"
 
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -97,9 +98,16 @@ void CommandLineParser::printHelp() const
         stream << "qbs " QBS_VERSION "\n";
         stream << d->generalHelp();
     } else {
-        const Command * const commandToDescribe
-                = d->commandFromString(helpCommand->commandToDescribe());
-        stream << commandToDescribe->longDescription();
+        try {
+            const Command * const commandToDescribe
+                    = d->commandFromString(helpCommand->commandToDescribe());
+            stream << commandToDescribe->longDescription();
+        } catch (const Error &) {
+            if (!QbsTool::tryToRunTool(helpCommand->commandToDescribe(),
+                    QStringList(QLatin1String("--help")))) {
+                throw;
+            }
+        }
     }
 }
 
@@ -289,13 +297,32 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
 QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
 {
     QString help = Tr::tr("Usage: qbs [command] [command parameters]\n");
-    help += Tr::tr("The commands are:\n");
+    help += Tr::tr("Internal commands:\n");
+    const int rhsIndentation = 30;
     foreach (const Command * command, allCommands()) {
         help.append(QLatin1String("  ")).append(command->representation());
-        const QString indentation
-                = QString(20 - command->representation().count(), QLatin1Char(' '));
-        help.append(indentation).append(command->shortDescription()).append(QLatin1Char('\n'));
+        const QString whitespace
+                = QString(rhsIndentation - 2 - command->representation().count(), QLatin1Char(' '));
+        help.append(whitespace).append(command->shortDescription()).append(QLatin1Char('\n'));
     }
+
+    const QStringList &toolNames = QbsTool::allToolNames();
+    if (!toolNames.isEmpty()) {
+        help.append('\n').append(Tr::tr("Auxiliary commands:\n"));
+        foreach (const QString &toolName, toolNames) {
+            help.append(QLatin1String("  ")).append(toolName);
+            const QString whitespace = QString(rhsIndentation - 2 - toolName.count(),
+                                               QLatin1Char(' '));
+            QbsTool tool;
+            tool.runTool(toolName, QStringList(QLatin1String("--help")));
+            if (tool.exitCode() != 0)
+                continue;
+            const QString shortDescription
+                    = tool.stdOut().left(tool.stdOut().indexOf(QLatin1Char('\n')));
+            help.append(whitespace).append(shortDescription).append(QLatin1Char('\n'));
+        }
+    }
+
     return help;
 }
 

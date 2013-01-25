@@ -29,13 +29,12 @@
 
 #include "application.h"
 #include "commandlinefrontend.h"
+#include "qbstool.h"
 #include "parser/commandlineparser.h"
 
 #include <qbs.h>
 #include <logging/consolelogger.h>
-#include <tools/hostosinfo.h>
 
-#include <QProcess>
 #include <QTimer>
 
 using namespace qbs;
@@ -44,14 +43,11 @@ static bool tryToRunTool(const QStringList &arguments, int &exitCode)
 {
     if (arguments.isEmpty())
         return false;
-    qputenv("PATH", QCoreApplication::applicationDirPath().toLocal8Bit()
-            + HostOsInfo::pathListSeparator().toLatin1() + QByteArray(qgetenv("PATH")));
-    QStringList subProcessArgs = arguments;
-    const QString subProcess = subProcessArgs.takeFirst();
-    if (subProcess.startsWith(QLatin1Char('-')))
+    QStringList toolArgs = arguments;
+    const QString toolName = toolArgs.takeFirst();
+    if (toolName.startsWith(QLatin1Char('-')))
         return false;
-    exitCode = QProcess::execute(QLatin1String("qbs-") + subProcess, subProcessArgs);
-    return exitCode != -2;
+    return QbsTool::tryToRunTool(toolName, toolArgs, &exitCode);
 }
 
 int main(int argc, char *argv[])

@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 && (args.first() == QLatin1String("--help")
                               || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << DontPrintLogLevel
+        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
                   << Tr::tr("This tool tries to auto-detect known toolchains in your system.\n"
                             "It takes no command-line parameters.");
         return EXIT_SUCCESS;
