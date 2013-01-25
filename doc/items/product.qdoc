@@ -30,7 +30,7 @@
     \contentspage index.html
     \previouspage qbs-group-item.html
     \page qbs-product-item.html
-    \nextpage qbs-rule-item.html
+    \nextpage qbs-project-item.html
 
     \title Product Item
 
@@ -63,6 +63,8 @@
         files: "main.cpp"
     }
     \endcode
+    Any property \c prop attached to this item is available in sub-items as \c product.prop, as
+    well as in modules that are loaded from this product.
 
     \table
         \header
@@ -115,10 +117,9 @@
         \row
             \li moduleSearchPaths
             \li list of strings
-            \li empty
+            \li \c project.moduleSearchPaths
             \li The paths that are searched when looking for a module this product depends on.
-                In addition to what is given here, qbs will also look in the directory where
-                the qbs file defining this product is located, as well as in the paths
-                listed in the \c preferences.qbsPath setting.
+                For more information, see \l{Project Item}. Setting this
+                property here will overwrite the default value inherited from the project.
     \endtable
 */
