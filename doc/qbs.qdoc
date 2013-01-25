@@ -74,10 +74,10 @@
        \li  \l{Reference}
            \list
                \li  \l{Qbs Functions}
-               \li  \l{Rule Item}
-               \li  \l{Group Item}
                \li  \l{FileTagger Item}
+               \li  \l{Group Item}
                \li  \l{Product Item}
+               \li  \l{Rule Item}
            \endlist
     \endlist
 */
@@ -781,10 +781,10 @@
 
     \list
         \li \l{Qbs Functions}
-        \li \l{Rule Item}
-        \li \l{Group Item}
         \li \l{FileTagger Item}
+        \li \l{Group Item}
         \li \l{Product Item}
+        \li \l{Rule Item}
     \endlist
 */
 
