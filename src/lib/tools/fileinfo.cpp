@@ -208,6 +208,7 @@ FileInfo::FileInfo(const QString &fileName)
     static CompileTimeAssert<
         sizeof(FileInfo::InternalStatType) == sizeof(WIN32_FILE_ATTRIBUTE_DATA)
             > internal_type_has_wrong_size;
+    Q_UNUSED(internal_type_has_wrong_size);
     if (!GetFileAttributesEx(reinterpret_cast<const WCHAR*>(fileName.utf16()),
                              GetFileExInfoStandard, &m_stat))
     {

@@ -40,11 +40,12 @@ namespace Internal {
 
 template<bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
-static CompileTimeAssert<sizeof(FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
 
 FileTime::FileTime()
     : m_fileTime(0)
 {
+    static CompileTimeAssert<sizeof(FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
+    Q_UNUSED(internal_type_has_wrong_size);
 }
 
 bool FileTime::operator < (const FileTime &rhs) const
