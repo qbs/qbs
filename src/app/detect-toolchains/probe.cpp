@@ -205,7 +205,9 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     }
     process.waitForFinished(-1);
     QByteArray gccMachineName = process.readAll().trimmed();
-    if (gccMachineName != "mingw32" && gccMachineName != "mingw64") {
+    QStringList validMinGWMachines;
+    validMinGWMachines << "mingw32" << "mingw64" << "i686-w64-mingw32" << "x86_64-w64-mingw32";
+    if (!validMinGWMachines.contains(gccMachineName)) {
         qbsError("Detected gcc platform '%s' is not supported.", gccMachineName.data());
         return;
     }
