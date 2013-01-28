@@ -198,7 +198,9 @@ public:
     QList<SourceArtifactPtr> allFiles() const;
 
 private:
-    ResolvedGroup() {}
+    ResolvedGroup()
+        : enabled(true)
+    {}
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
