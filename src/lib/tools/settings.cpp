@@ -40,7 +40,7 @@ namespace qbs {
 using namespace Internal;
 
 Settings::Settings()
-    : m_settings(new QSettings(QSettings::UserScope, QLatin1String("QtProject"),
+    : m_settings(new QSettings(QSettings::IniFormat, QSettings::UserScope, QLatin1String("QtProject"),
                                QLatin1String("qbs")))
 {
     m_settings->setFallbacksEnabled(false);
