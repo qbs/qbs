@@ -30,7 +30,6 @@
 
 namespace qbs {
 
-// These are not inline because MSVC does not like it when source files have no content.
 GroupData::GroupData() { }
 
 bool operator==(const GroupData &lhs, const GroupData &rhs)
