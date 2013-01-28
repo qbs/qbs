@@ -84,12 +84,9 @@ private:
 class FileTagger : public PersistentObject
 {
 public:
-    typedef QSharedPointer<FileTagger> Ptr;
-    typedef QSharedPointer<const FileTagger> ConstPtr;
-
-    static Ptr create() { return Ptr(new FileTagger); }
-    static Ptr create(const QRegExp &artifactExpression, const QStringList &fileTags) {
-        return Ptr(new FileTagger(artifactExpression, fileTags));
+    static FileTaggerPtr create() { return FileTaggerPtr(new FileTagger); }
+    static FileTaggerPtr create(const QRegExp &artifactExpression, const QStringList &fileTags) {
+        return FileTaggerPtr(new FileTagger(artifactExpression, fileTags));
     }
 
     const QRegExp &artifactExpression() const { return m_artifactExpression; }
@@ -314,7 +311,7 @@ public:
     PropertyMapPtr properties;
     QSet<RulePtr> rules;
     QSet<ResolvedProductPtr> dependencies;
-    QSet<FileTagger::ConstPtr> fileTaggers;
+    QSet<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
     QList<GroupPtr> groups;

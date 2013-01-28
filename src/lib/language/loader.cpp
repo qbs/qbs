@@ -120,7 +120,7 @@ public:
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
                                                     ResolvedProductPtr rproduct, const ResolvedModuleConstPtr &module);
     RulePtr resolveRule(EvaluationObject *object, ResolvedModuleConstPtr module);
-    FileTagger::ConstPtr resolveFileTagger(EvaluationObject *evaluationObject);
+    FileTaggerConstPtr resolveFileTagger(EvaluationObject *evaluationObject);
     void buildModulesProperty(EvaluationObject *evaluationObject);
     void checkModuleDependencies(const Module::Ptr &module);
 
@@ -145,7 +145,7 @@ public:
                          const QString &projectFileName,
                          ProjectData *projectData,
                          QList<RulePtr> *globalRules,
-                         QList<FileTagger::ConstPtr> *globalFileTaggers,
+                         QList<FileTaggerConstPtr> *globalFileTaggers,
                          const QVariantMap &userProperties,
                          const ScopeChain::Ptr &scope,
                          const ResolvedModuleConstPtr &dummyModule);
@@ -155,7 +155,7 @@ public:
     void resolveProduct(const ResolvedProductPtr &product, const ResolvedProjectPtr &project,
                         ProductData &data, ProductMap &products,
                         const QList<RulePtr> &globalRules,
-                        const QList<FileTagger::ConstPtr> &globalFileTaggers,
+                        const QList<FileTaggerConstPtr> &globalFileTaggers,
                         const ResolvedModuleConstPtr &dummyModule);
     void resolveProductDependencies(const ResolvedProjectPtr &project, ProjectData &projectData,
                                     const ProductMap &resolvedProducts);
@@ -1501,7 +1501,7 @@ ResolvedProjectPtr Loader::LoaderPrivate::resolveProject(const QString &buildRoo
     ResolvedModulePtr dummyModule = ResolvedModule::create();
     dummyModule->jsImports = m_project->jsImports;
     QList<RulePtr> globalRules;
-    QList<FileTagger::ConstPtr> globalFileTaggers;
+    QList<FileTaggerConstPtr> globalFileTaggers;
 
     ProjectData projectData;
     resolveTopLevel(rproject,
@@ -1849,7 +1849,7 @@ RulePtr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedMod
     return rule;
 }
 
-FileTagger::ConstPtr Loader::LoaderPrivate::resolveFileTagger(EvaluationObject *evaluationObject)
+FileTaggerConstPtr Loader::LoaderPrivate::resolveFileTagger(EvaluationObject *evaluationObject)
 {
     const Scope::Ptr scope = evaluationObject->scope;
     return FileTagger::create(QRegExp(scope->stringValue("pattern")),
@@ -2301,7 +2301,7 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProjectPtr &rproject,
                              const QString &projectFileName,
                              ProjectData *projectData,
                              QList<RulePtr> *globalRules,
-                             QList<FileTagger::ConstPtr> *globalFileTaggers,
+                             QList<FileTaggerConstPtr> *globalFileTaggers,
                              const QVariantMap &userProperties,
                              const ScopeChain::Ptr &scope,
                              const ResolvedModuleConstPtr &dummyModule)
@@ -2518,7 +2518,7 @@ void Loader::LoaderPrivate::insertIntoProductMap(const ResolvedProductPtr &rprod
 
 void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
         const ResolvedProjectPtr &project, ProductData &data, ProductMap &products,
-        const QList<RulePtr> &globalRules, const QList<FileTagger::ConstPtr> &globalFileTaggers,
+        const QList<RulePtr> &globalRules, const QList<FileTaggerConstPtr> &globalFileTaggers,
         const ResolvedModuleConstPtr &dummyModule)
 {
     Scope *productProps = data.product->scope.data();
@@ -2537,7 +2537,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
     rproduct->destinationDirectory = productProps->stringValue("destination");
     foreach (const RulePtr &rule, globalRules)
         rproduct->rules.insert(rule);
-    foreach (const FileTagger::ConstPtr &fileTagger, globalFileTaggers)
+    foreach (const FileTaggerConstPtr &fileTagger, globalFileTaggers)
         rproduct->fileTaggers.insert(fileTagger);
     insertIntoProductMap(rproduct, products);
 

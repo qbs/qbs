@@ -399,7 +399,7 @@ QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     QSet<QString> result;
-    foreach (FileTagger::ConstPtr tagger, fileTaggers) {
+    foreach (FileTaggerConstPtr tagger, fileTaggers) {
         if (FileInfo::globMatches(tagger->artifactExpression(), fileName)) {
             result.unite(tagger->fileTags().toSet());
         }

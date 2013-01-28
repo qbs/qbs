@@ -38,6 +38,10 @@ class PropertyMap;
 typedef QSharedPointer<PropertyMap> PropertyMapPtr;
 typedef QSharedPointer<const PropertyMap> PropertyMapConstPtr;
 
+class FileTagger;
+typedef QSharedPointer<FileTagger> FileTaggerPtr;
+typedef QSharedPointer<const FileTagger> FileTaggerConstPtr;
+
 class ResolvedProduct;
 typedef QSharedPointer<ResolvedProduct> ResolvedProductPtr;
 typedef QSharedPointer<const ResolvedProduct> ResolvedProductConstPtr;
