@@ -42,12 +42,14 @@ class AbstractJob;
 class ConsoleProgressObserver;
 class Error;
 class ProcessResult;
+class Settings;
 
 class CommandLineFrontend : public QObject
 {
     Q_OBJECT
 public:
-    explicit CommandLineFrontend(const CommandLineParser &parser, QObject *parent = 0);
+    explicit CommandLineFrontend(const CommandLineParser &parser, Settings *settings,
+                                 QObject *parent = 0);
 
     void cancel();
 
@@ -79,6 +81,7 @@ private:
     void checkForExactlyOneProduct();
 
     const CommandLineParser &m_parser;
+    Settings * const m_settings;
     QList<AbstractJob *> m_resolveJobs;
     QList<AbstractJob *> m_buildJobs;
     QList<Project> m_projects;

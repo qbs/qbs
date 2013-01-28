@@ -31,6 +31,7 @@
 #include "configcommand.h"
 
 #include <lib/tools/error.h>
+#include <lib/tools/settings.h>
 #include <logging/consolelogger.h>
 
 #include <QDir>
@@ -41,7 +42,7 @@
 
 using namespace qbs;
 
-ConfigCommandExecutor::ConfigCommandExecutor()
+ConfigCommandExecutor::ConfigCommandExecutor(Settings *settings) : m_settings(settings)
 {
 }
 
@@ -52,14 +53,14 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         printSettings(command);
         break;
     case ConfigCommand::CfgGet:
-        puts(qPrintable(m_settings.value(command.varNames.first()).toString()));
+        puts(qPrintable(m_settings->value(command.varNames.first()).toString()));
         break;
     case ConfigCommand::CfgSet:
-        m_settings.setValue(command.varNames.first(), command.varValue);
+        m_settings->setValue(command.varNames.first(), command.varValue);
         break;
     case ConfigCommand::CfgUnset:
         foreach (const QString &varName, command.varNames)
-            m_settings.remove(varName);
+            m_settings->remove(varName);
         break;
     case ConfigCommand::CfgExport:
         exportSettings(command.fileName);
@@ -81,14 +82,14 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
 void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 {
     if (command.varNames.isEmpty()) {
-        foreach (const QString &key, m_settings.allKeys())
+        foreach (const QString &key, m_settings->allKeys())
             printOneSetting(key);
     } else {
         foreach (const QString &parentKey, command.varNames) {
-            if (m_settings.value(parentKey).isValid()) { // Key is a leaf.
+            if (m_settings->value(parentKey).isValid()) { // Key is a leaf.
                 printOneSetting(parentKey);
             } else {                                     // Key is a node.
-                foreach (const QString &key, m_settings.allKeysWithPrefix(parentKey))
+                foreach (const QString &key, m_settings->allKeysWithPrefix(parentKey))
                     printOneSetting(parentKey + QLatin1Char('.') + key);
             }
         }
@@ -97,7 +98,7 @@ void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 
 void ConfigCommandExecutor::printOneSetting(const QString &key)
 {
-    printf("%s: %s\n", qPrintable(key), qPrintable(m_settings.value(key).toString()));
+    printf("%s: %s\n", qPrintable(key), qPrintable(m_settings->value(key).toString()));
  }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
@@ -109,8 +110,8 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings.allKeys())
-        stream << key << ": " << m_settings.value(key).toString() << endl;
+    foreach (const QString &key, m_settings->allKeys())
+        stream << key << ": " << m_settings->value(key).toString() << endl;
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)
@@ -121,8 +122,8 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     // Remove all current settings
-    foreach (const QString &key, m_settings.allKeys())
-        m_settings.remove(key);
+    foreach (const QString &key, m_settings->allKeys())
+        m_settings->remove(key);
 
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
@@ -132,7 +133,7 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
         if (colon >= 0 && !line.startsWith("#")) {
             const QString key = line.left(colon).trimmed();
             const QString value = line.mid(colon + 1).trimmed();
-            m_settings.setValue(key, value);
+            m_settings->setValue(key, value);
         }
     }
 }

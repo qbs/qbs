@@ -42,22 +42,10 @@ using namespace Internal;
  * \brief The \c Preferences class gives access to all general qbs preferences.
  */
 
-Preferences::Preferences(Settings *settings)
+Preferences::Preferences(Settings *settings) : m_settings(settings)
 {
-    if (settings) {
-        m_settings = settings;
-        m_deleteSettings = false;
-    } else {
-        m_settings = new Settings;
-        m_deleteSettings = true;
-    }
 }
 
-Preferences::~Preferences()
-{
-    if (m_deleteSettings)
-        delete m_settings;
-}
 
 /*!
  * \brief Returns true <=> colored output should be used for printing messages.
@@ -74,6 +62,15 @@ bool Preferences::useColoredOutput() const
 int Preferences::jobs() const
 {
     return getPreference(QLatin1String("jobs"), QThread::idealThreadCount()).toInt();
+}
+
+/*!
+ * \brief Returns the shell to use for the "qbs shell" command.
+ * This is only relevant for command-line frontends.
+ */
+QString Preferences::shell() const
+{
+    return getPreference(QLatin1String("shell")).toString();
 }
 
 /*!

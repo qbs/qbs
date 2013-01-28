@@ -35,6 +35,7 @@
 #include <QVariantMap>
 
 namespace qbs {
+class Settings;
 namespace Internal {
 class ProgressObserver;
 class ScriptEngine;
@@ -42,7 +43,7 @@ class ScriptEngine;
 class Loader
 {
 public:
-    Loader(ScriptEngine *engine);
+    Loader(ScriptEngine *engine, Settings *settings);
     ~Loader();
 
     void setProgressObserver(ProgressObserver *observer);

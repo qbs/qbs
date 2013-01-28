@@ -9,6 +9,6 @@ DESTDIR = ../../../bin
 TEMPLATE = app
 
 SOURCES += main.cpp ../shared/specialplatformssetup.cpp
-HEADERS += ../shared/specialplatformssetup.h
+HEADERS += ../shared/specialplatformssetup.h ../shared/qbssettings.h
 
 include(../../lib/use.pri)

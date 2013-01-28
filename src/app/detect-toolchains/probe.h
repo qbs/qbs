@@ -29,6 +29,8 @@
 #ifndef QBS_PROBE_H
 #define QBS_PROBE_H
 
-int probe();
+namespace qbs { class Settings; }
+
+int probe(qbs::Settings *settings);
 
 #endif // Header guard

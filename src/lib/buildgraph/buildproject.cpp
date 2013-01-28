@@ -444,7 +444,7 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
 
 BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFilePath,
         const RulesEvaluationContextPtr &evalContext, const QString &buildRoot, const QVariantMap &cfg,
-        const QStringList &loaderSearchPaths)
+        const QStringList &loaderSearchPaths, Settings *settings)
 {
     m_result = LoadResult();
     m_evalContext = evalContext;
@@ -504,7 +504,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
     }
 
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
-        Loader ldr(evalContext->engine());
+        Loader ldr(evalContext->engine(), settings);
         ldr.setSearchPaths(loaderSearchPaths);
         const ResolvedProjectPtr changedProject
                 = ldr.loadProject(project->resolvedProject()->location.fileName, buildRoot, cfg);

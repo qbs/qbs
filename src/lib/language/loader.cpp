@@ -77,7 +77,7 @@ namespace Internal {
 class Loader::LoaderPrivate
 {
 public:
-    LoaderPrivate(ScriptEngine *engine);
+    LoaderPrivate(ScriptEngine *engine, Settings *settings);
 
     void loadProject(const QString &fileName);
     ResolvedProjectPtr resolveProject(const QString &buildRoot,
@@ -172,13 +172,13 @@ public:
     QStringList m_searchPaths;
     QStringList m_moduleSearchPaths;
     ScriptEngine * const m_engine;
+    Settings * const m_settings;
     ScopesCachePtr m_scopesWithEvaluatedProperties;
     QScriptValue m_jsFunction_getHostOS;
     QScriptValue m_jsFunction_getHostDefaultArchitecture;
     QScriptValue m_jsFunction_getenv;
     QScriptValue m_jsFunction_configurationValue;
     QScriptValue m_probeScriptScope;
-    Settings m_settings;
     ProjectFile::Ptr m_project;
     QHash<QString, ProjectFile::Ptr> m_parsedFiles;
     QHash<QString, PropertyDeclaration> m_dependsPropertyDeclarations;
@@ -249,7 +249,7 @@ static const uint hashName_Probe = qHash(name_Probe);
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
-Loader::Loader(ScriptEngine *engine) : d(new LoaderPrivate(engine))
+Loader::Loader(ScriptEngine *engine, Settings *settings) : d(new LoaderPrivate(engine, settings))
 {
 }
 
@@ -356,8 +356,11 @@ QByteArray Loader::qmlTypeInfo()
     return result;
 }
 
-Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine)
-    : m_progressObserver(0), m_engine(engine), m_scopesWithEvaluatedProperties(new ScopesCache)
+Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine, Settings *settings)
+    : m_progressObserver(0)
+    , m_engine(engine)
+    , m_settings(settings)
+    , m_scopesWithEvaluatedProperties(new ScopesCache)
 {
     QVariant v;
     v.setValue(static_cast<void*>(this));
@@ -2275,7 +2278,7 @@ QScriptValue Loader::LoaderPrivate::js_configurationValue(QScriptContext *contex
                                    QString("configurationValue expects 1 or 2 arguments"));
     }
 
-    const Settings &settings = get(engine)->m_settings;
+    const Settings &settings = *get(engine)->m_settings;
     const bool defaultValueProvided = context->argumentCount() > 1;
     const QString key = context->argument(0).toString();
     QString defaultValue;

@@ -36,7 +36,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
-#include <tools/settings.h>
+#include <tools/preferences.h>
 
 #include <QDir>
 #include <QProcess>
@@ -55,14 +55,16 @@ public:
     ScriptEngine engine;
     ResolvedProductPtr resolvedProduct;
     QProcessEnvironment environment;
+    Settings *settings;
 };
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
-                               const QProcessEnvironment &environment)
+                               const QProcessEnvironment &environment, Settings *settings)
     : d(new RunEnvironmentPrivate)
 {
     d->resolvedProduct = product;
     d->environment = environment;
+    d->settings = settings;
 }
 
 RunEnvironment::~RunEnvironment()
@@ -91,7 +93,7 @@ int RunEnvironment::runShell()
         const QString prompt = environment.value(QLatin1String("PROMPT"));
         command += QLatin1String(" /k prompt [qbs] ") + prompt;
     } else {
-        command = Settings().value(QLatin1String("shell")).toString();
+        command = Preferences(d->settings).shell();
         if (command.isEmpty())
             command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
 

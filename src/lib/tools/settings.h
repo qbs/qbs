@@ -42,7 +42,7 @@ namespace qbs {
 class Settings
 {
 public:
-    Settings();
+    Settings(const QString &organization, const QString &application);
     ~Settings();
 
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;

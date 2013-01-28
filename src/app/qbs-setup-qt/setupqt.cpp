@@ -204,12 +204,13 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     return qtEnvironment;
 }
 
-void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment &qtEnviroment)
+void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment &qtEnviroment,
+                                Settings *settings)
 {
     QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.").arg(qtVersionName);
     printf("%s\n", qPrintable(msg));
 
-    Profile profile(qtVersionName);
+    Profile profile(qtVersionName, settings);
     const QString settingsTemplate(QLatin1String("qt.core.%1"));
     profile.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
     profile.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libraryPath);

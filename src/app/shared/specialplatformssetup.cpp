@@ -42,7 +42,8 @@
 
 namespace qbs {
 
-SpecialPlatformsSetup::SpecialPlatformsSetup() : m_stdout(stdout), m_helpRequested(false) {}
+SpecialPlatformsSetup::SpecialPlatformsSetup(Settings *settings)
+    : m_stdout(stdout), m_helpRequested(false), m_settings(settings) {}
 SpecialPlatformsSetup::~SpecialPlatformsSetup() {}
 
 void SpecialPlatformsSetup::setup()
@@ -143,7 +144,7 @@ void SpecialPlatformsSetup::registerProfile(const PlatformInfo &platformInfo)
 {
     m_stdout << tr("Setting up profile '%1'...").arg(platformInfo.name) << endl;
 
-    Profile profile(platformInfo.name);
+    Profile profile(platformInfo.name, m_settings);
     profile.removeProfile();
     profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
     profile.setValue(QLatin1String("qbs.endianness"), QLatin1String("little-endian"));

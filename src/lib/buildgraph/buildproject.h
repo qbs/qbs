@@ -43,6 +43,7 @@
 #include <QVariantMap>
 
 namespace qbs {
+class Settings;
 namespace Internal {
 class BuildProjectLoader;
 class BuildProjectResolver;
@@ -133,7 +134,7 @@ public:
 
     LoadResult load(const QString &projectFilePath, const RulesEvaluationContextPtr &evalContext,
                     const QString &buildRoot, const QVariantMap &cfg,
-                    const QStringList &loaderSearchPaths);
+                    const QStringList &loaderSearchPaths, qbs::Settings *settings);
 
 private:
     void onProductRemoved(const BuildProductPtr &product);

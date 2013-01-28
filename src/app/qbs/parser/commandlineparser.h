@@ -37,6 +37,7 @@
 namespace qbs {
 class BuildOptions;
 class InstallOptions;
+class Settings;
 
 class CommandLineParser
 {
@@ -45,7 +46,7 @@ public:
     CommandLineParser();
     ~CommandLineParser();
 
-    bool parseCommandLine(const QStringList &args);
+    bool parseCommandLine(const QStringList &args, Settings *settings);
     void printHelp() const;
 
     CommandType command() const;

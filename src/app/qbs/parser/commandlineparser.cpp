@@ -42,7 +42,7 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
-#include <tools/settings.h>
+#include <tools/preferences.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -71,6 +71,7 @@ public:
     QString propertyName(const QString &aCommandLineName) const;
 
     QStringList commandLine;
+    Settings *settings;
     Command *command;
     QString projectFilePath;
     BuildOptions buildOptions;
@@ -219,11 +220,12 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     return buildConfigs;
 }
 
-bool CommandLineParser::parseCommandLine(const QStringList &args)
+bool CommandLineParser::parseCommandLine(const QStringList &args, Settings *settings)
 {
     delete d;
     d = new CommandLineParserPrivate;
     d->commandLine = args;
+    d->settings = settings;
     try {
         d->doParse();
         return true;
@@ -389,8 +391,8 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     }
     buildOptions.keepGoing = optionPool.keepGoingOption()->enabled();
     const JobsOption * jobsOption = optionPool.jobsOption();
-    if (jobsOption->jobCount() != 0)
-        buildOptions.maxJobCount = jobsOption->jobCount();
+    buildOptions.maxJobCount = jobsOption->jobCount() > 0
+            ? jobsOption->jobCount() : Preferences(settings).jobs();
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupProgress()

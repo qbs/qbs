@@ -103,8 +103,8 @@ void InternalJob::storeBuildGraph(const BuildProject *buildProject)
     }
 }
 
-InternalSetupProjectJob::InternalSetupProjectJob(QObject *parent)
-    : InternalJob(parent), m_running(false)
+InternalSetupProjectJob::InternalSetupProjectJob(Settings *settings, QObject *parent)
+    : InternalJob(parent), m_running(false), m_settings(settings)
 {
 }
 
@@ -158,9 +158,9 @@ void InternalSetupProjectJob::execute()
 {
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext);
     evalContext->setObserver(observer());
-    const QStringList searchPaths = Preferences().searchPaths();
+    const QStringList searchPaths = Preferences(m_settings).searchPaths();
     const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
-            evalContext, m_buildRoot, m_buildConfig, searchPaths);
+            evalContext, m_buildRoot, m_buildConfig, searchPaths, m_settings);
 
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
@@ -171,7 +171,7 @@ void InternalSetupProjectJob::execute()
         if (loadResult.changedResolvedProject) {
             rProject = loadResult.changedResolvedProject;
         } else {
-            Loader loader(evalContext->engine());
+            Loader loader(evalContext->engine(), m_settings);
             loader.setSearchPaths(searchPaths);
             loader.setProgressObserver(observer());
             rProject = loader.loadProject(m_projectFilePath, m_buildRoot, m_buildConfig);

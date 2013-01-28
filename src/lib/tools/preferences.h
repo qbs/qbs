@@ -38,11 +38,11 @@ class Settings;
 class Preferences
 {
 public:
-    explicit Preferences(Settings *settings = 0);
-    ~Preferences();
+    explicit Preferences(Settings *settings);
 
     bool useColoredOutput() const;
     int jobs() const;
+    QString shell() const;
     QStringList searchPaths() const;
     QStringList pluginPaths() const;
 

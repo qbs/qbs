@@ -34,6 +34,7 @@
 #include <QCoreApplication>
 
 namespace qbs {
+class Settings;
 
 class QtEnviroment {
 public:
@@ -61,7 +62,8 @@ public:
     static bool isQMakePathValid(const QString &qmakePath);
     static QList<QtEnviroment> fetchEnviroments();
     static QtEnviroment fetchEnviroment(const QString &qmakePath);
-    static void saveToQbsSettings(const QString &qtVersionName, const QtEnviroment & qtEnviroment);
+    static void saveToQbsSettings(const QString &qtVersionName, const QtEnviroment & qtEnviroment,
+                                  Settings *settings);
     static bool checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion, const QList<QtEnviroment> &qtEnviroments);
 };
 

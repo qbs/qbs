@@ -30,6 +30,7 @@
 #ifndef TST_LANGUAGE_H
 #define TST_LANGUAGE_H
 
+#include <app/shared/qbssettings.h>
 #include <language/forward_decls.h>
 #include <language/loader.h>
 #include <logging/consolelogger.h>
@@ -46,6 +47,7 @@ public:
     ~TestLanguage();
 
 private:
+    SettingsPtr m_settings;
     Loader *loader;
     ResolvedProjectPtr project;
     QVariantMap buildConfig;

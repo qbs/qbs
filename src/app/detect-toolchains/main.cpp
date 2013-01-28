@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "probe.h"
+#include "../shared/qbssettings.h"
 
 #include <logging/consolelogger.h>
 #include <logging/translator.h>
@@ -44,7 +45,8 @@ int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
 
-    ConsoleLogger cl;
+    SettingsPtr settings = qbsSettings();
+    ConsoleLogger cl(settings.data());
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 && (args.first() == QLatin1String("--help")
                               || args.first() == QLatin1String("-h"))) {
@@ -60,7 +62,7 @@ int main(int argc, char **argv)
     }
 
     try {
-        probe();
+        probe(settings.data());
         return EXIT_SUCCESS;
     } catch (const Error &error) {
         qbsError() << Tr::tr("Probing for toolchains failed: %1").arg(error.toString());

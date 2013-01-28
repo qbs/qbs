@@ -28,8 +28,6 @@
 ****************************************************************************/
 #include "buildoptions.h"
 
-#include <tools/preferences.h>
-
 namespace qbs {
 
 /*!
@@ -44,7 +42,7 @@ namespace qbs {
 BuildOptions::BuildOptions()
     : dryRun(false)
     , keepGoing(false)
-    , maxJobCount(Preferences().jobs())
+    , maxJobCount(0)
 {
 }
 

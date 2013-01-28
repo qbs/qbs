@@ -52,21 +52,8 @@ namespace qbs {
 /*!
  * \brief Creates an object giving access to the settings for profile \c name.
  */
-Profile::Profile(const QString &name, Settings *settings) : m_name(name)
+Profile::Profile(const QString &name, Settings *settings) : m_name(name), m_settings(settings)
 {
-    if (settings) {
-        m_settings = settings;
-        m_deleteSettings = false;
-    } else {
-        m_settings = new Settings;
-        m_deleteSettings = true;
-    }
-}
-
-Profile::~Profile()
-{
-    if (m_deleteSettings)
-        delete m_settings;
 }
 
 /*!

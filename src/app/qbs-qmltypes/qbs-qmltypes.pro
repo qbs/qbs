@@ -11,6 +11,6 @@ TEMPLATE = app
 SOURCES += \
     main.cpp \
 
-HEADERS += \
+HEADERS += ../shared/qbssettings.h
 
 include(../../lib/use.pri)

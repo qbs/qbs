@@ -26,6 +26,7 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "../shared/qbssettings.h"
 
 #include <language/scriptengine.h>
 #include <language/loader.h>
@@ -43,7 +44,8 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    ConsoleLogger cl;
+    SettingsPtr settings = qbsSettings();
+    ConsoleLogger cl(settings.data());
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 && (args.first() == QLatin1String("--help")
                               || args.first() == QLatin1String("-h"))) {
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
     }
 
     Internal::ScriptEngine engine;
-    QByteArray typeData = Internal::Loader(&engine).qmlTypeInfo();
+    QByteArray typeData = Internal::Loader(&engine, settings.data()).qmlTypeInfo();
 
     std::cout << typeData.constData();
 

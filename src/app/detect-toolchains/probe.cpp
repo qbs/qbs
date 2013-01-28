@@ -222,25 +222,24 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     profiles << profile;
 }
 
-int probe()
+int probe(Settings *settings)
 {
     QList<Profile> profiles;
-    Settings settings;
     if (HostOsInfo::isWindowsHost()) {
-        msvcProbe(&settings, profiles);
-        mingwProbe(&settings, profiles);
+        msvcProbe(settings, profiles);
+        mingwProbe(settings, profiles);
     } else {
-        specific_probe(&settings, profiles, QLatin1String("gcc"));
-        specific_probe(&settings, profiles, QLatin1String("clang"));
+        specific_probe(settings, profiles, QLatin1String("gcc"));
+        specific_probe(settings, profiles, QLatin1String("clang"));
     }
 
     if (profiles.isEmpty()) {
         qbsWarning() << Tr::tr("Could not detect any toolchains. No profile created.");
-    } else if (profiles.count() == 1 && settings.defaultProfile().isEmpty()) {
+    } else if (profiles.count() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.first().name();
         qbsInfo() << DontPrintLogLevel << Tr::tr("Making profile '%1' the default.")
                      .arg(profileName);
-        settings.setValue(QLatin1String("defaultProfile"), profileName);
+        settings->setValue(QLatin1String("defaultProfile"), profileName);
     }
     return 0;
 }

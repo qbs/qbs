@@ -16,4 +16,5 @@ include(../../lib/use.pri)
 HEADERS += \
     configcommand.h \
     configcommandexecutor.h \
-    configcommandlineparser.h
+    configcommandlineparser.h \
+    ../shared/qbssettings.h

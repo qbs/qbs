@@ -39,8 +39,7 @@ class Settings;
 class Profile
 {
 public:
-    explicit Profile(const QString &name, Settings *settings = 0);
-    ~Profile();
+    explicit Profile(const QString &name, Settings *settings);
 
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
     void setValue(const QString &key, const QVariant &value);

@@ -29,6 +29,7 @@
 
 #include "configcommandlineparser.h"
 #include "configcommandexecutor.h"
+#include "../shared/qbssettings.h"
 
 #include <logging/consolelogger.h>
 #include <logging/translator.h>
@@ -43,8 +44,9 @@ using namespace qbs;
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+    SettingsPtr settings = qbsSettings();
     ConfigCommandLineParser parser;
-    ConsoleLogger cl;
+    ConsoleLogger cl(settings.data());
     try {
         parser.parse(app.arguments().mid(1));
         if (parser.helpRequested()) {
@@ -53,7 +55,7 @@ int main(int argc, char *argv[])
             parser.printUsage();
             return EXIT_SUCCESS;
         }
-        ConfigCommandExecutor().execute(parser.command());
+        ConfigCommandExecutor(settings.data()).execute(parser.command());
     } catch (const Error &e) {
         qbsError() << e.toString();
         parser.printUsage();

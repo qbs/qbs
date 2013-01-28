@@ -35,6 +35,7 @@
 QT_FORWARD_DECLARE_CLASS(QProcessEnvironment)
 
 namespace qbs {
+class Settings;
 
 class SpecialPlatformsSetup
 {
@@ -65,7 +66,7 @@ public:
         QHash<QString, QString> environment;
     };
 
-    SpecialPlatformsSetup();
+    SpecialPlatformsSetup(Settings *settings);
     virtual ~SpecialPlatformsSetup();
     void setup();
 
@@ -92,6 +93,7 @@ private:
     QString m_baseDir;
     QTextStream m_stdout;
     bool m_helpRequested;
+    Settings *m_settings;
 };
 
 } // namespace qbs

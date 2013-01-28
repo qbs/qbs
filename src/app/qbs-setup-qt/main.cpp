@@ -26,6 +26,9 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "setupqt.h"
+
+#include "../shared/qbssettings.h"
 
 #include <logging/consolelogger.h>
 #include <logging/translator.h>
@@ -34,8 +37,6 @@
 #include <QFileInfo>
 #include <QtDebug>
 #include <QStringList>
-
-#include "setupqt.h"
 
 using namespace qbs;
 
@@ -55,7 +56,8 @@ static void printUsage(const QString &appName)
 int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
-    ConsoleLogger cl;
+    SettingsPtr settings = qbsSettings();
+    ConsoleLogger cl(settings.data());
 
     QStringList args = application.arguments();
     const QString appName = QFileInfo(args.takeFirst()).fileName();
@@ -82,7 +84,7 @@ int main(int argc, char *argv[])
                     if (!prefixPathParts.isEmpty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
                 }
-                SetupQt::saveToQbsSettings(profileName, qtEnvironment);
+                SetupQt::saveToQbsSettings(profileName, qtEnvironment, settings.data());
             }
             return EXIT_SUCCESS;
         }
@@ -95,7 +97,7 @@ int main(int argc, char *argv[])
             QtEnviroment qtEnvironment = SetupQt::fetchEnviroment(qmakePath);
             QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
             profileName.replace(".", "-");
-            SetupQt::saveToQbsSettings(profileName , qtEnvironment);
+            SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
             return EXIT_SUCCESS;
         }
         if (args.count() == 2) {
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
             QtEnviroment qtEnvironment = SetupQt::fetchEnviroment(qmakePath);
             QString profileName = args.at(1);
             profileName.replace(".", "-");
-            SetupQt::saveToQbsSettings(profileName , qtEnvironment);
+            SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
             return EXIT_SUCCESS;
         }
         printUsage(appName);

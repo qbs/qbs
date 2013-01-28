@@ -39,6 +39,7 @@ class QProcessEnvironment;
 QT_END_NAMESPACE
 
 namespace qbs {
+class Settings;
 
 namespace Internal {
 class ResolvedProduct;
@@ -56,7 +57,7 @@ public:
 
 private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
-                   const QProcessEnvironment &environment);
+                   const QProcessEnvironment &environment, Settings *settings);
 
     class RunEnvironmentPrivate;
     RunEnvironmentPrivate * const d;

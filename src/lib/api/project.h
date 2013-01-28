@@ -49,6 +49,7 @@ class InstallOptions;
 class ProductData;
 class ProjectData;
 class RunEnvironment;
+class Settings;
 class SetupProjectJob;
 
 namespace Internal {
@@ -62,8 +63,10 @@ class Project
     friend uint qHash(const Project &p);
 public:
     static SetupProjectJob *setupProject(const QString &projectFilePath,
-            const QVariantMap &buildConfig, const QString &buildRoot, QObject *jobOwner);
-    static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig);
+            const QVariantMap &buildConfig, const QString &buildRoot, Settings *settings,
+            QObject *jobOwner);
+    static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig,
+                                                Settings *settings);
 
     Project(const Project &other);
     Project &operator=(const Project &other);
@@ -73,7 +76,7 @@ public:
     QString targetExecutable(const ProductData &product,
                              const QString &installRoot = QString()) const;
     RunEnvironment getRunEnvironment(const ProductData &product,
-                                     const QProcessEnvironment &environment) const;
+            const QProcessEnvironment &environment, Settings *settings) const;
 
     BuildJob *buildAllProducts(const BuildOptions &options, const QProcessEnvironment &env,
                                QObject *jobOwner = 0) const;

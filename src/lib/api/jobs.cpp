@@ -170,7 +170,8 @@ void AbstractJob::handleFinished()
  * \sa AbstractJob::taskStarted()
  */
 
-SetupProjectJob::SetupProjectJob(QObject *parent) : AbstractJob(new InternalSetupProjectJob, parent)
+SetupProjectJob::SetupProjectJob(Settings *settings, QObject *parent)
+    : AbstractJob(new InternalSetupProjectJob(settings), parent)
 {
 }
 

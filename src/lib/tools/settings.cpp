@@ -46,19 +46,10 @@ static QSettings::Format format()
 
 using namespace Internal;
 
-Settings::Settings()
-    : m_settings(new QSettings(format(), QSettings::UserScope, QLatin1String("QtProject"),
-                               QLatin1String("qbs")))
+Settings::Settings(const QString &organization, const QString &application)
+    : m_settings(new QSettings(format(), QSettings::UserScope, organization, application))
 {
     m_settings->setFallbacksEnabled(false);
-
-    // Fetch data from old Nokia settings, if necessary. TODO: Remove in 0.4.
-    if (m_settings->allKeys().isEmpty()) {
-        QSettings oldSettings(QSettings::UserScope, QLatin1String("Nokia"), QLatin1String("qbs"));
-        oldSettings.setFallbacksEnabled(false);
-        foreach (const QString &key, oldSettings.allKeys())
-            m_settings->setValue(key, oldSettings.value(key));
-    }
 }
 
 Settings::~Settings()

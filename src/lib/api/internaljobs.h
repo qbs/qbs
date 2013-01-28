@@ -43,6 +43,7 @@
 
 namespace qbs {
 class ProcessResult;
+class Settings;
 
 namespace Internal {
 class Executor;
@@ -79,7 +80,7 @@ class InternalSetupProjectJob : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalSetupProjectJob(QObject *parent = 0);
+    InternalSetupProjectJob(Settings *settings, QObject *parent = 0);
     ~InternalSetupProjectJob();
 
     void resolve(const QString &projectFilePath, const QString &buildRoot,
@@ -103,6 +104,7 @@ private:
     QString m_buildRoot;
     QVariantMap m_buildConfig;
     BuildProjectPtr m_buildProject;
+    Settings * const m_settings;
 };
 
 

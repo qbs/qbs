@@ -43,8 +43,9 @@
 
 namespace qbs {
 
-CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, QObject *parent)
-    : QObject(parent), m_parser(parser), m_observer(0), m_canceled(false)
+CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settings *settings,
+                                         QObject *parent)
+    : QObject(parent), m_parser(parser), m_settings(settings), m_observer(0), m_canceled(false)
 {
 }
 
@@ -89,7 +90,7 @@ void CommandLineFrontend::start()
             m_observer = new ConsoleProgressObserver;
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             SetupProjectJob * const job = Project::setupProject(m_parser.projectFilePath(),
-                                                                buildConfig, QDir::currentPath(), this);
+                    buildConfig, QDir::currentPath(), m_settings, this);
             connectJob(job);
             m_resolveJobs << job;
         }
@@ -335,7 +336,7 @@ int CommandLineFrontend::runShell()
     const QList<ProductData> &products = productMap.begin().value();
     Q_ASSERT(products.count() == 1);
     RunEnvironment runEnvironment = project.getRunEnvironment(products.first(),
-            QProcessEnvironment::systemEnvironment());
+            QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.runShell();
 }
 
@@ -381,7 +382,7 @@ int CommandLineFrontend::runTarget()
                         .arg(productToRun.name()));
         }
         RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
-                QProcessEnvironment::systemEnvironment());
+                QProcessEnvironment::systemEnvironment(), m_settings);
         return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
     } catch (const Error &error) {
         qbsError() << error.toString();

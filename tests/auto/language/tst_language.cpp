@@ -37,7 +37,7 @@
 #include <tools/scripttools.h>
 #include <tools/error.h>
 
-TestLanguage::TestLanguage()
+TestLanguage::TestLanguage() : m_settings(qbsSettings())
 {
 }
 
@@ -74,7 +74,7 @@ void TestLanguage::initTestCase()
     //Logger::instance().setLogSink(new ConsolePrintLogSink);
     //Logger::instance().setLevel(LoggerTrace);
     ScriptEngine *engine = new ScriptEngine(this);
-    loader = new Loader(engine);
+    loader = new Loader(engine, m_settings.data());
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "../../../share/qbs")
                            << QLatin1String(SRCDIR "testdata"));

@@ -22,7 +22,8 @@ HEADERS += \
     status.h \
     consoleprogressobserver.h \
     commandlinefrontend.h \
-    qbstool.h
+    qbstool.h \
+    ../shared/qbssettings.h
 
 include(../../lib/use.pri)
 include(../../../qbs_version.pri)

@@ -13,6 +13,7 @@ SOURCES += \
     setupqt.cpp
 
 HEADERS += \
-    setupqt.h
+    setupqt.h \
+    ../shared/qbssettings.h
 
 include(../../lib/use.pri)

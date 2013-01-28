@@ -26,6 +26,7 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "../shared/qbssettings.h"
 #include "../shared/specialplatformssetup.h"
 
 #include <logging/consolelogger.h>
@@ -44,6 +45,8 @@ namespace qbs {
 
 class MaddePlatformsSetup : public SpecialPlatformsSetup
 {
+public:
+    MaddePlatformsSetup(Settings *settings);
 private:
     QString defaultBaseDirectory() const;
     QString platformTypeName() const { return QLatin1String("MADDE"); }
@@ -55,6 +58,10 @@ private:
     QString m_maddeBinDir;
 };
 
+
+MaddePlatformsSetup::MaddePlatformsSetup(Settings *settings) : SpecialPlatformsSetup(settings)
+{
+}
 
 QString MaddePlatformsSetup::defaultBaseDirectory() const
 {
@@ -177,8 +184,9 @@ SpecialPlatformsSetup::PlatformInfo MaddePlatformsSetup::gatherMaddePlatformInfo
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    qbs::ConsoleLogger cl;
-    qbs::MaddePlatformsSetup setup;
+    SettingsPtr settings = qbsSettings();
+    qbs::ConsoleLogger cl(settings.data());
+    qbs::MaddePlatformsSetup setup(settings.data());
     try {
         setup.setup();
     } catch (const qbs::SpecialPlatformsSetup::Exception &ex) {

@@ -26,43 +26,18 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_QBS_SETTINGS
+#define QBS_QBS_SETTINGS
 
-#ifndef QBS_LOGSINK_H
-#define QBS_LOGSINK_H
+#include <tools/settings.h>
 
-#include "ilogsink.h"
-#include "logger.h"
+#include <QSharedPointer>
 
-namespace qbs {
-class Settings;
+typedef QSharedPointer<qbs::Settings> SettingsPtr;
 
-class ConsolePrintLogSink : public ILogSink
+inline SettingsPtr qbsSettings()
 {
-public:
-    void setColoredOutputEnabled(bool enabled) { m_coloredOutputEnabled = enabled; }
+    return SettingsPtr(new qbs::Settings(QLatin1String("QtProject"), QLatin1String("qbs")));
+}
 
-protected:
-    virtual void outputLogMessage(LoggerLevel level, const LogMessage &message);
-
-private:
-    void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
-
-private:
-    bool m_coloredOutputEnabled;
-};
-
-
-// Instantiate this at the top of a tool's main function to enable qbsError() & friends.
-class ConsoleLogger
-{
-public:
-    ConsoleLogger(Settings *settings);
-    ~ConsoleLogger();
-
-private:
-    ConsolePrintLogSink m_logSink;
-};
-
-} // namespace qbs
-
-#endif // QBS_LOGSINK_H
+#endif // Include guard

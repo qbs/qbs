@@ -59,14 +59,14 @@ namespace Internal {
 static bool pluginsLoaded = false;
 static QMutex pluginsLoadedMutex;
 
-static void loadPlugins()
+static void loadPlugins(Settings *settings)
 {
     QMutexLocker locker(&pluginsLoadedMutex);
     if (pluginsLoaded)
         return;
 
     QStringList pluginPaths;
-    const QStringList settingsPluginPaths = Preferences().pluginPaths();
+    const QStringList settingsPluginPaths = Preferences(settings).pluginPaths();
     foreach (const QString &pluginPath, settingsPluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
             qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
@@ -257,11 +257,12 @@ Project &Project::operator=(const Project &other)
  * track the results of the operation.
  */
 SetupProjectJob *Project::setupProject(const QString &projectFilePath,
-        const QVariantMap &buildConfig, const QString &buildRoot, QObject *jobOwner)
+        const QVariantMap &buildConfig, const QString &buildRoot, Settings *settings,
+        QObject *jobOwner)
 {
-    loadPlugins();
-    SetupProjectJob * const job = new SetupProjectJob(jobOwner);
-    job->resolve(projectFilePath, buildRoot, expandBuildConfiguration(buildConfig));
+    loadPlugins(settings);
+    SetupProjectJob * const job = new SetupProjectJob(settings, jobOwner);
+    job->resolve(projectFilePath, buildRoot, expandBuildConfiguration(buildConfig, settings));
     return job;
 }
 
@@ -271,9 +272,9 @@ SetupProjectJob *Project::setupProject(const QString &projectFilePath,
  * configuration
  * \return The expanded build configuration
  */
-QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
+QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig,
+                                              Settings *settings)
 {
-    Settings settings;
     QVariantMap expandedConfig = buildConfig;
 
     // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
@@ -281,7 +282,7 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
     // 2) Everything from the profile key
     QString profileName = expandedConfig.value("qbs.profile").toString();
     if (profileName.isNull()) {
-        profileName = settings.defaultProfile();
+        profileName = settings->defaultProfile();
         if (profileName.isNull()) {
             throw Error(Tr::tr("No profile given and no default profile set.\n"
                     "Either set the configuration value 'profile' to a valid profile's name\n"
@@ -291,7 +292,7 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig)
     }
 
     // (2)
-    const Profile profile(profileName, &settings);
+    const Profile profile(profileName, settings);
     const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive);
     if (profileKeys.isEmpty())
         throw Error(Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
@@ -373,11 +374,11 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
 }
 
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
-                                          const QProcessEnvironment &environment) const
+        const QProcessEnvironment &environment, Settings *settings) const
 {
     Q_ASSERT(product.isEnabled());
     const Internal::ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
-    return RunEnvironment(resolvedProduct, environment);
+    return RunEnvironment(resolvedProduct, environment, settings);
 }
 
 /*!
