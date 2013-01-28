@@ -6,6 +6,11 @@ qt:greaterThan(QT_MAJOR_VERSION, 4) {
     QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
 } else {
     QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc3)
+
+    # cheap replacement of the Qt5 shell_quote function
+    defineReplace(shell_quote) {
+        return("\"$$1\"")
+    }
 }
 
 HELPGENERATOR = $$targetPath($$[QT_INSTALL_BINS]/qhelpgenerator)
@@ -40,7 +45,7 @@ html_docs.commands = $$QDOC $$PWD/qbs.qdocconf
 html_docs.depends += $$HELP_DEP_FILES
 html_docs.files = $$QHP_FILE
 
-qch_docs.commands = $$HELPGENERATOR -o \"$$QCH_FILE\" $$QHP_FILE
+qch_docs.commands = $$HELPGENERATOR -o $$shell_quote($$QCH_FILE) $$QHP_FILE
 qch_docs.depends += html_docs
 qch_docs.files = $$QCH_FILE
 
