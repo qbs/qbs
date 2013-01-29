@@ -1,7 +1,6 @@
 Product {
     Group {
-        files: "dir/*"
-        recursive: true
+        files: "dir/**"
         qbs.install: true
         qbs.installDir: "dir"
     }
