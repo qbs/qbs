@@ -31,16 +31,23 @@
 
 #include "error.h"
 #include <logging/translator.h>
+#include <tools/hostosinfo.h>
 
 #include <QSettings>
 
 #include <algorithm>
 
 namespace qbs {
+
+static QSettings::Format format()
+{
+    return HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat;
+}
+
 using namespace Internal;
 
 Settings::Settings()
-    : m_settings(new QSettings(QSettings::IniFormat, QSettings::UserScope, QLatin1String("QtProject"),
+    : m_settings(new QSettings(format(), QSettings::UserScope, QLatin1String("QtProject"),
                                QLatin1String("qbs")))
 {
     m_settings->setFallbacksEnabled(false);
