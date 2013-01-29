@@ -41,7 +41,7 @@
 
     \title Qbs Manual
 
-    \section1 Version \qtcversion
+    \section1 Version \qbsversion
 
     Qt Build Suite (qbs) is a tool that helps simplify the build process for
     developing projects across multiple platforms. Qbs can be used for any

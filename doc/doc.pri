@@ -13,15 +13,15 @@ HELPGENERATOR = $$targetPath($$[QT_INSTALL_BINS]/qhelpgenerator)
 VERSION_TAG = $$replace(QBS_VERSION, "[-.]", )
 
 equals(QMAKE_DIR_SEP, /) {   # unix, mingw+msys
-    QDOC = SRCDIR=$$PWD OUTDIR=$$OUT_PWD/doc/html QTC_VERSION=$$QBS_VERSION QTC_VERSION_TAG=$$VERSION_TAG $$QDOC_BIN
+    QDOC = SRCDIR=$$PWD OUTDIR=$$OUT_PWD/doc/html QBS_VERSION=$$QBS_VERSION QBS_VERSION_TAG=$$VERSION_TAG $$QDOC_BIN
 } else:win32-g++* {   # just mingw
     # The lack of spaces in front of the && is necessary!
-    QDOC = set SRCDIR=$$PWD&& set OUTDIR=$$OUT_PWD/doc/html&& set QTC_VERSION=$$QBS_VERSION&& set QTC_VERSION_TAG=$$VERSION_TAG&& $$QDOC_BIN
+    QDOC = set SRCDIR=$$PWD&& set OUTDIR=$$OUT_PWD/doc/html&& set QBS_VERSION=$$QBS_VERSION&& set QBS_VERSION_TAG=$$VERSION_TAG&& $$QDOC_BIN
 } else {   # nmake
     QDOC = set SRCDIR=$$PWD $$escape_expand(\\n\\t) \
            set OUTDIR=$$OUT_PWD/doc/html $$escape_expand(\\n\\t) \
-           set QTC_VERSION=$$QBS_VERSION $$escape_expand(\\n\\t) \
-           set QTC_VERSION_TAG=$$VERSION_TAG $$escape_expand(\\n\\t) \
+           set QBS_VERSION=$$QBS_VERSION $$escape_expand(\\n\\t) \
+           set QBS_VERSION_TAG=$$VERSION_TAG $$escape_expand(\\n\\t) \
            $$QDOC_BIN
 }
 
