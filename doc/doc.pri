@@ -40,9 +40,6 @@ html_docs.commands = $$QDOC $$PWD/qbs.qdocconf
 html_docs.depends += $$HELP_DEP_FILES
 html_docs.files = $$QHP_FILE
 
-html_docs_online.commands = $$QDOC $$PWD/qbs-online.qdocconf
-html_docs_online.depends += $$HELP_DEP_FILES
-
 qch_docs.commands = $$HELPGENERATOR -o \"$$QCH_FILE\" $$QHP_FILE
 qch_docs.depends += html_docs
 qch_docs.files = $$QCH_FILE
@@ -53,9 +50,8 @@ unix:!macx {
     INSTALLS += qch_docs
 }
 
-docs_online.depends = html_docs_online
 docs.depends = qch_docs
-QMAKE_EXTRA_TARGETS += html_docs html_docs_online qch_docs docs docs_online
+QMAKE_EXTRA_TARGETS += html_docs qch_docs docs
 
 fixnavi.commands = \
     cd $$targetPath($$PWD) && \
