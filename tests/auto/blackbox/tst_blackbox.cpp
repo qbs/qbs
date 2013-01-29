@@ -488,20 +488,6 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
-void TestBlackbox::invalidWildcards()
-{
-    QVERIFY(QDir::setCurrent(QDir::tempPath()));
-    const QByteArray projectContent = "Product {\n\tGroup {\n\t\tfiles: 'dir*/*'\n\n\t}\n }\n";
-    QTemporaryFile projectFile;
-    QVERIFY(projectFile.open());
-    projectFile.write(projectContent);
-    projectFile.close();
-    QCOMPARE(projectFile.error(), QFile::NoError);
-    QVERIFY(runQbs(QStringList() << "-f" << projectFile.fileName(), true) != 0);
-    QVERIFY2(m_qbsStderr.contains("Wildcards are not allowed in directory names"),
-             qPrintable(m_qbsStderr.constData()));
-}
-
 void TestBlackbox::updateTimestamps()
 {
     QDir::setCurrent(testDataDir + "/update_timestamps");
