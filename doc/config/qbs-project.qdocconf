@@ -18,9 +18,9 @@ qhp.projects            = Qbs
 qhp.Qbs.file             = qbs.qhp
 qhp.Qbs.namespace        = org.qt-project.qbs.$QBS_VERSION_TAG
 qhp.Qbs.virtualFolder    = doc
-qhp.Qbs.indexTitle       = Qt Build System
+qhp.Qbs.indexTitle       = Qt Build Suite
 qhp.Qbs.filterAttributes = qbs $QBS_VERSION
-qhp.Qbs.customFilters.Qbs.name = Qt Build System $QBS_VERSION
+qhp.Qbs.customFilters.Qbs.name = Qt Build Suite $QBS_VERSION
 qhp.Qbs.customFilters.Qbs.filterAttributes = qbs $QBS_VERSION
 qhp.Qbs.indexRoot        =
 
