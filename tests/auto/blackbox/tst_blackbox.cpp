@@ -59,9 +59,10 @@ TestBlackbox::TestBlackbox()
     QLocale::setDefault(QLocale::c());
 }
 
-int TestBlackbox::runQbs(QStringList arguments, bool expectFailure)
+int TestBlackbox::runQbs(QStringList arguments, bool expectFailure, bool useProfile)
 {
-    arguments.append(QLatin1String("profile:") + buildProfile);
+    if (useProfile)
+        arguments.append(QLatin1String("profile:") + buildProfile);
     QString cmdLine = qbsExecutableFilePath;
     foreach (const QString &str, arguments)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
@@ -520,7 +521,7 @@ void TestBlackbox::installedApp()
 
 void TestBlackbox::toolLookup()
 {
-    QCOMPARE(runQbs(QStringList("detect-toolchains") << "--help"), 0);
+    QCOMPARE(runQbs(QStringList("detect-toolchains") << "--help", false, false), 0);
 }
 
 QTEST_MAIN(TestBlackbox)
