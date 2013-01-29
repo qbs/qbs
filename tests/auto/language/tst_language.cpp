@@ -574,7 +574,7 @@ void TestLanguage::wildcards()
     QFETCH(QStringList, expected);
 
     // create test directory
-    const QString wildcardsTestDir = "_wildcards_test_dir_";
+    const QString wildcardsTestDir = QDir::currentPath() + "/_wildcards_test_dir_";
     {
         QString errorMessage;
         if (QFile::exists(wildcardsTestDir)) {
@@ -614,16 +614,13 @@ void TestLanguage::wildcards()
     }
 
     // create files
-    {
-        foreach (QString filePath, filesToCreate) {
-            filePath.prepend(wildcardsTestDir + '/');
-            QFileInfo fi(filePath);
-            QVERIFY(fi.isRelative());
-            if (!QDir(fi.path()).exists())
-                QVERIFY(QDir().mkpath(fi.path()));
-            QFile file(filePath);
-            QVERIFY(file.open(QIODevice::WriteOnly));
-        }
+    foreach (QString filePath, filesToCreate) {
+        filePath.prepend(wildcardsTestDir + '/');
+        QFileInfo fi(filePath);
+        if (!QDir(fi.path()).exists())
+            QVERIFY(QDir().mkpath(fi.path()));
+        QFile file(filePath);
+        QVERIFY(file.open(QIODevice::WriteOnly));
     }
 
     // read the project
