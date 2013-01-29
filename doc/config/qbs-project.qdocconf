@@ -31,6 +31,9 @@ qhp.Qbs.subprojects.manual.indexTitle = Qbs Manual
 qhp.Qbs.subprojects.manual.type = manual
 
 # Doxygen compatibility commands
-
 macro.see                       = "\\sa"
 macro.function                  = "\\fn"
+
+# Qt4 compatibility macros
+macro.li                        = "\\o"
+
