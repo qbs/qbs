@@ -287,11 +287,12 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
         d->m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 
-ResolvedProjectPtr Loader::loadProject(const QString &fileName, const QString &buildRoot,
+ResolvedProjectPtr Loader::loadProject(const QString &filePath, const QString &buildRoot,
                                          const QVariantMap &userProperties)
 {
+    Q_ASSERT(QFileInfo(filePath).isAbsolute());
     TimedActivityLogger loadLogger(QLatin1String("Loading project"));
-    d->loadProject(fileName);
+    d->loadProject(filePath);
     return d->resolveProject(buildRoot, userProperties);
 }
 

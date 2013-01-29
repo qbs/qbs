@@ -47,7 +47,7 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
-    ResolvedProjectPtr loadProject(const QString &fileName, const QString &buildRoot,
+    ResolvedProjectPtr loadProject(const QString &filePath, const QString &buildRoot,
                                      const QVariantMap &userProperties);
     QByteArray qmlTypeInfo();
 
