@@ -298,7 +298,7 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-configuring.html
+    \previouspage qbs-qt-versions.html
     \page qbs-usage.html
     \nextpage qbs-language-introduction.html
 
@@ -673,7 +673,7 @@
     \contentspage index.html
     \previouspage qbs-language-introduction.html
     \page qbs-building-applications.html
-    \nextpage qbs-installing-files.html
+    \nextpage qbs-running-applications.html
 
     \title Building Applications with Qbs
 
@@ -699,9 +699,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-building-applications.html
+    \previouspage qbs-running-applications.html
     \page qbs-installing-files.html
-    \nextpage qbs-running-applications.html
+    \nextpage qbs-shell.html
 
     \title Installing Files
 
@@ -739,9 +739,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-installing-files.html
+    \previouspage qbs-building-applications.html
     \page qbs-running-applications.html
-    \nextpage qbs-shell.html
+    \nextpage qbs-installing-files.html
 
     \title Running Applications
 
@@ -760,7 +760,7 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-running-applications.html
+    \previouspage qbs-installing-files.html
     \page qbs-shell.html
     \nextpage qbs-reference.html
 
@@ -797,7 +797,6 @@
     \contentspage index.html
     \previouspage qbs-reference.html
     \page qbs-functions.html
-    \nextpage qbs-rule-item.html
 
     \title Qbs Functions
 
