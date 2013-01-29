@@ -71,7 +71,7 @@ for my $file (@files) {
         } else {
             if (/^\h*\\endlist/) {
                 $intoc--;
-            } elsif (!$skipping && /^\h*\\o\h+\\l\h*{(.*)}$/) {
+            } elsif (!$skipping && /^\h*\\(?:o|li)\h+\\l\h*{(.*)}$/) {
                 push @toc, $1;
             }
         }
