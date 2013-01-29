@@ -34,6 +34,7 @@
 #include <tools/buildoptions.h>
 #include <tools/installoptions.h>
 #include <tools/error.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QList>
 #include <QMutex>
@@ -83,8 +84,7 @@ public:
     InternalSetupProjectJob(Settings *settings, QObject *parent = 0);
     ~InternalSetupProjectJob();
 
-    void resolve(const QString &projectFilePath, const QString &buildRoot,
-                 const QVariantMap &buildConfig);
+    void resolve(const SetupProjectParameters &parameters);
 
     BuildProjectPtr buildProject() const;
 
@@ -100,10 +100,8 @@ private:
     QMutex m_runMutex;
     QWaitCondition m_runWaitCondition;
 
-    QString m_projectFilePath;
-    QString m_buildRoot;
-    QVariantMap m_buildConfig;
     BuildProjectPtr m_buildProject;
+    SetupProjectParameters m_parameters;
     Settings * const m_settings;
 };
 

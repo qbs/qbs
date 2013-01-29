@@ -39,6 +39,7 @@
 
 TestLanguage::TestLanguage() : m_settings(qbsSettings())
 {
+    defaultParameters.buildRoot = "/some/build/directory";
 }
 
 TestLanguage::~TestLanguage()
@@ -78,7 +79,8 @@ void TestLanguage::initTestCase()
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "../../../share/qbs")
                            << QLatin1String(SRCDIR "testdata"));
-    setConfigProperty(buildConfig, QStringList() << "qbs" << "targetOS", "linux");
+    setConfigProperty(defaultParameters.buildConfiguration,
+                      QStringList() << "qbs" << "targetOS", "linux");
 }
 
 void TestLanguage::cleanupTestCase()
@@ -92,8 +94,8 @@ void TestLanguage::conditionalDepends()
     ResolvedProductPtr product;
     ResolvedModuleConstPtr dependency;
     try {
-        project = loader->loadProject(SRCDIR "testdata/conditionaldepends.qbs",
-                "/some/build/directory", buildConfig);
+        defaultParameters.projectFilePath = SRCDIR "testdata/conditionaldepends.qbs";
+        project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
 
@@ -161,8 +163,8 @@ void TestLanguage::groupName()
 {
     bool exceptionCaught = false;
     try {
-        ResolvedProjectPtr project = loader->loadProject(SRCDIR "testdata/groupname.qbs",
-                                                           "/some/build/directory", buildConfig);
+        defaultParameters.projectFilePath = SRCDIR "testdata/groupname.qbs";
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 2);
@@ -282,11 +284,13 @@ void TestLanguage::jsImportUsedInMultipleScopes()
 
     bool exceptionCaught = false;
     try {
-        QVariantMap customBuildConfig = buildConfig;
+        QVariantMap customBuildConfig = defaultParameters.buildConfiguration;
         setConfigProperty(customBuildConfig, QStringList() << "qbs" << "buildVariant",
                           buildVariant);
-        ResolvedProjectPtr project = loader->loadProject(SRCDIR "testdata/jsimportsinmultiplescopes.qbs",
-                "/some/build/directory", customBuildConfig);
+        SetupProjectParameters params = defaultParameters;
+        params.projectFilePath = SRCDIR "testdata/jsimportsinmultiplescopes.qbs";
+        params.buildConfiguration = customBuildConfig;
+        ResolvedProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
@@ -305,8 +309,8 @@ void TestLanguage::outerInGroup()
 {
     bool exceptionCaught = false;
     try {
-        ResolvedProjectPtr project = loader->loadProject(SRCDIR "testdata/outerInGroup.qbs",
-                                                              "/some/build/directory", buildConfig);
+        defaultParameters.projectFilePath = SRCDIR "testdata/outerInGroup.qbs";
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
@@ -339,8 +343,8 @@ void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;
     try {
-        ResolvedProjectPtr project = loader->loadProject(SRCDIR "testdata/productconditions.qbs",
-                                                              "/some/build/directory", buildConfig);
+        defaultParameters.projectFilePath = SRCDIR "testdata/productconditions.qbs";
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 4);
@@ -392,8 +396,8 @@ void TestLanguage::propertiesBlocks()
     if (productName == "init") {
         bool exceptionCaught = false;
         try {
-            project = loader->loadProject(SRCDIR "testdata/propertiesblocks.qbs",
-                                          "/some/build/directory", buildConfig);
+            defaultParameters.projectFilePath = SRCDIR "testdata/propertiesblocks.qbs";
+            project = loader->loadProject(defaultParameters);
             QVERIFY(project);
         } catch (const Error &e) {
             exceptionCaught = true;
@@ -439,8 +443,8 @@ void TestLanguage::fileTags()
     if (productName == QLatin1String("init")) {
         bool exceptionCaught = false;
         try {
-            project = loader->loadProject(SRCDIR "testdata/filetags.qbs", "/some/build/directory",
-                                          buildConfig);
+            defaultParameters.projectFilePath = SRCDIR "testdata/filetags.qbs";
+            project = loader->loadProject(defaultParameters);
             QVERIFY(project);
         }
         catch (const Error &e) {
@@ -627,7 +631,8 @@ void TestLanguage::wildcards()
     bool exceptionCaught = false;
     ResolvedProductPtr product;
     try {
-        project = loader->loadProject(projectFilePath, "/some/build/directory", buildConfig);
+        defaultParameters.projectFilePath = projectFilePath;
+        project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         product = products.value("MyProduct");

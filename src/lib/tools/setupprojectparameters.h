@@ -26,54 +26,24 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_SETUPPROJECTPARAMETERS_H
+#define QBS_SETUPPROJECTPARAMETERS_H
 
-#ifndef TST_LANGUAGE_H
-#define TST_LANGUAGE_H
+#include <QString>
+#include <QVariantMap>
 
-#include <app/shared/qbssettings.h>
-#include <language/forward_decls.h>
-#include <language/loader.h>
-#include <logging/consolelogger.h>
-#include <logging/logger.h>
-#include <tools/setupprojectparameters.h>
-#include <QtTest>
+namespace qbs {
 
-using namespace qbs;
-
-class TestLanguage : public QObject
+class SetupProjectParameters
 {
-    Q_OBJECT
 public:
-    TestLanguage();
-    ~TestLanguage();
+    SetupProjectParameters();
 
-private:
-    SettingsPtr m_settings;
-    Loader *loader;
-    ResolvedProjectPtr project;
-    SetupProjectParameters defaultParameters;
-
-    QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
-    ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
-    QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
-
-private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void conditionalDepends();
-    void groupName();
-    void identifierSearch_data();
-    void identifierSearch();
-    void jsImportUsedInMultipleScopes_data();
-    void jsImportUsedInMultipleScopes();
-    void outerInGroup();
-    void productConditions();
-    void propertiesBlocks_data();
-    void propertiesBlocks();
-    void fileTags_data();
-    void fileTags();
-    void wildcards_data();
-    void wildcards();
+    QString projectFilePath;
+    QString buildRoot;
+    QVariantMap buildConfiguration;
 };
 
-#endif // TST_LANGUAGE_H
+} // namespace qbs
+
+#endif // Include guard

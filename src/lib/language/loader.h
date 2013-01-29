@@ -36,6 +36,7 @@
 
 namespace qbs {
 class Settings;
+class SetupProjectParameters;
 namespace Internal {
 class ProgressObserver;
 class ScriptEngine;
@@ -48,8 +49,7 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
-    ResolvedProjectPtr loadProject(const QString &filePath, const QString &buildRoot,
-                                     const QVariantMap &userProperties);
+    ResolvedProjectPtr loadProject(const SetupProjectParameters &parameters);
     QByteArray qmlTypeInfo();
 
 private:

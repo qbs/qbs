@@ -51,6 +51,7 @@ class ProjectData;
 class RunEnvironment;
 class Settings;
 class SetupProjectJob;
+class SetupProjectParameters;
 
 namespace Internal {
 class BuildProject;
@@ -62,9 +63,8 @@ class Project
     friend class SetupProjectJob;
     friend uint qHash(const Project &p);
 public:
-    static SetupProjectJob *setupProject(const QString &projectFilePath,
-            const QVariantMap &buildConfig, const QString &buildRoot, Settings *settings,
-            QObject *jobOwner);
+    static SetupProjectJob *setupProject(const SetupProjectParameters &parameters,
+                                         Settings *settings, QObject *jobOwner);
     static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig,
                                                 Settings *settings);
 

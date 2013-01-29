@@ -26,54 +26,39 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "setupprojectparameters.h"
 
-#ifndef TST_LANGUAGE_H
-#define TST_LANGUAGE_H
+namespace qbs {
 
-#include <app/shared/qbssettings.h>
-#include <language/forward_decls.h>
-#include <language/loader.h>
-#include <logging/consolelogger.h>
-#include <logging/logger.h>
-#include <tools/setupprojectparameters.h>
-#include <QtTest>
-
-using namespace qbs;
-
-class TestLanguage : public QObject
+// Needs to be here for compilers that don't accept "empty" source files.
+SetupProjectParameters::SetupProjectParameters()
 {
-    Q_OBJECT
-public:
-    TestLanguage();
-    ~TestLanguage();
+}
 
-private:
-    SettingsPtr m_settings;
-    Loader *loader;
-    ResolvedProjectPtr project;
-    SetupProjectParameters defaultParameters;
+/*!
+ * \class SetupProjectParameters
+ * \brief The \c SetupProjectParameters class comprises data required to set up a qbs project.
+ */
 
-    QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
-    ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
-    QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
+/*!
+ * \variable SetupProjectParameters::projectFilePath
+ * \brief The absolute path to the qbs project file.
+ * This file typically has a ".qbs" suffix.
+ */
 
-private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void conditionalDepends();
-    void groupName();
-    void identifierSearch_data();
-    void identifierSearch();
-    void jsImportUsedInMultipleScopes_data();
-    void jsImportUsedInMultipleScopes();
-    void outerInGroup();
-    void productConditions();
-    void propertiesBlocks_data();
-    void propertiesBlocks();
-    void fileTags_data();
-    void fileTags();
-    void wildcards_data();
-    void wildcards();
-};
+/*!
+ * \variable SetupProjectParameters::buildRoot
+ * \brief The base path of where to put the build artifacts.
+ * The same base path can be used for several build profiles of the same project without them
+ * interfering with each other.
+ * It might look as if this parameter would not be needed at the time of setting up the project,
+ * but keep in mind that the project information might already exist on disk, in which case
+ * loading it will be much faster than setting up the project from scratch.
+ */
 
-#endif // TST_LANGUAGE_H
+/*!
+ * \variable SetupProjectParameters::buildConfiguration
+ * \brief The collection of properties to use for resolving the project.
+ */
+
+} // namespace qbs

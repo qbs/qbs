@@ -34,6 +34,7 @@
 #include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
+#include <tools/setupprojectparameters.h>
 
 namespace qbs {
 using namespace Internal;
@@ -187,11 +188,10 @@ Project SetupProjectJob::project() const
     return job->buildProject();
 }
 
-void SetupProjectJob::resolve(const QString &projectFilePath, const QString &buildRoot,
-                              const QVariantMap &buildConfig)
+void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
 {
     InternalSetupProjectJob * const job = qobject_cast<InternalSetupProjectJob *>(internalJob());
-    job->resolve(projectFilePath, buildRoot, buildConfig);
+    job->resolve(parameters);
 }
 
 /*!

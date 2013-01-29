@@ -37,5 +37,6 @@
 #include "tools/error.h"
 #include "tools/installoptions.h"
 #include "tools/settings.h"
+#include "tools/setupprojectparameters.h"
 
 #endif // QBS_H

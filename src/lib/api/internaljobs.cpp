@@ -115,12 +115,9 @@ InternalSetupProjectJob::~InternalSetupProjectJob()
         m_runWaitCondition.wait(&m_runMutex);
  }
 
-void InternalSetupProjectJob::resolve(const QString &projectFilePath, const QString &buildRoot,
-                         const QVariantMap &buildConfig)
+void InternalSetupProjectJob::resolve(const SetupProjectParameters &parameters)
 {
-    m_projectFilePath = projectFilePath;
-    m_buildRoot = buildRoot;
-    m_buildConfig = buildConfig;
+    m_parameters = parameters;
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
@@ -159,8 +156,8 @@ void InternalSetupProjectJob::execute()
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext);
     evalContext->setObserver(observer());
     const QStringList searchPaths = Preferences(m_settings).searchPaths();
-    const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_projectFilePath,
-            evalContext, m_buildRoot, m_buildConfig, searchPaths, m_settings);
+    const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_parameters,
+            evalContext, searchPaths, m_settings);
 
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
@@ -174,14 +171,17 @@ void InternalSetupProjectJob::execute()
             Loader loader(evalContext->engine(), m_settings);
             loader.setSearchPaths(searchPaths);
             loader.setProgressObserver(observer());
-            rProject = loader.loadProject(m_projectFilePath, m_buildRoot, m_buildConfig);
+            rProject = loader.loadProject(m_parameters);
         }
-        if (rProject->products.isEmpty())
-            throw Error(Tr::tr("Project '%1' does not contain products.").arg(m_projectFilePath));
+        if (rProject->products.isEmpty()) {
+            throw Error(Tr::tr("Project '%1' does not contain products.")
+                        .arg(m_parameters.projectFilePath));
+        }
     }
 
     // copy the environment from the platform config into the project's config
-    const QVariantMap platformEnvironment = m_buildConfig.value("environment").toMap();
+    const QVariantMap platformEnvironment
+            = m_parameters.buildConfiguration.value(QLatin1String("environment")).toMap();
     rProject->platformEnvironment = platformEnvironment;
 
     qbsDebug("for %s:", qPrintable(rProject->id()));

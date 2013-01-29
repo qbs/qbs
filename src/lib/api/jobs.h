@@ -41,6 +41,7 @@ namespace qbs {
 class BuildOptions;
 class InstallOptions;
 class Settings;
+class SetupProjectParameters;
 namespace Internal {
 class InternalJob;
 class ProjectPrivate;
@@ -92,8 +93,7 @@ public:
 private:
     SetupProjectJob(Settings *settings, QObject *parent);
 
-    void resolve(const QString &projectFilePath, const QString &buildRoot,
-               const QVariantMap &buildConfig);
+    void resolve(const SetupProjectParameters &parameters);
 };
 
 class BuildJob : public AbstractJob

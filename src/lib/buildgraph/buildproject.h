@@ -44,6 +44,7 @@
 
 namespace qbs {
 class Settings;
+class SetupProjectParameters;
 namespace Internal {
 class BuildProjectLoader;
 class BuildProjectResolver;
@@ -132,8 +133,8 @@ public:
         bool discardLoadedProject;
     };
 
-    LoadResult load(const QString &projectFilePath, const RulesEvaluationContextPtr &evalContext,
-                    const QString &buildRoot, const QVariantMap &cfg,
+    LoadResult load(const SetupProjectParameters &parameters,
+                    const RulesEvaluationContextPtr &evalContext,
                     const QStringList &loaderSearchPaths, qbs::Settings *settings);
 
 private:

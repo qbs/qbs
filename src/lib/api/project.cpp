@@ -47,6 +47,7 @@
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QDir>
 #include <QMutex>
@@ -244,25 +245,18 @@ Project &Project::operator=(const Project &other)
 
 /*!
  * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
- * The \a projectFilePath parameter is the path to the project file, typically ending in ".qbs".
- * The \a buildConfig parameter is the set of properties used for resolving the project. Note that
- * calling this function with the same \a projectFilePath and different \a buildConfig parameters
- * will result in two distinct \c Projects, since the different properties will potentially cause
- * the bindings in the project file to evaluate to different values.
- * The \a buildRoot parameter is the base directory for building the project. It will be used
- * to derive the actual build directory and is required here because the project information might
- * already exist on disk, in which case it will be available faster. If you know that the project
- * has never been built and you do not plan to do so later, \a buildRoot can be an arbitrary string.
  * The function will finish immediately, returning a \c SetupProjectJob which can be used to
  * track the results of the operation.
  */
-SetupProjectJob *Project::setupProject(const QString &projectFilePath,
-        const QVariantMap &buildConfig, const QString &buildRoot, Settings *settings,
-        QObject *jobOwner)
+SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters, Settings *settings,
+                                       QObject *jobOwner)
 {
     loadPlugins(settings);
     SetupProjectJob * const job = new SetupProjectJob(settings, jobOwner);
-    job->resolve(projectFilePath, buildRoot, expandBuildConfiguration(buildConfig, settings));
+    SetupProjectParameters parameters = _parameters;
+    parameters.buildConfiguration
+            = expandBuildConfiguration(parameters.buildConfiguration, settings);
+    job->resolve(parameters);
     return job;
 }
 

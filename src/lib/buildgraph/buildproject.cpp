@@ -42,6 +42,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
+#include <tools/setupprojectparameters.h>
 
 namespace qbs {
 namespace Internal {
@@ -442,22 +443,22 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
     return true;
 }
 
-BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFilePath,
-        const RulesEvaluationContextPtr &evalContext, const QString &buildRoot, const QVariantMap &cfg,
-        const QStringList &loaderSearchPaths, Settings *settings)
+BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParameters &parameters,
+        const RulesEvaluationContextPtr &evalContext, const QStringList &loaderSearchPaths,
+        Settings *settings)
 {
     m_result = LoadResult();
     m_evalContext = evalContext;
 
-    const QString projectId = ResolvedProject::deriveId(cfg);
-    const QString buildDir = ResolvedProject::deriveBuildDirectory(buildRoot, projectId);
+    const QString projectId = ResolvedProject::deriveId(parameters.buildConfiguration);
+    const QString buildDir = ResolvedProject::deriveBuildDirectory(parameters.buildRoot, projectId);
     const QString buildGraphFilePath = BuildProject::deriveBuildGraphFilePath(buildDir, projectId);
 
     PersistentPool pool;
     qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
     if (!pool.load(buildGraphFilePath))
         return m_result;
-    if (!isConfigCompatible(cfg, pool.headData().projectConfig)) {
+    if (!isConfigCompatible(parameters.buildConfiguration, pool.headData().projectConfig)) {
         qbsDebug() << "[BG] Cannot use stored build graph: Incompatible project configuration.";
         return m_result;
     }
@@ -468,14 +469,15 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
     project->load(pool);
     foreach (const BuildProductPtr &bp, project->buildProducts())
         bp->project = project;
-    project->resolvedProject()->location = CodeLocation(projectFilePath, 1, 1);
+    project->resolvedProject()->location = CodeLocation(parameters.projectFilePath, 1, 1);
     project->resolvedProject()->setBuildConfiguration(pool.headData().projectConfig);
     project->resolvedProject()->buildDirectory = buildDir;
     m_result.loadedProject = project;
     loadLogger.finishActivity();
 
     const FileInfo bgfi(buildGraphFilePath);
-    const bool projectFileChanged = bgfi.lastModified() < FileInfo(projectFilePath).lastModified();
+    const bool projectFileChanged
+            = bgfi.lastModified() < FileInfo(parameters.projectFilePath).lastModified();
 
     bool referencedProductRemoved = false;
     QList<BuildProductPtr> changedProducts;
@@ -506,8 +508,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const QString &projectFi
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
         Loader ldr(evalContext->engine(), settings);
         ldr.setSearchPaths(loaderSearchPaths);
-        const ResolvedProjectPtr changedProject
-                = ldr.loadProject(project->resolvedProject()->location.fileName, buildRoot, cfg);
+        const ResolvedProjectPtr changedProject = ldr.loadProject(parameters);
         m_result.changedResolvedProject = changedProject;
 
         QMap<QString, ResolvedProductPtr> changedProductsMap;

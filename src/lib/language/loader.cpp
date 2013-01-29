@@ -54,6 +54,7 @@
 #include <tools/progressobserver.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QDirIterator>
 
@@ -287,13 +288,12 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
         d->m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 
-ResolvedProjectPtr Loader::loadProject(const QString &filePath, const QString &buildRoot,
-                                         const QVariantMap &userProperties)
+ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
-    Q_ASSERT(QFileInfo(filePath).isAbsolute());
+    Q_ASSERT(QFileInfo(parameters.projectFilePath).isAbsolute());
     TimedActivityLogger loadLogger(QLatin1String("Loading project"));
-    d->loadProject(filePath);
-    return d->resolveProject(buildRoot, userProperties);
+    d->loadProject(parameters.projectFilePath);
+    return d->resolveProject(parameters.buildRoot, parameters.buildConfiguration);
 }
 
 QByteArray Loader::qmlTypeInfo()

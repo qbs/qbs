@@ -89,8 +89,11 @@ void CommandLineFrontend::start()
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
-            SetupProjectJob * const job = Project::setupProject(m_parser.projectFilePath(),
-                    buildConfig, QDir::currentPath(), m_settings, this);
+            SetupProjectParameters params;
+            params.projectFilePath = m_parser.projectFilePath();
+            params.buildConfiguration = buildConfig;
+            params.buildRoot = QDir::currentPath();
+            SetupProjectJob * const job = Project::setupProject(params, m_settings, this);
             connectJob(job);
             m_resolveJobs << job;
         }
