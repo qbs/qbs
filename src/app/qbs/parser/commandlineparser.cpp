@@ -337,6 +337,8 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
     const QFileInfo projectFileInfo(projectFilePath);
     if (!projectFileInfo.exists())
         throw Error(Tr::tr("Project file '%1' cannot be found.").arg(projectFilePath));
+    if (projectFileInfo.isRelative())
+        projectFilePath = projectFileInfo.absoluteFilePath();
     if (projectFileInfo.isFile())
         return;
     if (!projectFileInfo.isDir())
