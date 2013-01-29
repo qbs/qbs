@@ -32,7 +32,6 @@ HELP_DEP_FILES = $$PWD/qbs.qdoc \
                  $$PWD/config/compat.qdocconf \
                  $$PWD/config/macros.qdocconf \
                  $$PWD/config/qt-cpp-ignore.qdocconf \
-                 $$PWD/config/qt-defines.qdocconf \
                  $$PWD/config/qt-html-templates.qdocconf \
                  $$PWD/config/qt-html-default-styles.qdocconf \
                  $$PWD/qbs.qdocconf
