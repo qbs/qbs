@@ -30,8 +30,7 @@
 
 namespace qbs {
 
-// Needs to be here for compilers that don't accept "empty" source files.
-SetupProjectParameters::SetupProjectParameters()
+SetupProjectParameters::SetupProjectParameters() : ignoreDifferentProjectFilePath(false)
 {
 }
 
@@ -60,5 +59,11 @@ SetupProjectParameters::SetupProjectParameters()
  * \variable SetupProjectParameters::buildConfiguration
  * \brief The collection of properties to use for resolving the project.
  */
+
+ /*!
+  * \variable SetupProjectParameters::ignoreDifferentProjectFilePath
+  * \brief true iff the saved build graph should be used even if its path to the project file
+  *        is different from \c projectFilePath
+  */
 
 } // namespace qbs

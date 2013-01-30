@@ -79,6 +79,7 @@ private slots:
     void updateTimestamps();
     void installedApp();
     void toolLookup();
+    void checkProjectFilePath();
 
 private:
     QByteArray m_qbsStderr;

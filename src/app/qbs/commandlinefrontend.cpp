@@ -93,6 +93,7 @@ void CommandLineFrontend::start()
             params.projectFilePath = m_parser.projectFilePath();
             params.buildConfiguration = buildConfig;
             params.buildRoot = QDir::currentPath();
+            params.ignoreDifferentProjectFilePath = m_parser.force();
             SetupProjectJob * const job = Project::setupProject(params, m_settings, this);
             connectJob(job);
             m_resolveJobs << job;

@@ -44,6 +44,8 @@
 #include <tools/persistence.h>
 #include <tools/setupprojectparameters.h>
 
+#include <QDir>
+
 namespace qbs {
 namespace Internal {
 
@@ -467,6 +469,22 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
     project->setEvaluationContext(evalContext);
     TimedActivityLogger loadLogger(QLatin1String("Loading build graph"), QLatin1String("[BG] "));
     project->load(pool);
+    if (project->resolvedProject()->location.fileName != parameters.projectFilePath) {
+        QString errorMessage = Tr::tr("Stored build graph is for project file '%1', but "
+                                      "input file is '%2'. ")
+                .arg(QDir::toNativeSeparators(project->resolvedProject()->location.fileName),
+                     QDir::toNativeSeparators(parameters.projectFilePath));
+        if (!parameters.ignoreDifferentProjectFilePath) {
+            errorMessage += Tr::tr("Aborting.");
+            throw Error(errorMessage);
+        }
+
+        errorMessage += Tr::tr("Ignoring.");
+        qbsWarning() << errorMessage;
+
+        // Okay, let's assume it's the same project anyway (the source dir might have moved).
+        project->resolvedProject()->location.fileName = parameters.projectFilePath;
+    }
     foreach (const BuildProductPtr &bp, project->buildProducts())
         bp->project = project;
     project->resolvedProject()->location = CodeLocation(parameters.projectFilePath, 1, 1);

@@ -524,4 +524,17 @@ void TestBlackbox::toolLookup()
     QCOMPARE(runQbs(QStringList("detect-toolchains") << "--help", false, false), 0);
 }
 
+void TestBlackbox::checkProjectFilePath()
+{
+    QDir::setCurrent(testDataDir + "/project_filepath_check");
+    QCOMPARE(runQbs(QStringList("-f") << "project1.qbs"), 0);
+    QCOMPARE(runQbs(QStringList("-f") << "project1.qbs"), 0);
+
+    QVERIFY(runQbs(QStringList("-f") << "project2.qbs", true) != 0);
+    QVERIFY(m_qbsStderr.contains("project file"));
+
+    QCOMPARE(runQbs(QStringList("-f") << "project2.qbs" << "--force"), 0);
+    QVERIFY(m_qbsStderr.contains("project file"));
+}
+
 QTEST_MAIN(TestBlackbox)

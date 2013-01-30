@@ -346,7 +346,7 @@ public:
     static QString deriveId(const QVariantMap &config);
     static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
 
-    CodeLocation location; // Not saved.
+    CodeLocation location;
     QString buildDirectory; // Not saved
     QVariantMap platformEnvironment;
     QList<ResolvedProductPtr> products;

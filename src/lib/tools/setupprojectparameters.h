@@ -42,6 +42,7 @@ public:
     QString projectFilePath;
     QString buildRoot;
     QVariantMap buildConfiguration;
+    bool ignoreDifferentProjectFilePath;
 };
 
 } // namespace qbs

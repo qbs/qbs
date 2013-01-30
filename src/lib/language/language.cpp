@@ -644,6 +644,9 @@ void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
 
 void ResolvedProject::load(PersistentPool &pool)
 {
+    location.fileName = pool.idLoadString();
+    pool.stream() >> location.line;
+    pool.stream() >> location.column;
     pool.stream() >> m_id;
     pool.stream() >> platformEnvironment;
 
@@ -659,6 +662,9 @@ void ResolvedProject::load(PersistentPool &pool)
 
 void ResolvedProject::store(PersistentPool &pool) const
 {
+    pool.storeString(location.fileName);
+    pool.stream() << location.line;
+    pool.stream() << location.column;
     pool.stream() << m_id;
     pool.stream() << platformEnvironment;
 
