@@ -26,44 +26,35 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "mainwindow.h"
 
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
+#include "../shared/qbssettings.h"
 
-#include <QStringList>
-#include <QVariant>
+#include <logging/consolelogger.h>
+#include <logging/translator.h>
 
-QT_BEGIN_NAMESPACE
-class QSettings;
-QT_END_NAMESPACE
+#include <QApplication>
+#include <cstdlib>
 
-namespace qbs {
+using namespace qbs;
 
-class Settings
+int main(int argc, char *argv[])
 {
-public:
-    Settings(const QString &organization, const QString &application);
-    ~Settings();
+    QApplication app(argc, argv);
+    SettingsPtr settings = qbsSettings();
+    ConsoleLogger cl(settings.data());
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group);
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
+    const QStringList args = app.arguments().mid(1);
+    if (args.count() == 1 &&
+            (args.first() == QLatin1String("--help") || args.first() == QLatin1String("-h"))) {
+        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
+                  << Tr::tr("This tool displays qbs settings in a GUI.\n"
+                            "If you have more than a few settings, this might be preferable to "
+                            "plain \"qbs config\", as it presents a hierarchical view.");
+        return EXIT_SUCCESS;
+    }
 
-    QString defaultProfile() const;
-    QStringList profiles() const;
-
-private:
-    QString internalRepresentation(const QString &externalKey) const;
-    QString externalRepresentation(const QString &internalKey) const;
-    void fixupKeys(QStringList &keys) const;
-    void checkStatus();
-
-    QSettings * const m_settings;
-};
-
-} // namespace qbs
-
-#endif // QBS_SETTINGS_H
+    MainWindow mw;
+    mw.show();
+    return app.exec();
+}

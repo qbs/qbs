@@ -35,7 +35,6 @@ public:
     void runTool(const QString &toolName, const QStringList &arguments);
 
     bool failedToStart() const { return m_failedToStart; }
-    bool failedToFinish() const { return m_failedToFinish; }
     int exitCode() const { return m_exitCode; }
     QString stdOut() const { return m_stdout; }
     QString stdErr() const { return m_stderr; }
@@ -46,7 +45,6 @@ public:
 
 private:
     bool m_failedToStart;
-    bool m_failedToFinish;
     int m_exitCode;
     QString m_stdout;
     QString m_stderr;

@@ -26,44 +26,26 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include <QAbstractItemModel>
 
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
-
-#include <QStringList>
-#include <QVariant>
-
-QT_BEGIN_NAMESPACE
-class QSettings;
-QT_END_NAMESPACE
-
-namespace qbs {
-
-class Settings
+class SettingsModel : public QAbstractItemModel
 {
+    Q_OBJECT
 public:
-    Settings(const QString &organization, const QString &application);
-    ~Settings();
+    SettingsModel(QObject *parent = 0);
+    ~SettingsModel();
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group);
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
+    void reload();
 
-    QString defaultProfile() const;
-    QStringList profiles() const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex &child) const;
 
 private:
-    QString internalRepresentation(const QString &externalKey) const;
-    QString externalRepresentation(const QString &internalKey) const;
-    void fixupKeys(QStringList &keys) const;
-    void checkStatus();
-
-    QSettings * const m_settings;
+    class SettingsModelPrivate;
+    SettingsModelPrivate * const d;
 };
-
-} // namespace qbs
-
-#endif // QBS_SETTINGS_H

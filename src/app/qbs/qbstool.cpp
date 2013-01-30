@@ -44,14 +44,13 @@ static QString qbsToolFilePath(const QString &toolName)
 
 void QbsTool::runTool(const QString &toolName, const QStringList &arguments)
 {
-    m_failedToStart = m_failedToFinish = false;
+    m_failedToStart = false;
     m_exitCode = -1;
     QProcess toolProc;
     toolProc.start(qbsToolFilePath(toolName), arguments);
     if (!toolProc.waitForStarted())
         m_failedToStart = true;
-     if (!toolProc.waitForFinished())
-        m_failedToFinish = true;
+    toolProc.waitForFinished(-1);
     m_exitCode = toolProc.exitCode();
     m_stdout = QString::fromLocal8Bit(toolProc.readAllStandardOutput());
     m_stderr = QString::fromLocal8Bit(toolProc.readAllStandardError());

@@ -26,44 +26,34 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
-
-#include <QStringList>
-#include <QVariant>
+#include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
-class QSettings;
+namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-namespace qbs {
+class SettingsModel;
 
-class Settings
+class MainWindow : public QMainWindow
 {
+    Q_OBJECT
+
 public:
-    Settings(const QString &organization, const QString &application);
-    ~Settings();
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group);
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
-
-    QString defaultProfile() const;
-    QStringList profiles() const;
+private slots:
+    void adjustColumns();
+    void expandAll();
+    void collapseAll();
+    void reloadSettings();
 
 private:
-    QString internalRepresentation(const QString &externalKey) const;
-    QString externalRepresentation(const QString &internalKey) const;
-    void fixupKeys(QStringList &keys) const;
-    void checkStatus();
-
-    QSettings * const m_settings;
+    Ui::MainWindow *ui;
+    SettingsModel *m_model;
 };
 
-} // namespace qbs
-
-#endif // QBS_SETTINGS_H
+#endif // MAINWINDOW_H

@@ -69,6 +69,16 @@ QStringList Settings::allKeys() const
     return keys;
 }
 
+QStringList Settings::directChildren(const QString &parentGroup)
+{
+    m_settings->beginGroup(internalRepresentation(parentGroup));
+    QStringList children = m_settings->childGroups();
+    children << m_settings->childKeys();
+    m_settings->endGroup();
+    fixupKeys(children);
+    return children;
+}
+
 QStringList Settings::allKeysWithPrefix(const QString &group)
 {
     m_settings->beginGroup(internalRepresentation(group));
@@ -118,7 +128,6 @@ QString Settings::externalRepresentation(const QString &internalKey) const
 void Settings::fixupKeys(QStringList &keys) const
 {
     keys.sort();
-    std::unique(keys.begin(), keys.end());
     keys.removeDuplicates();
     for (QStringList::Iterator it = keys.begin(); it != keys.end(); ++it)
         *it = externalRepresentation(*it);
