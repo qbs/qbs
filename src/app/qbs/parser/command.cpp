@@ -172,7 +172,8 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::KeepGoingOptionType
             << CommandLineOption::DryRunOptionType
             << CommandLineOption::ProductsOptionType
-            << CommandLineOption::ChangedFilesOptionType;
+            << CommandLineOption::ChangedFilesOptionType
+            << CommandLineOption::ForceOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const

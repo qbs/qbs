@@ -310,6 +310,21 @@ QString AllArtifactsOption::longRepresentation() const
     return QLatin1String("--all-artifacts");
 }
 
+QString ForceOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tDisregard objections.\n"
+                  "\tqbs might refuse to execute a given command because "
+                  "certain circumstances make it seem dubious. This option switches the "
+                  "respective checks off.\n").arg(longRepresentation());
+}
+
+QString ForceOption::longRepresentation() const
+{
+    return QLatin1String("--force");
+}
+
+
 QString InstallRootOption::description(CommandType command) const
 {
     Q_ASSERT(command == InstallCommandType || command == RunCommandType);

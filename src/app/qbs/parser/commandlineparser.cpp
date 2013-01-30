@@ -138,6 +138,11 @@ InstallOptions CommandLineParser::installOptions() const
     return options;
 }
 
+bool CommandLineParser::force() const
+{
+    return d->optionPool.forceOption()->enabled();
+}
+
 QStringList CommandLineParser::runArgs() const
 {
     Q_ASSERT(d->command->type() == RunCommandType);

@@ -55,6 +55,7 @@ public:
     QString projectFilePath() const;
     BuildOptions buildOptions() const;
     InstallOptions installOptions() const;
+    bool force() const;
     QStringList runArgs() const;
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;

@@ -79,6 +79,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::RemoveFirstOptionType:
             option = new RemoveFirstOption;
             break;
+        case CommandLineOption::ForceOptionType:
+            option = new ForceOption;
+            break;
         }
     }
     return option;
@@ -147,6 +150,11 @@ InstallRootOption *CommandLineOptionPool::installRootOption() const
 RemoveFirstOption *CommandLineOptionPool::removeFirstoption() const
 {
     return static_cast<RemoveFirstOption *>(getOption(CommandLineOption::RemoveFirstOptionType));
+}
+
+ForceOption *CommandLineOptionPool::forceOption() const
+{
+    return static_cast<ForceOption *>(getOption(CommandLineOption::ForceOptionType));
 }
 
 } // namespace qbs

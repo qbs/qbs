@@ -54,6 +54,7 @@ public:
     AllArtifactsOption *allArtifactsOption() const;
     InstallRootOption *installRootOption() const;
     RemoveFirstOption *removeFirstoption() const;
+    ForceOption *forceOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

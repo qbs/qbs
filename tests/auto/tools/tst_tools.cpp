@@ -58,19 +58,27 @@ private slots:
         args.append("-v");
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar" << fileArgs;
+        args << "--force";
         CommandLineParser parser;
+
         QVERIFY(parser.parseCommandLine(args, settings.data()));
         QCOMPARE(Logger::instance().level(), LoggerTrace);
         QCOMPARE(parser.command(), BuildCommandType);
         QCOMPARE(parser.products(), QStringList() << "blubb");
         QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
         QVERIFY(parser.buildOptions().keepGoing);
+        QVERIFY(parser.force());
+
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << fileArgs, settings.data()));
         QCOMPARE(Logger::instance().level(), Logger::defaultLevel());
+        QVERIFY(!parser.force());
+
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqq" << fileArgs, settings.data()));
         QCOMPARE(Logger::instance().level(), LoggerWarning);
+
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqq" << fileArgs, settings.data()));
         QCOMPARE(Logger::instance().level(), LoggerDebug);
+
         QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << fileArgs,
                                         settings.data()));
         QCOMPARE(Logger::instance().level(), LoggerTrace);
@@ -94,6 +102,8 @@ private slots:
                                          settings.data())); // Wrong argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << fileArgs,
                                          settings.data())); // Wrong argument.
+        QVERIFY(!parser.parseCommandLine(QStringList("properties") << fileArgs << "--force",
+                settings.data())); // Invalid option for command.
     }
 
     void testFileInfo()

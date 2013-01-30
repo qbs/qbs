@@ -48,7 +48,8 @@ public:
         ChangedFilesOptionType,
         ProductsOptionType,
         AllArtifactsOptionType,
-        InstallRootOptionType, RemoveFirstOptionType
+        InstallRootOptionType, RemoveFirstOptionType,
+        ForceOptionType
     };
 
     virtual ~CommandLineOption();
@@ -170,6 +171,14 @@ class AllArtifactsOption : public OnOffOption
     QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;
 };
+
+class ForceOption : public OnOffOption
+{
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+};
+
 
 class StringListOption : public CommandLineOption
 {
