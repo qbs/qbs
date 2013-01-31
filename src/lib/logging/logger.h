@@ -41,37 +41,12 @@ class QVariant;
 QT_END_NAMESPACE
 
 namespace qbs {
-
-class Logger
-{
-public:
-    static Logger &instance();
-
-    static LoggerLevel defaultLevel() { return LoggerInfo; }
-    static QByteArray logLevelTag(LoggerLevel level);
-    static QString logLevelName(LoggerLevel level);
-
-    void setLevel(int level);
-    void setLevel(LoggerLevel level);
-    LoggerLevel level() const { return m_level; }
-    void print(LoggerLevel l, const LogMessage &message);
-
-    ~Logger();
-
-    void setLogSink(ILogSink *logSink);
-
-protected:
-    Logger();
-
-private:
-    ILogSink *m_logSink;
-    LoggerLevel m_level;
-};
+namespace Internal {
 
 class LogWriter
 {
 public:
-    LogWriter(LoggerLevel level);
+    LogWriter(ILogSink *logSink, LoggerLevel level);
 
     // log writer has move semantics and the last instance of
     // a << chain prints the accumulated data
@@ -79,50 +54,30 @@ public:
     ~LogWriter();
     const LogWriter &operator=(const LogWriter &other);
 
-    void write(const char c);
+    void write(char c);
     void write(const char *str);
-    void setOutputChannel(LogOutputChannel channel) { m_logMessage.outputChannel = channel; }
-    void setPrintLogLevel(bool b) { m_logMessage.printLogLevel = b; }
-    void setTextColor(TextColor color) { m_logMessage.textColor = color; }
-    const LogMessage &logMessage() const { return m_logMessage; }
+    void write(const QChar &c);
+    void write(const QString &message);
+
+    void setMessageTag(const QString &tag);
 
 private:
+    ILogSink *m_logSink;
     LoggerLevel m_level;
-    mutable LogMessage m_logMessage;
+    mutable QString m_message;
+    QString m_tag;
 };
 
-class TimedActivityLogger
+class MessageTag
 {
 public:
-    TimedActivityLogger(const QString &activity, const QString &prefix = QString(),
-            LoggerLevel logLevel = LoggerDebug);
-    void finishActivity();
-    ~TimedActivityLogger();
+    explicit MessageTag(const QString &tag) : m_tag(tag) {}
+
+    const QString &tag() const { return m_tag; }
 
 private:
-    class TimedActivityLoggerPrivate;
-    TimedActivityLoggerPrivate *d;
+    QString m_tag;
 };
-
-enum LogModifier
-{
-    DontPrintLogLevel
-};
-
-inline bool qbsLogLevel(LoggerLevel l) { return Logger::instance().level() >= l; }
-void qbsLog(LoggerLevel logLevel, const char *str, ...);
-void qbsError(const char *str, ...);
-void qbsWarning(const char *str, ...);
-void qbsInfo(const char *str, ...);
-void qbsDebug(const char *str, ...);
-void qbsTrace(const char *str, ...);
-
-LogWriter qbsLog(LoggerLevel level);
-LogWriter qbsError();
-LogWriter qbsWarning();
-LogWriter qbsInfo();
-LogWriter qbsDebug();
-LogWriter qbsTrace();
 
 LogWriter operator<<(LogWriter w, const char *str);
 LogWriter operator<<(LogWriter w, const QByteArray &byteArray);
@@ -133,10 +88,43 @@ LogWriter operator<<(LogWriter w, const QVariant &variant);
 LogWriter operator<<(LogWriter w, int n);
 LogWriter operator<<(LogWriter w, qint64 n);
 LogWriter operator<<(LogWriter w, bool b);
-LogWriter operator<<(LogWriter w, LogOutputChannel);
-LogWriter operator<<(LogWriter w, LogModifier);
-LogWriter operator<<(LogWriter w, TextColor);
+LogWriter operator<<(LogWriter w, const MessageTag &tag);
 
+class Logger
+{
+public:
+    Logger(ILogSink *logSink = 0);
+
+    ILogSink *logSink() const { return m_logSink; }
+
+    bool debugEnabled() const;
+    bool traceEnabled() const;
+
+    LogWriter qbsLog(LoggerLevel level) const;
+    LogWriter qbsWarning() const { return qbsLog(LoggerWarning); }
+    LogWriter qbsInfo() const { return qbsLog(LoggerInfo); }
+    LogWriter qbsDebug() const { return qbsLog(LoggerDebug); }
+    LogWriter qbsTrace() const { return qbsLog(LoggerTrace); }
+
+private:
+    ILogSink *m_logSink;
+};
+
+
+class TimedActivityLogger
+{
+public:
+    TimedActivityLogger(const Logger &logger, const QString &activity,
+                        const QString &prefix = QString(), LoggerLevel logLevel = LoggerDebug);
+    void finishActivity();
+    ~TimedActivityLogger();
+
+private:
+    class TimedActivityLoggerPrivate;
+    TimedActivityLoggerPrivate *d;
+};
+
+} // namespace Internal
 } // namespace qbs
 
 #endif // QBS_LOGGER_H

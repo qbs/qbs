@@ -54,7 +54,7 @@ QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const QString &f
     return instance()->m_scannerPlugins.value(fileTag);
 }
 
-void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths)
+void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Logger &logger)
 {
     QStringList filters;
 
@@ -66,33 +66,34 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths)
         filters << "*.so";
 
     foreach (const QString &pluginPath, pluginPaths) {
-        qbsTrace("pluginmanager: loading plugins from '%s'.", qPrintable(QDir::toNativeSeparators(pluginPath)));
+        logger.qbsTrace() << QString::fromLocal8Bit("pluginmanager: loading plugins from '%1'.")
+                             .arg(QDir::toNativeSeparators(pluginPath));
         QDirIterator it(pluginPath, filters, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
             QScopedPointer<QLibrary> lib(new QLibrary(fileName));
             if (!lib->load()) {
-                qbsWarning("pluginmanager: couldn't load '%s'.",
-                           qPrintable(QDir::toNativeSeparators(fileName)));
+                logger.qbsWarning() << QString::fromLocal8Bit("pluginmanager: couldn't load '%1'.")
+                                       .arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
 
             getScanners_f getScanners = reinterpret_cast<getScanners_f>(lib->resolve("getScanners"));
             if (!getScanners) {
-                qbsWarning("pluginmanager: couldn't resolve symbol in '%s'.",
-                           qPrintable(QDir::toNativeSeparators(fileName)));
+                logger.qbsWarning() << QString::fromLocal8Bit("pluginmanager: couldn't resolve "
+                        "symbol in '%1'.").arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
 
             ScannerPlugin **plugins = getScanners();
             if (plugins == 0) {
-                qbsWarning("pluginmanager: no scanners returned from '%s'.",
-                           qPrintable(QDir::toNativeSeparators(fileName)));
+                logger.qbsWarning() << QString::fromLocal8Bit("pluginmanager: no scanners "
+                        "returned from '%1'.").arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
 
-            qbsTrace("pluginmanager: scanner plugin '%s' loaded.",
-                     qPrintable(QDir::toNativeSeparators(fileName)));
+            logger.qbsTrace() << QString::fromLocal8Bit("pluginmanager: scanner plugin '%1' "
+                    "loaded.").arg(QDir::toNativeSeparators(fileName));
 
             for (int i = 0; plugins[i] != 0; ++i)
                 m_scannerPlugins[QString::fromLocal8Bit(plugins[i]->fileTag)] += plugins[i];

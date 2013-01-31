@@ -32,6 +32,7 @@
 
 #include "scanresultcache.h"
 #include <language/forward_decls.h>
+#include <logging/logger.h>
 
 #include <QHash>
 #include <QStringList>
@@ -97,7 +98,8 @@ private:
 class InputArtifactScanner
 {
 public:
-    InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx);
+    InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
+                         const Logger &logger);
     void scan();
     bool newDependencyAdded() const { return m_newDependencyAdded; }
 
@@ -112,6 +114,7 @@ private:
     Artifact * const m_artifact;
     InputArtifactScannerContext *const m_context;
     bool m_newDependencyAdded;
+    Logger m_logger;
 };
 
 } // namespace Internal

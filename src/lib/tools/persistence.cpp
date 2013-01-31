@@ -30,7 +30,6 @@
 #include "persistence.h"
 
 #include "fileinfo.h"
-#include <logging/logger.h>
 #include <tools/error.h>
 
 #include <QDir>
@@ -41,7 +40,7 @@ namespace Internal {
 
 static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE0_0_1__31";
 
-PersistentPool::PersistentPool()
+PersistentPool::PersistentPool(const Logger &logger) : m_logger(logger)
 {
 }
 
@@ -54,7 +53,8 @@ bool PersistentPool::load(const QString &filePath)
 {
     QScopedPointer<QFile> file(new QFile(filePath));
     if (!file->open(QFile::ReadOnly)) {
-        qbsDebug() << "Could not open build graph file for reading: " << file->errorString();
+        m_logger.qbsDebug() << "Could not open build graph file for reading: "
+                            << file->errorString();
         return false;
     }
 
@@ -65,7 +65,7 @@ bool PersistentPool::load(const QString &filePath)
         file->close();
         file->remove();
         m_stream.setDevice(0);
-        qbsInfo() << "Cannot use stored build graph: Incompatible file format.";
+        m_logger.qbsInfo() << "Cannot use stored build graph: Incompatible file format.";
         return false;
     }
 

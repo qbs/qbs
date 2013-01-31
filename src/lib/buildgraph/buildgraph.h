@@ -38,14 +38,15 @@
 namespace qbs {
 namespace Internal {
 class Artifact;
+class Logger;
 class ScriptEngine;
 
 bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
 void connect(Artifact *p, Artifact *c);
-void loggedConnect(Artifact *u, Artifact *v);
-bool safeConnect(Artifact *u, Artifact *v);
-void removeGeneratedArtifactFromDisk(Artifact *artifact);
-void disconnect(Artifact *u, Artifact *v);
+void loggedConnect(Artifact *u, Artifact *v, const Logger &logger);
+bool safeConnect(Artifact *u, Artifact *v, const Logger &logger);
+void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
+void disconnect(Artifact *u, Artifact *v, const Logger &logger);
 
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject);

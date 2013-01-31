@@ -64,7 +64,8 @@ static QStringList populateExecutableSuffixes()
 
 const QStringList ProcessCommandExecutor::m_executableSuffixes = populateExecutableSuffixes();
 
-ProcessCommandExecutor::ProcessCommandExecutor(QObject *parent) : AbstractCommandExecutor(parent)
+ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *parent)
+    : AbstractCommandExecutor(logger, parent)
 {
     connect(&m_process, SIGNAL(error(QProcess::ProcessError)),  SLOT(onProcessError()));
     connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
@@ -107,10 +108,8 @@ void ProcessCommandExecutor::doStart()
     QStringList arguments = cmd->arguments();
     QString argString = commandArgsToString(arguments);
 
-    if (!cmd->isSilent()) {
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << program << argString;
-    }
+    if (!cmd->isSilent())
+        logger().qbsInfo() << program << argString;
     if (dryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
@@ -120,9 +119,10 @@ void ProcessCommandExecutor::doStart()
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
         const int commandLineLength = program.length() + argString.length();
         if (cmd->responseFileThreshold() >= 0 && commandLineLength > cmd->responseFileThreshold()) {
-            if (qbsLogLevel(LoggerDebug)) {
-                qbsDebug("[EXEC] Using response file. Threshold is %d. Command line length %d.",
-                        cmd->responseFileThreshold(), commandLineLength);
+            if (logger().debugEnabled()) {
+                logger().qbsDebug() << QString::fromLocal8Bit("[EXEC] Using response file. "
+                        "Threshold is %1. Command line length %2.")
+                        .arg(cmd->responseFileThreshold()).arg(commandLineLength);
             }
 
             // The QTemporaryFile keeps a handle on the file, even if closed.
@@ -148,8 +148,8 @@ void ProcessCommandExecutor::doStart()
         }
     }
 
-    qbsDebug() << "[EXEC] Running external process; full command line is: " << program
-               << " " << commandArgsToString(arguments);
+    logger().qbsDebug() << "[EXEC] Running external process; full command line is: " << program
+                        << " " << commandArgsToString(arguments);
     m_process.setWorkingDirectory(cmd->workingDir());
     m_process.start(program, arguments);
 
@@ -281,8 +281,8 @@ QString ProcessCommandExecutor::findProcessCommandInPath()
         return fullProgramPath;
 
     fullProgramPath = cmd->program();
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
+    if (logger().traceEnabled())
+        logger().qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
     const QProcessEnvironment &buildEnvironment = product->buildEnvironment;
     QStringList pathEnv = buildEnvironment.value("PATH").split(HostOsInfo::pathListSeparator(),
             QString::SkipEmptyParts);
@@ -314,8 +314,8 @@ QString ProcessCommandExecutor::findProcessCommandBySuffix()
         return fullProgramPath;
 
     fullProgramPath = cmd->program();
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
+    if (logger().traceEnabled())
+        logger().qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
     const QString emptyDirectory;
     findProcessCandidateCheck(emptyDirectory, fullProgramPath, fullProgramPath);
     product->executablePathCache.insert(cmd->program(), fullProgramPath);
@@ -327,8 +327,8 @@ bool ProcessCommandExecutor::findProcessCandidateCheck(const QString &directory,
 {
     for (int i = 0; i < m_executableSuffixes.count(); ++i) {
         QString candidate = directory + program + m_executableSuffixes.at(i);
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace() << "[EXEC] candidate: " << candidate;
+        if (logger().traceEnabled())
+            logger().qbsTrace() << "[EXEC] candidate: " << candidate;
         if (FileInfo::exists(candidate)) {
             fullProgramPath = candidate;
             return true;

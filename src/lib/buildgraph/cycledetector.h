@@ -30,6 +30,7 @@
 #define QBS_CYCLEDETECTOR_H
 
 #include "artifactvisitor.h"
+#include <logging/logger.h>
 
 #include <QSet>
 
@@ -39,7 +40,7 @@ namespace Internal {
 class CycleDetector : public ArtifactVisitor
 {
 public:
-    CycleDetector();
+    CycleDetector(const Logger &logger);
 
     void visitProject(const BuildProjectConstPtr &project);
     void visitArtifact(Artifact *artifact);
@@ -52,6 +53,7 @@ private:
     QSet<Artifact *> m_allArtifacts;
     QSet<Artifact *> m_artifactsInCurrentPath;
     Artifact *m_parent;
+    Logger m_logger;
 };
 
 } // namespace Internal

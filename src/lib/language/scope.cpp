@@ -30,25 +30,27 @@
 #include "scope.h"
 #include "scopechain.h"
 #include "projectfile.h"
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>    // ### remove
 #include <tools/scripttools.h>
 #include <QScriptEngine>
+#include <cstdio>
 
 namespace qbs {
 namespace Internal {
 
-Scope::Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name)
+Scope::Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name, const Logger &logger)
     : QScriptClass(engine)
     , m_scopesCache(cache)
     , m_name(name)
+    , m_logger(logger)
 {
 }
 
-QSharedPointer<Scope> Scope::create(QScriptEngine *engine, ScopesCachePtr cache, const QString &name, ProjectFile *owner)
+QSharedPointer<Scope> Scope::create(QScriptEngine *engine, ScopesCachePtr cache,
+                                    const QString &name, ProjectFile *owner, const Logger &logger)
 {
-    QSharedPointer<Scope> obj(new Scope(engine, cache, name));
+    QSharedPointer<Scope> obj(new Scope(engine, cache, name, logger));
     obj->value = engine->newObject(obj.data());
     owner->registerScope(obj);
     return obj;
@@ -88,7 +90,7 @@ Scope::QueryFlags Scope::queryProperty(const QScriptValue &object, const QScript
     }
 
     if (debugProperties)
-        qbsTrace() << "PROPERTIES: we don't handle " << name.toString();
+        m_logger.qbsTrace() << "PROPERTIES: we don't handle " << name.toString();
     return 0;
 }
 
@@ -106,29 +108,29 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
     Property property = properties.value(nameString);
 
     if (debugProperties)
-        qbsTrace() << "PROPERTIES: evaluating " << nameString;
+        m_logger.qbsTrace() << "PROPERTIES: evaluating " << nameString;
 
     if (!property.isValid()) {
         if (debugProperties)
-            qbsTrace() << " : no such property";
+            m_logger.qbsTrace() << " : no such property";
         return QScriptValue(); // does this raise an error?
     }
 
     if (property.scope) {
         if (debugProperties)
-            qbsTrace() << " : object property";
+            m_logger.qbsTrace() << " : object property";
         return property.scope->value;
     }
 
     if (property.value.isValid()) {
         if (debugProperties)
-            qbsTrace() << " : pre-evaluated property: " << property.value.toVariant();
+            m_logger.qbsTrace() << " : pre-evaluated property: " << property.value.toVariant();
         return property.value;
     }
 
     // evaluate now
     if (debugProperties)
-        qbsTrace() << " : evaluating now: " << property.valueSource.sourceCode();
+        m_logger.qbsTrace() << " : evaluating now: " << property.valueSource.sourceCode();
     QScriptContext *context = engine()->currentContext();
     const QScriptValue oldActivation = context->activationObject();
 
@@ -161,9 +163,10 @@ QScriptValue Scope::property(const QScriptValue &object, const QScriptString &na
         return result;
 
     if (debugProperties) {
-        qbsTrace() << "PROPERTIES: evaluated " << nameString << " to " << result.toVariant() << " " << result.toString();
+        m_logger.qbsTrace() << "PROPERTIES: evaluated " << nameString << " to "
+                            << result.toVariant() << " " << result.toString();
         if (result.isError())
-            qbsTrace() << "            was error!";
+            m_logger.qbsTrace() << "            was error!";
     }
 
     m_scopesCache->insert(this);

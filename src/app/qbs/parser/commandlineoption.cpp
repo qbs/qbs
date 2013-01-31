@@ -195,7 +195,7 @@ QString ShowProgressOption::description(CommandType command) const
     Q_UNUSED(command);
     return Tr::tr("%1\n"
             "\tShow a progress bar. Implies '%2=%3'.\n").arg(longRepresentation(),
-            loglevelLongRepresentation(), Logger::logLevelName(LoggerMinLevel));
+            loglevelLongRepresentation(), logLevelName(LoggerMinLevel));
 }
 
 QString ShowProgressOption::longRepresentation() const
@@ -259,11 +259,11 @@ static QStringList allLogLevelStrings()
 {
     QStringList result;
     for (int i = static_cast<int>(LoggerMinLevel); i <= static_cast<int>(LoggerMaxLevel); ++i)
-        result << Logger::logLevelName(static_cast<LoggerLevel>(i));
+        result << logLevelName(static_cast<LoggerLevel>(i));
     return result;
 }
 
-LogLevelOption::LogLevelOption() : m_logLevel(Logger::defaultLevel())
+LogLevelOption::LogLevelOption() : m_logLevel(defaultLogLevel())
 {
 }
 
@@ -273,8 +273,7 @@ QString LogLevelOption::description(CommandType command) const
     return Tr::tr("%1 <level>\n"
             "\tUse the specified log level. Possible values are '%2'.\n"
             "\tThe default is '%3'.\n").arg(longRepresentation(),
-            allLogLevelStrings().join(QLatin1String("', '")),
-                                              Logger::logLevelName(Logger::defaultLevel()));
+            allLogLevelStrings().join(QLatin1String("', '")), logLevelName(defaultLogLevel()));
 }
 
 QString LogLevelOption::longRepresentation() const
@@ -288,7 +287,7 @@ void LogLevelOption::doParse(const QString &representation, QStringList &input)
     const QList<LoggerLevel> levels = QList<LoggerLevel>() << LoggerError << LoggerWarning
             << LoggerInfo << LoggerDebug << LoggerTrace;
     foreach (LoggerLevel l, levels) {
-        if (Logger::logLevelName(l) == levelString) {
+        if (logLevelName(l) == levelString) {
             m_logLevel = l;
             return;
         }

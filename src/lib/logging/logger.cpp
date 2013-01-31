@@ -43,184 +43,61 @@
 #include <stdio.h>
 
 namespace qbs {
+namespace Internal {
 
-Logger &Logger::instance()
-{
-    static Logger instance;
-    return instance;
-}
-
-QByteArray Logger::logLevelTag(LoggerLevel level)
-{
-    QString str = logLevelName(level).toUpper();
-    if (!str.isEmpty())
-        str.append(QLatin1String(": "));
-    return str.toUtf8();
-}
-
-QString Logger::logLevelName(LoggerLevel level)
-{
-    switch (level) {
-    case qbs::LoggerError:
-        return QLatin1String("error");
-    case qbs::LoggerWarning:
-        return QLatin1String("warning");
-    case qbs::LoggerInfo:
-        return QLatin1String("info");
-    case qbs::LoggerDebug:
-        return QLatin1String("debug");
-    case qbs::LoggerTrace:
-        return QLatin1String("trace");
-    default:
-        break;
-    }
-    return QString();
-}
-
-Logger::Logger()
-    : m_logSink(0)
-    , m_level(defaultLevel())
-{
-}
-
-Logger::~Logger()
-{
-    delete m_logSink;
-}
-
-void Logger::setLogSink(ILogSink *logSink)
-{
-    m_logSink = logSink;
-}
-
-void Logger::setLevel(int level)
-{
-    m_level = static_cast<LoggerLevel>(qMin(level, int(LoggerMaxLevel)));
-}
-
-void Logger::setLevel(LoggerLevel level)
-{
-    m_level = level;
-}
-
-void Logger::print(LoggerLevel l, const LogMessage &message)
-{
-    if (!m_logSink)
-        return;
-    m_logSink->outputLogMessage(l, message);
-}
-
-LogWriter::LogWriter(LoggerLevel level)
-    : m_level(level)
+LogWriter::LogWriter(ILogSink *logSink, LoggerLevel level) : m_logSink(logSink), m_level(level)
 {}
 
 LogWriter::LogWriter(const LogWriter &other)
-    : m_level(other.m_level)
-    , m_logMessage(other.m_logMessage)
+    : m_logSink(other.m_logSink)
+    , m_level(other.m_level)
+    , m_message(other.m_message)
+    , m_tag(other.m_tag)
 {
-    other.m_logMessage.data.clear();
+    other.m_message.clear();
 }
 
 LogWriter::~LogWriter()
 {
-    if (!m_logMessage.data.isEmpty())
-        Logger::instance().print(m_level, m_logMessage);
+    if (!m_message.isEmpty())
+        m_logSink->printMessage(m_level, m_message, m_tag);
 }
 
 const LogWriter &LogWriter::operator=(const LogWriter &other)
 {
+    m_logSink = other.m_logSink;
     m_level = other.m_level;
-    m_logMessage = other.m_logMessage;
-    other.m_logMessage.data.clear();
-
+    m_message = other.m_message;
+    m_tag = other.m_tag;
+    other.m_message.clear();
     return *this;
 }
 
-void LogWriter::write(const char c)
+void LogWriter::write(char c)
 {
-    if (Logger::instance().level() >= m_level)
-        m_logMessage.data.append(c);
+    write(QLatin1Char(c));
 }
 
 void LogWriter::write(const char *str)
 {
-    if (Logger::instance().level() >= m_level)
-        m_logMessage.data.append(str);
+    write(QLatin1String(str));
 }
 
-Q_GLOBAL_STATIC(QMutex, logMutex)
-Q_GLOBAL_STATIC(QByteArray, logByteArray)
-
-static void qbsLog_impl(LoggerLevel logLevel, const char *str, va_list vl)
+void LogWriter::write(const QChar &c)
 {
-    Logger &logger = Logger::instance();
-    if (logger.level() < logLevel)
-        return;
-    logMutex()->lock();
-    if (logByteArray()->isEmpty())
-        logByteArray()->resize(1024 * 1024);
-    vsnprintf(logByteArray()->data(), logByteArray()->size(), str, vl);
-    LogMessage msg;
-    msg.data = *logByteArray();
-    logMutex()->unlock();
-    logger.print(logLevel, msg);
+    if (m_logSink->logLevel() >= m_level)
+        m_message.append(c);
 }
 
-void qbsLog(LoggerLevel logLevel, const char *str, ...)
+void LogWriter::write(const QString &message)
 {
-    va_list vl;
-    va_start(vl, str);
-    qbsLog_impl(logLevel, str, vl);
-    va_end(vl);
+    if (m_logSink->logLevel() >= m_level)
+        m_message += message;
 }
 
-#define DEFINE_QBS_LOG_FUNCTION(LogLevel) \
-    void qbs##LogLevel(const char *str, ...) \
-    { \
-        const LoggerLevel level = Logger##LogLevel; \
-        Logger &logger = Logger::instance(); \
-        if (logger.level() >= level) { \
-            va_list vl; \
-            va_start(vl, str); \
-            qbsLog_impl(level, str, vl); \
-            va_end(vl); \
-        } \
-    } \
-
-DEFINE_QBS_LOG_FUNCTION(Error)
-DEFINE_QBS_LOG_FUNCTION(Warning)
-DEFINE_QBS_LOG_FUNCTION(Info)
-DEFINE_QBS_LOG_FUNCTION(Debug)
-DEFINE_QBS_LOG_FUNCTION(Trace)
-
-LogWriter qbsLog(LoggerLevel level)
+void LogWriter::setMessageTag(const QString &tag)
 {
-    return LogWriter(level);
-}
-
-LogWriter qbsError()
-{
-    return LogWriter(LoggerError);
-}
-
-LogWriter qbsWarning()
-{
-    return LogWriter(LoggerWarning);
-}
-
-LogWriter qbsInfo()
-{
-    return LogWriter(LoggerInfo);
-}
-
-LogWriter qbsDebug()
-{
-    return LogWriter(LoggerDebug);
-}
-
-LogWriter qbsTrace()
-{
-    return LogWriter(LoggerTrace);
+    m_tag = tag;
 }
 
 LogWriter operator<<(LogWriter w, const char *str)
@@ -237,7 +114,7 @@ LogWriter operator<<(LogWriter w, const QByteArray &byteArray)
 
 LogWriter operator<<(LogWriter w, const QString &str)
 {
-    w.write(qPrintable(str));
+    w.write(str);
     return w;
 }
 
@@ -245,9 +122,9 @@ LogWriter operator<<(LogWriter w, const QStringList &strList)
 {
     w.write('[');
     for (int i = 0; i < strList.size(); ++i) {
-        w.write(qPrintable(strList.at(i)));
+        w.write(strList.at(i));
         if (i != strList.size() - 1)
-            w.write(", ");
+            w.write(QLatin1String(", "));
     }
     w.write(']');
     return w;
@@ -261,8 +138,8 @@ LogWriter operator<<(LogWriter w, const QSet<QString> &strSet)
         if (firstLoop)
             firstLoop = false;
         else
-            w.write(", ");
-        w.write(qPrintable(str));
+            w.write(QLatin1String(", "));
+        w.write(str);
     }
     w.write(')');
     return w;
@@ -270,7 +147,7 @@ LogWriter operator<<(LogWriter w, const QSet<QString> &strSet)
 
 LogWriter operator<<(LogWriter w, const QVariant &variant)
 {
-    QString str = variant.typeName() + QLatin1String("(");
+    QString str = variant.typeName() + QLatin1Char('(');
     if (variant.type() == QVariant::List) {
         bool firstLoop = true;
         foreach (const QVariant &item, variant.toList()) {
@@ -283,8 +160,8 @@ LogWriter operator<<(LogWriter w, const QVariant &variant)
     } else {
         str += variant.toString();
     }
-    str += QLatin1String(")");
-    w.write(qPrintable(str));
+    str += QLatin1Char(')');
+    w.write(str);
     return w;
 }
 
@@ -300,51 +177,57 @@ LogWriter operator<<(LogWriter w, qint64 n)
 
 LogWriter operator<<(LogWriter w, bool b)
 {
-    return w << (b ? "true" : "false");
+    return w << QString(QLatin1String(b ? "true" : "false"));
 }
 
-LogWriter operator<<(LogWriter w, LogOutputChannel channel)
+LogWriter operator<<(LogWriter w, const MessageTag &tag)
 {
-    w.setOutputChannel(channel);
+    w.setMessageTag(tag.tag());
     return w;
 }
 
-LogWriter operator<<(LogWriter w, LogModifier modifier)
+Logger::Logger(ILogSink *logger) : m_logSink(logger)
 {
-    switch (modifier) {
-    case DontPrintLogLevel:
-        w.setPrintLogLevel(false);
-        break;
-    }
-    return w;
 }
 
-LogWriter operator<<(LogWriter w, TextColor color)
+bool Logger::debugEnabled() const
 {
-    w.setTextColor(color);
-    return w;
+    return m_logSink->willPrint(LoggerDebug);
 }
+
+bool Logger::traceEnabled() const
+{
+    return m_logSink->willPrint(LoggerTrace);
+}
+
+LogWriter Logger::qbsLog(LoggerLevel level) const
+{
+    return LogWriter(m_logSink, level);
+}
+
 
 class TimedActivityLogger::TimedActivityLoggerPrivate
 {
 public:
+    Logger logger;
     QString prefix;
     QString activity;
     LoggerLevel logLevel;
     QElapsedTimer timer;
 };
 
-TimedActivityLogger::TimedActivityLogger(const QString &activity, const QString &prefix,
-        LoggerLevel logLevel)
+TimedActivityLogger::TimedActivityLogger(const Logger &logger, const QString &activity,
+                                         const QString &prefix, LoggerLevel logLevel)
     : d(0)
 {
-    if (!qbsLogLevel(logLevel))
+    if (!logger.logSink()->willPrint(logLevel))
         return;
     d = new TimedActivityLoggerPrivate;
+    d->logger = logger;
     d->prefix = prefix;
     d->activity = activity;
     d->logLevel = logLevel;
-    LogWriter(d->logLevel) << QString::fromLocal8Bit("%1Starting activity '%2'.")
+    d->logger.qbsLog(d->logLevel) << QString::fromLocal8Bit("%1Starting activity '%2'.")
             .arg(d->prefix, d->activity);
     d->timer.start();
 }
@@ -367,7 +250,7 @@ void TimedActivityLogger::finishActivity()
         timeString.prepend(QString::fromLocal8Bit("%1m, ").arg(m));
     if (h)
         timeString.prepend(QString::fromLocal8Bit("%1h, ").arg(h));
-    LogWriter(d->logLevel) << QString::fromLocal8Bit("%1Activity '%2' took %3.")
+    d->logger.qbsLog(d->logLevel) << QString::fromLocal8Bit("%1Activity '%2' took %3.")
             .arg(d->prefix, d->activity, timeString);
     delete d;
     d = 0;
@@ -378,4 +261,5 @@ TimedActivityLogger::~TimedActivityLogger()
     finishActivity();
 }
 
+} // namespace Internal
 } // namespace qbs

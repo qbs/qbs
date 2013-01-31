@@ -41,13 +41,14 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class Logger;
 
 class ScannerPluginManager
 {
 public:
     static ScannerPluginManager *instance();
     static QList<ScannerPlugin *> scannersForFileTag(const QString &fileTag);
-    void loadPlugins(const QStringList &paths);
+    void loadPlugins(const QStringList &paths, const Logger &logger);
 
 private:
     ScannerPluginManager();

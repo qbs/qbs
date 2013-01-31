@@ -46,6 +46,7 @@ namespace Internal {
 class AbstractCommandExecutor;
 class BuildProduct;
 class JsCommandExecutor;
+class Logger;
 class ProcessCommandExecutor;
 class Transformer;
 
@@ -53,7 +54,7 @@ class ExecutorJob : public QObject
 {
     Q_OBJECT
 public:
-    ExecutorJob(QObject *parent);
+    ExecutorJob(const Logger &logger, QObject *parent);
     ~ExecutorJob();
 
     void setMainThreadScriptEngine(QScriptEngine *engine);

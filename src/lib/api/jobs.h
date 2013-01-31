@@ -44,6 +44,7 @@ class Settings;
 class SetupProjectParameters;
 namespace Internal {
 class InternalJob;
+class Logger;
 class ProjectPrivate;
 } // namespace Internal
 
@@ -91,7 +92,7 @@ public:
     Project project() const;
 
 private:
-    SetupProjectJob(Settings *settings, QObject *parent);
+    SetupProjectJob(Settings *settings, const Internal::Logger &logger, QObject *parent);
 
     void resolve(const SetupProjectParameters &parameters);
     void reportError(const Error &error);
@@ -108,7 +109,7 @@ signals:
     void reportWarning(const qbs::Error &warning);
 
 private:
-    BuildJob(QObject *parent);
+    BuildJob(const Internal::Logger &logger, QObject *parent);
 
     void build(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
                const QProcessEnvironment &env);
@@ -121,7 +122,7 @@ class CleanJob : public AbstractJob
     friend class Internal::ProjectPrivate;
 
 private:
-    CleanJob(QObject *parent);
+    CleanJob(const Internal::Logger &logger, QObject *parent);
 
     void clean(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
                bool cleanAll);
@@ -132,7 +133,7 @@ class InstallJob : public AbstractJob
     Q_OBJECT
     friend class Internal::ProjectPrivate;
 private:
-    InstallJob(QObject *parent);
+    InstallJob(const Internal::Logger &logger, QObject *parent);
 
     void install(const QList<Internal::BuildProductPtr> &products, const InstallOptions &options);
 };

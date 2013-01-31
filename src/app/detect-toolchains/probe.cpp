@@ -29,8 +29,8 @@
 #include "probe.h"
 
 #include "msvcprobe.h"
+#include "../shared/logging/consolelogger.h"
 
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
@@ -43,6 +43,7 @@
 #include <QStringList>
 
 using namespace qbs;
+using Internal::Tr;
 
 static QString searchPath(const QString &path, const QString &me)
 {
@@ -66,7 +67,7 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
 
 static void specific_probe(Settings *settings, QList<Profile> &profiles, QString cc)
 {
-    qbsInfo() << DontPrintLogLevel << Tr::tr("Trying to detect %1...").arg(cc);
+    qbsInfo() << Tr::tr("Trying to detect %1...").arg(cc);
 
     QString toolchainType;
     if (cc.contains("clang"))
@@ -118,7 +119,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
         pathToGcc = searchPath(path, cc);
 
     if (!QFileInfo(pathToGcc).exists()) {
-        qbsInfo() << DontPrintLogLevel << Tr::tr("%1 not found.").arg(cc);
+        qbsInfo() << Tr::tr("%1 not found.").arg(cc);
         return;
     }
 
@@ -128,8 +129,8 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
             !(compilerTripletl.at(0).contains(QRegExp(".86")) ||
               compilerTripletl.at(0).contains("arm") )
             ) {
-        qbsError("Detected '%s', but I don't understand its architecture '%s'.",
-                qPrintable(pathToGcc), qPrintable(compilerTriplet));
+        qbsError() << QString::fromLocal8Bit("Detected '%1', but I don't understand "
+                "its architecture '%2'.").arg(pathToGcc, compilerTriplet);
         return;
     }
 
@@ -143,15 +144,15 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     QStringList pathToGccL = pathToGcc.split('/');
     QString compilerName = pathToGccL.takeLast().replace(cc, cxx);
 
-    qbsInfo() << DontPrintLogLevel << Tr::tr("Toolchain detected:\n"
+    qbsInfo() << Tr::tr("Toolchain detected:\n"
                         "    binary: %1\n"
                         "    triplet: %2\n"
                         "    arch: %3\n"
                         "    cc: %4").arg(pathToGcc, compilerTriplet, architecture, cc);
     if (!cxx.isEmpty())
-        qbsInfo() << DontPrintLogLevel << Tr::tr("    cxx: %1").arg(cxx);
+        qbsInfo() << Tr::tr("    cxx: %1").arg(cxx);
     if (!ld.isEmpty())
-       qbsInfo() << DontPrintLogLevel << Tr::tr("    ld: %1").arg(ld);
+        qbsInfo() << Tr::tr("    ld: %1").arg(ld);
 
     Profile profile(toolchainType, settings);
     profile.removeProfile();
@@ -200,7 +201,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     QProcess process;
     process.start(gccPath, QStringList() << "-dumpmachine");
     if (!process.waitForStarted()) {
-        qbsError("Could not start \"gcc -dumpmachine\".");
+        qbsError() << "Could not start \"gcc -dumpmachine\".";
         return;
     }
     process.waitForFinished(-1);
@@ -208,14 +209,14 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     QStringList validMinGWMachines;
     validMinGWMachines << "mingw32" << "mingw64" << "i686-w64-mingw32" << "x86_64-w64-mingw32";
     if (!validMinGWMachines.contains(gccMachineName)) {
-        qbsError("Detected gcc platform '%s' is not supported.", gccMachineName.data());
+        qbsError() << QString::fromLocal8Bit("Detected gcc platform '%1' is not supported.")
+                      .arg(QString::fromLocal8Bit(gccMachineName));
         return;
     }
 
 
     Profile profile(QString::fromLocal8Bit(gccMachineName), settings);
-    qbsInfo() << DontPrintLogLevel
-              << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
+    qbsInfo() << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
     profile.setValue("qbs.targetOS", "windows");
     profile.setValue("cpp.toolchainInstallPath", mingwBinPath);
     profile.setValue("qbs.toolchain", "mingw");
@@ -237,8 +238,7 @@ int probe(Settings *settings)
         qbsWarning() << Tr::tr("Could not detect any toolchains. No profile created.");
     } else if (profiles.count() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.first().name();
-        qbsInfo() << DontPrintLogLevel << Tr::tr("Making profile '%1' the default.")
-                     .arg(profileName);
+        qbsInfo() << Tr::tr("Making profile '%1' the default.").arg(profileName);
         settings->setValue(QLatin1String("defaultProfile"), profileName);
     }
     return 0;

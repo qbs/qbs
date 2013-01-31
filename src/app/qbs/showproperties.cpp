@@ -32,6 +32,8 @@
 #include <qbs.h>
 #include <tools/scripttools.h>
 
+#include <cstdio>
+
 namespace qbs {
 
 static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
@@ -43,7 +45,8 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
         if (val.type() == QVariant::Map) {
             dumpMap(val.value<QVariantMap>(), prefix + key + ".");
         } else {
-            printf("%s%s: %s\n", qPrintable(prefix), qPrintable(key), qPrintable(toJSLiteral(val)));
+            printf("%s%s: %s\n", qPrintable(prefix), qPrintable(key),
+                   qPrintable(Internal::toJSLiteral(val)));
         }
     }
 }

@@ -83,9 +83,10 @@ private:
 };
 
 
-InternalJob::InternalJob(QObject *parent)
+InternalJob::InternalJob(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_observer(new JobObserver(this))
+    , m_logger(logger)
 {
 }
 
@@ -99,12 +100,13 @@ void InternalJob::storeBuildGraph(const BuildProject *buildProject)
     try {
         buildProject->store();
     } catch (const Error &error) {
-        qbsWarning() << error.toString();
+        logger().qbsWarning() << error.toString();
     }
 }
 
-InternalSetupProjectJob::InternalSetupProjectJob(Settings *settings, QObject *parent)
-    : InternalJob(parent), m_running(false), m_settings(settings)
+InternalSetupProjectJob::InternalSetupProjectJob(Settings *settings, const Logger &logger,
+                                                 QObject *parent)
+    : InternalJob(logger, parent), m_running(false), m_settings(settings)
 {
 }
 
@@ -160,11 +162,11 @@ void InternalSetupProjectJob::doResolve()
 
 void InternalSetupProjectJob::execute()
 {
-    RulesEvaluationContextPtr evalContext(new RulesEvaluationContext);
+    RulesEvaluationContextPtr evalContext(new RulesEvaluationContext(logger()));
     evalContext->setObserver(observer());
-    const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_parameters,
+    BuildProjectLoader bpLoader(logger());
+    const BuildProjectLoader::LoadResult loadResult = bpLoader.load(m_parameters,
             evalContext, m_parameters.searchPaths, m_settings);
-
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
         m_buildProject = loadResult.loadedProject;
@@ -174,7 +176,7 @@ void InternalSetupProjectJob::execute()
         if (loadResult.changedResolvedProject) {
             rProject = loadResult.changedResolvedProject;
         } else {
-            Loader loader(evalContext->engine(), m_settings);
+            Loader loader(evalContext->engine(), m_settings, logger());
             loader.setSearchPaths(m_parameters.searchPaths);
             loader.setProgressObserver(observer());
             rProject = loader.loadProject(m_parameters);
@@ -190,19 +192,17 @@ void InternalSetupProjectJob::execute()
             = m_parameters.buildConfiguration.value(QLatin1String("environment")).toMap();
     rProject->platformEnvironment = platformEnvironment;
 
-    qbsDebug("for %s:", qPrintable(rProject->id()));
+    logger().qbsDebug() << QString::fromLocal8Bit("for %1:").arg(rProject->id());
     foreach (const ResolvedProductConstPtr &p, rProject->products) {
-        qbsDebug("  - [%s] %s as %s"
-                 ,qPrintable(p->fileTags.join(", "))
-                 ,qPrintable(p->name)
-                 ,qPrintable(p->project->id())
-                 );
+        logger().qbsDebug() << QString::fromLocal8Bit("  - [%1] %2 as %3")
+                               .arg(p->fileTags.join(QLatin1String(", ")))
+                               .arg(p->name).arg(p->project->id());
     }
-    qbsDebug("");
+    logger().qbsDebug() << '\n';
 
     if (!m_buildProject) {
-        TimedActivityLogger resolveLogger(QLatin1String("Resolving build project"));
-        m_buildProject = BuildProjectResolver().resolveProject(rProject, evalContext);
+        TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
+        m_buildProject = BuildProjectResolver(logger()).resolveProject(rProject, evalContext);
         if (loadResult.loadedProject)
             m_buildProject->rescueDependencies(loadResult.loadedProject);
     }
@@ -214,7 +214,8 @@ void InternalSetupProjectJob::execute()
 }
 
 
-BuildGraphTouchingJob::BuildGraphTouchingJob(QObject *parent) : InternalJob(parent)
+BuildGraphTouchingJob::BuildGraphTouchingJob(const Logger &logger, QObject *parent)
+    : InternalJob(logger, parent)
 {
 }
 
@@ -235,7 +236,8 @@ void BuildGraphTouchingJob::storeBuildGraph()
         InternalJob::storeBuildGraph(m_products.first()->project);
 }
 
-InternalBuildJob::InternalBuildJob(QObject *parent) : BuildGraphTouchingJob(parent)
+InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
+    : BuildGraphTouchingJob(logger, parent)
 {
 }
 
@@ -254,7 +256,7 @@ void InternalBuildJob::start()
 
 void InternalBuildJob::execute()
 {
-    Executor executor;
+    Executor executor(logger());
     QEventLoop loop;
     connect(&executor, SIGNAL(finished()), &loop, SLOT(quit()));
     connect(&executor, SIGNAL(reportCommandDescription(QString,QString)),
@@ -276,7 +278,8 @@ void InternalBuildJob::execute()
     emit finished(this);
 }
 
-InternalCleanJob::InternalCleanJob(QObject *parent) : BuildGraphTouchingJob(parent)
+InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
+    : BuildGraphTouchingJob(logger, parent)
 {
 }
 
@@ -303,7 +306,7 @@ void InternalCleanJob::handleFinished()
 void InternalCleanJob::doClean()
 {
     try {
-        ArtifactCleaner cleaner;
+        ArtifactCleaner cleaner(logger());
         cleaner.cleanup(products(), m_cleanAll, buildOptions());
     } catch (const Error &error) {
         setError(error);
@@ -312,7 +315,8 @@ void InternalCleanJob::doClean()
 }
 
 
-InternalInstallJob::InternalInstallJob(QObject *parent) : InternalJob(parent)
+InternalInstallJob::InternalInstallJob(const Logger &logger, QObject *parent)
+    : InternalJob(logger, parent)
 {
 }
 
@@ -343,7 +347,7 @@ void InternalInstallJob::start()
 void InternalInstallJob::doInstall()
 {
     try {
-        ProductInstaller(m_products, m_options, observer()).install();
+        ProductInstaller(m_products, m_options, observer(), logger()).install();
     } catch (const Error &error) {
         setError(error);
     }

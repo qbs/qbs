@@ -42,6 +42,7 @@ namespace qbs {
 class Settings;
 
 namespace Internal {
+class Logger;
 class ResolvedProduct;
 } // namespace Internal
 
@@ -57,7 +58,8 @@ public:
 
 private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
-                   const QProcessEnvironment &environment, Settings *settings);
+                   const QProcessEnvironment &environment, Settings *settings,
+                   const Internal::Logger &logger);
 
     class RunEnvironmentPrivate;
     RunEnvironmentPrivate * const d;

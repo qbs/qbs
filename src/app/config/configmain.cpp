@@ -29,9 +29,9 @@
 
 #include "configcommandlineparser.h"
 #include "configcommandexecutor.h"
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
-#include <logging/consolelogger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 
@@ -39,24 +39,23 @@
 
 #include <cstdlib>
 
-using namespace qbs;
+using qbs::Internal::Tr;
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     SettingsPtr settings = qbsSettings();
     ConfigCommandLineParser parser;
-    ConsoleLogger cl(settings.data());
+    ConsoleLogger::instance(settings.data());
     try {
         parser.parse(app.arguments().mid(1));
         if (parser.helpRequested()) {
-            qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                      << Tr::tr("This tool manages qbs settings.");
+            qbsInfo() << Tr::tr("This tool manages qbs settings.");
             parser.printUsage();
             return EXIT_SUCCESS;
         }
         ConfigCommandExecutor(settings.data()).execute(parser.command());
-    } catch (const Error &e) {
+    } catch (const qbs::Error &e) {
         qbsError() << e.toString();
         parser.printUsage();
         return EXIT_FAILURE;

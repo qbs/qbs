@@ -31,6 +31,7 @@
 #define QBS_SCRIPTENGINE_H
 
 #include "jsimports.h"
+#include <logging/logger.h>
 
 #include <QScriptEngine>
 
@@ -41,9 +42,10 @@ class ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:
-    ScriptEngine(QObject *parent = 0);
+    ScriptEngine(const Logger &logger, QObject *parent = 0);
     ~ScriptEngine();
 
+    void setLogger(const Logger &logger) { m_logger = logger; }
     void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
     void clearImportsCache();
@@ -53,6 +55,7 @@ private:
                        QScriptValue &targetObject);
 
     QHash<QString, QScriptValue> m_jsImportCache;
+    Logger m_logger;
 };
 
 } // namespace Internal

@@ -28,9 +28,9 @@
 ****************************************************************************/
 #include "setupqt.h"
 
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
-#include <logging/consolelogger.h>
 #include <logging/translator.h>
 
 #include <QCoreApplication>
@@ -39,6 +39,7 @@
 #include <QStringList>
 
 using namespace qbs;
+using Internal::Tr;
 
 static void printWrongQMakePath(const QString &qmakePath)
 {
@@ -47,17 +48,16 @@ static void printWrongQMakePath(const QString &qmakePath)
 
 static void printUsage(const QString &appName)
 {
-    qbsInfo() << DontPrintLogLevel << Tr::tr("Usage: %1 --detect | <qmake path> [<profile name>]")
-                 .arg(appName);
-    qbsInfo() << DontPrintLogLevel << Tr::tr("Use --detect to use all qmake executables found "
-                                             "via the PATH environment variable.");
+    qbsInfo() << Tr::tr("Usage: %1 --detect | <qmake path> [<profile name>]").arg(appName);
+    qbsInfo() << Tr::tr("Use --detect to use all qmake executables found "
+                        "via the PATH environment variable.");
 }
 
 int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
     SettingsPtr settings = qbsSettings();
-    ConsoleLogger cl(settings.data());
+    ConsoleLogger::instance(settings.data());
 
     QStringList args = application.arguments();
     const QString appName = QFileInfo(args.takeFirst()).fileName();
@@ -68,8 +68,7 @@ int main(int argc, char *argv[])
         }
         if (args.count() == 1 && (args.first() == QLatin1String("--help")
                                   || args.first() == QLatin1String("-h"))) {
-            qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                      << Tr::tr("This tool creates qbs profiles from Qt versions.");
+            qbsInfo() << Tr::tr("This tool creates qbs profiles from Qt versions.");
             printUsage(appName);
             return EXIT_SUCCESS;
         }

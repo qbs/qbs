@@ -26,10 +26,10 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 #include "../shared/specialplatformssetup.h"
 
-#include <logging/consolelogger.h>
 #include <tools/hostosinfo.h>
 
 #include <QBuffer>
@@ -185,12 +185,12 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     SettingsPtr settings = qbsSettings();
-    qbs::ConsoleLogger cl(settings.data());
+    ConsoleLogger::instance(settings.data());
     qbs::MaddePlatformsSetup setup(settings.data());
     try {
         setup.setup();
     } catch (const qbs::SpecialPlatformsSetup::Exception &ex) {
-        qbs::qbsError() << setup.tr("Error: %1").arg(ex.errorMessage);
+        qbsError() << setup.tr("Error: %1").arg(ex.errorMessage);
         return EXIT_FAILURE;
     }
 

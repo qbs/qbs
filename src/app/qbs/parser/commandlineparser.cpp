@@ -34,8 +34,8 @@
 #include "commandlineoptionpool.h"
 #include "commandpool.h"
 #include "../qbstool.h"
+#include "../../shared/logging/consolelogger.h"
 
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
@@ -53,6 +53,9 @@
 #endif
 
 namespace qbs {
+using Internal::FileInfo;
+using Internal::Tr;
+
 class CommandLineParser::CommandLineParserPrivate
 {
 public:
@@ -381,8 +384,7 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
         qbsInfo() << Tr::tr("Your main project file has the old suffix '.qbp'. This does not "
                         "hurt, but the convention is now to use '.qbs'.");
 
-    qbsDebug() << DontPrintLogLevel << "Using project file '"
-               << QDir::toNativeSeparators(projectFilePath) << "'.";
+    qbsDebug() << "Using project file '" << QDir::toNativeSeparators(projectFilePath) << "'.";
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
@@ -424,25 +426,25 @@ void CommandLineParser::CommandLineParserPrivate::setupLogLevel()
 
     if (showProgress && logLevel != LoggerMinLevel) {
         const bool logLevelWasSetByUser
-                = logLevelOption->logLevel() != Logger::defaultLevel()
+                = logLevelOption->logLevel() != defaultLogLevel()
                 || verboseOption->count() > 0 || quietOption->count() > 0;
         if (logLevelWasSetByUser) {
             qbsInfo() << Tr::tr("Setting log level to '%1', because option '%2'"
-                                " has been given.").arg(Logger::logLevelName(LoggerMinLevel),
+                                " has been given.").arg(logLevelName(LoggerMinLevel),
                                 optionPool.showProgressOption()->longRepresentation());
         }
         logLevel = LoggerMinLevel;
     }
     if (logLevel < LoggerMinLevel) {
         qbsWarning() << Tr::tr("Cannot decrease log level as much as specified; using '%1'.")
-                .arg(Logger::logLevelName(LoggerMinLevel));
+                .arg(logLevelName(LoggerMinLevel));
         logLevel = LoggerMinLevel;
     } else if (logLevel > LoggerMaxLevel) {
         qbsWarning() << Tr::tr("Cannot increase log level as much as specified; using '%1'.")
-                .arg(Logger::logLevelName(LoggerMaxLevel));
+                .arg(logLevelName(LoggerMaxLevel));
         logLevel = LoggerMaxLevel;
     }
-    Logger::instance().setLevel(logLevel);
+    ConsoleLogger::instance().logSink()->setLogLevel(static_cast<LoggerLevel>(logLevel));
 }
 
 QString CommandLineParser::CommandLineParserPrivate::propertyName(const QString &aCommandLineName) const

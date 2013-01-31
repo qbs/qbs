@@ -28,27 +28,26 @@
 ****************************************************************************/
 #include "mainwindow.h"
 
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
-#include <logging/consolelogger.h>
 #include <logging/translator.h>
 
 #include <QApplication>
 #include <cstdlib>
 
-using namespace qbs;
+using qbs::Internal::Tr;
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     SettingsPtr settings = qbsSettings();
-    ConsoleLogger cl(settings.data());
+    ConsoleLogger::instance(settings.data());
 
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 &&
             (args.first() == QLatin1String("--help") || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << Tr::tr("This tool displays qbs settings in a GUI.\n"
+        qbsInfo() << Tr::tr("This tool displays qbs settings in a GUI.\n"
                             "If you have more than a few settings, this might be preferable to "
                             "plain \"qbs config\", as it presents a hierarchical view.");
         return EXIT_SUCCESS;

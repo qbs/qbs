@@ -38,13 +38,14 @@ namespace qbs {
 class Settings;
 class SetupProjectParameters;
 namespace Internal {
+class Logger;
 class ProgressObserver;
 class ScriptEngine;
 
 class Loader
 {
 public:
-    Loader(ScriptEngine *engine, Settings *settings);
+    Loader(ScriptEngine *engine, Settings *settings, const Logger &logger);
     ~Loader();
 
     void setProgressObserver(ProgressObserver *observer);

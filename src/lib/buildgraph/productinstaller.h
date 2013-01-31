@@ -30,6 +30,7 @@
 #define QBS_PRODUCT_INSTALLER_H
 
 #include "forward_decls.h"
+#include <logging/logger.h>
 #include <tools/installoptions.h>
 
 #include <QList>
@@ -42,7 +43,7 @@ class ProductInstaller
 {
 public:
     ProductInstaller(const QList<BuildProductPtr> &products, const InstallOptions &options,
-                     ProgressObserver *observer);
+                     ProgressObserver *observer, const Logger &logger);
     void install();
 
 private:
@@ -53,6 +54,7 @@ private:
     const QList<BuildProductPtr> m_products;
     InstallOptions m_options;
     ProgressObserver * const m_observer;
+    Logger m_logger;
 };
 
 } // namespace Internal

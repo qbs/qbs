@@ -28,3 +28,4 @@ HEADERS += \
 include(../../lib/use.pri)
 include(../../../qbs_version.pri)
 include(parser/parser.pri)
+include(../shared/logging/logging.pri)

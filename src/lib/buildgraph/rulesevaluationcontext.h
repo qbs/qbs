@@ -38,13 +38,14 @@
 
 namespace qbs {
 namespace Internal {
+class Logger;
 class ProgressObserver;
 class ScriptEngine;
 
 class RulesEvaluationContext
 {
 public:
-    RulesEvaluationContext();
+    RulesEvaluationContext(const Logger &logger);
     ~RulesEvaluationContext();
 
     class Scope

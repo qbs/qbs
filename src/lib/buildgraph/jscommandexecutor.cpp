@@ -76,7 +76,8 @@ class JSRunner
 public:
     typedef JavaScriptCommandFutureResult result_type;
 
-    JSRunner(const JavaScriptCommand *jsCommand) : m_jsCommand(jsCommand) {}
+    JSRunner(const JavaScriptCommand *jsCommand, const Logger &logger)
+        : m_jsCommand(jsCommand), m_logger(logger) {}
 
     JavaScriptCommandFutureResult operator() (Transformer *transformer)
     {
@@ -119,12 +120,14 @@ public:
         QMutexLocker locker(&m_cacheMutex);
         ScriptEngine * scriptEngine = m_enginesPerThread.value(currentThread);
         if (!scriptEngine) {
-            scriptEngine = new ScriptEngine();
+            scriptEngine = new ScriptEngine(m_logger);
             const QScriptValue extensionObject = scriptEngine->globalObject();
             File::init(extensionObject);
             TextFile::init(extensionObject);
             Process::init(extensionObject);
             m_enginesPerThread.insert(currentThread, scriptEngine);
+        } else {
+            scriptEngine->setLogger(m_logger);
         }
         return scriptEngine;
     }
@@ -133,14 +136,15 @@ private:
     static QHash<QThread *, ScriptEngine *> m_enginesPerThread;
     static QMutex m_cacheMutex;
     const JavaScriptCommand *m_jsCommand;
+    Logger m_logger;
 };
 
 QHash<QThread *, ScriptEngine *> JSRunner::m_enginesPerThread;
 QMutex JSRunner::m_cacheMutex;
 
 
-JsCommandExecutor::JsCommandExecutor(QObject *parent)
-    : AbstractCommandExecutor(parent)
+JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
+    : AbstractCommandExecutor(logger, parent)
     , m_jsFutureWatcher(0)
 {
 }
@@ -157,7 +161,8 @@ void JsCommandExecutor::doStart()
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
     }
-    QFuture<JSRunner::result_type> future = QtConcurrent::run(JSRunner(jsCommand()), transformer());
+    QFuture<JSRunner::result_type> future
+            = QtConcurrent::run(JSRunner(jsCommand(), logger()), transformer());
     if (!m_jsFutureWatcher) {
         m_jsFutureWatcher = new JavaScriptCommandFutureWatcher(this);
         connect(m_jsFutureWatcher, SIGNAL(finished()), SLOT(onJavaScriptCommandFinished()));
@@ -169,8 +174,8 @@ void JsCommandExecutor::onJavaScriptCommandFinished()
 {
     JavaScriptCommandFutureResult result = m_jsFutureWatcher->future().result();
     if (!result.success) {
-        qbsDebug() << DontPrintLogLevel << "JS context:\n" << jsCommand()->properties();
-        qbsDebug() << DontPrintLogLevel << "JS code:\n" << jsCommand()->sourceCode();
+        logger().qbsDebug() << "JS context:\n" << jsCommand()->properties();
+        logger().qbsDebug() << "JS code:\n" << jsCommand()->sourceCode();
         QString msg = "Error while executing JavaScriptCommand:\n";
         msg += result.errorMessage;
         emit error(Error(msg, result.errorLocation));

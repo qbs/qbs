@@ -29,7 +29,6 @@
 
 #include "scriptengine.h"
 
-#include <logging/logger.h>
 #include <tools/error.h>
 
 #include <QFile>
@@ -43,8 +42,8 @@ namespace Internal {
 
 const bool debugJSImports = false;
 
-ScriptEngine::ScriptEngine(QObject *parent)
-    : QScriptEngine(parent)
+ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
+    : QScriptEngine(parent), m_logger(logger)
 {
 }
 
@@ -65,18 +64,18 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
     Q_ASSERT(targetObject.engine() == this);
 
     if (debugJSImports)
-        qbsDebug() << "[ENGINE] import into " << jsImport.scopeName;
+        m_logger.qbsDebug() << "[ENGINE] import into " << jsImport.scopeName;
 
     foreach (const QString &fileName, jsImport.fileNames) {
         QScriptValue jsImportValue;
         jsImportValue = m_jsImportCache.value(fileName);
         if (jsImportValue.isValid()) {
             if (debugJSImports)
-                qbsDebug() << "[ENGINE] " << fileName << " (cache hit)";
+                m_logger.qbsDebug() << "[ENGINE] " << fileName << " (cache hit)";
             targetObject.setProperty(jsImport.scopeName, jsImportValue);
         } else {
             if (debugJSImports)
-                qbsDebug() << "[ENGINE] " << fileName << " (cache miss)";
+                m_logger.qbsDebug() << "[ENGINE] " << fileName << " (cache miss)";
             QFile file(fileName);
             if (!file.open(QFile::ReadOnly))
                 throw Error(tr("Cannot open '%1'.").arg(fileName));
@@ -132,7 +131,7 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
         while (it.hasNext()) {
             it.next();
             if (debugJSImports)
-                qbsDebug() << "[ENGINE] Copying property " << it.name();
+                m_logger.qbsDebug() << "[ENGINE] Copying property " << it.name();
             targetObject.setProperty(it.name(), it.value());
         }
     }
@@ -146,9 +145,10 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
         if (globalPropertyNames.contains(it.name()))
             continue;
 
-        if (debugJSImports)
-            qbsDebug() << "[ENGINE] inserting global property "
-                       << it.name() << " " << it.value().toString();
+        if (debugJSImports) {
+            m_logger.qbsDebug() << "[ENGINE] inserting global property "
+                                << it.name() << " " << it.value().toString();
+        }
 
         targetObject.setProperty(it.name(), it.value());
         it.remove();

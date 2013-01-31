@@ -27,42 +27,51 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_COLOREDOUTPUT_H
-#define QBS_COLOREDOUTPUT_H
+#ifndef QBS_LOGSINK_H
+#define QBS_LOGSINK_H
 
-#include <cstdio>
-#include <cstdarg>
+#include "coloredoutput.h"
 
-namespace qbs {
-namespace Internal {
+#include <logging/logger.h>
 
-// http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-enum TextColor {
-    TextColorDefault = -1,
-    TextColorBlack = 0,
-    TextColorDarkRed = 1,
-    TextColorDarkGreen = 2,
-    TextColorDarkBlue = 4,
-    TextColorDarkCyan = TextColorDarkGreen | TextColorDarkBlue,
-    TextColorDarkMagenta = TextColorDarkRed | TextColorDarkBlue,
-    TextColorDarkYellow = TextColorDarkRed | TextColorDarkGreen,
-    TextColorGray = 7,
-    TextColorBright = 8,
-    TextColorRed = TextColorDarkRed | TextColorBright,
-    TextColorGreen = TextColorDarkGreen | TextColorBright,
-    TextColorBlue = TextColorDarkBlue | TextColorBright,
-    TextColorCyan = TextColorDarkCyan | TextColorBright,
-    TextColorMagenta = TextColorDarkMagenta | TextColorBright,
-    TextColorYellow = TextColorDarkYellow | TextColorBright,
-    TextColorWhite = TextColorGray | TextColorBright
+namespace qbs { class Settings; }
+
+class ConsoleLogSink : public qbs::ILogSink
+{
+public:
+    ConsoleLogSink();
+
+    void setColoredOutputEnabled(bool enabled) { m_coloredOutputEnabled = enabled; }
+    void setEnabled(bool enabled) { m_enabled = enabled; }
+
+private:
+    void doPrintMessage(qbs::LoggerLevel level, const QString &message, const QString &tag);
+    void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
+
+private:
+    bool m_coloredOutputEnabled;
+    bool m_enabled;
 };
 
-void printfColored(TextColor color, const char *str, va_list vl);
-void printfColored(TextColor color, const char *str, ...);
-void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl);
-void fprintfColored(TextColor color, FILE *file, const char *str, ...);
 
-} // namespace Internal
-} // namespace qbs
+class ConsoleLogger : public qbs::Internal::Logger
+{
+public:
+    static ConsoleLogger &instance(qbs::Settings *settings = 0);
+    ConsoleLogSink *logSink() { return &m_logSink; }
 
-#endif // QBS_COLOREDOUTPUT_H
+private:
+    ConsoleLogger(qbs::Settings *settings);
+
+    ConsoleLogSink m_logSink;
+};
+
+inline qbs::Internal::LogWriter qbsError() {
+    return ConsoleLogger::instance().qbsLog(qbs::LoggerError);
+}
+inline qbs::Internal::LogWriter qbsWarning() { return ConsoleLogger::instance().qbsWarning(); }
+inline qbs::Internal::LogWriter qbsInfo() { return ConsoleLogger::instance().qbsInfo(); }
+inline qbs::Internal::LogWriter qbsDebug() { return ConsoleLogger::instance().qbsDebug(); }
+inline qbs::Internal::LogWriter qbsTrace() { return ConsoleLogger::instance().qbsTrace(); }
+
+#endif // QBS_LOGSINK_H

@@ -9,3 +9,4 @@ SOURCES = settingsmodel.cpp mainwindow.cpp main.cpp
 FORMS = mainwindow.ui
 
 include(../../lib/use.pri)
+include(../shared/logging/logging.pri)

@@ -113,18 +113,19 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
     return lookupArtifact(dirPath, fileName);
 }
 
-Artifact *BuildProduct::createArtifact(const SourceArtifactConstPtr &sourceArtifact)
+Artifact *BuildProduct::createArtifact(const SourceArtifactConstPtr &sourceArtifact,
+                                       const Logger &logger)
 {
     Artifact *artifact = new Artifact(project);
     artifact->artifactType = Artifact::SourceFile;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->fileTags = sourceArtifact->fileTags;
     artifact->properties = sourceArtifact->properties;
-    insertArtifact(artifact);
+    insertArtifact(artifact, logger);
     return artifact;
 }
 
-void BuildProduct::insertArtifact(Artifact *artifact)
+void BuildProduct::insertArtifact(Artifact *artifact, const Logger &logger)
 {
     Q_ASSERT(!artifact->product);
     Q_ASSERT(!artifact->filePath().isEmpty());
@@ -150,8 +151,10 @@ void BuildProduct::insertArtifact(Artifact *artifact)
     project->insertIntoArtifactLookupTable(artifact);
     project->markDirty();
 
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] insert artifact '%s'", qPrintable(artifact->filePath()));
+    if (logger.traceEnabled()) {
+        logger.qbsTrace() << QString::fromLocal8Bit("[BG] insert artifact '%1'")
+                             .arg(artifact->filePath());
+    }
 }
 
 void BuildProduct::load(PersistentPool &pool)

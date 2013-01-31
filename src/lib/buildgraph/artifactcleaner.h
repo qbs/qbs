@@ -33,6 +33,8 @@
 
 #include "forward_decls.h"
 
+#include <logging/logger.h>
+
 namespace qbs {
 class BuildOptions;
 
@@ -41,6 +43,7 @@ namespace Internal {
 class ArtifactCleaner
 {
 public:
+    ArtifactCleaner(const Logger &logger);
     void cleanup(const QList<BuildProductPtr> &products, bool removeAll,
                  const BuildOptions &buildOptions);
 
@@ -48,6 +51,7 @@ private:
     void removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
                                 bool *isEmpty = 0);
 
+    Logger m_logger;
     bool m_hasError;
 };
 

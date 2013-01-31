@@ -123,13 +123,13 @@ void connect(Artifact *p, Artifact *c)
     p->project->markDirty();
 }
 
-void loggedConnect(Artifact *u, Artifact *v)
+void loggedConnect(Artifact *u, Artifact *v, const Logger &logger)
 {
     Q_ASSERT(u != v);
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] connect '%s' -> '%s'",
-                 qPrintable(relativeArtifactFileName(u)),
-                 qPrintable(relativeArtifactFileName(v)));
+    if (logger.traceEnabled()) {
+        logger.qbsTrace() << QString::fromLocal8Bit("[BG] connect '%1' -> '%2'")
+                             .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
+    }
     connect(u, v);
 }
 
@@ -145,18 +145,18 @@ static bool existsPath(Artifact *u, Artifact *v)
     return false;
 }
 
-bool safeConnect(Artifact *u, Artifact *v)
+bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
 {
     Q_ASSERT(u != v);
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] safeConnect: '%s' '%s'",
-                 qPrintable(relativeArtifactFileName(u)),
-                 qPrintable(relativeArtifactFileName(v)));
+    if (logger.traceEnabled()) {
+        logger.qbsTrace() << QString::fromLocal8Bit("[BG] safeConnect: '%1' '%2'")
+                             .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
+    }
 
     if (existsPath(v, u)) {
         QList<Artifact *> circle;
         findPath(v, u, circle);
-        qbsTrace() << "[BG] safeConnect: circle detected " << toStringList(circle);
+        logger.qbsTrace() << "[BG] safeConnect: circle detected " << toStringList(circle);
         return false;
     }
 
@@ -164,15 +164,17 @@ bool safeConnect(Artifact *u, Artifact *v)
     return true;
 }
 
-void disconnect(Artifact *u, Artifact *v)
+void disconnect(Artifact *u, Artifact *v, const Logger &logger)
 {
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace("[BG] disconnect: '%s' '%s'", qPrintable(relativeArtifactFileName(u)), qPrintable(relativeArtifactFileName(v)));
+    if (logger.traceEnabled()) {
+        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnect: '%1' '%2'")
+                             .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
+    }
     u->children.remove(v);
     v->parents.remove(u);
 }
 
-void removeGeneratedArtifactFromDisk(Artifact *artifact)
+void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger)
 {
     if (artifact->artifactType != Artifact::Generated)
         return;
@@ -181,9 +183,11 @@ void removeGeneratedArtifactFromDisk(Artifact *artifact)
     if (!file.exists())
         return;
 
-    qbsDebug() << "removing " << artifact->fileName();
-    if (!file.remove())
-        qbsWarning("Cannot remove '%s'.", qPrintable(artifact->filePath()));
+    logger.qbsDebug() << "removing " << artifact->fileName();
+    if (!file.remove()) {
+        logger.qbsWarning() << QString::fromLocal8Bit("Cannot remove '%1'.")
+                               .arg(artifact->filePath());
+    }
 }
 
 QString relativeArtifactFileName(const Artifact *n)

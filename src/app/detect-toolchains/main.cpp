@@ -28,9 +28,9 @@
 ****************************************************************************/
 
 #include "probe.h"
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
-#include <logging/consolelogger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 
@@ -38,20 +38,18 @@
 
 #include <cstdlib>
 
-using namespace qbs;
-using namespace Internal;
+using qbs::Internal::Tr;
 
 int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
 
     SettingsPtr settings = qbsSettings();
-    ConsoleLogger cl(settings.data());
+    ConsoleLogger::instance(settings.data());
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 && (args.first() == QLatin1String("--help")
                               || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << Tr::tr("This tool tries to auto-detect known toolchains in your system.\n"
+        qbsInfo() << Tr::tr("This tool tries to auto-detect known toolchains in your system.\n"
                             "It takes no command-line parameters.");
         return EXIT_SUCCESS;
     }
@@ -64,7 +62,7 @@ int main(int argc, char **argv)
     try {
         probe(settings.data());
         return EXIT_SUCCESS;
-    } catch (const Error &error) {
+    } catch (const qbs::Error &error) {
         qbsError() << Tr::tr("Probing for toolchains failed: %1").arg(error.toString());
         return EXIT_FAILURE;
     }

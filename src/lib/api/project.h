@@ -44,6 +44,7 @@ namespace qbs {
 class BuildJob;
 class BuildOptions;
 class CleanJob;
+class ILogSink;
 class InstallJob;
 class InstallOptions;
 class ProductData;
@@ -55,6 +56,7 @@ class SetupProjectParameters;
 
 namespace Internal {
 class BuildProject;
+class Logger;
 class ProjectPrivate;
 } // namespace Internal;
 
@@ -64,7 +66,7 @@ class Project
     friend uint qHash(const Project &p);
 public:
     static SetupProjectJob *setupProject(const SetupProjectParameters &parameters,
-                                         Settings *settings, QObject *jobOwner);
+                                         Settings *settings, ILogSink *logSink, QObject *jobOwner);
 
     Project(const Project &other);
     Project &operator=(const Project &other);
@@ -103,7 +105,7 @@ public:
 
 private:
     Project();
-    Project(const Internal::BuildProjectPtr &internalProject);
+    Project(const Internal::BuildProjectPtr &internalProject, const Internal::Logger &logger);
 
     QExplicitlySharedDataPointer<Internal::ProjectPrivate> d;
 };

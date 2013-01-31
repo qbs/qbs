@@ -37,7 +37,6 @@
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
 #include <language/language.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -69,9 +68,10 @@ static void freeCFileTags(char **cFileTags, int numFileTags)
     delete[] cFileTags;
 }
 
-AutoMoc::AutoMoc(QObject *parent)
+AutoMoc::AutoMoc(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_scanResultCache(0)
+    , m_logger(logger)
 {
 }
 
@@ -103,8 +103,10 @@ void AutoMoc::apply(const BuildProductPtr &product)
         }
 
         if (!pluginMetaDataFile && artifact->fileTags.contains(QLatin1String("qt_plugin_metadata"))) {
-            if (qbsLogLevel(LoggerDebug))
-                qbsDebug() << "[AUTOMOC] found Qt plugin metadata file " << artifact->filePath();
+            if (m_logger.debugEnabled()) {
+                m_logger.qbsDebug() << "[AUTOMOC] found Qt plugin metadata file "
+                                    << artifact->filePath();
+            }
             pluginMetaDataFile = artifact;
         }
         if (artifact->artifactType != Artifact::SourceFile)
@@ -143,8 +145,10 @@ void AutoMoc::apply(const BuildProductPtr &product)
                     continue;
                 }
             } else if (fileTag == QLatin1String("moc_plugin_hpp")) {
-                if (qbsLogLevel(LoggerDebug))
-                    qbsDebug() << "[AUTOMOC] found Qt plugin header file " << artifact->filePath();
+                if (m_logger.debugEnabled()) {
+                    m_logger.qbsDebug() << "[AUTOMOC] found Qt plugin header file "
+                                        << artifact->filePath();
+                }
                 QString newFileTag = QLatin1String("moc_hpp");
                 artifact->fileTags -= fileTag;
                 artifact->fileTags += newFileTag;
@@ -161,13 +165,13 @@ void AutoMoc::apply(const BuildProductPtr &product)
         emit reportCommandDescription(QLatin1String("automoc"),
                                       Tr::tr("Applying moc rules for '%1'.")
                                       .arg(product->rProduct->name));
-        RulesApplicator(product.data(), artifactsPerFileTag).applyAllRules();
+        RulesApplicator(product.data(), artifactsPerFileTag, m_logger).applyAllRules();
     }
     if (pluginHeaderFile && pluginMetaDataFile) {
         // Make every artifact that is dependent of the header file also
         // dependent of the plugin metadata file.
         foreach (Artifact *outputOfHeader, pluginHeaderFile->parents)
-            loggedConnect(outputOfHeader, pluginMetaDataFile);
+            loggedConnect(outputOfHeader, pluginMetaDataFile, m_logger);
     }
 
     product->project->updateNodesThatMustGetNewTransformer();
@@ -201,8 +205,8 @@ AutoMoc::FileType AutoMoc::fileType(Artifact *artifact)
 
 void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles)
 {
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] checks " << relativeArtifactFileName(artifact);
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[AUTOMOC] checks " << relativeArtifactFileName(artifact);
 
     hasQObjectMacro = false;
     const int numFileTags = artifact->fileTags.count();
@@ -220,8 +224,8 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
             for (int i=length; --i >= 0;) {
                 const QString fileTagFromScanner = QString::fromLocal8Bit(szFileTagsFromScanner[i]);
                 artifact->fileTags.insert(fileTagFromScanner);
-                if (qbsLogLevel(LoggerTrace))
-                    qbsTrace() << "[AUTOMOC] finds Q_OBJECT macro";
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << "[AUTOMOC] finds Q_OBJECT macro";
                 if (fileTagFromScanner.startsWith("moc"))
                     hasQObjectMacro = true;
             }
@@ -258,8 +262,8 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
             const QString &includedFilePath = dependency.filePath();
             if (includedFilePath.startsWith("moc_") && includedFilePath.endsWith(".cpp")) {
-                if (qbsLogLevel(LoggerTrace))
-                    qbsTrace() << "[AUTOMOC] finds included file: " << includedFilePath;
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << "[AUTOMOC] finds included file: " << includedFilePath;
                 includedMocCppFiles += includedFilePath;
             }
         }
@@ -296,8 +300,8 @@ bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foun
 
 void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
 {
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] unmoc'ing " << relativeArtifactFileName(artifact);
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[AUTOMOC] unmoc'ing " << relativeArtifactFileName(artifact);
 
     artifact->fileTags.remove(mocFileTag);
 
@@ -312,7 +316,7 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
     }
 
     if (!generatedMocArtifact) {
-        qbsTrace() << "[AUTOMOC] generated moc artifact could not be found";
+        m_logger.qbsTrace() << "[AUTOMOC] generated moc artifact could not be found";
         return;
     }
 
@@ -328,16 +332,20 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
         }
 
         if (!mocObjArtifact) {
-            qbsTrace() << "[AUTOMOC] generated moc obj artifact could not be found";
+            m_logger.qbsTrace() << "[AUTOMOC] generated moc obj artifact could not be found";
         } else {
-            if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[AUTOMOC] removing moc obj artifact " << relativeArtifactFileName(mocObjArtifact);
+            if (m_logger.traceEnabled()) {
+                m_logger.qbsTrace() << "[AUTOMOC] removing moc obj artifact "
+                                    << relativeArtifactFileName(mocObjArtifact);
+            }
             artifact->project->removeArtifact(mocObjArtifact);
         }
     }
 
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[AUTOMOC] removing generated artifact " << relativeArtifactFileName(generatedMocArtifact);
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << "[AUTOMOC] removing generated artifact "
+                            << relativeArtifactFileName(generatedMocArtifact);
+    }
     artifact->project->removeArtifact(generatedMocArtifact);
     delete generatedMocArtifact;
 }

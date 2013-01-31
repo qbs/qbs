@@ -26,19 +26,52 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "ilogsink.h"
 
-#include "logger.h"
+#include <QByteArray>
 
 namespace qbs {
 
-void ILogSink::setGlobalLogSink(ILogSink *logSink)
+QByteArray logLevelTag(LoggerLevel level)
 {
-    Logger::instance().setLogSink(logSink);
+    if (level == LoggerInfo)
+        return QByteArray();
+    QString str = logLevelName(level).toUpper();
+    if (!str.isEmpty())
+        str.append(QLatin1String(": "));
+    return str.toUtf8();
 }
 
-void ILogSink::cleanupGlobalLogSink()
+QString logLevelName(LoggerLevel level)
 {
-    Logger::instance().setLogSink(0);
+    switch (level) {
+    case qbs::LoggerError:
+        return QLatin1String("error");
+    case qbs::LoggerWarning:
+        return QLatin1String("warning");
+    case qbs::LoggerInfo:
+        return QLatin1String("info");
+    case qbs::LoggerDebug:
+        return QLatin1String("debug");
+    case qbs::LoggerTrace:
+        return QLatin1String("trace");
+    default:
+        break;
+    }
+    return QString();
+}
+
+ILogSink::~ILogSink()
+{
+}
+
+void ILogSink::printMessage(LoggerLevel level, const QString &message, const QString &tag)
+{
+    if (willPrint(level)) {
+        m_mutex.lock();
+        doPrintMessage(level, message, tag);
+        m_mutex.unlock();
+    }
 }
 
 } // namespace qbs

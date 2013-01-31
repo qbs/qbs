@@ -37,7 +37,6 @@
 #include "transformer.h"
 
 #include <language/language.h>
-#include <logging/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
 
@@ -142,8 +141,9 @@ static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
 }
 
 
-InputArtifactScanner::InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx)
-    : m_artifact(artifact), m_context(ctx), m_newDependencyAdded(false)
+InputArtifactScanner::InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
+                                           const Logger &logger)
+    : m_artifact(artifact), m_context(ctx), m_newDependencyAdded(false), m_logger(logger)
 {
 }
 
@@ -162,7 +162,7 @@ void InputArtifactScanner::scan()
     foreach (Artifact *dependency, m_artifact->children) {
         if (m_artifact->transformer->inputs.contains(dependency))
             continue;
-        disconnect(m_artifact, dependency);
+        disconnect(m_artifact, dependency, m_logger);
     }
 
     ArtifactList::const_iterator it = m_artifact->transformer->inputs.begin();
@@ -206,9 +206,10 @@ void InputArtifactScanner::scan()
 void InputArtifactScanner::scanForFileDependencies(ScannerPlugin *scannerPlugin,
         const QStringList &includePaths, Artifact *inputArtifact, InputArtifactScannerContext::ResolvedDependenciesCache &resolvedDependenciesCache)
 {
-    if (qbsLogLevel(LoggerDebug)) {
-        qbsDebug("scanning %s [%s]", qPrintable(inputArtifact->filePath()), scannerPlugin->fileTag);
-        qbsDebug("    from %s", qPrintable(m_artifact->filePath()));
+    if (m_logger.debugEnabled()) {
+        m_logger.qbsDebug() << QString::fromLocal8Bit("scanning %1 [%2]\n    from %3")
+                .arg(inputArtifact->filePath()).arg(scannerPlugin->fileTag)
+                .arg(m_artifact->filePath());
     }
 
     QSet<QString> visitedFilePaths;
@@ -282,8 +283,10 @@ void InputArtifactScanner::resolveScanResultDependencies(const QStringList &incl
         cachedResolvedDependencyItem->valid = true;
         cachedResolvedDependencyItem->resolvedDependency = resolvedDependency;
 unresolved:
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace("[DEPSCAN] unresolved '%s'", qPrintable(dependencyFilePath));
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN] unresolved '%1'")
+                                   .arg(dependencyFilePath);
+        }
         continue;
 
 resolved:
@@ -306,8 +309,10 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 
     if (!dependency.artifact) {
         // The dependency is an existing file but does not exist in the build graph.
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace("[DEPSCAN]   + '%s'", qPrintable(dependency.filePath));
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]   + '%1'")
+                                   .arg(dependency.filePath);
+        }
         dependency.artifact = new Artifact(m_artifact->project);
         dependency.artifact->artifactType = Artifact::FileDependency;
         dependency.artifact->properties = m_artifact->properties;
@@ -315,18 +320,24 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         m_artifact->project->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
         // The dependency exists in the project's list of file dependencies.
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace("[DEPSCAN]  ok in deps '%s'", qPrintable(dependency.filePath));
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  ok in deps '%1'")
+                                   .arg(dependency.filePath);
+        }
     } else if (dependency.artifact->product == product) {
         // The dependency is in our product.
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace("[DEPSCAN]  ok in product '%s'", qPrintable(dependency.filePath));
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  ok in product '%1'")
+                                   .arg(dependency.filePath);
+        }
         insertIntoProduct = false;
     } else {
         // The dependency is in some other product.
         BuildProduct *otherProduct = dependency.artifact->product;
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace("[DEPSCAN]  found in product '%s': '%s'", qPrintable(otherProduct->rProduct->name), qPrintable(dependency.filePath));
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  found in product '%1': '%2'")
+                                   .arg(otherProduct->rProduct->name, dependency.filePath);
+        }
         insertIntoProduct = false;
     }
 
@@ -339,8 +350,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         if (m_artifact->children.contains(dependency.artifact))
             return;
         if (insertIntoProduct && !product->artifacts.contains(dependency.artifact))
-            product->insertArtifact(dependency.artifact);
-        safeConnect(m_artifact, dependency.artifact);
+            product->insertArtifact(dependency.artifact, m_logger);
+        safeConnect(m_artifact, dependency.artifact, m_logger);
         m_newDependencyAdded = true;
     }
 }

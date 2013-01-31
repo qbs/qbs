@@ -26,11 +26,11 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
 #include <language/scriptengine.h>
 #include <language/loader.h>
-#include <logging/consolelogger.h>
 #include <logging/translator.h>
 
 #include <QCoreApplication>
@@ -38,19 +38,20 @@
 
 #include <iostream>
 
-using namespace qbs;
+using qbs::Internal::Loader;
+using qbs::Internal::ScriptEngine;
+using qbs::Internal::Tr;
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
     SettingsPtr settings = qbsSettings();
-    ConsoleLogger cl(settings.data());
+    ConsoleLogger &cl = ConsoleLogger::instance(settings.data());
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 && (args.first() == QLatin1String("--help")
                               || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << Tr::tr("This tool dumps information about the QML types supported by qbs.\n"
+        qbsInfo() << Tr::tr("This tool dumps information about the QML types supported by qbs.\n"
                             "It takes no command-line parameters.\n"
                             "The output is intended to be processed by other tools and has "
                             "little value for humans.");
@@ -61,8 +62,8 @@ int main(int argc, char *argv[])
                                "but this tool does not use any.");
     }
 
-    Internal::ScriptEngine engine;
-    QByteArray typeData = Internal::Loader(&engine, settings.data()).qmlTypeInfo();
+    ScriptEngine engine(cl);
+    QByteArray typeData = Loader(&engine, settings.data(), cl).qmlTypeInfo();
 
     std::cout << typeData.constData();
 

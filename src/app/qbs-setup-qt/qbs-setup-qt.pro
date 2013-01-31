@@ -17,3 +17,4 @@ HEADERS += \
     ../shared/qbssettings.h
 
 include(../../lib/use.pri)
+include(../shared/logging/logging.pri)

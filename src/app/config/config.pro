@@ -11,10 +11,11 @@ SOURCES = \
     configcommandlineparser.cpp \
     configmain.cpp
 
-include(../../lib/use.pri)
-
 HEADERS += \
     configcommand.h \
     configcommandexecutor.h \
     configcommandlineparser.h \
     ../shared/qbssettings.h
+
+include(../../lib/use.pri)
+include(../shared/logging/logging.pri)

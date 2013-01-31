@@ -33,12 +33,11 @@
 #include <app/shared/qbssettings.h>
 #include <language/forward_decls.h>
 #include <language/loader.h>
-#include <logging/consolelogger.h>
-#include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 #include <QtTest>
 
 using namespace qbs;
+using namespace Internal;
 
 class TestLanguage : public QObject
 {

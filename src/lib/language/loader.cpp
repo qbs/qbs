@@ -78,7 +78,7 @@ namespace Internal {
 class Loader::LoaderPrivate
 {
 public:
-    LoaderPrivate(ScriptEngine *engine, Settings *settings);
+    LoaderPrivate(ScriptEngine *engine, Settings *settings, const Logger &logger);
 
     void loadProject(const QString &fileName);
     ResolvedProjectPtr resolveProject(const QString &buildRoot,
@@ -124,6 +124,10 @@ public:
     FileTaggerConstPtr resolveFileTagger(EvaluationObject *evaluationObject);
     void buildModulesProperty(EvaluationObject *evaluationObject);
     void checkModuleDependencies(const Module::Ptr &module);
+    bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &scope,
+                            const ProjectFile *file);
+    void applyFileTaggers(const SourceArtifactPtr &artifact,
+                          const ResolvedProductConstPtr &product);
 
     class ProductData
     {
@@ -189,6 +193,7 @@ public:
     QHash<QString, QStringList> m_moduleDirListCache;
     QHash<Scope::ConstPtr, QVariantMap> m_convertedScopesCache;
     QHash<QString, ProjectFile::Ptr> m_projectFiles;
+    Logger m_logger;
 };
 
 const QString moduleSearchSubDir = QLatin1String("modules");
@@ -250,7 +255,8 @@ static const uint hashName_Probe = qHash(name_Probe);
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
-Loader::Loader(ScriptEngine *engine, Settings *settings) : d(new LoaderPrivate(engine, settings))
+Loader::Loader(ScriptEngine *engine, Settings *settings, const Logger &logger)
+    : d(new LoaderPrivate(engine, settings, logger))
 {
 }
 
@@ -276,7 +282,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
     d->m_searchPaths.clear();
     foreach (const QString &searchPath, searchPaths) {
         if (!FileInfo::exists(searchPath)) {
-            qbsWarning() << Tr::tr("Search path '%1' does not exist.")
+            d->m_logger.qbsWarning() << Tr::tr("Search path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(searchPath));
         } else {
             d->m_searchPaths << searchPath;
@@ -291,7 +297,7 @@ void Loader::setSearchPaths(const QStringList &searchPaths)
 ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     Q_ASSERT(QFileInfo(parameters.projectFilePath).isAbsolute());
-    TimedActivityLogger loadLogger(QLatin1String("Loading project"));
+    TimedActivityLogger loadLogger(d->m_logger, QLatin1String("Loading project"));
     d->loadProject(parameters.projectFilePath);
     return d->resolveProject(parameters.buildRoot, parameters.buildConfiguration);
 }
@@ -356,11 +362,12 @@ QByteArray Loader::qmlTypeInfo()
     return result;
 }
 
-Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine, Settings *settings)
+Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine, Settings *settings, const Logger &logger)
     : m_progressObserver(0)
     , m_engine(engine)
     , m_settings(settings)
     , m_scopesWithEvaluatedProperties(new ScopesCache)
+    , m_logger(logger)
 {
     QVariant v;
     v.setValue(static_cast<void*>(this));
@@ -411,7 +418,7 @@ void Loader::LoaderPrivate::clearScopesCache()
 Scope::Ptr Loader::LoaderPrivate::buildFileContext(ProjectFile *file)
 {
     Scope::Ptr context = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                       QLatin1String("global file context"), file);
+                                       QLatin1String("global file context"), file, m_logger);
     setPathAndFilePath(context, file->fileName, QLatin1String("local"));
     evaluateImports(context, file->jsImports);
 
@@ -488,11 +495,12 @@ void Loader::LoaderPrivate::resolveInheritance(LanguageObject *object, Evaluatio
 //    evaluationObject->dump(indent);
 }
 
-static bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &scope, const ProjectFile *file)
+bool Loader::LoaderPrivate::checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &scope,
+                                               const ProjectFile *file)
 {
     static const bool debugCondition = false;
     if (debugCondition)
-        qbsTrace() << "Checking condition";
+        m_logger.qbsTrace() << "Checking condition";
 
     const Binding &condition = file->root->bindings.value(QStringList("condition"));
     if (!condition.isValid())
@@ -503,7 +511,7 @@ static bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &sco
     context->setActivationObject(scope->value());
 
     if (debugCondition)
-        qbsTrace() << "   code is: " << condition.valueSource.sourceCode();
+        m_logger.qbsTrace() << "   code is: " << condition.valueSource.sourceCode();
     const QScriptValue value = evaluate(engine, condition.valueSource);
     bool result = false;
     if (value.isBool())
@@ -511,7 +519,7 @@ static bool checkFileCondition(QScriptEngine *engine, const ScopeChain::Ptr &sco
     else
         throw Error(Tr::tr("Condition return type must be boolean."), condition.codeLocation());
     if (debugCondition)
-        qbsTrace() << "   result: " << value.toString();
+        m_logger.qbsTrace() << "   result: " << value.toString();
 
     context->setActivationObject(oldActivation);
     return result;
@@ -720,7 +728,7 @@ void Loader::LoaderPrivate::fillEvaluationObject(const ScopeChain::Ptr &scope, L
         EvaluationObject *childEvObject = new EvaluationObject(child);
         const QString propertiesName = child->prototype.join(QLatin1String("."));
         childEvObject->scope = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                             propertiesName, object->file);
+                                             propertiesName, object->file, m_logger);
 
         resolveInheritance(child, childEvObject); // ### need to pass 'moduleScope' for product/project property scopes
         const uint childPrototypeHash = qHash(childEvObject->prototype);
@@ -757,7 +765,7 @@ void Loader::LoaderPrivate::fillEvaluationObject(const ScopeChain::Ptr &scope, L
                 Scope::Ptr moduleInstance = Scope::create(m_engine,
                                                           m_scopesWithEvaluatedProperties,
                                                           module->object->scope->name(),
-                                                          module->file());
+                                                          module->file(), m_logger);
                 if (!isArtifact)
                     moduleInstance->fallbackScope = module->object->scope;
                 moduleInstance->declarations = module->object->scope->declarations;
@@ -1067,7 +1075,7 @@ Module::Ptr Loader::LoaderPrivate::loadModule(ProjectFile *file, const QStringLi
     module->object = new EvaluationObject(file->root);
     const QString propertiesName = QString("module %1").arg(moduleName);
     module->object->scope = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                          propertiesName, file);
+                                          propertiesName, file, m_logger);
 
     resolveInheritance(file->root, module->object, moduleBaseScope, userProperties);
     if (module->object->prototype != name_Module)
@@ -1097,7 +1105,7 @@ Module::Ptr Loader::LoaderPrivate::loadModule(ProjectFile *file, const QStringLi
     if (!checkFileCondition(m_engine, moduleScope, file))
         return Module::Ptr();
 
-    qbsTrace() << "loading module '" << moduleName << "' from " << file->fileName;
+    m_logger.qbsTrace() << "loading module '" << moduleName << "' from " << file->fileName;
     buildModulesProperty(module->object);
 
     if (!file->root->id.isEmpty())
@@ -1140,7 +1148,7 @@ void Loader::LoaderPrivate::insertModulePropertyIntoScope(Scope::Ptr targetScope
         } else {
             ProjectFile *owner = module->object->instantiatingObject()->file;
             superModuleScope = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                             currentModuleId, owner);
+                                             currentModuleId, owner, m_logger);
             superModuleScope->properties.insert("name", Property(m_engine->toScriptValue(currentModuleId)));
             targetScope->insertAndDeclareProperty(currentModuleId, Property(superModuleScope));
         }
@@ -1313,7 +1321,7 @@ void Loader::LoaderPrivate::buildModulesProperty(EvaluationObject *evaluationObj
     // set up a XXX.modules property
     Scope::Ptr modules = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
                                        QLatin1String("modules property"),
-                                       evaluationObject->instantiatingObject()->file);
+                                       evaluationObject->instantiatingObject()->file, m_logger);
     for (QHash<QString, Module::Ptr>::const_iterator it = evaluationObject->modules.begin();
          it != evaluationObject->modules.end(); ++it)
     {
@@ -1454,16 +1462,18 @@ static QHash<QString, ProjectFile *> findModuleDependencies(EvaluationObject *ro
     return result;
 }
 
-static void applyFileTaggers(const SourceArtifactPtr &artifact,
-        const ResolvedProductConstPtr &product)
+void Loader::LoaderPrivate::applyFileTaggers(const SourceArtifactPtr &artifact,
+                                             const ResolvedProductConstPtr &product)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         QSet<QString> fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(QLatin1String("unknown-file-tag"));
-        if (qbsLogLevel(LoggerTrace))
-            qbsTrace() << "[LDR] adding file tags " << artifact->fileTags << " to " << FileInfo::fileName(artifact->absoluteFilePath);
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << "[LDR] adding file tags " << artifact->fileTags << " to "
+                                << FileInfo::fileName(artifact->absoluteFilePath);
+        }
     }
 }
 
@@ -1492,8 +1502,8 @@ ResolvedProjectPtr Loader::LoaderPrivate::resolveProject(const QString &buildRoo
                                                            const QVariantMap &userProperties)
 {
     Q_ASSERT(FileInfo::isAbsolute(buildRoot));
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[LDR] resolving " << m_project->fileName;
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[LDR] resolving " << m_project->fileName;
     ScriptEngineContextPusher contextPusher(m_engine);
     m_scopesWithEvaluatedProperties->clear();
     m_convertedScopesCache.clear();
@@ -2310,18 +2320,18 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProjectPtr &rproject,
                              const ScopeChain::Ptr &scope,
                              const ResolvedModuleConstPtr &dummyModule)
 {
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[LDR] resolve top-level " << object->file->fileName;
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[LDR] resolve top-level " << object->file->fileName;
     EvaluationObject *evaluationObject = new EvaluationObject(object);
 
     const QString propertiesName = object->prototype.join(".");
     evaluationObject->scope = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                            propertiesName, object->file);
+                                            propertiesName, object->file, m_logger);
 
     Scope::Ptr productProperty = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                               name_productPropertyScope, object->file);
+                                               name_productPropertyScope, object->file, m_logger);
     Scope::Ptr projectProperty = Scope::create(m_engine, m_scopesWithEvaluatedProperties,
-                                               name_projectPropertyScope, object->file);
+                                               name_projectPropertyScope, object->file, m_logger);
     Scope::Ptr oldProductProperty(scope->findNonEmpty(name_productPropertyScope));
     Scope::Ptr oldProjectProperty(scope->findNonEmpty(name_projectPropertyScope));
 
@@ -2473,8 +2483,8 @@ void Loader::LoaderPrivate::resolveTopLevel(const ResolvedProjectPtr &rproject,
 
     // check the product's condition
     rproduct->enabled = checkCondition(evaluationObject);
-    if (!rproduct->enabled && qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[LDR] condition for product '" << rproduct->name << "' is false.";
+    if (!rproduct->enabled && m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[LDR] condition for product '" << rproduct->name << "' is false.";
 
     projectData->products.insert(rproduct, productData);
 }
@@ -2632,7 +2642,7 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProjectPtr 
                 if (usedProductCandidates.count() < 1) {
                     if (!unknownModule->required) {
                         if (!unknownModule->failureMessage.isEmpty())
-                            qbsWarning() << unknownModule->failureMessage;
+                            m_logger.qbsWarning() << unknownModule->failureMessage;
                         continue;
                     }
                     throw Error(Tr::tr("Product dependency '%1' not found in '%2'.")
@@ -2660,7 +2670,7 @@ void Loader::LoaderPrivate::resolveProductDependencies(const ResolvedProjectPtr 
             if (usedProductCandidates.count() < 1) {
                 if (!unknownModule->required) {
                     if (!unknownModule->failureMessage.isEmpty())
-                        qbsWarning() << unknownModule->failureMessage;
+                        m_logger.qbsWarning() << unknownModule->failureMessage;
                     continue;
                 }
                 throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
@@ -2713,5 +2723,5 @@ void Loader::LoaderPrivate::ProductData::addUsedProducts(const QList<UnknownModu
 } // namespace qbs
 
 QT_BEGIN_NAMESPACE
-Q_DECLARE_TYPEINFO(qbs::ConditionalBinding, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(qbs::Internal::ConditionalBinding, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE

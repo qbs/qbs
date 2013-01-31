@@ -32,6 +32,7 @@
 #include "artifactlist.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
+#include <logging/logger.h>
 
 #include <QMap>
 #include <QScriptValue>
@@ -46,7 +47,8 @@ typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
 class RulesApplicator
 {
 public:
-    RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag);
+    RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
+                    const Logger &logger);
     void applyAllRules();
     void applyRule(const RuleConstPtr &rule);
 
@@ -65,6 +67,7 @@ private:
 
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;
+    Logger m_logger;
 };
 
 } // namespace Internal

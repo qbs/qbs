@@ -31,10 +31,10 @@
 #include "commandlinefrontend.h"
 #include "qbstool.h"
 #include "parser/commandlineparser.h"
+#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
 #include <qbs.h>
-#include <logging/consolelogger.h>
 
 #include <QTimer>
 
@@ -54,7 +54,7 @@ static bool tryToRunTool(const QStringList &arguments, int &exitCode)
 int main(int argc, char *argv[])
 {
     SettingsPtr settings = qbsSettings();
-    ConsoleLogger cl(settings.data());
+    ConsoleLogger::instance(settings.data());
 
     try {
         Application app(argc, argv);

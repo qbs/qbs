@@ -33,7 +33,6 @@
 #include "buildproject.h"
 #include "rulesevaluationcontext.h"
 #include <language/language.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -46,8 +45,8 @@ namespace qbs {
 namespace Internal {
 
 ProductInstaller::ProductInstaller(const QList<BuildProductPtr> &products,
-                                   const InstallOptions &options, ProgressObserver *observer)
-    : m_products(products), m_options(options), m_observer(observer)
+        const InstallOptions &options, ProgressObserver *observer, const Logger &logger)
+    : m_products(products), m_options(options), m_observer(observer), m_logger(logger)
 {
     if (!m_options.installRoot.isEmpty()) {
         if (m_options.removeFirst) {
@@ -97,7 +96,7 @@ void ProductInstaller::install()
 void ProductInstaller::removeInstallRoot()
 {
     if (m_options.dryRun) {
-        qbsInfo() << Tr::tr("Would remove install root '%1'.").arg(m_options.installRoot);
+        m_logger.qbsInfo() << Tr::tr("Would remove install root '%1'.").arg(m_options.installRoot);
         return;
     }
     QString errorMessage;
@@ -117,8 +116,8 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     QString targetDir = m_options.installRoot;
     targetDir.append(QLatin1Char('/')).append(relativeInstallDir);
     if (m_options.dryRun) {
-        qbsInfo() << Tr::tr("Would copy file '%1' into target directory '%2'.")
-                     .arg(QDir::toNativeSeparators(artifact->filePath()), targetDir);
+        m_logger.qbsInfo() << Tr::tr("Would copy file '%1' into target directory '%2'.")
+                              .arg(QDir::toNativeSeparators(artifact->filePath()), targetDir);
         return;
     }
 
@@ -138,8 +137,8 @@ void ProductInstaller::handleError(const QString &message)
 {
     if (!m_options.keepGoing)
         throw Error(message);
-    qbsWarning() << message;
+    m_logger.qbsWarning() << message;
 }
 
-} // namespace Internal
+} // namespace Intern
 } // namespace qbs

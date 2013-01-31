@@ -33,6 +33,7 @@
 #include "forward_decls.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/scanresultcache.h>
+#include <logging/logger.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
 #include <tools/settings.h>
@@ -47,6 +48,7 @@ class ProcessResult;
 namespace Internal {
 class AutoMoc;
 class ExecutorJob;
+class FileTime;
 class InputArtifactScannerContext;
 class ProgressObserver;
 class ScanResultCache;
@@ -55,7 +57,7 @@ class Executor : public QObject
 {
     Q_OBJECT
 public:
-    Executor(QObject *parent = 0);
+    Executor(const Logger &logger, QObject *parent = 0);
     ~Executor();
 
     void build(const QList<BuildProductPtr> &productsToBuild);
@@ -102,8 +104,15 @@ private:
     void setupProgressObserver(bool mocWillRun);
     void doSanityChecks();
 
+    bool mustExecuteTransformer(const TransformerPtr &transformer) const;
+    bool isUpToDate(Artifact *artifact) const;
+    void retrieveSourceFileTimestamp(Artifact *artifact) const;
+    FileTime recursiveFileTime(const QString &filePath) const;
+    void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
+            QSet<Artifact *> *seenArtifacts, QList<Artifact *> *leaves) const;
     RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
+    const Logger m_logger;
     ProgressObserver *m_progressObserver;
     QProcessEnvironment m_baseEnvironment;
     QList<ExecutorJob*> m_availableJobs;
@@ -118,6 +127,8 @@ private:
     int m_mocEffort;
     Error m_error;
     bool m_explicitlyCanceled;
+    const bool m_doTrace;
+    const bool m_doDebug;
 };
 
 } // namespace Internal

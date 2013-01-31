@@ -37,7 +37,6 @@
 #include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/scripttools.h>
@@ -47,9 +46,11 @@
 namespace qbs {
 namespace Internal {
 
-RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag)
+RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
+                                 const Logger &logger)
     : m_buildProduct(product)
     , m_artifactsPerFileTag(artifactsPerFileTag)
+    , m_logger(logger)
 {
 }
 
@@ -88,9 +89,10 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 {
     evalContext()->checkForCancelation();
 
-    if (qbsLogLevel(LoggerDebug))
-        qbsDebug() << "[BG] apply rule " << m_rule->toString() << " "
+    if (m_logger.debugEnabled()) {
+        m_logger.qbsDebug() << "[BG] apply rule " << m_rule->toString() << " "
                    << toStringList(inputArtifacts).join(",\n            ");
+    }
 
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
@@ -127,14 +129,14 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         // connect artifacts that match the file tags in explicitlyDependsOn
         foreach (const QString &fileTag, m_rule->explicitlyDependsOn)
             foreach (Artifact *dependency, m_artifactsPerFileTag.value(fileTag))
-                loggedConnect(outputArtifact, dependency);
+                loggedConnect(outputArtifact, dependency, m_logger);
 
         // Transformer setup
         for (ArtifactList::const_iterator it = usingArtifacts.constBegin();
              it != usingArtifacts.constEnd(); ++it)
         {
             Artifact *dep = *it;
-            loggedConnect(outputArtifact, dep);
+            loggedConnect(outputArtifact, dep, m_logger);
             m_transformer->inputs.insert(dep);
         }
         m_transformer->outputs.insert(outputArtifact);
@@ -225,8 +227,10 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         if (outputArtifact->transformer && outputArtifact->transformer != m_transformer) {
             // This can happen when applying rules after scanning for additional file tags.
             // We just regenerate the transformer.
-            if (qbsLogLevel(LoggerTrace))
-                qbsTrace("[BG] regenerating transformer for '%s'", qPrintable(relativeArtifactFileName(outputArtifact)));
+            if (m_logger.traceEnabled()) {
+                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] regenerating transformer "
+                        "for '%1'").arg(relativeArtifactFileName(outputArtifact));
+            }
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs.unite(inputArtifacts);
 
@@ -257,7 +261,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags.toSet();
         outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
-        m_buildProduct->insertArtifact(outputArtifact);
+        m_buildProduct->insertArtifact(outputArtifact, m_logger);
     }
 
     if (outputArtifact->fileTags.isEmpty())
@@ -279,7 +283,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 
     foreach (Artifact *inputArtifact, inputArtifacts) {
         Q_ASSERT(outputArtifact != inputArtifact);
-        loggedConnect(outputArtifact, inputArtifact);
+        loggedConnect(outputArtifact, inputArtifact, m_logger);
     }
 
     // create transformer if not already done so

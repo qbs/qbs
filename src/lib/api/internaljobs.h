@@ -31,6 +31,7 @@
 
 #include "projectdata.h"
 #include <buildgraph/forward_decls.h>
+#include <logging/logger.h>
 #include <tools/buildoptions.h>
 #include <tools/installoptions.h>
 #include <tools/error.h>
@@ -58,8 +59,10 @@ public:
     Error error() const { return m_error; }
     bool hasError() const { return !error().entries().isEmpty(); }
 
+    const Logger &logger() const { return m_logger; }
+
 protected:
-    explicit InternalJob(QObject *parent = 0);
+    explicit InternalJob(const Logger &logger, QObject *parent = 0);
 
     JobObserver *observer() const { return m_observer; }
     void setError(const Error &error) { m_error = error; }
@@ -73,6 +76,7 @@ signals:
 private:
     Error m_error;
     JobObserver * const m_observer;
+    Logger m_logger;
 };
 
 
@@ -80,7 +84,7 @@ class InternalSetupProjectJob : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalSetupProjectJob(Settings *settings, QObject *parent = 0);
+    InternalSetupProjectJob(Settings *settings, const Logger &logger, QObject *parent = 0);
     ~InternalSetupProjectJob();
 
     void resolve(const SetupProjectParameters &parameters);
@@ -118,7 +122,7 @@ signals:
     void reportWarning(const qbs::Error &warning);
 
 protected:
-    BuildGraphTouchingJob(QObject *parent = 0);
+    BuildGraphTouchingJob(const Logger &logger, QObject *parent = 0);
     ~BuildGraphTouchingJob();
 
     void setup(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions);
@@ -135,7 +139,7 @@ class InternalBuildJob : public BuildGraphTouchingJob
 {
     Q_OBJECT
 public:
-    InternalBuildJob(QObject *parent = 0);
+    InternalBuildJob(const Logger &logger, QObject *parent = 0);
 
     void build(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
                const QProcessEnvironment &env);
@@ -154,7 +158,7 @@ class InternalCleanJob : public BuildGraphTouchingJob
 {
     Q_OBJECT
 public:
-    InternalCleanJob(QObject *parent = 0);
+    InternalCleanJob(const Logger &logger, QObject *parent = 0);
 
     void clean(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
                bool cleanAll);
@@ -175,7 +179,7 @@ class InternalInstallJob : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalInstallJob(QObject *parent = 0);
+    InternalInstallJob(const Logger &logger, QObject *parent = 0);
     ~InternalInstallJob();
 
     void install(const QList<BuildProductPtr> &products, const InstallOptions &options);

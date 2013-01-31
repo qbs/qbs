@@ -29,6 +29,7 @@
 
 #include "tst_language.h"
 
+#include <app/shared/logging/consolelogger.h>
 #include <language/identifiersearch.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
@@ -74,8 +75,8 @@ void TestLanguage::initTestCase()
 {
     //Logger::instance().setLogSink(new ConsolePrintLogSink);
     //Logger::instance().setLevel(LoggerTrace);
-    ScriptEngine *engine = new ScriptEngine(this);
-    loader = new Loader(engine, m_settings.data());
+    ScriptEngine *engine = new ScriptEngine(ConsoleLogger::instance(), this);
+    loader = new Loader(engine, m_settings.data(), ConsoleLogger::instance());
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "../../../share/qbs")
                            << QLatin1String(SRCDIR "testdata"));

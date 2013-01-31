@@ -41,6 +41,7 @@
 
 namespace qbs {
 namespace Internal {
+class Logger;
 
 class BuildProduct : public PersistentObject
 {
@@ -53,8 +54,8 @@ public:
     const QList<RuleConstPtr> &topSortedRules() const;
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
-    Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact);
-    void insertArtifact(Artifact *n);
+    Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
+    void insertArtifact(Artifact *n, const Logger &logger);
 
     WeakPointer<BuildProject> project;
     ResolvedProductPtr rProduct;

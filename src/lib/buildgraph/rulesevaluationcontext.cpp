@@ -43,8 +43,8 @@
 namespace qbs {
 namespace Internal {
 
-RulesEvaluationContext::RulesEvaluationContext()
-    : m_engine(new ScriptEngine), m_observer(0), m_initScopeCalls(0)
+RulesEvaluationContext::RulesEvaluationContext(const Logger &logger)
+    : m_engine(new ScriptEngine(logger)), m_observer(0), m_initScopeCalls(0)
 {
     m_prepareScriptScope = m_engine->newObject();
     ProcessCommand::setupForJavaScript(m_prepareScriptScope);

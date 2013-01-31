@@ -32,6 +32,8 @@
 
 #include "forward_decls.h"
 
+#include <logging/logger.h>
+
 #include <QObject>
 
 struct ScannerPlugin;
@@ -53,7 +55,7 @@ class AutoMoc : public QObject
     Q_OBJECT
 
 public:
-    AutoMoc(QObject *parent = 0);
+    AutoMoc(const Logger &logger, QObject *parent = 0);
 
     void setScanResultCache(ScanResultCache *scanResultCache);
     void apply(const BuildProductPtr &product);
@@ -79,6 +81,7 @@ private:
 
     mutable QList<ScannerPlugin *> m_scanners;
     ScanResultCache *m_scanResultCache;
+    Logger m_logger;
 };
 
 } // namespace Internal

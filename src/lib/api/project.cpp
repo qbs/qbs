@@ -62,7 +62,7 @@ namespace Internal {
 static bool pluginsLoaded = false;
 static QMutex pluginsLoadedMutex;
 
-static void loadPlugins(const QStringList &_pluginPaths)
+static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
 {
     QMutexLocker locker(&pluginsLoadedMutex);
     if (pluginsLoaded)
@@ -71,13 +71,13 @@ static void loadPlugins(const QStringList &_pluginPaths)
     QStringList pluginPaths;
     foreach (const QString &pluginPath, _pluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
-            qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
-                    .arg(QDir::toNativeSeparators(pluginPath));
+            logger.qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
+                                    .arg(QDir::toNativeSeparators(pluginPath));
         } else {
             pluginPaths << pluginPath;
         }
     }
-    ScannerPluginManager::instance()->loadPlugins(pluginPaths);
+    ScannerPluginManager::instance()->loadPlugins(pluginPaths, logger);
 
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");
     qRegisterMetaType<InternalJob *>("Internal::InternalJob *");
@@ -88,8 +88,8 @@ static void loadPlugins(const QStringList &_pluginPaths)
 class ProjectPrivate : public QSharedData
 {
 public:
-    ProjectPrivate(const BuildProjectPtr &internalProject)
-        : internalProject(internalProject), m_projectDataRetrieved(false)
+    ProjectPrivate(const BuildProjectPtr &internalProject, const Logger &logger)
+        : internalProject(internalProject), logger(logger), m_projectDataRetrieved(false)
     {
     }
 
@@ -105,6 +105,7 @@ public:
     BuildProductPtr internalProduct(const ProductData &product) const;
 
     const BuildProjectPtr internalProject;
+    Logger logger;
 
 private:
     void retrieveProjectData();
@@ -135,7 +136,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
         }
     }
 
-    BuildJob * const job = new BuildJob(jobOwner);
+    BuildJob * const job = new BuildJob(logger, jobOwner);
     job->build(productsToBuild, options, env);
     return job;
 }
@@ -143,7 +144,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
 CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
         const BuildOptions &options, Project::CleanType cleanType, QObject *jobOwner)
 {
-    CleanJob * const job = new CleanJob(jobOwner);
+    CleanJob * const job = new CleanJob(logger, jobOwner);
     job->clean(products, options, cleanType == Project::CleanupAll);
     return job;
 }
@@ -151,14 +152,14 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
 InstallJob *ProjectPrivate::installProducts(const QList<BuildProductPtr> &products,
                                             const InstallOptions &options, QObject *jobOwner)
 {
-    InstallJob * const job = new InstallJob(jobOwner);
+    InstallJob * const job = new InstallJob(logger, jobOwner);
     job->install(products, options);
     return job;
 }
 
 QList<BuildProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
 {
-    QList<Internal::BuildProductPtr> internalProducts;
+    QList<BuildProductPtr> internalProducts;
     foreach (const ProductData &product, products) {
         if (product.isEnabled())
             internalProducts << internalProduct(product);
@@ -168,7 +169,7 @@ QList<BuildProductPtr> ProjectPrivate::internalProducts(const QList<ProductData>
 
 BuildProductPtr ProjectPrivate::internalProduct(const ProductData &product) const
 {
-    foreach (const Internal::BuildProductPtr &buildProduct, internalProject->buildProducts()) {
+    foreach (const BuildProductPtr &buildProduct, internalProject->buildProducts()) {
         if (product.name() == buildProduct->rProduct->name)
             return buildProduct;
     }
@@ -212,6 +213,7 @@ void ProjectPrivate::retrieveProjectData()
 
 } // namespace Internal
 
+using namespace Internal;
 
 /*!
  * \enum Project::CleanType
@@ -227,8 +229,8 @@ void ProjectPrivate::retrieveProjectData()
   * \brief The \c Project class provides services related to a qbs project.
   */
 
-Project::Project(const Internal::BuildProjectPtr &internalProject)
-    : d(new Internal::ProjectPrivate(internalProject))
+Project::Project(const BuildProjectPtr &internalProject, const Logger &logger)
+    : d(new ProjectPrivate(internalProject, logger))
 {
 }
 
@@ -301,12 +303,13 @@ static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig, Sett
  * The function will finish immediately, returning a \c SetupProjectJob which can be used to
  * track the results of the operation.
  */
-SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters, Settings *settings,
-                                       QObject *jobOwner)
+SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters,
+                                       Settings *settings, ILogSink *logSink, QObject *jobOwner)
 {
-    SetupProjectJob * const job = new SetupProjectJob(settings, jobOwner);
+    Logger logger(logSink);
+    SetupProjectJob * const job = new SetupProjectJob(settings, logger, jobOwner);
     try {
-        loadPlugins(_parameters.pluginPaths);
+        loadPlugins(_parameters.pluginPaths, logger);
         SetupProjectParameters parameters = _parameters;
         parameters.buildConfiguration
                 = expandBuildConfiguration(parameters.buildConfiguration, settings);
@@ -340,11 +343,11 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
 {
     if (!product.isEnabled())
         return QString();
-    const Internal::BuildProductConstPtr buildProduct = d->internalProduct(product);
+    const BuildProductConstPtr buildProduct = d->internalProduct(product);
     if (!buildProduct->rProduct->fileTags.contains(QLatin1String("application")))
         return QString();
 
-    foreach (const Internal::Artifact * const artifact, buildProduct->targetArtifacts) {
+    foreach (const Artifact * const artifact, buildProduct->targetArtifacts) {
         if (artifact->fileTags.contains(QLatin1String("application"))) {
             if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 return artifact->filePath();
@@ -377,8 +380,8 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
         const QProcessEnvironment &environment, Settings *settings) const
 {
     Q_ASSERT(product.isEnabled());
-    const Internal::ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
-    return RunEnvironment(resolvedProduct, environment, settings);
+    const ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
+    return RunEnvironment(resolvedProduct, environment, settings, d->logger);
 }
 
 /*!

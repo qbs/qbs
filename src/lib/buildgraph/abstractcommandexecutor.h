@@ -30,6 +30,8 @@
 #ifndef QBS_ABSTRACTCOMMANDEXECUTOR_H
 #define QBS_ABSTRACTCOMMANDEXECUTOR_H
 
+#include <logging/logger.h>
+
 #include <QObject>
 
 QT_BEGIN_NAMESPACE
@@ -47,7 +49,7 @@ class AbstractCommandExecutor : public QObject
 {
     Q_OBJECT
 public:
-    explicit AbstractCommandExecutor(QObject *parent = 0);
+    explicit AbstractCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
 
     void setMainThreadScriptEngine(QScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
     void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
@@ -67,6 +69,7 @@ protected:
     Transformer *transformer() const { return m_transformer; }
     QScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
     bool dryRun() const { return m_dryRun; }
+    Internal::Logger logger() const { return m_logger; }
 
 private:
     virtual void doStart() = 0;
@@ -76,6 +79,7 @@ private:
     Transformer *m_transformer;
     QScriptEngine *m_mainThreadScriptEngine;
     bool m_dryRun;
+    Internal::Logger m_logger;
 };
 
 } // namespace Internal

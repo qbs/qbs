@@ -28,44 +28,55 @@
 ****************************************************************************/
 
 #include "consolelogger.h"
-#include "logger.h"
-#include "coloredoutput.h"
 
 #include <tools/preferences.h>
-
-#include <QHash>
+#include <tools/settings.h>
 
 #include <cstdio>
 
-namespace qbs {
-
-void ConsolePrintLogSink::outputLogMessage(LoggerLevel level, const LogMessage &message)
+static QHash<QString, TextColor> setupColorTable()
 {
-    FILE *file = stdout;
-    if (message.outputChannel == LogOutputStdErr)
-        file = stderr;
+    QHash<QString, TextColor> colorTable;
+    colorTable["compiler"] = TextColorDefault;
+    colorTable["linker"] = TextColorDarkGreen;
+    colorTable["codegen"] = TextColorDarkYellow;
+    colorTable["filegen"] = TextColorDarkYellow;
+    return colorTable;
+}
 
-    if (message.printLogLevel) {
-        QByteArray data = Logger::logLevelTag(level);
-        TextColor color = TextColorDefault;
-        switch (level) {
-        case qbs::LoggerError:
-            color = TextColorRed;
-            break;
-        case qbs::LoggerWarning:
-            color = TextColorYellow;
-            break;
-        default:
-            break;
-        }
+ConsoleLogSink::ConsoleLogSink() : m_coloredOutputEnabled(true), m_enabled(true)
+{
+}
 
-        fprintfWrapper(color, file, data);
+void ConsoleLogSink::doPrintMessage(qbs::LoggerLevel level, const QString &message,
+                                    const QString &tag)
+{
+    if (!m_enabled)
+        return;
+
+    FILE * const file = level == qbs::LoggerInfo ? stdout : stderr;
+
+    const QByteArray data = logLevelTag(level);
+    TextColor color = TextColorDefault;
+    switch (level) {
+    case qbs::LoggerError:
+        color = TextColorRed;
+        break;
+    case qbs::LoggerWarning:
+        color = TextColorYellow;
+        break;
+    default:
+        break;
     }
-    fprintfWrapper(message.textColor, file, "%s\n", message.data.data());
+
+    fprintfWrapper(color, file, data);
+    static QHash<QString, TextColor> colorTable = setupColorTable();
+    fprintfWrapper(colorTable.value(tag, TextColorDefault), file, "%s\n",
+                   message.toLocal8Bit().constData());
     fflush(file);
 }
 
-void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
+void ConsoleLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
 {
     va_list vl;
     va_start(vl, str);
@@ -77,15 +88,14 @@ void ConsolePrintLogSink::fprintfWrapper(TextColor color, FILE *file, const char
 }
 
 
-ConsoleLogger::ConsoleLogger(Settings *settings)
+ConsoleLogger &ConsoleLogger::instance(qbs::Settings *settings)
 {
-    m_logSink.setColoredOutputEnabled(Preferences(settings).useColoredOutput());
-    ILogSink::setGlobalLogSink(&m_logSink);
+    static ConsoleLogger logger(settings);
+    return logger;
 }
 
-ConsoleLogger::~ConsoleLogger()
+ConsoleLogger::ConsoleLogger(qbs::Settings *settings) : Logger(&m_logSink)
 {
-    ILogSink::cleanupGlobalLogSink();
+    if (settings)
+        m_logSink.setColoredOutputEnabled(qbs::Preferences(settings).useColoredOutput());
 }
-
-} // namespace qbs

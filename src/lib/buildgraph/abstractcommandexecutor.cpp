@@ -31,17 +31,16 @@
 
 #include "command.h"
 
-#include <logging/logger.h>
-
 namespace qbs {
 namespace Internal {
 
-AbstractCommandExecutor::AbstractCommandExecutor(QObject *parent)
+AbstractCommandExecutor::AbstractCommandExecutor(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_command(0)
     , m_transformer(0)
     , m_mainThreadScriptEngine(0)
     , m_dryRun(false)
+    , m_logger(logger)
 {
 }
 

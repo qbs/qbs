@@ -27,42 +27,36 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_LOGSINK_H
-#define QBS_LOGSINK_H
+#ifndef QBS_COLOREDOUTPUT_H
+#define QBS_COLOREDOUTPUT_H
 
-#include "ilogsink.h"
-#include "logger.h"
+#include <cstdio>
+#include <cstdarg>
 
-namespace qbs {
-class Settings;
-
-class ConsolePrintLogSink : public ILogSink
-{
-public:
-    void setColoredOutputEnabled(bool enabled) { m_coloredOutputEnabled = enabled; }
-
-protected:
-    virtual void outputLogMessage(LoggerLevel level, const LogMessage &message);
-
-private:
-    void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
-
-private:
-    bool m_coloredOutputEnabled;
+// http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+enum TextColor {
+    TextColorDefault = -1,
+    TextColorBlack = 0,
+    TextColorDarkRed = 1,
+    TextColorDarkGreen = 2,
+    TextColorDarkBlue = 4,
+    TextColorDarkCyan = TextColorDarkGreen | TextColorDarkBlue,
+    TextColorDarkMagenta = TextColorDarkRed | TextColorDarkBlue,
+    TextColorDarkYellow = TextColorDarkRed | TextColorDarkGreen,
+    TextColorGray = 7,
+    TextColorBright = 8,
+    TextColorRed = TextColorDarkRed | TextColorBright,
+    TextColorGreen = TextColorDarkGreen | TextColorBright,
+    TextColorBlue = TextColorDarkBlue | TextColorBright,
+    TextColorCyan = TextColorDarkCyan | TextColorBright,
+    TextColorMagenta = TextColorDarkMagenta | TextColorBright,
+    TextColorYellow = TextColorDarkYellow | TextColorBright,
+    TextColorWhite = TextColorGray | TextColorBright
 };
 
+void printfColored(TextColor color, const char *str, va_list vl);
+void printfColored(TextColor color, const char *str, ...);
+void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl);
+void fprintfColored(TextColor color, FILE *file, const char *str, ...);
 
-// Instantiate this at the top of a tool's main function to enable qbsError() & friends.
-class ConsoleLogger
-{
-public:
-    ConsoleLogger(Settings *settings);
-    ~ConsoleLogger();
-
-private:
-    ConsolePrintLogSink m_logSink;
-};
-
-} // namespace qbs
-
-#endif // QBS_LOGSINK_H
+#endif // QBS_COLOREDOUTPUT_H

@@ -29,10 +29,10 @@
 #include "configcommandexecutor.h"
 
 #include "configcommand.h"
+#include "../shared/logging/consolelogger.h"
 
 #include <lib/tools/error.h>
 #include <lib/tools/settings.h>
-#include <logging/consolelogger.h>
 
 #include <QDir>
 #include <QFile>

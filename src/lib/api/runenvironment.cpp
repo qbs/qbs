@@ -52,19 +52,27 @@ using namespace Internal;
 class RunEnvironment::RunEnvironmentPrivate
 {
 public:
+    RunEnvironmentPrivate(const ResolvedProductPtr &product,
+            const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
+        : engine(logger)
+        , resolvedProduct(product)
+        , environment(environment)
+        , settings(settings)
+        , logger(logger)
+    {
+    }
+
     ScriptEngine engine;
-    ResolvedProductPtr resolvedProduct;
-    QProcessEnvironment environment;
-    Settings *settings;
+    const ResolvedProductPtr resolvedProduct;
+    const QProcessEnvironment environment;
+    Settings * const settings;
+    Logger logger;
 };
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
-                               const QProcessEnvironment &environment, Settings *settings)
-    : d(new RunEnvironmentPrivate)
+        const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
+    : d(new RunEnvironmentPrivate(product, environment, settings, logger))
 {
-    d->resolvedProduct = product;
-    d->environment = environment;
-    d->settings = settings;
 }
 
 RunEnvironment::~RunEnvironment()
@@ -77,7 +85,7 @@ int RunEnvironment::runShell()
     d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
 
     const QString productId = d->resolvedProduct->name;
-    qbsInfo() << Tr::tr("Starting shell for target '%1'.").arg(productId);
+    d->logger.qbsInfo() << Tr::tr("Starting shell for target '%1'.").arg(productId);
     const QProcessEnvironment environment = d->resolvedProduct->buildEnvironment;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
     clearenv();
@@ -108,7 +116,7 @@ int RunEnvironment::runShell()
             envFile->close();
             qputenv("ENV", envFile->fileName().toLocal8Bit());
         } else {
-            qbsWarning() << Tr::tr("Setting custom shell prompt failed.");
+            d->logger.qbsWarning() << Tr::tr("Setting custom shell prompt failed.");
         }
     }
 
@@ -119,13 +127,14 @@ int RunEnvironment::runShell()
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
     if (!QFileInfo(targetBin).isExecutable()) {
-        qbsError("File '%s' is not an executable.", qPrintable(targetBin));
+        d->logger.qbsLog(LoggerError) << Tr::tr("File '%1' is not an executable.")
+                                .arg(QDir::toNativeSeparators(targetBin));
         return EXIT_FAILURE;
     }
 
     d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
 
-    qbsInfo("Starting target '%s'.", qPrintable(QDir::toNativeSeparators(targetBin)));
+    d->logger.qbsInfo() << Tr::tr("Starting target '%1'.").arg(QDir::toNativeSeparators(targetBin));
     QProcess process;
     process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);

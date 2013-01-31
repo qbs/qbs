@@ -42,10 +42,10 @@
 namespace qbs {
 namespace Internal {
 
-ExecutorJob::ExecutorJob(QObject *parent)
+ExecutorJob::ExecutorJob(const Logger &logger, QObject *parent)
     : QObject(parent)
-    , m_processCommandExecutor(new ProcessCommandExecutor(this))
-    , m_jsCommandExecutor(new JsCommandExecutor(this))
+    , m_processCommandExecutor(new ProcessCommandExecutor(logger, this))
+    , m_jsCommandExecutor(new JsCommandExecutor(logger, this))
 {
     connect(m_processCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
             this, SIGNAL(reportCommandDescription(QString,QString)));

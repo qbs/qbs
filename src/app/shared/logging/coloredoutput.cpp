@@ -39,9 +39,6 @@
 #include <unistd.h>
 #endif
 
-namespace qbs {
-namespace Internal {
-
 void printfColored(TextColor color, const char *str, va_list vl)
 {
     fprintfColored(color, stdout, str, vl);
@@ -58,7 +55,7 @@ void printfColored(TextColor color, const char *str, ...)
 void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl)
 {
 #if defined(Q_OS_UNIX)
-    if (color != TextColorDefault && isatty(fileno(stdout))) {
+    if (color != TextColorDefault && isatty(fileno(file))) {
         unsigned char bright = (color & TextColorBright) >> 3;
         fprintf(file, "\033[%d;%dm", bright, 30 + (color & ~TextColorBright));
         vfprintf(file, str, vl);
@@ -92,6 +89,3 @@ void fprintfColored(TextColor color, FILE *file, const char *str, ...)
     fprintfColored(color, file, str, vl);
     va_end(vl);
 }
-
-} // namespace Internal
-} // namespace qbs

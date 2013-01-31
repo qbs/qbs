@@ -32,6 +32,7 @@
 #include "consoleprogressobserver.h"
 #include "showproperties.h"
 #include "status.h"
+#include "../shared/logging/consolelogger.h"
 
 #include <qbs.h>
 #include <api/runenvironment.h>
@@ -43,6 +44,7 @@
 #include <cstdlib>
 
 namespace qbs {
+using namespace Internal;
 
 CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settings *settings,
                                          QObject *parent)
@@ -104,7 +106,8 @@ void CommandLineFrontend::start()
         params.ignoreDifferentProjectFilePath = m_parser.force();
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             params.buildConfiguration = buildConfig;
-            SetupProjectJob * const job = Project::setupProject(params, m_settings, this);
+            SetupProjectJob * const job = Project::setupProject(params, m_settings,
+                    ConsoleLogger::instance().logSink(), this);
             connectJob(job);
             m_resolveJobs << job;
         }
@@ -128,23 +131,11 @@ void CommandLineFrontend::start()
     }
 }
 
-static QHash<QString, TextColor> setupColorTable()
+void CommandLineFrontend::handleCommandDescriptionReport(const QString &highlight,
+                                                         const QString &message)
 {
-    QHash<QString, TextColor> colorTable;
-    colorTable["compiler"] = TextColorDefault;
-    colorTable["linker"] = TextColorDarkGreen;
-    colorTable["codegen"] = TextColorDarkYellow;
-    colorTable["filegen"] = TextColorDarkYellow;
-    return colorTable;
-}
-
-void CommandLineFrontend::handleCommandDescriptionReport(const QString &highlight, const QString &message)
-{
-    if (!message.isEmpty()) {
-        static QHash<QString, TextColor> colorTable = setupColorTable();
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut
-                  << colorTable.value(highlight, TextColorDefault) << message;
-    }
+    if (!message.isEmpty())
+        qbsInfo() << MessageTag(highlight) << message;
 }
 
 void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
@@ -200,7 +191,7 @@ void CommandLineFrontend::handleNewTaskStarted(const QString &description, int t
 {
     // If the user does not want a progress bar, we just print the current activity.
     if (!m_parser.showProgress()) {
-        qbsInfo() << DontPrintLogLevel << description;
+        qbsInfo() << description;
         return;
     }
     if (isBuilding()) {
@@ -240,7 +231,6 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
         return;
 
     (result.success ? qbsInfo() : qbsError())
-            << DontPrintLogLevel
             << result.binary << " " << result.arguments.join(QLatin1String(" "))
             << (hasOutput ? QString::fromLatin1("\n") : QString())
             << (result.stdOut.isEmpty() ? QString() : result.stdOut.join(QLatin1String("\n")))

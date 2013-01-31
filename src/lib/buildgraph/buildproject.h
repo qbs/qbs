@@ -32,6 +32,7 @@
 #include "artifactlist.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
+#include <logging/logger.h>
 #include <tools/persistentobject.h>
 
 #include <QHash>
@@ -55,7 +56,7 @@ class BuildProject : public PersistentObject
     friend class BuildProjectLoader;
     friend class BuildProjectResolver;
 public:
-    BuildProject();
+    BuildProject(const Logger &logger);
     ~BuildProject();
 
     void store() const;
@@ -99,12 +100,14 @@ private:
     QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
     QSet<Artifact *> m_artifactsThatMustGetNewTransformers;
     mutable bool m_dirty;
+    Logger m_logger;
 };
 
 
 class BuildProjectResolver
 {
 public:
+    BuildProjectResolver(const Logger &logger);
     BuildProjectPtr resolveProject(const ResolvedProjectPtr &resolvedProject,
                                    const RulesEvaluationContextPtr &evalContext);
 
@@ -117,12 +120,15 @@ private:
 
     BuildProjectPtr m_project;
     QHash<ResolvedProductPtr, BuildProductPtr> m_productCache;
+    Logger m_logger;
 };
 
 
 class BuildProjectLoader
 {
 public:
+    BuildProjectLoader(const Logger &logger);
+
     class LoadResult
     {
     public:
@@ -146,6 +152,7 @@ private:
 
     RulesEvaluationContextPtr m_evalContext;
     LoadResult m_result;
+    Logger m_logger;
 };
 
 } // namespace Internal

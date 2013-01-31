@@ -34,14 +34,14 @@
 #include "rulesevaluationcontext.h"
 
 #include <language/language.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 
 namespace qbs {
 namespace Internal {
 
-CycleDetector::CycleDetector() : ArtifactVisitor(0), m_parent(0)
+CycleDetector::CycleDetector(const Logger &logger)
+    : ArtifactVisitor(0), m_parent(0), m_logger(logger)
 {
 }
 
@@ -49,7 +49,7 @@ void CycleDetector::visitProject(const BuildProjectConstPtr &project)
 {
     const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
                 .arg(project->resolvedProject()->id());
-    TimedActivityLogger timeLogger(description, QLatin1String("[BG] "), LoggerTrace);
+    TimedActivityLogger timeLogger(m_logger, description, QLatin1String("[BG] "), LoggerTrace);
     ArtifactVisitor::visitProject(project);
 }
 

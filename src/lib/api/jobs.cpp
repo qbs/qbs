@@ -171,8 +171,8 @@ void AbstractJob::handleFinished()
  * \sa AbstractJob::taskStarted()
  */
 
-SetupProjectJob::SetupProjectJob(Settings *settings, QObject *parent)
-    : AbstractJob(new InternalSetupProjectJob(settings), parent)
+SetupProjectJob::SetupProjectJob(Settings *settings, const Logger &logger, QObject *parent)
+    : AbstractJob(new InternalSetupProjectJob(settings, logger), parent)
 {
 }
 
@@ -185,7 +185,7 @@ Project SetupProjectJob::project() const
 {
     const InternalSetupProjectJob * const job
             = qobject_cast<InternalSetupProjectJob *>(internalJob());
-    return job->buildProject();
+    return Project(job->buildProject(), job->logger());
 }
 
 void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
@@ -234,7 +234,8 @@ void SetupProjectJob::reportError(const Error &error)
  * The \a result parameter contains all details on the process that was run by Qbs.
  */
 
-BuildJob::BuildJob(QObject *parent) : AbstractJob(new InternalBuildJob, parent)
+BuildJob::BuildJob(const Logger &logger, QObject *parent)
+    : AbstractJob(new InternalBuildJob(logger), parent)
 {
     InternalBuildJob *job = static_cast<InternalBuildJob *>(internalJob());
     connect(job, SIGNAL(reportCommandDescription(QString,QString)),
@@ -256,7 +257,8 @@ void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions 
  * \brief The \c CleanJob class represents an operation removing build artifacts.
  */
 
-CleanJob::CleanJob(QObject *parent) : AbstractJob(new InternalCleanJob, parent)
+CleanJob::CleanJob(const Logger &logger, QObject *parent)
+    : AbstractJob(new InternalCleanJob(logger), parent)
 {
 }
 
@@ -271,7 +273,8 @@ void CleanJob::clean(const QList<BuildProductPtr> &products,
  * \brief The \c InstallJob class represents an operation installing files.
  */
 
-InstallJob::InstallJob(QObject *parent) : AbstractJob(new InternalInstallJob, parent)
+InstallJob::InstallJob(const Logger &logger, QObject *parent)
+    : AbstractJob(new InternalInstallJob(logger), parent)
 {
 }
 

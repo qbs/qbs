@@ -45,7 +45,7 @@ class JsCommandExecutor : public AbstractCommandExecutor
 {
     Q_OBJECT
 public:
-    explicit JsCommandExecutor(QObject *parent = 0);
+    explicit JsCommandExecutor(const Logger &logger, QObject *parent = 0);
 
 private slots:
     void onJavaScriptCommandFinished();

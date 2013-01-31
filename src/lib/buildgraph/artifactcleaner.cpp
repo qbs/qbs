@@ -36,7 +36,6 @@
 #include "transformer.h"
 
 #include <language/language.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
@@ -52,12 +51,12 @@
 namespace qbs {
 namespace Internal {
 
-static void printRemovalMessage(const QString &path, bool dryRun)
+static void printRemovalMessage(const QString &path, bool dryRun, const Logger &logger)
 {
     if (dryRun)
-        qbsInfo() << Tr::tr("Would remove '%1'.").arg(path);
+        logger.qbsInfo() << Tr::tr("Would remove '%1'.").arg(path);
     else
-        qbsDebug() << "Removing '" << path << "'.";
+        logger.qbsDebug() << "Removing '" << path << "'.";
 }
 
 static void invalidateArtifactTimestamp(Artifact *artifact)
@@ -68,7 +67,7 @@ static void invalidateArtifactTimestamp(Artifact *artifact)
     }
 }
 
-static void removeArtifactFromDisk(Artifact *artifact, bool dryRun)
+static void removeArtifactFromDisk(Artifact *artifact, bool dryRun, const Logger &logger)
 {
     QFileInfo fileInfo(artifact->filePath());
     if (!fileInfo.exists()) {
@@ -76,7 +75,7 @@ static void removeArtifactFromDisk(Artifact *artifact, bool dryRun)
             invalidateArtifactTimestamp(artifact);
         return;
     }
-    printRemovalMessage(fileInfo.filePath(), dryRun);
+    printRemovalMessage(fileInfo.filePath(), dryRun, logger);
     if (dryRun)
         return;
     invalidateArtifactTimestamp(artifact);
@@ -88,11 +87,12 @@ static void removeArtifactFromDisk(Artifact *artifact, bool dryRun)
 class CleanupVisitor : public ArtifactVisitor
 {
 public:
-    CleanupVisitor(bool stopOnError, bool dryRun, bool removeAll)
+    CleanupVisitor(bool stopOnError, bool dryRun, bool removeAll, const Logger &logger)
         : ArtifactVisitor(Artifact::Generated)
         , m_stopOnError(stopOnError)
         , m_dryRun(dryRun)
         , m_removeAll(removeAll)
+        , m_logger(logger)
         , m_hasError(false)
     {
     }
@@ -114,11 +114,11 @@ private:
         if (artifact->parents.isEmpty() && !m_removeAll)
             return;
         try {
-            removeArtifactFromDisk(artifact, m_dryRun);
+            removeArtifactFromDisk(artifact, m_dryRun, m_logger);
         } catch (const Error &error) {
             if (m_stopOnError)
                 throw;
-            qbsWarning() << error.toString();
+            m_logger.qbsWarning() << error.toString();
             m_hasError = true;
         }
         m_directories << artifact->dirPath();
@@ -127,20 +127,25 @@ private:
     const bool m_stopOnError;
     const bool m_dryRun;
     const bool m_removeAll;
+    Logger m_logger;
     bool m_hasError;
     BuildProductConstPtr m_product;
     QSet<QString> m_directories;
 };
 
+ArtifactCleaner::ArtifactCleaner(const Logger &logger) : m_logger(logger)
+{
+}
+
 void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, bool removeAll,
                               const BuildOptions &buildOptions)
 {
     m_hasError = false;
-    TimedActivityLogger logger(QLatin1String("Cleaning up"));
+    TimedActivityLogger logger(m_logger, QLatin1String("Cleaning up"));
 
     QSet<QString> directories;
     foreach (const BuildProductConstPtr &product, products) {
-        CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll);
+        CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll, m_logger);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());
         if (visitor.hasError())
@@ -171,12 +176,12 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Build
             subTreeIsEmpty = false;
     }
     if (subTreeIsEmpty) {
-        printRemovalMessage(rootDir, options.dryRun);
+        printRemovalMessage(rootDir, options.dryRun, m_logger);
         if (!QDir::root().rmdir(rootDir)) {
             Error error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
             if (!options.keepGoing)
                 throw error;
-            qbsWarning() << error.toString();
+            m_logger.qbsWarning() << error.toString();
             m_hasError = true;
             subTreeIsEmpty = false;
         }

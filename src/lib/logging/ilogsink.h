@@ -26,19 +26,14 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_ILOGGER_H
+#define QBS_ILOGGER_H
 
-
-#ifndef QBS_ILOGSINK_H
-#define QBS_ILOGSINK_H
-
-#include "coloredoutput.h"
-
-#include <QByteArray>
+#include <QtGlobal>
+#include <QMutex>
+#include <QString>
 
 namespace qbs {
-using namespace Internal;
-
-class Logger;
 
 enum LoggerLevel
 {
@@ -51,42 +46,33 @@ enum LoggerLevel
     LoggerMaxLevel = LoggerTrace
 };
 
-enum LogOutputChannel
-{
-    LogOutputStdOut,
-    LogOutputStdErr
-};
-
-class LogMessage
-{
-public:
-    LogMessage()
-        : printLogLevel(true)
-        , outputChannel(LogOutputStdErr)
-        , textColor(TextColorDefault)
-        , backgroundColor(TextColorDefault)
-    {}
-
-    QByteArray data;
-    bool printLogLevel;
-    LogOutputChannel outputChannel;
-    TextColor textColor;
-    TextColor backgroundColor;
-};
+inline LoggerLevel defaultLogLevel() { return LoggerInfo; }
+QByteArray logLevelTag(LoggerLevel level);
+QString logLevelName(LoggerLevel level);
 
 class ILogSink
 {
-    friend class Logger;
+    Q_DISABLE_COPY(ILogSink)
 public:
-    virtual ~ILogSink() { }
+    ILogSink() : m_logLevel(defaultLogLevel()) {}
+    virtual ~ILogSink();
 
-    static void setGlobalLogSink(ILogSink *logSink);
-    static void cleanupGlobalLogSink();
+    void setLogLevel(LoggerLevel level) { m_logLevel = level; }
+    LoggerLevel logLevel() const { return m_logLevel; }
 
-protected:
-    virtual void outputLogMessage(LoggerLevel level, const LogMessage &logMessage) = 0;
+    bool willPrint(LoggerLevel level) const { return level <= logLevel(); }
+
+    void printMessage(LoggerLevel level, const QString &message,
+                      const QString &tag = QString());
+
+private:
+    virtual void doPrintMessage(LoggerLevel level, const QString &message,
+                                const QString &tag) = 0;
+
+    LoggerLevel m_logLevel;
+    QMutex m_mutex;
 };
 
 } // namespace qbs
 
-#endif // QBS_ILOGSINK_H
+#endif // Include guard

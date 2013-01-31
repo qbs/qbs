@@ -28,6 +28,7 @@
 ****************************************************************************/
 #include "tst_buildgraph.h"
 
+#include <app/shared/logging/consolelogger.h>
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildproduct.h>
 #include <buildgraph/cycledetector.h>
@@ -52,7 +53,7 @@ void TestBuildGraph::cleanupTestCase()
 static bool cycleDetected(const BuildProductConstPtr &product)
 {
     try {
-        CycleDetector().visitProduct(product);
+        CycleDetector(ConsoleLogger::instance()).visitProduct(product);
         return false;
     } catch (const Error &) {
         return true;

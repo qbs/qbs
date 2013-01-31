@@ -41,7 +41,6 @@
 #include <buildgraph/transformer.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -90,13 +89,16 @@ private:
 };
 
 
-Executor::Executor(QObject *parent)
+Executor::Executor(const Logger &logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
+    , m_doTrace(logger.traceEnabled())
+    , m_doDebug(logger.debugEnabled())
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
-    m_autoMoc = new AutoMoc;
+    m_autoMoc = new AutoMoc(logger);
     connect(m_autoMoc, SIGNAL(reportCommandDescription(QString,QString)),
             this, SIGNAL(reportCommandDescription(QString,QString)));
     m_autoMoc->setScanResultCache(&m_scanResultCache);
@@ -114,13 +116,13 @@ Executor::~Executor()
 }
 
 
-static FileTime recursiveFileTime(const QString &filePath)
+FileTime Executor::recursiveFileTime(const QString &filePath) const
 {
     FileTime newest;
     FileInfo fileInfo(filePath);
     if (!fileInfo.exists()) {
         const QString nativeFilePath = QDir::toNativeSeparators(filePath);
-        qbsWarning() << Tr::tr("File '%1' not found.").arg(nativeFilePath);
+        m_logger.qbsWarning() << Tr::tr("File '%1' not found.").arg(nativeFilePath);
         return newest;
     }
     newest = qMax(fileInfo.lastModified(), fileInfo.lastStatusChange());
@@ -136,7 +138,7 @@ static FileTime recursiveFileTime(const QString &filePath)
     return newest;
 }
 
-static void retrieveSourceFileTimestamp(Artifact *artifact)
+void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 {
     Q_ASSERT(artifact->artifactType == Artifact::SourceFile);
 
@@ -158,8 +160,8 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
 {
     if (m_buildOptions.maxJobCount <= 0) {
         m_buildOptions.maxJobCount = BuildOptions::defaultMaxJobCount();
-        qbsDebug() << "max job count not explicitly set, using value of "
-                   << m_buildOptions.maxJobCount;
+        m_logger.qbsDebug() << "max job count not explicitly set, using value of "
+                            << m_buildOptions.maxJobCount;
     }
     Q_ASSERT(m_state == ExecutorIdle);
     m_leaves.clear();
@@ -170,7 +172,7 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     setState(ExecutorRunning);
 
     if (productsToBuild.isEmpty()) {
-        qbsTrace() << "No products to build, finishing.";
+        m_logger.qbsTrace() << "No products to build, finishing.";
         QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
         return;
     }
@@ -179,11 +181,12 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     BuildProject * const project = productsToBuild.first()->project;
     m_evalContext = project->evaluationContext();
     if (!m_evalContext) { // Is null before the first build.
-        m_evalContext = RulesEvaluationContextPtr(new RulesEvaluationContext);
+        m_evalContext = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
         project->setEvaluationContext(m_evalContext);
     }
 
-    qbsDebug("[EXEC] preparing executor for %d jobs in parallel", m_buildOptions.maxJobCount);
+    m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] preparing executor for %1 jobs "
+                                                  "in parallel").arg(m_buildOptions.maxJobCount);
     addExecutorJobs(m_buildOptions.maxJobCount);
     foreach (ExecutorJob * const job, m_availableJobs)
         job->setDryRun(m_buildOptions.dryRun);
@@ -197,7 +200,8 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
         QList<Artifact *> artifacts;
         artifacts.append(project->lookupArtifacts(filePath));
         if (artifacts.isEmpty()) {
-            qbsWarning() << QString("Out of date file '%1' provided but not found.").arg(QDir::toNativeSeparators(filePath));
+            m_logger.qbsWarning() << QString::fromLocal8Bit("Out of date file '%1' provided "
+                    "but not found.").arg(QDir::toNativeSeparators(filePath));
             continue;
         }
         changedArtifacts += artifacts;
@@ -228,7 +232,7 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
         runAutoMoc();
     initLeaves(changedArtifacts);
     if (!scheduleJobs()) {
-        qbsTrace() << "Nothing to do at all, finishing.";
+        m_logger.qbsTrace() << "Nothing to do at all, finishing.";
         QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
     }
 }
@@ -292,22 +296,26 @@ bool Executor::scheduleJobs()
     return !m_leaves.isEmpty() || !m_processingJobs.isEmpty();
 }
 
-static bool isUpToDate(Artifact *artifact)
+bool Executor::isUpToDate(Artifact *artifact) const
 {
     Q_ASSERT(artifact->artifactType == Artifact::Generated);
 
     const bool debug = false;
-    if (debug) qbsDebug()
-            << "[UTD] check " << artifact->filePath() << " " << artifact->timestamp.toString();
+    if (debug) {
+        m_logger.qbsDebug() << "[UTD] check " << artifact->filePath() << " "
+                            << artifact->timestamp.toString();
+    }
 
     if (!artifact->timestamp.isValid()) {
-        if (debug) qbsDebug() << "[UTD] invalid timestamp. Out of date.";
+        if (debug)
+            m_logger.qbsDebug() << "[UTD] invalid timestamp. Out of date.";
         return false;
     }
 
     foreach (Artifact *child, artifact->children) {
         Q_ASSERT(child->timestamp.isValid());
-        if (debug) qbsDebug() << "[UTD] child timestamp " << child->timestamp.toString();
+        if (debug)
+            m_logger.qbsDebug() << "[UTD] child timestamp " << child->timestamp.toString();
         if (artifact->timestamp < child->timestamp)
             return false;
     }
@@ -317,8 +325,9 @@ static bool isUpToDate(Artifact *artifact)
             FileInfo fi(fileDependency->filePath());
             fileDependency->timestamp = fi.lastModified();
         }
-        if (debug) qbsDebug() << "[UTD] file dependency timestamp "
-                              << fileDependency->timestamp.toString();
+        if (debug)
+            m_logger.qbsDebug() << "[UTD] file dependency timestamp "
+                                << fileDependency->timestamp.toString();
         if (artifact->timestamp < fileDependency->timestamp)
             return false;
     }
@@ -326,7 +335,7 @@ static bool isUpToDate(Artifact *artifact)
     return true;
 }
 
-static bool mustExecuteTransformer(const TransformerPtr &transformer)
+bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 {
     foreach (Artifact *artifact, transformer->outputs)
         if (artifact->alwaysUpdated)
@@ -342,13 +351,13 @@ void Executor::buildArtifact(Artifact *artifact)
 {
     Q_ASSERT(!m_availableJobs.isEmpty());
 
-    if (qbsLogLevel(LoggerDebug))
-        qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
+    if (m_doDebug)
+        m_logger.qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
 
     // Skip artifacts that are already built.
     if (artifact->buildState == Artifact::Built) {
-        if (qbsLogLevel(LoggerDebug))
-            qbsDebug("[EXEC] artifact already built. Skipping.");
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] artifact already built. Skipping.";
         return;
     }
 
@@ -360,9 +369,9 @@ void Executor::buildArtifact(Artifact *artifact)
         if (artifact->artifactType == Artifact::SourceFile && !artifact->timestampRetrieved)
             retrieveSourceFileTimestamp(artifact);
 
-        if (qbsLogLevel(LoggerDebug))
-            qbsDebug("[EXEC] artifact type %s. Skipping.",
-                     qPrintable(toString(artifact->artifactType)));
+        if (m_doDebug)
+            m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] artifact type %1. Skipping.")
+                                   .arg(toString(artifact->artifactType));
         finishArtifact(artifact);
         return;
     }
@@ -381,13 +390,13 @@ void Executor::buildArtifact(Artifact *artifact)
         case Artifact::Buildable:
             break;
         case Artifact::Built:
-            if (qbsLogLevel(LoggerDebug))
-                qbsDebug("[EXEC] Side by side artifact already finished. Skipping.");
+            if (m_doDebug)
+                m_logger.qbsDebug() << "[EXEC] Side by side artifact already finished. Skipping.";
             finishArtifact(artifact);
             return;
         case Artifact::Building:
-            if (qbsLogLevel(LoggerDebug))
-                qbsDebug("[EXEC] Side by side artifact processing. Skipping.");
+            if (m_doDebug)
+                m_logger.qbsDebug() << "[EXEC] Side by side artifact processing. Skipping.";
             artifact->buildState = Artifact::Building;
             return;
         }
@@ -395,8 +404,8 @@ void Executor::buildArtifact(Artifact *artifact)
 
     // Skip transformers that do not need to be built.
     if (!mustExecuteTransformer(artifact->transformer)) {
-        if (qbsLogLevel(LoggerDebug))
-            qbsDebug("[EXEC] Up to date. Skipping.");
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
         finishArtifact(artifact);
         return;
     }
@@ -413,7 +422,7 @@ void Executor::buildArtifact(Artifact *artifact)
     }
 
     // scan all input artifacts
-    InputArtifactScanner scanner(artifact, m_inputArtifactScanContext);
+    InputArtifactScanner scanner(artifact, m_inputArtifactScanContext, m_logger);
     scanner.scan();
 
     // postpone the build of this artifact, if new dependencies found
@@ -472,21 +481,21 @@ void Executor::finishJob(ExecutorJob *job, bool success)
         cancelJobs();
 
     if (m_state == ExecutorRunning && m_progressObserver && m_progressObserver->canceled()) {
-        qbsTrace() << "Received cancel request; canceling build.";
+        m_logger.qbsTrace() << "Received cancel request; canceling build.";
         m_explicitlyCanceled = true;
         cancelJobs();
     }
 
     if (m_state == ExecutorCanceling) {
         if (m_processingJobs.isEmpty()) {
-            qbsTrace() << "All pending jobs are done, finishing.";
+            m_logger.qbsTrace() << "All pending jobs are done, finishing.";
             finish();
         }
         return;
     }
 
     if (!scheduleJobs()) {
-        qbsTrace() << "Nothing left to build; finishing.";
+        m_logger.qbsTrace() << "Nothing left to build; finishing.";
         finish();
     }
 }
@@ -503,25 +512,31 @@ void Executor::finishArtifact(Artifact *leaf)
 {
     Q_ASSERT(leaf);
 
-    if (qbsLogLevel(LoggerTrace))
-        qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
+    if (m_doTrace)
+        m_logger.qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
 
     leaf->buildState = Artifact::Built;
     m_scanResultCache.remove(leaf->filePath());
     foreach (Artifact *parent, leaf->parents) {
         if (parent->buildState != Artifact::Buildable) {
-            if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent) << " build state: " << toString(parent->buildState);
+            if (m_doTrace) {
+                m_logger.qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent)
+                                    << " build state: " << toString(parent->buildState);
+            }
             continue;
         }
 
         if (allChildrenBuilt(parent)) {
             m_leaves.append(parent);
-            if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[EXEC] finishArtifact adds leaf " << relativeArtifactFileName(parent) << " " << toString(parent->buildState);
+            if (m_doTrace) {
+                m_logger.qbsTrace() << "[EXEC] finishArtifact adds leaf "
+                        << relativeArtifactFileName(parent) << " " << toString(parent->buildState);
+            }
         } else {
-            if (qbsLogLevel(LoggerTrace))
-                qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent) << " build state: " << toString(parent->buildState);
+            if (m_doTrace) {
+                m_logger.qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent)
+                                    << " build state: " << toString(parent->buildState);
+            }
         }
     }
 
@@ -534,9 +549,8 @@ void Executor::finishArtifact(Artifact *leaf)
         m_progressObserver->incrementProgressValue(BuildEffortCalculator::multiplier(leaf));
 }
 
-static void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
-                                                        QSet<Artifact *> *seenArtifacts,
-                                                        QList<Artifact *> *leaves)
+void Executor::insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
+        QSet<Artifact *> *seenArtifacts, QList<Artifact *> *leaves) const
 {
     if (seenArtifacts->contains(artifact))
         return;
@@ -554,8 +568,8 @@ static void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact
     }
 
     if (isLeaf) {
-        if (qbsLogLevel(LoggerDebug))
-            qbsDebug() << "[EXEC] adding leaf " << relativeArtifactFileName(artifact);
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] adding leaf " << relativeArtifactFileName(artifact);
         leaves->append(artifact);
     }
 }
@@ -569,7 +583,7 @@ void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependenc
 
 void Executor::cancelJobs()
 {
-    qbsTrace() << "Canceling all jobs.";
+    m_logger.qbsTrace() << "Canceling all jobs.";
     setState(ExecutorCanceling);
     QList<ExecutorJob *> jobs = m_processingJobs.keys();
     foreach (ExecutorJob *job, jobs)
@@ -603,7 +617,7 @@ void Executor::doSanityChecks()
 void Executor::addExecutorJobs(int jobNumber)
 {
     for (int i = 1; i <= jobNumber; i++) {
-        ExecutorJob *job = new ExecutorJob(this);
+        ExecutorJob *job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
         m_availableJobs.append(job);
@@ -634,7 +648,7 @@ void Executor::runAutoMoc()
     }
     if (autoMocApplied) {
         foreach (const BuildProductConstPtr &product, m_productsToBuild)
-            CycleDetector().visitProduct(product);
+            CycleDetector(m_logger).visitProduct(product);
     }
     if (m_progressObserver)
         m_progressObserver->incrementProgressValue(m_mocEffort);
@@ -686,8 +700,7 @@ void Executor::finish()
         }
     }
     if (unbuiltProductNames.isEmpty()) {
-        qbsInfo() << DontPrintLogLevel << LogOutputStdOut << TextColorGreen
-                  << Tr::tr("Build done.");
+        m_logger.qbsInfo() << Tr::tr("Build done.");
     } else {
         m_error.append(Tr::tr("The following products could not be built: %1.")
                  .arg(unbuiltProductNames.join(", ")));

@@ -7,8 +7,6 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 QT = core testlib
 CONFIG += depend_includepath testcase
 
-include(../../../src/lib/use.pri)
-
 HEADERS += \
     tst_language.h
 
@@ -18,3 +16,6 @@ SOURCES += \
 OTHER_FILES += \
     $$PWD/testdata/* \
     testdata/outerInGroup.qbs
+
+include(../../../src/lib/use.pri)
+include(../../../src/app/shared/logging/logging.pri)

@@ -32,6 +32,7 @@
 
 #include "property.h"
 #include "propertydeclaration.h"
+#include <logging/logger.h>
 #include <QHash>
 #include <QScriptClass>
 #include <set>
@@ -47,7 +48,7 @@ typedef QSharedPointer<ScopesCache> ScopesCachePtr;
 class Scope : public QScriptClass
 {
     Q_DISABLE_COPY(Scope)
-    Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name);
+    Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name, const Logger &logger);
 
     ScopesCachePtr m_scopesCache;
 
@@ -56,7 +57,7 @@ public:
     typedef QSharedPointer<const Scope> ConstPtr;
 
     static Ptr create(QScriptEngine *engine, ScopesCachePtr cache, const QString &name,
-                      ProjectFile *owner);
+                      ProjectFile *owner, const Logger &logger);
     ~Scope();
 
     QString name() const;
@@ -83,6 +84,7 @@ public:
     QString m_name;
     QWeakPointer<Scope> fallbackScope;
     QScriptValue value;
+    Logger m_logger;
 };
 
 } // namespace Internal

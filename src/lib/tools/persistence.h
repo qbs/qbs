@@ -31,6 +31,7 @@
 #define QBS_PERSISTENCE
 
 #include "persistentobject.h"
+#include <logging/logger.h>
 
 #include <QDataStream>
 #include <QSharedPointer>
@@ -44,7 +45,7 @@ namespace Internal {
 class PersistentPool
 {
 public:
-    PersistentPool();
+    PersistentPool(const Logger &logger);
     ~PersistentPool();
 
     class HeadData
@@ -104,6 +105,7 @@ private:
     QVector<QString> m_stringStorage;
     QHash<QString, int> m_inverseStringStorage;
     PersistentObjectId m_lastStoredStringId;
+    Logger m_logger;
 };
 
 template <typename T> inline T *PersistentPool::idLoad()

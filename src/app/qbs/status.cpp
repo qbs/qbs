@@ -29,7 +29,8 @@
 
 #include "status.h"
 
-#include <language/language.h>
+#include "../shared/logging/consolelogger.h"
+
 #include <qbs.h>
 
 #include <QDir>
@@ -112,39 +113,35 @@ QStringList allFiles(const ProductData &product)
 int printStatus(const ProjectData &project)
 {
     const QString projectFilePath = project.location().fileName;
-    QString projectDirectory = FileInfo::path(projectFilePath);
+    QString projectDirectory = QFileInfo(projectFilePath).dir().path();
     int projectDirectoryPathLength = projectDirectory.length();
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
     foreach (const ProductData &product, project.products()) {
-        qbsInfo() << DontPrintLogLevel << TextColorBlue << "\nProduct: " << product.name()
+        qbsInfo() << "\nProduct: " << product.name()
                   << " (" << product.location().fileName << ":" << product.location().line << ")";
         foreach (const GroupData &group, product.groups()) {
-            qbsInfo() << DontPrintLogLevel << TextColorBlue << "  Group: " << group.name()
+            qbsInfo() << "  Group: " << group.name()
                       << " (" << group.location().fileName << ":" << group.location().line << ")";
             QStringList sourceFiles = group.allFilePaths();
             qSort(sourceFiles);
             foreach (const QString &sourceFile, sourceFiles) {
-                TextColor statusColor = TextColorDefault;
-                if (!QFileInfo(sourceFile).exists()) {
-                    statusColor = TextColorRed;
+                if (!QFileInfo(sourceFile).exists())
                     missingFiles.append(sourceFile);
-                }
-                qbsInfo() << DontPrintLogLevel << statusColor << "    "
-                          << sourceFile.mid(projectDirectoryPathLength + 1);
+                qbsInfo() << "    " << sourceFile.mid(projectDirectoryPathLength + 1);
                 untrackedFilesInProject.removeOne(sourceFile);
             }
         }
     }
 
-    qbsInfo() << DontPrintLogLevel << TextColorDarkBlue << "\nMissing files:";
+    qbsInfo() << "\nMissing files:";
     foreach (const QString &untrackedFile, missingFiles)
-        qbsInfo() << DontPrintLogLevel<< TextColorRed <<"  " << untrackedFile.mid(projectDirectoryPathLength + 1);
+        qbsInfo() << untrackedFile.mid(projectDirectoryPathLength + 1);
 
-    qbsInfo() << DontPrintLogLevel << TextColorDarkBlue << "\nUntracked files:";
+    qbsInfo() << "\nUntracked files:";
     foreach (const QString &missingFile, untrackedFilesInProject)
-        qbsInfo() << DontPrintLogLevel<< TextColorCyan <<"  " << missingFile.mid(projectDirectoryPathLength + 1);
+        qbsInfo() << missingFile.mid(projectDirectoryPathLength + 1);
 
     return 0;
 }
