@@ -68,7 +68,9 @@ private:
 
 } // namespace QbsQmlJS
 
+QT_BEGIN_NAMESPACE
 QDebug operator<<(QDebug debug, const QbsQmlJS::QmlError &error);
 Q_DECLARE_TYPEINFO(QbsQmlJS::QmlError, Q_MOVABLE_TYPE);
+QT_END_NAMESPACE
 
 #endif // QQMLERROR_H

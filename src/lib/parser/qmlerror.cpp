@@ -222,6 +222,12 @@ QString QmlError::toString() const
     return rv;
 }
 
+} // namespace QbsQmlJS
+
+QT_BEGIN_NAMESPACE
+
+using namespace QbsQmlJS;
+
 /*!
     \relates QmlError
     \fn QDebug operator<<(QDebug debug, const QmlError &error)
@@ -273,4 +279,4 @@ QDebug operator<<(QDebug debug, const QmlError &error)
     return debug;
 }
 
-} // namespace QbsQmlJS
+QT_END_NAMESPACE
