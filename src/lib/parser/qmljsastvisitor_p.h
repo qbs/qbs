@@ -44,9 +44,8 @@
 #include "qmljsastfwd_p.h"
 #include "qmljsglobal_p.h"
 
-QT_QML_BEGIN_NAMESPACE
-
-namespace QbsQmlJS { namespace AST {
+namespace QbsQmlJS {
+namespace AST {
 
 class QML_PARSER_EXPORT Visitor
 {
@@ -310,8 +309,7 @@ public:
     virtual void endVisit(DebuggerStatement *) {}
 };
 
-} } // namespace AST
-
-QT_QML_END_NAMESPACE
+} // namespace AST
+} // namespace QbsQmlJS
 
 #endif // QMLJSASTVISITOR_P_H

@@ -48,8 +48,6 @@
 #include <QString>
 #include <QSet>
 
-QT_QML_BEGIN_NAMESPACE
-
 namespace QbsQmlJS {
 
 class Lexer;
@@ -113,7 +111,5 @@ public:
 double integerFromString(const char *buf, int size, int radix);
 
 } // end of namespace QbsQmlJS
-
-QT_QML_END_NAMESPACE
 
 #endif // QMLJSENGINE_P_H

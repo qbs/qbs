@@ -33,7 +33,7 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qstringlist.h>
 
-QT_BEGIN_NAMESPACE
+namespace QbsQmlJS {
 
 /*!
     \class QmlError
@@ -273,4 +273,4 @@ QDebug operator<<(QDebug debug, const QmlError &error)
     return debug;
 }
 
-QT_END_NAMESPACE
+} // namespace QbsQmlJS

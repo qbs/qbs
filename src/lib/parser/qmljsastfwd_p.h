@@ -45,9 +45,8 @@
 // We mean it.
 //
 
-QT_QML_BEGIN_NAMESPACE
-
-namespace QbsQmlJS { namespace AST {
+namespace QbsQmlJS {
+namespace AST {
 
 class SourceLocation
 {
@@ -167,8 +166,7 @@ class UiObjectMemberList;
 class UiArrayMemberList;
 class UiQualifiedId;
 
-} } // namespace AST
-
-QT_QML_END_NAMESPACE
+} // namespace AST
+} // namespace QbsQmlJS
 
 #endif

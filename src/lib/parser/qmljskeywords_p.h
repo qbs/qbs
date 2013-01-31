@@ -41,6 +41,8 @@
 // We mean it.
 //
 
+namespace QbsQmlJS {
+
 static inline int classify2(const QChar *s, bool qmlMode) {
   if (s[0].unicode() == 'a') {
     if (s[1].unicode() == 's') {
@@ -844,5 +846,7 @@ int Lexer::classify(const QChar *s, int n, bool qmlMode) {
     default: return Lexer::T_IDENTIFIER;
   } // switch
 }
+
+} // namespace QbsQmlJS
 
 #endif // QMLJSKEYWORDS_P_H

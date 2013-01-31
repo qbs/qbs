@@ -35,12 +35,12 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qstring.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
-
-
 class QDebug;
+QT_END_NAMESPACE
+
+namespace QbsQmlJS {
+
 class QmlErrorPrivate;
 class QmlError
 {
@@ -66,12 +66,9 @@ private:
     QmlErrorPrivate *d;
 };
 
-QDebug operator<<(QDebug debug, const QmlError &error);
+} // namespace QbsQmlJS
 
-Q_DECLARE_TYPEINFO(QmlError, Q_MOVABLE_TYPE);
-
-QT_END_NAMESPACE
-
-QT_END_HEADER
+QDebug operator<<(QDebug debug, const QbsQmlJS::QmlError &error);
+Q_DECLARE_TYPEINFO(QbsQmlJS::QmlError, Q_MOVABLE_TYPE);
 
 #endif // QQMLERROR_H

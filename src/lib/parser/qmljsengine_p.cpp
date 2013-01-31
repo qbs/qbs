@@ -34,8 +34,6 @@
 #include <QHash>
 #include <QDebug>
 
-QT_QML_BEGIN_NAMESPACE
-
 namespace QbsQmlJS {
 
 static int toDigit(char c)
@@ -151,5 +149,3 @@ QStringRef Engine::newStringRef(const QChar *chars, int size)
 { return newStringRef(QString(chars, size)); }
 
 } // end of namespace QbsQmlJS
-
-QT_QML_END_NAMESPACE

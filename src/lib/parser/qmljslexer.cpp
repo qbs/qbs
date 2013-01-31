@@ -39,7 +39,7 @@ QT_BEGIN_NAMESPACE
 Q_CORE_EXPORT double qstrtod(const char *s00, char const **se, bool *ok);
 QT_END_NAMESPACE
 
-using namespace QbsQmlJS;
+namespace QbsQmlJS {
 
 static int regExpFlagFromChar(const QChar &ch)
 {
@@ -1135,5 +1135,7 @@ bool Lexer::scanDirectives(Directives *directives)
 
     return true;
 }
+
+} // namespace QbsQmlJS
 
 #include "qmljskeywords_p.h"

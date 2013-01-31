@@ -55,8 +55,6 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 
-QT_QML_BEGIN_NAMESPACE
-
 namespace QbsQmlJS {
 
 class Engine;
@@ -228,9 +226,5 @@ protected:
 #define J_SCRIPT_REGEXPLITERAL_RULE1 79
 
 #define J_SCRIPT_REGEXPLITERAL_RULE2 80
-
-QT_QML_END_NAMESPACE
-
-
 
 #endif // QMLJSPARSER_P_H

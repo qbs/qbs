@@ -47,7 +47,7 @@
 
 #include <QtCore/QString>
 
-QT_QML_BEGIN_NAMESPACE
+namespace QbsQmlJS {
 
 #define QMLJS_DECLARE_AST_NODE(name) \
   enum { K = Kind_##name };
@@ -94,8 +94,6 @@ enum Op {
 };
 
 } // namespace QSOperator
-
-namespace QbsQmlJS {
 
 namespace AST {
 
@@ -2619,10 +2617,7 @@ public:
     SourceLocation rbracketToken;
 };
 
-} } // namespace AST
-
-
-
-QT_QML_END_NAMESPACE
+} // namespace AST
+} // namespace QbsQmlJS
 
 #endif

@@ -29,9 +29,8 @@
 
 #include "qmljsastvisitor_p.h"
 
-QT_QML_BEGIN_NAMESPACE
-
-namespace QbsQmlJS { namespace AST {
+namespace QbsQmlJS {
+namespace AST {
 
 Visitor::Visitor()
 {
@@ -41,6 +40,5 @@ Visitor::~Visitor()
 {
 }
 
-} } // namespace QbsQmlJS::AST
-
-QT_QML_END_NAMESPACE
+} // namespace AST
+} // namespace QbsQmlJS

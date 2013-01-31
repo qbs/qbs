@@ -49,8 +49,6 @@
 
 #include <cstring>
 
-QT_QML_BEGIN_NAMESPACE
-
 namespace QbsQmlJS {
 
 class QML_PARSER_EXPORT MemoryPool : public QSharedData
@@ -155,7 +153,5 @@ public:
 };
 
 } // namespace QbsQmlJS
-
-QT_QML_END_NAMESPACE
 
 #endif

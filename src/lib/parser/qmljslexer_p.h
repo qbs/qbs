@@ -45,8 +45,6 @@
 #include "qmljsgrammar_p.h"
 #include <QtCore/QString>
 
-QT_QML_BEGIN_NAMESPACE
-
 namespace QbsQmlJS {
 
 class Engine;
@@ -230,8 +228,6 @@ private:
     bool _qmlMode;
 };
 
-} // end of namespace QbsQmlJS
-
-QT_QML_END_NAMESPACE
+} // namespace QbsQmlJS
 
 #endif // LEXER_H

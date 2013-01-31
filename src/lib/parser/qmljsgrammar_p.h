@@ -45,7 +45,7 @@
 #include "qmljsglobal_p.h"
 #include <QtCore/qglobal.h>
 
-QT_BEGIN_NAMESPACE
+namespace QbsQmlJS {
 
 class QML_PARSER_EXPORT QmlJSGrammar
 {
@@ -195,6 +195,7 @@ public:
 };
 
 
-QT_END_NAMESPACE
+} // namespace QbsQmlJS
+
 #endif // QMLJSGRAMMAR_P_H
 
