@@ -43,8 +43,8 @@ public:
     bool useColoredOutput() const;
     int jobs() const;
     QString shell() const;
-    QStringList searchPaths() const;
-    QStringList pluginPaths() const;
+    QStringList searchPaths(const QString &qbsRootPath = QString()) const;
+    QStringList pluginPaths(const QString &qbsRootPath = QString()) const;
 
 private:
     QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;

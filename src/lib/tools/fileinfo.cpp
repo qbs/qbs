@@ -281,11 +281,6 @@ bool FileInfo::isDir() const
     return S_ISDIR(m_stat.st_mode);
 }
 
-QString applicationDirPath()
-{
-    return QCoreApplication::applicationDirPath();
-}
-
 #endif
 
 // adapted from qtc/plugins/vcsbase/cleandialog.cpp
@@ -380,12 +375,6 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
         }
     }
     return true;
-}
-
-
-QString qbsRootPath()
-{
-    return QDir::cleanPath(applicationDirPath() + QLatin1String("/../"));
 }
 
 } // namespace Internal

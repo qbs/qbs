@@ -80,8 +80,6 @@ private:
     InternalStatType m_stat;
 };
 
-QString applicationDirPath();
-QString qbsRootPath();
 bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
 bool removeDirectoryWithContents(const QString &path, QString *errorMessage);
 bool copyFileRecursion(const QString &sourcePath, const QString &targetPath, QString *errorMessage);

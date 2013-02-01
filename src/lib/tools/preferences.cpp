@@ -29,12 +29,10 @@
 #include "preferences.h"
 
 #include "buildoptions.h"
-#include "fileinfo.h"
 #include "hostosinfo.h"
 #include "settings.h"
 
 namespace qbs {
-using namespace Internal;
 
 /*!
  * \class Preferences
@@ -75,20 +73,20 @@ QString Preferences::shell() const
 
 /*!
  * \brief Returns the list of paths where qbs looks for module definitions and such.
- * The separator is ":" on UNIX-like systems and ";" on Windows.
+ * If there is no such setting, \c qbsRootPath will be used to look up a fallback location.
  */
-QStringList Preferences::searchPaths() const
+QStringList Preferences::searchPaths(const QString &qbsRootPath) const
 {
-    return pathList(QLatin1String("qbsPath"), qbsRootPath() + QLatin1String("/share/qbs/"));
+    return pathList(QLatin1String("qbsPath"), qbsRootPath + QLatin1String("/share/qbs"));
 }
 
 /*!
  * \brief Returns the list of paths where qbs looks for plugins.
- * The separator is ":" on UNIX-like systems and ";" on Windows.
+ * If there is no such setting, \c qbsRootPath will be used to look up a fallback location.
  */
-QStringList Preferences::pluginPaths() const
+QStringList Preferences::pluginPaths(const QString &qbsRootPath) const
 {
-    return pathList(QLatin1String("pluginsPath"), qbsRootPath() + QLatin1String("/plugins/"));
+    return pathList(QLatin1String("pluginsPath"), qbsRootPath + QLatin1String("/plugins"));
 }
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const

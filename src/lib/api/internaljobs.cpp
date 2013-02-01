@@ -155,9 +155,8 @@ void InternalSetupProjectJob::execute()
 {
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext);
     evalContext->setObserver(observer());
-    const QStringList searchPaths = Preferences(m_settings).searchPaths();
     const BuildProjectLoader::LoadResult loadResult = BuildProjectLoader().load(m_parameters,
-            evalContext, searchPaths, m_settings);
+            evalContext, m_parameters.searchPaths, m_settings);
 
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
@@ -169,7 +168,7 @@ void InternalSetupProjectJob::execute()
             rProject = loadResult.changedResolvedProject;
         } else {
             Loader loader(evalContext->engine(), m_settings);
-            loader.setSearchPaths(searchPaths);
+            loader.setSearchPaths(m_parameters.searchPaths);
             loader.setProgressObserver(observer());
             rProject = loader.loadProject(m_parameters);
         }

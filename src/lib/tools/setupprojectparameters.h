@@ -29,7 +29,7 @@
 #ifndef QBS_SETUPPROJECTPARAMETERS_H
 #define QBS_SETUPPROJECTPARAMETERS_H
 
-#include <QString>
+#include <QStringList>
 #include <QVariantMap>
 
 namespace qbs {
@@ -41,6 +41,8 @@ public:
 
     QString projectFilePath;
     QString buildRoot;
+    QStringList searchPaths;
+    QStringList pluginPaths;
     QVariantMap buildConfiguration;
     bool ignoreDifferentProjectFilePath;
 };

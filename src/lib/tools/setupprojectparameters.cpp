@@ -56,6 +56,16 @@ SetupProjectParameters::SetupProjectParameters() : ignoreDifferentProjectFilePat
  */
 
 /*!
+ * \variable SetupProjectParameters::searchPaths
+ * \brief Where to look for modules and items to import.
+ */
+
+/*!
+ * \variable SetupProjectParameters::pluginPaths
+ * \brief Where to look for plugins.
+ */
+
+/*!
  * \variable SetupProjectParameters::buildConfiguration
  * \brief The collection of properties to use for resolving the project.
  */

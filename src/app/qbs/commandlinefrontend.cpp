@@ -94,12 +94,16 @@ void CommandLineFrontend::start()
 
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
+        const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
+                                                   + QLatin1String("/../"));
+        SetupProjectParameters params;
+        params.projectFilePath = m_parser.projectFilePath();
+        params.buildRoot = QDir::currentPath();
+        params.searchPaths = Preferences(m_settings).searchPaths(qbsRootPath);
+        params.pluginPaths = Preferences(m_settings).pluginPaths(qbsRootPath);
+        params.ignoreDifferentProjectFilePath = m_parser.force();
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
-            SetupProjectParameters params;
-            params.projectFilePath = m_parser.projectFilePath();
             params.buildConfiguration = buildConfig;
-            params.buildRoot = QDir::currentPath();
-            params.ignoreDifferentProjectFilePath = m_parser.force();
             SetupProjectJob * const job = Project::setupProject(params, m_settings, this);
             connectJob(job);
             m_resolveJobs << job;

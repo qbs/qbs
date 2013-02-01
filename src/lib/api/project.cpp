@@ -61,15 +61,14 @@ namespace Internal {
 static bool pluginsLoaded = false;
 static QMutex pluginsLoadedMutex;
 
-static void loadPlugins(Settings *settings)
+static void loadPlugins(const QStringList &_pluginPaths)
 {
     QMutexLocker locker(&pluginsLoadedMutex);
     if (pluginsLoaded)
         return;
 
     QStringList pluginPaths;
-    const QStringList settingsPluginPaths = Preferences(settings).pluginPaths();
-    foreach (const QString &pluginPath, settingsPluginPaths) {
+    foreach (const QString &pluginPath, _pluginPaths) {
         if (!FileInfo::exists(pluginPath)) {
             qbsWarning() << Tr::tr("Plugin path '%1' does not exist.")
                     .arg(QDir::toNativeSeparators(pluginPath));
@@ -253,7 +252,7 @@ Project &Project::operator=(const Project &other)
 SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters, Settings *settings,
                                        QObject *jobOwner)
 {
-    loadPlugins(settings);
+    loadPlugins(_parameters.pluginPaths);
     SetupProjectJob * const job = new SetupProjectJob(settings, jobOwner);
     SetupProjectParameters parameters = _parameters;
     parameters.buildConfiguration
