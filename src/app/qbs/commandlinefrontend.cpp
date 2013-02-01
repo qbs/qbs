@@ -38,6 +38,7 @@
 #include <logging/translator.h>
 
 #include <QDir>
+#include <QMetaObject>
 #include <QProcessEnvironment>
 #include <cstdlib>
 
@@ -51,13 +52,18 @@ CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settin
 
 void CommandLineFrontend::cancel()
 {
+    m_canceled = true;
+    QMetaObject::invokeMethod(this, "doCancel", Qt::QueuedConnection);
+}
+
+void CommandLineFrontend::doCancel()
+{
     if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty())
         std::exit(EXIT_FAILURE);
     foreach (AbstractJob * const job, m_resolveJobs)
         job->cancel();
     foreach (AbstractJob * const job, m_buildJobs)
         job->cancel();
-    m_canceled = true;
 }
 
 void CommandLineFrontend::start()

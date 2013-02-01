@@ -48,6 +48,7 @@ public:
 
 private:
     CommandLineFrontend *m_clFrontend;
+    bool m_canceled;
 };
 
 } // namespace qbs

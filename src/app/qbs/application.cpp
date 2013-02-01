@@ -34,7 +34,8 @@
 
 namespace qbs {
 
-Application::Application(int &argc, char **argv) : QCoreApplication(argc, argv), m_clFrontend(0)
+Application::Application(int &argc, char **argv)
+    : QCoreApplication(argc, argv), m_clFrontend(0), m_canceled(false)
 {
     setApplicationName(QLatin1String("qbs"));
     setOrganizationName(QLatin1String("QtProject"));
@@ -57,7 +58,10 @@ void Application::setCommandLineFrontend(CommandLineFrontend *clFrontend)
  */
 void Application::userInterrupt()
 {
+    if (m_canceled)
+        return;
     Q_ASSERT(m_clFrontend);
+    m_canceled = true;
     m_clFrontend->cancel();
 }
 

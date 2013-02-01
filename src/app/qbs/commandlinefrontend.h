@@ -80,6 +80,8 @@ private:
     void connectJob(AbstractJob *job);
     void checkForExactlyOneProduct();
 
+    Q_INVOKABLE void doCancel();
+
     const CommandLineParser &m_parser;
     Settings * const m_settings;
     QList<AbstractJob *> m_resolveJobs;
