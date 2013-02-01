@@ -28,6 +28,7 @@
 ****************************************************************************/
 #include "preferences.h"
 
+#include "buildoptions.h"
 #include "fileinfo.h"
 #include "hostosinfo.h"
 #include "settings.h"
@@ -56,10 +57,11 @@ bool Preferences::useColoredOutput() const
 
 /*!
  * \brief Returns the number of parallel jobs to use for building.
+ * Uses a sensible default value if there is no such setting.
  */
 int Preferences::jobs() const
 {
-    return getPreference(QLatin1String("jobs")).toInt();
+    return getPreference(QLatin1String("jobs"), BuildOptions::defaultMaxJobCount()).toInt();
 }
 
 /*!

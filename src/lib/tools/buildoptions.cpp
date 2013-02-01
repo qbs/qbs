@@ -28,6 +28,8 @@
 ****************************************************************************/
 #include "buildoptions.h"
 
+#include <QThread>
+
 namespace qbs {
 
 /*!
@@ -44,6 +46,15 @@ BuildOptions::BuildOptions()
     , keepGoing(false)
     , maxJobCount(0)
 {
+}
+
+/*!
+ * \brief Returns the default value for \c maxJobCount.
+ * This value will be used when \c maxJobCount has not been set explicitly.
+ */
+int BuildOptions::defaultMaxJobCount()
+{
+    return QThread::idealThreadCount();
 }
 
 /*!

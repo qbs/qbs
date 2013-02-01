@@ -38,6 +38,8 @@ class BuildOptions
 public:
     BuildOptions();
 
+    static int defaultMaxJobCount();
+
     QStringList changedFiles;
     bool dryRun;
     bool keepGoing;
