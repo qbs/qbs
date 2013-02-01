@@ -79,7 +79,7 @@ QStringList Settings::directChildren(const QString &parentGroup)
     return children;
 }
 
-QStringList Settings::allKeysWithPrefix(const QString &group)
+QStringList Settings::allKeysWithPrefix(const QString &group) const
 {
     m_settings->beginGroup(internalRepresentation(group));
     QStringList keys = m_settings->allKeys();

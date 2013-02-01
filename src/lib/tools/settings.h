@@ -48,7 +48,7 @@ public:
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
     QStringList allKeys() const;
     QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group);
+    QStringList allKeysWithPrefix(const QString &group) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
 
