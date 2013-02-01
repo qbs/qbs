@@ -70,8 +70,8 @@ BuildOptions::BuildOptions()
  /*!
   * \variable
   * \brief the maximum number of build commands to run concurrently
-  * This is initialized to the configuration value "preferences.jobs". If that one is not valid,
-  * a sensible value is derived from the number of available processor cores.
+  * If the value is not valid (i.e. <= 0), a sensible one will be derived from the number of
+  * available processor cores at build time.
   */
 
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)

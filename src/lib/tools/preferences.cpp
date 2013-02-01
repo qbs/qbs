@@ -32,8 +32,6 @@
 #include "hostosinfo.h"
 #include "settings.h"
 
-#include <QThread>
-
 namespace qbs {
 using namespace Internal;
 
@@ -61,7 +59,7 @@ bool Preferences::useColoredOutput() const
  */
 int Preferences::jobs() const
 {
-    return getPreference(QLatin1String("jobs"), QThread::idealThreadCount()).toInt();
+    return getPreference(QLatin1String("jobs")).toInt();
 }
 
 /*!

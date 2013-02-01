@@ -49,6 +49,7 @@
 
 #include <QDir>
 #include <QSet>
+#include <QThread>
 #include <QTimer>
 
 #include <algorithm>
@@ -156,7 +157,11 @@ void Executor::build(const QList<BuildProductPtr> &productsToBuild)
 
 void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
 {
-    Q_ASSERT(m_buildOptions.maxJobCount > 0);
+    if (m_buildOptions.maxJobCount <= 0) {
+        m_buildOptions.maxJobCount = QThread::idealThreadCount();
+        qbsDebug() << "max job count not explicitly set, using value of "
+                   << m_buildOptions.maxJobCount;
+    }
     Q_ASSERT(m_state == ExecutorIdle);
     m_leaves.clear();
     m_productsToBuild = productsToBuild;
