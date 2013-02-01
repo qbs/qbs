@@ -95,6 +95,14 @@ QString Settings::defaultProfile() const
     return value(QLatin1String("defaultProfile")).toString();
 }
 
+QStringList Settings::profiles() const
+{
+    m_settings->beginGroup(QLatin1String("profiles"));
+    QStringList result = m_settings->childGroups();
+    m_settings->endGroup();
+    return result;
+}
+
 QString Settings::internalRepresentation(const QString &externalKey) const
 {
     QString internalKey = externalKey;

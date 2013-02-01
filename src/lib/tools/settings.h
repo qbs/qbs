@@ -52,6 +52,7 @@ public:
     void remove(const QString &key);
 
     QString defaultProfile() const;
+    QStringList profiles() const;
 
 private:
     QString internalRepresentation(const QString &externalKey) const;

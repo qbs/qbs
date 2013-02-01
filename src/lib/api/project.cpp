@@ -280,9 +280,11 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig,
     if (profileName.isNull()) {
         profileName = settings->defaultProfile();
         if (profileName.isNull()) {
+            const QString profileNames = settings->profiles().join(QLatin1String(", "));
             throw Error(Tr::tr("No profile given and no default profile set.\n"
-                    "Either set the configuration value 'profile' to a valid profile's name\n"
-                    "or specify the profile with the command line parameter 'profile:name'."));
+                    "Either set the configuration value 'defaultProfile' to a valid profile name\n"
+                    "or specify the profile with the command line parameter 'profile:name'.\n"
+                    "The following profiles are available:\n%1").arg(profileNames));
         }
         expandedConfig.insert("qbs.profile", profileName);
     }
