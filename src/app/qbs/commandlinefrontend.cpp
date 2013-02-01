@@ -188,6 +188,11 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
 
 void CommandLineFrontend::handleNewTaskStarted(const QString &description, int totalEffort)
 {
+    // If the user does not want a progress bar, we just print the current activity.
+    if (!m_parser.showProgress()) {
+        qbsInfo() << DontPrintLogLevel << description;
+        return;
+    }
     if (isBuilding()) {
         m_totalBuildEffort += totalEffort;
         if (++m_buildEffortsRetrieved == m_buildEffortsNeeded) {
@@ -428,9 +433,9 @@ void CommandLineFrontend::connectJob(AbstractJob *job)
 {
     connect(job, SIGNAL(finished(bool, qbs::AbstractJob*)),
             SLOT(handleJobFinished(bool, qbs::AbstractJob*)));
+    connect(job, SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)),
+            SLOT(handleNewTaskStarted(QString,int)));
     if (m_parser.showProgress()) {
-        connect(job, SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)),
-                SLOT(handleNewTaskStarted(QString,int)));
         connect(job, SIGNAL(taskProgress(int,qbs::AbstractJob*)),
                 SLOT(handleTaskProgress(int,qbs::AbstractJob*)));
     }
