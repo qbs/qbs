@@ -30,8 +30,6 @@
 #include "scanresultcache.h"
 #include <tools/fileinfo.h>
 
-#include <QMutexLocker>
-
 namespace qbs {
 namespace Internal {
 
@@ -46,13 +44,11 @@ ScanResultCache::Dependency::Dependency(const QString &filePath, bool isLocal)
 
 ScanResultCache::Result ScanResultCache::value(const QString &fileName) const
 {
-    QMutexLocker ml(&m_mutex);
     return m_data.value(fileName);
 }
 
 void ScanResultCache::insert(const QString &fileName, const ScanResultCache::Result &value)
 {
-    QMutexLocker ml(&m_mutex);
     m_data.insert(fileName, value);
 }
 

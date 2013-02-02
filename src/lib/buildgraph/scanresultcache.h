@@ -31,7 +31,6 @@
 #define QBS_SCANRESULTCACHE_H
 
 #include <QHash>
-#include <QMutex>
 #include <QSet>
 #include <QString>
 #include <QVector>
@@ -76,7 +75,6 @@ public:
     void insert(const QString &fileName, const Result &value);
 
 private:
-    mutable QMutex m_mutex;
     QHash<QString, Result> m_data;
 };
 
