@@ -73,6 +73,7 @@ public:
 
     Result value(const QString &fileName) const;
     void insert(const QString &fileName, const Result &value);
+    void remove(const QString &filePath);
 
 private:
     QHash<QString, Result> m_data;

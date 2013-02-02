@@ -435,11 +435,14 @@ void Executor::buildArtifact(Artifact *artifact)
             }
         }
         if (!unbuiltDependencies.isEmpty()) {
+            artifact->inputsScanned = false;
             insertLeavesAfterAddingDependencies(unbuiltDependencies);
             return;
         }
-        if (buildingDependenciesFound)
+        if (buildingDependenciesFound) {
+            artifact->inputsScanned = false;
             return;
+        }
     }
 
     ExecutorJob *job = m_availableJobs.takeFirst();
@@ -504,6 +507,7 @@ void Executor::finishArtifact(Artifact *leaf)
         qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
 
     leaf->buildState = Artifact::Built;
+    m_scanResultCache.remove(leaf->filePath());
     foreach (Artifact *parent, leaf->parents) {
         if (parent->buildState != Artifact::Buildable) {
             if (qbsLogLevel(LoggerTrace))

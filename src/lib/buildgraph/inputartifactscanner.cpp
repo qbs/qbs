@@ -287,10 +287,14 @@ unresolved:
         continue;
 
 resolved:
-        filePathsToScan->append(resolvedDependency.filePath);
+        // Do not scan artifacts that are being built. Otherwise we might read an incomplete
+        // file or conflict with the writing process.
+        if (!resolvedDependency.artifact
+                || resolvedDependency.artifact->buildState != Artifact::Building) {
+            filePathsToScan->append(resolvedDependency.filePath);
+        }
         handleDependency(resolvedDependency);
     }
-
 }
 
 void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)

@@ -52,5 +52,10 @@ void ScanResultCache::insert(const QString &fileName, const ScanResultCache::Res
     m_data.insert(fileName, value);
 }
 
+void ScanResultCache::remove(const QString &filePath)
+{
+    m_data.remove(filePath);
+}
+
 } // namespace Internal
 } // namespace qbs
