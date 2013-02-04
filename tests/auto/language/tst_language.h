@@ -66,6 +66,8 @@ private slots:
     void identifierSearch();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
+    void modules_data();
+    void modules();
     void outerInGroup();
     void productConditions();
     void propertiesBlocks_data();

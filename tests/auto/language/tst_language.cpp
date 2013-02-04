@@ -305,6 +305,55 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::modules_data()
+{
+    QTest::addColumn<QStringList>("expectedModulesInProduct");
+    QTest::newRow("init") << QStringList();
+    QTest::newRow("no_modules")
+            << (QStringList() << "qbs");
+    QTest::newRow("qt_core")
+            << (QStringList() << "qbs" << "dummyqt/core");
+    QTest::newRow("qt_gui")
+            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui");
+    QTest::newRow("qt_gui_network")
+            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui" << "dummyqt/network");
+    QTest::newRow("cleanup") << QStringList();
+}
+
+void TestLanguage::modules()
+{
+    QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
+    if (productName == "init") {
+        bool exceptionCaught = false;
+        try {
+            defaultParameters.projectFilePath = SRCDIR "testdata/modules.qbs";
+            project = loader->loadProject(defaultParameters);
+            QVERIFY(project);
+        } catch (const Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
+        return;
+    } else if (productName == "cleanup") {
+        project.clear();
+        return;
+    }
+
+    QVERIFY(project);
+    QFETCH(QStringList, expectedModulesInProduct);
+    QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    ResolvedProductPtr product = products.value(productName);
+    QVERIFY(product);
+    QCOMPARE(product->name, productName);
+    QStringList modulesInProduct;
+    foreach (ResolvedModuleConstPtr m, product->modules)
+        modulesInProduct += m->name;
+    modulesInProduct.sort();
+    expectedModulesInProduct.sort();
+    QCOMPARE(modulesInProduct, expectedModulesInProduct);
+}
+
 void TestLanguage::outerInGroup()
 {
     bool exceptionCaught = false;
