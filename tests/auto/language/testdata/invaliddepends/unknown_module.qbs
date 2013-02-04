@@ -1,0 +1,3 @@
+Product {
+    Depends { name: "neitherModuleNorProduct" }
+}

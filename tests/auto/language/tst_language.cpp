@@ -159,6 +159,34 @@ void TestLanguage::conditionalDepends()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::invalidDepends_data()
+{
+    QTest::addColumn<QString>("errorMessage");
+    QTest::newRow("unknown_module")
+            << "Product dependency 'neithermodulenorproduct' not found";
+    QTest::newRow("submodule_syntax")
+            << "Depends.submodules cannot be used if name contains a dot";
+}
+
+void TestLanguage::invalidDepends()
+{
+    QFETCH(QString, errorMessage);
+    QString fileName = QString::fromLocal8Bit(QTest::currentDataTag()) + QLatin1String(".qbs");
+    try {
+        defaultParameters.projectFilePath
+                = QString::fromLatin1(SRCDIR "testdata/invaliddepends/") + fileName;
+        loader->loadProject(defaultParameters);
+    } catch (const Error &e) {
+        if (!e.toString().contains(errorMessage)) {
+            qDebug() << "Message:  " << e.toString();
+            qDebug() << "Expected: " << errorMessage;
+            QFAIL("Unexpected error message.");
+        }
+        return;
+    }
+    QFAIL("No error thrown on invalid input.");
+}
+
 void TestLanguage::groupName()
 {
     bool exceptionCaught = false;

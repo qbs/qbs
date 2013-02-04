@@ -61,6 +61,8 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
     void conditionalDepends();
+    void invalidDepends_data();
+    void invalidDepends();
     void groupName();
     void identifierSearch_data();
     void identifierSearch();
