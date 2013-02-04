@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "tst_blackbox.h"
+#include <app/shared/qbssettings.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
@@ -535,6 +536,16 @@ void TestBlackbox::checkProjectFilePath()
 
     QCOMPARE(runQbs(QStringList("-f") << "project2.qbs" << "--force"), 0);
     QVERIFY(m_qbsStderr.contains("project file"));
+}
+
+void TestBlackbox::missingProfile()
+{
+    SettingsPtr settings = qbsSettings();
+    if (!settings->defaultProfile().isEmpty())
+        QSKIP("default profile exists");
+    QDir::setCurrent(testDataDir + "/project_filepath_check");
+    QVERIFY(runQbs(QStringList("-f") << "project1.qbs", true, false) != 0);
+    QVERIFY(m_qbsStderr.contains("No profile"));
 }
 
 QTEST_MAIN(TestBlackbox)

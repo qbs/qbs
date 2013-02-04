@@ -94,6 +94,7 @@ private:
     SetupProjectJob(Settings *settings, QObject *parent);
 
     void resolve(const SetupProjectParameters &parameters);
+    void reportError(const Error &error);
 };
 
 class BuildJob : public AbstractJob

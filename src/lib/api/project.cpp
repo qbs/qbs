@@ -28,6 +28,7 @@
 ****************************************************************************/
 #include "project.h"
 
+#include "internaljobs.h"
 #include "jobs.h"
 #include "projectdata.h"
 #include "runenvironment.h"
@@ -79,6 +80,7 @@ static void loadPlugins(const QStringList &_pluginPaths)
     ScannerPluginManager::instance()->loadPlugins(pluginPaths);
 
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");
+    qRegisterMetaType<InternalJob *>("Internal::InternalJob *");
     pluginsLoaded = true;
 }
 
@@ -244,31 +246,8 @@ Project &Project::operator=(const Project &other)
     return *this;
 }
 
-/*!
- * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
- * The function will finish immediately, returning a \c SetupProjectJob which can be used to
- * track the results of the operation.
- */
-SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters, Settings *settings,
-                                       QObject *jobOwner)
-{
-    loadPlugins(_parameters.pluginPaths);
-    SetupProjectJob * const job = new SetupProjectJob(settings, jobOwner);
-    SetupProjectParameters parameters = _parameters;
-    parameters.buildConfiguration
-            = expandBuildConfiguration(parameters.buildConfiguration, settings);
-    job->resolve(parameters);
-    return job;
-}
-
-/*!
- * \brief Project::expandBuildConfiguration generates a full build configuration from user input
- * \param buildConfig is the base build configuration that will be expanded with settings from the
- * configuration
- * \return The expanded build configuration
- */
-QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig,
-                                              Settings *settings)
+// Generates a full build configuration from user input, using the settings.
+static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig, Settings *settings)
 {
     QVariantMap expandedConfig = buildConfig;
 
@@ -316,6 +295,30 @@ QVariantMap Project::expandBuildConfiguration(const QVariantMap &buildConfig,
 
     return expandedConfig;
 }
+
+/*!
+ * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
+ * The function will finish immediately, returning a \c SetupProjectJob which can be used to
+ * track the results of the operation.
+ */
+SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters, Settings *settings,
+                                       QObject *jobOwner)
+{
+    SetupProjectJob * const job = new SetupProjectJob(settings, jobOwner);
+    try {
+        loadPlugins(_parameters.pluginPaths);
+        SetupProjectParameters parameters = _parameters;
+        parameters.buildConfiguration
+                = expandBuildConfiguration(parameters.buildConfiguration, settings);
+        job->resolve(parameters);
+    } catch (const Error &error) {
+        // Throwing from here would complicate the API, so let's report the error the same way
+        // as all others, via AbstractJob::error().
+        job->reportError(error);
+    }
+    return job;
+}
+
 
 /*!
  * \brief Retrieves information for this project.

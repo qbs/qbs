@@ -80,6 +80,7 @@ private slots:
     void installedApp();
     void toolLookup();
     void checkProjectFilePath();
+    void missingProfile();
 
 private:
     QByteArray m_qbsStderr;

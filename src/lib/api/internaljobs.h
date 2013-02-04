@@ -84,6 +84,7 @@ public:
     ~InternalSetupProjectJob();
 
     void resolve(const SetupProjectParameters &parameters);
+    void reportError(const Error &error);
 
     BuildProjectPtr buildProject() const;
 
@@ -189,18 +190,6 @@ private:
 private:
     QList<BuildProductPtr> m_products;
     InstallOptions m_options;
-};
-
-class ErrorJob : public InternalJob
-{
-    Q_OBJECT
-public:
-    ErrorJob(QObject *parent);
-
-    void reportError(const Error &error);
-
-private slots:
-    void handleFinished();
 };
 
 } // namespace Internal

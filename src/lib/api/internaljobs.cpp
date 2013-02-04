@@ -121,6 +121,13 @@ void InternalSetupProjectJob::resolve(const SetupProjectParameters &parameters)
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
+void InternalSetupProjectJob::reportError(const Error &error)
+{
+    setError(error);
+    QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection,
+                              Q_ARG(Internal::InternalJob *, this));
+}
+
 BuildProjectPtr InternalSetupProjectJob::buildProject() const
 {
     return m_buildProject;
@@ -340,21 +347,6 @@ void InternalInstallJob::doInstall()
     } catch (const Error &error) {
         setError(error);
     }
-}
-
-ErrorJob::ErrorJob(QObject *parent) : InternalJob(parent)
-{
-}
-
-void ErrorJob::reportError(const Error &error)
-{
-    setError(error);
-    QTimer::singleShot(0, this, SLOT(handleFinished()));
-}
-
-void ErrorJob::handleFinished()
-{
-    emit finished(this);
 }
 
 } // namespace Internal

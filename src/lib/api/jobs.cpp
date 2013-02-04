@@ -194,6 +194,12 @@ void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
     job->resolve(parameters);
 }
 
+void SetupProjectJob::reportError(const Error &error)
+{
+    InternalSetupProjectJob * const job = qobject_cast<InternalSetupProjectJob *>(internalJob());
+    job->reportError(error);
+}
+
 /*!
  * \class ProcessResult
  * \brief The \c ProcessResult class represents the result of one external program run by Qbs.
