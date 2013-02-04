@@ -1380,8 +1380,14 @@ QList<Module::Ptr> Loader::LoaderPrivate::evaluateDependency(LanguageObject *dep
 
     QStringList subModules;
     Binding subModulesBinding = depends->bindings.value(QStringList("submodules"));
-    if (!subModulesBinding.valueSource.isNull())
+    if (!subModulesBinding.valueSource.isNull()) {
         subModules = evaluate(m_engine, subModulesBinding.valueSource).toVariant().toStringList();
+        if (moduleName.contains(QLatin1Char('.'))) {
+            throw Error(Tr::tr("Depends.submodules cannot be used if name contains a dot."),
+                        CodeLocation(depends->file->fileName,
+                                     binding.valueSource.firstLineNumber()));
+        }
+    }
 
     QList<QStringList> fullModuleIds;
     QStringList fullModuleNames;
