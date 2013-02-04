@@ -542,7 +542,11 @@ void TestBlackbox::missingProfile()
 {
     SettingsPtr settings = qbsSettings();
     if (!settings->defaultProfile().isEmpty())
+#if QT_VERSION >= 0x050000
         QSKIP("default profile exists");
+#else
+        QSKIP("default profile exists", SkipAll);
+#endif
     QDir::setCurrent(testDataDir + "/project_filepath_check");
     QVERIFY(runQbs(QStringList("-f") << "project1.qbs", true, false) != 0);
     QVERIFY(m_qbsStderr.contains("No profile"));
