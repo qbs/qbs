@@ -51,7 +51,6 @@ private:
     QStringList pathList(const QString &key, const QString &defaultValue) const;
 
     Settings *m_settings;
-    bool m_deleteSettings;
 };
 
 } // namespace qbs

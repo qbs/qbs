@@ -68,7 +68,6 @@ private:
 
     QString m_name;
     Settings *m_settings;
-    bool m_deleteSettings;
 };
 
 } // namespace qbs
