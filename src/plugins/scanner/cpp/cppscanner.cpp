@@ -268,7 +268,7 @@ ScannerPlugin hppScanner =
     closeScanner,
     next,
     additionalFileTags,
-    true
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
 ScannerPlugin cppScanner =
@@ -279,7 +279,7 @@ ScannerPlugin cppScanner =
     closeScanner,
     next,
     additionalFileTags,
-    true
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
 ScannerPlugin cScanner =
@@ -290,7 +290,7 @@ ScannerPlugin cScanner =
     closeScanner,
     next,
     0,
-    true
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
 ScannerPlugin objcppScanner =
@@ -301,7 +301,7 @@ ScannerPlugin objcppScanner =
     closeScanner,
     next,
     additionalFileTags,
-    true
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
 ScannerPlugin objcScanner =
@@ -312,7 +312,7 @@ ScannerPlugin objcScanner =
     closeScanner,
     next,
     additionalFileTags,
-    true
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
 ScannerPlugin rcScanner =
@@ -323,7 +323,7 @@ ScannerPlugin rcScanner =
     closeScanner,
     next,
     0,
-    true
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies
 };
 
 ScannerPlugin *theScanners[] = {&hppScanner, &cppScanner, &cScanner, &objcppScanner, &objcScanner, &rcScanner, NULL};

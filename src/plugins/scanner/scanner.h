@@ -67,6 +67,13 @@ typedef const char *(*scanNext_f)           (void *opaq, int *size, int *flags);
   */
 typedef const char** (*scanAdditionalFileTags_f) (void *opaq, int *size);
 
+enum ScannerFlags
+{
+    NoScannerFlags = 0x00,
+    ScannerUsesCppIncludePaths = 0x01,
+    ScannerRecursiveDependencies = 0x02
+};
+
 struct ScannerPlugin
 {
     const char  *name;
@@ -75,7 +82,7 @@ struct ScannerPlugin
     scanClose_f close;
     scanNext_f  next;
     scanAdditionalFileTags_f additionalFileTags;
-    bool usesCppIncludePaths;
+    int flags;
 };
 
 typedef ScannerPlugin **(*getScanners_f)();

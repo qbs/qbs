@@ -171,7 +171,7 @@ ScannerPlugin qrcScanner =
     closeScanner,
     nextQrc,
     additionalFileTags,
-    false
+    NoScannerFlags
 };
 
 ScannerPlugin *theScanners[] = {&qrcScanner, NULL};

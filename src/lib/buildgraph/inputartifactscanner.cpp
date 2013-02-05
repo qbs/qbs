@@ -175,7 +175,7 @@ void InputArtifactScanner::scan()
         foreach (const QString &fileTag, inputArtifact->fileTags) {
             foreach (ScannerPlugin *scanner, ScannerPluginManager::scannersForFileTag(fileTag)) {
                 scanners += scanner;
-                if (scanner->usesCppIncludePaths)
+                if (scanner->flags & ScannerUsesCppIncludePaths)
                     mustCollectIncludePaths = true;
             }
         }
@@ -196,7 +196,8 @@ void InputArtifactScanner::scan()
         const QStringList emptyIncludePaths;
         foreach (ScannerPlugin *scanner, scanners) {
             scanForFileDependencies(scanner,
-                                    scanner->usesCppIncludePaths ? includePaths : emptyIncludePaths,
+                                    (scanner->flags & ScannerUsesCppIncludePaths)
+                                        ? includePaths : emptyIncludePaths,
                                     inputArtifact,
                                     cacheItem.resolvedDependenciesCache[scanner]);
         }
@@ -215,6 +216,8 @@ void InputArtifactScanner::scanForFileDependencies(ScannerPlugin *scannerPlugin,
     QSet<QString> visitedFilePaths;
     QStringList filePathsToScan;
     filePathsToScan.append(inputArtifact->filePath());
+    QStringList * const filePathsToScanPtr =
+            (scannerPlugin->flags & ScannerRecursiveDependencies) ? &filePathsToScan : 0;
 
     while (!filePathsToScan.isEmpty()) {
         const QString filePathToBeScanned = filePathsToScan.takeFirst();
@@ -231,7 +234,7 @@ void InputArtifactScanner::scanForFileDependencies(ScannerPlugin *scannerPlugin,
         }
 
         resolveScanResultDependencies(includePaths, inputArtifact, scanResult, filePathToBeScanned,
-                                      &filePathsToScan, resolvedDependenciesCache);
+                                      filePathsToScanPtr, resolvedDependenciesCache);
     }
 }
 
@@ -292,8 +295,9 @@ unresolved:
 resolved:
         // Do not scan artifacts that are being built. Otherwise we might read an incomplete
         // file or conflict with the writing process.
-        if (!resolvedDependency.artifact
-                || resolvedDependency.artifact->buildState != Artifact::Building) {
+        if (filePathsToScan
+                && (!resolvedDependency.artifact
+                    || resolvedDependency.artifact->buildState != Artifact::Building)) {
             filePathsToScan->append(resolvedDependency.filePath);
         }
         handleDependency(resolvedDependency);
