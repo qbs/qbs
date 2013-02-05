@@ -11,4 +11,5 @@ unix: CONFIG += plugin
 
 HEADERS += CPlusPlusForwardDeclarations.h Lexer.h Token.h ../scanner.h \
            cpp_global.h
-SOURCES += cpp.cpp Lexer.cpp Token.cpp
+SOURCES += Lexer.cpp Token.cpp \
+    cppscanner.cpp
