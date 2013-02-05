@@ -8,4 +8,5 @@ CONFIG += depend_includepath
 unix: CONFIG += plugin
 
 HEADERS += ../scanner.h
-SOURCES += qt.cpp
+SOURCES += \
+    qtscanner.cpp
