@@ -5,6 +5,8 @@ import '../QtModule.qbs' as QtModule
 QtModule {
     qtModuleName: "Gui"
 
+    property string uicName: "uic"
+
     FileTagger {
         pattern: "*.ui"
         fileTags: ["ui"]
@@ -20,7 +22,8 @@ QtModule {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/uic', [input.fileName, '-o', output.fileName])
+            var cmd = new Command(product.module.binPath + '/' + product.module.uicName,
+                                  [input.fileName, '-o', output.fileName])
             cmd.description = 'uic ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;

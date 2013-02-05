@@ -16,6 +16,7 @@ Module {
     property string incPath
     property string libPath
     property string mkspecPath
+    property string mocName: "moc"
     property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
@@ -116,7 +117,8 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/moc', Moc.args(product, input.fileName, output.fileName, input));
+            var cmd = new Command(Moc.fullPath(product.module),
+                                  Moc.args(product, input.fileName, output.fileName, input));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -132,7 +134,8 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/moc', Moc.args(product, input.fileName, output.fileName, input));
+            var cmd = new Command(Moc.fullPath(product.module),
+                                  Moc.args(product, input.fileName, output.fileName, input));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -148,7 +151,8 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/moc', Moc.args(product, input.fileName, output.fileName, input));
+            var cmd = new Command(Moc.fullPath(product.module),
+                                  Moc.args(product, input.fileName, output.fileName, input));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;

@@ -13,3 +13,7 @@ function args(product, input, output, config)
     return args;
 }
 
+function fullPath(module)
+{
+    return module.binPath + '/' + module.mocName;
+}

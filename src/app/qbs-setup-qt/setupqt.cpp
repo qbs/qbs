@@ -79,8 +79,6 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
     QFileInfo qmakeFileInfo(qmakePath);
     if (!qmakeFileInfo.exists())
         return false;
-    if (qmakeFileInfo.fileName() != qmakeExecutableName)
-        return false;
     if (!qmakeFileInfo.isExecutable())
         return false;
     return true;
