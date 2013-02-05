@@ -132,29 +132,6 @@ static void closeScanner(void *ptr)
     delete opaque;
 }
 
-static const char *nextUi(void *opaq, int *size, int *flags)
-{
-    Opaq *o = static_cast<Opaq *>(opaq);
-    while (!o->xml->atEnd()) {
-        o->xml->readNext();
-        switch (o->xml->tokenType()) {
-            case QXmlStreamReader::StartElement:
-                if (o->xml->name() == "header") {
-                    o->current = o->xml->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement).toUtf8();
-                    *flags = SC_GLOBAL_INCLUDE_FLAG;
-                    *size = o->current.size();
-                    return o->current.data();
-                }
-                break;
-            case QXmlStreamReader::EndDocument:
-                return 0;
-            default:
-                break;
-        }
-    }
-    return 0;
-}
-
 static const char *nextQrc(void *opaq, int *size, int *flags)
 {
     Opaq *o= static_cast<Opaq *>(opaq);
@@ -186,17 +163,6 @@ static const char **additionalFileTags(void *, int *size)
 
 extern "C" {
 
-ScannerPlugin uiScanner =
-{
-    "qt_ui_scanner",
-    "ui",
-    openScanner,
-    closeScanner,
-    nextUi,
-    additionalFileTags,
-    true
-};
-
 ScannerPlugin qrcScanner =
 {
     "qt_qrc_scanner",
@@ -208,7 +174,7 @@ ScannerPlugin qrcScanner =
     false
 };
 
-ScannerPlugin *theScanners[3] = {&uiScanner, &qrcScanner, NULL};
+ScannerPlugin *theScanners[] = {&qrcScanner, NULL};
 
 SCANNER_EXPORT ScannerPlugin **getScanners()
 {
