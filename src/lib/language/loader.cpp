@@ -169,7 +169,6 @@ public:
 
     static LoaderPrivate *get(QScriptEngine *engine);
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_configurationValue(QScriptContext *context, QScriptEngine *engine);
 
@@ -180,7 +179,6 @@ public:
     Settings * const m_settings;
     ScopesCachePtr m_scopesWithEvaluatedProperties;
     QScriptValue m_jsFunction_getHostOS;
-    QScriptValue m_jsFunction_getHostDefaultArchitecture;
     QScriptValue m_jsFunction_getenv;
     QScriptValue m_jsFunction_configurationValue;
     QScriptValue m_probeScriptScope;
@@ -374,8 +372,6 @@ Loader::LoaderPrivate::LoaderPrivate(ScriptEngine *engine, Settings *settings, c
     engine->setProperty(szLoaderPropertyName, v);
 
     m_jsFunction_getHostOS  = engine->newFunction(js_getHostOS, 0);
-    m_jsFunction_getHostDefaultArchitecture
-            = engine->newFunction(js_getHostDefaultArchitecture, 0);
     m_jsFunction_getenv = engine->newFunction(js_getenv, 0);
     m_jsFunction_configurationValue = engine->newFunction(js_configurationValue, 2);
     setupBuiltinDeclarations();
@@ -1092,8 +1088,6 @@ Module::Ptr Loader::LoaderPrivate::loadModule(ProjectFile *file, const QStringLi
         Property p;
         p.value = m_jsFunction_getHostOS;
         module->object->scope->properties.insert("getHostOS", p);
-        p.value = m_jsFunction_getHostDefaultArchitecture;
-        module->object->scope->properties.insert("getHostDefaultArchitecture", p);
         p.value = m_jsFunction_getenv;
         module->object->scope->properties.insert("getenv", p);
         p.value = m_jsFunction_configurationValue;
@@ -2246,34 +2240,18 @@ QScriptValue Loader::LoaderPrivate::js_getHostOS(QScriptContext *context, QScrip
     Q_UNUSED(context);
     QString hostSystem;
 
-    // TODO: Do we really not support other UNIX systems?
 #if defined(Q_OS_WIN)
     hostSystem = "windows";
 #elif defined(Q_OS_MAC)
     hostSystem = "mac";
-#elif defined(Q_OS_LINUX)
+#elif defined(Q_OS_LINUX) // Add more specific unixoid systems as needed
     hostSystem = "linux";
+#elif defined(Q_OS_UNIX)
+    hostSystem = "unix";
 #else
 #   error unknown host platform
 #endif
     return engine->toScriptValue(hostSystem);
-}
-
-QScriptValue Loader::LoaderPrivate::js_getHostDefaultArchitecture(QScriptContext *context, QScriptEngine *engine)
-{
-    // ### TODO implement properly, do not hard-code
-    Q_UNUSED(context);
-    QString architecture;
-#if defined(Q_OS_WIN)
-    architecture = "x86";
-#elif defined(Q_OS_MAC)
-    architecture = "x86_64";
-#elif defined(Q_OS_LINUX)
-    architecture = "x86_64";
-#else
-#   error unknown host platform
-#endif
-    return engine->toScriptValue(architecture);
 }
 
 QScriptValue Loader::LoaderPrivate::js_getenv(QScriptContext *context, QScriptEngine *engine)

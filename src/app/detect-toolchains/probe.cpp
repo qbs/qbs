@@ -125,10 +125,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
 
     QString compilerTriplet = qsystem(pathToGcc, QStringList() << "-dumpmachine").simplified();
     QStringList compilerTripletl = compilerTriplet.split('-');
-    if (compilerTripletl.count() < 2 ||
-            !(compilerTripletl.at(0).contains(QRegExp(".86")) ||
-              compilerTripletl.at(0).contains("arm") )
-            ) {
+    if (compilerTripletl.count() < 2) {
         qbsError() << QString::fromLocal8Bit("Detected '%1', but I don't understand "
                 "its architecture '%2'.").arg(pathToGcc, compilerTriplet);
         return;
@@ -162,13 +159,6 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     profile.setValue("qbs.toolchain", "gcc");
     profile.setValue("qbs.architecture", architecture);
     profile.setValue("qbs.endianness", endianness);
-
-    if (HostOsInfo::isMacHost())
-        profile.setValue("qbs.targetOS", "mac");
-    else if (HostOsInfo::isLinuxHost())
-        profile.setValue("qbs.targetOS", "linux");
-    else
-        profile.setValue("qbs.targetOS", "unknown"); //fixme
 
     if (compilerName.contains('-')) {
         QStringList nl = compilerName.split('-');

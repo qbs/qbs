@@ -7,10 +7,9 @@ Module {
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
     property string hostOS: getHostOS()
-    property string hostArchitecture: getHostDefaultArchitecture()
     property string pathListSeparator: hostOS === "windows" ? ";" : ":"
     property string pathSeparator: hostOS === "windows" ? "\\" : "/"
-    property string targetOS
+    property string targetOS: hostOS
     property var targetPlatform: {
         if (targetOS === "linux")
             return [ "unix", "linux" ];
