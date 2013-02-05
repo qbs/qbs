@@ -461,8 +461,7 @@ BuildProjectLoader::BuildProjectLoader(const Logger &logger) : m_logger(logger)
 }
 
 BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParameters &parameters,
-        const RulesEvaluationContextPtr &evalContext, const QStringList &loaderSearchPaths,
-        Settings *settings)
+        const RulesEvaluationContextPtr &evalContext, Settings *settings)
 {
     m_result = LoadResult();
     m_evalContext = evalContext;
@@ -542,7 +541,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
 
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
         Loader ldr(evalContext->engine(), settings, m_logger);
-        ldr.setSearchPaths(loaderSearchPaths);
+        ldr.setSearchPaths(parameters.searchPaths);
         const ResolvedProjectPtr changedProject = ldr.loadProject(parameters);
         m_result.changedResolvedProject = changedProject;
 

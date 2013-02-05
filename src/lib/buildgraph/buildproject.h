@@ -140,8 +140,7 @@ public:
     };
 
     LoadResult load(const SetupProjectParameters &parameters,
-                    const RulesEvaluationContextPtr &evalContext,
-                    const QStringList &loaderSearchPaths, qbs::Settings *settings);
+                    const RulesEvaluationContextPtr &evalContext, Settings *settings);
 
 private:
     void onProductRemoved(const BuildProductPtr &product);

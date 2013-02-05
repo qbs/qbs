@@ -165,8 +165,8 @@ void InternalSetupProjectJob::execute()
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext(logger()));
     evalContext->setObserver(observer());
     BuildProjectLoader bpLoader(logger());
-    const BuildProjectLoader::LoadResult loadResult = bpLoader.load(m_parameters,
-            evalContext, m_parameters.searchPaths, m_settings);
+    const BuildProjectLoader::LoadResult loadResult
+            = bpLoader.load(m_parameters, evalContext, m_settings);
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
         m_buildProject = loadResult.loadedProject;
