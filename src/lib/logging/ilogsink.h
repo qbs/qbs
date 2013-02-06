@@ -47,7 +47,7 @@ enum LoggerLevel
 };
 
 inline LoggerLevel defaultLogLevel() { return LoggerInfo; }
-QByteArray logLevelTag(LoggerLevel level);
+QString logLevelTag(LoggerLevel level);
 QString logLevelName(LoggerLevel level);
 
 class ILogSink

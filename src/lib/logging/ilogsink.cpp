@@ -29,17 +29,18 @@
 #include "ilogsink.h"
 
 #include <QByteArray>
+#include <QString>
 
 namespace qbs {
 
-QByteArray logLevelTag(LoggerLevel level)
+QString logLevelTag(LoggerLevel level)
 {
     if (level == LoggerInfo)
         return QByteArray();
     QString str = logLevelName(level).toUpper();
     if (!str.isEmpty())
         str.append(QLatin1String(": "));
-    return str.toUtf8();
+    return str;
 }
 
 QString logLevelName(LoggerLevel level)

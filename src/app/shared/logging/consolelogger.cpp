@@ -56,7 +56,7 @@ void ConsoleLogSink::doPrintMessage(qbs::LoggerLevel level, const QString &messa
 
     FILE * const file = level == qbs::LoggerInfo ? stdout : stderr;
 
-    const QByteArray data = logLevelTag(level);
+    const QString levelTag = logLevelTag(level);
     TextColor color = TextColorDefault;
     switch (level) {
     case qbs::LoggerError:
@@ -69,7 +69,7 @@ void ConsoleLogSink::doPrintMessage(qbs::LoggerLevel level, const QString &messa
         break;
     }
 
-    fprintfWrapper(color, file, data);
+    fprintfWrapper(color, file, levelTag.toLocal8Bit().constData());
     static QHash<QString, TextColor> colorTable = setupColorTable();
     fprintfWrapper(colorTable.value(tag, TextColorDefault), file, "%s\n",
                    message.toLocal8Bit().constData());
