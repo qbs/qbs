@@ -302,6 +302,10 @@ static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig, Sett
  * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
  * The function will finish immediately, returning a \c SetupProjectJob which can be used to
  * track the results of the operation.
+ * \note The qbs plugins will only be loaded once. As a result, the value of
+ *       \c parameters.pluginPaths will only have an effect the first time this function is called.
+ *       Similarly, the value of \c parameters.searchPaths will not have an effect if
+ *       a stored build graph is available.
  */
 SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters,
                                        Settings *settings, ILogSink *logSink, QObject *jobOwner)
