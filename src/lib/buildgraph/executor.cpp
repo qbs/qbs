@@ -146,17 +146,22 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
     artifact->timestampRetrieved = true;
 }
 
-void Executor::build(const QList<BuildProductPtr> &productsToBuild)
+void Executor::build()
 {
     try {
-        doBuild(productsToBuild);
+        doBuild();
     } catch (const Error &e) {
         m_error = e;
         QTimer::singleShot(0, this, SLOT(finish()));
     }
 }
 
-void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
+void Executor::setProducts(const QList<BuildProductPtr> &productsToBuild)
+{
+    m_productsToBuild = productsToBuild;
+}
+
+void Executor::doBuild()
 {
     if (m_buildOptions.maxJobCount <= 0) {
         m_buildOptions.maxJobCount = BuildOptions::defaultMaxJobCount();
@@ -165,20 +170,19 @@ void Executor::doBuild(const QList<BuildProductPtr> &productsToBuild)
     }
     Q_ASSERT(m_state == ExecutorIdle);
     m_leaves.clear();
-    m_productsToBuild = productsToBuild;
     m_error.clear();
     m_explicitlyCanceled = false;
 
     setState(ExecutorRunning);
 
-    if (productsToBuild.isEmpty()) {
+    if (m_productsToBuild.isEmpty()) {
         m_logger.qbsTrace() << "No products to build, finishing.";
         QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
         return;
     }
 
     doSanityChecks();
-    BuildProject * const project = productsToBuild.first()->project;
+    BuildProject * const project = m_productsToBuild.first()->project;
     m_evalContext = project->evaluationContext();
     if (!m_evalContext) { // Is null before the first build.
         m_evalContext = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));

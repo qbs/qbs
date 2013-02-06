@@ -49,6 +49,7 @@
 #include <QMutexLocker>
 #include <QProcessEnvironment>
 #include <QScopedPointer>
+#include <QThread>
 #include <QTimer>
 
 namespace qbs {
@@ -237,7 +238,7 @@ void BuildGraphTouchingJob::storeBuildGraph()
 }
 
 InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
-    : BuildGraphTouchingJob(logger, parent)
+    : BuildGraphTouchingJob(logger, parent), m_executor(0)
 {
 }
 
@@ -245,36 +246,35 @@ void InternalBuildJob::build(const QList<BuildProductPtr> &products,
                              const BuildOptions &buildOptions, const QProcessEnvironment &env)
 {
     setup(products, buildOptions);
-    m_environment = env;
-    QTimer::singleShot(0, this, SLOT(start()));
-}
 
-void InternalBuildJob::start()
-{
-    QtConcurrent::run(this, &InternalBuildJob::execute);
-}
+    m_executor = new Executor(logger());
+    m_executor->setProducts(products);
+    m_executor->setBuildOptions(buildOptions);
+    m_executor->setProgressObserver(observer());
+    m_executor->setBaseEnvironment(env);
 
-void InternalBuildJob::execute()
-{
-    Executor executor(logger());
-    QEventLoop loop;
-    connect(&executor, SIGNAL(finished()), &loop, SLOT(quit()));
-    connect(&executor, SIGNAL(reportCommandDescription(QString,QString)),
+    QThread * const executorThread = new QThread(this);
+    m_executor->moveToThread(executorThread);
+    connect(m_executor, SIGNAL(reportCommandDescription(QString,QString)),
             this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(&executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
+    connect(m_executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(&executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
+    connect(m_executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 
-    executor.setBuildOptions(buildOptions());
-    executor.setProgressObserver(observer());
-    executor.setBaseEnvironment(m_environment);
-    executor.build(products());
-    loop.exec();
-    if (executor.hasError())
-        setError(executor.error());
+    connect(executorThread, SIGNAL(started()), m_executor, SLOT(build()));
+    connect(m_executor, SIGNAL(finished()), executorThread, SLOT(quit()));
+    connect(executorThread, SIGNAL(finished()), SLOT(handleFinished()));
+    executorThread->start();
+}
+
+void InternalBuildJob::handleFinished()
+{
+    if (m_executor->hasError())
+        setError(m_executor->error());
     if (!products().isEmpty())
         products().first()->project->setEvaluationContext(RulesEvaluationContextPtr());
     storeBuildGraph();
+    m_executor->deleteLater();
     emit finished(this);
 }
 

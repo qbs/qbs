@@ -56,12 +56,15 @@ class ScanResultCache;
 class Executor : public QObject
 {
     Q_OBJECT
+
+public slots:
+    void build();
+
 public:
     Executor(const Logger &logger, QObject *parent = 0);
     ~Executor();
 
-    void build(const QList<BuildProductPtr> &productsToBuild);
-
+    void setProducts(const QList<BuildProductPtr> &productsToBuild);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
     void setBaseEnvironment(const QProcessEnvironment &env) { m_baseEnvironment = env; }
@@ -84,7 +87,7 @@ private slots:
 private:
     enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
 
-    void doBuild(const QList<BuildProductPtr> &productsToBuild);
+    void doBuild();
     void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
     void updateBuildGraph(Artifact::BuildState buildState);

@@ -40,14 +40,18 @@
 #include <QList>
 #include <QMutex>
 #include <QObject>
-#include <QProcessEnvironment>
 #include <QWaitCondition>
+
+QT_BEGIN_NAMESPACE
+class QProcessEnvironment;
+QT_END_NAMESPACE
 
 namespace qbs {
 class ProcessResult;
 class Settings;
 
 namespace Internal {
+class Executor;
 class JobObserver;
 
 class InternalJob : public QObject
@@ -145,12 +149,10 @@ public:
                const QProcessEnvironment &env);
 
 private slots:
-    void start();
+    void handleFinished();
 
 private:
-    void execute();
-
-    QProcessEnvironment m_environment;
+    Executor *m_executor;
 };
 
 
