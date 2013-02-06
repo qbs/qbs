@@ -523,6 +523,10 @@ void TestLanguage::propertiesBlocks_data()
     QTest::newRow("multiple_exclusive_properties") << QString("dummy.defines") << QStringList("OVERWRITTEN");
     QTest::newRow("multiple_exclusive_properties_no_outer") << QString("dummy.defines") << QStringList("OVERWRITTEN");
     QTest::newRow("multiple_exclusive_properties_append_to_outer") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO"));
+    QTest::newRow("condition_refers_to_product_property")
+            << QString("dummy.defines") << QStringList("OVERWRITTEN");
+    QTest::newRow("condition_refers_to_project_property")
+            << QString("dummy.defines") << QStringList("OVERWRITTEN");
 
     QTest::newRow("ambiguous_properties") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO") << QString("THREE"));
     QTest::newRow("cleanup") << QString() << QStringList();
