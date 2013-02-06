@@ -62,6 +62,8 @@ private slots:
     void conditionalDepends();
     void invalidDepends_data();
     void invalidDepends();
+    void groupConditions_data();
+    void groupConditions();
     void groupName();
     void identifierSearch_data();
     void identifierSearch();

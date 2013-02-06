@@ -38,8 +38,11 @@
 #include <tools/scripttools.h>
 #include <tools/error.h>
 
+Q_DECLARE_METATYPE(QList<bool>)
+
 TestLanguage::TestLanguage() : m_settings(qbsSettings())
 {
+    qRegisterMetaType<QList<bool> >("QList<bool>");
     defaultParameters.buildRoot = "/some/build/directory";
 }
 
@@ -186,6 +189,63 @@ void TestLanguage::invalidDepends()
         return;
     }
     QFAIL("No error thrown on invalid input.");
+}
+
+void TestLanguage::groupConditions_data()
+{
+    QTest::addColumn<int>("groupCount");
+    QTest::addColumn<QList<bool> >("groupEnabled");
+    QTest::newRow("init") << 0 << QList<bool>();
+    QTest::newRow("no_condition_no_group")
+            << 1 << (QList<bool>() << true);
+    QTest::newRow("no_condition")
+            << 2 << (QList<bool>() << true << true);
+    QTest::newRow("true_condition")
+            << 2 << (QList<bool>() << true << true);
+    QTest::newRow("false_condition")
+            << 2 << (QList<bool>() << true << false);
+    QTest::newRow("true_condition_from_product")
+            << 2 << (QList<bool>() << true << true);
+    QTest::newRow("true_condition_from_project")
+            << 2 << (QList<bool>() << true << true);
+    QTest::newRow("cleanup") << 0 << QList<bool>();
+}
+
+void TestLanguage::groupConditions()
+{
+    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
+    if (productName == "init") {
+        bool exceptionCaught = false;
+        try {
+            defaultParameters.projectFilePath = SRCDIR "testdata/groupconditions.qbs";
+            project = loader->loadProject(defaultParameters);
+            QVERIFY(project);
+        } catch (const Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
+        return;
+    } else if (productName == "cleanup") {
+        project.clear();
+        return;
+    }
+
+    QVERIFY(project);
+    QFETCH(int, groupCount);
+    QFETCH(QList<bool>, groupEnabled);
+    QCOMPARE(groupCount, groupEnabled.count());
+    const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    ResolvedProductPtr product = products.value(productName);
+    QVERIFY(product);
+    QCOMPARE(product->name, productName);
+    QCOMPARE(product->groups.count(), groupCount);
+    for (int i = 0; i < groupCount; ++i) {
+        if (product->groups.at(i)->enabled != groupEnabled.at(i)) {
+            QFAIL(qPrintable(
+                      QString("groups.at(%1)->enabled != %2").arg(i).arg(groupEnabled.at(i))));
+        }
+    }
 }
 
 void TestLanguage::groupName()
