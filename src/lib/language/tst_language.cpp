@@ -516,6 +516,35 @@ void TestLanguage::productConditions()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::productModules()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("productmodules.qbs");
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 2);
+        ResolvedProductPtr product;
+        product = products.value("myapp");
+        QVERIFY(product);
+        QStringList propertyName = QStringList() << "modules" << "mylib"
+                                                 << "modules" << "dummy" << "defines";
+        QVariant propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
+        product = products.value("mylib");
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::propertiesBlocks_data()
 {
     QTest::addColumn<QString>("propertyName");

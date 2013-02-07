@@ -42,3 +42,4 @@ int main(int argc, char *argv[])
     qbs::Internal::TestLanguage tl(settings.data(), ConsoleLogger::instance().logSink());
     return QTest::qExec(&tl, argc, argv);
 }
+

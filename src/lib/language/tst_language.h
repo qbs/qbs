@@ -75,6 +75,7 @@ private slots:
     void modules();
     void outerInGroup();
     void productConditions();
+    void productModules();
     void propertiesBlocks_data();
     void propertiesBlocks();
     void fileTags_data();
