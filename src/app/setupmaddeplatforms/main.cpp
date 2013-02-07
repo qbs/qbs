@@ -42,6 +42,7 @@
 #include <cstdlib>
 
 namespace qbs {
+using Internal::HostOsInfo;
 
 class MaddePlatformsSetup : public SpecialPlatformsSetup
 {

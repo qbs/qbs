@@ -18,7 +18,9 @@ HEADERS += \
     $$PWD/installoptions.h \
     $$PWD/setupprojectparameters.h \
     $$PWD/persistentobject.h \
-    $$PWD/weakpointer.h
+    $$PWD/weakpointer.h \
+    $$PWD/qbs_export.h \
+    $$PWD/tst_tools.h
 
 SOURCES += \
     $$PWD/codelocation.cpp \
@@ -33,7 +35,8 @@ SOURCES += \
     $$PWD/progressobserver.cpp \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
-    $$PWD/setupprojectparameters.cpp
+    $$PWD/setupprojectparameters.cpp \
+    $$PWD/tst_tools.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

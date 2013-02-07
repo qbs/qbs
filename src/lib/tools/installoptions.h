@@ -29,11 +29,13 @@
 #ifndef QBS_INSTALLOPTIONS_H
 #define QBS_INSTALLOPTIONS_H
 
+#include "qbs_export.h"
+
 #include <QString>
 
 namespace qbs {
 
-class InstallOptions
+class QBS_EXPORT InstallOptions
 {
 public:
     InstallOptions();

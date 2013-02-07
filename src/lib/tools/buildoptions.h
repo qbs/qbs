@@ -29,11 +29,13 @@
 #ifndef QBS_BUILDOPTIONS_H
 #define QBS_BUILDOPTIONS_H
 
+#include "qbs_export.h"
+
 #include <QStringList>
 
 namespace qbs {
 
-class BuildOptions
+class QBS_EXPORT BuildOptions
 {
 public:
     BuildOptions();

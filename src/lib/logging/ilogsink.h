@@ -29,6 +29,8 @@
 #ifndef QBS_ILOGGER_H
 #define QBS_ILOGGER_H
 
+#include <tools/qbs_export.h>
+
 #include <QtGlobal>
 #include <QMutex>
 #include <QString>
@@ -46,11 +48,11 @@ enum LoggerLevel
     LoggerMaxLevel = LoggerTrace
 };
 
-inline LoggerLevel defaultLogLevel() { return LoggerInfo; }
-QString logLevelTag(LoggerLevel level);
-QString logLevelName(LoggerLevel level);
+QBS_EXPORT inline LoggerLevel defaultLogLevel() { return LoggerInfo; }
+QBS_EXPORT QString logLevelTag(LoggerLevel level);
+QBS_EXPORT QString logLevelName(LoggerLevel level);
 
-class ILogSink
+class QBS_EXPORT ILogSink
 {
     Q_DISABLE_COPY(ILogSink)
 public:

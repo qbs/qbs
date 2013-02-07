@@ -30,6 +30,7 @@
 #define QBS_PROJECTDATA_H
 
 #include <tools/codelocation.h>
+#include <tools/qbs_export.h>
 
 #include <QList>
 #include <QPair>
@@ -42,7 +43,7 @@ namespace Internal { class ProjectPrivate; }
 
 // TODO: explicitly shared?
 
-class GroupData
+class QBS_EXPORT GroupData
 {
     friend class Internal::ProjectPrivate;
 public:
@@ -67,11 +68,11 @@ private:
     bool m_isEnabled;
 };
 
-bool operator==(const GroupData &lhs, const GroupData &rhs);
-bool operator!=(const GroupData &lhs, const GroupData &rhs);
-bool operator<(const GroupData &lhs, const GroupData &rhs);
+QBS_EXPORT bool operator==(const GroupData &lhs, const GroupData &rhs);
+QBS_EXPORT bool operator!=(const GroupData &lhs, const GroupData &rhs);
+QBS_EXPORT bool operator<(const GroupData &lhs, const GroupData &rhs);
 
-class ProductData
+class QBS_EXPORT ProductData
 {
     friend class Internal::ProjectPrivate;
 public:
@@ -93,11 +94,11 @@ private:
     bool m_isEnabled;
 };
 
-bool operator==(const ProductData &lhs, const ProductData &rhs);
-bool operator!=(const ProductData &lhs, const ProductData &rhs);
-bool operator<(const ProductData &lhs, const ProductData &rhs);
+QBS_EXPORT bool operator==(const ProductData &lhs, const ProductData &rhs);
+QBS_EXPORT bool operator!=(const ProductData &lhs, const ProductData &rhs);
+QBS_EXPORT bool operator<(const ProductData &lhs, const ProductData &rhs);
 
-class ProjectData
+class QBS_EXPORT ProjectData
 {
     friend class Internal::ProjectPrivate;
 public:
@@ -111,8 +112,8 @@ private:
     QList<ProductData> m_products;
 };
 
-bool operator==(const ProjectData &lhs, const ProjectData &rhs);
-bool operator!=(const ProjectData &lhs, const ProjectData &rhs);
+QBS_EXPORT bool operator==(const ProjectData &lhs, const ProjectData &rhs);
+QBS_EXPORT bool operator!=(const ProjectData &lhs, const ProjectData &rhs);
 
 } // namespace qbs
 

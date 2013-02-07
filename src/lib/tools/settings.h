@@ -30,6 +30,8 @@
 #ifndef QBS_SETTINGS_H
 #define QBS_SETTINGS_H
 
+#include "qbs_export.h"
+
 #include <QStringList>
 #include <QVariant>
 
@@ -39,7 +41,7 @@ QT_END_NAMESPACE
 
 namespace qbs {
 
-class Settings
+class QBS_EXPORT Settings
 {
 public:
     Settings(const QString &organization, const QString &application);

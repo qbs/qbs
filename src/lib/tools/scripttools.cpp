@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "scripttools.h"
+
 #include <QScriptEngine>
 #include <QScriptValueIterator>
 

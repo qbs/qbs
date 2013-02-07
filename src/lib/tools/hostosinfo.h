@@ -30,6 +30,8 @@
 #ifndef QBS_HOSTOSINFO_H
 #define QBS_HOSTOSINFO_H
 
+#include "qbs_export.h"
+
 #include <QtGlobal>
 #include <QString>
 
@@ -51,8 +53,9 @@
 #endif // Q_OS_WIN
 
 namespace qbs {
+namespace Internal {
 
-class HostOsInfo
+class QBS_EXPORT HostOsInfo // Exported for use by command-line tools.
 {
 public:
     // Add more as needed.
@@ -124,6 +127,7 @@ bool HostOsInfo::isAnyUnixHost()
 #endif
 }
 
+} // namespace Internal
 } // namespace qbs
 
 #endif // QBS_HOSTOSINFO_H

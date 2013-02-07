@@ -26,71 +26,41 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef TST_BUILDGRAPH_H
+#define TST_BUILDGRAPH_H
 
-#ifndef QBS_SCRIPTTOOLS_H
-#define QBS_SCRIPTTOOLS_H
-
+#include <buildgraph/forward_decls.h>
+#include <logging/ilogsink.h>
 #include <tools/qbs_export.h>
 
-#include <QScriptEngine>
-#include <QScriptProgram>
-#include <QScriptValue>
-#include <QSet>
-#include <QStringList>
-#include <QVariantMap>
-
-QT_BEGIN_NAMESPACE
-
-QDataStream &operator<< (QDataStream &s, const QScriptProgram &script);
-QDataStream &operator>> (QDataStream &s, QScriptProgram &script);
-
-QT_END_NAMESPACE
+#include <QList>
+#include <QObject>
 
 namespace qbs {
 namespace Internal {
 
-template <typename C>
-QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
+class QBS_EXPORT TestBuildGraph : public QObject
 {
-    QScriptValue v = scriptEngine->newArray(container.count());
-    int i = 0;
-    foreach (const typename C::value_type &item, container)
-        v.setProperty(i++, scriptEngine->toScriptValue(item));
-    return v;
-}
-
-QStringList toStringList(const QScriptValue &scriptValue);
-
-void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
-QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
-
-QString toJSLiteral(const bool b);
-QString toJSLiteral(const QString &str);
-QString toJSLiteral(const QStringList &strs);
-QBS_EXPORT QString toJSLiteral(const QVariant &val); // FIXME: needed by showproperties
-
-/**
- * @brief push/pop a QScriptEngine's context the RAII way.
- */
-class ScriptEngineContextPusher
-{
+    Q_OBJECT
 public:
-    ScriptEngineContextPusher(QScriptEngine *scriptEngine)
-        : m_scriptEngine(scriptEngine)
-    {
-        m_scriptEngine->pushContext();
-    }
+    TestBuildGraph(ILogSink *logSink);
 
-    ~ScriptEngineContextPusher()
-    {
-        m_scriptEngine->popContext();
-    }
+private slots:
+    void initTestCase();
+    void cleanupTestCase();
+    void testCycle();
 
 private:
-    QScriptEngine *m_scriptEngine;
+    BuildProductConstPtr productWithDirectCycle();
+    BuildProductConstPtr productWithLessDirectCycle();
+    BuildProductConstPtr productWithNoCycle();
+    bool cycleDetected(const BuildProductConstPtr &product);
+
+    QList<Artifact *> m_artifacts;
+    ILogSink * const m_logSink;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_SCRIPTTOOLS_H
+#endif // TST_BUILDGRAPH_H

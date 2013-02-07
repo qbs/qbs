@@ -36,7 +36,7 @@
 
 namespace qbs {
 
-class ErrorData
+class QBS_EXPORT ErrorData
 {
 public:
     ErrorData();
@@ -52,7 +52,7 @@ private:
     CodeLocation m_codeLocation;
 };
 
-class Error
+class QBS_EXPORT Error
 {
 public:
     Error();

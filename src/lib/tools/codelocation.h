@@ -30,6 +30,8 @@
 #ifndef QBS_SOURCELOCATION_H
 #define QBS_SOURCELOCATION_H
 
+#include "qbs_export.h"
+
 #include <QString>
 
 QT_BEGIN_NAMESPACE
@@ -38,7 +40,7 @@ QT_END_NAMESPACE
 
 namespace qbs {
 
-class CodeLocation
+class QBS_EXPORT CodeLocation
 {
 public:
     CodeLocation();
@@ -52,8 +54,8 @@ public:
     int column;
 };
 
-bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
-bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
+QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
+QBS_EXPORT bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
 
 QDataStream &operator<<(QDataStream &s, const CodeLocation &o);
 QDataStream &operator>>(QDataStream &s, CodeLocation &o);

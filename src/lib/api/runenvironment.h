@@ -31,6 +31,7 @@
 #define QBS_RUNENVIRONMENT_H
 
 #include <language/forward_decls.h>
+#include <tools/qbs_export.h>
 
 #include <QStringList>
 
@@ -46,7 +47,7 @@ class Logger;
 class ResolvedProduct;
 } // namespace Internal
 
-class RunEnvironment
+class QBS_EXPORT RunEnvironment
 {
     friend class Project;
 public:

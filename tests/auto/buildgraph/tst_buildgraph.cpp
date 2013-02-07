@@ -26,83 +26,15 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "tst_buildgraph.h"
-
 #include <app/shared/logging/consolelogger.h>
-#include <buildgraph/artifact.h>
-#include <buildgraph/buildproduct.h>
-#include <buildgraph/cycledetector.h>
-#include <language/language.h>
-#include <tools/error.h>
+#include <buildgraph/tst_buildgraph.h>
 
+#include <QCoreApplication>
 #include <QtTest>
 
-using namespace qbs;
-using namespace qbs::Internal;
-
-void TestBuildGraph::initTestCase()
+int main(int argc, char *argv[])
 {
+    QCoreApplication app(argc, argv);
+    qbs::Internal::TestBuildGraph tbg(ConsoleLogger::instance().logSink());
+    return QTest::qExec(&tbg, argc, argv);
 }
-
-void TestBuildGraph::cleanupTestCase()
-{
-    qDeleteAll(m_artifacts);
-}
-
-
-static bool cycleDetected(const BuildProductConstPtr &product)
-{
-    try {
-        CycleDetector(ConsoleLogger::instance()).visitProduct(product);
-        return false;
-    } catch (const Error &) {
-        return true;
-    }
-}
-
-BuildProductConstPtr TestBuildGraph::productWithDirectCycle()
-{
-    Artifact * const root = new Artifact;
-    Artifact * const child = new Artifact;
-    m_artifacts << root << child;
-    root->children.insert(child);
-    child->children.insert(root);
-    const BuildProductPtr product = BuildProduct::create();
-    product->targetArtifacts.insert(root);
-    return product;
-}
-
-BuildProductConstPtr TestBuildGraph::productWithLessDirectCycle()
-{
-    Artifact * const root = new Artifact;
-    Artifact * const child = new Artifact;
-    Artifact * const grandchild = new Artifact;
-    m_artifacts << root << child << grandchild;
-    root->children.insert(child);
-    child->children.insert(grandchild);
-    grandchild->children.insert(root);
-    const BuildProductPtr product = BuildProduct::create();
-    product->targetArtifacts << root;
-    return product;
-}
-
-// root appears as a child, but in a different tree
-BuildProductConstPtr TestBuildGraph::productWithNoCycle()
-{
-    Artifact * const root = new Artifact;
-    Artifact * const root2 = new Artifact;
-    m_artifacts << root << root2;
-    root2->children.insert(root);
-    const BuildProductPtr product = BuildProduct::create();
-    product->targetArtifacts << root << root2;
-    return product;
-}
-
-void TestBuildGraph::testCycle()
-{
-    QVERIFY(cycleDetected(productWithDirectCycle()));
-    QVERIFY(cycleDetected(productWithLessDirectCycle()));
-    QVERIFY(!cycleDetected(productWithNoCycle()));
-}
-
-QTEST_MAIN(TestBuildGraph)

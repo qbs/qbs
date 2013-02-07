@@ -38,13 +38,12 @@
 #include <algorithm>
 
 namespace qbs {
+using namespace Internal;
 
 static QSettings::Format format()
 {
     return HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat;
 }
-
-using namespace Internal;
 
 Settings::Settings(const QString &organization, const QString &application)
     : m_settings(new QSettings(format(), QSettings::UserScope, organization, application))

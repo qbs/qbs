@@ -29,12 +29,14 @@
 #ifndef QBS_SETUPPROJECTPARAMETERS_H
 #define QBS_SETUPPROJECTPARAMETERS_H
 
+#include "qbs_export.h"
+
 #include <QStringList>
 #include <QVariantMap>
 
 namespace qbs {
 
-class SetupProjectParameters
+class QBS_EXPORT SetupProjectParameters
 {
 public:
     SetupProjectParameters();

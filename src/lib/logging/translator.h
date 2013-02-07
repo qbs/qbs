@@ -29,12 +29,14 @@
 #ifndef QBS_TRANSLATOR_H
 #define QBS_TRANSLATOR_H
 
+#include <tools/qbs_export.h>
+
 #include <QCoreApplication>
 
 namespace qbs {
 namespace Internal {
 
-class Tr // Name intended to be short.
+class QBS_EXPORT Tr // Name intended to be short. Exported for use by command line tools.
 {
     Q_DECLARE_TR_FUNCTIONS(Qbs)
 };

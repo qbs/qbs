@@ -1,11 +1,13 @@
 TEMPLATE = app
 TARGET = tst_tools
-DESTDIR = ./
+DESTDIR = ../../../bin
 INCLUDEPATH += ../../../src/lib/
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 QT = core testlib
 CONFIG += depend_includepath testcase
+CONFIG   += console
+CONFIG   -= app_bundle
 
 SOURCES += tst_tools.cpp ../../../src/app/qbs/qbstool.cpp
 

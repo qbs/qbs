@@ -96,8 +96,8 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
 
 QStringList Preferences::pathList(const QString &key, const QString &defaultValue) const
 {
-    QStringList paths = getPreference(key).toString().split(HostOsInfo::pathListSeparator(),
-                                                            QString::SkipEmptyParts);
+    QStringList paths = getPreference(key).toString().split(
+                Internal::HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
     if (paths.isEmpty())
         paths << defaultValue;
     return paths;

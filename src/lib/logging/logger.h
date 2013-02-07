@@ -43,7 +43,10 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-class LogWriter
+// Note that while these classes are not part of the API, we export some stuff for use by
+// our command line tools for the sake of a uniform logging approach.
+
+class QBS_EXPORT LogWriter
 {
 public:
     LogWriter(ILogSink *logSink, LoggerLevel level);
@@ -68,7 +71,7 @@ private:
     QString m_tag;
 };
 
-class MessageTag
+class QBS_EXPORT MessageTag
 {
 public:
     explicit MessageTag(const QString &tag) : m_tag(tag) {}
@@ -79,18 +82,18 @@ private:
     QString m_tag;
 };
 
-LogWriter operator<<(LogWriter w, const char *str);
-LogWriter operator<<(LogWriter w, const QByteArray &byteArray);
-LogWriter operator<<(LogWriter w, const QString &str);
-LogWriter operator<<(LogWriter w, const QStringList &strList);
-LogWriter operator<<(LogWriter w, const QSet<QString> &strSet);
-LogWriter operator<<(LogWriter w, const QVariant &variant);
-LogWriter operator<<(LogWriter w, int n);
-LogWriter operator<<(LogWriter w, qint64 n);
-LogWriter operator<<(LogWriter w, bool b);
-LogWriter operator<<(LogWriter w, const MessageTag &tag);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const char *str);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const QByteArray &byteArray);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const QString &str);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const QStringList &strList);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const QSet<QString> &strSet);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const QVariant &variant);
+QBS_EXPORT LogWriter operator<<(LogWriter w, int n);
+QBS_EXPORT LogWriter operator<<(LogWriter w, qint64 n);
+QBS_EXPORT LogWriter operator<<(LogWriter w, bool b);
+QBS_EXPORT LogWriter operator<<(LogWriter w, const MessageTag &tag);
 
-class Logger
+class QBS_EXPORT Logger
 {
 public:
     Logger(ILogSink *logSink = 0);

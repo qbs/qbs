@@ -39,7 +39,6 @@
 #include <logging/translator.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
-#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
@@ -53,7 +52,6 @@
 #endif
 
 namespace qbs {
-using Internal::FileInfo;
 using Internal::Tr;
 
 class CommandLineParser::CommandLineParserPrivate
@@ -376,7 +374,7 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
     }
     projectFilePath.append(QLatin1Char('/')).append(actualFileNames.first());
 
-    projectFilePath = FileInfo::resolvePath(QDir::currentPath(), projectFilePath);
+    projectFilePath = QDir::current().filePath(projectFilePath);
     projectFilePath = QDir::cleanPath(projectFilePath);
 
     // TODO: Remove in 0.4

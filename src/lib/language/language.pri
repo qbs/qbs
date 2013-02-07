@@ -15,7 +15,8 @@ HEADERS += \
     $$PWD/propertydeclaration.h \
     $$PWD/scope.h \
     $$PWD/scopechain.h \
-    $$PWD/scriptengine.h
+    $$PWD/scriptengine.h \
+    $$PWD/tst_language.h
 
 SOURCES += \
     $$PWD/artifactproperties.cpp \
@@ -32,4 +33,8 @@ SOURCES += \
     $$PWD/propertydeclaration.cpp \
     $$PWD/scope.cpp \
     $$PWD/scopechain.cpp \
-    $$PWD/scriptengine.cpp
+    $$PWD/scriptengine.cpp \
+    $$PWD/tst_language.cpp
+
+OTHER_FILES += \
+    $$PWD/testdata/*

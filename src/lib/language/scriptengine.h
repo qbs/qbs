@@ -32,13 +32,15 @@
 
 #include "jsimports.h"
 #include <logging/logger.h>
+#include <tools/qbs_export.h>
 
 #include <QScriptEngine>
 
 namespace qbs {
 namespace Internal {
 
-class ScriptEngine : public QScriptEngine
+// FIXME: Exported for qbs-qmltypes
+class QBS_EXPORT ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:

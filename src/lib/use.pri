@@ -6,8 +6,10 @@ QT += script
 
 unix {
     LIBS += -L$$QBSLIBDIR -lqbscore
-    POST_TARGETDEPS += $$QBSLIBDIR/libqbscore.a
 }
+
+linux-*:QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,$${QBSLIBDIR}\'
+macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../lib
 
 win32 {
     CONFIG(debug, debug|release) {
@@ -20,7 +22,6 @@ win32 {
         LIBS += /LIBPATH:$$QBSLIBDIR
         QBSCORELIB = $${QBSCORELIB}.lib
         LIBS += Shell32.lib
-        POST_TARGETDEPS += $$QBSLIBDIR/$$QBSCORELIB
     } else {
         LIBS += -L$${QBSLIBDIR}
         QBSCORELIB = lib$${QBSCORELIB}

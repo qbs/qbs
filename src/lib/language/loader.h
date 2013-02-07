@@ -30,6 +30,7 @@
 #define  QBS_LOADER_H
 
 #include "forward_decls.h"
+#include <tools/qbs_export.h>
 
 #include <QStringList>
 #include <QVariantMap>
@@ -42,7 +43,7 @@ class Logger;
 class ProgressObserver;
 class ScriptEngine;
 
-class Loader
+class QBS_EXPORT Loader // FIXME: Exported for qbs-qmltypes
 {
 public:
     Loader(ScriptEngine *engine, Settings *settings, const Logger &logger);

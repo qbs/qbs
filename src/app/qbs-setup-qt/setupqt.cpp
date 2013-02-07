@@ -41,6 +41,7 @@
 #include <QtDebug>
 
 namespace qbs {
+using Internal::HostOsInfo;
 
 const QString qmakeExecutableName = QLatin1String("qmake" QTC_HOST_EXE_SUFFIX);
 

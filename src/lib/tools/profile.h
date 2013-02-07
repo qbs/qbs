@@ -29,6 +29,8 @@
 #ifndef QBS_PROFILE_H
 #define QBS_PROFILE_H
 
+#include "qbs_export.h"
+
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -36,7 +38,7 @@
 namespace qbs {
 class Settings;
 
-class Profile
+class QBS_EXPORT Profile
 {
 public:
     explicit Profile(const QString &name, Settings *settings);

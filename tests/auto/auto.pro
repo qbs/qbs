@@ -1,6 +1,8 @@
 TEMPLATE=subdirs
+CONFIG += ordered
 SUBDIRS= \
-    blackbox \
-    language \
     buildgraph \
-    tools
+    cmdlineparser \
+    language \
+    tools \
+    blackbox

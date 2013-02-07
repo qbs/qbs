@@ -1,16 +1,21 @@
-QT = core script
+QT = core script testlib
 greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 TEMPLATE = lib
 DESTDIR = ../../lib
+DLLDESTDIR = ../../bin
 INCLUDEPATH += $$PWD
 TARGET = qbscore
 
-CONFIG += static depend_includepath
+CONFIG += shared dll depend_includepath
 DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS
+DEFINES += QBS_LIBRARY
+DEFINES += SRCDIR=\\\"$$PWD/\\\"
+contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
 win32-msvc*|win32-icc:QMAKE_CXXFLAGS += /WX
 else:*g++*|*clang*|*icc*:QMAKE_CXXFLAGS += -Werror
+macx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
 
 include(../../qbs_version.pri)
 include(api/api.pri)

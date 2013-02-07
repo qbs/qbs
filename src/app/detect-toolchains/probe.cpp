@@ -43,6 +43,7 @@
 #include <QStringList>
 
 using namespace qbs;
+using Internal::HostOsInfo;
 using Internal::Tr;
 
 static QString searchPath(const QString &path, const QString &me)

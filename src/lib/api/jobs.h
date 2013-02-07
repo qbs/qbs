@@ -32,6 +32,7 @@
 #include <buildgraph/forward_decls.h>
 #include <tools/error.h>
 #include <tools/processresult.h>
+#include <tools/qbs_export.h>
 
 #include <QObject>
 #include <QProcess>
@@ -50,7 +51,7 @@ class ProjectPrivate;
 
 class Project;
 
-class AbstractJob : public QObject
+class QBS_EXPORT AbstractJob : public QObject
 {
     Q_OBJECT
 public:
@@ -84,7 +85,7 @@ private:
 };
 
 
-class SetupProjectJob : public AbstractJob
+class QBS_EXPORT SetupProjectJob : public AbstractJob
 {
     Q_OBJECT
     friend class Project;
@@ -98,7 +99,7 @@ private:
     void reportError(const Error &error);
 };
 
-class BuildJob : public AbstractJob
+class QBS_EXPORT BuildJob : public AbstractJob
 {
     Q_OBJECT
     friend class Internal::ProjectPrivate;
@@ -116,7 +117,7 @@ private:
 };
 
 
-class CleanJob : public AbstractJob
+class QBS_EXPORT CleanJob : public AbstractJob
 {
     Q_OBJECT
     friend class Internal::ProjectPrivate;
@@ -128,7 +129,7 @@ private:
                bool cleanAll);
 };
 
-class InstallJob : public AbstractJob
+class QBS_EXPORT InstallJob : public AbstractJob
 {
     Q_OBJECT
     friend class Internal::ProjectPrivate;

@@ -36,20 +36,19 @@
 #include <QLocale>
 #include <QTemporaryFile>
 
-using qbs::HostOsInfo;
 using qbs::InstallOptions;
+using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
 
 static QString initQbsExecutableFilePath()
 {
-    QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/../../../");
-    filePath += "bin/qbs";
+    QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
     filePath = HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
     return filePath;
 }
 
 TestBlackbox::TestBlackbox()
-    : testDataDir(QCoreApplication::applicationDirPath() + "/testWorkDir"),
+    : testDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/blackbox/testWorkDir"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       buildProfile(QLatin1String("qbs_autotests")),

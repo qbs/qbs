@@ -26,31 +26,64 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef TST_BUILDGRAPH_H
-#define TST_BUILDGRAPH_H
 
-#include <buildgraph/forward_decls.h>
+#ifndef TST_LANGUAGE_H
+#define TST_LANGUAGE_H
 
-#include <QList>
-#include <QObject>
+#include <language/forward_decls.h>
+#include <language/loader.h>
+#include <logging/ilogsink.h>
+#include <tools/setupprojectparameters.h>
+#include <tools/qbs_export.h>
+#include <QtTest>
 
-class TestBuildGraph : public QObject
+namespace qbs {
+namespace Internal {
+
+class QBS_EXPORT TestLanguage : public QObject
 {
     Q_OBJECT
 public:
+    TestLanguage(Settings *settings, ILogSink *logSink);
+    ~TestLanguage();
+
+private:
+    Settings *m_settings;
+    ILogSink *m_logSink;
+    Loader *loader;
+    ResolvedProjectPtr project;
+    SetupProjectParameters defaultParameters;
+
+    QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
+    ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
+    QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
 
 private slots:
     void initTestCase();
     void cleanupTestCase();
-    void testCycle();
-
-private:
-    qbs::Internal::BuildProductConstPtr productWithDirectCycle();
-    qbs::Internal::BuildProductConstPtr productWithLessDirectCycle();
-    qbs::Internal::BuildProductConstPtr productWithNoCycle();
-
-    QList<qbs::Internal::Artifact *> m_artifacts;
+    void conditionalDepends();
+    void invalidDepends_data();
+    void invalidDepends();
+    void groupConditions_data();
+    void groupConditions();
+    void groupName();
+    void identifierSearch_data();
+    void identifierSearch();
+    void jsImportUsedInMultipleScopes_data();
+    void jsImportUsedInMultipleScopes();
+    void modules_data();
+    void modules();
+    void outerInGroup();
+    void productConditions();
+    void propertiesBlocks_data();
+    void propertiesBlocks();
+    void fileTags_data();
+    void fileTags();
+    void wildcards_data();
+    void wildcards();
 };
 
+} // namespace Internal
+} // namespace qbs
 
-#endif // TST_BUILDGRAPH_H
+#endif // TST_LANGUAGE_H

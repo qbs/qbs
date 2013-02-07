@@ -30,6 +30,7 @@
 #define QBS_PROJECT_H
 
 #include <buildgraph/forward_decls.h>
+#include <tools/qbs_export.h>
 
 #include <QExplicitlySharedDataPointer>
 #include <QList>
@@ -60,7 +61,7 @@ class Logger;
 class ProjectPrivate;
 } // namespace Internal;
 
-class Project
+class QBS_EXPORT Project
 {
     friend class SetupProjectJob;
     friend uint qHash(const Project &p);

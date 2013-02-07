@@ -31,6 +31,7 @@
 #define QBS_FILEINFO_H
 
 #include "filetime.h"
+#include "qbs_export.h"
 
 #if defined(Q_OS_UNIX)
 #include <sys/stat.h>
@@ -81,8 +82,10 @@ private:
 };
 
 bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
-bool removeDirectoryWithContents(const QString &path, QString *errorMessage);
 bool copyFileRecursion(const QString &sourcePath, const QString &targetPath, QString *errorMessage);
+
+// FIXME: Used by tst_blackbox
+bool QBS_EXPORT removeDirectoryWithContents(const QString &path, QString *errorMessage);
 
 } // namespace Internal
 } // namespace qbs
