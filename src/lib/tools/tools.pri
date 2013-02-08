@@ -20,6 +20,7 @@ HEADERS += \
     $$PWD/persistentobject.h \
     $$PWD/weakpointer.h \
     $$PWD/qbs_export.h \
+    $$PWD/qbsassert.h \
     $$PWD/tst_tools.h
 
 SOURCES += \
@@ -36,6 +37,7 @@ SOURCES += \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
     $$PWD/setupprojectparameters.cpp \
+    $$PWD/qbsassert.cpp \
     $$PWD/tst_tools.cpp
 
 win32 {
