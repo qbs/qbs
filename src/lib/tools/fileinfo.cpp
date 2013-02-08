@@ -31,12 +31,11 @@
 
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
+#include <tools/qbsassert.h>
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
-
-#include <cassert>
 
 #ifdef Q_OS_UNIX
 #include <sys/stat.h>
@@ -159,7 +158,7 @@ bool FileInfo::isPattern(const QStringRef &str)
  */
 QString FileInfo::resolvePath(const QString &base, const QString &rel)
 {
-    Q_ASSERT(isAbsolute(base));
+    QBS_ASSERT(isAbsolute(base), return QString());
     if (isAbsolute(rel))
         return rel;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))

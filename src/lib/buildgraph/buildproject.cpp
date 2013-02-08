@@ -42,6 +42,7 @@
 #include <tools/error.h>
 #include <tools/persistence.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 
@@ -133,7 +134,7 @@ QList<Artifact *> BuildProject::lookupArtifacts(const QString &dirPath, const QS
 
 void BuildProject::insertFileDependency(Artifact *artifact)
 {
-    Q_ASSERT(artifact->artifactType == Artifact::FileDependency);
+    QBS_CHECK(artifact->artifactType == Artifact::FileDependency);
     m_dependencyArtifacts += artifact;
     insertIntoArtifactLookupTable(artifact);
 }
@@ -230,7 +231,7 @@ void BuildProject::updateNodesThatMustGetNewTransformer()
 
 void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact)
 {
-    Q_ASSERT(artifact->transformer);
+    QBS_CHECK(artifact->transformer);
 
     if (m_logger.debugEnabled()) {
         m_logger.qbsDebug() << "[BG] updating transformer for "
@@ -631,7 +632,7 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
             m_logger.qbsDebug() << "[BG] artifact '" << a->absoluteFilePath
                                 << "' removed from product " << product->rProduct->name;
             Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
-            Q_ASSERT(artifact);
+            QBS_CHECK(artifact);
             removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
             continue;
         }
@@ -650,7 +651,7 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
                     << a->absoluteFilePath << "' from " << a->fileTags << " to "
                     << changedArtifact->fileTags;
             Artifact *artifact = product->lookupArtifact(a->absoluteFilePath);
-            Q_ASSERT(artifact);
+            QBS_CHECK(artifact);
 
             // handle added filetags
             foreach (const QString &addedFileTag, changedArtifact->fileTags - a->fileTags)

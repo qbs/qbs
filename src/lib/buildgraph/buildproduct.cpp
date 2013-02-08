@@ -36,6 +36,7 @@
 #include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
+#include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {
@@ -127,9 +128,9 @@ Artifact *BuildProduct::createArtifact(const SourceArtifactConstPtr &sourceArtif
 
 void BuildProduct::insertArtifact(Artifact *artifact, const Logger &logger)
 {
-    Q_ASSERT(!artifact->product);
-    Q_ASSERT(!artifact->filePath().isEmpty());
-    Q_ASSERT(!artifacts.contains(artifact));
+    QBS_CHECK(!artifact->product);
+    QBS_CHECK(!artifact->filePath().isEmpty());
+    QBS_CHECK(!artifacts.contains(artifact));
 #ifdef QT_DEBUG
     foreach (const BuildProductPtr &otherProduct, project->buildProducts()) {
         if (otherProduct->lookupArtifact(artifact->filePath())) {

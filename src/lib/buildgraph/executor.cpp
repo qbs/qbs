@@ -45,6 +45,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QSet>
@@ -140,7 +141,7 @@ FileTime Executor::recursiveFileTime(const QString &filePath) const
 
 void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 {
-    Q_ASSERT(artifact->artifactType == Artifact::SourceFile);
+    QBS_CHECK(artifact->artifactType == Artifact::SourceFile);
 
     artifact->timestamp = recursiveFileTime(artifact->filePath());
     artifact->timestampRetrieved = true;
@@ -168,7 +169,7 @@ void Executor::doBuild()
         m_logger.qbsDebug() << "max job count not explicitly set, using value of "
                             << m_buildOptions.maxJobCount;
     }
-    Q_ASSERT(m_state == ExecutorIdle);
+    QBS_CHECK(m_state == ExecutorIdle);
     m_leaves.clear();
     m_error.clear();
     m_explicitlyCanceled = false;
@@ -294,7 +295,7 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
 // Returns true if some artifacts are still waiting to be built or currently building.
 bool Executor::scheduleJobs()
 {
-    Q_ASSERT(m_state == ExecutorRunning);
+    QBS_CHECK(m_state == ExecutorRunning);
     while (!m_leaves.isEmpty() && !m_availableJobs.isEmpty())
         buildArtifact(m_leaves.takeFirst());
     return !m_leaves.isEmpty() || !m_processingJobs.isEmpty();
@@ -302,7 +303,7 @@ bool Executor::scheduleJobs()
 
 bool Executor::isUpToDate(Artifact *artifact) const
 {
-    Q_ASSERT(artifact->artifactType == Artifact::Generated);
+    QBS_CHECK(artifact->artifactType == Artifact::Generated);
 
     const bool debug = false;
     if (debug) {
@@ -317,7 +318,7 @@ bool Executor::isUpToDate(Artifact *artifact) const
     }
 
     foreach (Artifact *child, artifact->children) {
-        Q_ASSERT(child->timestamp.isValid());
+        QBS_CHECK(child->timestamp.isValid());
         if (debug)
             m_logger.qbsDebug() << "[UTD] child timestamp " << child->timestamp.toString();
         if (artifact->timestamp < child->timestamp)
@@ -347,13 +348,13 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 
     // All outputs of the transformer have alwaysUpdated == false.
     // We need at least on output that is always updated.
-    Q_ASSERT(false);
+    QBS_CHECK(false);
     return true;
 }
 
 void Executor::buildArtifact(Artifact *artifact)
 {
-    Q_ASSERT(!m_availableJobs.isEmpty());
+    QBS_CHECK(!m_availableJobs.isEmpty());
 
     if (m_doDebug)
         m_logger.qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
@@ -381,7 +382,7 @@ void Executor::buildArtifact(Artifact *artifact)
     }
 
     // Every generated artifact must have a transformer.
-    Q_ASSERT(artifact->transformer);
+    QBS_CHECK(artifact->transformer);
 
     // Skip if outputs of this transformer are already built.
     // That means we already ran the transformation.
@@ -471,11 +472,11 @@ void Executor::buildArtifact(Artifact *artifact)
 
 void Executor::finishJob(ExecutorJob *job, bool success)
 {
-    Q_ASSERT(job);
-    Q_ASSERT(m_state != ExecutorIdle);
+    QBS_CHECK(job);
+    QBS_CHECK(m_state != ExecutorIdle);
 
     const QHash<ExecutorJob *, Artifact *>::Iterator it = m_processingJobs.find(job);
-    Q_ASSERT(it != m_processingJobs.end());
+    QBS_CHECK(it != m_processingJobs.end());
     if (success)
         finishArtifact(it.value());
     m_processingJobs.erase(it);
@@ -514,7 +515,7 @@ static bool allChildrenBuilt(Artifact *artifact)
 
 void Executor::finishArtifact(Artifact *leaf)
 {
-    Q_ASSERT(leaf);
+    QBS_CHECK(leaf);
 
     if (m_doTrace)
         m_logger.qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
@@ -613,9 +614,9 @@ void Executor::setupProgressObserver(bool mocWillRun)
 
 void Executor::doSanityChecks()
 {
-    Q_ASSERT(!m_productsToBuild.isEmpty());
+    QBS_CHECK(!m_productsToBuild.isEmpty());
     for (int i = 1; i < m_productsToBuild.count(); ++i)
-        Q_ASSERT(m_productsToBuild.at(i)->project == m_productsToBuild.first()->project);
+        QBS_CHECK(m_productsToBuild.at(i)->project == m_productsToBuild.first()->project);
 }
 
 void Executor::handleError(const Error &error)
@@ -688,9 +689,9 @@ void Executor::onProcessSuccess()
 {
     try {
         ExecutorJob *job = qobject_cast<ExecutorJob *>(sender());
-        Q_ASSERT(job);
+        QBS_CHECK(job);
         Artifact *processedArtifact = m_processingJobs.value(job);
-        Q_ASSERT(processedArtifact);
+        QBS_CHECK(processedArtifact);
 
         // Update the timestamps of the outputs of the transformer we just executed.
         processedArtifact->project->markDirty();
@@ -709,7 +710,7 @@ void Executor::onProcessSuccess()
 
 void Executor::finish()
 {
-    Q_ASSERT(m_state != ExecutorIdle);
+    QBS_CHECK(m_state != ExecutorIdle);
 
     QStringList unbuiltProductNames;
     foreach (BuildProductPtr buildProduct, m_productsToBuild) {

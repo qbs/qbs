@@ -35,6 +35,7 @@
 #include <tools/error.h>
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QDirIterator>
@@ -101,7 +102,7 @@ QScriptValue PropertyMap::toScriptValue(QScriptEngine *scriptEngine) const
 {
     QMutexLocker ml(&m_scriptValueCacheMutex);
     QScriptValue result = m_scriptValueCache.value(scriptEngine);
-    Q_ASSERT(!result.isValid() || result.engine() == scriptEngine);
+    QBS_ASSERT(!result.isValid() || result.engine() == scriptEngine, return QScriptValue());
     if (!result.isValid()) {
         result = scriptEngine->toScriptValue(m_value);
         m_scriptValueCache[scriptEngine] = result;
@@ -760,7 +761,7 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
     QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);
     while (it.hasNext()) {
         const QString filePath = it.next();
-        Q_ASSERT(FileInfo(filePath).isDir() == isDir);
+        QBS_ASSERT(FileInfo(filePath).isDir() == isDir, break);
         if (isDir)
             expandPatterns(result, group, changed_parts, filePath);
         else

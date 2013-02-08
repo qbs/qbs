@@ -36,6 +36,7 @@
 #include "transformer.h"
 #include <language/language.h>
 #include <tools/error.h>
+#include <tools/qbsassert.h>
 
 #include <QThread>
 
@@ -80,7 +81,7 @@ void ExecutorJob::setDryRun(bool enabled)
 
 void ExecutorJob::run(Transformer *t, const BuildProduct *buildProduct)
 {
-    Q_ASSERT(m_currentCommandIdx == -1);
+    QBS_ASSERT(m_currentCommandIdx == -1, return);
 
     if (t->commands.isEmpty()) {
         emit success();
@@ -108,7 +109,7 @@ void ExecutorJob::waitForFinished()
 
 void ExecutorJob::runNextCommand()
 {
-    Q_ASSERT(m_currentCommandIdx <= m_transformer->commands.count());
+    QBS_ASSERT(m_currentCommandIdx <= m_transformer->commands.count(), return);
     ++m_currentCommandIdx;
     if (m_currentCommandIdx >= m_transformer->commands.count()) {
         setInactive();

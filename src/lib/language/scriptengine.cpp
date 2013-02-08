@@ -30,6 +30,7 @@
 #include "scriptengine.h"
 
 #include <tools/error.h>
+#include <tools/qbsassert.h>
 
 #include <QFile>
 #include <QScriptProgram>
@@ -59,9 +60,9 @@ void ScriptEngine::import(const JsImports &jsImports, QScriptValue scope, QScrip
 
 void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject)
 {
-    Q_ASSERT(!scope.isValid() || scope.isObject());
-    Q_ASSERT(targetObject.isObject());
-    Q_ASSERT(targetObject.engine() == this);
+    QBS_ASSERT(!scope.isValid() || scope.isObject(), return);
+    QBS_ASSERT(targetObject.isObject(), return);
+    QBS_ASSERT(targetObject.engine() == this, return);
 
     if (debugJSImports)
         m_logger.qbsDebug() << "[ENGINE] import into " << jsImport.scopeName;

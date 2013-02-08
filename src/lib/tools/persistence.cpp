@@ -31,6 +31,7 @@
 
 #include "fileinfo.h"
 #include <tools/error.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QScopedPointer>
@@ -88,7 +89,7 @@ bool PersistentPool::setupWriteStream(const QString &filePath)
 
     if (QFile::exists(filePath) && !QFile::remove(filePath))
         return false;
-    Q_ASSERT(!QFile::exists(filePath));
+    QBS_CHECK(!QFile::exists(filePath));
     QScopedPointer<QFile> file(new QFile(filePath));
     if (!file->open(QFile::WriteOnly))
         return false;

@@ -41,6 +41,7 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/processresult.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QScriptEngine>
@@ -94,7 +95,7 @@ static QString commandArgsToString(const QStringList &args)
 
 void ProcessCommandExecutor::doStart()
 {
-    Q_ASSERT(m_process.state() == QProcess::NotRunning);
+    QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
 
     const ProcessCommand * const cmd = processCommand();
     QString program = cmd->program();

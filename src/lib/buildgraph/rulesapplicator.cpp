@@ -40,6 +40,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/scripttools.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 
@@ -282,7 +283,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
     }
 
     foreach (Artifact *inputArtifact, inputArtifacts) {
-        Q_ASSERT(outputArtifact != inputArtifact);
+        QBS_CHECK(outputArtifact != inputArtifact);
         loggedConnect(outputArtifact, inputArtifact, m_logger);
     }
 

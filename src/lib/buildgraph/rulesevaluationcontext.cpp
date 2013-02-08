@@ -37,6 +37,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
+#include <tools/qbsassert.h>
 
 #include <QVariant>
 
@@ -99,7 +100,7 @@ void RulesEvaluationContext::initScope()
 
 void RulesEvaluationContext::cleanupScope()
 {
-    Q_ASSERT(m_initScopeCalls > 0);
+    QBS_CHECK(m_initScopeCalls > 0);
     if (--m_initScopeCalls > 0)
         return;
 

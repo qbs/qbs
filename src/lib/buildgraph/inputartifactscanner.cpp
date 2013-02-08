@@ -39,6 +39,7 @@
 #include <language/language.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QSet>
@@ -308,8 +309,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 {
     BuildProduct *product = m_artifact->product;
     bool insertIntoProduct = true;
-    Q_ASSERT(m_artifact->artifactType == Artifact::Generated);
-    Q_ASSERT(m_artifact->product);
+    QBS_CHECK(m_artifact->artifactType == Artifact::Generated);
+    QBS_CHECK(m_artifact->product);
 
     if (!dependency.artifact) {
         // The dependency is an existing file but does not exist in the build graph.

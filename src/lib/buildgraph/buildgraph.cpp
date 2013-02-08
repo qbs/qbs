@@ -36,6 +36,7 @@
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
+#include <tools/qbsassert.h>
 
 #include <QFile>
 
@@ -117,7 +118,7 @@ bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
  */
 void connect(Artifact *p, Artifact *c)
 {
-    Q_ASSERT(p != c);
+    QBS_CHECK(p != c);
     p->children.insert(c);
     c->parents.insert(p);
     p->project->markDirty();
@@ -125,7 +126,7 @@ void connect(Artifact *p, Artifact *c)
 
 void loggedConnect(Artifact *u, Artifact *v, const Logger &logger)
 {
-    Q_ASSERT(u != v);
+    QBS_CHECK(u != v);
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] connect '%1' -> '%2'")
                              .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
@@ -147,7 +148,7 @@ static bool existsPath(Artifact *u, Artifact *v)
 
 bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
 {
-    Q_ASSERT(u != v);
+    QBS_CHECK(u != v);
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] safeConnect: '%1' '%2'")
                              .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));

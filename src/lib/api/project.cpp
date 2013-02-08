@@ -50,6 +50,7 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QMutex>
@@ -391,7 +392,7 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
         const QProcessEnvironment &environment, Settings *settings) const
 {
-    Q_ASSERT(product.isEnabled());
+    QBS_CHECK(product.isEnabled());
     const ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
     return RunEnvironment(resolvedProduct, environment, settings, d->logger);
 }

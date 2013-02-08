@@ -35,6 +35,7 @@
 #include <language/scriptengine.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
+#include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {
@@ -105,7 +106,7 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
         const QSet<QString> &fileTags = output->fileTags;
-        Q_ASSERT(!fileTags.isEmpty());
+        QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue outputsForFileTag = scriptValue.property(*fileTags.begin());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
         targetScriptValue.setProperty("output", outputScriptValue);

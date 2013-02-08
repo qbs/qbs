@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "command.h"
+#include <tools/qbsassert.h>
 
 #include <QScriptEngine>
 #include <QScriptValueIterator>
@@ -117,7 +118,7 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
 
 void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
 {
-    Q_ASSERT(targetObject.isObject());
+    QBS_CHECK(targetObject.isObject());
     QScriptValue ctor = targetObject.engine()->newFunction(js_Command, 2);
     targetObject.setProperty("Command", ctor);
 }
@@ -184,7 +185,7 @@ static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine 
 
 void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
 {
-    Q_ASSERT(targetObject.isObject());
+    QBS_CHECK(targetObject.isObject());
     QScriptValue ctor = targetObject.engine()->newFunction(js_JavaScriptCommand, 0);
     targetObject.setProperty("JavaScriptCommand", ctor);
 }

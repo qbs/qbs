@@ -35,6 +35,7 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/qbsassert.h>
 
 namespace qbs {
 using namespace Internal;
@@ -157,7 +158,7 @@ void AbstractJob::handleTaskProgress(int newProgressValue)
 
 void AbstractJob::handleFinished()
 {
-    Q_ASSERT(m_state != StateFinished);
+    QBS_ASSERT(m_state != StateFinished, return);
     m_state = StateFinished;
     emit finished(!hasError(), this);
 }
