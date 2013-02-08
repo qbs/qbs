@@ -17,6 +17,7 @@ Module {
     property string libPath
     property string mkspecPath
     property string mocName: "moc"
+    property string lreleaseName: "lrelease"
     property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
@@ -187,7 +188,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/lrelease', ['-silent', input.fileName, '-qm', output.fileName]);
+            var cmd = new Command(product.module.binPath + '/' + product.module.lreleaseName, ['-silent', input.fileName, '-qm', output.fileName]);
             cmd.description = 'lrelease ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'filegen';
             return cmd;
