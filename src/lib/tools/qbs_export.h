@@ -29,6 +29,8 @@
 #ifndef QBS_EXPORT_H
 #define QBS_EXPORT_H
 
+#include <qglobal.h>
+
 #ifdef QBS_LIBRARY
 #define QBS_EXPORT Q_DECL_EXPORT
 #else
