@@ -56,7 +56,7 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         puts(qPrintable(m_settings->value(command.varNames.first()).toString()));
         break;
     case ConfigCommand::CfgSet:
-        m_settings->setValue(command.varNames.first(), command.varValue);
+        setValue(command.varNames.first(), command.varValue);
         break;
     case ConfigCommand::CfgUnset:
         foreach (const QString &varName, command.varNames)
@@ -79,6 +79,17 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
     }
 }
 
+void ConfigCommandExecutor::setValue(const QString &key, const QString &rawInput)
+{
+    const QStringList list = rawInput.split(QLatin1Char(','), QString::SkipEmptyParts);
+    QVariant actualValue;
+    if (list.count() > 1)
+        actualValue = list;
+    else
+        actualValue = rawInput;
+    m_settings->setValue(key, actualValue);
+}
+
 void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 {
     if (command.varNames.isEmpty()) {
@@ -98,7 +109,8 @@ void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 
 void ConfigCommandExecutor::printOneSetting(const QString &key)
 {
-    printf("%s: %s\n", qPrintable(key), qPrintable(m_settings->value(key).toString()));
+    const QStringList value = m_settings->value(key).toStringList();
+    printf("%s: %s\n", qPrintable(key), qPrintable(value.join(QLatin1String(","))));
  }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
