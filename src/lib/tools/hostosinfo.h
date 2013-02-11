@@ -42,7 +42,7 @@
 #define QTC_HOST_OBJECT_SUFFIX ".obj"
 #elif defined(Q_OS_MAC)
 #define QTC_HOST_EXE_SUFFIX ""
-#define QTC_HOST_DYNAMICLIB_PREFIX ""
+#define QTC_HOST_DYNAMICLIB_PREFIX "lib"
 #define QTC_HOST_DYNAMICLIB_SUFFIX ".dylib"
 #define QTC_HOST_OBJECT_SUFFIX ".o"
 #else
