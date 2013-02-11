@@ -12,3 +12,5 @@ HEADERS += \
     $$PWD/commandlineoption.h \
     $$PWD/commandlineoptionpool.h \
     $$PWD/commandtype.h
+
+include(../../../../qbs_version.pri)
