@@ -62,7 +62,7 @@ QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
 QStringList toStringList(const QScriptValue &scriptValue);
 
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
-QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
+QBS_EXPORT QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name); // FIXME: Needed by Qt Creator
 
 QString toJSLiteral(const bool b);
 QString toJSLiteral(const QString &str);
