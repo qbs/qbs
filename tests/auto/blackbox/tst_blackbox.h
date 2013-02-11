@@ -76,7 +76,6 @@ private slots:
     void wildcardRenaming();
     void recursiveRenaming();
     void recursiveWildcards();
-    void updateTimestamps();
     void installedApp();
     void toolLookup();
     void checkProjectFilePath();
