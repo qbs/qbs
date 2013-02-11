@@ -188,7 +188,8 @@ QString CleanCommand::shortDescription() const
 
 QString CleanCommand::longDescription() const
 {
-    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n");
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+            .arg(representation());
     description += Tr::tr("Removes build artifacts for the given project and configuration(s).\n");
     return description += supportedOptionsDescription();
 }
@@ -202,7 +203,7 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
 {
     QList<CommandLineOption::Type> options = buildOptions();
     options.removeOne(CommandLineOption::ChangedFilesOptionType);
-    return options;
+    return options << CommandLineOption::AllArtifactsOptionType;
 }
 
 QString InstallCommand::shortDescription() const
