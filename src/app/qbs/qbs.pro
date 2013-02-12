@@ -1,10 +1,7 @@
-QT = core script
-TEMPLATE = app
-TARGET = qbs
-DESTDIR = ../../../bin
+include(../app.pri)
+include(parser/parser.pri)
 
-CONFIG   += console
-CONFIG   -= app_bundle
+TARGET = qbs
 
 SOURCES += main.cpp \
     ctrlchandler.cpp \
@@ -24,7 +21,3 @@ HEADERS += \
     commandlinefrontend.h \
     qbstool.h \
     ../shared/qbssettings.h
-
-include(../../lib/use.pri)
-include(parser/parser.pri)
-include(../shared/logging/logging.pri)

@@ -1,12 +1,6 @@
-QT       += core
-QT       -= gui
+include(../app.pri)
 
 TARGET = qbs-setup-qt
-CONFIG   += console
-CONFIG   -= app_bundle
-DESTDIR = ../../../bin
-
-TEMPLATE = app
 
 SOURCES += \
     main.cpp \
@@ -15,6 +9,3 @@ SOURCES += \
 HEADERS += \
     setupqt.h \
     ../shared/qbssettings.h
-
-include(../../lib/use.pri)
-include(../shared/logging/logging.pri)

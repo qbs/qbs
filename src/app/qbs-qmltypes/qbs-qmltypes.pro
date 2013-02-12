@@ -1,17 +1,8 @@
-QT       += core
-QT       -= gui
+include(../app.pri)
 
 TARGET = qbs-qmltypes
-CONFIG   += console
-CONFIG   -= app_bundle
-DESTDIR = ../../../bin
-
-TEMPLATE = app
 
 SOURCES += \
     main.cpp \
 
 HEADERS += ../shared/qbssettings.h
-
-include(../../lib/use.pri)
-include(../shared/logging/logging.pri)
