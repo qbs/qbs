@@ -1,8 +1,13 @@
 TEMPLATE=subdirs
 CONFIG += ordered
-SUBDIRS = \
-    buildgraph \
+
+all_tests {
+    SUBDIRS += \
+        buildgraph \
+        language \
+        tools \
+}
+
+SUBDIRS += \
     cmdlineparser \
-    language \
-    tools \
     blackbox

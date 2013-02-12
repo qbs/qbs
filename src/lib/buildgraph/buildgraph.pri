@@ -21,8 +21,7 @@ SOURCES += \
     $$PWD/buildproduct.cpp \
     $$PWD/buildproject.cpp \
     $$PWD/rulesapplicator.cpp \
-    $$PWD/timestampsupdater.cpp \
-    $$PWD/tst_buildgraph.cpp
+    $$PWD/timestampsupdater.cpp
 
 HEADERS += \
     $$PWD/automoc.h\
@@ -48,5 +47,9 @@ HEADERS += \
     $$PWD/buildproduct.h \
     $$PWD/buildproject.h \
     $$PWD/rulesapplicator.h \
-    $$PWD/timestampsupdater.h \
-    $$PWD/tst_buildgraph.h
+    $$PWD/timestampsupdater.h
+
+all_tests {
+    HEADERS += $$PWD/tst_buildgraph.h
+    SOURCES += $$PWD/tst_buildgraph.cpp
+}

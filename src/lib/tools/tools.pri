@@ -20,8 +20,7 @@ HEADERS += \
     $$PWD/persistentobject.h \
     $$PWD/weakpointer.h \
     $$PWD/qbs_export.h \
-    $$PWD/qbsassert.h \
-    $$PWD/tst_tools.h
+    $$PWD/qbsassert.h
 
 SOURCES += \
     $$PWD/codelocation.cpp \
@@ -37,8 +36,7 @@ SOURCES += \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
     $$PWD/setupprojectparameters.cpp \
-    $$PWD/qbsassert.cpp \
-    $$PWD/tst_tools.cpp
+    $$PWD/qbsassert.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp
@@ -46,4 +44,9 @@ win32 {
 
 unix {
     SOURCES += $$PWD/filetime_unix.cpp
+}
+
+all_tests {
+    HEADERS += $$PWD/tst_tools.h
+    SOURCES += $$PWD/tst_tools.cpp
 }
