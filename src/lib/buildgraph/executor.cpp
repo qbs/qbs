@@ -618,6 +618,15 @@ void Executor::doSanityChecks()
         Q_ASSERT(m_productsToBuild.at(i)->project == m_productsToBuild.first()->project);
 }
 
+void Executor::handleError(const Error &error)
+{
+    m_error = error;
+    if (m_processingJobs.isEmpty())
+        finish();
+    else
+        cancelJobs();
+}
+
 void Executor::addExecutorJobs(int jobNumber)
 {
     for (int i = 1; i <= jobNumber; i++) {
@@ -660,34 +669,42 @@ void Executor::runAutoMoc()
 
 void Executor::onProcessError(const qbs::Error &err)
 {
-    if (m_buildOptions.keepGoing) {
-        Error fullWarning(err);
-        fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
-        emit reportWarning(fullWarning);
-    } else {
-        m_error = err;
+    try {
+        if (m_buildOptions.keepGoing) {
+            Error fullWarning(err);
+            fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
+            emit reportWarning(fullWarning);
+        } else {
+            m_error = err;
+        }
+        ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
+        finishJob(job, false);
+    } catch (const Error &error) {
+        handleError(error);
     }
-    ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
-    finishJob(job, false);
 }
 
 void Executor::onProcessSuccess()
 {
-    ExecutorJob *job = qobject_cast<ExecutorJob *>(sender());
-    Q_ASSERT(job);
-    Artifact *processedArtifact = m_processingJobs.value(job);
-    Q_ASSERT(processedArtifact);
+    try {
+        ExecutorJob *job = qobject_cast<ExecutorJob *>(sender());
+        Q_ASSERT(job);
+        Artifact *processedArtifact = m_processingJobs.value(job);
+        Q_ASSERT(processedArtifact);
 
-    // Update the timestamps of the outputs of the transformer we just executed.
-    processedArtifact->project->markDirty();
-    foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
-        if (artifact->alwaysUpdated)
-            artifact->timestamp = FileTime::currentTime();
-        else
-            artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
+        // Update the timestamps of the outputs of the transformer we just executed.
+        processedArtifact->project->markDirty();
+        foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
+            if (artifact->alwaysUpdated)
+                artifact->timestamp = FileTime::currentTime();
+            else
+                artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
+        }
+
+        finishJob(job, true);
+    } catch (const Error &error) {
+        handleError(error);
     }
-
-    finishJob(job, true);
 }
 
 void Executor::finish()
