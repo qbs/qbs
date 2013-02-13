@@ -62,8 +62,8 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
     void conditionalDepends();
-    void invalidDepends_data();
-    void invalidDepends();
+    void erroneousFiles_data();
+    void erroneousFiles();
     void groupConditions_data();
     void groupConditions();
     void groupName();

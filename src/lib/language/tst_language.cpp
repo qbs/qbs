@@ -169,7 +169,7 @@ void TestLanguage::conditionalDepends()
     QCOMPARE(exceptionCaught, false);
 }
 
-void TestLanguage::invalidDepends_data()
+void TestLanguage::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("unknown_module")
@@ -178,13 +178,12 @@ void TestLanguage::invalidDepends_data()
             << "Depends.submodules cannot be used if name contains a dot";
 }
 
-void TestLanguage::invalidDepends()
+void TestLanguage::erroneousFiles()
 {
     QFETCH(QString, errorMessage);
     QString fileName = QString::fromLocal8Bit(QTest::currentDataTag()) + QLatin1String(".qbs");
     try {
-        defaultParameters.projectFilePath
-                = testDataDir() + QLatin1String("/invaliddepends/") + fileName;
+        defaultParameters.projectFilePath = testProject("/erroneous/") + fileName;
         loader->loadProject(defaultParameters);
     } catch (const Error &e) {
         if (!e.toString().contains(errorMessage)) {
