@@ -14,4 +14,24 @@ Project {
             dummy.defines: ["USE_MYLIB"]
         }
     }
+
+    Application {
+        name: "A"
+        Depends { name: "B" }
+    }
+    StaticLibrary {
+        name: "B"
+        ProductModule {
+            Depends { name: "C" }
+        }
+    }
+    StaticLibrary {
+        name: "C"
+        ProductModule {
+            Depends { name: "D" }
+        }
+    }
+    StaticLibrary {
+        name: "D"
+    }
 }

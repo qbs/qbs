@@ -525,7 +525,7 @@ void TestLanguage::productModules()
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 2);
+        QCOMPARE(products.count(), 6);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
@@ -534,10 +534,26 @@ void TestLanguage::productModules()
         QVariant propertyValue = getConfigProperty(product->properties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
         product = products.value("mylib");
+
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->properties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+
+        product = products.value("A");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.contains(products.value("B")));
+        QVERIFY(product->dependencies.contains(products.value("C")));
+        QVERIFY(product->dependencies.contains(products.value("D")));
+        product = products.value("B");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.isEmpty());
+        product = products.value("C");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.isEmpty());
+        product = products.value("D");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.isEmpty());
     }
     catch (const Error &e) {
         exceptionCaught = true;
