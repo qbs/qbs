@@ -176,6 +176,8 @@ void TestLanguage::erroneousFiles_data()
             << "Product dependency 'neithermodulenorproduct' not found";
     QTest::newRow("submodule_syntax")
             << "Depends.submodules cannot be used if name contains a dot";
+    QTest::newRow("multiple_productmodules")
+            << "Multiple ProductModule items in one product are prohibited.";
 }
 
 void TestLanguage::erroneousFiles()

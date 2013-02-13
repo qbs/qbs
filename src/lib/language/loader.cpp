@@ -115,7 +115,7 @@ public:
     void setupInternalPrototype(LanguageObject *object, EvaluationObject *evaluationObject);
     void resolveModule(ResolvedProductPtr rproduct, const QString &moduleName, EvaluationObject *module);
     void resolveGroup(ResolvedProductPtr rproduct, EvaluationObject *product, EvaluationObject *group);
-    void resolveProductModule(const ResolvedProductConstPtr &rproduct, EvaluationObject *group);
+    void resolveProductModule(const ResolvedProductConstPtr &rproduct, EvaluationObject *group, QSet<ProjectFile *> *filesWithProductModule);
     void resolveTransformer(ResolvedProductPtr rproduct, EvaluationObject *trafo, ResolvedModuleConstPtr module);
     void resolveProbe(EvaluationObject *node);
     QList<EvaluationObject *> resolveCommonItems(const QList<EvaluationObject *> &objects,
@@ -1699,10 +1699,17 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
 }
 
 void Loader::LoaderPrivate::resolveProductModule(const ResolvedProductConstPtr &rproduct,
-        EvaluationObject *productModule)
+        EvaluationObject *productModule, QSet<ProjectFile *> *filesWithProductModule)
 {
     Q_ASSERT(!rproduct->name.isEmpty());
 
+    ProjectFile * const projectFile = productModule->instantiatingObject()->file;
+    if (filesWithProductModule->contains(projectFile)) {
+        throw Error(Tr::tr("Multiple ProductModule items in one product are prohibited."),
+                    productModule->instantiatingObject()->prototypeLocation);
+    }
+
+    filesWithProductModule->insert(projectFile);
     evaluateDependencyConditions(productModule);
     clearScopesCache();
     QVariantMap moduleValues = evaluateModuleValues(rproduct, productModule, productModule->scope);
@@ -2555,13 +2562,14 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
         }
     }
 
+    QSet<ProjectFile *> filesWithProductModule;
     foreach (EvaluationObject *child, unresolvedChildren) {
         const uint prototypeNameHash = qHash(child->prototype);
         if (prototypeNameHash == hashName_Group) {
             resolveGroup(rproduct, data.product, child);
         } else if (prototypeNameHash == hashName_ProductModule) {
             child->scope->properties.insert("product", Property(data.product));
-            resolveProductModule(rproduct, child);
+            resolveProductModule(rproduct, child, &filesWithProductModule);
             data.usedProductsFromProductModule += child->unknownModules;
         }
     }
