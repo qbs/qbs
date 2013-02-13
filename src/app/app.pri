@@ -7,3 +7,6 @@ CONFIG -= app_bundle
 
 include($${PWD}/../lib/use.pri)
 include($${PWD}/shared/logging/logging.pri)
+
+target.path = /bin
+INSTALLS += target

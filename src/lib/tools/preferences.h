@@ -29,7 +29,7 @@
 #ifndef QBS_PREFERENCES_H
 #define QBS_PREFERENCES_H
 
-#include <tools/qbs_export.h>
+#include "qbs_export.h"
 
 #include <QStringList>
 #include <QVariant>

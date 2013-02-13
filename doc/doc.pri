@@ -49,11 +49,9 @@ qch_docs.commands = $$HELPGENERATOR -o $$shell_quote($$QCH_FILE) $$QHP_FILE
 qch_docs.depends += html_docs
 qch_docs.files = $$QCH_FILE
 
-unix:!macx {
-    qch_docs.path = /share/doc/qbs
-    qch_docs.CONFIG += no_check_exist
-    INSTALLS += qch_docs
-}
+qch_docs.path = /share/doc/qbs
+qch_docs.CONFIG += no_check_exist
+INSTALLS += qch_docs
 
 docs.depends = qch_docs
 QMAKE_EXTRA_TARGETS += html_docs qch_docs docs

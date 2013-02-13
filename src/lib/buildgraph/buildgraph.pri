@@ -53,3 +53,7 @@ all_tests {
     HEADERS += $$PWD/tst_buildgraph.h
     SOURCES += $$PWD/tst_buildgraph.cpp
 }
+
+buildgraph_headers.files = $$PWD/forward_decls.h
+buildgraph_headers.path = /include/qbs/buildgraph
+INSTALLS += buildgraph_headers

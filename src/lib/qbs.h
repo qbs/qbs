@@ -29,14 +29,14 @@
 #ifndef QBS_H
 #define QBS_H
 
-#include <api/jobs.h>
-#include <api/project.h>
+#include "api/jobs.h"
+#include "api/project.h"
 #include "api/projectdata.h"
 #include "logging/ilogsink.h"
 #include "tools/buildoptions.h"
 #include "tools/error.h"
 #include "tools/installoptions.h"
-#include <tools/preferences.h>
+#include "tools/preferences.h"
 #include "tools/settings.h"
 #include "tools/setupprojectparameters.h"
 

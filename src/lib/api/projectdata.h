@@ -29,8 +29,8 @@
 #ifndef QBS_PROJECTDATA_H
 #define QBS_PROJECTDATA_H
 
-#include <tools/codelocation.h>
-#include <tools/qbs_export.h>
+#include "../tools/codelocation.h"
+#include "../tools/qbs_export.h"
 
 #include <QList>
 #include <QPair>

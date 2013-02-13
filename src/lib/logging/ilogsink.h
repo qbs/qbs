@@ -29,7 +29,7 @@
 #ifndef QBS_ILOGGER_H
 #define QBS_ILOGGER_H
 
-#include <tools/qbs_export.h>
+#include "../tools/qbs_export.h"
 
 #include <QtGlobal>
 #include <QMutex>

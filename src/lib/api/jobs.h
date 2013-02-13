@@ -29,10 +29,10 @@
 #ifndef QBS_JOBS_H
 #define QBS_JOBS_H
 
-#include <buildgraph/forward_decls.h>
-#include <tools/error.h>
-#include <tools/processresult.h>
-#include <tools/qbs_export.h>
+#include "../buildgraph/forward_decls.h"
+#include "../tools/error.h"
+#include "../tools/processresult.h"
+#include "../tools/qbs_export.h"
 
 #include <QObject>
 #include <QProcess>

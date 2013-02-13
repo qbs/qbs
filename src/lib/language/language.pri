@@ -39,3 +39,7 @@ all_tests {
     SOURCES += $$PWD/tst_language.cpp
     OTHER_FILES += $$PWD/testdata/*
 }
+
+language_headers.files = $$PWD/forward_decls.h
+language_headers.path = /include/qbs/language
+INSTALLS += language_headers

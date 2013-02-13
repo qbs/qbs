@@ -11,3 +11,7 @@ SOURCES += \
     $$PWD/projectdata.cpp \
     $$PWD/jobs.cpp \
     $$PWD/project.cpp
+
+api_headers.files = $$PWD/projectdata.h $$PWD/runenvironment.h $$PWD/jobs.h $$PWD/project.h
+api_headers.path = /include/qbs/api
+INSTALLS += api_headers

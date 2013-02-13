@@ -28,3 +28,14 @@ include(tools/tools.pri)
 
 HEADERS += \
     qbs.h
+
+win32 {
+    dlltarget.path = /bin
+    INSTALLS += dlltarget
+}
+target.path = /lib
+INSTALLS += target
+
+qbs_h.files = qbs.h
+qbs_h.path = /include/qbs
+INSTALLS += qbs_h
