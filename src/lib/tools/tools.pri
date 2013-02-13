@@ -5,6 +5,7 @@ HEADERS += \
     $$PWD/error.h \
     $$PWD/fileinfo.h \
     $$PWD/filetime.h \
+    $$PWD/id.h \
     $$PWD/persistence.h \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
@@ -26,6 +27,7 @@ SOURCES += \
     $$PWD/codelocation.cpp \
     $$PWD/error.cpp \
     $$PWD/fileinfo.cpp \
+    $$PWD/id.cpp \
     $$PWD/persistence.cpp \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
