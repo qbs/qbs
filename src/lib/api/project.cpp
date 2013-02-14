@@ -425,6 +425,7 @@ BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOption
 /*!
  * \brief Removes the build artifacts of all products in the project.
  * The function will finish immediately, returning a \c BuildJob identifiying this operation.
+ * \sa Project::cleanSomeProducts()
  */
 CleanJob *Project::cleanAllProducts(const BuildOptions &options, CleanType cleanType,
                                     QObject *jobOwner) const
@@ -436,6 +437,8 @@ CleanJob *Project::cleanAllProducts(const BuildOptions &options, CleanType clean
 /*!
  * \brief Removes the build artifacts of the given products.
  * The function will finish immediately, returning a \c CleanJob identifiying this operation.
+ * \note The \c changedFiles and \c maxJobCount members of the \a options parameter
+ * are ignored by this function.
  */
 CleanJob *Project::cleanSomeProducts(const QList<ProductData> &products,
         const BuildOptions &options, CleanType cleanType, QObject *jobOwner) const
