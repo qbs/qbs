@@ -100,7 +100,8 @@ public:
     CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
                             Project::CleanType cleanType, QObject *jobOwner);
     InstallJob *installProducts(const QList<BuildProductPtr> &products,
-                                const InstallOptions &options, QObject *jobOwner);
+                                const InstallOptions &options, bool needsDepencencyResolving,
+                                QObject *jobOwner);
     QList<BuildProductPtr> internalProducts(const QList<ProductData> &products) const;
     BuildProductPtr internalProduct(const ProductData &product) const;
 
@@ -121,20 +122,24 @@ ProjectData ProjectPrivate::projectData()
     return m_projectData;
 }
 
+static void addDependencies(QList<BuildProductPtr> &products)
+{
+    for (int i = 0; i < products.count(); ++i) {
+        const BuildProductConstPtr &product = products.at(i);
+        foreach (const BuildProductPtr &dependency, product->dependencies) {
+            if (!products.contains(dependency))
+                products << dependency;
+        }
+    }
+}
+
 BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
                                         const BuildOptions &options, bool needsDepencencyResolving,
                                         const QProcessEnvironment &env, QObject *jobOwner)
 {
     QList<BuildProductPtr> productsToBuild = products;
-    if (needsDepencencyResolving) {
-        for (int i = 0; i < productsToBuild.count(); ++i) {
-            const BuildProductConstPtr &product = productsToBuild.at(i);
-            foreach (const BuildProductPtr &dependency, product->dependencies) {
-                if (!productsToBuild.contains(dependency))
-                    productsToBuild << dependency;
-            }
-        }
-    }
+    if (needsDepencencyResolving)
+        addDependencies(productsToBuild);
 
     BuildJob * const job = new BuildJob(logger, jobOwner);
     job->build(productsToBuild, options, env);
@@ -150,10 +155,13 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
 }
 
 InstallJob *ProjectPrivate::installProducts(const QList<BuildProductPtr> &products,
-                                            const InstallOptions &options, QObject *jobOwner)
+        const InstallOptions &options, bool needsDepencencyResolving, QObject *jobOwner)
 {
+    QList<BuildProductPtr> productsToInstall = products;
+    if (needsDepencencyResolving)
+        addDependencies(productsToInstall);
     InstallJob * const job = new InstallJob(logger, jobOwner);
-    job->install(products, options);
+    job->install(productsToInstall, options);
     return job;
 }
 
@@ -462,7 +470,8 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const BuildOption
  */
 InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *jobOwner) const
 {
-    return d->installProducts(d->internalProject->buildProducts().toList(), options, jobOwner);
+    return d->installProducts(d->internalProject->buildProducts().toList(), options, false,
+                              jobOwner);
 }
 
 /*!
@@ -472,7 +481,7 @@ InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *
 InstallJob *Project::installSomeProducts(const QList<ProductData> &products,
                                          const InstallOptions &options, QObject *jobOwner) const
 {
-    return d->installProducts(d->internalProducts(products), options, jobOwner);
+    return d->installProducts(d->internalProducts(products), options, true, jobOwner);
 }
 
 /*!
