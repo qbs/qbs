@@ -233,7 +233,7 @@ void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products,
 
 void BuildGraphTouchingJob::storeBuildGraph()
 {
-    if (!m_buildOptions.dryRun)
+    if (!m_buildOptions.dryRun && !m_products.isEmpty())
         InternalJob::storeBuildGraph(m_products.first()->project);
 }
 
