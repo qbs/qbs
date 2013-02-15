@@ -61,6 +61,8 @@ private:
 private slots:
     void initTestCase();
     void cleanupTestCase();
+
+    void baseProperty();
     void conditionalDepends();
     void erroneousFiles_data();
     void erroneousFiles();

@@ -98,6 +98,26 @@ void TestLanguage::cleanupTestCase()
     delete loader;
 }
 
+void TestLanguage::baseProperty()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("baseproperty.qbs");
+        project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value("product1");
+        QVERIFY(product);
+        QVariantMap cfg = product->properties->value();
+        QCOMPARE(cfg.value("narf").toStringList(), QStringList() << "boo");
+        QCOMPARE(cfg.value("zort").toStringList(), QStringList() << "bar" << "boo");
+    } catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::conditionalDepends()
 {
     bool exceptionCaught = false;
