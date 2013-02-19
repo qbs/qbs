@@ -1,0 +1,2 @@
+include(config/qbs-project.qdocconf)
+include(config/qt-html-templates.qdocconf)

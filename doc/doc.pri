@@ -4,8 +4,10 @@ defineReplace(targetPath) {
 
 qt:greaterThan(QT_MAJOR_VERSION, 4) {
     QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
+    QDOC_MAINFILE = $$PWD/qbs.qdocconf
 } else {
     QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc3)
+    QDOC_MAINFILE = $$PWD/qbs-qt4.qdocconf
 
     # cheap replacement of the Qt5 shell_quote function
     defineReplace(shell_quote) {
@@ -39,9 +41,9 @@ HELP_DEP_FILES = $$PWD/qbs.qdoc \
                  $$PWD/config/qt-cpp-ignore.qdocconf \
                  $$PWD/config/qt-html-templates.qdocconf \
                  $$PWD/config/qt-html-default-styles.qdocconf \
-                 $$PWD/qbs.qdocconf
+                 $$QDOC_MAINFILE
 
-html_docs.commands = $$QDOC $$PWD/qbs.qdocconf
+html_docs.commands = $$QDOC $$QDOC_MAINFILE
 html_docs.depends += $$HELP_DEP_FILES
 html_docs.files = $$QHP_FILE
 

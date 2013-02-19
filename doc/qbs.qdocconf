@@ -1,3 +1,2 @@
-# Run qdoc from the directory that contains this file.
 include(config/qbs-project.qdocconf)
-include(config/qt-html-templates.qdocconf)
+include($QT_INSTALL_DOCS/global/qt-html-templates-offline.qdocconf)
