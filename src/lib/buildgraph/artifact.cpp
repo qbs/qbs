@@ -81,11 +81,11 @@ void Artifact::setFilePath(const QString &filePath)
 void Artifact::load(PersistentPool &pool)
 {
     setFilePath(pool.idLoadString());
-    fileTags = pool.idLoadStringSet();
     properties = pool.idLoadS<PropertyMap>();
     transformer = pool.idLoadS<Transformer>();
     unsigned char c;
     pool.stream()
+            >> fileTags
             >> artifactType
             >> timestamp
             >> autoMocTimestamp
@@ -96,10 +96,10 @@ void Artifact::load(PersistentPool &pool)
 void Artifact::store(PersistentPool &pool) const
 {
     pool.storeString(m_filePath);
-    pool.storeStringSet(fileTags);
     pool.store(properties);
     pool.store(transformer);
     pool.stream()
+            << fileTags
             << artifactType
             << timestamp
             << autoMocTimestamp

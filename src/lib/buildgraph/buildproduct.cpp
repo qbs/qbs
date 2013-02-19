@@ -65,7 +65,7 @@ static void internalDump(const BuildProduct *product, Artifact *artifact, QByteA
            qPrintable(QString(toString(artifact->buildState).at(0))),
            artifactInProduct ? "" : " SBS",     // SBS == side-by-side artifact from other product
            qPrintable(artifact->filePath()),
-           qPrintable(QStringList(artifact->fileTags.toList()).join(",")));
+           qPrintable(artifact->fileTags.toStringList().join(QLatin1String(", "))));
     printf("\n");
     indent.append("  ");
     foreach (Artifact *child, artifact->children) {
@@ -83,12 +83,10 @@ void BuildProduct::dump() const
 const QList<RuleConstPtr> &BuildProduct::topSortedRules() const
 {
     if (m_topSortedRules.isEmpty()) {
-        QStringList fileTags;
-        fileTags << rProduct->fileTags << rProduct->additionalFileTags;
-        fileTags.sort();
-        std::unique(fileTags.begin(), fileTags.end());
+        FileTags productFileTags = rProduct->fileTags;
+        productFileTags += rProduct->additionalFileTags;
         RuleGraph ruleGraph;
-        ruleGraph.build(rProduct->rules, fileTags);
+        ruleGraph.build(rProduct->rules, productFileTags);
 //        ruleGraph.dump();
         m_topSortedRules = ruleGraph.topSorted();
 //        int i=0;

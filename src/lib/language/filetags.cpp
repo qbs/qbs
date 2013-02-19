@@ -27,65 +27,69 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_AUTOMOC_H
-#define QBS_AUTOMOC_H
-
-#include "forward_decls.h"
-
-#include <logging/logger.h>
-
-#include <QObject>
-
-struct ScannerPlugin;
+#include "filetags.h"
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
-class FileTag;
-class ScanResultCache;
 
-/**
-  * Scans cpp and hpp files for the Q_OBJECT / Q_GADGET macro and
-  * applies the corresponding rule then.
-  * Also scans the files for moc_XXX.cpp files to find out if we must
-  * compile and link a moc_XXX.cpp file or not.
-  *
-  * This whole thing is an ugly hack, I know.
-  */
-class AutoMoc : public QObject
+void FileTag::clear()
 {
-    Q_OBJECT
+    Id::operator=(Id());
+}
 
-public:
-    AutoMoc(const Logger &logger, QObject *parent = 0);
+QStringList FileTags::toStringList() const
+{
+    QStringList strlst;
+    foreach (const FileTag &tag, *this)
+        strlst += tag.toString();
+    return strlst;
+}
 
-    void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(const BuildProductPtr &product);
+FileTags FileTags::fromStringList(const QStringList &strings)
+{
+    FileTags result;
+    foreach (const QString &str, strings)
+        result += FileTag(str.toLocal8Bit());
+    return result;
+}
 
-signals:
-    void reportCommandDescription(const QString &highlight, const QString &message);
+LogWriter operator <<(LogWriter w, const FileTags &tags)
+{
+    bool firstLoop = true;
+    w.write('(');
+    foreach (const FileTag &tag, tags) {
+        if (firstLoop)
+            firstLoop = false;
+        else
+            w.write(QLatin1String(", "));
+        w.write(tag.toString());
+    }
+    w.write(')');
+    return w;
+}
 
-private:
-    enum FileType
-    {
-        UnknownFileType,
-        HppFileType,
-        CppFileType
-    };
+QDataStream &operator >>(QDataStream &s, FileTags &tags)
+{
+    int i;
+    s >> i;
+    tags.clear();
+    tags.reserve(i);
+    QVariant v;
+    while (--i >= 0) {
+        s >> v;
+        tags += FileTag::fromSetting(v);
+    }
+    return s;
+}
 
-private:
-    static QString generateMocFileName(Artifact *artifact, FileType fileType);
-    static FileType fileType(Artifact *artifact);
-    void scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles);
-    bool isVictimOfMoc(Artifact *artifact, FileType fileType, FileTag &foundMocFileTag);
-    void unmoc(Artifact *artifact, const FileTag &mocFileTag);
-    QList<ScannerPlugin *> scanners() const;
-
-    mutable QList<ScannerPlugin *> m_scanners;
-    ScanResultCache *m_scanResultCache;
-    Logger m_logger;
-};
+QDataStream &operator <<(QDataStream &s, const FileTags &tags)
+{
+    s << tags.count();
+    foreach (const FileTag &ft, tags)
+        s << ft.toSetting();
+    return s;
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_AUTOMOC_H

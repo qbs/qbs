@@ -1,6 +1,7 @@
 HEADERS += \
     $$PWD/artifactproperties.h \
     $$PWD/evaluationobject.h \
+    $$PWD/filetags.h \
     $$PWD/forward_decls.h \
     $$PWD/identifiersearch.h \
     $$PWD/jsimports.h \
@@ -20,6 +21,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/artifactproperties.cpp \
     $$PWD/evaluationobject.cpp \
+    $$PWD/filetags.cpp \
     $$PWD/identifiersearch.cpp \
     $$PWD/language.cpp \
     $$PWD/languagebasics.cpp \

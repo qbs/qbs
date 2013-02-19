@@ -70,7 +70,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
                "BG", "Product object is not in current scope.");
 
     ArtifactList inputArtifacts;
-    foreach (const QString &fileTag, m_rule->inputs)
+    foreach (const FileTag &fileTag, m_rule->inputs)
         inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         if (!inputArtifacts.isEmpty())
@@ -100,13 +100,13 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 
     ArtifactList usingArtifacts;
     if (!m_rule->usings.isEmpty()) {
-        const QSet<QString> usingsFileTags = m_rule->usings.toSet();
+        const FileTags usingsFileTags = m_rule->usings;
         foreach (const BuildProductPtr &dep, m_buildProduct->dependencies) {
             ArtifactList artifactsToCheck;
             foreach (Artifact *targetArtifact, dep->targetArtifacts)
                 artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
-                QSet<QString> matchingFileTags = artifact->fileTags;
+                FileTags matchingFileTags = artifact->fileTags;
                 matchingFileTags.intersect(usingsFileTags);
                 if (!matchingFileTags.isEmpty())
                     usingArtifacts.insert(artifact);
@@ -124,11 +124,11 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 
     foreach (Artifact *outputArtifact, outputArtifacts) {
         // insert the output artifacts into the pool of artifacts
-        foreach (const QString &fileTag, outputArtifact->fileTags)
+        foreach (const FileTag &fileTag, outputArtifact->fileTags)
             m_artifactsPerFileTag[fileTag].insert(outputArtifact);
 
         // connect artifacts that match the file tags in explicitlyDependsOn
-        foreach (const QString &fileTag, m_rule->explicitlyDependsOn)
+        foreach (const FileTag &fileTag, m_rule->explicitlyDependsOn)
             foreach (Artifact *dependency, m_artifactsPerFileTag.value(fileTag))
                 loggedConnect(outputArtifact, dependency, m_logger);
 
@@ -159,7 +159,8 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         outputArtifact->properties = outputArtifact->properties->clone();
 
         scope().setProperty("fileName", engine()->toScriptValue(outputArtifact->filePath()));
-        scope().setProperty("fileTags", toScriptValue(engine(), outputArtifact->fileTags));
+        scope().setProperty("fileTags",
+                            toScriptValue(engine(), outputArtifact->fileTags.toStringList()));
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value().value("modules").toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
@@ -236,10 +237,10 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
             m_transformer->inputs.unite(inputArtifacts);
 
             if (m_transformer->inputs.count() > 1 && !m_rule->multiplex) {
-                QString th = "[" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
+                QString th = "[" + outputArtifact->fileTags.toStringList().join(", ") + "]";
                 QString e = Tr::tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
-                th = "[" + m_rule->inputs.join(", ")
-                   + "] -> [" + QStringList(outputArtifact->fileTags.toList()).join(", ") + "]";
+                th = "[" + m_rule->inputs.toStringList().join(", ")
+                   + "] -> [" + outputArtifact->fileTags.toStringList().join(", ") + "]";
 
                 e += QString("  while trying to apply:   %1:%2:%3  %4\n")
                     .arg(m_rule->script->location.fileName)
@@ -255,12 +256,12 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
                 throw Error(e);
             }
         }
-        outputArtifact->fileTags += ruleArtifact->fileTags.toSet();
+        outputArtifact->fileTags += ruleArtifact->fileTags;
     } else {
         outputArtifact = new Artifact(m_buildProduct->project);
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
-        outputArtifact->fileTags = ruleArtifact->fileTags.toSet();
+        outputArtifact->fileTags = ruleArtifact->fileTags;
         outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
         m_buildProduct->insertArtifact(outputArtifact, m_logger);
     }
@@ -275,7 +276,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 
     for (int i = 0; i < m_buildProduct->rProduct->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_buildProduct->rProduct->artifactProperties.at(i);
-        QSet<QString> filter = props->fileTagsFilter().toSet();
+        FileTags filter = props->fileTagsFilter();
         if (!filter.intersect(outputArtifact->fileTags).isEmpty()) {
             outputArtifact->properties = props->propertyMap();
             break;

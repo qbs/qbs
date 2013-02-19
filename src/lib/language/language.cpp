@@ -42,8 +42,6 @@
 #include <QMutexLocker>
 #include <QScriptValue>
 
-#include <algorithm>
-
 QT_BEGIN_NAMESPACE
 inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::JsImport &jsImport)
 {
@@ -151,13 +149,13 @@ void PropertyMap::store(PersistentPool &pool) const
 void FileTagger::load(PersistentPool &pool)
 {
     m_artifactExpression.setPattern(pool.idLoadString());
-    m_fileTags = pool.idLoadStringList();
+    pool.stream() >> m_fileTags;
 }
 
 void FileTagger::store(PersistentPool &pool) const
 {
     pool.storeString(m_artifactExpression.pattern());
-    pool.storeStringList(m_fileTags);
+    pool.stream() << m_fileTags;
 }
 
 /*!
@@ -345,16 +343,15 @@ void ResolvedModule::store(PersistentPool &pool) const
 
 QString Rule::toString() const
 {
-    return "[" + inputs.join(",") + " -> " + outputFileTags().join(",") + "]";
+    return QLatin1Char('[') + inputs.toStringList().join(QLatin1String(",")) + QLatin1String(" -> ")
+            + outputFileTags().toStringList().join(QLatin1String(",")) + QLatin1Char(']');
 }
 
-QStringList Rule::outputFileTags() const
+FileTags Rule::outputFileTags() const
 {
-    QStringList result;
+    FileTags result;
     foreach (const RuleArtifactConstPtr &artifact, artifacts)
-        result.append(artifact->fileTags);
-    result.sort();
-    std::unique(result.begin(), result.end());
+        result.unite(artifact->fileTags);
     return result;
 }
 
@@ -419,12 +416,12 @@ QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
     return lst;
 }
 
-QSet<QString> ResolvedProduct::fileTagsForFileName(const QString &fileName) const
+FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
-    QSet<QString> result;
+    FileTags result;
     foreach (FileTaggerConstPtr tagger, fileTaggers) {
         if (FileInfo::globMatches(tagger->artifactExpression(), fileName)) {
-            result.unite(tagger->fileTags().toSet());
+            result.unite(tagger->fileTags());
         }
     }
     return result;

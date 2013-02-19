@@ -246,7 +246,7 @@ void BuildProject::updateNodeThatMustGetNewTransformer(Artifact *artifact)
 
     ArtifactsPerFileTagMap artifactsPerFileTag;
     foreach (Artifact *input, artifact->children) {
-        foreach (const QString &fileTag, input->fileTags)
+        foreach (const FileTag &fileTag, input->fileTags)
             artifactsPerFileTag[fileTag] += input;
     }
     RulesApplicator rulesApplier(artifact->product, artifactsPerFileTag, m_logger);
@@ -313,7 +313,7 @@ BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &r
 static void addTargetArtifacts(const BuildProductPtr &product,
                               ArtifactsPerFileTagMap &artifactsPerFileTag, const Logger &logger)
 {
-    foreach (const QString &fileTag, product->rProduct->fileTags) {
+    foreach (const FileTag &fileTag, product->rProduct->fileTags) {
         foreach (Artifact * const artifact, artifactsPerFileTag.value(fileTag)) {
             if (artifact->artifactType == Artifact::Generated)
                 product->targetArtifacts += artifact;
@@ -369,7 +369,7 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
             continue; // ignore duplicate artifacts
 
         Artifact *artifact = product->createArtifact(sourceArtifact, m_logger);
-        foreach (const QString &fileTag, artifact->fileTags)
+        foreach (const FileTag &fileTag, artifact->fileTags)
             artifactsPerFileTag[fileTag].insert(artifact);
     }
 
@@ -385,7 +385,6 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
         TransformerPtr transformer = Transformer::create();
         transformer->inputs = inputArtifacts;
         const RulePtr rule = Rule::create();
-        rule->inputs = rtrafo->inputs;
         rule->jsImports = rtrafo->jsImports;
         ResolvedModulePtr module = ResolvedModule::create();
         module->name = rtrafo->module->name;
@@ -399,12 +398,12 @@ BuildProductPtr BuildProjectResolver::resolveProduct(const ResolvedProductPtr &r
             product->targetArtifacts += outputArtifact;
             foreach (Artifact *inputArtifact, inputArtifacts)
                 safeConnect(outputArtifact, inputArtifact, m_logger);
-            foreach (const QString &fileTag, outputArtifact->fileTags)
+            foreach (const FileTag &fileTag, outputArtifact->fileTags)
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
             RuleArtifactPtr ruleArtifact = RuleArtifact::create();
             ruleArtifact->fileName = outputArtifact->filePath();
-            ruleArtifact->fileTags = outputArtifact->fileTags.toList();
+            ruleArtifact->fileTags = outputArtifact->fileTags;
             rule->artifacts += ruleArtifact;
         }
         transformer->rule = rule;
@@ -654,11 +653,11 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
             QBS_CHECK(artifact);
 
             // handle added filetags
-            foreach (const QString &addedFileTag, changedArtifact->fileTags - a->fileTags)
+            foreach (const FileTag &addedFileTag, changedArtifact->fileTags - a->fileTags)
                 artifactsPerFileTag[addedFileTag] += artifact;
 
             // handle removed filetags
-            foreach (const QString &removedFileTag, a->fileTags - changedArtifact->fileTags) {
+            foreach (const FileTag &removedFileTag, a->fileTags - changedArtifact->fileTags) {
                 artifact->fileTags -= removedFileTag;
                 foreach (Artifact *parent, artifact->parents) {
                     if (parent->transformer && parent->transformer->rule->inputs.contains(removedFileTag)) {
@@ -676,7 +675,7 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
 
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)
-        foreach (const QString &ft, artifact->fileTags)
+        foreach (const FileTag &ft, artifact->fileTags)
             artifactsPerFileTag[ft] += artifact;
     RulesApplicator(product.data(), artifactsPerFileTag, m_logger).applyAllRules();
 

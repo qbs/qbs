@@ -27,65 +27,52 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_AUTOMOC_H
-#define QBS_AUTOMOC_H
-
-#include "forward_decls.h"
+#ifndef QBS_FILETAGS_H
+#define QBS_FILETAGS_H
 
 #include <logging/logger.h>
-
-#include <QObject>
-
-struct ScannerPlugin;
+#include <tools/id.h>
+#include <QDataStream>
+#include <QSet>
 
 namespace qbs {
 namespace Internal {
-class FileTag;
-class ScanResultCache;
 
-/**
-  * Scans cpp and hpp files for the Q_OBJECT / Q_GADGET macro and
-  * applies the corresponding rule then.
-  * Also scans the files for moc_XXX.cpp files to find out if we must
-  * compile and link a moc_XXX.cpp file or not.
-  *
-  * This whole thing is an ugly hack, I know.
-  */
-class AutoMoc : public QObject
+class FileTag : public Id
 {
-    Q_OBJECT
-
 public:
-    AutoMoc(const Logger &logger, QObject *parent = 0);
+    FileTag()
+        : Id()
+    {}
 
-    void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(const BuildProductPtr &product);
+    FileTag(const Id &other)
+        : Id(other)
+    {}
 
-signals:
-    void reportCommandDescription(const QString &highlight, const QString &message);
+    FileTag(const char *str)
+        : Id(str)
+    {}
 
-private:
-    enum FileType
-    {
-        UnknownFileType,
-        HppFileType,
-        CppFileType
-    };
+    explicit FileTag(const QByteArray &ba)
+        : Id(ba)
+    {}
 
-private:
-    static QString generateMocFileName(Artifact *artifact, FileType fileType);
-    static FileType fileType(Artifact *artifact);
-    void scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles);
-    bool isVictimOfMoc(Artifact *artifact, FileType fileType, FileTag &foundMocFileTag);
-    void unmoc(Artifact *artifact, const FileTag &mocFileTag);
-    QList<ScannerPlugin *> scanners() const;
-
-    mutable QList<ScannerPlugin *> m_scanners;
-    ScanResultCache *m_scanResultCache;
-    Logger m_logger;
+    void clear();
 };
+
+class FileTags : public QSet<FileTag>
+{
+public:
+    QStringList toStringList() const;
+    static FileTags fromStringList(const QStringList &strings);
+};
+
+LogWriter operator <<(LogWriter w, const FileTags &tags);
+QDataStream &operator >>(QDataStream &s, FileTags & tags);
+QDataStream &operator <<(QDataStream &s, const FileTags &tags);
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_AUTOMOC_H
+#endif // QBS_FILETAGS_H
+

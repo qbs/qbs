@@ -194,7 +194,7 @@ void ProjectPrivate::retrieveProjectData()
         ProductData product;
         product.m_name = resolvedProduct->name;
         product.m_location = resolvedProduct->location;
-        product.m_fileTags = resolvedProduct->fileTags;
+        product.m_fileTags = resolvedProduct->fileTags.toStringList();
         product.m_properties = resolvedProduct->properties->value();
         product.m_isEnabled = resolvedProduct->enabled;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
@@ -357,11 +357,11 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
     if (!product.isEnabled())
         return QString();
     const BuildProductConstPtr buildProduct = d->internalProduct(product);
-    if (!buildProduct->rProduct->fileTags.contains(QLatin1String("application")))
+    if (!buildProduct->rProduct->fileTags.contains("application"))
         return QString();
 
     foreach (const Artifact * const artifact, buildProduct->targetArtifacts) {
-        if (artifact->fileTags.contains(QLatin1String("application"))) {
+        if (artifact->fileTags.contains("application")) {
             if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 return artifact->filePath();
             const QString fileName = FileInfo::fileName(artifact->filePath());

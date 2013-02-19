@@ -45,15 +45,15 @@
 namespace qbs {
 namespace Internal {
 
-static char **createCFileTags(const QSet<QString> &fileTags)
+static char **createCFileTags(const FileTags &fileTags)
 {
     if (fileTags.isEmpty())
         return 0;
 
     char **buf = new char*[fileTags.count()];
     size_t i = 0;
-    foreach (const QString &fileTag, fileTags) {
-        buf[i] = qstrdup(fileTag.toLocal8Bit().data());
+    foreach (const FileTag &fileTag, fileTags) {
+        buf[i] = qstrdup(fileTag.toString().toLocal8Bit().data());
         ++i;
     }
     return buf;
@@ -94,15 +94,15 @@ void AutoMoc::apply(const BuildProductPtr &product)
     for (; it != product->artifacts.end(); ++it) {
         Artifact *artifact = *it;
         if (!pchFile || !pluginMetaDataFile) {
-            foreach (const QString &fileTag, artifact->fileTags) {
-                if (fileTag == QLatin1String("c++_pch"))
+            foreach (const FileTag &fileTag, artifact->fileTags) {
+                if (fileTag == "c++_pch")
                     pchFile = artifact;
-                else if (fileTag == QLatin1String("qt_plugin_metadata"))
+                else if (fileTag == "qt_plugin_metadata")
                     pluginMetaDataFile = artifact;
             }
         }
 
-        if (!pluginMetaDataFile && artifact->fileTags.contains(QLatin1String("qt_plugin_metadata"))) {
+        if (!pluginMetaDataFile && artifact->fileTags.contains("qt_plugin_metadata")) {
             if (m_logger.debugEnabled()) {
                 m_logger.qbsDebug() << "[AUTOMOC] found Qt plugin metadata file "
                                     << artifact->filePath();
@@ -117,7 +117,7 @@ void AutoMoc::apply(const BuildProductPtr &product)
         const FileType fileType = AutoMoc::fileType(artifact);
         if (fileType == UnknownFileType)
             continue;
-        QString mocFileTag;
+        FileTag mocFileTag;
         bool alreadyMocced = isVictimOfMoc(artifact, fileType, mocFileTag);
         bool hasQObjectMacro;
         scan(artifact, hasQObjectMacro, includedMocCppFiles);
@@ -134,22 +134,22 @@ void AutoMoc::apply(const BuildProductPtr &product)
         const QPair<Artifact *, FileType> &p = artifactsToMoc.at(i);
         Artifact * const artifact = p.first;
         FileType fileType = p.second;
-        foreach (const QString &fileTag, artifact->fileTags) {
-            if (fileTag == QLatin1String("moc_hpp")) {
+        foreach (const FileTag &fileTag, artifact->fileTags) {
+            if (fileTag == "moc_hpp") {
                 const QString mocFileName = generateMocFileName(artifact, fileType);
                 if (includedMocCppFiles.contains(mocFileName)) {
-                    QString newFileTag = QLatin1String("moc_hpp_inc");
+                    FileTag newFileTag = "moc_hpp_inc";
                     artifact->fileTags -= fileTag;
                     artifact->fileTags += newFileTag;
                     artifactsPerFileTag[newFileTag].insert(artifact);
                     continue;
                 }
-            } else if (fileTag == QLatin1String("moc_plugin_hpp")) {
+            } else if (fileTag == "moc_plugin_hpp") {
                 if (m_logger.debugEnabled()) {
                     m_logger.qbsDebug() << "[AUTOMOC] found Qt plugin header file "
                                         << artifact->filePath();
                 }
-                QString newFileTag = QLatin1String("moc_hpp");
+                FileTag newFileTag = "moc_hpp";
                 artifact->fileTags -= fileTag;
                 artifact->fileTags += newFileTag;
                 artifactsPerFileTag[newFileTag].insert(artifact);
@@ -160,7 +160,7 @@ void AutoMoc::apply(const BuildProductPtr &product)
     }
 
     if (pchFile)
-        artifactsPerFileTag[QLatin1String("c++_pch")] += pchFile;
+        artifactsPerFileTag["c++_pch"] += pchFile;
     if (!artifactsPerFileTag.isEmpty()) {
         emit reportCommandDescription(QLatin1String("automoc"),
                                       Tr::tr("Applying moc rules for '%1'.")
@@ -195,10 +195,10 @@ QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)
 
 AutoMoc::FileType AutoMoc::fileType(Artifact *artifact)
 {
-    foreach (const QString &fileTag, artifact->fileTags)
-        if (fileTag == QLatin1String("hpp"))
+    foreach (const FileTag &fileTag, artifact->fileTags)
+        if (fileTag == "hpp")
             return HppFileType;
-        else if (fileTag == QLatin1String("cpp"))
+        else if (fileTag == "cpp")
             return CppFileType;
     return UnknownFileType;
 }
@@ -222,10 +222,12 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
         const char **szFileTagsFromScanner = scanner->additionalFileTags(opaq, &length);
         if (szFileTagsFromScanner && length > 0) {
             for (int i=length; --i >= 0;) {
-                const QString fileTagFromScanner = QString::fromLocal8Bit(szFileTagsFromScanner[i]);
-                artifact->fileTags.insert(fileTagFromScanner);
+                artifact->fileTags.insert(szFileTagsFromScanner[i]);
                 if (m_logger.traceEnabled())
                     m_logger.qbsTrace() << "[AUTOMOC] finds Q_OBJECT macro";
+                const QByteArray fileTagFromScanner
+                        = QByteArray::fromRawData(szFileTagsFromScanner[i],
+                                                  strlen(szFileTagsFromScanner[i]));
                 if (fileTagFromScanner.startsWith("moc"))
                     hasQObjectMacro = true;
             }
@@ -272,18 +274,23 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
     freeCFileTags(cFileTags, numFileTags);
 }
 
-bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foundMocFileTag)
+static FileTags provideMocHeaderFileTags()
 {
-    static const QSet<QString> mocHeaderFileTags = QSet<QString>() << QLatin1String("moc_hpp")
-                                                                   << QLatin1String("moc_hpp_inc")
-                                                                   << QLatin1String("moc_plugin_hpp");
-    static const QString mocCppFileTag = QLatin1String("moc_cpp");
+    FileTags fileTags;
+    fileTags << "moc_hpp" << "moc_hpp_inc" << "moc_plugin_hpp";
+    return fileTags;
+}
+
+bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, FileTag &foundMocFileTag)
+{
+    static const FileTags mocHeaderFileTags = provideMocHeaderFileTags();
+    static const FileTag mocCppFileTag = "moc_cpp";
     foundMocFileTag.clear();
     switch (fileType) {
     case UnknownFileType:
         break;
     case HppFileType:
-        foreach (const QString &fileTag, artifact->fileTags) {
+        foreach (const FileTag &fileTag, artifact->fileTags) {
             if (mocHeaderFileTags.contains(fileTag)) {
                 foundMocFileTag = fileTag;
                 break;
@@ -295,10 +302,10 @@ bool AutoMoc::isVictimOfMoc(Artifact *artifact, FileType fileType, QString &foun
             foundMocFileTag = mocCppFileTag;
         break;
     }
-    return !foundMocFileTag.isEmpty();
+    return foundMocFileTag.isValid();
 }
 
-void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
+void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[AUTOMOC] unmoc'ing " << relativeArtifactFileName(artifact);
@@ -307,7 +314,7 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
 
     Artifact *generatedMocArtifact = 0;
     foreach (Artifact *parent, artifact->parents) {
-        foreach (const QString &fileTag, parent->fileTags) {
+        foreach (const FileTag &fileTag, parent->fileTags) {
             if (fileTag == "hpp" || fileTag == "cpp") {
                 generatedMocArtifact = parent;
                 break;
@@ -323,7 +330,7 @@ void AutoMoc::unmoc(Artifact *artifact, const QString &mocFileTag)
     if (mocFileTag == "moc_hpp") {
         Artifact *mocObjArtifact = 0;
         foreach (Artifact *parent, generatedMocArtifact->parents) {
-            foreach (const QString &fileTag, parent->fileTags) {
+            foreach (const FileTag &fileTag, parent->fileTags) {
                 if (fileTag == "obj" || fileTag == "fpicobj") {
                     mocObjArtifact = parent;
                     break;

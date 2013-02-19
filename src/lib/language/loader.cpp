@@ -31,6 +31,7 @@
 
 #include "artifactproperties.h"
 #include "evaluationobject.h"
+#include "filetags.h"
 #include "identifiersearch.h"
 #include "language.h"
 #include "languageobject.h"
@@ -237,19 +238,19 @@ static const QLatin1String name_PropertyOptions("PropertyOptions");
 static const QLatin1String name_Depends("Depends");
 static const QLatin1String name_moduleSearchPaths("moduleSearchPaths");
 static const QLatin1String name_Probe("Probe");
-static const uint hashName_FileTagger = qHash(name_FileTagger);
-static const uint hashName_Rule = qHash(name_Rule);
-static const uint hashName_Transformer = qHash(name_Transformer);
-static const uint hashName_Artifact = qHash(name_Artifact);
-static const uint hashName_Group = qHash(name_Group);
-static const uint hashName_Project = qHash(name_Project);
-static const uint hashName_Product = qHash(name_Product);
-static const uint hashName_ProductModule = qHash(name_ProductModule);
-static const uint hashName_Module = qHash(name_Module);
-static const uint hashName_Properties = qHash(name_Properties);
-static const uint hashName_PropertyOptions = qHash(name_PropertyOptions);
-static const uint hashName_Depends = qHash(name_Depends);
-static const uint hashName_Probe = qHash(name_Probe);
+static const uint hashName_FileTagger = qHash(QString(name_FileTagger));
+static const uint hashName_Rule = qHash(QString(name_Rule));
+static const uint hashName_Transformer = qHash(QString(name_Transformer));
+static const uint hashName_Artifact = qHash(QString(name_Artifact));
+static const uint hashName_Group = qHash(QString(name_Group));
+static const uint hashName_Project = qHash(QString(name_Project));
+static const uint hashName_Product = qHash(QString(name_Product));
+static const uint hashName_ProductModule = qHash(QString(name_ProductModule));
+static const uint hashName_Module = qHash(QString(name_Module));
+static const uint hashName_Properties = qHash(QString(name_Properties));
+static const uint hashName_PropertyOptions = qHash(QString(name_PropertyOptions));
+static const uint hashName_Depends = qHash(QString(name_Depends));
+static const uint hashName_Probe = qHash(QString(name_Probe));
 static const QLatin1String name_productPropertyScope("product property scope");
 static const QLatin1String name_projectPropertyScope("project property scope");
 
@@ -1460,10 +1461,10 @@ void Loader::LoaderPrivate::applyFileTaggers(const SourceArtifactPtr &artifact,
                                              const ResolvedProductConstPtr &product)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
-        QSet<QString> fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
+        FileTags fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
-            artifact->fileTags.insert(QLatin1String("unknown-file-tag"));
+            artifact->fileTags.insert("unknown-file-tag");
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << "[LDR] adding file tags " << artifact->fileTags << " to "
                                 << FileInfo::fileName(artifact->absoluteFilePath);
@@ -1559,11 +1560,9 @@ void Loader::LoaderPrivate::resolveModule(ResolvedProductPtr rproduct, const QSt
     rmodule->jsImports = module->instantiatingObject()->file->jsImports;
     rmodule->setupBuildEnvironmentScript = module->scope->verbatimValue("setupBuildEnvironment");
     rmodule->setupRunEnvironmentScript = module->scope->verbatimValue("setupRunEnvironment");
-    QStringList additionalProductFileTags = module->scope->stringListValue("additionalProductFileTags");
-    if (!additionalProductFileTags.isEmpty()) {
-        rproduct->additionalFileTags.append(additionalProductFileTags);
-        rproduct->additionalFileTags = rproduct->additionalFileTags.toSet().toList();
-    }
+    rproduct->additionalFileTags.unite(
+                FileTags::fromStringList(
+                    module->scope->stringListValue("additionalProductFileTags")));
     foreach (Module::Ptr m, module->modules)
         rmodule->moduleDependencies.append(m->name);
     rproduct->modules.append(rmodule);
@@ -1578,7 +1577,7 @@ void Loader::LoaderPrivate::resolveModule(ResolvedProductPtr rproduct, const QSt
 static void createSourceArtifact(const ResolvedProductConstPtr &rproduct,
                                  const PropertyMapPtr &properties,
                                  const QString &fileName,
-                                 const QSet<QString> &fileTags,
+                                 const FileTags &fileTags,
                                  bool overrideTags,
                                  QList<SourceArtifactPtr> &artifactList)
 {
@@ -1620,7 +1619,8 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
             properties->setValue(evaluateModuleValues(rproduct, product, group->scope));
         }
 
-        const QStringList fileTagsFilter = group->scope->stringListValue("fileTagsFilter");
+        const FileTags fileTagsFilter
+                = FileTags::fromStringList(group->scope->stringListValue("fileTagsFilter"));
         if (!fileTagsFilter.isEmpty()) {
             if (!files.isEmpty())
                 throw Error(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
@@ -1664,9 +1664,9 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
                     files[i].prepend(prefix);
         }
     }
-    QSet<QString> fileTags;
+    FileTags fileTags;
     if (isGroup)
-        fileTags = group->scope->stringListValue("fileTags").toSet();
+        fileTags = FileTags::fromStringList(group->scope->stringListValue("fileTags"));
     bool overrideTags = true;
     if (isGroup)
         overrideTags = group->scope->boolValue("overrideTags", true);
@@ -1745,7 +1745,7 @@ void Loader::LoaderPrivate::resolveTransformer(ResolvedProductPtr rproduct, Eval
             throw Error(Tr::tr("Artifact fileName must not be empty."));
         artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->project->buildDirectory,
                                                            fileName);
-        artifact->fileTags = child->scope->stringListValue("fileTags").toSet();
+        artifact->fileTags = FileTags::fromStringList(child->scope->stringListValue("fileTags"));
         rtrafo->outputs += artifact;
     }
     rproduct->transformers += rtrafo;
@@ -1817,7 +1817,7 @@ RulePtr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedMod
             RuleArtifactPtr artifact = RuleArtifact::create();
             artifacts.append(artifact);
             artifact->fileName = child->scope->verbatimValue("fileName");
-            artifact->fileTags = child->scope->stringListValue("fileTags");
+            artifact->fileTags = FileTags::fromStringList(child->scope->stringListValue("fileTags"));
             artifact->alwaysUpdated = child->scope->boolValue("alwaysUpdated", true);
             if (artifact->alwaysUpdated)
                 hasAlwaysUpdatedArtifact = true;
@@ -1856,9 +1856,10 @@ RulePtr Loader::LoaderPrivate::resolveRule(EvaluationObject *object, ResolvedMod
     rule->script = prepareScript;
     rule->artifacts = artifacts;
     rule->multiplex = object->scope->boolValue("multiplex", false);
-    rule->inputs = object->scope->stringListValue("inputs");
-    rule->usings = object->scope->stringListValue("usings");
-    rule->explicitlyDependsOn = object->scope->stringListValue("explicitlyDependsOn");
+    rule->inputs = FileTags::fromStringList(object->scope->stringListValue("inputs"));
+    rule->usings = FileTags::fromStringList(object->scope->stringListValue("usings"));
+    rule->explicitlyDependsOn = FileTags::fromStringList(
+                object->scope->stringListValue("explicitlyDependsOn"));
     rule->module = module;
 
     return rule;
@@ -1868,7 +1869,7 @@ FileTaggerConstPtr Loader::LoaderPrivate::resolveFileTagger(EvaluationObject *ev
 {
     const Scope::Ptr scope = evaluationObject->scope;
     return FileTagger::create(QRegExp(scope->stringValue("pattern")),
-            scope->stringListValue("fileTags"));
+            FileTags::fromStringList(scope->stringListValue("fileTags")));
 }
 
 /// --------------------------------------------------------------------------
@@ -2532,7 +2533,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
         productProps->properties.insert("buildDirectory", p);
     }
 
-    rproduct->fileTags = productProps->stringListValue("type");
+    rproduct->fileTags = FileTags::fromStringList(productProps->stringListValue("type"));
     rproduct->destinationDirectory = productProps->stringValue("destination");
     foreach (const RulePtr &rule, globalRules)
         rproduct->rules.insert(rule);

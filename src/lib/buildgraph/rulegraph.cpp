@@ -38,12 +38,12 @@ RuleGraph::RuleGraph()
 {
 }
 
-void RuleGraph::build(const QSet<RulePtr> &rules, const QStringList &productFileTags)
+void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTags)
 {
-    QMap<QString, QList<const Rule *> > inputFileTagToRule;
+    QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
     m_artifacts.reserve(rules.count());
     foreach (const RulePtr &rule, rules) {
-        foreach (const QString &fileTag, rule->outputFileTags())
+        foreach (const FileTag &fileTag, rule->outputFileTags())
             m_outputFileTagToRule[fileTag].append(rule.data());
         insert(rule);
     }
@@ -52,9 +52,9 @@ void RuleGraph::build(const QSet<RulePtr> &rules, const QStringList &productFile
     m_children.resize(rules.count());
 
     foreach (const RuleConstPtr &rule, m_artifacts) {
-        QStringList inFileTags = rule->inputs;
+        FileTags inFileTags = rule->inputs;
         inFileTags += rule->explicitlyDependsOn;
-        foreach (const QString &fileTag, inFileTags) {
+        foreach (const FileTag &fileTag, inFileTags) {
             inputFileTagToRule[fileTag].append(rule.data());
             foreach (const Rule * const consumingRule, m_outputFileTagToRule.value(fileTag)) {
                 connect(rule.data(), consumingRule);
@@ -63,8 +63,8 @@ void RuleGraph::build(const QSet<RulePtr> &rules, const QStringList &productFile
     }
 
     QList<const Rule *> productRules;
-    for (int i=0; i < productFileTags.count(); ++i) {
-        QList<const Rule *> rules = m_outputFileTagToRule.value(productFileTags.at(i));
+    foreach (const FileTag &productFileTag, productFileTags) {
+        QList<const Rule *> rules = m_outputFileTagToRule.value(productFileTag);
         productRules += rules;
         //### check: the rule graph must be a in valid shape!
     }

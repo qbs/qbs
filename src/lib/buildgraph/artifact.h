@@ -32,11 +32,11 @@
 
 #include "artifactlist.h"
 #include "forward_decls.h"
+#include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <tools/filetime.h>
 #include <tools/persistentobject.h>
 
-#include <QSet>
 #include <QString>
 
 namespace qbs {
@@ -63,7 +63,7 @@ public:
     ArtifactList parents;
     ArtifactList children;
     ArtifactList fileDependencies;
-    QSet<QString> fileTags;
+    FileTags fileTags;
     BuildProject *project;
     BuildProduct *product;          // Note: file dependency artifacts don't belong to a product.
     TransformerPtr transformer;

@@ -30,6 +30,7 @@
 #ifndef QBS_L2_LANGUAGE_HPP
 #define QBS_L2_LANGUAGE_HPP
 
+#include "filetags.h"
 #include "forward_decls.h"
 #include "jsimports.h"
 #include <tools/codelocation.h>
@@ -86,15 +87,15 @@ class FileTagger : public PersistentObject
 {
 public:
     static FileTaggerPtr create() { return FileTaggerPtr(new FileTagger); }
-    static FileTaggerPtr create(const QRegExp &artifactExpression, const QStringList &fileTags) {
+    static FileTaggerPtr create(const QRegExp &artifactExpression, const FileTags &fileTags) {
         return FileTaggerPtr(new FileTagger(artifactExpression, fileTags));
     }
 
     const QRegExp &artifactExpression() const { return m_artifactExpression; }
-    const QStringList &fileTags() const { return m_fileTags; }
+    const FileTags &fileTags() const { return m_fileTags; }
 
 private:
-    FileTagger(const QRegExp &artifactExpression, const QStringList &fileTags)
+    FileTagger(const QRegExp &artifactExpression, const FileTags &fileTags)
         : m_artifactExpression(artifactExpression), m_fileTags(fileTags)
     { }
 
@@ -106,7 +107,7 @@ private:
     void store(PersistentPool &) const;
 
     QRegExp m_artifactExpression;
-    QStringList m_fileTags;
+    FileTags m_fileTags;
 };
 
 class RuleArtifact : public PersistentObject
@@ -115,7 +116,7 @@ public:
     static RuleArtifactPtr create() { return RuleArtifactPtr(new RuleArtifact); }
 
     QString fileName;
-    QStringList fileTags;
+    FileTags fileTags;
     bool alwaysUpdated;
 
     class Binding
@@ -143,7 +144,7 @@ public:
     static SourceArtifactPtr create() { return SourceArtifactPtr(new SourceArtifact); }
 
     QString absoluteFilePath;
-    QSet<QString> fileTags;
+    FileTags fileTags;
     bool overrideFileTags;
     PropertyMapPtr properties;
 
@@ -257,9 +258,9 @@ public:
     ResolvedModuleConstPtr module;
     JsImports jsImports;
     PrepareScriptConstPtr script;
-    QStringList inputs;
-    QStringList usings;
-    QStringList explicitlyDependsOn;
+    FileTags inputs;
+    FileTags usings;
+    FileTags explicitlyDependsOn;
     bool multiplex;
     QList<RuleArtifactConstPtr> artifacts;
 
@@ -267,7 +268,7 @@ public:
     int ruleGraphId;
 
     QString toString() const;
-    QStringList outputFileTags() const;
+    FileTags outputFileTags() const;
 
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}
@@ -304,8 +305,8 @@ public:
     ~ResolvedProduct();
 
     bool enabled;
-    QStringList fileTags;
-    QStringList additionalFileTags;
+    FileTags fileTags;
+    FileTags additionalFileTags;
     QString name;
     QString targetName;
     QString sourceDirectory;
@@ -327,7 +328,7 @@ public:
 
     QList<SourceArtifactPtr> allFiles() const;
     QList<SourceArtifactPtr> allEnabledFiles() const;
-    QSet<QString> fileTagsForFileName(const QString &fileName) const;
+    FileTags fileTagsForFileName(const QString &fileName) const;
     void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 

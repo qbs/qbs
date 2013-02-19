@@ -55,7 +55,7 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
     QScriptValue artifactConfig = scriptEngine->newObject();
     artifactConfig.setPrototype(config);
     artifactConfig.setProperty(QLatin1String("fileName"), artifact->filePath());
-    QStringList fileTags = artifact->fileTags.toList();
+    const QStringList fileTags = artifact->fileTags.toStringList();
     artifactConfig.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
         artifactConfig.setProperty(QLatin1String("module"), config.property("modules").property(defaultModuleName));
@@ -67,8 +67,8 @@ QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const 
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
     TagArtifactsMap tagArtifactsMap;
     foreach (Artifact *artifact, artifacts)
-        foreach (const QString &fileTag, artifact->fileTags)
-            tagArtifactsMap[fileTag].append(artifact);
+        foreach (const FileTag &fileTag, artifact->fileTags)
+            tagArtifactsMap[fileTag.toString()].append(artifact);
 
     QScriptValue jsTagFiles = scriptEngine->newObject();
     for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
@@ -91,8 +91,9 @@ void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetSc
     targetScriptValue.setProperty("inputs", scriptValue);
     if (inputs.count() == 1) {
         Artifact *input = *inputs.begin();
-        const QSet<QString> &fileTags = input->fileTags;
-        QScriptValue inputsForFileTag = scriptValue.property(*fileTags.begin());
+        const FileTags &fileTags = input->fileTags;
+        QBS_ASSERT(!fileTags.isEmpty(), return);
+        QScriptValue inputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         QScriptValue inputScriptValue = inputsForFileTag.property(0);
         targetScriptValue.setProperty("input", inputScriptValue);
     }
@@ -105,9 +106,9 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     targetScriptValue.setProperty("outputs", scriptValue);
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
-        const QSet<QString> &fileTags = output->fileTags;
+        const FileTags &fileTags = output->fileTags;
         QBS_ASSERT(!fileTags.isEmpty(), return);
-        QScriptValue outputsForFileTag = scriptValue.property(*fileTags.begin());
+        QScriptValue outputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
         targetScriptValue.setProperty("output", outputScriptValue);
     }

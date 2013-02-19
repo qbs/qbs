@@ -49,7 +49,7 @@ ScannerPluginManager::ScannerPluginManager()
 {
 }
 
-QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const QString &fileTag)
+QList<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const FileTag &fileTag)
 {
     return instance()->m_scannerPlugins.value(fileTag);
 }
@@ -96,7 +96,7 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
                     "loaded.").arg(QDir::toNativeSeparators(fileName));
 
             for (int i = 0; plugins[i] != 0; ++i)
-                m_scannerPlugins[QString::fromLocal8Bit(plugins[i]->fileTag)] += plugins[i];
+                m_scannerPlugins[FileTag(plugins[i]->fileTag)] += plugins[i];
             m_libs.append(lib.take());
         }
     }

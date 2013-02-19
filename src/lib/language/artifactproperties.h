@@ -42,8 +42,8 @@ class ArtifactProperties : public PersistentObject
 public:
     static ArtifactPropertiesPtr create();
 
-    void setFileTagsFilter(const QStringList &filter) { m_fileTagsFilter = filter; }
-    QStringList fileTagsFilter() const { return m_fileTagsFilter; }
+    void setFileTagsFilter(const FileTags &filter) { m_fileTagsFilter = filter; }
+    FileTags fileTagsFilter() const { return m_fileTagsFilter; }
 
     PropertyMapPtr propertyMap() const { return m_propertyMap; }
     void setPropertyMap(const PropertyMapPtr &pmap) { m_propertyMap = pmap; }
@@ -54,7 +54,7 @@ private:
     void load(PersistentPool &);
     void store(PersistentPool &) const;
 
-    QStringList m_fileTagsFilter;
+    FileTags m_fileTagsFilter;
     PropertyMapPtr m_propertyMap;
 };
 

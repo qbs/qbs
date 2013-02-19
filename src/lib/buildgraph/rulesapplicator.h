@@ -31,6 +31,7 @@
 
 #include "artifactlist.h"
 #include "forward_decls.h"
+#include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
@@ -42,7 +43,7 @@ namespace qbs {
 namespace Internal {
 class ScriptEngine;
 
-typedef QMap<QString, ArtifactList> ArtifactsPerFileTagMap;
+typedef QMap<FileTag, ArtifactList> ArtifactsPerFileTagMap;
 
 class RulesApplicator
 {

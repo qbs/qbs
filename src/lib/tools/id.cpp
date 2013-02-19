@@ -161,13 +161,13 @@ Id::Id(const QByteArray &name)
    : m_id(theId(name))
 {}
 
-/*!
-    \overload
-    \deprecated
-*/
-Id::Id(const QString &name)
-   : m_id(theId(name.toUtf8()))
-{}
+///*!
+//    \overload
+//    \deprecated
+//*/
+//Id::Id(const QString &name)
+//   : m_id(theId(name.toUtf8()))
+//{}
 
 /*!
   Returns an internal representation of the id.

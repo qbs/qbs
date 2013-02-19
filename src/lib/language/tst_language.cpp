@@ -683,7 +683,7 @@ void TestLanguage::fileTags()
     QVERIFY(group);
     QCOMPARE(group->files.count(), 1);
     SourceArtifactConstPtr sourceFile = group->files.first();
-    QStringList fileTags = sourceFile->fileTags.toList();
+    QStringList fileTags = sourceFile->fileTags.toStringList();
     fileTags.sort();
     QCOMPARE(fileTags, expectedFileTags);
 }

@@ -173,7 +173,7 @@ void InputArtifactScanner::scan()
         bool mustCollectIncludePaths = false;
 
         QSet<ScannerPlugin *> scanners;
-        foreach (const QString &fileTag, inputArtifact->fileTags) {
+        foreach (const FileTag &fileTag, inputArtifact->fileTags) {
             foreach (ScannerPlugin *scanner, ScannerPluginManager::scannersForFileTag(fileTag)) {
                 scanners += scanner;
                 if (scanner->flags & ScannerUsesCppIncludePaths)

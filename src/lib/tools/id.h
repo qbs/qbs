@@ -45,7 +45,7 @@ public:
     Id() : m_id(0) {}
     Id(int uid) : m_id(uid) {}
     Id(const char *name);
-    explicit Id(const QString &name);
+//    explicit Id(const QString &name);
     explicit Id(const QByteArray &name);
 
     Id withSuffix(int suffix) const;

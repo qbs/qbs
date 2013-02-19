@@ -30,9 +30,10 @@
 #ifndef QBS_PLUGINS_H
 #define QBS_PLUGINS_H
 
+#include <language/filetags.h>
 #include <plugins/scanner/scanner.h>
 
-#include <QMap>
+#include <QHash>
 #include <QString>
 
 QT_BEGIN_NAMESPACE
@@ -47,7 +48,7 @@ class ScannerPluginManager
 {
 public:
     static ScannerPluginManager *instance();
-    static QList<ScannerPlugin *> scannersForFileTag(const QString &fileTag);
+    static QList<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
     void loadPlugins(const QStringList &paths, const Logger &logger);
 
 private:
@@ -55,7 +56,7 @@ private:
 
 private:
     QList<QLibrary *> m_libs;
-    QMap<QString, QList<ScannerPlugin*> > m_scannerPlugins;
+    QHash<FileTag, QList<ScannerPlugin*> > m_scannerPlugins;
 };
 
 } // namespace Internal

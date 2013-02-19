@@ -196,7 +196,7 @@ void InternalSetupProjectJob::execute()
     logger().qbsDebug() << QString::fromLocal8Bit("for %1:").arg(rProject->id());
     foreach (const ResolvedProductConstPtr &p, rProject->products) {
         logger().qbsDebug() << QString::fromLocal8Bit("  - [%1] %2 as %3")
-                               .arg(p->fileTags.join(QLatin1String(", ")))
+                               .arg(p->fileTags.toStringList().join(QLatin1String(", ")))
                                .arg(p->name).arg(p->project->id());
     }
     logger().qbsDebug() << '\n';
