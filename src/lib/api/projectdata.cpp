@@ -28,6 +28,9 @@
 ****************************************************************************/
 #include "projectdata.h"
 
+#include <tools/propertyfinder.h>
+#include <tools/qbsassert.h>
+
 namespace qbs {
 
 GroupData::GroupData() { }
@@ -86,6 +89,82 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() < rhs.name();
 }
+
+/*!
+ * \class PropertyMap
+ * \brief The \c PropertyMap class represents the properties of a group or a product.
+ */
+
+/*!
+ * \brief Returns the names of all properties.
+ */
+QStringList PropertyMap::allProperties() const
+{
+    QStringList properties;
+    for (QVariantMap::ConstIterator it = m_map.constBegin(); it != m_map.constEnd(); ++it) {
+        if (!it.value().canConvert<QVariantMap>())
+            properties << it.key();
+    }
+    return properties;
+}
+
+/*!
+ * \brief Returns the value of the given property of a product or group.
+ */
+QVariant PropertyMap::getProperty(const QString &name) const
+{
+    return m_map.value(name);
+}
+
+/*!
+ * \brief Returns the values of the given module property.
+ * This function is intended for properties of list type, such as "cpp.includes".
+ * The values will be gathered both directly from the product/group as well as from the
+ * product's module dependencies.
+ */
+QVariantList PropertyMap::getModuleProperties(const QString &moduleName,
+                                              const QString &propertyName) const
+{
+    return Internal::PropertyFinder().propertyValues(m_map, moduleName, propertyName);
+}
+
+/*!
+ * \brief Convenience function for \c PropertyMap::getModuleProperties.
+ */
+QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleName,
+                                                          const QString &propertyName) const
+{
+    const QVariantList &vl = getModuleProperties(moduleName, propertyName);
+    QStringList sl;
+    foreach (const QVariant &v, vl) {
+        QBS_ASSERT(v.canConvert<QString>(), continue);
+        sl << v.toString();
+    }
+    return sl;
+}
+
+/*!
+ * \brief Returns the value of the given module property.
+ * This function is intended for properties of "integral" type, such as "qbs.targetOS".
+ * The property will be looked up first at the product or group itself. If it is not found there,
+ * the module dependencies are searched in undefined order.
+ */
+QVariant PropertyMap::getModuleProperty(const QString &moduleName,
+                                        const QString &propertyName) const
+{
+    return Internal::PropertyFinder().propertyValue(m_map, moduleName, propertyName);
+}
+
+bool operator==(const PropertyMap &pm1, const PropertyMap &pm2)
+{
+    return pm1.map() == pm2.map();
+}
+
+bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2)
+{
+    return !(pm1.map() == pm2.map());
+}
+
 
 /*!
  * \class GroupData

@@ -34,7 +34,6 @@
 
 #include <QExplicitlySharedDataPointer>
 #include <QList>
-#include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
 class QObject;

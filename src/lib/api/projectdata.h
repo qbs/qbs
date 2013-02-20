@@ -41,6 +41,27 @@
 namespace qbs {
 namespace Internal { class ProjectPrivate; }
 
+class QBS_EXPORT PropertyMap
+{
+    friend class Internal::ProjectPrivate;
+public:
+    QStringList allProperties() const;
+    QVariant getProperty(const QString &name) const;
+
+    QVariantList getModuleProperties(const QString &moduleName, const QString &propertyName) const;
+    QStringList getModulePropertiesAsStringList(const QString &moduleName,
+                                                 const QString &propertyName) const;
+    QVariant getModuleProperty(const QString &moduleName, const QString &propertyName) const;
+
+    QVariantMap map() const { return m_map; }
+
+private:
+    QVariantMap m_map;
+};
+
+bool operator==(const PropertyMap &pm1, const PropertyMap &pm2);
+bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2);
+
 // TODO: explicitly shared?
 
 class QBS_EXPORT GroupData
@@ -53,7 +74,7 @@ public:
     QString name() const { return m_name; }
     QStringList filePaths() const { return m_filePaths; }
     QStringList expandedWildcards() const { return m_expandedWildcards; }
-    QVariantMap properties() const { return m_properties; }
+    PropertyMap properties() const { return m_properties; }
     bool isEnabled() const { return m_isEnabled; }
 
     // TODO: Filter out double entries here or somewhere else?
@@ -64,7 +85,7 @@ private:
     CodeLocation m_location;
     QStringList m_filePaths;
     QStringList m_expandedWildcards;
-    QVariantMap m_properties;
+    PropertyMap m_properties;
     bool m_isEnabled;
 };
 
@@ -81,7 +102,7 @@ public:
     QString name() const { return m_name; }
     CodeLocation location() const { return m_location; }
     QStringList fileTags() const { return m_fileTags; }
-    QVariantMap properties() const { return m_properties; }
+    PropertyMap properties() const { return m_properties; }
     QList<GroupData> groups() const { return m_groups; }
     bool isEnabled() const { return m_isEnabled; }
 
@@ -89,7 +110,7 @@ private:
     QString m_name;
     CodeLocation m_location;
     QStringList m_fileTags;
-    QVariantMap m_properties;
+    PropertyMap m_properties;
     QList<GroupData> m_groups;
     bool m_isEnabled;
 };

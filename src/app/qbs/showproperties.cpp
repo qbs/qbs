@@ -54,7 +54,7 @@ static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
 static void dumpProperties(const ProductData &product)
 {
     printf("--------%s--------\n", qPrintable(product.name()));
-    dumpMap(product.properties());
+    dumpMap(product.properties().map());
 }
 
 int showProperties(const QList<ProductData> &products)
