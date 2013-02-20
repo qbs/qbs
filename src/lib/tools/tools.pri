@@ -21,7 +21,8 @@ HEADERS += \
     $$PWD/persistentobject.h \
     $$PWD/weakpointer.h \
     $$PWD/qbs_export.h \
-    $$PWD/qbsassert.h
+    $$PWD/qbsassert.h \
+    $$PWD/propertyfinder.h
 
 SOURCES += \
     $$PWD/codelocation.cpp \
@@ -38,7 +39,8 @@ SOURCES += \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
     $$PWD/setupprojectparameters.cpp \
-    $$PWD/qbsassert.cpp
+    $$PWD/qbsassert.cpp \
+    $$PWD/propertyfinder.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

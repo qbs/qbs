@@ -32,6 +32,7 @@
 #include "buildproject.h"
 #include "rulesevaluationcontext.h"
 
+#include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
@@ -70,8 +71,12 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
             v.setValue<void*>(&product->buildEnvironment);
             engine->setProperty("_qbs_procenv", v);
         }
-        productScriptValue = product->properties->toScriptValue(engine);
+        productScriptValue = engine->newObject();
+        ModuleProperties::init(productScriptValue, product);
         productScriptValue.setProperty("name", product->name);
+        productScriptValue.setProperty(QLatin1String("type"),
+                engine->toScriptValue(product->properties->value().value(QLatin1String("type"))));
+        productScriptValue.setProperty(QLatin1String("targetName"), product->targetName);
         QString destinationDirectory = product->destinationDirectory;
         if (destinationDirectory.isEmpty())
             destinationDirectory = ".";
@@ -81,11 +86,9 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         productScriptValue = targetObject.property("product");
     }
 
-    // If the Rule is in a Module, set up the 'module' property
-    if (!rule->module->name.isEmpty()) {
-        productScriptValue.setProperty("module",
-                productScriptValue.property("modules").property(rule->module->name));
-    }
+    // If the Rule is in a Module, set up the 'moduleName' property
+    if (!rule->module->name.isEmpty())
+        productScriptValue.setProperty(QLatin1String("moduleName"), rule->module->name);
 
     engine->import(rule->jsImports, targetObject, targetObject);
 }

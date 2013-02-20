@@ -67,7 +67,8 @@ CppModule {
         Artifact {
             fileTags: ['obj']
             fileName: {
-                var completeBaseName = FileInfo.completeBaseName(product.modules.cpp.precompiledHeader);
+                var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
+                        "precompiledHeader"));
                 // ### make the object file dir overridable
                 return ".obj/" + product.name + "/" + completeBaseName + '.obj'
             }
@@ -116,7 +117,8 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + product.module.executablePrefix + product.targetName + product.module.executableSuffix
+            fileName: product.destinationDirectory + "/" + ModUtils.findFirst(product, "executablePrefix")
+                      + product.targetName + ModUtils.findFirst(product, "executableSuffix")
         }
 
         prepare: {
@@ -136,12 +138,16 @@ CppModule {
 
         Artifact {
             fileTags: ["dynamiclibrary"]
-            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibrarySuffix
+            fileName: product.destinationDirectory + "/"
+                      + ModUtils.findFirst(product, "dynamicLibraryPrefix") + product.targetName
+                      + ModUtils.findFirst(product, "dynamicLibrarySuffix")
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
-            fileName: product.destinationDirectory + "/" + product.module.dynamicLibraryPrefix + product.targetName + product.module.dynamicLibraryImportSuffix
+            fileName: product.destinationDirectory + "/"
+                      + ModUtils.findFirst(product, "dynamicLibraryPrefix") + product.targetName
+                      + ModUtils.findFirst(product, "dynamicLibraryImportSuffix")
             alwaysUpdated: false
         }
 
@@ -162,7 +168,8 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + product.module.staticLibraryPrefix + product.targetName + product.module.staticLibrarySuffix
+            fileName: product.destinationDirectory + "/" + ModUtils.findFirst(product, "staticLibraryPrefix")
+                      + product.targetName + ModUtils.findFirst(product, "staticLibrarySuffix")
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {
@@ -176,7 +183,7 @@ CppModule {
         }
 
         prepare: {
-            var toolchainInstallPath = product.module.toolchainInstallPath
+            var toolchainInstallPath = ModUtils.findFirst(product, "toolchainInstallPath")
 
             var args = ['/nologo']
             var nativeOutputFileName = FileInfo.toWindowsSeparators(output.fileName)
@@ -185,7 +192,7 @@ CppModule {
                 var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].fileName)
                 args.push(fileName)
             }
-            var is64bit = (product.module.architecture == "x86_64")
+            var is64bit = (ModUtils.findFirst(product, "architecture") == "x86_64")
             var linkerPath = toolchainInstallPath + '/VC/bin/'
             if (is64bit)
                 linkerPath += 'amd64/'
@@ -194,7 +201,7 @@ CppModule {
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName)
             cmd.highlight = 'linker';
             cmd.workingDirectory = FileInfo.path(output.fileName)
-            cmd.responseFileThreshold = product.module.responseFileThreshold
+            cmd.responseFileThreshold = ModUtils.findFirst(product, "responseFileThreshold")
             cmd.responseFileUsagePrefix = '@';
             return cmd;
          }

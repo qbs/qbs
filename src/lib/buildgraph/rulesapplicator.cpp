@@ -198,7 +198,8 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
-    QScriptValue modulesScriptValue = artifact->properties->toScriptValue(engine());
+    //QScriptValue modulesScriptValue = artifact->properties->toScriptValue(engine());
+    QScriptValue modulesScriptValue = engine()->newObject();
     modulesScriptValue = modulesScriptValue.property("modules");
 
     // expose per file properties we want to use in an Artifact within a Rule

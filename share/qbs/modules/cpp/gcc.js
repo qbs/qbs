@@ -30,26 +30,29 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
 
 function configFlags(config) {
     var args = [];
-    // architecture
-    if (config.module.architecture === 'x86_64')
+
+    var arch = ModUtils.findFirst(config, "architecture")
+    if (arch === 'x86_64')
         args.push('-m64');
-    else if (config.module.architecture === 'x86')
+    else if (arch === 'x86')
         args.push('-m32');
-    // optimization:
-    if (config.module.debugInformation)
+
+    if (ModUtils.findFirst/config, "debugInformation")
         args.push('-g');
-    if (config.module.optimization === 'fast')
+    var opt = ModUtils.findFirst(config, "optimization")
+    if (opt === 'fast')
         args.push('-O2');
-    if (config.module.optimization === 'small')
+    if (opt === 'small')
         args.push('-Os');
-    // warnings:
-    if (config.module.warningLevel === 'none')
+
+    var warnings = ModUtils.findFirst(config, "warningLevel")
+    if (warnings === 'none')
         args.push('-w');
-    if (config.module.warningLevel === 'all') {
+    if (warnings === 'all') {
         args.push('-Wall');
         args.push('-Wextra');
     }
-    if (config.module.treatWarningsAsErrors)
+    if (ModUtils.findFirst(config, "treatWarningsAsErrors"))
         args.push('-Werror');
 
     return args;
@@ -66,24 +69,25 @@ function additionalFlags(product, includePaths, frameworkPaths, systemIncludePat
 {
     var args = []
     if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
-        if (product.modules.qbs.toolchain !== "mingw")
+        if (product.moduleProperty("qbs", "toolchain") !== "mingw")
             args.push('-fPIC');
     } else if (product.type.indexOf('application') >= 0) {
-        var positionIndependentCode = ModUtils.findFirst(product.modules, 'cpp', 'positionIndependentCode')
-        if (positionIndependentCode && product.modules.qbs.toolchain !== "mingw")
+        var positionIndependentCode = product.moduleProperty('cpp', 'positionIndependentCode')
+        if (positionIndependentCode && product.moduleProperty("qbs", "toolchain") !== "mingw")
             args.push('-fPIE');
     } else {
         throw ("The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
     }
-    if (product.module.sysroot)
-        args.push('--sysroot=' + product.module.sysroot)
+    var sysroot = ModUtils.findFirst(product, "sysroot")
+    if (sysroot)
+        args.push('--sysroot=' + sysroot)
     var i;
     var cppFlags = ModUtils.appendAll(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
     var platformDefines = ModUtils.appendAll(input, 'platformDefines');
     for (i in platformDefines)
-        args.push('-D' + product.module.platformDefines[i]);
+        args.push('-D' + platformDefines[i]);
     var defines = ModUtils.appendAll(input, 'defines');
     for (i in defines)
         args.push('-D' + defines[i]);

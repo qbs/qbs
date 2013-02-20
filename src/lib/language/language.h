@@ -40,7 +40,6 @@
 #include <tools/weakpointer.h>
 
 #include <QDataStream>
-#include <QMutex>
 #include <QProcessEnvironment>
 #include <QScriptProgram>
 #include <QScriptValue>
@@ -68,7 +67,6 @@ public:
     const QVariantMap &value() const { return m_value; }
     QVariant qbsPropertyValue(const QString &key); // Convenience function.
     void setValue(const QVariantMap &value);
-    QScriptValue toScriptValue(QScriptEngine *scriptEngine) const;
     QString toJSLiteral() const;
 
 private:
@@ -79,8 +77,6 @@ private:
     void store(PersistentPool &) const;
 
     QVariantMap m_value;
-    mutable QHash<QScriptEngine *, QScriptValue> m_scriptValueCache;
-    mutable QMutex m_scriptValueCacheMutex;
 };
 
 class FileTagger : public PersistentObject

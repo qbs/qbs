@@ -118,7 +118,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(Moc.fullPath(product.module),
+            var cmd = new Command(Moc.fullPath(product),
                                   Moc.args(product, input, output.fileName));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
@@ -135,7 +135,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(Moc.fullPath(product.module),
+            var cmd = new Command(Moc.fullPath(product),
                                   Moc.args(product, input, output.fileName));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
@@ -152,7 +152,7 @@ Module {
         }
 
         prepare: {
-            var cmd = new Command(Moc.fullPath(product.module),
+            var cmd = new Command(Moc.fullPath(product),
                                   Moc.args(product, input, output.fileName));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
@@ -169,7 +169,7 @@ Module {
             fileTags: ["cpp"]
         }
         prepare: {
-            var cmd = new Command(product.module.binPath + '/rcc',
+            var cmd = new Command(ModUtils.findFirst(product, "binPath") + '/rcc',
                                   [input.fileName, '-name',
                                    FileInfo.completeBaseName(input.fileName),
                                    '-o', output.fileName]);
@@ -183,12 +183,15 @@ Module {
         inputs: ["ts"]
 
         Artifact {
-            fileName: FileInfo.joinPaths(product.module.qmFilesDir, input.completeBaseName + ".qm")
+            fileName: FileInfo.joinPaths(ModUtils.findFirst(product, "qmFilesDir"),
+                                         input.completeBaseName + ".qm")
             fileTags: ["qm"]
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/' + product.module.lreleaseName, ['-silent', input.fileName, '-qm', output.fileName]);
+            var cmd = new Command(ModUtils.findFirst(product, "binPath") + '/'
+                                  + ModUtils.findFirst(product, "lreleaseName"),
+                                  ['-silent', input.fileName, '-qm', output.fileName]);
             cmd.description = 'lrelease ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'filegen';
             return cmd;

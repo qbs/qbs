@@ -31,6 +31,7 @@
 #include "artifact.h"
 #include "command.h"
 #include "rulesevaluationcontext.h"
+#include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <tools/error.h>
@@ -51,14 +52,13 @@ Transformer::~Transformer()
 
 QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
 {
-    QScriptValue config = artifact->properties->toScriptValue(scriptEngine);
     QScriptValue artifactConfig = scriptEngine->newObject();
-    artifactConfig.setPrototype(config);
+    ModuleProperties::init(artifactConfig, artifact);
     artifactConfig.setProperty(QLatin1String("fileName"), artifact->filePath());
     const QStringList fileTags = artifact->fileTags.toStringList();
     artifactConfig.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
-        artifactConfig.setProperty(QLatin1String("module"), config.property("modules").property(defaultModuleName));
+        artifactConfig.setProperty(QLatin1String("moduleName"), defaultModuleName);
     return artifactConfig;
 }
 

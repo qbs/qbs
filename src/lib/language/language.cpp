@@ -33,6 +33,7 @@
 #include "scriptengine.h"
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/propertyfinder.h>
 #include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
@@ -79,33 +80,18 @@ PropertyMap::PropertyMap()
 }
 
 PropertyMap::PropertyMap(const PropertyMap &other)
-    : PersistentObject(other), m_value(other.m_value), m_scriptValueCache(other.m_scriptValueCache)
+    : PersistentObject(other), m_value(other.m_value)
 {
 }
 
 QVariant PropertyMap::qbsPropertyValue(const QString &key)
 {
-    const QStringList fullKey
-            = QStringList() << QLatin1String("modules") << QLatin1String("qbs") << key;
-    return getConfigProperty(value(), fullKey);
+    return PropertyFinder().propertyValue(value(), QLatin1String("qbs"), key);
 }
 
 void PropertyMap::setValue(const QVariantMap &map)
 {
     m_value = map;
-    m_scriptValueCache.clear();
-}
-
-QScriptValue PropertyMap::toScriptValue(QScriptEngine *scriptEngine) const
-{
-    QMutexLocker ml(&m_scriptValueCacheMutex);
-    QScriptValue result = m_scriptValueCache.value(scriptEngine);
-    QBS_ASSERT(!result.isValid() || result.engine() == scriptEngine, return QScriptValue());
-    if (!result.isValid()) {
-        result = scriptEngine->toScriptValue(m_value);
-        m_scriptValueCache[scriptEngine] = result;
-    }
-    return result;
 }
 
 static QString toJSLiteral(const QVariantMap &vm, int level = 0)

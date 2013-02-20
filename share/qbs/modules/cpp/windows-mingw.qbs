@@ -60,7 +60,7 @@ GenericGCC {
             }
 
             args = args.concat(['-i', input.fileName, '-o', output.fileName]);
-            var cmd = new Command(product.module.windresPath, args);
+            var cmd = new Command(ModUtils.findFirst(product, "windresPath"), args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'compiler';
             return cmd;

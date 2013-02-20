@@ -13,7 +13,7 @@ function args(product, input, outputFileName)
     return args;
 }
 
-function fullPath(module)
+function fullPath(product)
 {
-    return module.binPath + '/' + module.mocName;
+    return ModUtils.findFirst(product, "binPath") + '/' + ModUtils.findFirst(product, "mocName");
 }

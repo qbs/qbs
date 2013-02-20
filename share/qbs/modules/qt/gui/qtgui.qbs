@@ -1,6 +1,7 @@
 import qbs.base 1.0
 import qbs.fileinfo 1.0 as FileInfo
 import '../QtModule.qbs' as QtModule
+import '../../utils.js' as ModUtils
 
 QtModule {
     qtModuleName: "Gui"
@@ -22,7 +23,8 @@ QtModule {
         }
 
         prepare: {
-            var cmd = new Command(product.module.binPath + '/' + product.module.uicName,
+            var cmd = new Command(ModUtils.findFirst(product, "binPath") + '/'
+                                  + ModUtils.findFirst(product, "uicName"),
                                   [input.fileName, '-o', output.fileName])
             cmd.description = 'uic ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
