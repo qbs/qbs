@@ -1615,7 +1615,7 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
 
         if (createNewConfig) {
             // build configuration for this group
-            properties = PropertyMap::create();
+            properties = PropertyMapInternal::create();
             properties->setValue(evaluateModuleValues(rproduct, product, group->scope));
         }
 
@@ -1628,9 +1628,9 @@ void Loader::LoaderPrivate::resolveGroup(ResolvedProductPtr rproduct, Evaluation
             ArtifactPropertiesPtr aprops = ArtifactProperties::create();
             aprops->setFileTagsFilter(fileTagsFilter);
             QVariantMap cfgval = evaluateModuleValues(rproduct, product, group->scope);
-            PropertyMapPtr cfg = PropertyMap::create();
+            PropertyMapPtr cfg = PropertyMapInternal::create();
             cfg->setValue(cfgval);
-            aprops->setPropertyMap(cfg);
+            aprops->setPropertyMapInternal(cfg);
             rproduct->artifactProperties += aprops;
             return;
         }
@@ -2525,7 +2525,7 @@ void Loader::LoaderPrivate::resolveProduct(const ResolvedProductPtr &rproduct,
 
     rproduct->name = productProps->stringValue("name");
     rproduct->targetName = productProps->stringValue("targetName");
-    rproduct->properties = PropertyMap::create();
+    rproduct->properties = PropertyMapInternal::create();
 
     // insert property "buildDirectory"
     {

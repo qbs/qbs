@@ -81,7 +81,7 @@ void Artifact::setFilePath(const QString &filePath)
 void Artifact::load(PersistentPool &pool)
 {
     setFilePath(pool.idLoadString());
-    properties = pool.idLoadS<PropertyMap>();
+    properties = pool.idLoadS<PropertyMapInternal>();
     transformer = pool.idLoadS<Transformer>();
     unsigned char c;
     pool.stream()

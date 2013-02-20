@@ -55,14 +55,14 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-class PropertyMap : public PersistentObject
+class PropertyMapInternal : public PersistentObject
 {
 public:
-    typedef QSharedPointer<PropertyMap> Ptr;
-    typedef QSharedPointer<const PropertyMap> ConstPtr;
+    typedef QSharedPointer<PropertyMapInternal> Ptr;
+    typedef QSharedPointer<const PropertyMapInternal> ConstPtr;
 
-    static Ptr create() { return Ptr(new PropertyMap); }
-    Ptr clone() const { return Ptr(new PropertyMap(*this)); }
+    static Ptr create() { return Ptr(new PropertyMapInternal); }
+    Ptr clone() const { return Ptr(new PropertyMapInternal(*this)); }
 
     const QVariantMap &value() const { return m_value; }
     QVariant qbsPropertyValue(const QString &key); // Convenience function.
@@ -70,8 +70,8 @@ public:
     QString toJSLiteral() const;
 
 private:
-    PropertyMap();
-    PropertyMap(const PropertyMap &other);
+    PropertyMapInternal();
+    PropertyMapInternal(const PropertyMapInternal &other);
 
     void load(PersistentPool &);
     void store(PersistentPool &) const;

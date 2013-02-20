@@ -34,9 +34,9 @@
 namespace qbs {
 namespace Internal {
 
-class PropertyMap;
-typedef QSharedPointer<PropertyMap> PropertyMapPtr;
-typedef QSharedPointer<const PropertyMap> PropertyMapConstPtr;
+class PropertyMapInternal;
+typedef QSharedPointer<PropertyMapInternal> PropertyMapPtr;
+typedef QSharedPointer<const PropertyMapInternal> PropertyMapConstPtr;
 
 class FileTagger;
 typedef QSharedPointer<FileTagger> FileTaggerPtr;

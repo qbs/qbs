@@ -45,7 +45,7 @@ ArtifactProperties::ArtifactProperties()
 void ArtifactProperties::load(PersistentPool &pool)
 {
     pool.stream() >> m_fileTagsFilter;
-    m_propertyMap = pool.idLoadS<PropertyMap>();
+    m_propertyMap = pool.idLoadS<PropertyMapInternal>();
 }
 
 void ArtifactProperties::store(PersistentPool &pool) const

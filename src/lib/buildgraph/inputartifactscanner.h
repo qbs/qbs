@@ -43,7 +43,7 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
-class PropertyMap;
+class PropertyMapInternal;
 
 class ResolvedDependency
 {

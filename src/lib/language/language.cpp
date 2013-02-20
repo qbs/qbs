@@ -64,32 +64,32 @@ namespace qbs {
 namespace Internal {
 
 /*!
- * \class PropertyMap
- * \brief The \c PropertyMap class contains a set of properties and their values.
+ * \class PropertyMapInternal
+ * \brief The \c PropertyMapInternal class contains a set of properties and their values.
  * An instance of this class is attached to every \c ResolvedProduct.
  * \c ResolvedGroups inherit their properties from the respective \c ResolvedProduct, \c SourceArtifacts
  * inherit theirs from the respective \c ResolvedGroup. \c ResolvedGroups can override the value of an
  * inherited property, \c SourceArtifacts cannot. If a property value is overridden, a new
- * \c PropertyMap object is allocated, otherwise the pointer is shared.
+ * \c PropertyMapInternal object is allocated, otherwise the pointer is shared.
  * \sa ResolvedGroup
  * \sa ResolvedProduct
  * \sa SourceArtifact
  */
-PropertyMap::PropertyMap()
+PropertyMapInternal::PropertyMapInternal()
 {
 }
 
-PropertyMap::PropertyMap(const PropertyMap &other)
+PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other)
     : PersistentObject(other), m_value(other.m_value)
 {
 }
 
-QVariant PropertyMap::qbsPropertyValue(const QString &key)
+QVariant PropertyMapInternal::qbsPropertyValue(const QString &key)
 {
     return PropertyFinder().propertyValue(value(), QLatin1String("qbs"), key);
 }
 
-void PropertyMap::setValue(const QVariantMap &map)
+void PropertyMapInternal::setValue(const QVariantMap &map)
 {
     m_value = map;
 }
@@ -113,17 +113,17 @@ static QString toJSLiteral(const QVariantMap &vm, int level = 0)
     return str;
 }
 
-QString PropertyMap::toJSLiteral() const
+QString PropertyMapInternal::toJSLiteral() const
 {
     return qbs::Internal::toJSLiteral(m_value);
 }
 
-void PropertyMap::load(PersistentPool &pool)
+void PropertyMapInternal::load(PersistentPool &pool)
 {
     pool.stream() >> m_value;
 }
 
-void PropertyMap::store(PersistentPool &pool) const
+void PropertyMapInternal::store(PersistentPool &pool) const
 {
     pool.stream() << m_value;
 }
@@ -157,7 +157,7 @@ void SourceArtifact::load(PersistentPool &pool)
 {
     pool.stream() >> absoluteFilePath;
     pool.stream() >> fileTags;
-    properties = pool.idLoadS<PropertyMap>();
+    properties = pool.idLoadS<PropertyMapInternal>();
 }
 
 void SourceArtifact::store(PersistentPool &pool) const
@@ -221,7 +221,7 @@ void ResolvedGroup::load(PersistentPool &pool)
             >> location;
     pool.loadContainerS(files);
     wildcards = pool.idLoadS<SourceWildCards>();
-    properties = pool.idLoadS<PropertyMap>();
+    properties = pool.idLoadS<PropertyMapInternal>();
 }
 
 void ResolvedGroup::store(PersistentPool &pool) const
@@ -424,7 +424,7 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> sourceDirectory
         >> destinationDirectory
         >> location;
-    properties = pool.idLoadS<PropertyMap>();
+    properties = pool.idLoadS<PropertyMapInternal>();
     pool.loadContainerS(rules);
     pool.loadContainerS(dependencies);
     pool.loadContainerS(fileTaggers);

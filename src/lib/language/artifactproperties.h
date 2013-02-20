@@ -46,7 +46,7 @@ public:
     FileTags fileTagsFilter() const { return m_fileTagsFilter; }
 
     PropertyMapPtr propertyMap() const { return m_propertyMap; }
-    void setPropertyMap(const PropertyMapPtr &pmap) { m_propertyMap = pmap; }
+    void setPropertyMapInternal(const PropertyMapPtr &pmap) { m_propertyMap = pmap; }
 
 private:
     ArtifactProperties();
