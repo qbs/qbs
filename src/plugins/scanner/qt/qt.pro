@@ -10,3 +10,6 @@ unix: CONFIG += plugin
 HEADERS += ../scanner.h
 SOURCES += \
     qtscanner.cpp
+
+target.path = /plugins
+INSTALLS += target
