@@ -1,4 +1,4 @@
-function args(product, input, output, config)
+function args(product, input, outputFileName)
 {
     var defines = ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'compilerDefines');
     defines = defines.concat(ModUtils.appendAllFromArtifacts(product, [input], 'cpp', 'platformDefines'));
@@ -8,8 +8,8 @@ function args(product, input, output, config)
     args = args.concat(
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
-                '-o', output,
-                input);
+                '-o', outputFileName,
+                input.fileName);
     return args;
 }
 

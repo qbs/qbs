@@ -119,7 +119,7 @@ Module {
 
         prepare: {
             var cmd = new Command(Moc.fullPath(product.module),
-                                  Moc.args(product, input.fileName, output.fileName, input));
+                                  Moc.args(product, input, output.fileName));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -136,7 +136,7 @@ Module {
 
         prepare: {
             var cmd = new Command(Moc.fullPath(product.module),
-                                  Moc.args(product, input.fileName, output.fileName, input));
+                                  Moc.args(product, input, output.fileName));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
@@ -153,7 +153,7 @@ Module {
 
         prepare: {
             var cmd = new Command(Moc.fullPath(product.module),
-                                  Moc.args(product, input.fileName, output.fileName, input));
+                                  Moc.args(product, input, output.fileName));
             cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'codegen';
             return cmd;
