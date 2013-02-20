@@ -212,7 +212,8 @@ void Executor::doBuild()
         changedArtifacts += artifacts;
     }
     qSort(changedArtifacts);
-    std::unique(changedArtifacts.begin(), changedArtifacts.end());
+    changedArtifacts.erase(std::unique(changedArtifacts.begin(), changedArtifacts.end()),
+                           changedArtifacts.end());
 
     // prepare products
     foreach (BuildProductPtr product, m_productsToBuild)
