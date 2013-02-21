@@ -24,7 +24,7 @@ Project {
             var code = 'int main(int, char **) { return 0; }'
             var args = ['echo ' + code + '>' + output.fileName]
             var cmd
-            if (product.modules.qbs.hostOS == 'windows') {
+            if (product.moduleProperty("qbs", "hostOS") == 'windows') {
                 cmd = new Command('cmd.exe', ['/C'].concat(args));
             } else {
                 args[0] = args[0].replace(/\(/g, '\\(')
@@ -37,6 +37,4 @@ Project {
             return cmd;
         }
     }
-
 }
-

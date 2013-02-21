@@ -837,7 +837,8 @@ void Loader::LoaderPrivate::setupBuiltinDeclarations()
     m_builtinDeclarations.insert(name_Project, project);
 
     QList<PropertyDeclaration> product;
-    product += PropertyDeclaration("condition", PropertyDeclaration::Boolean);
+    product += PropertyDeclaration("condition", PropertyDeclaration::Boolean,
+                                   PropertyDeclaration::PropertyNotAvailableInConfig);
     product += PropertyDeclaration("type", PropertyDeclaration::String);
     product += PropertyDeclaration("name", PropertyDeclaration::String);
     PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
@@ -847,9 +848,8 @@ void Loader::LoaderPrivate::setupBuiltinDeclarations()
     product += PropertyDeclaration("consoleApplication", PropertyDeclaration::Boolean);
     product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     product += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
-    product += PropertyDeclaration("module", PropertyDeclaration::Variant);
-    product += PropertyDeclaration("modules", PropertyDeclaration::Variant);
-    product += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant);
+    product += PropertyDeclaration(name_moduleSearchPaths, PropertyDeclaration::Variant,
+                                   PropertyDeclaration::PropertyNotAvailableInConfig);
     m_builtinDeclarations.insert(name_Product, product);
 
     QList<PropertyDeclaration> fileTagger;
