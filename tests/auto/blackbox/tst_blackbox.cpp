@@ -489,6 +489,13 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
+void TestBlackbox::codegen()
+{
+    QDir::setCurrent(testDataDir + "/codegen");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/codegen")));
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");
