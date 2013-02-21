@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_L2_LANGUAGE_HPP
-#define QBS_L2_LANGUAGE_HPP
+#ifndef QBS_LANGUAGE_H
+#define QBS_LANGUAGE_H
 
 #include "filetags.h"
 #include "forward_decls.h"
@@ -367,4 +367,4 @@ Q_DECLARE_TYPEINFO(qbs::Internal::JsImport, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(qbs::Internal::RuleArtifact::Binding, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
-#endif
+#endif // QBS_LANGUAGE_H
