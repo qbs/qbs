@@ -30,31 +30,15 @@
 #include "showproperties.h"
 
 #include <qbs.h>
-#include <tools/scripttools.h>
 
 #include <cstdio>
 
 namespace qbs {
 
-static void dumpMap(const QVariantMap &map, const QString &prefix = QString())
-{
-    QStringList keys(map.keys());
-    qSort(keys);
-    foreach (const QString &key, keys) {
-        const QVariant& val = map.value(key);
-        if (val.type() == QVariant::Map) {
-            dumpMap(val.value<QVariantMap>(), prefix + key + ".");
-        } else {
-            printf("%s%s: %s\n", qPrintable(prefix), qPrintable(key),
-                   qPrintable(Internal::toJSLiteral(val)));
-        }
-    }
-}
-
 static void dumpProperties(const ProductData &product)
 {
     printf("--------%s--------\n", qPrintable(product.name()));
-    dumpMap(product.properties().map());
+    printf("%s", qPrintable(product.properties().toString()));
 }
 
 int showProperties(const QList<ProductData> &products)

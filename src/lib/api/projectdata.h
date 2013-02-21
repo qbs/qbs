@@ -41,9 +41,17 @@
 namespace qbs {
 namespace Internal { class ProjectPrivate; }
 
+class PropertyMap;
+
+bool operator==(const PropertyMap &pm1, const PropertyMap &pm2);
+bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2);
+
 class QBS_EXPORT PropertyMap
 {
     friend class Internal::ProjectPrivate;
+    friend bool operator==(const PropertyMap &, const PropertyMap &);
+    friend bool operator!=(const PropertyMap &, const PropertyMap &);
+
 public:
     QStringList allProperties() const;
     QVariant getProperty(const QString &name) const;
@@ -53,14 +61,12 @@ public:
                                                  const QString &propertyName) const;
     QVariant getModuleProperty(const QString &moduleName, const QString &propertyName) const;
 
-    QVariantMap map() const { return m_map; }
+    // For debugging.
+    QString toString() const;
 
 private:
     QVariantMap m_map;
 };
-
-bool operator==(const PropertyMap &pm1, const PropertyMap &pm2);
-bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2);
 
 // TODO: explicitly shared?
 

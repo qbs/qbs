@@ -30,6 +30,7 @@
 
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
+#include <tools/scripttools.h>
 
 namespace qbs {
 
@@ -155,14 +156,36 @@ QVariant PropertyMap::getModuleProperty(const QString &moduleName,
     return Internal::PropertyFinder().propertyValue(m_map, moduleName, propertyName);
 }
 
+static QString mapToString(const QVariantMap &map, const QString &prefix)
+{
+    QStringList keys(map.keys());
+    qSort(keys);
+    QString stringRep;
+    foreach (const QString &key, keys) {
+        const QVariant &val = map.value(key);
+        if (val.type() == QVariant::Map) {
+            stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));
+        } else {
+            stringRep += QString::fromLocal8Bit("%1%2: %3\n")
+                    .arg(prefix, key, Internal::toJSLiteral(val));
+        }
+    }
+    return stringRep;
+}
+
+QString PropertyMap::toString() const
+{
+    return mapToString(m_map, QString());
+}
+
 bool operator==(const PropertyMap &pm1, const PropertyMap &pm2)
 {
-    return pm1.map() == pm2.map();
+    return pm1.m_map == pm2.m_map;
 }
 
 bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2)
 {
-    return !(pm1.map() == pm2.map());
+    return !(pm1.m_map == pm2.m_map);
 }
 
 

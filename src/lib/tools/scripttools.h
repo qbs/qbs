@@ -67,7 +67,7 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
 QString toJSLiteral(const bool b);
 QString toJSLiteral(const QString &str);
 QString toJSLiteral(const QStringList &strs);
-QBS_EXPORT QString toJSLiteral(const QVariant &val); // FIXME: needed by showproperties
+QString toJSLiteral(const QVariant &val);
 
 /**
  * @brief push/pop a QScriptEngine's context the RAII way.
