@@ -36,10 +36,10 @@ GenericGCC {
         }
 
         prepare: {
-            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
-            var defines = ModUtils.appendAll(input, 'defines');
-            var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
+            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var defines = ModUtils.moduleProperties(input, 'defines');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
             var args = [];
             var i;
             for (i in platformDefines) {
@@ -60,7 +60,7 @@ GenericGCC {
             }
 
             args = args.concat(['-i', input.fileName, '-o', output.fileName]);
-            var cmd = new Command(ModUtils.findFirst(product, "windresPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "windresPath"), args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'compiler';
             return cmd;

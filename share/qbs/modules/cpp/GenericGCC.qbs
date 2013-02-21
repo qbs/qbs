@@ -36,15 +36,15 @@ CppModule {
 
         Artifact {
             fileName: product.destinationDirectory + "/"
-                      + ModUtils.findFirst(product, "dynamicLibraryPrefix") + product.targetName
-                      + ModUtils.findFirst(product, "dynamicLibrarySuffix")
+                      + ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName
+                      + ModUtils.moduleProperty(product, "dynamicLibrarySuffix")
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
                 for (var i in inputs.dynamiclibrary) {
                     var lib = inputs.dynamiclibrary[i]
                     result.push(lib.fileName)
-                    var impliedLibs = ModUtils.appendAll(lib, 'transitiveSOs')
+                    var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
                     result = result.concat(impliedLibs)
                 }
                 return result
@@ -52,13 +52,13 @@ CppModule {
         }
 
         prepare: {
-            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
-            var dynamicLibraries = ModUtils.appendAll(product, 'dynamicLibraries');
-            var staticLibraries = ModUtils.appendAll(product, 'staticLibraries');
-            var frameworkPaths = ModUtils.appendAll(product, 'frameworkPaths');
-            var frameworks = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
-            var rpaths = ModUtils.appendAll(product, 'rpaths');
-            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
+            var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.moduleProperties(product, 'dynamicLibraries');
+            var staticLibraries = ModUtils.moduleProperties(product, 'staticLibraries');
+            var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+            var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+            var rpaths = ModUtils.moduleProperties(product, 'rpaths');
+            var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var i;
             var args = Gcc.configFlags(product);
             args.push('-shared');
@@ -74,7 +74,7 @@ CppModule {
                 args.push(linkerFlags[i])
             for (i in inputs.obj)
                 args.push(inputs.obj[i].fileName);
-            var sysroot = ModUtils.findFirst(product, "sysroot")
+            var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot)
                 args.push('--sysroot=' + sysroot)
             var staticLibrariesI = [];
@@ -88,8 +88,8 @@ CppModule {
                 fileName = inputs.framework[i].fileName;
                 frameworkPaths.push(FileInfo.path(fileName));
                 fileName = Gcc.removePrefixAndSuffix(FileInfo.fileName(fileName),
-                                                     ModUtils.findFirst(product, "dynamicLibraryPrefix"),
-                                                     ModUtils.findFirst(product, "dynamicLibrarySuffix"));
+                                                     ModUtils.moduleProperty(product, "dynamicLibraryPrefix"),
+                                                     ModUtils.moduleProperty(product, "dynamicLibrarySuffix"));
                 frameworksI.push(fileName);
             }
 
@@ -98,7 +98,7 @@ CppModule {
             args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
-            var cmd = new Command(ModUtils.findFirst(product, "compilerPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker';
             return cmd;
@@ -112,15 +112,15 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + ModUtils.findFirst(product, "staticLibraryPrefix")
-                      + product.targetName + ModUtils.findFirst(product, "staticLibrarySuffix")
+            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "staticLibraryPrefix")
+                      + product.targetName + ModUtils.moduleProperty(product, "staticLibrarySuffix")
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
                     result.push(lib.fileName)
-                    var impliedLibs = ModUtils.appendAll(lib, 'staticLibraries')
+                    var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
                     result.concat(impliedLibs)
                 }
                 return result
@@ -130,7 +130,7 @@ CppModule {
                 for (var i in inputs.dynamiclibrary) {
                     var lib = inputs.dynamiclibrary[i]
                     result.push(lib.fileName)
-                    var impliedLibs = ModUtils.appendAll(lib, 'dynamicLibraries')
+                    var impliedLibs = ModUtils.moduleProperties(lib, 'dynamicLibraries')
                     result.concat(impliedLibs)
                 }
                 return result
@@ -141,7 +141,7 @@ CppModule {
             var args = ['rcs', output.fileName];
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].fileName);
-            var cmd = new Command(ModUtils.findFirst(product, "archiverPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "archiverPath"), args);
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
             return cmd;
@@ -155,23 +155,23 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + ModUtils.findFirst(product, "executablePrefix")
-                      + product.targetName + ModUtils.findFirst(product, "executableSuffix")
+            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "executablePrefix")
+                      + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
             fileTags: ["application"]
         }
 
         prepare: {
-            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
-            var dynamicLibraries = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries');
-            var staticLibraries = ModUtils.appendAllFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
-            var frameworkPaths = ModUtils.appendAll(product, 'frameworkPaths');
-            var frameworks = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
-            var rpaths = ModUtils.appendAll(product, 'rpaths');
-            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
+            var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries');
+            var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
+            var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+            var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+            var rpaths = ModUtils.moduleProperties(product, 'rpaths');
+            var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var args = Gcc.configFlags(product);
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].fileName)
-            var sysroot = ModUtils.findFirst(product, "sysroot")
+            var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot)
                 args.push('--sysroot=' + sysroot)
             for (i in linkerFlags)
@@ -193,8 +193,8 @@ CppModule {
             staticLibrariesI = staticLibrariesI.concat(staticLibraries);
 
             var dynamicLibrariesI = [];
-            var dllPrefix = ModUtils.findFirst(product, "dynamicLibraryPrefix")
-            var dllSuffix = ModUtils.findFirst(product, "dynamicLibrarySuffix")
+            var dllPrefix = ModUtils.moduleProperty(product, "dynamicLibraryPrefix")
+            var dllSuffix = ModUtils.moduleProperty(product, "dynamicLibrarySuffix")
             for (i in dynamicLibraries) {
                 if (dynamicLibraries[i].match("^" + dllPrefix + ".*\\" + dllSuffix + "$") !== null) {
                     // shared object filename found
@@ -210,7 +210,7 @@ CppModule {
             }
 
             if (product.moduleProperty("qbs", "targetOS") === 'linux') {
-                var transitiveSOs = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'transitiveSOs')
+                var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'transitiveSOs')
                 for (i in transitiveSOs) {
                     args.push("-Wl,-rpath-link=" + FileInfo.path(transitiveSOs[i]))
                 }
@@ -227,7 +227,7 @@ CppModule {
             args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
-            var cmd = new Command(ModUtils.findFirst(product, "compilerPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
             return cmd;
@@ -246,13 +246,13 @@ CppModule {
         }
 
         prepare: {
-            var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var frameworkPaths = ModUtils.appendAll(product, 'frameworkPaths');
-            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
-            var cFlags = ModUtils.appendAll(input, 'cFlags');
-            var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
-            var objcFlags = ModUtils.appendAll(input, 'objcFlags');
-            var visibility = ModUtils.findFirst(product, 'visibility');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var cFlags = ModUtils.moduleProperties(input, 'cFlags');
+            var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
+            var objcFlags = ModUtils.moduleProperties(input, 'objcFlags');
+            var visibility = ModUtils.moduleProperty(product, 'visibility');
             var args = Gcc.configFlags(input);
             var isCxx = true;
             var isObjC = false;
@@ -269,10 +269,10 @@ CppModule {
                     args.push('-fvisibility=default')
             }
 
-            if (ModUtils.findFirst(product, "precompiledHeader")) {
+            if (ModUtils.moduleProperty(product, "precompiledHeader")) {
                 args.push('-include')
                 args.push(product.name)
-                var pchPath = ModUtils.findFirst(product, "precompiledHeaderDir")
+                var pchPath = ModUtils.moduleProperty(product, "precompiledHeaderDir")
                 var pchPathIncluded = false
                 for (var i in includePaths) {
                     if (includePaths[i] == pchPath) {
@@ -310,7 +310,7 @@ CppModule {
                     args = args.concat(cFlags);
             }
             args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, input.fileName, output))
-            var cmd = new Command(ModUtils.findFirst(product, "compilerPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
             return cmd;
@@ -326,17 +326,17 @@ CppModule {
         }
         prepare: {
             var args = Gcc.configFlags(product);
-            var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var frameworkPaths = ModUtils.appendAll(product, 'frameworkPaths');
-            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
             args.push('-x');
             args.push('c++-header');
-            var cxxFlags = ModUtils.findFirst(product, "cxxFlags")
+            var cxxFlags = ModUtils.moduleProperty(product, "cxxFlags")
             if (cxxFlags)
                 args = args.concat(cxxFlags);
             args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths,
-                    ModUtils.findFirst(product, "precompiledHeader"), output));
-            var cmd = new Command(ModUtils.findFirst(product, "compilerPath"), args);
+                    ModUtils.moduleProperty(product, "precompiledHeader"), output));
+            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
             return cmd;
         }

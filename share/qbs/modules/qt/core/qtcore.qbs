@@ -169,7 +169,7 @@ Module {
             fileTags: ["cpp"]
         }
         prepare: {
-            var cmd = new Command(ModUtils.findFirst(product, "binPath") + '/rcc',
+            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/rcc',
                                   [input.fileName, '-name',
                                    FileInfo.completeBaseName(input.fileName),
                                    '-o', output.fileName]);
@@ -183,14 +183,14 @@ Module {
         inputs: ["ts"]
 
         Artifact {
-            fileName: FileInfo.joinPaths(ModUtils.findFirst(product, "qmFilesDir"),
+            fileName: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmFilesDir"),
                                          input.completeBaseName + ".qm")
             fileTags: ["qm"]
         }
 
         prepare: {
-            var cmd = new Command(ModUtils.findFirst(product, "binPath") + '/'
-                                  + ModUtils.findFirst(product, "lreleaseName"),
+            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
+                                  + ModUtils.moduleProperty(product, "lreleaseName"),
                                   ['-silent', input.fileName, '-qm', output.fileName]);
             cmd.description = 'lrelease ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'filegen';

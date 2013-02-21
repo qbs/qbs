@@ -22,7 +22,7 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist";
             cmd.highlight = "codegen";
-            cmd.infoPlist = ModUtils.findFirst(product, "infoPlist") || {};
+            cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.sourceCode = function() {
                 var infoplist = new TextFile(outputs.infoplist[0].fileName, TextFile.WriteOnly);
                 infoplist.writeLine('<?xml version="1.0" encoding="UTF-8"?>');
@@ -78,7 +78,7 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating PkgInfo";
             cmd.highlight = "codegen";
-            cmd.pkgInfo = ModUtils.findFirst(product, "pkgInfo") || "FOO";
+            cmd.pkgInfo = ModUtils.moduleProperty(product, "pkgInfo") || "FOO";
             cmd.sourceCode = function() {
                 var pkginfo = new TextFile(outputs.pkginfo[0].fileName, TextFile.WriteOnly);
                 pkginfo.write(pkgInfo);

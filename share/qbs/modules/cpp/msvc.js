@@ -1,8 +1,8 @@
 function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
 {
     var i;
-    var optimization = ModUtils.findFirst(input, "optimization")
-    var debugInformation = ModUtils.findFirst(input, "debugInformation")
+    var optimization = ModUtils.moduleProperty(input, "optimization")
+    var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
     var args = ['/nologo', '/c']
 
     // C or C++
@@ -26,12 +26,12 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args.push('/MD')
     }
     // warnings:
-    var warningLevel = ModUtils.findFirst(input, "warningLevel")
+    var warningLevel = ModUtils.moduleProperty(input, "warningLevel")
     if (warningLevel === 'none')
         args.push('/w')
     if (warningLevel === 'all')
         args.push('/Wall')
-    if (ModUtils.findFirst(input, "treatWarningsAsErrors"))
+    if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
         args.push('/WX')
     for (i in includePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(includePaths[i]))
@@ -46,7 +46,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     var pchOutput = outputs["c++_pch"] ? outputs["c++_pch"][0] : undefined
 
     // precompiled header file
-    var pch = ModUtils.findFirst(product, "precompiledHeader")
+    var pch = ModUtils.moduleProperty(product, "precompiledHeader")
     if (pch) {
         if (pchOutput) {
             // create pch
@@ -58,7 +58,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         } else {
             // use pch
             var pchHeaderName = FileInfo.toWindowsSeparators(pch)
-            var pchName = FileInfo.toWindowsSeparators(ModUtils.findFirst(product, "precompiledHeaderDir")
+            var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
                     + "\\.obj\\" + product.name + "\\" + product.name + ".pch")
             args.push("/FI" + pchHeaderName)
             args.push("/Yu" + pchHeaderName)
@@ -80,7 +80,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName)
     cmd.highlight = "compiler";
     cmd.workingDirectory = FileInfo.path(objOutput.fileName)
-    cmd.responseFileThreshold = ModUtils.findFirst(product, "responseFileThreshold")
+    cmd.responseFileThreshold = ModUtils.moduleProperty(product, "responseFileThreshold")
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.stdoutFilterFunction = "function(output) {";
@@ -94,8 +94,8 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
-    var debugInformation = ModUtils.findFirst(product, "debugInformation")
-    var generateManifestFiles = !linkDLL && ModUtils.findFirst(product, "generateManifestFiles")
+    var debugInformation = ModUtils.moduleProperty(product, "debugInformation")
+    var generateManifestFiles = !linkDLL && ModUtils.moduleProperty(product, "generateManifestFiles")
 
     var args = ['/nologo']
     if (linkDLL) {
@@ -158,7 +158,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.fileName)
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
-    cmd.responseFileThreshold = ModUtils.findFirst(product, "responseFileThreshold")
+    cmd.responseFileThreshold = ModUtils.moduleProperty(product, "responseFileThreshold")
     cmd.responseFileUsagePrefix = '@';
     cmd.stdoutFilterFunction =
             function(output)

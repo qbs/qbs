@@ -79,12 +79,12 @@ CppModule {
             fileName: ".obj/" + product.name + "/" + product.name + '.pch'
         }
         prepare: {
-            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
-            var defines = ModUtils.appendAll(input, 'defines');
-            var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
-            var cFlags = ModUtils.appendAll(input, 'cFlags');
-            var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
+            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var defines = ModUtils.moduleProperties(input, 'defines');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var cFlags = ModUtils.moduleProperties(input, 'cFlags');
+            var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
         }
     }
@@ -100,12 +100,12 @@ CppModule {
         }
  
         prepare: {
-            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
-            var defines = ModUtils.appendAll(input, 'defines');
-            var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
-            var cFlags = ModUtils.appendAll(input, 'cFlags');
-            var cxxFlags = ModUtils.appendAll(input, 'cxxFlags');
+            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var defines = ModUtils.moduleProperties(input, 'defines');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var cFlags = ModUtils.moduleProperties(input, 'cFlags');
+            var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
         }
     }
@@ -117,15 +117,15 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + ModUtils.findFirst(product, "executablePrefix")
-                      + product.targetName + ModUtils.findFirst(product, "executableSuffix")
+            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "executablePrefix")
+                      + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
         }
 
         prepare: {
-            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
-            var dynamicLibraries = ModUtils.appendAllFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries');
-            var staticLibraries = ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
-            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
+            var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries');
+            var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
+            var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
@@ -139,23 +139,23 @@ CppModule {
         Artifact {
             fileTags: ["dynamiclibrary"]
             fileName: product.destinationDirectory + "/"
-                      + ModUtils.findFirst(product, "dynamicLibraryPrefix") + product.targetName
-                      + ModUtils.findFirst(product, "dynamicLibrarySuffix")
+                      + ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName
+                      + ModUtils.moduleProperty(product, "dynamicLibrarySuffix")
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
             fileName: product.destinationDirectory + "/"
-                      + ModUtils.findFirst(product, "dynamicLibraryPrefix") + product.targetName
-                      + ModUtils.findFirst(product, "dynamicLibraryImportSuffix")
+                      + ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName
+                      + ModUtils.moduleProperty(product, "dynamicLibraryImportSuffix")
             alwaysUpdated: false
         }
 
         prepare: {
-            var libraryPaths = ModUtils.appendAll(product, 'libraryPaths');
-            var dynamicLibraries = ModUtils.appendAll(product, 'dynamicLibraries');
-            var staticLibraries = ModUtils.appendAllFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
-            var linkerFlags = ModUtils.appendAll(product, 'linkerFlags');
+            var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+            var dynamicLibraries = ModUtils.moduleProperties(product, 'dynamicLibraries');
+            var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
+            var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
@@ -168,14 +168,14 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + ModUtils.findFirst(product, "staticLibraryPrefix")
-                      + product.targetName + ModUtils.findFirst(product, "staticLibrarySuffix")
+            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "staticLibraryPrefix")
+                      + product.targetName + ModUtils.moduleProperty(product, "staticLibrarySuffix")
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
                     result.push(lib.fileName)
-                    var impliedLibs = ModUtils.appendAll(lib, 'staticLibraries')
+                    var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
                     result.concat(impliedLibs)
                 }
                 return result
@@ -183,7 +183,7 @@ CppModule {
         }
 
         prepare: {
-            var toolchainInstallPath = ModUtils.findFirst(product, "toolchainInstallPath")
+            var toolchainInstallPath = ModUtils.moduleProperty(product, "toolchainInstallPath")
 
             var args = ['/nologo']
             var nativeOutputFileName = FileInfo.toWindowsSeparators(output.fileName)
@@ -192,7 +192,7 @@ CppModule {
                 var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].fileName)
                 args.push(fileName)
             }
-            var is64bit = (ModUtils.findFirst(product, "architecture") == "x86_64")
+            var is64bit = (ModUtils.moduleProperty(product, "architecture") == "x86_64")
             var linkerPath = toolchainInstallPath + '/VC/bin/'
             if (is64bit)
                 linkerPath += 'amd64/'
@@ -201,7 +201,7 @@ CppModule {
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName)
             cmd.highlight = 'linker';
             cmd.workingDirectory = FileInfo.path(output.fileName)
-            cmd.responseFileThreshold = ModUtils.findFirst(product, "responseFileThreshold")
+            cmd.responseFileThreshold = ModUtils.moduleProperty(product, "responseFileThreshold")
             cmd.responseFileUsagePrefix = '@';
             return cmd;
          }
@@ -221,10 +221,10 @@ CppModule {
         }
 
         prepare: {
-            var platformDefines = ModUtils.appendAll(input, 'platformDefines');
-            var defines = ModUtils.appendAll(input, 'defines');
-            var includePaths = ModUtils.appendAll(input, 'includePaths');
-            var systemIncludePaths = ModUtils.appendAll(input, 'systemIncludePaths');
+            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var defines = ModUtils.moduleProperties(input, 'defines');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
             var args = [];
             var i;
             for (i in platformDefines) {

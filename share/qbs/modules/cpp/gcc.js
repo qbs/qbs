@@ -31,28 +31,28 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
 function configFlags(config) {
     var args = [];
 
-    var arch = ModUtils.findFirst(config, "architecture")
+    var arch = ModUtils.moduleProperty(config, "architecture")
     if (arch === 'x86_64')
         args.push('-m64');
     else if (arch === 'x86')
         args.push('-m32');
 
-    if (ModUtils.findFirst/config, "debugInformation")
+    if (ModUtils.moduleProperty/config, "debugInformation")
         args.push('-g');
-    var opt = ModUtils.findFirst(config, "optimization")
+    var opt = ModUtils.moduleProperty(config, "optimization")
     if (opt === 'fast')
         args.push('-O2');
     if (opt === 'small')
         args.push('-Os');
 
-    var warnings = ModUtils.findFirst(config, "warningLevel")
+    var warnings = ModUtils.moduleProperty(config, "warningLevel")
     if (warnings === 'none')
         args.push('-w');
     if (warnings === 'all') {
         args.push('-Wall');
         args.push('-Wextra');
     }
-    if (ModUtils.findFirst(config, "treatWarningsAsErrors"))
+    if (ModUtils.moduleProperty(config, "treatWarningsAsErrors"))
         args.push('-Werror');
 
     return args;
@@ -78,17 +78,17 @@ function additionalFlags(product, includePaths, frameworkPaths, systemIncludePat
     } else {
         throw ("The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
     }
-    var sysroot = ModUtils.findFirst(product, "sysroot")
+    var sysroot = ModUtils.moduleProperty(product, "sysroot")
     if (sysroot)
         args.push('--sysroot=' + sysroot)
     var i;
-    var cppFlags = ModUtils.appendAll(input, 'cppFlags');
+    var cppFlags = ModUtils.moduleProperties(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
-    var platformDefines = ModUtils.appendAll(input, 'platformDefines');
+    var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
     for (i in platformDefines)
         args.push('-D' + platformDefines[i]);
-    var defines = ModUtils.appendAll(input, 'defines');
+    var defines = ModUtils.moduleProperties(input, 'defines');
     for (i in defines)
         args.push('-D' + defines[i]);
     for (i in includePaths)

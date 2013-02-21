@@ -2,12 +2,12 @@
 // utility functions for modules
 //
 
-function appendAll(config, key)
+function moduleProperties(config, key)
 {
     return config.moduleProperties(config.moduleName, key)
 }
 
-function appendAllFromArtifacts(product, artifacts, moduleName, propertyName)
+function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyName)
 {
     var seenValues = []
     var result = product.moduleProperties(moduleName, propertyName)
@@ -16,7 +16,7 @@ function appendAllFromArtifacts(product, artifacts, moduleName, propertyName)
     return result
 }
 
-function findFirst(product, propertyName)
+function moduleProperty(product, propertyName)
 {
     return product.moduleProperty(product.moduleName, propertyName)
 }
