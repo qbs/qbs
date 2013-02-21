@@ -180,7 +180,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         commands.push(cmd);
         args = [
             '/nologo', '/manifest', manifestFileName,
-            '/outputresource:' + outputNativeFilePath + ';1'
+            "/outputresource:" + outputNativeFilePath + ";#" + (linkDLL ? "2" : "1")
         ]
         cmd = new Command("mt.exe", args)
         cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.fileName)
