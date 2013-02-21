@@ -58,11 +58,8 @@ namespace Internal {
 class PropertyMapInternal : public PersistentObject
 {
 public:
-    typedef QSharedPointer<PropertyMapInternal> Ptr;
-    typedef QSharedPointer<const PropertyMapInternal> ConstPtr;
-
-    static Ptr create() { return Ptr(new PropertyMapInternal); }
-    Ptr clone() const { return Ptr(new PropertyMapInternal(*this)); }
+    static PropertyMapPtr create() { return PropertyMapPtr(new PropertyMapInternal); }
+    PropertyMapPtr clone() const { return PropertyMapPtr(new PropertyMapInternal(*this)); }
 
     const QVariantMap &value() const { return m_value; }
     QVariant qbsPropertyValue(const QString &key); // Convenience function.
