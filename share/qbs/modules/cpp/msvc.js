@@ -120,11 +120,17 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
             args.push('/SUBSYSTEM:WINDOWS');
     }
 
-    var manifestFileName
+    var linkerOutputNativeFilePath;
+    var manifestFileName;
     if (generateManifestFiles) {
-        manifestFileName = FileInfo.toWindowsSeparators(primaryOutput.fileName)
-        manifestFileName += '.intermediate.manifest'
+        linkerOutputNativeFilePath
+                = FileInfo.toWindowsSeparators(
+                    FileInfo.path(primaryOutput.fileName) + "/intermediate."
+                        + FileInfo.fileName(primaryOutput.fileName));
+        manifestFileName = linkerOutputNativeFilePath + ".manifest";
         args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName)
+    } else {
+        linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.fileName);
     }
 
     var allInputs = inputs.obj.concat(inputs.staticlibrary || [])
@@ -147,8 +153,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         args.push(dynamicLibrary)
     }
 
-    var nativeOutputFileName = FileInfo.toWindowsSeparators(primaryOutput.fileName)
-    args.push('/OUT:' + nativeOutputFileName)
+    args.push('/OUT:' + linkerOutputNativeFilePath)
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
@@ -169,10 +174,13 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     commands.push(cmd);
 
     if (generateManifestFiles) {
-        // embed the generated manifest files
+        var outputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.fileName);
+        cmd = new Command("cmd.exe", ["/c", "copy", linkerOutputNativeFilePath,
+                                      outputNativeFilePath, ">NUL"]);
+        commands.push(cmd);
         args = [
             '/nologo', '/manifest', manifestFileName,
-            '/outputresource:' + nativeOutputFileName + ';1'
+            '/outputresource:' + outputNativeFilePath + ';1'
         ]
         cmd = new Command("mt.exe", args)
         cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.fileName)
