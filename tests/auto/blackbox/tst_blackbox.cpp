@@ -496,6 +496,13 @@ void TestBlackbox::codegen()
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/codegen")));
 }
 
+void TestBlackbox::productProperties()
+{
+    QDir::setCurrent(testDataDir + "/productproperties");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/blubb_user")));
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");

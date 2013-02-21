@@ -86,8 +86,15 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         if (destinationDirectory.isEmpty())
             destinationDirectory = ".";
         productScriptValue.setProperty("destinationDirectory", destinationDirectory);
+
         exportProperty(product, productScriptValue, engine, "type");
         exportProperty(product, productScriptValue, engine, "consoleApplication");
+        const QVariantMap &propMap = product->properties->value();
+        for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
+            if (!it.value().canConvert<QVariantMap>())
+                productScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
+        }
+
         targetObject.setProperty("product", productScriptValue);
     } else {
         productScriptValue = targetObject.property("product");

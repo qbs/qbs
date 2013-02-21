@@ -77,6 +77,7 @@ private slots:
     void recursiveRenaming();
     void recursiveWildcards();
     void codegen();
+    void productProperties();
     void installedApp();
     void toolLookup();
     void checkProjectFilePath();
