@@ -3,8 +3,6 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     var i;
     var optimization = ModUtils.findFirst(input, "optimization")
     var debugInformation = ModUtils.findFirst(input, "debugInformation")
-    var architecture = ModUtils.findFirst(input, "architecture")
-
     var args = ['/nologo', '/c']
 
     // C or C++
@@ -96,10 +94,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
-    var optimization = ModUtils.findFirst(product, "optimization")
     var debugInformation = ModUtils.findFirst(product, "debugInformation")
-    var architecture = ModUtils.findFirst(product, "architecture")
-    var windowsSDKPath = ModUtils.findFirst(product, "windowsSDKPath")
     var generateManifestFiles = !linkDLL && ModUtils.findFirst(product, "generateManifestFiles")
 
     var args = ['/nologo']
@@ -157,7 +152,6 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
-    var is64bit = (architecture == "x86_64")
 
     var commands = [];
     var cmd = new Command("link.exe", args)
