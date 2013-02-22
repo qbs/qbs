@@ -95,6 +95,8 @@ static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
 {
     QProcess qmakeProcess;
     qmakeProcess.start(qmakePath, QStringList() << "-query");
+    if (!qmakeProcess.waitForStarted())
+        throw Error(SetupQt::tr("%1 cannot be started.").arg(qmakePath));
     qmakeProcess.waitForFinished();
     const QByteArray output = qmakeProcess.readAllStandardOutput();
 
