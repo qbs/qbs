@@ -49,6 +49,7 @@ static QString testProject(const char *fileName) {
 TestLanguage::TestLanguage(Settings *settings, ILogSink *logSink)
     : m_settings(settings), m_logSink(logSink)
 {
+    qsrand(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
     defaultParameters.buildRoot = "/some/build/directory";
 }
@@ -182,6 +183,26 @@ void TestLanguage::conditionalDepends()
         QVERIFY(product);
         dependency = findModuleByName(product, "dummy");
         QVERIFY(dependency);
+    } catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::environmentVariable()
+{
+    bool exceptionCaught = false;
+    try {
+        const QByteArray productName = QByteArray("MyApp") + QByteArray::number(qrand());
+        qputenv("PRODUCT_NAME", productName);
+        defaultParameters.projectFilePath = testProject("environmentvariable.qbs");
+        project = loader->loadProject(defaultParameters);
+        qputenv("PRODUCT_NAME", QByteArray());
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value(QString::fromUtf8(productName));
+        QVERIFY(product);
     } catch (const Error &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

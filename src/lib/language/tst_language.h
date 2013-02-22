@@ -64,6 +64,7 @@ private slots:
 
     void baseProperty();
     void conditionalDepends();
+    void environmentVariable();
     void erroneousFiles_data();
     void erroneousFiles();
     void groupConditions_data();
