@@ -65,7 +65,7 @@ public:
         : n(length), str(s)
     {
         if (!n)
-            length = n = strlen(s);
+            length = n = qstrlen(s);
         h = 0;
         while (length--) {
             h = (h << 4) + *s++;

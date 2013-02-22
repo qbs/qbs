@@ -227,7 +227,7 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
                     m_logger.qbsTrace() << "[AUTOMOC] finds Q_OBJECT macro";
                 const QByteArray fileTagFromScanner
                         = QByteArray::fromRawData(szFileTagsFromScanner[i],
-                                                  strlen(szFileTagsFromScanner[i]));
+                                                  qstrlen(szFileTagsFromScanner[i]));
                 if (fileTagFromScanner.startsWith("moc"))
                     hasQObjectMacro = true;
             }
