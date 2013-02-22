@@ -78,11 +78,7 @@ static QStringList collectQmakePaths()
 bool SetupQt::isQMakePathValid(const QString &qmakePath)
 {
     QFileInfo qmakeFileInfo(qmakePath);
-    if (!qmakeFileInfo.exists())
-        return false;
-    if (!qmakeFileInfo.isExecutable())
-        return false;
-    return true;
+    return qmakeFileInfo.exists() && qmakeFileInfo.isFile() && qmakeFileInfo.isExecutable();
 }
 
 QList<QtEnviroment> SetupQt::fetchEnviroments()
