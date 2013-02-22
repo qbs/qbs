@@ -239,6 +239,27 @@ void TestLanguage::erroneousFiles()
     QFAIL("No error thrown on invalid input.");
 }
 
+void TestLanguage::fileContextProperties()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("filecontextproperties.qbs");
+        project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value("product1");
+        QVERIFY(product);
+        QVariantMap cfg = product->properties->value();
+        QCOMPARE(cfg.value("narf").toString(), defaultParameters.projectFilePath);
+        QString dirPath = QFileInfo(defaultParameters.projectFilePath).absolutePath();
+        QCOMPARE(cfg.value("zort").toString(), dirPath);
+    } catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::groupConditions_data()
 {
     QTest::addColumn<int>("groupCount");

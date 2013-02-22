@@ -67,6 +67,7 @@ private slots:
     void environmentVariable();
     void erroneousFiles_data();
     void erroneousFiles();
+    void fileContextProperties();
     void groupConditions_data();
     void groupConditions();
     void groupName();
