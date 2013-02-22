@@ -41,7 +41,8 @@ Q_DECLARE_METATYPE(QList<bool>)
 
 namespace qbs {
 namespace Internal {
-static QString testDataDir() { return QLatin1String(SRCDIR) + QLatin1String("/language/testdata"); }
+static QString testDataDir() { return FileInfo::resolvePath(QLatin1String(SRCDIR),
+                                                            QLatin1String("language/testdata")); }
 static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
 }
