@@ -1,5 +1,5 @@
-import qbs.base 1.0
+import "dummy_base.qbs" as DummyBase
 
-Module {
+DummyBase {
     property var defines
 }

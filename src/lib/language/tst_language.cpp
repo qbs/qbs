@@ -36,6 +36,7 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/scripttools.h>
 #include <tools/error.h>
+#include <tools/propertyfinder.h>
 
 Q_DECLARE_METATYPE(QList<bool>)
 
@@ -541,6 +542,34 @@ void TestLanguage::outerInGroup()
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
     }
     catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::pathProperties()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("pathproperties.qbs");
+        project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value("product1");
+        QVERIFY(product);
+        QVariantMap cfg = product->properties->value();
+        QString projectFileDir = QFileInfo(defaultParameters.projectFilePath).absolutePath();
+        QCOMPARE(cfg.value("projectFileDir").toString(), projectFileDir);
+        QStringList filesInProjectFileDir = QStringList()
+                << FileInfo::resolvePath(projectFileDir, "aboutdialog.h")
+                << FileInfo::resolvePath(projectFileDir, "aboutdialog.cpp");
+        QCOMPARE(cfg.value("filesInProjectFileDir").toStringList(), filesInProjectFileDir);
+        QStringList includePaths = getConfigProperty(cfg, QStringList() << "modules" << "dummy"
+                                                     << "includePaths").toStringList();
+        QCOMPARE(includePaths, QStringList() << projectFileDir);
+
+    } catch (const Error &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }

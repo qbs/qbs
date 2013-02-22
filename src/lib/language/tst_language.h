@@ -78,6 +78,7 @@ private slots:
     void modules_data();
     void modules();
     void outerInGroup();
+    void pathProperties();
     void productConditions();
     void productModules();
     void propertiesBlocks_data();
