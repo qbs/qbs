@@ -48,7 +48,7 @@ enum LoggerLevel
     LoggerMaxLevel = LoggerTrace
 };
 
-QBS_EXPORT inline LoggerLevel defaultLogLevel() { return LoggerInfo; }
+inline LoggerLevel defaultLogLevel() { return LoggerInfo; }
 QBS_EXPORT QString logLevelTag(LoggerLevel level);
 QBS_EXPORT QString logLevelName(LoggerLevel level);
 
