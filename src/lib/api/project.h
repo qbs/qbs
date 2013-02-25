@@ -44,6 +44,7 @@ namespace qbs {
 class BuildJob;
 class BuildOptions;
 class CleanJob;
+class CleanOptions;
 class ILogSink;
 class InstallJob;
 class InstallOptions;
@@ -85,13 +86,11 @@ public:
     BuildJob *buildOneProduct(const ProductData &product, const BuildOptions &options,
                               const QProcessEnvironment &env, QObject *jobOwner = 0) const;
 
-    enum CleanType { CleanupAll, CleanupTemporaries };
-    CleanJob *cleanAllProducts(const BuildOptions &options, CleanType cleanType,
-                               QObject *jobOwner = 0) const;
-    CleanJob *cleanSomeProducts(const QList<ProductData> &products, const BuildOptions &options,
-                                CleanType cleanType, QObject *jobOwner = 0) const;
-    CleanJob *cleanOneProduct(const ProductData &product, const BuildOptions &options,
-                              CleanType cleanType, QObject *jobOwner = 0) const;
+    CleanJob *cleanAllProducts(const CleanOptions &options, QObject *jobOwner = 0) const;
+    CleanJob *cleanSomeProducts(const QList<ProductData> &products, const CleanOptions &options,
+                                QObject *jobOwner = 0) const;
+    CleanJob *cleanOneProduct(const ProductData &product, const CleanOptions &options,
+                              QObject *jobOwner = 0) const;
 
     InstallJob *installAllProducts(const InstallOptions &options, QObject *jobOwner = 0) const;
     InstallJob *installSomeProducts(const QList<ProductData> &products,

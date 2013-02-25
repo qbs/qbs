@@ -26,48 +26,27 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_COMMANDLINEPARSER_H
-#define QBS_COMMANDLINEPARSER_H
+#ifndef QBS_CLEANOPTIONS_H
+#define QBS_CLEANOPTIONS_H
 
-#include "commandtype.h"
+#include "qbs_export.h"
 
-#include <QStringList>
-#include <QVariant>
+#include <QString>
 
 namespace qbs {
-class BuildOptions;
-class CleanOptions;
-class InstallOptions;
-class Settings;
 
-class CommandLineParser
+class QBS_EXPORT CleanOptions
 {
-    Q_DISABLE_COPY(CommandLineParser)
 public:
-    CommandLineParser();
-    ~CommandLineParser();
+    CleanOptions();
 
-    bool parseCommandLine(const QStringList &args, Settings *settings);
-    void printHelp() const;
+    enum CleanType { CleanupAll, CleanupTemporaries };
 
-    CommandType command() const;
-    QString commandName() const;
-    QString commandDescription() const;
-    QString projectFilePath() const;
-    BuildOptions buildOptions() const;
-    CleanOptions cleanOptions() const;
-    InstallOptions installOptions() const;
-    bool force() const;
-    QStringList runArgs() const;
-    QStringList products() const;
-    QList<QVariantMap> buildConfigurations() const;
-    bool showProgress() const;
-
-private:
-    class CommandLineParserPrivate;
-    CommandLineParserPrivate *d;
+    CleanType cleanType;
+    bool dryRun;
+    bool keepGoing;
 };
 
 } // namespace qbs
 
-#endif // QBS_COMMANDLINEPARSER_H
+#endif // Include guard

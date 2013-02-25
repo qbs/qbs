@@ -40,6 +40,7 @@
 
 namespace qbs {
 class BuildOptions;
+class CleanOptions;
 class InstallOptions;
 class Settings;
 class SetupProjectParameters;
@@ -125,8 +126,7 @@ class QBS_EXPORT CleanJob : public AbstractJob
 private:
     CleanJob(const Internal::Logger &logger, QObject *parent);
 
-    void clean(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
-               bool cleanAll);
+    void clean(const QList<Internal::BuildProductPtr> &products, const CleanOptions &options);
 };
 
 class QBS_EXPORT InstallJob : public AbstractJob

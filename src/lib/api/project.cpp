@@ -40,6 +40,7 @@
 #include <language/language.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
+#include <tools/cleanoptions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/installoptions.h>
@@ -98,8 +99,8 @@ public:
     BuildJob *buildProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
                             bool needsDepencencyResolving, const QProcessEnvironment &env,
                             QObject *jobOwner);
-    CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
-                            Project::CleanType cleanType, QObject *jobOwner);
+    CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const CleanOptions &options,
+                            QObject *jobOwner);
     InstallJob *installProducts(const QList<BuildProductPtr> &products,
                                 const InstallOptions &options, bool needsDepencencyResolving,
                                 QObject *jobOwner);
@@ -148,10 +149,10 @@ BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
 }
 
 CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
-        const BuildOptions &options, Project::CleanType cleanType, QObject *jobOwner)
+        const CleanOptions &options, QObject *jobOwner)
 {
     CleanJob * const job = new CleanJob(logger, jobOwner);
-    job->clean(products, options, cleanType == Project::CleanupAll);
+    job->clean(products, options);
     return job;
 }
 
@@ -223,15 +224,6 @@ void ProjectPrivate::retrieveProjectData()
 } // namespace Internal
 
 using namespace Internal;
-
-/*!
- * \enum Project::CleanType
- * This enum type specifies which kind of build artifacts to remove.
- * \value CleanupAll Indicates that all files created by the build process should be removed.
- * \value CleanupTemporaries Indicates that only intermediate build artifacts should be removed.
- *        If, for example, the product to clean up for is a Linux shared library, the .so file
- *        would be left on the disk, but the .o files would be removed.
- */
 
  /*!
   * \class Project
@@ -433,36 +425,32 @@ BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOption
 
 /*!
  * \brief Removes the build artifacts of all products in the project.
- * The function will finish immediately, returning a \c BuildJob identifiying this operation.
+ * The function will finish immediately, returning a \c CleanJob identifiying this operation.
  * \sa Project::cleanSomeProducts()
  */
-CleanJob *Project::cleanAllProducts(const BuildOptions &options, CleanType cleanType,
-                                    QObject *jobOwner) const
+CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwner) const
 {
-    return d->cleanProducts(d->internalProject->buildProducts().toList(), options, cleanType,
-                            jobOwner);
+    return d->cleanProducts(d->internalProject->buildProducts().toList(), options, jobOwner);
 }
 
 /*!
  * \brief Removes the build artifacts of the given products.
  * The function will finish immediately, returning a \c CleanJob identifiying this operation.
- * \note The \c changedFiles and \c maxJobCount members of the \a options parameter
- * are ignored by this function.
  */
 CleanJob *Project::cleanSomeProducts(const QList<ProductData> &products,
-        const BuildOptions &options, CleanType cleanType, QObject *jobOwner) const
+        const CleanOptions &options, QObject *jobOwner) const
 {
-    return d->cleanProducts(d->internalProducts(products), options, cleanType, jobOwner);
+    return d->cleanProducts(d->internalProducts(products), options, jobOwner);
 }
 
 /*!
  * \brief Convenience function for \c cleanSomeProducts().
  * \sa Project::cleanSomeProducts().
  */
-CleanJob *Project::cleanOneProduct(const ProductData &product, const BuildOptions &options,
-                                   CleanType cleanType, QObject *jobOwner) const
+CleanJob *Project::cleanOneProduct(const ProductData &product, const CleanOptions &options,
+                                   QObject *jobOwner) const
 {
-    return cleanSomeProducts(QList<ProductData>() << product, options, cleanType, jobOwner);
+    return cleanSomeProducts(QList<ProductData>() << product, options, jobOwner);
 }
 
 /*!

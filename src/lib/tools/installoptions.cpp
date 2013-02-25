@@ -38,7 +38,7 @@ namespace qbs {
 
  /*!
   * \variable InstallOptions::dryRun
-  * \brief if true, qbs will not actually copy any files, but just show what would happen
+  * \brief if true, qbs will not actually copy any files, but just show what would happen.
   */
 
 /*!

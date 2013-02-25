@@ -38,6 +38,7 @@
 #include <language/language.h>
 #include <logging/translator.h>
 #include <tools/buildoptions.h>
+#include <tools/cleanoptions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 
@@ -87,11 +88,9 @@ static void removeArtifactFromDisk(Artifact *artifact, bool dryRun, const Logger
 class CleanupVisitor : public ArtifactVisitor
 {
 public:
-    CleanupVisitor(bool stopOnError, bool dryRun, bool removeAll, const Logger &logger)
+    CleanupVisitor(const CleanOptions &options, const Logger &logger)
         : ArtifactVisitor(Artifact::Generated)
-        , m_stopOnError(stopOnError)
-        , m_dryRun(dryRun)
-        , m_removeAll(removeAll)
+        , m_options(options)
         , m_logger(logger)
         , m_hasError(false)
     {
@@ -111,12 +110,12 @@ private:
     {
         if (artifact->product != m_product)
             return;
-        if (artifact->parents.isEmpty() && !m_removeAll)
+        if (artifact->parents.isEmpty() && m_options.cleanType == CleanOptions::CleanupTemporaries)
             return;
         try {
-            removeArtifactFromDisk(artifact, m_dryRun, m_logger);
+            removeArtifactFromDisk(artifact, m_options.dryRun, m_logger);
         } catch (const Error &error) {
-            if (m_stopOnError)
+            if (!m_options.keepGoing)
                 throw;
             m_logger.qbsWarning() << error.toString();
             m_hasError = true;
@@ -124,9 +123,7 @@ private:
         m_directories << artifact->dirPath();
     }
 
-    const bool m_stopOnError;
-    const bool m_dryRun;
-    const bool m_removeAll;
+    const CleanOptions m_options;
     Logger m_logger;
     bool m_hasError;
     BuildProductConstPtr m_product;
@@ -137,15 +134,14 @@ ArtifactCleaner::ArtifactCleaner(const Logger &logger) : m_logger(logger)
 {
 }
 
-void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, bool removeAll,
-                              const BuildOptions &buildOptions)
+void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, const CleanOptions &options)
 {
     m_hasError = false;
     TimedActivityLogger logger(m_logger, QLatin1String("Cleaning up"));
 
     QSet<QString> directories;
     foreach (const BuildProductConstPtr &product, products) {
-        CleanupVisitor visitor(!buildOptions.keepGoing, buildOptions.dryRun, removeAll, m_logger);
+        CleanupVisitor visitor(options, m_logger);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());
         if (visitor.hasError())
@@ -156,14 +152,14 @@ void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, bool remov
     // so we have to clean them up manually.
     foreach (const QString &dir, directories) {
         if (FileInfo(dir).exists())
-            removeEmptyDirectories(dir, buildOptions);
+            removeEmptyDirectories(dir, options);
     }
 
     if (m_hasError)
         throw Error(Tr::tr("Failed to remove some files."));
 }
 
-void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
+void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const CleanOptions &options,
                                              bool *isEmpty)
 {
     bool subTreeIsEmpty = true;

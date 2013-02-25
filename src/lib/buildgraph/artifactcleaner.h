@@ -36,7 +36,7 @@
 #include <logging/logger.h>
 
 namespace qbs {
-class BuildOptions;
+class CleanOptions;
 
 namespace Internal {
 
@@ -44,11 +44,10 @@ class ArtifactCleaner
 {
 public:
     ArtifactCleaner(const Logger &logger);
-    void cleanup(const QList<BuildProductPtr> &products, bool removeAll,
-                 const BuildOptions &buildOptions);
+    void cleanup(const QList<BuildProductPtr> &products, const CleanOptions &options);
 
 private:
-    void removeEmptyDirectories(const QString &rootDir, const BuildOptions &options,
+    void removeEmptyDirectories(const QString &rootDir, const CleanOptions &options,
                                 bool *isEmpty = 0);
 
     Logger m_logger;

@@ -216,7 +216,7 @@ void InternalSetupProjectJob::execute()
 
 
 BuildGraphTouchingJob::BuildGraphTouchingJob(const Logger &logger, QObject *parent)
-    : InternalJob(logger, parent)
+    : InternalJob(logger, parent), m_dryRun(false)
 {
 }
 
@@ -224,16 +224,15 @@ BuildGraphTouchingJob::~BuildGraphTouchingJob()
 {
 }
 
-void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products,
-                                  const BuildOptions &buildOptions)
+void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products, bool dryRun)
 {
     m_products = products;
-    m_buildOptions = buildOptions;
+    m_dryRun = dryRun;
 }
 
 void BuildGraphTouchingJob::storeBuildGraph()
 {
-    if (!m_buildOptions.dryRun && !m_products.isEmpty())
+    if (!m_dryRun && !m_products.isEmpty())
         InternalJob::storeBuildGraph(m_products.first()->project);
 }
 
@@ -245,7 +244,7 @@ InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
 void InternalBuildJob::build(const QList<BuildProductPtr> &products,
                              const BuildOptions &buildOptions, const QProcessEnvironment &env)
 {
-    setup(products, buildOptions);
+    setup(products, buildOptions.dryRun);
 
     m_executor = new Executor(logger());
     m_executor->setProducts(products);
@@ -283,11 +282,10 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalCleanJob::clean(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
-                     bool cleanAll)
+void InternalCleanJob::clean(const QList<BuildProductPtr> &products, const CleanOptions &options)
 {
-    setup(products, buildOptions);
-    m_cleanAll = cleanAll;
+    setup(products, options.dryRun);
+    m_options = options;
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
@@ -307,7 +305,7 @@ void InternalCleanJob::doClean()
 {
     try {
         ArtifactCleaner cleaner(logger());
-        cleaner.cleanup(products(), m_cleanAll, buildOptions());
+        cleaner.cleanup(products(), m_options);
     } catch (const Error &error) {
         setError(error);
     }

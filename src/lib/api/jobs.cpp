@@ -263,10 +263,9 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void CleanJob::clean(const QList<BuildProductPtr> &products,
-                     const BuildOptions &options, bool cleanAll)
+void CleanJob::clean(const QList<BuildProductPtr> &products, const qbs::CleanOptions &options)
 {
-    qobject_cast<InternalCleanJob *>(internalJob())->clean(products, options, cleanAll);
+    qobject_cast<InternalCleanJob *>(internalJob())->clean(products, options);
 }
 
 /*!

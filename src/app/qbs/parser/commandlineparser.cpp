@@ -38,6 +38,7 @@
 
 #include <logging/translator.h>
 #include <tools/buildoptions.h>
+#include <tools/cleanoptions.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
@@ -128,6 +129,17 @@ BuildOptions CommandLineParser::buildOptions() const
     return d->buildOptions;
 }
 
+CleanOptions CommandLineParser::cleanOptions() const
+{
+    Q_ASSERT(command() == CleanCommandType);
+    CleanOptions options;
+    options.cleanType = d->optionPool.allArtifactsOption()->enabled()
+            ? CleanOptions::CleanupAll : CleanOptions::CleanupTemporaries;
+    options.dryRun = buildOptions().dryRun;
+    options.keepGoing = buildOptions().keepGoing;
+    return options;
+}
+
 InstallOptions CommandLineParser::installOptions() const
 {
     Q_ASSERT(command() == InstallCommandType || command() == RunCommandType);
@@ -158,12 +170,6 @@ QStringList CommandLineParser::products() const
 bool CommandLineParser::showProgress() const
 {
     return d->showProgress;
-}
-
-bool CommandLineParser::cleanAll() const
-{
-    Q_ASSERT(d->command->type() == CleanCommandType);
-    return d->optionPool.allArtifactsOption()->enabled();
 }
 
 QString CommandLineParser::commandName() const

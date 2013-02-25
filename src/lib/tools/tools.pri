@@ -17,6 +17,7 @@ HEADERS += \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
     $$PWD/installoptions.h \
+    $$PWD/cleanoptions.h \
     $$PWD/setupprojectparameters.h \
     $$PWD/persistentobject.h \
     $$PWD/weakpointer.h \
@@ -38,6 +39,7 @@ SOURCES += \
     $$PWD/progressobserver.cpp \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
+    $$PWD/cleanoptions.cpp \
     $$PWD/setupprojectparameters.cpp \
     $$PWD/qbsassert.cpp \
     $$PWD/propertyfinder.cpp

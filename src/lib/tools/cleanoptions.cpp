@@ -26,48 +26,45 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_COMMANDLINEPARSER_H
-#define QBS_COMMANDLINEPARSER_H
-
-#include "commandtype.h"
-
-#include <QStringList>
-#include <QVariant>
+#include "cleanoptions.h"
 
 namespace qbs {
-class BuildOptions;
-class CleanOptions;
-class InstallOptions;
-class Settings;
 
-class CommandLineParser
+/*!
+ * \class CleanOptions
+ * \brief The \c CleanOptions class comprises parameters that influence the behavior of
+ * cleaning operations.
+ */
+
+ /*!
+  * \variable CleanOptions::dryRun
+  * \brief if true, qbs will not actually remove any files, but just show what would happen.
+  */
+
+/*!
+ * \variable CleanOptions::keepGoing
+ * \brief if true, do not abort on errors
+ * If a file cannot be removed, e.g. due to a permission problem, a warning will be printed and
+ * cleaning will continue. If this flag is not set, then the operation will abort
+ * immediately in case of an error.
+ */
+
+/*!
+ * \enum CleanOptions::CleanType
+ * This enum type specifies which kind of build artifacts to remove.
+ * \value CleanupAll Indicates that all files created by the build process should be removed.
+ * \value CleanupTemporaries Indicates that only intermediate build artifacts should be removed.
+ *        If, for example, the product to clean up for is a Linux shared library, the .so file
+ *        would be left on the disk, but the .o files would be removed.
+ */
+
+/*!
+ * \variable CleanOptions::cleanType
+ * \brief what to remove
+ */
+
+CleanOptions::CleanOptions() : cleanType(CleanupAll), dryRun(false), keepGoing(false)
 {
-    Q_DISABLE_COPY(CommandLineParser)
-public:
-    CommandLineParser();
-    ~CommandLineParser();
-
-    bool parseCommandLine(const QStringList &args, Settings *settings);
-    void printHelp() const;
-
-    CommandType command() const;
-    QString commandName() const;
-    QString commandDescription() const;
-    QString projectFilePath() const;
-    BuildOptions buildOptions() const;
-    CleanOptions cleanOptions() const;
-    InstallOptions installOptions() const;
-    bool force() const;
-    QStringList runArgs() const;
-    QStringList products() const;
-    QList<QVariantMap> buildConfigurations() const;
-    bool showProgress() const;
-
-private:
-    class CommandLineParserPrivate;
-    CommandLineParserPrivate *d;
-};
+}
 
 } // namespace qbs
-
-#endif // QBS_COMMANDLINEPARSER_H

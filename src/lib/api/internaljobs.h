@@ -33,6 +33,7 @@
 #include <buildgraph/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/buildoptions.h>
+#include <tools/cleanoptions.h>
 #include <tools/installoptions.h>
 #include <tools/error.h>
 #include <tools/setupprojectparameters.h>
@@ -129,13 +130,12 @@ protected:
     BuildGraphTouchingJob(const Logger &logger, QObject *parent = 0);
     ~BuildGraphTouchingJob();
 
-    void setup(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions);
-    const BuildOptions &buildOptions() const { return m_buildOptions; }
+    void setup(const QList<BuildProductPtr> &products, bool dryRun);
     void storeBuildGraph();
 
 private:
     QList<BuildProductPtr> m_products;
-    BuildOptions m_buildOptions;
+    bool m_dryRun;
 };
 
 
@@ -162,8 +162,7 @@ class InternalCleanJob : public BuildGraphTouchingJob
 public:
     InternalCleanJob(const Logger &logger, QObject *parent = 0);
 
-    void clean(const QList<BuildProductPtr> &products, const BuildOptions &buildOptions,
-               bool cleanAll);
+    void clean(const QList<BuildProductPtr> &products, const CleanOptions &options);
 
 private slots:
     void start();
@@ -172,7 +171,7 @@ private slots:
 private:
     void doClean();
 
-    bool m_cleanAll;
+    CleanOptions m_options;
 };
 
 
