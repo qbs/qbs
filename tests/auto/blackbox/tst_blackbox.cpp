@@ -226,6 +226,72 @@ void TestBlackbox::build_project_dry_run()
     QVERIFY2(buildDirContents.count() == 1, qPrintable(buildDirContents.join(" ")));
 }
 
+void TestBlackbox::clean()
+{
+    const QString appObjectFilePath = buildDir + "/.obj/app/main" + QTC_HOST_OBJECT_SUFFIX;
+    const QString appExeFilePath = buildDir + "/app" + QTC_HOST_EXE_SUFFIX;
+    const QString depObjectFilePath = buildDir + "/.obj/dep/dep" + QTC_HOST_OBJECT_SUFFIX;
+    const QString depExeFilePath = buildDir + "/dep" + QTC_HOST_EXE_SUFFIX;
+
+    QDir::setCurrent(testDataDir + "/clean");
+
+    // Default behavior: Remove only temporaries.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(QFile(depObjectFilePath).exists());
+    QVERIFY(QFile(depExeFilePath).exists());
+    QCOMPARE(runQbs(QStringList("clean")), 0);
+    QVERIFY(!QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(!QFile(depObjectFilePath).exists());
+    QVERIFY(QFile(depExeFilePath).exists());
+
+    // Remove all.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QCOMPARE(runQbs(QStringList("clean") << "--all-artifacts"), 0);
+    QVERIFY(!QFile(appObjectFilePath).exists());
+    QVERIFY(!QFile(appExeFilePath).exists());
+    QVERIFY(!QFile(depObjectFilePath).exists());
+    QVERIFY(!QFile(depExeFilePath).exists());
+
+    // Dry run.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QCOMPARE(runQbs(QStringList("clean") << "--all-artifacts" << "-n"), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(QFile(depObjectFilePath).exists());
+    QVERIFY(QFile(depExeFilePath).exists());
+
+    // Product-wise, dependency only.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(QFile(depObjectFilePath).exists());
+    QVERIFY(QFile(depExeFilePath).exists());
+    QCOMPARE(runQbs(QStringList("clean") << "--all-artifacts" << "-p" << "dep"), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(!QFile(depObjectFilePath).exists());
+    QVERIFY(!QFile(depExeFilePath).exists());
+
+    // Product-wise, dependent product only.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFile(appObjectFilePath).exists());
+    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(QFile(depObjectFilePath).exists());
+    QVERIFY(QFile(depExeFilePath).exists());
+    QCOMPARE(runQbs(QStringList("clean") << "--all-artifacts" << "-p" << "app"), 0);
+    QVERIFY(!QFile(appObjectFilePath).exists());
+    QVERIFY(!QFile(appExeFilePath).exists());
+    QVERIFY(QFile(depObjectFilePath).exists());
+    QVERIFY(QFile(depExeFilePath).exists());
+}
+
 void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
