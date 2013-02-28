@@ -9,7 +9,7 @@ Module {
         configure: {
             var cmd = '';
             if (qbs.targetOS === "windows")
-                cmd = 'cmd /c /date /t';
+                cmd = 'cmd /c date /t';
             else
                 cmd = 'date';
             var p = new Process();
