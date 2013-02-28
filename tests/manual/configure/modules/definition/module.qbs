@@ -7,13 +7,17 @@ Module {
         id: node
         property string result
         configure: {
-            var cmd = '';
-            if (qbs.targetOS === "windows")
-                cmd = 'cmd /c date /t';
-            else
+            var cmd;
+            var args;
+            if (qbs.targetOS === "windows") {
+                cmd = "cmd";
+                args = ["/c", "date", "/t"];
+            } else {
                 cmd = 'date';
+                args = [];
+            }
             var p = new Process();
-            if (0 === p.exec(cmd, [])) {
+            if (0 === p.exec(cmd, args)) {
                 found = true;
                 result = p.readLine();
             } else {
