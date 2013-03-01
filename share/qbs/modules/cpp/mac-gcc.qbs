@@ -1,4 +1,5 @@
 import qbs.base 1.0
+import '../utils.js' as ModUtils
 
 UnixGCC {
     condition: qbs.hostOS === 'mac' && qbs.targetOS === 'mac' && qbs.toolchain === 'gcc'
