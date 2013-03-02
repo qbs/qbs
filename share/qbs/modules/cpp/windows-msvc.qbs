@@ -96,9 +96,9 @@ CppModule {
         Artifact {
             fileTags: ['obj']
             // ### make the object file dir overridable
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".obj"
+            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
         }
- 
+
         prepare: {
             var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
             var defines = ModUtils.moduleProperties(input, 'defines');

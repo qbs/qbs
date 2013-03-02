@@ -250,7 +250,7 @@ CppModule {
         Artifact {
             fileTags: ["obj"]
             // ### make it possible to override ".obj" in a project file
-            fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.completeBaseName + ".o"
+            fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.fileName + ".o"
         }
 
         prepare: {
