@@ -1,4 +1,4 @@
-function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks)
+function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks, weakFrameworks)
 {
     var i;
     var args = [];
@@ -25,6 +25,8 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
     for (i in frameworks)
         args = args.concat(['-framework', frameworks[i]]);
+    for (i in weakFrameworks)
+        args = args.concat(['-weak_framework', weakFrameworks[i]]);
     return args;
 }
 

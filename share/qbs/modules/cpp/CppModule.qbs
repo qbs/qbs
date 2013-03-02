@@ -33,6 +33,7 @@ Module {
     property var dynamicLibraries // list of names, will be linked with -lname
     property var staticLibraries // list of static library files
     property var frameworks // list of frameworks, will be linked with '-framework <name>'
+    property var weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property var rpaths
 
     property var cppFlags

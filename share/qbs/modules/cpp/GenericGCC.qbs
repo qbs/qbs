@@ -57,6 +57,7 @@ CppModule {
             var staticLibraries = ModUtils.moduleProperties(product, 'staticLibraries');
             var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
             var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+            var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var i;
@@ -93,9 +94,11 @@ CppModule {
                 frameworksI.push(fileName);
             }
 
+            var weakFrameworksI = weakFrameworks;
+
             args.push('-o');
             args.push(output.fileName);
-            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI));
+            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI, weakFrameworksI));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
@@ -166,6 +169,7 @@ CppModule {
             var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
             var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
             var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+            var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var args = Gcc.configFlags(product);
@@ -224,7 +228,9 @@ CppModule {
                 frameworksI.push(fileName);
             }
 
-            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI));
+            var weakFrameworksI = weakFrameworks;
+
+            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI, weakFrameworksI));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
