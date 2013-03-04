@@ -27,41 +27,45 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_LANGUAGEOBJECT_H
-#define QBS_LANGUAGEOBJECT_H
+#ifndef QBS_ITEMREADER_H
+#define QBS_ITEMREADER_H
 
-#include "languagebasics.h"
-#include "propertydeclaration.h"
+#include "forward_decls.h"
 
-#include <QHash>
 #include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
-class ProjectFile;
+class BuiltinDeclarations;
 
-class LanguageObject
+/*
+ * Reads a qbs file and creates a tree of Item objects.
+ *
+ * In this stage the following steps are performed:
+ *    - The QML/JS parser creates the AST.
+ *    - The AST is converted to a tree of Item objects.
+ *
+ * This class is also responsible for the QMLish inheritance semantics.
+ */
+class ItemReader
 {
 public:
-    LanguageObject(ProjectFile *owner);
-    LanguageObject(const LanguageObject &other);
-    ~LanguageObject();
+    ItemReader(BuiltinDeclarations *builtins);
 
-    QString id;
+    BuiltinDeclarations *builtins() const { return m_builtins; }
 
-    QStringList prototype;
-    QString prototypeFileName;
-    CodeLocation prototypeLocation;
-    ProjectFile *file;
+    void setSearchPaths(const QStringList &searchPaths);
+    const QStringList &searchPaths() const { return m_searchPaths; }
 
-    QList<LanguageObject *> children;
-    QHash<QStringList, Binding> bindings;
-    QHash<QString, Function> functions;
-    QHash<QString, PropertyDeclaration> propertyDeclarations;
+    ItemPtr readFile(const QString &filePath, bool inRecursion = false);
+
+private:
+    BuiltinDeclarations *m_builtins;
+    QStringList m_searchPaths;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_LANGUAGEOBJECT_H
+#endif // QBS_ITEMREADER_H

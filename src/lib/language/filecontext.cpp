@@ -27,36 +27,25 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_LANGUAGEBASICS_H
-#define QBS_LANGUAGEBASICS_H
-
-#include <tools/codelocation.h>
-#include <QStringList>
-#include <QScriptProgram>
+#include "filecontext.h"
+#include <tools/fileinfo.h>
 
 namespace qbs {
 namespace Internal {
 
-class Function
+FileContext::FileContext()
 {
-public:
-    QString name;
-    QScriptProgram source;
-};
+}
 
-class Binding
+FileContextPtr FileContext::create()
 {
-public:
-    QStringList name;
-    QScriptProgram valueSource;
-    bool valueSourceUsesBase;
-    bool valueSourceUsesOuter;
+    return FileContextPtr(new FileContext);
+}
 
-    bool isValid() const { return !name.isEmpty(); }
-    CodeLocation codeLocation() const;
-};
+QString FileContext::dirPath() const
+{
+    return FileInfo::path(m_filePath);
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_LANGUAGEBASICS_H

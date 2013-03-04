@@ -27,39 +27,63 @@
 **
 ****************************************************************************/
 
-#include "languageobject.h"
-#include "projectfile.h"
-#include "scope.h"
+#include "value.h"
+#include "item.h"
 
 namespace qbs {
 namespace Internal {
 
-LanguageObject::LanguageObject(ProjectFile *owner)
-    : file(owner)
+Value::Value(Type t)
+    : m_type(t)
 {
-    file->registerLanguageObject(this);
 }
 
-LanguageObject::LanguageObject(const LanguageObject &other)
-    : id(other.id)
-    , prototype(other.prototype)
-    , prototypeFileName(other.prototypeFileName)
-    , prototypeLocation(other.prototypeLocation)
-    , file(other.file)
-    , bindings(other.bindings)
-    , functions(other.functions)
-    , propertyDeclarations(other.propertyDeclarations)
+Value::~Value()
 {
-    file->registerLanguageObject(this);
-    children.reserve(other.children.size());
-    for (int i = 0; i < other.children.size(); ++i)
-        children.append(new LanguageObject(*other.children.at(i)));
 }
 
-LanguageObject::~LanguageObject()
+
+JSSourceValue::JSSourceValue()
+    : Value(JSSourceValueType)
+    , m_sourceUsesBase(false)
+    , m_sourceUsesOuter(false)
 {
-    if (!file->isDestructing())
-        file->unregisterLanguageObject(this);
+}
+
+JSSourceValuePtr JSSourceValue::create()
+{
+    return JSSourceValuePtr(new JSSourceValue);
+}
+
+JSSourceValue::~JSSourceValue()
+{
+}
+
+
+ItemValue::ItemValue(const ItemPtr &item)
+    : Value(ItemValueType)
+    , m_item(item)
+{
+}
+
+ItemValuePtr ItemValue::create(const ItemPtr &item)
+{
+    return ItemValuePtr(new ItemValue(item));
+}
+
+ItemValue::~ItemValue()
+{
+}
+
+VariantValue::VariantValue(const QVariant &v)
+    : Value(VariantValueType)
+    , m_value(v)
+{
+}
+
+VariantValuePtr VariantValue::create(const QVariant &v)
+{
+    return VariantValuePtr(new VariantValue(v));
 }
 
 } // namespace Internal

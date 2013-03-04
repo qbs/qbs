@@ -27,53 +27,45 @@
 **
 ****************************************************************************/
 
-#include "evaluationobject.h"
-#include "languageobject.h"
-#include "projectfile.h"
+#ifndef QBS_EVALUATIONDATA_H
+#define QBS_EVALUATIONDATA_H
 
-#include <cstdio>
+#include <QHash>
+#include <QScriptEngine>
+#include <QScriptValue>
+#include <QVariant>
 
 namespace qbs {
 namespace Internal {
 
-EvaluationObject::EvaluationObject(LanguageObject *instantiatingObject)
+class Evaluator;
+class Item;
+
+class EvaluationData
 {
-    instantiatingObject->file->registerEvaluationObject(this);
-    objects.append(instantiatingObject);
+public:
+    Evaluator *evaluator;
+    const Item *item;
+    mutable QHash<QScriptString, QScriptValue> valueCache;
+
+    void attachTo(QScriptValue &);
+    static EvaluationData *get(const QScriptValue &);
+};
+
+inline void EvaluationData::attachTo(QScriptValue &scriptValue)
+{
+    QVariant v;
+    v.setValue<quintptr>(reinterpret_cast<quintptr>(this));
+    scriptValue.setData(scriptValue.engine()->newVariant(v));
 }
 
-EvaluationObject::~EvaluationObject()
+inline EvaluationData *EvaluationData::get(const QScriptValue &scriptValue)
 {
-    ProjectFile *file = instantiatingObject()->file;
-    if (!file->isDestructing())
-        file->unregisterEvaluationObject(this);
-}
-
-LanguageObject *EvaluationObject::instantiatingObject() const
-{
-    return objects.first();
-}
-
-void EvaluationObject::dump(QByteArray &indent)
-{
-    printf("%sEvaluationObject: {\n", indent.constData());
-    const QByteArray dumpIndent = "  ";
-    indent.append(dumpIndent);
-    printf("%sProtoType: '%s'\n", indent.constData(), qPrintable(prototype));
-    if (!modules.isEmpty()) {
-        printf("%sModules: [\n", indent.constData());
-        indent.append(dumpIndent);
-        foreach (const QSharedPointer<Module> module, modules)
-            module->dump(indent);
-        indent.chop(dumpIndent.length());
-        printf("%s]\n", indent.constData());
-    }
-    scope->dump(indent);
-    foreach (EvaluationObject *child, children)
-        child->dump(indent);
-    indent.chop(dumpIndent.length());
-    printf("%s}\n", indent.constData());
+    const quintptr ptr = scriptValue.data().toVariant().value<quintptr>();
+    return reinterpret_cast<EvaluationData *>(ptr);
 }
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_EVALUATIONDATA_H

@@ -27,54 +27,31 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PROJECTFILE_H
-#define QBS_PROJECTFILE_H
+#ifndef QBS_BUILTINDECLARATIONS_H
+#define QBS_BUILTINDECLARATIONS_H
 
-#include "jsimports.h"
-
-#include <QList>
-#include <QSharedPointer>
+#include <language/propertydeclaration.h>
+#include <QByteArray>
+#include <QMap>
 
 namespace qbs {
 namespace Internal {
 
-class EvaluationObject;
-class LanguageObject;
-class Scope;
-
-/**
-  * Represents a qbs project file.
-  * Owns all the language objects.
-  */
-class ProjectFile
+class BuiltinDeclarations
 {
 public:
-    typedef QSharedPointer<ProjectFile> Ptr;
+    BuiltinDeclarations();
 
-    ProjectFile();
-    ~ProjectFile();
-
-    JsImports jsImports;
-    LanguageObject *root;
-    QString fileName;
-
-    bool isValid() const;
-    bool isDestructing() const { return m_destructing; }
-
-    void registerScope(QSharedPointer<Scope> scope) { m_scopes += scope; }
-    void registerEvaluationObject(EvaluationObject *eo) { m_evaluationObjects += eo; }
-    void unregisterEvaluationObject(EvaluationObject *eo) { m_evaluationObjects.removeOne(eo); }
-    void registerLanguageObject(LanguageObject *eo) { m_languageObjects += eo; }
-    void unregisterLanguageObject(LanguageObject *eo) { m_languageObjects.removeOne(eo); }
+    QString languageVersion() const;
+    QByteArray qmlTypeInfo() const;
+    QList<PropertyDeclaration> declarationsForType(const QString &typeName) const;
 
 private:
-    bool m_destructing;
-    QList<QSharedPointer<Scope> > m_scopes;
-    QList<EvaluationObject *> m_evaluationObjects;
-    QList<LanguageObject *> m_languageObjects;
+    QString m_languageVersion;
+    QMap<QString, QList<PropertyDeclaration> > m_builtins;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_PROJECTFILE_H
+#endif // QBS_BUILTINDECLARATIONS_H

@@ -429,6 +429,26 @@ void TestLanguage::identifierSearch()
     QCOMPARE(hasZort, expectedHasZort);
 }
 
+void TestLanguage::idUsage()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("idusage.qbs");
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 3);
+        QVERIFY(products.contains("product1_1"));
+        QVERIFY(products.contains("product2_2"));
+        QVERIFY(products.contains("product3_3"));
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
 void TestLanguage::jsImportUsedInMultipleScopes_data()
 {
     QTest::addColumn<QString>("buildVariant");
@@ -468,15 +488,20 @@ void TestLanguage::jsImportUsedInMultipleScopes()
 void TestLanguage::modules_data()
 {
     QTest::addColumn<QStringList>("expectedModulesInProduct");
+    QTest::addColumn<QString>("expectedProductProperty");
     QTest::newRow("init") << QStringList();
     QTest::newRow("no_modules")
-            << (QStringList() << "qbs");
+            << (QStringList() << "qbs")
+            << QString();
     QTest::newRow("qt_core")
-            << (QStringList() << "qbs" << "dummyqt/core");
+            << (QStringList() << "qbs" << "dummyqt/core")
+            << QString("1.2.3");
     QTest::newRow("qt_gui")
-            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui");
+            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui")
+            << QString("guiProperty");
     QTest::newRow("qt_gui_network")
-            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui" << "dummyqt/network");
+            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui" << "dummyqt/network")
+            << QString("guiProperty,networkProperty");
     QTest::newRow("cleanup") << QStringList();
 }
 
@@ -502,6 +527,7 @@ void TestLanguage::modules()
 
     QVERIFY(project);
     QFETCH(QStringList, expectedModulesInProduct);
+    QFETCH(QString, expectedProductProperty);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
@@ -512,6 +538,7 @@ void TestLanguage::modules()
     modulesInProduct.sort();
     expectedModulesInProduct.sort();
     QCOMPARE(modulesInProduct, expectedModulesInProduct);
+    QCOMPARE(product->properties->value().value("foo").toString(), expectedProductProperty);
 }
 
 void TestLanguage::outerInGroup()
@@ -672,7 +699,9 @@ void TestLanguage::propertiesBlocks_data()
     QTest::newRow("condition_refers_to_project_property")
             << QString("dummy.defines") << QStringList("OVERWRITTEN");
 
-    QTest::newRow("ambiguous_properties") << QString("dummy.defines") << (QStringList() << QString("ONE") << QString("TWO") << QString("THREE"));
+    QTest::newRow("ambiguous_properties")
+            << QString("dummy.defines")
+            << (QStringList() << QString("ONE") << QString("TWO"));
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 

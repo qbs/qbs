@@ -14,6 +14,7 @@ HEADERS += \
     $$PWD/profile.h \
     $$PWD/processresult.h \
     $$PWD/progressobserver.h \
+    $$PWD/propertyfinder.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
     $$PWD/installoptions.h \
@@ -23,7 +24,7 @@ HEADERS += \
     $$PWD/weakpointer.h \
     $$PWD/qbs_export.h \
     $$PWD/qbsassert.h \
-    $$PWD/propertyfinder.h
+    $$PWD/qttools.h
 
 SOURCES += \
     $$PWD/codelocation.cpp \
@@ -37,12 +38,13 @@ SOURCES += \
     $$PWD/preferences.cpp \
     $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
+    $$PWD/propertyfinder.cpp \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
     $$PWD/cleanoptions.cpp \
     $$PWD/setupprojectparameters.cpp \
     $$PWD/qbsassert.cpp \
-    $$PWD/propertyfinder.cpp
+    $$PWD/qttools.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp

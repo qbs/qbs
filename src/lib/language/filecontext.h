@@ -27,34 +27,51 @@
 **
 ****************************************************************************/
 
-#include "modules.h"
-#include "evaluationobject.h"
-#include "languageobject.h"
+#ifndef QBS_FILECONTEXT_H
+#define QBS_FILECONTEXT_H
 
-#include <cstdio>
+#include "item.h"
+#include "jsimports.h"
 
 namespace qbs {
 namespace Internal {
 
-Module::Module()
-    : object(0)
-    , dependsCount(0)
+class FileContext
 {
+    friend class ItemReaderASTVisitor;
+
+    FileContext();
+
+public:
+    static FileContextPtr create();
+
+    QString filePath() const;
+    QString dirPath() const;
+    JsImports jsImports() const;
+    ItemPtr idScope() const;
+
+private:
+    QString m_filePath;
+    JsImports m_jsImports;
+    ItemPtr m_idScope;
+};
+
+inline QString FileContext::filePath() const
+{
+    return m_filePath;
 }
 
-Module::~Module()
+inline JsImports FileContext::jsImports() const
 {
+    return m_jsImports;
 }
 
-ProjectFile *Module::file() const
+inline ItemPtr FileContext::idScope() const
 {
-    return object->instantiatingObject()->file;
-}
-
-void Module::dump(QByteArray &indent)
-{
-    printf("%s'%s': %s\n", indent.constData(), qPrintable(name), qPrintable(dependsLocation.fileName));
+    return m_idScope;
 }
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_FILECONTEXT_H

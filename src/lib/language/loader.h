@@ -31,17 +31,20 @@
 
 #include "forward_decls.h"
 #include <tools/qbs_export.h>
+#include <logging/logger.h>
 
 #include <QStringList>
-#include <QVariantMap>
 
 namespace qbs {
 class Settings;
 class SetupProjectParameters;
 namespace Internal {
+class BuiltinDeclarations;
 class Logger;
+class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
+class ProjectResolver;
 
 class QBS_EXPORT Loader // FIXME: Exported for qbs-qmltypes
 {
@@ -55,8 +58,12 @@ public:
     QByteArray qmlTypeInfo();
 
 private:
-    class LoaderPrivate;
-    LoaderPrivate * const d;
+    ScriptEngine *m_engine;
+    Logger m_logger;
+    ProgressObserver *m_progressObserver;
+    BuiltinDeclarations *m_builtins;
+    ModuleLoader *m_moduleLoader;
+    ProjectResolver *m_projectResolver;
 };
 
 } // namespace Internal

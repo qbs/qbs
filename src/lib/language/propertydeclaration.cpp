@@ -54,5 +54,20 @@ bool PropertyDeclaration::isValid() const
     return type != UnknownType;
 }
 
+PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QString &typeName)
+{
+    if (typeName == "bool")
+        return PropertyDeclaration::Boolean;
+    if (typeName == "path")
+        return PropertyDeclaration::Path;
+    if (typeName == "pathList")
+        return PropertyDeclaration::PathList;
+    if (typeName == "string")
+        return PropertyDeclaration::String;
+    if (typeName == "var" || typeName == "variant")
+        return PropertyDeclaration::Variant;
+    return PropertyDeclaration::UnknownType;
+}
+
 } // namespace Internal
 } // namespace qbs

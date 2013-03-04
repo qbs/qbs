@@ -29,6 +29,8 @@
 
 #include "scriptengine.h"
 
+#include "item.h"
+#include "filecontext.h"
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
@@ -46,6 +48,8 @@ const bool debugJSImports = false;
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     : QScriptEngine(parent), m_logger(logger)
 {
+    // Initially push a new context to turn off scope chain insanity mode.
+    QScriptEngine::pushContext();
 }
 
 ScriptEngine::~ScriptEngine()

@@ -27,60 +27,24 @@
 **
 ****************************************************************************/
 
-#ifndef MODULES_H
-#define MODULES_H
+#ifndef QBS_ITEMOBSERVER_H
+#define QBS_ITEMOBSERVER_H
 
-#include "scope.h"
-#include "scopechain.h"
-#include <tools/codelocation.h>
-#include <QScriptProgram>
-#include <QStringList>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
 
-class ModuleBase
+class Item;
+
+class ItemObserver
 {
 public:
-    typedef QSharedPointer<ModuleBase> Ptr;
-
-    virtual ~ModuleBase() {}
-    QString name;
-    QScriptProgram condition;
-    ScopeChain::Ptr conditionScopeChain;
-    CodeLocation dependsLocation;
-};
-
-class UnknownModule : public ModuleBase
-{
-public:
-    typedef QSharedPointer<UnknownModule> Ptr;
-
-    bool required;
-    QString failureMessage;
-};
-
-class EvaluationObject;
-
-class Module : public ModuleBase
-{
-    Q_DISABLE_COPY(Module)
-public:
-    typedef QSharedPointer<Module> Ptr;
-
-    Module();
-    ~Module();
-
-    ProjectFile *file() const;
-    void dump(QByteArray &indent);
-
-    QStringList id;
-    Scope::Ptr context;
-    EvaluationObject *object;
-    uint dependsCount;
+    virtual void onItemPropertyChanged(Item *item) = 0;
+    virtual void onItemDestroyed(Item *item) = 0;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // MODULES_H
+#endif // QBS_ITEMOBSERVER_H

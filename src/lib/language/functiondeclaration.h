@@ -27,52 +27,35 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SCOPECHAIN_H
-#define QBS_SCOPECHAIN_H
+#ifndef QBS_FUNCTIONDECLARATION_H
+#define QBS_FUNCTIONDECLARATION_H
 
-#include "property.h"
-#include <QScriptClass>
-#include <QSharedPointer>
+#include <tools/codelocation.h>
 
 namespace qbs {
 namespace Internal {
 
-class Scope;
-
-class ScopeChain : public QScriptClass
+class FunctionDeclaration
 {
-    Q_DISABLE_COPY(ScopeChain)
 public:
-    typedef QSharedPointer<ScopeChain> Ptr;
+    FunctionDeclaration() {}
 
-    ScopeChain(QScriptEngine *engine, const QSharedPointer<Scope> &root = QSharedPointer<Scope>());
-    ~ScopeChain();
+    void setName(const QString &name) { m_name = name; }
+    const QString &name() const { return m_name; }
 
-    ScopeChain *clone() const;
-    QScriptValue value();
-    QSharedPointer<Scope> first() const;
-    QSharedPointer<Scope> last() const;
-    // returns this
-    ScopeChain *prepend(const QSharedPointer<Scope> &newTop);
+    void setSourceCode(const QString &code) { m_sourceCode = code; }
+    const QString &sourceCode() const { return m_sourceCode; }
 
-    QSharedPointer<Scope> findNonEmpty(const QString &name) const;
-    QSharedPointer<Scope> find(const QString &name) const;
-
-    Property lookupProperty(const QString &name) const;
-
-protected:
-    // QScriptClass interface
-    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
-                             QueryFlags flags, uint *id);
-    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
-    void setProperty(QScriptValue &object, const QScriptString &name, uint id, const QScriptValue &m_value);
+    void setLocation(const CodeLocation &location) { m_location = location; }
+    const CodeLocation &location() const { return m_location; }
 
 private:
-    QList<QWeakPointer<Scope> > m_scopes;
-    QScriptValue m_value;
+    QString m_name;
+    QString m_sourceCode;
+    CodeLocation m_location;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_SCOPECHAIN_H
+#endif // QBS_FUNCTIONDECLARATION_H

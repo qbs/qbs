@@ -27,51 +27,32 @@
 **
 ****************************************************************************/
 
-#ifndef PROPERTY_H
-#define PROPERTY_H
-
-#include <QList>
-#include <QScriptProgram>
-#include <QScriptValue>
-#include <QSharedPointer>
+#include "asttools.h"
+#include <parser/qmljsast_p.h>
 
 namespace qbs {
 namespace Internal {
 
-class EvaluationObject;
-class LanguageObject;
-class ScopeChain;
-class Scope;
-
-class Property
+QStringList toStringList(QbsQmlJS::AST::UiQualifiedId *qid)
 {
-public:
-    explicit Property(LanguageObject *sourceObject = 0);
-    explicit Property(QSharedPointer<Scope> scope);
-    explicit Property(EvaluationObject *object);
-    explicit Property(const QScriptValue &scriptValue);
+    QStringList result;
+    for (; qid; qid = qid->next)
+        result.append(qid->name.toString());
+    return result;
+}
 
-    // ids, project. etc, JS imports and
-    // where properties get resolved to
-    QSharedPointer<ScopeChain> scopeChain;
-    QScriptProgram valueSource;
-    bool valueSourceUsesBase;
-    bool valueSourceUsesOuter;
-    QList<Property> baseProperties;
+CodeLocation toCodeLocation(const QString &filePath, QbsQmlJS::AST::SourceLocation location)
+{
+    return CodeLocation(filePath, location.startLine, location.startColumn);
+}
 
-    // value once it's been evaluated
-    QScriptValue value;
-
-    // if value is a scope
-    QSharedPointer<Scope> scope;
-
-    // where this property is set
-    LanguageObject *sourceObject;
-
-    bool isValid() const { return scopeChain || scope || value.isValid(); }
-};
+QString textOf(const QString &source, QbsQmlJS::AST::Node *node)
+{
+    if (!node)
+        return QString();
+    return source.mid(node->firstSourceLocation().begin(),
+                      node->lastSourceLocation().end() - node->firstSourceLocation().begin());
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // PROPERTY_H

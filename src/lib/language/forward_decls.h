@@ -34,6 +34,34 @@
 namespace qbs {
 namespace Internal {
 
+class Item;
+typedef QSharedPointer<Item> ItemPtr;
+typedef QSharedPointer<const Item> ItemConstPtr;
+
+class Value;
+typedef QSharedPointer<Value> ValuePtr;
+typedef QSharedPointer<const Value> ValueConstPtr;
+
+class ItemValue;
+typedef QSharedPointer<ItemValue> ItemValuePtr;
+typedef QSharedPointer<const ItemValue> ItemValueConstPtr;
+
+class JSSourceValue;
+typedef QSharedPointer<JSSourceValue> JSSourceValuePtr;
+typedef QSharedPointer<const JSSourceValue> JSSourceValueConstPtr;
+
+class VariantValue;
+typedef QSharedPointer<VariantValue> VariantValuePtr;
+typedef QSharedPointer<const VariantValue> VariantValueConstPtr;
+
+class BuiltinValue;
+typedef QSharedPointer<BuiltinValue> BuiltinValuePtr;
+typedef QSharedPointer<const BuiltinValue> BuiltinValueConstPtr;
+
+class FileContext;
+typedef QSharedPointer<FileContext> FileContextPtr;
+typedef QSharedPointer<const FileContext> FileContextConstPtr;
+
 class PropertyMapInternal;
 typedef QSharedPointer<PropertyMapInternal> PropertyMapPtr;
 typedef QSharedPointer<const PropertyMapInternal> PropertyMapConstPtr;

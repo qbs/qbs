@@ -91,8 +91,9 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         exportProperty(product, productScriptValue, engine, "consoleApplication");
         const QVariantMap &propMap = product->properties->value();
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
-            if (!it.value().canConvert<QVariantMap>())
-                productScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
+            const QVariant &value = it.value();
+            if (value.isValid() && !value.canConvert<QVariantMap>())
+                productScriptValue.setProperty(it.key(), engine->toScriptValue(value));
         }
 
         targetObject.setProperty("product", productScriptValue);

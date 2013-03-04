@@ -519,15 +519,19 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     foreach (ResolvedModuleConstPtr module, modules) {
         foreach (const QString &moduleName, module->moduleDependencies) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
+            QBS_ASSERT(depmod, return env);
             moduleParents[depmod].append(module.data());
             moduleChildren[module.data()].append(depmod);
         }
     }
 
     QList<const ResolvedModule *> rootModules;
-    foreach (ResolvedModuleConstPtr module, modules)
-        if (moduleParents.value(module.data()).isEmpty())
+    foreach (ResolvedModuleConstPtr module, modules) {
+        if (moduleParents.value(module.data()).isEmpty()) {
+            QBS_ASSERT(module, return env);
             rootModules.append(module.data());
+        }
+    }
 
     {
         QVariant v;

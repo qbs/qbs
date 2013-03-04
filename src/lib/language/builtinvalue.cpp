@@ -27,40 +27,20 @@
 **
 ****************************************************************************/
 
-#include "property.h"
-#include "evaluationobject.h"
-#include "scopechain.h"
+#include "builtinvalue.h"
 
 namespace qbs {
 namespace Internal {
 
-Property::Property(LanguageObject *sourceObject)
-    : valueSourceUsesBase(false)
-    , valueSourceUsesOuter(false)
-    , sourceObject(sourceObject)
-{}
-
-Property::Property(QSharedPointer<Scope> scope)
-    : valueSourceUsesBase(false)
-    , valueSourceUsesOuter(false)
-    , scope(scope)
-    , sourceObject(0)
-{}
-
-Property::Property(EvaluationObject *object)
-    : valueSourceUsesBase(false)
-    , valueSourceUsesOuter(false)
-    , scope(object->scope)
-    , sourceObject(0)
+BuiltinValue::BuiltinValue(Builtin builtin)
+    : Value(Value::BuiltinValueType)
+    , m_builtin(builtin)
 {
 }
 
-Property::Property(const QScriptValue &scriptValue)
-    : valueSourceUsesBase(false)
-    , valueSourceUsesOuter(false)
-    , value(scriptValue)
-    , sourceObject(0)
+BuiltinValuePtr BuiltinValue::create(Builtin builtin)
 {
+    return BuiltinValuePtr(new BuiltinValue(builtin));
 }
 
 } // namespace Internal

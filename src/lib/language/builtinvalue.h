@@ -27,30 +27,37 @@
 **
 ****************************************************************************/
 
-#include "projectfile.h"
-#include "languageobject.h"
-#include "scope.h"
-#include "evaluationobject.h"
+#ifndef QBS_BUILTINVALUE_H
+#define QBS_BUILTINVALUE_H
+
+#include "value.h"
 
 namespace qbs {
 namespace Internal {
 
-ProjectFile::ProjectFile()
-    : m_destructing(false)
+class BuiltinValue : public Value
 {
-}
+public:
+    enum Builtin
+    {
+        GetEnvFunction,
+        GetHostOSFunction
+    };
 
-ProjectFile::~ProjectFile()
-{
-    m_destructing = true;
-    qDeleteAll(m_evaluationObjects);
-    qDeleteAll(m_languageObjects);
-}
+    static BuiltinValuePtr create(Builtin builtin);
 
-bool ProjectFile::isValid() const
-{
-    return !root->prototype.isEmpty();
-}
+    void apply(ValueHandler *handler) { handler->handle(this); }
+
+    Builtin builtin() const { return m_builtin; }
+    void setBuiltin(const Builtin &builtin) { m_builtin = builtin; }
+
+private:
+    BuiltinValue(Builtin builtin);
+
+    Builtin m_builtin;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_BUILTINVALUE_H

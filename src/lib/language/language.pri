@@ -1,40 +1,50 @@
 HEADERS += \
     $$PWD/artifactproperties.h \
-    $$PWD/evaluationobject.h \
+    $$PWD/asttools.h \
+    $$PWD/builtindeclarations.h \
+    $$PWD/builtinvalue.h \
+    $$PWD/evaluationdata.h \
+    $$PWD/evaluator.h \
+    $$PWD/evaluatorscriptclass.h \
+    $$PWD/filecontext.h \
     $$PWD/filetags.h \
     $$PWD/forward_decls.h \
+    $$PWD/forward_decls.h \
+    $$PWD/functiondeclaration.h \
     $$PWD/identifiersearch.h \
+    $$PWD/item.h \
+    $$PWD/itemobserver.h \
+    $$PWD/itemreader.h \
+    $$PWD/itemreaderastvisitor.h \
     $$PWD/jsimports.h \
     $$PWD/language.h \
-    $$PWD/languagebasics.h \
-    $$PWD/languageobject.h \
     $$PWD/loader.h \
-    $$PWD/modules.h \
-    $$PWD/probescope.h \
-    $$PWD/projectfile.h \
-    $$PWD/property.h \
+    $$PWD/moduleloader.h \
+    $$PWD/projectresolver.h \
     $$PWD/propertydeclaration.h \
-    $$PWD/scope.h \
-    $$PWD/scopechain.h \
-    $$PWD/scriptengine.h
+    $$PWD/scriptengine.h \
+    $$PWD/value.h
 
 SOURCES += \
     $$PWD/artifactproperties.cpp \
-    $$PWD/evaluationobject.cpp \
+    $$PWD/asttools.cpp \
+    $$PWD/builtindeclarations.cpp \
+    $$PWD/builtinvalue.cpp \
+    $$PWD/evaluator.cpp \
+    $$PWD/evaluatorscriptclass.cpp \
+    $$PWD/filecontext.cpp \
     $$PWD/filetags.cpp \
     $$PWD/identifiersearch.cpp \
+    $$PWD/item.cpp \
+    $$PWD/itemreader.cpp \
+    $$PWD/itemreaderastvisitor.cpp \
     $$PWD/language.cpp \
-    $$PWD/languagebasics.cpp \
-    $$PWD/languageobject.cpp \
     $$PWD/loader.cpp \
-    $$PWD/modules.cpp \
-    $$PWD/probescope.cpp \
-    $$PWD/projectfile.cpp \
-    $$PWD/property.cpp \
+    $$PWD/moduleloader.cpp \
+    $$PWD/projectresolver.cpp \
     $$PWD/propertydeclaration.cpp \
-    $$PWD/scope.cpp \
-    $$PWD/scopechain.cpp \
-    $$PWD/scriptengine.cpp
+    $$PWD/scriptengine.cpp \
+    $$PWD/value.cpp
 
 all_tests {
     HEADERS += $$PWD/tst_language.h

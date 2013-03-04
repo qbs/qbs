@@ -73,6 +73,7 @@ private slots:
     void groupName();
     void identifierSearch_data();
     void identifierSearch();
+    void idUsage();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
     void modules_data();

@@ -77,7 +77,7 @@ Project {
             condition: false
             cpp.defines: outer.concat(["IMPOSSIBLE"])
         }
-        Properties {
+        Properties {    // will be ignored
             condition: true
             cpp.defines: outer.concat(["THREE"])
         }

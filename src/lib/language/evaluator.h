@@ -27,40 +27,51 @@
 **
 ****************************************************************************/
 
-#ifndef PROBESCOPE_H
-#define PROBESCOPE_H
+#ifndef QBS_EVALUATOR_H
+#define QBS_EVALUATOR_H
 
-#include "scope.h"
+#include "forward_decls.h"
+#include "itemobserver.h"
+#include <language/scriptengine.h>
+
+#include <QHash>
+#include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
 
-class ProbeScope : public QScriptClass
+class EvaluatorScriptClass;
+
+class Evaluator : private ItemObserver
 {
-    Q_DISABLE_COPY(ProbeScope)
-    ProbeScope(QScriptEngine *engine, const Scope::Ptr &scope);
+    friend class SVConverter;
+
 public:
-    typedef QSharedPointer<ProbeScope> Ptr;
+    Evaluator(ScriptEngine *scriptEngine, const Logger &logger);
+    virtual ~Evaluator();
 
-    static Ptr create(QScriptEngine *engine, const Scope::Ptr &scope);
-    ~ProbeScope();
-
-    QScriptValue value();
-
-protected:
-    // QScriptClass interface
-    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
-                             QueryFlags flags, uint *id);
-    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
-    void setProperty(QScriptValue &object, const QScriptString &name, uint id, const QScriptValue &value);
+    ScriptEngine *engine() const;
+    QScriptValue property(const ItemConstPtr &item, const QString &name);
+    QScriptValue property(const ItemConstPtr &item, const QStringList &nameParts);
+    QScriptValue scriptValue(const ItemConstPtr &item);
+    QScriptValue fileScope(const FileContextConstPtr &file);
 
 private:
-    Scope::Ptr m_scope;
-    QSharedPointer<QScriptClass> m_scopeChain;
-    QScriptValue m_value;
+    void onItemPropertyChanged(Item *item);
+    void onItemDestroyed(Item *item);
+
+    ScriptEngine *m_scriptEngine;
+    EvaluatorScriptClass *m_scriptClass;
+    mutable QHash<const Item *, QScriptValue> m_scriptValueMap;
+    mutable QHash<FileContextConstPtr, QScriptValue> m_fileScopeMap;
 };
+
+inline ScriptEngine *Evaluator::engine() const
+{
+    return m_scriptEngine;
+}
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // PROBESCOPE_H
+#endif // QBS_EVALUATOR_H

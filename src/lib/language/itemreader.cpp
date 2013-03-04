@@ -27,43 +27,60 @@
 **
 ****************************************************************************/
 
-#ifndef EVALUATIONOBJECT_H
-#define EVALUATIONOBJECT_H
-
-#include "scope.h"
-#include "modules.h"
-#include <QByteArray>
-#include <QHash>
-#include <QList>
+#include "itemreader.h"
+#include "asttools.h"
+#include "itemreaderastvisitor.h"
+#include <logging/translator.h>
+#include <parser/qmljsengine_p.h>
+#include <parser/qmljslexer_p.h>
+#include <parser/qmljsparser_p.h>
+#include <tools/error.h>
+#include <QFile>
+#include <QFileInfo>
+#include <QTextStream>
 
 namespace qbs {
 namespace Internal {
 
-class LanguageObject;
-
-class EvaluationObject
+ItemReader::ItemReader(BuiltinDeclarations *builtins)
+    : m_builtins(builtins)
 {
-    Q_DISABLE_COPY(EvaluationObject)
-public:
-    EvaluationObject(LanguageObject *instantiatingObject);
-    ~EvaluationObject();
+}
 
-    LanguageObject *instantiatingObject() const;
-    void dump(QByteArray &indent);
+void ItemReader::setSearchPaths(const QStringList &searchPaths)
+{
+    m_searchPaths = searchPaths;
+}
 
-    QString prototype;
+ItemPtr ItemReader::readFile(const QString &filePath, bool inRecursion)
+{
+    QFile file(filePath);
+    if (!file.open(QFile::ReadOnly))
+        throw Error(Tr::tr("Couldn't open '%1'.").arg(filePath));
 
-    Scope::Ptr scope;
-    QList<EvaluationObject *> children;
-    QHash<QString, Module::Ptr> modules;
-    QList<UnknownModule::Ptr> unknownModules;
+    const QString code = QTextStream(&file).readAll();
+    file.close();
+    QbsQmlJS::Engine engine;
+    QbsQmlJS::Lexer lexer(&engine);
+    lexer.setCode(code, 1);
+    QbsQmlJS::Parser parser(&engine);
+    if (!parser.parse()) {
+        QList<QbsQmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
+        if (!parserMessages.isEmpty()) {
+            Error err;
+            foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
+                err.append(msg.message, toCodeLocation(filePath, msg.loc));
+            throw err;
+        }
+    }
 
-    // the source objects that generated this object
-    // the object that triggered the instantiation is first, followed by prototypes
-    QList<LanguageObject *> objects;
-};
+    ItemReaderASTVisitor itemReader(this);
+    itemReader.setFilePath(QFileInfo(filePath).absoluteFilePath());
+    itemReader.setSourceCode(code);
+    itemReader.setInRecursion(inRecursion);
+    parser.ast()->accept(&itemReader);
+    return itemReader.rootItem();
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // EVALUATIONOBJECT_H

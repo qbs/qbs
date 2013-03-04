@@ -27,15 +27,21 @@
 **
 ****************************************************************************/
 
-#include "languagebasics.h"
+#ifndef QBS_ASTTOOLS_H
+#define QBS_ASTTOOLS_H
+
+#include <parser/qmljsastfwd_p.h>
+#include <tools/codelocation.h>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
-CodeLocation Binding::codeLocation() const
-{
-    return CodeLocation(valueSource.fileName(), valueSource.firstLineNumber());
-}
+QStringList toStringList(QbsQmlJS::AST::UiQualifiedId *qid);
+CodeLocation toCodeLocation(const QString &filePath, QbsQmlJS::AST::SourceLocation location);
+QString textOf(const QString &source, QbsQmlJS::AST::Node *node);
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_ASTTOOLS_H

@@ -27,67 +27,68 @@
 **
 ****************************************************************************/
 
-#ifndef SCOPE_H
-#define SCOPE_H
+#ifndef QBS_EVALUATORSCRIPTCLASS_H
+#define QBS_EVALUATORSCRIPTCLASS_H
 
-#include "property.h"
-#include "propertydeclaration.h"
+#include "value.h"
+#include "builtinvalue.h"
 #include <logging/logger.h>
-#include <QHash>
+
 #include <QScriptClass>
-#include <set>
+
+QT_BEGIN_NAMESPACE
+class QScriptContext;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
 
-class ProjectFile;
-class Scope;
-typedef std::set<Scope *> ScopesCache;
-typedef QSharedPointer<ScopesCache> ScopesCachePtr;
+class EvaluationData;
 
-class Scope : public QScriptClass
+class EvaluatorScriptClass : public QScriptClass
 {
-    Q_DISABLE_COPY(Scope)
-    Scope(QScriptEngine *engine, ScopesCachePtr cache, const QString &name, const Logger &logger);
-
-    ScopesCachePtr m_scopesCache;
-
 public:
-    typedef QSharedPointer<Scope> Ptr;
-    typedef QSharedPointer<const Scope> ConstPtr;
+    EvaluatorScriptClass(QScriptEngine *scriptEngine, const Logger &logger);
 
-    static Ptr create(QScriptEngine *engine, ScopesCachePtr cache, const QString &name,
-                      ProjectFile *owner, const Logger &logger);
-    ~Scope();
-
-    QString name() const;
-
-protected:
-    // QScriptClass interface
-    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+    QueryFlags queryProperty(const QScriptValue &object,
+                             const QScriptString &name,
                              QueryFlags flags, uint *id);
-    QScriptValue property(const QScriptValue &object, const QScriptString &name, uint id);
+    QScriptValue property(const QScriptValue &object,
+                          const QScriptString &name, uint id);
 
-public:
-    QScriptValue property(const QString &name) const;
-    bool boolValue(const QString &name, bool defaultValue = false) const;
-    QString stringValue(const QString &name) const;
-    QStringList stringListValue(const QString &name) const;
-    QString verbatimValue(const QString &name) const;
-    void dump(const QByteArray &indent) const;
-    void insertAndDeclareProperty(const QString &propertyName, const Property &property,
-                                  PropertyDeclaration::Type propertyType = PropertyDeclaration::Variant);
+    QScriptValue scriptValueForBuiltin(BuiltinValue::Builtin builtin) const;
 
-    QHash<QString, Property> properties;
-    QHash<QString, PropertyDeclaration> declarations;
+private:
+    QueryFlags queryItemProperty(const EvaluationData *data,
+                                 const QString &name,
+                                 bool ignoreParent = false);
+    static QString resultToString(const QScriptValue &scriptValue);
+    static ItemPtr findItemInScope(const Item *item, const QString &typeName);
+    static ItemPtr findParentOfType(const Item *item, const QString &typeName);
+    static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
 
-    QString m_name;
-    QWeakPointer<Scope> fallbackScope;
-    QScriptValue value;
+    struct QueryResult
+    {
+        QueryResult()
+            : data(0)
+        {}
+
+        bool isNull() const
+        {
+            return !data;
+        }
+
+        const EvaluationData *data;
+        ValuePtr value;
+    };
+    QueryResult m_queryResult;
     Logger m_logger;
+    QScriptValue m_getenvBuiltin;
+    QScriptValue m_getHostOSBuiltin;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // SCOPE_H
+#endif // QBS_EVALUATORSCRIPTCLASS_H
