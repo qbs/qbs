@@ -2,7 +2,8 @@ QT = core script testlib
 greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 TEMPLATE = lib
 DESTDIR = ../../lib
-DLLDESTDIR = ../../bin
+!isEmpty(QBS_DLLDESTDIR):DLLDESTDIR = $${QBS_DLLDESTDIR}
+else:DLLDESTDIR = ../../bin
 INCLUDEPATH += $$PWD
 TARGET = qbscore
 
