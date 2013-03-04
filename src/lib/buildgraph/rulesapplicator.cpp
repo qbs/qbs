@@ -34,6 +34,7 @@
 #include "buildproject.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
+#include <jsextensions/moduleproperties.h>
 #include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
@@ -198,17 +199,13 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
-    //QScriptValue modulesScriptValue = artifact->properties->toScriptValue(engine());
-    QScriptValue modulesScriptValue = engine()->newObject();
-    modulesScriptValue = modulesScriptValue.property("modules");
-
     // expose per file properties we want to use in an Artifact within a Rule
     QScriptValue scriptValue = engine()->newObject();
+    ModuleProperties::init(scriptValue, artifact);
     scriptValue.setProperty("fileName", inFileName);
     scriptValue.setProperty("baseName", inBaseName);
     scriptValue.setProperty("completeBaseName", inCompleteBaseName);
     scriptValue.setProperty("baseDir", basedir);
-    scriptValue.setProperty("modules", modulesScriptValue);
 
     scope().setProperty("input", scriptValue);
     Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate("input")),
