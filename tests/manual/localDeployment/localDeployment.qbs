@@ -2,18 +2,16 @@ import qbs.base 1.0
 
 Project {
     Product {
-        type: ["application", "installed_content"]
+        type: ["application"]
         name: "HelloWorld"
         destination: "bin"
 
         Depends { name: "Qt.core"}
 
-        files: [ "main.cpp" ]
-
         Group {
+            qbs.install: true
             qbs.installDir: "share"
             files: ['main.cpp']
-            fileTags: ["install"]
         }
     }
 }
