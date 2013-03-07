@@ -1,4 +1,4 @@
-import qbs.base 1.0
+import qbs 1.0
 import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
 import 'msvc.js' as MSVC

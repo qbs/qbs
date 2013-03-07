@@ -1,4 +1,4 @@
-import qbs.base 1.0
+import qbs 1.0
 
 Project {
     // Explicit type needed to prevent bundle generation on Mac.

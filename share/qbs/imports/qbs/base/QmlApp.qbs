@@ -1,4 +1,4 @@
-import qbs.base 1.0
+import qbs 1.0
 
 Product {
     type: [qbs.targetOS == 'mac' ? "applicationbundle" : "application"]

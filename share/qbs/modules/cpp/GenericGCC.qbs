@@ -1,4 +1,4 @@
-import qbs.base 1.0
+import qbs 1.0
 import qbs.fileinfo as FileInfo
 import 'gcc.js' as Gcc
 import '../utils.js' as ModUtils

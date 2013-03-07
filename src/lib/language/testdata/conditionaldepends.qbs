@@ -1,4 +1,4 @@
-import qbs.base 1.0
+import qbs 1.0
 import "conditionaldepends_base.qbs" as CondBase
 
 Project {
