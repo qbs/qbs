@@ -65,7 +65,7 @@ ModuleLoader::ModuleLoader(ScriptEngine *engine, BuiltinDeclarations *builtins,
     : m_engine(engine)
     , m_logger(logger)
     , m_progressObserver(0)
-    , m_reader(new ItemReader(builtins))
+    , m_reader(new ItemReader(builtins, logger))
     , m_evaluator(new Evaluator(engine, logger))
 {
 }

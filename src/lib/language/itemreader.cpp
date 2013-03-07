@@ -42,8 +42,9 @@
 namespace qbs {
 namespace Internal {
 
-ItemReader::ItemReader(BuiltinDeclarations *builtins)
+ItemReader::ItemReader(BuiltinDeclarations *builtins, const Logger &logger)
     : m_builtins(builtins)
+    , m_logger(logger)
 {
 }
 

@@ -31,6 +31,7 @@
 #define QBS_ITEMREADER_H
 
 #include "forward_decls.h"
+#include <logging/logger.h>
 
 #include <QStringList>
 
@@ -51,9 +52,10 @@ class BuiltinDeclarations;
 class ItemReader
 {
 public:
-    ItemReader(BuiltinDeclarations *builtins);
+    ItemReader(BuiltinDeclarations *builtins, const Logger &logger);
 
     BuiltinDeclarations *builtins() const { return m_builtins; }
+    const Logger *logger() const { return &m_logger; }
 
     void setSearchPaths(const QStringList &searchPaths);
     const QStringList &searchPaths() const { return m_searchPaths; }
@@ -62,6 +64,7 @@ public:
 
 private:
     BuiltinDeclarations *m_builtins;
+    Logger m_logger;
     QStringList m_searchPaths;
 };
 

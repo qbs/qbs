@@ -120,6 +120,10 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                         && importUri.last() == QLatin1String("base"));
             if (isBase)
                 checkImportVersion(import->versionToken);
+            else if (import->versionToken.length)
+                m_reader->logger()->qbsWarning()
+                            << Tr::tr("Superfluous version specification at %1.").arg(
+                                toCodeLocation(import->versionToken).toString());
         }
 
         QString as;
