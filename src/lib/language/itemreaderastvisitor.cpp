@@ -114,11 +114,9 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
         bool isBase = false;
         if (import->importUri) {
             importUri = toStringList(import->importUri);
-            if (importUri.size() == 2
-                    && importUri.first() == "qbs"
-                    && importUri.last() == "base") {
-                isBase = true; // ### check version!
-            }
+            isBase = (importUri.size() == 1 && importUri.first() == QLatin1String("qbs"))
+                    || (importUri.size() == 2 && importUri.first() == QLatin1String("qbs")
+                        && importUri.last() == QLatin1String("base"));
         }
 
         QString as;
@@ -167,7 +165,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                 }
             }
         } else if (!importUri.isEmpty()) {
-            const QString importPath = importUri.join(QDir::separator());
+            const QString importPath = isBase
+                    ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
             bool found = false;
             foreach (const QString &searchPath, m_reader->searchPaths()) {
                 const QFileInfo fi(FileInfo::resolvePath(
