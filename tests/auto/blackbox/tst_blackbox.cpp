@@ -36,6 +36,12 @@
 #include <QLocale>
 #include <QTemporaryFile>
 
+#if QT_VERSION >= 0x050000
+#define SKIP_TEST(message) QSKIP(message)
+#else
+#define SKIP_TEST(message) QSKIP(message, SkipAll)
+#endif
+
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
@@ -613,11 +619,7 @@ void TestBlackbox::missingProfile()
 {
     SettingsPtr settings = qbsSettings();
     if (!settings->defaultProfile().isEmpty())
-#if QT_VERSION >= 0x050000
-        QSKIP("default profile exists");
-#else
-        QSKIP("default profile exists", SkipAll);
-#endif
+        SKIP_TEST("default profile exists");
     QDir::setCurrent(testDataDir + "/project_filepath_check");
     QVERIFY(runQbs(QStringList("-f") << "project1.qbs", true, false) != 0);
     QVERIFY(m_qbsStderr.contains("No profile"));
