@@ -595,7 +595,10 @@ void TestLanguage::pathProperties()
         QStringList includePaths = getConfigProperty(cfg, QStringList() << "modules" << "dummy"
                                                      << "includePaths").toStringList();
         QCOMPARE(includePaths, QStringList() << projectFileDir);
-
+        QCOMPARE(cfg.value("base_fileInProductDir").toString(),
+                 FileInfo::resolvePath(projectFileDir, QLatin1String("foo")));
+        QCOMPARE(cfg.value("base_fileInBaseProductDir").toString(),
+                 FileInfo::resolvePath(projectFileDir, QLatin1String("subdir/bar")));
     } catch (const Error &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
