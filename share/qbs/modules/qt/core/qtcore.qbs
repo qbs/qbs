@@ -1,7 +1,7 @@
 import qbs.base 1.0
-import qbs.fileinfo 1.0 as FileInfo
+import qbs.fileinfo as FileInfo
 import '../../utils.js' as ModUtils
-import "moc.js" 1.0 as Moc
+import "moc.js" as Moc
 import '../qtfunctions.js' as QtFunctions
 
 Module {

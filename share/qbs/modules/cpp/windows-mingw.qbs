@@ -1,5 +1,5 @@
 import qbs.base 1.0
-import qbs.fileinfo 1.0 as FileInfo
+import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
 
 GenericGCC {
