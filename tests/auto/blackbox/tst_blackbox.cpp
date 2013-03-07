@@ -568,6 +568,24 @@ void TestBlackbox::codegen()
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/codegen")));
 }
 
+void TestBlackbox::missingQObjectHeader()
+{
+    QDir::setCurrent(testDataDir + "/missingqobjectheader");
+    const QString qbsFileName("missingheader.qbs");
+    QFile qbsFile(qbsFileName);
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp']\n}");
+    qbsFile.close();
+    QVERIFY(runQbs(QStringList(), true) != 0);
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
+    qbsFile.close();
+    QEXPECT_FAIL("", "FIXME: This case is known to be broken", Abort);
+    QCOMPARE(runQbs(QStringList(), true), 0);
+}
+
 void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");

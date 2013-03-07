@@ -78,6 +78,7 @@ private slots:
     void recursiveRenaming();
     void recursiveWildcards();
     void codegen();
+    void missingQObjectHeader();
     void productProperties();
     void installedApp();
     void toolLookup();
