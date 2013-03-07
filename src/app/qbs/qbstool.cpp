@@ -28,6 +28,8 @@
 ****************************************************************************/
 #include "qbstool.h"
 
+#include <tools/hostosinfo.h>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QProcess>
@@ -39,7 +41,8 @@ static QString qbsBinDir() { return QCoreApplication::applicationDirPath(); }
 
 static QString qbsToolFilePath(const QString &toolName)
 {
-    return qbsBinDir() + QLatin1Char('/') + toolPrefix() + toolName;
+    return qbsBinDir() + QLatin1Char('/') + toolPrefix()
+            + qbs::Internal::HostOsInfo::appendExecutableSuffix(toolName);
 }
 
 void QbsTool::runTool(const QString &toolName, const QStringList &arguments)
@@ -71,11 +74,14 @@ bool QbsTool::tryToRunTool(const QString &toolName, const QStringList &arguments
 
 QStringList QbsTool::allToolNames()
 {
+    const QString suffix = QLatin1String(QTC_HOST_EXE_SUFFIX);
     QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
-            + QLatin1Char('*')), QDir::Files, QDir::Name);
+            + QString::fromLocal8Bit("*%1").arg(suffix)), QDir::Files, QDir::Name);
     QStringList toolNames;
     const int prefixLength = toolPrefix().count();
-    foreach (const QString &toolFileName, toolFileNames)
-        toolNames << toolFileName.mid(prefixLength);
+    foreach (const QString &toolFileName, toolFileNames) {
+        toolNames << toolFileName.mid(prefixLength,
+                                      toolFileName.count() - prefixLength - suffix.count());
+    }
     return toolNames;
 }
