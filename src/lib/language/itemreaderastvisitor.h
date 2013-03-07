@@ -30,6 +30,7 @@
 #ifndef QBS_ITEMREADERASTVISITOR_H
 #define QBS_ITEMREADERASTVISITOR_H
 
+#include "importversion.h"
 #include "item.h"
 #include "filecontext.h"
 #include <parser/qmljsastvisitor_p.h>
@@ -63,12 +64,14 @@ private:
     CodeLocation toCodeLocation(QbsQmlJS::AST::SourceLocation location) const;
     ItemPtr targetItemForBinding(const ItemPtr &item, const QStringList &binding,
                                  const CodeLocation &bindingLocation);
+    void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
     static void mergeItem(const ItemPtr &dst, const ItemConstPtr &src);
     static void ensureIdScope(const FileContextPtr &file);
     static void setupAlternatives(const ItemPtr &item);
     static void handlePropertiesBlock(const ItemPtr &item, const ItemConstPtr &block);
 
     ItemReader *m_reader;
+    const ImportVersion m_languageVersion;
     QString m_filePath;
     QString m_sourceCode;
     bool m_inRecursion;

@@ -50,6 +50,7 @@ namespace Internal {
 
 ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader)
     : m_reader(reader)
+    , m_languageVersion(ImportVersion::fromString(reader->builtins()->languageVersion()))
     , m_sourceValue(0)
 {
 }
@@ -117,6 +118,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             isBase = (importUri.size() == 1 && importUri.first() == QLatin1String("qbs"))
                     || (importUri.size() == 2 && importUri.first() == QLatin1String("qbs")
                         && importUri.last() == QLatin1String("base"));
+            if (isBase)
+                checkImportVersion(import->versionToken);
         }
 
         QString as;
@@ -408,6 +411,19 @@ ItemPtr ItemReaderASTVisitor::targetItemForBinding(const ItemPtr &item,
         targetItem = jsv->item();
     }
     return targetItem;
+}
+
+void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &versionToken) const
+{
+    if (!versionToken.length)
+        return;
+    const QString importVersionString = m_sourceCode.mid(versionToken.offset, versionToken.length);
+    const ImportVersion importVersion
+            = ImportVersion::fromString(importVersionString, toCodeLocation(versionToken));
+    if (importVersion != m_languageVersion)
+        throw Error(Tr::tr("Incompatible qbs version %1. This is qbs %2.").arg(
+                        importVersionString, m_reader->builtins()->languageVersion()),
+                    toCodeLocation(versionToken));
 }
 
 void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src)

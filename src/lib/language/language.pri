@@ -12,6 +12,7 @@ HEADERS += \
     $$PWD/forward_decls.h \
     $$PWD/functiondeclaration.h \
     $$PWD/identifiersearch.h \
+    $$PWD/importversion.h \
     $$PWD/item.h \
     $$PWD/itemobserver.h \
     $$PWD/itemreader.h \
@@ -35,6 +36,7 @@ SOURCES += \
     $$PWD/filecontext.cpp \
     $$PWD/filetags.cpp \
     $$PWD/identifiersearch.cpp \
+    $$PWD/importversion.cpp \
     $$PWD/item.cpp \
     $$PWD/itemreader.cpp \
     $$PWD/itemreaderastvisitor.cpp \
