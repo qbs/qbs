@@ -338,6 +338,13 @@ ProjectData Project::projectData() const
     return d->projectData();
 }
 
+static bool isExecutable(const PropertyMapPtr &properties, const FileTags &tags)
+{
+    return tags.contains("application")
+        || (properties->qbsPropertyValue(QLatin1String("targetOS"))
+            == QLatin1String("mac") && tags.contains("applicationbundle"));
+}
+
 /*!
  * \brief Returns the file path of the executable associated with the given product.
  * If the product is not an application, an empty string is returned.
@@ -349,11 +356,11 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
     if (!product.isEnabled())
         return QString();
     const BuildProductConstPtr buildProduct = d->internalProduct(product);
-    if (!buildProduct->rProduct->fileTags.contains("application"))
+    if (!isExecutable(buildProduct->rProduct->properties, buildProduct->rProduct->fileTags))
         return QString();
 
     foreach (const Artifact * const artifact, buildProduct->targetArtifacts) {
-        if (artifact->fileTags.contains("application")) {
+        if (isExecutable(artifact->properties, artifact->fileTags)) {
             if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 return artifact->filePath();
             const QString fileName = FileInfo::fileName(artifact->filePath());
