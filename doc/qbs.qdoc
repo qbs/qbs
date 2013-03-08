@@ -332,7 +332,7 @@
     These project files are written using a QML dialect.
     A very simple C++ hello world project looks like this:
     \code ---helloworld.qbs---
-        import qbs.base 1.0
+        import qbs 1.0
 
         Application {
             name: "helloworld"
@@ -370,7 +370,7 @@
 
     \code
     ---CrazyProduct.qbs---
-    import qbs.base 1.0
+    import qbs 1.0
 
     Product {
         property string craziness: "low"
@@ -393,7 +393,7 @@
     }
 
     ---myproject.qbs---
-    import qbs.base 1.0
+    import qbs 1.0
     import "helpers.js" as Helpers
 
     Product {
@@ -442,7 +442,7 @@
     all build variants):
 
     \code ---helloworld.qbs---
-        import qbs.base 1.0
+        import qbs 1.0
 
         Application {
             name: "helloworld"
