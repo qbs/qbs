@@ -22,7 +22,11 @@ isEmpty(vcproj) {
 }
 
 DATA_DIRS = share/qbs/imports share/qbs/modules
-win32:DATA_FILES = bin/ibmsvc.xml bin/ibqbs.bat
+win32:greaterThan(QT_MAJOR_VERSION, 4) {
+    DATA_FILES = $$absolute_path(bin/ibmsvc.xml) $$absolute_path(bin/ibqbs.bat)
+} else {
+    DATA_FILES = bin/ibmsvc.xml bin/ibqbs.bat
+}
 
 defineReplace(cleanPath) {
     win32:1 ~= s|\\\\|/|g
