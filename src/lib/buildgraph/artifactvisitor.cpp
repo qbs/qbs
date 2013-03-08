@@ -33,6 +33,7 @@
 #include "buildproject.h"
 #include "rulesevaluationcontext.h"
 #include <language/language.h>
+#include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {
@@ -43,6 +44,7 @@ ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType
 
 void ArtifactVisitor::visitArtifact(Artifact *artifact)
 {
+    QBS_ASSERT(artifact, return);
     if (m_allArtifacts.contains(artifact))
         return;
     m_allArtifacts << artifact;
