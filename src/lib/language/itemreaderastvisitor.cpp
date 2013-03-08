@@ -305,7 +305,7 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
     value->setFile(m_file);
     if (ast->statement) {
         m_sourceValue.swap(value);
-        visit(ast->statement);
+        visitStatement(ast->statement);
         m_sourceValue.swap(value);
         const QStringList bindingName(p.name);
         checkDuplicateBinding(m_item, bindingName, ast->colonToken);
@@ -340,34 +340,12 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
     JSSourceValuePtr value = JSSourceValue::create();
     value->setFile(m_file);
     m_sourceValue.swap(value);
-    visit(ast->statement);
+    visitStatement(ast->statement);
     m_sourceValue.swap(value);
 
     ItemPtr targetItem = targetItemForBinding(m_item, bindingName, value->location());
     checkDuplicateBinding(targetItem, bindingName, ast->qualifiedId->identifierToken);
     targetItem->m_properties.insert(bindingName.last(), value);
-    return false;
-}
-
-bool ItemReaderASTVisitor::visit(AST::Statement *statement)
-{
-    QBS_CHECK(statement);
-    QBS_CHECK(m_sourceValue);
-
-    QString sourceCode = textOf(m_sourceCode, statement);
-    if (AST::cast<AST::Block *>(statement)) {
-        // rewrite blocks to be able to use return statements in property assignments
-        sourceCode.prepend("(function()");
-        sourceCode.append(")()");
-    }
-
-    m_sourceValue->setSourceCode(sourceCode);
-    m_sourceValue->setLocation(toCodeLocation(statement->firstSourceLocation()));
-
-    IdentifierSearch idsearch;
-    idsearch.add(QLatin1String("base"), &m_sourceValue->m_sourceUsesBase);
-    idsearch.add(QLatin1String("outer"), &m_sourceValue->m_sourceUsesOuter);
-    idsearch.start(statement);
     return false;
 }
 
@@ -386,6 +364,28 @@ bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
 
     f.setLocation(toCodeLocation(ast->firstSourceLocation()));
     m_item->m_functions += f;
+    return false;
+}
+
+bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
+{
+    QBS_CHECK(statement);
+    QBS_CHECK(m_sourceValue);
+
+    QString sourceCode = textOf(m_sourceCode, statement);
+    if (AST::cast<AST::Block *>(statement)) {
+        // rewrite blocks to be able to use return statements in property assignments
+        sourceCode.prepend("(function()");
+        sourceCode.append(")()");
+    }
+
+    m_sourceValue->setSourceCode(sourceCode);
+    m_sourceValue->setLocation(toCodeLocation(statement->firstSourceLocation()));
+
+    IdentifierSearch idsearch;
+    idsearch.add(QLatin1String("base"), &m_sourceValue->m_sourceUsesBase);
+    idsearch.add(QLatin1String("outer"), &m_sourceValue->m_sourceUsesOuter);
+    idsearch.start(statement);
     return false;
 }
 

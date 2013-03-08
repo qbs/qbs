@@ -57,10 +57,10 @@ public:
     bool visit(QbsQmlJS::AST::UiObjectDefinition *ast);
     bool visit(QbsQmlJS::AST::UiPublicMember *ast);
     bool visit(QbsQmlJS::AST::UiScriptBinding *ast);
-    bool visit(QbsQmlJS::AST::Statement *statement);
     bool visit(QbsQmlJS::AST::FunctionDeclaration *ast);
 
 private:
+    bool visitStatement(QbsQmlJS::AST::Statement *statement);
     CodeLocation toCodeLocation(QbsQmlJS::AST::SourceLocation location) const;
     ItemPtr targetItemForBinding(const ItemPtr &item, const QStringList &binding,
                                  const CodeLocation &bindingLocation);
