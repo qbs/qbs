@@ -476,7 +476,8 @@ ItemPtr ModuleLoader::loadModuleFile(ProductContext *productContext, bool isBase
         return module;
     }
 
-    if (module = productContext->project->moduleItemCache.value(filePath)) {
+    module = productContext->project->moduleItemCache.value(filePath);
+    if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile returns clone for " << filePath;
         return module->clone();
     }

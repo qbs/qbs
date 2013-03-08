@@ -115,8 +115,6 @@ private:
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
 
-    ModuleLoader *m_moduleLoader;
-    const BuiltinDeclarations *m_builtins;
     Evaluator *m_evaluator;
     Logger m_logger;
     ScriptEngine *m_engine;

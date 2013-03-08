@@ -54,9 +54,7 @@ extern bool debugProperties;
 
 ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins,
                                  const Logger &logger)
-    : m_moduleLoader(ldr)
-    , m_builtins(builtins)
-    , m_evaluator(ldr->evaluator())
+    : m_evaluator(ldr->evaluator())
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)

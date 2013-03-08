@@ -44,8 +44,7 @@ namespace qbs {
 namespace Internal {
 
 Loader::Loader(ScriptEngine *engine, Settings *settings, const Logger &logger)
-    : m_engine(engine)
-    , m_logger(logger)
+    : m_logger(logger)
     , m_progressObserver(0)
     , m_builtins(new BuiltinDeclarations)
     , m_moduleLoader(new ModuleLoader(engine, m_builtins, logger))

@@ -58,7 +58,6 @@ public:
     QByteArray qmlTypeInfo();
 
 private:
-    ScriptEngine *m_engine;
     Logger m_logger;
     ProgressObserver *m_progressObserver;
     BuiltinDeclarations *m_builtins;
