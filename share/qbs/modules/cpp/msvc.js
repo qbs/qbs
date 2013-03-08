@@ -130,7 +130,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
 
     var allInputs = inputs.obj.concat(inputs.staticlibrary || [])
     if (inputs.dynamiclibrary_import)
-        allInputs = inputs.obj.concat(inputs.dynamiclibrary_import)
+        allInputs = allInputs.concat(inputs.dynamiclibrary_import);
     for (i in allInputs) {
         var fileName = FileInfo.toWindowsSeparators(allInputs[i].fileName)
         args.push(fileName)
