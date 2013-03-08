@@ -32,6 +32,7 @@
 #include "artifactproperties.h"
 #include "scriptengine.h"
 #include <logging/translator.h>
+#include <tools/hostosinfo.h>
 #include <tools/error.h>
 #include <tools/propertyfinder.h>
 #include <tools/persistence.h>
@@ -707,7 +708,19 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
         pattern.prepend(prefix);
         pattern.replace('\\', '/');
         QStringList parts = pattern.split(QLatin1Char('/'));
-        expandPatterns(files, group, parts, baseDir);
+        if (FileInfo::isAbsolute(pattern)) {
+            QString rootDir;
+            if (HostOsInfo::isWindowsHost()) {
+                rootDir = parts.takeFirst();
+                if (!rootDir.endsWith(QLatin1Char('/')))
+                    rootDir.append(QLatin1Char('/'));
+            } else {
+                rootDir = QLatin1Char('/');
+            }
+            expandPatterns(files, group, parts, rootDir);
+        } else {
+            expandPatterns(files, group, parts, baseDir);
+        }
     }
 
     return files;
