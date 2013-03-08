@@ -93,7 +93,7 @@ public:
     bool sourceUsesBase() const { return m_sourceUsesBase; }
     bool sourceUsesOuter() const { return m_sourceUsesOuter; }
 
-    const JSSourceValuePtr &baseValue() { return m_baseValue; }
+    const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
 
     struct Alternative
