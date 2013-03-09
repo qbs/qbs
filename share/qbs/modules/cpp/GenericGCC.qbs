@@ -56,6 +56,7 @@ CppModule {
             var dynamicLibraries = ModUtils.moduleProperties(product, 'dynamicLibraries');
             var staticLibraries = ModUtils.moduleProperties(product, 'staticLibraries');
             var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+            var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
             var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
             var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
@@ -98,7 +99,7 @@ CppModule {
 
             args.push('-o');
             args.push(output.fileName);
-            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI, weakFrameworksI));
+            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI, weakFrameworksI));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
@@ -168,6 +169,7 @@ CppModule {
             var dynamicLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries');
             var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
             var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+            var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
             var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
             var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
@@ -230,7 +232,7 @@ CppModule {
 
             var weakFrameworksI = weakFrameworks;
 
-            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI, weakFrameworksI));
+            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI, weakFrameworksI));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
@@ -255,6 +257,7 @@ CppModule {
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var systemFrameworkPaths = ModUtils.moduleProperties(input, 'systemFrameworkPaths');
             var cFlags = ModUtils.moduleProperties(input, 'cFlags');
             var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
             var objcFlags = ModUtils.moduleProperties(input, 'objcFlags');
@@ -315,7 +318,7 @@ CppModule {
                 if (cFlags)
                     args = args.concat(cFlags);
             }
-            args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, input.fileName, output))
+            args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, input.fileName, output))
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
@@ -335,13 +338,14 @@ CppModule {
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+            var systemFrameworkPaths = ModUtils.moduleProperties(input, 'systemFrameworkPaths');
             args.push('-x');
             args.push('c++-header');
             var cxxFlags = ModUtils.moduleProperty(product, "cxxFlags")
             if (cxxFlags)
                 args = args.concat(cxxFlags);
             args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths,
-                    ModUtils.moduleProperty(product, "precompiledHeader"), output));
+                    systemFrameworkPaths, ModUtils.moduleProperty(product, "precompiledHeader"), output));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
             return cmd;

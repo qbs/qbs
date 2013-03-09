@@ -1,4 +1,4 @@
-function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks, weakFrameworks)
+function libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks, weakFrameworks)
 {
     var i;
     var args = [];
@@ -23,6 +23,8 @@ function libs(libraryPaths, frameworkPaths, rpaths, dynamicLibraries, staticLibr
     }
     if (frameworkPaths)
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
+    if (systemFrameworkPaths)
+        args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
     for (i in frameworks)
         args = args.concat(['-framework', frameworks[i]]);
     for (i in weakFrameworks)
@@ -67,7 +69,7 @@ function removePrefixAndSuffix(str, prefix, suffix)
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, fileName, output)
+function additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, fileName, output)
 {
     var args = []
     if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
@@ -99,6 +101,8 @@ function additionalFlags(product, includePaths, frameworkPaths, systemIncludePat
         args.push('-F' + frameworkPaths[i]);
     for (i in systemIncludePaths)
         args.push('-isystem' + systemIncludePaths[i]);
+    for (i in systemFrameworkPaths)
+        args.push('-iframework' + systemFrameworkPaths[i]);
     args.push('-c');
     args.push(fileName);
     args.push('-o');
