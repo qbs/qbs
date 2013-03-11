@@ -53,6 +53,7 @@ private:
     Loader *loader;
     ResolvedProjectPtr project;
     SetupProjectParameters defaultParameters;
+    const QString m_wildcardsTestDirPath;
 
     QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
     ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);

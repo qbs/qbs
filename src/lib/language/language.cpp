@@ -707,7 +707,7 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
     foreach (QString pattern, patterns) {
         pattern.prepend(prefix);
         pattern.replace('\\', '/');
-        QStringList parts = pattern.split(QLatin1Char('/'));
+        QStringList parts = pattern.split(QLatin1Char('/'), QString::SkipEmptyParts);
         if (FileInfo::isAbsolute(pattern)) {
             QString rootDir;
             if (HostOsInfo::isWindowsHost()) {

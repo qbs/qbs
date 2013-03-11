@@ -50,6 +50,7 @@ static QString testProject(const char *fileName) {
 
 TestLanguage::TestLanguage(Settings *settings, ILogSink *logSink)
     : m_settings(settings), m_logSink(logSink)
+    , m_wildcardsTestDirPath(QDir::tempPath() + QLatin1String("/_wildcards_test_dir_"))
 {
     qsrand(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
@@ -94,6 +95,7 @@ void TestLanguage::initTestCase()
                            << testDataDir());
     setConfigProperty(defaultParameters.buildConfiguration,
                       QStringList() << "qbs" << "targetOS", "linux");
+    QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
 
 void TestLanguage::cleanupTestCase()
@@ -802,7 +804,6 @@ void TestLanguage::wildcards_data()
     QTest::addColumn<QStringList>("expected");
 
     const bool useGroup = true;
-
     for (int i = 0; i <= 1; ++i) {
         const bool useGroup = i;
         const QByteArray dataTagSuffix = useGroup ? " group" : " nogroup";
@@ -848,6 +849,13 @@ void TestLanguage::wildcards_data()
                 << (QStringList() << "a/*")
                 << QStringList()
                 << (QStringList() << "a/foo.h" << "a/foo.cpp");
+        QTest::newRow(QByteArray("absolute paths") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
+                << (QStringList() << m_wildcardsTestDirPath + "/?oo.*")
+                << QStringList()
+                << (QStringList() << "foo.h" << "foo.cpp");
     }
     QTest::newRow(QByteArray("recursive 1"))
             << useGroup
@@ -896,24 +904,23 @@ void TestLanguage::wildcards()
     QFETCH(QStringList, expected);
 
     // create test directory
-    const QString wildcardsTestDir = QDir::tempPath() + "/_wildcards_test_dir_";
     QDir::setCurrent(QDir::tempPath());
     {
         QString errorMessage;
-        if (QFile::exists(wildcardsTestDir)) {
-            if (!removeDirectoryWithContents(wildcardsTestDir, &errorMessage)) {
+        if (QFile::exists(m_wildcardsTestDirPath)) {
+            if (!removeDirectoryWithContents(m_wildcardsTestDirPath, &errorMessage)) {
                 qDebug() << errorMessage;
                 QVERIFY2(false, "removeDirectoryWithContents failed");
             }
         }
-        QDir().mkdir(wildcardsTestDir);
+        QVERIFY(QDir().mkdir(m_wildcardsTestDirPath));
     }
 
     // create project file
     const QString groupName = "Keks";
     QString dataTag = QString::fromLocal8Bit(QTest::currentDataTag());
     dataTag.replace(' ', '_');
-    const QString projectFilePath = wildcardsTestDir + "/test_" + dataTag + ".qbs";
+    const QString projectFilePath = m_wildcardsTestDirPath + "/test_" + dataTag + ".qbs";
     {
         QFile projectFile(projectFilePath);
         QVERIFY(projectFile.open(QIODevice::WriteOnly));
@@ -938,7 +945,7 @@ void TestLanguage::wildcards()
 
     // create files
     foreach (QString filePath, filesToCreate) {
-        filePath.prepend(wildcardsTestDir + '/');
+        filePath.prepend(m_wildcardsTestDirPath + '/');
         QFileInfo fi(filePath);
         if (!QDir(fi.path()).exists())
             QVERIFY(QDir().mkpath(fi.path()));
@@ -976,9 +983,9 @@ void TestLanguage::wildcards()
         QStringList actualFilePaths;
         foreach (const SourceArtifactConstPtr &artifact, wildcards->files) {
             QString str = artifact->absoluteFilePath;
-            int idx = str.indexOf(wildcardsTestDir);
+            int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)
-                str.remove(0, idx + wildcardsTestDir.count() + 1);
+                str.remove(0, idx + m_wildcardsTestDirPath.count() + 1);
             actualFilePaths << str;
         }
         actualFilePaths.sort();
