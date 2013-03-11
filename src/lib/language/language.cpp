@@ -755,6 +755,8 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
             ? QDir::Dirs
             : QDir::Files;
 
+    if (isDir && !FileInfo::isPattern(filePattern))
+        itFilters |= QDir::Hidden;
     if (filePattern != QLatin1String("..") && filePattern != QLatin1String("."))
         itFilters |= QDir::NoDotAndDotDot;
 
