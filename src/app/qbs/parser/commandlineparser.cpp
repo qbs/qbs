@@ -189,7 +189,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     PropertyMaps properties;
 
     const QString buildVariantKey = QLatin1String("qbs.buildVariant");
-    QString currentKey = QString();
+    QString currentKey;
     QVariantMap currentProperties;
     foreach (const QString &arg, d->command->additionalArguments()) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
