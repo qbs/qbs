@@ -207,11 +207,11 @@ void BuildProduct::store(PersistentPool &pool) const
     pool.stream() << artifacts.count();
 
     //artifacts
-    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++)
+    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); ++i)
         pool.store(*i);
 
     // edges
-    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); i++) {
+    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); ++i) {
         Artifact * artifact = *i;
         pool.store(artifact);
 
