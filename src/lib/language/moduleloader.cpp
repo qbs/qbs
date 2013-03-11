@@ -636,6 +636,7 @@ void ModuleLoader::resolveProbe(const ItemPtr &parent, const ItemPtr &probe)
     TextFile::init(scope);
     m_engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
     m_engine->currentContext()->pushScope(scope);
+    m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     QScriptValue sv = m_engine->evaluate(configureScript->sourceCode());
@@ -646,6 +647,7 @@ void ModuleLoader::resolveProbe(const ItemPtr &parent, const ItemPtr &probe)
         if (newValue != b.second.toVariant())
             probe->setProperty(b.first, VariantValue::create(newValue));
     }
+    m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
     m_engine->currentContext()->popScope();
 }
