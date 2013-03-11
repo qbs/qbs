@@ -273,7 +273,7 @@
     \code
     qbs setup-qt C:\Qt\5.0.0\qtbase\bin\qmake.exe qt5
     qbs config profiles.qt5.qbs.architecture x86_64
-    qbs config profiles.qt5.qbs.baseProfile msvc2010
+    qbs config profiles.qt5.baseProfile msvc2010
     \endcode
 
     The last example uses the inheritance feature of profiles: All settings in the profile
