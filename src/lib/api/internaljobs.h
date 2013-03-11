@@ -150,6 +150,7 @@ public:
 
 private slots:
     void handleFinished();
+    void emitFinished();
 
 private:
     Executor *m_executor;

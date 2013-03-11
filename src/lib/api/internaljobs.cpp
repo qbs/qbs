@@ -261,8 +261,9 @@ void InternalBuildJob::build(const QList<BuildProductPtr> &products,
     connect(m_executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 
     connect(executorThread, SIGNAL(started()), m_executor, SLOT(build()));
-    connect(m_executor, SIGNAL(finished()), executorThread, SLOT(quit()));
-    connect(executorThread, SIGNAL(finished()), SLOT(handleFinished()));
+    connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));
+    connect(m_executor, SIGNAL(destroyed()), executorThread, SLOT(quit()));
+    connect(executorThread, SIGNAL(finished()), this, SLOT(emitFinished()));
     executorThread->start();
 }
 
@@ -274,6 +275,10 @@ void InternalBuildJob::handleFinished()
         products().first()->project->setEvaluationContext(RulesEvaluationContextPtr());
     storeBuildGraph();
     m_executor->deleteLater();
+}
+
+void InternalBuildJob::emitFinished()
+{
     emit finished(this);
 }
 
