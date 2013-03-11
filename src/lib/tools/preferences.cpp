@@ -98,8 +98,7 @@ QStringList Preferences::pathList(const QString &key, const QString &defaultValu
 {
     QStringList paths = getPreference(key).toString().split(
                 Internal::HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
-    if (paths.isEmpty())
-        paths << defaultValue;
+    paths << defaultValue;
     return paths;
 }
 
