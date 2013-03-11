@@ -81,6 +81,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
     }
     ScannerPluginManager::instance()->loadPlugins(pluginPaths, logger);
 
+    qRegisterMetaType<Error>("qbs::Error");
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");
     qRegisterMetaType<InternalJob *>("Internal::InternalJob *");
     pluginsLoaded = true;

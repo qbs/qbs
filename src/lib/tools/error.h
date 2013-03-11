@@ -30,6 +30,8 @@
 #ifndef QBS_ERROR
 #define QBS_ERROR
 
+#include <QMetaType>
+
 #include "codelocation.h"
 
 #include <QList>
@@ -71,7 +73,6 @@ private:
 
 } // namespace qbs
 
-#define QBS_TESTLIB_CATCH catch (qbs::Error &e) { \
-    QFAIL(qPrintable(QString(QLatin1String("\n%1\n")).arg(e.toString())));}
+Q_DECLARE_METATYPE(qbs::Error)
 
 #endif // QBS_ERROR
