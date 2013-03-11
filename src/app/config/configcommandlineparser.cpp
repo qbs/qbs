@@ -105,7 +105,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 void ConfigCommandLineParser::setCommand(ConfigCommand::Command command)
 {
     if (m_command.command != ConfigCommand::CfgNone)
-        throw Error("You cannot specifiy more than one command.");
+        throw Error("You cannot specify more than one command.");
     m_command.command = command;
 }
 
