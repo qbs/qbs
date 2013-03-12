@@ -234,9 +234,9 @@ void TestBlackbox::build_project_dry_run()
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = buildDir + "/.obj/app/main" + QTC_HOST_OBJECT_SUFFIX;
+    const QString appObjectFilePath = buildDir + "/.obj/app/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
     const QString appExeFilePath = buildDir + "/app" + QTC_HOST_EXE_SUFFIX;
-    const QString depObjectFilePath = buildDir + "/.obj/dep/dep" + QTC_HOST_OBJECT_SUFFIX;
+    const QString depObjectFilePath = buildDir + "/.obj/dep/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
     const QString depExeFilePath = buildDir + "/dep" + QTC_HOST_EXE_SUFFIX;
 
     QDir::setCurrent(testDataDir + "/clean");
@@ -327,7 +327,8 @@ void TestBlackbox::track_qobject_change()
     QCOMPARE(runQbs(), 0);
     const QString productFilePath = HostOsInfo::appendExecutableSuffix(buildDir + "/i");
     QVERIFY2(QFile(productFilePath).exists(), qPrintable(productFilePath));
-    QString moc_bla_objectFileName = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla" QTC_HOST_OBJECT_SUFFIX;
+    QString moc_bla_objectFileName
+            = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
     QVERIFY(QFile(moc_bla_objectFileName).exists());
 
     QTest::qSleep(1000);
@@ -358,7 +359,7 @@ void TestBlackbox::trackAddFile()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
-    QString unchangedObjectFile = buildDir + "/someapp/narf" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
@@ -402,7 +403,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
-    QString unchangedObjectFile = buildDir + "/someapp/narf" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     QTest::qWait(1000); // for file systems with low resolution timestamps
@@ -431,7 +432,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QCOMPARE(QFile::exists(buildDir + "/someapp/zort" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -480,8 +481,8 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY2(QFile::exists(buildDir + "/.obj/someapp/main_foo" QTC_HOST_OBJECT_SUFFIX),
-            qPrintable(buildDir + "/.obj/someapp/main_foo" QTC_HOST_OBJECT_SUFFIX));
+    QVERIFY2(QFile::exists(buildDir + "/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX),
+            qPrintable(buildDir + "/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
     QVERIFY2(QFile::exists(buildDir + "/main_foo.cpp"), qPrintable(buildDir + "/main_foo.cpp"));
     QVERIFY2(QFile::exists(buildDir + "/main.foo"), qPrintable(buildDir + "/main.foo"));
 
@@ -506,7 +507,7 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
     QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo.cpp"), false);
     QCOMPARE(QFile::exists(buildDir + "/someapp/main.foo"), false);
 }
