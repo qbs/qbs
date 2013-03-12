@@ -1,0 +1,105 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage index.html
+    \previouspage qbs-project-item.html
+    \page qbs-properties-item.html
+    \nextpage qbs-rule-item.html
+
+    \title Properties Item
+
+    The \c Properties item is an auxiliary item for setting multiple property values conditionally.
+
+    In the following example, two properties are set if the project is built for Windows:
+    \code
+    Product {
+        Properties {
+            condition: qbs.targetOS == "windows"
+            cpp.defines: ["ON_WINDOWS"]
+            cpp.includePaths: ["extraWindowsIncludes"]
+        }
+    }
+    \endcode
+
+    Multiple \c Properties items can be specified to set properties dependent on different
+    conditions. The order of appearance is important. Semantics are similar to if-else-chains.
+    The following example
+    \code
+    Product {
+        Properties {
+            condition: qbs.targetOS == "windows"
+            cpp.defines: ["ON_WINDOWS"]
+            cpp.includePaths: ["myWindowsIncludes"]
+        }
+        Properties {
+            condition: qbs.targetOS == "linux"
+            cpp.defines: ["ON_LINUX"]
+            cpp.includePaths: ["myLinuxIncludes"]
+        }
+        cpp.defines: ["ON_UNKNOWN_PLATFORM"]
+    }
+    \endcode
+    is equivalent to
+    \code
+    Product {
+        cpp.defines: {
+            if (qbs.targetOS == "windows")
+                return ["ON_WINDOWS"];
+            if (qbs.targetOS == "linux")
+                return ["ON_LINUX"];
+            return ["ON_UNKNOWN_PLATFORM"];
+        }
+        cpp.includePaths: {
+            if (qbs.targetOS == "windows")
+                return ["ON_WINDOWS"];
+            if (qbs.targetOS == "linux")
+                return ["ON_LINUX"];
+            return undefined;
+        }
+    }
+    \endcode
+
+    \c Properties items are never inherited. They are local to the file they appear in.
+
+    We suggest to use the \c Properties item for mutually exclusive conditions only. It is
+    especially useful if there are several properties to set, based on the same condition.
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li condition
+            \li bool
+            \li none - must be specified
+            \li The condition to be used for the other bindings in this item.
+    \endtable
+*/
