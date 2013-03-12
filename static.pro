@@ -75,3 +75,7 @@ OTHER_FILES += $$FILES
     copy2build.CONFIG += no_link
     QMAKE_EXTRA_COMPILERS += copy2build
 }
+
+share.files = share/qbs
+share.path = /share
+INSTALLS += share

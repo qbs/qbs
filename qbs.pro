@@ -46,4 +46,3 @@ OTHER_FILES += \
 
 include(qbs_version.pri)
 include(doc/doc.pri)
-include(share/share.pri)
