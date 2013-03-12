@@ -54,6 +54,8 @@ all_tests {
     SOURCES += $$PWD/tst_buildgraph.cpp
 }
 
-buildgraph_headers.files = $$PWD/forward_decls.h
-buildgraph_headers.path = /include/qbs/buildgraph
-INSTALLS += buildgraph_headers
+!qbs_no_dev_install {
+    buildgraph_headers.files = $$PWD/forward_decls.h
+    buildgraph_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/buildgraph
+    INSTALLS += buildgraph_headers
+}

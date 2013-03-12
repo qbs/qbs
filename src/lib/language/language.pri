@@ -54,6 +54,8 @@ all_tests {
     OTHER_FILES += $$PWD/testdata/*
 }
 
-language_headers.files = $$PWD/forward_decls.h
-language_headers.path = /include/qbs/language
-INSTALLS += language_headers
+!qbs_no_dev_install {
+    language_headers.files = $$PWD/forward_decls.h
+    language_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/language
+    INSTALLS += language_headers
+}

@@ -32,12 +32,20 @@ HEADERS += \
     qbs.h
 
 win32 {
-    dlltarget.path = /bin
+    dlltarget.path = $${QBS_INSTALL_PREFIX}/bin
     INSTALLS += dlltarget
 }
-target.path = /lib
-INSTALLS += target
 
-qbs_h.files = qbs.h
-qbs_h.path = /include/qbs
-INSTALLS += qbs_h
+!win32|!qbs_no_dev_install {
+    !isEmpty(QBS_LIB_INSTALL_DIR): \
+        target.path = $${QBS_LIB_INSTALL_DIR}
+    else: \
+        target.path = $${QBS_INSTALL_PREFIX}/lib
+    INSTALLS += target
+}
+
+!qbs_no_dev_install {
+    qbs_h.files = qbs.h
+    qbs_h.path = $${QBS_INSTALL_PREFIX}/include/qbs
+    INSTALLS += qbs_h
+}

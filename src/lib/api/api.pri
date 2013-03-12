@@ -12,6 +12,8 @@ SOURCES += \
     $$PWD/jobs.cpp \
     $$PWD/project.cpp
 
-api_headers.files = $$PWD/projectdata.h $$PWD/runenvironment.h $$PWD/jobs.h $$PWD/project.h
-api_headers.path = /include/qbs/api
-INSTALLS += api_headers
+!qbs_no_dev_install {
+    api_headers.files = $$PWD/projectdata.h $$PWD/runenvironment.h $$PWD/jobs.h $$PWD/project.h
+    api_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/api
+    INSTALLS += api_headers
+}

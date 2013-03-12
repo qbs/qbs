@@ -59,16 +59,18 @@ all_tests {
     SOURCES += $$PWD/tst_tools.cpp
 }
 
-tools_headers.files = \
-    $$PWD/codelocation.h \
-    $$PWD/error.h \
-    $$PWD/settings.h \
-    $$PWD/preferences.h \
-    $$PWD/profile.h \
-    $$PWD/processresult.h \
-    $$PWD/buildoptions.h \
-    $$PWD/installoptions.h \
-    $$PWD/setupprojectparameters.h \
-    $$PWD/qbs_export.h
-tools_headers.path = /include/qbs/tools
-INSTALLS += tools_headers
+!qbs_no_dev_install {
+    tools_headers.files = \
+        $$PWD/codelocation.h \
+        $$PWD/error.h \
+        $$PWD/settings.h \
+        $$PWD/preferences.h \
+        $$PWD/profile.h \
+        $$PWD/processresult.h \
+        $$PWD/buildoptions.h \
+        $$PWD/installoptions.h \
+        $$PWD/setupprojectparameters.h \
+        $$PWD/qbs_export.h
+    tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools
+    INSTALLS += tools_headers
+}

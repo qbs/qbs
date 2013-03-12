@@ -8,5 +8,5 @@ CONFIG -= app_bundle
 include($${PWD}/../lib/use.pri)
 include($${PWD}/shared/logging/logging.pri)
 
-target.path = /bin
+target.path = $${QBS_INSTALL_PREFIX}/bin
 INSTALLS += target

@@ -7,6 +7,8 @@ SOURCES += \
     $$PWD/logger.cpp \
     $$PWD/ilogsink.cpp
 
-logging_headers.files = $$PWD/ilogsink.h
-logging_headers.path = /include/qbs/logging
-INSTALLS += logging_headers
+!qbs_no_dev_install {
+    logging_headers.files = $$PWD/ilogsink.h
+    logging_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/logging
+    INSTALLS += logging_headers
+}

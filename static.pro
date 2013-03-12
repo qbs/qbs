@@ -67,7 +67,10 @@ OTHER_FILES += $$FILES
 
 !isEqual(PWD, $$OUT_PWD) {
     copy2build.input = FILES
-    copy2build.output = ${QMAKE_FUNC_FILE_IN_stripSrcDir}
+    !isEmpty(QBS_RESOURCES_BUILD_DIR): \
+        copy2build.output = $${QBS_RESOURCES_BUILD_DIR}/${QMAKE_FUNC_FILE_IN_stripSrcDir}
+    else: \
+        copy2build.output = ${QMAKE_FUNC_FILE_IN_stripSrcDir}
     isEmpty(vcproj):copy2build.variable_out = PRE_TARGETDEPS
     win32:copy2build.commands = $$QMAKE_COPY \"${QMAKE_FILE_IN}\" \"${QMAKE_FILE_OUT}\"
     unix:copy2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
@@ -77,5 +80,9 @@ OTHER_FILES += $$FILES
 }
 
 share.files = share/qbs
-share.path = /share
+!isEmpty(QBS_RESOURCES_INSTALL_DIR): \
+    installPrefix = $${QBS_RESOURCES_INSTALL_DIR}
+else: \
+    installPrefix = $${QBS_INSTALL_PREFIX}
+share.path = $${installPrefix}/share
 INSTALLS += share

@@ -51,7 +51,7 @@ qch_docs.commands = $$HELPGENERATOR -o $$shell_quote($$QCH_FILE) $$QHP_FILE
 qch_docs.depends += html_docs
 qch_docs.files = $$QCH_FILE
 
-qch_docs.path = /share/doc/qbs
+qch_docs.path = $${QBS_INSTALL_PREFIX}/share/doc/qbs
 qch_docs.CONFIG += no_check_exist
 INSTALLS += qch_docs
 
