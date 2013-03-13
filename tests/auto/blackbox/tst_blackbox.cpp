@@ -192,6 +192,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("app and lib with same source file")
             << QString("lib_samesource")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorldApp"));
+    QTest::newRow("source files with the same base name but different extensions")
+            << QString("sameBaseName")
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/basename"));
 }
 
 void TestBlackbox::build_project()
