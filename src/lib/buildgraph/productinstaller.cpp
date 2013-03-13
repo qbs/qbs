@@ -95,10 +95,14 @@ void ProductInstaller::install()
 
 void ProductInstaller::removeInstallRoot()
 {
+    const QString nativeInstallRoot = QDir::toNativeSeparators(m_options.installRoot);
     if (m_options.dryRun) {
-        m_logger.qbsInfo() << Tr::tr("Would remove install root '%1'.").arg(m_options.installRoot);
+        m_logger.qbsInfo() << Tr::tr("Would remove install root '%1'.").arg(nativeInstallRoot);
         return;
     }
+    m_logger.qbsDebug() << QString::fromLocal8Bit("Removing install root '%1'.")
+            .arg(nativeInstallRoot);
+
     QString errorMessage;
     if (!removeDirectoryWithContents(m_options.installRoot, &errorMessage)) {
         const QString fullErrorMessage = Tr::tr("Cannot remove install root '%1': %2")
@@ -115,19 +119,23 @@ void ProductInstaller::copyFile(const Artifact *artifact)
             = artifact->properties->qbsPropertyValue(QLatin1String("installDir")).toString();
     QString targetDir = m_options.installRoot;
     targetDir.append(QLatin1Char('/')).append(relativeInstallDir);
+    targetDir = QDir::cleanPath(targetDir);
+    const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
+    const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
     if (m_options.dryRun) {
         m_logger.qbsInfo() << Tr::tr("Would copy file '%1' into target directory '%2'.")
-                              .arg(QDir::toNativeSeparators(artifact->filePath()), targetDir);
+                              .arg(nativeFilePath, nativeTargetDir);
         return;
     }
+    m_logger.qbsDebug() << QString::fromLocal8Bit("Copying file '%1' into target directory '%2'.")
+                           .arg(nativeFilePath, nativeTargetDir);
 
     if (!QDir::root().mkpath(targetDir)) {
-        handleError(Tr::tr("Directory '%1' could not be created.")
-                    .arg(QDir::toNativeSeparators(targetDir)));
+        handleError(Tr::tr("Directory '%1' could not be created.").arg(nativeTargetDir));
         return;
     }
-    const QString targetFilePath
-            = targetDir + QLatin1Char('/') + FileInfo::fileName(artifact->filePath());
+    const QString targetFilePath = QDir::cleanPath(targetDir + QLatin1Char('/')
+                                                   + FileInfo::fileName(artifact->filePath()));
     QString errorMessage;
     if (!copyFileRecursion(artifact->filePath(), targetFilePath, &errorMessage))
         handleError(Tr::tr("Installation error: %1").arg(errorMessage));
