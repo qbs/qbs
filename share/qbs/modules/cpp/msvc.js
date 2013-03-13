@@ -42,6 +42,19 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     for (i in defines)
         args.push('/D' + defines[i])
 
+    var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    if (minimumWindowsVersion) {
+        var hexVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
+        if (hexVersion) {
+            var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
+            for (i in versionDefs) {
+                args.push('/D' + versionDefs[i] + '=' + hexVersion);
+            }
+        } else {
+            print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+        }
+    }
+
     var objOutput = outputs.obj ? outputs.obj[0] : undefined
     var pchOutput = outputs["c++_pch"] ? outputs["c++_pch"][0] : undefined
 
@@ -108,11 +121,18 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     else
         args.push('/INCREMENTAL:NO')
 
-    if (product.consoleApplication !== undefined) {
-        if (product.consoleApplication)
-            args.push('/SUBSYSTEM:CONSOLE');
-        else
-            args.push('/SUBSYSTEM:WINDOWS');
+    var subsystemSwitch = product.consoleApplication ? '/SUBSYSTEM:CONSOLE' : '/SUBSYSTEM:WINDOWS';
+
+    var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    if (minimumWindowsVersion) {
+        var subsystemVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
+        if (subsystemVersion) {
+            args.push(subsystemSwitch + ',' + subsystemVersion);
+            args.push('/OSVERSION:' + subsystemVersion);
+        } else {
+            print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+            args.push(subsystemSwitch);
+        }
     }
 
     var linkerOutputNativeFilePath;

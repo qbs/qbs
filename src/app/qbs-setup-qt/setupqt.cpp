@@ -222,15 +222,82 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     profile.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
 
+    QDir qconfigDir;
     if (qtEnviroment.mkspecPath.contains("macx")) {
         if (qtEnviroment.configItems.contains("qt_framework")) {
             profile.setValue(settingsTemplate.arg("frameworkBuild"), true);
+            qconfigDir.setPath(qtEnviroment.libraryPath);
+            qconfigDir.cd("QtCore.framework/Headers");
         } else if (qtEnviroment.configItems.contains("qt_no_framework")) {
             profile.setValue(settingsTemplate.arg("frameworkBuild"), false);
+            qconfigDir.setPath(qtEnviroment.includePath);
+            qconfigDir.cd("Qt");
         } else {
             throw Error(tr("could not determine whether Qt is a frameworks build"));
         }
     }
+
+    // Set the minimum operating system versions appropriate for this Qt version
+    QString windowsVersion, macVersion, iosVersion, androidVersion;
+
+    // ### TODO: Also dependent on the toolchain, which we can't easily access here
+    // Most 32-bit Windows applications based on either Qt 5 or Qt 4 should run
+    // on 2000, so this is a good baseline for now.
+    if (qtEnviroment.mkspecPath.contains("win32") && qtEnviroment.qtMajorVersion >= 4)
+        windowsVersion = QLatin1String("5.0");
+
+    if (qtEnviroment.mkspecPath.contains("macx")) {
+        if (qtEnviroment.qtMajorVersion >= 5) {
+            macVersion = QLatin1String("10.6");
+        } else if (qtEnviroment.qtMajorVersion == 4 && qtEnviroment.qtMinorVersion >= 6) {
+            QFile qconfig(qconfigDir.absoluteFilePath("qconfig.h"));
+            if (qconfig.open(QIODevice::ReadOnly)) {
+                bool qtCocoaBuild = false;
+                QTextStream ts(&qconfig);
+                QString line;
+                do {
+                    line = ts.readLine();
+                    if (QRegExp(QLatin1String("\\s*#define\\s+QT_MAC_USE_COCOA\\s+1\\s*"), Qt::CaseSensitive).exactMatch(line)) {
+                        qtCocoaBuild = true;
+                        break;
+                    }
+                } while (!line.isNull());
+
+                if (ts.status() == QTextStream::Ok)
+                    macVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
+            }
+
+            if (macVersion.isEmpty())
+                throw Error(tr("error reading qconfig.h; could not determine whether Qt is using Cocoa or Carbon"));
+        }
+    }
+
+    if (qtEnviroment.mkspecPath.contains("ios") && qtEnviroment.qtMajorVersion >= 5)
+        iosVersion = QLatin1String("4.3");
+
+    if (qtEnviroment.mkspecPath.contains("android")) {
+        if (qtEnviroment.qtMajorVersion >= 5)
+            androidVersion = QLatin1String("2.3");
+        else if (qtEnviroment.qtMajorVersion == 4 && qtEnviroment.qtMinorVersion >= 8)
+            androidVersion = QLatin1String("1.6"); // Necessitas
+    }
+
+    if (qtEnviroment.mkspecPath.contains("winrt") && qtEnviroment.qtMajorVersion >= 5)
+        windowsVersion = QLatin1String("6.2");
+
+    // ### TODO: wince, winphone, blackberry
+
+    if (!windowsVersion.isEmpty())
+        profile.setValue(QLatin1String("cpp.minimumWindowsVersion"), windowsVersion);
+
+    if (!macVersion.isEmpty())
+        profile.setValue(QLatin1String("cpp.minimumMacVersion"), macVersion);
+
+    if (!iosVersion.isEmpty())
+        profile.setValue(QLatin1String("cpp.minimumIosVersion"), iosVersion);
+
+    if (!androidVersion.isEmpty())
+        profile.setValue(QLatin1String("cpp.minimumAndroidVersion"), androidVersion);
 
     // If this profile does not specify a toolchain and we find exactly one profile that looks
     // like it might have been added by qbs-detect-toolchain, let's use that one as our

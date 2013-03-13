@@ -1,4 +1,4 @@
-function libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks, weakFrameworks)
+function libraryLinkerFlags(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks, weakFrameworks)
 {
     var i;
     var args = [];
@@ -32,6 +32,7 @@ function libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynami
     return args;
 }
 
+// for compiler AND linker
 function configFlags(config) {
     var args = [];
 
@@ -69,7 +70,7 @@ function removePrefixAndSuffix(str, prefix, suffix)
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, fileName, output)
+function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, fileName, output)
 {
     var args = []
     if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
@@ -103,9 +104,40 @@ function additionalFlags(product, includePaths, frameworkPaths, systemIncludePat
         args.push('-isystem' + systemIncludePaths[i]);
     for (i in systemFrameworkPaths)
         args.push('-iframework' + systemFrameworkPaths[i]);
+
+    var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS") === "windows") {
+        var hexVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
+        if (hexVersion) {
+            var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
+            for (i in versionDefs)
+                args.push('-D' + versionDefs[i] + '=' + hexVersion);
+        } else {
+            print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+        }
+    }
+
     args.push('-c');
     args.push(fileName);
     args.push('-o');
     args.push(output.fileName);
+    return args
+}
+
+function additionalCompilerAndLinkerFlags(product) {
+    var args = []
+
+    var minimumMacVersion = ModUtils.moduleProperty(product, "minimumMacVersion");
+    if (minimumMacVersion && product.moduleProperty("qbs", "targetOS") === "mac")
+        args.push('-mmacosx-version-min=' + minimumMacVersion);
+
+    var minimumiOSVersion = ModUtils.moduleProperty(product, "minimumIosVersion");
+    if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS") === "ios") {
+        if (product.moduleProperty("qbs", "architecture") === "x86")
+            args.push('-mios-simulator-version-min=' + minimumiOSVersion);
+        else
+            args.push('-miphoneos-version-min=' + minimumiOSVersion);
+    }
+
     return args
 }

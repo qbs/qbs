@@ -1,5 +1,6 @@
 import qbs 1.0
 import qbs.fileinfo as FileInfo
+import 'windows.js' as Windows
 import 'gcc.js' as Gcc
 import '../utils.js' as ModUtils
 
@@ -101,7 +102,8 @@ CppModule {
 
             args.push('-o');
             args.push(output.fileName);
-            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI, weakFrameworksI));
+            args = args.concat(Gcc.libraryLinkerFlags(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibrariesI, frameworksI, weakFrameworksI));
+            args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
@@ -188,12 +190,20 @@ CppModule {
             args = args.concat(platformLinkerFlags);
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
-            if (product.consoleApplication !== undefined
-                    && product.moduleProperty("qbs", "toolchain") === "mingw") {
-                if (product.consoleApplication)
-                    args.push("-Wl,-subsystem,console");
-                else
-                    args.push("-Wl,-subsystem,windows");
+            if (product.moduleProperty("qbs", "toolchain") === "mingw") {
+                var subsystemSwitch = product.consoleApplication ? "-Wl,-subsystem,console" : "-Wl,-subsystem,windows";
+
+                var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+                if (minimumWindowsVersion) {
+                    var subsystemVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
+                    if (subsystemVersion) {
+                        args.push(subsystemSwitch + ',' + subsystemVersion);
+                        args.push("-Wl,-osversion," + subsystemVersion);
+                    } else {
+                        print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+                        args.push(subsystemSwitch);
+                    }
+                }
             }
             args.push('-o');
             args.push(output.fileName);
@@ -238,7 +248,8 @@ CppModule {
 
             var weakFrameworksI = weakFrameworks;
 
-            args = args.concat(Gcc.libs(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI, weakFrameworksI));
+            args = args.concat(Gcc.libraryLinkerFlags(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibrariesI, staticLibrariesI, frameworksI, weakFrameworksI));
+            args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             for (i in inputs.dynamiclibrary)
                 args.push(inputs.dynamiclibrary[i].fileName);
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
@@ -327,7 +338,8 @@ CppModule {
                     break;
                 }
             }
-            args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, input.fileName, output))
+            args = args.concat(Gcc.additionalCompilerFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, input.fileName, output));
+            args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
@@ -353,8 +365,9 @@ CppModule {
             var cxxFlags = ModUtils.moduleProperty(product, "cxxFlags")
             if (cxxFlags)
                 args = args.concat(cxxFlags);
-            args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths,
+            args = args.concat(Gcc.additionalCompilerFlags(product, includePaths, frameworkPaths, systemIncludePaths,
                     systemFrameworkPaths, ModUtils.moduleProperty(product, "precompiledHeader"), output));
+            args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
             return cmd;

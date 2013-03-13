@@ -19,6 +19,49 @@ Module {
         description: "preprocessor macros that are defined when using this particular compiler"
     }
 
+    property string minimumWindowsVersion
+    PropertyOptions {
+        name: "minimumWindowsVersion"
+        description: "a version number in the format [major].[minor] indicating the earliest \
+                        version of Windows that the product should run on. defines WINVER, \
+                        _WIN32_WINNT, and _WIN32_WINDOWS, and applies a version number to the \
+                        linker flags /SUBSYSTEM and /OSVERSION (or -Wl,-subsystem and -Wl,-osversion). \
+                        if undefined, compiler defaults will be used."
+    }
+
+    property string minimumMacVersion
+    PropertyOptions {
+        name: "minimumMacVersion"
+        description: "a version number in the format [major].[minor] indicating the earliest \
+                        version of OS X that the product should run on. passes -mmacosx-version-min=<version> \
+                        to the compiler. if undefined, compiler defaults will be used."
+    }
+
+    property string minimumIosVersion
+    PropertyOptions {
+        name: "minimumIosVersion"
+        description: "a version number in the format [major].[minor] indicating the earliest \
+                        version of iOS that the product should run on. passes -miphoneos-version-min=<version> \
+                        to the compiler. if undefined, compiler defaults will be used."
+    }
+
+    property string minimumAndroidVersion
+    PropertyOptions {
+        name: "minimumAndroidVersion"
+        description: "a version number in the format [major].[minor] indicating the earliest \
+                        version of Android that the product should run on. this value is converted into an SDK \
+                        version which is then written to AndroidManifest.xml."
+    }
+
+    property string maximumAndroidVersion
+    PropertyOptions {
+        name: "maximumAndroidVersion"
+        description: "a version number in the format [major].[minor] indicating the latest \
+                        version of Android that the product should run on. this value is converted into an SDK \
+                        version which is then written to AndroidManifest.xml. if undefined, no upper limit will \
+                        be set."
+    }
+
     property pathList includePaths
     property pathList systemIncludePaths
     property pathList libraryPaths
