@@ -29,8 +29,11 @@
 
 #include "setupqt.h"
 
+#include "../shared/logging/consolelogger.h"
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/settings.h>
 
 #include <QByteArrayMatcher>
 #include <QCoreApplication>
@@ -42,6 +45,7 @@
 
 namespace qbs {
 using Internal::HostOsInfo;
+using Internal::Tr;
 
 const QString qmakeExecutableName = QLatin1String("qmake" QTC_HOST_EXE_SUFFIX);
 
@@ -216,6 +220,54 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     profile.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     profile.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
+
+    // If this profile does not specify a toolchain and we find exactly one profile that looks
+    // like it might have been added by qbs-detect-toolchain, let's use that one as our
+    // base profile.
+    if (!profile.baseProfile().isEmpty())
+        return;
+    QStringList toolchainProfiles;
+    foreach (const QString &key, profile.allKeys(Profile::KeySelectionNonRecursive)) {
+        if (key.startsWith(QLatin1String("cpp.")))
+            return;
+    }
+
+    foreach (const QString &profileName, settings->profiles()) {
+        if (profileName == profile.name())
+            continue;
+        const Profile otherProfile(profileName, settings);
+        bool hasCppKey = false;
+        bool hasQtKey = false;
+        foreach (const QString &key, otherProfile.allKeys(Profile::KeySelectionNonRecursive)) {
+            if (key.startsWith(QLatin1String("cpp."))) {
+                hasCppKey = true;
+            } else if (key.startsWith(QLatin1String("qt."))) {
+                hasQtKey = true;
+                break;
+            }
+        }
+        if (hasCppKey && !hasQtKey)
+            toolchainProfiles << profileName;
+    }
+
+    if (toolchainProfiles.count() != 1) {
+        QString message = Tr::tr("You need to set up toolchain information before you can "
+                                 "use this Qt version for building. ");
+        if (toolchainProfiles.isEmpty()) {
+            message += Tr::tr("However, no toolchain profile was found. Either create one "
+                              "using qbs-detect-toolchains and set it as this profile's "
+                              "base profile or add the toolchain settings manually "
+                              "to this profile.");
+        } else {
+            message += Tr::tr("Consider setting one of these profiles as this profile's base "
+                              "profile: %1.").arg(toolchainProfiles.join(QLatin1String(", ")));
+        }
+        qbsWarning() << message;
+    } else {
+        profile.setBaseProfile(toolchainProfiles.first());
+        qbsInfo() << Tr::tr("Setting profile '%1' as the base profile for this profile.")
+                     .arg(toolchainProfiles.first());
+    }
 }
 
 bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion, const QList<QtEnviroment> &qtEnviroments)
