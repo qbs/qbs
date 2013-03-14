@@ -706,6 +706,24 @@ void TestLanguage::propertiesBlocks_data()
     QTest::newRow("ambiguous_properties")
             << QString("dummy.defines")
             << (QStringList() << QString("ONE") << QString("TWO"));
+    QTest::newRow("inheritance_overwrite_in_subitem")
+            << QString("dummy.defines")
+            << (QStringList() << QString("OVERWRITTEN_IN_SUBITEM"));
+    QTest::newRow("inheritance_retain_base1")
+            << QString("dummy.defines")
+            << (QStringList() << QString("BASE") << QString("SUB"));
+    QTest::newRow("inheritance_retain_base2")
+            << QString("dummy.defines")
+            << (QStringList() << QString("BASE") << QString("SUB"));
+    QTest::newRow("inheritance_retain_base3")
+            << QString("dummy.defines")
+            << (QStringList() << QString("BASE") << QString("SUB"));
+    QTest::newRow("inheritance_condition_in_subitem1")
+            << QString("dummy.defines")
+            << (QStringList() << QString("SOMETHING") << QString("SUB"));
+    QTest::newRow("inheritance_condition_in_subitem2")
+            << QString("dummy.defines")
+            << (QStringList() << QString("SOMETHING"));
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 

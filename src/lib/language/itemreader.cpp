@@ -53,7 +53,12 @@ void ItemReader::setSearchPaths(const QStringList &searchPaths)
     m_searchPaths = searchPaths;
 }
 
-ItemPtr ItemReader::readFile(const QString &filePath, bool inRecursion)
+ItemPtr ItemReader::readFile(const QString &filePath)
+{
+    return internalReadFile(filePath).rootItem;
+}
+
+ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
 {
     QFile file(filePath);
     if (!file.open(QFile::ReadOnly))
@@ -75,12 +80,12 @@ ItemPtr ItemReader::readFile(const QString &filePath, bool inRecursion)
         }
     }
 
-    ItemReaderASTVisitor itemReader(this);
+    ItemReaderResult result;
+    ItemReaderASTVisitor itemReader(this, &result);
     itemReader.setFilePath(QFileInfo(filePath).absoluteFilePath());
     itemReader.setSourceCode(code);
-    itemReader.setInRecursion(inRecursion);
     parser.ast()->accept(&itemReader);
-    return itemReader.rootItem();
+    return result;
 }
 
 } // namespace Internal

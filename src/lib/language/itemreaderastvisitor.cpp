@@ -48,8 +48,9 @@ using namespace QbsQmlJS;
 namespace qbs {
 namespace Internal {
 
-ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader)
+ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result)
     : m_reader(reader)
+    , m_readerResult(result)
     , m_languageVersion(ImportVersion::fromString(reader->builtins()->languageVersion()))
     , m_sourceValue(0)
 {
@@ -230,6 +231,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     } else {
         // This is the root item.
         m_item = item;
+        m_readerResult->rootItem = item;
     }
 
     if (ast->initializer) {
@@ -250,23 +252,21 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         }
     }
 
+    if (item->typeName() != QLatin1String("Properties"))
+        setupAlternatives(item);
+
     // resolve inheritance
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
-        ItemPtr baseItem = m_reader->readFile(baseTypeFileName, true);
-        mergeItem(item, baseItem);
-        if (baseItem->m_file->m_idScope) {
+        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName);
+        mergeItem(item, baseFile.rootItem, baseFile);
+        if (baseFile.rootItem->m_file->m_idScope) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
             ensureIdScope(item->m_file);
-            baseItem->m_file->m_idScope->setPrototype(item->m_file->m_idScope);
+            baseFile.rootItem->m_file->m_idScope->setPrototype(item->m_file->m_idScope);
         }
-    }
-
-    if (!m_inRecursion) {
-        // properties blocks
-        setupAlternatives(item);
     }
 
     return false;
@@ -430,7 +430,8 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
                     toCodeLocation(versionToken));
 }
 
-void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src)
+void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src,
+                                     const ItemReaderResult &baseFile)
 {
     if (!src->typeName().isEmpty())
         dst->setTypeName(src->typeName());
@@ -452,12 +453,19 @@ void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src
                     JSSourceValuePtr sv = v.staticCast<JSSourceValue>();
                     while (sv->baseValue())
                         sv = sv->baseValue();
-                    sv->setBaseValue(it.value().staticCast<JSSourceValue>());
+                    const JSSourceValuePtr baseValue = it.value().staticCast<JSSourceValue>();
+                    sv->setBaseValue(baseValue);
+                    for (QList<JSSourceValue::Alternative>::iterator it
+                            = sv->m_alternatives.begin(); it != sv->m_alternatives.end(); ++it) {
+                        JSSourceValue::Alternative &alternative = *it;
+                        alternative.value->setBaseValue(baseValue);
+                    }
                 } else if (v->type() == Value::ItemValueType) {
                     QBS_CHECK(v.staticCast<ItemValue>()->item());
                     QBS_CHECK(it.value().staticCast<const ItemValue>()->item());
                     mergeItem(v.staticCast<ItemValue>()->item(),
-                              it.value().staticCast<const ItemValue>()->item());
+                              it.value().staticCast<const ItemValue>()->item(),
+                              baseFile);
                 } else {
                     QBS_CHECK(!"unexpected value type");
                 }
@@ -471,6 +479,10 @@ void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src
             = src->m_propertyDeclarations.constBegin();
             it != src->m_propertyDeclarations.constEnd(); ++it) {
         dst->m_propertyDeclarations[it.key()] = it.value();
+    }
+    foreach (const JSSourceValuePtr &valueWithAlternatives,
+            baseFile.conditionalValuesPerScopeItem.value(src)) {
+        replaceConditionScopes(valueWithAlternatives, dst);
     }
 }
 
@@ -496,13 +508,23 @@ void ItemReaderASTVisitor::setupAlternatives(const ItemPtr &item)
     }
 }
 
+void ItemReaderASTVisitor::replaceConditionScopes(const JSSourceValuePtr &value,
+                                                  const ItemPtr &newScope)
+{
+    for (QList<JSSourceValue::Alternative>::iterator it
+            = value->m_alternatives.begin(); it != value->m_alternatives.end(); ++it)
+        it->conditionScopeItem = newScope;
+}
+
 class PropertiesBlockConverter
 {
 public:
     PropertiesBlockConverter(const QString &condition, const ItemPtr &propertiesBlockContainer,
-                             const ItemConstPtr &propertiesBlock)
+                             const ItemConstPtr &propertiesBlock,
+                             QSet<JSSourceValuePtr> *valuesWithAlternatives)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
+        , m_valuesWithAlternatives(valuesWithAlternatives)
     {
         m_alternative.condition = condition;
         m_alternative.conditionScopeItem = propertiesBlockContainer;
@@ -517,12 +539,7 @@ private:
     JSSourceValue::Alternative m_alternative;
     const ItemPtr &m_propertiesBlockContainer;
     const ItemConstPtr &m_propertiesBlock;
-
-    void apply(const JSSourceValuePtr &a, const JSSourceValuePtr &b)
-    {
-        m_alternative.value = b;
-        a->addAlternative(m_alternative);
-    }
+    QSet<JSSourceValuePtr> *m_valuesWithAlternatives;
 
     void apply(const ItemPtr &a, const ItemConstPtr &b)
     {
@@ -535,21 +552,30 @@ private:
                       it.value().staticCast<ItemValue>()->item());
             } else if (it.value()->type() == Value::JSSourceValueType) {
                 ValuePtr aval = a->property(it.key());
-                JSSourceValuePtr bval = it.value().staticCast<JSSourceValue>();
-                if (!aval) {
-                    JSSourceValuePtr newValue = JSSourceValue::create();
-                    newValue->setFile(bval->file());
-                    aval = newValue;
-                    a->setProperty(it.key(), aval);
-                }
-                else if (aval->type() != Value::JSSourceValueType) {
-                    throw Error(QLatin1String("incompatible value type in ###"));
-                }
-                apply(aval.staticCast<JSSourceValue>(), bval);
+                if (aval && aval->type() != Value::JSSourceValueType)
+                    throw Error(Tr::tr("Incompatible value type in unconditional value at %1.").arg(
+                                    aval->location().toString()));
+                apply(it.key(), a, aval.staticCast<JSSourceValue>(),
+                      it.value().staticCast<JSSourceValue>());
             } else {
-                throw Error(QLatin1String("unexpected value type in ###"));
+                QBS_CHECK(!"Unexpected value type in conditional value.");
             }
         }
+    }
+
+    void apply(const QString &propertyName, const ItemPtr &item, JSSourceValuePtr value,
+               const JSSourceValuePtr &conditionalValue)
+    {
+        QBS_ASSERT(!value || value->file() == conditionalValue->file(), return);
+        if (!value) {
+            value = JSSourceValue::create();
+            value->setFile(conditionalValue->file());
+            item->setProperty(propertyName, value);
+            value->setSourceCode(QLatin1String("undefined"));
+        }
+        m_alternative.value = conditionalValue;
+        value->addAlternative(m_alternative);
+        m_valuesWithAlternatives->insert(value);
     }
 };
 
@@ -564,7 +590,8 @@ void ItemReaderASTVisitor::handlePropertiesBlock(const ItemPtr &item, const Item
                     block->location());
     JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
     const QString condition = srcval->sourceCode();
-    PropertiesBlockConverter convertBlock(condition, item, block);
+    PropertiesBlockConverter convertBlock(condition, item, block,
+                                          &m_readerResult->conditionalValuesPerScopeItem[item]);
     convertBlock();
 }
 

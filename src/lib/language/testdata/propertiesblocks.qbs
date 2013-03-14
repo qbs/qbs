@@ -1,4 +1,5 @@
 import qbs 1.0
+import "propertiesblocks_base.qbs" as ProductBase
 
 Project {
     Product {
@@ -99,5 +100,39 @@ Project {
             condition: project.zort
             dummy.defines: ["OVERWRITTEN"]
         }
+    }
+    ProductBase {
+        name: "inheritance_overwrite_in_subitem"
+        dummy.defines: ["OVERWRITTEN_IN_SUBITEM"]
+    }
+    ProductBase {
+        name: "inheritance_retain_base1"
+        dummy.defines: base.concat("SUB")
+    }
+    ProductBase {
+        name: "inheritance_retain_base2"
+        Properties {
+            condition: true
+            dummy.defines: base.concat("SUB")
+        }
+        dummy.defines: ["GNAMPF"]
+    }
+    ProductBase {
+        name: "inheritance_retain_base3"
+        Properties {
+            condition: true
+            dummy.defines: base.concat("SUB")
+        }
+        // no dummy.defines binding
+    }
+    ProductBase {
+        name: "inheritance_condition_in_subitem1"
+        defineBase: false
+        dummy.defines: base.concat("SUB")
+    }
+    ProductBase {
+        name: "inheritance_condition_in_subitem2"
+        defineBase: false
+        // no dummy.defines binding
     }
 }

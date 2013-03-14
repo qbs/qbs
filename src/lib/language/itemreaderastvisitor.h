@@ -40,17 +40,16 @@ namespace qbs {
 namespace Internal {
 
 class ItemReader;
+struct ItemReaderResult;
 
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
 public:
-    ItemReaderASTVisitor(ItemReader *reader);
+    ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result);
     ~ItemReaderASTVisitor();
 
     void setFilePath(const QString &filePath) { m_filePath = filePath; }
     void setSourceCode(const QString &sourceCode) { m_sourceCode = sourceCode; }
-    void setInRecursion(bool inRecursion) { m_inRecursion = inRecursion; }
-    ItemPtr rootItem() const { return m_item; }
 
     bool visit(QbsQmlJS::AST::UiProgram *ast);
     bool visit(QbsQmlJS::AST::UiImportList *uiImportList);
@@ -65,16 +64,18 @@ private:
     ItemPtr targetItemForBinding(const ItemPtr &item, const QStringList &binding,
                                  const CodeLocation &bindingLocation);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
-    static void mergeItem(const ItemPtr &dst, const ItemConstPtr &src);
+    static void mergeItem(const ItemPtr &dst, const ItemConstPtr &src,
+                          const ItemReaderResult &baseFile);
     static void ensureIdScope(const FileContextPtr &file);
-    static void setupAlternatives(const ItemPtr &item);
-    static void handlePropertiesBlock(const ItemPtr &item, const ItemConstPtr &block);
+    void setupAlternatives(const ItemPtr &item);
+    static void replaceConditionScopes(const JSSourceValuePtr &value, const ItemPtr &newScope);
+    void handlePropertiesBlock(const ItemPtr &item, const ItemConstPtr &block);
 
     ItemReader *m_reader;
+    ItemReaderResult *m_readerResult;
     const ImportVersion m_languageVersion;
     QString m_filePath;
     QString m_sourceCode;
-    bool m_inRecursion;
     FileContextPtr m_file;
     QHash<QStringList, QString> m_typeNameToFile;
     ItemPtr m_item;

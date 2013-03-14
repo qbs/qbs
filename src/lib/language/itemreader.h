@@ -33,12 +33,21 @@
 #include "forward_decls.h"
 #include <logging/logger.h>
 
+#include <QHash>
+#include <QSet>
 #include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
 class BuiltinDeclarations;
+
+struct ItemReaderResult
+{
+    ItemPtr rootItem;
+    typedef QHash<ItemConstPtr, QSet<JSSourceValuePtr> > SourceValuesPerItem;
+    SourceValuesPerItem conditionalValuesPerScopeItem;
+};
 
 /*
  * Reads a qbs file and creates a tree of Item objects.
@@ -51,6 +60,7 @@ class BuiltinDeclarations;
  */
 class ItemReader
 {
+    friend class ItemReaderASTVisitor;
 public:
     ItemReader(BuiltinDeclarations *builtins, const Logger &logger);
 
@@ -60,12 +70,15 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     const QStringList &searchPaths() const { return m_searchPaths; }
 
-    ItemPtr readFile(const QString &filePath, bool inRecursion = false);
+    ItemPtr readFile(const QString &filePath);
 
 private:
+    ItemReaderResult internalReadFile(const QString &filePath);
+
     BuiltinDeclarations *m_builtins;
     Logger m_logger;
     QStringList m_searchPaths;
+    QHash<ItemConstPtr, QSet<JSSourceValuePtr> > m_conditionalValuesPerScopeItem;
 };
 
 } // namespace Internal
