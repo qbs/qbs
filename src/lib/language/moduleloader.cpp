@@ -116,7 +116,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, const ItemPtr &
     ProjectContext projectContext;
     projectContext.result = loadResult;
     projectContext.extraSearchPaths = readExtraSearchPaths(item);
-    projectContext.extraSearchPaths += item->file()->dirPath();
+    projectContext.extraSearchPaths += FileInfo::resolvePath(item->file()->dirPath(),
+                                                             moduleSearchSubDir);
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create();
     itemValue->setItemWeakPointer(item);
