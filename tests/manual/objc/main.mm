@@ -1,16 +1,14 @@
-#import <Cocoa/Cocoa.h>
-#import <CoreServices/CoreServices.h>
-#include <QtCore/QCoreApplication>
+#import <Foundation/Foundation.h>
+#include <QCoreApplication>
 
 int main(int argc, char **argv)
 {
     // We support both C++
     QCoreApplication app(argc, argv);
+    Q_UNUSED(app);
     // And Objective-C
-    SInt32 majorVersion, minorVersion, bugFix;
-    Gestalt(gestaltSystemVersionMajor, &majorVersion);
-    Gestalt(gestaltSystemVersionMinor, &minorVersion);
-    Gestalt(gestaltSystemVersionBugFix, &bugFix);
-    NSLog(@"Hello, MacOS %d.%d.%d!", majorVersion, minorVersion, bugFix);
+    NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+    NSString *productVersion = [version objectForKey:@"ProductVersion"];
+    NSLog(@"Hello, MacOS %@!", productVersion);
     // So it's Objective-C++
 }
