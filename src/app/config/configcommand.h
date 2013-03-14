@@ -29,7 +29,7 @@
 #ifndef CONFIGCOMMAND_H
 #define CONFIGCOMMAND_H
 
-#include <lib/tools/settings.h>
+#include <tools/settings.h>
 
 #include <QString>
 #include <QStringList>

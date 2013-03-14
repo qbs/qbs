@@ -31,8 +31,8 @@
 #include "configcommand.h"
 #include "../shared/logging/consolelogger.h"
 
-#include <lib/tools/error.h>
-#include <lib/tools/settings.h>
+#include <tools/error.h>
+#include <tools/settings.h>
 
 #include <QDir>
 #include <QFile>

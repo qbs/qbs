@@ -30,7 +30,6 @@ win32 {
 }
 
 INCLUDEPATH += \
-    $$PWD \
-    $$PWD/..
+    $$PWD
 
 CONFIG += depend_includepath
