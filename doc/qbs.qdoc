@@ -434,7 +434,7 @@
     \endcode
 
     What we see here is a bunch of properties that can be set for the \a cpp
-    module. These are used to control the behaviour of your C++ toolchain.
+    module. These are used to control the behavior of your C++ toolchain.
     Also we have things like FileTaggers and Rules. These are covered later.
 
     As soon as your product depends on a module it can set properties of this
