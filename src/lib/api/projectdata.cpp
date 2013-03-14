@@ -28,6 +28,8 @@
 ****************************************************************************/
 #include "projectdata.h"
 
+#include "propertymap_p.h"
+#include <language/language.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -96,13 +98,38 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
  * \brief The \c PropertyMap class represents the properties of a group or a product.
  */
 
+PropertyMap::PropertyMap()
+    : d(new Internal::PropertyMapPrivate)
+{
+    static Internal::PropertyMapPtr defaultInternalMap = Internal::PropertyMapInternal::create();
+    d->m_map = defaultInternalMap;
+}
+
+PropertyMap::PropertyMap(const PropertyMap &other)
+    : d(new Internal::PropertyMapPrivate(*other.d))
+{
+}
+
+PropertyMap::~PropertyMap()
+{
+    delete d;
+}
+
+PropertyMap &PropertyMap::operator =(const PropertyMap &other)
+{
+    delete d;
+    d = new Internal::PropertyMapPrivate(*other.d);
+    return *this;
+}
+
 /*!
  * \brief Returns the names of all properties.
  */
 QStringList PropertyMap::allProperties() const
 {
     QStringList properties;
-    for (QVariantMap::ConstIterator it = m_map.constBegin(); it != m_map.constEnd(); ++it) {
+    for (QVariantMap::ConstIterator it = d->m_map->value().constBegin();
+            it != d->m_map->value().constEnd(); ++it) {
         if (!it.value().canConvert<QVariantMap>())
             properties << it.key();
     }
@@ -114,7 +141,7 @@ QStringList PropertyMap::allProperties() const
  */
 QVariant PropertyMap::getProperty(const QString &name) const
 {
-    return m_map.value(name);
+    return d->m_map->value().value(name);
 }
 
 /*!
@@ -126,7 +153,7 @@ QVariant PropertyMap::getProperty(const QString &name) const
 QVariantList PropertyMap::getModuleProperties(const QString &moduleName,
                                               const QString &propertyName) const
 {
-    return Internal::PropertyFinder().propertyValues(m_map, moduleName, propertyName);
+    return Internal::PropertyFinder().propertyValues(d->m_map->value(), moduleName, propertyName);
 }
 
 /*!
@@ -153,7 +180,7 @@ QStringList PropertyMap::getModulePropertiesAsStringList(const QString &moduleNa
 QVariant PropertyMap::getModuleProperty(const QString &moduleName,
                                         const QString &propertyName) const
 {
-    return Internal::PropertyFinder().propertyValue(m_map, moduleName, propertyName);
+    return Internal::PropertyFinder().propertyValue(d->m_map->value(), moduleName, propertyName);
 }
 
 static QString mapToString(const QVariantMap &map, const QString &prefix)
@@ -175,19 +202,18 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
 
 QString PropertyMap::toString() const
 {
-    return mapToString(m_map, QString());
+    return mapToString(d->m_map->value(), QString());
 }
 
 bool operator==(const PropertyMap &pm1, const PropertyMap &pm2)
 {
-    return pm1.m_map == pm2.m_map;
+    return pm1.d->m_map->value() == pm2.d->m_map->value();
 }
 
 bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2)
 {
-    return !(pm1.m_map == pm2.m_map);
+    return !(pm1.d->m_map->value() == pm2.d->m_map->value());
 }
-
 
 /*!
  * \class GroupData

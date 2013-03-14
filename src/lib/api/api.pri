@@ -3,7 +3,8 @@ HEADERS += \
     $$PWD/projectdata.h \
     $$PWD/runenvironment.h \
     $$PWD/jobs.h \
-    $$PWD/project.h
+    $$PWD/project.h \
+    $$PWD/propertymap_p.h
 
 SOURCES += \
     $$PWD/internaljobs.cpp \

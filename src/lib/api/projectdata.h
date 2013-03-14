@@ -39,7 +39,11 @@
 #include <QVariantMap>
 
 namespace qbs {
-namespace Internal { class ProjectPrivate; }
+namespace Internal
+{
+class ProjectPrivate;
+class PropertyMapPrivate;
+}
 
 class PropertyMap;
 
@@ -53,6 +57,12 @@ class QBS_EXPORT PropertyMap
     friend bool operator!=(const PropertyMap &, const PropertyMap &);
 
 public:
+    PropertyMap();
+    PropertyMap(const PropertyMap &other);
+    ~PropertyMap();
+
+    PropertyMap &operator =(const PropertyMap &other);
+
     QStringList allProperties() const;
     QVariant getProperty(const QString &name) const;
 
@@ -65,7 +75,7 @@ public:
     QString toString() const;
 
 private:
-    QVariantMap m_map;
+    Internal::PropertyMapPrivate *d;
 };
 
 // TODO: explicitly shared?

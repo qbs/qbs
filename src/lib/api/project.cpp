@@ -31,6 +31,7 @@
 #include "internaljobs.h"
 #include "jobs.h"
 #include "projectdata.h"
+#include "propertymap_p.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildproduct.h>
@@ -197,7 +198,7 @@ void ProjectPrivate::retrieveProjectData()
         product.m_name = resolvedProduct->name;
         product.m_location = resolvedProduct->location;
         product.m_fileTags = resolvedProduct->fileTags.toStringList();
-        product.m_properties.m_map = resolvedProduct->properties->value();
+        product.m_properties.d->m_map = resolvedProduct->properties;
         product.m_isEnabled = resolvedProduct->enabled;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
@@ -211,7 +212,7 @@ void ProjectPrivate::retrieveProjectData()
             }
             qSort(group.m_filePaths);
             qSort(group.m_expandedWildcards);
-            group.m_properties.m_map = resolvedGroup->properties->value();
+            group.m_properties.d->m_map = resolvedGroup->properties;
             group.m_isEnabled = resolvedGroup->enabled;
             product.m_groups << group;
         }
