@@ -34,13 +34,13 @@
 
     \title Rule Item
 
-    A "multiplex rule" creates one transformer that takes all
+    A \e {multiplex rule} creates one \e transformer that takes all
     input artifacts with the matching input file tag and creates
     one or more artifacts (e.g. C++ linker).
-    A "non-multiplex rule" creates one transformer per matching input file (e.g. C++
+    A \e {non-multiplex rule} creates one transformer per matching input file (e.g. C++
     compiler).
 
-    \section1 Rule properties
+    \section1 Rule Properties
 
     \table
     \header
@@ -52,7 +52,7 @@
         \li multiplex
         \li bool
         \li false
-        \li Determines if this is a multiplex rule.
+        \li Determines whether this is a multiplex rule.
     \row
         \li inputs
         \li string list
@@ -66,28 +66,28 @@
         \li string list
         \li undefined
         \li File tags the artifacts of product dependencies must match.
-           Let there be a product \a foo which appears as
+           For example, the product \a foo might appear as follows in the current product:
            \code
             Depends {
                 name: "foo"
             }
            \endcode
-           in the current product. All artifacts of \a foo that match the given
+           All artifacts of \a foo that match the given
            file tags will appear in the \a inputs variable of the prepare
-           script. Also, every output artifact of this rule will be dependent on
+           script. Also, each output artifact of this rule will be dependent on
            those artifacts.
     \row
         \li explicitlyDependsOn
         \li string list
         \li undefined
-        \li Every artifact that matches the file tags in \a explicitlyDependsOn
-           is added to the dependencies of every output node.
+        \li Each artifact that matches the file tags in \a explicitlyDependsOn
+           is added to the dependencies of each output node.
     \row
         \li scanners
         \li string list
         \li undefined
         \li List of dependency scanner ids for this rule. The scanners are
-           running just before the prepare script is executed.
+           run just before the prepare script is executed.
     \row
         \li prepare
         \li script

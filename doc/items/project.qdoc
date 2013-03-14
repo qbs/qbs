@@ -34,8 +34,8 @@
 
     \title Project Item
 
-    The \c Project item represents one complete qbs project. It always
-    is the top-level item in the hierarchy and usually comprises one or more products. In a
+    A \e project item represents one complete Qbs project. It always
+    is the top-level item in the hierarchy and usually comprises one or more \e products. In a
     non-trivial project, these products are typically defined in their own files and
     referenced in the main project file:
     \code
@@ -47,6 +47,7 @@
     }
     \endcode
     Any property \c prop attached to this item is available in sub-items as \c project.prop.
+
     \note If your project consists of only one product, the \c Project item can be omitted.
 
     \table
@@ -61,8 +62,8 @@
             \li empty
             \li The paths that are searched when looking for a module a product depends on.
                 All products in the project inherit this value by default.
-                In addition to what is given here, qbs will also look in the directory where
-                the qbs file defining this project is located, as well as in the paths
+                In addition to what is given here, Qbs will also look in the directory where
+                the Qbs file defining this project is located, as well as in the paths
                 listed in the \c preferences.qbsPath setting.
         \row
             \li references

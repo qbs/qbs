@@ -35,7 +35,9 @@
 
     \title Group Item
 
-    This item is attached to a product and is used to group files that have something in common. For instance:
+    This item is attached to a product and used to group files that have something in common.
+    For example:
+
      \code
      Application {
          Group {
@@ -61,11 +63,11 @@
      }
      \endcode
      When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
-     By default, matching files are only picked up directly from the parent directory, but you can tell qbs to
+     By default, matching files are only picked up directly from the parent directory, but you can tell Qbs to
      consider the whole directory tree. It is also possible to exclude certain files from the list.
      The pattern ** used in a pathname expansion context will match all files and zero or more
      directories and subdirectories.
-     Here's an example:
+     For example:
      \snippet items/group.qbs 0
 
      A group can also be used to attach properties to build artifacts such as executables or
@@ -127,7 +129,7 @@
         \li true
         \li If the same file appears in the files list of both the top level of a product and
             a group and this property is true, then the file tags set via the group
-            replace the ones set via the product. If it is false, the "group tags" are are added to
+            replace the ones set via the product. If it is false, the "group tags" are added to
             the "product tags".
     \row
         \li excludeFiles

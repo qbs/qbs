@@ -43,7 +43,7 @@
 
     \section1 Version \qbsversion
 
-    Qt Build Suite (qbs) is a tool that helps simplify the build process for
+    Qt Build Suite (Qbs) is a tool that helps simplify the build process for
     developing projects across multiple platforms. Qbs can be used for any
     software project, whether it is written in Qt or not.
 
@@ -175,23 +175,23 @@
     qbs config preferences.pluginsPath $QBS_BUILD_DIR/plugins
     \endcode
 
-    Currently, you also must tell qbs where it can find Qt.
+    Currently, you also must tell Qbs where it can find Qt.
     Please refer to \l{Managing Qt Versions} to set up your Qt builds.
 
-    Now open a build shell (on Windows open an MSVC command prompt,
-    on other platforms the default shell is usually ok):
+    Open a build shell (on Windows open an MSVC command prompt,
+    on other platforms you can usually open the default shell):
     \code
     qbs detect-toolchains
     \endcode
 
-    The toolchain detector will automatically set up a profile for each detected toolchain.
-    You can list the existing profiles by running
+    The tool chain detector automatically sets up a profile for each detected tool chain.
+    You can list the existing profiles by running:
     \code
     qbs config --list profiles
     \endcode
 
-    Now you should be ready to build your first project with qbs.
-    Go into qbs/tests/manual/hello and type
+    Now you should be ready to build your first project with Qbs.
+    Go into qbs/tests/manual/hello and type:
 
     \code
     qbs
@@ -208,15 +208,15 @@
 
     \section1 Introduction
 
-    To let qbs know where a Qt build or Qt version is you want to use,
-    it has to be registered.
+    To let Qbs know where the Qt build or Qt version is that you want to use,
+    you must register it.
 
     Register a Qt version like this:
     \code
     qbs setup-qt /usr/bin/qmake myqt
     \endcode
 
-    This will create the "myqt" profile which can then be used on
+    This will create the \c myqt profile which can then be used on
     the command line:
 
     \code
@@ -226,10 +226,10 @@
 
     \section1 Manual Setup
 
-    All what the setup-qt tool does can be done manually.
-    That's described in this section.
+    Everything that the setup-qt tool does can be done manually, as described in this section.
 
-    Here's an example for registering Qt, installed on Ubuntu GNU/Linux, again using a profile "myqt":
+    Here is an example for registering Qt, installed on Ubuntu GNU/Linux, again using a profile
+    called \c myqt:
 
     \code
     qbs config profiles.myqt.qt.core.binPath /usr/bin
@@ -238,15 +238,15 @@
     qbs config profiles.myqt.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
     \endcode
 
-    If you're using Qt 5, you must specify the version number.
+    If you are using Qt 5, you must specify the version number like this:
     \code
     qbs config profiles.myqt.qt.core.version 5.0.0
     \endcode
 
-    \section1 Multiple Qt builds
+    \section1 Multiple Qt Builds
 
-    To support multiple Qt builds, or in fact any combination of settings you
-    need to set together, you need to create several profiles. This is how you'd set up
+    To support multiple Qt builds, or in fact any combination of related settings, you need to
+    create several profiles. The following example illustrates how to set up
     three different profiles, each for a different Qt build:
 
     \code
@@ -255,20 +255,20 @@
     qbs setup-qt ~/dev/qt/5.0/qtbase/bin/qmake qt5
     \endcode
 
-    You can set the default Qt build you want to use like this:
+    You can set the default Qt build like this:
 
     \code
     qbs config defaultProfile qt5
     \endcode
 
-    To choose a Qt build that's different from the default, use:
+    To choose a Qt build that is different from the default, use:
 
     \code
     qbs build profile:qt48
     \endcode
 
     You can set other properties in a profile (not just Qt ones), in the same way
-    you could override them from the command-line. For example:
+    you could override them from the command line. For example:
 
     \code
     qbs setup-qt C:\Qt\5.0.0\qtbase\bin\qmake.exe qt5
@@ -276,14 +276,14 @@
     qbs config profiles.qt5.baseProfile msvc2010
     \endcode
 
-    The last example uses the inheritance feature of profiles: All settings in the profile
-    set as "baseProfile" are known in the derived profile as well.
+    The last example uses the inheritance feature of profiles. All settings in the profile
+    set as \c baseProfile are known in the derived profile as well.
     They can of course be overridden there.
 
     \section1 Customized Qt Settings
 
-    If you have built your Qt with the option -qtnamespace MyNamespace
-    then you must set the following config value.
+    If you have built your Qt with the option \c {-qtnamespace MyNamespace}
+    then you must set the following \c config value:
 
     \code
     qbs config profiles.myqt.qt.core.namespace MyNamespace
@@ -324,12 +324,12 @@
     \title Language Introduction
 
     Qbs uses project files (*.qbs) to describe the contents of a project.
-    A project contains one or more products. A product is the target of a build
+    A project contains one or more \e products. A product is the target of a build
     process, typically an application, library or maybe a tar ball.
 
-    \section1 The obligatory Hello World example
+    \section1 The Obligatory Hello World Example
 
-    These project files are written using a QML dialect.
+    The project files in this example are written using a QML dialect.
     A very simple C++ hello world project looks like this:
     \code ---helloworld.qbs---
         import qbs 1.0
@@ -344,8 +344,8 @@
     The import statement gives us access to some built-in types and specifies the
     used language version.
 
-    \a Application describes a product we want to build. In this case an
-    application. This is just a short cut for writing
+    \a Application describes the product we want to build. In this case, an
+    application. This is just a shortcut for writing
     \code
         Product {
             type: "application"
@@ -353,20 +353,19 @@
         }
     \endcode
 
-    The \a name obviously is the name of the product and in this case is also the
+    The \a name is the name of the product. In this case it is also the
     name of the produced executable.
-    In the property \a files we specify the source files for our product.
-    Unlike QML the right hand side can be either a string or a string list.
+    In the property \a files, we specify the source files for our product.
+    Unlike QML, the right-hand side can be either a string or a string list.
     A single string is converted to a stringlist containing just one element.
 
-    \a Depends adds the dependency to the module \a{cpp} (see below for an
-    explanation of qbs modules).
-    This is necessary to let qbs know that we have a C++ project and want
-    to compile main.cpp with a C++ compiler.
+    \a Depends adds the dependency to the module \a{cpp}. This is necessary to let Qbs know that
+    we have a C++ project and want to compile main.cpp with a C++ compiler. For more information
+    about Qbs modules, see \l{Modules}.
 
 
-    \section1 Reusing qbs project file code
-    QML-like inheritance is also working in qbs.
+    \section1 Reusing Qbs Project File Code
+    QML-like inheritance works also in Qbs.
 
     \code
     ---CrazyProduct.qbs---
@@ -384,7 +383,7 @@
     }
     \endcode
 
-    You can put JS code into separate \c{.js} files and then import then.
+    You can put JS code into separate \c{.js} files and then import them.
     \code
     ---helpers.js---
     function planetsCorrectlyAligned()
@@ -409,11 +408,10 @@
 
     \section1 Modules
 
-    So what are these "modules"?
-    A module is a collection of properties and language items that are used for
-    building a product, if the product depends on (or loads) the module.
+    A \e module is a collection of properties and language items that are used for
+    building a product if the product depends on (or loads) the module.
 
-    For example the \a cpp module looks like this (simplified):
+    For example, the \a cpp module looks like this (simplified):
     \code
     Module {
         name: "cpp"
@@ -433,13 +431,12 @@
     }
     \endcode
 
-    What we see here is a bunch of properties that can be set for the \a cpp
-    module. These are used to control the behavior of your C++ toolchain.
-    Also we have things like FileTaggers and Rules. These are covered later.
+    The properties that can be set for the \a cpp module are used to control the behavior of
+    your C++ tool chain.
+    In addition, you can use FileTaggers and Rules that are explained later.
 
-    As soon as your product depends on a module it can set properties of this
-    module. This is how you specify the optimization level for your product (and
-    all build variants):
+    As soon as your product depends on a module, it can set the properties of the
+    module. You specify the optimization level for your product (and all build variants) like this:
 
     \code ---helloworld.qbs---
         import qbs 1.0
@@ -452,22 +449,22 @@
         }
     \endcode
 
-    A module can implicitly depend on other modules. E.g. the \c Qt.core module depends
-    on \c{cpp}. But to set properties of a module you must explicitly import
+    A module can implicitly depend on other modules. For example, the \c Qt.core module depends
+    on \c{cpp}. But to set the properties of a module you must explicitly import
     it.
 
     \code
-        // DOES NOT WORK
+        // THIS DOES NOT WORK
         Application {
             name: "helloworld"
             files: ["main.cpp"]
             Depends { name: "Qt.core" }
             cpp.optimization: "ludicrousSpeed"
-            // ERROR! We don't know about "cpp" here,
+            // ERROR! We do not know about "cpp" here,
             // though "Qt.core" depends on "cpp".
         }
 
-        // THIS IS WORKING
+        // THIS WORKS
         Application {
             name: "helloworld"
             files: ["main.cpp"]
@@ -477,9 +474,9 @@
         }
     \endcode
 
-    \section2 Different properties for a single file
+    \section2 Different Properties for a Single File
 
-    Not only the product, but all source files of the product can have their own
+    Not only the product, but all the source files of the product can have their own
     set of module properties. For example, assume you have some files that are known to crash
     your compiler if you turn on optimizations. You want to turn off
     optimizations for just these files and this is how you do it:
@@ -496,9 +493,9 @@
         }
     \endcode
 
-    \section2 Selecting files by properties
+    \section2 Selecting Files by Properties
 
-    The classical (pre-lighthouse) Qt case: you have a file that's only going to
+    The classical (pre-lighthouse) Qt case is that you have a file that is only going to
     be compiled on a certain platform. This is how you do it:
     \code
         Group {
@@ -519,8 +516,8 @@
         }
     \endcode
 
-    That odd \a qbs.targetOS thingy is the property \a target of the module \a
-    qbs. The module \a qbs is always implicitly loaded. Its main properties
+    In the above example, \a qbs.targetOS is a property of the \a target of the the \a qbs
+    module. The \a qbs module is always implicitly loaded. Its main properties
     are:
 
     \table
@@ -533,7 +530,7 @@
         \li buildVariant
         \li string
         \li "debug"
-        \li Name of the current build variant. By default "debug" and "release"
+        \li Name of the current build variant. By default, "debug" and "release"
         are valid values but the user can add more in a project file.
     \row
         \li hostOS
@@ -557,7 +554,7 @@
     $ qbs debug release     # builds two variants of the project
     \endcode
 
-    So if you want to select files by build variant, this is how you do it:
+    To select files by build variant:
     \code
         Group {
             condition: qbs.buildVariant == "debug"
@@ -565,7 +562,7 @@
         }
     \endcode
 
-    Setting properties for a build variant works like this:
+    To set properties for a build variant:
     \code
         Properties {
             condition: qbs.buildVariant == "debug"
@@ -573,24 +570,23 @@
             cpp.optimization: "none"
         }
     \endcode
-    or more QML style:
+    Or, to use a more QML-like style:
     \code
         cpp.debugInformation: qbs.buildVariant == "debug" ? true : false
         cpp.optimization: qbs.buildVariant == "debug" ? "none" : "fast"
     \endcode
 
 
-    \section1 File tags and taggers
+    \section1 File Tags and Taggers
 
-    The qbs tool itself knows nothing about C++ files or its file extensions. All source file
-    in a product are handled equally. There's the concept of a \a{file tag},
-    which is basically a marker or a type that can be assigned to an artifact.
+    Qbs itself knows nothing about C++ files or file extensions. All source files
+    in a product are handled equally. However, you can assign \a{file tags} to an artifact
+    to act as a marker or to specify a file type.
 
     An artifact can have multiple file tags.
-    Use the \a Group item to group files with the same file tags (and/or set of
+    For example, you can use the \a Group item to group files with the same file tags (or a set of
     properties).
 
-    Example:
     \code
         Product {
             Group {
@@ -605,15 +601,15 @@
         }
     \endcode
 
-    When you load the \a cpp module then you also load the following item:
+    When you load the \a cpp module, you also load the following item:
     \code
         FileTagger {
             pattern: "*.cpp"
             fileTags: ["cpp"]
         }
     \endcode
-    This construct means that every source file that matches the glob *.cpp (and
-    hasn't explicitly set a file tag) gets the file tag \c{cpp}.
+    This construct means that each source file that matches the p *.cpp (and
+    has not explicitly set a file tag) gets the file tag \c{cpp}.
 
     The above example can be simplified to
     \code
@@ -636,8 +632,7 @@
     another. For instance, the C++ compiler rule transforms artifacts with the file tag
     \c cpp to artifacts with the file tag \c{obj}.
 
-    It's possible to use file taggers to tag files and specify custom file tags in
-    addition:
+    In addition, it is possible to use file taggers to tag files and specify custom file tags:
     \code
         Product {
             Depends: "cpp"
@@ -653,19 +648,19 @@
 
     \section1 Rules
 
-    A rule looks at the pool of artifacts (in the beginning it's just the set of
-    source files of the project) and chooses the ones that match its input file
-    tags. Then it creates output artifacts in the build graph that have other
-    filenames and file tags. It also creates a transformer which is basically a
-    script that, well, transforms the input artifact into the output artifact.
+    Qbs applies a \e rule to a pool of artifacts (in the beginning it is just the set of
+    source files of the project) and chooses the ones that match the input file
+    tags specified by the rule. Then it creates output artifacts in the build graph that have other
+    filenames and file tags. It also creates a script that transforms the input artifact into the
+    output artifact.
 
-    For examples of rules see the share/qbs/modules directory in the qbs
+    For examples of rules, see the share/qbs/modules directory in the Qbs
     repository.
 
-    You can define rules in your own module, which can be provided along with
+    You can define rules in your own module to be provided along with
     your project. Or you can put a rule directly into your project file.
 
-    Rules reference: \l{Rules}.
+    For more information, see \l{Rule Item}.
 */
 
 
@@ -705,8 +700,8 @@
 
     \title Installing Files
 
-    If you want to install your project, the first thing to do is to specify the necessary
-    information in the project file:
+    To install your project, specify the necessary information in the project file:
+
     \code
     Application {
         Group {
@@ -733,8 +728,8 @@
 
     Here, we want the "installDir" properties from the project file to be interpreted relative
     to the directory "/tmp/myProjectRoot", and we want that directory to be removed first.
-    If the "--install-root" option is not given, a default is being used, namely the value of the
-    property "qbs.sysroot" or, if that one is not set, "<build root>/install-root".
+    If the "--install-root" option is not given, a default is used. The default is the value of the
+    property "qbs.sysroot" or, if it is not set, "<build root>/install-root".
 */
 
 /*!
@@ -765,6 +760,8 @@
     \nextpage qbs-reference.html
 
     \title Using Qbs Shell
+
+    To use the Qbs shell, enter the following command:
 
     \code
     qbs shell
@@ -797,6 +794,7 @@
     \contentspage index.html
     \previouspage qbs-reference.html
     \page qbs-functions.html
+    \nextpage qbs-filetagger-item.html
 
     \title Qbs Functions
 

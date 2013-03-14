@@ -34,7 +34,7 @@
 
     \title Product Item
 
-    A Product typically represents the result of a build process. It specifies a set of
+    A \e product typically represents the result of a build process. It specifies a set of
     input and output files and a way to transform the former into the latter. For example, the
     following product sets up a very simple C++ application:
     \code
@@ -48,7 +48,7 @@
     The \c type property specifies what will be built (an executable). The \c files property specifies
     the input files (one C++ source file), and the \c Depends item pulls in the logic from the \c cpp module
     about how to do the necessary transformations.
-    For some often-used types of products, qbs pre-defines special derived items that save
+    For some often-used types of products, Qbs pre-defines special derived items that save
     users some typing. These are:
     \list
         \li Application
@@ -106,8 +106,9 @@
             \li excludeFiles
             \li list of strings
             \li empty list
-            \li A list of source files not to include. Useful with wildcards. See the \c Group
-                item for more information.
+            \li A list of source files not to include. Useful with wildcards.
+                For more information, see \l {Group Item}.
+
         \row
             \li consoleApplication
             \li bool

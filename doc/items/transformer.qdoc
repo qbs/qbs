@@ -33,7 +33,7 @@
 
     \title Transformer Item
 
-    A \c Transformer takes zero or more inputs and produces one or more output artifacts
+    A \e transformer takes zero or more inputs and produces one or more output artifacts
     from them. The following transformer creates one output file from one input file:
     \code
     Transformer {
@@ -69,7 +69,7 @@
 
     A \c Transformer is always attached to a \c Product, possibly indirectly via a \c Module.
 
-    \section1 Transformer properties
+    \section1 Transformer Properties
 
     \table
     \header
