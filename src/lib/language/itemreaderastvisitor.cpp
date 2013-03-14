@@ -484,18 +484,16 @@ void ItemReaderASTVisitor::ensureIdScope(const FileContextPtr &file)
 
 void ItemReaderASTVisitor::setupAlternatives(const ItemPtr &item)
 {
-    QList<ItemPtr> itemChildren = item->children();
-    QList<ItemPtr>::iterator it = itemChildren.begin();
-    while (it != itemChildren.end()) {
+    QList<ItemPtr>::iterator it = item->m_children.begin();
+    while (it != item->m_children.end()) {
         const ItemPtr &child = *it;
         if (child->typeName() == QLatin1String("Properties")) {
             handlePropertiesBlock(item, child);
-            it = itemChildren.erase(it);
+            it = item->m_children.erase(it);
         } else {
             ++it;
         }
     }
-    item->setChildren(itemChildren);
 }
 
 class PropertiesBlockConverter
