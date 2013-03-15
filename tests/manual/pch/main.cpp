@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
+int main()
 {
     MyObject obj;
     list<int> lst;

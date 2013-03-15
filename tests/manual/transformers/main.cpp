@@ -51,7 +51,7 @@ bool displayTextFile(const string &dirPath, const string &fileName)
     return true;
 }
 
-int main(int argc, char **argv)
+int main(int, char **argv)
 {
     string appPath(argv[0]);
     size_t i = appPath.find_last_of('/');

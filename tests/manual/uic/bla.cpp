@@ -32,5 +32,6 @@
 int main()
 {
     Ui::MainWindow mainWindow;
+    Q_UNUSED(mainWindow);
 }
 
