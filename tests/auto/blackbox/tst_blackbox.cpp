@@ -173,6 +173,10 @@ void TestBlackbox::build_project_data()
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
+    QTest::newRow("link static libs")
+            << QString("link_staticlib")
+            << QString(buildDir + QLatin1String("/")
+                       + HostOsInfo::appendExecutableSuffix("HelloWorld"));
     QTest::newRow("lots of dots")
             << QString("lotsofdots")
             << QString(buildDir + QLatin1String("/")
