@@ -47,6 +47,7 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <set>
 
 namespace qbs {
 namespace Internal {
@@ -427,6 +428,29 @@ void ProjectResolver::resolveRule(const ItemPtr &item)
         m_projectContext->rules += rule;
 }
 
+class StringListLess
+{
+public:
+    bool operator()(const QStringList &lhs, const QStringList &rhs)
+    {
+        const int c = qMin(lhs.count(), rhs.count());
+        for (int i = 0; i < c; ++i) {
+            int n = lhs.at(i).compare(rhs.at(i));
+            if (n < 0)
+                return true;
+            if (n > 0)
+                return false;
+        }
+        return lhs.count() < rhs.count();
+    }
+};
+
+class StringListSet : public std::set<QStringList, StringListLess>
+{
+public:
+    typedef std::pair<iterator, bool> InsertResult;
+};
+
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, const ItemPtr &item,
                                           bool *hasAlwaysUpdatedArtifact)
 {
@@ -438,19 +462,23 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, const ItemPtr &it
     if (artifact->alwaysUpdated)
         *hasAlwaysUpdatedArtifact = true;
 
-    for (QMap<QString, ValuePtr>::const_iterator it = item->properties().constBegin();
-         it != item->properties().constEnd(); ++it)
-    {
-        if (it.value()->type() != Value::ItemValueType)
-            continue;
-        resolveRuleArtifactBinding(artifact, it.value().staticCast<ItemValue>()->item(),
-             QStringList(it.key()));
+    StringListSet seenBindings;
+    for (ItemPtr obj = item; obj; obj = obj->prototype()) {
+        for (QMap<QString, ValuePtr>::const_iterator it = obj->properties().constBegin();
+             it != obj->properties().constEnd(); ++it)
+        {
+            if (it.value()->type() != Value::ItemValueType)
+                continue;
+            resolveRuleArtifactBinding(artifact, it.value().staticCast<ItemValue>()->item(),
+                 QStringList(it.key()), &seenBindings);
+        }
     }
 }
 
 void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact,
                                                  const ItemPtr &item,
-                                                 const QStringList &namePrefix)
+                                                 const QStringList &namePrefix,
+                                                 StringListSet *seenBindings)
 {
     for (QMap<QString, ValuePtr>::const_iterator it = item->properties().constBegin();
          it != item->properties().constEnd(); ++it)
@@ -458,8 +486,12 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
         const QStringList name = QStringList(namePrefix) << it.key();
         if (it.value()->type() == Value::ItemValueType) {
             resolveRuleArtifactBinding(ruleArtifact,
-                                       it.value().staticCast<ItemValue>()->item(), name);
+                                       it.value().staticCast<ItemValue>()->item(), name,
+                                       seenBindings);
         } else if (it.value()->type() == Value::JSSourceValueType) {
+            const StringListSet::InsertResult insertResult = seenBindings->insert(name);
+            if (!insertResult.second)
+                continue;
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
             RuleArtifact::Binding rab;
             rab.name = name;

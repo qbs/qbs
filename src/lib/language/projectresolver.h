@@ -46,6 +46,7 @@ class Evaluator;
 class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
+class StringListSet;
 struct ModuleLoaderResult;
 
 class ProjectResolver
@@ -96,7 +97,8 @@ private:
     void resolveRule(const ItemPtr &item);
     void resolveRuleArtifact(const RulePtr &rule, const ItemPtr &item, bool *hasAlwaysUpdatedArtifact);
     static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, const ItemPtr &item,
-                                           const QStringList &namePrefix);
+                                           const QStringList &namePrefix,
+                                           StringListSet *seenBindings);
     void resolveFileTagger(const ItemPtr &item);
     void resolveTransformer(const ItemPtr &item);
     void resolveProductModule(const ItemPtr &item);
