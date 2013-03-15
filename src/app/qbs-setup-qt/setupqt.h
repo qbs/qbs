@@ -32,6 +32,7 @@
 
 #include <tools/error.h>
 #include <QCoreApplication>
+#include <QStringList>
 
 namespace qbs {
 class Settings;
@@ -49,6 +50,7 @@ public:
     QString qtLibInfix;
     QString qtNameSpace;
     QString mkspecPath;
+    QStringList configItems;
     QString qtVersion;
     int qtMajorVersion;
     int qtMinorVersion;

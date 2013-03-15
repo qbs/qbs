@@ -124,7 +124,7 @@ static QByteArray readFileContent(const QString &filePath)
 
 static QByteArray configVariable(const QByteArray &configContent, const QByteArray &key)
 {
-    QRegExp regularExpression(QString(".*%1\\s*=(.*)").arg(QString::fromLatin1(key)), Qt::CaseSensitive);
+    QRegExp regularExpression(QString(".*%1\\s*\\+{0,1}=(.*)").arg(QString::fromLatin1(key)), Qt::CaseSensitive);
 
     QList<QByteArray> configContentLines = configContent.split('\n');
 
@@ -184,6 +184,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
+    qtEnvironment.configItems = QString(configVariable(qconfigContent, "CONFIG")).split(QLatin1Char(' '), QString::SkipEmptyParts);
 
     // read mkspec
     if (qtVersion.majorVersion >= 5) {
@@ -220,6 +221,16 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     profile.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     profile.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
+
+    if (qtEnviroment.mkspecPath.contains("macx")) {
+        if (qtEnviroment.configItems.contains("qt_framework")) {
+            profile.setValue(settingsTemplate.arg("frameworkBuild"), true);
+        } else if (qtEnviroment.configItems.contains("qt_no_framework")) {
+            profile.setValue(settingsTemplate.arg("frameworkBuild"), false);
+        } else {
+            throw Error(tr("could not determine whether Qt is a frameworks build"));
+        }
+    }
 
     // If this profile does not specify a toolchain and we find exactly one profile that looks
     // like it might have been added by qbs-detect-toolchain, let's use that one as our
