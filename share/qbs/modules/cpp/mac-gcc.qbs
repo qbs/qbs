@@ -15,7 +15,7 @@ UnixGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.name + ".app/Info.plist"
+            fileName: product.targetName + ".app/Contents/Info.plist"
             fileTags: ["infoplist"]
         }
 
@@ -71,7 +71,7 @@ UnixGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.name + ".app/PkgInfo"
+            fileName: product.targetName + ".app/Contents/PkgInfo"
             fileTags: ["pkginfo"]
         }
 
@@ -94,7 +94,7 @@ UnixGCC {
         inputs: ["application", "infoplist", "pkginfo"]
 
         Artifact {
-            fileName: product.name + ".app/Contents/MacOS/" + product.name
+            fileName: product.targetName + ".app/Contents/MacOS/" + product.targetName
             fileTags: ["applicationbundle"]
         }
 
