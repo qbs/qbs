@@ -381,10 +381,7 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
             }
             QString installDir = artifact->properties
                     ->qbsPropertyValue(QLatin1String("installDir")).toString();
-            if (!installDir.startsWith(QLatin1Char('/')))
-                installDir.prepend(QLatin1Char('/'));
-            installDir.prepend(installRoot);
-            return installDir.append(QLatin1Char('/')).append(fileName);
+            return QDir::cleanPath(installRoot + QLatin1Char('/') + installDir + QLatin1Char('/') + fileName);
         }
     }
     return QString();
