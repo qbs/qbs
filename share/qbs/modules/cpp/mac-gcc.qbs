@@ -94,18 +94,15 @@ UnixGCC {
         inputs: ["application", "infoplist", "pkginfo"]
 
         Artifact {
-            fileName: product.targetName + ".app/Contents/MacOS/" + product.targetName
+            fileName: product.targetName + ".app"
             fileTags: ["applicationbundle"]
         }
 
         prepare: {
+            // This command is intentionally empty; it just lets the user know a bundle has been made
             var cmd = new JavaScriptCommand();
-            cmd.description = "generating app bundle";
+            cmd.description = "creating app bundle";
             cmd.highlight = "codegen";
-            cmd.sourceCode = function() {
-                File.remove(outputs.applicationbundle[0].fileName);
-                File.copy(inputs.application[0].fileName, outputs.applicationbundle[0].fileName);
-            }
             return cmd;
         }
     }

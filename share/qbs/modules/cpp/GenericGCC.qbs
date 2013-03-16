@@ -161,7 +161,9 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "executablePrefix")
+            fileName: product.destinationDirectory + "/"
+                      + (product.type === "applicationbundle" ? product.targetName + ".app/Contents/MacOS/" : "")
+                      + ModUtils.moduleProperty(product, "executablePrefix")
                       + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
             fileTags: ["application"]
         }
