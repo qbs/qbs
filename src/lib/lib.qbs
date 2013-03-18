@@ -265,7 +265,7 @@ DynamicLibrary {
         ]
     }
     Group {
-        condition: project.enableTests
+        condition: project.enableUnitTests
         name: "tests"
         files: [
             "buildgraph/tst_buildgraph.cpp",
@@ -284,7 +284,7 @@ DynamicLibrary {
     ProductModule {
         Depends { name: "cpp" }
         Depends { name: "qt"; submodules: ["script"]}
+        cpp.rpaths: qbs.targetOS === "linux" ? ["$ORIGIN/../lib"] : undefined
         cpp.includePaths: ["."]
     }
 }
-

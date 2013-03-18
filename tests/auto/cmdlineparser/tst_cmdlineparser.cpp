@@ -114,9 +114,9 @@ private slots:
     void testProjectFileLookup()
     {
         const QString srcDir = QLatin1String(SRCDIR);
-        const QString noProjectsDir = srcDir + QLatin1String("data/dirwithnoprojects");
-        const QString oneProjectDir = srcDir + QLatin1String("data/dirwithoneproject");
-        const QString multiProjectsDir = srcDir + QLatin1String("data/dirwithmultipleprojects");
+        const QString noProjectsDir = srcDir + QLatin1String("/data/dirwithnoprojects");
+        const QString oneProjectDir = srcDir + QLatin1String("/data/dirwithoneproject");
+        const QString multiProjectsDir = srcDir + QLatin1String("/data/dirwithmultipleprojects");
         QVERIFY(QDir(noProjectsDir).exists() && QDir(oneProjectDir).exists()
                 && QDir(multiProjectsDir).exists());
         CommandLineParser parser;

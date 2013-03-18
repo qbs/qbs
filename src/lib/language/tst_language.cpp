@@ -91,7 +91,7 @@ void TestLanguage::initTestCase()
     ScriptEngine *engine = new ScriptEngine(logger, this);
     loader = new Loader(engine, m_settings, logger);
     loader->setSearchPaths(QStringList()
-                           << QLatin1String(SRCDIR "../../share/qbs"));
+                           << QLatin1String(SRCDIR "/../../share/qbs"));
     setConfigProperty(defaultParameters.buildConfiguration,
                       QStringList() << "qbs" << "targetOS", "linux");
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());

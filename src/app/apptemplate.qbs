@@ -10,7 +10,6 @@ Product {
     cpp.includePaths: [
         "../shared",    // for the logger
     ]
-    cpp.rpaths: qbs.targetOS === "linux" ? ["$ORIGIN/../lib"] : undefined
     Group {
         fileTagsFilter: product.type
         qbs.install: true
