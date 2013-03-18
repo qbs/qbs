@@ -23,12 +23,20 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist";
             cmd.highlight = "codegen";
-            cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
+            cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {
+                CFBundleDisplayName: product.targetName,
+                CFBundleExecutable: product.targetName,
+                CFBundleIconFile: product.targetName + ".icns",
+                CFBundleInfoDictionaryVersion: "6.0",
+                CFBundleName: product.targetName,
+                CFBundlePackageType: "APPL",
+                CFBundleSignature: "????"
+            };
             cmd.sourceCode = function() {
                 var infoplist = new TextFile(outputs.infoplist[0].fileName, TextFile.WriteOnly);
                 infoplist.writeLine('<?xml version="1.0" encoding="UTF-8"?>');
-                infoplist.writeLine('<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">');
-                infoplist.writeLine('<plist version="0.9">');
+                infoplist.writeLine('<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">');
+                infoplist.writeLine('<plist version="1.0">');
                 infoplist.writeLine('<dict>');
                 for (var key in infoPlist) {
                     infoplist.writeLine('    <key>' + key + '</key>');
