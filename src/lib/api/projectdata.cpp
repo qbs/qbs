@@ -29,7 +29,7 @@
 #include "projectdata.h"
 
 #include "propertymap_p.h"
-#include <language/language.h>
+#include <language/propertymapinternal.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>

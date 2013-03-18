@@ -36,7 +36,6 @@
 #include <tools/error.h>
 #include <tools/propertyfinder.h>
 #include <tools/persistence.h>
-#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
 #include <QDir>
@@ -63,71 +62,6 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
-
-/*!
- * \class PropertyMapInternal
- * \brief The \c PropertyMapInternal class contains a set of properties and their values.
- * An instance of this class is attached to every \c ResolvedProduct.
- * \c ResolvedGroups inherit their properties from the respective \c ResolvedProduct, \c SourceArtifacts
- * inherit theirs from the respective \c ResolvedGroup. \c ResolvedGroups can override the value of an
- * inherited property, \c SourceArtifacts cannot. If a property value is overridden, a new
- * \c PropertyMapInternal object is allocated, otherwise the pointer is shared.
- * \sa ResolvedGroup
- * \sa ResolvedProduct
- * \sa SourceArtifact
- */
-PropertyMapInternal::PropertyMapInternal()
-{
-}
-
-PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other)
-    : PersistentObject(other), m_value(other.m_value)
-{
-}
-
-QVariant PropertyMapInternal::qbsPropertyValue(const QString &key)
-{
-    return PropertyFinder().propertyValue(value(), QLatin1String("qbs"), key);
-}
-
-void PropertyMapInternal::setValue(const QVariantMap &map)
-{
-    m_value = map;
-}
-
-static QString toJSLiteral(const QVariantMap &vm, int level = 0)
-{
-    QString indent;
-    for (int i = 0; i < level; ++i)
-        indent += QLatin1String("    ");
-    QString str;
-    for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
-        if (it.value().type() == QVariant::Map) {
-            str += indent + it.key() + QLatin1String(": {\n");
-            str += toJSLiteral(it.value().toMap(), level + 1);
-            str += indent + QLatin1String("}\n");
-        } else {
-            str += indent + it.key() + QLatin1String(": ") + toJSLiteral(it.value())
-                    + QLatin1Char('\n');
-        }
-    }
-    return str;
-}
-
-QString PropertyMapInternal::toJSLiteral() const
-{
-    return qbs::Internal::toJSLiteral(m_value);
-}
-
-void PropertyMapInternal::load(PersistentPool &pool)
-{
-    pool.stream() >> m_value;
-}
-
-void PropertyMapInternal::store(PersistentPool &pool) const
-{
-    pool.stream() << m_value;
-}
 
 /*!
  * \class FileTagger

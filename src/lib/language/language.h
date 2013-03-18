@@ -33,6 +33,7 @@
 #include "filetags.h"
 #include "forward_decls.h"
 #include "jsimports.h"
+#include "propertymapinternal.h"
 #include <tools/codelocation.h>
 #include <tools/fileinfo.h>
 #include <tools/persistentobject.h>
@@ -54,27 +55,6 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
-
-class PropertyMapInternal : public PersistentObject
-{
-public:
-    static PropertyMapPtr create() { return PropertyMapPtr(new PropertyMapInternal); }
-    PropertyMapPtr clone() const { return PropertyMapPtr(new PropertyMapInternal(*this)); }
-
-    const QVariantMap &value() const { return m_value; }
-    QVariant qbsPropertyValue(const QString &key); // Convenience function.
-    void setValue(const QVariantMap &value);
-    QString toJSLiteral() const;
-
-private:
-    PropertyMapInternal();
-    PropertyMapInternal(const PropertyMapInternal &other);
-
-    void load(PersistentPool &);
-    void store(PersistentPool &) const;
-
-    QVariantMap m_value;
-};
 
 class FileTagger : public PersistentObject
 {

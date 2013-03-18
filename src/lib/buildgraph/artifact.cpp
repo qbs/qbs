@@ -31,7 +31,7 @@
 #include "transformer.h"
 #include "buildgraph.h"
 
-#include <language/language.h>
+#include <language/propertymapinternal.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>

@@ -22,6 +22,7 @@ HEADERS += \
     $$PWD/moduleloader.h \
     $$PWD/projectresolver.h \
     $$PWD/propertydeclaration.h \
+    $$PWD/propertymapinternal.h \
     $$PWD/scriptengine.h \
     $$PWD/value.h
 
@@ -44,6 +45,7 @@ SOURCES += \
     $$PWD/moduleloader.cpp \
     $$PWD/projectresolver.cpp \
     $$PWD/propertydeclaration.cpp \
+    $$PWD/propertymapinternal.cpp \
     $$PWD/scriptengine.cpp \
     $$PWD/value.cpp
 

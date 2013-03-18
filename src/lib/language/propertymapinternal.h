@@ -27,33 +27,38 @@
 **
 ****************************************************************************/
 
-#include "artifactproperties.h"
-#include <language/propertymapinternal.h>
+#ifndef QBS_PROPERTYMAPINTERNAL_H
+#define QBS_PROPERTYMAPINTERNAL_H
+
+#include "forward_decls.h"
 #include <tools/persistence.h>
+#include <QVariantMap>
 
 namespace qbs {
 namespace Internal {
 
-ArtifactPropertiesPtr ArtifactProperties::create()
+class PropertyMapInternal : public PersistentObject
 {
-    return ArtifactPropertiesPtr(new ArtifactProperties);
-}
+public:
+    static PropertyMapPtr create() { return PropertyMapPtr(new PropertyMapInternal); }
+    PropertyMapPtr clone() const { return PropertyMapPtr(new PropertyMapInternal(*this)); }
 
-ArtifactProperties::ArtifactProperties()
-{
-}
+    const QVariantMap &value() const { return m_value; }
+    QVariant qbsPropertyValue(const QString &key); // Convenience function.
+    void setValue(const QVariantMap &value);
+    QString toJSLiteral() const;
 
-void ArtifactProperties::load(PersistentPool &pool)
-{
-    pool.stream() >> m_fileTagsFilter;
-    m_propertyMap = pool.idLoadS<PropertyMapInternal>();
-}
+private:
+    PropertyMapInternal();
+    PropertyMapInternal(const PropertyMapInternal &other);
 
-void ArtifactProperties::store(PersistentPool &pool) const
-{
-    pool.stream() << m_fileTagsFilter;
-    pool.store(m_propertyMap);
-}
+    void load(PersistentPool &);
+    void store(PersistentPool &) const;
+
+    QVariantMap m_value;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_PROPERTYMAPINTERNAL_H

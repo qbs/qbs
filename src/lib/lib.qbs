@@ -173,6 +173,8 @@ DynamicLibrary {
             "projectresolver.h",
             "propertydeclaration.cpp",
             "propertydeclaration.h",
+            "propertymapinternal.cpp",
+            "propertymapinternal.h",
             "scriptengine.cpp",
             "scriptengine.h",
             "value.cpp",

@@ -35,6 +35,7 @@
 #include "filecontext.h"
 #include "item.h"
 #include "moduleloader.h"
+#include "propertymapinternal.h"
 #include "scriptengine.h"
 #include <logging/translator.h>
 #include <tools/error.h>
