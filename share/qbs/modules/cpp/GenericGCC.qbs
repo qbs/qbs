@@ -263,8 +263,7 @@ CppModule {
             var objcFlags = ModUtils.moduleProperties(input, 'objcFlags');
             var visibility = ModUtils.moduleProperty(product, 'visibility');
             var args = Gcc.configFlags(input);
-            var isCxx = true;
-            var isObjC = false;
+            var i, c;
 
             args.push('-pipe');
 
@@ -292,31 +291,21 @@ CppModule {
                 if (!pchPathIncluded)
                     args.push('-I' + pchPath)
             }
-            if (input.fileTags.indexOf("c") >= 0) {
-                isCxx = false;
-                isObjC = false;
-                args.push('-x')
-                args.push('c')
-            } else if (input.fileTags.indexOf("objc") >= 0) {
-                isObjC = true;
-                isCxx = false;
-                args.push('-x');
-                args.push('objective-c');
-            } else if (input.fileTags.indexOf("objcpp") >= 0) {
-                isObjC = true;
-                isCxx = true;
-                args.push('-x');
-                args.push('objective-c++');
-            }
-            if (isObjC) {
-                if (objcFlags)
-                    args = args.concat(objcFlags);
-            } else if (isCxx) {
-                if (cxxFlags)
+            for (i = 0, c = input.fileTags.length; i < c; ++i) {
+                if (input.fileTags[i] === "cpp") {
                     args = args.concat(cxxFlags);
-            } else {
-                if (cFlags)
+                    break;
+                } else if (input.fileTags[i] === "c") {
+                    args.push('-x');
+                    args.push('c');
                     args = args.concat(cFlags);
+                    break;
+                } else if (input.fileTags[i] === "objc") {
+                    args.push('-x');
+                    args.push('objective-c');
+                    args = args.concat(objcFlags);
+                    break;
+                }
             }
             args = args.concat(Gcc.additionalFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, input.fileName, output))
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
