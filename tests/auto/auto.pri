@@ -1,6 +1,6 @@
 TEMPLATE = app
 DESTDIR = ../../../bin
-DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_/\\\"
+DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_\\\"
 INCLUDEPATH += $$PWD/../../src
 
 QT = core script testlib

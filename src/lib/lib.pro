@@ -11,7 +11,7 @@ TARGET = qbscore
 CONFIG += shared dll depend_includepath
 DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS
 DEFINES += QBS_LIBRARY
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
+DEFINES += SRCDIR=\\\"$$PWD\\\"
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
