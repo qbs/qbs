@@ -9,7 +9,6 @@ HEADERS += \
     $$PWD/filecontext.h \
     $$PWD/filetags.h \
     $$PWD/forward_decls.h \
-    $$PWD/forward_decls.h \
     $$PWD/functiondeclaration.h \
     $$PWD/identifiersearch.h \
     $$PWD/importversion.h \
