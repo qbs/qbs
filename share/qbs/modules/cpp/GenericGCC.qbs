@@ -9,7 +9,7 @@ CppModule {
     property var transitiveSOs
     property string toolchainPrefix
     property string toolchainInstallPath
-    property string compilerName: 'g++'
+    compilerName: 'g++'
     property string archiverName: 'ar'
     property string sysroot: qbs.sysroot
 

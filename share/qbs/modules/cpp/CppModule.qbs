@@ -24,6 +24,7 @@ Module {
     property pathList libraryPaths
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
+    property string compilerName
     property string compilerPath
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix
