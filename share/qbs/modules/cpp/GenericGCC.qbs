@@ -60,6 +60,7 @@ CppModule {
             var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
             var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
+            var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var i;
             var args = Gcc.configFlags(product);
@@ -72,6 +73,7 @@ CppModule {
                     '-Wl,--no-undefined',
                     '-Wl,-soname=' + FileInfo.fileName(output.fileName)
                 ]);
+            args = args.concat(platformLinkerFlags);
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
             for (i in inputs.obj)
@@ -173,6 +175,7 @@ CppModule {
             var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
             var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
+            var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var args = Gcc.configFlags(product);
             for (var i in inputs.obj)
@@ -180,6 +183,7 @@ CppModule {
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot)
                 args.push('--sysroot=' + sysroot)
+            args = args.concat(platformLinkerFlags);
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
             if (product.consoleApplication !== undefined
@@ -294,22 +298,30 @@ CppModule {
             }
             for (i = 0, c = input.fileTags.length; i < c; ++i) {
                 if (input.fileTags[i] === "cpp") {
-                    args = args.concat(cxxFlags);
+                    args = args.concat(
+                                ModUtils.moduleProperties(input, 'platformCxxFlags'),
+                                cxxFlags);
                     break;
                 } else if (input.fileTags[i] === "c") {
                     args.push('-x');
                     args.push('c');
-                    args = args.concat(cFlags);
+                    args = args.concat(
+                                ModUtils.moduleProperties(input, 'platformCFlags'),
+                                cFlags);
                     break;
                 } else if (input.fileTags[i] === "objc") {
                     args.push('-x');
                     args.push('objective-c');
-                    args = args.concat(objcFlags);
+                    args = args.concat(
+                                ModUtils.moduleProperties(input, 'platformObjcFlags'),
+                                objcFlags);
                     break;
                 } else if (input.fileTags[i] === "objcpp") {
                     args.push('-x');
                     args.push('objective-c++');
-                    args = args.concat(objcxxFlags);
+                    args = args.concat(
+                                ModUtils.moduleProperties(input, 'platformObjcxxFlags'),
+                                objcxxFlags);
                     break;
                 }
             }

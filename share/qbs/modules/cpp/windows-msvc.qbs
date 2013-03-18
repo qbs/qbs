@@ -83,8 +83,10 @@ CppModule {
             var defines = ModUtils.moduleProperties(input, 'defines');
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-            var cFlags = ModUtils.moduleProperties(input, 'cFlags');
-            var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
+            var cFlags = ModUtils.moduleProperties(input, 'platformCFlags').concat(
+                        ModUtils.moduleProperties(input, 'cFlags'));
+            var cxxFlags = ModUtils.moduleProperties(input, 'platformCxxFlags').concat(
+                        ModUtils.moduleProperties(input, 'cxxFlags'));
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
         }
     }
@@ -104,8 +106,10 @@ CppModule {
             var defines = ModUtils.moduleProperties(input, 'defines');
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-            var cFlags = ModUtils.moduleProperties(input, 'cFlags');
-            var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
+            var cFlags = ModUtils.moduleProperties(input, 'platformCFlags').concat(
+                        ModUtils.moduleProperties(input, 'cFlags'));
+            var cxxFlags = ModUtils.moduleProperties(input, 'platformCxxFlags').concat(
+                        ModUtils.moduleProperties(input, 'cxxFlags'));
             return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
         }
     }
@@ -125,7 +129,8 @@ CppModule {
             var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
             var dynamicLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary_import, 'cpp', 'dynamicLibraries');
             var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
-            var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
+            var linkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags').concat(
+                        ModUtils.moduleProperties(product, 'linkerFlags'));
             return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }
@@ -155,7 +160,8 @@ CppModule {
             var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
             var dynamicLibraries = ModUtils.moduleProperties(product, 'dynamicLibraries');
             var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, (inputs.staticlibrary || []).concat(inputs.obj), 'cpp', 'staticLibraries');
-            var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
+            var linkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags').concat(
+                        ModUtils.moduleProperties(product, 'linkerFlags'));
             return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
         }
     }

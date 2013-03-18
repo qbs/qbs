@@ -87,6 +87,14 @@ Module {
         allowedValues: ['default', 'hidden', 'hiddenInlines']
     }
 
+    // Platform properties. Those are intended to be set by the toolchain setup
+    // and are prepended to the corresponding user properties.
+    property var platformCFlags
+    property var platformCxxFlags
+    property var platformObjcFlags
+    property var platformObjcxxFlags
+    property var platformLinkerFlags
+
     FileTagger {
         pattern: "*.c"
         fileTags: ["c"]
