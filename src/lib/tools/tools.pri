@@ -61,6 +61,7 @@ all_tests {
 
 !qbs_no_dev_install {
     tools_headers.files = \
+        $$PWD/cleanoptions.h \
         $$PWD/codelocation.h \
         $$PWD/error.h \
         $$PWD/settings.h \
@@ -69,8 +70,7 @@ all_tests {
         $$PWD/processresult.h \
         $$PWD/buildoptions.h \
         $$PWD/installoptions.h \
-        $$PWD/setupprojectparameters.h \
-        $$PWD/qbs_export.h
+        $$PWD/setupprojectparameters.h
     tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools
     INSTALLS += tools_headers
 }

@@ -25,9 +25,12 @@ DynamicLibrary {
         condition: qbs.toolchain === "gcc" && qbs.targetPlatform.indexOf("windows") === -1
         cpp.cxxFlags: ["-Werror"]
     }
+    property string headerInstallPrefix: "/include/qbs"
     Group {
         name: product.name
         files: ["qbs.h"]
+        qbs.install: true
+        qbs.installDir: headerInstallPrefix
     }
     Group {
         name: "api"
@@ -36,13 +39,21 @@ DynamicLibrary {
             "internaljobs.cpp",
             "internaljobs.h",
             "jobs.cpp",
-            "jobs.h",
             "project.cpp",
-            "project.h",
             "projectdata.cpp",
-            "projectdata.h",
             "propertymap_p.h",
             "runenvironment.cpp",
+        ]
+    }
+    Group {
+        name: "public api headers"
+        qbs.install: true
+        qbs.installDir: headerInstallPrefix + "/api"
+        prefix: "api/"
+        files: [
+            "jobs.h",
+            "project.h",
+            "projectdata.h",
             "runenvironment.h"
         ]
     }
@@ -76,7 +87,6 @@ DynamicLibrary {
             "executor.h",
             "executorjob.cpp",
             "executorjob.h",
-            "forward_decls.h",
             "inputartifactscanner.cpp",
             "inputartifactscanner.h",
             "jscommandexecutor.cpp",
@@ -98,6 +108,12 @@ DynamicLibrary {
             "transformer.cpp",
             "transformer.h"
         ]
+    }
+    Group {
+        name: "public buildgraph headers"
+        qbs.install: true
+        qbs.installDir: headerInstallPrefix + "/buildgraph"
+        files: "buildgraph/forward_decls.h"
     }
     Group {
         name: "jsextensions"
@@ -134,8 +150,6 @@ DynamicLibrary {
             "filecontext.h",
             "filetags.cpp",
             "filetags.h",
-            "forward_decls.h",
-            "forward_decls.h",
             "functiondeclaration.h",
             "identifiersearch.cpp",
             "identifiersearch.h",
@@ -166,15 +180,26 @@ DynamicLibrary {
         ]
     }
     Group {
+        name: "public language headers"
+        qbs.install: true
+        qbs.installDir: headerInstallPrefix + "/language"
+        files: "language/forward_decls.h"
+    }
+    Group {
         name: "logging"
         prefix: name + '/'
         files: [
             "ilogsink.cpp",
-            "ilogsink.h",
             "logger.cpp",
             "logger.h",
             "translator.h"
         ]
+    }
+    Group {
+        name: "public logging headers"
+        qbs.install: true
+        qbs.installDir: headerInstallPrefix + "/logging"
+        files: "logging/ilogsink.h"
     }
     Group {
         name: "parser"
@@ -205,13 +230,9 @@ DynamicLibrary {
         prefix: name + '/'
         files: [
             "buildoptions.cpp",
-            "buildoptions.h",
             "cleanoptions.cpp",
-            "cleanoptions.h",
             "codelocation.cpp",
-            "codelocation.h",
             "error.cpp",
-            "error.h",
             "fileinfo.cpp",
             "fileinfo.h",
             "filetime.h",
@@ -219,15 +240,11 @@ DynamicLibrary {
             "id.cpp",
             "id.h",
             "installoptions.cpp",
-            "installoptions.h",
             "persistence.cpp",
             "persistence.h",
             "persistentobject.h",
             "preferences.cpp",
-            "preferences.h",
-            "processresult.h",
             "profile.cpp",
-            "profile.h",
             "progressobserver.cpp",
             "progressobserver.h",
             "propertyfinder.cpp",
@@ -242,11 +259,27 @@ DynamicLibrary {
             "scripttools.cpp",
             "scripttools.h",
             "settings.cpp",
-            "settings.h",
             "setupprojectparameters.cpp",
-            "setupprojectparameters.h",
             "weakpointer.h"
         ]
+    }
+    Group {
+        name: "public tools headers"
+        prefix: "tools/"
+        files: [
+            "buildoptions.h",
+            "cleanoptions.h",
+            "codelocation.h",
+            "error.h",
+            "installoptions.h",
+            "preferences.h",
+            "processresult.h",
+            "profile.h",
+            "settings.h",
+            "setupprojectparameters.h",
+        ]
+        qbs.install: true
+        qbs.installDir: headerInstallPrefix + "/tools"
     }
     Group {
         condition: qbs.targetPlatform.indexOf("windows") != -1
