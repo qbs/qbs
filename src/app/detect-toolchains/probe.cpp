@@ -29,6 +29,7 @@
 #include "probe.h"
 
 #include "msvcprobe.h"
+#include "osxprobe.h"
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
@@ -220,6 +221,8 @@ int probe(Settings *settings)
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
         mingwProbe(settings, profiles);
+    } else if (HostOsInfo::isMacHost()) {
+        osxProbe(settings, profiles);
     } else {
         specific_probe(settings, profiles, QLatin1String("gcc"));
         specific_probe(settings, profiles, QLatin1String("clang"));
