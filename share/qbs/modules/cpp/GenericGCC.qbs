@@ -261,6 +261,7 @@ CppModule {
             var cFlags = ModUtils.moduleProperties(input, 'cFlags');
             var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
             var objcFlags = ModUtils.moduleProperties(input, 'objcFlags');
+            var objcxxFlags = ModUtils.moduleProperties(input, 'objcxxFlags');
             var visibility = ModUtils.moduleProperty(product, 'visibility');
             var args = Gcc.configFlags(input);
             var i, c;
@@ -304,6 +305,11 @@ CppModule {
                     args.push('-x');
                     args.push('objective-c');
                     args = args.concat(objcFlags);
+                    break;
+                } else if (input.fileTags[i] === "objcpp") {
+                    args.push('-x');
+                    args.push('objective-c++');
+                    args = args.concat(objcxxFlags);
                     break;
                 }
             }

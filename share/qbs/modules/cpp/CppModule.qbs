@@ -62,6 +62,12 @@ Module {
         description: "additional flags for the Objective-C compiler"
     }
 
+    property var objcxxFlags
+    PropertyOptions {
+        name: "objcxxFlags"
+        description: "additional flags for the Objective-C++ compiler"
+    }
+
     property var linkerFlags
     PropertyOptions {
         name: "linkerFlags"
