@@ -37,10 +37,10 @@
 static QHash<QString, TextColor> setupColorTable()
 {
     QHash<QString, TextColor> colorTable;
-    colorTable["compiler"] = TextColorDefault;
-    colorTable["linker"] = TextColorDarkGreen;
-    colorTable["codegen"] = TextColorDarkYellow;
-    colorTable["filegen"] = TextColorDarkYellow;
+    colorTable[QLatin1String("compiler")] = TextColorDefault;
+    colorTable[QLatin1String("linker")] = TextColorDarkGreen;
+    colorTable[QLatin1String("codegen")] = TextColorDarkYellow;
+    colorTable[QLatin1String("filegen")] = TextColorDarkYellow;
     return colorTable;
 }
 
