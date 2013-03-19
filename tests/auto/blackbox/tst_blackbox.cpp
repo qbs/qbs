@@ -535,6 +535,67 @@ void TestBlackbox::trackAddMocInclude()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::trackAddProduct()
+{
+    QDir::setCurrent(testDataDir + "/trackProducts");
+    if (QFile::exists("work"))
+        rmDirR("work");
+    QDir().mkdir("work");
+    ccp("before", "work");
+    QDir::setCurrent(testDataDir + "/trackProducts/work");
+    const QStringList args = QStringList() << "-f" << "trackProducts.qbs";
+    QCOMPARE(runQbs(args), 0);
+    QVERIFY(m_qbsStdout.contains("compiling foo.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling bar.cpp"));
+    QVERIFY(m_qbsStdout.contains("linking product1"));
+    QVERIFY(m_qbsStdout.contains("linking product2"));
+
+    QTest::qWait(1000); // for file systems with low resolution timestamps
+    ccp("../after", ".");
+    touch("trackProducts.qbs");
+    QCOMPARE(runQbs(args), 0);
+    QVERIFY(m_qbsStdout.contains("compiling zoo.cpp"));
+    QVERIFY(m_qbsStdout.contains("linking product3"));
+    QEXPECT_FAIL("", "QBS-235", Abort);
+    QVERIFY(!m_qbsStdout.contains("compiling foo.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling bar.cpp"));
+    QVERIFY(!m_qbsStdout.contains("linking product1"));
+    QVERIFY(!m_qbsStdout.contains("linking product2"));
+}
+
+void TestBlackbox::trackRemoveProduct()
+{
+    QDir::setCurrent(testDataDir + "/trackProducts");
+    if (QFile::exists("work"))
+        rmDirR("work");
+    QDir().mkdir("work");
+    ccp("before", "work");
+    ccp("after", "work");
+    QDir::setCurrent(testDataDir + "/trackProducts/work");
+    const QStringList args = QStringList() << "-f" << "trackProducts.qbs";
+    QCOMPARE(runQbs(args), 0);
+    QVERIFY(m_qbsStdout.contains("compiling foo.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling bar.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling zoo.cpp"));
+    QVERIFY(m_qbsStdout.contains("linking product1"));
+    QVERIFY(m_qbsStdout.contains("linking product2"));
+    QVERIFY(m_qbsStdout.contains("linking product3"));
+
+    QTest::qWait(1000); // for file systems with low resolution timestamps
+    QFile::remove("zoo.cpp");
+    QFile::remove("product3.qbs");
+    QFile::remove("trackProducts.qbs");
+    QFile::copy("../before/trackProducts.qbs", "trackProducts.qbs");
+    touch("trackProducts.qbs");
+    QCOMPARE(runQbs(args), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling foo.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling bar.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zoo.cpp"));
+    QVERIFY(!m_qbsStdout.contains("linking product1"));
+    QVERIFY(!m_qbsStdout.contains("linking product2"));
+    QVERIFY(!m_qbsStdout.contains("linking product3"));
+}
+
 void TestBlackbox::wildcardRenaming()
 {
     QDir::setCurrent(testDataDir + "/wildcard_renaming");

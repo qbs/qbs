@@ -74,6 +74,8 @@ private slots:
     void trackAddFileTag();
     void trackRemoveFileTag();
     void trackAddMocInclude();
+    void trackAddProduct();
+    void trackRemoveProduct();
     void wildcardRenaming();
     void recursiveRenaming();
     void recursiveWildcards();
