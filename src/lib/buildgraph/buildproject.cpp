@@ -45,6 +45,7 @@
 #include <tools/qbsassert.h>
 
 #include <QDir>
+#include <QFileInfo>
 
 namespace qbs {
 namespace Internal {
@@ -485,7 +486,8 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
     TimedActivityLogger loadLogger(m_logger, QLatin1String("Loading build graph"),
                                    QLatin1String("[BG] "));
     project->load(pool);
-    if (project->resolvedProject()->location.fileName != parameters.projectFilePath) {
+    if (QFileInfo(project->resolvedProject()->location.fileName)
+            != QFileInfo(parameters.projectFilePath)) {
         QString errorMessage = Tr::tr("Stored build graph is for project file '%1', but "
                                       "input file is '%2'. ")
                 .arg(QDir::toNativeSeparators(project->resolvedProject()->location.fileName),
