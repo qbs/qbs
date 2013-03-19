@@ -84,8 +84,12 @@ function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIn
         throw ("The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
     }
     var sysroot = ModUtils.moduleProperty(product, "sysroot")
-    if (sysroot)
-        args.push('--sysroot=' + sysroot)
+    if (sysroot) {
+        if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1)
+            args.push('-isysroot', sysroot);
+        else
+            args.push('--sysroot=' + sysroot);
+    }
     var i;
     var cppFlags = ModUtils.moduleProperties(input, 'cppFlags');
     for (i in cppFlags)

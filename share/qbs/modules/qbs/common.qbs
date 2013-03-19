@@ -16,7 +16,7 @@ Module {
             platforms.push("unix");
         else if (targetOS === "android")
             platforms.push("linux", "unix");
-        else if (targetOS === "mac")
+        else if (targetOS === "mac" || targetOS === "ios")
             platforms.push("darwin", "unix");
         return platforms
     }

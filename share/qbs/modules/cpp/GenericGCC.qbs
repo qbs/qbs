@@ -13,6 +13,7 @@ CppModule {
     compilerName: 'g++'
     property string archiverName: 'ar'
     property string sysroot: qbs.sysroot
+    property string platformPath
 
     property string toolchainPathPrefix: {
         var path = ''
@@ -80,8 +81,12 @@ CppModule {
             for (i in inputs.obj)
                 args.push(inputs.obj[i].fileName);
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
-            if (sysroot)
-                args.push('--sysroot=' + sysroot)
+            if (sysroot) {
+                if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1)
+                    args.push('-isysroot', sysroot);
+                else
+                    args.push('--sysroot=' + sysroot);
+            }
             var staticLibrariesI = [];
             for (i in inputs.staticlibrary) {
                 staticLibrariesI.push(inputs.staticlibrary[i].fileName);
@@ -185,8 +190,12 @@ CppModule {
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].fileName)
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
-            if (sysroot)
-                args.push('--sysroot=' + sysroot)
+            if (sysroot) {
+                if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1)
+                    args.push('-isysroot', sysroot)
+                else
+                    args.push('--sysroot=' + sysroot)
+            }
             args = args.concat(platformLinkerFlags);
             for (i in linkerFlags)
                 args.push(linkerFlags[i])

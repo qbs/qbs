@@ -98,6 +98,13 @@ public:
 
     void setArch(Profile *profile, const QString &pathToGcc, const QStringList &extraFlags)
     {
+        if (!extraFlags.isEmpty()) {
+            profile->setValue("cpp.platformCFlags", extraFlags);
+            profile->setValue("cpp.platformCxxFlags", extraFlags);
+            profile->setValue("cpp.platformObjcFlags", extraFlags);
+            profile->setValue("cpp.platformObjcxxFlags", extraFlags);
+            profile->setValue("cpp.platformLinkerFlags", extraFlags);
+        }
         // setting architecture and endianness only here, bercause the same compiler
         // can support several ones
         QStringList flags(extraFlags);
@@ -113,10 +120,7 @@ public:
 
         QString endianness, architecture;
         architecture = compilerTripletl.at(0);
-        if (architecture.contains("arm"))
-            endianness = "big-endian";
-        else
-            endianness = "little-endian";
+        endianness = "little-endian";
 
         qbsInfo() << Tr::tr("Toolchain %1 detected:\n"
                             "    binary: %2\n"
@@ -126,14 +130,13 @@ public:
 
         profile->setValue("qbs.endianness", endianness);
         profile->setValue("qbs.architecture", architecture);
-
     }
 
     void setupDefaultToolchains(const QString &devPath, const QString &xCodeName)
     {
         qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(xCodeName);
         // default toolchain
-        QString toolchainType = xCodeName + QLatin1String("_clang");
+        QString toolchainType = xCodeName + QLatin1String("-clang");
         QString pathToGcc;
         {
             QString path       = devPath
@@ -186,18 +189,27 @@ public:
                 QSettings infoSettings(fInfo.absoluteFilePath() + QLatin1String("/Info.plist")
                                        , QSettings::NativeFormat);
                 if (!infoSettings.contains(QLatin1String("Name"))) {
-                    qbsInfo() << Tr::tr("Missing Name in Info.plist of %1")
+                    qbsInfo() << Tr::tr("Missing platform name in Info.plist of %1")
                                  .arg(fInfo.absoluteFilePath());
                     continue;
                 }
                 QString name = infoSettings.value(QLatin1String("Name")).toString();
-                QString fullName = xCodeName + QLatin1String("_") + name + QLatin1String("_clang");
+                QString fullName = xCodeName + QLatin1Char('-') + name + QLatin1String("-clang");
 
                 Profile p(fullName, settings);
                 p.removeProfile();
-                p.setValue("qbs.targetOS", name);
-                p.setValue("qbs.baseProfile", toolchainType);
+                if (name == QLatin1String("macosx")) {
+                    p.setValue("qbs.targetOS", QLatin1String("mac"));
+                } else if (name == QLatin1String("iphoneos")
+                           || name == QLatin1String("iphonesimulator")) {
+                    p.setValue("qbs.targetOS", "ios");
+                } else {
+                    qbsInfo() << Tr::tr("Skipping unknown platform %1").arg(name);
+                    continue;
+                }
+                p.setBaseProfile(toolchainType);
                 QStringList extraFlags;
+                QString sysRoot;
                 // it seems that using group/key to access subvalues is broken, using explicit access...
                 QVariantMap defaultProp = infoSettings.value(QLatin1String("DefaultProperties"))
                         .toMap();
@@ -227,19 +239,13 @@ public:
                         }
                     }
                     if (!sdkPath.isEmpty())
-                        extraFlags << "-isysroot " << sdkPath;
+                        sysRoot = sdkPath;
                     else
                         qbsInfo() << Tr::tr("Failed to find sysroot %1").arg(sdkName);
                 }
-                if (!extraFlags.isEmpty()) {
-                    foreach (const QString &flags, QStringList()
-                             << QString::fromLatin1("CFlags")
-                             << QString::fromLatin1("CxxFlags")
-                             << QString::fromLatin1("ObjcFlags")
-                             << QString::fromLatin1("ObjcxxFlags")
-                             << QString::fromLatin1("LinkerFlags"))
-                    p.setValue("qbs.platform" + flags, extraFlags);
-                }
+                if (!sysRoot.isEmpty())
+                    p.setValue("qbs.sysroot", sysRoot);
+                p.setValue("cpp.platformPath", fInfo.canonicalFilePath());
                 setArch(&p, pathToGcc, extraFlags);
                 profiles << p;
 
@@ -248,13 +254,16 @@ public:
                 if (!specialGcc.exists())
                     specialGcc = QFileInfo(devPath + QLatin1String("/usr/bin/g++"));
                 if (specialGcc.exists()) {
-                    QString gccFullName = xCodeName + QLatin1Char('_') + name + QLatin1String("_gcc");
+                    QString gccFullName = xCodeName + QLatin1Char('-') + name + QLatin1String("-gcc");
                     Profile pGcc(gccFullName, settings);
                     pGcc.removeProfile();
                     // use the arm-apple-darwin10-llvm-* variant if available???
+                    if (!sysRoot.isEmpty())
+                        p.setValue("qbs.sysroot", sysRoot);
+                    p.setValue("cpp.platformPath",fInfo.canonicalFilePath());
                     pGcc.setValue("cpp.compilerName", specialGcc.baseName());
                     pGcc.setValue("cpp.toolchainInstallPath", specialGcc.canonicalPath());
-                    setArch(&pGcc, specialGcc.canonicalFilePath(), extraFlags);
+                    setArch(&pGcc, specialGcc.canonicalFilePath(), QStringList());
                     profiles << pGcc;
                 }
             }
@@ -264,9 +273,10 @@ public:
     void detectAll()
     {
         detectDeveloperPaths();
+        QString xcodeName = QLatin1String("xcode");
         for (int iXcode = 0; iXcode < developerPaths.count(); ++iXcode) {
-            setupDefaultToolchains(developerPaths.value(iXcode),
-                                   QString::fromLatin1("xcode%1").arg(iXcode));
+            setupDefaultToolchains(developerPaths.value(iXcode), xcodeName);
+            xcodeName = QString::fromLatin1("xcode%1").arg(iXcode + 1);
         }
     }
 };
