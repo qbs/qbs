@@ -417,8 +417,6 @@ void TestBlackbox::trackRemoveFile()
     QTest::qWait(1000); // for file systems with low resolution timestamps
     QFile::remove("project.qbs");
     QFile::remove("main.cpp");
-    ccp("../before/project.qbs", ".");
-    ccp("../before/main.cpp", ".");
     QFile::copy("../before/project.qbs", "project.qbs");
     QFile::copy("../before/main.cpp", "main.cpp");
     QVERIFY(QFile::remove("zort.h"));
