@@ -95,22 +95,23 @@ int TestBlackbox::runQbs(QStringList arguments, bool expectFailure, bool useProf
   Recursive copy from directory to another.
   Note that this updates the file stamps on Linux but not on Windows.
   */
-static void ccp(const QString &from, const QString &to)
+static void ccp(const QString &sourceDirPath, const QString &targetDirPath)
 {
-    QDirIterator it(from, QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
-    while (it.hasNext()) {
-        it.next();
-        QDir().mkpath(to +  "/" + it.fileName());
-        ccp(from + "/" + it.fileName(), to +  "/" + it.fileName());
+    QDir currentDir;
+    QDirIterator dit(sourceDirPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
+    while (dit.hasNext()) {
+        dit.next();
+        const QString targetPath = targetDirPath + QLatin1Char('/') + dit.fileName();
+        currentDir.mkpath(targetPath);
+        ccp(dit.filePath(), targetPath);
     }
 
-    QDirIterator it2(from, QDir::Files| QDir::NoDotAndDotDot  | QDir::Hidden);
-    while (it2.hasNext()) {
-        it2.next();
-        const QString dstFilePath = to +  "/" + it2.fileName();
-        if (QFile::exists(dstFilePath))
-            QFile::remove(dstFilePath);
-        QFile(from  + "/" + it2.fileName()).copy(dstFilePath);
+    QDirIterator fit(sourceDirPath, QDir::Files | QDir::Hidden);
+    while (fit.hasNext()) {
+        fit.next();
+        const QString targetPath = targetDirPath + QLatin1Char('/') + fit.fileName();
+        QFile::remove(targetPath);  // allowed to fail
+        QVERIFY(QFile::copy(fit.filePath(), targetPath));
     }
 }
 
