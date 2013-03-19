@@ -33,6 +33,7 @@
 #include "artifactlist.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
+#include <language/property.h>
 #include <tools/persistentobject.h>
 
 #include <QScriptEngine>
@@ -55,6 +56,7 @@ public:
     ArtifactList outputs;
     RuleConstPtr rule;
     QList<AbstractCommand *> commands;
+    PropertyList modulePropertiesUsedInPrepareScript;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
                                             Artifact *artifact,

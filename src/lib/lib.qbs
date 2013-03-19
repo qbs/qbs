@@ -171,6 +171,7 @@ DynamicLibrary {
             "moduleloader.h",
             "projectresolver.cpp",
             "projectresolver.h",
+            "property.h",
             "propertydeclaration.cpp",
             "propertydeclaration.h",
             "propertymapinternal.cpp",

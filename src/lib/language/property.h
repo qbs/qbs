@@ -26,47 +26,40 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_PROPERTY_H
+#define QBS_PROPERTY_H
 
-#ifndef QBS_SCRIPTENGINE_H
-#define QBS_SCRIPTENGINE_H
+#include <tools/qbsassert.h>
 
-#include "jsimports.h"
-#include <language/property.h>
-#include <logging/logger.h>
-#include <tools/qbs_export.h>
+#include <QSet>
+#include <QString>
+#include <QVariant>
 
-#include <QScriptEngine>
-
-namespace qbs {
-namespace Internal {
-
-// FIXME: Exported for qbs-qmltypes
-class QBS_EXPORT ScriptEngine : public QScriptEngine
+class Property
 {
-    Q_OBJECT
 public:
-    ScriptEngine(const Logger &logger, QObject *parent = 0);
-    ~ScriptEngine();
+    Property() {}
+    Property(const QString &m, const QString &p, const QVariant &v)
+        : moduleName(m), propertyName(p), value(v)
+    {
+        QBS_CHECK(!moduleName.contains(QLatin1Char('.')));
+    }
 
-    void setLogger(const Logger &logger) { m_logger = logger; }
-    void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
-    void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
-    void clearImportsCache();
-
-    void addProperty(const Property &property) { m_properties += property; }
-    void clearProperties() { m_properties.clear(); }
-    PropertyList properties() const { return m_properties; }
-
-private:
-    void importProgram(const QScriptProgram &program, const QScriptValue &scope,
-                       QScriptValue &targetObject);
-
-    QHash<QString, QScriptValue> m_jsImportCache;
-    PropertyList m_properties;
-    Logger m_logger;
+    QString moduleName;
+    QString propertyName;
+    QVariant value;
 };
 
-} // namespace Internal
-} // namespace qbs
+inline bool operator==(const Property &p1, const Property &p2)
+{
+    return p1.moduleName == p2.moduleName && p1.propertyName == p2.propertyName;
+}
 
-#endif // QBS_SCRIPTENGINE_H
+inline uint qHash(const Property &p)
+{
+    return QT_PREPEND_NAMESPACE(qHash)(p.moduleName + p.propertyName);
+}
+
+typedef QSet<Property> PropertyList;
+
+#endif // Include guard

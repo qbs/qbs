@@ -21,6 +21,7 @@ HEADERS += \
     $$PWD/loader.h \
     $$PWD/moduleloader.h \
     $$PWD/projectresolver.h \
+    $$PWD/property.h \
     $$PWD/propertydeclaration.h \
     $$PWD/propertymapinternal.h \
     $$PWD/scriptengine.h \

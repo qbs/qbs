@@ -135,7 +135,9 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script,
 {
     QScriptProgram scriptProgram = evalContext->scriptProgram(script->script);
     ScriptEngine * const engine = evalContext->engine();
+    engine->clearProperties();
     QScriptValue scriptValue = engine->evaluate(scriptProgram);
+    modulePropertiesUsedInPrepareScript = engine->properties();
     if (engine->hasUncaughtException())
         throw Error("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName,
@@ -164,7 +166,16 @@ void Transformer::load(PersistentPool &pool)
     rule = pool.idLoadS<Rule>();
     pool.loadContainer(inputs);
     pool.loadContainer(outputs);
-    int count, cmdType;
+    int count;
+    pool.stream() >> count;
+    modulePropertiesUsedInPrepareScript.reserve(count);
+    while (--count >= 0) {
+        Property p;
+        p.moduleName = pool.idLoadString();
+        p.propertyName = pool.idLoadString();
+        pool.stream() >> p.value;
+    }
+    int cmdType;
     pool.stream() >> count;
     commands.reserve(count);
     while (--count >= 0) {
@@ -180,6 +191,12 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(rule);
     pool.storeContainer(inputs);
     pool.storeContainer(outputs);
+    pool.stream() << modulePropertiesUsedInPrepareScript.count();
+    foreach (const Property &p, modulePropertiesUsedInPrepareScript) {
+        pool.storeString(p.moduleName);
+        pool.storeString(p.propertyName);
+        pool.stream() << p.value;
+    }
     pool.stream() << commands.count();
     foreach (AbstractCommand *cmd, commands) {
         pool.stream() << int(cmd->type());

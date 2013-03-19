@@ -31,6 +31,7 @@
 
 #include <buildgraph/artifact.h>
 #include <language/language.h>
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/propertyfinder.h>
 
@@ -110,12 +111,14 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
     const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
 
-    if (oneValue) {
-        return engine->toScriptValue(PropertyFinder().propertyValue(properties->value(), moduleName,
-                                                                  propertyName));
-    }
-    return engine->toScriptValue(PropertyFinder().propertyValues(properties->value(), moduleName,
-                                                               propertyName));
+    QVariant value;
+    if (oneValue)
+        value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);
+    else
+        value = PropertyFinder().propertyValues(properties->value(), moduleName, propertyName);
+    const Property p(moduleName, propertyName, value);
+    static_cast<ScriptEngine *>(engine)->addProperty(p);
+    return engine->toScriptValue(value);
 }
 
 } // namespace Internal
