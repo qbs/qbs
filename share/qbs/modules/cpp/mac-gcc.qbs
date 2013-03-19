@@ -1,14 +1,9 @@
 import qbs 1.0
 import '../utils.js' as ModUtils
+import 'darwin-tools.js' as Tools
 
-UnixGCC {
+DarwinGCC {
     condition: qbs.hostOS === 'mac' && qbs.targetOS === 'mac' && qbs.toolchain === 'gcc'
-
-    compilerDefines: ["__GNUC__", "__APPLE__"]
-    dynamicLibrarySuffix: ".dylib"
-
-    property string infoPlist
-    property string pkgInfo
 
     Rule {
         multiplex: true
@@ -76,30 +71,7 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["qbs"]
-
-        Artifact {
-            fileName: product.targetName + ".app/Contents/PkgInfo"
-            fileTags: ["pkginfo"]
-        }
-
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "generating PkgInfo";
-            cmd.highlight = "codegen";
-            cmd.pkgInfo = ModUtils.moduleProperty(product, "pkgInfo") || "FOO";
-            cmd.sourceCode = function() {
-                var pkginfo = new TextFile(outputs.pkginfo[0].fileName, TextFile.WriteOnly);
-                pkginfo.write(pkgInfo);
-                pkginfo.close();
-            }
-            return cmd;
-        }
-    }
-
-    Rule {
-        multiplex: true
-        inputs: ["application", "infoplist", "pkginfo"]
+        inputs: ["application", "infoplist", "pkginfo", "dsym"]
 
         Artifact {
             fileName: product.targetName + ".app"
