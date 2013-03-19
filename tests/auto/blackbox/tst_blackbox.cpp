@@ -82,6 +82,7 @@ int TestBlackbox::runQbs(QStringList arguments, bool expectFailure, bool useProf
     }
 
     m_qbsStderr = process.readAllStandardError();
+    m_qbsStdout = process.readAllStandardOutput();
     if ((process.exitStatus() != QProcess::NormalExit
              || process.exitCode() != 0) && !expectFailure) {
         qDebug("%s", m_qbsStderr.constData());
@@ -599,6 +600,54 @@ void TestBlackbox::productProperties()
     QDir::setCurrent(testDataDir + "/productproperties");
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/blubb_user")));
+}
+
+void TestBlackbox::propertyChanges()
+{
+    QDir::setCurrent(testDataDir + "/propertyChanges");
+    QFile projectFile("project.qbs");
+
+    // Initial build.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
+
+    // Incremental build with no changes.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+
+    // Incremental build with no changes, but updated project file timestamp.
+    QVERIFY(projectFile.open(QIODevice::ReadWrite | QIODevice::Append));
+    projectFile.write("\n");
+    projectFile.close();
+    QTest::qWait(1000); // for file systems with low resolution timestamps
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+
+    // Incremental build, input property changed for first product
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray contents = projectFile.readAll();
+    contents.replace("blubb1", "blubb01");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
+    QEXPECT_FAIL("", "FIXME: implement fine-grained checks for property changes", Abort);
+    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+
+    // Incremental build, input property changed indirectly for second build.
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    contents = projectFile.readAll();
+    contents.replace("blubb2", "blubb02");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
 }
 
 void TestBlackbox::installedApp()

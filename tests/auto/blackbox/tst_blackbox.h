@@ -80,6 +80,7 @@ private slots:
     void codegen();
     void missingQObjectHeader();
     void productProperties();
+    void propertyChanges();
     void installedApp();
     void toolLookup();
     void checkProjectFilePath();
@@ -87,6 +88,7 @@ private slots:
 
 private:
     QByteArray m_qbsStderr;
+    QByteArray m_qbsStdout;
 };
 
 #endif // TST_BLACKBOX_H
