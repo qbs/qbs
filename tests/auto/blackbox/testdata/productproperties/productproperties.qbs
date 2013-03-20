@@ -35,7 +35,8 @@ Project {
         }
     }
 
-    Application {
+    Product {
+        type: "application"
         name: "blubb_user"
 
         files: "main.cpp"
