@@ -53,6 +53,7 @@ RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &
     : m_buildProduct(product)
     , m_artifactsPerFileTag(artifactsPerFileTag)
     , m_logger(logger)
+    , m_productObjectId(-1)
 {
 }
 
@@ -66,9 +67,11 @@ void RulesApplicator::applyAllRules()
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
-    setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scope());
+    QScriptValue scopeValue = scope();
+    setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scopeValue, this);
     Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
                "BG", "Product object is not in current scope.");
+    m_productObjectId = scopeValue.property(QLatin1String("product")).objectId();
 
     ArtifactList inputArtifacts;
     foreach (const FileTag &fileTag, m_rule->inputs)
@@ -318,6 +321,13 @@ ScriptEngine *RulesApplicator::engine() const
 QScriptValue RulesApplicator::scope() const
 {
     return evalContext()->scope();
+}
+
+void RulesApplicator::onPropertyRead(const QScriptValue &object, const QString &name,
+                                     const QScriptValue &value)
+{
+    if (object.objectId() == m_productObjectId)
+        engine()->addProperty(Property(QLatin1String("product"), name, value.toVariant()));
 }
 
 } // namespace Internal

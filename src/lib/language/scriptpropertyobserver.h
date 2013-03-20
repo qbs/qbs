@@ -27,53 +27,22 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SCRIPTENGINE_H
-#define QBS_SCRIPTENGINE_H
+#ifndef QBS_SCRIPTPROPERTYOBSERVER_H
+#define QBS_SCRIPTPROPERTYOBSERVER_H
 
-#include "jsimports.h"
-#include <language/property.h>
-#include <logging/logger.h>
-#include <tools/qbs_export.h>
-
-#include <QScriptEngine>
+#include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
 
-class ScriptPropertyObserver;
-
-// FIXME: Exported for qbs-qmltypes
-class QBS_EXPORT ScriptEngine : public QScriptEngine
+class ScriptPropertyObserver
 {
-    Q_OBJECT
 public:
-    ScriptEngine(const Logger &logger, QObject *parent = 0);
-    ~ScriptEngine();
-
-    void setLogger(const Logger &logger) { m_logger = logger; }
-    void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
-    void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
-    void clearImportsCache();
-
-    void addProperty(const Property &property) { m_properties += property; }
-    void clearProperties() { m_properties.clear(); }
-    PropertyList properties() const { return m_properties; }
-
-    void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
-                             ScriptPropertyObserver *observer);
-
-private:
-    void importProgram(const QScriptProgram &program, const QScriptValue &scope,
-                       QScriptValue &targetObject);
-
-    QHash<QString, QScriptValue> m_jsImportCache;
-    PropertyList m_properties;
-    Logger m_logger;
-    QScriptValue m_definePropertyFunction;
-    QScriptValue m_emptyFunction;
+    virtual void onPropertyRead(const QScriptValue &object, const QString &name,
+                                const QScriptValue &value) = 0;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_SCRIPTENGINE_H
+#endif // QBS_SCRIPTPROPERTYOBSERVER_H

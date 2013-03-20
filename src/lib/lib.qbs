@@ -178,6 +178,7 @@ DynamicLibrary {
             "propertymapinternal.h",
             "scriptengine.cpp",
             "scriptengine.h",
+            "scriptpropertyobserver.h",
             "value.cpp",
             "value.h"
         ]

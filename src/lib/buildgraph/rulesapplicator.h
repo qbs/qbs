@@ -33,6 +33,7 @@
 #include "forward_decls.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/scriptpropertyobserver.h>
 #include <logging/logger.h>
 
 #include <QMap>
@@ -45,7 +46,7 @@ class ScriptEngine;
 
 typedef QMap<FileTag, ArtifactList> ArtifactsPerFileTagMap;
 
-class RulesApplicator
+class RulesApplicator : private ScriptPropertyObserver
 {
 public:
     RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
@@ -62,6 +63,7 @@ private:
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
+    void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
 
     BuildProduct * const m_buildProduct;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
@@ -69,6 +71,7 @@ private:
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;
     Logger m_logger;
+    qint64 m_productObjectId;
 };
 
 } // namespace Internal

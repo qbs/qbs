@@ -45,12 +45,21 @@ namespace qbs {
 namespace Internal {
 
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
-                                 const RuleConstPtr &rule, QScriptValue targetObject)
+                                 const RuleConstPtr &rule, QScriptValue targetObject,
+                                 ScriptPropertyObserver *observer)
 {
-    const ResolvedProject *lastSetupProject
-            = reinterpret_cast<ResolvedProject *>(engine->property("lastSetupProject").toULongLong());
-    const ResolvedProduct *lastSetupProduct
-            = reinterpret_cast<ResolvedProduct *>(engine->property("lastSetupProduct").toULongLong());
+    ScriptPropertyObserver *lastObserver = reinterpret_cast<ScriptPropertyObserver *>(
+                engine->property("lastObserver").toULongLong());
+    const ResolvedProject *lastSetupProject = 0;
+    const ResolvedProduct *lastSetupProduct = 0;
+    if (lastObserver == observer) {
+        lastSetupProject = reinterpret_cast<ResolvedProject *>(
+                    engine->property("lastSetupProject").toULongLong());
+        lastSetupProduct = reinterpret_cast<ResolvedProduct *>(
+                    engine->property("lastSetupProduct").toULongLong());
+    } else {
+        engine->setProperty("lastObserver", QVariant(reinterpret_cast<qulonglong>(observer)));
+    }
 
     if (lastSetupProject != product->project) {
         engine->setProperty("lastSetupProject",
@@ -77,7 +86,8 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
             const QVariant &value = it.value();
             if (value.isValid() && !value.canConvert<QVariantMap>())
-                productScriptValue.setProperty(it.key(), engine->toScriptValue(value));
+                engine->setObservedProperty(productScriptValue, it.key(),
+                                            engine->toScriptValue(value), observer);
         }
 
         targetObject.setProperty("product", productScriptValue);

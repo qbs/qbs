@@ -31,9 +31,11 @@
 
 #include "item.h"
 #include "filecontext.h"
+#include "scriptpropertyobserver.h"
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
+#include <QDebug>
 #include <QFile>
 #include <QScriptProgram>
 #include <QScriptValueIterator>
@@ -48,6 +50,11 @@ const bool debugJSImports = false;
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     : QScriptEngine(parent), m_logger(logger)
 {
+    QScriptValue objectProto = globalObject().property(QLatin1String("Object"));
+    m_definePropertyFunction = objectProto.property(QLatin1String("defineProperty"));
+    QBS_ASSERT(m_definePropertyFunction.isFunction(), /* ignore */);
+    m_emptyFunction = evaluate("(function(){})");
+    QBS_ASSERT(m_emptyFunction.isFunction(), /* ignore */);
     // Initially push a new context to turn off scope chain insanity mode.
     QScriptEngine::pushContext();
 }
@@ -97,6 +104,40 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
 void ScriptEngine::clearImportsCache()
 {
     m_jsImportCache.clear();
+}
+
+static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *, void *arg)
+{
+    ScriptPropertyObserver * const observer = static_cast<ScriptPropertyObserver *>(arg);
+    const QScriptValue data = context->callee().property(QLatin1String("qbsdata"));
+    const QScriptValue value = data.property(2);
+    observer->onPropertyRead(data.property(0), data.property(1).toVariant().toString(), value);
+    return value;
+}
+
+void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name,
+                                       const QScriptValue &value, ScriptPropertyObserver *observer)
+{
+    if (!observer) {
+        object.setProperty(name, value);
+        return;
+    }
+
+    QScriptValue data = newArray();
+    data.setProperty(0, object);
+    data.setProperty(1, name);
+    data.setProperty(2, value);
+    QScriptValue getterFunc = newFunction(js_observedGet, observer);
+    getterFunc.setProperty(QLatin1String("qbsdata"), data);
+    QScriptValue descriptor = newObject();
+    descriptor.setProperty(QLatin1String("get"), getterFunc);
+    descriptor.setProperty(QLatin1String("set"), m_emptyFunction);
+    QScriptValue arguments = newArray();
+    arguments.setProperty(0, object);
+    arguments.setProperty(1, name);
+    arguments.setProperty(2, descriptor);
+    QScriptValue result = m_definePropertyFunction.call(QScriptValue(), arguments);
+    QBS_ASSERT(!result.isError(), qDebug() << name << result.toString());
 }
 
 void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,

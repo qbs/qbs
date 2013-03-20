@@ -40,6 +40,7 @@ namespace Internal {
 class Artifact;
 class Logger;
 class ScriptEngine;
+class ScriptPropertyObserver;
 
 bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
 void connect(Artifact *p, Artifact *c);
@@ -49,7 +50,8 @@ void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
 void disconnect(Artifact *u, Artifact *v, const Logger &logger);
 
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
-                                 const RuleConstPtr &rule, QScriptValue targetObject);
+                                 const RuleConstPtr &rule, QScriptValue targetObject,
+                                 ScriptPropertyObserver *observer = 0);
 QString relativeArtifactFileName(const Artifact *n); // Debugging helpers
 
 template <typename T>

@@ -25,6 +25,7 @@ HEADERS += \
     $$PWD/propertydeclaration.h \
     $$PWD/propertymapinternal.h \
     $$PWD/scriptengine.h \
+    $$PWD/scriptpropertyobserver.h \
     $$PWD/value.h
 
 SOURCES += \
