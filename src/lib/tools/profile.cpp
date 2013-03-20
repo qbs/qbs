@@ -128,7 +128,7 @@ void Profile::removeBaseProfile()
  */
 void Profile::removeProfile()
 {
-    remove(profileKey());
+    m_settings->remove(profileKey());
 }
 
 QString Profile::profileKey() const
