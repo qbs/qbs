@@ -286,9 +286,11 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, const Ite
 
     // Resolve all Depends items.
     QHash<ItemPtr, ItemModuleList> loadedModules;
+    ProductDependencyResults productDependencies;
     foreach (const ItemPtr &child, item->children())
         if (child->typeName() == QLatin1String("Depends"))
-            resolveDependsItem(dependsContext, item, child, &loadedModules[child]);
+            resolveDependsItem(dependsContext, item, child, &loadedModules[child],
+                               &productDependencies);
 
     // Check Depends conditions after all modules are loaded.
     for (QHash<ItemPtr, ItemModuleList>::const_iterator it = loadedModules.constBegin();
@@ -302,10 +304,19 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, const Ite
             }
         }
     }
+
+    // Check Depends conditions for all product dependencies.
+    for (ProductDependencyResults::const_iterator it = productDependencies.constBegin();
+             it != productDependencies.constEnd(); ++it) {
+        const ItemPtr &dependsItem = it->first;
+        if (checkItemCondition(dependsItem))
+            dependsContext->productDependencies->append(it->second);
+    }
 }
 
 void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const ItemPtr &item,
-                                     const ItemPtr &dependsItem, ItemModuleList *results)
+        const ItemPtr &dependsItem, ItemModuleList *moduleResults,
+        ProductDependencyResults *productResults)
 {
     checkCancelation();
     const QString name = m_evaluator->property(dependsItem, "name").toString().toLower();
@@ -351,14 +362,14 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const Item
                 m_logger.qbsTrace() << "module loaded: " << fullModuleName(qualifiedModuleName);
             result.name = qualifiedModuleName;
             result.item = moduleItem;
-            results->append(result);
+            moduleResults->append(result);
         } else {
             ModuleLoaderResult::ProductInfo::Dependency dependency;
             dependency.name = moduleName;
             dependency.required = m_evaluator->property(item, QLatin1String("required")).toBool();
             dependency.failureMessage
                     = m_evaluator->property(item, QLatin1String("failureMessage")).toString();
-            dependsContext->productDependencies->append(dependency);
+            productResults->append(ProductDependencyResult(dependsItem, dependency));
         }
     }
 }

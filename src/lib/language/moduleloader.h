@@ -123,6 +123,9 @@ private:
         QList<ModuleLoaderResult::ProductInfo::Dependency> *productDependencies;
     };
 
+    typedef QPair<ItemPtr, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
+    typedef QList<ProductDependencyResult> ProductDependencyResults;
+
     void handleProject(ModuleLoaderResult *loadResult, const ItemPtr &item);
     void handleProduct(ProjectContext *projectContext, const ItemPtr &item);
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
@@ -132,7 +135,7 @@ private:
     void propagateModulesFromProduct(ProductContext *productContext, const ItemPtr &item);
     void resolveDependencies(DependsContext *productContext, const ItemPtr &item);
     class ItemModuleList;
-    void resolveDependsItem(DependsContext *dependsContext, const ItemPtr &item, const ItemPtr &dependsItem, ItemModuleList *results);
+    void resolveDependsItem(DependsContext *dependsContext, const ItemPtr &item, const ItemPtr &dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
     static ItemPtr moduleInstanceItem(const ItemPtr &item, const QStringList &moduleName);
     ItemPtr loadModule(ProductContext *productContext, const ItemPtr &item, const QString &moduleId, const QStringList &moduleName);
     ItemPtr searchAndLoadModuleFile(ProductContext *productContext, const QStringList &moduleName, const QStringList &extraSearchPaths);

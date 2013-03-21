@@ -186,6 +186,11 @@ void TestLanguage::conditionalDepends()
         QVERIFY(product);
         dependency = findModuleByName(product, "dummy");
         QVERIFY(dependency);
+
+        product = products.value("unknown_dependency_condition_false");
+        QVERIFY(product);
+        dependency = findModuleByName(product, "doesonlyexistifhellfreezesover");
+        QVERIFY(!dependency);
     } catch (const Error &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

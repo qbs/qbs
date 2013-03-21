@@ -59,4 +59,9 @@ Project {
         Depends { condition: true; name: "dummy" }  // this one wins
         Depends { condition: false; name: "dummy" }
     }
+
+    Product {
+        name: "unknown_dependency_condition_false"
+        Depends { condition: false; name: "doesonlyexistifhellfreezesover" }
+    }
 }
