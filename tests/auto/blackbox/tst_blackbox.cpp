@@ -162,19 +162,12 @@ void TestBlackbox::initTestCase()
         qWarning("The build profile '%s' could not be found. Please set it up on your machine.",
                  qPrintable(buildProfile));
     QVERIFY(found);
-}
 
-void TestBlackbox::init()
-{
+    // Initialize the test data directory.
     QVERIFY(testDataDir != testSourceDir);
     rmDirR(testDataDir);
     QDir().mkpath(testDataDir);
     ccp(testSourceDir, testDataDir);
-}
-
-void TestBlackbox::cleanup()
-{
-//        rmDirR(testDataDir);
 }
 
 void TestBlackbox::build_project_data()
@@ -220,6 +213,7 @@ void TestBlackbox::build_project()
         projectSubDir.prepend('/');
     QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
     QDir::setCurrent(testDataDir + projectSubDir);
+    rmDirR(buildDir);
 
     QCOMPARE(runQbs(), 0);
     QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
@@ -243,6 +237,7 @@ void TestBlackbox::build_project_dry_run()
         projectSubDir.prepend('/');
     QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
     QDir::setCurrent(testDataDir + projectSubDir);
+    rmDirR(buildDir);
 
     QCOMPARE(runQbs(QStringList() << "-n"), 0);
     const QStringList &buildDirContents

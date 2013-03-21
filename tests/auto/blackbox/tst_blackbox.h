@@ -59,8 +59,6 @@ protected:
 
 public slots:
     void initTestCase();
-    void init();
-    void cleanup();
 
 private slots:
     void build_project_data();
