@@ -687,15 +687,16 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
 
     // Incremental build with no changes, but updated project file timestamp.
+    waitForNewTimestamp();
     QVERIFY(projectFile.open(QIODevice::ReadWrite | QIODevice::Append));
     projectFile.write("\n");
     projectFile.close();
-    waitForNewTimestamp();
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
 
     // Incremental build, input property changed for first product
+    waitForNewTimestamp();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray contents = projectFile.readAll();
     contents.replace("blubb1", "blubb01");
@@ -708,6 +709,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
 
     // Incremental build, input property changed indirectly for second build.
+    waitForNewTimestamp();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
     contents.replace("blubb2", "blubb02");
