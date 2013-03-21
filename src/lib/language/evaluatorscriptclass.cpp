@@ -105,6 +105,7 @@ private:
     {
         ItemConstPtr conditionScopeItem;
         QScriptValue conditionScope;
+        QScriptValue conditionFileScope;
         ItemPtr outerItem = data->item->outerItem();
         for (int i = 0; i < value->alternatives().count(); ++i) {
             const JSSourceValue::Alternative *alternative = 0;
@@ -113,9 +114,12 @@ private:
                 conditionScopeItem = alternative->conditionScopeItem;
                 conditionScope = data->evaluator->scriptValue(alternative->conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
+                conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
             }
+            engine->currentContext()->pushScope(conditionFileScope);
             engine->currentContext()->pushScope(conditionScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
+            engine->currentContext()->popScope();
             engine->currentContext()->popScope();
             if (cr.isError()) {
                 *result = cr;

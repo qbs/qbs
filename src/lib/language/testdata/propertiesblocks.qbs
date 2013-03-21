@@ -135,4 +135,16 @@ Project {
         defineBase: false
         // no dummy.defines binding
     }
+    Product {
+        id: knolf
+        name: "gnampf"
+    }
+    Product {
+        name: "condition_references_id"
+        Depends { id: cpp; name: "dummy" }
+        Properties {
+            condition: knolf.name === "gnampf"
+            cpp.defines: ["OVERWRITTEN"]
+        }
+    }
 }

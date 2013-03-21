@@ -729,6 +729,9 @@ void TestLanguage::propertiesBlocks_data()
     QTest::newRow("inheritance_condition_in_subitem2")
             << QString("dummy.defines")
             << (QStringList() << QString("SOMETHING"));
+    QTest::newRow("condition_references_id")
+            << QString("dummy.defines")
+            << (QStringList() << QString("OVERWRITTEN"));
     QTest::newRow("cleanup") << QString() << QStringList();
 }
 
