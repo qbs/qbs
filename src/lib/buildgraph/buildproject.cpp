@@ -510,14 +510,21 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
     project->resolvedProject()->buildDirectory = buildDir;
     m_result.loadedProject = project;
     loadLogger.finishActivity();
+    trackProjectChanges(parameters, evalContext, buildGraphFilePath, project);
+    return m_result;
+}
 
+void BuildProjectLoader::trackProjectChanges(const SetupProjectParameters &parameters,
+        const RulesEvaluationContextPtr &evalContext, const QString &buildGraphFilePath,
+        const BuildProjectPtr &restoredProject)
+{
     const FileInfo bgfi(buildGraphFilePath);
     const bool projectFileChanged
             = bgfi.lastModified() < FileInfo(parameters.projectFilePath).lastModified();
 
     bool referencedProductRemoved = false;
     QList<BuildProductPtr> changedProducts;
-    foreach (BuildProductPtr product, project->buildProducts()) {
+    foreach (BuildProductPtr product, restoredProject->buildProducts()) {
         const ResolvedProductConstPtr &resolvedProduct = product->rProduct;
         const FileInfo pfi(resolvedProduct->location.fileName);
         if (!pfi.exists()) {
@@ -541,48 +548,49 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
         }
     }
 
-    if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
-        Loader ldr(evalContext->engine(), m_logger);
-        ldr.setSearchPaths(parameters.searchPaths);
-        const ResolvedProjectPtr changedProject = ldr.loadProject(parameters);
-        m_result.changedResolvedProject = changedProject;
+    if (!projectFileChanged && !referencedProductRemoved && changedProducts.isEmpty())
+        return;
 
-        QMap<QString, ResolvedProductPtr> changedProductsMap;
-        foreach (BuildProductPtr product, changedProducts) {
-            if (changedProductsMap.isEmpty())
-                foreach (ResolvedProductPtr cp, changedProject->products)
-                    changedProductsMap.insert(cp->name, cp);
-            ResolvedProductPtr changedProduct = changedProductsMap.value(product->rProduct->name);
-            if (!changedProduct)
-                continue;
-            onProductChanged(product, changedProduct);
-            if (m_result.discardLoadedProject)
-                return m_result;
-        }
+    Loader ldr(evalContext->engine(), m_logger);
+    ldr.setSearchPaths(parameters.searchPaths);
+    const ResolvedProjectPtr freshProject = ldr.loadProject(parameters);
+    m_result.changedResolvedProject = freshProject;
 
-        QSet<QString> oldProductNames, newProductNames;
-        foreach (const ResolvedProductConstPtr &product, project->resolvedProject()->products)
-            oldProductNames += product->name;
-        foreach (const ResolvedProductConstPtr &product, changedProject->products)
-            newProductNames += product->name;
-        QSet<QString> addedProductNames = newProductNames - oldProductNames;
-        if (!addedProductNames.isEmpty()) {
-            m_logger.qbsDebug() << "New products were added, discarding the loaded project.";
-            m_result.discardLoadedProject = true;
-            return m_result;
-        }
-        QSet<QString> removedProductsNames = oldProductNames - newProductNames;
-        if (!removedProductsNames.isEmpty()) {
-            foreach (const BuildProductPtr &product, project->buildProducts()) {
-                if (removedProductsNames.contains(product->rProduct->name))
-                    onProductRemoved(product);
-            }
-        }
-
-        CycleDetector(m_logger).visitProject(project);
+    QMap<QString, ResolvedProductPtr> freshProductsByName;
+    if (!changedProducts.isEmpty()) {
+        foreach (const ResolvedProductPtr &cp, freshProject->products)
+            freshProductsByName.insert(cp->name, cp);
+    }
+    foreach (const BuildProductPtr &product, changedProducts) {
+        ResolvedProductPtr freshProduct = freshProductsByName.value(product->rProduct->name);
+        if (!freshProduct)
+            continue;
+        onProductChanged(product, freshProduct);
+        if (m_result.discardLoadedProject)
+            return;
     }
 
-    return m_result;
+    QSet<QString> oldProductNames, newProductNames;
+    foreach (const ResolvedProductConstPtr &product, restoredProject->resolvedProject()->products)
+        oldProductNames += product->name;
+    foreach (const ResolvedProductConstPtr &product, freshProject->products)
+        newProductNames += product->name;
+    const QSet<QString> addedProductNames = newProductNames - oldProductNames;
+    if (!addedProductNames.isEmpty()) {
+        // TODO: apply rules for the new products
+        m_logger.qbsDebug() << "New products were added, discarding the loaded project.";
+        m_result.discardLoadedProject = true;
+        return;
+    }
+    const QSet<QString> removedProductsNames = oldProductNames - newProductNames;
+    if (!removedProductsNames.isEmpty()) {
+        foreach (const BuildProductPtr &product, restoredProject->buildProducts()) {
+            if (removedProductsNames.contains(product->rProduct->name))
+                onProductRemoved(product);
+        }
+    }
+
+    CycleDetector(m_logger).visitProject(restoredProject);
 }
 
 void BuildProjectLoader::onProductRemoved(const BuildProductPtr &product)

@@ -143,6 +143,10 @@ public:
                     const RulesEvaluationContextPtr &evalContext);
 
 private:
+    void trackProjectChanges(const SetupProjectParameters &parameters,
+                             const RulesEvaluationContextPtr &evalContext,
+                             const QString &buildGraphFilePath,
+                             const BuildProjectPtr &restoredProject);
     void onProductRemoved(const BuildProductPtr &product);
     void onProductChanged(const BuildProductPtr &product,
                           const ResolvedProductPtr &changedProduct);
