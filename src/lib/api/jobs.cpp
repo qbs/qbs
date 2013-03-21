@@ -172,8 +172,8 @@ void AbstractJob::handleFinished()
  * \sa AbstractJob::taskStarted()
  */
 
-SetupProjectJob::SetupProjectJob(Settings *settings, const Logger &logger, QObject *parent)
-    : AbstractJob(new InternalSetupProjectJob(settings, logger), parent)
+SetupProjectJob::SetupProjectJob(const Logger &logger, QObject *parent)
+    : AbstractJob(new InternalSetupProjectJob(logger), parent)
 {
 }
 

@@ -140,7 +140,7 @@ public:
     };
 
     LoadResult load(const SetupProjectParameters &parameters,
-                    const RulesEvaluationContextPtr &evalContext, Settings *settings);
+                    const RulesEvaluationContextPtr &evalContext);
 
 private:
     void onProductRemoved(const BuildProductPtr &product);

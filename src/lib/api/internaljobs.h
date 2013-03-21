@@ -89,7 +89,7 @@ class InternalSetupProjectJob : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalSetupProjectJob(Settings *settings, const Logger &logger, QObject *parent = 0);
+    InternalSetupProjectJob(const Logger &logger, QObject *parent = 0);
     ~InternalSetupProjectJob();
 
     void resolve(const SetupProjectParameters &parameters);
@@ -111,7 +111,6 @@ private:
 
     BuildProjectPtr m_buildProject;
     SetupProjectParameters m_parameters;
-    Settings * const m_settings;
 };
 
 

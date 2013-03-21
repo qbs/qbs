@@ -105,9 +105,8 @@ void InternalJob::storeBuildGraph(const BuildProject *buildProject)
     }
 }
 
-InternalSetupProjectJob::InternalSetupProjectJob(Settings *settings, const Logger &logger,
-                                                 QObject *parent)
-    : InternalJob(logger, parent), m_running(false), m_settings(settings)
+InternalSetupProjectJob::InternalSetupProjectJob(const Logger &logger, QObject *parent)
+    : InternalJob(logger, parent), m_running(false)
 {
 }
 
@@ -166,8 +165,7 @@ void InternalSetupProjectJob::execute()
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext(logger()));
     evalContext->setObserver(observer());
     BuildProjectLoader bpLoader(logger());
-    const BuildProjectLoader::LoadResult loadResult
-            = bpLoader.load(m_parameters, evalContext, m_settings);
+    const BuildProjectLoader::LoadResult loadResult = bpLoader.load(m_parameters, evalContext);
     ResolvedProjectPtr rProject;
     if (!loadResult.discardLoadedProject)
         m_buildProject = loadResult.loadedProject;
@@ -177,7 +175,7 @@ void InternalSetupProjectJob::execute()
         if (loadResult.changedResolvedProject) {
             rProject = loadResult.changedResolvedProject;
         } else {
-            Loader loader(evalContext->engine(), m_settings, logger());
+            Loader loader(evalContext->engine(), logger());
             loader.setSearchPaths(m_parameters.searchPaths);
             loader.setProgressObserver(observer());
             rProject = loader.loadProject(m_parameters);

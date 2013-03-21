@@ -94,7 +94,7 @@ public:
     Project project() const;
 
 private:
-    SetupProjectJob(Settings *settings, const Internal::Logger &logger, QObject *parent);
+    SetupProjectJob(const Internal::Logger &logger, QObject *parent);
 
     void resolve(const SetupProjectParameters &parameters);
     void reportError(const Error &error);

@@ -43,14 +43,13 @@
 namespace qbs {
 namespace Internal {
 
-Loader::Loader(ScriptEngine *engine, Settings *settings, const Logger &logger)
+Loader::Loader(ScriptEngine *engine, const Logger &logger)
     : m_logger(logger)
     , m_progressObserver(0)
     , m_builtins(new BuiltinDeclarations)
     , m_moduleLoader(new ModuleLoader(engine, m_builtins, logger))
     , m_projectResolver(new ProjectResolver(m_moduleLoader, m_builtins, logger))
 {
-    Q_UNUSED(settings);     // TODO: remove settings parameter
 }
 
 Loader::~Loader()

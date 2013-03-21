@@ -48,8 +48,8 @@ static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
 }
 
-TestLanguage::TestLanguage(Settings *settings, ILogSink *logSink)
-    : m_settings(settings), m_logSink(logSink)
+TestLanguage::TestLanguage(ILogSink *logSink)
+    : m_logSink(logSink)
     , m_wildcardsTestDirPath(QDir::tempPath() + QLatin1String("/_wildcards_test_dir_"))
 {
     qsrand(QTime::currentTime().msec());
@@ -89,7 +89,7 @@ void TestLanguage::initTestCase()
 {
     const Logger logger(m_logSink);
     ScriptEngine *engine = new ScriptEngine(logger, this);
-    loader = new Loader(engine, m_settings, logger);
+    loader = new Loader(engine, logger);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../share/qbs"));
     setConfigProperty(defaultParameters.buildConfiguration,

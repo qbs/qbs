@@ -462,7 +462,7 @@ BuildProjectLoader::BuildProjectLoader(const Logger &logger) : m_logger(logger)
 }
 
 BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParameters &parameters,
-        const RulesEvaluationContextPtr &evalContext, Settings *settings)
+        const RulesEvaluationContextPtr &evalContext)
 {
     m_result = LoadResult();
     m_evalContext = evalContext;
@@ -542,7 +542,7 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
     }
 
     if (projectFileChanged || referencedProductRemoved || !changedProducts.isEmpty()) {
-        Loader ldr(evalContext->engine(), settings, m_logger);
+        Loader ldr(evalContext->engine(), m_logger);
         ldr.setSearchPaths(parameters.searchPaths);
         const ResolvedProjectPtr changedProject = ldr.loadProject(parameters);
         m_result.changedResolvedProject = changedProject;
@@ -560,9 +560,6 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
                 return m_result;
         }
 
-        // TODO: What about changed properties?
-        // TODO: Are there less drastic measures than throwing away the loaded project if a product is added?
-        // TODO: This algorithm does not catch two products exchanging their names; do we need a unique identifier?
         QSet<QString> oldProductNames, newProductNames;
         foreach (const ResolvedProductConstPtr &product, project->resolvedProject()->products)
             oldProductNames += product->name;

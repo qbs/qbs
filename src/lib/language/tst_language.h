@@ -44,11 +44,10 @@ class QBS_EXPORT TestLanguage : public QObject
 {
     Q_OBJECT
 public:
-    TestLanguage(Settings *settings, ILogSink *logSink);
+    TestLanguage(ILogSink *logSink);
     ~TestLanguage();
 
 private:
-    Settings *m_settings;
     ILogSink *m_logSink;
     Loader *loader;
     ResolvedProjectPtr project;

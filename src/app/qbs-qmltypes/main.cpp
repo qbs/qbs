@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     }
 
     ScriptEngine engine(cl);
-    QByteArray typeData = Loader(&engine, settings.data(), cl).qmlTypeInfo();
+    QByteArray typeData = Loader(&engine, cl).qmlTypeInfo();
 
     std::cout << typeData.constData();
 

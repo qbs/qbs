@@ -49,7 +49,7 @@ class ProjectResolver;
 class QBS_EXPORT Loader // FIXME: Exported for qbs-qmltypes
 {
 public:
-    Loader(ScriptEngine *engine, Settings *settings, const Logger &logger);
+    Loader(ScriptEngine *engine, const Logger &logger);
     ~Loader();
 
     void setProgressObserver(ProgressObserver *observer);

@@ -30,7 +30,6 @@
 #include <language/tst_language.h>
 
 #include <app/shared/logging/consolelogger.h>
-#include <app/shared/qbssettings.h>
 
 #include <QCoreApplication>
 #include <QTest>
@@ -38,8 +37,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    SettingsPtr settings = qbsSettings();
-    qbs::Internal::TestLanguage tl(settings.data(), ConsoleLogger::instance().logSink());
+    qbs::Internal::TestLanguage tl(ConsoleLogger::instance().logSink());
     return QTest::qExec(&tl, argc, argv);
 }
 

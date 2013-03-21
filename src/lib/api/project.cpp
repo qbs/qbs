@@ -314,7 +314,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters
                                        Settings *settings, ILogSink *logSink, QObject *jobOwner)
 {
     Logger logger(logSink);
-    SetupProjectJob * const job = new SetupProjectJob(settings, logger, jobOwner);
+    SetupProjectJob * const job = new SetupProjectJob(logger, jobOwner);
     try {
         loadPlugins(_parameters.pluginPaths, logger);
         SetupProjectParameters parameters = _parameters;
