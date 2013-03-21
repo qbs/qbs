@@ -58,6 +58,8 @@ public:
     enum KeySelection { KeySelectionRecursive,  KeySelectionNonRecursive };
     QStringList allKeys(KeySelection selection) const;
 
+    static QString cleanName(const QString &name);
+
 private:
     static QString baseProfileKey();
     QString profileKey() const;

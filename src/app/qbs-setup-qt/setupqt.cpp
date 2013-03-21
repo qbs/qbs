@@ -209,7 +209,8 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment &qtEnviroment,
                                 Settings *settings)
 {
-    QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.").arg(qtVersionName);
+    QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.")
+        .arg(Profile::cleanName(qtVersionName));
     printf("%s\n", qPrintable(msg));
 
     Profile profile(qtVersionName, settings);

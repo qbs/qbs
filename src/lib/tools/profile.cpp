@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 #include "profile.h"
-
+#include "qbsassert.h"
 #include "settings.h"
 
 #include <logging/translator.h>
@@ -54,6 +54,7 @@ namespace qbs {
  */
 Profile::Profile(const QString &name, Settings *settings) : m_name(name), m_settings(settings)
 {
+    QBS_ASSERT(name == cleanName(name), return);
 }
 
 /*!
@@ -70,6 +71,10 @@ QVariant Profile::value(const QString &key, const QVariant &defaultValue) const
 void Profile::setValue(const QString &key, const QVariant &value)
 {
     m_settings->setValue(fullyQualifiedKey(key), value);
+
+    if (key == baseProfileKey()) {
+        QBS_ASSERT(value.toString() == cleanName(value.toString()), return);
+    }
 }
 
 /*!
@@ -129,6 +134,16 @@ void Profile::removeBaseProfile()
 void Profile::removeProfile()
 {
     m_settings->remove(profileKey());
+}
+
+/*!
+ * \brief Returns a string suitiable as a profile name.
+ * Removes all dots and replaces them with hyphens.
+ */
+QString Profile::cleanName(const QString &name)
+{
+    QString newName = name;
+    return newName.replace(QLatin1Char('.'), QLatin1Char('-'));
 }
 
 QString Profile::profileKey() const
