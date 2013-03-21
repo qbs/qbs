@@ -174,6 +174,7 @@ void Transformer::load(PersistentPool &pool)
         p.moduleName = pool.idLoadString();
         p.propertyName = pool.idLoadString();
         pool.stream() >> p.value;
+        modulePropertiesUsedInPrepareScript += p;
     }
     int cmdType;
     pool.stream() >> count;
