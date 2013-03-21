@@ -135,9 +135,9 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
 
     architecture = compilerTripletl.at(0);
     if (architecture.contains("arm")) {
-        endianness = "big-endian";
+        endianness = "big";
     } else {
-        endianness = "little-endian";
+        endianness = "little";
     }
 
     QStringList pathToGccL = pathToGcc.split('/');

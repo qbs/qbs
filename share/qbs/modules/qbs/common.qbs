@@ -23,7 +23,14 @@ Module {
     property string profile
     property string toolchain
     property string architecture
+
     property string endianness
+    PropertyOptions {
+        name: "endianness"
+        allowedValues: ["big", "little", "mixed"]
+        description: "endianness of the target platform"
+    }
+
     property bool install: false
     property string installDir
     property string sysroot

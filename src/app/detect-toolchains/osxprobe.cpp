@@ -120,7 +120,7 @@ public:
 
         QString endianness, architecture;
         architecture = compilerTripletl.at(0);
-        endianness = "little-endian";
+        endianness = "little";
 
         qbsInfo() << Tr::tr("Toolchain %1 detected:\n"
                             "    binary: %2\n"
