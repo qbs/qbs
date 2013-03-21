@@ -226,7 +226,7 @@ void InternalSetupProjectJob::execute()
         TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
         m_buildProject = BuildProjectResolver(logger()).resolveProject(rProject, evalContext);
         if (loadResult.loadedProject)
-            m_buildProject->rescueDependencies(loadResult.loadedProject);
+            m_buildProject->rescueData(loadResult.loadedProject);
     }
 
     if (!m_parameters.dryRun)

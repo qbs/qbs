@@ -648,7 +648,6 @@ void TestBlackbox::trackAddProduct()
     QCOMPARE(runQbs(args), 0);
     QVERIFY(m_qbsStdout.contains("compiling zoo.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product3"));
-    QEXPECT_FAIL("", "QBS-235", Abort);
     QVERIFY(!m_qbsStdout.contains("compiling foo.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling bar.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking product1"));
@@ -798,7 +797,6 @@ void TestBlackbox::propertyChanges()
     projectFile.close();
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
-    QEXPECT_FAIL("", "FIXME: implement fine-grained checks for property changes", Abort);
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
 
     // Incremental build, input property changed indirectly for second build.

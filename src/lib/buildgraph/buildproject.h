@@ -76,7 +76,7 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     QList<Artifact *> lookupArtifacts(const Artifact *artifact) const;
     void insertFileDependency(Artifact *artifact);
-    void rescueDependencies(const BuildProjectPtr &other);
+    void rescueData(const BuildProjectConstPtr &other);
     void removeArtifact(Artifact *artifact);
     void updateNodesThatMustGetNewTransformer();
     void removeFromArtifactsThatMustGetNewTransformers(Artifact *a) {
@@ -111,10 +111,11 @@ public:
     BuildProjectResolver(const Logger &logger);
     BuildProjectPtr resolveProject(const ResolvedProjectPtr &resolvedProject,
                                    const RulesEvaluationContextPtr &evalContext);
+    void resolveProductsForExistingProject(const BuildProjectPtr &project,
+        const QList<ResolvedProductPtr> &freshProducts);
 
 private:
     BuildProductPtr resolveProduct(const ResolvedProductPtr &rProduct);
-
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
@@ -145,7 +146,6 @@ public:
 
 private:
     void trackProjectChanges(const SetupProjectParameters &parameters,
-                             const RulesEvaluationContextPtr &evalContext,
                              const QString &buildGraphFilePath,
                              const BuildProjectPtr &restoredProject);
     void onProductRemoved(const BuildProductPtr &product);
@@ -153,6 +153,7 @@ private:
                           const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
                                               QList<Artifact*> *removedArtifacts = 0);
+    bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
 
     RulesEvaluationContextPtr m_evalContext;
     LoadResult m_result;

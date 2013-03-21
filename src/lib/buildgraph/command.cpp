@@ -60,6 +60,12 @@ AbstractCommand *AbstractCommand::createByType(AbstractCommand::CommandType comm
     return 0;
 }
 
+bool AbstractCommand::equals(const AbstractCommand *other) const
+{
+    return m_description == other->m_description && m_highlight == other->m_highlight
+            && m_silent == other->m_silent && type() == other->type();
+}
+
 void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
     Q_UNUSED(codeLocation);
@@ -143,6 +149,22 @@ void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
     }
 }
 
+bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
+{
+    if (!AbstractCommand::equals(otherAbstractCommand))
+        return false;
+    const ProcessCommand * const other = static_cast<const ProcessCommand *>(otherAbstractCommand);
+    return m_program == other->m_program
+            && m_arguments == other->m_arguments
+            && m_workingDir == other->m_workingDir
+            && m_maxExitCode == other->m_maxExitCode
+            && m_stdoutFilterFunction == other->m_stdoutFilterFunction
+            && m_stderrFilterFunction == other->m_stderrFilterFunction
+            && m_responseFileThreshold == other->m_responseFileThreshold
+            && m_responseFileUsagePrefix == other->m_responseFileUsagePrefix
+            && m_environment == other->m_environment;
+}
+
 void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
@@ -212,6 +234,17 @@ void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
 
 JavaScriptCommand::JavaScriptCommand()
 {
+}
+
+bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) const
+{
+    if (!AbstractCommand::equals(otherAbstractCommand))
+        return false;
+    const JavaScriptCommand * const other
+            = static_cast<const JavaScriptCommand *>(otherAbstractCommand);
+    return m_sourceCode == other->m_sourceCode
+            && m_properties == other->m_properties
+            && m_codeLocation == other->m_codeLocation;
 }
 
 void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)

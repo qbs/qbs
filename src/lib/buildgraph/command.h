@@ -56,6 +56,7 @@ public:
     static bool defaultIsSilent() { return true; }
 
     virtual CommandType type() const = 0;
+    virtual bool equals(const AbstractCommand *other) const;
     virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     virtual void load(QDataStream &s);
     virtual void store(QDataStream &s);
@@ -86,6 +87,7 @@ public:
     ProcessCommand();
 
     CommandType type() const { return ProcessCommandType; }
+    bool equals(const AbstractCommand *otherAbstractCommand) const;
     void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     void load(QDataStream &s);
     void store(QDataStream &s);
@@ -138,6 +140,7 @@ public:
     JavaScriptCommand();
 
     virtual CommandType type() const { return JavaScriptCommandType; }
+    bool equals(const AbstractCommand *otherAbstractCommand) const;
     void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
     void load(QDataStream &s);
     void store(QDataStream &s);

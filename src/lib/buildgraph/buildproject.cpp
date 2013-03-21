@@ -31,6 +31,7 @@
 #include "artifact.h"
 #include "buildgraph.h"
 #include "buildproduct.h"
+#include "command.h"
 #include "cycledetector.h"
 #include "rulesapplicator.h"
 #include "rulesevaluationcontext.h"
@@ -41,6 +42,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
+#include <tools/propertyfinder.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/qbsassert.h>
 
@@ -145,22 +147,34 @@ void BuildProject::insertFileDependency(Artifact *artifact)
     insertIntoArtifactLookupTable(artifact);
 }
 
-/**
- * Copies dependencies between artifacts from the other project to this project.
- */
-void BuildProject::rescueDependencies(const BuildProjectPtr &other)
+static bool commandsEqual(const TransformerConstPtr &t1, const TransformerConstPtr &t2)
 {
-    QHash<QString, BuildProductPtr> otherProductsByName;
-    foreach (const BuildProductPtr &product, other->m_buildProducts)
+    if (t1->commands.count() != t2->commands.count())
+        return false;
+    for (int i = 0; i < t1->commands.count(); ++i)
+        if (!t1->commands.at(i)->equals(t2->commands.at(i)))
+            return false;
+    return true;
+}
+
+/**
+ * Rescues the following data from the other project to this project:
+ *    - dependencies between artifacts,
+ *    - time stamps of artifacts, if their commands have not changed.
+ */
+void BuildProject::rescueData(const BuildProjectConstPtr &other)
+{
+    QHash<QString, BuildProductConstPtr> otherProductsByName;
+    foreach (const BuildProductConstPtr &product, other->m_buildProducts)
         otherProductsByName.insert(product->rProduct->name, product);
 
     foreach (const BuildProductPtr &product, m_buildProducts) {
-        BuildProductPtr otherProduct = otherProductsByName.value(product->rProduct->name);
+        BuildProductConstPtr otherProduct = otherProductsByName.value(product->rProduct->name);
         if (!otherProduct)
             continue;
 
         if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] rescue dependencies of "
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] rescue data of "
                     "product '%1'").arg(product->rProduct->name);
         }
 
@@ -171,8 +185,19 @@ void BuildProject::rescueDependencies(const BuildProjectPtr &other)
             }
 
             Artifact *otherArtifact = otherProduct->lookupArtifact(artifact);
-            if (!otherArtifact || !otherArtifact->transformer)
+            if (!otherArtifact || !otherArtifact->transformer) {
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    no transformer data");
                 continue;
+            }
+
+            if (artifact->transformer
+                    && !commandsEqual(artifact->transformer, otherArtifact->transformer)) {
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact invalidated");
+                continue;
+            }
+            artifact->timestamp = otherArtifact->timestamp;
 
             foreach (Artifact *otherChild, otherArtifact->children) {
                 // skip transform edges
@@ -315,6 +340,14 @@ BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &r
     }
     CycleDetector(m_logger).visitProject(m_project);
     return m_project;
+}
+
+void BuildProjectResolver::resolveProductsForExistingProject(const BuildProjectPtr &project,
+        const QList<ResolvedProductPtr> &freshProducts)
+{
+    m_project = project;
+    foreach (const ResolvedProductPtr &product, freshProducts)
+        resolveProduct(product);
 }
 
 static void addTargetArtifacts(const BuildProductPtr &product,
@@ -516,12 +549,11 @@ BuildProjectLoader::LoadResult BuildProjectLoader::load(const SetupProjectParame
     project->resolvedProject()->buildDirectory = buildDir;
     m_result.loadedProject = project;
     loadLogger.finishActivity();
-    trackProjectChanges(parameters, evalContext, buildGraphFilePath, project);
+    trackProjectChanges(parameters, buildGraphFilePath, project);
     return m_result;
 }
 
-void BuildProjectLoader::trackProjectChanges(const SetupProjectParameters &parameters,
-        const RulesEvaluationContextPtr &evalContext, const QString &buildGraphFilePath,
+void BuildProjectLoader::trackProjectChanges(const SetupProjectParameters &parameters, const QString &buildGraphFilePath,
         const BuildProjectPtr &restoredProject)
 {
     const FileInfo bgfi(buildGraphFilePath);
@@ -530,7 +562,7 @@ void BuildProjectLoader::trackProjectChanges(const SetupProjectParameters &param
 
     bool referencedProductRemoved = false;
     QList<BuildProductPtr> changedProducts;
-    foreach (BuildProductPtr product, restoredProject->buildProducts()) {
+    foreach (const BuildProductPtr &product, restoredProject->buildProducts()) {
         const ResolvedProductConstPtr &resolvedProduct = product->rProduct;
         const FileInfo pfi(resolvedProduct->location.fileName);
         if (!pfi.exists()) {
@@ -557,16 +589,29 @@ void BuildProjectLoader::trackProjectChanges(const SetupProjectParameters &param
     if (!projectFileChanged && !referencedProductRemoved && changedProducts.isEmpty())
         return;
 
-    Loader ldr(evalContext->engine(), m_logger);
+    Loader ldr(m_evalContext->engine(), m_logger);
     ldr.setSearchPaths(parameters.searchPaths);
     const ResolvedProjectPtr freshProject = ldr.loadProject(parameters);
     m_result.changedResolvedProject = freshProject;
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;
-    if (!changedProducts.isEmpty()) {
-        foreach (const ResolvedProductPtr &cp, freshProject->products)
-            freshProductsByName.insert(cp->name, cp);
+    foreach (const ResolvedProductPtr &cp, freshProject->products)
+        freshProductsByName.insert(cp->name, cp);
+
+    QSet<TransformerPtr> seenTransformers;
+    foreach (const BuildProductPtr &product, restoredProject->buildProducts()) {
+        foreach (Artifact *artifact, product->artifacts) {
+            if (!artifact->transformer || seenTransformers.contains(artifact->transformer))
+                continue;
+            seenTransformers.insert(artifact->transformer);
+            ResolvedProductPtr freshProduct = freshProductsByName.value(product->rProduct->name);
+            if (freshProduct && checkForPropertyChanges(artifact->transformer, freshProduct)) {
+                m_result.discardLoadedProject = true;
+                return;
+            }
+        }
     }
+
     foreach (const BuildProductPtr &product, changedProducts) {
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->rProduct->name);
         if (!freshProduct)
@@ -581,19 +626,30 @@ void BuildProjectLoader::trackProjectChanges(const SetupProjectParameters &param
         oldProductNames += product->name;
     foreach (const ResolvedProductConstPtr &product, freshProject->products)
         newProductNames += product->name;
-    const QSet<QString> addedProductNames = newProductNames - oldProductNames;
-    if (!addedProductNames.isEmpty()) {
-        // TODO: apply rules for the new products
-        m_logger.qbsDebug() << "New products were added, discarding the loaded project.";
-        m_result.discardLoadedProject = true;
-        return;
-    }
+
     const QSet<QString> removedProductsNames = oldProductNames - newProductNames;
     if (!removedProductsNames.isEmpty()) {
         foreach (const BuildProductPtr &product, restoredProject->buildProducts()) {
             if (removedProductsNames.contains(product->rProduct->name))
                 onProductRemoved(product);
         }
+    }
+
+    const QSet<QString> addedProductNames = newProductNames - oldProductNames;
+    QList<ResolvedProductPtr> addedProducts;
+    foreach (const QString &productName, addedProductNames) {
+        const ResolvedProductPtr &freshProduct = freshProductsByName.value(productName);
+        QBS_ASSERT(freshProduct, continue);
+        addedProducts.append(freshProduct);
+    }
+    if (!addedProducts.isEmpty()) {
+        ResolvedProjectPtr restoredResolvedProject = restoredProject->resolvedProject();
+        foreach (const ResolvedProductPtr &product, addedProducts) {
+            product->project = restoredResolvedProject;
+            restoredResolvedProject->products.append(product);
+        }
+        BuildProjectResolver bpr(m_logger);
+        bpr.resolveProductsForExistingProject(restoredProject, addedProducts);
     }
 
     CycleDetector(m_logger).visitProject(restoredProject);
@@ -647,15 +703,6 @@ void BuildProjectLoader::onProductChanged(const BuildProductPtr &product,
             QBS_CHECK(artifact);
             removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
             continue;
-        }
-        if (!addedSourceArtifacts.contains(changedArtifact)
-            && changedArtifact->properties->value() != a->properties->value())
-        {
-            m_logger.qbsInfo() << Tr::tr("Some properties changed. Regenerating build graph.");
-            m_logger.qbsDebug() << "Artifact with changed properties: "
-                                << changedArtifact->absoluteFilePath;
-            m_result.discardLoadedProject = true;
-            return;
         }
         if (changedArtifact->fileTags != a->fileTags) {
             // artifact's filetags have changed
@@ -731,6 +778,25 @@ void BuildProjectLoader::removeArtifactAndExclusiveDependents(Artifact *artifact
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
     artifact->project->removeArtifact(artifact);
+}
+
+bool BuildProjectLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
+        const ResolvedProductPtr &freshProduct)
+{
+    PropertyFinder finder;
+    foreach (const Property &property, restoredTrafo->modulePropertiesUsedInPrepareScript) {
+        QVariant v;
+        if (property.value.type() == QVariant::List) {
+            v = finder.propertyValues(freshProduct->properties->value(), property.moduleName,
+                                           property.propertyName);
+        } else {
+            v = finder.propertyValue(freshProduct->properties->value(), property.moduleName,
+                                           property.propertyName);
+        }
+        if (property.value != v)
+            return true;
+    }
+    return false;
 }
 
 } // namespace Internal
