@@ -55,6 +55,7 @@ protected:
                bool useProfile = true);
     void rmDirR(const QString &dir);
     void touch(const QString &fn);
+    static void waitForNewTimestamp();
 
 public slots:
     void initTestCase();

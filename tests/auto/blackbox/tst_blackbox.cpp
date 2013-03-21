@@ -131,6 +131,15 @@ void TestBlackbox::touch(const QString &fn)
     f.resize(s);
 }
 
+// Waits for the time that corresponds to the host file system's time stamp granularity.
+void TestBlackbox::waitForNewTimestamp()
+{
+    if (qbs::Internal::HostOsInfo::isWindowsHost())
+        QTest::qWait(1);        // NTFS has 100 ns precision. Let's ignore exFAT.
+    else
+        QTest::qWait(1000);
+}
+
 void TestBlackbox::initTestCase()
 {
     QVERIFY(QFile::exists(qbsExecutableFilePath));
@@ -371,7 +380,7 @@ void TestBlackbox::trackAddFile()
     QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     ccp("../after", ".");
     touch("project.qbs");
     touch("main.cpp");
@@ -415,7 +424,7 @@ void TestBlackbox::trackRemoveFile()
     QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     QFile::remove("project.qbs");
     QFile::remove("main.cpp");
     QFile::copy("../before/project.qbs", "project.qbs");
@@ -461,7 +470,7 @@ void TestBlackbox::trackAddFileTag()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     ccp("../after", ".");
     touch("main.cpp");
     touch("project.qbs");
@@ -500,7 +509,7 @@ void TestBlackbox::trackRemoveFileTag()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's 15 foo here");
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     ccp("../before", ".");
     touch("main.cpp");
     touch("project.qbs");
@@ -530,7 +539,7 @@ void TestBlackbox::trackAddMocInclude()
     // The build must fail because the main.moc include is missing.
     QVERIFY(runQbs(QStringList(), true) != 0);
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     ccp("../after", ".");
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
@@ -551,7 +560,7 @@ void TestBlackbox::trackAddProduct()
     QVERIFY(m_qbsStdout.contains("linking product1"));
     QVERIFY(m_qbsStdout.contains("linking product2"));
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     ccp("../after", ".");
     touch("trackProducts.qbs");
     QCOMPARE(runQbs(args), 0);
@@ -582,7 +591,7 @@ void TestBlackbox::trackRemoveProduct()
     QVERIFY(m_qbsStdout.contains("linking product2"));
     QVERIFY(m_qbsStdout.contains("linking product3"));
 
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     QFile::remove("zoo.cpp");
     QFile::remove("product3.qbs");
     QFile::remove("trackProducts.qbs");
@@ -614,7 +623,7 @@ void TestBlackbox::recursiveRenaming()
     QCOMPARE(runQbs(QStringList("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
-    QTest::qWait(1000);
+    waitForNewTimestamp();
     QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
     QCOMPARE(runQbs(QStringList("install") << "--remove-first"), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
@@ -681,7 +690,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(projectFile.open(QIODevice::ReadWrite | QIODevice::Append));
     projectFile.write("\n");
     projectFile.close();
-    QTest::qWait(1000); // for file systems with low resolution timestamps
+    waitForNewTimestamp();
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
