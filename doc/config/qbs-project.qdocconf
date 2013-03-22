@@ -7,7 +7,6 @@ imagedirs = $SRCDIR/images $SRCDIR/templates/images
 outputdir = $OUTDIR
 exampledirs = $SRCDIR
 
-include(compat.qdocconf)
 include(macros.qdocconf)
 include(qt-cpp-ignore.qdocconf)
 
@@ -32,7 +31,3 @@ qhp.Qbs.subprojects.manual.type = manual
 # Doxygen compatibility commands
 macro.see                       = "\\sa"
 macro.function                  = "\\fn"
-
-# Qt4 compatibility macros
-macro.li                        = "\\o"
-

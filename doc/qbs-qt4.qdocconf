@@ -1,2 +1,3 @@
+include(config/compat-qt4.qdocconf)
 include(config/qbs-project.qdocconf)
 include(config/qt-html-templates.qdocconf)
