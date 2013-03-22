@@ -50,12 +50,14 @@ class ASTCacheValueData : public QSharedData
 public:
     ASTCacheValueData()
         : ast(0)
+        , processing(false)
     {
     }
 
     QString code;
     QbsQmlJS::Engine engine;
     QbsQmlJS::AST::UiProgram *ast;
+    bool processing;
 };
 
 class ASTCacheValue
@@ -70,6 +72,9 @@ public:
         : d(other.d)
     {
     }
+
+    void setProcessingFlag(bool b) { d->processing = b; }
+    bool isProcessing() const { return d->processing; }
 
     void setCode(const QString &code) { d->code = code; }
     QString code() const { return d->code; }
@@ -112,7 +117,10 @@ ItemPtr ItemReader::readFile(const QString &filePath)
 ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
 {
     ASTCacheValue &cacheValue = (*m_astCache)[filePath];
-    if (!cacheValue.isValid()) {
+    if (cacheValue.isValid()) {
+        if (cacheValue.isProcessing())
+            throw Error(Tr::tr("Loop detected when importing '%1'.").arg(filePath));
+    } else {
         QFile file(filePath);
         if (!file.open(QFile::ReadOnly))
             throw Error(Tr::tr("Couldn't open '%1'.").arg(filePath));
@@ -141,7 +149,9 @@ ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
     ItemReaderASTVisitor itemReader(this, &result);
     itemReader.setFilePath(QFileInfo(filePath).absoluteFilePath());
     itemReader.setSourceCode(cacheValue.code());
+    cacheValue.setProcessingFlag(true);
     cacheValue.ast()->accept(&itemReader);
+    cacheValue.setProcessingFlag(false);
     return result;
 }
 

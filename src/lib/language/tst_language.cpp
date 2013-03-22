@@ -227,6 +227,8 @@ void TestLanguage::erroneousFiles_data()
             << "Depends.submodules cannot be used if name contains a dot";
     QTest::newRow("multiple_productmodules")
             << "Multiple ProductModule items in one product are prohibited.";
+    QTest::newRow("importloop1")
+            << "Loop detected when importing";
 }
 
 void TestLanguage::erroneousFiles()
