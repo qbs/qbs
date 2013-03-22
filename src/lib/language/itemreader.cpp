@@ -35,17 +35,68 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
+#include <QExplicitlySharedDataPointer>
 #include <QFile>
 #include <QFileInfo>
+#include <QSharedData>
 #include <QTextStream>
 
 namespace qbs {
 namespace Internal {
 
+class ASTCacheValueData : public QSharedData
+{
+    Q_DISABLE_COPY(ASTCacheValueData)
+public:
+    ASTCacheValueData()
+        : ast(0)
+    {
+    }
+
+    QString code;
+    QbsQmlJS::Engine engine;
+    QbsQmlJS::AST::UiProgram *ast;
+};
+
+class ASTCacheValue
+{
+public:
+    ASTCacheValue()
+        : d(new ASTCacheValueData)
+    {
+    }
+
+    ASTCacheValue(const ASTCacheValue &other)
+        : d(other.d)
+    {
+    }
+
+    void setCode(const QString &code) { d->code = code; }
+    QString code() const { return d->code; }
+
+    QbsQmlJS::Engine *engine() const { return &d->engine; }
+
+    void setAst(QbsQmlJS::AST::UiProgram *ast) { d->ast = ast; }
+    QbsQmlJS::AST::UiProgram *ast() const { return d->ast; }
+    bool isValid() const { return d->ast; }
+
+private:
+    QExplicitlySharedDataPointer<ASTCacheValueData> d;
+};
+
+class ItemReader::ASTCache : public QHash<QString, ASTCacheValue> {};
+
+
 ItemReader::ItemReader(BuiltinDeclarations *builtins, const Logger &logger)
     : m_builtins(builtins)
     , m_logger(logger)
+    , m_astCache(new ASTCache)
 {
+}
+
+ItemReader::~ItemReader()
+{
+    delete m_astCache;
 }
 
 void ItemReader::setSearchPaths(const QStringList &searchPaths)
@@ -60,31 +111,37 @@ ItemPtr ItemReader::readFile(const QString &filePath)
 
 ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
 {
-    QFile file(filePath);
-    if (!file.open(QFile::ReadOnly))
-        throw Error(Tr::tr("Couldn't open '%1'.").arg(filePath));
+    ASTCacheValue &cacheValue = (*m_astCache)[filePath];
+    if (!cacheValue.isValid()) {
+        QFile file(filePath);
+        if (!file.open(QFile::ReadOnly))
+            throw Error(Tr::tr("Couldn't open '%1'.").arg(filePath));
 
-    const QString code = QTextStream(&file).readAll();
-    file.close();
-    QbsQmlJS::Engine engine;
-    QbsQmlJS::Lexer lexer(&engine);
-    lexer.setCode(code, 1);
-    QbsQmlJS::Parser parser(&engine);
-    if (!parser.parse()) {
-        QList<QbsQmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
-        if (!parserMessages.isEmpty()) {
-            Error err;
-            foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
-                err.append(msg.message, toCodeLocation(filePath, msg.loc));
-            throw err;
+        const QString code = QTextStream(&file).readAll();
+        QbsQmlJS::Lexer lexer(cacheValue.engine());
+        lexer.setCode(code, 1);
+        QbsQmlJS::Parser parser(cacheValue.engine());
+
+        file.close();
+        if (!parser.parse()) {
+            QList<QbsQmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
+            if (!parserMessages.isEmpty()) {
+                Error err;
+                foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
+                    err.append(msg.message, toCodeLocation(filePath, msg.loc));
+                throw err;
+            }
         }
+
+        cacheValue.setCode(code);
+        cacheValue.setAst(parser.ast());
     }
 
     ItemReaderResult result;
     ItemReaderASTVisitor itemReader(this, &result);
     itemReader.setFilePath(QFileInfo(filePath).absoluteFilePath());
-    itemReader.setSourceCode(code);
-    parser.ast()->accept(&itemReader);
+    itemReader.setSourceCode(cacheValue.code());
+    cacheValue.ast()->accept(&itemReader);
     return result;
 }
 

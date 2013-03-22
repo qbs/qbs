@@ -63,6 +63,7 @@ class ItemReader
     friend class ItemReaderASTVisitor;
 public:
     ItemReader(BuiltinDeclarations *builtins, const Logger &logger);
+    ~ItemReader();
 
     BuiltinDeclarations *builtins() const { return m_builtins; }
     const Logger *logger() const { return &m_logger; }
@@ -79,6 +80,9 @@ private:
     Logger m_logger;
     QStringList m_searchPaths;
     QHash<ItemConstPtr, QSet<JSSourceValuePtr> > m_conditionalValuesPerScopeItem;
+
+    class ASTCache;
+    ASTCache *m_astCache;
 };
 
 } // namespace Internal
