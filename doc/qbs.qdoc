@@ -73,7 +73,8 @@
            \endlist
        \li  \l{Reference}
            \list
-               \li  \l{Qbs Functions}
+               \li  \l{Module qbs}
+               \li  \l{Module cpp}
                \li  \l{FileTagger Item}
                \li  \l{Group Item}
                \li  \l{Product Item}
@@ -775,12 +776,13 @@
     \contentspage index.html
     \previouspage shell.html
     \page reference.html
-    \nextpage functions.html
+    \nextpage module-qbs.html
 
     \title Reference
 
     \list
-        \li \l{Qbs Functions}
+        \li \l{Module qbs}
+        \li \l{Module cpp}
         \li \l{FileTagger Item}
         \li \l{Group Item}
         \li \l{Product Item}
@@ -795,9 +797,20 @@
 /*!
     \contentspage index.html
     \previouspage reference.html
-    \page functions.html
+    \page module-qbs.html
+    \nextpage module-cpp.html
+
+    \title Module qbs
+
+*/
+
+
+/*!
+    \contentspage index.html
+    \previouspage module-qbs.html
+    \page module-cpp.html
     \nextpage filetagger-item.html
 
-    \title Qbs Functions
+    \title Module cpp
 
 */
