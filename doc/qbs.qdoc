@@ -37,7 +37,7 @@
 /*!
     \contentspage{index.html}{Qt Build Suite}
     \page index.html
-    \nextpage qbs-overview.html
+    \nextpage overview.html
 
     \title Qbs Manual
 
@@ -89,8 +89,8 @@
 /*!
     \contentspage index.html
     \previouspage index.html
-    \page qbs-overview.html
-    \nextpage qbs-setup.html
+    \page overview.html
+    \nextpage setup.html
 
     \title Introducing Qbs
 
@@ -103,9 +103,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-overview.html
-    \page qbs-setup.html
-    \nextpage qbs-system-requirements.html
+    \previouspage overview.html
+    \page setup.html
+    \nextpage system-requirements.html
 
     \title Setting Up Qbs
 
@@ -120,9 +120,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-setup.html
-    \page qbs-system-requirements.html
-    \nextpage qbs-building.html
+    \previouspage setup.html
+    \page system-requirements.html
+    \nextpage building.html
 
     \title System Requirements
 
@@ -139,9 +139,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-system-requirements.html
-    \page qbs-building.html
-    \nextpage qbs-configuring.html
+    \previouspage system-requirements.html
+    \page building.html
+    \nextpage configuring.html
 
     \title Building Qbs
 
@@ -159,9 +159,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-building.html
-    \page qbs-configuring.html
-    \nextpage qbs-qt-versions.html
+    \previouspage building.html
+    \page configuring.html
+    \nextpage qt-versions.html
 
     \title Configuring Qbs
 
@@ -201,9 +201,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-configuring.html
-    \page qbs-qt-versions.html
-    \nextpage qbs-usage.html
+    \previouspage configuring.html
+    \page qt-versions.html
+    \nextpage usage.html
 
     \title Managing Qt Versions
 
@@ -299,9 +299,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-qt-versions.html
-    \page qbs-usage.html
-    \nextpage qbs-language-introduction.html
+    \previouspage qt-versions.html
+    \page usage.html
+    \nextpage language-introduction.html
 
     \title Using Qbs
 
@@ -318,9 +318,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-usage.html
-    \page qbs-language-introduction.html
-    \nextpage qbs-building-applications.html
+    \previouspage usage.html
+    \page language-introduction.html
+    \nextpage building-applications.html
 
     \title Language Introduction
 
@@ -667,9 +667,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-language-introduction.html
-    \page qbs-building-applications.html
-    \nextpage qbs-running-applications.html
+    \previouspage language-introduction.html
+    \page building-applications.html
+    \nextpage running-applications.html
 
     \title Building Applications with Qbs
 
@@ -695,9 +695,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-running-applications.html
-    \page qbs-installing-files.html
-    \nextpage qbs-shell.html
+    \previouspage running-applications.html
+    \page installing-files.html
+    \nextpage shell.html
 
     \title Installing Files
 
@@ -735,9 +735,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-building-applications.html
-    \page qbs-running-applications.html
-    \nextpage qbs-installing-files.html
+    \previouspage building-applications.html
+    \page running-applications.html
+    \nextpage installing-files.html
 
     \title Running Applications
 
@@ -756,9 +756,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-installing-files.html
-    \page qbs-shell.html
-    \nextpage qbs-reference.html
+    \previouspage installing-files.html
+    \page shell.html
+    \nextpage reference.html
 
     \title Using Qbs Shell
 
@@ -773,9 +773,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-shell.html
-    \page qbs-reference.html
-    \nextpage qbs-functions.html
+    \previouspage shell.html
+    \page reference.html
+    \nextpage functions.html
 
     \title Reference
 
@@ -794,9 +794,9 @@
 
 /*!
     \contentspage index.html
-    \previouspage qbs-reference.html
-    \page qbs-functions.html
-    \nextpage qbs-filetagger-item.html
+    \previouspage reference.html
+    \page functions.html
+    \nextpage filetagger-item.html
 
     \title Qbs Functions
 

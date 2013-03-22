@@ -28,9 +28,9 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \previouspage qbs-group-item.html
-    \page qbs-product-item.html
-    \nextpage qbs-productmodule-item.html
+    \previouspage group-item.html
+    \page product-item.html
+    \nextpage productmodule-item.html
 
     \title Product Item
 

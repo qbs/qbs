@@ -28,9 +28,9 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \previouspage qbs-functions.html
-    \page qbs-filetagger-item.html
-    \nextpage qbs-group-item.html
+    \previouspage functions.html
+    \page filetagger-item.html
+    \nextpage group-item.html
 
     \title FileTagger Item
 

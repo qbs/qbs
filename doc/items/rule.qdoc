@@ -28,9 +28,9 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \previouspage qbs-properties-item.html
-    \page qbs-rule-item.html
-    \nextpage qbs-transformer-item.html
+    \previouspage properties-item.html
+    \page rule-item.html
+    \nextpage transformer-item.html
 
     \title Rule Item
 

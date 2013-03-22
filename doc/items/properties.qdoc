@@ -28,9 +28,9 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \previouspage qbs-project-item.html
-    \page qbs-properties-item.html
-    \nextpage qbs-rule-item.html
+    \previouspage project-item.html
+    \page properties-item.html
+    \nextpage rule-item.html
 
     \title Properties Item
 
