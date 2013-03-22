@@ -101,15 +101,14 @@ void CommandLineParser::printHelp() const
         stream << "qbs " QBS_VERSION "\n";
         stream << d->generalHelp();
     } else {
-        try {
-            const Command * const commandToDescribe
-                    = d->commandFromString(helpCommand->commandToDescribe());
+        const Command * const commandToDescribe
+                = d->commandFromString(helpCommand->commandToDescribe());
+        if (commandToDescribe) {
             stream << commandToDescribe->longDescription();
-        } catch (const Error &) {
-            if (!QbsTool::tryToRunTool(helpCommand->commandToDescribe(),
-                    QStringList(QLatin1String("--help")))) {
-                throw;
-            }
+        } else if (!QbsTool::tryToRunTool(helpCommand->commandToDescribe(),
+                                          QStringList(QLatin1String("--help")))) {
+            throw Error(Tr::tr("No such command '%1'.\n%2")
+                        .arg(helpCommand->commandToDescribe(), d->generalHelp()));
         }
     }
 }
@@ -258,10 +257,10 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
     if (commandLine.isEmpty()) { // No command given, use default.
         command = commandPool.getCommand(BuildCommandType);
     } else {
-        try {
-            command = commandFromString(commandLine.first());
+        command = commandFromString(commandLine.first());
+        if (command) {
             commandLine.removeFirst();
-        } catch (const Error &) { // No command given.
+        } else { // No command given.
             // As an exception to the command-based syntax, we allow -h or --help as the
             // sole contents of the command line, because people are used to this working.
             if (commandLine.count() == 1 && (commandLine.first() == QLatin1String("-h")
@@ -291,7 +290,7 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
             return command;
         }
     }
-    throw Error(Tr::tr("No such command '%1'.\n%2").arg(commandString, generalHelp()));
+    return 0;
 }
 
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const
