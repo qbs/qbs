@@ -44,13 +44,6 @@
 namespace qbs {
 namespace Internal {
 
-static void exportProperty(const ResolvedProductConstPtr &product, QScriptValue jsProduct,
-                    ScriptEngine *engine, const char *propertyName)
-{
-    const QVariant &propertyValue = product->properties->value().value(QLatin1String(propertyName));
-    jsProduct.setProperty(QLatin1String(propertyName), engine->toScriptValue(propertyValue));
-}
-
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject)
 {
@@ -80,15 +73,10 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         }
         productScriptValue = engine->newObject();
         ModuleProperties::init(productScriptValue, product);
-        productScriptValue.setProperty("name", product->name);
-        productScriptValue.setProperty(QLatin1String("targetName"), product->targetName);
         QString destinationDirectory = product->destinationDirectory;
         if (destinationDirectory.isEmpty())
             destinationDirectory = ".";
         productScriptValue.setProperty("destinationDirectory", destinationDirectory);
-
-        exportProperty(product, productScriptValue, engine, "type");
-        exportProperty(product, productScriptValue, engine, "consoleApplication");
         const QVariantMap &propMap = product->properties->value();
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
             const QVariant &value = it.value();
