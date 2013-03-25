@@ -34,6 +34,7 @@
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
@@ -133,10 +134,15 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 void Transformer::createCommands(const PrepareScriptConstPtr &script,
                                  const RulesEvaluationContextPtr &evalContext)
 {
-    QScriptProgram scriptProgram = evalContext->scriptProgram(script->script);
     ScriptEngine * const engine = evalContext->engine();
+    if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
+        script->scriptFunction = engine->evaluate(script->script);
+        if (!script->scriptFunction.isFunction())
+            throw Error(Tr::tr("Invalid prepare script."), script->location);
+    }
+
     engine->clearProperties();
-    QScriptValue scriptValue = engine->evaluate(scriptProgram);
+    QScriptValue scriptValue = script->scriptFunction.call();
     modulePropertiesUsedInPrepareScript = engine->properties();
     if (engine->hasUncaughtException())
         throw Error("evaluating prepare script: " + engine->uncaughtException().toString(),

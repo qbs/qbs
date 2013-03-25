@@ -188,6 +188,7 @@ public:
 
     QString script;
     CodeLocation location;
+    mutable QScriptValue scriptFunction;    // cache
 
 private:
     PrepareScript() {}

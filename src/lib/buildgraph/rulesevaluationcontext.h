@@ -60,7 +60,6 @@ public:
 
     ScriptEngine *engine() const { return m_engine; }
     QScriptValue scope() const { return m_scope; }
-    QScriptProgram scriptProgram(const QString &script);
 
     void setObserver(ProgressObserver *observer) { m_observer = observer; }
     void initializeObserver(const QString &description, int maximumProgress);
@@ -78,7 +77,6 @@ private:
     unsigned int m_initScopeCalls;
     QScriptValue m_scope;
     QScriptValue m_prepareScriptScope;
-    QHash<QString, QScriptProgram> m_scriptHash;
 };
 
 } // namespace Internal

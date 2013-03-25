@@ -377,6 +377,7 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
         // rewrite blocks to be able to use return statements in property assignments
         sourceCode.prepend("(function()");
         sourceCode.append(")()");
+        m_sourceValue->m_hasFunctionForm = true;
     }
 
     m_sourceValue->setSourceCode(sourceCode);

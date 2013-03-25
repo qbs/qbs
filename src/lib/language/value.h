@@ -92,6 +92,7 @@ public:
 
     bool sourceUsesBase() const { return m_sourceUsesBase; }
     bool sourceUsesOuter() const { return m_sourceUsesOuter; }
+    bool hasFunctionForm() const { return m_hasFunctionForm; }
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
@@ -113,6 +114,7 @@ private:
     FileContextPtr m_file;
     bool m_sourceUsesBase;
     bool m_sourceUsesOuter;
+    bool m_hasFunctionForm;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
 };

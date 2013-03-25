@@ -388,6 +388,18 @@ void ProjectResolver::resolveGroup(const ItemPtr &item)
     m_productContext->product->groups += group;
 }
 
+static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
+{
+    if (value->hasFunctionForm()) {
+        // Remove the function application "()" that has been
+        // added in ItemReaderASTVisitor::visitStatement.
+        const QString &code = value->sourceCode();
+        return code.left(code.length() - 2);
+    } else {
+        return QLatin1String("(function(){return ") + value->sourceCode() + QLatin1String(";})");
+    }
+}
+
 void ProjectResolver::resolveRule(const ItemPtr &item)
 {
     checkCancelation();
@@ -409,9 +421,9 @@ void ProjectResolver::resolveRule(const ItemPtr &item)
                     item->location());
 
     const PrepareScriptPtr prepareScript = PrepareScript::create();
-    prepareScript->script = verbatimValue(item, "prepare");
-    ValuePtr value = item->property("prepare");
+    JSSourceValuePtr value = item->sourceProperty(QLatin1String("prepare"));
     if (value) {
+        prepareScript->script = sourceCodeAsFunction(value);
         prepareScript->location = value->location();
     }
 
@@ -528,8 +540,8 @@ void ProjectResolver::resolveTransformer(const ItemPtr &item)
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));
     const PrepareScriptPtr transform = PrepareScript::create();
-    ValueConstPtr value = item->property("prepare");
-    transform->script = verbatimValue(value);
+    JSSourceValueConstPtr value = item->sourceProperty(QLatin1String("prepare"));
+    transform->script = sourceCodeAsFunction(value);
     transform->location = value ? value->location() : item->location();
     rtrafo->transform = transform;
 
