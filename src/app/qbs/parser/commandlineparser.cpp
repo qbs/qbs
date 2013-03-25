@@ -70,6 +70,8 @@ public:
     void setupLogLevel();
     void setupBuildOptions();
 
+    bool dryRun() const { return optionPool.dryRunOption()->enabled(); }
+
     QString propertyName(const QString &aCommandLineName) const;
 
     QStringList commandLine;
@@ -153,6 +155,11 @@ InstallOptions CommandLineParser::installOptions() const
 bool CommandLineParser::force() const
 {
     return d->optionPool.forceOption()->enabled();
+}
+
+bool CommandLineParser::dryRun() const
+{
+    return d->dryRun();
 }
 
 QStringList CommandLineParser::runArgs() const
@@ -296,6 +303,7 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const
 {
     return QList<Command *>()
+            << commandPool.getCommand(ResolveCommandType)
             << commandPool.getCommand(BuildCommandType)
             << commandPool.getCommand(CleanCommandType)
             << commandPool.getCommand(RunCommandType)
@@ -392,7 +400,7 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
 {
-    buildOptions.dryRun = optionPool.dryRunOption()->enabled();
+    buildOptions.dryRun = dryRun();
     buildOptions.changedFiles = optionPool.changedFilesOption()->arguments();
     QDir currentDir;
     for (int i = 0; i < buildOptions.changedFiles.count(); ++i) {

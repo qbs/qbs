@@ -47,6 +47,7 @@ public:
     QStringList pluginPaths;
     QVariantMap buildConfiguration;
     bool ignoreDifferentProjectFilePath;
+    bool dryRun;
 };
 
 } // namespace qbs

@@ -65,6 +65,10 @@ private slots:
     void build_project();
     void build_project_dry_run_data();
     void build_project_dry_run();
+    void resolve_project_data();
+    void resolve_project();
+    void resolve_project_dry_run_data();
+    void resolve_project_dry_run();
     void clean();
     void track_qrc();
     void track_qobject_change();

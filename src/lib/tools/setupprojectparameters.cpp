@@ -30,7 +30,8 @@
 
 namespace qbs {
 
-SetupProjectParameters::SetupProjectParameters() : ignoreDifferentProjectFilePath(false)
+SetupProjectParameters::SetupProjectParameters()
+    : ignoreDifferentProjectFilePath(false), dryRun(false)
 {
 }
 
@@ -74,6 +75,11 @@ SetupProjectParameters::SetupProjectParameters() : ignoreDifferentProjectFilePat
   * \variable SetupProjectParameters::ignoreDifferentProjectFilePath
   * \brief true iff the saved build graph should be used even if its path to the project file
   *        is different from \c projectFilePath
+  */
+
+ /*!
+  * \variable SetupProjectParameters::dryRun
+  * \brief true iff the build graph should not be saved
   */
 
 } // namespace qbs

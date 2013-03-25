@@ -140,9 +140,46 @@ void Command::parseMore(QStringList &input)
     addAllToAdditionalArguments(input);
 }
 
+
+QString ResolveCommand::shortDescription() const
+{
+    return Tr::tr("Resolve a project without building it.");
+}
+
+QString ResolveCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+            .arg(representation());
+    description += Tr::tr("Resolves a project in one or more configuration(s).\n");
+    return description += supportedOptionsDescription();
+}
+
+QString ResolveCommand::representation() const
+{
+    return QLatin1String("resolve");
+}
+
+static QList<CommandLineOption::Type> resolveOptions()
+{
+    return QList<CommandLineOption::Type>()
+            << CommandLineOption::FileOptionType
+            << CommandLineOption::LogLevelOptionType
+            << CommandLineOption::VerboseOptionType
+            << CommandLineOption::QuietOptionType
+            << CommandLineOption::ShowProgressOptionType
+            << CommandLineOption::JobsOptionType
+            << CommandLineOption::DryRunOptionType
+            << CommandLineOption::ForceOptionType;
+}
+
+QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const
+{
+    return resolveOptions();
+}
+
 QString BuildCommand::shortDescription() const
 {
-    return Tr::tr("Build (parts of) a number of projects. This is the default command.");
+    return Tr::tr("Build (parts of) a project. This is the default command.");
 }
 
 QString BuildCommand::longDescription() const
@@ -162,18 +199,10 @@ QString BuildCommand::representation() const
 
 static QList<CommandLineOption::Type> buildOptions()
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::JobsOptionType
-            << CommandLineOption::KeepGoingOptionType
-            << CommandLineOption::DryRunOptionType
+    QList<CommandLineOption::Type> options = resolveOptions();
+    return options << CommandLineOption::KeepGoingOptionType
             << CommandLineOption::ProductsOptionType
-            << CommandLineOption::ChangedFilesOptionType
-            << CommandLineOption::ForceOptionType;
+            << CommandLineOption::ChangedFilesOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const

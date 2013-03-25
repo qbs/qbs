@@ -58,6 +58,7 @@ public:
     CleanOptions cleanOptions() const;
     InstallOptions installOptions() const;
     bool force() const;
+    bool dryRun() const;
     QStringList runArgs() const;
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;

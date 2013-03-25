@@ -104,6 +104,7 @@ void CommandLineFrontend::start()
         params.searchPaths = Preferences(m_settings).searchPaths(qbsRootPath);
         params.pluginPaths = Preferences(m_settings).pluginPaths(qbsRootPath);
         params.ignoreDifferentProjectFilePath = m_parser.force();
+        params.dryRun = m_parser.dryRun();
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             params.buildConfiguration = buildConfig;
             SetupProjectJob * const job = Project::setupProject(params, m_settings,
@@ -282,6 +283,9 @@ void CommandLineFrontend::handleProjectsResolved()
         if (m_canceled)
             throw Error(Tr::tr("Execution canceled due to user request."));
         switch (m_parser.command()) {
+        case ResolveCommandType:
+            qApp->quit();
+            break;
         case CleanCommandType:
             makeClean();
             break;

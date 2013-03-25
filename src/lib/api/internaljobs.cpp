@@ -206,7 +206,8 @@ void InternalSetupProjectJob::execute()
             m_buildProject->rescueDependencies(loadResult.loadedProject);
     }
 
-    storeBuildGraph(m_buildProject.data());
+    if (!m_parameters.dryRun)
+        storeBuildGraph(m_buildProject.data());
 
     // The evalutation context cannot be re-used for building, which runs in a different thread.
     m_buildProject->setEvaluationContext(RulesEvaluationContextPtr());

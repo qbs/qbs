@@ -46,6 +46,9 @@ qbs::Command *CommandPool::getCommand(CommandType type) const
     Command *& command = m_commands[type];
     if (!command) {
         switch (type) {
+        case ResolveCommandType:
+            command = new ResolveCommand(m_optionPool);
+            break;
         case BuildCommandType:
             command = new BuildCommand(m_optionPool);
             break;

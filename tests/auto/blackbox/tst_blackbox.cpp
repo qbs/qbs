@@ -242,7 +242,47 @@ void TestBlackbox::build_project_dry_run()
     QCOMPARE(runQbs(QStringList() << "-n"), 0);
     const QStringList &buildDirContents
             = QDir(buildDir).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
-    QVERIFY2(buildDirContents.count() == 1, qPrintable(buildDirContents.join(" ")));
+    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
+}
+
+void TestBlackbox::resolve_project_data()
+{
+    return build_project_data();
+}
+
+void TestBlackbox::resolve_project()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+    if (!projectSubDir.startsWith('/'))
+        projectSubDir.prepend('/');
+    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
+    QDir::setCurrent(testDataDir + projectSubDir);
+    rmDirR(buildDir);
+
+    QCOMPARE(runQbs(QStringList() << QLatin1String("resolve")), 0);
+    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY(QFile::exists(buildGraphPath));
+}
+
+void TestBlackbox::resolve_project_dry_run_data()
+{
+    return resolve_project_data();
+}
+
+void TestBlackbox::resolve_project_dry_run()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+    if (!projectSubDir.startsWith('/'))
+        projectSubDir.prepend('/');
+    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
+    QDir::setCurrent(testDataDir + projectSubDir);
+    rmDirR(buildDir);
+
+    QCOMPARE(runQbs(QStringList() << QLatin1String("resolve") << QLatin1String("-n")), 0);
+    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY2(!QFile::exists(buildGraphPath), qPrintable(buildGraphPath));
 }
 
 void TestBlackbox::clean()
