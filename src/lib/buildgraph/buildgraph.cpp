@@ -73,10 +73,6 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         }
         productScriptValue = engine->newObject();
         ModuleProperties::init(productScriptValue, product);
-        QString destinationDirectory = product->destinationDirectory;
-        if (destinationDirectory.isEmpty())
-            destinationDirectory = ".";
-        productScriptValue.setProperty("destinationDirectory", destinationDirectory);
         const QVariantMap &propMap = product->properties->value();
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
             const QVariant &value = it.value();
