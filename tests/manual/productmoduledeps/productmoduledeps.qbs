@@ -3,7 +3,7 @@ import qbs 1.0
 Project {
     Application {
         name : "HelloWorld"
-        destination: "bin"
+        destinationDirectory: "bin"
         Group {
             files : [ "main.cpp" ]
         }
@@ -37,7 +37,7 @@ Project {
 
     DynamicLibrary {
         name : "lib1"
-        destination: "bin"
+        destinationDirectory: "bin"
         Group {
             files : [ "lib1.cpp" ]
         }

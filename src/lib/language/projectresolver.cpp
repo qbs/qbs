@@ -209,7 +209,7 @@ void ProjectResolver::resolveProduct(const ItemPtr &item)
     product->fileTags = fileTagsValue(item, QLatin1String("type"));
     product->targetName = stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = QFileInfo(item->file()->filePath()).absolutePath();
-    product->destinationDirectory = stringValue(item, QLatin1String("destination"));
+    product->destinationDirectory = stringValue(item, QLatin1String("destinationDirectory"));
     product->location = item->location();
     product->project = m_projectContext->project;
     product->properties = PropertyMapInternal::create();

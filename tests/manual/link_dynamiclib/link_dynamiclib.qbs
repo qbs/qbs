@@ -3,7 +3,7 @@ import qbs 1.0
 Project {
     Application {
         name : "HelloWorld"
-        destination: "bin"
+        destinationDirectory: "bin"
         Group {
             files : [ "main.cpp" ]
         }
@@ -14,7 +14,7 @@ Project {
 
     DynamicLibrary {
         name : "lib1"
-        destination: "bin"
+        destinationDirectory: "bin"
         Group {
             files : [ "lib1.cpp" ]
         }
@@ -24,7 +24,7 @@ Project {
 
     DynamicLibrary {
         name : "lib2"
-        destination: "bin"
+        destinationDirectory: "bin"
         cpp.visibility: 'default'
         Group {
             files : [ "lib2.cpp" ]
@@ -35,7 +35,7 @@ Project {
 
     DynamicLibrary {
         name : "lib3"
-        destination: "bin"
+        destinationDirectory: "bin"
         cpp.visibility: 'hidden'
         Group {
             files : [ "lib3.cpp" ]
@@ -45,7 +45,7 @@ Project {
 
     DynamicLibrary {
         name : "lib4"
-        destination: "bin"
+        destinationDirectory: "bin"
         cpp.visibility: 'hiddenInlines'
         cpp.defines: "TEST_LIB"
         Group {

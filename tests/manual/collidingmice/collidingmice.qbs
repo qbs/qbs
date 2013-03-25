@@ -2,7 +2,7 @@ import qbs 1.0
 
 Application {
     name : "CollidingMice"
-    destination: "bin"
+    destinationDirectory: "bin"
 
     Depends {
         name: "Qt"

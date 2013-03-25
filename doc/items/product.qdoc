@@ -93,7 +93,7 @@
             \li \c name
             \li The base file name of the product's target artifacts.
         \row
-            \li destination
+            \li destinationDirectory
             \li string
             \li "."
             \li The directory where the target artifacts will be located. Relative to the build directory.

@@ -4,7 +4,7 @@ Project {
     Product {
         type: ["application"]
         name: "HelloWorld"
-        destination: "bin"
+        destinationDirectory: "bin"
 
         Depends { name: "Qt.core"}
 

@@ -77,7 +77,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
     decl.initialValueSource = "name";
     product += decl;
-    product += PropertyDeclaration("destination", PropertyDeclaration::String);
+    product += PropertyDeclaration("destinationDirectory", PropertyDeclaration::String);
     product += PropertyDeclaration("consoleApplication", PropertyDeclaration::Boolean);
     product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     product += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);

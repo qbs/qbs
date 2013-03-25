@@ -28,7 +28,7 @@ Module {
     property string qmFilesDir: {
         if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
             return product.name + ".app/Contents/Resources";
-        return product.destination;
+        return product.destinationDirectory;
     }
 
     // private properties
