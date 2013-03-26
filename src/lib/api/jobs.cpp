@@ -109,6 +109,8 @@ AbstractJob::AbstractJob(InternalJob *internalJob, QObject *parent)
     m_internalJob->setParent(this);
     connect(m_internalJob, SIGNAL(newTaskStarted(QString,int,Internal::InternalJob*)),
             SLOT(handleTaskStarted(QString,int)), Qt::QueuedConnection);
+    connect(m_internalJob, SIGNAL(totalEffortChanged(int,Internal::InternalJob*)),
+            SLOT(handleTotalEffortChanged(int)));
     connect(m_internalJob, SIGNAL(taskProgress(int,Internal::InternalJob*)),
             SLOT(handleTaskProgress(int)), Qt::QueuedConnection);
     connect(m_internalJob, SIGNAL(finished(Internal::InternalJob *)), SLOT(handleFinished()));
@@ -149,6 +151,11 @@ void AbstractJob::cancel()
 void AbstractJob::handleTaskStarted(const QString &description, int maximumProgressValue)
 {
     emit taskStarted(description, maximumProgressValue, this);
+}
+
+void AbstractJob::handleTotalEffortChanged(int totalEffort)
+{
+    emit totalEffortChanged(totalEffort, this);
 }
 
 void AbstractJob::handleTaskProgress(int newProgressValue)

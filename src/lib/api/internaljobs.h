@@ -78,6 +78,7 @@ protected:
 signals:
     void finished(Internal::InternalJob *job);
     void newTaskStarted(const QString &description, int totalEffort, Internal::InternalJob *job);
+    void totalEffortChanged(int totalEffort, Internal::InternalJob *job);
     void taskProgress(int value, Internal::InternalJob *job);
 
 private:

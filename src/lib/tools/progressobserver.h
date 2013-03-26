@@ -47,6 +47,7 @@ public:
     virtual void setProgressValue(int value) = 0;
     virtual int progressValue() = 0;
     virtual bool canceled() const = 0;
+    virtual void setMaximum(int maximum) = 0;
     virtual int maximum() const = 0;
 
     void incrementProgressValue(int increment = 1);

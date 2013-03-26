@@ -41,6 +41,7 @@ class ConsoleProgressObserver
 {
 public:
     void initialize(const QString &task, int max);
+    void setMaximum(int maximum);
     void setProgressValue(int value);
     void incrementProgressValue() { setProgressValue(m_value + 1); }
 

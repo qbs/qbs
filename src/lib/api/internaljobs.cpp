@@ -65,7 +65,8 @@ public:
     void cancel() { m_canceled = true; }
 
 private:
-    void initialize(const QString &task, int maximum) {
+    void initialize(const QString &task, int maximum)
+    {
         QBS_ASSERT(!m_timedLogger, delete m_timedLogger);
         m_timedLogger = new TimedActivityLogger(m_job->logger(), task, QString(),
                 m_job->timed() ? LoggerInfo : LoggerDebug, m_job->timed());
@@ -74,7 +75,15 @@ private:
         m_canceled = false;
         emit m_job->newTaskStarted(task, maximum, m_job);
     }
-    void setProgressValue(int value) {
+
+    void setMaximum(int maximum)
+    {
+        m_maximum = maximum;
+        emit m_job->totalEffortChanged(maximum, m_job);
+    }
+
+    void setProgressValue(int value)
+    {
         //QBS_ASSERT(value >= m_value, qDebug("old value = %d, new value = %d", m_value, value));
         //QBS_ASSERT(value <= m_maximum, qDebug("value = %d, maximum = %d", value, m_maximum));
         m_value = value;
@@ -84,6 +93,7 @@ private:
         }
         emit m_job->taskProgress(value, m_job);
     }
+
     int progressValue() { return m_value; }
     int maximum() const { return m_maximum; }
     bool canceled() const { return m_canceled; }

@@ -176,13 +176,22 @@ void ProjectResolver::resolveProject(const ItemPtr &item)
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Rule"] = &ProjectResolver::resolveRule;
 
-    foreach (const ItemPtr &child, item->children())
+    if (m_progressObserver)
+        m_progressObserver->setMaximum(item->children().count() + 2);
+    foreach (const ItemPtr &child, item->children()) {
         callItemFunction(mapping, child);
+        if (m_progressObserver)
+            m_progressObserver->incrementProgressValue();
+    }
 
     foreach (const ResolvedProductPtr &product, project->products)
         postProcess(product);
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue();
 
     resolveProductDependencies();
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue();
 }
 
 void ProjectResolver::resolveProduct(const ItemPtr &item)

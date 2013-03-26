@@ -209,6 +209,13 @@ void CommandLineFrontend::handleNewTaskStarted(const QString &description, int t
     }
 }
 
+void CommandLineFrontend::handleTotalEffortChanged(int totalEffort)
+{
+    // Can only happen when resolving.
+    if (m_parser.showProgress() && !isBuilding() && !resolvingMultipleProjects())
+        m_observer->setMaximum(totalEffort);
+}
+
 void CommandLineFrontend::handleTaskProgress(int value, AbstractJob *job)
 {
     if (isBuilding()) {
@@ -438,6 +445,8 @@ void CommandLineFrontend::connectJob(AbstractJob *job)
             SLOT(handleJobFinished(bool, qbs::AbstractJob*)));
     connect(job, SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)),
             SLOT(handleNewTaskStarted(QString,int)));
+    connect(job, SIGNAL(totalEffortChanged(int,qbs::AbstractJob*)),
+            SLOT(handleTotalEffortChanged(int)));
     if (m_parser.showProgress()) {
         connect(job, SIGNAL(taskProgress(int,qbs::AbstractJob*)),
                 SLOT(handleTaskProgress(int,qbs::AbstractJob*)));

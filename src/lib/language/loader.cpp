@@ -85,17 +85,19 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
 ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath).isAbsolute());
+
+    // At this point, we cannot set a sensible total effort, because we know nothing about
+    // the project yet. That's why we use a placeholder here, so the user at least
+    // sees that an operation is starting. The real total effort will be set later when
+    // we have enough information.
     if (m_progressObserver)
-        m_progressObserver->initialize(Tr::tr("Loading project"), 1); // TODO: Make more fine-grained.
+        m_progressObserver->initialize(Tr::tr("Loading project"), 1);
     ModuleLoaderResult loadResult
             = m_moduleLoader->load(parameters.projectFilePath,
                                    parameters.buildConfiguration,
                                    true);
-    const ResolvedProjectPtr &p = m_projectResolver->resolve(loadResult, parameters.buildRoot,
+    return m_projectResolver->resolve(loadResult, parameters.buildRoot,
             parameters.buildConfiguration);
-    if (m_progressObserver)
-        m_progressObserver->setFinished();
-    return p;
 }
 
 QByteArray Loader::qmlTypeInfo()
