@@ -67,8 +67,8 @@ public:
 private:
     void initialize(const QString &task, int maximum) {
         QBS_ASSERT(!m_timedLogger, delete m_timedLogger);
-        m_timedLogger = new TimedActivityLogger(m_job->logger(), task, QString(), LoggerInfo,
-                m_job->timed());
+        m_timedLogger = new TimedActivityLogger(m_job->logger(), task, QString(),
+                m_job->timed() ? LoggerInfo : LoggerDebug, m_job->timed());
         m_value = 0;
         m_maximum = maximum;
         m_canceled = false;

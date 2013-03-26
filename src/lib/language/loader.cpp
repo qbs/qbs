@@ -93,7 +93,8 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
                                    true);
     const ResolvedProjectPtr &p = m_projectResolver->resolve(loadResult, parameters.buildRoot,
             parameters.buildConfiguration);
-    m_progressObserver->setFinished();
+    if (m_progressObserver)
+        m_progressObserver->setFinished();
     return p;
 }
 

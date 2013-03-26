@@ -73,10 +73,18 @@ private slots:
         QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
         QVERIFY(parser.buildOptions().keepGoing);
         QVERIFY(parser.force());
+        QVERIFY(!parser.logTime());
 
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << fileArgs, settings.data()));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), defaultLogLevel());
         QVERIFY(!parser.force());
+
+        QVERIFY(parser.parseCommandLine(QStringList() << "-t" << fileArgs, settings.data()));
+        QVERIFY(parser.logTime());
+
+        QVERIFY(parser.parseCommandLine(QStringList() << "-t" << "--show-progress" << fileArgs,
+                                        settings.data()));
+        QVERIFY(!parser.logTime());
 
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqq" << fileArgs, settings.data()));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerWarning);
