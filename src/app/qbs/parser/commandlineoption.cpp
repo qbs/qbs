@@ -190,17 +190,29 @@ QString DryRunOption::longRepresentation() const
     return QLatin1String("--dry-run");
 }
 
+static QString logTimeRepresentation()
+{
+    return QLatin1String("--log-time");
+}
+
 QString ShowProgressOption::description(CommandType command) const
 {
     Q_UNUSED(command);
-    return Tr::tr("%1\n"
+    QString desc = Tr::tr("%1\n"
             "\tShow a progress bar. Implies '%2=%3'.\n").arg(longRepresentation(),
             loglevelLongRepresentation(), logLevelName(LoggerMinLevel));
+    return desc += Tr::tr("\tThis option is mutually exclusive with '%1'.\n")
+            .arg(logTimeRepresentation());
+}
+
+static QString showProgressRepresentation()
+{
+    return QLatin1String("--show-progress");
 }
 
 QString ShowProgressOption::longRepresentation() const
 {
-    return QLatin1String("--show-progress");
+    return showProgressRepresentation();
 }
 
 void StringListOption::doParse(const QString &representation, QStringList &input)
@@ -360,6 +372,27 @@ QString RemoveFirstOption::description(CommandType command) const
 QString RemoveFirstOption::longRepresentation() const
 {
     return QLatin1String("--remove-first");
+}
+
+QString LogTimeOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    QString desc = Tr::tr("%1\n\tLog the time that the operations involved in this command take.\n")
+            .arg(longRepresentation());
+    desc += Tr::tr("\tThis option is implied in log levels '%1' and higher.\n")
+            .arg(logLevelName(LoggerDebug));
+    return desc += Tr::tr("\tThis options is mutually exclusive with '%1'.\n")
+            .arg(showProgressRepresentation());
+}
+
+QString LogTimeOption::shortRepresentation() const
+{
+    return QLatin1String("-t");
+}
+
+QString LogTimeOption::longRepresentation() const
+{
+    return logTimeRepresentation();
 }
 
 } // namespace qbs

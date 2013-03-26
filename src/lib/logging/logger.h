@@ -49,7 +49,7 @@ namespace Internal {
 class QBS_EXPORT LogWriter
 {
 public:
-    LogWriter(ILogSink *logSink, LoggerLevel level);
+    LogWriter(ILogSink *logSink, LoggerLevel level, bool force = false);
 
     // log writer has move semantics and the last instance of
     // a << chain prints the accumulated data
@@ -69,6 +69,7 @@ private:
     LoggerLevel m_level;
     mutable QString m_message;
     QString m_tag;
+    bool m_force;
 };
 
 class QBS_EXPORT MessageTag
@@ -103,7 +104,7 @@ public:
     bool debugEnabled() const;
     bool traceEnabled() const;
 
-    LogWriter qbsLog(LoggerLevel level) const;
+    LogWriter qbsLog(LoggerLevel level, bool force = false) const;
     LogWriter qbsWarning() const { return qbsLog(LoggerWarning); }
     LogWriter qbsInfo() const { return qbsLog(LoggerInfo); }
     LogWriter qbsDebug() const { return qbsLog(LoggerDebug); }
@@ -118,7 +119,8 @@ class TimedActivityLogger
 {
 public:
     TimedActivityLogger(const Logger &logger, const QString &activity,
-                        const QString &prefix = QString(), LoggerLevel logLevel = LoggerDebug);
+                        const QString &prefix = QString(), LoggerLevel logLevel = LoggerDebug,
+                        bool alwaysLog = false);
     void finishActivity();
     ~TimedActivityLogger();
 

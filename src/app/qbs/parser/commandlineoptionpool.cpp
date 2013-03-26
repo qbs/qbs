@@ -82,6 +82,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::ForceOptionType:
             option = new ForceOption;
             break;
+        case CommandLineOption::LogTimeOptionType:
+            option = new LogTimeOption;
+            break;
         }
     }
     return option;
@@ -155,6 +158,11 @@ RemoveFirstOption *CommandLineOptionPool::removeFirstoption() const
 ForceOption *CommandLineOptionPool::forceOption() const
 {
     return static_cast<ForceOption *>(getOption(CommandLineOption::ForceOptionType));
+}
+
+LogTimeOption *CommandLineOptionPool::logTimeOption() const
+{
+    return static_cast<LogTimeOption *>(getOption(CommandLineOption::LogTimeOptionType));
 }
 
 } // namespace qbs

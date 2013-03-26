@@ -43,9 +43,10 @@ public:
     static int defaultMaxJobCount();
 
     QStringList changedFiles;
+    int maxJobCount;
     bool dryRun;
     bool keepGoing;
-    int maxJobCount;
+    bool logElapsedTime;
 };
 
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2);

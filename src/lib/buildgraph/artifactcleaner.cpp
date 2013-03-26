@@ -41,6 +41,7 @@
 #include <tools/cleanoptions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/progressobserver.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -130,22 +131,24 @@ private:
     QSet<QString> m_directories;
 };
 
-ArtifactCleaner::ArtifactCleaner(const Logger &logger) : m_logger(logger)
+ArtifactCleaner::ArtifactCleaner(const Logger &logger, ProgressObserver *observer)
+    : m_logger(logger), m_observer(observer)
 {
 }
 
 void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, const CleanOptions &options)
 {
     m_hasError = false;
-    TimedActivityLogger logger(m_logger, QLatin1String("Cleaning up"));
 
     QSet<QString> directories;
+    m_observer->initialize(Tr::tr("Cleaning up"), products.count() + 1);
     foreach (const BuildProductConstPtr &product, products) {
         CleanupVisitor visitor(options, m_logger);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());
         if (visitor.hasError())
             m_hasError = true;
+        m_observer->incrementProgressValue();
     }
 
     // Directories created during the build are not artifacts (TODO: should they be?),
@@ -154,9 +157,11 @@ void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, const Clea
         if (FileInfo(dir).exists())
             removeEmptyDirectories(dir, options);
     }
+    m_observer->incrementProgressValue();
 
     if (m_hasError)
         throw Error(Tr::tr("Failed to remove some files."));
+    m_observer->setFinished();
 }
 
 void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const CleanOptions &options,

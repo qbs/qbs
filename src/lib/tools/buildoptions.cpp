@@ -42,9 +42,10 @@ namespace qbs {
  * \brief Creates a \c BuildOptions object and initializes its members to sensible default values.
  */
 BuildOptions::BuildOptions()
-    : dryRun(false)
+    : maxJobCount(0)
+    , dryRun(false)
     , keepGoing(false)
-    , maxJobCount(0)
+    , logElapsedTime(false)
 {
 }
 
@@ -85,11 +86,17 @@ int BuildOptions::defaultMaxJobCount()
   * available processor cores at build time.
   */
 
+ /*!
+  * \variable BuildOptions::logElapsedTime
+  * \brief true iff the time the operation takes should be logged
+  */
+
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
 {
     return bo1.changedFiles == bo2.changedFiles
             && bo1.dryRun == bo2.dryRun
             && bo1.keepGoing == bo2.keepGoing
+            && bo1.logElapsedTime == bo2.logElapsedTime
             && bo1.maxJobCount == bo2.maxJobCount;
 }
 

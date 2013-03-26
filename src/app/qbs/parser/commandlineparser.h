@@ -59,6 +59,7 @@ public:
     InstallOptions installOptions() const;
     bool force() const;
     bool dryRun() const;
+    bool logTime() const;
     QStringList runArgs() const;
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;

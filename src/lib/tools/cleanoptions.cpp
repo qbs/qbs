@@ -63,6 +63,11 @@ namespace qbs {
  * \brief what to remove
  */
 
+ /*!
+  * \variable CleanOptions::logElapsedTime
+  * \brief true iff the time the operation takes should be logged
+  */
+
 CleanOptions::CleanOptions() : cleanType(CleanupAll), dryRun(false), keepGoing(false)
 {
 }

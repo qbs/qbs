@@ -65,12 +65,14 @@ public:
     bool hasError() const { return !error().entries().isEmpty(); }
 
     const Logger &logger() const { return m_logger; }
+    bool timed() const { return m_timed; }
 
 protected:
     explicit InternalJob(const Logger &logger, QObject *parent = 0);
 
     JobObserver *observer() const { return m_observer; }
     void setError(const Error &error) { m_error = error; }
+    void setTimed(bool timed) { m_timed = timed; }
     void storeBuildGraph(const BuildProject *buildProject);
 
 signals:
@@ -82,6 +84,7 @@ private:
     Error m_error;
     JobObserver * const m_observer;
     Logger m_logger;
+    bool m_timed;
 };
 
 

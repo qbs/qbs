@@ -79,9 +79,10 @@ public:
     Command *command;
     QString projectFilePath;
     BuildOptions buildOptions;
-    bool showProgress;
     CommandLineOptionPool optionPool;
     CommandPool commandPool;
+    bool showProgress;
+    bool logTime;
 };
 
 CommandLineParser::CommandLineParser() : d(0)
@@ -138,6 +139,7 @@ CleanOptions CommandLineParser::cleanOptions() const
             ? CleanOptions::CleanupAll : CleanOptions::CleanupTemporaries;
     options.dryRun = buildOptions().dryRun;
     options.keepGoing = buildOptions().keepGoing;
+    options.logElapsedTime = logTime();
     return options;
 }
 
@@ -149,6 +151,7 @@ InstallOptions CommandLineParser::installOptions() const
     options.installRoot = d->optionPool.installRootOption()->installRoot();
     options.dryRun = buildOptions().dryRun;
     options.keepGoing = buildOptions().keepGoing;
+    options.logElapsedTime = logTime();
     return options;
 }
 
@@ -160,6 +163,11 @@ bool CommandLineParser::force() const
 bool CommandLineParser::dryRun() const
 {
     return d->dryRun();
+}
+
+bool CommandLineParser::logTime() const
+{
+    return d->logTime;
 }
 
 QStringList CommandLineParser::runArgs() const
@@ -255,7 +263,7 @@ bool CommandLineParser::parseCommandLine(const QStringList &args, Settings *sett
 
 
 CommandLineParser::CommandLineParserPrivate::CommandLineParserPrivate()
-    : command(0), showProgress(false), commandPool(optionPool)
+    : command(0), commandPool(optionPool), showProgress(false), logTime(false)
 {
 }
 
@@ -411,6 +419,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     const JobsOption * jobsOption = optionPool.jobsOption();
     buildOptions.maxJobCount = jobsOption->jobCount() > 0
             ? jobsOption->jobCount() : Preferences(settings).jobs();
+    buildOptions.logElapsedTime = logTime;
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupProgress()
@@ -455,6 +464,15 @@ void CommandLineParser::CommandLineParserPrivate::setupLogLevel()
                 .arg(logLevelName(LoggerMaxLevel));
         logLevel = LoggerMaxLevel;
     }
+
+    logTime = optionPool.logTimeOption()->enabled();
+    if (showProgress && logTime) {
+        qbsWarning() << Tr::tr("Options '%1' and '%2' are incompatible. Ignoring '%2'.")
+                .arg(optionPool.showProgressOption()->longRepresentation(),
+                     optionPool.logTimeOption()->longRepresentation());
+        logTime = false;
+    }
+
     ConsoleLogger::instance().logSink()->setLogLevel(static_cast<LoggerLevel>(logLevel));
 }
 

@@ -43,6 +43,7 @@
 #include <tools/error.h>
 #include <tools/progressobserver.h>
 #include <tools/preferences.h>
+#include <tools/qbsassert.h>
 
 #include <QtConcurrentRun>
 #include <QFutureWatcher>
@@ -58,19 +59,29 @@ namespace Internal {
 class JobObserver : public ProgressObserver
 {
 public:
-    JobObserver(InternalJob *job) : m_canceled(false), m_job(job) { }
+    JobObserver(InternalJob *job) : m_canceled(false), m_job(job), m_timedLogger(0) { }
+    ~JobObserver() { delete m_timedLogger; }
 
     void cancel() { m_canceled = true; }
 
 private:
     void initialize(const QString &task, int maximum) {
+        QBS_ASSERT(!m_timedLogger, delete m_timedLogger);
+        m_timedLogger = new TimedActivityLogger(m_job->logger(), task, QString(), LoggerInfo,
+                m_job->timed());
         m_value = 0;
         m_maximum = maximum;
         m_canceled = false;
         emit m_job->newTaskStarted(task, maximum, m_job);
     }
     void setProgressValue(int value) {
+        //QBS_ASSERT(value >= m_value, qDebug("old value = %d, new value = %d", m_value, value));
+        //QBS_ASSERT(value <= m_maximum, qDebug("value = %d, maximum = %d", value, m_maximum));
         m_value = value;
+        if (value == m_maximum) {
+            delete m_timedLogger;
+            m_timedLogger = 0;
+        }
         emit m_job->taskProgress(value, m_job);
     }
     int progressValue() { return m_value; }
@@ -81,6 +92,7 @@ private:
     int m_maximum;
     bool m_canceled;
     InternalJob * const m_job;
+    TimedActivityLogger *m_timedLogger;
 };
 
 
@@ -120,6 +132,7 @@ InternalSetupProjectJob::~InternalSetupProjectJob()
 void InternalSetupProjectJob::resolve(const SetupProjectParameters &parameters)
 {
     m_parameters = parameters;
+    setTimed(parameters.logElapsedTime);
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
@@ -244,6 +257,7 @@ void InternalBuildJob::build(const QList<BuildProductPtr> &products,
                              const BuildOptions &buildOptions, const QProcessEnvironment &env)
 {
     setup(products, buildOptions.dryRun);
+    setTimed(buildOptions.logElapsedTime);
 
     m_executor = new Executor(logger());
     m_executor->setProducts(products);
@@ -289,6 +303,7 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 void InternalCleanJob::clean(const QList<BuildProductPtr> &products, const CleanOptions &options)
 {
     setup(products, options.dryRun);
+    setTimed(options.logElapsedTime);
     m_options = options;
     QTimer::singleShot(0, this, SLOT(start()));
 }
@@ -308,7 +323,7 @@ void InternalCleanJob::handleFinished()
 void InternalCleanJob::doClean()
 {
     try {
-        ArtifactCleaner cleaner(logger());
+        ArtifactCleaner cleaner(logger(), observer());
         cleaner.cleanup(products(), m_options);
     } catch (const Error &error) {
         setError(error);
@@ -331,6 +346,7 @@ void InternalInstallJob::install(const QList<BuildProductPtr> &products,
 {
     m_products = products;
     m_options = options;
+    setTimed(options.logElapsedTime);
     QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
 }
 

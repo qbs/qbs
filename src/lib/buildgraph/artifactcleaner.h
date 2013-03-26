@@ -39,11 +39,12 @@ namespace qbs {
 class CleanOptions;
 
 namespace Internal {
+class ProgressObserver;
 
 class ArtifactCleaner
 {
 public:
-    ArtifactCleaner(const Logger &logger);
+    ArtifactCleaner(const Logger &logger, ProgressObserver *observer);
     void cleanup(const QList<BuildProductPtr> &products, const CleanOptions &options);
 
 private:
@@ -52,6 +53,7 @@ private:
 
     Logger m_logger;
     bool m_hasError;
+    ProgressObserver *m_observer;
 };
 
 } // namespace Internal

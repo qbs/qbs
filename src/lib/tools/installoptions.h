@@ -45,6 +45,7 @@ public:
     bool removeFirst;
     bool dryRun;
     bool keepGoing;
+    bool logElapsedTime;
 };
 
 } // namespace qbs

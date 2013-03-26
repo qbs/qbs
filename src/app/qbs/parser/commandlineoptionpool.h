@@ -55,6 +55,7 @@ public:
     InstallRootOption *installRootOption() const;
     RemoveFirstOption *removeFirstoption() const;
     ForceOption *forceOption() const;
+    LogTimeOption *logTimeOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

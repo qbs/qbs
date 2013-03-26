@@ -105,6 +105,7 @@ void CommandLineFrontend::start()
         params.pluginPaths = Preferences(m_settings).pluginPaths(qbsRootPath);
         params.ignoreDifferentProjectFilePath = m_parser.force();
         params.dryRun = m_parser.dryRun();
+        params.logElapsedTime = m_parser.logTime();
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             params.buildConfiguration = buildConfig;
             SetupProjectJob * const job = Project::setupProject(params, m_settings,
@@ -192,7 +193,8 @@ void CommandLineFrontend::handleNewTaskStarted(const QString &description, int t
 {
     // If the user does not want a progress bar, we just print the current activity.
     if (!m_parser.showProgress()) {
-        qbsInfo() << description;
+        if (!m_parser.logTime())
+            qbsInfo() << description;
         return;
     }
     if (isBuilding()) {

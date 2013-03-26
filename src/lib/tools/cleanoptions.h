@@ -45,6 +45,7 @@ public:
     CleanType cleanType;
     bool dryRun;
     bool keepGoing;
+    bool logElapsedTime;
 };
 
 } // namespace qbs

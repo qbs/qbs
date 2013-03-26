@@ -49,7 +49,8 @@ public:
         ProductsOptionType,
         AllArtifactsOptionType,
         InstallRootOptionType, RemoveFirstOptionType,
-        ForceOptionType
+        ForceOptionType,
+        LogTimeOptionType
     };
 
     virtual ~CommandLineOption();
@@ -241,6 +242,14 @@ class RemoveFirstOption : public OnOffOption
 public:
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+};
+
+class LogTimeOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const;
     QString longRepresentation() const;
 };
 

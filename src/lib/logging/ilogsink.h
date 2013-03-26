@@ -65,7 +65,7 @@ public:
     bool willPrint(LoggerLevel level) const { return level <= logLevel(); }
 
     void printMessage(LoggerLevel level, const QString &message,
-                      const QString &tag = QString());
+                      const QString &tag = QString(), bool force = false);
 
 private:
     virtual void doPrintMessage(LoggerLevel level, const QString &message,

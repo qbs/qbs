@@ -65,6 +65,11 @@ namespace qbs {
   *       deletes recursively.
   */
 
+ /*!
+  * \variable InstallOptions::logElapsedTime
+  * \brief true iff the time the operation takes should be logged
+  */
+
 InstallOptions::InstallOptions() : removeFirst(false), dryRun(false), keepGoing(false)
 {
 }

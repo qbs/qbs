@@ -66,9 +66,10 @@ ILogSink::~ILogSink()
 {
 }
 
-void ILogSink::printMessage(LoggerLevel level, const QString &message, const QString &tag)
+void ILogSink::printMessage(LoggerLevel level, const QString &message, const QString &tag,
+                            bool force)
 {
-    if (willPrint(level)) {
+    if (force || willPrint(level)) {
         m_mutex.lock();
         doPrintMessage(level, message, tag);
         m_mutex.unlock();

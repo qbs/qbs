@@ -45,7 +45,8 @@
 namespace qbs {
 namespace Internal {
 
-LogWriter::LogWriter(ILogSink *logSink, LoggerLevel level) : m_logSink(logSink), m_level(level)
+LogWriter::LogWriter(ILogSink *logSink, LoggerLevel level, bool force)
+    : m_logSink(logSink), m_level(level), m_force(force)
 {}
 
 LogWriter::LogWriter(const LogWriter &other)
@@ -53,6 +54,7 @@ LogWriter::LogWriter(const LogWriter &other)
     , m_level(other.m_level)
     , m_message(other.m_message)
     , m_tag(other.m_tag)
+    , m_force(other.m_force)
 {
     other.m_message.clear();
 }
@@ -60,7 +62,7 @@ LogWriter::LogWriter(const LogWriter &other)
 LogWriter::~LogWriter()
 {
     if (!m_message.isEmpty())
-        m_logSink->printMessage(m_level, m_message, m_tag);
+        m_logSink->printMessage(m_level, m_message, m_tag, m_force);
 }
 
 const LogWriter &LogWriter::operator=(const LogWriter &other)
@@ -69,6 +71,7 @@ const LogWriter &LogWriter::operator=(const LogWriter &other)
     m_level = other.m_level;
     m_message = other.m_message;
     m_tag = other.m_tag;
+    m_force = other.m_force;
     other.m_message.clear();
     return *this;
 }
@@ -85,13 +88,13 @@ void LogWriter::write(const char *str)
 
 void LogWriter::write(const QChar &c)
 {
-    if (m_logSink->logLevel() >= m_level)
+    if (m_force || m_logSink->logLevel() >= m_level)
         m_message.append(c);
 }
 
 void LogWriter::write(const QString &message)
 {
-    if (m_logSink->logLevel() >= m_level)
+    if (m_force || m_logSink->logLevel() >= m_level)
         m_message += message;
 }
 
@@ -200,9 +203,9 @@ bool Logger::traceEnabled() const
     return m_logSink->willPrint(LoggerTrace);
 }
 
-LogWriter Logger::qbsLog(LoggerLevel level) const
+LogWriter Logger::qbsLog(LoggerLevel level, bool force) const
 {
-    return LogWriter(m_logSink, level);
+    return LogWriter(m_logSink, level, force);
 }
 
 
@@ -214,21 +217,23 @@ public:
     QString activity;
     LoggerLevel logLevel;
     QElapsedTimer timer;
+    bool alwaysLog;
 };
 
 TimedActivityLogger::TimedActivityLogger(const Logger &logger, const QString &activity,
-                                         const QString &prefix, LoggerLevel logLevel)
+        const QString &prefix, LoggerLevel logLevel, bool alwaysLog)
     : d(0)
 {
-    if (!logger.logSink()->willPrint(logLevel))
+    if (!alwaysLog && !logger.logSink()->willPrint(logLevel))
         return;
     d = new TimedActivityLoggerPrivate;
     d->logger = logger;
     d->prefix = prefix;
     d->activity = activity;
     d->logLevel = logLevel;
-    d->logger.qbsLog(d->logLevel) << QString::fromLocal8Bit("%1Starting activity '%2'.")
-            .arg(d->prefix, d->activity);
+    d->alwaysLog = alwaysLog;
+    d->logger.qbsLog(logLevel, alwaysLog) << QString::fromLocal8Bit("%1Starting activity '%2'.")
+            .arg(prefix, activity);
     d->timer.start();
 }
 
@@ -250,8 +255,9 @@ void TimedActivityLogger::finishActivity()
         timeString.prepend(QString::fromLocal8Bit("%1m, ").arg(m));
     if (h)
         timeString.prepend(QString::fromLocal8Bit("%1h, ").arg(h));
-    d->logger.qbsLog(d->logLevel) << QString::fromLocal8Bit("%1Activity '%2' took %3.")
-            .arg(d->prefix, d->activity, timeString);
+    d->logger.qbsLog(d->logLevel, d->alwaysLog)
+            << QString::fromLocal8Bit("%1Activity '%2' took %3.")
+               .arg(d->prefix, d->activity, timeString);
     delete d;
     d = 0;
 }

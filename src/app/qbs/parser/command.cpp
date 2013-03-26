@@ -169,6 +169,7 @@ static QList<CommandLineOption::Type> resolveOptions()
             << CommandLineOption::ShowProgressOptionType
             << CommandLineOption::JobsOptionType
             << CommandLineOption::DryRunOptionType
+            << CommandLineOption::LogTimeOptionType
             << CommandLineOption::ForceOptionType;
 }
 

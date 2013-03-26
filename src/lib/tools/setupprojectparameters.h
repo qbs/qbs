@@ -48,6 +48,7 @@ public:
     QVariantMap buildConfiguration;
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
+    bool logElapsedTime;
 };
 
 } // namespace qbs

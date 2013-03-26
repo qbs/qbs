@@ -301,7 +301,8 @@ BuildProjectPtr BuildProjectResolver::resolveProject(const ResolvedProjectPtr &r
     m_project = BuildProjectPtr(new BuildProject(m_logger));
     m_project->setEvaluationContext(evalContext);
     m_project->setResolvedProject(resolvedProject);
-    evalContext->initializeObserver(Tr::tr("Resolving project"), resolvedProject->products.count());
+    evalContext->initializeObserver(Tr::tr("Setting up build graph"),
+                                    resolvedProject->products.count());
     foreach (ResolvedProductPtr rProduct, resolvedProject->products) {
         if (rProduct->enabled)
             resolveProduct(rProduct);

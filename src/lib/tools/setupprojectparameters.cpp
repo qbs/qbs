@@ -31,7 +31,7 @@
 namespace qbs {
 
 SetupProjectParameters::SetupProjectParameters()
-    : ignoreDifferentProjectFilePath(false), dryRun(false)
+    : ignoreDifferentProjectFilePath(false), dryRun(false), logElapsedTime(false)
 {
 }
 
@@ -78,8 +78,8 @@ SetupProjectParameters::SetupProjectParameters()
   */
 
  /*!
-  * \variable SetupProjectParameters::dryRun
-  * \brief true iff the build graph should not be saved
+  * \variable SetupProjectParameters::logElapsedTime
+  * \brief true iff the time the operation takes should be logged
   */
 
 } // namespace qbs

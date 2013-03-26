@@ -35,8 +35,9 @@
 #include "projectresolver.h"
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
-#include <tools/setupprojectparameters.h>
+#include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QDir>
 
@@ -84,14 +85,16 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
 ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath).isAbsolute());
-    TimedActivityLogger loadLogger(m_logger, QLatin1String("Loading project"));
+    if (m_progressObserver)
+        m_progressObserver->initialize(Tr::tr("Loading project"), 1); // TODO: Make more fine-grained.
     ModuleLoaderResult loadResult
             = m_moduleLoader->load(parameters.projectFilePath,
                                    parameters.buildConfiguration,
                                    true);
-    return m_projectResolver->resolve(loadResult,
-                                      parameters.buildRoot,
-                                      parameters.buildConfiguration);
+    const ResolvedProjectPtr &p = m_projectResolver->resolve(loadResult, parameters.buildRoot,
+            parameters.buildConfiguration);
+    m_progressObserver->setFinished();
+    return p;
 }
 
 QByteArray Loader::qmlTypeInfo()
