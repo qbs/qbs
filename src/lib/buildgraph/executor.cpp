@@ -465,7 +465,7 @@ void Executor::buildArtifact(Artifact *artifact)
     m_processingJobs.insert(job, artifact);
 
     Q_ASSERT_X(artifact->product, Q_FUNC_INFO,
-               qPrintable(QString("Generated artifact '%1'' belongs to no product.")
+               qPrintable(QString("Generated artifact '%1' belongs to no product.")
                .arg(QDir::toNativeSeparators(artifact->filePath()))));
 
     job->run(artifact->transformer.data(), artifact->product);
