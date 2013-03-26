@@ -42,7 +42,7 @@ function configFlags(config) {
     else if (arch === 'x86')
         args.push('-m32');
 
-    if (ModUtils.moduleProperty/config, "debugInformation")
+    if (ModUtils.moduleProperty(config, "debugInformation"))
         args.push('-g');
     var opt = ModUtils.moduleProperty(config, "optimization")
     if (opt === 'fast')
