@@ -8,4 +8,7 @@ Module {
     property string version: versionMajor.toString() + "." + versionMinor.toString() + "." + versionPatch.toString()
     property string coreProperty: "coreProperty"
     property string coreVersion: qtcore.version
+
+    Depends { name: "dummy" }
+    dummy.defines: ["QT_CORE"]
 }

@@ -76,6 +76,8 @@ private slots:
     void idUsage();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
+    void moduleProperties_data();
+    void moduleProperties();
     void modules_data();
     void modules();
     void outerInGroup();

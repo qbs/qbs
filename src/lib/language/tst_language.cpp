@@ -491,6 +491,60 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::moduleProperties_data()
+{
+    QTest::addColumn<QString>("propertyName");
+    QTest::addColumn<QStringList>("expectedValues");
+    QTest::newRow("init") << QString() << QStringList();
+    QTest::newRow("merge_lists")
+            << "defines"
+            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+    QTest::newRow("merge_lists_and_values")
+            << "defines"
+            << (QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+    QTest::newRow("merge_lists_with_duplicates")
+            << "cxxFlags"
+            << (QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");
+    QTest::newRow("cleanup") << QString() << QStringList();
+}
+
+void TestLanguage::moduleProperties()
+{
+    QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
+    if (productName == "init") {
+        bool exceptionCaught = false;
+        try {
+            defaultParameters.projectFilePath = testProject("moduleproperties.qbs");
+            project = loader->loadProject(defaultParameters);
+            QVERIFY(project);
+        } catch (const Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
+        return;
+    } else if (productName == "cleanup") {
+        project.clear();
+        return;
+    }
+
+    QVERIFY(project);
+    QFETCH(QString, propertyName);
+    QFETCH(QStringList, expectedValues);
+    QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    ResolvedProductPtr product = products.value(productName);
+    QVERIFY(product);
+    QVariantList values = PropertyFinder().propertyValues(product->properties->value(),
+                                                          "dummy", propertyName,
+                                                          PropertyFinder::DoMergeLists);
+    QStringList valueStrings;
+    foreach (const QVariant &v, values)
+        valueStrings += v.toString();
+    if (product->name == "merge_lists_with_duplicates")
+        QEXPECT_FAIL("", "This is broken.", Continue);
+    QCOMPARE(valueStrings, expectedValues);
+}
+
 void TestLanguage::modules_data()
 {
     QTest::addColumn<QStringList>("expectedModulesInProduct");
@@ -500,13 +554,14 @@ void TestLanguage::modules_data()
             << (QStringList() << "qbs")
             << QString();
     QTest::newRow("qt_core")
-            << (QStringList() << "qbs" << "dummyqt/core")
+            << (QStringList() << "qbs" << "dummy" << "dummyqt/core")
             << QString("1.2.3");
     QTest::newRow("qt_gui")
-            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui")
+            << (QStringList() << "qbs" << "dummy" << "dummyqt/core" << "dummyqt/gui")
             << QString("guiProperty");
     QTest::newRow("qt_gui_network")
-            << (QStringList() << "qbs" << "dummyqt/core" << "dummyqt/gui" << "dummyqt/network")
+            << (QStringList() << "qbs" << "dummy" << "dummyqt/core" << "dummyqt/gui"
+                              << "dummyqt/network")
             << QString("guiProperty,networkProperty");
     QTest::newRow("cleanup") << QStringList();
 }
