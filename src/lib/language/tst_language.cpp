@@ -542,8 +542,6 @@ void TestLanguage::moduleProperties()
     QStringList valueStrings;
     foreach (const QVariant &v, values)
         valueStrings += v.toString();
-    if (product->name == "merge_lists_with_duplicates")
-        QEXPECT_FAIL("", "This is broken.", Continue);
     QCOMPARE(valueStrings, expectedValues);
 }
 

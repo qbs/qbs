@@ -38,10 +38,11 @@ QVariantList PropertyFinder::propertyValues(const QVariantMap &properties,
 {
     m_moduleName = moduleName;
     m_key = key;
-    m_mergeType = mergeType;
     m_findOnlyOne = false;
     m_values.clear();
     findModuleValues(properties);
+    if (mergeType == DoMergeLists)
+        mergeLists(&m_values);
     return m_values;
 }
 
@@ -50,7 +51,6 @@ QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QStr
 {
     m_moduleName = moduleName;
     m_key = key;
-    m_mergeType = DoNotMergeLists;
     m_findOnlyOne = true;
     m_values.clear();
     findModuleValues(properties);
@@ -68,12 +68,7 @@ void PropertyFinder::findModuleValues(const QVariantMap &properties)
     if (modIt != moduleProperties.end()) {
         const QVariantMap moduleMap = modIt->toMap();
         const QVariant property = moduleMap.value(m_key);
-        if (property.canConvert<QVariantList>() && m_mergeType == DoMergeLists) {
-            foreach (const QVariant &element, property.toList())
-                addToList(element);
-        } else {
-            addToList(property);
-        }
+        addToList(property);
         moduleProperties.erase(modIt);
     }
 
@@ -89,6 +84,22 @@ void PropertyFinder::addToList(const QVariant &value)
     // Note: This means that manually setting a property to "null" will not lead to a "hit".
     if (!value.isNull() && !m_values.contains(value))
         m_values << value;
+}
+
+void PropertyFinder::mergeLists(QVariantList *values)
+{
+    QVariantList::iterator it = values->begin();
+    while (it != values->end()) {
+        if (it->canConvert<QVariantList>()) {
+            QVariantList sublist = it->toList();
+            mergeLists(&sublist);
+            it = values->erase(it);
+            for (int k = sublist.count(); --k >= 0;)
+                it = values->insert(it, sublist.at(k));
+        } else {
+            ++it;
+        }
+    }
 }
 
 } // namespace Internal

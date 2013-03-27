@@ -49,11 +49,11 @@ public:
 private:
     void findModuleValues(const QVariantMap &properties);
     void addToList(const QVariant &value);
+    static void mergeLists(QVariantList *values);
 
     QString m_moduleName;
     QString m_key;
     QVariantList m_values;
-    MergeType m_mergeType;
     bool m_findOnlyOne;
 };
 
