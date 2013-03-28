@@ -31,10 +31,13 @@
 #define QBS_SCRIPTENGINE_H
 
 #include "jsimports.h"
+#include "forward_decls.h"
 #include <language/property.h>
 #include <logging/logger.h>
 #include <tools/qbs_export.h>
 
+#include <QHash>
+#include <QPair>
 #include <QScriptEngine>
 
 namespace qbs {
@@ -59,6 +62,11 @@ public:
     void clearProperties() { m_properties.clear(); }
     PropertyList properties() const { return m_properties; }
 
+    void addToPropertyCache(const QString &moduleName, const QString &propertyName,
+        const PropertyMapConstPtr &propertyMap, QScriptValue value);
+    QScriptValue retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
+            const PropertyMapConstPtr &propertyMap);
+
     void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
                              ScriptPropertyObserver *observer);
 
@@ -67,6 +75,7 @@ private:
                        QScriptValue &targetObject);
 
     QHash<QString, QScriptValue> m_jsImportCache;
+    QHash<QPair<QString, PropertyMapConstPtr>, QScriptValue> m_propertyCache;
     PropertyList m_properties;
     Logger m_logger;
     QScriptValue m_definePropertyFunction;

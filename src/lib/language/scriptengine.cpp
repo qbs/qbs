@@ -31,6 +31,7 @@
 
 #include "item.h"
 #include "filecontext.h"
+#include "propertymapinternal.h"
 #include "scriptpropertyobserver.h"
 #include <tools/error.h>
 #include <tools/qbsassert.h>
@@ -104,6 +105,20 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
 void ScriptEngine::clearImportsCache()
 {
     m_jsImportCache.clear();
+}
+
+void ScriptEngine::addToPropertyCache(const QString &moduleName, const QString &propertyName,
+        const PropertyMapConstPtr &propertyMap, QScriptValue value)
+{
+    m_propertyCache.insert(qMakePair(moduleName + QLatin1Char('.') + propertyName, propertyMap),
+                           value);
+}
+
+QScriptValue ScriptEngine::retrieveFromPropertyCache(const QString &moduleName,
+        const QString &propertyName, const PropertyMapConstPtr &propertyMap)
+{
+    return m_propertyCache.value(qMakePair(moduleName + QLatin1Char('.') + propertyName,
+                                           propertyMap));
 }
 
 static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *, void *arg)

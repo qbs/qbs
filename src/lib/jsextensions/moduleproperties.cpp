@@ -108,8 +108,14 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
         return context->throwError(QScriptContext::TypeError,
                                    QLatin1String("Internal error: invalid type"));
     }
+
+    ScriptEngine * const qbsEngine = static_cast<ScriptEngine *>(engine);
     const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
+    QScriptValue scriptValue
+            = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
+    if (scriptValue.isValid())
+        return scriptValue;
 
     QVariant value;
     if (oneValue)
@@ -117,8 +123,10 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
     else
         value = PropertyFinder().propertyValues(properties->value(), moduleName, propertyName);
     const Property p(moduleName, propertyName, value);
-    static_cast<ScriptEngine *>(engine)->addProperty(p);
-    return engine->toScriptValue(value);
+    qbsEngine->addProperty(p);
+    scriptValue = engine->toScriptValue(value);
+    qbsEngine->addToPropertyCache(moduleName, propertyName, properties, scriptValue);
+    return scriptValue;
 }
 
 } // namespace Internal
