@@ -133,6 +133,11 @@ QList<Artifact *> BuildProject::lookupArtifacts(const QString &dirPath, const QS
     return result;
 }
 
+QList<Artifact *> BuildProject::lookupArtifacts(const Artifact *artifact) const
+{
+    return lookupArtifacts(artifact->dirPath(), artifact->fileName());
+}
+
 void BuildProject::insertFileDependency(Artifact *artifact)
 {
     QBS_CHECK(artifact->artifactType == Artifact::FileDependency);
@@ -165,7 +170,7 @@ void BuildProject::rescueDependencies(const BuildProjectPtr &other)
                                        .arg(artifact->fileName());
             }
 
-            Artifact *otherArtifact = otherProduct->lookupArtifact(artifact->dirPath(), artifact->fileName());
+            Artifact *otherArtifact = otherProduct->lookupArtifact(artifact);
             if (!otherArtifact || !otherArtifact->transformer)
                 continue;
 
@@ -174,7 +179,7 @@ void BuildProject::rescueDependencies(const BuildProjectPtr &other)
                 if (otherArtifact->transformer->inputs.contains(otherChild))
                     continue;
 
-                QList<Artifact *> children = lookupArtifacts(otherChild->dirPath(), otherChild->fileName());
+                QList<Artifact *> children = lookupArtifacts(otherChild);
                 foreach (Artifact *child, children) {
                     if (!artifact->children.contains(child))
                         safeConnect(artifact, child, m_logger);

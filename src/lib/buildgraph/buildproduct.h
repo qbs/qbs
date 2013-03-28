@@ -54,6 +54,7 @@ public:
     const QList<RuleConstPtr> &topSortedRules() const;
     Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
     Artifact *lookupArtifact(const QString &filePath) const;
+    Artifact *lookupArtifact(const Artifact *artifact) const;
     Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
     void insertArtifact(Artifact *n, const Logger &logger);
 

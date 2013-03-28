@@ -112,6 +112,11 @@ Artifact *BuildProduct::lookupArtifact(const QString &filePath) const
     return lookupArtifact(dirPath, fileName);
 }
 
+Artifact *BuildProduct::lookupArtifact(const Artifact *artifact) const
+{
+    return lookupArtifact(artifact->dirPath(), artifact->fileName());
+}
+
 Artifact *BuildProduct::createArtifact(const SourceArtifactConstPtr &sourceArtifact,
                                        const Logger &logger)
 {

@@ -74,6 +74,7 @@ public:
     void removeFromArtifactLookupTable(Artifact *artifact);
     QList<Artifact *> lookupArtifacts(const QString &filePath) const;
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
+    QList<Artifact *> lookupArtifacts(const Artifact *artifact) const;
     void insertFileDependency(Artifact *artifact);
     void rescueDependencies(const BuildProjectPtr &other);
     void removeArtifact(Artifact *artifact);
