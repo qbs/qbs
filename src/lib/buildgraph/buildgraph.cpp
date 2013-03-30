@@ -44,6 +44,119 @@
 namespace qbs {
 namespace Internal {
 
+static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
+                                    const ResolvedProductConstPtr &product,
+                                    ScriptPropertyObserver *observer);
+
+class DependenciesFunction
+{
+public:
+    DependenciesFunction(ScriptEngine *engine)
+        : m_engine(engine)
+    {
+    }
+
+    void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product)
+    {
+        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies);
+        setProduct(depfunc, product.data());
+        QScriptValue descriptor = m_engine->newObject();
+        descriptor.setProperty(QLatin1String("get"), depfunc);
+        descriptor.setProperty(QLatin1String("set"), m_engine->evaluate("(function(){})"));
+        descriptor.setProperty(QLatin1String("enumerable"), true);
+        m_engine->defineProperty(productScriptValue, QLatin1String("dependencies"), descriptor);
+    }
+
+private:
+    static QScriptValue js_productDependencies(QScriptContext *context, QScriptEngine *engine)
+    {
+        QScriptValue callee = context->callee();
+        const ResolvedProduct * const product = getProduct(callee);
+        QScriptValue result = engine->newArray();
+        quint32 idx = 0;
+        foreach (const ResolvedProductPtr &dependency, product->dependencies) {
+            QScriptValue obj = engine->newObject();
+            setupProductScriptValue(static_cast<ScriptEngine *>(engine), obj, dependency, 0);
+            result.setProperty(idx++, obj);
+        }
+        foreach (const ResolvedModuleConstPtr &dependency, product->modules) {
+            QScriptValue obj = engine->newObject();
+            setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj,
+                                   product->properties->value(), dependency->name);
+            result.setProperty(idx++, obj);
+        }
+        return result;
+    }
+
+    static QScriptValue js_moduleDependencies(QScriptContext *context, QScriptEngine *engine)
+    {
+        QScriptValue callee = context->callee();
+        const QVariantMap modulesMap = callee.data().toVariant().toMap();
+        QScriptValue result = engine->newArray();
+        quint32 idx = 0;
+        for (QVariantMap::const_iterator it = modulesMap.begin(); it != modulesMap.end(); ++it) {
+            QScriptValue obj = engine->newObject();
+            obj.setProperty(QLatin1String("name"), it.key());
+            setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, it.value().toMap(),
+                                   it.key());
+            result.setProperty(idx++, obj);
+        }
+        return result;
+    }
+
+    static void setupModuleScriptValue(ScriptEngine *engine, QScriptValue &moduleScriptValue,
+                                       const QVariantMap &propertyMap,
+                                       const QString &moduleName)
+    {
+        const QVariantMap propMap
+                = propertyMap.value(QLatin1String("modules")).toMap().value(moduleName).toMap();
+        for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
+            const QVariant &value = it.value();
+            if (value.isValid() && !value.canConvert<QVariantMap>())
+                moduleScriptValue.setProperty(it.key(), engine->toScriptValue(value));
+        }
+        QScriptValue depfunc = engine->newFunction(&js_moduleDependencies);
+        depfunc.setData(engine->toScriptValue(propMap.value(QLatin1String("modules"))));
+        QScriptValue descriptor = engine->newObject();
+        descriptor.setProperty(QLatin1String("get"), depfunc);
+        descriptor.setProperty(QLatin1String("set"), engine->evaluate("(function(){})"));
+        descriptor.setProperty(QLatin1String("enumerable"), true);
+        engine->defineProperty(moduleScriptValue, QLatin1String("dependencies"), descriptor);
+        moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc);
+        moduleScriptValue.setProperty(QLatin1String("type"), QLatin1String("module"));
+    }
+
+    static void setProduct(QScriptValue scriptValue, const ResolvedProduct *product)
+    {
+        QVariant v;
+        v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
+        scriptValue.setData(scriptValue.engine()->newVariant(v));
+    }
+
+    static const ResolvedProduct *getProduct(const QScriptValue &scriptValue)
+    {
+        const quintptr ptr = scriptValue.data().toVariant().value<quintptr>();
+        return reinterpret_cast<const ResolvedProduct *>(ptr);
+    }
+
+    ScriptEngine *m_engine;
+};
+
+static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
+                                    const ResolvedProductConstPtr &product,
+                                    ScriptPropertyObserver *observer)
+{
+    ModuleProperties::init(productScriptValue, product);
+    DependenciesFunction(engine).init(productScriptValue, product);
+    const QVariantMap &propMap = product->properties->value();
+    for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
+        const QVariant &value = it.value();
+        if (value.isValid() && !value.canConvert<QVariantMap>())
+            engine->setObservedProperty(productScriptValue, it.key(),
+                                        engine->toScriptValue(value), observer);
+    }
+}
+
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject,
                                  ScriptPropertyObserver *observer)
@@ -81,15 +194,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
             engine->setProperty("_qbs_procenv", v);
         }
         productScriptValue = engine->newObject();
-        ModuleProperties::init(productScriptValue, product);
-        const QVariantMap &propMap = product->properties->value();
-        for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
-            const QVariant &value = it.value();
-            if (value.isValid() && !value.canConvert<QVariantMap>())
-                engine->setObservedProperty(productScriptValue, it.key(),
-                                            engine->toScriptValue(value), observer);
-        }
-
+        setupProductScriptValue(engine, productScriptValue, product, observer);
         targetObject.setProperty("product", productScriptValue);
     } else {
         productScriptValue = targetObject.property("product");

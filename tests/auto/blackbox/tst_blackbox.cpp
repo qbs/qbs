@@ -35,6 +35,8 @@
 
 #include <QLocale>
 #include <QTemporaryFile>
+#include <QScriptEngine>
+#include <QScriptValue>
 
 #if QT_VERSION >= 0x050000
 #define SKIP_TEST(message) QSKIP(message)
@@ -243,6 +245,51 @@ void TestBlackbox::build_project_dry_run()
     const QStringList &buildDirContents
             = QDir(buildDir).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
     QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
+}
+
+void TestBlackbox::dependenciesProperty()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
+    QCOMPARE(runQbs(), 0);
+    QFile depsFile(buildDir + QLatin1String("/product1.deps"));
+    QVERIFY(depsFile.open(QFile::ReadOnly));
+    QString deps = QString::fromLatin1(depsFile.readAll());
+    QVERIFY(!deps.isEmpty());
+    QScriptEngine scriptEngine;
+    QScriptValue scriptValue = scriptEngine.evaluate(deps);
+    QScriptValue product2;
+    QScriptValue qbs;
+    int c = scriptValue.property(QLatin1String("length")).toInt32();
+    QCOMPARE(c, 2);
+    for (int i = 0; i < c; ++i) {
+        QScriptValue dep = scriptValue.property(i);
+        QString name = dep.property(QLatin1String("name")).toVariant().toString();
+        if (name == QLatin1String("product2"))
+            product2 = dep;
+        else if (name == QLatin1String("qbs"))
+            qbs = dep;
+    }
+    QVERIFY(qbs.isObject());
+    QVERIFY(product2.isObject());
+    QCOMPARE(product2.property(QLatin1String("type")).toString(), QLatin1String("application"));
+    QCOMPARE(product2.property(QLatin1String("narf")).toString(), QLatin1String("zort"));
+    QScriptValue product2_deps = product2.property(QLatin1String("dependencies"));
+    QVERIFY(product2_deps.isObject());
+    c = product2_deps.property(QLatin1String("length")).toInt32();
+    QCOMPARE(c, 2);
+    QScriptValue product2_qbs;
+    QScriptValue product2_cpp;
+    for (int i = 0; i < c; ++i) {
+        QScriptValue dep = product2_deps.property(i);
+        QString name = dep.property(QLatin1String("name")).toVariant().toString();
+        if (name == QLatin1String("cpp"))
+            product2_cpp = dep;
+        else if (name == QLatin1String("qbs"))
+            product2_qbs = dep;
+    }
+    QVERIFY(product2_qbs.isObject());
+    QVERIFY(product2_cpp.isObject());
+    QCOMPARE(product2_cpp.property("defines").toString(), QLatin1String("SMURF"));
 }
 
 void TestBlackbox::resolve_project_data()
