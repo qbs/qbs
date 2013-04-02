@@ -57,6 +57,7 @@ private:
     QHash<QString, ResolvedProductPtr> productsFromProject(ResolvedProjectPtr project);
     ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
     QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
+    void handleInitCleanupDataTags(const char *projectFileName, bool *handled);
 
 private slots:
     void initTestCase();

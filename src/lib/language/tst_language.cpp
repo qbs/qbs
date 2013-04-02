@@ -85,6 +85,37 @@ QVariant TestLanguage::productPropertyValue(ResolvedProductPtr product, QString 
     return getConfigProperty(product->properties->value(), propertyNameComponents);
 }
 
+void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *handled)
+{
+    const QByteArray dataTag = QTest::currentDataTag();
+    if (dataTag == "init") {
+        *handled = true;
+        bool exceptionCaught = false;
+        try {
+            defaultParameters.projectFilePath = testProject(projectFileName);
+            project = loader->loadProject(defaultParameters);
+            QVERIFY(project);
+        } catch (const Error &e) {
+            exceptionCaught = true;
+            qDebug() << e.toString();
+        }
+        QCOMPARE(exceptionCaught, false);
+    } else if (dataTag == "cleanup") {
+        *handled = true;
+        project.clear();
+    } else {
+        *handled = false;
+    }
+}
+
+#define HANDLE_INIT_CLEANUP_DATATAGS(fn) {\
+    bool handled;\
+    handleInitCleanupDataTags(fn, &handled);\
+    if (handled)\
+        return;\
+    QVERIFY(project);\
+}
+
 void TestLanguage::initTestCase()
 {
     const Logger logger(m_logSink);
@@ -292,29 +323,12 @@ void TestLanguage::groupConditions_data()
 
 void TestLanguage::groupConditions()
 {
-    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
-    if (productName == "init") {
-        bool exceptionCaught = false;
-        try {
-            defaultParameters.projectFilePath = testProject("groupconditions.qbs");
-            project = loader->loadProject(defaultParameters);
-            QVERIFY(project);
-        } catch (const Error &e) {
-            exceptionCaught = true;
-            qDebug() << e.toString();
-        }
-        QCOMPARE(exceptionCaught, false);
-        return;
-    } else if (productName == "cleanup") {
-        project.clear();
-        return;
-    }
-
-    QVERIFY(project);
+    HANDLE_INIT_CLEANUP_DATATAGS("groupconditions.qbs");
     QFETCH(int, groupCount);
     QFETCH(QList<bool>, groupEnabled);
     QCOMPARE(groupCount, groupEnabled.count());
     const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
     QCOMPARE(product->name, productName);
@@ -512,28 +526,11 @@ void TestLanguage::moduleProperties_data()
 
 void TestLanguage::moduleProperties()
 {
-    QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
-    if (productName == "init") {
-        bool exceptionCaught = false;
-        try {
-            defaultParameters.projectFilePath = testProject("moduleproperties.qbs");
-            project = loader->loadProject(defaultParameters);
-            QVERIFY(project);
-        } catch (const Error &e) {
-            exceptionCaught = true;
-            qDebug() << e.toString();
-        }
-        QCOMPARE(exceptionCaught, false);
-        return;
-    } else if (productName == "cleanup") {
-        project.clear();
-        return;
-    }
-
-    QVERIFY(project);
+    HANDLE_INIT_CLEANUP_DATATAGS("moduleproperties.qbs");
     QFETCH(QString, propertyName);
     QFETCH(QStringList, expectedValues);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
     QVariantList values = PropertyFinder().propertyValues(product->properties->value(),
@@ -568,28 +565,11 @@ void TestLanguage::modules_data()
 
 void TestLanguage::modules()
 {
-    QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
-    if (productName == "init") {
-        bool exceptionCaught = false;
-        try {
-            defaultParameters.projectFilePath = testProject("modules.qbs");
-            project = loader->loadProject(defaultParameters);
-            QVERIFY(project);
-        } catch (const Error &e) {
-            exceptionCaught = true;
-            qDebug() << e.toString();
-        }
-        QCOMPARE(exceptionCaught, false);
-        return;
-    } else if (productName == "cleanup") {
-        project.clear();
-        return;
-    }
-
-    QVERIFY(project);
+    HANDLE_INIT_CLEANUP_DATATAGS("modules.qbs");
     QFETCH(QStringList, expectedModulesInProduct);
     QFETCH(QString, expectedProductProperty);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
     QCOMPARE(product->name, productName);
@@ -792,28 +772,12 @@ void TestLanguage::propertiesBlocks_data()
 
 void TestLanguage::propertiesBlocks()
 {
-    QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
-    if (productName == "init") {
-        bool exceptionCaught = false;
-        try {
-            defaultParameters.projectFilePath = testProject("propertiesblocks.qbs");
-            project = loader->loadProject(defaultParameters);
-            QVERIFY(project);
-        } catch (const Error &e) {
-            exceptionCaught = true;
-            qDebug() << e.toString();
-        }
-        QCOMPARE(exceptionCaught, false);
-        return;
-    } else if (productName == "cleanup") {
-        project = ResolvedProjectPtr();
-        return;
-    }
-
+    HANDLE_INIT_CLEANUP_DATATAGS("propertiesblocks.qbs");
     QFETCH(QString, propertyName);
     QFETCH(QStringList, expectedValues);
     QVERIFY(project);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
     QCOMPARE(product->name, productName);
@@ -839,30 +803,12 @@ void TestLanguage::fileTags_data()
 
 void TestLanguage::fileTags()
 {
-    QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
-    if (productName == QLatin1String("init")) {
-        bool exceptionCaught = false;
-        try {
-            defaultParameters.projectFilePath = testProject("filetags.qbs");
-            project = loader->loadProject(defaultParameters);
-            QVERIFY(project);
-        }
-        catch (const Error &e) {
-            exceptionCaught = true;
-            qDebug() << e.toString();
-        }
-        QCOMPARE(exceptionCaught, false);
-        return;
-    } else if (productName == QLatin1String("cleanup")) {
-        project = ResolvedProjectPtr();
-        return;
-    }
-
-    QVERIFY(project);
+    HANDLE_INIT_CLEANUP_DATATAGS("filetags.qbs");
     QFETCH(int, numberOfGroups);
     QFETCH(QStringList, expectedFileTags);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     ResolvedProductPtr product;
+    const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     QVERIFY(product = products.value(productName));
     QCOMPARE(product->groups.count(), numberOfGroups);
     GroupPtr group = product->groups.last();
