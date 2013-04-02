@@ -121,6 +121,17 @@ QScriptValue ScriptEngine::retrieveFromPropertyCache(const QString &moduleName,
                                            propertyMap));
 }
 
+void ScriptEngine::defineProperty(QScriptValue &object, const QString &name,
+                                  const QScriptValue &descriptor)
+{
+    QScriptValue arguments = newArray();
+    arguments.setProperty(0, object);
+    arguments.setProperty(1, name);
+    arguments.setProperty(2, descriptor);
+    QScriptValue result = m_definePropertyFunction.call(QScriptValue(), arguments);
+    QBS_ASSERT(!result.isError(), qDebug() << name << result.toString());
+}
+
 static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *, void *arg)
 {
     ScriptPropertyObserver * const observer = static_cast<ScriptPropertyObserver *>(arg);
@@ -147,12 +158,7 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     QScriptValue descriptor = newObject();
     descriptor.setProperty(QLatin1String("get"), getterFunc);
     descriptor.setProperty(QLatin1String("set"), m_emptyFunction);
-    QScriptValue arguments = newArray();
-    arguments.setProperty(0, object);
-    arguments.setProperty(1, name);
-    arguments.setProperty(2, descriptor);
-    QScriptValue result = m_definePropertyFunction.call(QScriptValue(), arguments);
-    QBS_ASSERT(!result.isError(), qDebug() << name << result.toString());
+    defineProperty(object, name, descriptor);
 }
 
 void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,

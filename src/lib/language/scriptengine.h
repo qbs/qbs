@@ -67,6 +67,7 @@ public:
     QScriptValue retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
             const PropertyMapConstPtr &propertyMap);
 
+    void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
     void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
                              ScriptPropertyObserver *observer);
 
