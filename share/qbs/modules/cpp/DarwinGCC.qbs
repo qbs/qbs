@@ -45,6 +45,7 @@ UnixGCC {
     }
 
     Rule {
+        condition: product.moduleProperty("cpp", "buildDsym")
         inputs: ["application"]
 
         Artifact {
@@ -53,13 +54,6 @@ UnixGCC {
         }
 
         prepare: {
-            if (!product.moduleProperty("cpp", "buildDsym")) {
-                // to be removed when dynamic dependencies work
-                var cmd = new JavaScriptCommand();
-                cmd.description = "skipping dsym generation";
-                cmd.highlight = "codegen";
-                return cmd;
-            }
             var cmd = new Command("dsymutil", ["--out=" + outputs.dsym[0].fileName, input.fileName]);
             cmd.description = "generating dsym";
             cmd.highlight = "codegen";
