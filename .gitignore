@@ -18,6 +18,7 @@ moc_*.cpp
 *.qch
 *.a
 *.cpp.orig
+ui_*.h
 
 Makefile*
 /tests/auto/blackbox/tst_blackbox
