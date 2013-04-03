@@ -18,6 +18,10 @@ Module {
     property string mkspecPath
     property string mocName: "moc"
     property string lreleaseName: "lrelease"
+    property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
+    property var qdocEnvironment
+    property var qdocQhpFileName
+    property var helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
@@ -109,6 +113,21 @@ Module {
         fileTags: ["ts"]
     }
 
+    FileTagger {
+        pattern: "*.qdoc"
+        fileTags: ["qdoc"]
+    }
+
+    FileTagger {
+        pattern: "*.qdocconf"
+        fileTags: ["qdocconf"]
+    }
+
+    FileTagger {
+        pattern: "*.qhp"
+        fileTags: ["qhp"]
+    }
+
     Rule {
         inputs: ["moc_cpp"]
 
@@ -193,6 +212,60 @@ Module {
                                   + ModUtils.moduleProperty(product, "lreleaseName"),
                                   ['-silent', input.fileName, '-qm', output.fileName]);
             cmd.description = 'lrelease ' + FileInfo.fileName(input.fileName);
+            cmd.highlight = 'filegen';
+            return cmd;
+        }
+    }
+
+    Rule {
+        inputs: "qdocconf-main"
+        explicitlyDependsOn: ["qdoc", "qdocconf"]
+
+        Artifact {
+            fileName: 'GeneratedFiles/' + product.name + '/html'
+            fileTags: ["qdoc-html"]
+        }
+
+        Artifact {
+            fileName: 'GeneratedFiles/' + product.name + '/html/'
+                      + ModUtils.moduleProperty(product, "qdocQhpFileName")
+            fileTags: ["qhp"]
+        }
+
+        prepare: {
+            var outputDir = outputs["qdoc-html"][0].fileName;
+            var args = [input.fileName];
+            var qtVersion = ModUtils.moduleProperty(product, "versionMajor");
+            if (qtVersion >= 5) {
+                args.push("-outputdir");
+                args.push(outputDir);
+            }
+            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
+                                  + ModUtils.moduleProperty(product, "qdocName"), args);
+            cmd.description = 'qdoc ' + FileInfo.fileName(input.fileName);
+            cmd.highlight = 'filegen';
+            cmd.environment = ModUtils.moduleProperty(product, "qdocEnvironment");
+            cmd.environment.push("OUTDIR=" + outputDir); // Qt 4 replacement for -outputdir
+            return cmd;
+        }
+    }
+
+    Rule {
+        inputs: "qhp"
+
+        Artifact {
+            fileName: 'GeneratedFiles/' + product.name + '/' + input.completeBaseName + '.qch'
+            fileTags: ["qch"]
+        }
+
+        prepare: {
+            var args = [input.fileName];
+            args = args.concat(ModUtils.moduleProperty(product, "helpGeneratorArgs"));
+            args.push("-o");
+            args.push(output.fileName);
+            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + "/qhelpgenerator",
+                                  args);
+            cmd.description = 'qhelpgenerator ' + FileInfo.fileName(input.fileName);
             cmd.highlight = 'filegen';
             return cmd;
         }
