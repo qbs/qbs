@@ -14,6 +14,7 @@ Project {
         "src/lib/lib.qbs",
         "src/plugins/scanner/cpp/cpp.qbs",
         "src/plugins/scanner/qt/qt.qbs",
+        "doc/doc.qbs",
         "tests/auto/blackbox/blackbox.qbs",
         "tests/auto/cmdlineparser/cmdlineparser.qbs",
     ].concat(unitTests)
