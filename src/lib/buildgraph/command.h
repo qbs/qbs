@@ -32,6 +32,7 @@
 
 #include <tools/codelocation.h>
 
+#include <QProcessEnvironment>
 #include <QStringList>
 #include <QVariantMap>
 #include <QScriptValue>
@@ -113,7 +114,11 @@ public:
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
     void setResponseFileUsagePrefix(const QString &function) { m_responseFileUsagePrefix = function; }
 
+    QProcessEnvironment environment() const { return m_environment; }
+
 private:
+    void getEnvironmentFromList(const QStringList &envList);
+
     QString m_program;
     QStringList m_arguments;
     QString m_workingDir;
@@ -122,6 +127,7 @@ private:
     QString m_stderrFilterFunction;
     int m_responseFileThreshold; // When to use response files? In bytes of (program name + arguments).
     QString m_responseFileUsagePrefix;
+    QProcessEnvironment m_environment;
 };
 
 class JavaScriptCommand : public AbstractCommand

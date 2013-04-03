@@ -112,6 +112,7 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
     cmd.setProperty("stderrFilterFunction", engine->toScriptValue(commandPrototype.stderrFilterFunction()));
     cmd.setProperty("responseFileThreshold", engine->toScriptValue(commandPrototype.responseFileThreshold()));
     cmd.setProperty("responseFileUsagePrefix", engine->toScriptValue(commandPrototype.responseFileUsagePrefix()));
+    cmd.setProperty("environment", engine->toScriptValue(commandPrototype.environment().toStringList()));
     return cmd;
 }
 
@@ -129,9 +130,21 @@ ProcessCommand::ProcessCommand()
 {
 }
 
+void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
+{
+    m_environment.clear();
+    foreach (const QString &env, envList) {
+        const int equalsIndex = env.indexOf(QLatin1Char('='));
+        if (equalsIndex <= 0 || equalsIndex == env.count() - 1)
+            continue;
+        const QString &var = env.left(equalsIndex);
+        const QString &value = env.mid(equalsIndex + 1);
+        m_environment.insert(var, value);
+    }
+}
+
 void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
-    Q_UNUSED(codeLocation);
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
     m_program = scriptValue->property("program").toString();
     m_arguments = scriptValue->property("arguments").toVariant().toStringList();
@@ -141,19 +154,25 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     m_stderrFilterFunction = scriptValue->property("stderrFilterFunction").toString();
     m_responseFileThreshold = scriptValue->property("responseFileThreshold").toInt32();
     m_responseFileUsagePrefix = scriptValue->property("responseFileUsagePrefix").toString();
+    QStringList envList = scriptValue->property(QLatin1String("environment")).toVariant()
+            .toStringList();
+    getEnvironmentFromList(envList);
 }
 
 void ProcessCommand::load(QDataStream &s)
 {
     AbstractCommand::load(s);
+    QStringList envList;
     s   >> m_program
         >> m_arguments
+        >> envList
         >> m_workingDir
         >> m_maxExitCode
         >> m_stdoutFilterFunction
         >> m_stderrFilterFunction
         >> m_responseFileThreshold
         >> m_responseFileUsagePrefix;
+    getEnvironmentFromList(envList);
 }
 
 void ProcessCommand::store(QDataStream &s)
@@ -161,6 +180,7 @@ void ProcessCommand::store(QDataStream &s)
     AbstractCommand::store(s);
     s   << m_program
         << m_arguments
+        << m_environment.toStringList()
         << m_workingDir
         << m_maxExitCode
         << m_stdoutFilterFunction

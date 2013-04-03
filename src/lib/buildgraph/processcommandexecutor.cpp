@@ -72,11 +72,6 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
     connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
 }
 
-void ProcessCommandExecutor::setProcessEnvironment(const QProcessEnvironment &processEnvironment)
-{
-    m_process.setProcessEnvironment(processEnvironment);
-}
-
 // returns an empty string or one that starts with a space!
 static QString commandArgsToString(const QStringList &args)
 {
@@ -105,6 +100,12 @@ void ProcessCommandExecutor::doStart()
     } else {
         program = findProcessCommandInPath();
     }
+
+    QProcessEnvironment env = m_buildEnvironment;
+    const QProcessEnvironment &additionalVariables = cmd->environment();
+    foreach (const QString &key, additionalVariables.keys())
+        env.insert(key, additionalVariables.value(key));
+    m_process.setProcessEnvironment(env);
 
     QStringList arguments = cmd->arguments();
     QString argString = commandArgsToString(arguments);

@@ -33,6 +33,7 @@
 #include "abstractcommandexecutor.h"
 
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QString>
 
 namespace qbs {
@@ -47,7 +48,9 @@ class ProcessCommandExecutor : public AbstractCommandExecutor
 public:
     explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
 
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment);
+    void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
+        m_buildEnvironment = processEnvironment;
+    }
 
 signals:
     void reportProcessResult(const qbs::ProcessResult &result);
@@ -76,6 +79,7 @@ private:
     QStringList m_arguments;
 
     QProcess m_process;
+    QProcessEnvironment m_buildEnvironment;
     QString m_responseFileName;
 };
 
