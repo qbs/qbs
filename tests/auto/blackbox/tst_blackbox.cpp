@@ -721,6 +721,16 @@ void TestBlackbox::recursiveWildcards()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/file2.txt").exists());
 }
 
+void TestBlackbox::ruleConditions()
+{
+    QDir::setCurrent(testDataDir + "/ruleConditions");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFileInfo(buildDir + HostOsInfo::appendExecutableSuffix("/zorted")).exists());
+    QVERIFY(QFileInfo(buildDir + HostOsInfo::appendExecutableSuffix("/unzorted")).exists());
+    QVERIFY(QFileInfo(buildDir + "/zorted.foo.narf.zort").exists());
+    QVERIFY(!QFileInfo(buildDir + "/unzorted.foo.narf.zort").exists());
+}
+
 void TestBlackbox::codegen()
 {
     QDir::setCurrent(testDataDir + "/codegen");

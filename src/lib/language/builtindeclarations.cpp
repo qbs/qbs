@@ -104,6 +104,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     rule += PropertyDeclaration("usings", PropertyDeclaration::Variant);
     rule += PropertyDeclaration("explicitlyDependsOn", PropertyDeclaration::Variant);
     rule += PropertyDeclaration("prepare", PropertyDeclaration::Verbatim);
+    rule += conditionProperty;
     m_builtins["Rule"] = rule;
 
     QList<PropertyDeclaration> transformer;

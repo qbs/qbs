@@ -37,6 +37,7 @@
 #include "moduleloader.h"
 #include "propertymapinternal.h"
 #include "scriptengine.h"
+#include <jsextensions/moduleproperties.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -223,6 +224,7 @@ void ProjectResolver::resolveProduct(const ItemPtr &item)
     product->project = m_projectContext->project;
     product->properties = PropertyMapInternal::create();
     product->properties->setValue(createProductConfig());
+    ModuleProperties::init(m_evaluator->scriptValue(item), product);
 
     QList<ItemPtr> subItems = item->children();
     const ValuePtr filesProperty = item->property(QLatin1String("files"));
@@ -412,6 +414,10 @@ static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
 void ProjectResolver::resolveRule(const ItemPtr &item)
 {
     checkCancelation();
+
+    if (!boolValue(item, QLatin1String("condition"), true))
+        return;
+
     RulePtr rule = Rule::create();
 
     // read artifacts

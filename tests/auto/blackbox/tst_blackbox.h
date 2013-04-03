@@ -83,6 +83,7 @@ private slots:
     void wildcardRenaming();
     void recursiveRenaming();
     void recursiveWildcards();
+    void ruleConditions();
     void codegen();
     void missingQObjectHeader();
     void productProperties();
