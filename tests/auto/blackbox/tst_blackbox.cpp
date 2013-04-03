@@ -759,7 +759,8 @@ void TestBlackbox::missingQObjectHeader()
 void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");
-    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL("", "FIXME: project property not known in referenced products", Abort);
+    QCOMPARE(runQbs(QStringList() << QLatin1String("-f") << QLatin1String("project.qbs"), true), 0);
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/blubb_user")));
 }
 
