@@ -154,7 +154,7 @@ private:
             }
             setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
         }
-        if (value->sourceUsesOuter())
+        if (value->sourceUsesOuter() && outerItem)
             setupConvenienceProperty(QLatin1String("outer"), &extraScope,
                                      data->evaluator->property(outerItem, *propertyName));
 

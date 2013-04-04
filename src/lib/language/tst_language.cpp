@@ -260,6 +260,8 @@ void TestLanguage::erroneousFiles_data()
             << "Multiple ProductModule items in one product are prohibited.";
     QTest::newRow("importloop1")
             << "Loop detected when importing";
+    QTest::newRow("nonexistentouter")
+            << "Can't find variable: outer";
 }
 
 void TestLanguage::erroneousFiles()
