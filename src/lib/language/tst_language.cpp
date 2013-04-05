@@ -544,6 +544,50 @@ void TestLanguage::moduleProperties()
     QCOMPARE(valueStrings, expectedValues);
 }
 
+void TestLanguage::moduleScope()
+{
+    class IntPropertyFinder
+    {
+        const QVariantMap &m_properties;
+    public:
+        IntPropertyFinder(const QVariantMap &properties)
+            : m_properties(properties)
+        {}
+
+        int intValue(const QString &name)
+        {
+            return PropertyFinder().propertyValue(m_properties, "scopemod", name).toInt();
+        }
+    };
+
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("modulescope.qbs");
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+        ResolvedProductPtr product = products.value("product1");
+        QVERIFY(product);
+        IntPropertyFinder ipf(product->properties->value());
+        QCOMPARE(ipf.intValue("a"), 2);     // overridden in module instance
+        QCOMPARE(ipf.intValue("b"), 1);     // genuine
+        QCOMPARE(ipf.intValue("c"), 3);     // genuine, dependent on overridden value
+        QCOMPARE(ipf.intValue("d"), 2);     // genuine, dependent on genuine value
+        QCOMPARE(ipf.intValue("e"), 1);     // genuine
+        QCOMPARE(ipf.intValue("f"), 2);     // overridden
+        QEXPECT_FAIL("", "QBS-252", Abort);
+        QCOMPARE(ipf.intValue("g"), 156);   // overridden, dependent on product properties
+        QCOMPARE(ipf.intValue("h"), 158);   // overridden, base dependent on product properties
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+
+}
+
 void TestLanguage::modules_data()
 {
     QTest::addColumn<QStringList>("expectedModulesInProduct");
