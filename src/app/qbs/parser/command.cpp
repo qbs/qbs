@@ -35,6 +35,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 
+#include <QMap>
 #include <QSet>
 
 namespace qbs {
@@ -127,11 +128,16 @@ void Command::parseOptions(QStringList &input)
 
 QString Command::supportedOptionsDescription() const
 {
-    QString s = Tr::tr("The possible options are:\n");
+    // Sorting the options by name is nicer for the user.
+    QMap<QString, const CommandLineOption *> optionMap;
     foreach (const CommandLineOption::Type opType, actualSupportedOptions()) {
         const CommandLineOption * const option = optionPool().getOption(opType);
-        s += option->description(type());
+        optionMap.insert(option->longRepresentation(), option);
     }
+
+    QString s = Tr::tr("The possible options are:\n");
+    foreach (const CommandLineOption *option, optionMap)
+        s += option->description(type());
     return s;
 }
 

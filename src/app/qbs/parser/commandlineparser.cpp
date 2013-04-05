@@ -46,6 +46,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QMap>
 #include <QTextStream>
 
 #ifdef Q_OS_UNIX
@@ -328,14 +329,21 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     QString help = Tr::tr("Usage: qbs [command] [command parameters]\n");
     help += Tr::tr("Internal commands:\n");
     const int rhsIndentation = 30;
-    foreach (const Command * command, allCommands()) {
+
+    // Sorting the commands by name is nicer for the user.
+    QMap<QString, const Command *> commandMap;
+    foreach (const Command * command, allCommands())
+        commandMap.insert(command->representation(), command);
+
+    foreach (const Command * command, commandMap) {
         help.append(QLatin1String("  ")).append(command->representation());
         const QString whitespace
                 = QString(rhsIndentation - 2 - command->representation().count(), QLatin1Char(' '));
         help.append(whitespace).append(command->shortDescription()).append(QLatin1Char('\n'));
     }
 
-    const QStringList &toolNames = QbsTool::allToolNames();
+    QStringList toolNames = QbsTool::allToolNames();
+    toolNames.sort();
     if (!toolNames.isEmpty()) {
         help.append('\n').append(Tr::tr("Auxiliary commands:\n"));
         foreach (const QString &toolName, toolNames) {
