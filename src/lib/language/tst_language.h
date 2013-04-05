@@ -49,6 +49,8 @@ public:
 
 private:
     ILogSink *m_logSink;
+    Logger m_logger;
+    ScriptEngine *m_engine;
     Loader *loader;
     ResolvedProjectPtr project;
     SetupProjectParameters defaultParameters;
@@ -75,6 +77,8 @@ private slots:
     void identifierSearch_data();
     void identifierSearch();
     void idUsage();
+    void itemPrototype();
+    void itemScope();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
     void moduleProperties_data();
