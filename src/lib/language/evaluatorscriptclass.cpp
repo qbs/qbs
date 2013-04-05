@@ -188,12 +188,6 @@ private:
 };
 
 bool debugProperties = false;
-//bool debugProperties = true;
-//#if 0
-//const bool debugProperties = true;
-//#else
-//const bool debugProperties = false;
-//#endif
 
 enum QueryPropertyType
 {
