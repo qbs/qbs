@@ -284,15 +284,6 @@ QString EvaluatorScriptClass::resultToString(const QScriptValue &scriptValue)
         : scriptValue.toVariant().toString());
 }
 
-ItemPtr EvaluatorScriptClass::findItemInScope(const Item *item, const QString &typeName)
-{
-    for (ItemPtr it = item->scope(); it; it = it->scope()) {
-        if (it->typeName() == typeName)
-            return it;
-    }
-    return ItemPtr();
-}
-
 ItemPtr EvaluatorScriptClass::findParentOfType(const Item *item, const QString &typeName)
 {
     for (ItemPtr it = item->parent(); it; it = it->parent()) {

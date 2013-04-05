@@ -63,7 +63,6 @@ private:
                                  const QString &name,
                                  bool ignoreParent = false);
     static QString resultToString(const QScriptValue &scriptValue);
-    static ItemPtr findItemInScope(const Item *item, const QString &typeName);
     static ItemPtr findParentOfType(const Item *item, const QString &typeName);
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
