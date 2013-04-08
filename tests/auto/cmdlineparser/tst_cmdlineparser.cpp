@@ -74,6 +74,7 @@ private slots:
         QVERIFY(parser.buildOptions().keepGoing);
         QVERIFY(parser.force());
         QVERIFY(!parser.logTime());
+        QCOMPARE(parser.buildConfigurations().count(), 1);
 
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvvqqq" << fileArgs, settings.data()));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), defaultLogLevel());
@@ -97,6 +98,46 @@ private slots:
         QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << fileArgs,
                                         settings.data()));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerTrace);
+
+        // Second "global" profile overwrites first.
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "profile:a" << "profile:b",
+                                        settings.data()));
+        QCOMPARE(parser.buildConfigurations().count(), 1);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
+
+        // Second build variant-specific profile overwrites first.
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "debug" << "profile:a"
+                                        << "profile:b", settings.data()));
+        QCOMPARE(parser.buildConfigurations().count(), 1);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
+
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "debug" << "profile:a"
+                                        << "debug" << "profile:b", settings.data()));
+        QCOMPARE(parser.buildConfigurations().count(), 2);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.buildVariant").toString(), QLatin1String("debug"));
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("a"));
+        QCOMPARE(parser.buildConfigurations().at(1).value("qbs.buildVariant").toString(), QLatin1String("debug"));
+        QCOMPARE(parser.buildConfigurations().at(1).value("qbs.profile").toString(), QLatin1String("b"));
+
+        // Redundant build request
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "debug" << "profile:a"
+                                        << "debug" << "profile:a", settings.data()));
+        QCOMPARE(parser.buildConfigurations().count(), 1);
+
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "debug" << "profile:a"
+                                        << "release" << "profile:b", settings.data()));
+        QCOMPARE(parser.buildConfigurations().count(), 2);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.buildVariant").toString(), QLatin1String("debug"));
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("a"));
+        QCOMPARE(parser.buildConfigurations().at(1).value("qbs.buildVariant").toString(), QLatin1String("release"));
+        QCOMPARE(parser.buildConfigurations().at(1).value("qbs.profile").toString(), QLatin1String("b"));
+
+        // Non-global property takes precedence.
+        QVERIFY(parser.parseCommandLine(QStringList(fileArgs) << "profile:a" << "debug"
+                                        << "profile:b",  settings.data()));
+        QCOMPARE(parser.buildConfigurations().count(), 1);
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.buildVariant").toString(), QLatin1String("debug"));
+        QCOMPARE(parser.buildConfigurations().first().value("qbs.profile").toString(), QLatin1String("b"));
     }
 
     void testInvalidCommandLine()

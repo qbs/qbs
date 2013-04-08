@@ -43,10 +43,12 @@
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
+#include <tools/settings.h>
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QMap>
+#include <QPair>
 #include <QTextStream>
 
 #ifdef Q_OS_UNIX
@@ -197,20 +199,54 @@ QString CommandLineParser::commandDescription() const
     return d->command->longDescription();
 }
 
+static bool isSameProfile(const QString &profile1, const QString &profile2,
+                          const Settings *settings)
+{
+    if (profile1 == profile2)
+        return true;
+    if (profile1.isEmpty())
+        return profile2.isEmpty() || profile2 == settings->defaultProfile();
+    if (profile2.isEmpty())
+        return profile1 == settings->defaultProfile();
+    return false;
+}
+
+static QString getBuildVariant(const QVariantMap &buildConfig)
+{
+    return buildConfig.value(QLatin1String("qbs.buildVariant")).toString();
+}
+
+static QString getProfile(const QVariantMap &buildConfig)
+{
+    return buildConfig.value(QLatin1String("qbs.profile")).toString();
+}
+
+static bool checkForExistingBuildConfiguration(const QList<QVariantMap> &buildConfigs,
+        const QString &buildVariant, const QString &profile, const Settings *settings)
+{
+    foreach (const QVariantMap &buildConfig, buildConfigs) {
+        if (buildVariant == getBuildVariant(buildConfig)
+            && isSameProfile(profile, getProfile(buildConfig), settings)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 QList<QVariantMap> CommandLineParser::buildConfigurations() const
 {
-    // Key: build variant, value: properties. Empty key used for global properties.
-    typedef QMap<QString, QVariantMap> PropertyMaps;
-    PropertyMaps properties;
+    // first: build variant, second: properties. Empty variant name used for global properties.
+    typedef QPair<QString, QVariantMap> PropertyListItem;
+    QList<PropertyListItem> propertiesPerBuildVariant;
 
     const QString buildVariantKey = QLatin1String("qbs.buildVariant");
-    QString currentKey;
+    QString currentBuildVariant;
     QVariantMap currentProperties;
     foreach (const QString &arg, d->command->additionalArguments()) {
         const int sepPos = arg.indexOf(QLatin1Char(':'));
         if (sepPos == -1) { // New build variant found.
-            properties.insert(currentKey, currentProperties);
-            currentKey = arg;
+            propertiesPerBuildVariant << qMakePair(currentBuildVariant, currentProperties);
+            currentBuildVariant = arg;
             currentProperties.clear();
             continue;
         }
@@ -222,25 +258,30 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
         else
             currentProperties.insert(property, arg.mid(sepPos + 1));
     }
-    properties.insert(currentKey, currentProperties);
+    propertiesPerBuildVariant << qMakePair(currentBuildVariant, currentProperties);
 
-    if (properties.count() == 1) // No build variant specified on command line.
-        properties.insert(QLatin1String("debug"), QVariantMap());
+    if (propertiesPerBuildVariant.count() == 1) // No build variant specified on command line.
+        propertiesPerBuildVariant << PropertyListItem(QLatin1String("debug"), QVariantMap());
 
-    const PropertyMaps::Iterator globalMapIt = properties.find(QString());
-    Q_ASSERT(globalMapIt != properties.end());
-    const QVariantMap globalProperties = globalMapIt.value();
-    properties.erase(globalMapIt);
-
+    const QVariantMap globalProperties = propertiesPerBuildVariant.takeFirst().second;
     QList<QVariantMap> buildConfigs;
-    for (PropertyMaps::ConstIterator mapsIt = properties.constBegin();
-             mapsIt != properties.constEnd(); ++mapsIt) {
-        QVariantMap properties = mapsIt.value();
+    foreach (const PropertyListItem &item, propertiesPerBuildVariant) {
+        QVariantMap properties = item.second;
         for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
                  globalPropIt != globalProperties.constEnd(); ++globalPropIt) {
-            properties.insert(globalPropIt.key(), globalPropIt.value());
+            if (!properties.contains(globalPropIt.key()))
+                properties.insert(globalPropIt.key(), globalPropIt.value());
         }
-        properties.insert(buildVariantKey, mapsIt.key());
+
+        const QString buildVariant = item.first;
+        const QString profile = getProfile(properties);
+        if (checkForExistingBuildConfiguration(buildConfigs, buildVariant, profile, d->settings)) {
+            qbsWarning() << Tr::tr("Ignoring redundant request to build for variant '%1' and "
+                                   "profile '%2'.").arg(buildVariant, profile);
+            continue;
+        }
+
+        properties.insert(buildVariantKey, buildVariant);
         buildConfigs << properties;
     }
 
