@@ -14,6 +14,32 @@ UnixGCC {
     property var infoPlist
     property bool processInfoPlist: true
     property bool buildDsym: qbs.buildVariant === "release"
+    property var buildEnv: {
+        var env = {
+            "LANG": "en_US.US-ASCII"
+        }
+        if (minimumIosVersion)
+            env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
+        if (minimumOsxVersion)
+            env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
+        return env;
+    }
+
+    setupBuildEnvironment: {
+        var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
+        v.prepend(platformPath + "/Developer/usr/bin");
+        var platformPathL = platformPath.split("/");
+        platformPathL.pop();
+        platformPathL.pop();
+        var devPath = platformPathL.join("/")
+        v.prepend(devPath + "/usr/bin");
+        v.set();
+        for (var key in buildEnv) {
+            v = new ModUtils.EnvironmentVariable(key);
+            v.value = buildEnv[key];
+            v.set();
+        }
+    }
 
     readonly property var defaultInfoPlist: {
         var dict = {
@@ -106,6 +132,9 @@ UnixGCC {
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
             cmd.platformPath = product.moduleProperty("cpp", "platformPath");
+            cmd.toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
+            cmd.sysroot = product.moduleProperty("qbs", "sysroot");
+            cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
             cmd.sourceCode = function() {
                 var process, key;
 
@@ -143,6 +172,10 @@ UnixGCC {
                             if (additionalProps.hasOwnProperty(key) && !(key in aggregatePlist)) // override infoPlist?
                                 aggregatePlist[key] = defaultValues[key];
                         }
+                        props = platformInfo['OverrideProperties'];
+                        for (key in props) {
+                            aggregatePlist[key] = props[key];
+                        }
 
                         if (product.moduleProperty("qbs", "targetOS") === "ios") {
                             key = "UIDeviceFamily";
@@ -152,11 +185,48 @@ UnixGCC {
                     } else {
                         print("Missing platformPath property");
                     }
+                    if (sysroot) {
+                        process = new Process();
+                        process.start("plutil", ["-convert", "json", "-o", "-",
+                                                 sysroot + "/SDKSettings.plist"]);
+                        process.waitForFinished();
+                        sdkSettings = JSON.parse(process.readAll());
+                    } else {
+                        print("Missing sysroot (SDK path)");
+                    }
+                    if (toolchainInstallPath) {
+                        process = new Process();
+                        process.start("plutil", ["-convert", "json", "-o", "-",
+                                                 toolchainInstallPath + "/../../ToolchainInfo.plist"]);
+                        process.waitForFinished();
+                        toolchainInfo = JSON.parse(process.readAll());
+                    } else {
+                        print("Cannot get the ToolchainInfo.plist from the toolchainInstallPath");
+                    }
 
                     process = new Process();
                     process.start("sw_vers", ["-buildVersion"]);
                     process.waitForFinished();
                     aggregatePlist["BuildMachineOSBuild"] = process.readAll().trim();
+
+                    // setup env
+                    env = {
+                        "SDK_NAME": sdkSettings["CanonicalName"],
+                        "XCODE_VERSION_ACTUAL": toolchainInfo["DTXcode"],
+                        "SDK_PRODUCT_BUILD_VERSION": toolchainInfo["DTPlatformBuild"],
+                        "GCC_VERSION": platformInfo["DTCompiler"],
+                        "XCODE_PRODUCT_BUILD_VERSION": platformInfo["DTPlatformBuild"],
+                        "PLATFORM_PRODUCT_BUILD_VERSION": platformInfo["ProductBuildVersion"],
+                    }
+                    process = new Process();
+                    process.start("sw_vers", ["-buildVersion"]);
+                    process.waitForFinished();
+                    env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = process.readAll().trim();
+
+                    for (key in buildEnv)
+                        env[key] = buildEnv[key];
+
+                    DarwinTools.doRepl(infoPlist, env, true);
                 }
 
                 // Write the plist contents as JSON
