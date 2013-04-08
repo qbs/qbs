@@ -114,6 +114,8 @@ private:
     FileTime recursiveFileTime(const QString &filePath) const;
     void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
             QSet<Artifact *> *seenArtifacts, QList<Artifact *> *leaves) const;
+    QString configString() const;
+
     RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
     const Logger m_logger;

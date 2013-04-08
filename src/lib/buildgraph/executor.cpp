@@ -580,6 +580,12 @@ void Executor::insertLeavesAfterAddingDependencies_recurse(Artifact *const artif
     }
 }
 
+QString Executor::configString() const
+{
+    return tr(" for configuration %1")
+            .arg(m_productsToBuild.first()->project->resolvedProject()->id());
+}
+
 void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies)
 {
     QSet<Artifact *> seenArtifacts;
@@ -610,7 +616,7 @@ void Executor::setupProgressObserver(bool mocWillRun)
     }
     m_mocEffort = mocEffortCalculator.effort();
     const int totalEffort = m_mocEffort + buildEffortCalculator.effort();
-    m_progressObserver->initialize(tr("Building"), totalEffort);
+    m_progressObserver->initialize(tr("Building%1").arg(configString()), totalEffort);
 }
 
 void Executor::doSanityChecks()
@@ -722,15 +728,16 @@ void Executor::finish()
             }
         }
     }
+
     if (unbuiltProductNames.isEmpty()) {
-        m_logger.qbsInfo() << Tr::tr("Build done.");
+        m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
     } else {
-        m_error.append(Tr::tr("The following products could not be built: %1.")
-                 .arg(unbuiltProductNames.join(", ")));
+        m_error.append(Tr::tr("The following products could not be built%1: %2.")
+                 .arg(configString(), unbuiltProductNames.join(", ")));
     }
 
     if (m_explicitlyCanceled)
-        m_error.append(Tr::tr("Build was canceled due to user request."));
+        m_error.append(Tr::tr("Build was canceled%1.").arg(configString()));
     setState(ExecutorIdle);
     if (m_progressObserver)
         m_progressObserver->setFinished();

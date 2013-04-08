@@ -140,8 +140,14 @@ void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, const Clea
 {
     m_hasError = false;
 
+    QString configString;
+    if (!products.isEmpty()) {
+        configString = Tr::tr(" for configuration %1")
+                .arg(products.first()->project->resolvedProject()->id());
+    }
+    m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.count() + 1);
+
     QSet<QString> directories;
-    m_observer->initialize(Tr::tr("Cleaning up"), products.count() + 1);
     foreach (const BuildProductConstPtr &product, products) {
         CleanupVisitor visitor(options, m_logger);
         visitor.visitProduct(product);

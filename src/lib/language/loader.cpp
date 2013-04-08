@@ -90,8 +90,10 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     // the project yet. That's why we use a placeholder here, so the user at least
     // sees that an operation is starting. The real total effort will be set later when
     // we have enough information.
-    if (m_progressObserver)
-        m_progressObserver->initialize(Tr::tr("Loading project"), 1);
+    if (m_progressObserver) {
+        m_progressObserver->initialize(Tr::tr("Loading project for configuration %1")
+                .arg(ResolvedProject::deriveId(parameters.buildConfiguration)), 1);
+    }
     ModuleLoaderResult loadResult
             = m_moduleLoader->load(parameters.projectFilePath,
                                    parameters.buildConfiguration,
