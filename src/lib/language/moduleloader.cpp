@@ -163,11 +163,11 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, const ItemPtr &
     DependsContext dependsContext;
     dependsContext.product = &productContext;
     dependsContext.productDependencies = &productContext.info.usedProducts;
+    setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
     createAdditionalModuleInstancesInProduct(&productContext);
 
     foreach (const ItemPtr &child, item->children()) {
-        child->setScope(productContext.scope);
         if (child->typeName() == QLatin1String("Group"))
             handleGroup(&productContext, child);
         else if (child->typeName() == QLatin1String("Artifact"))
@@ -723,6 +723,14 @@ void ModuleLoader::copyProperty(const QString &propertyName, const ItemConstPtr 
                                 const ItemPtr &destination)
 {
     destination->setProperty(propertyName, source->property(propertyName));
+}
+
+void ModuleLoader::setScopeForDescendants(const ItemPtr &item, const ItemPtr &scope)
+{
+    foreach (const ItemPtr &child, item->children()) {
+        child->setScope(scope);
+        setScopeForDescendants(child, scope);
+    }
 }
 
 QString ModuleLoader::fullModuleName(const QStringList &moduleName)

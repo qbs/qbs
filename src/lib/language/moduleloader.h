@@ -151,6 +151,7 @@ private:
     static ItemPtr wrapWithProject(const ItemPtr &item);
     static QString moduleSubDir(const QStringList &moduleName);
     static void copyProperty(const QString &propertyName, const ItemConstPtr &source, const ItemPtr &destination);
+    static void setScopeForDescendants(const ItemPtr &item, const ItemPtr &scope);
 
     ScriptEngine *m_engine;
     Logger m_logger;

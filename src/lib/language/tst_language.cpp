@@ -530,7 +530,6 @@ void TestLanguage::itemScope()
     Evaluator evaluator(m_engine, m_logger);
     QCOMPARE(evaluator.property(scope1, "x").toVariant().toInt(), 1);
     QCOMPARE(evaluator.property(scope2, "y").toVariant().toInt(), 2);
-    QEXPECT_FAIL("", "FIXME", Abort);
     QVERIFY(!evaluator.property(scope2, "x").isValid());
     QCOMPARE(evaluator.property(item, "z").toVariant().toInt(), 3);
 }

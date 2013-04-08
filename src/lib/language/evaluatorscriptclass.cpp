@@ -95,6 +95,15 @@ private:
         }
     }
 
+    void pushItemScopes(const Item *item)
+    {
+        const ItemConstPtr scope = item->scope();
+        if (scope) {
+            pushItemScopes(scope.data());
+            pushScope(data->evaluator->scriptValue(scope));
+        }
+    }
+
     void popScopes()
     {
         for (; pushedScopesCount-- > 0;)
@@ -117,10 +126,12 @@ private:
                 conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
             }
             engine->currentContext()->pushScope(conditionFileScope);
+            pushItemScopes(conditionScopeItem.data());
             engine->currentContext()->pushScope(conditionScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
             engine->currentContext()->popScope();
             engine->currentContext()->popScope();
+            popScopes();
             if (cr.isError()) {
                 *result = cr;
                 return;
@@ -159,6 +170,7 @@ private:
                                      data->evaluator->property(outerItem, *propertyName));
 
         pushScope(data->evaluator->fileScope(value->file()));
+        pushItemScopes(data->item);
         scriptContext->pushScope(*object);
         pushScope(extraScope);
         *result = engine->evaluate(value->sourceCode());
@@ -244,18 +256,6 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
         if (!m_queryResult.value.isNull()) {
             m_queryResult.data = data;
             return HandlesReadAccess;
-        }
-    }
-
-    if (!data->item->scope().isNull()) {
-        if (debugProperties)
-            m_logger.qbsTrace() << "[SC] queryProperty: query scope";
-        EvaluationData scopedata = *data;
-        scopedata.item = data->item->scope().data();
-        const QueryFlags qf = queryItemProperty(&scopedata, name, true);
-        if (qf.testFlag(HandlesReadAccess)) {
-            m_queryResult.data = data;
-            return qf;
         }
     }
 
