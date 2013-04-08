@@ -30,14 +30,10 @@
 
 #include "artifact.h"
 #include "artifactvisitor.h"
-#include "buildproduct.h"
-#include "buildproject.h"
-#include "rulesevaluationcontext.h"
-#include "transformer.h"
+#include "projectbuilddata.h"
 
 #include <language/language.h>
 #include <logging/translator.h>
-#include <tools/buildoptions.h>
 #include <tools/cleanoptions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -65,7 +61,7 @@ static void invalidateArtifactTimestamp(Artifact *artifact)
 {
     if (artifact->timestamp.isValid()) {
         artifact->timestamp.clear();
-        artifact->project->markDirty();
+        artifact->project->buildData->isDirty = true;
     }
 }
 
@@ -97,7 +93,7 @@ public:
     {
     }
 
-    void visitProduct(const BuildProductConstPtr &product)
+    void visitProduct(const ResolvedProductConstPtr &product)
     {
         m_product = product;
         ArtifactVisitor::visitProduct(product);
@@ -127,7 +123,7 @@ private:
     const CleanOptions m_options;
     Logger m_logger;
     bool m_hasError;
-    BuildProductConstPtr m_product;
+    ResolvedProductConstPtr m_product;
     QSet<QString> m_directories;
 };
 
@@ -136,19 +132,20 @@ ArtifactCleaner::ArtifactCleaner(const Logger &logger, ProgressObserver *observe
 {
 }
 
-void ArtifactCleaner::cleanup(const QList<BuildProductPtr> &products, const CleanOptions &options)
+void ArtifactCleaner::cleanup(const QList<ResolvedProductPtr> &products,
+                              const CleanOptions &options)
 {
     m_hasError = false;
 
     QString configString;
     if (!products.isEmpty()) {
         configString = Tr::tr(" for configuration %1")
-                .arg(products.first()->project->resolvedProject()->id());
+                .arg(products.first()->project->id());
     }
     m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.count() + 1);
 
     QSet<QString> directories;
-    foreach (const BuildProductConstPtr &product, products) {
+    foreach (const ResolvedProductPtr &product, products) {
         CleanupVisitor visitor(options, m_logger);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());

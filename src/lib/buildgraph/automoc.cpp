@@ -28,11 +28,10 @@
 ****************************************************************************/
 
 #include "automoc.h"
-#include "buildproduct.h"
-#include "buildproject.h"
+#include "productbuilddata.h"
+#include "projectbuilddata.h"
 #include "buildgraph.h"
 #include "rulesapplicator.h"
-#include "rulesevaluationcontext.h"
 #include "scanresultcache.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/transformer.h>
@@ -80,7 +79,7 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
     m_scanResultCache = scanResultCache;
 }
 
-void AutoMoc::apply(const BuildProductPtr &product)
+void AutoMoc::apply(const ResolvedProductPtr &product)
 {
     if (scanners().isEmpty())
         throw Error("C++ scanner cannot be loaded.");
@@ -90,8 +89,8 @@ void AutoMoc::apply(const BuildProductPtr &product)
     QList<QPair<Artifact *, FileType> > artifactsToMoc;
     QSet<QString> includedMocCppFiles;
     const FileTime currentTime = FileTime::currentTime();
-    ArtifactList::const_iterator it = product->artifacts.begin();
-    for (; it != product->artifacts.end(); ++it) {
+    ArtifactList::const_iterator it = product->buildData->artifacts.begin();
+    for (; it != product->buildData->artifacts.end(); ++it) {
         Artifact *artifact = *it;
         if (!pchFile || !pluginMetaDataFile) {
             foreach (const FileTag &fileTag, artifact->fileTags) {
@@ -164,8 +163,8 @@ void AutoMoc::apply(const BuildProductPtr &product)
     if (!artifactsPerFileTag.isEmpty()) {
         emit reportCommandDescription(QLatin1String("automoc"),
                                       Tr::tr("Applying moc rules for '%1'.")
-                                      .arg(product->rProduct->name));
-        RulesApplicator(product.data(), artifactsPerFileTag, m_logger).applyAllRules();
+                                      .arg(product->name));
+        RulesApplicator(product, artifactsPerFileTag, m_logger).applyAllRules();
     }
     if (pluginHeaderFile && pluginMetaDataFile) {
         // Make every artifact that is dependent of the header file also
@@ -174,7 +173,7 @@ void AutoMoc::apply(const BuildProductPtr &product)
             loggedConnect(outputOfHeader, pluginMetaDataFile, m_logger);
     }
 
-    product->project->updateNodesThatMustGetNewTransformer();
+    product->project->buildData->updateNodesThatMustGetNewTransformer(m_logger);
 }
 
 QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)
@@ -345,7 +344,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
                 m_logger.qbsTrace() << "[AUTOMOC] removing moc obj artifact "
                                     << relativeArtifactFileName(mocObjArtifact);
             }
-            artifact->project->removeArtifact(mocObjArtifact);
+            artifact->project->buildData->removeArtifact(mocObjArtifact, m_logger);
         }
     }
 
@@ -353,7 +352,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
         m_logger.qbsTrace() << "[AUTOMOC] removing generated artifact "
                             << relativeArtifactFileName(generatedMocArtifact);
     }
-    artifact->project->removeArtifact(generatedMocArtifact);
+    artifact->project->buildData->removeArtifact(generatedMocArtifact, m_logger);
     delete generatedMocArtifact;
 }
 

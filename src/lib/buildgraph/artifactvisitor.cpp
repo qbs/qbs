@@ -29,9 +29,7 @@
 #include "artifactvisitor.h"
 
 #include "artifact.h"
-#include "buildproduct.h"
-#include "buildproject.h"
-#include "rulesevaluationcontext.h"
+#include "productbuilddata.h"
 #include <language/language.h>
 #include <tools/qbsassert.h>
 
@@ -56,15 +54,17 @@ void ArtifactVisitor::visitArtifact(Artifact *artifact)
         visitArtifact(child);
 }
 
-void ArtifactVisitor::visitProduct(const BuildProductConstPtr &product)
+void ArtifactVisitor::visitProduct(const ResolvedProductConstPtr &product)
 {
-    foreach (Artifact * const artifact, product->targetArtifacts)
+    if (!product->buildData)
+        return;
+    foreach (Artifact * const artifact, product->buildData->targetArtifacts)
         visitArtifact(artifact);
 }
 
-void ArtifactVisitor::visitProject(const BuildProjectConstPtr &project)
+void ArtifactVisitor::visitProject(const ResolvedProjectConstPtr &project)
 {
-    foreach (const BuildProductConstPtr &product, project->buildProducts())
+    foreach (const ResolvedProductConstPtr &product, project->products)
         visitProduct(product);
 }
 

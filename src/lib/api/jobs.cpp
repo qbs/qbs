@@ -30,11 +30,7 @@
 
 #include "internaljobs.h"
 #include "project.h"
-#include <buildgraph/buildproject.h>
-#include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
-#include <language/scriptengine.h>
-#include <tools/setupprojectparameters.h>
 #include <tools/qbsassert.h>
 
 namespace qbs {
@@ -193,7 +189,7 @@ Project SetupProjectJob::project() const
 {
     const InternalSetupProjectJob * const job
             = qobject_cast<InternalSetupProjectJob *>(internalJob());
-    return Project(job->buildProject(), job->logger());
+    return Project(job->project(), job->logger());
 }
 
 void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
@@ -253,7 +249,7 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
     connect(job, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 }
 
-void BuildJob::build(const QList<BuildProductPtr> &products, const BuildOptions &options,
+void BuildJob::build(const QList<ResolvedProductPtr> &products, const BuildOptions &options,
                      const QProcessEnvironment &env)
 {
     qobject_cast<InternalBuildJob *>(internalJob())->build(products, options, env);
@@ -270,7 +266,7 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void CleanJob::clean(const QList<BuildProductPtr> &products, const qbs::CleanOptions &options)
+void CleanJob::clean(const QList<ResolvedProductPtr> &products, const qbs::CleanOptions &options)
 {
     qobject_cast<InternalCleanJob *>(internalJob())->clean(products, options);
 }
@@ -285,7 +281,7 @@ InstallJob::InstallJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InstallJob::install(const QList<BuildProductPtr> &products, const InstallOptions &options)
+void InstallJob::install(const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
     qobject_cast<InternalInstallJob *>(internalJob())->install(products, options);
 }

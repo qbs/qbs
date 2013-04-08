@@ -31,8 +31,9 @@
 #include "jobs.h"
 
 #include <buildgraph/artifactcleaner.h>
-#include <buildgraph/buildproduct.h>
-#include <buildgraph/buildproject.h>
+#include <buildgraph/buildgraph.h>
+#include <buildgraph/productbuilddata.h>
+#include <buildgraph/projectbuilddata.h>
 #include <buildgraph/executor.h>
 #include <buildgraph/productinstaller.h>
 #include <buildgraph/rulesevaluationcontext.h>
@@ -118,10 +119,10 @@ void InternalJob::cancel()
     m_observer->cancel();
 }
 
-void InternalJob::storeBuildGraph(const BuildProject *buildProject)
+void InternalJob::storeBuildGraph(const ResolvedProjectConstPtr &project)
 {
     try {
-        buildProject->store();
+        project->store(logger());
     } catch (const Error &error) {
         logger().qbsWarning() << error.toString();
     }
@@ -153,9 +154,9 @@ void InternalSetupProjectJob::reportError(const Error &error)
                               Q_ARG(Internal::InternalJob *, this));
 }
 
-BuildProjectPtr InternalSetupProjectJob::buildProject() const
+ResolvedProjectPtr InternalSetupProjectJob::project() const
 {
-    return m_buildProject;
+    return m_project;
 }
 
 void InternalSetupProjectJob::start()
@@ -187,23 +188,20 @@ void InternalSetupProjectJob::execute()
 {
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext(logger()));
     evalContext->setObserver(observer());
-    BuildProjectLoader bpLoader(logger());
-    const BuildProjectLoader::LoadResult loadResult = bpLoader.load(m_parameters, evalContext);
-    ResolvedProjectPtr rProject;
+    BuildGraphLoader bpLoader(logger());
+    const BuildGraphLoader::LoadResult loadResult = bpLoader.load(m_parameters, evalContext);
     if (!loadResult.discardLoadedProject)
-        m_buildProject = loadResult.loadedProject;
-    if (m_buildProject) {
-        rProject = m_buildProject->resolvedProject();
-    } else {
-        if (loadResult.changedResolvedProject) {
-            rProject = loadResult.changedResolvedProject;
+        m_project = loadResult.loadedProject;
+    if (!m_project) {
+        if (loadResult.newlyResolvedProject) {
+            m_project = loadResult.newlyResolvedProject;
         } else {
             Loader loader(evalContext->engine(), logger());
             loader.setSearchPaths(m_parameters.searchPaths);
             loader.setProgressObserver(observer());
-            rProject = loader.loadProject(m_parameters);
+            m_project = loader.loadProject(m_parameters);
         }
-        if (rProject->products.isEmpty()) {
+        if (m_project->products.isEmpty()) {
             throw Error(Tr::tr("Project '%1' does not contain products.")
                         .arg(m_parameters.projectFilePath));
         }
@@ -212,28 +210,28 @@ void InternalSetupProjectJob::execute()
     // copy the environment from the platform config into the project's config
     const QVariantMap platformEnvironment
             = m_parameters.buildConfiguration.value(QLatin1String("environment")).toMap();
-    rProject->platformEnvironment = platformEnvironment;
+    m_project->platformEnvironment = platformEnvironment;
 
-    logger().qbsDebug() << QString::fromLocal8Bit("for %1:").arg(rProject->id());
-    foreach (const ResolvedProductConstPtr &p, rProject->products) {
+    logger().qbsDebug() << QString::fromLocal8Bit("for %1:").arg(m_project->id());
+    foreach (const ResolvedProductConstPtr &p, m_project->products) {
         logger().qbsDebug() << QString::fromLocal8Bit("  - [%1] %2 as %3")
                                .arg(p->fileTags.toStringList().join(QLatin1String(", ")))
                                .arg(p->name).arg(p->project->id());
     }
     logger().qbsDebug() << '\n';
 
-    if (!m_buildProject) {
+    if (!m_project->buildData) {
         TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
-        m_buildProject = BuildProjectResolver(logger()).resolveProject(rProject, evalContext);
+        BuildDataResolver(logger()).resolveBuildData(m_project, evalContext);
         if (loadResult.loadedProject)
-            m_buildProject->rescueData(loadResult.loadedProject);
+            BuildDataResolver::rescueBuildData(loadResult.loadedProject, m_project, logger());
     }
 
     if (!m_parameters.dryRun)
-        storeBuildGraph(m_buildProject.data());
+        storeBuildGraph(m_project);
 
     // The evalutation context cannot be re-used for building, which runs in a different thread.
-    m_buildProject->setEvaluationContext(RulesEvaluationContextPtr());
+    m_project->buildData->evaluationContext.clear();
 }
 
 
@@ -246,7 +244,7 @@ BuildGraphTouchingJob::~BuildGraphTouchingJob()
 {
 }
 
-void BuildGraphTouchingJob::setup(const QList<BuildProductPtr> &products, bool dryRun)
+void BuildGraphTouchingJob::setup(const QList<ResolvedProductPtr> &products, bool dryRun)
 {
     m_products = products;
     m_dryRun = dryRun;
@@ -263,7 +261,7 @@ InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalBuildJob::build(const QList<BuildProductPtr> &products,
+void InternalBuildJob::build(const QList<ResolvedProductPtr> &products,
                              const BuildOptions &buildOptions, const QProcessEnvironment &env)
 {
     setup(products, buildOptions.dryRun);
@@ -295,7 +293,7 @@ void InternalBuildJob::handleFinished()
     if (m_executor->hasError())
         setError(m_executor->error());
     if (!products().isEmpty())
-        products().first()->project->setEvaluationContext(RulesEvaluationContextPtr());
+        products().first()->project->buildData->evaluationContext.clear();
     storeBuildGraph();
     m_executor->deleteLater();
 }
@@ -310,7 +308,7 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalCleanJob::clean(const QList<BuildProductPtr> &products, const CleanOptions &options)
+void InternalCleanJob::clean(const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
     setup(products, options.dryRun);
     setTimed(options.logElapsedTime);
@@ -351,7 +349,7 @@ InternalInstallJob::~InternalInstallJob()
 {
 }
 
-void InternalInstallJob::install(const QList<BuildProductPtr> &products,
+void InternalInstallJob::install(const QList<ResolvedProductPtr> &products,
                                  const InstallOptions &options)
 {
     m_products = products;

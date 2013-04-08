@@ -31,6 +31,7 @@
 #include "transformer.h"
 #include "buildgraph.h"
 
+#include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <logging/logger.h>
 #include <tools/fileinfo.h>
@@ -56,20 +57,28 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-Artifact::Artifact(BuildProject *p)
-    : project(p)
-    , product(0)
-    , transformer(0)
-    , artifactType(Unknown)
-    , buildState(Untouched)
-    , inputsScanned(false)
-    , timestampRetrieved(false)
-    , alwaysUpdated(true)
+Artifact::Artifact()
 {
+    initialize();
+}
+
+Artifact::Artifact(const ResolvedProjectPtr &project)
+    : project(project)
+{
+    initialize();
 }
 
 Artifact::~Artifact()
 {
+}
+
+void Artifact::initialize()
+{
+    artifactType = Unknown;
+    buildState = Untouched;
+    inputsScanned = false;
+    timestampRetrieved = false;
+    alwaysUpdated = true;
 }
 
 void Artifact::setFilePath(const QString &filePath)

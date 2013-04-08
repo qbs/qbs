@@ -31,6 +31,8 @@
 
 #include "forward_decls.h"
 
+#include <language/forward_decls.h>
+
 #include <QList>
 #include <QSet>
 
@@ -43,8 +45,8 @@ public:
     ArtifactVisitor(int artifactType);
 
     virtual void visitArtifact(Artifact *artifact);
-    virtual void visitProduct(const BuildProductConstPtr &product);
-    virtual void visitProject(const BuildProjectConstPtr &project);
+    virtual void visitProduct(const ResolvedProductConstPtr &product);
+    virtual void visitProject(const ResolvedProjectConstPtr &project);
 
 private:
     virtual void doVisit(Artifact *artifact) = 0;

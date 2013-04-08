@@ -30,6 +30,7 @@
 #ifndef QBS_EXECUTORJOB_H
 #define QBS_EXECUTORJOB_H
 
+#include <language/forward_decls.h>
 #include <tools/error.h>
 
 #include <QObject>
@@ -44,7 +45,7 @@ class ProcessResult;
 
 namespace Internal {
 class AbstractCommandExecutor;
-class BuildProduct;
+class ProductBuildData;
 class JsCommandExecutor;
 class Logger;
 class ProcessCommandExecutor;
@@ -59,7 +60,7 @@ public:
 
     void setMainThreadScriptEngine(QScriptEngine *engine);
     void setDryRun(bool enabled);
-    void run(Transformer *t, const BuildProduct *buildProduct);
+    void run(Transformer *t, const ResolvedProductPtr &product);
     void cancel();
     void waitForFinished();
 

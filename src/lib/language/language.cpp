@@ -31,6 +31,10 @@
 
 #include "artifactproperties.h"
 #include "scriptengine.h"
+#include <buildgraph/artifact.h>
+#include <buildgraph/productbuilddata.h>
+#include <buildgraph/projectbuilddata.h>
+#include <buildgraph/rulegraph.h> // TODO: Move to language?
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 #include <tools/error.h>
@@ -366,6 +370,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.loadContainerS(modules);
     pool.loadContainerS(groups);
     pool.loadContainerS(artifactProperties);
+    buildData.reset(pool.idLoad<ProductBuildData>());
 }
 
 void ResolvedProduct::store(PersistentPool &pool) const
@@ -387,6 +392,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeContainer(modules);
     pool.storeContainer(groups);
     pool.storeContainer(artifactProperties);
+    pool.store(buildData.data());
 }
 
 QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, QList<const ResolvedModule*> > &moduleChildren,
@@ -546,6 +552,23 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
     runEnvironment = getProcessEnvironment(engine, RunEnv, modules, properties, project, env);
 }
 
+const QList<RuleConstPtr> &ResolvedProduct::topSortedRules() const
+{
+    if (buildData->topSortedRules.isEmpty()) {
+        FileTags productFileTags = fileTags;
+        productFileTags += additionalFileTags;
+        RuleGraph ruleGraph;
+        ruleGraph.build(rules, productFileTags);
+//        ruleGraph.dump();
+        buildData->topSortedRules = ruleGraph.topSorted();
+//        int i=0;
+//        foreach (RulePtr r, m_topSortedRules)
+//            qDebug() << ++i << r->toString() << (void*)r.data();
+    }
+    return buildData->topSortedRules;
+}
+
+
 QString ResolvedProject::deriveId(const QVariantMap &config)
 {
     const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
@@ -565,6 +588,40 @@ void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
     m_id = deriveId(config);
 }
 
+QString ResolvedProject::buildGraphFilePath() const
+{
+    return ProjectBuildData::deriveBuildGraphFilePath(buildDirectory, id());
+}
+
+void ResolvedProject::store(const Logger &logger) const
+{
+    // TODO: Use progress observer here.
+
+    if (!buildData)
+        return;
+    if (!buildData->isDirty) {
+        logger.qbsDebug() << "[BG] build graph is unchanged in project " << id() << ".";
+        return;
+    }
+    const QString fileName = buildGraphFilePath();
+    logger.qbsDebug() << "[BG] storing: " << fileName;
+    PersistentPool pool(logger);
+    PersistentPool::HeadData headData;
+    headData.projectConfig = buildConfiguration();
+    pool.setHeadData(headData);
+    pool.setupWriteStream(fileName);
+    store(pool);
+    buildData->isDirty = false;
+}
+
+ResolvedProject::ResolvedProject()
+{
+}
+
+ResolvedProject::~ResolvedProject()
+{
+}
+
 void ResolvedProject::load(PersistentPool &pool)
 {
     location.fileName = pool.idLoadString();
@@ -579,8 +636,13 @@ void ResolvedProject::load(PersistentPool &pool)
     products.reserve(count);
     for (; --count >= 0;) {
         ResolvedProductPtr rProduct = pool.idLoadS<ResolvedProduct>();
+        if (rProduct->buildData) {
+            foreach (Artifact * const a, rProduct->buildData->artifacts)
+                a->product = rProduct;
+        }
         products.append(rProduct);
     }
+    buildData.reset(pool.idLoad<ProjectBuildData>());
 }
 
 void ResolvedProject::store(PersistentPool &pool) const
@@ -594,6 +656,7 @@ void ResolvedProject::store(PersistentPool &pool) const
     pool.stream() << products.count();
     foreach (const ResolvedProductConstPtr &product, products)
         pool.store(product);
+    pool.store(buildData.data());
 }
 
 /*!

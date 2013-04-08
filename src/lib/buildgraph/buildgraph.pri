@@ -18,8 +18,8 @@ SOURCES += \
     $$PWD/productinstaller.cpp \
     $$PWD/cycledetector.cpp \
     $$PWD/rulesevaluationcontext.cpp \
-    $$PWD/buildproduct.cpp \
-    $$PWD/buildproject.cpp \
+    $$PWD/productbuilddata.cpp \
+    $$PWD/projectbuilddata.cpp \
     $$PWD/rulesapplicator.cpp \
     $$PWD/timestampsupdater.cpp
 
@@ -44,8 +44,8 @@ HEADERS += \
     $$PWD/cycledetector.h \
     $$PWD/forward_decls.h \
     $$PWD/rulesevaluationcontext.h \
-    $$PWD/buildproduct.h \
-    $$PWD/buildproject.h \
+    $$PWD/productbuilddata.h \
+    $$PWD/projectbuilddata.h \
     $$PWD/rulesapplicator.h \
     $$PWD/timestampsupdater.h
 

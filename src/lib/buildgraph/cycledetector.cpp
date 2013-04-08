@@ -30,8 +30,6 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
-#include "buildproject.h"
-#include "rulesevaluationcontext.h"
 
 #include <language/language.h>
 #include <logging/translator.h>
@@ -45,10 +43,10 @@ CycleDetector::CycleDetector(const Logger &logger)
 {
 }
 
-void CycleDetector::visitProject(const BuildProjectConstPtr &project)
+void CycleDetector::visitProject(const ResolvedProjectConstPtr &project)
 {
     const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
-                .arg(project->resolvedProject()->id());
+                .arg(project->id());
     TimedActivityLogger timeLogger(m_logger, description, QLatin1String("[BG] "), LoggerTrace);
     ArtifactVisitor::visitProject(project);
 }

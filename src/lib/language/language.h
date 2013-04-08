@@ -34,6 +34,7 @@
 #include "forward_decls.h"
 #include "jsimports.h"
 #include "propertymapinternal.h"
+#include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
 #include <tools/fileinfo.h>
 #include <tools/persistentobject.h>
@@ -44,6 +45,7 @@
 #include <QProcessEnvironment>
 #include <QScriptProgram>
 #include <QScriptValue>
+#include <QScopedPointer>
 #include <QSet>
 #include <QString>
 #include <QStringList>
@@ -55,6 +57,7 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class BuildGraphLoader;
 
 class FileTagger : public PersistentObject
 {
@@ -295,6 +298,7 @@ public:
     QList<ResolvedTransformer::Ptr> transformers;
     QList<GroupPtr> groups;
     QList<ArtifactPropertiesPtr> artifactProperties;
+    QScopedPointer<ProductBuildData> buildData;
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved
@@ -306,6 +310,8 @@ public:
     void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 
+    const QList<RuleConstPtr> &topSortedRules() const;
+
 private:
     ResolvedProduct();
 
@@ -315,7 +321,10 @@ private:
 
 class ResolvedProject: public PersistentObject
 {
+    friend class BuildGraphLoader;
 public:
+    ~ResolvedProject();
+
     static ResolvedProjectPtr create() { return ResolvedProjectPtr(new ResolvedProject); }
 
     static QString deriveId(const QVariantMap &config);
@@ -325,13 +334,17 @@ public:
     QString buildDirectory; // Not saved
     QVariantMap platformEnvironment;
     QList<ResolvedProductPtr> products;
+    QScopedPointer<ProjectBuildData> buildData;
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
     QString id() const { return m_id; }
 
+    QString buildGraphFilePath() const;
+    void store(const Logger &logger) const;
+
 private:
-    ResolvedProject() {}
+    ResolvedProject();
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

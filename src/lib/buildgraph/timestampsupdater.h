@@ -29,17 +29,18 @@
 #ifndef TIMESTAMPSUPDATER_H
 #define TIMESTAMPSUPDATER_H
 
-#include "forward_decls.h"
+#include <language/forward_decls.h>
 
 #include <QList>
 
 namespace qbs {
 namespace Internal {
+class Logger;
 
 class TimestampsUpdater
 {
 public:
-    void updateTimestamps(const QList<BuildProductPtr> &products);
+    void updateTimestamps(const QList<ResolvedProductPtr> &products, const Logger &logger);
 };
 
 } // namespace Internal

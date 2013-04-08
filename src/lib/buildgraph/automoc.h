@@ -32,6 +32,7 @@
 
 #include "forward_decls.h"
 
+#include <language/forward_decls.h>
 #include <logging/logger.h>
 
 #include <QObject>
@@ -59,7 +60,7 @@ public:
     AutoMoc(const Logger &logger, QObject *parent = 0);
 
     void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(const BuildProductPtr &product);
+    void apply(const ResolvedProductPtr &product);
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);

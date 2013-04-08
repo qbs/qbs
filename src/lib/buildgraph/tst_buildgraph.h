@@ -30,6 +30,7 @@
 #define TST_BUILDGRAPH_H
 
 #include <buildgraph/forward_decls.h>
+#include <language/forward_decls.h>
 #include <logging/ilogsink.h>
 #include <tools/qbs_export.h>
 
@@ -51,10 +52,10 @@ private slots:
     void testCycle();
 
 private:
-    BuildProductConstPtr productWithDirectCycle();
-    BuildProductConstPtr productWithLessDirectCycle();
-    BuildProductConstPtr productWithNoCycle();
-    bool cycleDetected(const BuildProductConstPtr &product);
+    ResolvedProductConstPtr productWithDirectCycle();
+    ResolvedProductConstPtr productWithLessDirectCycle();
+    ResolvedProductConstPtr productWithNoCycle();
+    bool cycleDetected(const ResolvedProductConstPtr &product);
 
     QList<Artifact *> m_artifacts;
     ILogSink * const m_logSink;

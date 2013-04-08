@@ -34,9 +34,7 @@
 #include "propertymap_p.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
-#include <buildgraph/buildproduct.h>
-#include <buildgraph/buildproject.h>
-#include <buildgraph/rulesevaluationcontext.h>
+#include <buildgraph/productbuilddata.h>
 #include <buildgraph/timestampsupdater.h>
 #include <language/language.h>
 #include <logging/logger.h>
@@ -92,24 +90,25 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
 class ProjectPrivate : public QSharedData
 {
 public:
-    ProjectPrivate(const BuildProjectPtr &internalProject, const Logger &logger)
+    ProjectPrivate(const ResolvedProjectPtr &internalProject, const Logger &logger)
         : internalProject(internalProject), logger(logger), m_projectDataRetrieved(false)
     {
     }
 
     ProjectData projectData();
-    BuildJob *buildProducts(const QList<BuildProductPtr> &products, const BuildOptions &options,
+    BuildJob *buildProducts(const QList<ResolvedProductPtr> &products, const BuildOptions &options,
                             bool needsDepencencyResolving, const QProcessEnvironment &env,
                             QObject *jobOwner);
-    CleanJob *cleanProducts(const QList<BuildProductPtr> &products, const CleanOptions &options,
+    CleanJob *cleanProducts(const QList<ResolvedProductPtr> &products, const CleanOptions &options,
                             QObject *jobOwner);
-    InstallJob *installProducts(const QList<BuildProductPtr> &products,
+    InstallJob *installProducts(const QList<ResolvedProductPtr> &products,
                                 const InstallOptions &options, bool needsDepencencyResolving,
                                 QObject *jobOwner);
-    QList<BuildProductPtr> internalProducts(const QList<ProductData> &products) const;
-    BuildProductPtr internalProduct(const ProductData &product) const;
+    QList<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
+    QList<ResolvedProductPtr> allEnabledInternalProducts() const;
+    ResolvedProductPtr internalProduct(const ProductData &product) const;
 
-    const BuildProjectPtr internalProject;
+    const ResolvedProjectPtr internalProject;
     Logger logger;
 
 private:
@@ -126,22 +125,22 @@ ProjectData ProjectPrivate::projectData()
     return m_projectData;
 }
 
-static void addDependencies(QList<BuildProductPtr> &products)
+static void addDependencies(QList<ResolvedProductPtr> &products)
 {
     for (int i = 0; i < products.count(); ++i) {
-        const BuildProductConstPtr &product = products.at(i);
-        foreach (const BuildProductPtr &dependency, product->dependencies) {
+        const ResolvedProductPtr &product = products.at(i);
+        foreach (const ResolvedProductPtr &dependency, product->dependencies) {
             if (!products.contains(dependency))
                 products << dependency;
         }
     }
 }
 
-BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
+BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &products,
                                         const BuildOptions &options, bool needsDepencencyResolving,
                                         const QProcessEnvironment &env, QObject *jobOwner)
 {
-    QList<BuildProductPtr> productsToBuild = products;
+    QList<ResolvedProductPtr> productsToBuild = products;
     if (needsDepencencyResolving)
         addDependencies(productsToBuild);
 
@@ -150,7 +149,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<BuildProductPtr> &products,
     return job;
 }
 
-CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
+CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &products,
         const CleanOptions &options, QObject *jobOwner)
 {
     CleanJob * const job = new CleanJob(logger, jobOwner);
@@ -158,10 +157,10 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<BuildProductPtr> &products,
     return job;
 }
 
-InstallJob *ProjectPrivate::installProducts(const QList<BuildProductPtr> &products,
+InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &products,
         const InstallOptions &options, bool needsDepencencyResolving, QObject *jobOwner)
 {
-    QList<BuildProductPtr> productsToInstall = products;
+    QList<ResolvedProductPtr> productsToInstall = products;
     if (needsDepencencyResolving)
         addDependencies(productsToInstall);
     InstallJob * const job = new InstallJob(logger, jobOwner);
@@ -169,9 +168,9 @@ InstallJob *ProjectPrivate::installProducts(const QList<BuildProductPtr> &produc
     return job;
 }
 
-QList<BuildProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
+QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
 {
-    QList<BuildProductPtr> internalProducts;
+    QList<ResolvedProductPtr> internalProducts;
     foreach (const ProductData &product, products) {
         if (product.isEnabled())
             internalProducts << internalProduct(product);
@@ -179,21 +178,30 @@ QList<BuildProductPtr> ProjectPrivate::internalProducts(const QList<ProductData>
     return internalProducts;
 }
 
-BuildProductPtr ProjectPrivate::internalProduct(const ProductData &product) const
+QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts() const
 {
-    foreach (const BuildProductPtr &buildProduct, internalProject->buildProducts()) {
-        if (product.name() == buildProduct->rProduct->name)
-            return buildProduct;
+    QList<ResolvedProductPtr> products;
+    foreach (const ResolvedProductPtr &p, internalProject->products) {
+        if (p->enabled)
+            products << p;
+    }
+    return products;
+}
+
+ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) const
+{
+    foreach (const ResolvedProductPtr &resolvedProduct, internalProject->products) {
+        if (product.name() == resolvedProduct->name)
+            return resolvedProduct;
     }
     qFatal("No build product '%s'", qPrintable(product.name()));
-    return BuildProductPtr();
+    return ResolvedProductPtr();
 }
 
 void ProjectPrivate::retrieveProjectData()
 {
-    m_projectData.m_location = internalProject->resolvedProject()->location;
-    foreach (const ResolvedProductConstPtr &resolvedProduct,
-             internalProject->resolvedProject()->products) {
+    m_projectData.m_location = internalProject->location;
+    foreach (const ResolvedProductConstPtr &resolvedProduct, internalProject->products) {
         ProductData product;
         product.m_name = resolvedProduct->name;
         product.m_location = resolvedProduct->location;
@@ -232,7 +240,7 @@ using namespace Internal;
   * \brief The \c Project class provides services related to a qbs project.
   */
 
-Project::Project(const BuildProjectPtr &internalProject, const Logger &logger)
+Project::Project(const ResolvedProjectPtr &internalProject, const Logger &logger)
     : d(new ProjectPrivate(internalProject, logger))
 {
 }
@@ -357,11 +365,11 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
 {
     if (!product.isEnabled())
         return QString();
-    const BuildProductConstPtr buildProduct = d->internalProduct(product);
-    if (!isExecutable(buildProduct->rProduct->properties, buildProduct->rProduct->fileTags))
+    const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
+    if (!isExecutable(internalProduct->properties, internalProduct->fileTags))
         return QString();
 
-    foreach (const Artifact * const artifact, buildProduct->targetArtifacts) {
+    foreach (const Artifact * const artifact, internalProduct->buildData->targetArtifacts) {
         if (isExecutable(artifact->properties, artifact->fileTags)) {
             if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 return artifact->filePath();
@@ -376,12 +384,13 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
             }
 
             if (installRoot.isEmpty()) {
-                installRoot = artifact->product->project->resolvedProject()->buildDirectory
+                installRoot = d->internalProject->buildDirectory
                         + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
             }
             QString installDir = artifact->properties
                     ->qbsPropertyValue(QLatin1String("installDir")).toString();
-            return QDir::cleanPath(installRoot + QLatin1Char('/') + installDir + QLatin1Char('/') + fileName);
+            return QDir::cleanPath(installRoot + QLatin1Char('/') + installDir + QLatin1Char('/')
+                                   + fileName);
         }
     }
     return QString();
@@ -391,7 +400,7 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
         const QProcessEnvironment &environment, Settings *settings) const
 {
     QBS_CHECK(product.isEnabled());
-    const ResolvedProductPtr resolvedProduct = d->internalProduct(product)->rProduct;
+    const ResolvedProductPtr resolvedProduct = d->internalProduct(product);
     return RunEnvironment(resolvedProduct, environment, settings, d->logger);
 }
 
@@ -402,8 +411,7 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
 BuildJob *Project::buildAllProducts(const BuildOptions &options, const QProcessEnvironment &env,
                                     QObject *jobOwner) const
 {
-    return d->buildProducts(d->internalProject->buildProducts().toList(), options, false, env,
-                            jobOwner);
+    return d->buildProducts(d->allEnabledInternalProducts(), options, false, env, jobOwner);
 }
 
 /*!
@@ -436,7 +444,7 @@ BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOption
  */
 CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwner) const
 {
-    return d->cleanProducts(d->internalProject->buildProducts().toList(), options, jobOwner);
+    return d->cleanProducts(d->allEnabledInternalProducts(), options, jobOwner);
 }
 
 /*!
@@ -465,8 +473,7 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const CleanOption
  */
 InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *jobOwner) const
 {
-    return d->installProducts(d->internalProject->buildProducts().toList(), options, false,
-                              jobOwner);
+    return d->installProducts(d->allEnabledInternalProducts(), options, false, jobOwner);
 }
 
 /*!
@@ -495,7 +502,7 @@ InstallJob *Project::installOneProduct(const ProductData &product, const Install
  */
 void Project::updateTimestamps(const QList<ProductData> &products)
 {
-    TimestampsUpdater().updateTimestamps(d->internalProducts(products));
+    TimestampsUpdater().updateTimestamps(d->internalProducts(products), d->logger);
 }
 
 } // namespace qbs

@@ -35,14 +35,8 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
-
-class BuildProject;
-typedef QSharedPointer<BuildProject> BuildProjectPtr;
-typedef QSharedPointer<const BuildProject> BuildProjectConstPtr;
-
-class BuildProduct;
-typedef QSharedPointer<BuildProduct> BuildProductPtr;
-typedef QSharedPointer<const BuildProduct> BuildProductConstPtr;
+class ProjectBuildData;
+class ProductBuildData;
 
 class Transformer;
 typedef QSharedPointer<Transformer> TransformerPtr;

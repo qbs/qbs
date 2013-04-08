@@ -31,7 +31,6 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
-#include "buildproduct.h"
 #include "command.h"
 #include "transformer.h"
 
@@ -89,10 +88,10 @@ public:
             scriptEngine->globalObject().setProperty("_qbs_transformer_ptr", scriptEngine->toScriptValue(trafoPtrStr));
 
             Artifact *someOutputArtifact = *transformer->outputs.begin();
-            if (someOutputArtifact->product) {
-                const ResolvedProductConstPtr product = someOutputArtifact->product->rProduct;
+            const ResolvedProductConstPtr product = someOutputArtifact->product.toStrongRef();
+            if (product) {
                 setupScriptEngineForProduct(scriptEngine, product, transformer->rule,
-                                                        scriptEngine->globalObject());
+                                            scriptEngine->globalObject());
             }
             transformer->setupInputs(scriptEngine, scriptEngine->globalObject());
             transformer->setupOutputs(scriptEngine, scriptEngine->globalObject());

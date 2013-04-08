@@ -30,8 +30,8 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
-#include "buildproduct.h"
-#include "buildproject.h"
+#include "productbuilddata.h"
+#include "projectbuilddata.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 #include <jsextensions/moduleproperties.h>
@@ -48,9 +48,9 @@
 namespace qbs {
 namespace Internal {
 
-RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-                                 const Logger &logger)
-    : m_buildProduct(product)
+RulesApplicator::RulesApplicator(const ResolvedProductPtr &product,
+                                 ArtifactsPerFileTagMap &artifactsPerFileTag, const Logger &logger)
+    : m_product(product)
     , m_artifactsPerFileTag(artifactsPerFileTag)
     , m_logger(logger)
     , m_productObjectId(-1)
@@ -59,8 +59,8 @@ RulesApplicator::RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &
 
 void RulesApplicator::applyAllRules()
 {
-    RulesEvaluationContext::Scope s(m_buildProduct->project->evaluationContext().data());
-    foreach (const RuleConstPtr &rule, m_buildProduct->topSortedRules())
+    RulesEvaluationContext::Scope s(m_product->project->buildData->evaluationContext.data());
+    foreach (const RuleConstPtr &rule, m_product->topSortedRules())
         applyRule(rule);
 }
 
@@ -68,7 +68,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
     QScriptValue scopeValue = scope();
-    setupScriptEngineForProduct(engine(), m_buildProduct->rProduct, m_rule, scopeValue, this);
+    setupScriptEngineForProduct(engine(), m_product, m_rule, scopeValue, this);
     Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
                "BG", "Product object is not in current scope.");
     m_productObjectId = scopeValue.property(QLatin1String("product")).objectId();
@@ -105,9 +105,10 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
     ArtifactList usingArtifacts;
     if (!m_rule->usings.isEmpty()) {
         const FileTags usingsFileTags = m_rule->usings;
-        foreach (const BuildProductPtr &dep, m_buildProduct->dependencies) {
+        foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
+            QBS_CHECK(dep->buildData);
             ArtifactList artifactsToCheck;
-            foreach (Artifact *targetArtifact, dep->targetArtifacts)
+            foreach (Artifact *targetArtifact, dep->buildData->targetArtifacts)
                 artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
                 FileTags matchingFileTags = artifact->fileTags;
@@ -146,7 +147,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         }
         m_transformer->outputs.insert(outputArtifact);
 
-        m_buildProduct->project->removeFromArtifactsThatMustGetNewTransformers(outputArtifact);
+        m_product->project->buildData->artifactsThatMustGetNewTransformers -= outputArtifact;
     }
 
     m_transformer->setupInputs(engine(), scope());
@@ -195,10 +196,10 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
 
     QString basedir;
     if (artifact->artifactType == Artifact::SourceFile) {
-        QDir sourceDir(m_buildProduct->rProduct->sourceDirectory);
+        QDir sourceDir(m_product->sourceDirectory);
         basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
     } else {
-        QDir buildDir(m_buildProduct->project->resolvedProject()->buildDirectory);
+        QDir buildDir(m_product->project->buildDirectory);
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
@@ -225,7 +226,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
     outputPath = resolveOutPath(outputPath);
 
-    Artifact *outputArtifact = m_buildProduct->lookupArtifact(outputPath);
+    Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
         if (outputArtifact->transformer && outputArtifact->transformer != m_transformer) {
             // This can happen when applying rules after scanning for additional file tags.
@@ -259,24 +260,24 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         }
         outputArtifact->fileTags += ruleArtifact->fileTags;
     } else {
-        outputArtifact = new Artifact(m_buildProduct->project);
+        outputArtifact = new Artifact(m_product->project);
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags;
         outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
-        m_buildProduct->insertArtifact(outputArtifact, m_logger);
+        insertArtifact(m_product, outputArtifact, m_logger);
     }
 
     if (outputArtifact->fileTags.isEmpty())
-        outputArtifact->fileTags = m_buildProduct->rProduct->fileTagsForFileName(outputArtifact->fileName());
+        outputArtifact->fileTags = m_product->fileTagsForFileName(outputArtifact->fileName());
 
     if (m_rule->multiplex)
-        outputArtifact->properties = m_buildProduct->rProduct->properties;
+        outputArtifact->properties = m_product->properties;
     else
         outputArtifact->properties= (*inputArtifacts.constBegin())->properties;
 
-    for (int i = 0; i < m_buildProduct->rProduct->artifactProperties.count(); ++i) {
-        const ArtifactPropertiesConstPtr &props = m_buildProduct->rProduct->artifactProperties.at(i);
+    for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
+        const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
         FileTags filter = props->fileTagsFilter();
         if (!filter.intersect(outputArtifact->fileTags).isEmpty()) {
             outputArtifact->properties = props->propertyMap();
@@ -302,7 +303,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 
 QString RulesApplicator::resolveOutPath(const QString &path) const
 {
-    QString buildDir = m_buildProduct->project->resolvedProject()->buildDirectory;
+    QString buildDir = m_product->project->buildDirectory;
     QString result = FileInfo::resolvePath(buildDir, path);
     result = QDir::cleanPath(result);
     return result;
@@ -310,7 +311,7 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
 
 RulesEvaluationContextPtr RulesApplicator::evalContext() const
 {
-    return m_buildProduct->project->evaluationContext();
+    return m_product->project->buildData->evaluationContext;
 }
 
 ScriptEngine *RulesApplicator::engine() const

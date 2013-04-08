@@ -31,9 +31,8 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
-#include "buildproduct.h"
-#include "buildproject.h"
-#include "rulesevaluationcontext.h"
+#include "productbuilddata.h"
+#include "projectbuilddata.h"
 #include "transformer.h"
 
 #include <language/language.h>
@@ -81,21 +80,23 @@ static QStringList collectIncludePaths(const QVariantMap &modules)
     return QStringList(collectedPaths.toList());
 }
 
-static ResolvedDependency resolveWithIncludePath(const QString &includePath, const ScanResultCache::Dependency &dependency, const BuildProduct *buildProduct)
+static ResolvedDependency resolveWithIncludePath(const QString &includePath,
+        const ScanResultCache::Dependency &dependency, const ResolvedProduct *product)
 {
     QString absDirPath = dependency.dirPath().isEmpty() ? includePath : FileInfo::resolvePath(includePath, dependency.dirPath());
     if (!dependency.isClean())
         absDirPath = QDir::cleanPath(absDirPath);
 
     ResolvedDependency result;
-    BuildProject *project = buildProduct->project;
+    const ResolvedProject *project = product->project.data();
     Artifact *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
     Artifact *dependencyInOtherProduct = 0;
-    foreach (Artifact *artifact, project->lookupArtifacts(absDirPath, dependency.fileName())) {
+    foreach (Artifact *artifact,
+             project->buildData->lookupArtifacts(absDirPath, dependency.fileName())) {
         if (artifact->artifactType == Artifact::FileDependency)
             fileDependencyArtifact = artifact;
-        else if (artifact->product == buildProduct)
+        else if (artifact->product == product)
             dependencyInProduct = artifact;
         else
             dependencyInOtherProduct = artifact;
@@ -258,7 +259,8 @@ void InputArtifactScanner::resolveScanResultDependencies(const QStringList &incl
             // try base directory of source file
             if (baseDirOfInFilePath.isNull())
                 baseDirOfInFilePath = FileInfo::path(filePathToBeScanned);
-            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, dependency, inputArtifact->product);
+            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, dependency,
+                                                        inputArtifact->product.data());
             if (resolvedDependency.isValid())
                 goto resolved;
         }
@@ -275,7 +277,8 @@ void InputArtifactScanner::resolveScanResultDependencies(const QStringList &incl
 
         // try include paths
         foreach (const QString &includePath, includePaths) {
-            resolvedDependency = resolveWithIncludePath(includePath, dependency, inputArtifact->product);
+            resolvedDependency = resolveWithIncludePath(includePath, dependency,
+                                                        inputArtifact->product.data());
             if (resolvedDependency.isValid()) {
                 cachedResolvedDependencyItem->valid = true;
                 cachedResolvedDependencyItem->resolvedDependency = resolvedDependency;
@@ -307,10 +310,10 @@ resolved:
 
 void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 {
-    BuildProduct *product = m_artifact->product;
+    const ResolvedProductPtr product = m_artifact->product;
     bool insertIntoProduct = true;
     QBS_CHECK(m_artifact->artifactType == Artifact::Generated);
-    QBS_CHECK(m_artifact->product);
+    QBS_CHECK(product);
 
     if (!dependency.artifact) {
         // The dependency is an existing file but does not exist in the build graph.
@@ -322,7 +325,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         dependency.artifact->artifactType = Artifact::FileDependency;
         dependency.artifact->properties = m_artifact->properties;
         dependency.artifact->setFilePath(dependency.filePath);
-        m_artifact->project->insertFileDependency(dependency.artifact);
+        m_artifact->project->buildData->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
         // The dependency exists in the project's list of file dependencies.
         if (m_logger.traceEnabled()) {
@@ -338,10 +341,10 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         insertIntoProduct = false;
     } else {
         // The dependency is in some other product.
-        BuildProduct *otherProduct = dependency.artifact->product;
+        ResolvedProduct * const otherProduct = dependency.artifact->product;
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  found in product '%1': '%2'")
-                                   .arg(otherProduct->rProduct->name, dependency.filePath);
+                                   .arg(otherProduct->name, dependency.filePath);
         }
         insertIntoProduct = false;
     }
@@ -354,8 +357,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     } else {
         if (m_artifact->children.contains(dependency.artifact))
             return;
-        if (insertIntoProduct && !product->artifacts.contains(dependency.artifact))
-            product->insertArtifact(dependency.artifact, m_logger);
+        if (insertIntoProduct && !product->buildData->artifacts.contains(dependency.artifact))
+            insertArtifact(product, dependency.artifact, m_logger);
         safeConnect(m_artifact, dependency.artifact, m_logger);
         m_newDependencyAdded = true;
     }

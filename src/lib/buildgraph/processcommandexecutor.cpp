@@ -30,7 +30,6 @@
 #include "processcommandexecutor.h"
 
 #include "artifact.h"
-#include "buildproduct.h"
 #include "command.h"
 #include "transformer.h"
 
@@ -276,7 +275,7 @@ void ProcessCommandExecutor::removeResponseFile()
 QString ProcessCommandExecutor::findProcessCommandInPath()
 {
     Artifact * const outputNode = *transformer()->outputs.begin();
-    ResolvedProduct * const product = outputNode->product->rProduct.data();
+    const ResolvedProductPtr product = outputNode->product;
     const ProcessCommand * const cmd = processCommand();
     QString fullProgramPath = product->executablePathCache.value(cmd->program());
     if (!fullProgramPath.isEmpty())
@@ -309,7 +308,7 @@ QString ProcessCommandExecutor::findProcessCommandInPath()
 QString ProcessCommandExecutor::findProcessCommandBySuffix()
 {
     Artifact * const outputNode = *transformer()->outputs.begin();
-    ResolvedProduct * const product = outputNode->product->rProduct.data();
+    const ResolvedProductPtr product = outputNode->product;
     const ProcessCommand * const cmd = processCommand();
     QString fullProgramPath = product->executablePathCache.value(cmd->program());
     if (!fullProgramPath.isEmpty())

@@ -49,7 +49,7 @@ typedef QMap<FileTag, ArtifactList> ArtifactsPerFileTagMap;
 class RulesApplicator : private ScriptPropertyObserver
 {
 public:
-    RulesApplicator(BuildProduct *product, ArtifactsPerFileTagMap &artifactsPerFileTag,
+    RulesApplicator(const ResolvedProductPtr &product, ArtifactsPerFileTagMap &artifactsPerFileTag,
                     const Logger &logger);
     void applyAllRules();
     void applyRule(const RuleConstPtr &rule);
@@ -65,7 +65,7 @@ private:
     QScriptValue scope() const;
     void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
 
-    BuildProduct * const m_buildProduct;
+    const ResolvedProductPtr m_product;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
 
     RuleConstPtr m_rule;

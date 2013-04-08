@@ -31,8 +31,7 @@
 
 #include <QList>
 
-#include "forward_decls.h"
-
+#include <language/forward_decls.h>
 #include <logging/logger.h>
 
 namespace qbs {
@@ -45,7 +44,7 @@ class ArtifactCleaner
 {
 public:
     ArtifactCleaner(const Logger &logger, ProgressObserver *observer);
-    void cleanup(const QList<BuildProductPtr> &products, const CleanOptions &options);
+    void cleanup(const QList<ResolvedProductPtr> &products, const CleanOptions &options);
 
 private:
     void removeEmptyDirectories(const QString &rootDir, const CleanOptions &options,

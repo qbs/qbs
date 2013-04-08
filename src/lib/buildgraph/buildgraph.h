@@ -26,21 +26,37 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-
 #ifndef QBS_BUILDGRAPH_H
 #define QBS_BUILDGRAPH_H
 
+#include "forward_decls.h"
+#include "rulesapplicator.h"
+
 #include <language/forward_decls.h>
+#include <logging/logger.h>
 
 #include <QScriptValue>
 #include <QStringList>
 
 namespace qbs {
+class SetupProjectParameters;
 namespace Internal {
-class Artifact;
 class Logger;
 class ScriptEngine;
 class ScriptPropertyObserver;
+
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
+                         const QString &fileName);
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath);
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact *artifact);
+
+Artifact *createArtifact(const ResolvedProductPtr &product,
+                         const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
+void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const Logger &logger);
+void addTargetArtifacts(const ResolvedProductPtr &product,
+                        ArtifactsPerFileTagMap &artifactsPerFileTag, const Logger &logger);
+void dumpProductBuildData(const ResolvedProductConstPtr &product);
+
 
 bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
 void connect(Artifact *p, Artifact *c);
@@ -62,6 +78,40 @@ QStringList toStringList(const T &artifactContainer)
         l.append(relativeArtifactFileName(n));
     return l;
 }
+
+class BuildGraphLoader
+{
+public:
+    BuildGraphLoader(const Logger &logger);
+
+    class LoadResult
+    {
+    public:
+        LoadResult() : discardLoadedProject(false) {}
+
+        ResolvedProjectPtr newlyResolvedProject;
+        ResolvedProjectPtr loadedProject;
+        bool discardLoadedProject;
+    };
+
+    LoadResult load(const SetupProjectParameters &parameters,
+                    const RulesEvaluationContextPtr &evalContext);
+
+private:
+    void trackProjectChanges(const SetupProjectParameters &parameters,
+                             const QString &buildGraphFilePath,
+                             const ResolvedProjectPtr &restoredProject);
+    void onProductRemoved(const ResolvedProductPtr &product);
+    void onProductChanged(const ResolvedProductPtr &product,
+                          const ResolvedProductPtr &changedProduct);
+    void removeArtifactAndExclusiveDependents(Artifact *artifact,
+                                              QList<Artifact*> *removedArtifacts = 0);
+    bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
+
+    RulesEvaluationContextPtr m_evalContext;
+    LoadResult m_result;
+    Logger m_logger;
+};
 
 } // namespace Internal
 } // namespace qbs

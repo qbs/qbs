@@ -30,11 +30,11 @@
 
 #include "artifact.h"
 #include "artifactvisitor.h"
-#include "buildproduct.h"
-#include "buildproject.h"
-#include "rulesevaluationcontext.h"
+#include "productbuilddata.h"
+#include "projectbuilddata.h"
 #include <language/language.h>
 #include <tools/filetime.h>
+#include <tools/qbsassert.h>
 
 #include <QFile>
 
@@ -47,13 +47,14 @@ public:
     TimestampsUpdateVisitor()
         : ArtifactVisitor(Artifact::Generated), m_now(FileTime::currentTime()) {}
 
-    void visitProduct(const BuildProductConstPtr &product)
+    void visitProduct(const ResolvedProductPtr &product)
     {
+        QBS_CHECK(product->buildData);
         ArtifactVisitor::visitProduct(product);
 
         // For target artifacts, we have to update the on-disk timestamp, because
         // the executor will look at it.
-        foreach (Artifact * const targetArtifact, product->targetArtifacts) {
+        foreach (Artifact * const targetArtifact, product->buildData->targetArtifacts) {
             if (FileInfo(targetArtifact->filePath()).exists())
                 QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
         }
@@ -69,14 +70,15 @@ private:
     FileTime m_now;
 };
 
-void TimestampsUpdater::updateTimestamps(const QList<BuildProductPtr> &products)
+void TimestampsUpdater::updateTimestamps(const QList<ResolvedProductPtr> &products,
+                                         const Logger &logger)
 {
     TimestampsUpdateVisitor v;
-    foreach (const BuildProductPtr &product, products)
+    foreach (const ResolvedProductPtr &product, products)
         v.visitProduct(product);
-    BuildProject * const project = products.first()->project;
-    project->markDirty();
-    project->store();
+    const ResolvedProjectPtr project = products.first()->project;
+    project->buildData->isDirty = true;
+    project->store(logger);
 }
 
 } // namespace Internal

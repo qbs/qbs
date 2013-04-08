@@ -36,14 +36,12 @@
 #include <language/forward_decls.h>
 #include <tools/filetime.h>
 #include <tools/persistentobject.h>
+#include <tools/weakpointer.h>
 
 #include <QString>
 
 namespace qbs {
 namespace Internal {
-
-class BuildProduct;
-class BuildProject;
 class Logger;
 
 /**
@@ -57,15 +55,20 @@ class Logger;
 class Artifact : public PersistentObject
 {
 public:
-    Artifact(BuildProject *p = 0);
+    // We could save one constructor here by using a default argument, but then we'd have to
+    // include language.h in every file that includes artifact.h due to Qt 4's weird
+    // QSharedPointer implementation.
+    Artifact();
+    explicit Artifact(const ResolvedProjectPtr &project);
+
     ~Artifact();
 
     ArtifactList parents;
     ArtifactList children;
     ArtifactList fileDependencies;
     FileTags fileTags;
-    BuildProject *project;
-    BuildProduct *product;          // Note: file dependency artifacts don't belong to a product.
+    WeakPointer<ResolvedProject> project;
+    WeakPointer<ResolvedProduct> product;          // Note: file dependency artifacts don't belong to a product.
     TransformerPtr transformer;
     PropertyMapPtr properties;
 
@@ -93,6 +96,7 @@ public:
     bool timestampRetrieved : 1;            // Do not serialize. Will be refreshed for every build.
     bool alwaysUpdated : 1;
 
+    void initialize();
     void setFilePath(const QString &filePath);
     const QString &filePath() const { return m_filePath; }
     QString dirPath() const { return m_dirPath.toString(); }

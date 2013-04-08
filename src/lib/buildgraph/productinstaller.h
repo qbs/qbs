@@ -30,6 +30,8 @@
 #define QBS_PRODUCT_INSTALLER_H
 
 #include "forward_decls.h"
+
+#include <language/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/installoptions.h>
 
@@ -42,7 +44,7 @@ class ProgressObserver;
 class ProductInstaller
 {
 public:
-    ProductInstaller(const QList<BuildProductPtr> &products, const InstallOptions &options,
+    ProductInstaller(const QList<ResolvedProductPtr> &products, const InstallOptions &options,
                      ProgressObserver *observer, const Logger &logger);
     void install();
 
@@ -51,7 +53,7 @@ private:
     void copyFile(const Artifact *artifact);
     void handleError(const QString &message);
 
-    const QList<BuildProductPtr> m_products;
+    const QList<ResolvedProductPtr> m_products;
     InstallOptions m_options;
     ProgressObserver * const m_observer;
     Logger m_logger;

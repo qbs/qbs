@@ -29,7 +29,7 @@
 #ifndef QBS_PROJECT_H
 #define QBS_PROJECT_H
 
-#include "../buildgraph/forward_decls.h"
+#include "../language/forward_decls.h"
 #include "../tools/qbs_export.h"
 
 #include <QExplicitlySharedDataPointer>
@@ -56,7 +56,6 @@ class SetupProjectJob;
 class SetupProjectParameters;
 
 namespace Internal {
-class BuildProject;
 class Logger;
 class ProjectPrivate;
 } // namespace Internal;
@@ -104,7 +103,7 @@ public:
 
 private:
     Project();
-    Project(const Internal::BuildProjectPtr &internalProject, const Internal::Logger &logger);
+    Project(const Internal::ResolvedProjectPtr &internalProject, const Internal::Logger &logger);
 
     QExplicitlySharedDataPointer<Internal::ProjectPrivate> d;
 };

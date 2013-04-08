@@ -29,15 +29,14 @@
 #include "productinstaller.h"
 
 #include "artifact.h"
-#include "buildproduct.h"
-#include "buildproject.h"
-#include "rulesevaluationcontext.h"
+#include "productbuilddata.h"
 #include <language/language.h>
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -45,7 +44,7 @@
 namespace qbs {
 namespace Internal {
 
-ProductInstaller::ProductInstaller(const QList<BuildProductPtr> &products,
+ProductInstaller::ProductInstaller(const QList<ResolvedProductPtr> &products,
         const InstallOptions &options, ProgressObserver *observer, const Logger &logger)
     : m_products(products), m_options(options), m_observer(observer), m_logger(logger)
 {
@@ -65,11 +64,11 @@ ProductInstaller::ProductInstaller(const QList<BuildProductPtr> &products,
     if (m_products.isEmpty())
         throw Error(Tr::tr("Cannot deduce install root, because there are no products."));
 
-    const BuildProductConstPtr &product = m_products.first();
-    m_options.installRoot = product->rProduct->properties
-            ->qbsPropertyValue(QLatin1String("sysroot")).toString();
+    const ResolvedProductConstPtr &product = m_products.first();
+    m_options.installRoot
+            = product->properties->qbsPropertyValue(QLatin1String("sysroot")).toString();
     if (m_options.installRoot.isEmpty()) {
-        m_options.installRoot = product->project->resolvedProject()->buildDirectory
+        m_options.installRoot = product->project->buildDirectory
                 + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
     } else if (m_options.removeFirst) {
         throw Error(Tr::tr("Refusing to remove sysroot."));
@@ -82,8 +81,9 @@ void ProductInstaller::install()
         removeInstallRoot();
 
     QList<const Artifact *> artifactsToInstall;
-    foreach (const BuildProductConstPtr &product, m_products) {
-        foreach (const Artifact *artifact, product->artifacts) {
+    foreach (const ResolvedProductConstPtr &product, m_products) {
+        QBS_CHECK(product->buildData);
+        foreach (const Artifact *artifact, product->buildData->artifacts) {
             if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 artifactsToInstall += artifact;
         }

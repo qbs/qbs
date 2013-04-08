@@ -29,7 +29,7 @@
 #ifndef QBS_JOBS_H
 #define QBS_JOBS_H
 
-#include "../buildgraph/forward_decls.h"
+#include "../language/forward_decls.h"
 #include "../tools/error.h"
 #include "../tools/qbs_export.h"
 
@@ -114,8 +114,8 @@ signals:
 private:
     BuildJob(const Internal::Logger &logger, QObject *parent);
 
-    void build(const QList<Internal::BuildProductPtr> &products, const BuildOptions &options,
-               const QProcessEnvironment &env);
+    void build(const QList<qbs::Internal::ResolvedProductPtr> &products,
+               const BuildOptions &options, const QProcessEnvironment &env);
 };
 
 
@@ -127,7 +127,7 @@ class QBS_EXPORT CleanJob : public AbstractJob
 private:
     CleanJob(const Internal::Logger &logger, QObject *parent);
 
-    void clean(const QList<Internal::BuildProductPtr> &products, const CleanOptions &options);
+    void clean(const QList<Internal::ResolvedProductPtr> &products, const CleanOptions &options);
 };
 
 class QBS_EXPORT InstallJob : public AbstractJob
@@ -137,7 +137,8 @@ class QBS_EXPORT InstallJob : public AbstractJob
 private:
     InstallJob(const Internal::Logger &logger, QObject *parent);
 
-    void install(const QList<Internal::BuildProductPtr> &products, const InstallOptions &options);
+    void install(const QList<Internal::ResolvedProductPtr> &products,
+                 const InstallOptions &options);
 };
 
 } // namespace qbs

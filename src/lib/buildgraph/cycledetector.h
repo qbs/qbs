@@ -42,7 +42,7 @@ class CycleDetector : public ArtifactVisitor
 public:
     CycleDetector(const Logger &logger);
 
-    void visitProject(const BuildProjectConstPtr &project);
+    void visitProject(const ResolvedProjectConstPtr &project);
     void visitArtifact(Artifact *artifact);
 
 private:

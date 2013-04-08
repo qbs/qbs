@@ -29,7 +29,6 @@
 
 #include "executorjob.h"
 
-#include "buildproduct.h"
 #include "command.h"
 #include "jscommandexecutor.h"
 #include "processcommandexecutor.h"
@@ -79,7 +78,7 @@ void ExecutorJob::setDryRun(bool enabled)
     m_jsCommandExecutor->setDryRunEnabled(enabled);
 }
 
-void ExecutorJob::run(Transformer *t, const BuildProduct *buildProduct)
+void ExecutorJob::run(Transformer *t, const ResolvedProductPtr &product)
 {
     QBS_ASSERT(m_currentCommandIdx == -1, return);
 
@@ -88,7 +87,7 @@ void ExecutorJob::run(Transformer *t, const BuildProduct *buildProduct)
         return;
     }
 
-    m_processCommandExecutor->setProcessEnvironment(buildProduct->rProduct->buildEnvironment);
+    m_processCommandExecutor->setProcessEnvironment(product->buildEnvironment);
 
     m_transformer = t;
     runNextCommand();

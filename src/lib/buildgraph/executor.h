@@ -33,14 +33,14 @@
 #include "forward_decls.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/scanresultcache.h>
+#include <language/forward_decls.h>
+
 #include <logging/logger.h>
 #include <tools/buildoptions.h>
 #include <tools/error.h>
-#include <tools/settings.h>
 
 #include <QObject>
 #include <QProcessEnvironment>
-#include <QVariant>
 
 namespace qbs {
 class ProcessResult;
@@ -51,7 +51,6 @@ class ExecutorJob;
 class FileTime;
 class InputArtifactScannerContext;
 class ProgressObserver;
-class ScanResultCache;
 
 class Executor : public QObject
 {
@@ -64,7 +63,7 @@ public:
     Executor(const Logger &logger, QObject *parent = 0);
     ~Executor();
 
-    void setProducts(const QList<BuildProductPtr> &productsToBuild);
+    void setProducts(const QList<ResolvedProductPtr> &productsToBuild);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
     void setBaseEnvironment(const QProcessEnvironment &env) { m_baseEnvironment = env; }
@@ -124,7 +123,7 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
-    QList<BuildProductPtr> m_productsToBuild;
+    QList<ResolvedProductPtr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QList<Artifact *> m_leaves;
     ScanResultCache m_scanResultCache;

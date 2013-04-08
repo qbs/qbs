@@ -26,13 +26,11 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_BUILDPRODUCT_H
-#define QBS_BUILDPRODUCT_H
+#ifndef QBS_PRODUCTBUILDDATA_H
+#define QBS_PRODUCTBUILDDATA_H
 
 #include "artifactlist.h"
-#include "forward_decls.h"
 #include <language/forward_decls.h>
-#include <tools/weakpointer.h>
 
 #include <tools/persistentobject.h>
 
@@ -43,38 +41,20 @@ namespace qbs {
 namespace Internal {
 class Logger;
 
-class BuildProduct : public PersistentObject
+class ProductBuildData : public PersistentObject
 {
 public:
-    static BuildProductPtr create() { return BuildProductPtr(new BuildProduct); }
+    ~ProductBuildData();
 
-    ~BuildProduct();
-
-    void dump() const;
-    const QList<RuleConstPtr> &topSortedRules() const;
-    Artifact *lookupArtifact(const QString &dirPath, const QString &fileName) const;
-    Artifact *lookupArtifact(const QString &filePath) const;
-    Artifact *lookupArtifact(const Artifact *artifact) const;
-    Artifact *createArtifact(const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
-    void insertArtifact(Artifact *n, const Logger &logger);
-
-    WeakPointer<BuildProject> project;
-    ResolvedProductPtr rProduct;
     QSet<Artifact *> targetArtifacts;
-    QList<BuildProductPtr> dependencies;
     ArtifactList artifacts;
-
-private:
-    BuildProduct();
+    QList<RuleConstPtr> topSortedRules;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
-
-private:
-    mutable QList<RuleConstPtr> m_topSortedRules;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_BUILDPRODUCT_H
+#endif // QBS_PRODUCTBUILDDATA_H

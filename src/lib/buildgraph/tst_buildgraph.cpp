@@ -29,7 +29,7 @@
 #include "tst_buildgraph.h"
 
 #include <buildgraph/artifact.h>
-#include <buildgraph/buildproduct.h>
+#include <buildgraph/productbuilddata.h>
 #include <buildgraph/cycledetector.h>
 #include <language/language.h>
 #include <logging/logger.h>
@@ -54,7 +54,7 @@ void TestBuildGraph::cleanupTestCase()
 }
 
 
-bool TestBuildGraph::cycleDetected(const BuildProductConstPtr &product)
+bool TestBuildGraph::cycleDetected(const ResolvedProductConstPtr &product)
 {
     try {
         CycleDetector(Logger(m_logSink)).visitProduct(product);
@@ -64,19 +64,20 @@ bool TestBuildGraph::cycleDetected(const BuildProductConstPtr &product)
     }
 }
 
-BuildProductConstPtr TestBuildGraph::productWithDirectCycle()
+ResolvedProductConstPtr TestBuildGraph::productWithDirectCycle()
 {
     Artifact * const root = new Artifact;
     Artifact * const child = new Artifact;
     m_artifacts << root << child;
     root->children.insert(child);
     child->children.insert(root);
-    const BuildProductPtr product = BuildProduct::create();
-    product->targetArtifacts.insert(root);
+    const ResolvedProductPtr product = ResolvedProduct::create();
+    product->buildData.reset(new ProductBuildData);
+    product->buildData->targetArtifacts.insert(root);
     return product;
 }
 
-BuildProductConstPtr TestBuildGraph::productWithLessDirectCycle()
+ResolvedProductConstPtr TestBuildGraph::productWithLessDirectCycle()
 {
     Artifact * const root = new Artifact;
     Artifact * const child = new Artifact;
@@ -85,20 +86,22 @@ BuildProductConstPtr TestBuildGraph::productWithLessDirectCycle()
     root->children.insert(child);
     child->children.insert(grandchild);
     grandchild->children.insert(root);
-    const BuildProductPtr product = BuildProduct::create();
-    product->targetArtifacts << root;
+    const ResolvedProductPtr product = ResolvedProduct::create();
+    product->buildData.reset(new ProductBuildData);
+    product->buildData->targetArtifacts << root;
     return product;
 }
 
 // root appears as a child, but in a different tree
-BuildProductConstPtr TestBuildGraph::productWithNoCycle()
+ResolvedProductConstPtr TestBuildGraph::productWithNoCycle()
 {
     Artifact * const root = new Artifact;
     Artifact * const root2 = new Artifact;
     m_artifacts << root << root2;
     root2->children.insert(root);
-    const BuildProductPtr product = BuildProduct::create();
-    product->targetArtifacts << root << root2;
+    const ResolvedProductPtr product = ResolvedProduct::create();
+    product->buildData.reset(new ProductBuildData);
+    product->buildData->targetArtifacts << root << root2;
     return product;
 }
 
