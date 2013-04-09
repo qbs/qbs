@@ -547,6 +547,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, const ItemP
     copyProperty(QLatin1String("project"), productContext->project->scope, moduleScope);
     copyProperty(QLatin1String("product"), productContext->scope, moduleScope);
     moduleInstance->setScope(moduleScope);
+    moduleInstance->setModuleInstanceFlag(true);
 
     QHash<ItemPtr, ItemPtr> prototypeInstanceMap;
     prototypeInstanceMap[modulePrototype] = moduleInstance;

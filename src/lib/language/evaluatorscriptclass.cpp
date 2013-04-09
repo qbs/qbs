@@ -50,6 +50,7 @@ class SVConverter : ValueHandler
     QScriptContext *const scriptContext;
     const QScriptValue *object;
     const ValuePtr &valuePtr;
+    const bool inPrototype;
     char pushedScopesCount;
 
 public:
@@ -57,12 +58,14 @@ public:
     const EvaluationData *data;
     QScriptValue *result;
 
-    SVConverter(EvaluatorScriptClass *esc, const QScriptValue *obj, const ValuePtr &v)
+    SVConverter(EvaluatorScriptClass *esc, const QScriptValue *obj, const ValuePtr &v,
+                bool _inPrototype)
         : scriptClass(esc)
         , engine(esc->engine())
         , scriptContext(esc->engine()->currentContext())
         , object(obj)
         , valuePtr(v)
+        , inPrototype(_inPrototype)
         , pushedScopesCount(0)
     {
     }
@@ -157,7 +160,7 @@ private:
         if (value->sourceUsesBase()) {
             QScriptValue baseValue;
             if (value->baseValue()) {
-                SVConverter converter(scriptClass, object, value->baseValue());
+                SVConverter converter(scriptClass, object, value->baseValue(), inPrototype);
                 converter.propertyName = propertyName;
                 converter.data = data;
                 converter.result = &baseValue;
@@ -171,11 +174,13 @@ private:
 
         pushScope(data->evaluator->fileScope(value->file()));
         pushItemScopes(data->item);
-        scriptContext->pushScope(*object);
+        if (inPrototype || !data->item->isModuleInstance()) {
+            // Own properties of module instances must not have the instance itself in the scope.
+            pushScope(*object);
+        }
         pushScope(extraScope);
         *result = engine->evaluate(value->sourceCode());
         popScopes();
-        scriptContext->popScope();
     }
 
     void handle(ItemValue *value)
@@ -255,6 +260,8 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
         m_queryResult.value = item->properties().value(name);
         if (!m_queryResult.value.isNull()) {
             m_queryResult.data = data;
+            if (data->item != item)
+                m_queryResult.inPrototype = true;
             return HandlesReadAccess;
         }
     }
@@ -297,7 +304,9 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
                                             uint id)
 {
     const EvaluationData *data = m_queryResult.data;
+    const bool inPrototype = m_queryResult.inPrototype;
     m_queryResult.data = 0;
+    m_queryResult.inPrototype = false;
     QBS_ASSERT(data, return QScriptValue());
 
     const QueryPropertyType qpt = static_cast<QueryPropertyType>(id);
@@ -321,7 +330,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         return result;
     }
 
-    SVConverter converter(this, &object, value);
+    SVConverter converter(this, &object, value, inPrototype);
     converter.propertyName = &name;
     converter.data = data;
     converter.result = &result;

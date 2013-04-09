@@ -72,6 +72,7 @@ public:
     const CodeLocation &location() const;
     const ItemPtr &prototype() const;
     ItemPtr scope() const;
+    bool isModuleInstance() const;
     WeakPointer<Item> outerItem() const;
     WeakPointer<Item> parent() const;
     const FileContextPtr file() const;
@@ -93,6 +94,7 @@ public:
     void setPrototype(const ItemPtr &prototype);
     void setFile(const FileContextPtr &file);
     void setScope(const ItemPtr &item);
+    void setModuleInstanceFlag(bool b);
     void setOuterItem(const ItemPtr &item);
     void setChildren(const QList<ItemPtr> &children);
     void setParent(const ItemPtr &item);
@@ -105,6 +107,7 @@ private:
     CodeLocation m_location;
     ItemPtr m_prototype;
     ItemPtr m_scope;
+    bool m_moduleInstance;
     WeakPointer<Item> m_outerItem;
     WeakPointer<Item> m_parent;
     QList<ItemPtr> m_children;
@@ -138,6 +141,11 @@ inline const ItemPtr &Item::prototype() const
 inline ItemPtr Item::scope() const
 {
     return m_scope;
+}
+
+inline bool Item::isModuleInstance() const
+{
+    return m_moduleInstance;
 }
 
 inline WeakPointer<Item> Item::outerItem() const
@@ -200,6 +208,11 @@ inline void Item::setFile(const FileContextPtr &file)
 inline void Item::setScope(const ItemPtr &item)
 {
     m_scope = item;
+}
+
+inline void Item::setModuleInstanceFlag(bool b)
+{
+    m_moduleInstance = b;
 }
 
 inline void Item::setOuterItem(const ItemPtr &item)

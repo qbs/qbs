@@ -36,6 +36,7 @@ namespace Internal {
 
 Item::Item()
     : m_propertyObserver(0)
+    , m_moduleInstance(false)
 {
 }
 

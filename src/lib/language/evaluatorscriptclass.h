@@ -70,7 +70,7 @@ private:
     struct QueryResult
     {
         QueryResult()
-            : data(0)
+            : data(0), inPrototype(false)
         {}
 
         bool isNull() const
@@ -79,6 +79,7 @@ private:
         }
 
         const EvaluationData *data;
+        bool inPrototype;
         ValuePtr value;
     };
     QueryResult m_queryResult;

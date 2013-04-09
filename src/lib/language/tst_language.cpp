@@ -637,7 +637,6 @@ void TestLanguage::moduleScope()
         QCOMPARE(ipf.intValue("d"), 2);     // genuine, dependent on genuine value
         QCOMPARE(ipf.intValue("e"), 1);     // genuine
         QCOMPARE(ipf.intValue("f"), 2);     // overridden
-        QEXPECT_FAIL("", "QBS-252", Abort);
         QCOMPARE(ipf.intValue("g"), 156);   // overridden, dependent on product properties
         QCOMPARE(ipf.intValue("h"), 158);   // overridden, base dependent on product properties
     }
