@@ -152,6 +152,11 @@ InstallOptions CommandLineParser::installOptions() const
     InstallOptions options;
     options.removeFirst = d->optionPool.removeFirstoption()->enabled();
     options.installRoot = d->optionPool.installRootOption()->installRoot();
+    if (!options.installRoot.isEmpty()) {
+        QFileInfo fi(options.installRoot);
+        if (!fi.isAbsolute())
+            options.installRoot = fi.absoluteFilePath();
+    }
     options.dryRun = buildOptions().dryRun;
     options.keepGoing = buildOptions().keepGoing;
     options.logElapsedTime = logTime();

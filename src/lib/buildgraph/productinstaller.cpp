@@ -34,6 +34,7 @@
 #include "rulesevaluationcontext.h"
 #include <language/language.h>
 #include <logging/translator.h>
+#include <tools/qbsassert.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
@@ -49,8 +50,10 @@ ProductInstaller::ProductInstaller(const QList<BuildProductPtr> &products,
     : m_products(products), m_options(options), m_observer(observer), m_logger(logger)
 {
     if (!m_options.installRoot.isEmpty()) {
+        QFileInfo installRootFileInfo(m_options.installRoot);
+        QBS_ASSERT(installRootFileInfo.isAbsolute(), /* just complain */);
         if (m_options.removeFirst) {
-            const QString cfp = QFileInfo(m_options.installRoot).canonicalFilePath();
+            const QString cfp = installRootFileInfo.canonicalFilePath();
             if (cfp == QFileInfo(QDir::rootPath()).canonicalFilePath())
                 throw Error(Tr::tr("Refusing to remove root directory."));
             if (cfp == QFileInfo(QDir::homePath()).canonicalFilePath())
