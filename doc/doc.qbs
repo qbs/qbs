@@ -16,7 +16,7 @@ Product {
         fileTags: "qdocconf-main"
     }
 
-    property string versionTag: "030" // TODO: Derive from project.version
+    property string versionTag: project.version.replace(/\.|-/g, "")
     qt.core.qdocQhpFileName: "qbs.qhp"
     qt.core.qdocEnvironment: [
         "QBS_VERSION=" + project.version,
