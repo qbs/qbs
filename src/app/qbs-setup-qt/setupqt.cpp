@@ -122,24 +122,25 @@ static QByteArray readFileContent(const QString &filePath)
     return QByteArray();
 }
 
-static QByteArray configVariable(const QByteArray &configContent, const QByteArray &key)
+static QString configVariable(const QByteArray &configContent, const QString &key)
 {
-    QRegExp regularExpression(QString(".*%1\\s*\\+{0,1}=(.*)").arg(QString::fromLatin1(key)), Qt::CaseSensitive);
+    QRegExp regexp(QLatin1String("\\s*") + key + QLatin1String("\\s*\\+{0,1}=(.*)"),
+                   Qt::CaseSensitive);
 
     QList<QByteArray> configContentLines = configContent.split('\n');
 
     bool success = false;
 
     foreach (const QByteArray &configContentLine, configContentLines) {
-        success = regularExpression.exactMatch(configContentLine);
+        success = regexp.exactMatch(configContentLine);
         if (success)
             break;
     }
 
     if (success)
-        return regularExpression.capturedTexts()[1].simplified().toLatin1();
+        return regexp.capturedTexts()[1].simplified();
 
-    return QByteArray();
+    return QString();
 }
 
 static Version extractVersion(const QString &versionString)
@@ -184,7 +185,8 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
-    qtEnvironment.configItems = QString(configVariable(qconfigContent, "CONFIG")).split(QLatin1Char(' '), QString::SkipEmptyParts);
+    qtEnvironment.configItems = configVariable(qconfigContent, QLatin1String("CONFIG")).split(
+                QLatin1Char(' '), QString::SkipEmptyParts);
 
     // read mkspec
     if (qtVersion.majorVersion >= 5) {
