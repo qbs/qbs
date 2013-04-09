@@ -109,7 +109,7 @@ private:
 
     void popScopes()
     {
-        for (; pushedScopesCount-- > 0;)
+        for (; pushedScopesCount; --pushedScopesCount)
             scriptContext->popScope();
     }
 
