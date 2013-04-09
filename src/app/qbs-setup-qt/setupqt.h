@@ -51,10 +51,12 @@ public:
     QString qtNameSpace;
     QString mkspecPath;
     QStringList configItems;
+    QStringList qtConfigItems;
     QString qtVersion;
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
+    bool staticBuild;
 };
 
 class SetupQt

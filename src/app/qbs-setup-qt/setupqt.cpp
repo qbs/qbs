@@ -143,6 +143,11 @@ static QString configVariable(const QByteArray &configContent, const QString &ke
     return QString();
 }
 
+static QStringList configVariableItems(const QByteArray &configContent, const QString &key)
+{
+    return configVariable(configContent, key).split(QLatin1Char(' '), QString::SkipEmptyParts);
+}
+
 static Version extractVersion(const QString &versionString)
 {
     Version v;
@@ -185,20 +190,25 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
-    qtEnvironment.configItems = configVariable(qconfigContent, QLatin1String("CONFIG")).split(
-                QLatin1Char(' '), QString::SkipEmptyParts);
+    qtEnvironment.configItems = configVariableItems(qconfigContent, QLatin1String("CONFIG"));
+    qtEnvironment.qtConfigItems = configVariableItems(qconfigContent, QLatin1String("QT_CONFIG"));
 
-    // read mkspec
     if (qtVersion.majorVersion >= 5) {
         const QString mkspecName = queryOutput.value("QMAKE_XSPEC");
         qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
+        qtEnvironment.staticBuild = qtEnvironment.qtConfigItems.contains(QLatin1String("static"));
     } else {
+        QDir libdir(qtEnvironment.libraryPath);
+        QStringList dylibs;
         if (HostOsInfo::isWindowsHost()) {
             const QByteArray fileContent = readFileContent(mkspecsBasePath + "/default/qmake.conf");
             qtEnvironment.mkspecPath = configVariable(fileContent, "QMAKESPEC_ORIGINAL");
+            dylibs = libdir.entryList(QStringList() << QLatin1String("*Core*.dll"), QDir::Files);
         } else {
             qtEnvironment.mkspecPath = QFileInfo(mkspecsBasePath + "/default").symLinkTarget();
+            dylibs = libdir.entryList(QStringList() << QLatin1String("*Core*.so"), QDir::Files);
         }
+        qtEnvironment.staticBuild = dylibs.isEmpty();
     }
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
@@ -224,6 +234,9 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     profile.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
     profile.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
+    if (qtEnviroment.staticBuild)
+        profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")),
+                         qtEnviroment.staticBuild);
 
     QDir qconfigDir;
     if (qtEnviroment.mkspecPath.contains("macx")) {

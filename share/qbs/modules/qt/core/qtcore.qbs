@@ -28,6 +28,7 @@ Module {
     property var versionMinor: versionParts[1]
     property var versionPatch: versionParts[2]
     property bool frameworkBuild
+    property bool staticBuild
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: {
         if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
