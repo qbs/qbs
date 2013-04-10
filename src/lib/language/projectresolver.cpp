@@ -220,7 +220,7 @@ void ProjectResolver::resolveProduct(const ItemPtr &item)
         item->setProperty("name", VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
-    m_projectContext->productsByName.insert(product->name.toLower(), product);
+    m_projectContext->productsByName.insert(product->name, product);
     product->enabled = boolValue(item, QLatin1String("condition"), true);
     product->additionalFileTags = fileTagsValue(item, QLatin1String("additionalFileTags"));
     product->fileTags = fileTagsValue(item, QLatin1String("type"));
@@ -589,7 +589,7 @@ void ProjectResolver::resolveTransformer(const ItemPtr &item)
 void ProjectResolver::resolveProductModule(const ItemPtr &item)
 {
     checkCancelation();
-    const QString &productName = m_productContext->product->name.toLower();
+    const QString &productName = m_productContext->product->name;
     m_projectContext->productModules[productName] = evaluateModuleValues(item);
 }
 

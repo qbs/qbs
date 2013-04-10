@@ -254,7 +254,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     printf("%s\n", qPrintable(msg));
 
     Profile profile(qtVersionName, settings);
-    const QString settingsTemplate(QLatin1String("qt.core.%1"));
+    const QString settingsTemplate(QLatin1String("Qt.core.%1"));
     profile.setValue(settingsTemplate.arg("binPath"), qtEnvironment.binaryPath);
     profile.setValue(settingsTemplate.arg("libPath"), qtEnvironment.libraryPath);
     profile.setValue(settingsTemplate.arg("incPath"), qtEnvironment.includePath);
@@ -357,7 +357,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         foreach (const QString &key, otherProfile.allKeys(Profile::KeySelectionNonRecursive)) {
             if (key.startsWith(QLatin1String("cpp."))) {
                 hasCppKey = true;
-            } else if (key.startsWith(QLatin1String("qt."))) {
+            } else if (key.startsWith(QLatin1String("Qt."))) {
                 hasQtKey = true;
                 break;
             }

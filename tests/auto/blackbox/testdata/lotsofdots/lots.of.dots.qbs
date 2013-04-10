@@ -5,8 +5,7 @@ Project {
         type: "application"
         name: "lots.of.dots"
 
-//        Depends { name: "qt.core" }
-        Depends { name: "qt.gui" }
+        Depends { name: "Qt.gui" }
 
         files : [
             "m.a.i.n.cpp",

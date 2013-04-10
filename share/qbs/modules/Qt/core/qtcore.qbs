@@ -83,13 +83,13 @@ Module {
     setupBuildEnvironment: {
         // Not really a setup in this case. Just some sanity checks.
         if (!binPath)
-            throw "qt.core.binPath not set. Set qt.core.binPath in your profile.";
+            throw "Qt.core.binPath not set. Set Qt.core.binPath in your profile.";
         if (!incPath)
-            throw "qt.core.incPath not set. Set qt.core.incPath in your profile.";
+            throw "Qt.core.incPath not set. Set Qt.core.incPath in your profile.";
         if (!libPath)
-            throw "qt.core.libPath not set. Set qt.core.libPath in your profile.";
+            throw "Qt.core.libPath not set. Set Qt.core.libPath in your profile.";
         if (!mkspecPath)
-            throw "qt.core.mkspecPath not set. Set qt.core.mkspecPath in your profile.";
+            throw "Qt.core.mkspecPath not set. Set Qt.core.mkspecPath in your profile.";
     }
 
     setupRunEnvironment: {

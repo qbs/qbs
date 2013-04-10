@@ -8,7 +8,7 @@ DynamicLibrary {
     Depends { name: "cpp" }
 
     Group {
-        condition: qt.core.versionMajor >= 5
+        condition: Qt.core.versionMajor >= 5
         files: [
             "echoplugin.h",
             "echoplugin.cpp",
@@ -16,14 +16,14 @@ DynamicLibrary {
         ]
     }
     Group {
-        condition: qt.core.versionMajor < 5
+        condition: Qt.core.versionMajor < 5
         files: "echoplugin_dummy.cpp"
     }
 
     cpp.includePaths: buildDirectory
 
     Transformer {
-        condition: qt.core.versionMajor >= 5
+        condition: Qt.core.versionMajor >= 5
         inputs: ["echoplugin.json.source"]
         Artifact {
             fileName: "echoplugin.json"

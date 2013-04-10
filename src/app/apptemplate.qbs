@@ -3,7 +3,7 @@ import qbs 1.0
 Product {
     Depends { name: "qbscore" }
     Depends { name: "cpp" }
-    Depends { name: "qt.core" }
+    Depends { name: "Qt.core" }
     type: "application"
     consoleApplication: true
     destinationDirectory: "bin"

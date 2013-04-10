@@ -149,7 +149,8 @@ private:
     bool checkItemCondition(const ItemPtr &item);
     QStringList readExtraSearchPaths(const ItemPtr &item);
     static ItemPtr wrapWithProject(const ItemPtr &item);
-    static QString moduleSubDir(const QStringList &moduleName);
+    static QString findExistingModulePath(const QString &searchPath,
+            const QStringList &moduleName);
     static void copyProperty(const QString &propertyName, const ItemConstPtr &source, const ItemPtr &destination);
     static void setScopeForDescendants(const ItemPtr &item, const ItemPtr &scope);
 

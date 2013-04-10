@@ -3,7 +3,7 @@ import qbs 1.0
 Product {
     name: "documentation"
     type: "qch"
-    Depends { name: "qt.core" }
+    Depends { name: "Qt.core" }
 
     files: [
         "qbs.qdoc",
@@ -12,13 +12,13 @@ Product {
     ]
     Group {
         name: "main qdocconf file"
-        files: qt.core.versionMajor >= 5 ? "qbs.qdocconf" : "qbs-qt4.qdocconf"
+        files: Qt.core.versionMajor >= 5 ? "qbs.qdocconf" : "qbs-qt4.qdocconf"
         fileTags: "qdocconf-main"
     }
 
     property string versionTag: project.version.replace(/\.|-/g, "")
-    qt.core.qdocQhpFileName: "qbs.qhp"
-    qt.core.qdocEnvironment: [
+    Qt.core.qdocQhpFileName: "qbs.qhp"
+    Qt.core.qdocEnvironment: [
         "QBS_VERSION=" + project.version,
         "SRCDIR=.",
         "QBS_VERSION_TAG=" + versionTag

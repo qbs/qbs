@@ -2,8 +2,8 @@ import qbs 1.0
 
 DynamicLibrary {
     Depends { name: "cpp" }
-    Depends { name: "qt"; submodules: ["core", "script", "test"] }
-    Depends { condition: qt.core.versionMajor >= 5; name: "qt.concurrent" }
+    Depends { name: "Qt"; submodules: ["core", "script", "test"] }
+    Depends { condition: Qt.core.versionMajor >= 5; name: "Qt.concurrent" }
     name: "qbscore"
     targetName: (qbs.enableDebugCode && qbs.targetOS === "windows") ? (name + 'd') : name
     destinationDirectory: qbs.targetOS == "windows" ? "bin" : "lib"
@@ -320,7 +320,7 @@ DynamicLibrary {
     }
     ProductModule {
         Depends { name: "cpp" }
-        Depends { name: "qt"; submodules: ["script"]}
+        Depends { name: "Qt"; submodules: ["script"]}
         cpp.rpaths: qbs.targetOS === "linux" ? ["$ORIGIN/../lib"] : undefined
         cpp.includePaths: ["."]
     }

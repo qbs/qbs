@@ -255,7 +255,7 @@ void TestLanguage::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("unknown_module")
-            << "Product dependency 'neithermodulenorproduct' not found";
+            << "Product dependency 'neitherModuleNorProduct' not found";
     QTest::newRow("submodule_syntax")
             << "Depends.submodules cannot be used if name contains a dot";
     QTest::newRow("multiple_productmodules")

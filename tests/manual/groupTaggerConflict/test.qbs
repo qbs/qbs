@@ -14,14 +14,14 @@ Project {
         ]
 
         Group {
-            condition: qt.core.versionMajor === 4
+            condition: Qt.core.versionMajor === 4
             overrideTags: false
             qbs.installDir: "include/bar"
             fileTags: ["install"]
             files: ["src/bar_qt4.h"]
         }
         Group {
-            condition: qt.core.versionMajor === 5
+            condition: Qt.core.versionMajor === 5
             overrideTags: false
             qbs.installDir: "include/bar"
             fileTags: ["install"]

@@ -5,7 +5,7 @@ Project {
         type: "application"
         name: "moc_hpp"
 
-        Depends { name: "qt.core" }
+        Depends { name: "Qt.core" }
 
         files : [
             "object.h",

@@ -320,7 +320,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const Item
         ProductDependencyResults *productResults)
 {
     checkCancelation();
-    const QString name = m_evaluator->property(dependsItem, "name").toString().toLower();
+    const QString name = m_evaluator->property(dependsItem, "name").toString();
     const QStringList nameParts = name.split('.');
     if (Q_UNLIKELY(nameParts.count() > 2)) {
         QString msg = Tr::tr("There cannot be more than one dot in a module name.");
@@ -349,7 +349,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const Item
 
     QStringList moduleNames;
     foreach (const QString &submoduleName, submodules)
-        moduleNames += submoduleName.toLower();
+        moduleNames += submoduleName;
 
     Item::Module result;
     foreach (const QString &moduleName, moduleNames) {
@@ -424,43 +424,18 @@ ItemPtr ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
 
-    const QString moduleSubDir = ModuleLoader::moduleSubDir(moduleName);
-    bool triedToLoadModule = false;
+    bool triedToLoadModule = moduleName.count() > 1;
     foreach (const QString &path, searchPaths) {
-        QString dirPath = FileInfo::resolvePath(path, moduleSubDir);
+        const QString dirPath = findExistingModulePath(path, moduleName);
+        if (dirPath.isEmpty())
+            continue;
         QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
         if (moduleFileNames.isEmpty()) {
-            QString origDirPath = dirPath;
-            FileInfo dirInfo(dirPath);
-            if (!dirInfo.isDir()) {
-                bool found = false;
-                if (HostOsInfo::isWindowsHost()) {
-                    // On case sensitive file systems try to find the path.
-                    QStringList subPaths = moduleName;
-                    QDir dir(path);
-                    if (!dir.cd(moduleSearchSubDir))
-                        continue;
-                    do {
-                        QStringList lst = dir.entryList(QStringList(subPaths.takeFirst()),
-                                                        QDir::Dirs);
-                        if (lst.count() != 1)
-                            break;
-                        if (!dir.cd(lst.first()))
-                            break;
-                        if (subPaths.isEmpty()) {
-                            found = true;
-                            dirPath = dir.absolutePath();
-                        }
-                    } while (!found);
-                }
-                if (!found)
-                    continue;
-            }
             QDirIterator dirIter(dirPath, QStringList(QLatin1String("*.qbs")));
             while (dirIter.hasNext())
                 moduleFileNames += dirIter.next();
 
-            m_moduleDirListCache.insert(origDirPath, moduleFileNames);
+            m_moduleDirListCache.insert(dirPath, moduleFileNames);
         }
         foreach (const QString &filePath, moduleFileNames) {
             triedToLoadModule = true;
@@ -711,13 +686,16 @@ ItemPtr ModuleLoader::wrapWithProject(const ItemPtr &item)
     return prj;
 }
 
-QString ModuleLoader::moduleSubDir(const QStringList &moduleName)
+QString ModuleLoader::findExistingModulePath(const QString &searchPath,
+        const QStringList &moduleName)
 {
-#if QT_VERSION >= 0x050000
-    return moduleName.join(QLatin1Char('/'));
-#else
-    return moduleName.join(QLatin1String("/"));
-#endif
+    QString dirPath = searchPath;
+    foreach (const QString &moduleNamePart, moduleName) {
+        dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
+        if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
+            return QString();
+    }
+    return dirPath;
 }
 
 void ModuleLoader::copyProperty(const QString &propertyName, const ItemConstPtr &source,
@@ -738,7 +716,11 @@ QString ModuleLoader::fullModuleName(const QStringList &moduleName)
 {
     // Currently the same as the module sub directory.
     // ### Might be nicer to be a valid JS identifier.
-    return moduleSubDir(moduleName);
+#if QT_VERSION >= 0x050000
+    return moduleName.join(QLatin1Char('/'));
+#else
+    return moduleName.join(QLatin1String("/"));
+#endif
 }
 
 } // namespace Internal

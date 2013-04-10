@@ -234,15 +234,15 @@
     called \c myqt:
 
     \code
-    qbs config profiles.myqt.qt.core.binPath /usr/bin
-    qbs config profiles.myqt.qt.core.incPath /usr/include/qt4
-    qbs config profiles.myqt.qt.core.libPath /usr/lib/x86_64-linux-gnu
-    qbs config profiles.myqt.qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
+    qbs config profiles.myqt.Qt.core.binPath /usr/bin
+    qbs config profiles.myqt.Qt.core.incPath /usr/include/qt4
+    qbs config profiles.myqt.Qt.core.libPath /usr/lib/x86_64-linux-gnu
+    qbs config profiles.myqt.Qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
     \endcode
 
     If you are using Qt 5, you must specify the version number like this:
     \code
-    qbs config profiles.myqt.qt.core.version 5.0.0
+    qbs config profiles.myqt.Qt.core.version 5.0.0
     \endcode
 
     \section1 Multiple Qt Builds
@@ -288,13 +288,13 @@
     then you must set the following \c config value:
 
     \code
-    qbs config profiles.myqt.qt.core.namespace MyNamespace
+    qbs config profiles.myqt.Qt.core.namespace MyNamespace
     \endcode
 
     The same goes for the -qtlibinfix option.
 
     \code
-    qbs config profiles.myqt.qt.core.libInfix MyInfix
+    qbs config profiles.myqt.Qt.core.libInfix MyInfix
     \endcode
 */
 

@@ -158,13 +158,13 @@ void SpecialPlatformsSetup::registerProfile(const PlatformInfo &platformInfo)
     profile.setValue(QLatin1String("cpp.cxxFlags"), platformInfo.cxxFlags);
     profile.setValue(QLatin1String("cpp.linkerFlags"), platformInfo.ldFlags);
 
-    profile.setValue(QLatin1String("qt.core.binPath"), platformInfo.qtBinDir);
-    profile.setValue(QLatin1String("qt.core.libPath"),
+    profile.setValue(QLatin1String("Qt.core.binPath"), platformInfo.qtBinDir);
+    profile.setValue(QLatin1String("Qt.core.libPath"),
                      platformInfo.sysrootDir + QLatin1String("/usr/lib"));
-    profile.setValue(QLatin1String("qt.core.incPath"), platformInfo.qtIncDir);
-    profile.setValue(QLatin1String("qt.core.mkspecPath"), platformInfo.qtMkspecPath);
-    profile.setValue(QLatin1String("qt.core.namespace"), QString());
-    profile.setValue(QLatin1String("qt.core.libInfix"), QString());
+    profile.setValue(QLatin1String("Qt.core.incPath"), platformInfo.qtIncDir);
+    profile.setValue(QLatin1String("Qt.core.mkspecPath"), platformInfo.qtMkspecPath);
+    profile.setValue(QLatin1String("Qt.core.namespace"), QString());
+    profile.setValue(QLatin1String("Qt.core.libInfix"), QString());
 }
 
 } // namespace qbs

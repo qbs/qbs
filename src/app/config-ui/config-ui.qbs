@@ -2,7 +2,7 @@ import qbs 1.0
 import "../apptemplate.qbs" as QbsApp
 
 QbsApp {
-    Depends { name: "qt.widgets" }
+    Depends { name: "Qt.widgets" }
     name: "qbs-config-ui"
     files: [
         "main.cpp",

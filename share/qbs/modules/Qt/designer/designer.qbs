@@ -3,6 +3,6 @@ import '../QtModule.qbs' as QtModule
 
 QtModule {
     qtModuleName: 'Designer'
-    repository: qt.core.versionMajor >= 5 ? 'qttools' : undefined
+    repository: Qt.core.versionMajor >= 5 ? 'qttools' : undefined
 }
 
