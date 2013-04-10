@@ -31,7 +31,6 @@
 
 #include "../buildgraph/forward_decls.h"
 #include "../tools/error.h"
-#include "../tools/processresult.h"
 #include "../tools/qbs_export.h"
 
 #include <QObject>
@@ -42,7 +41,7 @@ namespace qbs {
 class BuildOptions;
 class CleanOptions;
 class InstallOptions;
-class Settings;
+class ProcessResult;
 class SetupProjectParameters;
 namespace Internal {
 class InternalJob;

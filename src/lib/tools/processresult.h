@@ -29,6 +29,8 @@
 #ifndef QBS_PROCESSRESULT_H
 #define QBS_PROCESSRESULT_H
 
+#include "qbs_export.h"
+
 #include <QMetaType>
 #include <QProcess>
 #include <QString>
@@ -36,7 +38,7 @@
 
 namespace qbs {
 
-class ProcessResult {
+class QBS_EXPORT ProcessResult {
 public:
     bool success;
 
