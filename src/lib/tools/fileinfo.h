@@ -66,6 +66,7 @@ public:
     static bool isPattern(const QString &str);
     static QString resolvePath(const QString &base, const QString &rel);
     static bool globMatches(const QRegExp &pattern, const QString &subject);
+    static bool isFileCaseCorrect(const QString &filePath);
 
 private:
 #if defined(Q_OS_WIN)

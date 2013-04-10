@@ -37,8 +37,10 @@
 #include <QDir>
 #include <QFileInfo>
 
-#ifdef Q_OS_UNIX
+#if defined(Q_OS_UNIX)
 #include <sys/stat.h>
+#elif defined(Q_OS_WIN)
+#include <qt_windows.h>
 #endif
 
 namespace qbs {
@@ -193,9 +195,29 @@ bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
     return regexp.exactMatch(fileName);
 }
 
+bool FileInfo::isFileCaseCorrect(const QString &filePath)
+{
 #if defined(Q_OS_WIN)
+    // QFileInfo::canonicalFilePath() does not return the real case of the file path on Windows.
+    QFileInfo fi(filePath);
+    const QString absolute = fi.absoluteFilePath();
+    WIN32_FIND_DATA fd;
+    HANDLE hFindFile = ::FindFirstFile((wchar_t*)absolute.utf16(), &fd);
+    if (hFindFile == INVALID_HANDLE_VALUE)
+        return false;
+    const QString actualFileName = QString::fromWCharArray(fd.cFileName);
+    FindClose(hFindFile);
+    return actualFileName == fi.fileName();
+#elif defined(Q_OS_DARWIN)
+    QFileInfo fi(filePath);
+    return fi.absoluteFilePath() == fi.canonicalFilePath();
+#else
+    Q_UNUSED(filePath)
+    return true;
+#endif
+}
 
-#include <qt_windows.h>
+#if defined(Q_OS_WIN)
 
 #define z(x) reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA*>(const_cast<FileInfo::InternalStatType*>(&x))
 

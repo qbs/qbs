@@ -44,6 +44,7 @@ public:
 
 private slots:
     void testFileInfo();
+    void fileCaseCheck();
     void testProfiles();
 
 private:

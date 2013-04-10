@@ -34,6 +34,8 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <QFileInfo>
+#include <QTemporaryFile>
 #include <QTest>
 
 namespace qbs {
@@ -59,6 +61,22 @@ void TestTools::testFileInfo()
     QCOMPARE(FileInfo::resolvePath("/abc/def/ghi/jkl/", "../../foo/bar"), QString("/abc/def/foo/bar"));
     QCOMPARE(FileInfo::resolvePath("/abc", "../../../foo/bar"), QString("/foo/bar"));
     QCOMPARE(FileInfo("/does/not/exist").lastModified(), FileTime());
+}
+
+void TestTools::fileCaseCheck()
+{
+    QTemporaryFile tempFile(QLatin1String("CamelCase"));
+    QVERIFY(tempFile.open());
+    QFileInfo tempFileInfo(tempFile.fileName());
+    const QString lowerFilePath = tempFileInfo.absolutePath() + QLatin1Char('/')
+            + tempFileInfo.fileName().toLower();
+    const QString upperFilePath = tempFileInfo.absolutePath() + QLatin1Char('/')
+            + tempFileInfo.fileName().toUpper();
+    QVERIFY(FileInfo::isFileCaseCorrect(tempFileInfo.absoluteFilePath()));
+    if (QFile::exists(lowerFilePath))
+        QVERIFY(!FileInfo::isFileCaseCorrect(lowerFilePath));
+    if (QFile::exists(upperFilePath))
+        QVERIFY(!FileInfo::isFileCaseCorrect(upperFilePath));
 }
 
 void TestTools::testProfiles()
