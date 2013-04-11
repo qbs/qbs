@@ -46,12 +46,12 @@
          }
          Group {
              name: "Windows files"
-             condition: targetOs === "windows"
+             condition: targetOS === "windows"
              files: "myclass_win_impl.cpp"
          }
          Group {
              name: "Linux files"
-             condition: targetOs === "linux"
+             condition: targetOS === "linux"
              files: "myclass_linux_impl.cpp"
          }
          Group {
