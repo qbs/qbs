@@ -37,7 +37,7 @@
 namespace qbs {
 class Settings;
 
-class QtEnviroment {
+class QtEnvironment {
 public:
     QString installPrefixPath;
     QString libraryPath;
@@ -64,11 +64,12 @@ class SetupQt
     Q_DECLARE_TR_FUNCTIONS(SetupQt)
 public:
     static bool isQMakePathValid(const QString &qmakePath);
-    static QList<QtEnviroment> fetchEnviroments();
-    static QtEnviroment fetchEnviroment(const QString &qmakePath);
-    static void saveToQbsSettings(const QString &qtVersionName, const QtEnviroment & qtEnviroment,
+    static QList<QtEnvironment> fetchEnvironments();
+    static QtEnvironment fetchEnvironment(const QString &qmakePath);
+    static void saveToQbsSettings(const QString &qtVersionName, const QtEnvironment & qtEnvironment,
                                   Settings *settings);
-    static bool checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion, const QList<QtEnviroment> &qtEnviroments);
+    static bool checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
+            const QList<QtEnvironment> &qtEnvironments);
 };
 
 } // namespace qbs

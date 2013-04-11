@@ -64,10 +64,10 @@ static QStringList collectQmakePaths()
 {
     QStringList qmakePaths;
 
-    QByteArray enviromentPath = qgetenv("PATH");
-    QList<QByteArray> enviromentPaths
-            = enviromentPath.split(HostOsInfo::pathListSeparator().toLatin1());
-    foreach (const QByteArray &path, enviromentPaths) {
+    QByteArray environmentPath = qgetenv("PATH");
+    QList<QByteArray> environmentPaths
+            = environmentPath.split(HostOsInfo::pathListSeparator().toLatin1());
+    foreach (const QByteArray &path, environmentPaths) {
         QFileInfo pathFileInfo(QDir(QLatin1String(path)), qmakeExecutableName);
         if (pathFileInfo.exists()) {
             QString qmakePath = pathFileInfo.absoluteFilePath();
@@ -85,14 +85,14 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
     return qmakeFileInfo.exists() && qmakeFileInfo.isFile() && qmakeFileInfo.isExecutable();
 }
 
-QList<QtEnviroment> SetupQt::fetchEnviroments()
+QList<QtEnvironment> SetupQt::fetchEnvironments()
 {
-    QList<QtEnviroment> qtEnviroments;
+    QList<QtEnvironment> qtEnvironments;
 
     foreach (const QString &qmakePath, collectQmakePaths())
-        qtEnviroments.append(fetchEnviroment(qmakePath));
+        qtEnvironments.append(fetchEnvironment(qmakePath));
 
-    return qtEnviroments;
+    return qtEnvironments;
 }
 
 static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
@@ -159,9 +159,9 @@ static Version extractVersion(const QString &versionString)
     return v;
 }
 
-QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
+QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 {
-    QtEnviroment qtEnvironment;
+    QtEnvironment qtEnvironment;
     QMap<QByteArray, QByteArray> queryOutput = qmakeQueryOutput(qmakePath);
 
     qtEnvironment.installPrefixPath = queryOutput.value("QT_INSTALL_PREFIX");
@@ -218,7 +218,7 @@ QtEnviroment SetupQt::fetchEnviroment(const QString &qmakePath)
     return qtEnvironment;
 }
 
-void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment &qtEnviroment,
+void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
                                 Settings *settings)
 {
     QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.")
@@ -227,26 +227,26 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
 
     Profile profile(qtVersionName, settings);
     const QString settingsTemplate(QLatin1String("qt.core.%1"));
-    profile.setValue(settingsTemplate.arg("binPath"), qtEnviroment.binaryPath);
-    profile.setValue(settingsTemplate.arg("libPath"), qtEnviroment.libraryPath);
-    profile.setValue(settingsTemplate.arg("incPath"), qtEnviroment.includePath);
-    profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnviroment.mkspecPath);
-    profile.setValue(settingsTemplate.arg("version"), qtEnviroment.qtVersion);
-    profile.setValue(settingsTemplate.arg("namespace"), qtEnviroment.qtNameSpace);
-    profile.setValue(settingsTemplate.arg("libInfix"), qtEnviroment.qtLibInfix);
-    if (qtEnviroment.staticBuild)
+    profile.setValue(settingsTemplate.arg("binPath"), qtEnvironment.binaryPath);
+    profile.setValue(settingsTemplate.arg("libPath"), qtEnvironment.libraryPath);
+    profile.setValue(settingsTemplate.arg("incPath"), qtEnvironment.includePath);
+    profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnvironment.mkspecPath);
+    profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
+    profile.setValue(settingsTemplate.arg("namespace"), qtEnvironment.qtNameSpace);
+    profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
+    if (qtEnvironment.staticBuild)
         profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")),
-                         qtEnviroment.staticBuild);
+                         qtEnvironment.staticBuild);
 
     QDir qconfigDir;
-    if (qtEnviroment.mkspecPath.contains("macx")) {
-        if (qtEnviroment.configItems.contains("qt_framework")) {
+    if (qtEnvironment.mkspecPath.contains("macx")) {
+        if (qtEnvironment.configItems.contains("qt_framework")) {
             profile.setValue(settingsTemplate.arg("frameworkBuild"), true);
-            qconfigDir.setPath(qtEnviroment.libraryPath);
+            qconfigDir.setPath(qtEnvironment.libraryPath);
             qconfigDir.cd("QtCore.framework/Headers");
-        } else if (qtEnviroment.configItems.contains("qt_no_framework")) {
+        } else if (qtEnvironment.configItems.contains("qt_no_framework")) {
             profile.setValue(settingsTemplate.arg("frameworkBuild"), false);
-            qconfigDir.setPath(qtEnviroment.includePath);
+            qconfigDir.setPath(qtEnvironment.includePath);
             qconfigDir.cd("Qt");
         } else {
             throw Error(tr("could not determine whether Qt is a frameworks build"));
@@ -259,13 +259,13 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     // ### TODO: Also dependent on the toolchain, which we can't easily access here
     // Most 32-bit Windows applications based on either Qt 5 or Qt 4 should run
     // on 2000, so this is a good baseline for now.
-    if (qtEnviroment.mkspecPath.contains("win32") && qtEnviroment.qtMajorVersion >= 4)
+    if (qtEnvironment.mkspecPath.contains("win32") && qtEnvironment.qtMajorVersion >= 4)
         windowsVersion = QLatin1String("5.0");
 
-    if (qtEnviroment.mkspecPath.contains("macx")) {
-        if (qtEnviroment.qtMajorVersion >= 5) {
+    if (qtEnvironment.mkspecPath.contains("macx")) {
+        if (qtEnvironment.qtMajorVersion >= 5) {
             macVersion = QLatin1String("10.6");
-        } else if (qtEnviroment.qtMajorVersion == 4 && qtEnviroment.qtMinorVersion >= 6) {
+        } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
             QFile qconfig(qconfigDir.absoluteFilePath("qconfig.h"));
             if (qconfig.open(QIODevice::ReadOnly)) {
                 bool qtCocoaBuild = false;
@@ -288,17 +288,17 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
         }
     }
 
-    if (qtEnviroment.mkspecPath.contains("ios") && qtEnviroment.qtMajorVersion >= 5)
+    if (qtEnvironment.mkspecPath.contains("ios") && qtEnvironment.qtMajorVersion >= 5)
         iosVersion = QLatin1String("4.3");
 
-    if (qtEnviroment.mkspecPath.contains("android")) {
-        if (qtEnviroment.qtMajorVersion >= 5)
+    if (qtEnvironment.mkspecPath.contains("android")) {
+        if (qtEnvironment.qtMajorVersion >= 5)
             androidVersion = QLatin1String("2.3");
-        else if (qtEnviroment.qtMajorVersion == 4 && qtEnviroment.qtMinorVersion >= 8)
+        else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 8)
             androidVersion = QLatin1String("1.6"); // Necessitas
     }
 
-    if (qtEnviroment.mkspecPath.contains("winrt") && qtEnviroment.qtMajorVersion >= 5)
+    if (qtEnvironment.mkspecPath.contains("winrt") && qtEnvironment.qtMajorVersion >= 5)
         windowsVersion = QLatin1String("6.2");
 
     // ### TODO: wince, winphone, blackberry
@@ -364,11 +364,12 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnviroment
     }
 }
 
-bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion, const QList<QtEnviroment> &qtEnviroments)
+bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
+        const QList<QtEnvironment> &qtEnvironments)
 {
     bool foundOneVersion = false;
-    foreach (const QtEnviroment &qtEnviroment, qtEnviroments) {
-        if (qtEnviroment.qtVersion == qtVersion) {
+    foreach (const QtEnvironment &qtEnvironment, qtEnvironments) {
+        if (qtEnvironment.qtVersion == qtVersion) {
             if (foundOneVersion)
                 return true;
             foundOneVersion = true;

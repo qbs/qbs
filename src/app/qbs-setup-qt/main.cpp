@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
 
         if (args.count() == 1 && args.first() == QLatin1String("--detect")) {
             // search all Qt's in path and dump their settings
-            QList<QtEnviroment> qtEnvironments = SetupQt::fetchEnviroments();
-            foreach (const QtEnviroment &qtEnvironment, qtEnvironments) {
+            QList<QtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
+            foreach (const QtEnvironment &qtEnvironment, qtEnvironments) {
                 QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
                     QStringList prefixPathParts = qtEnvironment.installPrefixPath.split("/", QString::SkipEmptyParts);
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
                 printWrongQMakePath(qmakePath);
                 return 1;
             }
-            QtEnviroment qtEnvironment = SetupQt::fetchEnviroment(qmakePath);
+            QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(qmakePath);
             QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
             profileName.replace(".", "-");
             SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
                 printWrongQMakePath(qmakePath);
                 return 1;
             }
-            QtEnviroment qtEnvironment = SetupQt::fetchEnviroment(qmakePath);
+            QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(qmakePath);
             QString profileName = args.at(1);
             profileName.replace(".", "-");
             SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
