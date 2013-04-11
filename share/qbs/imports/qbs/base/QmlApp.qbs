@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Product {
-    type: [qbs.targetOS == 'mac' ? "applicationbundle" : "application"]
+    type: qbs.targetPlatform.indexOf("darwin") !== -1 ? "applicationbundle" : "application"
     Depends { name: "qt"; submodules: ["core", "declarative"] }
     Depends { name: "cpp" }
     property string appViewerPath: localPath + "/qmlapplicationviewer"

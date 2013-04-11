@@ -31,7 +31,7 @@ Module {
     property bool staticBuild
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: {
-        if (qbs.targetOS === "mac" && product.type.indexOf('applicationbundle') >= 0)
+        if (qbs.targetPlatform.indexOf("darwin") !== -1 && product.type.indexOf('applicationbundle') >= 0)
             return product.name + ".app/Contents/Resources";
         return product.destinationDirectory;
     }
