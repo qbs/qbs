@@ -39,6 +39,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QLibrary>
 #include <QProcess>
 #include <QStringList>
 #include <QtDebug>
@@ -193,22 +194,49 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.configItems = configVariableItems(qconfigContent, QLatin1String("CONFIG"));
     qtEnvironment.qtConfigItems = configVariableItems(qconfigContent, QLatin1String("QT_CONFIG"));
 
+    // retrieve the mkspec
     if (qtVersion.majorVersion >= 5) {
         const QString mkspecName = queryOutput.value("QMAKE_XSPEC");
         qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
-        qtEnvironment.staticBuild = qtEnvironment.qtConfigItems.contains(QLatin1String("static"));
     } else {
-        QDir libdir(qtEnvironment.libraryPath);
-        QStringList dylibs;
         if (HostOsInfo::isWindowsHost()) {
             const QByteArray fileContent = readFileContent(mkspecsBasePath + "/default/qmake.conf");
             qtEnvironment.mkspecPath = configVariable(fileContent, "QMAKESPEC_ORIGINAL");
-            dylibs = libdir.entryList(QStringList() << QLatin1String("*Core*.dll"), QDir::Files);
         } else {
             qtEnvironment.mkspecPath = QFileInfo(mkspecsBasePath + "/default").symLinkTarget();
-            dylibs = libdir.entryList(QStringList() << QLatin1String("*Core*.so"), QDir::Files);
         }
-        qtEnvironment.staticBuild = dylibs.isEmpty();
+    }
+
+    // determine whether we have a framework build
+    qtEnvironment.frameworkBuild = false;
+    if (qtEnvironment.mkspecPath.contains("macx")) {
+        if (qtEnvironment.configItems.contains("qt_framework"))
+            qtEnvironment.frameworkBuild = true;
+        else if (!qtEnvironment.configItems.contains("qt_no_framework"))
+            throw Error(tr("could not determine whether Qt is a frameworks build"));
+    }
+
+    // determine whether we have a static build
+    if (qtVersion.majorVersion >= 5) {
+        qtEnvironment.staticBuild = qtEnvironment.qtConfigItems.contains(QLatin1String("static"));
+    } else {
+        if (qtEnvironment.frameworkBuild) {
+            // there are no Qt4 static frameworks
+            qtEnvironment.staticBuild = false;
+        } else {
+            qtEnvironment.staticBuild = true;
+            QDir libdir(qtEnvironment.libraryPath);
+            const QStringList coreLibFiles
+                    = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
+            if (coreLibFiles.isEmpty())
+                throw Error(tr("Could not determine whether Qt is a static build."));
+            foreach (const QString &fileName, coreLibFiles) {
+                if (QLibrary::isLibrary(qtEnvironment.libraryPath + QLatin1Char('/') + fileName)) {
+                    qtEnvironment.staticBuild = false;
+                    break;
+                }
+            }
+        }
     }
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
@@ -238,21 +266,6 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")),
                          qtEnvironment.staticBuild);
 
-    QDir qconfigDir;
-    if (qtEnvironment.mkspecPath.contains("macx")) {
-        if (qtEnvironment.configItems.contains("qt_framework")) {
-            profile.setValue(settingsTemplate.arg("frameworkBuild"), true);
-            qconfigDir.setPath(qtEnvironment.libraryPath);
-            qconfigDir.cd("QtCore.framework/Headers");
-        } else if (qtEnvironment.configItems.contains("qt_no_framework")) {
-            profile.setValue(settingsTemplate.arg("frameworkBuild"), false);
-            qconfigDir.setPath(qtEnvironment.includePath);
-            qconfigDir.cd("Qt");
-        } else {
-            throw Error(tr("could not determine whether Qt is a frameworks build"));
-        }
-    }
-
     // Set the minimum operating system versions appropriate for this Qt version
     QString windowsVersion, macVersion, iosVersion, androidVersion;
 
@@ -263,9 +276,18 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         windowsVersion = QLatin1String("5.0");
 
     if (qtEnvironment.mkspecPath.contains("macx")) {
+        profile.setValue(settingsTemplate.arg("frameworkBuild"), qtEnvironment.frameworkBuild);
         if (qtEnvironment.qtMajorVersion >= 5) {
             macVersion = QLatin1String("10.6");
         } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
+            QDir qconfigDir;
+            if (qtEnvironment.frameworkBuild) {
+                qconfigDir.setPath(qtEnvironment.libraryPath);
+                qconfigDir.cd("QtCore.framework/Headers");
+            } else {
+                qconfigDir.setPath(qtEnvironment.includePath);
+                qconfigDir.cd("Qt");
+            }
             QFile qconfig(qconfigDir.absoluteFilePath("qconfig.h"));
             if (qconfig.open(QIODevice::ReadOnly)) {
                 bool qtCocoaBuild = false;

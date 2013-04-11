@@ -56,6 +56,7 @@ public:
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
+    bool frameworkBuild;
     bool staticBuild;
 };
 
