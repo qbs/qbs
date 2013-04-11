@@ -75,7 +75,7 @@ DarwinGCC {
 
     Rule {
         multiplex: true
-        inputs: ["application", "infoplist", "pkginfo", "resourcerules"]
+        inputs: ["application", "infoplist", "pkginfo", "resourcerules", "nib"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + product.targetName + ".ipa"
