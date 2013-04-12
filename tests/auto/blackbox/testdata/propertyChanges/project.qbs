@@ -12,4 +12,9 @@ Project {
         cpp.defines: project.projectDefines
         files: "source2.cpp"
     }
+    CppApplication {
+        name: "product 3"
+        cpp.defines: qbs.getenv("QBS_BLACKBOX_DEFINE")
+        files: "source3.cpp"
+    }
 }

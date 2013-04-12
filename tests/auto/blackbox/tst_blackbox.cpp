@@ -780,11 +780,13 @@ void TestBlackbox::propertyChanges()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
 
     // Incremental build with no changes.
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
 
     // Incremental build with no changes, but updated project file timestamp.
     waitForNewTimestamp();
@@ -794,6 +796,7 @@ void TestBlackbox::propertyChanges()
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
 
     // Incremental build, input property changed for first product
     waitForNewTimestamp();
@@ -806,8 +809,9 @@ void TestBlackbox::propertyChanges()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
 
-    // Incremental build, input property changed indirectly for second build.
+    // Incremental build, input property changed via project for second product.
     waitForNewTimestamp();
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     contents = projectFile.readAll();
@@ -818,6 +822,16 @@ void TestBlackbox::propertyChanges()
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+
+    // Incremental build, input property changed via environment for third product.
+    QbsRunParameters params;
+    params.environment.insert("QBS_BLACKBOX_DEFINE", "newvalue");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+    QEXPECT_FAIL("", "QBS-259", Continue);
+    QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
 }
 
 void TestBlackbox::installedApp()
