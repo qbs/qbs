@@ -830,7 +830,6 @@ void TestBlackbox::propertyChanges()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
-    QEXPECT_FAIL("", "QBS-259", Continue);
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
 }
 

@@ -642,6 +642,7 @@ void ResolvedProject::load(PersistentPool &pool)
         }
         products.append(rProduct);
     }
+    pool.stream() >> usedEnvironment;
     buildData.reset(pool.idLoad<ProjectBuildData>());
 }
 
@@ -656,6 +657,7 @@ void ResolvedProject::store(PersistentPool &pool) const
     pool.stream() << products.count();
     foreach (const ResolvedProductConstPtr &product, products)
         pool.store(product);
+    pool.stream() << usedEnvironment;
     pool.store(buildData.data());
 }
 

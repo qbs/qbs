@@ -222,5 +222,10 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
     }
 }
 
+void ScriptEngine::addEnvironmentVariable(const QByteArray &name, const QByteArray &value)
+{
+    m_usedEnvironment.insert(name, value);
+}
+
 } // namespace Internal
 } // namespace qbs

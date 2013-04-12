@@ -92,6 +92,7 @@ ResolvedProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_moduleContext = 0;
     resolveProject(loadResult.root);
     m_projectContext = 0;
+    projectContext.project->usedEnvironment = m_engine->usedEnvironment();
     return projectContext.project;
 }
 

@@ -362,6 +362,8 @@ QScriptValue EvaluatorScriptClass::js_getenv(QScriptContext *context, QScriptEng
     }
     const QByteArray name = context->argument(0).toString().toLocal8Bit();
     const QByteArray value = qgetenv(name);
+    ScriptEngine * const e = static_cast<ScriptEngine *>(engine);
+    e->addEnvironmentVariable(name, value);
     return value.isNull() ? engine->undefinedValue() : QString::fromLocal8Bit(value);
 }
 

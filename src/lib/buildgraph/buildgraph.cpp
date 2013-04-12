@@ -519,6 +519,16 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     const FileInfo bgfi(buildGraphFilePath);
     const bool projectFileChanged
             = bgfi.lastModified() < FileInfo(parameters.projectFilePath).lastModified();
+    if (projectFileChanged)
+        m_logger.qbsTrace() << "Project file changed, must re-resolve project.";
+
+    bool environmentChanged = false;
+    for (QHash<QByteArray, QByteArray>::ConstIterator it = restoredProject->usedEnvironment.constBegin();
+         !environmentChanged && it != restoredProject->usedEnvironment.constEnd(); ++it) {
+        environmentChanged = qgetenv(it.key()) != it.value();
+    }
+    if (environmentChanged)
+        m_logger.qbsTrace() << "A relevant environment variable changed, must re-resolve project.";
 
     bool referencedProductRemoved = false;
     QList<ResolvedProductPtr> changedProducts;
@@ -545,8 +555,10 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         }
     }
 
-    if (!projectFileChanged && !referencedProductRemoved && changedProducts.isEmpty())
+    if (!environmentChanged && !projectFileChanged && !referencedProductRemoved
+            && changedProducts.isEmpty()) {
         return;
+    }
 
     Loader ldr(m_evalContext->engine(), m_logger);
     ldr.setSearchPaths(parameters.searchPaths);

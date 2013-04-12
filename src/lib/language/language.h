@@ -41,7 +41,9 @@
 #include <tools/settings.h>
 #include <tools/weakpointer.h>
 
+#include <QByteArray>
 #include <QDataStream>
+#include <QHash>
 #include <QProcessEnvironment>
 #include <QScriptProgram>
 #include <QScriptValue>
@@ -333,6 +335,7 @@ public:
     CodeLocation location;
     QString buildDirectory; // Not saved
     QVariantMap platformEnvironment;
+    QHash<QByteArray, QByteArray> usedEnvironment; // Environment variables requested by the project while resolving.
     QList<ResolvedProductPtr> products;
     QScopedPointer<ProjectBuildData> buildData;
 
