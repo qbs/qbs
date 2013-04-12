@@ -34,7 +34,39 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QtTest>
+
+class QbsRunParameters
+{
+public:
+    QbsRunParameters()
+    {
+        init();
+    }
+
+    QbsRunParameters(const QStringList &args) : arguments(args)
+    {
+        init();
+    }
+
+    QbsRunParameters(const QString &arg) : arguments(arg)
+    {
+        init();
+    }
+
+    void init()
+    {
+        expectFailure = false;
+        useProfile = true;
+        environment = QProcessEnvironment::systemEnvironment();
+    }
+
+    QStringList arguments;
+    QProcessEnvironment environment;
+    bool expectFailure;
+    bool useProfile;
+};
 
 class TestBlackbox : public QObject
 {
@@ -51,8 +83,7 @@ public:
     TestBlackbox();
 
 protected:
-    int runQbs(QStringList arguments = QStringList(), bool expectFailure = false,
-               bool useProfile = true);
+    int runQbs(const QbsRunParameters &params = QbsRunParameters());
     void rmDirR(const QString &dir);
     void touch(const QString &fn);
     static void waitForNewTimestamp();
