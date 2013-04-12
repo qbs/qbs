@@ -83,11 +83,14 @@ private slots:
         QVERIFY(parser.parseCommandLine(QStringList() << "-t" << fileArgs, settings.data()));
         QVERIFY(parser.logTime());
 
-        // Note: We cannot just check for !parser.logTime() here, because if the test is not
-        // run in a terminal, "--show-progress" is ignored, in which case "--log-time" takes effect.
-        QVERIFY(parser.parseCommandLine(QStringList() << "-t" << "--show-progress" << fileArgs,
-                                        settings.data()));
-        QVERIFY(parser.showProgress() != parser.logTime());
+        if (!Internal::HostOsInfo::isWindowsHost()) { // Windows has no progress bar atm.
+            // Note: We cannot just check for !parser.logTime() here, because if the test is not
+            // run in a terminal, "--show-progress" is ignored, in which case "--log-time"
+            // takes effect.
+            QVERIFY(parser.parseCommandLine(QStringList() << "-t" << "--show-progress" << fileArgs,
+                                            settings.data()));
+            QVERIFY(parser.showProgress() != parser.logTime());
+        }
 
         QVERIFY(parser.parseCommandLine(QStringList() << "-vvqqq" << fileArgs, settings.data()));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerWarning);
