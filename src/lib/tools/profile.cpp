@@ -201,7 +201,7 @@ QStringList Profile::allKeysInternal(Profile::KeySelection selection,
 void Profile::extendAndCheckProfileChain(QStringList &chain) const
 {
     chain << m_name;
-    if (chain.count(m_name) > 1) {
+    if (Q_UNLIKELY(chain.count(m_name) > 1)) {
         throw Error(Internal::Tr::tr("Circular profile inheritance. Cycle is '%1'.")
                     .arg(chain.join(QLatin1String(" -> "))));
     }

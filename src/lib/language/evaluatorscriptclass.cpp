@@ -356,7 +356,7 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
 
 QScriptValue EvaluatorScriptClass::js_getenv(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() < 1) {
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    QLatin1String("getenv expects 1 argument"));
     }

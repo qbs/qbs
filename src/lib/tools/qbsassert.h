@@ -42,7 +42,7 @@ void QBS_EXPORT throwAssertLocation(const char *condition, const char *file, int
 } // namespace qbs
 
 #define QBS_ASSERT(cond, action)\
-    if (cond) {} else {\
+    if (Q_LIKELY(cond)) {} else {\
         ::qbs::Internal::writeAssertLocation(#cond, __FILE__, __LINE__); action;\
     } do {} while (0)
 
@@ -51,7 +51,7 @@ void QBS_EXPORT throwAssertLocation(const char *condition, const char *file, int
 
 #define QBS_CHECK(cond)\
     do {\
-        if (cond) {} else {\
+        if (Q_LIKELY(cond)) {} else {\
             ::qbs::Internal::throwAssertLocation(#cond, __FILE__, __LINE__);\
         }\
     } while (0)

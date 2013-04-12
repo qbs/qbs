@@ -104,7 +104,7 @@ void ProjectResolver::checkCancelation() const
 bool ProjectResolver::boolValue(const ItemConstPtr &item, const QString &name, bool defaultValue) const
 {
     QScriptValue v = m_evaluator->property(item, name);
-    if (v.isError()) {
+    if (Q_UNLIKELY(v.isError())) {
         ValuePtr value = item->property(name);
         throw Error(v.toString(), value ? value->location() : CodeLocation());
     }
@@ -122,7 +122,7 @@ QString ProjectResolver::stringValue(const ItemConstPtr &item, const QString &na
                                      const QString &defaultValue) const
 {
     QScriptValue v = m_evaluator->property(item, name);
-    if (v.isError()) {
+    if (Q_UNLIKELY(v.isError())) {
         ValuePtr value = item->property(name);
         throw Error(v.toString(), value ? value->location() : CodeLocation());
     }
@@ -134,7 +134,7 @@ QString ProjectResolver::stringValue(const ItemConstPtr &item, const QString &na
 QStringList ProjectResolver::stringListValue(const ItemConstPtr &item, const QString &name) const
 {
     QScriptValue v = m_evaluator->property(item, name);
-    if (v.isError()) {
+    if (Q_UNLIKELY(v.isError())) {
         ValuePtr value = item->property(name);
         throw Error(v.toString(), value ? value->location() : CodeLocation());
     }
@@ -341,7 +341,7 @@ void ProjectResolver::resolveGroup(const ItemPtr &item)
     QStringList files = stringListValue(item, QLatin1String("files"));
     const QStringList fileTagsFilter = stringListValue(item, QLatin1String("fileTagsFilter"));
     if (!fileTagsFilter.isEmpty()) {
-        if (!files.isEmpty())
+        if (Q_UNLIKELY(!files.isEmpty()))
             throw Error(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
         ArtifactPropertiesPtr aprops = ArtifactProperties::create();
@@ -352,7 +352,7 @@ void ProjectResolver::resolveGroup(const ItemPtr &item)
         m_productContext->product->artifactProperties += aprops;
         return;
     }
-    if (files.isEmpty() && !item->hasProperty(QLatin1String("files"))) {
+    if (Q_UNLIKELY(files.isEmpty() && !item->hasProperty(QLatin1String("files")))) {
         // Yield an error if Group without files binding is encountered.
         // An empty files value is OK but a binding must exist.
         throw Error(Tr::tr("Group without files is not allowed."),
@@ -423,14 +423,14 @@ void ProjectResolver::resolveRule(const ItemPtr &item)
     // read artifacts
     bool hasAlwaysUpdatedArtifact = false;
     foreach (const ItemPtr &child, item->children()) {
-        if (child->typeName() != QLatin1String("Artifact"))
+        if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw Error(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
 
         resolveRuleArtifact(rule, child, &hasAlwaysUpdatedArtifact);
     }
 
-    if (!hasAlwaysUpdatedArtifact)
+    if (Q_UNLIKELY(!hasAlwaysUpdatedArtifact))
         throw Error(Tr::tr("At least one output artifact of a rule "
                            "must have alwaysUpdated set to true."),
                     item->location());
@@ -561,12 +561,12 @@ void ProjectResolver::resolveTransformer(const ItemPtr &item)
     rtrafo->transform = transform;
 
     foreach (const ItemConstPtr &child, item->children()) {
-        if (child->typeName() != QLatin1String("Artifact"))
+        if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw Error(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = m_productContext->product->properties;
         QString fileName = stringValue(child, "fileName");
-        if (fileName.isEmpty())
+        if (Q_UNLIKELY(fileName.isEmpty()))
             throw Error(Tr::tr("Artifact fileName must not be empty."));
         artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->project->buildDirectory,
                                                            fileName);
@@ -627,7 +627,7 @@ void ProjectResolver::resolveProductDependencies()
                         productInfo.usedProducts) {
                 ResolvedProductPtr usedProduct
                         = m_projectContext->productsByName.value(dependency.name);
-                if (!usedProduct)
+                if (Q_UNLIKELY(!usedProduct))
                     throw Error(Tr::tr("Product dependency '%1' not found.").arg(dependency.name),
                                 productItem->location());
                 const ItemPtr usedProductItem = m_projectContext->productItemMap.value(usedProduct);
@@ -649,7 +649,7 @@ void ProjectResolver::resolveProductDependencies()
             const QString &usedProductName = dependency.name;
             ResolvedProductPtr usedProduct
                     = m_projectContext->productsByName.value(usedProductName);
-            if (!usedProduct)
+            if (Q_UNLIKELY(!usedProduct))
                 throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
                             productItem->location());
             rproduct->dependencies.insert(usedProduct);
@@ -762,7 +762,7 @@ QVariantMap ProjectResolver::evaluateProperties(const ItemPtr &item,
                 break;
             }
             const QScriptValue scriptValue = m_evaluator->property(item, it.key());
-            if (scriptValue.isError())
+            if (Q_UNLIKELY(scriptValue.isError()))
                 throw Error(scriptValue.toString(), it.value()->location());
             QVariant v = scriptValue.toVariant();
             if (pd.type == PropertyDeclaration::Path)
@@ -816,7 +816,7 @@ void ProjectResolver::callItemFunction(const ItemFuncMap &mappings,
 {
     const QByteArray typeName = item->typeName().toLocal8Bit();
     ItemFuncPtr f = mappings.value(typeName);
-    if (!f) {
+    if (Q_UNLIKELY(!f)) {
         const QString msg = Tr::tr("Unexpected item type '%1'.");
         throw Error(msg.arg(item->typeName()), item->location());
     }

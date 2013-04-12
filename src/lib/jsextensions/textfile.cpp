@@ -98,7 +98,7 @@ TextFile::TextFile(QScriptContext *context, const QString &file, OpenMode mode, 
     } else if (mode == WriteOnly) {
        m = QIODevice::WriteOnly;
     }
-    if (!t->qfile->open(m)) {
+    if (Q_UNLIKELY(!t->qfile->open(m))) {
         delete t->qfile;
         t->qfile = 0;
         context->throwError(QString::fromLatin1("unable to open '%1'")

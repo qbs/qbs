@@ -171,7 +171,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         for (int i=0; i < ra->bindings.count(); ++i) {
             const RuleArtifact::Binding &binding = ra->bindings.at(i);
             scriptValue = engine()->evaluate(binding.code);
-            if (scriptValue.isError()) {
+            if (Q_UNLIKELY(scriptValue.isError())) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
                 throw Error(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
             }
@@ -184,7 +184,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 
     m_transformer->setupOutputs(engine(), scope());
     m_transformer->createCommands(m_rule->script, evalContext());
-    if (m_transformer->commands.isEmpty())
+    if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
         throw Error(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
 }
 
@@ -220,7 +220,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         const ArtifactList &inputArtifacts)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
-    if (scriptValue.isError() || engine()->hasUncaughtException())
+    if (Q_UNLIKELY(scriptValue.isError() || engine()->hasUncaughtException()))
         throw Error("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
@@ -238,7 +238,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs.unite(inputArtifacts);
 
-            if (m_transformer->inputs.count() > 1 && !m_rule->multiplex) {
+            if (Q_UNLIKELY(m_transformer->inputs.count() > 1 && !m_rule->multiplex)) {
                 QString th = "[" + outputArtifact->fileTags.toStringList().join(", ") + "]";
                 QString e = Tr::tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
                 th = "[" + m_rule->inputs.toStringList().join(", ")

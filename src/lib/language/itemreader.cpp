@@ -118,11 +118,11 @@ ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
 {
     ASTCacheValue &cacheValue = (*m_astCache)[filePath];
     if (cacheValue.isValid()) {
-        if (cacheValue.isProcessing())
+        if (Q_UNLIKELY(cacheValue.isProcessing()))
             throw Error(Tr::tr("Loop detected when importing '%1'.").arg(filePath));
     } else {
         QFile file(filePath);
-        if (!file.open(QFile::ReadOnly))
+        if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
             throw Error(Tr::tr("Couldn't open '%1'.").arg(filePath));
 
         const QString code = QTextStream(&file).readAll();
@@ -133,7 +133,7 @@ ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
         file.close();
         if (!parser.parse()) {
             QList<QbsQmlJS::DiagnosticMessage> parserMessages = parser.diagnosticMessages();
-            if (!parserMessages.isEmpty()) {
+            if (Q_UNLIKELY(!parserMessages.isEmpty())) {
                 Error err;
                 foreach (const QbsQmlJS::DiagnosticMessage &msg, parserMessages)
                     err.append(msg.message, toCodeLocation(filePath, msg.loc));

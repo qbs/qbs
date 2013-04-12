@@ -255,7 +255,7 @@ void ProcessCommandExecutor::onProcessFinished(int exitCode)
     const bool errorOccurred = exitCode > processCommand()->maxExitCode();
     sendProcessOutput(!errorOccurred);
 
-    if (errorOccurred) {
+    if (Q_UNLIKELY(errorOccurred)) {
         emit error(Error(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
         return;
     }

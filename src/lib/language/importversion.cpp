@@ -43,7 +43,7 @@ ImportVersion::ImportVersion()
 ImportVersion ImportVersion::fromString(const QString &str, const CodeLocation &location)
 {
     QStringList lst = str.split(QLatin1Char('.'));
-    if (lst.count() < 1 || lst.count() > 2)
+    if (Q_UNLIKELY(lst.count() < 1 || lst.count() > 2))
         throw Error(Tr::tr("Wrong number of components in import version."), location);
     ImportVersion v;
     int *parts[] = {&v.m_major, &v.m_minor, 0};
@@ -52,7 +52,7 @@ ImportVersion ImportVersion::fromString(const QString &str, const CodeLocation &
             break;
         bool ok;
         *parts[i] = lst.at(i).toInt(&ok);
-        if (!ok)
+        if (Q_UNLIKELY(!ok))
             throw Error(Tr::tr("Cannot parse import version."), location);
     }
     return v;

@@ -59,7 +59,7 @@ QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
 QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
-    if (context->argumentCount() < 2) {
+    if (Q_UNLIKELY(context->argumentCount() < 2)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    Tr::tr("copy expects 2 arguments"));
     }
@@ -67,7 +67,7 @@ QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
     const QString sourceFile = context->argument(0).toString();
     const QString targetFile = context->argument(1).toString();
     QString errorMessage;
-    if (!copyFileRecursion(sourceFile, targetFile, &errorMessage))
+    if (Q_UNLIKELY(!copyFileRecursion(sourceFile, targetFile, &errorMessage)))
         return context->throwError(errorMessage);
     return true;
 }
@@ -75,7 +75,7 @@ QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
 QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
-    if (context->argumentCount() < 1) {
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    Tr::tr("exist expects 1 argument"));
     }
@@ -85,14 +85,14 @@ QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
 QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
-    if (context->argumentCount() < 1) {
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    Tr::tr("remove expects 1 argument"));
     }
     QString fileName = context->argument(0).toString();
 
     QString errorMessage;
-    if (!removeFileRecursion(QFileInfo(fileName), &errorMessage))
+    if (Q_UNLIKELY(!removeFileRecursion(QFileInfo(fileName), &errorMessage)))
         return context->throwError(errorMessage);
     return true;
 }

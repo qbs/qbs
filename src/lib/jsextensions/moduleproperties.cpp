@@ -81,19 +81,19 @@ QScriptValue ModuleProperties::js_moduleProperty(QScriptContext *context, QScrip
 QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScriptEngine *engine,
                                                 bool oneValue)
 {
-    if (context->argumentCount() < 2) {
+    if (Q_UNLIKELY(context->argumentCount() < 2)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    Tr::tr("Function moduleProperties() expects 2 arguments"));
     }
 
     const QScriptValue objectWithProperties = context->thisObject();
     const QScriptValue typeScriptValue = objectWithProperties.property(typeKey());
-    if (!typeScriptValue.isString()) {
+    if (Q_UNLIKELY(!typeScriptValue.isString())) {
         return context->throwError(QScriptContext::TypeError,
                 QLatin1String("Internal error: __type not set up"));
     }
     const QScriptValue ptrScriptValue = objectWithProperties.property(ptrKey());
-    if (!ptrScriptValue.isNumber()) {
+    if (Q_UNLIKELY(!ptrScriptValue.isNumber())) {
         return context->throwError(QScriptContext::TypeError,
                 QLatin1String("Internal error: __internalPtr not set up"));
     }

@@ -95,7 +95,7 @@ static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engin
 
 static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() != 2) {
+    if (Q_UNLIKELY(context->argumentCount() != 2)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    "Command c'tor expects 2 arguments");
     }
@@ -213,7 +213,7 @@ void ProcessCommand::store(QDataStream &s)
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() != 0) {
+    if (Q_UNLIKELY(context->argumentCount() != 0)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    "JavaScriptCommand c'tor doesn't take arguments.");
     }

@@ -239,7 +239,7 @@ void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productCont
                                        const ItemPtr &item)
 {
     checkCancelation();
-    if (productContext->filesWithProductModule.contains(item->file()))
+    if (Q_UNLIKELY(productContext->filesWithProductModule.contains(item->file())))
         throw Error(Tr::tr("Multiple ProductModule items in one product are prohibited."),
                     item->location());
     productContext->filesWithProductModule += item->file();
@@ -277,7 +277,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, const Ite
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(dependsContext->product, item, QString(), baseModuleName);
-    if (!baseModuleDesc.item)
+    if (Q_UNLIKELY(!baseModuleDesc.item))
         throw Error(Tr::tr("Cannot load base qbs module."));
     baseModuleDesc.item->setProperty(QLatin1String("getenv"),
                                      BuiltinValue::create(BuiltinValue::GetEnvFunction));
@@ -322,7 +322,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const Item
     checkCancelation();
     const QString name = m_evaluator->property(dependsItem, "name").toString().toLower();
     const QStringList nameParts = name.split('.');
-    if (nameParts.count() > 2) {
+    if (Q_UNLIKELY(nameParts.count() > 2)) {
         QString msg = Tr::tr("There cannot be more than one dot in a module name.");
         throw Error(msg, dependsItem->location());
     }
@@ -330,13 +330,13 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const Item
     QString superModuleName;
     QStringList submodules = toStringList(m_evaluator->property(dependsItem, "submodules"));
     if (nameParts.count() == 2) {
-        if (!submodules.isEmpty())
+        if (Q_UNLIKELY(!submodules.isEmpty()))
             throw Error(Tr::tr("Depends.submodules cannot be used if name contains a dot."),
                         dependsItem->location());
         superModuleName = nameParts.first();
         submodules += nameParts.last();
     }
-    if (submodules.count() > 1 && !dependsItem->id().isEmpty()) {
+    if (Q_UNLIKELY(submodules.count() > 1 && !dependsItem->id().isEmpty())) {
         QString msg = Tr::tr("A Depends item with more than one module cannot have an id.");
         throw Error(msg, dependsItem->location());
     }
@@ -473,7 +473,7 @@ ItemPtr ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         }
     }
 
-    if (triedToLoadModule)
+    if (Q_UNLIKELY(triedToLoadModule))
         throw Error(Tr::tr("Module %1 could not be loaded.").arg(fullModuleName(moduleName)));
 
     return ItemPtr();
@@ -595,7 +595,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, const ItemP
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
          vmit != userModuleProperties.end(); ++vmit)
     {
-        if (!moduleInstance->hasProperty(vmit.key()))
+        if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key())))
             throw Error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName(moduleName), vmit.key()));
         moduleInstance->setProperty(vmit.key(), VariantValue::create(vmit.value()));
     }
@@ -628,7 +628,7 @@ void ModuleLoader::resolveProbes(const ItemPtr &item)
 void ModuleLoader::resolveProbe(const ItemPtr &parent, const ItemPtr &probe)
 {
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
-    if (!configureScript)
+    if (Q_UNLIKELY(!configureScript))
         throw Error(Tr::tr("Probe.configure must be set."), probe->location());
     typedef QPair<QString, QScriptValue> ProbeProperty;
     QList<ProbeProperty> probeBindings;
@@ -637,7 +637,7 @@ void ModuleLoader::resolveProbe(const ItemPtr &parent, const ItemPtr &probe)
             if (name == QLatin1String("configure"))
                 continue;
             QScriptValue sv = m_evaluator->property(probe, name);
-            if (sv.isError()) {
+            if (Q_UNLIKELY(sv.isError())) {
                 ValuePtr value = obj->property(name);
                 throw Error(sv.toString(), value ? value->location() : CodeLocation());
             }
@@ -654,7 +654,7 @@ void ModuleLoader::resolveProbe(const ItemPtr &parent, const ItemPtr &probe)
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     QScriptValue sv = m_engine->evaluate(configureScript->sourceCode());
-    if (sv.isError())
+    if (Q_UNLIKELY(sv.isError()))
         throw Error(sv.toString(), configureScript->location());
     foreach (const ProbeProperty &b, probeBindings) {
         const QVariant newValue = scope.property(b.first).toVariant();
@@ -679,7 +679,7 @@ bool ModuleLoader::checkItemCondition(const ItemPtr &item)
         // Item doesn't have a condition binding. Handled as true.
         return true;
     }
-    if (value.isError()) {
+    if (Q_UNLIKELY(value.isError())) {
         CodeLocation location;
         ValuePtr prop = item->property("condition");
         if (prop && prop->type() == Value::JSSourceValueType)

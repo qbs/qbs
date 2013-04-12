@@ -283,7 +283,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     ArtifactsPerFileTagMap artifactsPerFileTag;
 
     foreach (ResolvedProductPtr dependency, product->dependencies) {
-        if (!dependency->enabled) {
+        if (Q_UNLIKELY(!dependency->enabled)) {
             QString msg = Tr::tr("Product '%1' depends on '%2' but '%2' is disabled.");
             throw Error(msg.arg(product->name, dependency->name));
         }
@@ -318,7 +318,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         ArtifactList inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
             Artifact *artifact = lookupArtifact(product, inputFileName);
-            if (!artifact)
+            if (Q_UNLIKELY(!artifact))
                 throw Error(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
             inputArtifacts += artifact;
         }
@@ -353,7 +353,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         transformer->setupInputs(engine(), scope());
         transformer->setupOutputs(engine(), scope());
         transformer->createCommands(rtrafo->transform, evalContext());
-        if (transformer->commands.isEmpty())
+        if (Q_UNLIKELY(transformer->commands.isEmpty()))
             throw Error(QString("There's a transformer without commands."), rtrafo->transform->location);
     }
 

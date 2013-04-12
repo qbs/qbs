@@ -414,7 +414,7 @@ QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, Q
 
 static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() < 1)
+    if (Q_UNLIKELY(context->argumentCount() < 1))
         return context->throwError(QScriptContext::SyntaxError,
                                    QLatin1String("getenv expects 1 argument"));
     QVariant v = engine->property("_qbs_procenv");
@@ -424,7 +424,7 @@ static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine)
 
 static QScriptValue js_putenv(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() < 2)
+    if (Q_UNLIKELY(context->argumentCount() < 2))
         return context->throwError(QScriptContext::SyntaxError,
                                    QLatin1String("putenv expects 2 arguments"));
     QVariant v = engine->property("_qbs_procenv");
@@ -526,7 +526,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         ctx->pushScope(scope);
         scriptValue = engine->evaluate(setupScript);
         ctx->popScope();
-        if (scriptValue.isError() || engine->hasUncaughtException()) {
+        if (Q_UNLIKELY(scriptValue.isError() || engine->hasUncaughtException())) {
             QString envTypeStr = (envType == BuildEnv ? "build" : "run");
             throw Error(QString("Error while setting up %1 environment: %2").arg(envTypeStr, scriptValue.toString()));
         }
