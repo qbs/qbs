@@ -7,7 +7,11 @@ Project {
         Depends { name: "Qt.core" }
         name: "unspecified"
         files: "main.cpp"
-        cpp.frameworks: "Foundation"
+
+        Properties {
+            condition: qbs.targetPlatform.indexOf("darwin") !== -1
+            cpp.frameworks: "Foundation"
+        }
     }
 
     // no minimum versions are specified, and explicitly set to undefined in
@@ -17,11 +21,15 @@ Project {
         Depends { name: "Qt.core" }
         name: "unspecified-forced"
         files: "main.cpp"
-        cpp.frameworks: "Foundation"
         cpp.minimumWindowsVersion: undefined
         cpp.minimumMacVersion: undefined
         cpp.minimumIosVersion: undefined
         cpp.minimumAndroidVersion: undefined
+
+        Properties {
+            condition: qbs.targetPlatform.indexOf("darwin") !== -1
+            cpp.frameworks: "Foundation"
+        }
     }
 
     // a specific version of the operating systems is specified

@@ -28,8 +28,7 @@ int main(int argc, char *argv[])
         while (dumpbin.canReadLine()) {
             QString line = dumpbin.readLine();
             if (line.contains("version")) {
-                out << line.trimmed();
-                out.endl();
+                out << line.trimmed() << "\n";
             }
         }
     }

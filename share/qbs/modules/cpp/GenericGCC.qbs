@@ -201,17 +201,26 @@ CppModule {
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
             if (product.moduleProperty("qbs", "toolchain") === "mingw") {
-                var subsystemSwitch = product.consoleApplication ? "-Wl,-subsystem,console" : "-Wl,-subsystem,windows";
+                if (product.consoleApplication !== undefined)
+                    if (product.consoleApplication)
+                        args.push("-Wl,-subsystem,console");
+                    else
+                        args.push("-Wl,-subsystem,windows");
 
                 var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
                 if (minimumWindowsVersion) {
                     var subsystemVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
                     if (subsystemVersion) {
-                        args.push(subsystemSwitch + ',' + subsystemVersion);
-                        args.push("-Wl,-osversion," + subsystemVersion);
+                        var major = subsystemVersion.split('.')[0];
+                        var minor = subsystemVersion.split('.')[1];
+
+                        // http://sourceware.org/binutils/docs/ld/Options.html
+                        args.push("-Wl,--major-subsystem-version," + major);
+                        args.push("-Wl,--minor-subsystem-version," + minor);
+                        args.push("-Wl,--major-os-version," + major);
+                        args.push("-Wl,--minor-os-version," + minor);
                     } else {
                         print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
-                        args.push(subsystemSwitch);
                     }
                 }
             }

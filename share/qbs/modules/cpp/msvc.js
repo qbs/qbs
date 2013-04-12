@@ -121,19 +121,26 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     else
         args.push('/INCREMENTAL:NO')
 
-    var subsystemSwitch = product.consoleApplication ? '/SUBSYSTEM:CONSOLE' : '/SUBSYSTEM:WINDOWS';
-
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+    var subsystemSwitch = undefined;
+    if (minimumWindowsVersion || product.consoleApplication !== undefined) {
+        // Ensure that we default to console if product.consoleApplication is undefined
+        // since that could still be the case if only minimumWindowsVersion had been defined
+        subsystemSwitch = product.consoleApplication === false ? '/SUBSYSTEM:WINDOWS' : '/SUBSYSTEM:CONSOLE';
+    }
+
     if (minimumWindowsVersion) {
         var subsystemVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
         if (subsystemVersion) {
-            args.push(subsystemSwitch + ',' + subsystemVersion);
+            subsystemSwitch += ',' + subsystemVersion;
             args.push('/OSVERSION:' + subsystemVersion);
         } else {
             print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
-            args.push(subsystemSwitch);
         }
     }
+
+    if (subsystemSwitch)
+        args.push(subsystemSwitch);
 
     var linkerOutputNativeFilePath;
     var manifestFileName;
