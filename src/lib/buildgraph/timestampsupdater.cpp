@@ -47,7 +47,7 @@ public:
     TimestampsUpdateVisitor()
         : ArtifactVisitor(Artifact::Generated), m_now(FileTime::currentTime()) {}
 
-    void visitProduct(const ResolvedProductPtr &product)
+    void visitProduct(const ResolvedProductConstPtr &product)
     {
         QBS_CHECK(product->buildData);
         ArtifactVisitor::visitProduct(product);
