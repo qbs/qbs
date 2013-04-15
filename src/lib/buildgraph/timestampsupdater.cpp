@@ -70,14 +70,13 @@ private:
     FileTime m_now;
 };
 
-void TimestampsUpdater::updateTimestamps(const QList<ResolvedProductPtr> &products,
-                                         const Logger &logger)
+void TimestampsUpdater::updateTimestamps(const ResolvedProjectPtr &project,
+        const QList<ResolvedProductPtr> &products, const Logger &logger)
 {
     TimestampsUpdateVisitor v;
     foreach (const ResolvedProductPtr &product, products)
         v.visitProduct(product);
-    const ResolvedProjectPtr project = products.first()->project;
-    project->buildData->isDirty = true;
+    project->buildData->isDirty = !products.isEmpty();
     project->store(logger);
 }
 

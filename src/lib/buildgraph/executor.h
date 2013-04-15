@@ -63,6 +63,7 @@ public:
     Executor(const Logger &logger, QObject *parent = 0);
     ~Executor();
 
+    void setProject(const ResolvedProjectPtr &project);
     void setProducts(const QList<ResolvedProductPtr> &productsToBuild);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
@@ -123,6 +124,7 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
+    ResolvedProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
     QList<Artifact *> m_roots;
     QList<Artifact *> m_leaves;

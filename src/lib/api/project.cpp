@@ -145,7 +145,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
         addDependencies(productsToBuild);
 
     BuildJob * const job = new BuildJob(logger, jobOwner);
-    job->build(productsToBuild, options, env);
+    job->build(internalProject, productsToBuild, options, env);
     return job;
 }
 
@@ -153,7 +153,7 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &product
         const CleanOptions &options, QObject *jobOwner)
 {
     CleanJob * const job = new CleanJob(logger, jobOwner);
-    job->clean(products, options);
+    job->clean(internalProject, products, options);
     return job;
 }
 
@@ -503,7 +503,8 @@ InstallJob *Project::installOneProduct(const ProductData &product, const Install
  */
 void Project::updateTimestamps(const QList<ProductData> &products)
 {
-    TimestampsUpdater().updateTimestamps(d->internalProducts(products), d->logger);
+    TimestampsUpdater().updateTimestamps(d->internalProject, d->internalProducts(products),
+                                         d->logger);
 }
 
 } // namespace qbs

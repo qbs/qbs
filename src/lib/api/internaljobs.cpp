@@ -244,16 +244,18 @@ BuildGraphTouchingJob::~BuildGraphTouchingJob()
 {
 }
 
-void BuildGraphTouchingJob::setup(const QList<ResolvedProductPtr> &products, bool dryRun)
+void BuildGraphTouchingJob::setup(const ResolvedProjectPtr &project,
+                                  const QList<ResolvedProductPtr> &products, bool dryRun)
 {
+    m_project = project;
     m_products = products;
     m_dryRun = dryRun;
 }
 
 void BuildGraphTouchingJob::storeBuildGraph()
 {
-    if (!m_dryRun && !m_products.isEmpty())
-        InternalJob::storeBuildGraph(m_products.first()->project);
+    if (!m_dryRun)
+        InternalJob::storeBuildGraph(m_project);
 }
 
 InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
@@ -261,13 +263,15 @@ InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalBuildJob::build(const QList<ResolvedProductPtr> &products,
-                             const BuildOptions &buildOptions, const QProcessEnvironment &env)
+void InternalBuildJob::build(const ResolvedProjectPtr &project,
+        const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions,
+        const QProcessEnvironment &env)
 {
-    setup(products, buildOptions.dryRun);
+    setup(project, products, buildOptions.dryRun);
     setTimed(buildOptions.logElapsedTime);
 
     m_executor = new Executor(logger());
+    m_executor->setProject(project);
     m_executor->setProducts(products);
     m_executor->setBuildOptions(buildOptions);
     m_executor->setProgressObserver(observer());
@@ -292,8 +296,7 @@ void InternalBuildJob::handleFinished()
 {
     if (m_executor->hasError())
         setError(m_executor->error());
-    if (!products().isEmpty())
-        products().first()->project->buildData->evaluationContext.clear();
+    project()->buildData->evaluationContext.clear();
     storeBuildGraph();
     m_executor->deleteLater();
 }
@@ -308,9 +311,10 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalCleanJob::clean(const QList<ResolvedProductPtr> &products, const CleanOptions &options)
+void InternalCleanJob::clean(const ResolvedProjectPtr &project,
+                             const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
-    setup(products, options.dryRun);
+    setup(project, products, options.dryRun);
     setTimed(options.logElapsedTime);
     m_options = options;
     QTimer::singleShot(0, this, SLOT(start()));
@@ -332,7 +336,7 @@ void InternalCleanJob::doClean()
 {
     try {
         ArtifactCleaner cleaner(logger(), observer());
-        cleaner.cleanup(products(), m_options);
+        cleaner.cleanup(project(), products(), m_options);
     } catch (const Error &error) {
         setError(error);
     }

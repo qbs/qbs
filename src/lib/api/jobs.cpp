@@ -249,10 +249,10 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
     connect(job, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 }
 
-void BuildJob::build(const QList<ResolvedProductPtr> &products, const BuildOptions &options,
-                     const QProcessEnvironment &env)
+void BuildJob::build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+                     const BuildOptions &options, const QProcessEnvironment &env)
 {
-    qobject_cast<InternalBuildJob *>(internalJob())->build(products, options, env);
+    qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options, env);
 }
 
 
@@ -266,9 +266,10 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void CleanJob::clean(const QList<ResolvedProductPtr> &products, const qbs::CleanOptions &options)
+void CleanJob::clean(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+                     const qbs::CleanOptions &options)
 {
-    qobject_cast<InternalCleanJob *>(internalJob())->clean(products, options);
+    qobject_cast<InternalCleanJob *>(internalJob())->clean(project, products, options);
 }
 
 /*!

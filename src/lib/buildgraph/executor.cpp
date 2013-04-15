@@ -116,7 +116,6 @@ Executor::~Executor()
     delete m_inputArtifactScanContext;
 }
 
-
 FileTime Executor::recursiveFileTime(const QString &filePath) const
 {
     FileTime newest;
@@ -157,6 +156,11 @@ void Executor::build()
     }
 }
 
+void Executor::setProject(const ResolvedProjectPtr &project)
+{
+    m_project = project;
+}
+
 void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
 {
     m_productsToBuild = productsToBuild;
@@ -183,11 +187,10 @@ void Executor::doBuild()
     }
 
     doSanityChecks();
-    ProjectBuildData * const project = m_productsToBuild.first()->project->buildData.data();
-    m_evalContext = project->evaluationContext;
+    m_evalContext = m_project->buildData->evaluationContext;
     if (!m_evalContext) { // Is null before the first build.
         m_evalContext = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
-        project->evaluationContext = m_evalContext;
+        m_project->buildData->evaluationContext = m_evalContext;
     }
 
     m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] preparing executor for %1 jobs "
@@ -203,7 +206,7 @@ void Executor::doBuild()
     QList<Artifact *> changedArtifacts;
     foreach (const QString &filePath, m_buildOptions.changedFiles) {
         QList<Artifact *> artifacts;
-        artifacts.append(project->lookupArtifacts(filePath));
+        artifacts.append(m_project->buildData->lookupArtifacts(filePath));
         if (artifacts.isEmpty()) {
             m_logger.qbsWarning() << QString::fromLocal8Bit("Out of date file '%1' provided "
                     "but not found.").arg(QDir::toNativeSeparators(filePath));
@@ -582,7 +585,7 @@ void Executor::insertLeavesAfterAddingDependencies_recurse(Artifact *const artif
 
 QString Executor::configString() const
 {
-    return tr(" for configuration %1").arg(m_productsToBuild.first()->project->id());
+    return tr(" for configuration %1").arg(m_project->id());
 }
 
 void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies)
@@ -620,10 +623,11 @@ void Executor::setupProgressObserver(bool mocWillRun)
 
 void Executor::doSanityChecks()
 {
+    QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.isEmpty());
     foreach (const ResolvedProductConstPtr &product, m_productsToBuild) {
         QBS_CHECK(product->buildData);
-        QBS_CHECK(product->project == m_productsToBuild.first()->project);
+        QBS_CHECK(product->project == m_project);
     }
 }
 

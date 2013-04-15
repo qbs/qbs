@@ -44,7 +44,8 @@ class ArtifactCleaner
 {
 public:
     ArtifactCleaner(const Logger &logger, ProgressObserver *observer);
-    void cleanup(const QList<ResolvedProductPtr> &products, const CleanOptions &options);
+    void cleanup(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+                 const CleanOptions &options);
 
 private:
     void removeEmptyDirectories(const QString &rootDir, const CleanOptions &options,

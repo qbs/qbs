@@ -40,7 +40,8 @@ class Logger;
 class TimestampsUpdater
 {
 public:
-    void updateTimestamps(const QList<ResolvedProductPtr> &products, const Logger &logger);
+    void updateTimestamps(const ResolvedProjectPtr &project,
+                          const QList<ResolvedProductPtr> &products, const Logger &logger);
 };
 
 } // namespace Internal

@@ -114,7 +114,8 @@ signals:
 private:
     BuildJob(const Internal::Logger &logger, QObject *parent);
 
-    void build(const QList<qbs::Internal::ResolvedProductPtr> &products,
+    void build(const Internal::ResolvedProjectPtr &project,
+               const QList<qbs::Internal::ResolvedProductPtr> &products,
                const BuildOptions &options, const QProcessEnvironment &env);
 };
 
@@ -127,7 +128,8 @@ class QBS_EXPORT CleanJob : public AbstractJob
 private:
     CleanJob(const Internal::Logger &logger, QObject *parent);
 
-    void clean(const QList<Internal::ResolvedProductPtr> &products, const CleanOptions &options);
+    void clean(const Internal::ResolvedProjectPtr &project,
+               const QList<Internal::ResolvedProductPtr> &products, const CleanOptions &options);
 };
 
 class QBS_EXPORT InstallJob : public AbstractJob

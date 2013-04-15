@@ -132,16 +132,12 @@ ArtifactCleaner::ArtifactCleaner(const Logger &logger, ProgressObserver *observe
 {
 }
 
-void ArtifactCleaner::cleanup(const QList<ResolvedProductPtr> &products,
-                              const CleanOptions &options)
+void ArtifactCleaner::cleanup(const ResolvedProjectPtr &project,
+        const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
     m_hasError = false;
 
-    QString configString;
-    if (!products.isEmpty()) {
-        configString = Tr::tr(" for configuration %1")
-                .arg(products.first()->project->id());
-    }
+    const QString configString = Tr::tr(" for configuration %1").arg(project->id());
     m_observer->initialize(Tr::tr("Cleaning up%1").arg(configString), products.count() + 1);
 
     QSet<QString> directories;

@@ -122,6 +122,7 @@ class BuildGraphTouchingJob : public InternalJob
     Q_OBJECT
 public:
     const QList<ResolvedProductPtr> &products() const { return m_products; }
+    const ResolvedProjectPtr &project() const { return m_project; }
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
@@ -132,10 +133,12 @@ protected:
     BuildGraphTouchingJob(const Logger &logger, QObject *parent = 0);
     ~BuildGraphTouchingJob();
 
-    void setup(const QList<ResolvedProductPtr> &products, bool dryRun);
+    void setup(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+               bool dryRun);
     void storeBuildGraph();
 
 private:
+    ResolvedProjectPtr m_project;
     QList<ResolvedProductPtr> m_products;
     bool m_dryRun;
 };
@@ -147,8 +150,8 @@ class InternalBuildJob : public BuildGraphTouchingJob
 public:
     InternalBuildJob(const Logger &logger, QObject *parent = 0);
 
-    void build(const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions,
-               const QProcessEnvironment &env);
+    void build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+               const BuildOptions &buildOptions, const QProcessEnvironment &env);
 
 private slots:
     void handleFinished();
@@ -165,7 +168,8 @@ class InternalCleanJob : public BuildGraphTouchingJob
 public:
     InternalCleanJob(const Logger &logger, QObject *parent = 0);
 
-    void clean(const QList<ResolvedProductPtr> &products, const CleanOptions &options);
+    void clean(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+               const CleanOptions &options);
 
 private slots:
     void start();
