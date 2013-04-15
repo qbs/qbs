@@ -833,6 +833,12 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
 }
 
+void TestBlackbox::disabledProduct()
+{
+    QDir::setCurrent(testDataDir + "/disabledProduct");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");
