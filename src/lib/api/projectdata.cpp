@@ -313,8 +313,13 @@ bool operator!=(const PropertyMap &pm1, const PropertyMap &pm2)
  */
 
 /*!
- * \fn QString ProjectData::qbsFilePath() const
+ * \fn CodeLocation ProjectData::location() const
  * \brief The qbs source file in which the project is defined.
+ */
+
+/*!
+ * \fn QString ProjectData::buildDirectory() const
+ * \brief The base directory under which the build artifacts of this project will be created.
  */
 
 /*!

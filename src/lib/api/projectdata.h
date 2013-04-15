@@ -142,11 +142,13 @@ public:
     ProjectData();
 
     CodeLocation location() const { return m_location; }
+    QString buildDirectory() const { return m_buildDir; }
     QList<ProductData> products() const { return m_products; }
 
 private:
     CodeLocation m_location;
     QList<ProductData> m_products;
+    QString m_buildDir;
 };
 
 QBS_EXPORT bool operator==(const ProjectData &lhs, const ProjectData &rhs);

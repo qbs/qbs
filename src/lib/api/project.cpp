@@ -201,6 +201,7 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
 void ProjectPrivate::retrieveProjectData()
 {
     m_projectData.m_location = internalProject->location;
+    m_projectData.m_buildDir = internalProject->buildDirectory;
     foreach (const ResolvedProductConstPtr &resolvedProduct, internalProject->products) {
         ProductData product;
         product.m_name = resolvedProduct->name;
