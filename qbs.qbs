@@ -37,7 +37,6 @@ Project {
             inputs: "share/qbs"
             Artifact {
                 fileName: "share/qbs"
-                fileTags: "blubb"  // FIXME: Needs to be here because of qbs bug
             }
             prepare: {
                 var cmd = new JavaScriptCommand();

@@ -55,6 +55,12 @@ namespace Internal {
 
 extern bool debugProperties;
 
+static const FileTag unknownFileTag()
+{
+    static const FileTag tag("unknown-file-tag");
+    return tag;
+}
+
 ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins,
                                  const Logger &logger)
     : m_evaluator(ldr->evaluator())
@@ -572,6 +578,8 @@ void ProjectResolver::resolveTransformer(const ItemPtr &item)
         artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->project->buildDirectory,
                                                            fileName);
         artifact->fileTags = fileTagsValue(child, "fileTags");
+        if (artifact->fileTags.isEmpty())
+            artifact->fileTags.insert(unknownFileTag());
         rtrafo->outputs += artifact;
     }
 
@@ -694,7 +702,7 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
         const FileTags fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
-            artifact->fileTags.insert("unknown-file-tag");
+            artifact->fileTags.insert(unknownFileTag());
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
                        << " to " << FileInfo::fileName(artifact->absoluteFilePath);
