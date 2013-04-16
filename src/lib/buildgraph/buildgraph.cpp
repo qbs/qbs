@@ -644,7 +644,6 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
     m_logger.qbsDebug() << "[BG] product '" << product->name << "' changed.";
 
     ArtifactsPerFileTagMap artifactsPerFileTag;
-    QSet<SourceArtifactConstPtr> addedSourceArtifacts;
     QList<Artifact *> addedArtifacts, artifactsToRemove;
     QHash<QString, SourceArtifactConstPtr> oldArtifacts, newArtifacts;
 
@@ -658,7 +657,6 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
             m_logger.qbsDebug() << "[BG] artifact '" << a->absoluteFilePath
                                 << "' added to product " << product->name;
             addedArtifacts += createArtifact(product, a, m_logger);
-            addedSourceArtifacts += a;
         }
     }
 
