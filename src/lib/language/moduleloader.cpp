@@ -276,7 +276,8 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, const Ite
     const QStringList baseModuleName(QLatin1String("qbs"));
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
-    baseModuleDesc.item = loadModule(dependsContext->product, item, QString(), baseModuleName);
+    baseModuleDesc.item = loadModule(dependsContext->product, item, CodeLocation(), QString(),
+                                     baseModuleName);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw Error(Tr::tr("Cannot load base qbs module."));
     baseModuleDesc.item->setProperty(QLatin1String("getenv"),
@@ -356,8 +357,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, const Item
         QStringList qualifiedModuleName(moduleName);
         if (!superModuleName.isEmpty())
             qualifiedModuleName.prepend(superModuleName);
-        ItemPtr moduleItem = loadModule(dependsContext->product, item, dependsItem->id(),
-                                        qualifiedModuleName);
+        ItemPtr moduleItem = loadModule(dependsContext->product, item, dependsItem->location(),
+                                        dependsItem->id(), qualifiedModuleName);
         if (moduleItem) {
             if (m_logger.traceEnabled())
                 m_logger.qbsTrace() << "module loaded: " << fullModuleName(qualifiedModuleName);
@@ -398,7 +399,8 @@ ItemPtr ModuleLoader::moduleInstanceItem(const ItemPtr &item, const QStringList 
 }
 
 ItemPtr ModuleLoader::loadModule(ProductContext *productContext, const ItemPtr &item,
-                                 const QString &moduleId, const QStringList &moduleName)
+        const CodeLocation &dependsItemLocation,
+        const QString &moduleId, const QStringList &moduleName)
 {
     const ItemPtr moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
@@ -410,7 +412,8 @@ ItemPtr ModuleLoader::loadModule(ProductContext *productContext, const ItemPtr &
 
     const QStringList extraSearchPaths = productContext->extraSearchPaths.isEmpty()
             ? productContext->project->extraSearchPaths : productContext->extraSearchPaths;
-    ItemPtr modulePrototype = searchAndLoadModuleFile(productContext, moduleName, extraSearchPaths);
+    ItemPtr modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
+                                                      moduleName, extraSearchPaths);
     if (!modulePrototype)
         return ItemPtr();
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
@@ -418,8 +421,8 @@ ItemPtr ModuleLoader::loadModule(ProductContext *productContext, const ItemPtr &
 }
 
 ItemPtr ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
-                                             const QStringList &moduleName,
-                                             const QStringList &extraSearchPaths)
+        const CodeLocation &dependsItemLocation, const QStringList &moduleName,
+        const QStringList &extraSearchPaths)
 {
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
@@ -449,7 +452,8 @@ ItemPtr ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     }
 
     if (Q_UNLIKELY(triedToLoadModule))
-        throw Error(Tr::tr("Module %1 could not be loaded.").arg(fullModuleName(moduleName)));
+        throw Error(Tr::tr("Module %1 could not be loaded.").arg(fullModuleName(moduleName)),
+                    dependsItemLocation);
 
     return ItemPtr();
 }

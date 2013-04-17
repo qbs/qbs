@@ -44,6 +44,9 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
+
+class CodeLocation;
+
 namespace Internal {
 
 class BuiltinDeclarations;
@@ -137,8 +140,11 @@ private:
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, const ItemPtr &item, const ItemPtr &dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
     static ItemPtr moduleInstanceItem(const ItemPtr &item, const QStringList &moduleName);
-    ItemPtr loadModule(ProductContext *productContext, const ItemPtr &item, const QString &moduleId, const QStringList &moduleName);
-    ItemPtr searchAndLoadModuleFile(ProductContext *productContext, const QStringList &moduleName, const QStringList &extraSearchPaths);
+    ItemPtr loadModule(ProductContext *productContext, const ItemPtr &item,
+            const CodeLocation &dependsItemLocation, const QString &moduleId, const QStringList &moduleName);
+    ItemPtr searchAndLoadModuleFile(ProductContext *productContext,
+            const CodeLocation &dependsItemLocation, const QStringList &moduleName,
+            const QStringList &extraSearchPaths);
     ItemPtr loadModuleFile(ProductContext *productContext, bool isBaseModule, const QString &filePath);
     void instantiateModule(ProductContext *productContext, const ItemPtr &instanceScope, const ItemPtr &moduleInstance, const ItemPtr &modulePrototype, const QStringList &moduleName);
     void createChildInstances(ProductContext *productContext, const ItemPtr &instance,
