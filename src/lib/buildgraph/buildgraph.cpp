@@ -473,8 +473,10 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     }
 
     const ResolvedProjectPtr project = ResolvedProject::create();
-    TimedActivityLogger loadLogger(m_logger, QLatin1String("Loading build graph"),
-                                   QLatin1String("[BG] "));
+
+    // TODO: Store some meta data that will enable us to show actual progress (e.g. number of products).
+    evalContext->initializeObserver(Tr::tr("Restoring build graph from disk"), 1);
+
     project->load(pool);
     project->buildData->evaluationContext = evalContext;
     foreach (Artifact * const a, project->buildData->dependencyArtifacts)
@@ -508,7 +510,7 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     project->setBuildConfiguration(pool.headData().projectConfig);
     project->buildDirectory = buildDir;
     m_result.loadedProject = project;
-    loadLogger.finishActivity();
+    evalContext->incrementProgressValue();
     trackProjectChanges(parameters, buildGraphFilePath, project);
     return m_result;
 }
