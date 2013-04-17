@@ -7,6 +7,11 @@ Project {
     Product {
         type: 'application'
         name: project.name
+        property var replacements: ({
+                NUMBERTYPE: "int",
+                STRINGTYPE: "char **",
+                FUNCTIONNAME: "main"
+            })
         Group {
             files: 'foo.txt'
             fileTags: ['text']
@@ -21,7 +26,21 @@ Project {
             fileName: input.baseName + '.cpp'
         }
         prepare: {
-            var code = 'int main(int, char **) { return 0; }'
+            function expandMacros(str, table)
+            {
+                var rex = /\$\w+/;
+                var m = rex.exec(str);
+                while (m != null) {
+                    str = str.substr(0, m.index)
+                            + table[m[0].substr(1)]
+                            + str.substr(m.index + m[0].length);
+                    m = rex.exec(str);
+                }
+                return str;
+            }
+
+            var code = '$NUMBERTYPE $FUNCTIONNAME($NUMBERTYPE, $STRINGTYPE) { return 0; }';
+            code = expandMacros(code, product.replacements);
             var args = ['echo ' + code + '>' + output.fileName]
             var cmd
             if (product.moduleProperty("qbs", "hostOS") == 'windows') {
