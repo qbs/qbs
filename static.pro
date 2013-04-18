@@ -65,7 +65,7 @@ FILES += $$DATA_FILES
 
 OTHER_FILES += $$FILES
 
-!isEqual(PWD, $$OUT_PWD) {
+!isEqual(PWD, $$OUT_PWD)|!isEmpty(QBS_RESOURCES_BUILD_DIR) {
     copy2build.input = FILES
     !isEmpty(QBS_RESOURCES_BUILD_DIR): \
         copy2build.output = $${QBS_RESOURCES_BUILD_DIR}/${QMAKE_FUNC_FILE_IN_stripSrcDir}
