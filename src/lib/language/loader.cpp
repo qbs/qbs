@@ -91,7 +91,7 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     // sees that an operation is starting. The real total effort will be set later when
     // we have enough information.
     if (m_progressObserver) {
-        m_progressObserver->initialize(Tr::tr("Loading project for configuration %1")
+        m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
                 .arg(ResolvedProject::deriveId(parameters.buildConfiguration)), 1);
     }
     ModuleLoaderResult loadResult

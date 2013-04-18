@@ -152,8 +152,7 @@ void PersistentPool::storeString(const QString &t)
 
 QString PersistentPool::loadString(int id)
 {
-    if (Q_UNLIKELY(id < 0))
-        throw Error("loadString with negative id called");
+    QBS_CHECK(id >= 0);
 
     if (id >= m_stringStorage.count()) {
         QString s;

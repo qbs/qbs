@@ -38,6 +38,7 @@
 #include <jsextensions/file.h>
 #include <jsextensions/process.h>
 #include <jsextensions/textfile.h>
+#include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -647,8 +648,10 @@ void ModuleLoader::resolveProbe(const ItemPtr &parent, const ItemPtr &probe)
 
 void ModuleLoader::checkCancelation() const
 {
-    if (m_progressObserver && m_progressObserver->canceled())
-        throw Error(Tr::tr("Loading canceled."));
+    if (m_progressObserver && m_progressObserver->canceled()) {
+        throw Error(Tr::tr("Project resolving canceled for configuration %1.")
+                    .arg(ResolvedProject::deriveId(m_userProperties)));
+    }
 }
 
 bool ModuleLoader::checkItemCondition(const ItemPtr &item)

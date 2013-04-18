@@ -104,8 +104,10 @@ ResolvedProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
 
 void ProjectResolver::checkCancelation() const
 {
-    if (m_progressObserver && m_progressObserver->canceled())
-        throw Error(Tr::tr("Loading canceled."));
+    if (m_progressObserver && m_progressObserver->canceled()) {
+        throw Error(Tr::tr("Project resolving canceled for configuration %1.")
+                    .arg(ResolvedProject::deriveId(m_buildConfiguration)));
+    }
 }
 
 bool ProjectResolver::boolValue(const ItemConstPtr &item, const QString &name, bool defaultValue) const
