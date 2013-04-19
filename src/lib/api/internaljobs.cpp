@@ -143,7 +143,7 @@ InternalSetupProjectJob::~InternalSetupProjectJob()
 void InternalSetupProjectJob::resolve(const SetupProjectParameters &parameters)
 {
     m_parameters = parameters;
-    setTimed(parameters.logElapsedTime);
+    setTimed(parameters.logElapsedTime());
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
@@ -197,19 +197,19 @@ void InternalSetupProjectJob::execute()
             m_project = loadResult.newlyResolvedProject;
         } else {
             Loader loader(evalContext->engine(), logger());
-            loader.setSearchPaths(m_parameters.searchPaths);
+            loader.setSearchPaths(m_parameters.searchPaths());
             loader.setProgressObserver(observer());
             m_project = loader.loadProject(m_parameters);
         }
         if (m_project->products.isEmpty()) {
             throw Error(Tr::tr("Project '%1' does not contain products.")
-                        .arg(m_parameters.projectFilePath));
+                        .arg(m_parameters.projectFilePath()));
         }
     }
 
     // copy the environment from the platform config into the project's config
     const QVariantMap platformEnvironment
-            = m_parameters.buildConfiguration.value(QLatin1String("environment")).toMap();
+            = m_parameters.buildConfiguration().value(QLatin1String("environment")).toMap();
     m_project->platformEnvironment = platformEnvironment;
 
     logger().qbsDebug() << QString::fromLocal8Bit("for %1:").arg(m_project->id());
@@ -227,7 +227,7 @@ void InternalSetupProjectJob::execute()
             BuildDataResolver::rescueBuildData(loadResult.loadedProject, m_project, logger());
     }
 
-    if (!m_parameters.dryRun)
+    if (!m_parameters.dryRun())
         storeBuildGraph(m_project);
 
     // The evalutation context cannot be re-used for building, which runs in a different thread.
@@ -267,8 +267,8 @@ void InternalBuildJob::build(const ResolvedProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions,
         const QProcessEnvironment &env)
 {
-    setup(project, products, buildOptions.dryRun);
-    setTimed(buildOptions.logElapsedTime);
+    setup(project, products, buildOptions.dryRun());
+    setTimed(buildOptions.logElapsedTime());
 
     m_executor = new Executor(logger());
     m_executor->setProject(project);
@@ -314,8 +314,8 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 void InternalCleanJob::clean(const ResolvedProjectPtr &project,
                              const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
-    setup(project, products, options.dryRun);
-    setTimed(options.logElapsedTime);
+    setup(project, products, options.dryRun());
+    setTimed(options.logElapsedTime());
     m_options = options;
     QTimer::singleShot(0, this, SLOT(start()));
 }
@@ -358,7 +358,7 @@ void InternalInstallJob::install(const QList<ResolvedProductPtr> &products,
 {
     m_products = products;
     m_options = options;
-    setTimed(options.logElapsedTime);
+    setTimed(options.logElapsedTime());
     QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
 }
 

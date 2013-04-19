@@ -28,9 +28,27 @@
 ****************************************************************************/
 #include "buildoptions.h"
 
+#include <QSharedData>
 #include <QThread>
 
 namespace qbs {
+namespace Internal {
+
+class BuildOptionsPrivate : public QSharedData
+{
+public:
+    BuildOptionsPrivate() : maxJobCount(0), dryRun(false), keepGoing(false), logElapsedTime(false)
+    {
+    }
+
+    QStringList changedFiles;
+    int maxJobCount;
+    bool dryRun;
+    bool keepGoing;
+    bool logElapsedTime;
+};
+
+} // namespace Internal
 
 /*!
  * \class BuildOptions
@@ -41,12 +59,40 @@ namespace qbs {
 /*!
  * \brief Creates a \c BuildOptions object and initializes its members to sensible default values.
  */
-BuildOptions::BuildOptions()
-    : maxJobCount(0)
-    , dryRun(false)
-    , keepGoing(false)
-    , logElapsedTime(false)
+BuildOptions::BuildOptions() : d(new Internal::BuildOptionsPrivate)
 {
+}
+
+BuildOptions::BuildOptions(const BuildOptions &other) : d(other.d)
+{
+}
+
+BuildOptions &BuildOptions::operator=(const BuildOptions &other)
+{
+    d = other.d;
+    return *this;
+}
+
+BuildOptions::~BuildOptions()
+{
+}
+
+/*!
+ * \brief If non-empty, qbs pretends that only these files have changed.
+ * By default, this list is empty.
+ */
+QStringList BuildOptions::changedFiles() const
+{
+    return d->changedFiles;
+}
+
+/*!
+ * \brief If the given list is empty, qbs will pretend only the listed files are changed.
+ * \note The list elements must be absolute file paths.
+ */
+void BuildOptions::setChangedFiles(const QStringList &changedFiles)
+{
+    d->changedFiles = changedFiles;
 }
 
 /*!
@@ -59,45 +105,95 @@ int BuildOptions::defaultMaxJobCount()
 }
 
 /*!
- * \variable BuildOptions::changedFiles
- * \brief if non-empty, makes qbs pretend that only these files have changed
+ * \brief Returns the maximum number of build commands to run concurrently.
+ * If the value is not valid (i.e. <= 0), a sensible one will be derived at build time
+ * from the number of available processor cores at build time.
+ * The default is 0.
+ * \sa BuildOptions::defaultMaxJobCount
  */
-
- /*!
-  * \variable BuildOptions::dryRun
-  * \brief if true, qbs will not actually execute any commands, but just show what would happen
-  * Note that the next call to build() on the same \c Project object will do nothing, since the
-  * internal state needs to be updated the same way as if an actual build has happened. You'll
-  * need to create a new \c Project object to do a real build.
-  */
+int BuildOptions::maxJobCount() const
+{
+    return d->maxJobCount;
+}
 
 /*!
- * \variable BuildOptions::keepGoing
- * \brief if true, do not abort on errors if possible
+ * \brief Controls how many build commands can be run in parallel.
+ * A value <= 0 leaves the decision to qbs.
+ */
+void BuildOptions::setMaxJobCount(int jobCount)
+{
+    d->maxJobCount = jobCount;
+}
+
+/*!
+ * \brief Returns true iff qbs will not actually execute any commands, but just show what
+ *        would happen.
+ * The default is false.
+ */
+bool BuildOptions::dryRun() const
+{
+    return d->dryRun;
+}
+
+/*!
+ * \brief Controls whether qbs will actually build something.
+ * If the argument is true, qbs will just emit information about what it would do. Otherwise,
+ * the build is actually done.
+ * \note After you build with this setting enabled, the next call to \c build() on the same
+ * \c Project object will do nothing, since the internal state needs to be updated the same way
+ * as if an actual build had happened. You'll need to create a new \c Project object to do
+ * a real build afterwards.
+ */
+void BuildOptions::setDryRun(bool dryRun)
+{
+    d->dryRun = dryRun;
+}
+
+/*!
+ * \brief Returns true iff a build will continue after an error.
  * E.g. a failed compile command will result in a warning message being printed, instead of
  * stopping the build process right away. However, there might still be fatal errors after which the
  * build process cannot continue.
+ * The default is \c false.
  */
+bool BuildOptions::keepGoing() const
+{
+    return d->keepGoing;
+}
 
- /*!
-  * \variable
-  * \brief the maximum number of build commands to run concurrently
-  * If the value is not valid (i.e. <= 0), a sensible one will be derived from the number of
-  * available processor cores at build time.
-  */
+/*!
+ * \brief Controls whether a qbs will try to continue building after an error has occurred.
+ */
+void BuildOptions::setKeepGoing(bool keepGoing)
+{
+    d->keepGoing = keepGoing;
+}
 
- /*!
-  * \variable BuildOptions::logElapsedTime
-  * \brief true iff the time the operation takes should be logged
-  */
+/*!
+ * \brief Returns true iff the time the operation takes will be logged.
+ * The default is \c false.
+ */
+bool BuildOptions::logElapsedTime() const
+{
+    return d->logElapsedTime;
+}
+
+/*!
+ * \brief Controls whether the build time will be measured and logged.
+ */
+void BuildOptions::setLogElapsedTime(bool log)
+{
+    d->logElapsedTime = log;
+}
+
 
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
 {
-    return bo1.changedFiles == bo2.changedFiles
-            && bo1.dryRun == bo2.dryRun
-            && bo1.keepGoing == bo2.keepGoing
-            && bo1.logElapsedTime == bo2.logElapsedTime
-            && bo1.maxJobCount == bo2.maxJobCount;
+    return bo1.changedFiles() == bo2.changedFiles()
+            && bo1.dryRun() == bo2.dryRun()
+            && bo1.keepGoing() == bo2.keepGoing()
+            && bo1.logElapsedTime() == bo2.logElapsedTime()
+            && bo1.maxJobCount() == bo2.maxJobCount();
 }
 
 } // namespace qbs

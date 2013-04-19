@@ -107,12 +107,14 @@ private:
     {
         if (artifact->product != m_product)
             return;
-        if (artifact->parents.isEmpty() && m_options.cleanType == CleanOptions::CleanupTemporaries)
+        if (artifact->parents.isEmpty()
+                && m_options.cleanType() == CleanOptions::CleanupTemporaries) {
             return;
+        }
         try {
-            removeArtifactFromDisk(artifact, m_options.dryRun, m_logger);
+            removeArtifactFromDisk(artifact, m_options.dryRun(), m_logger);
         } catch (const Error &error) {
-            if (!m_options.keepGoing)
+            if (!m_options.keepGoing())
                 throw;
             m_logger.qbsWarning() << error.toString();
             m_hasError = true;
@@ -176,10 +178,10 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Clean
             subTreeIsEmpty = false;
     }
     if (subTreeIsEmpty) {
-        printRemovalMessage(rootDir, options.dryRun, m_logger);
+        printRemovalMessage(rootDir, options.dryRun(), m_logger);
         if (!QDir::root().rmdir(rootDir)) {
             Error error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
-            if (!options.keepGoing)
+            if (!options.keepGoing())
                 throw error;
             m_logger.qbsWarning() << error.toString();
             m_hasError = true;

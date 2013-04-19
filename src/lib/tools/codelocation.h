@@ -32,10 +32,11 @@
 
 #include "qbs_export.h"
 
-#include <QString>
+#include <QExplicitlySharedDataPointer>
 
 QT_BEGIN_NAMESPACE
 class QDataStream;
+class QString;
 QT_END_NAMESPACE
 
 namespace qbs {
@@ -45,13 +46,19 @@ class QBS_EXPORT CodeLocation
 public:
     CodeLocation();
     CodeLocation(const QString &aFileName, int aLine = -1, int aColumn = -1);
+    CodeLocation(const CodeLocation &other);
+    CodeLocation &operator=(const CodeLocation &other);
+    ~CodeLocation();
+
+    QString fileName() const;
+    int line() const;
+    int column() const;
 
     bool isValid() const;
     QString toString() const;
-
-    QString fileName;
-    int line;
-    int column;
+private:
+    class CodeLocationPrivate;
+    QExplicitlySharedDataPointer<CodeLocationPrivate> d;
 };
 
 QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);

@@ -31,33 +31,76 @@
 #include <QDataStream>
 #include <QDir>
 #include <QRegExp>
+#include <QSharedData>
+#include <QString>
 
 namespace qbs {
 
-CodeLocation::CodeLocation() : line(-1), column(-1)
-{}
+class CodeLocation::CodeLocationPrivate : public QSharedData
+{
+public:
+    QString fileName;
+    int line;
+    int column;
+};
+
+CodeLocation::CodeLocation() : d(new CodeLocationPrivate)
+{
+    d->line = d->column = -1;
+}
 
 CodeLocation::CodeLocation(const QString &aFileName, int aLine, int aColumn)
-    : fileName(aFileName),
-      line(aLine),
-      column(aColumn)
-{}
+    : d(new CodeLocationPrivate)
+{
+    d->fileName = aFileName;
+    d->line = aLine;
+    d->column = aColumn;
+}
+
+CodeLocation::CodeLocation(const CodeLocation &other) : d(other.d)
+{
+}
+
+CodeLocation &CodeLocation::operator=(const CodeLocation &other)
+{
+    d = other.d;
+    return *this;
+}
+
+CodeLocation::~CodeLocation()
+{
+}
+
+QString CodeLocation::fileName() const
+{
+    return d->fileName;
+}
+
+int CodeLocation::line() const
+{
+    return d->line;
+}
+
+int CodeLocation::column() const
+{
+    return d->column;
+}
 
 bool CodeLocation::isValid() const
 {
-    return !fileName.isEmpty();
+    return !fileName().isEmpty();
 }
 
 QString CodeLocation::toString() const
 {
     QString str;
     if (isValid()) {
-        str = QDir::toNativeSeparators(fileName);
+        str = QDir::toNativeSeparators(fileName());
         QString lineAndColumn;
-        if (line > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(line);
-        if (column > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
-            lineAndColumn += QLatin1Char(':') + QString::number(column);
+        if (line() > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(line());
+        if (column() > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
+            lineAndColumn += QLatin1Char(':') + QString::number(column());
         str += lineAndColumn;
     }
     return str;
@@ -65,7 +108,8 @@ QString CodeLocation::toString() const
 
 bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
 {
-    return cl1.fileName == cl2.fileName && cl1.line == cl2.line && cl1.column == cl2.column;
+    return cl1.fileName() == cl2.fileName() && cl1.line() == cl2.line()
+            && cl1.column() == cl2.column();
 }
 
 bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
@@ -75,17 +119,21 @@ bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
 
 QDataStream &operator<<(QDataStream &s, const CodeLocation &o)
 {
-    s << o.fileName;
-    s << o.line;
-    s << o.column;
+    s << o.fileName();
+    s << o.line();
+    s << o.column();
     return s;
 }
 
 QDataStream &operator>>(QDataStream &s, CodeLocation &o)
 {
-    s >> o.fileName;
-    s >> o.line;
-    s >> o.column;
+    QString fileName;
+    int line;
+    int column;
+    s >> fileName;
+    s >> line;
+    s >> column;
+    o = CodeLocation(fileName, line, column);
     return s;
 }
 

@@ -29,57 +29,194 @@
 #include "setupprojectparameters.h"
 
 namespace qbs {
-
-SetupProjectParameters::SetupProjectParameters()
-    : ignoreDifferentProjectFilePath(false), dryRun(false), logElapsedTime(false)
-{
-}
+namespace Internal {
 
 /*!
  * \class SetupProjectParameters
  * \brief The \c SetupProjectParameters class comprises data required to set up a qbs project.
  */
 
-/*!
- * \variable SetupProjectParameters::projectFilePath
- * \brief The absolute path to the qbs project file.
- * This file typically has a ".qbs" suffix.
- */
+class SetupProjectParametersPrivate : public QSharedData
+{
+public:
+    SetupProjectParametersPrivate()
+        : ignoreDifferentProjectFilePath(false), dryRun(false), logElapsedTime(false)
+    {
+    }
+
+    QString projectFilePath;
+    QString buildRoot;
+    QStringList searchPaths;
+    QStringList pluginPaths;
+    QVariantMap buildConfiguration;
+    bool ignoreDifferentProjectFilePath;
+    bool dryRun;
+    bool logElapsedTime;
+};
+
+} // namespace Internal
+
+SetupProjectParameters::SetupProjectParameters() : d(new Internal::SetupProjectParametersPrivate)
+{
+}
+
+SetupProjectParameters::SetupProjectParameters(const SetupProjectParameters &other) : d(other.d)
+{
+}
+
+SetupProjectParameters::~SetupProjectParameters()
+{
+}
+
+SetupProjectParameters &SetupProjectParameters::operator=(const SetupProjectParameters &other)
+{
+    d = other.d;
+    return *this;
+}
 
 /*!
- * \variable SetupProjectParameters::buildRoot
- * \brief The base path of where to put the build artifacts.
+ * \brief Returns the absolute path to the qbs project file.
+ * This file typically has a ".qbs" suffix.
+ */
+QString SetupProjectParameters::projectFilePath() const
+{
+    return d->projectFilePath;
+}
+
+/*!
+ * \brief Sets the path to the main project file.
+ * \note The argument must be an absolute file path.
+ */
+void SetupProjectParameters::setProjectFilePath(const QString &projectFilePath)
+{
+    d->projectFilePath = projectFilePath;
+}
+
+/*!
+ * \brief Returns the base path of where to put the build artifacts and store the build graph.
+ */
+QString SetupProjectParameters::buildRoot() const
+{
+    return d->buildRoot;
+}
+
+/*!
+ * \brief Sets the base path of where to put the build artifacts and store the build graph.
  * The same base path can be used for several build profiles of the same project without them
  * interfering with each other.
  * It might look as if this parameter would not be needed at the time of setting up the project,
- * but keep in mind that the project information might already exist on disk, in which case
+ * but keep in mind that the project information could already exist on disk, in which case
  * loading it will be much faster than setting up the project from scratch.
+ * \note The argument must be an absolute path to a directory.
  */
+void SetupProjectParameters::setBuildRoot(const QString &buildRoot)
+{
+    d->buildRoot = buildRoot;
+}
 
 /*!
- * \variable SetupProjectParameters::searchPaths
  * \brief Where to look for modules and items to import.
  */
+QStringList SetupProjectParameters::searchPaths() const
+{
+    return d->searchPaths;
+}
 
 /*!
- * \variable SetupProjectParameters::pluginPaths
+ * \brief Sets the information about where to look for modules and items to import.
+ * \note The elements of the list must be absolute paths to directories.
+ */
+void SetupProjectParameters::setSearchPaths(const QStringList &searchPaths)
+{
+    d->searchPaths = searchPaths;
+}
+
+/*!
  * \brief Where to look for plugins.
  */
+QStringList SetupProjectParameters::pluginPaths() const
+{
+    return d->pluginPaths;
+}
 
 /*!
- * \variable SetupProjectParameters::buildConfiguration
+ * \brief Sets the information about where to look for plugins.
+ * \note The elements of the list must be absolute paths to directories.
+ */
+void SetupProjectParameters::setPluginPaths(const QStringList &pluginPaths)
+{
+    d->pluginPaths = pluginPaths;
+}
+
+/*!
  * \brief The collection of properties to use for resolving the project.
  */
+QVariantMap SetupProjectParameters::buildConfiguration() const
+{
+    return d->buildConfiguration;
+}
+
+/*!
+ * Sets the collection of properties to use for resolving the project.
+ */
+void SetupProjectParameters::setBuildConfiguration(const QVariantMap &buildConfiguration)
+{
+    d->buildConfiguration = buildConfiguration;
+}
+
+/*!
+ * \variable SetupProjectParameters::ignoreDifferentProjectFilePath
+ * \brief Returns true iff the saved build graph should be used even if its path to the
+ *        project file is different from \c SetupProjectParameters::projectFilePath()
+ */
+bool SetupProjectParameters::ignoreDifferentProjectFilePath() const
+{
+    return d->ignoreDifferentProjectFilePath;
+}
+
+/*!
+ * \brief Controls whether the path to the main project file may be different from the one
+ *        stored in a possible build graph file.
+ * The default is false.
+ */
+void SetupProjectParameters::setIgnoreDifferentProjectFilePath(bool doIgnore)
+{
+    d->ignoreDifferentProjectFilePath = doIgnore;
+}
 
  /*!
-  * \variable SetupProjectParameters::ignoreDifferentProjectFilePath
-  * \brief true iff the saved build graph should be used even if its path to the project file
-  *        is different from \c projectFilePath
+  * \brief if true, qbs will not store the build graph of the resolved project.
   */
+bool SetupProjectParameters::dryRun() const
+{
+    return d->dryRun;
+}
 
  /*!
-  * \variable SetupProjectParameters::logElapsedTime
-  * \brief true iff the time the operation takes should be logged
+  * \brief Controls whether the build graph will be stored.
+  * If the argument is true, qbs will not store the build graph after resolving the project.
+  * The default is false.
   */
+void SetupProjectParameters::setDryRun(bool dryRun)
+{
+    d->dryRun = dryRun;
+}
+
+ /*!
+  * \brief Returns true iff the time the operation takes should be logged
+  */
+bool SetupProjectParameters::logElapsedTime() const
+{
+    return d->logElapsedTime;
+}
+
+/*!
+ * Controls whether to log the time taken up for resolving the project.
+ * The default is false.
+ */
+void SetupProjectParameters::setLogElapsedTime(bool logElapsedTime)
+{
+    d->logElapsedTime = logElapsedTime;
+}
 
 } // namespace qbs

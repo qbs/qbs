@@ -70,8 +70,8 @@ private slots:
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerTrace);
         QCOMPARE(parser.command(), BuildCommandType);
         QCOMPARE(parser.products(), QStringList() << "blubb");
-        QCOMPARE(parser.buildOptions().changedFiles.count(), 2);
-        QVERIFY(parser.buildOptions().keepGoing);
+        QCOMPARE(parser.buildOptions().changedFiles().count(), 2);
+        QVERIFY(parser.buildOptions().keepGoing());
         QVERIFY(parser.force());
         QVERIFY(!parser.logTime());
         QCOMPARE(parser.buildConfigurations().count(), 1);

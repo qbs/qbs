@@ -48,10 +48,10 @@ ProductInstaller::ProductInstaller(const QList<ResolvedProductPtr> &products,
         const InstallOptions &options, ProgressObserver *observer, const Logger &logger)
     : m_products(products), m_options(options), m_observer(observer), m_logger(logger)
 {
-    if (!m_options.installRoot.isEmpty()) {
-        QFileInfo installRootFileInfo(m_options.installRoot);
+    if (!m_options.installRoot().isEmpty()) {
+        QFileInfo installRootFileInfo(m_options.installRoot());
         QBS_ASSERT(installRootFileInfo.isAbsolute(), /* just complain */);
-        if (m_options.removeFirst) {
+        if (m_options.removeExistingInstallation()) {
             const QString cfp = installRootFileInfo.canonicalFilePath();
             if (cfp == QFileInfo(QDir::rootPath()).canonicalFilePath())
                 throw Error(Tr::tr("Refusing to remove root directory."));
@@ -65,19 +65,19 @@ ProductInstaller::ProductInstaller(const QList<ResolvedProductPtr> &products,
         throw Error(Tr::tr("Cannot deduce install root, because there are no products."));
 
     const ResolvedProductConstPtr &product = m_products.first();
-    m_options.installRoot
-            = product->properties->qbsPropertyValue(QLatin1String("sysroot")).toString();
-    if (m_options.installRoot.isEmpty()) {
-        m_options.installRoot = product->project->buildDirectory
-                + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
-    } else if (m_options.removeFirst) {
+    m_options.setInstallRoot(product->properties
+                             ->qbsPropertyValue(QLatin1String("sysroot")).toString());
+    if (m_options.installRoot().isEmpty()) {
+        m_options.setInstallRoot(product->project->buildDirectory
+                + QLatin1Char('/') + InstallOptions::defaultInstallRoot());
+    } else if (m_options.removeExistingInstallation()) {
         throw Error(Tr::tr("Refusing to remove sysroot."));
     }
 }
 
 void ProductInstaller::install()
 {
-    if (m_options.removeFirst)
+    if (m_options.removeExistingInstallation())
         removeInstallRoot();
 
     QList<const Artifact *> artifactsToInstall;
@@ -98,8 +98,8 @@ void ProductInstaller::install()
 
 void ProductInstaller::removeInstallRoot()
 {
-    const QString nativeInstallRoot = QDir::toNativeSeparators(m_options.installRoot);
-    if (m_options.dryRun) {
+    const QString nativeInstallRoot = QDir::toNativeSeparators(m_options.installRoot());
+    if (m_options.dryRun()) {
         m_logger.qbsInfo() << Tr::tr("Would remove install root '%1'.").arg(nativeInstallRoot);
         return;
     }
@@ -107,9 +107,9 @@ void ProductInstaller::removeInstallRoot()
             .arg(nativeInstallRoot);
 
     QString errorMessage;
-    if (!removeDirectoryWithContents(m_options.installRoot, &errorMessage)) {
+    if (!removeDirectoryWithContents(m_options.installRoot(), &errorMessage)) {
         const QString fullErrorMessage = Tr::tr("Cannot remove install root '%1': %2")
-                .arg(QDir::toNativeSeparators(m_options.installRoot), errorMessage);
+                .arg(QDir::toNativeSeparators(m_options.installRoot()), errorMessage);
         handleError(fullErrorMessage);
     }
 }
@@ -120,12 +120,12 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         throw Error(Tr::tr("Installation canceled due to user request."));
     const QString relativeInstallDir
             = artifact->properties->qbsPropertyValue(QLatin1String("installDir")).toString();
-    QString targetDir = m_options.installRoot;
+    QString targetDir = m_options.installRoot();
     targetDir.append(QLatin1Char('/')).append(relativeInstallDir);
     targetDir = QDir::cleanPath(targetDir);
     const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
     const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
-    if (m_options.dryRun) {
+    if (m_options.dryRun()) {
         m_logger.qbsInfo() << Tr::tr("Would copy file '%1' into target directory '%2'.")
                               .arg(nativeFilePath, nativeTargetDir);
         return;
@@ -146,7 +146,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
 
 void ProductInstaller::handleError(const QString &message)
 {
-    if (!m_options.keepGoing)
+    if (!m_options.keepGoing())
         throw Error(message);
     m_logger.qbsWarning() << message;
 }

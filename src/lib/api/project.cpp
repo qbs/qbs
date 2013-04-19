@@ -31,6 +31,7 @@
 #include "internaljobs.h"
 #include "jobs.h"
 #include "projectdata.h"
+#include "projectdata_p.h"
 #include "propertymap_p.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
@@ -200,35 +201,35 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
 
 void ProjectPrivate::retrieveProjectData()
 {
-    m_projectData.m_location = internalProject->location;
-    m_projectData.m_buildDir = internalProject->buildDirectory;
+    m_projectData.d->location = internalProject->location;
+    m_projectData.d->buildDir = internalProject->buildDirectory;
     foreach (const ResolvedProductConstPtr &resolvedProduct, internalProject->products) {
         ProductData product;
-        product.m_name = resolvedProduct->name;
-        product.m_location = resolvedProduct->location;
-        product.m_fileTags = resolvedProduct->fileTags.toStringList();
-        product.m_properties.d->m_map = resolvedProduct->properties;
-        product.m_isEnabled = resolvedProduct->enabled;
+        product.d->name = resolvedProduct->name;
+        product.d->location = resolvedProduct->location;
+        product.d->fileTags = resolvedProduct->fileTags.toStringList();
+        product.d->properties.d->m_map = resolvedProduct->properties;
+        product.d->isEnabled = resolvedProduct->enabled;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
-            group.m_name = resolvedGroup->name;
-            group.m_location = resolvedGroup->location;
+            group.d->name = resolvedGroup->name;
+            group.d->location = resolvedGroup->location;
             foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
-                group.m_filePaths << sa->absoluteFilePath;
+                group.d->filePaths << sa->absoluteFilePath;
             if (resolvedGroup->wildcards) {
                 foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
-                    group.m_expandedWildcards << sa->absoluteFilePath;
+                    group.d->expandedWildcards << sa->absoluteFilePath;
             }
-            qSort(group.m_filePaths);
-            qSort(group.m_expandedWildcards);
-            group.m_properties.d->m_map = resolvedGroup->properties;
-            group.m_isEnabled = resolvedGroup->enabled;
-            product.m_groups << group;
+            qSort(group.d->filePaths);
+            qSort(group.d->expandedWildcards);
+            group.d->properties.d->m_map = resolvedGroup->properties;
+            group.d->isEnabled = resolvedGroup->enabled;
+            product.d->groups << group;
         }
-        qSort(product.m_groups);
-        m_projectData.m_products << product;
+        qSort(product.d->groups);
+        m_projectData.d->products << product;
     }
-    qSort(m_projectData.m_products);
+    qSort(m_projectData.d->products);
     m_projectDataRetrieved = true;
 }
 
@@ -325,10 +326,10 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters
     Logger logger(logSink);
     SetupProjectJob * const job = new SetupProjectJob(logger, jobOwner);
     try {
-        loadPlugins(_parameters.pluginPaths, logger);
+        loadPlugins(_parameters.pluginPaths(), logger);
         SetupProjectParameters parameters = _parameters;
-        parameters.buildConfiguration
-                = expandBuildConfiguration(parameters.buildConfiguration, settings);
+        parameters.setBuildConfiguration(expandBuildConfiguration(
+                                             parameters.buildConfiguration(), settings));
         job->resolve(parameters);
     } catch (const Error &error) {
         // Throwing from here would complicate the API, so let's report the error the same way

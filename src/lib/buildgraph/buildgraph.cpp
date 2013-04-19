@@ -191,8 +191,9 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
                 QVariant(reinterpret_cast<qulonglong>(product->project.data())));
         QScriptValue projectScriptValue;
         projectScriptValue = engine->newObject();
-        projectScriptValue.setProperty("filePath", product->project->location.fileName);
-        projectScriptValue.setProperty("path", FileInfo::path(product->project->location.fileName));
+        projectScriptValue.setProperty("filePath", product->project->location.fileName());
+        projectScriptValue.setProperty("path",
+                                       FileInfo::path(product->project->location.fileName()));
         const QVariantMap &projectProperties = product->project->projectProperties();
         for (QVariantMap::const_iterator it = projectProperties.begin();
                 it != projectProperties.end(); ++it)
@@ -463,8 +464,9 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     m_result = LoadResult();
     m_evalContext = evalContext;
 
-    const QString projectId = ResolvedProject::deriveId(parameters.buildConfiguration);
-    const QString buildDir = ResolvedProject::deriveBuildDirectory(parameters.buildRoot, projectId);
+    const QString projectId = ResolvedProject::deriveId(parameters.buildConfiguration());
+    const QString buildDir
+            = ResolvedProject::deriveBuildDirectory(parameters.buildRoot(), projectId);
     const QString buildGraphFilePath
             = ProjectBuildData::deriveBuildGraphFilePath(buildDir, projectId);
 
@@ -472,7 +474,7 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     m_logger.qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
     if (!pool.load(buildGraphFilePath))
         return m_result;
-    if (!isConfigCompatible(parameters.buildConfiguration, pool.headData().projectConfig)) {
+    if (!isConfigCompatible(parameters.buildConfiguration(), pool.headData().projectConfig)) {
         m_logger.qbsDebug() << "[BG] Cannot use stored build graph: "
                                "Incompatible project configuration.";
         return m_result;
@@ -496,12 +498,12 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
         }
     }
 
-    if (QFileInfo(project->location.fileName) != QFileInfo(parameters.projectFilePath)) {
+    if (QFileInfo(project->location.fileName()) != QFileInfo(parameters.projectFilePath())) {
         QString errorMessage = Tr::tr("Stored build graph is for project file '%1', but "
                                       "input file is '%2'. ")
-                .arg(QDir::toNativeSeparators(project->location.fileName),
-                     QDir::toNativeSeparators(parameters.projectFilePath));
-        if (!parameters.ignoreDifferentProjectFilePath) {
+                .arg(QDir::toNativeSeparators(project->location.fileName()),
+                     QDir::toNativeSeparators(parameters.projectFilePath()));
+        if (!parameters.ignoreDifferentProjectFilePath()) {
             errorMessage += Tr::tr("Aborting.");
             throw Error(errorMessage);
         }
@@ -512,7 +514,7 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     }
     foreach (const ResolvedProductPtr &p, project->products)
         p->project = project;
-    project->location = CodeLocation(parameters.projectFilePath, 1, 1);
+    project->location = CodeLocation(parameters.projectFilePath(), 1, 1);
     project->setBuildConfiguration(pool.headData().projectConfig);
     project->buildDirectory = buildDir;
     m_result.loadedProject = project;
@@ -526,7 +528,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 {
     const FileInfo bgfi(buildGraphFilePath);
     const bool projectFileChanged
-            = bgfi.lastModified() < FileInfo(parameters.projectFilePath).lastModified();
+            = bgfi.lastModified() < FileInfo(parameters.projectFilePath()).lastModified();
     if (projectFileChanged)
         m_logger.qbsTrace() << "Project file changed, must re-resolve project.";
 
@@ -541,7 +543,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     bool referencedProductRemoved = false;
     QList<ResolvedProductPtr> changedProducts;
     foreach (const ResolvedProductPtr &product, restoredProject->products) {
-        const FileInfo pfi(product->location.fileName);
+        const FileInfo pfi(product->location.fileName());
         if (!pfi.exists()) {
             referencedProductRemoved = true;
         } else if (bgfi.lastModified() < pfi.lastModified()) {
@@ -569,7 +571,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     }
 
     Loader ldr(m_evalContext->engine(), m_logger);
-    ldr.setSearchPaths(parameters.searchPaths);
+    ldr.setSearchPaths(parameters.searchPaths());
     m_result.newlyResolvedProject = ldr.loadProject(parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;

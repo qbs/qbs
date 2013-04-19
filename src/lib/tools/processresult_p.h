@@ -26,77 +26,31 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "ilogsink.h"
+#ifndef QBS_PROCESSRESULT_P_H
+#define QBS_PROCESSRESULT_P_H
 
-#include <QByteArray>
-#include <QMutex>
+#include <QSharedData>
+#include <QStringList>
+#include <QProcess>
 
 namespace qbs {
-
-QString logLevelTag(LoggerLevel level)
-{
-    if (level == LoggerInfo)
-        return QByteArray();
-    QString str = logLevelName(level).toUpper();
-    if (!str.isEmpty())
-        str.append(QLatin1String(": "));
-    return str;
-}
-
-QString logLevelName(LoggerLevel level)
-{
-    switch (level) {
-    case qbs::LoggerError:
-        return QLatin1String("error");
-    case qbs::LoggerWarning:
-        return QLatin1String("warning");
-    case qbs::LoggerInfo:
-        return QLatin1String("info");
-    case qbs::LoggerDebug:
-        return QLatin1String("debug");
-    case qbs::LoggerTrace:
-        return QLatin1String("trace");
-    default:
-        break;
-    }
-    return QString();
-}
-
-class ILogSink::ILogSinkPrivate
+namespace Internal {
+class ProcessResultPrivate : public QSharedData
 {
 public:
-    LoggerLevel logLevel;
-    QMutex mutex;
+    bool success;
+
+    QString executableFilePath;
+    QStringList arguments;
+    QString workingDirectory;
+
+    QProcess::ExitStatus exitStatus;
+    int exitCode;
+    QStringList stdOut;
+    QStringList stdErr;
 };
 
-ILogSink::ILogSink() : d(new ILogSinkPrivate)
-{
-    d->logLevel = defaultLogLevel();
-}
-
-ILogSink::~ILogSink()
-{
-    delete d;
-}
-
-void ILogSink::setLogLevel(LoggerLevel level)
-{
-    d->logLevel = level;
-}
-
-LoggerLevel ILogSink::logLevel() const
-{
-    return d->logLevel;
-}
-
-void ILogSink::printMessage(LoggerLevel level, const QString &message, const QString &tag,
-                            bool force)
-{
-    if (force || willPrint(level)) {
-        d->mutex.lock();
-        doPrintMessage(level, message, tag);
-        d->mutex.unlock();
-    }
-}
-
+} // namespace Internal
 } // namespace qbs
+
+#endif // Include guard.

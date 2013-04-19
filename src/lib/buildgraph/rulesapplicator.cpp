@@ -245,15 +245,15 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
                    + "] -> [" + outputArtifact->fileTags.toStringList().join(", ") + "]";
 
                 e += QString("  while trying to apply:   %1:%2:%3  %4\n")
-                    .arg(m_rule->script->location.fileName)
-                    .arg(m_rule->script->location.line)
-                    .arg(m_rule->script->location.column)
+                    .arg(m_rule->script->location.fileName())
+                    .arg(m_rule->script->location.line())
+                    .arg(m_rule->script->location.column())
                     .arg(th);
 
                 e += QString("  was already defined in:  %1:%2:%3  %4\n")
-                    .arg(outputArtifact->transformer->rule->script->location.fileName)
-                    .arg(outputArtifact->transformer->rule->script->location.line)
-                    .arg(outputArtifact->transformer->rule->script->location.column)
+                    .arg(outputArtifact->transformer->rule->script->location.fileName())
+                    .arg(outputArtifact->transformer->rule->script->location.line())
+                    .arg(outputArtifact->transformer->rule->script->location.column())
                     .arg(th);
                 throw Error(e);
             }

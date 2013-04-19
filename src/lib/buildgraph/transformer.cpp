@@ -146,8 +146,8 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script,
     modulePropertiesUsedInPrepareScript = engine->properties();
     if (Q_UNLIKELY(engine->hasUncaughtException()))
         throw Error("evaluating prepare script: " + engine->uncaughtException().toString(),
-                    CodeLocation(script->location.fileName,
-                                 script->location.line + engine->uncaughtExceptionLineNumber() - 1));
+                    CodeLocation(script->location.fileName(),
+                                 script->location.line() + engine->uncaughtExceptionLineNumber() - 1));
 
     qDeleteAll(commands);
     commands.clear();

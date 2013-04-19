@@ -40,6 +40,7 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/processresult.h>
+#include <tools/processresult_p.h>
 #include <tools/qbsassert.h>
 
 #include <QDir>
@@ -192,28 +193,28 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
 void ProcessCommandExecutor::sendProcessOutput(bool success)
 {
     ProcessResult result;
-    result.binary = m_program;
-    result.arguments = m_arguments;
-    result.workingDirectory = m_process.workingDirectory();
-    if (result.workingDirectory.isEmpty())
-        result.workingDirectory = QDir::currentPath();
-    result.exitCode = m_process.exitCode();
-    result.exitStatus = m_process.exitStatus();
-    result.success = success;
+    result.d->executableFilePath = m_program;
+    result.d->arguments = m_arguments;
+    result.d->workingDirectory = m_process.workingDirectory();
+    if (result.workingDirectory().isEmpty())
+        result.d->workingDirectory = QDir::currentPath();
+    result.d->exitCode = m_process.exitCode();
+    result.d->exitStatus = m_process.exitStatus();
+    result.d->success = success;
 
     QString tmp = filterProcessOutput(m_process.readAllStandardOutput(),
                                       processCommand()->stdoutFilterFunction());
     if (!tmp.isEmpty()) {
         if (tmp.endsWith(QLatin1Char('\n')))
             tmp.chop(1);
-        result.stdOut = tmp.split(QLatin1Char('\n'));
+        result.d->stdOut = tmp.split(QLatin1Char('\n'));
     }
     tmp = filterProcessOutput(m_process.readAllStandardError(),
                               processCommand()->stderrFilterFunction());
     if (!tmp.isEmpty()) {
         if (tmp.endsWith(QLatin1Char('\n')))
             tmp.chop(1);
-        result.stdErr = tmp.split(QLatin1Char('\n'));
+        result.d->stdErr = tmp.split(QLatin1Char('\n'));
     }
 
     emit reportProcessResult(result);

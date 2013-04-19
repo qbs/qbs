@@ -30,28 +30,36 @@
 #ifndef QBS_ERROR
 #define QBS_ERROR
 
-#include <QMetaType>
-
 #include "codelocation.h"
 
+#include <QExplicitlySharedDataPointer>
 #include <QList>
+#include <QMetaType>
+#include <QSharedDataPointer>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
+class CodeLocation;
 
 class QBS_EXPORT ErrorData
 {
 public:
     ErrorData();
-    explicit ErrorData(const QString &description, const CodeLocation &codeLocation);
+    ErrorData(const QString &description, const CodeLocation &codeLocation);
     ErrorData(const ErrorData &rhs);
+    ErrorData &operator=(const ErrorData &other);
+    ~ErrorData();
 
-    const QString &description() const { return m_description; }
-    CodeLocation codeLocation() const { return m_codeLocation; }
+    QString description() const;
+    CodeLocation codeLocation() const;
     QString toString() const;
 
 private:
-    QString m_description;
-    CodeLocation m_codeLocation;
+    class ErrorDataPrivate;
+    QExplicitlySharedDataPointer<ErrorDataPrivate> d;
 };
 
 class QBS_EXPORT Error
@@ -60,15 +68,18 @@ public:
     Error();
     Error(const Error &rhs);
     Error(const QString &description, const CodeLocation &location = CodeLocation());
+    Error &operator=(const Error &other);
+    ~Error();
 
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
-    const QList<ErrorData> &entries() const;
+    QList<ErrorData> entries() const;
     void clear();
     QString toString() const;
 
 private:
-    QList<ErrorData> m_data;
+    class ErrorPrivate;
+    QSharedDataPointer<ErrorPrivate> d;
 };
 
 } // namespace qbs

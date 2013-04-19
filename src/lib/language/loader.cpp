@@ -84,7 +84,7 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
 
 ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
-    QBS_CHECK(QFileInfo(parameters.projectFilePath).isAbsolute());
+    QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
 
     // At this point, we cannot set a sensible total effort, because we know nothing about
     // the project yet. That's why we use a placeholder here, so the user at least
@@ -92,15 +92,14 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     // we have enough information.
     if (m_progressObserver) {
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
-                .arg(ResolvedProject::deriveId(parameters.buildConfiguration)), 1);
+                .arg(ResolvedProject::deriveId(parameters.buildConfiguration())), 1);
     }
     ModuleLoaderResult loadResult
-            = m_moduleLoader->load(parameters.projectFilePath,
-                                   parameters.buildConfiguration,
+            = m_moduleLoader->load(parameters.projectFilePath(),
+                                   parameters.buildConfiguration(),
                                    true);
-    ResolvedProjectPtr project = m_projectResolver->resolve(loadResult, parameters.buildRoot,
-            parameters.buildConfiguration);
-    return project;
+    return m_projectResolver->resolve(loadResult, parameters.buildRoot(),
+            parameters.buildConfiguration());
 }
 
 QByteArray Loader::qmlTypeInfo()

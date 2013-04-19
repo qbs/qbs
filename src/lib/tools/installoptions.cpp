@@ -28,7 +28,24 @@
 ****************************************************************************/
 #include "installoptions.h"
 
+#include <QSharedData>
+
 namespace qbs {
+namespace Internal {
+
+class InstallOptionsPrivate : public QSharedData
+{
+public:
+    InstallOptionsPrivate() : removeExisting(false), dryRun(false), keepGoing(false) {}
+
+    QString installRoot;
+    bool removeExisting;
+    bool dryRun;
+    bool keepGoing;
+    bool logElapsedTime;
+};
+
+} // namespace Internal
 
 /*!
  * \class InstallOptions
@@ -36,41 +53,21 @@ namespace qbs {
  * install operations.
  */
 
- /*!
-  * \variable InstallOptions::dryRun
-  * \brief if true, qbs will not actually copy any files, but just show what would happen.
-  */
+InstallOptions::InstallOptions() : d(new Internal::InstallOptionsPrivate)
+{
+}
 
-/*!
- * \variable InstallOptions::keepGoing
- * \brief if true, do not abort on errors
- * If a file cannot be copied e.g. due to a permission problem, a warning will be printed and
- * the installation will continue. If this flag is not set, then the installation will abort
- * immediately in case of an error.
- */
+InstallOptions::InstallOptions(const InstallOptions &other) : d(other.d)
+{
+}
 
-/*!
- * \variable InstallOptions::installRoot
- * \brief the base directory for the installation
- * All "qbs.installDir" paths are relative to this root. If the string is empty, the value of
- * qbs.sysroot will be used. If that is also empty, the base directory is
- * "<build dir>/install-root".
- */
+InstallOptions &InstallOptions::operator=(const InstallOptions &other)
+{
+    d = other.d;
+    return *this;
+}
 
- /*!
-  * \variable InstallOptions::removeFirst
-  * \brief if true, removes the installRoot before installing any files.
-  * \note qbs may do some safety checks here and refuse to remove certain directories such as
-  *       a user's home directory. You should still be careful with this option, since it
-  *       deletes recursively.
-  */
-
- /*!
-  * \variable InstallOptions::logElapsedTime
-  * \brief true iff the time the operation takes should be logged
-  */
-
-InstallOptions::InstallOptions() : removeFirst(false), dryRun(false), keepGoing(false)
+InstallOptions::~InstallOptions()
 {
 }
 
@@ -80,6 +77,104 @@ InstallOptions::InstallOptions() : removeFirst(false), dryRun(false), keepGoing(
 QString InstallOptions::defaultInstallRoot()
 {
     return QLatin1String("install-root");
+}
+
+/*!
+ * Returns the base directory for the installation.
+ * All "qbs.installDir" paths are relative to this root. If the string is empty, the value of
+ * qbs.sysroot will be used. If that is also empty, the base directory is
+ * "<build dir>/install-root".
+ * The default is empty.
+ */
+QString InstallOptions::installRoot() const
+{
+    return d->installRoot;
+}
+
+/*!
+ * \brief Sets the base directory for the installation.
+ * \note The argument must either be an empty string or an absolute path to a directory
+ *       (which might not yet exists, in which case it will be created).
+ */
+void InstallOptions::setInstallRoot(const QString &installRoot)
+{
+    d->installRoot = installRoot;
+}
+
+/*!
+ * \brief Returns true iff an existing installation will be removed prior to installing.
+ * The default is false.
+ */
+bool InstallOptions::removeExistingInstallation() const
+{
+    return d->removeExisting;
+}
+
+/*!
+ * Controls whether to remove an existing installation before installing.
+ * \note qbs may do some safety checks and refuse to remove certain directories such as
+ *       a user's home directory. You should still be careful with this option, since it
+ *       deletes recursively.
+ */
+void InstallOptions::setRemoveExistingInstallation(bool removeExisting)
+{
+    d->removeExisting = removeExisting;
+}
+
+/*!
+ * \brief Returns true iff qbs will not actually copy any files, but just show what would happen.
+ * The default is false.
+ */
+bool InstallOptions::dryRun() const
+{
+    return d->dryRun;
+}
+
+/*!
+ * \brief Controls whether installation will actually take place.
+ * If the argument is true, then qbs will emit information about which files would be copied
+ * instead of actually doing it.
+ */
+void InstallOptions::setDryRun(bool dryRun)
+{
+    d->dryRun = dryRun;
+}
+
+/*!
+ * Returns true iff installation will continue if an error occurs.
+ * The default is false.
+ */
+bool InstallOptions::keepGoing() const
+{
+    return d->keepGoing;
+}
+
+/*!
+ * \brief Controls whether to abort on errors.
+ * If the argument is true, then if a file cannot be copied e.g. due to a permission problem,
+ * a warning will be printed and the installation will continue. If the argument is false,
+ * then the installation will abort immediately in case of an error.
+ */
+void InstallOptions::setKeepGoing(bool keepGoing)
+{
+    d->keepGoing = keepGoing;
+}
+
+/*!
+ * \brief Returns true iff the time the operation takes will be logged.
+ * The default is false.
+ */
+bool InstallOptions::logElapsedTime() const
+{
+    return d->logElapsedTime;
+}
+
+/*!
+ * \brief Controls whether the installation time will be measured and logged.
+ */
+void InstallOptions::setLogElapsedTime(bool logElapsedTime)
+{
+    d->logElapsedTime = logElapsedTime;
 }
 
 } // namespace qbs

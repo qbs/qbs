@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/preferences.h \
     $$PWD/profile.h \
     $$PWD/processresult.h \
+    $$PWD/processresult_p.h \
     $$PWD/progressobserver.h \
     $$PWD/propertyfinder.h \
     $$PWD/hostosinfo.h \
@@ -36,6 +37,7 @@ SOURCES += \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
     $$PWD/preferences.cpp \
+    $$PWD/processresult.cpp \
     $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/propertyfinder.cpp \

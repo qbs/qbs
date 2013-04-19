@@ -57,7 +57,7 @@ TestLanguage::TestLanguage(ILogSink *logSink)
 {
     qsrand(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
-    defaultParameters.buildRoot = "/some/build/directory";
+    defaultParameters.setBuildRoot("/some/build/directory");
 }
 
 TestLanguage::~TestLanguage()
@@ -95,7 +95,7 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
         *handled = true;
         bool exceptionCaught = false;
         try {
-            defaultParameters.projectFilePath = testProject(projectFileName);
+            defaultParameters.setProjectFilePath(testProject(projectFileName));
             project = loader->loadProject(defaultParameters);
             QVERIFY(project);
         } catch (const Error &e) {
@@ -126,8 +126,9 @@ void TestLanguage::initTestCase()
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../share/qbs"));
-    setConfigProperty(defaultParameters.buildConfiguration,
-                      QStringList() << "qbs" << "targetOS", "linux");
+    QVariantMap buildConfig = defaultParameters.buildConfiguration();
+    setConfigProperty(buildConfig, QStringList() << "qbs" << "targetOS", "linux");
+    defaultParameters.setBuildConfiguration(buildConfig);
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
 
@@ -140,7 +141,7 @@ void TestLanguage::baseProperty()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("baseproperty.qbs");
+        defaultParameters.setProjectFilePath(testProject("baseproperty.qbs"));
         project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -162,7 +163,7 @@ void TestLanguage::conditionalDepends()
     ResolvedProductPtr product;
     ResolvedModuleConstPtr dependency;
     try {
-        defaultParameters.projectFilePath = testProject("conditionaldepends.qbs");
+        defaultParameters.setProjectFilePath(testProject("conditionaldepends.qbs"));
         project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -238,7 +239,7 @@ void TestLanguage::environmentVariable()
     try {
         const QByteArray productName = QByteArray("MyApp") + QByteArray::number(qrand());
         qputenv("PRODUCT_NAME", productName);
-        defaultParameters.projectFilePath = testProject("environmentvariable.qbs");
+        defaultParameters.setProjectFilePath(testProject("environmentvariable.qbs"));
         project = loader->loadProject(defaultParameters);
         qputenv("PRODUCT_NAME", QByteArray());
         QVERIFY(project);
@@ -272,7 +273,7 @@ void TestLanguage::erroneousFiles()
     QFETCH(QString, errorMessage);
     QString fileName = QString::fromLocal8Bit(QTest::currentDataTag()) + QLatin1String(".qbs");
     try {
-        defaultParameters.projectFilePath = testProject("/erroneous/") + fileName;
+        defaultParameters.setProjectFilePath(testProject("/erroneous/") + fileName);
         loader->loadProject(defaultParameters);
     } catch (const Error &e) {
         if (!e.toString().contains(errorMessage)) {
@@ -289,7 +290,7 @@ void TestLanguage::exports()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("exports.qbs");
+        defaultParameters.setProjectFilePath(testProject("exports.qbs"));
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -345,15 +346,15 @@ void TestLanguage::fileContextProperties()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("filecontextproperties.qbs");
+        defaultParameters.setProjectFilePath(testProject("filecontextproperties.qbs"));
         project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
         QVariantMap cfg = product->properties->value();
-        QCOMPARE(cfg.value("narf").toString(), defaultParameters.projectFilePath);
-        QString dirPath = QFileInfo(defaultParameters.projectFilePath).absolutePath();
+        QCOMPARE(cfg.value("narf").toString(), defaultParameters.projectFilePath());
+        QString dirPath = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
         QCOMPARE(cfg.value("zort").toString(), dirPath);
     } catch (const Error &e) {
         exceptionCaught = true;
@@ -406,7 +407,7 @@ void TestLanguage::groupName()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("groupname.qbs");
+        defaultParameters.setProjectFilePath(testProject("groupname.qbs"));
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -516,7 +517,7 @@ void TestLanguage::idUsage()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("idusage.qbs");
+        defaultParameters.setProjectFilePath(testProject("idusage.qbs"));
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -608,12 +609,12 @@ void TestLanguage::jsImportUsedInMultipleScopes()
 
     bool exceptionCaught = false;
     try {
-        QVariantMap customBuildConfig = defaultParameters.buildConfiguration;
+        QVariantMap customBuildConfig = defaultParameters.buildConfiguration();
         setConfigProperty(customBuildConfig, QStringList() << "qbs" << "buildVariant",
                           buildVariant);
         SetupProjectParameters params = defaultParameters;
-        params.projectFilePath = testProject("jsimportsinmultiplescopes.qbs");
-        params.buildConfiguration = customBuildConfig;
+        params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
+        params.setBuildConfiguration(customBuildConfig);
         ResolvedProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -682,7 +683,7 @@ void TestLanguage::moduleScope()
 
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("modulescope.qbs");
+        defaultParameters.setProjectFilePath(testProject("modulescope.qbs"));
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -754,7 +755,7 @@ void TestLanguage::outerInGroup()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("outerInGroup.qbs");
+        defaultParameters.setProjectFilePath(testProject("outerInGroup.qbs"));
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -788,14 +789,14 @@ void TestLanguage::pathProperties()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("pathproperties.qbs");
+        defaultParameters.setProjectFilePath(testProject("pathproperties.qbs"));
         project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
         QVariantMap cfg = product->properties->value();
-        QString projectFileDir = QFileInfo(defaultParameters.projectFilePath).absolutePath();
+        QString projectFileDir = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
         QCOMPARE(cfg.value("projectFileDir").toString(), projectFileDir);
         QStringList filesInProjectFileDir = QStringList()
                 << FileInfo::resolvePath(projectFileDir, "aboutdialog.h")
@@ -819,7 +820,7 @@ void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;
     try {
-        defaultParameters.projectFilePath = testProject("productconditions.qbs");
+        defaultParameters.setProjectFilePath(testProject("productconditions.qbs"));
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -1106,7 +1107,7 @@ void TestLanguage::wildcards()
     bool exceptionCaught = false;
     ResolvedProductPtr product;
     try {
-        defaultParameters.projectFilePath = projectFilePath;
+        defaultParameters.setProjectFilePath(projectFilePath);
         project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);

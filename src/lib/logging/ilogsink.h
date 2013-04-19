@@ -31,8 +31,6 @@
 
 #include "../tools/qbs_export.h"
 
-#include <QtGlobal>
-#include <QMutex>
 #include <QString>
 
 namespace qbs {
@@ -56,11 +54,11 @@ class QBS_EXPORT ILogSink
 {
     Q_DISABLE_COPY(ILogSink)
 public:
-    ILogSink() : m_logLevel(defaultLogLevel()) {}
+    ILogSink();
     virtual ~ILogSink();
 
-    void setLogLevel(LoggerLevel level) { m_logLevel = level; }
-    LoggerLevel logLevel() const { return m_logLevel; }
+    void setLogLevel(LoggerLevel level);
+    LoggerLevel logLevel() const;
 
     bool willPrint(LoggerLevel level) const { return level <= logLevel(); }
 
@@ -71,8 +69,8 @@ private:
     virtual void doPrintMessage(LoggerLevel level, const QString &message,
                                 const QString &tag) = 0;
 
-    LoggerLevel m_logLevel;
-    QMutex m_mutex;
+    class ILogSinkPrivate;
+    ILogSinkPrivate * const d;
 };
 
 } // namespace qbs

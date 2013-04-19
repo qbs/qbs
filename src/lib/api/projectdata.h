@@ -32,6 +32,7 @@
 #include "../tools/codelocation.h"
 #include "../tools/qbs_export.h"
 
+#include <QExplicitlySharedDataPointer>
 #include <QList>
 #include <QPair>
 #include <QString>
@@ -39,11 +40,13 @@
 #include <QVariantMap>
 
 namespace qbs {
-namespace Internal
-{
+namespace Internal {
+class GroupDataPrivate;
+class ProductDataPrivate;
 class ProjectPrivate;
+class ProjectDataPrivate;
 class PropertyMapPrivate;
-}
+} // namespace Internal
 
 class PropertyMap;
 
@@ -78,31 +81,25 @@ private:
     Internal::PropertyMapPrivate *d;
 };
 
-// TODO: explicitly shared?
-
 class QBS_EXPORT GroupData
 {
     friend class Internal::ProjectPrivate;
 public:
     GroupData();
+    GroupData(const GroupData &other);
+    GroupData &operator=(const GroupData &other);
+    ~GroupData();
 
-    CodeLocation location() const { return m_location; }
-    QString name() const { return m_name; }
-    QStringList filePaths() const { return m_filePaths; }
-    QStringList expandedWildcards() const { return m_expandedWildcards; }
-    PropertyMap properties() const { return m_properties; }
-    bool isEnabled() const { return m_isEnabled; }
-
-    // TODO: Filter out double entries here or somewhere else?
-    QStringList allFilePaths() const { return filePaths() + expandedWildcards(); }
+    CodeLocation location() const;
+    QString name() const;
+    QStringList filePaths() const;
+    QStringList expandedWildcards() const;
+    PropertyMap properties() const;
+    bool isEnabled() const;
+    QStringList allFilePaths() const;
 
 private:
-    QString m_name;
-    CodeLocation m_location;
-    QStringList m_filePaths;
-    QStringList m_expandedWildcards;
-    PropertyMap m_properties;
-    bool m_isEnabled;
+    QExplicitlySharedDataPointer<Internal::GroupDataPrivate> d;
 };
 
 QBS_EXPORT bool operator==(const GroupData &lhs, const GroupData &rhs);
@@ -114,21 +111,19 @@ class QBS_EXPORT ProductData
     friend class Internal::ProjectPrivate;
 public:
     ProductData();
+    ProductData(const ProductData &other);
+    ProductData &operator=(const ProductData &other);
+    ~ProductData();
 
-    QString name() const { return m_name; }
-    CodeLocation location() const { return m_location; }
-    QStringList fileTags() const { return m_fileTags; }
-    PropertyMap properties() const { return m_properties; }
-    QList<GroupData> groups() const { return m_groups; }
-    bool isEnabled() const { return m_isEnabled; }
+    QString name() const;
+    CodeLocation location() const;
+    QStringList fileTags() const;
+    PropertyMap properties() const;
+    QList<GroupData> groups() const;
+    bool isEnabled() const;
 
 private:
-    QString m_name;
-    CodeLocation m_location;
-    QStringList m_fileTags;
-    PropertyMap m_properties;
-    QList<GroupData> m_groups;
-    bool m_isEnabled;
+    QExplicitlySharedDataPointer<Internal::ProductDataPrivate> d;
 };
 
 QBS_EXPORT bool operator==(const ProductData &lhs, const ProductData &rhs);
@@ -140,15 +135,16 @@ class QBS_EXPORT ProjectData
     friend class Internal::ProjectPrivate;
 public:
     ProjectData();
+    ProjectData(const ProjectData &other);
+    ProjectData &operator=(const ProjectData &other);
+    ~ProjectData();
 
-    CodeLocation location() const { return m_location; }
-    QString buildDirectory() const { return m_buildDir; }
-    QList<ProductData> products() const { return m_products; }
+    CodeLocation location() const;
+    QString buildDirectory() const;
+    QList<ProductData> products() const;
 
 private:
-    CodeLocation m_location;
-    QList<ProductData> m_products;
-    QString m_buildDir;
+    QExplicitlySharedDataPointer<Internal::ProjectDataPrivate> d;
 };
 
 QBS_EXPORT bool operator==(const ProjectData &lhs, const ProjectData &rhs);

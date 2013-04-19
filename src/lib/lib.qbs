@@ -41,6 +41,7 @@ DynamicLibrary {
             "jobs.cpp",
             "project.cpp",
             "projectdata.cpp",
+            "projectdata_p.h",
             "propertymap_p.h",
             "runenvironment.cpp",
         ]
@@ -250,6 +251,8 @@ DynamicLibrary {
             "persistence.h",
             "persistentobject.h",
             "preferences.cpp",
+            "processresult.cpp",
+            "processresult_p.h",
             "profile.cpp",
             "progressobserver.cpp",
             "progressobserver.h",

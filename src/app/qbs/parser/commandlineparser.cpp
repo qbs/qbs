@@ -138,11 +138,11 @@ CleanOptions CommandLineParser::cleanOptions() const
 {
     Q_ASSERT(command() == CleanCommandType);
     CleanOptions options;
-    options.cleanType = d->optionPool.allArtifactsOption()->enabled()
-            ? CleanOptions::CleanupAll : CleanOptions::CleanupTemporaries;
-    options.dryRun = buildOptions().dryRun;
-    options.keepGoing = buildOptions().keepGoing;
-    options.logElapsedTime = logTime();
+    options.setCleanType(d->optionPool.allArtifactsOption()->enabled()
+                         ? CleanOptions::CleanupAll : CleanOptions::CleanupTemporaries);
+    options.setDryRun(buildOptions().dryRun());
+    options.setKeepGoing(buildOptions().keepGoing());
+    options.setLogElapsedTime(logTime());
     return options;
 }
 
@@ -150,16 +150,16 @@ InstallOptions CommandLineParser::installOptions() const
 {
     Q_ASSERT(command() == InstallCommandType || command() == RunCommandType);
     InstallOptions options;
-    options.removeFirst = d->optionPool.removeFirstoption()->enabled();
-    options.installRoot = d->optionPool.installRootOption()->installRoot();
-    if (!options.installRoot.isEmpty()) {
-        QFileInfo fi(options.installRoot);
+    options.setRemoveExistingInstallation(d->optionPool.removeFirstoption()->enabled());
+    options.setInstallRoot(d->optionPool.installRootOption()->installRoot());
+    if (!options.installRoot().isEmpty()) {
+        QFileInfo fi(options.installRoot());
         if (!fi.isAbsolute())
-            options.installRoot = fi.absoluteFilePath();
+            options.setInstallRoot(fi.absoluteFilePath());
     }
-    options.dryRun = buildOptions().dryRun;
-    options.keepGoing = buildOptions().keepGoing;
-    options.logElapsedTime = logTime();
+    options.setDryRun(buildOptions().dryRun());
+    options.setKeepGoing(buildOptions().keepGoing());
+    options.setLogElapsedTime(logTime());
     return options;
 }
 
@@ -462,18 +462,19 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
 {
-    buildOptions.dryRun = dryRun();
-    buildOptions.changedFiles = optionPool.changedFilesOption()->arguments();
+    buildOptions.setDryRun(dryRun());
+    QStringList changedFiles = optionPool.changedFilesOption()->arguments();
     QDir currentDir;
-    for (int i = 0; i < buildOptions.changedFiles.count(); ++i) {
-        QString &file = buildOptions.changedFiles[i];
+    for (int i = 0; i < changedFiles.count(); ++i) {
+        QString &file = changedFiles[i];
         file = QDir::fromNativeSeparators(currentDir.absoluteFilePath(file));
     }
-    buildOptions.keepGoing = optionPool.keepGoingOption()->enabled();
+    buildOptions.setChangedFiles(changedFiles);
+    buildOptions.setKeepGoing(optionPool.keepGoingOption()->enabled());
     const JobsOption * jobsOption = optionPool.jobsOption();
-    buildOptions.maxJobCount = jobsOption->jobCount() > 0
-            ? jobsOption->jobCount() : Preferences(settings).jobs();
-    buildOptions.logElapsedTime = logTime;
+    buildOptions.setMaxJobCount(jobsOption->jobCount() > 0
+            ? jobsOption->jobCount() : Preferences(settings).jobs());
+    buildOptions.setLogElapsedTime(logTime);
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupProgress()

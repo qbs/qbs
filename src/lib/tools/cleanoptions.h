@@ -31,21 +31,35 @@
 
 #include "qbs_export.h"
 
+#include <QSharedDataPointer>
 #include <QString>
 
 namespace qbs {
+namespace Internal { class CleanOptionsPrivate; }
 
 class QBS_EXPORT CleanOptions
 {
 public:
     CleanOptions();
+    CleanOptions(const CleanOptions &other);
+    CleanOptions &operator=(const CleanOptions &other);
+    ~CleanOptions();
 
     enum CleanType { CleanupAll, CleanupTemporaries };
+    CleanType cleanType() const;
+    void setCleanType(CleanType cleanType);
 
-    CleanType cleanType;
-    bool dryRun;
-    bool keepGoing;
-    bool logElapsedTime;
+    bool dryRun() const;
+    void setDryRun(bool dryRun);
+
+    bool keepGoing() const;
+    void setKeepGoing(bool keepGoing);
+
+    bool logElapsedTime() const;
+    void setLogElapsedTime(bool log);
+
+private:
+    QSharedDataPointer<Internal::CleanOptionsPrivate> d;
 };
 
 } // namespace qbs

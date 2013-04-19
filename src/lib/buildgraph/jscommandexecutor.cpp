@@ -105,8 +105,10 @@ public:
         if (scriptEngine->hasUncaughtException()) {
             result.success = false;
             result.errorMessage = scriptEngine->uncaughtException().toString();
-            result.errorLocation = m_jsCommand->codeLocation();
-            result.errorLocation.line += scriptEngine->uncaughtExceptionLineNumber();
+            const CodeLocation &origLocation = m_jsCommand->codeLocation();
+            result.errorLocation = CodeLocation(origLocation.fileName(),
+                    origLocation.line() + scriptEngine->uncaughtExceptionLineNumber(),
+                    origLocation.column());
         }
         scriptEngine->popContext();
         scriptEngine->clearExceptions();

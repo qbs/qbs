@@ -28,25 +28,28 @@
 ****************************************************************************/
 #include "cleanoptions.h"
 
+#include <QSharedData>
+
 namespace qbs {
+namespace Internal {
+
+class CleanOptionsPrivate : public QSharedData
+{
+public:
+    CleanOptionsPrivate() : cleanType(CleanOptions::CleanupAll), dryRun(false), keepGoing(false) {}
+
+    CleanOptions::CleanType cleanType;
+    bool dryRun;
+    bool keepGoing;
+    bool logElapsedTime;
+};
+
+}
 
 /*!
  * \class CleanOptions
  * \brief The \c CleanOptions class comprises parameters that influence the behavior of
  * cleaning operations.
- */
-
- /*!
-  * \variable CleanOptions::dryRun
-  * \brief if true, qbs will not actually remove any files, but just show what would happen.
-  */
-
-/*!
- * \variable CleanOptions::keepGoing
- * \brief if true, do not abort on errors
- * If a file cannot be removed, e.g. due to a permission problem, a warning will be printed and
- * cleaning will continue. If this flag is not set, then the operation will abort
- * immediately in case of an error.
  */
 
 /*!
@@ -58,18 +61,95 @@ namespace qbs {
  *        would be left on the disk, but the .o files would be removed.
  */
 
-/*!
- * \variable CleanOptions::cleanType
- * \brief what to remove
- */
-
- /*!
-  * \variable CleanOptions::logElapsedTime
-  * \brief true iff the time the operation takes should be logged
-  */
-
-CleanOptions::CleanOptions() : cleanType(CleanupAll), dryRun(false), keepGoing(false)
+CleanOptions::CleanOptions() : d(new Internal::CleanOptionsPrivate)
 {
+}
+
+CleanOptions::CleanOptions(const CleanOptions &other) : d(other.d)
+{
+}
+
+CleanOptions &CleanOptions::operator=(const CleanOptions &other)
+{
+    d = other.d;
+    return *this;
+}
+
+CleanOptions::~CleanOptions()
+{
+}
+
+/*!
+ * \brief Returns information about which type of artifacts will be removed.
+ */
+CleanOptions::CleanType CleanOptions::cleanType() const
+{
+    return d->cleanType;
+}
+
+/*!
+ * \brief Controls which kind of artifacts to remove.
+ * \sa CleanOptions::CleanType
+ */
+void CleanOptions::setCleanType(CleanOptions::CleanType cleanType)
+{
+    d->cleanType = cleanType;
+}
+
+/*!
+ * \brief Returns true iff qbs will not actually remove any files, but just show what would happen.
+ * The default is false.
+ */
+bool CleanOptions::dryRun() const
+{
+    return d->dryRun;
+}
+
+/*!
+ * \brief Controls whether clean-up will actually take place.
+ * If the argument is true, then qbs will emit information about which files would be removed
+ * instead of actually doing it.
+ */
+void CleanOptions::setDryRun(bool dryRun)
+{
+    d->dryRun = dryRun;
+}
+
+/*!
+ * Returns true iff clean-up will continue if an error occurs.
+ * The default is false.
+ */
+bool CleanOptions::keepGoing() const
+{
+    return d->dryRun;
+}
+
+/*!
+ * \brief Controls whether to abort on errors.
+ * If the argument is true, then if a file cannot be removed e.g. due to a permission problem,
+ * a warning will be printed and the clean-up will continue. If the argument is false,
+ * then the clean-up will abort immediately in case of an error.
+ */
+void CleanOptions::setKeepGoing(bool keepGoing)
+{
+    d->keepGoing = keepGoing;
+}
+
+/*!
+ * \brief Returns true iff the time the operation takes will be logged.
+ * The default is false.
+ */
+bool CleanOptions::logElapsedTime() const
+{
+    return d->logElapsedTime;
+}
+
+/*!
+ * \brief Controls whether the clean-up time will be measured and logged.
+ */
+void CleanOptions::setLogElapsedTime(bool log)
+{
+    d->logElapsedTime = log;
 }
 
 } // namespace qbs

@@ -31,22 +31,38 @@
 
 #include "qbs_export.h"
 
+#include <QSharedDataPointer>
 #include <QStringList>
 
 namespace qbs {
+namespace Internal { class BuildOptionsPrivate; }
 
 class QBS_EXPORT BuildOptions
 {
 public:
     BuildOptions();
+    BuildOptions(const BuildOptions &other);
+    BuildOptions &operator=(const BuildOptions &other);
+    ~BuildOptions();
+
+    QStringList changedFiles() const;
+    void setChangedFiles(const QStringList &changedFiles);
 
     static int defaultMaxJobCount();
+    int maxJobCount() const;
+    void setMaxJobCount(int jobCount);
 
-    QStringList changedFiles;
-    int maxJobCount;
-    bool dryRun;
-    bool keepGoing;
-    bool logElapsedTime;
+    bool dryRun() const;
+    void setDryRun(bool dryRun);
+
+    bool keepGoing() const;
+    void setKeepGoing(bool keepGoing);
+
+    bool logElapsedTime() const;
+    void setLogElapsedTime(bool log);
+
+private:
+    QSharedDataPointer<Internal::BuildOptionsPrivate> d;
 };
 
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2);

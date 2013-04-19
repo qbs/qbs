@@ -99,15 +99,15 @@ void CommandLineFrontend::start()
         const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
                                                    + QLatin1String("/../"));
         SetupProjectParameters params;
-        params.projectFilePath = m_parser.projectFilePath();
-        params.buildRoot = QDir::currentPath();
-        params.searchPaths = Preferences(m_settings).searchPaths(qbsRootPath);
-        params.pluginPaths = Preferences(m_settings).pluginPaths(qbsRootPath);
-        params.ignoreDifferentProjectFilePath = m_parser.force();
-        params.dryRun = m_parser.dryRun();
-        params.logElapsedTime = m_parser.logTime();
+        params.setProjectFilePath(m_parser.projectFilePath());
+        params.setBuildRoot(QDir::currentPath());
+        params.setSearchPaths(Preferences(m_settings).searchPaths(qbsRootPath));
+        params.setPluginPaths(Preferences(m_settings).pluginPaths(qbsRootPath));
+        params.setIgnoreDifferentProjectFilePath(m_parser.force());
+        params.setDryRun(m_parser.dryRun());
+        params.setLogElapsedTime(m_parser.logTime());
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
-            params.buildConfiguration = buildConfig;
+            params.setBuildConfiguration(buildConfig);
             SetupProjectJob * const job = Project::setupProject(params, m_settings,
                     ConsoleLogger::instance().logSink(), this);
             connectJob(job);
@@ -236,15 +236,15 @@ void CommandLineFrontend::handleWarningReport(const qbs::Error &warning)
 
 void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &result)
 {
-    bool hasOutput = !result.stdOut.isEmpty() || !result.stdErr.isEmpty();
-    if (!hasOutput && result.success)
+    bool hasOutput = !result.stdOut().isEmpty() || !result.stdErr().isEmpty();
+    if (!hasOutput && result.success())
         return;
 
-    (result.success ? qbsInfo() : qbsError())
-            << result.binary << " " << result.arguments.join(QLatin1String(" "))
+    (result.success() ? qbsInfo() : qbsError())
+            << result.executableFilePath() << " " << result.arguments().join(QLatin1String(" "))
             << (hasOutput ? QString::fromLatin1("\n") : QString())
-            << (result.stdOut.isEmpty() ? QString() : result.stdOut.join(QLatin1String("\n")))
-            << (result.stdErr.isEmpty() ? QString() : result.stdErr.join(QLatin1String("\n")));
+            << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1String("\n")))
+            << (result.stdErr().isEmpty() ? QString() : result.stdErr().join(QLatin1String("\n")));
 }
 
 bool CommandLineFrontend::resolvingMultipleProjects() const
@@ -395,7 +395,7 @@ int CommandLineFrontend::runTarget()
         Q_ASSERT(products.count() == 1);
         const ProductData productToRun = products.first();
         const QString executableFilePath = project.targetExecutable(productToRun,
-                m_parser.installOptions().installRoot);
+                m_parser.installOptions().installRoot());
         if (executableFilePath.isEmpty()) {
             throw Error(Tr::tr("Cannot run: Product '%1' is not an application.")
                         .arg(productToRun.name()));

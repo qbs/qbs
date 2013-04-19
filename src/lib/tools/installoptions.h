@@ -31,21 +31,38 @@
 
 #include "qbs_export.h"
 
+#include <QSharedDataPointer>
 #include <QString>
 
 namespace qbs {
+namespace Internal { class InstallOptionsPrivate; }
 
 class QBS_EXPORT InstallOptions
 {
 public:
     InstallOptions();
+    InstallOptions(const InstallOptions &other);
+    InstallOptions &operator=(const InstallOptions &other);
+    ~InstallOptions();
 
     static QString defaultInstallRoot();
-    QString installRoot;
-    bool removeFirst;
-    bool dryRun;
-    bool keepGoing;
-    bool logElapsedTime;
+    QString installRoot() const;
+    void setInstallRoot(const QString &installRoot);
+
+    bool removeExistingInstallation() const;
+    void setRemoveExistingInstallation(bool removeExisting);
+
+    bool dryRun() const;
+    void setDryRun(bool dryRun);
+
+    bool keepGoing() const;
+    void setKeepGoing(bool keepGoing);
+
+    bool logElapsedTime() const;
+    void setLogElapsedTime(bool logElapsedTime);
+
+private:
+    QSharedDataPointer<Internal::InstallOptionsPrivate> d;
 };
 
 } // namespace qbs

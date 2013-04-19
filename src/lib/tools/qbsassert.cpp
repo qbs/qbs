@@ -30,6 +30,8 @@
 #include "qbsassert.h"
 #include "error.h"
 
+#include <QString>
+
 namespace qbs {
 namespace Internal {
 

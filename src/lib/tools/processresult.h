@@ -31,25 +31,38 @@
 
 #include "qbs_export.h"
 
+#include <QExplicitlySharedDataPointer>
 #include <QMetaType>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
 
 namespace qbs {
+namespace Internal {
+class ProcessCommandExecutor;
+class ProcessResultPrivate;
+}
 
-class QBS_EXPORT ProcessResult {
+class QBS_EXPORT ProcessResult
+{
+    friend class qbs::Internal::ProcessCommandExecutor;
 public:
-    bool success;
+    ProcessResult();
+    ProcessResult(const ProcessResult &other);
+    ProcessResult &operator=(const ProcessResult &other);
+    ~ProcessResult();
 
-    QString binary;
-    QStringList arguments;
-    QString workingDirectory;
+    bool success() const;
+    QString executableFilePath() const;
+    QStringList arguments() const;
+    QString workingDirectory() const;
+    QProcess::ExitStatus exitStatus() const;
+    int exitCode() const;
+    QStringList stdOut() const;
+    QStringList stdErr() const;
 
-    QProcess::ExitStatus exitStatus;
-    int exitCode;
-    QStringList stdOut;
-    QStringList stdErr;
+private:
+    QExplicitlySharedDataPointer<Internal::ProcessResultPrivate> d;
 };
 
 } // namespace qbs

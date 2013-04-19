@@ -31,24 +31,48 @@
 
 #include "qbs_export.h"
 
+#include <QSharedDataPointer>
 #include <QStringList>
 #include <QVariantMap>
 
 namespace qbs {
+namespace Internal { class SetupProjectParametersPrivate; }
 
 class QBS_EXPORT SetupProjectParameters
 {
 public:
     SetupProjectParameters();
+    SetupProjectParameters(const SetupProjectParameters &other);
+    ~SetupProjectParameters();
 
-    QString projectFilePath;
-    QString buildRoot;
-    QStringList searchPaths;
-    QStringList pluginPaths;
-    QVariantMap buildConfiguration;
-    bool ignoreDifferentProjectFilePath;
-    bool dryRun;
-    bool logElapsedTime;
+    SetupProjectParameters &operator=(const SetupProjectParameters &other);
+
+    QString projectFilePath() const;
+    void setProjectFilePath(const QString &projectFilePath);
+
+    QString buildRoot() const;
+    void setBuildRoot(const QString &buildRoot);
+
+    QStringList searchPaths() const;
+    void setSearchPaths(const QStringList &searchPaths);
+
+    QStringList pluginPaths() const;
+    void setPluginPaths(const QStringList &pluginPaths);
+
+    QVariantMap buildConfiguration() const;
+    void setBuildConfiguration(const QVariantMap &buildConfiguration);
+
+    bool ignoreDifferentProjectFilePath() const;
+    void setIgnoreDifferentProjectFilePath(bool doIgnore);
+
+    bool dryRun() const;
+    void setDryRun(bool dryRun);
+
+    bool logElapsedTime() const;
+    void setLogElapsedTime(bool logElapsedTime);
+
+private:
+    QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;
 };
 
 } // namespace qbs

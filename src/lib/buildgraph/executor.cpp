@@ -168,10 +168,10 @@ void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
 
 void Executor::doBuild()
 {
-    if (m_buildOptions.maxJobCount <= 0) {
-        m_buildOptions.maxJobCount = BuildOptions::defaultMaxJobCount();
+    if (m_buildOptions.maxJobCount() <= 0) {
+        m_buildOptions.setMaxJobCount(BuildOptions::defaultMaxJobCount());
         m_logger.qbsDebug() << "max job count not explicitly set, using value of "
-                            << m_buildOptions.maxJobCount;
+                            << m_buildOptions.maxJobCount();
     }
     QBS_CHECK(m_state == ExecutorIdle);
     m_leaves.clear();
@@ -194,17 +194,17 @@ void Executor::doBuild()
     }
 
     m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] preparing executor for %1 jobs "
-                                                  "in parallel").arg(m_buildOptions.maxJobCount);
-    addExecutorJobs(m_buildOptions.maxJobCount);
+                                                  "in parallel").arg(m_buildOptions.maxJobCount());
+    addExecutorJobs(m_buildOptions.maxJobCount());
     foreach (ExecutorJob * const job, m_availableJobs)
-        job->setDryRun(m_buildOptions.dryRun);
+        job->setDryRun(m_buildOptions.dryRun());
 
     initializeArtifactsState();
-    Artifact::BuildState initialBuildState = m_buildOptions.changedFiles.isEmpty()
+    Artifact::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
             ? Artifact::Buildable : Artifact::Built;
 
     QList<Artifact *> changedArtifacts;
-    foreach (const QString &filePath, m_buildOptions.changedFiles) {
+    foreach (const QString &filePath, m_buildOptions.changedFiles()) {
         QList<Artifact *> artifacts;
         artifacts.append(m_project->buildData->lookupArtifacts(filePath));
         if (artifacts.isEmpty()) {
@@ -420,7 +420,7 @@ void Executor::buildArtifact(Artifact *artifact)
     }
 
     // create the output directories
-    if (!m_buildOptions.dryRun) {
+    if (!m_buildOptions.dryRun()) {
         ArtifactList::const_iterator it = artifact->transformer->outputs.begin();
         for (; it != artifact->transformer->outputs.end(); ++it) {
             Artifact *output = *it;
@@ -486,7 +486,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     m_processingJobs.erase(it);
     m_availableJobs.append(job);
 
-    if (!success && !m_buildOptions.keepGoing)
+    if (!success && !m_buildOptions.keepGoing())
         cancelJobs();
 
     if (m_state == ExecutorRunning && m_progressObserver && m_progressObserver->canceled()) {
@@ -683,7 +683,7 @@ void Executor::runAutoMoc()
 void Executor::onProcessError(const qbs::Error &err)
 {
     try {
-        if (m_buildOptions.keepGoing) {
+        if (m_buildOptions.keepGoing()) {
             Error fullWarning(err);
             fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
             emit reportWarning(fullWarning);
