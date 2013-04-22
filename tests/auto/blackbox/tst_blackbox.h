@@ -98,6 +98,7 @@ private slots:
     void build_project_dry_run();
     void dependenciesProperty();
     void disabledProduct();
+    void fileDependencies();
     void resolve_project_data();
     void resolve_project();
     void resolve_project_dry_run_data();

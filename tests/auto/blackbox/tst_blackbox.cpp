@@ -850,6 +850,29 @@ void TestBlackbox::disabledProduct()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::fileDependencies()
+{
+    QDir::setCurrent(testDataDir + "/fileDependencies");
+    rmDirR(buildDir);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling zort.cpp"));
+    const QString productFileName = HostOsInfo::appendExecutableSuffix(buildDir + "/myapp");
+    QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
+
+    // Incremental build without changes.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling"));
+    QVERIFY(!m_qbsStdout.contains("linking"));
+
+    // Incremental build with changed file dependency.
+    waitForNewTimestamp();
+    touch("awesomelib/awesome.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");
