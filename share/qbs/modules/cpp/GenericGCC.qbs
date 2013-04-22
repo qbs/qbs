@@ -67,7 +67,7 @@ CppModule {
             var i;
             var args = Gcc.configFlags(product);
             args.push('-shared');
-            if (product.moduleProperty("qbs", "targetOS") === 'linux')
+            if (product.moduleProperty("qbs", "targetOS") === 'linux') {
                 args = args.concat([
                     '-Wl,--hash-style=gnu',
                     '-Wl,--as-needed',
@@ -75,6 +75,9 @@ CppModule {
                     '-Wl,--no-undefined',
                     '-Wl,-soname=' + FileInfo.fileName(output.fileName)
                 ]);
+            } else if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1) {
+                args.push("-Wl,-headerpad_max_install_names");
+            }
             args = args.concat(platformLinkerFlags);
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
