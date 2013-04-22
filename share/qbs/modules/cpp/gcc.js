@@ -3,7 +3,7 @@ function libraryLinkerFlags(libraryPaths, frameworkPaths, systemFrameworkPaths, 
     var i;
     var args = [];
     if (rpaths && rpaths.length)
-        args.push('-Wl,-rpath,' + rpaths.join(':'));
+        args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
     for (i in libraryPaths) {
         args.push('-L' + libraryPaths[i]);
     }
