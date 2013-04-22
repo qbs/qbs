@@ -76,6 +76,10 @@ CppModule {
                     '-Wl,-soname=' + FileInfo.fileName(output.fileName)
                 ]);
             } else if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1) {
+                var installNamePrefix = product.moduleProperty("cpp", "installNamePrefix");
+                if (installNamePrefix !== undefined)
+                    args.push("-Wl,-install_name,"
+                              + installNamePrefix + FileInfo.fileName(output.fileName));
                 args.push("-Wl,-headerpad_max_install_names");
             }
             args = args.concat(platformLinkerFlags);
