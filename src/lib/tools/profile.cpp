@@ -57,6 +57,11 @@ Profile::Profile(const QString &name, Settings *settings) : m_name(name), m_sett
     QBS_ASSERT(name == cleanName(name), return);
 }
 
+bool Profile::exists() const
+{
+    return !m_settings->allKeysWithPrefix(profileKey()).isEmpty();
+}
+
 /*!
  * \brief Returns the value for property \c key in this profile.
  */
@@ -156,6 +161,13 @@ QString Profile::baseProfileKey()
     return QLatin1String("baseProfile");
 }
 
+void Profile::checkBaseProfileExistence(const Profile &baseProfile) const
+{
+    if (!baseProfile.exists())
+        throw Error(Internal::Tr::tr("Profile \"%1\" has a non-existent base profile \"%2\".").arg(
+                        name(), baseProfile.name()));
+}
+
 QVariant Profile::localValue(const QString &key) const
 {
     return m_settings->value(fullyQualifiedKey(key));
@@ -177,6 +189,7 @@ QVariant Profile::possiblyInheritedValue(const QString &key, const QVariant &def
     if (baseProfileName.isEmpty())
         return defaultValue;
     Profile parentProfile(baseProfileName, m_settings);
+    checkBaseProfileExistence(parentProfile);
     return parentProfile.possiblyInheritedValue(key, defaultValue, profileChain);
 }
 
@@ -191,6 +204,7 @@ QStringList Profile::allKeysInternal(Profile::KeySelection selection,
     if (baseProfileName.isEmpty())
         return keys;
     Profile parentProfile(baseProfileName, m_settings);
+    checkBaseProfileExistence(parentProfile);
     keys += parentProfile.allKeysInternal(KeySelectionRecursive, profileChain);
     keys.removeDuplicates();
     keys.removeOne(baseProfileKey());

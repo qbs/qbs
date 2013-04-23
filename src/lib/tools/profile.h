@@ -43,6 +43,7 @@ class QBS_EXPORT Profile
 public:
     explicit Profile(const QString &name, Settings *settings);
 
+    bool exists() const;
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
@@ -62,6 +63,7 @@ public:
 
 private:
     static QString baseProfileKey();
+    void checkBaseProfileExistence(const Profile &baseProfile) const;
     QString profileKey() const;
     QVariant localValue(const QString &key) const;
     QString fullyQualifiedKey(const QString &key) const;
