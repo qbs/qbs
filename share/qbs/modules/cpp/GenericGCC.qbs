@@ -321,22 +321,22 @@ CppModule {
                     args.push('-fvisibility=default')
             }
 
-            if (ModUtils.moduleProperty(product, "precompiledHeader")) {
-                args.push('-include')
-                args.push(product.name)
-                var pchPath = ModUtils.moduleProperty(product, "precompiledHeaderDir")
-                var pchPathIncluded = false
-                for (var i in includePaths) {
-                    if (includePaths[i] == pchPath) {
-                        pchPathIncluded = true
-                        break
-                    }
-                }
-                if (!pchPathIncluded)
-                    args.push('-I' + pchPath)
-            }
             for (i = 0, c = input.fileTags.length; i < c; ++i) {
                 if (input.fileTags[i] === "cpp") {
+                    if (ModUtils.moduleProperty(product, "precompiledHeader")) {
+                        args.push('-include')
+                        args.push(product.name)
+                        var pchPath = ModUtils.moduleProperty(product, "precompiledHeaderDir")
+                        var pchPathIncluded = false
+                        for (var i in includePaths) {
+                            if (includePaths[i] == pchPath) {
+                                pchPathIncluded = true
+                                break
+                            }
+                        }
+                        if (!pchPathIncluded)
+                            args.push('-I' + pchPath)
+                    }
                     args = args.concat(
                                 ModUtils.moduleProperties(input, 'platformCxxFlags'),
                                 cxxFlags);

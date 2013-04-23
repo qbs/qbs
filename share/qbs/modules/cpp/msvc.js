@@ -56,32 +56,31 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     }
 
     var objOutput = outputs.obj ? outputs.obj[0] : undefined
-    var pchOutput = outputs["c++_pch"] ? outputs["c++_pch"][0] : undefined
-
-    // precompiled header file
-    var pch = ModUtils.moduleProperty(product, "precompiledHeader")
-    if (pch) {
-        if (pchOutput) {
-            // create pch
-            args.push('/Yc')
-            args.push('/Fp' + FileInfo.toWindowsSeparators(pchOutput.fileName))
-            args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
-            args.push('/TP')
-            args.push(FileInfo.toWindowsSeparators(input.fileName))
-        } else {
-            // use pch
-            var pchHeaderName = FileInfo.toWindowsSeparators(pch)
-            var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
-                    + "\\.obj\\" + product.name + "\\" + product.name + ".pch")
-            args.push("/FI" + pchHeaderName)
-            args.push("/Yu" + pchHeaderName)
-            args.push("/Fp" + pchName)
-        }
-    }
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
     args.push(FileInfo.toWindowsSeparators(input.fileName))
 
     if (isCxx) {
+        // precompiled header file
+        var pch = ModUtils.moduleProperty(product, "precompiledHeader")
+        if (pch) {
+            var pchOutput = outputs["c++_pch"] ? outputs["c++_pch"][0] : undefined
+            if (pchOutput) {
+                // create pch
+                args.push('/Yc')
+                args.push('/Fp' + FileInfo.toWindowsSeparators(pchOutput.fileName))
+                args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
+                args.push('/TP')
+                args.push(FileInfo.toWindowsSeparators(input.fileName))
+            } else {
+                // use pch
+                var pchHeaderName = FileInfo.toWindowsSeparators(pch)
+                var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
+                        + "\\.obj\\" + product.name + "\\" + product.name + ".pch")
+                args.push("/FI" + pchHeaderName)
+                args.push("/Yu" + pchHeaderName)
+                args.push("/Fp" + pchName)
+            }
+        }
         if (cxxFlags)
             args = args.concat(cxxFlags);
     } else {
