@@ -48,12 +48,12 @@ public:
     QString filePath() const;
     QString dirPath() const;
     JsImports jsImports() const;
-    ItemPtr idScope() const;
+    Item *idScope() const;
 
 private:
     QString m_filePath;
     JsImports m_jsImports;
-    ItemPtr m_idScope;
+    Item *m_idScope;
 };
 
 inline QString FileContext::filePath() const
@@ -66,7 +66,7 @@ inline JsImports FileContext::jsImports() const
     return m_jsImports;
 }
 
-inline ItemPtr FileContext::idScope() const
+inline Item *FileContext::idScope() const
 {
     return m_idScope;
 }

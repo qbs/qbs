@@ -27,26 +27,34 @@
 **
 ****************************************************************************/
 
-#include "filecontext.h"
-#include <tools/fileinfo.h>
+#ifndef QBS_ITEMPOOL_H
+#define QBS_ITEMPOOL_H
+
+#include <parser/qmljsmemorypool_p.h>
+
+#include <QList>
 
 namespace qbs {
 namespace Internal {
 
-FileContext::FileContext()
-    : m_idScope(0)
-{
-}
+class Item;
 
-FileContextPtr FileContext::create()
+class ItemPool
 {
-    return FileContextPtr(new FileContext);
-}
+    Q_DISABLE_COPY(ItemPool)
+public:
+    ItemPool();
+    ~ItemPool();
 
-QString FileContext::dirPath() const
-{
-    return FileInfo::path(m_filePath);
-}
+    Item *allocateItem();
+
+private:
+    QbsQmlJS::MemoryPool m_pool;
+    typedef QList<Item *> ItemVector;
+    ItemVector m_items;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_ITEMPOOL_H

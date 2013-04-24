@@ -41,11 +41,17 @@ namespace qbs {
 namespace Internal {
 
 class BuiltinDeclarations;
+class Item;
+class ItemPool;
 
 struct ItemReaderResult
 {
-    ItemPtr rootItem;
-    typedef QHash<ItemConstPtr, QSet<JSSourceValuePtr> > SourceValuesPerItem;
+    ItemReaderResult()
+        : rootItem(0)
+    {}
+
+    Item *rootItem;
+    typedef QHash<const Item *, QSet<JSSourceValuePtr> > SourceValuesPerItem;
     SourceValuesPerItem conditionalValuesPerScopeItem;
 };
 
@@ -68,18 +74,20 @@ public:
     BuiltinDeclarations *builtins() const { return m_builtins; }
     const Logger *logger() const { return &m_logger; }
 
+    void setPool(ItemPool *pool) { m_pool = pool; }
     void setSearchPaths(const QStringList &searchPaths);
     const QStringList &searchPaths() const { return m_searchPaths; }
 
-    ItemPtr readFile(const QString &filePath);
+    Item *readFile(const QString &filePath);
 
 private:
     ItemReaderResult internalReadFile(const QString &filePath);
 
+    ItemPool *m_pool;
     BuiltinDeclarations *m_builtins;
     Logger m_logger;
     QStringList m_searchPaths;
-    QHash<ItemConstPtr, QSet<JSSourceValuePtr> > m_conditionalValuesPerScopeItem;
+    QHash<const Item *, QSet<JSSourceValuePtr> > m_conditionalValuesPerScopeItem;
 
     class ASTCache;
     ASTCache *m_astCache;

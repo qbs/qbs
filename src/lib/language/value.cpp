@@ -61,13 +61,13 @@ JSSourceValue::~JSSourceValue()
 }
 
 
-ItemValue::ItemValue(const ItemPtr &item)
+ItemValue::ItemValue(Item *item)
     : Value(ItemValueType)
     , m_item(item)
 {
 }
 
-ItemValuePtr ItemValue::create(const ItemPtr &item)
+ItemValuePtr ItemValue::create(Item *item)
 {
     return ItemValuePtr(new ItemValue(item));
 }

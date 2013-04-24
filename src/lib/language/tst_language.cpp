@@ -32,6 +32,7 @@
 #include <language/evaluator.h>
 #include <language/identifiersearch.h>
 #include <language/item.h>
+#include <language/itempool.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <parser/qmljslexer_p.h>
@@ -497,10 +498,11 @@ void TestLanguage::itemPrototype()
 {
     FileContextPtr fileContext = FileContext::create();
     JSSourceValueCreator sourceValueCreator(fileContext);
-    ItemPtr proto = Item::create();
+    ItemPool pool;
+    Item *proto = Item::create(&pool);
     proto->setProperty("x", sourceValueCreator.create("1"));
     proto->setProperty("y", sourceValueCreator.create("1"));
-    ItemPtr item = Item::create();
+    Item *item = Item::create(&pool);
     item->setPrototype(proto);
     item->setProperty("y", sourceValueCreator.create("x + 1"));
     item->setProperty("z", sourceValueCreator.create("2"));
@@ -518,12 +520,13 @@ void TestLanguage::itemScope()
 {
     FileContextPtr fileContext = FileContext::create();
     JSSourceValueCreator sourceValueCreator(fileContext);
-    ItemPtr scope1 = Item::create();
+    ItemPool pool;
+    Item *scope1 = Item::create(&pool);
     scope1->setProperty("x", sourceValueCreator.create("1"));
-    ItemPtr scope2 = Item::create();
+    Item *scope2 = Item::create(&pool);
     scope2->setScope(scope1);
     scope2->setProperty("y", sourceValueCreator.create("x + 1"));
-    ItemPtr item = Item::create();
+    Item *item = Item::create(&pool);
     item->setScope(scope2);
     item->setProperty("z", sourceValueCreator.create("x + y"));
 

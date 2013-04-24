@@ -28,15 +28,21 @@
 ****************************************************************************/
 
 #include "item.h"
+#include "itempool.h"
 #include "filecontext.h"
 #include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {
 
-Item::Item()
-    : m_propertyObserver(0)
+Item::Item(ItemPool *pool)
+    : m_pool(pool)
+    , m_propertyObserver(0)
     , m_moduleInstance(false)
+    , m_prototype(0)
+    , m_scope(0)
+    , m_outerItem(0)
+    , m_parent(0)
 {
 }
 
@@ -46,14 +52,14 @@ Item::~Item()
         m_propertyObserver->onItemDestroyed(this);
 }
 
-ItemPtr Item::create()
+Item *Item::create(ItemPool *pool)
 {
-    return ItemPtr(new Item);
+    return pool->allocateItem();
 }
 
-ItemPtr Item::clone() const
+Item *Item::clone(ItemPool *pool) const
 {
-    ItemPtr dup = create();
+    Item *dup = create(pool);
     dup->m_id = m_id;
     dup->m_typeName = m_typeName;
     dup->m_location = m_location;
@@ -72,7 +78,7 @@ ItemPtr Item::clone() const
 
 bool Item::hasProperty(const QString &name) const
 {
-    for (const Item *item = this; item; item = item->m_prototype.data())
+    for (const Item *item = this; item; item = item->m_prototype)
         if (item->m_properties.contains(name))
             return true;
 
@@ -87,20 +93,20 @@ bool Item::hasOwnProperty(const QString &name) const
 ValuePtr Item::property(const QString &name) const
 {
     ValuePtr value;
-    for (const Item *item = this; item; item = item->m_prototype.data())
+    for (const Item *item = this; item; item = item->m_prototype)
         if ((value = item->m_properties.value(name)))
             break;
     return value;
 }
 
-ItemValuePtr Item::itemProperty(const QString &name, bool create)
+ItemValuePtr Item::itemProperty(const QString &name, bool create, ItemPool *pool)
 {
     ItemValuePtr result;
     ValuePtr v = property(name);
     if (v && v->type() == Value::ItemValueType) {
         result = v.staticCast<ItemValue>();
     } else if (create) {
-        result = ItemValue::create(Item::create());
+        result = ItemValue::create(Item::create(pool));
         setProperty(name, result);
     }
     return result;

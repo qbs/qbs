@@ -110,7 +110,7 @@ void ProjectResolver::checkCancelation() const
     }
 }
 
-bool ProjectResolver::boolValue(const ItemConstPtr &item, const QString &name, bool defaultValue) const
+bool ProjectResolver::boolValue(const Item *item, const QString &name, bool defaultValue) const
 {
     QScriptValue v = m_evaluator->property(item, name);
     if (Q_UNLIKELY(v.isError())) {
@@ -122,12 +122,12 @@ bool ProjectResolver::boolValue(const ItemConstPtr &item, const QString &name, b
     return v.toBool();
 }
 
-FileTags ProjectResolver::fileTagsValue(const ItemConstPtr &item, const QString &name) const
+FileTags ProjectResolver::fileTagsValue(const Item *item, const QString &name) const
 {
     return FileTags::fromStringList(stringListValue(item, name));
 }
 
-QString ProjectResolver::stringValue(const ItemConstPtr &item, const QString &name,
+QString ProjectResolver::stringValue(const Item *item, const QString &name,
                                      const QString &defaultValue) const
 {
     QScriptValue v = m_evaluator->property(item, name);
@@ -140,7 +140,7 @@ QString ProjectResolver::stringValue(const ItemConstPtr &item, const QString &na
     return v.toString();
 }
 
-QStringList ProjectResolver::stringListValue(const ItemConstPtr &item, const QString &name) const
+QStringList ProjectResolver::stringListValue(const Item *item, const QString &name) const
 {
     QScriptValue v = m_evaluator->property(item, name);
     if (Q_UNLIKELY(v.isError())) {
@@ -160,17 +160,17 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value) const
     return result;
 }
 
-QString ProjectResolver::verbatimValue(const ItemPtr &item, const QString &name) const
+QString ProjectResolver::verbatimValue(Item *item, const QString &name) const
 {
     return verbatimValue(item->property(name));
 }
 
-void ProjectResolver::ignoreItem(const ItemPtr &item)
+void ProjectResolver::ignoreItem(Item *item)
 {
     Q_UNUSED(item);
 }
 
-void ProjectResolver::resolveProject(const ItemPtr &item)
+void ProjectResolver::resolveProject(Item *item)
 {
     checkCancelation();
     ResolvedProjectPtr project = ResolvedProject::create();
@@ -188,7 +188,7 @@ void ProjectResolver::resolveProject(const ItemPtr &item)
 
     if (m_progressObserver)
         m_progressObserver->setMaximum(item->children().count() + 2);
-    foreach (const ItemPtr &child, item->children()) {
+    foreach (Item *child, item->children()) {
         callItemFunction(mapping, child);
         if (m_progressObserver)
             m_progressObserver->incrementProgressValue();
@@ -204,7 +204,7 @@ void ProjectResolver::resolveProject(const ItemPtr &item)
         m_progressObserver->incrementProgressValue();
 }
 
-void ProjectResolver::resolveProduct(const ItemPtr &item)
+void ProjectResolver::resolveProduct(Item *item)
 {
     checkCancelation();
     ProductContext productContext;
@@ -235,10 +235,10 @@ void ProjectResolver::resolveProduct(const ItemPtr &item)
     product->properties->setValue(createProductConfig());
     ModuleProperties::init(m_evaluator->scriptValue(item), product);
 
-    QList<ItemPtr> subItems = item->children();
+    QList<Item *> subItems = item->children();
     const ValuePtr filesProperty = item->property(QLatin1String("files"));
     if (filesProperty) {
-        ItemPtr fakeGroup = Item::create();
+        Item *fakeGroup = Item::create(item->pool());
         fakeGroup->setFile(item->file());
         fakeGroup->setLocation(item->location());
         fakeGroup->setScope(item);
@@ -260,7 +260,7 @@ void ProjectResolver::resolveProduct(const ItemPtr &item)
     mapping["ProductModule"] = &ProjectResolver::resolveProductModule;
     mapping["Probe"] = &ProjectResolver::ignoreItem;
 
-    foreach (const ItemPtr &child, subItems)
+    foreach (Item *child, subItems)
         callItemFunction(mapping, child);
 
     foreach (const Item::Module &module, item->modules())
@@ -269,7 +269,7 @@ void ProjectResolver::resolveProduct(const ItemPtr &item)
     m_productContext = 0;
 }
 
-void ProjectResolver::resolveModule(const QStringList &moduleName, const ItemPtr &item)
+void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item)
 {
     checkCancelation();
     ModuleContext moduleContext;
@@ -300,7 +300,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, const ItemPtr
     mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
     mapping["Depends"] = &ProjectResolver::ignoreItem;
     mapping["Probe"] = &ProjectResolver::ignoreItem;
-    foreach (const ItemPtr &child, item->children())
+    foreach (Item *child, item->children())
         callItemFunction(mapping, child);
 
     m_moduleContext = 0;
@@ -321,7 +321,7 @@ static void createSourceArtifact(const ResolvedProductConstPtr &rproduct,
     artifactList += artifact;
 }
 
-static bool isSomeModulePropertySet(const ItemPtr &group)
+static bool isSomeModulePropertySet(Item *group)
 {
     for (QMap<QString, ValuePtr>::const_iterator it = group->properties().constBegin();
          it != group->properties().constEnd(); ++it)
@@ -338,7 +338,7 @@ static bool isSomeModulePropertySet(const ItemPtr &group)
     return false;
 }
 
-void ProjectResolver::resolveGroup(const ItemPtr &item)
+void ProjectResolver::resolveGroup(Item *item)
 {
     checkCancelation();
     PropertyMapPtr properties = m_productContext->product->properties;
@@ -420,7 +420,7 @@ static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
     }
 }
 
-void ProjectResolver::resolveRule(const ItemPtr &item)
+void ProjectResolver::resolveRule(Item *item)
 {
     checkCancelation();
 
@@ -431,7 +431,7 @@ void ProjectResolver::resolveRule(const ItemPtr &item)
 
     // read artifacts
     bool hasAlwaysUpdatedArtifact = false;
-    foreach (const ItemPtr &child, item->children()) {
+    foreach (Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw Error(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
@@ -487,7 +487,7 @@ public:
     typedef std::pair<iterator, bool> InsertResult;
 };
 
-void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, const ItemPtr &item,
+void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
                                           bool *hasAlwaysUpdatedArtifact)
 {
     RuleArtifactPtr artifact = RuleArtifact::create();
@@ -499,7 +499,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, const ItemPtr &it
         *hasAlwaysUpdatedArtifact = true;
 
     StringListSet seenBindings;
-    for (ItemPtr obj = item; obj; obj = obj->prototype()) {
+    for (Item *obj = item; obj; obj = obj->prototype()) {
         for (QMap<QString, ValuePtr>::const_iterator it = obj->properties().constBegin();
              it != obj->properties().constEnd(); ++it)
         {
@@ -512,7 +512,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, const ItemPtr &it
 }
 
 void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact,
-                                                 const ItemPtr &item,
+                                                 Item *item,
                                                  const QStringList &namePrefix,
                                                  StringListSet *seenBindings)
 {
@@ -540,7 +540,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
     }
 }
 
-void ProjectResolver::resolveFileTagger(const ItemPtr &item)
+void ProjectResolver::resolveFileTagger(Item *item)
 {
     checkCancelation();
     QSet<FileTaggerConstPtr> &fileTaggers = m_productContext
@@ -549,7 +549,7 @@ void ProjectResolver::resolveFileTagger(const ItemPtr &item)
             fileTagsValue(item, "fileTags"));
 }
 
-void ProjectResolver::resolveTransformer(const ItemPtr &item)
+void ProjectResolver::resolveTransformer(Item *item)
 {
     checkCancelation();
     if (!boolValue(item, "condition", true)) {
@@ -569,7 +569,7 @@ void ProjectResolver::resolveTransformer(const ItemPtr &item)
     transform->location = value ? value->location() : item->location();
     rtrafo->transform = transform;
 
-    foreach (const ItemConstPtr &child, item->children()) {
+    foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw Error(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
@@ -588,7 +588,7 @@ void ProjectResolver::resolveTransformer(const ItemPtr &item)
     m_productContext->product->transformers += rtrafo;
 }
 
-void ProjectResolver::resolveProductModule(const ItemPtr &item)
+void ProjectResolver::resolveProductModule(Item *item)
 {
     checkCancelation();
     const QString &productName = m_productContext->product->name;
@@ -631,7 +631,7 @@ void ProjectResolver::resolveProductDependencies()
     do {
         productDependenciesAdded = false;
         foreach (ResolvedProductPtr rproduct, m_projectContext->project->products) {
-            const ItemPtr productItem = m_projectContext->productItemMap.value(rproduct);
+            Item *productItem = m_projectContext->productItemMap.value(rproduct);
             ModuleLoaderResult::ProductInfo &productInfo
                     = m_projectContext->loadResult->productInfos[productItem];
             foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
@@ -641,7 +641,7 @@ void ProjectResolver::resolveProductDependencies()
                 if (Q_UNLIKELY(!usedProduct))
                     throw Error(Tr::tr("Product dependency '%1' not found.").arg(dependency.name),
                                 productItem->location());
-                const ItemPtr usedProductItem = m_projectContext->productItemMap.value(usedProduct);
+                Item *usedProductItem = m_projectContext->productItemMap.value(usedProduct);
                 const ModuleLoaderResult::ProductInfo usedProductInfo
                         = m_projectContext->loadResult->productInfos.value(usedProductItem);
                 bool added;
@@ -654,7 +654,7 @@ void ProjectResolver::resolveProductDependencies()
 
     // Resolve all inter-product dependencies.
     foreach (ResolvedProductPtr rproduct, m_projectContext->project->products) {
-        const ItemPtr productItem = m_projectContext->productItemMap.value(rproduct);
+        Item *productItem = m_projectContext->productItemMap.value(rproduct);
         foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
                  m_projectContext->loadResult->productInfos.value(productItem).usedProducts) {
             const QString &usedProductName = dependency.name;
@@ -711,7 +711,7 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
     }
 }
 
-QVariantMap ProjectResolver::evaluateModuleValues(const ItemPtr &item) const
+QVariantMap ProjectResolver::evaluateModuleValues(Item *item) const
 {
     QVariantMap modules;
     evaluateModuleValues(item, &modules);
@@ -720,7 +720,7 @@ QVariantMap ProjectResolver::evaluateModuleValues(const ItemPtr &item) const
     return result;
 }
 
-void ProjectResolver::evaluateModuleValues(const ItemPtr &item, QVariantMap *modulesMap) const
+void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap) const
 {
     checkCancelation();
     for (Item::Modules::const_iterator it = item->modules().constBegin();
@@ -735,14 +735,14 @@ void ProjectResolver::evaluateModuleValues(const ItemPtr &item, QVariantMap *mod
     }
 }
 
-QVariantMap ProjectResolver::evaluateProperties(const ItemPtr &item) const
+QVariantMap ProjectResolver::evaluateProperties(Item *item) const
 {
     const QVariantMap tmplt;
     return evaluateProperties(item, item, tmplt);
 }
 
-QVariantMap ProjectResolver::evaluateProperties(const ItemPtr &item,
-                                                const ItemPtr &propertiesContainer,
+QVariantMap ProjectResolver::evaluateProperties(Item *item,
+                                                Item *propertiesContainer,
                                                 const QVariantMap &tmplt) const
 {
     QVariantMap result = tmplt;
@@ -762,7 +762,7 @@ QVariantMap ProjectResolver::evaluateProperties(const ItemPtr &item,
             if (result.contains(it.key()))
                 break;
             PropertyDeclaration pd;
-            for (ItemPtr obj = item; obj; obj = obj->prototype()) {
+            for (Item *obj = item; obj; obj = obj->prototype()) {
                 pd = obj->propertyDeclarations().value(it.key());
                 if (pd.isValid())
                     break;
@@ -823,7 +823,7 @@ QStringList ProjectResolver::convertPathListProperty(const QStringList &paths,
 }
 
 void ProjectResolver::callItemFunction(const ItemFuncMap &mappings,
-                                       const ItemPtr &item)
+                                       Item *item)
 {
     const QByteArray typeName = item->typeName().toLocal8Bit();
     ItemFuncPtr f = mappings.value(typeName);

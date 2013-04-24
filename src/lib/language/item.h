@@ -35,6 +35,7 @@
 #include "value.h"
 #include "functiondeclaration.h"
 #include "propertydeclaration.h"
+#include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
 #include <tools/weakpointer.h>
 
@@ -46,37 +47,44 @@
 namespace qbs {
 namespace Internal {
 
+class ItemPool;
 class ProjectFile;
 
-class Item
+class Item : public QbsQmlJS::Managed
 {
+    friend class ItemPool;
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)
-    Item();
+    Item(ItemPool *pool);
 
 public:
     ~Item();
 
     struct Module
     {
+        Module()
+            : item(0)
+        {}
+
         QStringList name;
-        ItemPtr item;
+        Item *item;
     };
     typedef QList<Module> Modules;
 
-    static ItemPtr create();
-    ItemPtr clone() const;
+    static Item *create(ItemPool *pool);
+    Item *clone(ItemPool *pool) const;
+    ItemPool *pool() const;
 
     const QString &id() const;
     const QString &typeName() const;
     const CodeLocation &location() const;
-    const ItemPtr &prototype() const;
-    ItemPtr scope() const;
+    Item *prototype() const;
+    Item *scope() const;
     bool isModuleInstance() const;
-    WeakPointer<Item> outerItem() const;
-    WeakPointer<Item> parent() const;
+    Item *outerItem() const;
+    Item *parent() const;
     const FileContextPtr file() const;
-    QList<ItemPtr> children() const;
+    QList<Item *> children() const;
     const QMap<QString, ValuePtr> &properties() const;
     const QMap<QString, PropertyDeclaration> &propertyDeclarations() const;
     const Modules &modules() const;
@@ -85,38 +93,45 @@ public:
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
     ValuePtr property(const QString &name) const;
-    ItemValuePtr itemProperty(const QString &name, bool create = false);
+    ItemValuePtr itemProperty(const QString &name, bool create = false,
+            ItemPool *pool = 0);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
     void setTypeName(const QString &name);
     void setLocation(const CodeLocation &location);
-    void setPrototype(const ItemPtr &prototype);
+    void setPrototype(Item *prototype);
     void setFile(const FileContextPtr &file);
-    void setScope(const ItemPtr &item);
+    void setScope(Item *item);
     void setModuleInstanceFlag(bool b);
-    void setOuterItem(const ItemPtr &item);
-    void setChildren(const QList<ItemPtr> &children);
-    void setParent(const ItemPtr &item);
-    static void addChild(const ItemPtr &parent, const ItemPtr &child);
+    void setOuterItem(Item *item);
+    void setChildren(const QList<Item *> &children);
+    void setParent(Item *item);
+    static void addChild(Item *parent, Item *child);
 
 private:
+    ItemPool *m_pool;
     mutable ItemObserver *m_propertyObserver;
     QString m_id;
     QString m_typeName;
     CodeLocation m_location;
-    ItemPtr m_prototype;
-    ItemPtr m_scope;
     bool m_moduleInstance;
-    WeakPointer<Item> m_outerItem;
-    WeakPointer<Item> m_parent;
-    QList<ItemPtr> m_children;
+    Item *m_prototype;
+    Item *m_scope;
+    Item *m_outerItem;
+    Item *m_parent;
+    QList<Item *> m_children;
     FileContextPtr m_file;
     QMap<QString, ValuePtr> m_properties;
     QMap<QString, PropertyDeclaration> m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
 };
+
+inline ItemPool *Item::pool() const
+{
+    return m_pool;
+}
 
 inline const QString &Item::id() const
 {
@@ -133,12 +148,12 @@ inline const CodeLocation &Item::location() const
     return m_location;
 }
 
-inline const ItemPtr &Item::prototype() const
+inline Item *Item::prototype() const
 {
     return m_prototype;
 }
 
-inline ItemPtr Item::scope() const
+inline Item *Item::scope() const
 {
     return m_scope;
 }
@@ -148,12 +163,12 @@ inline bool Item::isModuleInstance() const
     return m_moduleInstance;
 }
 
-inline WeakPointer<Item> Item::outerItem() const
+inline Item *Item::outerItem() const
 {
     return m_outerItem;
 }
 
-inline WeakPointer<Item> Item::parent() const
+inline Item *Item::parent() const
 {
     return m_parent;
 }
@@ -163,7 +178,7 @@ inline const FileContextPtr Item::file() const
     return m_file;
 }
 
-inline QList<ItemPtr> Item::children() const
+inline QList<Item *> Item::children() const
 {
     return m_children;
 }
@@ -195,7 +210,7 @@ inline void Item::setLocation(const CodeLocation &location)
     m_location = location;
 }
 
-inline void Item::setPrototype(const ItemPtr &prototype)
+inline void Item::setPrototype(Item *prototype)
 {
     m_prototype = prototype;
 }
@@ -205,7 +220,7 @@ inline void Item::setFile(const FileContextPtr &file)
     m_file = file;
 }
 
-inline void Item::setScope(const ItemPtr &item)
+inline void Item::setScope(Item *item)
 {
     m_scope = item;
 }
@@ -215,22 +230,22 @@ inline void Item::setModuleInstanceFlag(bool b)
     m_moduleInstance = b;
 }
 
-inline void Item::setOuterItem(const ItemPtr &item)
+inline void Item::setOuterItem(Item *item)
 {
     m_outerItem = item;
 }
 
-inline void Item::setChildren(const QList<ItemPtr> &children)
+inline void Item::setChildren(const QList<Item *> &children)
 {
     m_children = children;
 }
 
-inline void Item::setParent(const ItemPtr &item)
+inline void Item::setParent(Item *item)
 {
     m_parent = item;
 }
 
-inline void Item::addChild(const ItemPtr &parent, const ItemPtr &child)
+inline void Item::addChild(Item *parent, Item *child)
 {
     parent->m_children.append(child);
     child->setParent(parent);

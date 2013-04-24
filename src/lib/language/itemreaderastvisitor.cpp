@@ -52,6 +52,7 @@ ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult 
     : m_reader(reader)
     , m_readerResult(result)
     , m_languageVersion(ImportVersion::fromString(reader->builtins()->languageVersion()))
+    , m_item(0)
     , m_sourceValue(0)
 {
 }
@@ -218,7 +219,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 {
     const QString typeName = ast->qualifiedTypeNameId->name.toString();
 
-    ItemPtr item = Item::create();
+    Item *item = Item::create(m_reader->m_pool);
     item->m_file = m_file;
     item->m_parent = m_item;
     item->m_typeName = typeName;
@@ -235,9 +236,9 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     }
 
     if (ast->initializer) {
-        m_item.swap(item);
+        qSwap(m_item, item);
         ast->initializer->accept(this);
-        m_item.swap(item);
+        qSwap(m_item, item);
     }
 
     foreach (const PropertyDeclaration &pd, m_reader->builtins()->declarationsForType(typeName)) {
@@ -272,7 +273,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     return false;
 }
 
-static void checkDuplicateBinding(const ItemPtr &item, const QStringList &bindingName,
+static void checkDuplicateBinding(Item *item, const QStringList &bindingName,
                                   const AST::SourceLocation &sourceLocation)
 {
     if (Q_UNLIKELY(item->properties().contains(bindingName.last()))) {
@@ -343,7 +344,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
     visitStatement(ast->statement);
     m_sourceValue.swap(value);
 
-    ItemPtr targetItem = targetItemForBinding(m_item, bindingName, value->location());
+    Item *targetItem = targetItemForBinding(m_item, bindingName, value->location());
     checkDuplicateBinding(targetItem, bindingName, ast->qualifiedId->identifierToken);
     targetItem->m_properties.insert(bindingName.last(), value);
     return false;
@@ -395,16 +396,16 @@ CodeLocation ItemReaderASTVisitor::toCodeLocation(AST::SourceLocation location) 
     return CodeLocation(m_filePath, location.startLine, location.startColumn);
 }
 
-ItemPtr ItemReaderASTVisitor::targetItemForBinding(const ItemPtr &item,
+Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
                                                    const QStringList &bindingName,
                                                    const CodeLocation &bindingLocation)
 {
-    ItemPtr targetItem = item;
+    Item *targetItem = item;
     const int c = bindingName.count() - 1;
     for (int i = 0; i < c; ++i) {
         ValuePtr v = targetItem->m_properties.value(bindingName.at(i));
         if (!v) {
-            ItemPtr newItem = Item::create();
+            Item *newItem = Item::create(m_reader->m_pool);
             v = ItemValue::create(newItem);
             targetItem->m_properties.insert(bindingName.at(i), v);
         }
@@ -431,7 +432,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
                     toCodeLocation(versionToken));
 }
 
-void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src,
+void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
                                      const ItemReaderResult &baseFile)
 {
     if (!src->typeName().isEmpty())
@@ -439,7 +440,7 @@ void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src
 
     int insertPos = 0;
     for (int i = 0; i < src->m_children.count(); ++i) {
-        const ItemPtr &child = src->m_children.at(i);
+        Item *child = src->m_children.at(i);
         dst->m_children.insert(insertPos++, child);
         child->m_parent = dst;
     }
@@ -490,16 +491,16 @@ void ItemReaderASTVisitor::mergeItem(const ItemPtr &dst, const ItemConstPtr &src
 void ItemReaderASTVisitor::ensureIdScope(const FileContextPtr &file)
 {
     if (!file->m_idScope) {
-        file->m_idScope = Item::create();
+        file->m_idScope = Item::create(m_reader->m_pool);
         file->m_idScope->m_typeName = QLatin1String("IdScope");
     }
 }
 
-void ItemReaderASTVisitor::setupAlternatives(const ItemPtr &item)
+void ItemReaderASTVisitor::setupAlternatives(Item *item)
 {
-    QList<ItemPtr>::iterator it = item->m_children.begin();
+    QList<Item *>::iterator it = item->m_children.begin();
     while (it != item->m_children.end()) {
-        const ItemPtr &child = *it;
+        Item *child = *it;
         if (child->typeName() == QLatin1String("Properties")) {
             handlePropertiesBlock(item, child);
             it = item->m_children.erase(it);
@@ -510,7 +511,7 @@ void ItemReaderASTVisitor::setupAlternatives(const ItemPtr &item)
 }
 
 void ItemReaderASTVisitor::replaceConditionScopes(const JSSourceValuePtr &value,
-                                                  const ItemPtr &newScope)
+                                                  Item *newScope)
 {
     for (QList<JSSourceValue::Alternative>::iterator it
             = value->m_alternatives.begin(); it != value->m_alternatives.end(); ++it)
@@ -520,8 +521,8 @@ void ItemReaderASTVisitor::replaceConditionScopes(const JSSourceValuePtr &value,
 class PropertiesBlockConverter
 {
 public:
-    PropertiesBlockConverter(const QString &condition, const ItemPtr &propertiesBlockContainer,
-                             const ItemConstPtr &propertiesBlock,
+    PropertiesBlockConverter(const QString &condition, Item *propertiesBlockContainer,
+                             const Item *propertiesBlock,
                              QSet<JSSourceValuePtr> *valuesWithAlternatives)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
@@ -538,18 +539,18 @@ public:
 
 private:
     JSSourceValue::Alternative m_alternative;
-    const ItemPtr &m_propertiesBlockContainer;
-    const ItemConstPtr &m_propertiesBlock;
+    Item *m_propertiesBlockContainer;
+    const Item *m_propertiesBlock;
     QSet<JSSourceValuePtr> *m_valuesWithAlternatives;
 
-    void apply(const ItemPtr &a, const ItemConstPtr &b)
+    void apply(Item *a, const Item *b)
     {
         for (QMap<QString, ValuePtr>::const_iterator it = b->properties().constBegin();
                 it != b->properties().constEnd(); ++it) {
             if (b == m_propertiesBlock && it.key() == QLatin1String("condition"))
                 continue;
             if (it.value()->type() == Value::ItemValueType) {
-                apply(a->itemProperty(it.key(), true)->item(),
+                apply(a->itemProperty(it.key(), true, m_propertiesBlockContainer->pool())->item(),
                       it.value().staticCast<ItemValue>()->item());
             } else if (it.value()->type() == Value::JSSourceValueType) {
                 ValuePtr aval = a->property(it.key());
@@ -564,7 +565,7 @@ private:
         }
     }
 
-    void apply(const QString &propertyName, const ItemPtr &item, JSSourceValuePtr value,
+    void apply(const QString &propertyName, Item *item, JSSourceValuePtr value,
                const JSSourceValuePtr &conditionalValue)
     {
         QBS_ASSERT(!value || value->file() == conditionalValue->file(), return);
@@ -580,7 +581,7 @@ private:
     }
 };
 
-void ItemReaderASTVisitor::handlePropertiesBlock(const ItemPtr &item, const ItemConstPtr &block)
+void ItemReaderASTVisitor::handlePropertiesBlock(Item *item, const Item *block)
 {
     ValuePtr value = block->property(QLatin1String("condition"));
     if (Q_UNLIKELY(!value))

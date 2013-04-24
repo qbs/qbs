@@ -100,9 +100,9 @@ private:
 
     void pushItemScopes(const Item *item)
     {
-        const ItemConstPtr scope = item->scope();
+        const Item *scope = item->scope();
         if (scope) {
-            pushItemScopes(scope.data());
+            pushItemScopes(scope);
             pushScope(data->evaluator->scriptValue(scope));
         }
     }
@@ -115,10 +115,10 @@ private:
 
     void handle(JSSourceValue *value)
     {
-        ItemConstPtr conditionScopeItem;
+        const Item *conditionScopeItem = 0;
         QScriptValue conditionScope;
         QScriptValue conditionFileScope;
-        ItemPtr outerItem = data->item->outerItem();
+        Item *outerItem = data->item->outerItem();
         for (int i = 0; i < value->alternatives().count(); ++i) {
             const JSSourceValue::Alternative *alternative = 0;
             alternative = &value->alternatives().at(i);
@@ -129,7 +129,7 @@ private:
                 conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
             }
             engine->currentContext()->pushScope(conditionFileScope);
-            pushItemScopes(conditionScopeItem.data());
+            pushItemScopes(conditionScopeItem);
             engine->currentContext()->pushScope(conditionScope);
             const QScriptValue cr = engine->evaluate(alternative->condition);
             engine->currentContext()->popScope();
@@ -148,7 +148,7 @@ private:
                     outerValue->setSourceCode(value->sourceCode());
                     outerValue->setBaseValue(value->baseValue());
                     outerValue->setLocation(value->location());
-                    outerItem = Item::create();
+                    outerItem = Item::create(data->item->pool());
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
                 value = alternative->value.data();
@@ -185,7 +185,7 @@ private:
 
     void handle(ItemValue *value)
     {
-        const ItemPtr &item = value->item();
+        Item *item = value->item();
         if (!item)
             qDebug() << "SVConverter got null item" << propertyName->toString();
         *result = data->evaluator->scriptValue(item);
@@ -256,7 +256,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
                                                                  const QString &name,
                                                                  bool ignoreParent)
 {
-    for (const Item *item = data->item; item; item = item->prototype().data()) {
+    for (const Item *item = data->item; item; item = item->prototype()) {
         m_queryResult.value = item->properties().value(name);
         if (!m_queryResult.value.isNull()) {
             m_queryResult.data = data;
@@ -266,11 +266,11 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
         }
     }
 
-    if (!ignoreParent && !data->item->parent().isNull()) {
+    if (!ignoreParent && data->item->parent()) {
         if (debugProperties)
             m_logger.qbsTrace() << "[SC] queryProperty: query parent";
         EvaluationData parentdata = *data;
-        parentdata.item = data->item->parent().data();
+        parentdata.item = data->item->parent();
         const QueryFlags qf = queryItemProperty(&parentdata, name, true);
         if (qf.testFlag(HandlesReadAccess)) {
             m_queryResult.data = data;
@@ -291,13 +291,13 @@ QString EvaluatorScriptClass::resultToString(const QScriptValue &scriptValue)
         : scriptValue.toVariant().toString());
 }
 
-ItemPtr EvaluatorScriptClass::findParentOfType(const Item *item, const QString &typeName)
+Item *EvaluatorScriptClass::findParentOfType(const Item *item, const QString &typeName)
 {
-    for (ItemPtr it = item->parent(); it; it = it->parent()) {
+    for (Item *it = item->parent(); it; it = it->parent()) {
         if (it->typeName() == typeName)
             return it;
     }
-    return ItemPtr();
+    return 0;
 }
 
 QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QScriptString &name,
@@ -311,8 +311,9 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
 
     const QueryPropertyType qpt = static_cast<QueryPropertyType>(id);
     if (qpt == QPTParentProperty) {
-        return data->item->parent().isNull() ?
-                    engine()->undefinedValue() : data->evaluator->scriptValue(data->item->parent());
+        return data->item->parent()
+                ? data->evaluator->scriptValue(data->item->parent())
+                : engine()->undefinedValue();
     }
 
     ValuePtr value;

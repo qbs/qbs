@@ -34,10 +34,6 @@
 namespace qbs {
 namespace Internal {
 
-class Item;
-typedef QSharedPointer<Item> ItemPtr;
-typedef QSharedPointer<const Item> ItemConstPtr;
-
 class Value;
 typedef QSharedPointer<Value> ValuePtr;
 typedef QSharedPointer<const Value> ValueConstPtr;

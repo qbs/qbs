@@ -51,9 +51,9 @@ public:
     virtual ~Evaluator();
 
     ScriptEngine *engine() const;
-    QScriptValue property(const ItemConstPtr &item, const QString &name);
-    QScriptValue property(const ItemConstPtr &item, const QStringList &nameParts);
-    QScriptValue scriptValue(const ItemConstPtr &item);
+    QScriptValue property(const Item *item, const QString &name);
+    QScriptValue property(const Item *item, const QStringList &nameParts);
+    QScriptValue scriptValue(const Item *item);
     QScriptValue fileScope(const FileContextConstPtr &file);
 
 private:

@@ -62,14 +62,14 @@ Evaluator::~Evaluator()
     delete m_scriptClass;
 }
 
-QScriptValue Evaluator::property(const ItemConstPtr &item, const QString &name)
+QScriptValue Evaluator::property(const Item *item, const QString &name)
 {
     return scriptValue(item).property(name);
 }
 
-QScriptValue Evaluator::property(const ItemConstPtr &item, const QStringList &nameParts)
+QScriptValue Evaluator::property(const Item *item, const QStringList &nameParts)
 {
-    ItemConstPtr targetItem = item;
+    const Item *targetItem = item;
     const int c = nameParts.count() - 1;
     for (int i = 0; i < c; ++i) {
         ValuePtr v = targetItem->properties().value(nameParts.at(i));
@@ -82,9 +82,9 @@ QScriptValue Evaluator::property(const ItemConstPtr &item, const QStringList &na
     return property(targetItem, nameParts.last());
 }
 
-QScriptValue Evaluator::scriptValue(const ItemConstPtr &item)
+QScriptValue Evaluator::scriptValue(const Item *item)
 {
-    QScriptValue &scriptValue = m_scriptValueMap[item.data()];
+    QScriptValue &scriptValue = m_scriptValueMap[item];
     if (scriptValue.isObject()) {
         // already initialized
         return scriptValue;
@@ -92,7 +92,7 @@ QScriptValue Evaluator::scriptValue(const ItemConstPtr &item)
 
     EvaluationData *edata = new EvaluationData;
     edata->evaluator = this;
-    edata->item = item.data();
+    edata->item = item;
     edata->item->setPropertyObserver(this);
 
     scriptValue = m_scriptEngine->newObject(m_scriptClass);

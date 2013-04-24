@@ -100,7 +100,7 @@ public:
     struct Alternative
     {
         QString condition;
-        ItemConstPtr conditionScopeItem;
+        const Item *conditionScopeItem;
         JSSourceValuePtr value;
     };
 
@@ -123,39 +123,31 @@ class Item;
 
 class ItemValue : public Value
 {
-    ItemValue(const ItemPtr &item);
+    ItemValue(Item *item);
 public:
-    static ItemValuePtr create(const ItemPtr &item = ItemPtr());
+    static ItemValuePtr create(Item *item = 0);
     ~ItemValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }
 //    virtual ItemValue *toItemValue() { return this; }
-    ItemPtr item() const;
+    Item *item() const;
 
-    void setItem(const ItemPtr &ptr);
-    void setItemWeakPointer(const QWeakPointer<Item> &ptr);
+    void setItem(Item *ptr);
 
 private:
-    ItemPtr m_item;
-    QWeakPointer<Item> m_itemWeakPtr;
+    Item *m_item;
 };
 
-inline ItemPtr ItemValue::item() const
+inline Item *ItemValue::item() const
 {
-    return m_item ? m_item : m_itemWeakPtr.toStrongRef();
+    return m_item;
 }
 
-inline void ItemValue::setItem(const ItemPtr &ptr)
+inline void ItemValue::setItem(Item *ptr)
 {
     m_item = ptr;
-    m_itemWeakPtr.clear();
 }
 
-inline void ItemValue::setItemWeakPointer(const QWeakPointer<Item> &ptr)
-{
-    m_itemWeakPtr = ptr;
-    m_item.clear();
-}
 
 class VariantValue : public Value
 {

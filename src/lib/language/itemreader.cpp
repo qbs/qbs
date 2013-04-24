@@ -93,7 +93,8 @@ class ItemReader::ASTCache : public QHash<QString, ASTCacheValue> {};
 
 
 ItemReader::ItemReader(BuiltinDeclarations *builtins, const Logger &logger)
-    : m_builtins(builtins)
+    : m_pool(0)
+    , m_builtins(builtins)
     , m_logger(logger)
     , m_astCache(new ASTCache)
 {
@@ -109,7 +110,7 @@ void ItemReader::setSearchPaths(const QStringList &searchPaths)
     m_searchPaths = searchPaths;
 }
 
-ItemPtr ItemReader::readFile(const QString &filePath)
+Item *ItemReader::readFile(const QString &filePath)
 {
     return internalReadFile(filePath).rootItem;
 }

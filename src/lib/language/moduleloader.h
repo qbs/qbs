@@ -31,6 +31,7 @@
 #define QBS_MODULELOADER_H
 
 #include "forward_decls.h"
+#include "itempool.h"
 #include <logging/logger.h>
 
 #include <QMap>
@@ -51,12 +52,17 @@ namespace Internal {
 
 class BuiltinDeclarations;
 class Evaluator;
+class Item;
 class ItemReader;
 class ProgressObserver;
 class ScriptEngine;
 
 struct ModuleLoaderResult
 {
+    ModuleLoaderResult()
+        : itemPool(new ItemPool), root(0)
+    {}
+
     struct ProductInfo
     {
         struct Dependency
@@ -70,8 +76,9 @@ struct ModuleLoaderResult
         QList<Dependency> usedProductsFromProductModule;
     };
 
-    ItemPtr root;
-    QHash<ItemPtr, ProductInfo> productInfos;
+    QSharedPointer<ItemPool> itemPool;
+    Item *root;
+    QHash<Item *, ProductInfo> productInfos;
 };
 
 /*
@@ -99,10 +106,14 @@ private:
     class ContextBase
     {
     public:
-        ItemPtr item;
-        ItemPtr scope;
+        ContextBase()
+            : item(0), scope(0)
+        {}
+
+        Item *item;
+        Item *scope;
         QStringList extraSearchPaths;
-        QMap<QString, ItemPtr> moduleItemCache;
+        QMap<QString, Item *> moduleItemCache;
     };
 
     class ProjectContext : public ContextBase
@@ -126,41 +137,42 @@ private:
         QList<ModuleLoaderResult::ProductInfo::Dependency> *productDependencies;
     };
 
-    typedef QPair<ItemPtr, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
+    typedef QPair<Item *, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
     typedef QList<ProductDependencyResult> ProductDependencyResults;
 
-    void handleProject(ModuleLoaderResult *loadResult, const ItemPtr &item);
-    void handleProduct(ProjectContext *projectContext, const ItemPtr &item);
+    void handleProject(ModuleLoaderResult *loadResult, Item *item);
+    void handleProduct(ProjectContext *projectContext, Item *item);
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
-    void handleGroup(ProductContext *productContext, const ItemPtr &group);
-    void handleArtifact(ProductContext *productContext, const ItemPtr &item);
-    void handleProductModule(ProductContext *productContext, const ItemPtr &item);
-    void propagateModulesFromProduct(ProductContext *productContext, const ItemPtr &item);
-    void resolveDependencies(DependsContext *productContext, const ItemPtr &item);
+    void handleGroup(ProductContext *productContext, Item *group);
+    void handleArtifact(ProductContext *productContext, Item *item);
+    void handleProductModule(ProductContext *productContext, Item *item);
+    void propagateModulesFromProduct(ProductContext *productContext, Item *item);
+    void resolveDependencies(DependsContext *productContext, Item *item);
     class ItemModuleList;
-    void resolveDependsItem(DependsContext *dependsContext, const ItemPtr &item, const ItemPtr &dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
-    static ItemPtr moduleInstanceItem(const ItemPtr &item, const QStringList &moduleName);
-    ItemPtr loadModule(ProductContext *productContext, const ItemPtr &item,
+    void resolveDependsItem(DependsContext *dependsContext, Item *item, Item *dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
+    Item *moduleInstanceItem(Item *item, const QStringList &moduleName);
+    Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId, const QStringList &moduleName);
-    ItemPtr searchAndLoadModuleFile(ProductContext *productContext,
+    Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QStringList &moduleName,
             const QStringList &extraSearchPaths);
-    ItemPtr loadModuleFile(ProductContext *productContext, bool isBaseModule, const QString &filePath);
-    void instantiateModule(ProductContext *productContext, const ItemPtr &instanceScope, const ItemPtr &moduleInstance, const ItemPtr &modulePrototype, const QStringList &moduleName);
-    void createChildInstances(ProductContext *productContext, const ItemPtr &instance,
-                              const ItemPtr &prototype, QHash<ItemPtr, ItemPtr> *prototypeInstanceMap) const;
-    void resolveProbes(const ItemPtr &item);
-    void resolveProbe(const ItemPtr &parent, const ItemPtr &probe);
+    Item *loadModuleFile(ProductContext *productContext, bool isBaseModule, const QString &filePath);
+    void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QStringList &moduleName);
+    void createChildInstances(ProductContext *productContext, Item *instance,
+                              Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;
+    void resolveProbes(Item *item);
+    void resolveProbe(Item *parent, Item *probe);
     void checkCancelation() const;
-    bool checkItemCondition(const ItemPtr &item);
-    QStringList readExtraSearchPaths(const ItemPtr &item);
-    static ItemPtr wrapWithProject(const ItemPtr &item);
+    bool checkItemCondition(Item *item);
+    QStringList readExtraSearchPaths(Item *item);
+    static Item *wrapWithProject(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QStringList &moduleName);
-    static void copyProperty(const QString &propertyName, const ItemConstPtr &source, const ItemPtr &destination);
-    static void setScopeForDescendants(const ItemPtr &item, const ItemPtr &scope);
+    static void copyProperty(const QString &propertyName, const Item *source, Item *destination);
+    static void setScopeForDescendants(Item *item, Item *scope);
 
     ScriptEngine *m_engine;
+    ItemPool *m_pool;
     Logger m_logger;
     ProgressObserver *m_progressObserver;
     ItemReader *m_reader;

@@ -67,14 +67,14 @@ private:
         QList<RulePtr> rules;
         ResolvedModulePtr dummyModule;
         QMap<QString, ResolvedProductPtr> productsByName;
-        QHash<ResolvedProductPtr, ItemPtr> productItemMap;
+        QHash<ResolvedProductPtr, Item *> productItemMap;
         QMap<QString, QVariantMap> productModules;
     };
 
     struct ProductContext
     {
         ResolvedProductPtr product;
-        ItemPtr item;
+        Item *item;
     };
 
     struct ModuleContext
@@ -83,36 +83,35 @@ private:
     };
 
     void checkCancelation() const;
-    bool boolValue(const ItemConstPtr &item, const QString &name, bool defaultValue = false) const;
-    FileTags fileTagsValue(const ItemConstPtr &item, const QString &name) const;
-    QString stringValue(const ItemConstPtr &item, const QString &name, const QString &defaultValue = QString()) const;
-    QStringList stringListValue(const ItemConstPtr &item, const QString &name) const;
+    bool boolValue(const Item *item, const QString &name, bool defaultValue = false) const;
+    FileTags fileTagsValue(const Item *item, const QString &name) const;
+    QString stringValue(const Item *item, const QString &name, const QString &defaultValue = QString()) const;
+    QStringList stringListValue(const Item *item, const QString &name) const;
     QString verbatimValue(const ValueConstPtr &value) const;
-    QString verbatimValue(const ItemPtr &item, const QString &name) const;
-    void ignoreItem(const ItemPtr &item);
-    void resolveProject(const ItemPtr &item);
-    void resolveProduct(const ItemPtr &item);
-    void resolveModule(const QStringList &moduleName, const ItemPtr &item);
-    void resolveGroup(const ItemPtr &item);
-    void resolveRule(const ItemPtr &item);
-    void resolveRuleArtifact(const RulePtr &rule, const ItemPtr &item, bool *hasAlwaysUpdatedArtifact);
-    static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, const ItemPtr &item,
+    QString verbatimValue(Item *item, const QString &name) const;
+    void ignoreItem(Item *item);
+    void resolveProject(Item *item);
+    void resolveProduct(Item *item);
+    void resolveModule(const QStringList &moduleName, Item *item);
+    void resolveGroup(Item *item);
+    void resolveRule(Item *item);
+    void resolveRuleArtifact(const RulePtr &rule, Item *item, bool *hasAlwaysUpdatedArtifact);
+    static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
                                            const QStringList &namePrefix,
                                            StringListSet *seenBindings);
-    void resolveFileTagger(const ItemPtr &item);
-    void resolveTransformer(const ItemPtr &item);
-    void resolveProductModule(const ItemPtr &item);
+    void resolveFileTagger(Item *item);
+    void resolveTransformer(Item *item);
+    void resolveProductModule(Item *item);
     void resolveProductDependencies();
     void postProcess(const ResolvedProductPtr &product) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     void applyFileTaggers(const SourceArtifactPtr &artifact,
                           const ResolvedProductConstPtr &product) const;
-    QVariantMap evaluateModuleValues(const ItemPtr &item) const;
-    void evaluateModuleValues(const ItemPtr &item, QVariantMap *modulesMap) const;
-    QVariantMap evaluateProperties(const ItemPtr &item) const;
-    QVariantMap evaluateProperties(const ItemPtr &item,
-                                       const ItemPtr &propertiesContainer,
-                                       const QVariantMap &tmplt) const;
+    QVariantMap evaluateModuleValues(Item *item) const;
+    void evaluateModuleValues(Item *item, QVariantMap *modulesMap) const;
+    QVariantMap evaluateProperties(Item *item) const;
+    QVariantMap evaluateProperties(Item *item, Item *propertiesContainer,
+            const QVariantMap &tmplt) const;
     QVariantMap createProductConfig() const;
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
@@ -128,9 +127,9 @@ private:
     ModuleContext *m_moduleContext;
     QSet<QString> m_groupPropertyDeclarations;
 
-    typedef void (ProjectResolver::*ItemFuncPtr)(const ItemPtr &item);
+    typedef void (ProjectResolver::*ItemFuncPtr)(Item *item);
     typedef QMap<QByteArray, ItemFuncPtr> ItemFuncMap;
-    void callItemFunction(const ItemFuncMap &mappings, const ItemPtr &item);
+    void callItemFunction(const ItemFuncMap &mappings, Item *item);
 };
 
 } // namespace Internal

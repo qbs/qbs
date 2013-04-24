@@ -98,8 +98,9 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
             = m_moduleLoader->load(parameters.projectFilePath,
                                    parameters.buildConfiguration,
                                    true);
-    return m_projectResolver->resolve(loadResult, parameters.buildRoot,
+    ResolvedProjectPtr project = m_projectResolver->resolve(loadResult, parameters.buildRoot,
             parameters.buildConfiguration);
+    return project;
 }
 
 QByteArray Loader::qmlTypeInfo()

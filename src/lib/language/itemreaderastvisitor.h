@@ -61,15 +61,15 @@ public:
 private:
     bool visitStatement(QbsQmlJS::AST::Statement *statement);
     CodeLocation toCodeLocation(QbsQmlJS::AST::SourceLocation location) const;
-    ItemPtr targetItemForBinding(const ItemPtr &item, const QStringList &binding,
+    Item *targetItemForBinding(Item *item, const QStringList &binding,
                                  const CodeLocation &bindingLocation);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
-    static void mergeItem(const ItemPtr &dst, const ItemConstPtr &src,
+    static void mergeItem(Item *dst, const Item *src,
                           const ItemReaderResult &baseFile);
-    static void ensureIdScope(const FileContextPtr &file);
-    void setupAlternatives(const ItemPtr &item);
-    static void replaceConditionScopes(const JSSourceValuePtr &value, const ItemPtr &newScope);
-    void handlePropertiesBlock(const ItemPtr &item, const ItemConstPtr &block);
+    void ensureIdScope(const FileContextPtr &file);
+    void setupAlternatives(Item *item);
+    static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
+    void handlePropertiesBlock(Item *item, const Item *block);
 
     ItemReader *m_reader;
     ItemReaderResult *m_readerResult;
@@ -78,7 +78,7 @@ private:
     QString m_sourceCode;
     FileContextPtr m_file;
     QHash<QStringList, QString> m_typeNameToFile;
-    ItemPtr m_item;
+    Item *m_item;
     JSSourceValuePtr m_sourceValue;
 };
 

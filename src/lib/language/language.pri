@@ -14,6 +14,7 @@ HEADERS += \
     $$PWD/importversion.h \
     $$PWD/item.h \
     $$PWD/itemobserver.h \
+    $$PWD/itempool.h \
     $$PWD/itemreader.h \
     $$PWD/itemreaderastvisitor.h \
     $$PWD/jsimports.h \
@@ -40,6 +41,7 @@ SOURCES += \
     $$PWD/identifiersearch.cpp \
     $$PWD/importversion.cpp \
     $$PWD/item.cpp \
+    $$PWD/itempool.cpp \
     $$PWD/itemreader.cpp \
     $$PWD/itemreaderastvisitor.cpp \
     $$PWD/language.cpp \

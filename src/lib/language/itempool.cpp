@@ -27,25 +27,27 @@
 **
 ****************************************************************************/
 
-#include "filecontext.h"
-#include <tools/fileinfo.h>
+#include "itempool.h"
+#include "item.h"
 
 namespace qbs {
 namespace Internal {
 
-FileContext::FileContext()
-    : m_idScope(0)
+ItemPool::ItemPool()
 {
 }
 
-FileContextPtr FileContext::create()
+ItemPool::~ItemPool()
 {
-    return FileContextPtr(new FileContext);
+    for (ItemVector::const_iterator it = m_items.constBegin(); it != m_items.constEnd(); ++it)
+        (*it)->~Item();
 }
 
-QString FileContext::dirPath() const
+Item *ItemPool::allocateItem()
 {
-    return FileInfo::path(m_filePath);
+    Item *item = new (&m_pool) Item(this);
+    m_items.push_back(item);
+    return item;
 }
 
 } // namespace Internal
