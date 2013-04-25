@@ -158,6 +158,8 @@ DynamicLibrary {
             "item.cpp",
             "item.h",
             "itemobserver.h",
+            "itempool.cpp",
+            "itempool.h",
             "itemreader.cpp",
             "itemreader.h",
             "itemreaderastvisitor.cpp",
