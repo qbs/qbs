@@ -149,6 +149,7 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script,
                     CodeLocation(script->location.fileName,
                                  script->location.line + engine->uncaughtExceptionLineNumber() - 1));
 
+    qDeleteAll(commands);
     commands.clear();
     if (scriptValue.isArray()) {
         const int count = scriptValue.property("length").toInt32();
