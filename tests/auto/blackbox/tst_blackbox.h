@@ -118,6 +118,7 @@ private slots:
     void ruleConditions();
     void codegen();
     void missingQObjectHeader();
+    void overrideProjectProperties();
     void productProperties();
     void propertyChanges();
     void installedApp();

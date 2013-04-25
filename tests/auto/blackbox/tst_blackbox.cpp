@@ -763,6 +763,17 @@ void TestBlackbox::missingQObjectHeader()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::overrideProjectProperties()
+{
+    QDir::setCurrent(testDataDir + "/overrideProjectProperties");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList()
+                                     << QLatin1String("-f")
+                                     << QLatin1String("project.qbs")
+                                     << QLatin1String("project.nameSuffix:ForYou")
+                                     << QLatin1String("MyAppForYou.mainFile:main.cpp"))), 0);
+    QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/MyAppForYou")));
+}
+
 void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");

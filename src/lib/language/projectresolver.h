@@ -107,6 +107,7 @@ private:
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     void applyFileTaggers(const SourceArtifactPtr &artifact,
                           const ResolvedProductConstPtr &product) const;
+    void overrideItemProperties(Item *item, const QString &buildConfigKey);
     QVariantMap evaluateModuleValues(Item *item) const;
     void evaluateModuleValues(Item *item, QVariantMap *modulesMap) const;
     QVariantMap evaluateProperties(Item *item) const;
