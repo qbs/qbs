@@ -298,12 +298,21 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
                                &productDependencies);
 
     // Check Depends conditions after all modules are loaded.
+    QSet<QString> loadedModuleNames;
     for (QHash<Item *, ItemModuleList>::const_iterator it = loadedModules.constBegin();
          it != loadedModules.constEnd(); ++it)
     {
         Item *dependsItem = it.key();
         if (checkItemCondition(dependsItem)) {
             foreach (const Item::Module &module, it.value()) {
+                const QString fullName = fullModuleName(module.name);
+                if (loadedModuleNames.contains(fullName)) {
+                    m_logger.qbsWarning()
+                            << Tr::tr("Duplicate dependency '%1' at %2.").arg(
+                                   fullName, item->location().toString());
+                    continue;
+                }
+                loadedModuleNames.insert(fullName);
                 item->modules() += module;
                 resolveProbes(module.item);
             }

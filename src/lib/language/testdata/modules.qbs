@@ -26,4 +26,9 @@ Project {
             submodules: ["gui", "network"]
         }
     }
+    Product {
+        name: "dummy_twice"
+        Depends { name: "dummy" }
+        Depends { name: "dummy" }
+    }
 }

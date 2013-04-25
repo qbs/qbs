@@ -669,6 +669,9 @@ void TestLanguage::modules_data()
             << (QStringList() << "qbs" << "dummy" << "dummyqt/core" << "dummyqt/gui"
                               << "dummyqt/network")
             << QString("guiProperty,networkProperty");
+    QTest::newRow("dummy_twice")
+            << (QStringList() << "qbs" << "dummy")
+            << QString();
     QTest::newRow("cleanup") << QStringList();
 }
 
