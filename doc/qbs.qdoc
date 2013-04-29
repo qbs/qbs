@@ -75,6 +75,7 @@
            \list
                \li  \l{Module qbs}
                \li  \l{Module cpp}
+               \li  \l{Export Item}
                \li  \l{FileTagger Item}
                \li  \l{Group Item}
                \li  \l{Product Item}
@@ -783,6 +784,7 @@
     \list
         \li \l{Module qbs}
         \li \l{Module cpp}
+        \li \l{Export Item}
         \li \l{FileTagger Item}
         \li \l{Group Item}
         \li \l{Product Item}
@@ -970,7 +972,7 @@
     \contentspage index.html
     \previouspage module-qbs.html
     \page module-cpp.html
-    \nextpage filetagger-item.html
+    \nextpage export-item.html
 
     \title Module cpp
 

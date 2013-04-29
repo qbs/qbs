@@ -9,7 +9,7 @@ Project {
         name: "mylib"
         Depends { name: "dummy" }
         dummy.defines: ["BUILD_MYLIB"]
-        ProductModule {
+        Export {
             Depends { name: "dummy" }
             dummy.defines: ["USE_MYLIB"]
         }
@@ -21,13 +21,13 @@ Project {
     }
     StaticLibrary {
         name: "B"
-        ProductModule {
+        Export {
             Depends { name: "C" }
         }
     }
     StaticLibrary {
         name: "C"
-        ProductModule {
+        Export {
             Depends { name: "D" }
         }
     }

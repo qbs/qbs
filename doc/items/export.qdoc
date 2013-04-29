@@ -28,19 +28,19 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \previouspage product-item.html
-    \page productmodule-item.html
-    \nextpage project-item.html
+    \previouspage module-cpp.html
+    \page export-item.html
+    \nextpage filetagger-item.html
 
-    \title ProductModule Item
+    \title Export Item
 
-    A \c ProductModule can appear inside a \l{Product Item}. The properties attached to it will
+    An \c Export item can appear inside a \l{Product Item}. The properties attached to it will
     take effect in all products that depend on the product inside which the product module is defined.
     As an example, consider these two products:
     \code
     Product {
         name: "A"
-        ProductModule {
+        Export {
             Depends { name: "cpp" }
             cpp.includePaths: "."
         }

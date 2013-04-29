@@ -73,7 +73,7 @@ struct ModuleLoaderResult
         };
 
         QList<Dependency> usedProducts;
-        QList<Dependency> usedProductsFromProductModule;
+        QList<Dependency> usedProductsFromExportItem;
     };
 
     QSharedPointer<ItemPool> itemPool;
@@ -127,7 +127,7 @@ private:
     public:
         ProjectContext *project;
         ModuleLoaderResult::ProductInfo info;
-        QSet<FileContextConstPtr> filesWithProductModule;
+        QSet<FileContextConstPtr> filesWithExportItem;
     };
 
     class DependsContext
@@ -145,7 +145,8 @@ private:
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
     void handleGroup(ProductContext *productContext, Item *group);
     void handleArtifact(ProductContext *productContext, Item *item);
-    void handleProductModule(ProductContext *productContext, Item *item);
+    void handleExportItem(ProductContext *productContext, Item *item);
+    void handleProductModule(ProductContext *productContext, Item *item);   // ### remove in 0.5
     void propagateModulesFromProduct(ProductContext *productContext, Item *item);
     void resolveDependencies(DependsContext *productContext, Item *item);
     class ItemModuleList;

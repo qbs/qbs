@@ -70,6 +70,7 @@ private slots:
     void environmentVariable();
     void erroneousFiles_data();
     void erroneousFiles();
+    void exports();
     void fileContextProperties();
     void groupConditions_data();
     void groupConditions();
@@ -89,7 +90,6 @@ private slots:
     void outerInGroup();
     void pathProperties();
     void productConditions();
-    void productModules();
     void propertiesBlocks_data();
     void propertiesBlocks();
     void fileTags_data();

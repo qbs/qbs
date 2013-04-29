@@ -23,7 +23,7 @@ Project {
             "helper/helper.cpp"
         ]
         Depends { name: "cpp" }
-        ProductModule {
+        Export {
             Depends { name: "cpp" }
             cpp.includePaths: ['helper']
         }

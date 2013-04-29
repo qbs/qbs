@@ -320,7 +320,7 @@ DynamicLibrary {
         qbs.install: true
         qbs.installDir: qbs.targetOS === "windows" ? "bin" : "lib"
     }
-    ProductModule {
+    Export {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["script"]}
         cpp.rpaths: qbs.targetOS === "linux" ? ["$ORIGIN/../lib"] : undefined

@@ -260,7 +260,8 @@ void ProjectResolver::resolveProduct(Item *item)
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Transformer"] = &ProjectResolver::resolveTransformer;
     mapping["Group"] = &ProjectResolver::resolveGroup;
-    mapping["ProductModule"] = &ProjectResolver::resolveProductModule;
+    mapping["Export"] = &ProjectResolver::resolveExport;
+    mapping["ProductModule"] = &ProjectResolver::resolveExport;     // ### remove in 0.5
     mapping["Probe"] = &ProjectResolver::ignoreItem;
 
     foreach (Item *child, subItems)
@@ -591,21 +592,21 @@ void ProjectResolver::resolveTransformer(Item *item)
     m_productContext->product->transformers += rtrafo;
 }
 
-void ProjectResolver::resolveProductModule(Item *item)
+void ProjectResolver::resolveExport(Item *item)
 {
     checkCancelation();
     const QString &productName = m_productContext->product->name;
-    m_projectContext->productModules[productName] = evaluateModuleValues(item);
+    m_projectContext->exports[productName] = evaluateModuleValues(item);
 }
 
-static void insertProductModuleConfig(const QString &usedProductName,
-                                      const QVariantMap &productModuleConfig,
-                                      const PropertyMapPtr &propertyMap)
+static void insertExportedConfig(const QString &usedProductName,
+        const QVariantMap &exportedConfig,
+        const PropertyMapPtr &propertyMap)
 {
     QVariantMap properties = propertyMap->value();
     QVariant &modulesEntry = properties[QLatin1String("modules")];
     QVariantMap modules = modulesEntry.toMap();
-    modules.insert(usedProductName, productModuleConfig);
+    modules.insert(usedProductName, exportedConfig);
     modulesEntry = modules;
     propertyMap->setValue(properties);
 }
@@ -620,7 +621,7 @@ static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
             productInfo->usedProducts)
         usedProductNames += usedProduct.name;
     foreach (const ModuleLoaderResult::ProductInfo::Dependency &usedProduct,
-             usedProductInfo.usedProductsFromProductModule) {
+             usedProductInfo.usedProductsFromExportItem) {
         if (!usedProductNames.contains(usedProduct.name))
             productInfo->usedProducts  += usedProduct;
     }
@@ -629,7 +630,7 @@ static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
 
 void ProjectResolver::resolveProductDependencies()
 {
-    // Collect product dependencies from ProductModules.
+    // Collect product dependencies from Export items.
     bool productDependenciesAdded;
     do {
         productDependenciesAdded = false;
@@ -668,18 +669,18 @@ void ProjectResolver::resolveProductDependencies()
                             productItem->location());
             rproduct->dependencies.insert(usedProduct);
 
-            // insert the configuration of the ProductModule into the product's configuration
-            const QVariantMap productModuleConfig
-                    = m_projectContext->productModules.value(usedProductName);
-            if (productModuleConfig.isEmpty())
+            // insert the configuration of the Export item into the product's configuration
+            const QVariantMap exportedConfig
+                    = m_projectContext->exports.value(usedProductName);
+            if (exportedConfig.isEmpty())
                 continue;
 
-            insertProductModuleConfig(usedProductName, productModuleConfig, rproduct->properties);
+            insertExportedConfig(usedProductName, exportedConfig, rproduct->properties);
 
-            // insert the configuration of the ProductModule into the artifact configurations
+            // insert the configuration of the Export item into the artifact configurations
             foreach (SourceArtifactPtr artifact, rproduct->allEnabledFiles()) {
                 if (artifact->properties != rproduct->properties)
-                    insertProductModuleConfig(usedProductName, productModuleConfig,
+                    insertExportedConfig(usedProductName, exportedConfig,
                                               artifact->properties);
             }
         }

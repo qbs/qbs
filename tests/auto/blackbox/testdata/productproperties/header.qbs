@@ -26,7 +26,7 @@ Product {
         }
     }
 
-    ProductModule {
+    Export {
         Depends { name: "cpp" }
         cpp.includePaths: product.buildDirectory
     }

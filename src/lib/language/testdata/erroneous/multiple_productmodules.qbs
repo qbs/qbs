@@ -1,4 +1,0 @@
-Product {
-    ProductModule {}
-    ProductModule {}
-}

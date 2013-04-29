@@ -175,7 +175,9 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
             handleGroup(&productContext, child);
         else if (child->typeName() == QLatin1String("Artifact"))
             handleArtifact(&productContext, child);
-        else if (child->typeName() == QLatin1String("ProductModule"))
+        else if (child->typeName() == QLatin1String("Export"))
+            handleExportItem(&productContext, child);
+        else if (child->typeName() == QLatin1String("ProductModule"))   // ### remove in 0.5
             handleProductModule(&productContext, child);
         else if (child->typeName() == QLatin1String("Probe"))
             resolveProbe(item, child);
@@ -238,18 +240,26 @@ void ModuleLoader::handleArtifact(ProductContext *productContext, Item *item)
     propagateModulesFromProduct(productContext, item);
 }
 
+void ModuleLoader::handleExportItem(ModuleLoader::ProductContext *productContext, Item *item)
+{
+    checkCancelation();
+    if (Q_UNLIKELY(productContext->filesWithExportItem.contains(item->file())))
+        throw Error(Tr::tr("Multiple Export items in one product are prohibited."),
+                    item->location());
+    productContext->filesWithExportItem += item->file();
+    DependsContext dependsContext;
+    dependsContext.product = productContext;
+    dependsContext.productDependencies = &productContext->info.usedProductsFromExportItem;
+    resolveDependencies(&dependsContext, item);
+}
+
 void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productContext,
                                        Item *item)
 {
-    checkCancelation();
-    if (Q_UNLIKELY(productContext->filesWithProductModule.contains(item->file())))
-        throw Error(Tr::tr("Multiple ProductModule items in one product are prohibited."),
-                    item->location());
-    productContext->filesWithProductModule += item->file();
-    DependsContext dependsContext;
-    dependsContext.product = productContext;
-    dependsContext.productDependencies = &productContext->info.usedProductsFromProductModule;
-    resolveDependencies(&dependsContext, item);
+    m_logger.qbsWarning() << Tr::tr("ProductModule {} is deprecated. "
+                                    "Please use Export {} instead. Location: %1").arg(
+                                 item->location().toString());
+    handleExportItem(productContext, item);
 }
 
 void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, Item *item)

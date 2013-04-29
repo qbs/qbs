@@ -68,7 +68,7 @@ private:
         ResolvedModulePtr dummyModule;
         QMap<QString, ResolvedProductPtr> productsByName;
         QHash<ResolvedProductPtr, Item *> productItemMap;
-        QMap<QString, QVariantMap> productModules;
+        QMap<QString, QVariantMap> exports;
     };
 
     struct ProductContext
@@ -101,7 +101,7 @@ private:
                                            StringListSet *seenBindings);
     void resolveFileTagger(Item *item);
     void resolveTransformer(Item *item);
-    void resolveProductModule(Item *item);
+    void resolveExport(Item *item);
     void resolveProductDependencies();
     void postProcess(const ResolvedProductPtr &product) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;

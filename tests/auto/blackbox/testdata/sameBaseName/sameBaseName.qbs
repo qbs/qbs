@@ -24,7 +24,7 @@ Project {
             ]
         }
 
-        ProductModule {
+        Export {
             Depends { name: "cpp" }
             cpp.frameworks: (qbs.targetOS === "mac" || qbs.targetOS === "ios") ? "Foundation" : undefined
         }

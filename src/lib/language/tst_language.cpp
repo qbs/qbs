@@ -259,8 +259,8 @@ void TestLanguage::erroneousFiles_data()
             << "Product dependency 'neitherModuleNorProduct' not found";
     QTest::newRow("submodule_syntax")
             << "Depends.submodules cannot be used if name contains a dot";
-    QTest::newRow("multiple_productmodules")
-            << "Multiple ProductModule items in one product are prohibited.";
+    QTest::newRow("multiple_exports")
+            << "Multiple Export items in one product are prohibited.";
     QTest::newRow("importloop1")
             << "Loop detected when importing";
     QTest::newRow("nonexistentouter")
@@ -283,6 +283,51 @@ void TestLanguage::erroneousFiles()
         return;
     }
     QFAIL("No error thrown on invalid input.");
+}
+
+void TestLanguage::exports()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.projectFilePath = testProject("exports.qbs");
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 6);
+        ResolvedProductPtr product;
+        product = products.value("myapp");
+        QVERIFY(product);
+        QStringList propertyName = QStringList() << "modules" << "mylib"
+                                                 << "modules" << "dummy" << "defines";
+        QVariant propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
+        product = products.value("mylib");
+
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
+
+        product = products.value("A");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.contains(products.value("B")));
+        QVERIFY(product->dependencies.contains(products.value("C")));
+        QVERIFY(product->dependencies.contains(products.value("D")));
+        product = products.value("B");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.isEmpty());
+        product = products.value("C");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.isEmpty());
+        product = products.value("D");
+        QVERIFY(product);
+        QVERIFY(product->dependencies.isEmpty());
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
 }
 
 void TestLanguage::fileContextProperties()
@@ -784,51 +829,6 @@ void TestLanguage::productConditions()
         product = products.value("product_false_condition");
         QVERIFY(product);
         QVERIFY(!product->enabled);
-    }
-    catch (const Error &e) {
-        exceptionCaught = true;
-        qDebug() << e.toString();
-    }
-    QCOMPARE(exceptionCaught, false);
-}
-
-void TestLanguage::productModules()
-{
-    bool exceptionCaught = false;
-    try {
-        defaultParameters.projectFilePath = testProject("productmodules.qbs");
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
-        QVERIFY(project);
-        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 6);
-        ResolvedProductPtr product;
-        product = products.value("myapp");
-        QVERIFY(product);
-        QStringList propertyName = QStringList() << "modules" << "mylib"
-                                                 << "modules" << "dummy" << "defines";
-        QVariant propertyValue = getConfigProperty(product->properties->value(), propertyName);
-        QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
-        product = products.value("mylib");
-
-        QVERIFY(product);
-        propertyName = QStringList() << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->properties->value(), propertyName);
-        QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
-
-        product = products.value("A");
-        QVERIFY(product);
-        QVERIFY(product->dependencies.contains(products.value("B")));
-        QVERIFY(product->dependencies.contains(products.value("C")));
-        QVERIFY(product->dependencies.contains(products.value("D")));
-        product = products.value("B");
-        QVERIFY(product);
-        QVERIFY(product->dependencies.isEmpty());
-        product = products.value("C");
-        QVERIFY(product);
-        QVERIFY(product->dependencies.isEmpty());
-        product = products.value("D");
-        QVERIFY(product);
-        QVERIFY(product->dependencies.isEmpty());
     }
     catch (const Error &e) {
         exceptionCaught = true;

@@ -18,7 +18,7 @@ Project {
             files: 'main.cpp'
             fileTags: 'install'
         }
-        ProductModule {
+        Export {
             Depends { name: 'dummy2' }
         }
     }
@@ -30,7 +30,7 @@ Project {
             files: 'lib1.cpp'
             fileTags: 'install'
         }
-        ProductModule {
+        Export {
             Depends { name: 'lib1' }
         }
     }
