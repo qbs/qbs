@@ -4,7 +4,6 @@ import "modulescope_base.qbs" as MyProduct
 Project {
     MyProduct {
         name: "product1"
-        Depends { name: "scopemod" }
         property int e: 12
         property int f: 13
         scopemod.a: 2
