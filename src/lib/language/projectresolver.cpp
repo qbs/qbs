@@ -273,7 +273,6 @@ void ProjectResolver::resolveProduct(Item *item)
     mapping["Transformer"] = &ProjectResolver::resolveTransformer;
     mapping["Group"] = &ProjectResolver::resolveGroup;
     mapping["Export"] = &ProjectResolver::resolveExport;
-    mapping["ProductModule"] = &ProjectResolver::resolveExport;     // ### remove in 0.5
     mapping["Probe"] = &ProjectResolver::ignoreItem;
 
     foreach (Item *child, subItems)

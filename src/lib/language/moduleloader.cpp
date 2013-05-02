@@ -180,13 +180,14 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
         else if (child->typeName() == QLatin1String("Artifact"))
             handleArtifact(&productContext, child);
         else if (child->typeName() == QLatin1String("Export"))
-            handleExportItem(&productContext, child);
+            deferExportItem(&productContext, child);
         else if (child->typeName() == QLatin1String("ProductModule"))   // ### remove in 0.5
             handleProductModule(&productContext, child);
         else if (child->typeName() == QLatin1String("Probe"))
             resolveProbe(item, child);
     }
 
+    mergeExportItems(&productContext);
     projectContext->result->productInfos.insert(item, productContext.info);
 }
 
@@ -244,17 +245,9 @@ void ModuleLoader::handleArtifact(ProductContext *productContext, Item *item)
     propagateModulesFromProduct(productContext, item);
 }
 
-void ModuleLoader::handleExportItem(ModuleLoader::ProductContext *productContext, Item *item)
+void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext, Item *item)
 {
-    checkCancelation();
-    if (Q_UNLIKELY(productContext->filesWithExportItem.contains(item->file())))
-        throw Error(Tr::tr("Multiple Export items in one product are prohibited."),
-                    item->location());
-    productContext->filesWithExportItem += item->file();
-    DependsContext dependsContext;
-    dependsContext.product = productContext;
-    dependsContext.productDependencies = &productContext->info.usedProductsFromExportItem;
-    resolveDependencies(&dependsContext, item);
+    productContext->exportItems.append(item);
 }
 
 void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productContext,
@@ -263,7 +256,58 @@ void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productCont
     m_logger.qbsWarning() << Tr::tr("ProductModule {} is deprecated. "
                                     "Please use Export {} instead. Location: %1").arg(
                                  item->location().toString());
-    handleExportItem(productContext, item);
+    deferExportItem(productContext, item);
+}
+
+static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)
+{
+    if (value->type() == Value::ItemValueType) {
+        Item *valueItem = value.staticCast<ItemValue>()->item();
+        if (!valueItem)
+            return;
+        Item *subItem = dst->itemProperty(name, true)->item();
+        for (QMap<QString, ValuePtr>::const_iterator it = valueItem->properties().constBegin();
+                it != valueItem->properties().constEnd(); ++it)
+            mergeProperty(subItem, it.key(), it.value());
+    } else {
+        dst->setProperty(name, value);
+    }
+}
+
+void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext)
+{
+    Item *merged = Item::create(productContext->item->pool());
+    merged->setTypeName(QLatin1String("Export"));
+    QSet<Item *> exportItems;
+    foreach (Item *exportItem, productContext->exportItems) {
+        checkCancelation();
+        if (Q_UNLIKELY(productContext->filesWithExportItem.contains(exportItem->file())))
+            throw Error(Tr::tr("Multiple Export items in one product are prohibited."),
+                        exportItem->location());
+        productContext->filesWithExportItem += exportItem->file();
+        exportItems.insert(exportItem);
+        foreach (Item *child, exportItem->children())
+            Item::addChild(merged, child);
+        for (QMap<QString, ValuePtr>::const_iterator it = exportItem->properties().constBegin();
+                it != exportItem->properties().constEnd(); ++it) {
+            mergeProperty(merged, it.key(), it.value());
+        }
+    }
+
+    QList<Item *> children = productContext->item->children();
+    for (int i = 0; i < children.count();) {
+        if (exportItems.contains(children.at(i)))
+            children.removeAt(i);
+        else
+            ++i;
+    }
+    productContext->item->setChildren(children);
+    Item::addChild(productContext->item, merged);
+
+    DependsContext dependsContext;
+    dependsContext.product = productContext;
+    dependsContext.productDependencies = &productContext->info.usedProductsFromExportItem;
+    resolveDependencies(&dependsContext, merged);
 }
 
 void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, Item *item)

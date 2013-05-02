@@ -1,4 +1,5 @@
 import qbs 1.0
+import "exports_product.qbs" as ProductWithInheritedExportItem
 
 Project {
     Application {
@@ -33,5 +34,16 @@ Project {
     }
     StaticLibrary {
         name: "D"
+    }
+
+    Application {
+        name: "myapp2"
+        Depends { name: "productWithInheritedExportItem" }
+    }
+    ProductWithInheritedExportItem {
+        name: "productWithInheritedExportItem"
+        Export {
+            dummy.cxxFlags: ["-bar"]
+        }
     }
 }

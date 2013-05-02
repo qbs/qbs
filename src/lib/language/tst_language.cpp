@@ -293,7 +293,7 @@ void TestLanguage::exports()
         ResolvedProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 6);
+        QCOMPARE(products.count(), 8);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
@@ -322,6 +322,17 @@ void TestLanguage::exports()
         product = products.value("D");
         QVERIFY(product);
         QVERIFY(product->dependencies.isEmpty());
+
+        product = products.value("myapp2");
+        QVERIFY(product);
+        propertyName = QStringList() << "modules" << "productWithInheritedExportItem"
+                                     << "modules" << "dummy" << "cxxFlags";
+        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
+        propertyName = QStringList() << "modules" << "productWithInheritedExportItem"
+                                     << "modules" << "dummy" << "defines";
+        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
     }
     catch (const Error &e) {
         exceptionCaught = true;
