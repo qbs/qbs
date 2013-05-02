@@ -94,17 +94,28 @@ void TestTools::testProfiles()
         childProfile.remove("testKey");
         childProfile.removeBaseProfile();
         QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
-        childProfile.setBaseProfile("blubb");
-        QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
         childProfile.setBaseProfile("parent");
         QCOMPARE(childProfile.value("testKey").toString(), QLatin1String("testValue"));
+
+        // Change base profile and check if the inherited value also changes.
+        Profile fooProfile("foo", m_settings);
+        fooProfile.setValue("testKey", "gnampf");
         childProfile.setBaseProfile("foo");
-        QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
+        QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("gnampf"));
         exceptionCaught = false;
     } catch (Error &) {
         exceptionCaught = true;
     }
     QVERIFY(!exceptionCaught);
+
+    try {
+        childProfile.setBaseProfile("SmurfAlongWithMe");
+        childProfile.value("blubb");
+        exceptionCaught = false;
+    } catch (Error &) {
+        exceptionCaught = true;
+    }
+    QVERIFY(exceptionCaught);
 
     try {
         childProfile.setBaseProfile("parent");
