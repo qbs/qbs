@@ -93,8 +93,7 @@ public:
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
     ValuePtr property(const QString &name) const;
-    ItemValuePtr itemProperty(const QString &name, bool create = false,
-            ItemPool *pool = 0);
+    ItemValuePtr itemProperty(const QString &name, bool create = false);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);

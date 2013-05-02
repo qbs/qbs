@@ -99,14 +99,14 @@ ValuePtr Item::property(const QString &name) const
     return value;
 }
 
-ItemValuePtr Item::itemProperty(const QString &name, bool create, ItemPool *pool)
+ItemValuePtr Item::itemProperty(const QString &name, bool create)
 {
     ItemValuePtr result;
     ValuePtr v = property(name);
     if (v && v->type() == Value::ItemValueType) {
         result = v.staticCast<ItemValue>();
     } else if (create) {
-        result = ItemValue::create(Item::create(pool));
+        result = ItemValue::create(Item::create(m_pool));
         setProperty(name, result);
     }
     return result;

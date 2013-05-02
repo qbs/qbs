@@ -550,7 +550,7 @@ private:
             if (b == m_propertiesBlock && it.key() == QLatin1String("condition"))
                 continue;
             if (it.value()->type() == Value::ItemValueType) {
-                apply(a->itemProperty(it.key(), true, m_propertiesBlockContainer->pool())->item(),
+                apply(a->itemProperty(it.key(), true)->item(),
                       it.value().staticCast<ItemValue>()->item());
             } else if (it.value()->type() == Value::JSSourceValueType) {
                 ValuePtr aval = a->property(it.key());
