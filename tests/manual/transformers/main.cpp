@@ -57,7 +57,9 @@ int main(int, char **argv)
     size_t i = appPath.find_last_of('/');
     if (i == string::npos)
         i = appPath.find_last_of('\\');
-    if (i != string::npos)
+    if (i == string::npos) // No path, plain executable was called
+        appPath.clear();
+    else
         appPath.resize(i + 1);
     if (!displayTextFile(appPath, "foo.txt"))
         return 1;
