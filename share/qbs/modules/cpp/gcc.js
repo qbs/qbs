@@ -145,3 +145,31 @@ function additionalCompilerAndLinkerFlags(product) {
 
     return args
 }
+
+function dynamicLibraryFileName(version)
+{
+    if (!version)
+        version = product.version;
+    var fileName = ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName;
+    if (version && product.moduleProperty("qbs", "targetPlatform").indexOf("darwin") !== -1) {
+        fileName += "." + version;
+        version = undefined;
+    }
+    fileName += ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
+    if (version && product.moduleProperty("qbs", "targetPlatform").indexOf("unix") !== -1)
+        fileName += "." + version;
+    return fileName;
+}
+
+function soname()
+{
+    var outputFileName = FileInfo.fileName(output.fileName);
+    if (product.version) {
+        var major = parseInt(product.version, 10);
+        if (!isNaN(major)) {
+            return outputFileName.substr(0, outputFileName.length - product.version.length)
+                    + major;
+        }
+    }
+    return outputFileName;
+}

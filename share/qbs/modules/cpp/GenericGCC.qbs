@@ -37,9 +37,7 @@ CppModule {
         usings: ['dynamiclibrary', 'staticlibrary']
 
         Artifact {
-            fileName: product.destinationDirectory + "/"
-                      + ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName
-                      + ModUtils.moduleProperty(product, "dynamicLibrarySuffix")
+            fileName: product.destinationDirectory + "/" + Gcc.dynamicLibraryFileName()
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
@@ -64,6 +62,7 @@ CppModule {
             var rpaths = ModUtils.moduleProperties(product, 'rpaths');
             var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
+            var commands = [];
             var i;
             var args = Gcc.configFlags(product);
             args.push('-shared');
@@ -73,7 +72,7 @@ CppModule {
                     '-Wl,--as-needed',
                     '-Wl,--allow-shlib-undefined',
                     '-Wl,--no-undefined',
-                    '-Wl,-soname=' + FileInfo.fileName(output.fileName)
+                    '-Wl,-soname=' + Gcc.soname()
                 ]);
             } else if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1) {
                 var installNamePrefix = product.moduleProperty("cpp", "installNamePrefix");
@@ -121,7 +120,23 @@ CppModule {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker';
-            return cmd;
+            commands.push(cmd);
+
+            if (product.version
+                    && product.moduleProperty("qbs", "targetPlatform").indexOf("unix") !== -1) {
+                var versionParts = product.version.split('.');
+                var version = "";
+                var fname = FileInfo.fileName(output.fileName);
+                for (var i = 0; i < versionParts.length - 1; ++i) {
+                    version += versionParts[i];
+                    cmd = new Command("ln", ["-s", fname,
+                                             Gcc.dynamicLibraryFileName(version)]);
+                    cmd.workingDirectory = FileInfo.path(output.fileName);
+                    commands.push(cmd);
+                    version += '.';
+                }
+            }
+            return commands;
         }
     }
 

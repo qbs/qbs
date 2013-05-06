@@ -84,6 +84,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     product += PropertyDeclaration("files", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     product += PropertyDeclaration("excludeFiles", PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     product += PropertyDeclaration("moduleSearchPaths", PropertyDeclaration::Variant);
+    product += PropertyDeclaration("version", PropertyDeclaration::String);
     m_builtins["Product"] = product;
 
     QList<PropertyDeclaration> fileTagger;
