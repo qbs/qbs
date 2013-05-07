@@ -341,6 +341,8 @@ public:
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
+    void setProjectProperties(const QVariantMap &config);
+    const QVariantMap &projectProperties() const { return m_projectProperties; }
     QString id() const { return m_id; }
 
     QString buildGraphFilePath() const;
@@ -353,6 +355,7 @@ private:
     void store(PersistentPool &pool) const;
 
     QVariantMap m_buildConfiguration;
+    QVariantMap m_projectProperties;
     QString m_id;
 };
 

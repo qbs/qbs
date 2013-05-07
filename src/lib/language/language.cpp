@@ -588,6 +588,11 @@ void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
     m_id = deriveId(config);
 }
 
+void ResolvedProject::setProjectProperties(const QVariantMap &config)
+{
+    m_projectProperties = config;
+}
+
 QString ResolvedProject::buildGraphFilePath() const
 {
     return ProjectBuildData::deriveBuildGraphFilePath(buildDirectory, id());
@@ -642,7 +647,9 @@ void ResolvedProject::load(PersistentPool &pool)
         }
         products.append(rProduct);
     }
-    pool.stream() >> usedEnvironment;
+    pool.stream()
+        >> usedEnvironment
+        >> m_projectProperties;
     buildData.reset(pool.idLoad<ProjectBuildData>());
 }
 
@@ -657,7 +664,9 @@ void ResolvedProject::store(PersistentPool &pool) const
     pool.stream() << products.count();
     foreach (const ResolvedProductConstPtr &product, products)
         pool.store(product);
-    pool.stream() << usedEnvironment;
+    pool.stream()
+        << usedEnvironment
+        << m_projectProperties;
     pool.store(buildData.data());
 }
 

@@ -66,8 +66,10 @@ BuiltinDeclarations::BuiltinDeclarations()
     m_builtins["Group"] = decls;
 
     QList<PropertyDeclaration> project;
-    project += PropertyDeclaration("references", PropertyDeclaration::Variant);
-    project += PropertyDeclaration("moduleSearchPaths", PropertyDeclaration::Variant);
+    project += PropertyDeclaration("references", PropertyDeclaration::Variant,
+                                   PropertyDeclaration::PropertyNotAvailableInConfig);
+    project += PropertyDeclaration("moduleSearchPaths", PropertyDeclaration::Variant,
+                                   PropertyDeclaration::PropertyNotAvailableInConfig);
     m_builtins["Project"] = project;
 
     QList<PropertyDeclaration> product;

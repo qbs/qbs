@@ -3,6 +3,7 @@ import qbs.fileinfo as FileInfo
 
 Project {
     property string name: 'codegen'
+    property string osSpecificName: name.toUpperCase() + '_' + qbs.targetOS.toUpperCase()
 
     Product {
         type: 'application'
@@ -38,6 +39,12 @@ Project {
                 }
                 return str;
             }
+
+            // check whether we can access project properties here
+            var expected = "CODEGEN_" + product.moduleProperty("qbs", "targetOS").toUpperCase();
+            if (project.osSpecificName !== expected)
+                throw "Wrong project property value: " + project.osSpecificName
+                        + "\nexpected: " + expected;
 
             var code = '$NUMBERTYPE $FUNCTIONNAME($NUMBERTYPE, $STRINGTYPE) { return 0; }';
             code = expandMacros(code, product.replacements);

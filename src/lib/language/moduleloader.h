@@ -158,6 +158,7 @@ private:
             const CodeLocation &dependsItemLocation, const QStringList &moduleName,
             const QStringList &extraSearchPaths);
     Item *loadModuleFile(ProductContext *productContext, bool isBaseModule, const QString &filePath);
+    void loadBaseModule(ProductContext *productContext, Item *item);
     void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QStringList &moduleName);
     void createChildInstances(ProductContext *productContext, Item *instance,
                               Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;

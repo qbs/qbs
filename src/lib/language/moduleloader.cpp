@@ -128,6 +128,10 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
     projectContext.scope = Item::create(m_pool);
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
 
+    ProductContext dummyProductContext;
+    dummyProductContext.project = &projectContext;
+    loadBaseModule(&dummyProductContext, item);
+
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
         if (child->typeName() == QLatin1String("Product"))
@@ -286,18 +290,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
 
 void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item)
 {
-    const QStringList baseModuleName(QLatin1String("qbs"));
-    Item::Module baseModuleDesc;
-    baseModuleDesc.name = baseModuleName;
-    baseModuleDesc.item = loadModule(dependsContext->product, item, CodeLocation(), QString(),
-                                     baseModuleName);
-    if (Q_UNLIKELY(!baseModuleDesc.item))
-        throw Error(Tr::tr("Cannot load base qbs module."));
-    baseModuleDesc.item->setProperty(QLatin1String("getenv"),
-                                     BuiltinValue::create(BuiltinValue::GetEnvFunction));
-    baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
-                                     BuiltinValue::create(BuiltinValue::GetHostOSFunction));
-    item->modules() += baseModuleDesc;
+    loadBaseModule(dependsContext->product, item);
 
     // Resolve all Depends items.
     QHash<Item *, ItemModuleList> loadedModules;
@@ -512,6 +505,22 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, bool isBaseMo
     productContext->moduleItemCache.insert(filePath, module);
     productContext->project->moduleItemCache.insert(filePath, module);
     return module;
+}
+
+void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
+{
+    const QStringList baseModuleName(QLatin1String("qbs"));
+    Item::Module baseModuleDesc;
+    baseModuleDesc.name = baseModuleName;
+    baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
+                                     baseModuleName);
+    if (Q_UNLIKELY(!baseModuleDesc.item))
+        throw Error(Tr::tr("Cannot load base qbs module."));
+    baseModuleDesc.item->setProperty(QLatin1String("getenv"),
+                                     BuiltinValue::create(BuiltinValue::GetEnvFunction));
+    baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
+                                     BuiltinValue::create(BuiltinValue::GetHostOSFunction));
+    item->modules() += baseModuleDesc;
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)

@@ -193,6 +193,10 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         projectScriptValue = engine->newObject();
         projectScriptValue.setProperty("filePath", product->project->location.fileName);
         projectScriptValue.setProperty("path", FileInfo::path(product->project->location.fileName));
+        const QVariantMap &projectProperties = product->project->projectProperties();
+        for (QVariantMap::const_iterator it = projectProperties.begin();
+                it != projectProperties.end(); ++it)
+            projectScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
         targetObject.setProperty("project", projectScriptValue);
     }
 

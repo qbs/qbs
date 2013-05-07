@@ -183,6 +183,18 @@ void ProjectResolver::resolveProject(Item *item)
     project->setBuildConfiguration(m_buildConfiguration);
     project->buildDirectory = ResolvedProject::deriveBuildDirectory(m_buildRoot, project->id());
 
+    QVariantMap projectProperties;
+    for (QMap<QString, PropertyDeclaration>::const_iterator it
+                = item->propertyDeclarations().constBegin();
+            it != item->propertyDeclarations().constEnd(); ++it) {
+        if (it.value().flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
+            continue;
+        const ValueConstPtr v = item->property(it.key());
+        QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
+        projectProperties.insert(it.key(), m_evaluator->property(item, it.key()).toVariant());
+    }
+    project->setProjectProperties(projectProperties);
+
     ItemFuncMap mapping;
     mapping["Product"] = &ProjectResolver::resolveProduct;
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
