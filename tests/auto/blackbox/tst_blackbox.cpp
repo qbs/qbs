@@ -1513,6 +1513,31 @@ void TestBlackbox::java()
     }
 }
 
+void TestBlackbox::cli()
+{
+    QDir::setCurrent(testDataDir + "/cli");
+
+    Settings s((QString()));
+    Profile p("qbs_autotests-cli", &s);
+    const QStringList toolchain = p.value("qbs.toolchain").toStringList();
+    if (!p.exists()
+            || p.value("cli.toolchainInstallPath").toString().isEmpty()
+            || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
+        QSKIP("No suitable Common Language Infrastructure test profile");
+
+    QbsRunParameters params(QStringList() << "-f" << "dotnettest.qbs"
+                            << "profile:" + p.name());
+    params.useProfile = false;
+    QCOMPARE(runQbs(params), 0);
+    rmDirR(relativeBuildDir(p.name()));
+
+    QbsRunParameters params2(QStringList() << "-f" << "fshello.qbs"
+                             << "profile:" + p.name());
+    params2.useProfile = false;
+    QCOMPARE(runQbs(params2), 0);
+    rmDirR(relativeBuildDir(p.name()));
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions");

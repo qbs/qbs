@@ -112,6 +112,7 @@ private slots:
     void installable();
     void installTree();
     void java();
+    void cli();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();

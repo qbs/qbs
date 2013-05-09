@@ -158,6 +158,11 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
                 QLatin1String("qbs"),
                 QLatin1String("targetOS")).toStringList();
 
+    const QStringList toolchain = PropertyFinder().propertyValue(
+                d->resolvedProduct->moduleProperties->value(),
+                QLatin1String("qbs"),
+                QLatin1String("toolchain")).toStringList();
+
     QString targetExecutable = targetBin;
     QStringList targetArguments = arguments;
     const QString completeSuffix = QFileInfo(targetBin).completeSuffix();
@@ -174,6 +179,11 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
             targetArguments.prepend(targetExecutable);
             targetExecutable = QLatin1String("wine");
         }
+    }
+
+    if (toolchain.contains(QLatin1String("mono"))) {
+        targetArguments.prepend(targetExecutable);
+        targetExecutable = QLatin1String("mono");
     }
 
     if (completeSuffix == QLatin1String("js")) {
