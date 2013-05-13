@@ -92,7 +92,6 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName)
     cmd.highlight = "compiler";
     cmd.workingDirectory = FileInfo.path(objOutput.fileName)
-    cmd.responseFileThreshold = ModUtils.moduleProperty(product, "responseFileThreshold")
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.stdoutFilterFunction = "function(output) {";
@@ -184,7 +183,6 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.fileName)
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
-    cmd.responseFileThreshold = ModUtils.moduleProperty(product, "responseFileThreshold")
     cmd.responseFileUsagePrefix = '@';
     cmd.stdoutFilterFunction =
             function(output)

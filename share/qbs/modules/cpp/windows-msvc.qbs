@@ -17,7 +17,6 @@ CppModule {
     property string toolchainInstallPath: "UNKNOWN"
     property string windowsSDKPath: "UNKNOWN"
     property string architecture: qbs.architecture || "x86"
-    property int responseFileThreshold: 32000
     staticLibraryPrefix: ""
     dynamicLibraryPrefix: ""
     executablePrefix: ""
@@ -204,7 +203,6 @@ CppModule {
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName)
             cmd.highlight = 'linker';
             cmd.workingDirectory = FileInfo.path(output.fileName)
-            cmd.responseFileThreshold = ModUtils.moduleProperty(product, "responseFileThreshold")
             cmd.responseFileUsagePrefix = '@';
             return cmd;
          }
