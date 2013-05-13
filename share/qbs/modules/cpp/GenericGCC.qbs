@@ -120,6 +120,7 @@ CppModule {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker';
+            cmd.responseFileUsagePrefix = '@';
             commands.push(cmd);
 
             if (product.version
@@ -179,6 +180,7 @@ CppModule {
             var cmd = new Command(ModUtils.moduleProperty(product, "archiverPath"), args);
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
+            cmd.responseFileUsagePrefix = '@';
             return cmd;
         }
     }
@@ -296,6 +298,7 @@ CppModule {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
+            cmd.responseFileUsagePrefix = '@';
             return cmd;
         }
     }
@@ -384,6 +387,7 @@ CppModule {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
+            cmd.responseFileUsagePrefix = '@';
             return cmd;
         }
     }
@@ -411,6 +415,7 @@ CppModule {
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
+            cmd.responseFileUsagePrefix = '@';
             return cmd;
         }
     }
