@@ -29,6 +29,7 @@
 
 #include "command.h"
 #include <tools/qbsassert.h>
+#include <tools/hostosinfo.h>
 
 #include <QScriptEngine>
 #include <QScriptValueIterator>
@@ -131,8 +132,8 @@ void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
 }
 
 ProcessCommand::ProcessCommand()
-    : m_maxExitCode(0),
-      m_responseFileThreshold(32000)
+    : m_maxExitCode(0)
+    , m_responseFileThreshold(HostOsInfo::isWindowsHost() ? 32000 : -1)
 {
 }
 
