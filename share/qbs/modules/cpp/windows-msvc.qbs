@@ -190,8 +190,6 @@ CppModule {
         }
 
         prepare: {
-            var toolchainInstallPath = ModUtils.moduleProperty(product, "toolchainInstallPath")
-
             var args = ['/nologo']
             var nativeOutputFileName = FileInfo.toWindowsSeparators(output.fileName)
             args.push('/OUT:' + nativeOutputFileName)
@@ -199,12 +197,7 @@ CppModule {
                 var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].fileName)
                 args.push(fileName)
             }
-            var is64bit = (ModUtils.moduleProperty(product, "architecture") == "x86_64")
-            var linkerPath = toolchainInstallPath + '/VC/bin/'
-            if (is64bit)
-                linkerPath += 'amd64/'
-            linkerPath += 'lib.exe'
-            var cmd = new Command(linkerPath, args)
+            var cmd = new Command("lib.exe", args);
             cmd.description = 'creating ' + FileInfo.fileName(output.fileName)
             cmd.highlight = 'linker';
             cmd.workingDirectory = FileInfo.path(output.fileName)
