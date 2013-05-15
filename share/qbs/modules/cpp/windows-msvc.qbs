@@ -27,36 +27,39 @@ CppModule {
     property string dynamicLibraryImportSuffix: ".lib"
 
     setupBuildEnvironment: {
+        var vcDir = toolchainInstallPath.replace(/[\\/]bin$/i, "");
+        var vcRootDir = vcDir.replace(/[\\/]VC$/i, "");
+
         var v = new ModUtils.EnvironmentVariable("INCLUDE", ";", true)
-        v.prepend(toolchainInstallPath + "/VC/ATLMFC/INCLUDE")
-        v.prepend(toolchainInstallPath + "/VC/INCLUDE")
+        v.prepend(vcDir + "/ATLMFC/INCLUDE")
+        v.prepend(vcDir + "/INCLUDE")
         v.prepend(windowsSDKPath + "/include")
         v.set()
 
         if (architecture == 'x86') {
             v = new ModUtils.EnvironmentVariable("PATH", ";", true)
             v.prepend(windowsSDKPath + "/bin")
-            v.prepend(toolchainInstallPath + "/Common7/IDE")
-            v.prepend(toolchainInstallPath + "/VC/bin")
-            v.prepend(toolchainInstallPath + "/Common7/Tools")
+            v.prepend(vcRootDir + "/Common7/IDE")
+            v.prepend(vcDir + "/bin")
+            v.prepend(vcRootDir + "/Common7/Tools")
             v.set()
 
             v = new ModUtils.EnvironmentVariable("LIB", ";", true)
-            v.prepend(toolchainInstallPath + "/VC/ATLMFC/LIB")
-            v.prepend(toolchainInstallPath + "/VC/LIB")
+            v.prepend(vcDir + "/ATLMFC/LIB")
+            v.prepend(vcDir + "/LIB")
             v.prepend(windowsSDKPath + "/lib")
             v.set()
         } else if (architecture == 'x86_64') {
             v = new ModUtils.EnvironmentVariable("PATH", ";", true)
             v.prepend(windowsSDKPath + "/bin/x64")
-            v.prepend(toolchainInstallPath + "/Common7/IDE")
-            v.prepend(toolchainInstallPath + "/VC/bin/amd64")
-            v.prepend(toolchainInstallPath + "/Common7/Tools")
+            v.prepend(vcRootDir + "/Common7/IDE")
+            v.prepend(vcDir + "/bin/amd64")
+            v.prepend(vcRootDir + "/Common7/Tools")
             v.set()
 
             v = new ModUtils.EnvironmentVariable("LIB", ";", true)
-            v.prepend(toolchainInstallPath + "/VC/ATLMFC/LIB/amd64")
-            v.prepend(toolchainInstallPath + "/VC/LIB/amd64")
+            v.prepend(vcDir + "/ATLMFC/LIB/amd64")
+            v.prepend(vcDir + "/LIB/amd64")
             v.prepend(windowsSDKPath + "/lib/x64")
             v.set()
         }

@@ -130,10 +130,9 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 
         MSVC msvc;
         msvc.installPath = vsRegistry.value(vsName).toString();
-        if (msvc.installPath.endsWith(QLatin1Char('\\')))
-            msvc.installPath.chop(1);
-        // remove the "\\VC" from the end
-        msvc.installPath.chop(3);
+        if (!msvc.installPath.endsWith(QLatin1Char('\\')))
+            msvc.installPath += QLatin1Char('\\');
+        msvc.installPath += QLatin1String("bin");
 
         int nVersion = vsName.left(dotPos).toInt();
         switch (nVersion) {
@@ -157,7 +156,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         }
 
         // Check existence of various install scripts
-        const QString vcvars32bat = msvc.installPath + QLatin1String("/VC/bin/vcvars32.bat");
+        const QString vcvars32bat = msvc.installPath + QLatin1String("/vcvars32.bat");
         if (!QFileInfo(vcvars32bat).isFile())
             continue;
 
@@ -179,7 +178,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     foreach (const WinSDK &sdk, winSDKs) {
         if (sdk.hasCompiler) {
             addMSVCPlatform(settings, profiles, QLatin1String("WinSDK") + sdk.version,
-                            sdk.installPath, defaultWinSDK.installPath);
+                            sdk.installPath + QLatin1String("\\bin"), defaultWinSDK.installPath);
         }
     }
 
