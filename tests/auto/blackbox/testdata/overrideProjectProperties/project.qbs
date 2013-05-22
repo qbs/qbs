@@ -2,7 +2,8 @@ import qbs 1.0
 
 Project {
     property string nameSuffix: ""
-    Application {
+    Product {
+        type: "application"
         property string mainFile: ""
         name: "MyApp" + nameSuffix
         Depends { name: "cpp" }
