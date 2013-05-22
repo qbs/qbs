@@ -731,8 +731,9 @@
 
     Here, we want the "installDir" properties from the project file to be interpreted relative
     to the directory "/tmp/myProjectRoot", and we want that directory to be removed first.
-    If the "--install-root" option is not given, a default is used. The default is the value of the
-    property "qbs.sysroot" or, if it is not set, "<build root>/install-root".
+    If the "--install-root" option is not given, a default is used, namely "<build root>/install-root".
+    Qbs understands the special install root value "@sysroot", which stands for the value of
+    the property qbs.sysroot.
 */
 
 /*!

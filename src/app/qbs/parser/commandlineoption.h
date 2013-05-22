@@ -225,7 +225,10 @@ private:
 class InstallRootOption : public CommandLineOption
 {
 public:
+    InstallRootOption();
+
     QString installRoot() const { return m_installRoot; }
+    bool useSysroot() const { return m_useSysroot; }
 
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }
@@ -235,6 +238,7 @@ private:
     void doParse(const QString &representation, QStringList &input);
 
     QString m_installRoot;
+    bool m_useSysroot;
 };
 
 class RemoveFirstOption : public OnOffOption

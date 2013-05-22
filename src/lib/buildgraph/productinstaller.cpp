@@ -65,13 +65,14 @@ ProductInstaller::ProductInstaller(const QList<ResolvedProductPtr> &products,
         throw Error(Tr::tr("Cannot deduce install root, because there are no products."));
 
     const ResolvedProductConstPtr &product = m_products.first();
-    m_options.setInstallRoot(product->properties
-                             ->qbsPropertyValue(QLatin1String("sysroot")).toString());
-    if (m_options.installRoot().isEmpty()) {
+    if (m_options.installIntoSysroot()) {
+        if (m_options.removeExistingInstallation())
+            throw Error(Tr::tr("Refusing to remove sysroot."));
+        m_options.setInstallRoot(product->properties
+                                 ->qbsPropertyValue(QLatin1String("sysroot")).toString());
+    } else {
         m_options.setInstallRoot(product->project->buildDirectory
-                + QLatin1Char('/') + InstallOptions::defaultInstallRoot());
-    } else if (m_options.removeExistingInstallation()) {
-        throw Error(Tr::tr("Refusing to remove sysroot."));
+            + QLatin1Char('/') + InstallOptions::defaultInstallRoot());
     }
 }
 

@@ -152,6 +152,7 @@ InstallOptions CommandLineParser::installOptions() const
     InstallOptions options;
     options.setRemoveExistingInstallation(d->optionPool.removeFirstoption()->enabled());
     options.setInstallRoot(d->optionPool.installRootOption()->installRoot());
+    options.setInstallIntoSysroot(d->optionPool.installRootOption()->useSysroot());
     if (!options.installRoot().isEmpty()) {
         QFileInfo fi(options.installRoot());
         if (!fi.isAbsolute())

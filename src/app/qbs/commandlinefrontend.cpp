@@ -395,7 +395,7 @@ int CommandLineFrontend::runTarget()
         Q_ASSERT(products.count() == 1);
         const ProductData productToRun = products.first();
         const QString executableFilePath = project.targetExecutable(productToRun,
-                m_parser.installOptions().installRoot());
+                m_parser.installOptions());
         if (executableFilePath.isEmpty()) {
             throw Error(Tr::tr("Cannot run: Product '%1' is not an application.")
                         .arg(productToRun.name()));

@@ -74,7 +74,7 @@ public:
 
     ProjectData projectData() const;
     QString targetExecutable(const ProductData &product,
-                             const QString &installRoot = QString()) const;
+                             const InstallOptions &installoptions) const;
     RunEnvironment getRunEnvironment(const ProductData &product,
             const QProcessEnvironment &environment, Settings *settings) const;
 

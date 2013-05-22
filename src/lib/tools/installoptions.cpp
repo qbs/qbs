@@ -36,9 +36,12 @@ namespace Internal {
 class InstallOptionsPrivate : public QSharedData
 {
 public:
-    InstallOptionsPrivate() : removeExisting(false), dryRun(false), keepGoing(false) {}
+    InstallOptionsPrivate()
+        : useSysroot(false), removeExisting(false), dryRun(false), keepGoing(false)
+    {}
 
     QString installRoot;
+    bool useSysroot;
     bool removeExisting;
     bool dryRun;
     bool keepGoing;
@@ -81,9 +84,9 @@ QString InstallOptions::defaultInstallRoot()
 
 /*!
  * Returns the base directory for the installation.
- * All "qbs.installDir" paths are relative to this root. If the string is empty, the value of
- * qbs.sysroot will be used. If that is also empty, the base directory is
- * "<build dir>/install-root".
+ * All "qbs.installDir" paths are relative to this root. If the string is empty, either the value of
+ * qbs.sysroot or "<build dir>/install-root" will be used, depending on what \c installIntoSysroot()
+ * returns.
  * The default is empty.
  */
 QString InstallOptions::installRoot() const
@@ -99,6 +102,20 @@ QString InstallOptions::installRoot() const
 void InstallOptions::setInstallRoot(const QString &installRoot)
 {
     d->installRoot = installRoot;
+}
+
+/*!
+ * Returns whether to use the sysroot as the default install root.
+ * The default is false.
+ */
+bool InstallOptions::installIntoSysroot() const
+{
+    return d->useSysroot;
+}
+
+void InstallOptions::setInstallIntoSysroot(bool useSysroot)
+{
+    d->useSysroot = useSysroot;
 }
 
 /*!

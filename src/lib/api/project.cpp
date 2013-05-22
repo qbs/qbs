@@ -363,7 +363,8 @@ static bool isExecutable(const PropertyMapPtr &properties, const FileTags &tags)
  * The \a installRoot parameter is used to look up the executable in case it is installable;
  * otherwise the parameter is ignored. To specify the default install root, leave it empty.
  */
-QString Project::targetExecutable(const ProductData &product, const QString &_installRoot) const
+QString Project::targetExecutable(const ProductData &product,
+                                  const InstallOptions &installOptions) const
 {
     if (!product.isEnabled())
         return QString();
@@ -376,18 +377,17 @@ QString Project::targetExecutable(const ProductData &product, const QString &_in
             if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
                 return artifact->filePath();
             const QString fileName = FileInfo::fileName(artifact->filePath());
-            QString installRoot = _installRoot;
-
+            QString installRoot = installOptions.installRoot();
             if (installRoot.isEmpty()) {
-                // Yes, the executable is unlikely to run in this case. But we should still
-                // follow the protocol.
-                installRoot = artifact->properties
-                        ->qbsPropertyValue(QLatin1String("sysroot")).toString();
-            }
-
-            if (installRoot.isEmpty()) {
-                installRoot = d->internalProject->buildDirectory
-                        + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
+                if (installOptions.installIntoSysroot()) {
+                    // Yes, the executable is unlikely to run in this case. But we should still
+                    // follow the protocol.
+                    installRoot = artifact->properties
+                            ->qbsPropertyValue(QLatin1String("sysroot")).toString();
+                } else  {
+                    installRoot = d->internalProject->buildDirectory
+                            + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
+                }
             }
             QString installDir = artifact->properties
                     ->qbsPropertyValue(QLatin1String("installDir")).toString();

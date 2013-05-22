@@ -336,15 +336,22 @@ QString ForceOption::longRepresentation() const
 }
 
 
+InstallRootOption::InstallRootOption() : m_useSysroot(false)
+{
+}
+
+static QString magicSysrootString() { return QLatin1String("@sysroot"); }
+
 QString InstallRootOption::description(CommandType command) const
 {
     Q_ASSERT(command == InstallCommandType || command == RunCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1 <directory>\n"
-                  "\tInstall into the given directory. The default value is qbs.sysroot, "
-                  "if it is defined; otherwise '<build dir>/%2' is used.\n"
-                  "\tIf the directory does not exist, it will be created.\n")
-            .arg(longRepresentation(), InstallOptions::defaultInstallRoot());
+                  "\tInstall into the given directory. The default value is '<build dir>/%2'.\n"
+                  "\tIf the directory does not exist, it will be created. Use the special value "
+                  "'%3' to install into the sysroot (i.e. the value of the property "
+                  "qbs.sysroot).\n")
+            .arg(longRepresentation(), InstallOptions::defaultInstallRoot(), magicSysrootString());
 }
 
 QString InstallRootOption::longRepresentation() const
@@ -358,7 +365,11 @@ void InstallRootOption::doParse(const QString &representation, QStringList &inpu
         throw Error(Tr::tr("Invalid use of option '%1: Argument expected.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
-    m_installRoot = input.takeFirst();
+    const QString installRoot = input.takeFirst();
+    if (installRoot == magicSysrootString())
+        m_useSysroot = true;
+    else
+        m_installRoot = installRoot;
 }
 
 QString RemoveFirstOption::description(CommandType command) const

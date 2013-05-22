@@ -49,6 +49,9 @@ public:
     QString installRoot() const;
     void setInstallRoot(const QString &installRoot);
 
+    bool installIntoSysroot() const;
+    void setInstallIntoSysroot(bool useSysroot);
+
     bool removeExistingInstallation() const;
     void setRemoveExistingInstallation(bool removeExisting);
 
