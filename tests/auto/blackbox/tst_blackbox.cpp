@@ -78,7 +78,8 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     QProcess process;
     process.setProcessEnvironment(params.environment);
     process.start(cmdLine);
-    if (!process.waitForStarted() || !process.waitForFinished()) {
+    const int waitTime = 5 * 60000;
+    if (!process.waitForStarted() || !process.waitForFinished(waitTime)) {
         m_qbsStderr = process.readAllStandardError();
         if (!params.expectFailure)
             qDebug("%s", qPrintable(process.errorString()));
