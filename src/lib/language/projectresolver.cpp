@@ -808,6 +808,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             else if (pd.type == PropertyDeclaration::PathList)
                 v = convertPathListProperty(v.toStringList(),
                                             m_productContext->product->sourceDirectory);
+            else if (pd.type == PropertyDeclaration::StringList)
+                v = v.toStringList();
             result[it.key()] = v;
             break;
         }

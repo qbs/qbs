@@ -72,16 +72,32 @@ function removePrefixAndSuffix(str, prefix, suffix)
 //     that contains all fileTags that have been used when applying the rules.
 function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, fileName, output)
 {
+    var EffectiveTypeEnum = { UNKNOWN: 0, LIB: 1, APP: 2 };
+    var effectiveType = EffectiveTypeEnum.UNKNOWN;
+    var libTypes = {staticlibrary : 1, dynamiclibrary : 1, frameworkbundle : 1};
+    var appTypes = {application : 1, applicationbundle : 1};
+    for (var i = product.type.length; --i >= 0;) {
+        if (libTypes.hasOwnProperty(product.type[i]) !== -1) {
+            effectiveType = EffectiveTypeEnum.LIB;
+            break;
+        } else if (appTypes.hasOwnProperty(product.type[i]) !== -1) {
+            effectiveType = EffectiveTypeEnum.APP;
+            break;
+        }
+    }
+
     var args = []
-    if (product.type.indexOf('staticlibrary') >= 0 || product.type.indexOf('dynamiclibrary') >= 0) {
+    if (effectiveType === EffectiveTypeEnum.LIB) {
         if (product.moduleProperty("qbs", "toolchain") !== "mingw")
             args.push('-fPIC');
-    } else if (product.type.indexOf('application') >= 0) {
+    } else if (effectiveType === EffectiveTypeEnum.APP) {
         var positionIndependentCode = product.moduleProperty('cpp', 'positionIndependentCode')
         if (positionIndependentCode && product.moduleProperty("qbs", "toolchain") !== "mingw")
             args.push('-fPIE');
     } else {
-        throw ("The product's type must be in {staticlibrary, dynamiclibrary, application}. But it is " + product.type + '.');
+        throw ("The product's type must be in " + JSON.stringify(
+                   Object.getOwnPropertyNames(libTypes).concat(Object.getOwnPropertyNames(appTypes)))
+                + ". But it is " + JSON.stringify(product.type) + '.');
     }
     var sysroot = ModUtils.moduleProperty(product, "sysroot")
     if (sysroot) {

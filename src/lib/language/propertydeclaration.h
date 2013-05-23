@@ -46,6 +46,7 @@ public:
         Path,
         PathList,
         String,
+        StringList,
         Variant,
         Verbatim
     };

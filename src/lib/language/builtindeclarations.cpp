@@ -74,7 +74,7 @@ BuiltinDeclarations::BuiltinDeclarations()
 
     QList<PropertyDeclaration> product;
     decls += conditionProperty;
-    product += PropertyDeclaration("type", PropertyDeclaration::String);
+    product += PropertyDeclaration("type", PropertyDeclaration::StringList);
     product += PropertyDeclaration("name", PropertyDeclaration::String);
     PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
     decl.initialValueSource = "name";
@@ -190,6 +190,9 @@ QByteArray BuiltinDeclarations::qmlTypeInfo() const
                 break;
             case qbs::Internal::PropertyDeclaration::String:
                 result.append("type=\"string\"");
+                break;
+            case qbs::Internal::PropertyDeclaration::StringList:
+                result.append("type=\"string\"; isList=true");
                 break;
             case qbs::Internal::PropertyDeclaration::Variant:
                 result.append("type=\"QVariant\"");
