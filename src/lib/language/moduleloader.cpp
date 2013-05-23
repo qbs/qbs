@@ -144,7 +144,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
         const QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
         Item *subprj = m_reader->readFile(absReferencePath);
         if (subprj->typeName() != "Product")
-            throw Error("TODO: implement project refs");
+            throw Error(Tr::tr("%1 is not a product.").arg(subprj->typeName()), subprj->location());
         subprj->setScope(projectContext.scope);
         subprj->setParent(projectContext.item);
         QList<Item *> projectChildren = projectContext.item->children();
