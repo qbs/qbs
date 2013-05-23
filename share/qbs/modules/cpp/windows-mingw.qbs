@@ -22,6 +22,12 @@ GenericGCC {
         v.set();
     }
 
+    setupRunEnvironment: {
+        var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
+        v.prepend(toolchainInstallPath);
+        v.set();
+    }
+
     FileTagger {
         pattern: "*.rc"
         fileTags: ["rc"]
