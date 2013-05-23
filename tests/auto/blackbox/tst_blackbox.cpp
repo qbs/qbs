@@ -773,6 +773,19 @@ void TestBlackbox::overrideProjectProperties()
                                      << QLatin1String("project.nameSuffix:ForYou")
                                      << QLatin1String("MyAppForYou.mainFile:main.cpp"))), 0);
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/MyAppForYou")));
+
+    QVERIFY(QFile::remove(buildGraphPath));
+    QbsRunParameters params;
+    params.arguments << QLatin1String("-f") << QLatin1String("project_using_helper_lib.qbs");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+
+    QEXPECT_FAIL("", "QBS-281", Abort);
+    params.arguments = QStringList() << QLatin1String("-f")
+            << QLatin1String("project_using_helper_lib.qbs")
+            << QLatin1String("project.linkSuccessfully:true");
+    params.expectFailure = true; // Change to false when failure is no longer expected.
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::productProperties()
