@@ -121,7 +121,7 @@ void CleanOptions::setDryRun(bool dryRun)
  */
 bool CleanOptions::keepGoing() const
 {
-    return d->dryRun;
+    return d->keepGoing;
 }
 
 /*!
