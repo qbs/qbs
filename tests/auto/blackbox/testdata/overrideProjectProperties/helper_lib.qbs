@@ -1,6 +1,7 @@
 import qbs
 
-SharedLibrary {
+DynamicLibrary {
     name: "helperLib"
     files: "helperlib.cpp"
+    Depends { name: "cpp" }
 }
