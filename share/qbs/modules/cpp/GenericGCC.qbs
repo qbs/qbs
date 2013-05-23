@@ -34,10 +34,11 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ['dynamiclibrary', 'staticlibrary']
+        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + Gcc.dynamicLibraryFileName()
+            fileName: product.destinationDirectory + "/"
+                      + (product.type.indexOf("frameworkbundle") === -1 ? Gcc.dynamicLibraryFileName() : Gcc.frameworkFilePath())
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
@@ -145,7 +146,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ['dynamiclibrary', 'staticlibrary']
+        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "staticLibraryPrefix")
@@ -189,7 +190,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ['dynamiclibrary', 'staticlibrary']
+        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             fileName: product.destinationDirectory + "/"
@@ -282,10 +283,10 @@ CppModule {
             }
 
             var frameworksI = frameworks;
-            for (i in inputs.framework) {
-                fileName = inputs.framework[i].fileName;
+            for (i in inputs.frameworkbundle) {
+                fileName = inputs.frameworkbundle[i].fileName;
                 frameworkPaths.push(FileInfo.path(fileName));
-                fileName = Gcc.removePrefixAndSuffix(FileInfo.fileName(fileName), dllPrefix, dllSuffix);
+                fileName = Gcc.removePrefixAndSuffix(FileInfo.fileName(fileName), "", ".framework");
                 frameworksI.push(fileName);
             }
 

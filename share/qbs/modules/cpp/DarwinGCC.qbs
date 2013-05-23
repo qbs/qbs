@@ -1,6 +1,7 @@
 import qbs 1.0
 import '../utils.js' as ModUtils
 import 'darwin-tools.js' as Tools
+import "gcc.js" as Gcc
 
 UnixGCC {
     condition: false
@@ -49,9 +50,7 @@ UnixGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.targetName + ".app/" +
-                      (product.moduleProperty("qbs", "targetOS") === "mac" ? "Contents/" : "") +
-                      "Info.plist"
+            fileName: Gcc.bundleContentDirPath() + "/Info.plist"
             fileTags: ["infoplist"]
         }
 

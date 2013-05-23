@@ -162,6 +162,12 @@ function additionalCompilerAndLinkerFlags(product) {
     return args
 }
 
+function majorVersion(version, defaultValue)
+{
+    var n = parseInt(product.version, 10);
+    return isNaN(n) ? defaultValue : n;
+}
+
 function dynamicLibraryFileName(version)
 {
     if (!version)
@@ -177,12 +183,30 @@ function dynamicLibraryFileName(version)
     return fileName;
 }
 
+function frameworkContentDirPath(version)
+{
+    return product.targetName + ".framework/Versions/" + (version || majorVersion(product.version, "1"));
+}
+
+function bundleContentDirPath()
+{
+    if (product.type.indexOf("applicationbundle") !== -1)
+        return product.targetName + ".app/Contents";
+    else
+        return frameworkContentDirPath() + "/Resources";
+}
+
+function frameworkFilePath()
+{
+    return frameworkContentDirPath() + "/" + product.targetName;
+}
+
 function soname()
 {
     var outputFileName = FileInfo.fileName(output.fileName);
     if (product.version) {
-        var major = parseInt(product.version, 10);
-        if (!isNaN(major)) {
+        var major = majorVersion(product.version);
+        if (major) {
             return outputFileName.substr(0, outputFileName.length - product.version.length)
                     + major;
         }
