@@ -131,6 +131,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     loadBaseModule(&dummyProductContext, item);
+    overrideItemProperties(item, QLatin1String("project"), m_userProperties);
 
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
@@ -801,6 +802,18 @@ QString ModuleLoader::fullModuleName(const QStringList &moduleName)
 #else
     return moduleName.join(QLatin1String("/"));
 #endif
+}
+
+void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfigKey,
+        const QVariantMap &buildConfig)
+{
+    const QVariant buildConfigValue = buildConfig.value(buildConfigKey);
+    if (buildConfigValue.isNull())
+        return;
+    const QVariantMap overridden = buildConfigValue.toMap();
+    for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
+            ++it)
+        item->setProperty(it.key(), VariantValue::create(it.value()));
 }
 
 } // namespace Internal

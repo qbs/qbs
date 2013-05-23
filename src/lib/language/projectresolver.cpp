@@ -173,7 +173,6 @@ void ProjectResolver::ignoreItem(Item *item)
 void ProjectResolver::resolveProject(Item *item)
 {
     checkCancelation();
-    overrideItemProperties(item, QLatin1String("project"));
 
     ResolvedProjectPtr project = ResolvedProject::create();
     m_projectContext->project = project;
@@ -236,7 +235,7 @@ void ProjectResolver::resolveProduct(Item *item)
         item->setProperty("name", VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
-    overrideItemProperties(item, product->name);
+    ModuleLoader::overrideItemProperties(item, product->name, m_buildConfiguration);
     m_projectContext->productsByName.insert(product->name, product);
     product->enabled = boolValue(item, QLatin1String("condition"), true);
     product->additionalFileTags = fileTagsValue(item, QLatin1String("additionalFileTags"));
@@ -724,17 +723,6 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
             m_logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
                        << " to " << FileInfo::fileName(artifact->absoluteFilePath);
     }
-}
-
-void ProjectResolver::overrideItemProperties(Item *item, const QString &buildConfigKey)
-{
-    const QVariant buildConfigValue = m_buildConfiguration.value(buildConfigKey);
-    if (buildConfigValue.isNull())
-        return;
-    const QVariantMap overridden = buildConfigValue.toMap();
-    for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
-            ++it)
-        item->setProperty(it.key(), VariantValue::create(it.value()));
 }
 
 QVariantMap ProjectResolver::evaluateModuleValues(Item *item) const

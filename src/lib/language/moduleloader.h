@@ -101,6 +101,8 @@ public:
                             bool wrapWithProjectItem = false);
 
     static QString fullModuleName(const QStringList &moduleName);
+    static void overrideItemProperties(Item *item, const QString &buildConfigKey,
+            const QVariantMap &buildConfig);
 
 private:
     class ContextBase

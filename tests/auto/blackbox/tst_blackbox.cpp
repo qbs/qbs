@@ -781,11 +781,10 @@ void TestBlackbox::overrideProjectProperties()
     QVERIFY(runQbs(params) != 0);
 
     rmDirR(buildDir);
-    QEXPECT_FAIL("", "QBS-281", Abort);
     params.arguments = QStringList() << QLatin1String("-f")
             << QLatin1String("project_using_helper_lib.qbs")
             << QLatin1String("project.linkSuccessfully:true");
-    params.expectFailure = true; // Change to false when failure is no longer expected.
+    params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
 }
 
