@@ -83,7 +83,8 @@ private:
 };
 
 bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
-bool copyFileRecursion(const QString &sourcePath, const QString &targetPath, QString *errorMessage);
+bool copyFileRecursion(const QString &sourcePath, const QString &targetPath, bool preserveSymLinks,
+        QString *errorMessage);
 
 // FIXME: Used by tst_blackbox
 bool QBS_EXPORT removeDirectoryWithContents(const QString &path, QString *errorMessage);

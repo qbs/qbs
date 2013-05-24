@@ -141,7 +141,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     const QString targetFilePath = QDir::cleanPath(targetDir + QLatin1Char('/')
                                                    + FileInfo::fileName(artifact->filePath()));
     QString errorMessage;
-    if (!copyFileRecursion(artifact->filePath(), targetFilePath, &errorMessage))
+    if (!copyFileRecursion(artifact->filePath(), targetFilePath, true, &errorMessage))
         handleError(Tr::tr("Installation error: %1").arg(errorMessage));
 }
 

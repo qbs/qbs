@@ -34,11 +34,14 @@
 #include <tools/qbsassert.h>
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
 
 #if defined(Q_OS_UNIX)
+#include <errno.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #elif defined(Q_OS_WIN)
 #include <qt_windows.h>
 #endif
@@ -340,6 +343,54 @@ bool removeDirectoryWithContents(const QString &path, QString *errorMessage)
 }
 
 /*!
+ * Returns the stored link target of the symbolic link \a{filePath}.
+ * Unlike QFileInfo::symLinkTarget, this will not make the link target an absolute path.
+ */
+static QByteArray storedLinkTarget(const QString &filePath)
+{
+    QByteArray result;
+
+#ifdef Q_OS_UNIX
+    const QByteArray nativeFilePath = QFile::encodeName(filePath);
+    ssize_t len;
+    while (true) {
+        struct stat sb;
+        if (lstat(nativeFilePath.constData(), &sb)) {
+            qWarning("storedLinkTarget: lstat for %s failed with error code %d",
+                     nativeFilePath.constData(), errno);
+            return QByteArray();
+        }
+
+        result.resize(sb.st_size);
+        len = readlink(nativeFilePath.constData(), result.data(), sb.st_size + 1);
+        if (len < 0) {
+            qWarning("storedLinkTarget: readlink for %s failed with error code %d",
+                     nativeFilePath.constData(), errno);
+            return QByteArray();
+        }
+
+        if (len < sb.st_size) {
+            result.resize(len);
+            break;
+        }
+        if (len == sb.st_size)
+            break;
+    }
+#endif // Q_OS_UNIX
+
+    return result;
+}
+
+static bool createSymLink(const QByteArray &path1, const QString &path2)
+{
+#ifdef Q_OS_UNIX
+    return symlink(path1.constData(), QFile::encodeName(path2).constData()) == 0;
+#else
+    return false;
+#endif // Q_OS_UNIX
+}
+
+/*!
   Copies the directory specified by \a srcFilePath recursively to \a tgtFilePath.
   \a tgtFilePath will contain the target directory, which will be created. Example usage:
 
@@ -358,13 +409,22 @@ bool removeDirectoryWithContents(const QString &path, QString *errorMessage)
 */
 
 bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
-    QString *errorMessage)
+        bool preserveSymLinks, QString *errorMessage)
 {
-    FileInfo srcFileInfo(srcFilePath);
-    if (srcFileInfo.isDir()) {
+    QFileInfo srcFileInfo(srcFilePath);
+    QFileInfo tgtFileInfo(tgtFilePath);
+    if (HostOsInfo::isAnyUnixHost() && preserveSymLinks && srcFileInfo.isSymLink()) {
+        // For now, disable symlink preserving copying on Windows.
+        // MS did a good job to prevent people from using symlinks - even if they are supported.
+        if (!createSymLink(storedLinkTarget(srcFilePath), tgtFilePath)) {
+            *errorMessage = Tr::tr("The symlink '%1' could not be created.")
+                    .arg(tgtFilePath);
+            return false;
+        }
+    } else if (srcFileInfo.isDir()) {
         QDir targetDir(tgtFilePath);
         targetDir.cdUp();
-        if (!targetDir.mkpath(FileInfo::fileName(tgtFilePath))) {
+        if (!targetDir.mkpath(tgtFileInfo.fileName())) {
             *errorMessage = Tr::tr("The directory '%1' could not be created.")
                .arg(QDir::toNativeSeparators(tgtFilePath));
             return false;
@@ -375,11 +435,10 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
         foreach (const QString &fileName, fileNames) {
             const QString newSrcFilePath = srcFilePath + QLatin1Char('/') + fileName;
             const QString newTgtFilePath = tgtFilePath + QLatin1Char('/') + fileName;
-            if (!copyFileRecursion(newSrcFilePath, newTgtFilePath, errorMessage))
+            if (!copyFileRecursion(newSrcFilePath, newTgtFilePath, preserveSymLinks, errorMessage))
                 return false;
         }
     } else {
-        FileInfo tgtFileInfo(tgtFilePath);
         if (tgtFileInfo.exists() && srcFileInfo.lastModified() <= tgtFileInfo.lastModified())
             return true;
         QFile file(srcFilePath);

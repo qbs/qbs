@@ -67,7 +67,7 @@ QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
     const QString sourceFile = context->argument(0).toString();
     const QString targetFile = context->argument(1).toString();
     QString errorMessage;
-    if (Q_UNLIKELY(!copyFileRecursion(sourceFile, targetFile, &errorMessage)))
+    if (Q_UNLIKELY(!copyFileRecursion(sourceFile, targetFile, false, &errorMessage)))
         return context->throwError(errorMessage);
     return true;
 }
