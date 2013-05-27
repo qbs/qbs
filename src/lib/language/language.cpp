@@ -778,7 +778,7 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
         if (isDir)
             expandPatterns(result, group, changed_parts, filePath);
         else
-            result += filePath;
+            result += QDir::cleanPath(filePath);
     }
 }
 

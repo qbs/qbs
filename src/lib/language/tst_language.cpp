@@ -948,6 +948,7 @@ void TestLanguage::wildcards_data()
 {
     QTest::addColumn<bool>("useGroup");
     QTest::addColumn<QStringList>("filesToCreate");
+    QTest::addColumn<QString>("projectFileSubDir");
     QTest::addColumn<QString>("prefix");
     QTest::addColumn<QStringList>("patterns");
     QTest::addColumn<QStringList>("excludePatterns");
@@ -961,12 +962,14 @@ void TestLanguage::wildcards_data()
                 << useGroup
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
                 << QString()
+                << QString()
                 << (QStringList() << "*.h")
                 << QStringList()
                 << (QStringList() << "foo.h" << "bar.h");
         QTest::newRow(QByteArray("simple 2") + dataTagSuffix)
                 << useGroup
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
                 << QString()
                 << (QStringList() << "foo.*")
                 << QStringList()
@@ -975,12 +978,14 @@ void TestLanguage::wildcards_data()
                 << useGroup
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
                 << QString()
+                << QString()
                 << (QStringList() << "*.h" << "*.cpp")
                 << QStringList()
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
         QTest::newRow(QByteArray("exclude 1") + dataTagSuffix)
                 << useGroup
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
+                << QString()
                 << QString()
                 << (QStringList() << "*.h" << "*.cpp")
                 << (QStringList() << "bar*")
@@ -989,12 +994,14 @@ void TestLanguage::wildcards_data()
                 << useGroup
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
                 << QString()
+                << QString()
                 << (QStringList() << "*")
                 << (QStringList() << "*.qbs")
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp");
         QTest::newRow(QByteArray("non-recursive") + dataTagSuffix)
                 << useGroup
                 << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
+                << QString()
                 << QString()
                 << (QStringList() << "a/*")
                 << QStringList()
@@ -1003,13 +1010,23 @@ void TestLanguage::wildcards_data()
                 << useGroup
                 << (QStringList() << "foo.h" << "foo.cpp" << "bar.h" << "bar.cpp")
                 << QString()
+                << QString()
                 << (QStringList() << m_wildcardsTestDirPath + "/?oo.*")
                 << QStringList()
                 << (QStringList() << "foo.h" << "foo.cpp");
+        QTest::newRow(QByteArray("relative paths with dotdot") + dataTagSuffix)
+                << useGroup
+                << (QStringList() << "bar.h" << "bar.cpp")
+                << QString("TheLaughingLlama")
+                << QString()
+                << (QStringList() << "../bar.*")
+                << QStringList()
+                << (QStringList() << "bar.h" << "bar.cpp");
     }
     QTest::newRow(QByteArray("recursive 1"))
             << useGroup
             << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
+            << QString()
             << QString()
             << (QStringList() << "a/**")
             << QStringList()
@@ -1024,12 +1041,14 @@ void TestLanguage::wildcards_data()
                 << "a/d/1.cpp" << "a/b/d/1.cpp" << "a/b/c/d/1.h"
                 << "a/d/e/1.cpp" << "a/b/d/e/1.cpp" << "a/b/c/d/e/1.cpp")
             << QString()
+            << QString()
             << (QStringList() << "a/**/d/*.h")
             << QStringList()
             << (QStringList() << "a/d/1.h" << "a/b/d/1.h" << "a/b/c/d/1.h");
     QTest::newRow(QByteArray("recursive 3"))
             << useGroup
             << (QStringList() << "a/foo.h" << "a/foo.cpp" << "a/b/bar.h" << "a/b/bar.cpp")
+            << QString()
             << QString()
             << (QStringList() << "a/**/**/**")
             << QStringList()
@@ -1038,6 +1057,7 @@ void TestLanguage::wildcards_data()
             << useGroup
             << (QStringList() << "subdir/foo.h" << "subdir/foo.cpp" << "subdir/bar.h"
                 << "subdir/bar.cpp")
+            << QString()
             << QString("subdir/")
             << (QStringList() << "*.h")
             << QStringList()
@@ -1048,6 +1068,7 @@ void TestLanguage::wildcards()
 {
     QFETCH(bool, useGroup);
     QFETCH(QStringList, filesToCreate);
+    QFETCH(QString, projectFileSubDir);
     QFETCH(QString, prefix);
     QFETCH(QStringList, patterns);
     QFETCH(QStringList, excludePatterns);
@@ -1070,7 +1091,15 @@ void TestLanguage::wildcards()
     const QString groupName = "Keks";
     QString dataTag = QString::fromLocal8Bit(QTest::currentDataTag());
     dataTag.replace(' ', '_');
-    const QString projectFilePath = m_wildcardsTestDirPath + "/test_" + dataTag + ".qbs";
+    if (!projectFileSubDir.isEmpty()) {
+        if (!projectFileSubDir.startsWith('/'))
+            projectFileSubDir.prepend('/');
+        if (projectFileSubDir.endsWith('/'))
+            projectFileSubDir.chop(1);
+        QVERIFY(QDir().mkpath(m_wildcardsTestDirPath + projectFileSubDir));
+    }
+    const QString projectFilePath = m_wildcardsTestDirPath + projectFileSubDir + "/test_" + dataTag
+            + ".qbs";
     {
         QFile projectFile(projectFilePath);
         QVERIFY(projectFile.open(QIODevice::WriteOnly));
