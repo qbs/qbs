@@ -285,6 +285,7 @@ void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext
         if (Q_UNLIKELY(productContext->filesWithExportItem.contains(exportItem->file())))
             throw Error(Tr::tr("Multiple Export items in one product are prohibited."),
                         exportItem->location());
+        merged->setLocation(exportItem->location());
         productContext->filesWithExportItem += exportItem->file();
         exportItems.insert(exportItem);
         foreach (Item *child, exportItem->children())
