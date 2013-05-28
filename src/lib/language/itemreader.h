@@ -72,7 +72,7 @@ public:
     ~ItemReader();
 
     BuiltinDeclarations *builtins() const { return m_builtins; }
-    const Logger *logger() const { return &m_logger; }
+    Logger logger() const { return m_logger; }
 
     void setPool(ItemPool *pool) { m_pool = pool; }
     void setSearchPaths(const QStringList &searchPaths);

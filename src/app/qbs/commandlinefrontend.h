@@ -60,7 +60,6 @@ private slots:
     void handleNewTaskStarted(const QString &description, int totalEffort);
     void handleTotalEffortChanged(int totalEffort);
     void handleTaskProgress(int value, qbs::AbstractJob *job);
-    void handleWarningReport(const qbs::Error &warning);
     void handleProcessResultReport(const qbs::ProcessResult &result);
 
 private:

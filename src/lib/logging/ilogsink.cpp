@@ -28,6 +28,8 @@
 ****************************************************************************/
 #include "ilogsink.h"
 
+#include <tools/error.h>
+
 #include <QByteArray>
 #include <QMutex>
 
@@ -89,6 +91,15 @@ LoggerLevel ILogSink::logLevel() const
     return d->logLevel;
 }
 
+void ILogSink::printWarning(const Error &warning)
+{
+    if (willPrint(LoggerWarning)) {
+        d->mutex.lock();
+        doPrintWarning(warning);
+        d->mutex.unlock();
+    }
+}
+
 void ILogSink::printMessage(LoggerLevel level, const QString &message, const QString &tag,
                             bool force)
 {
@@ -97,6 +108,11 @@ void ILogSink::printMessage(LoggerLevel level, const QString &message, const QSt
         doPrintMessage(level, message, tag);
         d->mutex.unlock();
     }
+}
+
+void ILogSink::doPrintWarning(const Error &warning)
+{
+    doPrintMessage(LoggerWarning, warning.toString(), QString());
 }
 
 } // namespace qbs

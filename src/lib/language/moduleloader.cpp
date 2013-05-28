@@ -254,9 +254,8 @@ void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext,
 void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productContext,
                                        Item *item)
 {
-    m_logger.qbsWarning() << Tr::tr("ProductModule {} is deprecated. "
-                                    "Please use Export {} instead. Location: %1").arg(
-                                 item->location().toString());
+    m_logger.printWarning(Error(Tr::tr("ProductModule {} is deprecated. "
+                                     "Please use Export {} instead."), item->location()));
     deferExportItem(productContext, item);
 }
 
@@ -356,9 +355,8 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
             foreach (const Item::Module &module, it.value()) {
                 const QString fullName = fullModuleName(module.name);
                 if (loadedModuleNames.contains(fullName)) {
-                    m_logger.qbsWarning()
-                            << Tr::tr("Duplicate dependency '%1' at %2.").arg(
-                                   fullName, item->location().toString());
+                    m_logger.printWarning(Error(Tr::tr("Duplicate dependency '%1'.").arg(fullName),
+                                        item->location()));
                     continue;
                 }
                 loadedModuleNames.insert(fullName);

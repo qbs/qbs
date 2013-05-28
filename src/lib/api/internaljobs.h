@@ -63,7 +63,7 @@ public:
     Error error() const { return m_error; }
     bool hasError() const { return !error().entries().isEmpty(); }
 
-    const Logger &logger() const { return m_logger; }
+    Logger logger() const { return m_logger; }
     bool timed() const { return m_timed; }
 
 protected:
@@ -127,7 +127,6 @@ public:
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
     void reportProcessResult(const qbs::ProcessResult &result);
-    void reportWarning(const qbs::Error &warning);
 
 protected:
     BuildGraphTouchingJob(const Logger &logger, QObject *parent = 0);

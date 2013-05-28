@@ -123,9 +123,8 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             if (isBase)
                 checkImportVersion(import->versionToken);
             else if (import->versionToken.length)
-                m_reader->logger()->qbsWarning()
-                            << Tr::tr("Superfluous version specification at %1.").arg(
-                                toCodeLocation(import->versionToken).toString());
+                m_reader->logger().printWarning(Error(Tr::tr("Superfluous version specification."),
+                                                    toCodeLocation(import->versionToken)));
         }
 
         QString as;

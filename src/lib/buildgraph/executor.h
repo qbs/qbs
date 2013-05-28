@@ -75,7 +75,6 @@ public:
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
     void reportProcessResult(const qbs::ProcessResult &result);
-    void reportWarning(const qbs::Error &warning);
 
     void finished();
 
@@ -118,7 +117,7 @@ private:
 
     RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
-    const Logger m_logger;
+    Logger m_logger;
     ProgressObserver *m_progressObserver;
     QProcessEnvironment m_baseEnvironment;
     QList<ExecutorJob*> m_availableJobs;

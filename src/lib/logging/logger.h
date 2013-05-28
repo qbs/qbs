@@ -104,6 +104,8 @@ public:
     bool debugEnabled() const;
     bool traceEnabled() const;
 
+    void printWarning(const Error &warning) { logSink()->printWarning(warning); }
+
     LogWriter qbsLog(LoggerLevel level, bool force = false) const;
     LogWriter qbsWarning() const { return qbsLog(LoggerWarning); }
     LogWriter qbsInfo() const { return qbsLog(LoggerInfo); }

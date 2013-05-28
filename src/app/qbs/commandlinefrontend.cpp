@@ -229,11 +229,6 @@ void CommandLineFrontend::handleTaskProgress(int value, AbstractJob *job)
     }
 }
 
-void CommandLineFrontend::handleWarningReport(const qbs::Error &warning)
-{
-    qbsWarning() << warning.toString() << "\n";
-}
-
 void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &result)
 {
     bool hasOutput = !result.stdOut().isEmpty() || !result.stdErr().isEmpty();
@@ -434,7 +429,6 @@ void CommandLineFrontend::connectBuildJob(AbstractJob *job)
 
     connect(bjob, SIGNAL(reportCommandDescription(QString,QString)),
             this, SLOT(handleCommandDescriptionReport(QString,QString)));
-    connect(bjob, SIGNAL(reportWarning(qbs::Error)), this, SLOT(handleWarningReport(qbs::Error)));
     connect(bjob, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SLOT(handleProcessResultReport(qbs::ProcessResult)));
 }

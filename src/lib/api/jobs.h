@@ -109,7 +109,6 @@ class QBS_EXPORT BuildJob : public AbstractJob
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
     void reportProcessResult(const qbs::ProcessResult &result);
-    void reportWarning(const qbs::Error &warning);
 
 private:
     BuildJob(const Internal::Logger &logger, QObject *parent);

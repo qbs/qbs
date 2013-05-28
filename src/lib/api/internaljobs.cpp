@@ -124,7 +124,7 @@ void InternalJob::storeBuildGraph(const ResolvedProjectConstPtr &project)
     try {
         project->store(logger());
     } catch (const Error &error) {
-        logger().qbsWarning() << error.toString();
+        logger().printWarning(error);
     }
 }
 
@@ -283,7 +283,6 @@ void InternalBuildJob::build(const ResolvedProjectPtr &project,
             this, SIGNAL(reportCommandDescription(QString,QString)));
     connect(m_executor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(m_executor, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 
     connect(executorThread, SIGNAL(started()), m_executor, SLOT(build()));
     connect(m_executor, SIGNAL(finished()), SLOT(handleFinished()));

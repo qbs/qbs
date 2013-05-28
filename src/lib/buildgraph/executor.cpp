@@ -686,7 +686,7 @@ void Executor::onProcessError(const qbs::Error &err)
         if (m_buildOptions.keepGoing()) {
             Error fullWarning(err);
             fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
-            emit reportWarning(fullWarning);
+            m_logger.printWarning(fullWarning);
         } else {
             m_error = err;
         }

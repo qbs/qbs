@@ -219,12 +219,6 @@ void SetupProjectJob::reportError(const Error &error)
  */
 
 /*!
- * \fn void BuildJob::reportWarning(const qbs::Error &warning)
- * \brief Signals that a warning was triggered by the build job
- * The \a warning parameter provides the necessary details.
- */
-
-/*!
  * \fn void BuildJob::reportCommandDescription(const QString &highlight, const QString &message)
  * \brief Signals that a new command is being worked on.
  * The \a highlight parameter is used to decide on the colors and font styles to be used to
@@ -246,7 +240,6 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
             this, SIGNAL(reportCommandDescription(QString,QString)));
     connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(job, SIGNAL(reportWarning(qbs::Error)), this, SIGNAL(reportWarning(qbs::Error)));
 }
 
 void BuildJob::build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
