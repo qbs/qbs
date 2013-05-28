@@ -128,6 +128,7 @@ void TestLanguage::initTestCase()
                            << QLatin1String(SRCDIR "/../../share/qbs"));
     QVariantMap buildConfig = defaultParameters.buildConfiguration();
     setConfigProperty(buildConfig, QStringList() << "qbs" << "targetOS", "linux");
+    setConfigProperty(buildConfig, QStringList() << "qbs" << "profile", "qbs_autotests");
     defaultParameters.setBuildConfiguration(buildConfig);
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
@@ -266,6 +267,8 @@ void TestLanguage::erroneousFiles_data()
             << "Loop detected when importing";
     QTest::newRow("nonexistentouter")
             << "Can't find variable: outer";
+    QTest::newRow("invalid_file")
+            << "No such file";
 }
 
 void TestLanguage::erroneousFiles()
@@ -281,6 +284,11 @@ void TestLanguage::erroneousFiles()
             qDebug() << "Expected: " << errorMessage;
             QFAIL("Unexpected error message.");
         }
+        return;
+    }
+    if (strcmp(QTest::currentDataTag(), "invalid_file") == 0) {
+        QEXPECT_FAIL("", "QBS-288", Continue);
+        QVERIFY(false);
         return;
     }
     QFAIL("No error thrown on invalid input.");
