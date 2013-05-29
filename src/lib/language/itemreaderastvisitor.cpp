@@ -272,13 +272,13 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     return false;
 }
 
-static void checkDuplicateBinding(Item *item, const QStringList &bindingName,
+void ItemReaderASTVisitor::checkDuplicateBinding(Item *item, const QStringList &bindingName,
                                   const AST::SourceLocation &sourceLocation)
 {
     if (Q_UNLIKELY(item->properties().contains(bindingName.last()))) {
         QString msg = Tr::tr("Duplicate binding for '%1'");
         throw Error(msg.arg(bindingName.join(".")),
-                    toCodeLocation(item->file()->filePath(), sourceLocation));
+                    qbs::Internal::toCodeLocation(m_file->filePath(), sourceLocation));
     }
 }
 
