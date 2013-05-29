@@ -268,7 +268,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("nonexistentouter")
             << "Can't find variable: outer";
     QTest::newRow("invalid_file")
-            << "No such file";
+            << "does not exist";
 }
 
 void TestLanguage::erroneousFiles()
@@ -284,11 +284,6 @@ void TestLanguage::erroneousFiles()
             qDebug() << "Expected: " << errorMessage;
             QFAIL("Unexpected error message.");
         }
-        return;
-    }
-    if (strcmp(QTest::currentDataTag(), "invalid_file") == 0) {
-        QEXPECT_FAIL("", "QBS-288", Continue);
-        QVERIFY(false);
         return;
     }
     QFAIL("No error thrown on invalid input.");

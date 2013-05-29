@@ -414,6 +414,15 @@ void ProjectResolver::resolveGroup(Item *item)
     foreach (const QString &fileName, files)
         createSourceArtifact(m_productContext->product, properties, fileName,
                              fileTags, overrideTags, group->files);
+    Error fileError;
+    foreach (const SourceArtifactConstPtr &a, group->files) {
+        if (!FileInfo(a->absoluteFilePath).exists()) {
+            fileError.append(Tr::tr("File '%1' does not exist.")
+                         .arg(a->absoluteFilePath), item->property("files")->location());
+        }
+    }
+    if (!fileError.entries().isEmpty())
+        throw Error(fileError);
 
     group->name = stringValue(item, "name");
     if (group->name.isEmpty())
