@@ -266,6 +266,14 @@ static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig, Sett
 {
     QVariantMap expandedConfig = buildConfig;
 
+    const QString buildVariant = expandedConfig.value(QLatin1String("qbs.buildVariant")).toString();
+    if (buildVariant.isEmpty())
+        throw Error(Tr::tr("No build variant set."));
+    if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
+        throw Error(Tr::tr("Invalid build variant '%1'. Must be 'debug' or 'release'.")
+                    .arg(buildVariant));
+    }
+
     // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
     // 1) Things specified on command line (already in buildCfg at this point)
     // 2) Everything from the profile key
