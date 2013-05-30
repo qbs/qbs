@@ -580,6 +580,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 
     QSet<TransformerPtr> seenTransformers;
     foreach (const ResolvedProductPtr &product, restoredProject->products) {
+        if (!product->buildData)
+            continue;
         foreach (Artifact *artifact, product->buildData->artifacts) {
             if (!artifact->transformer || seenTransformers.contains(artifact->transformer))
                 continue;
@@ -642,9 +644,11 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product)
     product->project->products.removeOne(product);
 
     // delete all removed artifacts physically from the disk
-    foreach (Artifact *artifact, product->buildData->artifacts) {
-        artifact->disconnectAll(m_logger);
-        removeGeneratedArtifactFromDisk(artifact, m_logger);
+    if (product->buildData) {
+        foreach (Artifact *artifact, product->buildData->artifacts) {
+            artifact->disconnectAll(m_logger);
+            removeGeneratedArtifactFromDisk(artifact, m_logger);
+        }
     }
 }
 
