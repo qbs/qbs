@@ -54,66 +54,6 @@ DarwinGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.targetName + ".app/Info.plist"
-            fileTags: ["infoplist"]
-        }
-
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "generating Info.plist";
-            cmd.highlight = "codegen";
-            cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
-            cmd.platformPath = product.moduleProperty("cpp","platformPath");
-            cmd.sourceCode = function() {
-                var defaultValues = ModUtils.moduleProperty(product, "defaultInfoPlist");
-                var key;
-                for (key in defaultValues) {
-                    if (defaultValues.hasOwnProperty(key) && !(key in infoPlist))
-                        infoPlist[key] = defaultValues[key];
-                }
-
-                var process;
-                if (platformPath) {
-                    process = new Process();
-                    process.start("plutil", ["-convert", "json", "-o", "-",
-                                             platformPath + "/Info.plist"]);
-                    process.waitForFinished();
-                    platformInfo = JSON.parse(process.readAll());
-
-                    var additionalProps = platformInfo["AdditionalInfo"];
-                    for (key in additionalProps) {
-                        if (additionalProps.hasOwnProperty(key) && !(key in infoPlist)) // override infoPlist?
-                            infoPlist[key] = defaultValues[key];
-                    }
-                    key = "UIDeviceFamily";
-                    if (key in platformInfo && !(key in infoPlist))
-                        infoPlist[key] = platformInfo[key];
-                } else {
-                    print("Missing platformPath property");
-                }
-
-                process = new Process();
-                process.start("sw_vers", ["-buildVersion"]);
-                process.waitForFinished();
-                infoPlist["BuildMachineOSBuild"] = process.readAll().trim();
-
-                var infoplist = new TextFile(outputs.infoplist[0].fileName, TextFile.WriteOnly);
-                infoplist.write(JSON.stringify(infoPlist));
-                infoplist.close();
-
-                process = new Process();
-                process.start("plutil", ["-convert", "binary1", outputs.infoplist[0].fileName]);
-                process.waitForFinished();
-            }
-            return cmd;
-        }
-    }
-
-    Rule {
-        multiplex: true
-        inputs: ["qbs"]
-
-        Artifact {
             fileName: product.targetName + ".app/ResourceRules.plist"
             fileTags: ["resourcerules"]
         }
@@ -163,30 +103,6 @@ DarwinGCC {
             cmd.description = "creating ipa";
             cmd.highlight = "codegen";
             cmd.workingDirectory = product.buildDirectory;
-            return cmd;
-        }
-    }
-
-    Rule {
-        multiplex: true
-        inputs: {
-            var res = ["application", "infoplist", "pkginfo", "resourcerules"];
-            // if (product.moduleProperty("cpp", "buildDsym")) // should work like that in the future
-                res.push("dsym");
-            // if (ModUtils.moduleProperty(product, "buildIpa")) // ditto
-                res.push("ipa");
-            return res;
-        }
-
-        Artifact {
-            fileName: product.targetName + ".app"
-            fileTags: ["applicationbundle"]
-        }
-
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "creating app bundle";
-            cmd.highlight = "codegen";
             return cmd;
         }
     }
