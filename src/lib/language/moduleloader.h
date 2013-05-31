@@ -149,7 +149,7 @@ private:
     void handleGroup(ProductContext *productContext, Item *group);
     void handleArtifact(ProductContext *productContext, Item *item);
     void deferExportItem(ProductContext *productContext, Item *item);
-    void handleProductModule(ProductContext *productContext, Item *item);   // ### remove in 0.5
+    void handleProductModule(ProductContext *productContext, Item *item);   // ### remove in 1.2
     void mergeExportItems(ProductContext *productContext);
     void propagateModulesFromProduct(ProductContext *productContext, Item *item);
     void resolveDependencies(DependsContext *productContext, Item *item);

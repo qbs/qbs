@@ -116,7 +116,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     transformer += conditionProperty;
     m_builtins["Transformer"] = transformer;
 
-    QList<PropertyDeclaration> productModule;       // ### remove in 0.5
+    QList<PropertyDeclaration> productModule;       // ### remove in 1.2
     m_builtins["ProductModule"] = productModule;
     QList<PropertyDeclaration> exportItem;
     m_builtins["Export"] = exportItem;

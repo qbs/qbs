@@ -182,7 +182,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
             handleArtifact(&productContext, child);
         else if (child->typeName() == QLatin1String("Export"))
             deferExportItem(&productContext, child);
-        else if (child->typeName() == QLatin1String("ProductModule"))   // ### remove in 0.5
+        else if (child->typeName() == QLatin1String("ProductModule"))   // ### remove in 1.2
             handleProductModule(&productContext, child);
         else if (child->typeName() == QLatin1String("Probe"))
             resolveProbe(item, child);
