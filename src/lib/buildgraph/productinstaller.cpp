@@ -117,8 +117,10 @@ void ProductInstaller::removeInstallRoot()
 
 void ProductInstaller::copyFile(const Artifact *artifact)
 {
-    if (m_observer->canceled())
-        throw Error(Tr::tr("Installation canceled due to user request."));
+    if (m_observer->canceled()) {
+        throw Error(Tr::tr("Installation canceled for configuration '%1'.")
+                    .arg(m_products.first()->project->id()));
+    }
     const QString relativeInstallDir
             = artifact->properties->qbsPropertyValue(QLatin1String("installDir")).toString();
     QString targetDir = m_options.installRoot();

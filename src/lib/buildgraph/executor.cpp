@@ -662,7 +662,7 @@ void Executor::runAutoMoc()
     bool autoMocApplied = false;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
         if (m_progressObserver && m_progressObserver->canceled())
-            throw Error(Tr::tr("Build canceled due to user request."));
+            throw Error(Tr::tr("Build canceled%1.").arg(configString()));
         // HACK call the automoc thingy here only if we have use Qt/core module
         foreach (const ResolvedModuleConstPtr &m, product->modules) {
             if (m->name == "Qt/core") {
@@ -742,7 +742,7 @@ void Executor::finish()
     }
 
     if (m_explicitlyCanceled)
-        m_error.append(Tr::tr("Build was canceled%1.").arg(configString()));
+        m_error.append(Tr::tr("Build canceled%1.").arg(configString()));
     setState(ExecutorIdle);
     if (m_progressObserver)
         m_progressObserver->setFinished();

@@ -285,7 +285,7 @@ void CommandLineFrontend::handleProjectsResolved()
 {
     try {
         if (m_canceled)
-            throw Error(Tr::tr("Execution canceled due to user request."));
+            throw Error(Tr::tr("Execution canceled."));
         switch (m_parser.command()) {
         case ResolveCommandType:
             qApp->quit();
