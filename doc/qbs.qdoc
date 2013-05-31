@@ -977,4 +977,344 @@
 
     \title Module cpp
 
+    The \c cpp module contains the properties and rules for toolchains of the C/C++ family.
+    On OS X this includes support for Objective-C/C++.
+
+    \section1 General Properties
+
+
+    \section2 architecture
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{qbs.architecture}
+    \endtable
+
+    Target architecture. See \c{qbs.architecture}.
+
+    \section2 debugInformation
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{qbs.debugInformation}
+    \endtable
+
+    Generate debug information. See \c{qbs.debugInformation}.
+
+    \section2 defines
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that gets passed to the compiler.
+    To set macro values use the following syntax:
+    \code
+    cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    \endcode
+
+    \section2 platformDefines
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that are used for all projects that are built for the current
+    target platform. User project files usually do not set this property.
+
+    \section2 compilerDefines
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that are used for all projects that are using the current toolchain.
+    User project files usually do not set this property.
+
+    \section2 includePaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of include paths. Relative paths are considered to be relative to the .qbs product file
+    they are used in.
+
+    \section2 systemIncludePaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of include paths that are passed as system include paths to the compiler.
+    For header files in those paths warnings will be ignored.
+    Relative paths are considered to be relative to the .qbs product file they are used in.
+
+    \section2 libraryPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of library search paths. Relative paths are considered to be relative to the .qbs product
+    file they are used in.
+
+    \section2 dynamicLibraries
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of dynamic libraries to be linked. If the library is part of your project, consider
+    using a Depends item instead.
+
+    \section2 staticLibraries
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of static libraries to be linked. If the library is part of your project, consider
+    using a Depends item instead.
+
+    \section2 precompiledHeader
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Name of the C++ header file to be precompiled.
+
+    \section2 precompiledHeaderDir
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{product.buildDirectory}
+    \endtable
+
+    The directory that will contain the precompiled C++ header file.
+    Usually you won't need to set this.
+
+    \section2 optimization
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{qbs.optimization}
+    \endtable
+
+    Optimization level. See \c{qbs.optimization}.
+
+    \section2 treatWarningsAsErrors
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Warnings will be handled as errors and cause the build to fail.
+
+    \section2 warningLevel
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"all"}
+    \endtable
+
+    Specifies the installation directory for the files of a product or a \c{Group}. The value of
+    this property is a path that is relative to the install root.
+
+    \section2 cppFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the C preprocessor.
+
+    \section2 cFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the C compiler.
+
+    \section2 cxxFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the C++ compiler.
+
+    \section2 objcFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the Objective-C compiler.
+
+    \section2 objcxxFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the Objective-C++ compiler.
+
+    \section2 linkerFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the linker.
+
+    \section2 compilerName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Name of the compiler binary. This is set in the build profile.
+
+    \section2 compilerPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Directory where the compiler binary is located. This is set in the build profile.
+
+
+    \section1 Properties specific to OS X
+
+    \section2 minimumMacVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of OS X that the
+    product should run on. Passes -mmacosx-version-min=<version> to the compiler.
+    If undefined, compiler defaults will be used.
+
+    \section2 frameworkPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of framework search paths. Relative paths are considered to be relative to the .qbs product
+    file they are used in.
+
+    \section2 systemFrameworkPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of framework search paths. Relative paths are considered to be relative to the .qbs product
+    file they are used in. Header files in frameworks in those paths will not cause warnings.
+
+    \section2 frameworks
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of frameworks to be linked.
+    If the framework is part of your project, consider using a Depends item instead.
+
+    \section2 weakFrameworks
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of frameworks to be weakly linked.
+    If the framework is part of your project, consider using a Depends item instead.
+
+
+    \section1 Properties specific to iOS
+
+    \section2 minimumIosVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of OS X that the
+    product should run on. Passes -miphoneos-version-min=<version> to the compiler.
+    If undefined, compiler defaults will be used.
+
+
+    \section1 Properties specific to Unix platforms
+
+    \section2 positionIndependentCode
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Generate position independent code.
+
+    \section2 rpaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of rpaths that are passed to the linker.
+
+    \section2 visibility
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"}
+    \row    \li \b{Default:}         \li \c{"default"}
+    \endtable
+
+    Visibility level for exported symbols.
+
+
+    \section1 Properties specific to Windows
+
+    \section2 minimumWindowsVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of Windows that
+    the product should run on. Defines WINVER, _WIN32_WINNT, and _WIN32_WINDOWS, and applies a
+    version number to the linker flags /SUBSYSTEM and /OSVERSION (or -Wl,-subsystem and
+    -Wl,-osversion). If undefined, compiler defaults will be used.
 */
