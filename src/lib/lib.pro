@@ -8,9 +8,15 @@ else:DESTDIR = ../../lib
 INCLUDEPATH += $$PWD
 TARGET = qbscore
 
-CONFIG += shared dll depend_includepath
+CONFIG += depend_includepath
 DEFINES += QT_CREATOR QML_BUILD_STATIC_LIB      # needed for QmlJS
-DEFINES += QBS_LIBRARY
+
+CONFIG(static, static|shared) {
+    DEFINES += QBS_STATIC_LIB
+} else {
+    DEFINES += QBS_LIBRARY
+}
+
 DEFINES += SRCDIR=\\\"$$PWD\\\"
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 

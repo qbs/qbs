@@ -10,6 +10,7 @@ DESTDIR = $${destdirPrefix}/plugins
 TEMPLATE = lib
 
 CONFIG += depend_includepath
+CONFIG += shared
 unix: CONFIG += plugin
 
 !isEmpty(QBS_RESOURCES_INSTALL_DIR): \
