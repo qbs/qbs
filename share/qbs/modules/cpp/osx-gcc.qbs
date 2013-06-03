@@ -35,32 +35,4 @@ DarwinGCC {
         }
         return defaultVal
     }
-
-    Rule {
-        multiplex: true
-        inputs: ["dynamiclibrary", "infoplist", "dsym"]
-
-        Artifact {
-            fileName: product.targetName + ".framework"
-            fileTags: ["frameworkbundle"]
-        }
-
-        prepare: {
-            var commands = [];
-            var cmd = new Command("ln", ["-s", Gcc.majorVersion(product.version, "1"), "Current"]);
-            cmd.workingDirectory = output.fileName + "/Versions";
-            cmd.description = "creating framework " + product.targetName;
-            cmd.highlight = "codegen";
-            commands.push(cmd);
-
-            cmd = new Command("ln", ["-s", "Versions/Current/Resources", "Resources"]);
-            cmd.workingDirectory = output.fileName;
-            commands.push(cmd);
-
-            cmd = new Command("ln", ["-s", "Versions/Current/" + product.targetName, product.targetName]);
-            cmd.workingDirectory = output.fileName;
-            commands.push(cmd);
-            return commands;
-        }
-    }
 }
