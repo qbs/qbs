@@ -177,6 +177,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
+    args = args.concat(linkerFlags);
 
     var commands = [];
     var cmd = new Command("link.exe", args)
