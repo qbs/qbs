@@ -22,7 +22,7 @@ Project {
         name: "unspecified-forced"
         files: "main.cpp"
         cpp.minimumWindowsVersion: undefined
-        cpp.minimumMacVersion: undefined
+        cpp.minimumOsxVersion: undefined
         cpp.minimumIosVersion: undefined
         cpp.minimumAndroidVersion: undefined
 
@@ -38,7 +38,7 @@ Project {
     CppApplication {
         type: "application"
         Depends { name: "Qt.core" }
-        condition: qbs.targetOS === "windows" || qbs.targetOS === "mac"
+        condition: qbs.targetOS === "windows" || qbs.targetOS === "osx"
         name: "specific"
         files: "main.cpp"
 
@@ -48,9 +48,9 @@ Project {
         }
 
         Properties {
-            condition: qbs.targetOS === "mac"
+            condition: qbs.targetOS === "osx"
             cpp.frameworks: "Foundation"
-            cpp.minimumMacVersion: "10.6"
+            cpp.minimumOsxVersion: "10.6"
         }
     }
 
@@ -72,7 +72,7 @@ Project {
     CppApplication {
         type: "application"
         Depends { name: "Qt.core" }
-        condition: qbs.targetOS === "mac"
+        condition: qbs.targetOS === "osx"
         name: "macappstore"
         files: "main.cpp"
         cpp.frameworks: "Foundation"

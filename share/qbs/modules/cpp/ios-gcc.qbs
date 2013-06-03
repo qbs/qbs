@@ -3,7 +3,7 @@ import '../utils.js' as ModUtils
 import 'darwin-tools.js' as Tools
 
 DarwinGCC {
-    condition: qbs.hostOS === 'mac' && qbs.targetOS === 'ios' && qbs.toolchain === 'gcc'
+    condition: qbs.hostOS === 'osx' && qbs.targetOS === 'ios' && qbs.toolchain === 'gcc'
 
     property string signingIdentity
     property string provisionFile
@@ -32,7 +32,7 @@ DarwinGCC {
             ],
             CFBundleDisplayName: baseName,
             CFBundlePackageType: "APPL",
-            CFBundleSignature: "????", // legacy creator code in macOS Classic, can be ignored
+            CFBundleSignature: "????", // legacy creator code in Mac OS Classic, can be ignored
             CFBundleDevelopmentRegion: "en", // default localization
             UISupportedInterfaceOrientations: [
                 "UIInterfaceOrientationPortrait",

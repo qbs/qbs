@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     dumpbin.waitForFinished();
 #endif
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACX
     out.setIntegerBase(10);
 
     // This gets set by -mmacosx-version-min. If left undefined, defaults to the current OS version.

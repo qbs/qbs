@@ -362,7 +362,7 @@ static bool isExecutable(const PropertyMapPtr &properties, const FileTags &tags)
 {
     return tags.contains("application")
         || (properties->qbsPropertyValue(QLatin1String("targetOS"))
-            == QLatin1String("mac") && tags.contains("applicationbundle"));
+            == QLatin1String("osx") && tags.contains("applicationbundle"));
 }
 
 /*!

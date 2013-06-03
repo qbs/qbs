@@ -60,7 +60,7 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
 
     if (HostOsInfo::isWindowsHost())
         filters << "*.dll";
-    else if (HostOsInfo::isMacHost())
+    else if (HostOsInfo::isOsxHost())
         filters << "*.dylib";
     else
         filters << "*.so";

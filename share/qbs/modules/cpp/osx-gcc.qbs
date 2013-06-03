@@ -4,7 +4,7 @@ import 'darwin-tools.js' as Tools
 import "gcc.js" as Gcc
 
 DarwinGCC {
-    condition: qbs.hostOS === 'mac' && qbs.targetOS === 'mac' && qbs.toolchain === 'gcc'
+    condition: qbs.hostOS === 'osx' && qbs.targetOS === 'osx' && qbs.toolchain === 'gcc'
 
     defaultInfoPlist: {
         var baseName = String(product.targetName).substring(product.targetName.lastIndexOf('/') + 1);
@@ -21,7 +21,7 @@ DarwinGCC {
                 CFBundleDisplayName: baseName,
                 CFBundleIconFile: baseName + ".icns",
                 CFBundlePackageType: "APPL",
-                CFBundleSignature: "????", // legacy creator code in macOS Classic, can be ignored
+                CFBundleSignature: "????", // legacy creator code in Mac OS Classic, can be ignored
                 CFBundleDevelopmentRegion: "en" // default localization
             }
         } else if (product.type.indexOf("frameworkbundle") !== -1) {

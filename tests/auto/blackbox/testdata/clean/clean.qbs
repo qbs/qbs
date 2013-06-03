@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Project {
-    // Explicit type needed to prevent bundle generation on Mac.
+    // Explicit type needed to prevent bundle generation on Darwin platforms.
     CppApplication {
         type: "application"
         name: "dep"

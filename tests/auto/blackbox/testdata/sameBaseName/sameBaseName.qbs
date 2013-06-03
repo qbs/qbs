@@ -17,7 +17,7 @@ Project {
         ]
 
         Group {
-            condition: qbs.targetOS === "mac" || qbs.targetOS === "ios"
+            condition: qbs.targetPlatform.indexOf("darwin") !== -1
             files: [
                 "lib.m",
                 "lib.mm"
@@ -26,7 +26,7 @@ Project {
 
         Export {
             Depends { name: "cpp" }
-            cpp.frameworks: (qbs.targetOS === "mac" || qbs.targetOS === "ios") ? "Foundation" : undefined
+            cpp.frameworks: qbs.targetPlatform.indexOf("darwin") !== -1 ? "Foundation" : undefined
         }
     }
 }

@@ -375,8 +375,8 @@ QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScript
 
 #if defined(Q_OS_WIN)
     hostSystem = "windows";
-#elif defined(Q_OS_MAC)
-    hostSystem = "mac";
+#elif defined(Q_OS_DARWIN)
+    hostSystem = "osx";
 #elif defined(Q_OS_LINUX)
     hostSystem = "linux";
 #elif defined(Q_OS_UNIX)

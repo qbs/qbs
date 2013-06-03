@@ -198,7 +198,7 @@ void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCo
             QString targetOS;
             QString name = infoSettings.value(QLatin1String("Name")).toString();
             if (name == QLatin1String("macosx")) {
-                targetOS = QLatin1String("mac");
+                targetOS = QLatin1String("osx");
             } else if (name == QLatin1String("iphoneos")) {
                 targetOS = QLatin1String("ios");
             } else if (name == QLatin1String("iphonesimulator")) {

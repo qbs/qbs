@@ -147,9 +147,9 @@ function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIn
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
-    var minimumMacVersion = ModUtils.moduleProperty(product, "minimumMacVersion");
-    if (minimumMacVersion && product.moduleProperty("qbs", "targetOS") === "mac")
-        args.push('-mmacosx-version-min=' + minimumMacVersion);
+    var minimumOsxVersion = ModUtils.moduleProperty(product, "minimumOsxVersion");
+    if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS") === "osx")
+        args.push('-mmacosx-version-min=' + minimumOsxVersion);
 
     var minimumiOSVersion = ModUtils.moduleProperty(product, "minimumIosVersion");
     if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS") === "ios") {

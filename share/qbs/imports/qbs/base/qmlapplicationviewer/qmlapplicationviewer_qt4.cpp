@@ -48,7 +48,7 @@ class QmlApplicationViewerPrivate
 QString QmlApplicationViewerPrivate::adjustPath(const QString &path)
 {
 #ifdef Q_OS_UNIX
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACX
     if (!QDir::isAbsolutePath(path))
         return QString::fromLatin1("%1/../Resources/%2")
                 .arg(QCoreApplication::applicationDirPath(), path);

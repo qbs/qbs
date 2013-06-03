@@ -29,9 +29,9 @@ Module {
                         if undefined, compiler defaults will be used."
     }
 
-    property string minimumMacVersion
+    property string minimumOsxVersion
     PropertyOptions {
-        name: "minimumMacVersion"
+        name: "minimumOsxVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
                         version of OS X that the product should run on. passes -mmacosx-version-min=<version> \
                         to the compiler. if undefined, compiler defaults will be used."

@@ -539,12 +539,12 @@
         \li hostOS
         \li string
         \li platform-dependent
-        \li The host operating system. Currently "windows", "linux" or "mac".
+        \li The host operating system. Currently "windows", "linux" or "osx".
     \row
         \li targetOS
         \li string
         \li platform-dependent
-        \li The target operating system. Currently "windows", "linux" or "mac".
+        \li The target operating system. Currently "windows", "linux" or "osx".
     \endtable
 
     You can set these properties on the command line or by using a profile. The property \a
@@ -855,7 +855,7 @@
 
     \table
     \row    \li \b{Type:}            \li \c{string} (read only)
-    \row    \li \b{Possible Values:} \c{"windows"}, \c{"linux"}, \c{"mac"}, \c{"unix"}
+    \row    \li \b{Possible Values:} \c{"windows"}, \c{"linux"}, \c{"osx"}, \c{"unix"}
     \endtable
 
     This property is set by qbs internally and contains the name of the OS qbs is running on.
@@ -1207,7 +1207,7 @@
 
     \section1 Properties specific to OS X
 
-    \section2 minimumMacVersion
+    \section2 minimumOsxVersion
 
     \table
     \row    \li \b{Type:}            \li \c{string}

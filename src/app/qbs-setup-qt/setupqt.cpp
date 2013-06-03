@@ -267,7 +267,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                          qtEnvironment.staticBuild);
 
     // Set the minimum operating system versions appropriate for this Qt version
-    QString windowsVersion, macVersion, iosVersion, androidVersion;
+    QString windowsVersion, osxVersion, iosVersion, androidVersion;
 
     // ### TODO: Also dependent on the toolchain, which we can't easily access here
     // Most 32-bit Windows applications based on either Qt 5 or Qt 4 should run
@@ -278,7 +278,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     if (qtEnvironment.mkspecPath.contains("macx")) {
         profile.setValue(settingsTemplate.arg("frameworkBuild"), qtEnvironment.frameworkBuild);
         if (qtEnvironment.qtMajorVersion >= 5) {
-            macVersion = QLatin1String("10.6");
+            osxVersion = QLatin1String("10.6");
         } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
             QDir qconfigDir;
             if (qtEnvironment.frameworkBuild) {
@@ -302,10 +302,10 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                 } while (!line.isNull());
 
                 if (ts.status() == QTextStream::Ok)
-                    macVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
+                    osxVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
             }
 
-            if (macVersion.isEmpty())
+            if (osxVersion.isEmpty())
                 throw Error(tr("error reading qconfig.h; could not determine whether Qt is using Cocoa or Carbon"));
         }
     }
@@ -328,8 +328,8 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     if (!windowsVersion.isEmpty())
         profile.setValue(QLatin1String("cpp.minimumWindowsVersion"), windowsVersion);
 
-    if (!macVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumMacVersion"), macVersion);
+    if (!osxVersion.isEmpty())
+        profile.setValue(QLatin1String("cpp.minimumOsxVersion"), osxVersion);
 
     if (!iosVersion.isEmpty())
         profile.setValue(QLatin1String("cpp.minimumIosVersion"), iosVersion);

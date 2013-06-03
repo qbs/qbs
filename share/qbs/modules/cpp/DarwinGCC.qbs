@@ -19,7 +19,7 @@ UnixGCC {
 
         Artifact {
             fileName: product.targetName + ".app/" +
-                      (product.moduleProperty("qbs", "targetOS") === "mac" ? "Contents/" : "") +
+                      (product.moduleProperty("qbs", "targetOS") === "osx" ? "Contents/" : "") +
                       "PkgInfo"
             fileTags: ["pkginfo"]
         }

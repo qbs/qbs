@@ -40,7 +40,7 @@
 #define QTC_HOST_DYNAMICLIB_PREFIX ""
 #define QTC_HOST_DYNAMICLIB_SUFFIX ".dll"
 #define QTC_HOST_OBJECT_SUFFIX ".obj"
-#elif defined(Q_OS_MAC)
+#elif defined(Q_OS_DARWIN)
 #define QTC_HOST_EXE_SUFFIX ""
 #define QTC_HOST_DYNAMICLIB_PREFIX "lib"
 #define QTC_HOST_DYNAMICLIB_SUFFIX ".dylib"
@@ -59,13 +59,13 @@ class QBS_EXPORT HostOsInfo // Exported for use by command-line tools.
 {
 public:
     // Add more as needed.
-    enum HostOs { HostOsWindows, HostOsLinux, HostOsMac, HostOsOtherUnix, HostOsOther };
+    enum HostOs { HostOsWindows, HostOsLinux, HostOsOsx, HostOsOtherUnix, HostOsOther };
 
     static inline HostOs hostOs();
 
     static bool isWindowsHost() { return hostOs() == HostOsWindows; }
     static bool isLinuxHost() { return hostOs() == HostOsLinux; }
-    static bool isMacHost() { return hostOs() == HostOsMac; }
+    static bool isOsxHost() { return hostOs() == HostOsOsx; }
     static inline bool isAnyUnixHost();
 
     static QString appendExecutableSuffix(const QString &executable)
@@ -99,7 +99,7 @@ public:
 
     static Qt::KeyboardModifier controlModifier()
     {
-        return isMacHost() ? Qt::MetaModifier : Qt::ControlModifier;
+        return isOsxHost() ? Qt::MetaModifier : Qt::ControlModifier;
     }
 };
 
@@ -109,8 +109,8 @@ HostOsInfo::HostOs HostOsInfo::hostOs()
     return HostOsWindows;
 #elif defined(Q_OS_LINUX)
     return HostOsLinux;
-#elif defined(Q_OS_MAC)
-    return HostOsMac;
+#elif defined(Q_OS_DARWIN)
+    return HostOsOsx;
 #elif defined(Q_OS_UNIX)
     return HostOsOtherUnix;
 #else

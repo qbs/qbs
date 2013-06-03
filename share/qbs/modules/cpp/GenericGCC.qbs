@@ -195,7 +195,7 @@ CppModule {
         Artifact {
             fileName: product.destinationDirectory + "/"
                       + (product.type.indexOf("applicationbundle") === -1 ? "" : product.targetName + ".app/" +
-                         (product.moduleProperty("qbs", "targetOS") !== "mac" ? "" : "Contents/MacOS/"))
+                         (product.moduleProperty("qbs", "targetOS") !== "osx" ? "" : "Contents/MacOS/"))
                       + ModUtils.moduleProperty(product, "executablePrefix")
                       + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
             fileTags: ["application"]

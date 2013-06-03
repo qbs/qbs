@@ -92,8 +92,8 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     if (arch.isEmpty())
         arch = uname;
 
-    // HACK: "uname -m" reports "i386" but "gcc -dumpmachine" reports "i686" on MacOS.
-    if (HostOsInfo::isMacHost() && arch == "i386")
+    // HACK: "uname -m" reports "i386" but "gcc -dumpmachine" reports "i686" on OS X.
+    if (HostOsInfo::isOsxHost() && arch == "i386")
         arch = "i686";
 
     if (ld.isEmpty())
@@ -221,7 +221,7 @@ int probe(Settings *settings)
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
         mingwProbe(settings, profiles);
-    } else if (HostOsInfo::isMacHost()) {
+    } else if (HostOsInfo::isOsxHost()) {
         osxProbe(settings, profiles);
     } else {
         specific_probe(settings, profiles, QLatin1String("gcc"));
