@@ -21,6 +21,7 @@ Product {
     Qt.core.qdocEnvironment: [
         "QBS_VERSION=" + project.version,
         "SRCDIR=.",
+        "QT_INSTALL_DOCS=" + Qt.core.docPath,
         "QBS_VERSION_TAG=" + versionTag
     ]
 

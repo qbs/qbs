@@ -170,6 +170,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.includePath = queryOutput.value("QT_INSTALL_HEADERS");
     qtEnvironment.libraryPath = queryOutput.value("QT_INSTALL_LIBS");
     qtEnvironment.binaryPath = queryOutput.value("QT_INSTALL_BINS");
+    qtEnvironment.documentationPath = queryOutput.value("QT_INSTALL_DOCS");
     qtEnvironment.pluginPath = queryOutput.value("QT_INSTALL_PLUGINS");
     qtEnvironment.qmlImportPath = queryOutput.value("QT_INSTALL_IMPORTS");
     qtEnvironment.qtVersion = queryOutput.value("QT_VERSION");
@@ -259,6 +260,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     profile.setValue(settingsTemplate.arg("libPath"), qtEnvironment.libraryPath);
     profile.setValue(settingsTemplate.arg("incPath"), qtEnvironment.includePath);
     profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnvironment.mkspecPath);
+    profile.setValue(settingsTemplate.arg("docPath"), qtEnvironment.documentationPath);
     profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
     profile.setValue(settingsTemplate.arg("namespace"), qtEnvironment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);

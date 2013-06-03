@@ -21,6 +21,7 @@ Module {
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property var qdocEnvironment
     property var qdocQhpFileName
+    property var docPath
     property var helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property string version: "4.7.0"
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
