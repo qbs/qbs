@@ -22,11 +22,13 @@ Module {
     property string minimumWindowsVersion
     PropertyOptions {
         name: "minimumWindowsVersion"
-        description: "a version number in the format [major].[minor] indicating the earliest \
-                        version of Windows that the product should run on. defines WINVER, \
+        description: "A version number in the format [major].[minor] indicating the earliest \
+                        version of Windows that the product should run on. Defines WINVER, \
                         _WIN32_WINNT, and _WIN32_WINDOWS, and applies a version number to the \
-                        linker flags /SUBSYSTEM and /OSVERSION (or -Wl,-subsystem and -Wl,-osversion). \
-                        if undefined, compiler defaults will be used."
+                        linker flags /SUBSYSTEM and /OSVERSION for MSVC or \
+                        -Wl,--major-subsystem-version, -Wl,--minor-subsystem-version, \
+                        -Wl,--major-os-version and -Wl,--minor-os-version for MinGW. \
+                        If undefined, compiler defaults will be used."
     }
 
     property string minimumOsxVersion

@@ -1205,18 +1205,7 @@
     Directory where the compiler binary is located. This is set in the build profile.
 
 
-    \section1 Properties specific to OS X
-
-    \section2 minimumOsxVersion
-
-    \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
-    \endtable
-
-    A version number in the format [major].[minor] indicating the earliest version of OS X that the
-    product should run on. Passes -mmacosx-version-min=<version> to the compiler.
-    If undefined, compiler defaults will be used.
+    \section1 Properties Specific to iOS and OS X
 
     \section2 frameworkPaths
 
@@ -1259,13 +1248,13 @@
     If the framework is part of your project, consider using a Depends item instead.
 
 
-    \section1 Properties specific to iOS
+    \section1 Properties Specific to iOS
 
     \section2 minimumIosVersion
 
     \table
     \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \row    \li \b{Default:}         \li undefined, but may be set by generated profiles
     \endtable
 
     A version number in the format [major].[minor] indicating the earliest version of OS X that the
@@ -1273,7 +1262,21 @@
     If undefined, compiler defaults will be used.
 
 
-    \section1 Properties specific to Unix platforms
+    \section1 Properties Specific to OS X
+
+    \section2 minimumOsxVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li undefined, but may be set by generated profiles
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of OS X that the
+    product should run on. Passes -mmacosx-version-min=<version> to the compiler.
+    If undefined, compiler defaults will be used.
+
+
+    \section1 Properties Specific to Unix Platforms
 
     \section2 positionIndependentCode
 
@@ -1304,17 +1307,19 @@
     Visibility level for exported symbols.
 
 
-    \section1 Properties specific to Windows
+    \section1 Properties Specific to Windows
 
     \section2 minimumWindowsVersion
 
     \table
     \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \row    \li \b{Default:}         \li undefined, but may be set by generated profiles
     \endtable
 
     A version number in the format [major].[minor] indicating the earliest version of Windows that
     the product should run on. Defines WINVER, _WIN32_WINNT, and _WIN32_WINDOWS, and applies a
-    version number to the linker flags /SUBSYSTEM and /OSVERSION (or -Wl,-subsystem and
-    -Wl,-osversion). If undefined, compiler defaults will be used.
+    version number to the linker flags /SUBSYSTEM and /OSVERSION for MSVC or
+    -Wl,--major-subsystem-version, -Wl,--minor-subsystem-version, -Wl,--major-os-version and
+    -Wl,--minor-os-version for MinGW.
+    If undefined, compiler defaults will be used.
 */
