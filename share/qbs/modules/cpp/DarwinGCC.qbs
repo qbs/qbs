@@ -30,7 +30,7 @@ UnixGCC {
             cmd.highlight = "codegen";
             var pkgType = 'APPL';
             var pkgSign = '????';
-            var infoPlist = product.moduleProperty("cpp", "infoPList");
+            var infoPlist = product.moduleProperty("cpp", "infoPlist");
             if (infoPlist && infoPlist.hasOwnProperty('CFBundlePackageType'))
                 pkgType = infoPlist['CFBundlePackageType'];
             if (infoPlist && infoPlist.hasOwnProperty('CFBundleSignature'))
