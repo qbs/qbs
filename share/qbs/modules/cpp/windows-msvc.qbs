@@ -3,6 +3,7 @@ import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
 import 'windows.js' as Windows
 import 'msvc.js' as MSVC
+import "bundle-tools.js" as BundleTools     // needed for path-tools.js
 import 'path-tools.js' as PathTools
 
 CppModule {
