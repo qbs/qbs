@@ -47,6 +47,19 @@ public:
     QList<PropertyDeclaration> declarationsForType(const QString &typeName) const;
 
 private:
+    void addArtifactItem();
+    void addDependsItem();
+    void addExportItem();
+    void addFileTaggerItem();
+    void addGroupItem();
+    void addModuleItem();
+    void addProbeItem();
+    void addProductItem();
+    void addProjectItem();
+    void addPropertyOptionsItem();
+    void addRuleItem();
+    void addTransformerItem();
+
     QString m_languageVersion;
     QMap<QString, QList<PropertyDeclaration> > m_builtins;
 };
