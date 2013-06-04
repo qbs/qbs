@@ -194,8 +194,12 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
 
     if (generateManifestFiles) {
         var outputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.fileName);
-        cmd = new Command("cmd.exe", ["/c", "copy", linkerOutputNativeFilePath,
-                                      outputNativeFilePath, ">NUL"]);
+        cmd = new JavaScriptCommand();
+        cmd.src = linkerOutputNativeFilePath;
+        cmd.dst = outputNativeFilePath;
+        cmd.sourceCode = function() {
+            File.copy(src, dst);
+        }
         commands.push(cmd);
         args = [
             '/nologo', '/manifest', manifestFileName,
