@@ -125,18 +125,18 @@ CppModule {
             cmd.responseFileUsagePrefix = '@';
             commands.push(cmd);
 
+            // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
             if (product.version
                     && product.moduleProperty("qbs", "targetPlatform").indexOf("unix") !== -1) {
                 var versionParts = product.version.split('.');
                 var version = "";
                 var fname = FileInfo.fileName(output.fileName);
-                for (var i = 0; i < versionParts.length - 1; ++i) {
-                    version += versionParts[i];
+                for (var i = 0; i < versionParts.length; ++i) {
                     cmd = new Command("ln", ["-s", fname,
                                              PathTools.dynamicLibraryFileName(version)]);
                     cmd.workingDirectory = FileInfo.path(output.fileName);
                     commands.push(cmd);
-                    version += '.';
+                    version += (i !== 0 ? '.' : '') + versionParts[i];
                 }
             }
             return commands;

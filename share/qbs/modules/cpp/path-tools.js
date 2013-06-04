@@ -31,7 +31,11 @@ function staticLibraryFilePath()
 function dynamicLibraryFileName(version)
 {
     // If no override version was given, use the product's version
-    if (!version)
+    // We specifically want to differentiate between undefined and i.e.
+    // empty string as empty string should be taken to mean "no version"
+    // and undefined should be taken to mean "use the product's version"
+    // (which could still end up being "no version")
+    if (version === undefined)
         version = product.version;
 
     // Start with prefix + name (i.e. libqbs, qbs)
