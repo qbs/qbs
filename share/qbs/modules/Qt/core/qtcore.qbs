@@ -23,7 +23,7 @@ Module {
     property var qdocQhpFileName
     property var docPath
     property var helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
-    property string version: "4.7.0"
+    property string version
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
     property var versionMajor: versionParts[0]
     property var versionMinor: versionParts[1]
@@ -91,6 +91,8 @@ Module {
             throw "Qt.core.libPath not set. Set Qt.core.libPath in your profile.";
         if (!mkspecPath)
             throw "Qt.core.mkspecPath not set. Set Qt.core.mkspecPath in your profile.";
+        if (!version)
+            throw "Qt.core.version not set. Set Qt.core.version in your profile.";
     }
 
     setupRunEnvironment: {
