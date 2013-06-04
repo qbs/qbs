@@ -3,6 +3,7 @@ import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
 import 'windows.js' as Windows
 import 'msvc.js' as MSVC
+import 'path-tools.js' as PathTools
 
 CppModule {
     condition: qbs.hostOS === 'windows' && qbs.targetOS === 'windows' && qbs.toolchain === 'msvc'
@@ -124,8 +125,7 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "executablePrefix")
-                      + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
+            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath()
         }
 
         prepare: {
@@ -146,16 +146,12 @@ CppModule {
 
         Artifact {
             fileTags: ["dynamiclibrary"]
-            fileName: product.destinationDirectory + "/"
-                      + ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName
-                      + ModUtils.moduleProperty(product, "dynamicLibrarySuffix")
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
-            fileName: product.destinationDirectory + "/"
-                      + ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName
-                      + ModUtils.moduleProperty(product, "dynamicLibraryImportSuffix")
+            fileName: product.destinationDirectory + "/" + PathTools.importLibraryFilePath()
             alwaysUpdated: false
         }
 
@@ -177,8 +173,7 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "staticLibraryPrefix")
-                      + product.targetName + ModUtils.moduleProperty(product, "staticLibrarySuffix")
+            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath()
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {

@@ -3,6 +3,8 @@ import qbs.fileinfo as FileInfo
 import 'windows.js' as Windows
 import 'gcc.js' as Gcc
 import '../utils.js' as ModUtils
+import 'bundle-tools.js' as BundleTools
+import 'path-tools.js' as PathTools
 
 CppModule {
     condition: false
@@ -37,8 +39,7 @@ CppModule {
         usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/"
-                      + (product.type.indexOf("frameworkbundle") === -1 ? Gcc.dynamicLibraryFileName() : Gcc.frameworkFilePath())
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
             fileTags: ["dynamiclibrary"]
             cpp.transitiveSOs: {
                 var result = []
@@ -132,7 +133,7 @@ CppModule {
                 for (var i = 0; i < versionParts.length - 1; ++i) {
                     version += versionParts[i];
                     cmd = new Command("ln", ["-s", fname,
-                                             Gcc.dynamicLibraryFileName(version)]);
+                                             PathTools.dynamicLibraryFileName(version)]);
                     cmd.workingDirectory = FileInfo.path(output.fileName);
                     commands.push(cmd);
                     version += '.';
@@ -149,8 +150,7 @@ CppModule {
         usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + ModUtils.moduleProperty(product, "staticLibraryPrefix")
-                      + product.targetName + ModUtils.moduleProperty(product, "staticLibrarySuffix")
+            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath()
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
                 var result = []
@@ -193,11 +193,7 @@ CppModule {
         usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/"
-                      + (product.type.indexOf("applicationbundle") === -1 ? "" : product.targetName + ".app/" +
-                         (product.moduleProperty("qbs", "targetOS") !== "osx" ? "" : "Contents/MacOS/"))
-                      + ModUtils.moduleProperty(product, "executablePrefix")
-                      + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
+            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath()
             fileTags: ["application"]
         }
 

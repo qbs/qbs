@@ -1,7 +1,6 @@
 import qbs 1.0
 import '../utils.js' as ModUtils
-import 'darwin-tools.js' as Tools
-import "gcc.js" as Gcc
+import "bundle-tools.js" as BundleTools
 
 UnixGCC {
     condition: false
@@ -18,9 +17,7 @@ UnixGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.targetName + ".app/" +
-                      (product.moduleProperty("qbs", "targetOS") === "osx" ? "Contents/" : "") +
-                      "PkgInfo"
+            fileName: product.destinationDirectory + "/" + BundleTools.pkgInfoPath(product)
             fileTags: ["pkginfo"]
         }
 
@@ -28,11 +25,15 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating PkgInfo";
             cmd.highlight = "codegen";
-            var pkgType = 'APPL';
-            var pkgSign = '????';
+            var pkgType = 'BNDL';
+            if (product.type.indexOf("applicationbundle") !== -1)
+                pkgType = 'APPL';
+            if (product.type.indexOf("frameworkbundle") !== -1)
+                pkgType = 'FMWK';
             var infoPlist = product.moduleProperty("cpp", "infoPlist");
             if (infoPlist && infoPlist.hasOwnProperty('CFBundlePackageType'))
                 pkgType = infoPlist['CFBundlePackageType'];
+            var pkgSign = '????';
             if (infoPlist && infoPlist.hasOwnProperty('CFBundleSignature'))
                 pkgSign = infoPlist['CFBundleSignature'];
             cmd.pkgInfo =  pkgType + pkgSign;
@@ -50,7 +51,7 @@ UnixGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: Gcc.bundleContentDirPath() + "/Info.plist"
+            fileName: product.destinationDirectory + "/" + BundleTools.infoPlistPath(product)
             fileTags: ["infoplist"]
         }
 
@@ -116,7 +117,7 @@ UnixGCC {
         inputs: ["application"]
 
         Artifact {
-            fileName: input.fileName + ".app.dSYM"
+            fileName: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName()
             fileTags: ["dsym"]
         }
 
@@ -131,9 +132,7 @@ UnixGCC {
     Rule {
         multiplex: true
         inputs: {
-            var res = ["application", "infoplist", "pkginfo"];
-            // if (product.moduleProperty("cpp", "buildDsym")) // should work like that in the future
-                res.push("dsym");
+            var res = ["application", "infoplist", "pkginfo", "dsym"];
             if (product.moduleProperty("qbs", "targetOS") === "ios") {
                 res.push("resourcerules");
                 // if (ModUtils.moduleProperty(product, "buildIpa")) // ditto
@@ -143,7 +142,7 @@ UnixGCC {
         }
 
         Artifact {
-            fileName: product.targetName + ".app"
+            fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
             fileTags: ["applicationbundle"]
         }
 
@@ -158,19 +157,23 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["dynamiclibrary", "infoplist", "dsym"]
+        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "dsym"]
 
         Artifact {
-            fileName: product.targetName + ".framework"
+            fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
             fileTags: ["frameworkbundle"]
         }
 
         prepare: {
             var commands = [];
-            var cmd = new Command("ln", ["-s", Gcc.majorVersion(product.version, "1"), "Current"]);
+            var cmd = new Command("ln", ["-s", BundleTools.frameworkVersion(product), "Current"]);
             cmd.workingDirectory = output.fileName + "/Versions";
             cmd.description = "creating framework " + product.targetName;
             cmd.highlight = "codegen";
+            commands.push(cmd);
+
+            cmd = new Command("ln", ["-s", "Versions/Current/Headers", "Headers"]);
+            cmd.workingDirectory = output.fileName;
             commands.push(cmd);
 
             cmd = new Command("ln", ["-s", "Versions/Current/Resources", "Resources"]);

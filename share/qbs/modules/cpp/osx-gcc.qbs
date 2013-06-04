@@ -1,14 +1,14 @@
 import qbs 1.0
 import '../utils.js' as ModUtils
-import 'darwin-tools.js' as Tools
-import "gcc.js" as Gcc
+import 'darwin-tools.js' as DarwinTools
+import 'bundle-tools.js' as BundleTools
 
 DarwinGCC {
     condition: qbs.hostOS === 'osx' && qbs.targetOS === 'osx' && qbs.toolchain === 'gcc'
 
     defaultInfoPlist: {
         var baseName = String(product.targetName).substring(product.targetName.lastIndexOf('/') + 1);
-        var baseNameRfc1034 = Tools.rfc1034(baseName);
+        var baseNameRfc1034 = DarwinTools.rfc1034(baseName);
         var defaultVal;
         if (product.type.indexOf("applicationbundle") !== -1) {
             defaultVal = {

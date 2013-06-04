@@ -1,6 +1,7 @@
 import qbs 1.0
 import '../utils.js' as ModUtils
-import 'darwin-tools.js' as Tools
+import 'darwin-tools.js' as DarwinTools
+import 'bundle-tools.js' as BundleTools
 
 DarwinGCC {
     condition: qbs.hostOS === 'osx' && qbs.targetOS === 'ios' && qbs.toolchain === 'gcc'
@@ -11,7 +12,7 @@ DarwinGCC {
 
     defaultInfoPlist: {
         var baseName = String(product.targetName).substring(product.targetName.lastIndexOf('/') + 1);
-        var baseNameRfc1034 = Tools.rfc1034(baseName);
+        var baseNameRfc1034 = DarwinTools.rfc1034(baseName);
         var defaultVal = {
             CFBundleName: baseName,
             CFBundleIdentifier: "org.example." + baseNameRfc1034,
@@ -54,7 +55,9 @@ DarwinGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.targetName + ".app/ResourceRules.plist"
+            fileName: product.destinationDirectory + "/"
+                    + BundleTools.contentsFolderPath(product)
+                    + "/ResourceRules.plist"
             fileTags: ["resourcerules"]
         }
 
@@ -75,7 +78,7 @@ DarwinGCC {
         inputs: ["application", "infoplist", "pkginfo", "resourcerules"]
 
         Artifact {
-            fileName: product.targetName + ".ipa"
+            fileName: product.destinationDirectory + "/" + product.targetName + ".ipa"
             fileTags: ["ipa"]
         }
 

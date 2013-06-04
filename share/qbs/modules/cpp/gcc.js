@@ -168,39 +168,6 @@ function majorVersion(version, defaultValue)
     return isNaN(n) ? defaultValue : n;
 }
 
-function dynamicLibraryFileName(version)
-{
-    if (!version)
-        version = product.version;
-    var fileName = ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName;
-    if (version && product.moduleProperty("qbs", "targetPlatform").indexOf("darwin") !== -1) {
-        fileName += "." + version;
-        version = undefined;
-    }
-    fileName += ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
-    if (version && product.moduleProperty("qbs", "targetPlatform").indexOf("unix") !== -1)
-        fileName += "." + version;
-    return fileName;
-}
-
-function frameworkContentDirPath(version)
-{
-    return product.targetName + ".framework/Versions/" + (version || majorVersion(product.version, "1"));
-}
-
-function bundleContentDirPath()
-{
-    if (product.type.indexOf("applicationbundle") !== -1)
-        return product.targetName + ".app/Contents";
-    else
-        return frameworkContentDirPath() + "/Resources";
-}
-
-function frameworkFilePath()
-{
-    return frameworkContentDirPath() + "/" + product.targetName;
-}
-
 function soname()
 {
     var outputFileName = FileInfo.fileName(output.fileName);
