@@ -8,6 +8,31 @@ function isBundleProduct(product)
         || product.type.indexOf("inapppurchase") !== -1;
 }
 
+// Returns the package creator code for the given product based on its type
+function packageType(product)
+{
+    if (product.type.indexOf("applicationbundle") !== -1)
+        return 'APPL';
+    else if (product.type.indexOf("frameworkbundle") !== -1)
+        return 'FMWK';
+    else if (product.type.indexOf("bundle") !== -1)
+        return 'BNDL';
+
+    throw ("Unsupported product type " + product.type + ". "
+         + "Must be in {applicationbundle, frameworkbundle, bundle}.");
+}
+
+function infoPlistContents(infoPlistFilePath)
+{
+    if (infoPlistFilePath === undefined)
+        return undefined;
+
+    var process = new Process();
+    process.start("plutil", ["-convert", "json", "-o", "-", infoPlistFilePath]);
+    process.waitForFinished();
+    return JSON.parse(process.readAll());
+}
+
 // CONTENTS_FOLDER_PATH
 // Main bundle directory
 // the version parameter is only used for framework bundles
@@ -112,19 +137,11 @@ function infoStringsPath(product, localizationName, version)
 
 // LOCALIZED_RESOURCES_FOLDER_PATH
 // Path to the bundle's resources directory for the given localization
-// If localizationName is undefined, the default localization path will be given
-// Note that the default localization path is NOT equivalent to the unlocalized resources path
 // the version parameter is only used for framework bundles
 function localizedResourcesFolderPath(product, localizationName, version)
 {
-    // If no localization was given, get the default one from Info.plist or fall back to English
-    if (!localizationName) {
-        var infoPlist = product.moduleProperty("cpp", "infoPlist");
-        if (infoPlist && infoPlist.hasOwnProperty('CFBundleDevelopmentRegion'))
-            localizationName = infoPlist["CFBundleDevelopmentRegion"];
-        else
-            localizationName = "English";
-    }
+    if (typeof localizationName !== "string")
+        throw("'" + localizationName + "' is not a valid localization name");
 
     return unlocalizedResourcesFolderPath(product, version) + "/" + localizationName + ".lproj";
 }

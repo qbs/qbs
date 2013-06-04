@@ -1247,6 +1247,50 @@
     List of frameworks to be weakly linked.
     If the framework is part of your project, consider using a Depends item instead.
 
+    \section2 infoPlistFile
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Path to the Info.plist file used by the bundle.
+    The contents of this file will be aggregated with the values in \c{infoPlist}.
+    If \c{infoPlistFile} and \c{infoPlist} contain the same key, the latter will take precedence,
+    but may also be overridden during postprocessing (see \c{processInfoPlist}).
+    If undefined, will not be taken into account.
+
+    \section2 infoPlist
+
+    \table
+    \row    \li \b{Type:}            \li \c{object}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Dictionary of key-value pairs to add to the bundle's Info.plist.
+    The contents of this property will be aggregated with the values from \c{infoPlistFile}.
+    If \c{infoPlist} and \c{infoPlistFile} contain the same key, the former will take precedence,
+    but may also be overridden during postprocessing (see \c{processInfoPlist}).
+    If undefined, will not be taken into account.
+
+    \section2 processInfoPlist
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to perform post-processing on the aggregated Info.plist contents.
+    If this property is \c{true}, various post-processing operations will be applied to the
+    bundle's property list dictionary after it has been aggregated from the contents of the file
+    specified by the \c{infoPlistFile} property and the \c{infoPlist} property.
+    First, values from a list of defaults will be added to the dictionary if they were not already
+    present. Then, values from the AdditionalInfo key of the platform SDK's Info.plist file will be
+    added to the dictionary if they were not already present, as well as some other miscellaneous
+    keys, such as BuildMachineOSBuild and UIDeviceFamily (on iOS). \b{(not yet implemented)}
+    Finally, variable expansions will be performed such that substrings of the form ${VAR} will be
+    replaced with their corresponding environment variables.
+
 
     \section1 Properties Specific to iOS
 

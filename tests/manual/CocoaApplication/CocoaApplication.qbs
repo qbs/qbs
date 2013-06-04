@@ -8,8 +8,7 @@ CppApplication {
     // Only works with C++ at the moment
     //cpp.precompiledHeader: "CocoaApplication-Prefix.pch"
 
-    // QBS doesn't support custom plist files yet
-    //cpp.infoPlistFile: "CocoaApplication-Info.plist"
+    cpp.infoPlistFile: "CocoaApplication/CocoaApplication-Info.plist"
 
     cpp.frameworks: ["Cocoa"]
 

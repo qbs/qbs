@@ -10,13 +10,56 @@ UnixGCC {
     compilerDefines: ["__GNUC__", "__APPLE__"]
     dynamicLibrarySuffix: ".dylib"
 
-    property var defaultInfoPlist
-    property var infoPlist: defaultInfoPlist
+    property path infoPlistFile
+    property var infoPlist
+    property bool processInfoPlist: true
     property bool buildDsym: qbs.buildVariant === "release"
+
+    readonly property var defaultInfoPlist: {
+        var dict = {
+            CFBundleDevelopmentRegion: "en", // default localization
+            CFBundleDisplayName: product.targetName, // localizable
+            CFBundleExecutable: product.targetName,
+            CFBundleIdentifier: "org.example." + DarwinTools.rfc1034(product.targetName),
+            CFBundleInfoDictionaryVersion: "6.0",
+            CFBundleName: product.targetName, // short display name of the bundle, localizable
+            CFBundlePackageType: BundleTools.packageType(product),
+            CFBundleShortVersionString: product.version || "1.0", // "release" version number, localizable
+            CFBundleSignature: "????", // legacy creator code in Mac OS Classic, can be ignored
+            CFBundleVersion: product.version || "1.0.0" // build version number, must be 3 octets
+        };
+
+        if (product.type.indexOf("applicationbundle") !== -1)
+            dict["CFBundleIconFile"] = product.targetName;
+
+        if (qbs.targetOS === "osx" && cpp.minimumOsxVersion)
+            dict["LSMinimumSystemVersion"] = cpp.minimumOsxVersion;
+
+        if (qbs.targetOS === "ios") {
+            dict["LSRequiresIPhoneOS"] = true;
+
+            // architectures supported, to support iPhone 3G for example one has to add
+            // armv6 to the list and also compile for it (with Xcode 4.4.1 or earlier)
+            dict["UIRequiredDeviceCapabilities"] = [ "armv7" ];
+
+            var orientations = [
+                "UIInterfaceOrientationPortrait",
+                "UIInterfaceOrientationLandscapeLeft",
+                "UIInterfaceOrientationLandscapeRight"
+            ];
+
+            dict["UISupportedInterfaceOrientations"] = orientations;
+            orientations.splice(1, 0, "UIInterfaceOrientationPortraitUpsideDown");
+            dict["UISupportedInterfaceOrientations~ipad"] = orientations;
+        }
+
+        return dict;
+    }
 
     Rule {
         multiplex: true
-        inputs: ["qbs"]
+        inputs: ["infoplist"]
+        explicitlyDependsOn: ["infoplist"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.pkgInfoPath(product)
@@ -27,21 +70,19 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating PkgInfo";
             cmd.highlight = "codegen";
-            var pkgType = 'BNDL';
-            if (product.type.indexOf("applicationbundle") !== -1)
-                pkgType = 'APPL';
-            if (product.type.indexOf("frameworkbundle") !== -1)
-                pkgType = 'FMWK';
-            var infoPlist = product.moduleProperty("cpp", "infoPlist");
-            if (infoPlist && infoPlist.hasOwnProperty('CFBundlePackageType'))
-                pkgType = infoPlist['CFBundlePackageType'];
-            var pkgSign = '????';
-            if (infoPlist && infoPlist.hasOwnProperty('CFBundleSignature'))
-                pkgSign = infoPlist['CFBundleSignature'];
-            cmd.pkgInfo =  pkgType + pkgSign;
             cmd.sourceCode = function() {
+                var infoPlist = BundleTools.infoPlistContents(inputs.infoplist[0].fileName);
+
+                var pkgType = infoPlist['CFBundlePackageType'];
+                if (!pkgType)
+                    throw("CFBundlePackageType not found in Info.plist; this should not happen");
+
+                var pkgSign = infoPlist['CFBundleSignature'];
+                if (!pkgSign)
+                    throw("CFBundleSignature not found in Info.plist; this should not happen");
+
                 var pkginfo = new TextFile(outputs.pkginfo[0].fileName, TextFile.WriteOnly);
-                pkginfo.write(pkgInfo);
+                pkginfo.write(pkgType + pkgSign);
                 pkginfo.close();
             }
             return cmd;
@@ -61,48 +102,69 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist";
             cmd.highlight = "codegen";
+            cmd.infoPlistFile = ModUtils.moduleProperty(product, "infoPlistFile");
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
+            cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
             cmd.platformPath = product.moduleProperty("cpp", "platformPath");
             cmd.sourceCode = function() {
-                var defaultValues = ModUtils.moduleProperty(product, "defaultInfoPlist");
-                var key;
-                for (key in defaultValues) {
-                    if (defaultValues.hasOwnProperty(key) && !(key in infoPlist))
-                        infoPlist[key] = defaultValues[key];
+                var process, key;
+
+                // Contains the combination of default, file, and in-source keys and values
+                // Start out with the contents of this file as the "base", if given
+                var aggregatePlist = BundleTools.infoPlistContents(infoPlistFile) || {};
+
+                // Add local key-value pairs (overrides equivalent keys specified in the file if
+                // one was given)
+                for (key in infoPlist) {
+                    if (infoPlist.hasOwnProperty(key))
+                        aggregatePlist[key] = infoPlist[key];
                 }
 
-                var process;
-                if (platformPath) {
+                // Do some postprocessing if desired
+                if (processInfoPlist) {
+                    // Add default values to the aggregate plist if the corresponding keys
+                    // for those values are not already present
+                    var defaultValues = ModUtils.moduleProperty(product, "defaultInfoPlist");
+                    for (key in defaultValues) {
+                        if (defaultValues.hasOwnProperty(key) && !(key in aggregatePlist))
+                            aggregatePlist[key] = defaultValues[key];
+                    }
+
+                    // Add keys from platform's Info.plist if not already present
+                    if (platformPath) {
+                        process = new Process();
+                        process.start("plutil", ["-convert", "json", "-o", "-",
+                                                 [platformPath, "Info.plist"].join('/')]);
+                        process.waitForFinished();
+                        platformInfo = JSON.parse(process.readAll());
+
+                        var additionalProps = platformInfo["AdditionalInfo"];
+                        for (key in additionalProps) {
+                            if (additionalProps.hasOwnProperty(key) && !(key in aggregatePlist)) // override infoPlist?
+                                aggregatePlist[key] = defaultValues[key];
+                        }
+
+                        if (product.moduleProperty("qbs", "targetOS") === "ios") {
+                            key = "UIDeviceFamily";
+                            if (key in platformInfo && !(key in aggregatePlist))
+                                aggregatePlist[key] = platformInfo[key];
+                        }
+                    } else {
+                        print("Missing platformPath property");
+                    }
+
                     process = new Process();
-                    process.start("plutil", ["-convert", "json", "-o", "-",
-                                             platformPath + "/Info.plist"]);
+                    process.start("sw_vers", ["-buildVersion"]);
                     process.waitForFinished();
-                    platformInfo = JSON.parse(process.readAll());
-
-                    var additionalProps = platformInfo["AdditionalInfo"];
-                    for (key in additionalProps) {
-                        if (additionalProps.hasOwnProperty(key) && !(key in infoPlist)) // override infoPlist?
-                            infoPlist[key] = defaultValues[key];
-                    }
-
-                    if (product.moduleProperty("qbs", "targetOS") === "ios") {
-                        key = "UIDeviceFamily";
-                        if (key in platformInfo && !(key in infoPlist))
-                            infoPlist[key] = platformInfo[key];
-                    }
-                } else {
-                    print("Missing platformPath property");
+                    aggregatePlist["BuildMachineOSBuild"] = process.readAll().trim();
                 }
 
-                process = new Process();
-                process.start("sw_vers", ["-buildVersion"]);
-                process.waitForFinished();
-                infoPlist["BuildMachineOSBuild"] = process.readAll().trim();
-
+                // Write the plist contents as JSON
                 var infoplist = new TextFile(outputs.infoplist[0].fileName, TextFile.WriteOnly);
-                infoplist.write(JSON.stringify(infoPlist));
+                infoplist.write(JSON.stringify(aggregatePlist));
                 infoplist.close();
 
+                // Convert the written file to the format appropriate for the current platform
                 process = new Process();
                 process.start("plutil", ["-convert",
                                         product.moduleProperty("qbs", "targetOS") === "ios"
@@ -196,6 +258,7 @@ UnixGCC {
 
     Rule {
         inputs: ["xib"]
+        explicitlyDependsOn: ["infoplist"]
 
         Artifact {
             fileName: {

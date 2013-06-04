@@ -11,46 +11,6 @@ DarwinGCC {
     property string provisionFile
     property bool buildIpa: qbs.architecture.match("^arm") === "arm"
 
-    defaultInfoPlist: {
-        var baseName = String(product.targetName).substring(product.targetName.lastIndexOf('/') + 1);
-        var baseNameRfc1034 = DarwinTools.rfc1034(baseName);
-        var defaultVal = {
-            CFBundleName: baseName,
-            CFBundleIdentifier: "org.example." + baseNameRfc1034,
-            CFBundleInfoDictionaryVersion : "6.0",
-            CFBundleVersion: "1.0", // version of the app
-            CFBundleShortVersionString: "1.0", // user visible version of the app
-            // this and the following MainStoryboard related keys are iOS 6 only, and are only to
-            // use "storyboards" for UI, which we most likely won't, so we can avoid using
-            // these keys (and stay compatible with previous iOS versions)
-            // "UIMainStoryboardFile" : "MainStoryboard_iPhone",
-            // "UIMainStoryboardFile~ipad" : "MainStoryboard_iPad",
-            CFBundleExecutable: baseName,
-            LSRequiresIPhoneOS: true,
-            UIRequiredDeviceCapabilities : [
-                // architectures supported, to support iPhone 3G for example one has to add
-                // armv6 to the list and also compile for it (with Xcode 4.4.1 or earlier)
-                "armv7"
-            ],
-            CFBundleDisplayName: baseName,
-            CFBundlePackageType: "APPL",
-            CFBundleSignature: "????", // legacy creator code in Mac OS Classic, can be ignored
-            CFBundleDevelopmentRegion: "en", // default localization
-            UISupportedInterfaceOrientations: [
-                "UIInterfaceOrientationPortrait",
-                "UIInterfaceOrientationLandscapeLeft",
-                "UIInterfaceOrientationLandscapeRight"
-            ],
-            "UISupportedInterfaceOrientations~ipad": [
-                "UIInterfaceOrientationPortrait",
-                "UIInterfaceOrientationPortraitUpsideDown",
-                "UIInterfaceOrientationLandscapeLeft",
-                "UIInterfaceOrientationLandscapeRight"
-            ]
-        }
-        return defaultVal
-    }
-
     Rule {
         multiplex: true
         inputs: ["qbs"]
