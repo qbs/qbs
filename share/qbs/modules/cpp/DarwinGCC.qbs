@@ -1,5 +1,5 @@
 import qbs 1.0
-import qbs.FileInfo as FileInfo
+import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
 import "bundle-tools.js" as BundleTools
 import "darwin-tools.js" as DarwinTools
