@@ -1132,6 +1132,15 @@
     Specifies the installation directory for the files of a product or a \c{Group}. The value of
     this property is a path that is relative to the install root.
 
+    \section2 commonCompilerFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Flags that are added to all compilation commands independently of the language.
+
     \section2 cppFlags
 
     \table

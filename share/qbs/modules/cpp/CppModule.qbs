@@ -119,6 +119,11 @@ Module {
         name: "objcxxFlags"
         description: "additional flags for the Objective-C++ compiler"
     }
+    property var commonCompilerFlags
+    PropertyOptions {
+        name: "commonCompilerFlags"
+        description: "flags added to all compilation independently of the language"
+    }
 
     property var linkerFlags
     PropertyOptions {
@@ -141,6 +146,7 @@ Module {
 
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.
+    property var platformCommonCompilerFlags
     property var platformCFlags
     property var platformCxxFlags
     property var platformObjcFlags

@@ -336,6 +336,7 @@ CppModule {
                     args.push('-fvisibility=default')
             }
 
+            args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
             for (i = 0, c = input.fileTags.length; i < c; ++i) {
                 if (input.fileTags[i] === "cpp") {
                     if (ModUtils.moduleProperty(product, "precompiledHeader")) {
@@ -379,6 +380,7 @@ CppModule {
                     break;
                 }
             }
+            args = args.concat(ModUtils.moduleProperties(input, 'commonCompilerFlags'));
             args = args.concat(Gcc.additionalCompilerFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, input.fileName, output));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);

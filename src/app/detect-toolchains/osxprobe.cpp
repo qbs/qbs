@@ -135,10 +135,7 @@ void OsxProbe::detectDeveloperPaths()
 void OsxProbe::setArch(Profile *profile, const QString &pathToGcc, const QStringList &extraFlags)
 {
     if (!extraFlags.isEmpty()) {
-        profile->setValue("cpp.platformCFlags", extraFlags);
-        profile->setValue("cpp.platformCxxFlags", extraFlags);
-        profile->setValue("cpp.platformObjcFlags", extraFlags);
-        profile->setValue("cpp.platformObjcxxFlags", extraFlags);
+        profile->setValue("cpp.platformCommonCompilerFlags", extraFlags);
         profile->setValue("cpp.platformLinkerFlags", extraFlags);
     }
     // setting architecture and endianness only here, bercause the same compiler
