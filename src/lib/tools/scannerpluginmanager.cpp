@@ -74,8 +74,8 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
             const QString fileName = it.next();
             QScopedPointer<QLibrary> lib(new QLibrary(fileName));
             if (!lib->load()) {
-                logger.qbsWarning() << Tr::tr("pluginmanager: couldn't load plugin '%1'.")
-                                       .arg(QDir::toNativeSeparators(fileName));
+                logger.qbsWarning() << Tr::tr("pluginmanager: couldn't load plugin '%1': %2")
+                                       .arg(QDir::toNativeSeparators(fileName), lib->errorString());
                 continue;
             }
 
