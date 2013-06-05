@@ -123,4 +123,23 @@
                 For more information, see \l{Project Item}. Setting this
                 property here will overwrite the default value inherited from the project.
     \endtable
+
+    The following properties are automatically set by qbs and usually are not changed by the user:
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Description
+        \row
+            \li buildDirectory
+            \li string
+            \li The build directory for this product. This is the directory where generated files
+                are placed.
+        \row
+            \li sourceDirectory
+            \li string
+            \li The source directory for this product. This is the directory of the file where this
+                product is defined.
+    \endtable
 */

@@ -111,6 +111,15 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
     }
 }
 
+QString TestLanguage::buildDir(const SetupProjectParameters &params) const
+{
+    return FileInfo::resolvePath(params.buildRoot(),
+        getConfigProperty(params.buildConfiguration(),
+                          QStringList() << "qbs" << "profile").toString() + QLatin1Char('-')
+            + getConfigProperty(params.buildConfiguration(),
+                            QStringList() << "qbs" << "buildVariant").toString());
+}
+
 #define HANDLE_INIT_CLEANUP_DATATAGS(fn) {\
     bool handled;\
     handleInitCleanupDataTags(fn, &handled);\
@@ -844,6 +853,30 @@ void TestLanguage::productConditions()
         product = products.value("product_false_condition");
         QVERIFY(product);
         QVERIFY(!product->enabled);
+    }
+    catch (const Error &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::productDirectories()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("productdirectories.qbs"));
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+        ResolvedProductPtr product;
+        product = products.value("MyApp");
+        QVERIFY(product);
+        const QVariantMap config = product->properties->value();
+        QCOMPARE(config.value(QLatin1String("buildDirectory")).toString(),
+                 buildDir(defaultParameters));
+        QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
     }
     catch (const Error &e) {
         exceptionCaught = true;

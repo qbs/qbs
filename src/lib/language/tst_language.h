@@ -60,6 +60,7 @@ private:
     ResolvedModuleConstPtr findModuleByName(ResolvedProductPtr product, const QString &name);
     QVariant productPropertyValue(ResolvedProductPtr product, QString propertyName);
     void handleInitCleanupDataTags(const char *projectFileName, bool *handled);
+    QString buildDir(const SetupProjectParameters &params) const;
 
 private slots:
     void initTestCase();
@@ -90,6 +91,7 @@ private slots:
     void outerInGroup();
     void pathProperties();
     void productConditions();
+    void productDirectories();
     void propertiesBlocks_data();
     void propertiesBlocks();
     void fileTags_data();

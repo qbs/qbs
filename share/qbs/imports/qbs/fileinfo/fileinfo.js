@@ -60,7 +60,6 @@ function relativePath(base, rel)
 }
 
 var windowsAbsolutePathPattern = new RegExp("^[a-z,A-Z]:[/,\\\\]")
-
 function isAbsolutePath(path)
 {
     if (!path)
