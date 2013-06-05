@@ -30,6 +30,7 @@
 #include "scannerpluginmanager.h"
 
 #include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QCoreApplication>
@@ -73,21 +74,21 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
             const QString fileName = it.next();
             QScopedPointer<QLibrary> lib(new QLibrary(fileName));
             if (!lib->load()) {
-                logger.qbsWarning() << QString::fromLocal8Bit("pluginmanager: couldn't load plugin '%1'.")
+                logger.qbsWarning() << Tr::tr("pluginmanager: couldn't load plugin '%1'.")
                                        .arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
 
             getScanners_f getScanners = reinterpret_cast<getScanners_f>(lib->resolve("getScanners"));
             if (!getScanners) {
-                logger.qbsWarning() << QString::fromLocal8Bit("pluginmanager: couldn't resolve "
+                logger.qbsWarning() << Tr::tr("pluginmanager: couldn't resolve "
                         "symbol in '%1'.").arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
 
             ScannerPlugin **plugins = getScanners();
             if (plugins == 0) {
-                logger.qbsWarning() << QString::fromLocal8Bit("pluginmanager: no scanners "
+                logger.qbsWarning() << Tr::tr("pluginmanager: no scanners "
                         "returned from '%1'.").arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
