@@ -855,7 +855,7 @@
 
     \table
     \row    \li \b{Type:}            \li \c{string} (read only)
-    \row    \li \b{Possible Values:} \c{"windows"}, \c{"linux"}, \c{"osx"}, \c{"unix"}
+    \row    \li \b{Possible Values:} \li \c{"windows"}, \c{"linux"}, \c{"osx"}, \c{"unix"}
     \endtable
 
     This property is set by qbs internally and contains the name of the OS qbs is running on.
@@ -897,7 +897,7 @@
     \section1 targetPlatform
 
     \table
-    \row    \li \b{Type:}            \li \c{Array} of \c{string}s
+    \row    \li \b{Type:}            \li \c{Array} of \c{string}s (read only)
     \endtable
 
     Holds attributes of the target platform. Always contains the value of \c{targetOS}.
@@ -908,7 +908,7 @@
         \li Description
     \row
         \li \c{"unix"}
-        \li The platform is a Unix derivative. E.g. this is set for Linux, OS X and Android.
+        \li The platform is a Unix derivative. This is set for Linux, OS X, iOS and Android.
     \row
         \li \c{"darwin"}
         \li The platform is derived from Darwin. This is set for OS X and iOS.
