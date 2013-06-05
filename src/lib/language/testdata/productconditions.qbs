@@ -14,6 +14,6 @@ Project {
     }
     Product {
         name: "product_condition_dependent_of_module"
-        condition: qbs.targetOS !== (qbs.targetOS + "foo")
+        condition: qbs.endianness !== (qbs.endianness + "foo")
     }
 }

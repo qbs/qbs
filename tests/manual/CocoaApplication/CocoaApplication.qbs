@@ -1,7 +1,7 @@
 import qbs 1.0
 
 CppApplication {
-    condition: qbs.targetOS === "osx"
+    condition: qbs.targetOS.contains("osx")
     type: "applicationbundle"
     name: "CocoaApplication"
 

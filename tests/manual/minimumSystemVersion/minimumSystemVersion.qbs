@@ -9,7 +9,7 @@ Project {
         files: "main.cpp"
 
         Properties {
-            condition: qbs.targetPlatform.indexOf("darwin") !== -1
+            condition: qbs.targetOS.contains("darwin")
             cpp.frameworks: "Foundation"
         }
     }
@@ -27,7 +27,7 @@ Project {
         cpp.minimumAndroidVersion: undefined
 
         Properties {
-            condition: qbs.targetPlatform.indexOf("darwin") !== -1
+            condition: qbs.targetOS.contains("darwin")
             cpp.frameworks: "Foundation"
         }
     }
@@ -38,17 +38,17 @@ Project {
     CppApplication {
         type: "application"
         Depends { name: "Qt.core" }
-        condition: qbs.targetOS === "windows" || qbs.targetOS === "osx"
+        condition: qbs.targetOS.contains("windows") || qbs.targetOS.contains("osx")
         name: "specific"
         files: "main.cpp"
 
         Properties {
-            condition: qbs.targetOS === "windows"
+            condition: qbs.targetOS.contains("windows")
             cpp.minimumWindowsVersion: "6.0"
         }
 
         Properties {
-            condition: qbs.targetOS === "osx"
+            condition: qbs.targetOS.contains("osx")
             cpp.frameworks: "Foundation"
             cpp.minimumOsxVersion: "10.6"
         }
@@ -60,7 +60,7 @@ Project {
     CppApplication {
         type: "application"
         Depends { name: "Qt.core" }
-        condition: qbs.targetOS === "windows"
+        condition: qbs.targetOS.contains("windows")
         name: "fakewindows"
         files: "main.cpp"
         cpp.minimumWindowsVersion: "5.3"
@@ -72,7 +72,7 @@ Project {
     CppApplication {
         type: "application"
         Depends { name: "Qt.core" }
-        condition: qbs.targetOS === "osx"
+        condition: qbs.targetOS.contains("osx")
         name: "macappstore"
         files: "main.cpp"
         cpp.frameworks: "Foundation"

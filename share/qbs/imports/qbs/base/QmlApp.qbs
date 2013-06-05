@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Product {
-    type: qbs.targetPlatform.indexOf("darwin") !== -1 ? "applicationbundle" : "application"
+    type: qbs.targetOS.contains("darwin") ? "applicationbundle" : "application"
     Depends { name: "Qt"; submodules: ["core", "declarative"] }
     Depends { name: "cpp" }
     property string appViewerPath: localPath + "/qmlapplicationviewer"

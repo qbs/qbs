@@ -101,7 +101,7 @@ function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIn
     }
     var sysroot = ModUtils.moduleProperty(product, "sysroot")
     if (sysroot) {
-        if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1)
+        if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
             args.push('-isysroot', sysroot);
         else
             args.push('--sysroot=' + sysroot);
@@ -126,7 +126,7 @@ function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIn
         args.push('-iframework' + systemFrameworkPaths[i]);
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
-    if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS") === "windows") {
+    if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS").contains("windows")) {
         var hexVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
@@ -148,12 +148,12 @@ function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
     var minimumOsxVersion = ModUtils.moduleProperty(product, "minimumOsxVersion");
-    if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS") === "osx")
+    if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS").contains("osx"))
         args.push('-mmacosx-version-min=' + minimumOsxVersion);
 
     var minimumiOSVersion = ModUtils.moduleProperty(product, "minimumIosVersion");
-    if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS") === "ios") {
-        if (product.moduleProperty("qbs", "architecture") === "x86")
+    if (minimumiOSVersion && product.moduleProperty("qbs", "targetOS").contains("ios")) {
+        if (product.moduleProperty("qbs", "targetOS").contains("ios-simulator"))
             args.push('-mios-simulator-version-min=' + minimumiOSVersion);
         else
             args.push('-miphoneos-version-min=' + minimumiOSVersion);

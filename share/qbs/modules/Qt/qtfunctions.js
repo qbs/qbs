@@ -3,14 +3,14 @@
 function getPlatformLibraryName(name, qtcore, qbs)
 {
     var libName = name;
-    if (qbs.targetOS === 'windows') {
+    if (qbs.targetOS.contains('windows')) {
         libName += (qbs.enableDebugCode ? 'd' : '');
         if (qtcore.versionMajor < 5)
             libName += qtcore.versionMajor;
         if (!qbs.toolchain.contains("mingw"))
             libName += '.lib';
     }
-    if (qbs.targetPlatform.indexOf("darwin") !== -1) {
+    if (qbs.targetOS.contains("darwin")) {
         if (!qtcore.frameworkBuild && qtcore.buildVariant.indexOf("debug") !== -1 &&
                 (qtcore.buildVariant.indexOf("release") === -1 || qbs.enableDebugCode))
             libName += '_debug';

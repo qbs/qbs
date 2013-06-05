@@ -5,15 +5,17 @@ import 'darwin-tools.js' as DarwinTools
 import 'bundle-tools.js' as BundleTools
 
 DarwinGCC {
-    condition: qbs.hostOS === 'osx' && qbs.targetOS === 'ios' && qbs.toolchain.contains('gcc')
+    condition: qbs.hostOS.contains('osx') && qbs.targetOS.contains('ios') && qbs.toolchain.contains('gcc')
 
     property string signingIdentity
     property string provisionFile
-    property bool buildIpa: qbs.architecture.match("^arm") === "arm"
+    property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
     visibility: "hidden"
-    optimization: ((qbs.buildVariant === "debug"            ) ? "none"  :
-                   (qbs.architecture.match("^arm") === "arm") ? "small" :
-                                                                "fast")
+    optimization: {
+        if (qbs.buildVariant === "debug")
+            return "none";
+        return qbs.targetOS.contains('ios-simulator') ? "fast" : "small"
+    }
 
     platformCommonCompilerFlags: base.concat(["-fvisibility-inlines-hidden", "-g", "-gdwarf-2", "-fPIE"])
     commonCompilerFlags: ["-fpascal-strings", "-fexceptions", "-fasm-blocks", "-fstrict-aliasing"]

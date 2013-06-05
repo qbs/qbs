@@ -371,19 +371,126 @@ QScriptValue EvaluatorScriptClass::js_getenv(QScriptContext *context, QScriptEng
 QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(context);
-    QString hostSystem;
+    QStringList hostSystem;
 
-#if defined(Q_OS_WIN)
-    hostSystem = "windows";
-#elif defined(Q_OS_DARWIN)
-    hostSystem = "osx";
-#elif defined(Q_OS_LINUX)
-    hostSystem = "linux";
-#elif defined(Q_OS_UNIX)
-    hostSystem = "unix";
-#else
-#   error unknown host platform
+#if defined(Q_OS_AIX)
+    hostSystem << "aix";
 #endif
+#if defined(Q_OS_ANDROID)
+    hostSystem << "android";
+#endif
+#if defined(Q_OS_BLACKBERRY)
+    hostSystem << "blackberry";
+#endif
+#if defined(Q_OS_BSD4)
+    hostSystem << "bsd" << "bsd4";
+#endif
+#if defined(Q_OS_BSDI)
+    hostSystem << "bsdi";
+#endif
+#if defined(Q_OS_CYGWIN)
+    hostSystem << "cygwin";
+#endif
+#if defined(Q_OS_DARWIN)
+    hostSystem << "darwin";
+#endif
+#if defined(Q_OS_DGUX)
+    hostSystem << "dgux";
+#endif
+#if defined(Q_OS_DYNIX)
+    hostSystem << "dynix";
+#endif
+#if defined(Q_OS_FREEBSD)
+    hostSystem << "freebsd";
+#endif
+#if defined(Q_OS_HPUX)
+    hostSystem << "hpux";
+#endif
+#if defined(Q_OS_HURD)
+    hostSystem << "hurd";
+#endif
+#if defined(Q_OS_INTEGRITY)
+    hostSystem << "integrity";
+#endif
+#if defined(Q_OS_IOS)
+    hostSystem << "ios";
+#endif
+#if defined(Q_OS_IRIX)
+    hostSystem << "irix";
+#endif
+#if defined(Q_OS_LINUX)
+    hostSystem << "linux";
+#endif
+#if defined(Q_OS_LYNX)
+    hostSystem << "lynx";
+#endif
+#if defined(Q_OS_MACX)
+    hostSystem << "osx";
+#endif
+#if defined(Q_OS_MSDOS)
+    hostSystem << "msdos";
+#endif
+#if defined(Q_OS_NACL)
+    hostSystem << "nacl";
+#endif
+#if defined(Q_OS_NETBSD)
+    hostSystem << "netbsd";
+#endif
+#if defined(Q_OS_OPENBSD)
+    hostSystem << "openbsd";
+#endif
+#if defined(Q_OS_OS2)
+    hostSystem << "os2";
+#endif
+#if defined(Q_OS_OS2EMX)
+    hostSystem << "os2emx";
+#endif
+#if defined(Q_OS_OSF)
+    hostSystem << "osf";
+#endif
+#if defined(Q_OS_QNX)
+    hostSystem << "qnx";
+#endif
+#if defined(Q_OS_ONX6)
+    hostSystem << "qnx6";
+#endif
+#if defined(Q_OS_RELIANT)
+    hostSystem << "reliant";
+#endif
+#if defined(Q_OS_SCO)
+    hostSystem << "sco";
+#endif
+#if defined(Q_OS_SOLARIS)
+    hostSystem << "solaris";
+#endif
+#if defined(Q_OS_SYMBIAN)
+    hostSystem << "symbian";
+#endif
+#if defined(Q_OS_ULTRIX)
+    hostSystem << "ultrix";
+#endif
+#if defined(Q_OS_UNIX)
+    hostSystem << "unix";
+#endif
+#if defined(Q_OS_UNIXWARE)
+    hostSystem << "unixware";
+#endif
+#if defined(Q_OS_VXWORKS)
+    hostSystem << "vxworks";
+#endif
+#if defined(Q_OS_WIN32)
+    hostSystem << "windows";
+#endif
+#if defined(Q_OS_WINCE)
+    hostSystem << "windowsce";
+#endif
+#if defined(Q_OS_WINPHONE)
+    hostSystem << "windowsphone";
+#endif
+#if defined(Q_OS_WINRT)
+    hostSystem << "windowsrt";
+#endif
+
     return engine->toScriptValue(hostSystem);
 }
 

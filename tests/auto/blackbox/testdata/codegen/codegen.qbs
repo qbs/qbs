@@ -3,7 +3,7 @@ import qbs.fileinfo as FileInfo
 
 Project {
     property string name: 'codegen'
-    property string osSpecificName: name.toUpperCase() + '_' + qbs.targetOS.toUpperCase()
+    property string osSpecificName: name.toUpperCase() + '_' + qbs.targetOS[0].toUpperCase()
 
     Product {
         type: 'application'
@@ -41,7 +41,7 @@ Project {
             }
 
             // check whether we can access project properties here
-            var expected = "CODEGEN_" + product.moduleProperty("qbs", "targetOS").toUpperCase();
+            var expected = "CODEGEN_" + product.moduleProperty("qbs", "targetOS")[0].toUpperCase();
             if (project.osSpecificName !== expected)
                 throw "Wrong project property value: " + project.osSpecificName
                         + "\nexpected: " + expected;
@@ -50,7 +50,7 @@ Project {
             code = expandMacros(code, product.replacements);
             var args = ['echo ' + code + '>' + output.fileName]
             var cmd
-            if (product.moduleProperty("qbs", "hostOS") == 'windows') {
+            if (product.moduleProperty("qbs", "hostOS").contains('windows')) {
                 cmd = new Command('cmd.exe', ['/C'].concat(args));
             } else {
                 args[0] = args[0].replace(/\(/g, '\\(')

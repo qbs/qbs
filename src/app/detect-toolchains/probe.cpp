@@ -216,7 +216,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
 
     Profile profile(QString::fromLocal8Bit(gccMachineName), settings);
     qbsInfo() << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
-    profile.setValue("qbs.targetOS", "windows");
+    profile.setValue("qbs.targetOS", QStringList("windows"));
     profile.setValue("cpp.toolchainInstallPath", mingwBinPath);
     profile.setValue("qbs.toolchain", QStringList() << "mingw" << "gcc");
     profiles << profile;

@@ -52,8 +52,7 @@ public:
     {
     public:
         QString name;
-        QString targetOS;
-        QStringList targetPlatform;
+        QStringList targetOS;
         QString toolchainDir;
         QString compilerName;
         QStringList cFlags;

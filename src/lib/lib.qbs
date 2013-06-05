@@ -5,8 +5,8 @@ DynamicLibrary {
     Depends { name: "Qt"; submodules: ["core", "script", "test"] }
     Depends { condition: Qt.core.versionMajor >= 5; name: "Qt.concurrent" }
     name: "qbscore"
-    targetName: (qbs.enableDebugCode && qbs.targetOS === "windows") ? (name + 'd') : name
-    destinationDirectory: qbs.targetOS == "windows" ? "bin" : "lib"
+    targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
+    destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : "lib"
     cpp.treatWarningsAsErrors: true
     cpp.includePaths: [
         ".",
@@ -22,7 +22,7 @@ DynamicLibrary {
         cpp.cxxFlags: ["/WX"]
     }
     Properties {
-        condition: qbs.toolchain.contains("gcc") && qbs.targetPlatform.indexOf("windows") === -1
+        condition: qbs.toolchain.contains("gcc") && !qbs.targetOS.contains("windows")
         cpp.cxxFlags: ["-Werror"]
     }
     property string headerInstallPrefix: "/include/qbs"
@@ -291,7 +291,7 @@ DynamicLibrary {
         qbs.installDir: headerInstallPrefix + "/tools"
     }
     Group {
-        condition: qbs.targetPlatform.indexOf("windows") != -1
+        condition: qbs.targetOS.contains("windows")
         name: "tools (Windows)"
         prefix: "tools/"
         files: [
@@ -299,7 +299,7 @@ DynamicLibrary {
         ]
     }
     Group {
-        condition: qbs.targetPlatform.indexOf("unix") != -1
+        condition: qbs.targetOS.contains("unix")
         name: "tools (Unix)"
         prefix: "tools/"
         files: [
@@ -321,12 +321,12 @@ DynamicLibrary {
     Group {
         fileTagsFilter: "dynamiclibrary"
         qbs.install: true
-        qbs.installDir: qbs.targetOS === "windows" ? "bin" : "lib"
+        qbs.installDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
     }
     Export {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["script"]}
-        cpp.rpaths: qbs.targetOS === "linux" ? ["$ORIGIN/../lib"] : undefined
+        cpp.rpaths: qbs.targetOS.contains("linux") ? ["$ORIGIN/../lib"] : undefined
         cpp.includePaths: path
     }
 }

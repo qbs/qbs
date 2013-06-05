@@ -327,8 +327,9 @@ ProjectData Project::projectData() const
 static bool isExecutable(const PropertyMapPtr &properties, const FileTags &tags)
 {
     return tags.contains("application")
-        || (properties->qbsPropertyValue(QLatin1String("targetOS"))
-            == QLatin1String("osx") && tags.contains("applicationbundle"));
+        || (properties->qbsPropertyValue(QLatin1String("targetOS")).toStringList()
+                .contains(QLatin1String("osx"))
+            && tags.contains("applicationbundle"));
 }
 
 /*!

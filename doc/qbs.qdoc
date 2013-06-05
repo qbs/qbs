@@ -503,7 +503,7 @@
     be compiled on a certain platform. This is how you do it:
     \code
         Group {
-            condition: qbs.targetOS == "windows"
+            condition: qbs.targetOS.contains("windows")
             files: [
                 "harddiskdeleter_win.cpp",
                 "blowupmonitor_win.cpp",
@@ -511,7 +511,7 @@
             ]
         }
         Group {
-            condition: qbs.targetOS == "linux"
+            condition: qbs.targetOS.contains("linux")
             files: [
                 "harddiskdeleter_linux.cpp",
                 "blowupmonitor_linux.cpp",
@@ -538,14 +538,17 @@
         are valid values but the user can add more in a project file.
     \row
         \li hostOS
-        \li string
+        \li stringlist
         \li platform-dependent
-        \li The host operating system. Currently "windows", "linux" or "osx".
+        \li The host operating system.
+            May contain "windows", "linux", "osx", "darwin", "unix", etc.
     \row
         \li targetOS
-        \li string
+        \li stringlist
         \li platform-dependent
-        \li The target operating system. Currently "windows", "linux" or "osx".
+        \li The target operating system.
+            May contain "windows", "linux", "osx", "darwin", "unix",
+            "ios", "android", "blackberry", "qnx", etc.
     \endtable
 
     You can set these properties on the command line or by using a profile. The property \a
@@ -856,22 +859,30 @@
     \section1 hostOS
 
     \table
-    \row    \li \b{Type:}            \li \c{string} (read only)
-    \row    \li \b{Possible Values:} \li \c{"windows"}, \c{"linux"}, \c{"osx"}, \c{"unix"}
+    \row    \li \b{Type:}            \li \c{Array} of \c{string}s (read only)
     \endtable
 
-    This property is set by qbs internally and contains the name of the OS qbs is running on.
+    This property is set by qbs internally and specifies the OS qbs is running on.
+    The possible values for this property are the values of \c targetOS,
+    though some may not be supported.
 
 
     \section1 targetOS
 
     \table
-    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Type:}            \li \c{Array} of \c{string}s
+    \row    \li \b{Possible Values:} \li one or more of:
+            \c{"android"},
+            \c{"darwin"},
+            \c{"ios"},
+            \c{"linux"},
+            \c{"osx"},
+            \c{"unix"},
+            \c{"windows"}
     \endtable
 
-    Specifies the OS you want to build the project for. This is typically set in a profile.
-    The possible values for this property are the values of \c hostOS plus a growing number
-    of supported operating systems like \c{"ios"}.
+    Specifies the OS you want to build the project for.
+    This is typically set in a profile.
 
 
     \section1 architecture
@@ -894,27 +905,6 @@
     \endtable
 
     Specifies the endianness of the target platform's processor architecture.
-
-
-    \section1 targetPlatform
-
-    \table
-    \row    \li \b{Type:}            \li \c{Array} of \c{string}s (read only)
-    \endtable
-
-    Holds attributes of the target platform. Always contains the value of \c{targetOS}.
-    Additional values of this property are:
-    \table
-    \header
-        \li Value
-        \li Description
-    \row
-        \li \c{"unix"}
-        \li The platform is a Unix derivative. This is set for Linux, OS X, iOS and Android.
-    \row
-        \li \c{"darwin"}
-        \li The platform is derived from Darwin. This is set for OS X and iOS.
-    \endtable
 
 
     \section1 toolchain

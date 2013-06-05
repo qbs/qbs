@@ -149,7 +149,6 @@ void SpecialPlatformsSetup::registerProfile(const PlatformInfo &platformInfo)
     profile.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("gcc")));
     profile.setValue(QLatin1String("qbs.endianness"), QLatin1String("little"));
     profile.setValue(QLatin1String("qbs.targetOS"), platformInfo.targetOS);
-    profile.setValue(QLatin1String("qbs.targetPlatform"), platformInfo.targetPlatform);
     profile.setValue(QLatin1String("qbs.sysroot"), platformInfo.sysrootDir);
 
     profile.setValue(QLatin1String("cpp.toolchainInstallPath"), platformInfo.toolchainDir);

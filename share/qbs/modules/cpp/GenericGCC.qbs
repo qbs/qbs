@@ -68,7 +68,7 @@ CppModule {
             var i;
             var args = Gcc.configFlags(product);
             args.push('-shared');
-            if (product.moduleProperty("qbs", "targetOS") === 'linux') {
+            if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
                 args = args.concat([
                     '-Wl,--hash-style=gnu',
                     '-Wl,--as-needed',
@@ -76,7 +76,7 @@ CppModule {
                     '-Wl,--no-undefined',
                     '-Wl,-soname=' + Gcc.soname()
                 ]);
-            } else if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1) {
+            } else if (product.moduleProperty("qbs", "targetOS").contains('darwin')) {
                 var installNamePrefix = product.moduleProperty("cpp", "installNamePrefix");
                 if (installNamePrefix !== undefined)
                     args.push("-Wl,-install_name,"
@@ -90,7 +90,7 @@ CppModule {
                 args.push(inputs.obj[i].fileName);
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot) {
-                if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1)
+                if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
                     args.push('-isysroot', sysroot);
                 else
                     args.push('--sysroot=' + sysroot);
@@ -127,7 +127,7 @@ CppModule {
 
             // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
             if (product.version
-                    && product.moduleProperty("qbs", "targetPlatform").indexOf("unix") !== -1) {
+                    && product.moduleProperty("qbs", "targetOS").contains("unix")) {
                 var versionParts = product.version.split('.');
                 var version = "";
                 var fname = FileInfo.fileName(output.fileName);
@@ -213,7 +213,7 @@ CppModule {
                 args.push(inputs.obj[i].fileName)
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot) {
-                if (product.moduleProperty("qbs", "targetPlatform").indexOf('darwin') !== -1)
+                if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
                     args.push('-isysroot', sysroot)
                 else
                     args.push('--sysroot=' + sysroot)
@@ -271,7 +271,7 @@ CppModule {
                 }
             }
 
-            if (product.moduleProperty("qbs", "targetOS") === 'linux') {
+            if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
                 var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'transitiveSOs')
                 for (i in transitiveSOs) {
                     args.push("-Wl,-rpath-link=" + FileInfo.path(transitiveSOs[i]))

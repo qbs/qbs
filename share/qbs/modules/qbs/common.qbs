@@ -6,20 +6,10 @@ Module {
     property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
-    property string hostOS: getHostOS()
-    property string pathListSeparator: hostOS === "windows" ? ";" : ":"
-    property string pathSeparator: hostOS === "windows" ? "\\" : "/"
-    property string targetOS: hostOS
-    property var targetPlatform: {
-        var platforms = [targetOS];
-        if (targetOS === "linux")
-            platforms.push("unix");
-        else if (targetOS === "android")
-            platforms.push("linux", "unix");
-        else if (targetOS === "osx" || targetOS === "ios")
-            platforms.push("darwin", "unix");
-        return platforms
-    }
+    property stringList hostOS: getHostOS()
+    property stringList targetOS
+    property string pathListSeparator: hostOS.contains("windows") ? ";" : ":"
+    property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
     property string profile
     property stringList toolchain
     property string architecture

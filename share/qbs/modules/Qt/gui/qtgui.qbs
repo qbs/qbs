@@ -33,7 +33,7 @@ QtModule {
     }
 
     Properties {
-        condition: Qt.core.staticBuild && qbs.targetOS == "ios"
+        condition: Qt.core.staticBuild && qbs.targetOS.contains("ios")
         cpp.frameworks: base.concat(["UIKit", "QuartzCore", "CoreText", "CoreGraphics",
                                      "Foundation", "CoreFoundation"])
     }

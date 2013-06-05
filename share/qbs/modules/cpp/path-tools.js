@@ -42,7 +42,8 @@ function dynamicLibraryFileName(version)
     var fileName = ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName;
 
     // For Darwin platforms, append the version number if there is one (i.e. libqbs.1.0.0)
-    if (version && product.moduleProperty("qbs", "targetPlatform").indexOf("darwin") !== -1) {
+    var targetOS = product.moduleProperty("qbs", "targetOS");
+    if (version && targetOS.contains("darwin")) {
         fileName += "." + version;
         version = undefined;
     }
@@ -51,7 +52,7 @@ function dynamicLibraryFileName(version)
     fileName += ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
 
     // For non-Darwin Unix platforms, append the version number if there is one (i.e. libqbs.so.1.0.0)
-    if (version && product.moduleProperty("qbs", "targetPlatform").indexOf("unix") !== -1)
+    if (version && targetOS.contains("unix") && !targetOS.contains("darwin"))
         fileName += "." + version;
 
     return fileName;

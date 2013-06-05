@@ -46,7 +46,7 @@ Module {
             defines.push("QT_NO_DEBUG");
         if (namespace)
             defines.push("QT_NAMESPACE=" + namespace);
-        if (qbs.targetOS === "ios")
+        if (qbs.targetOS.contains("ios"))
             defines = defines.concat(["DARWIN_NO_CARBON", "QT_NO_CORESERVICES", "QT_NO_PRINTER",
                             "QT_NO_PRINTDIALOG", "main=qt_main"]);
         return defines;
@@ -67,14 +67,14 @@ Module {
         return libPaths;
     }
     cpp.staticLibraries: {
-        if (qbs.targetOS === 'windows' && !product.consoleApplication)
+        if (qbs.targetOS.contains('windows') && !product.consoleApplication)
             return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : "")];
     }
     cpp.dynamicLibraries: {
         var libs = [];
         if (!frameworkBuild)
             libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)];
-        if (qbs.targetOS === 'ios' && staticBuild)
+        if (qbs.targetOS.contains('ios') && staticBuild)
             libs = libs.concat(["z", "m",
                                 QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs),
                                 QtFunctions.getPlatformLibraryName("qiosmain", qtcore, qbs)]);
@@ -82,7 +82,7 @@ Module {
             return undefined;
         return libs;
     }
-    cpp.linkerFlags: ((qbs.targetOS === 'ios' && staticBuild) ?
+    cpp.linkerFlags: ((qbs.targetOS.contains('ios') && staticBuild) ?
                           ["-force_load", pluginPath + "/platforms/" +
                            QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs) + ".a"] : undefined)
     cpp.frameworkPaths: frameworkBuild ? [libPath] : undefined
@@ -90,13 +90,13 @@ Module {
         var frameworks = [];
         if (frameworkBuild)
             frameworks = [QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)]
-        if (qbs.targetOS === 'ios' && staticBuild)
+        if (qbs.targetOS.contains('ios') && staticBuild)
             frameworks = frameworks.concat(["Foundation", "CoreFoundation"]);
         if (frameworks.length === 0)
             return undefined;
         return frameworks;
     }
-    cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
+    cpp.rpaths: qbs.targetOS.contains('linux') ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
     cpp.cxxFlags: {
         var flags;
@@ -129,7 +129,7 @@ Module {
         if (v.length > 0 && v.charAt(0) != ';')
             v = ';' + v
         var y = binPath
-        if (qbs.targetOS === 'windows')
+        if (qbs.targetOS.contains('windows'))
             v = FileInfo.toWindowsSeparators(y) + v
         else
             v = y + v

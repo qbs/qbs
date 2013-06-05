@@ -192,14 +192,15 @@ void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCo
                              .arg(fInfo.absoluteFilePath());
                 continue;
             }
-            QString targetOS;
+            QStringList targetOS;
+            targetOS << QLatin1String("darwin") << QLatin1String("unix");
             QString name = infoSettings.value(QLatin1String("Name")).toString();
             if (name == QLatin1String("macosx")) {
-                targetOS = QLatin1String("osx");
+                targetOS << QLatin1String("osx");
             } else if (name == QLatin1String("iphoneos")) {
-                targetOS = QLatin1String("ios");
+                targetOS << QLatin1String("ios");
             } else if (name == QLatin1String("iphonesimulator")) {
-                targetOS = QLatin1String("ios");
+                targetOS << QLatin1String("ios") << QLatin1String("ios-simulator");
             } else {
                 qbsInfo() << indent << Tr::tr("Skipping unknown platform %1").arg(name);
                 continue;

@@ -17,7 +17,7 @@ Project {
         ]
 
         Group {
-            condition: qbs.targetPlatform.indexOf("darwin") !== -1
+            condition: qbs.targetOS.contains("darwin")
             files: [
                 "lib.m",
                 "lib.mm"
@@ -26,7 +26,7 @@ Project {
 
         Export {
             Depends { name: "cpp" }
-            cpp.frameworks: qbs.targetPlatform.indexOf("darwin") !== -1 ? "Foundation" : undefined
+            cpp.frameworks: qbs.targetOS.contains("darwin") ? "Foundation" : undefined
         }
     }
 }

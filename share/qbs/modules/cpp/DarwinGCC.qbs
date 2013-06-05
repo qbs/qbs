@@ -58,10 +58,10 @@ UnixGCC {
         if (product.type.indexOf("applicationbundle") !== -1)
             dict["CFBundleIconFile"] = product.targetName;
 
-        if (qbs.targetOS === "osx" && minimumOsxVersion)
+        if (qbs.targetOS.contains("osx") && minimumOsxVersion)
             dict["LSMinimumSystemVersion"] = minimumOsxVersion;
 
-        if (qbs.targetOS === "ios") {
+        if (qbs.targetOS.contains("ios")) {
             dict["LSRequiresIPhoneOS"] = true;
 
             // architectures supported, to support iPhone 3G for example one has to add
@@ -177,7 +177,7 @@ UnixGCC {
                             aggregatePlist[key] = props[key];
                         }
 
-                        if (product.moduleProperty("qbs", "targetOS") === "ios") {
+                        if (product.moduleProperty("qbs", "targetOS").contains("ios")) {
                             key = "UIDeviceFamily";
                             if (key in platformInfo && !(key in aggregatePlist))
                                 aggregatePlist[key] = platformInfo[key];
@@ -237,7 +237,7 @@ UnixGCC {
                 // Convert the written file to the format appropriate for the current platform
                 process = new Process();
                 process.start("plutil", ["-convert",
-                                        product.moduleProperty("qbs", "targetOS") === "ios"
+                                        product.moduleProperty("qbs", "targetOS").contains("ios")
                                             ? "binary1" : "xml1",
                                         outputs.infoplist[0].fileName]);
                 process.waitForFinished();

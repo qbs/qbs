@@ -43,7 +43,7 @@
     \code
     Product {
         Properties {
-            condition: qbs.targetOS == "windows"
+            condition: qbs.targetOS.contains("windows")
             cpp.defines: ["ON_WINDOWS"]
             cpp.includePaths: ["extraWindowsIncludes"]
         }
@@ -56,12 +56,12 @@
     \code
     Product {
         Properties {
-            condition: qbs.targetOS == "windows"
+            condition: qbs.targetOS.contains("windows")
             cpp.defines: ["ON_WINDOWS"]
             cpp.includePaths: ["myWindowsIncludes"]
         }
         Properties {
-            condition: qbs.targetOS == "linux"
+            condition: qbs.targetOS.contains("linux")
             cpp.defines: ["ON_LINUX"]
             cpp.includePaths: ["myLinuxIncludes"]
         }
@@ -72,16 +72,16 @@
     \code
     Product {
         cpp.defines: {
-            if (qbs.targetOS == "windows")
+            if (qbs.targetOS.contains("windows"))
                 return ["ON_WINDOWS"];
-            if (qbs.targetOS == "linux")
+            if (qbs.targetOS.contains("linux"))
                 return ["ON_LINUX"];
             return ["ON_UNKNOWN_PLATFORM"];
         }
         cpp.includePaths: {
-            if (qbs.targetOS == "windows")
+            if (qbs.targetOS.contains("windows"))
                 return ["ON_WINDOWS"];
-            if (qbs.targetOS == "linux")
+            if (qbs.targetOS.contains("linux"))
                 return ["ON_LINUX"];
             return undefined;
         }

@@ -3,7 +3,7 @@ import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
 
 GenericGCC {
-    condition: qbs.targetOS === "windows" && qbs.toolchain.contains("mingw")
+    condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
     staticLibraryPrefix: "lib"
     dynamicLibraryPrefix: ""
     executablePrefix: ""

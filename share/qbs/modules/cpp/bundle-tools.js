@@ -203,7 +203,7 @@ function scriptsFolderPath(product, version)
 // iOS tends to store the majority of files in its bundles in the main directory
 function isShallowBundle(product)
 {
-    return product.moduleProperty("qbs", "targetOS") === "ios"
+    return product.moduleProperty("qbs", "targetOS").contains("ios")
         && product.type.indexOf("applicationbundle") !== -1;
 }
 

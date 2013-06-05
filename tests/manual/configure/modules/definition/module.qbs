@@ -9,7 +9,7 @@ Module {
         configure: {
             var cmd;
             var args;
-            if (qbs.targetOS === "windows") {
+            if (qbs.targetOS.contains("windows")) {
                 cmd = "cmd";
                 args = ["/c", "date", "/t"];
             } else {
