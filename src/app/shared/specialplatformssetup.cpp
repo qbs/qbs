@@ -146,7 +146,7 @@ void SpecialPlatformsSetup::registerProfile(const PlatformInfo &platformInfo)
 
     Profile profile(platformInfo.name, m_settings);
     profile.removeProfile();
-    profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
+    profile.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("gcc")));
     profile.setValue(QLatin1String("qbs.endianness"), QLatin1String("little"));
     profile.setValue(QLatin1String("qbs.targetOS"), platformInfo.targetOS);
     profile.setValue(QLatin1String("qbs.targetPlatform"), platformInfo.targetPlatform);

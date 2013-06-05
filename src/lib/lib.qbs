@@ -18,11 +18,11 @@ DynamicLibrary {
         "QBS_LIBRARY", "SRCDIR=\"" + path + "\""
     ]
     Properties {
-        condition: qbs.toolchain === "msvc"
+        condition: qbs.toolchain.contains("msvc")
         cpp.cxxFlags: ["/WX"]
     }
     Properties {
-        condition: qbs.toolchain === "gcc" && qbs.targetPlatform.indexOf("windows") === -1
+        condition: qbs.toolchain.contains("gcc") && qbs.targetPlatform.indexOf("windows") === -1
         cpp.cxxFlags: ["-Werror"]
     }
     property string headerInstallPrefix: "/include/qbs"

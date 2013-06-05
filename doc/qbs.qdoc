@@ -920,11 +920,11 @@
     \section1 toolchain
 
     \table
-    \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"gcc"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}
+    \row    \li \b{Type:}            \li \c{Array} of \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"gcc"}, \c{"llvm"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}
     \endtable
 
-    Specifies the toolchain that is going to be used for this build.
+    Specifies the attributes of the toolchain that is going to be used for this build.
 
 
     \section1 sysroot

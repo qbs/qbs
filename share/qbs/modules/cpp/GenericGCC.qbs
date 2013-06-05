@@ -221,7 +221,7 @@ CppModule {
             args = args.concat(platformLinkerFlags);
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
-            if (product.moduleProperty("qbs", "toolchain") === "mingw") {
+            if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
                 if (product.consoleApplication !== undefined)
                     if (product.consoleApplication)
                         args.push("-Wl,-subsystem,console");
@@ -327,7 +327,7 @@ CppModule {
             args.push('-pipe');
 
             if (product.type.indexOf('staticlibrary') === -1
-                    && product.moduleProperty("qbs", "toolchain") !== "mingw") {
+                    && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
                 if (visibility === 'hidden')
                     args.push('-fvisibility=hidden');
                 if (visibility === 'hiddenInlines')

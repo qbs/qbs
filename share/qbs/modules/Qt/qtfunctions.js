@@ -7,7 +7,7 @@ function getPlatformLibraryName(name, qtcore, qbs)
         libName += (qbs.enableDebugCode ? 'd' : '');
         if (qtcore.versionMajor < 5)
             libName += qtcore.versionMajor;
-        if (qbs.toolchain !== "mingw")
+        if (!qbs.toolchain.contains("mingw"))
             libName += '.lib';
     }
     if (qbs.targetPlatform.indexOf("darwin") !== -1) {

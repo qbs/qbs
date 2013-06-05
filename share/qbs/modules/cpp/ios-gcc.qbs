@@ -5,7 +5,7 @@ import 'darwin-tools.js' as DarwinTools
 import 'bundle-tools.js' as BundleTools
 
 DarwinGCC {
-    condition: qbs.hostOS === 'osx' && qbs.targetOS === 'ios' && qbs.toolchain === 'gcc'
+    condition: qbs.hostOS === 'osx' && qbs.targetOS === 'ios' && qbs.toolchain.contains('gcc')
 
     property string signingIdentity
     property string provisionFile

@@ -68,7 +68,7 @@ Module {
     }
     cpp.staticLibraries: {
         if (qbs.targetOS === 'windows' && !product.consoleApplication)
-            return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (qbs.toolchain !== "mingw" ? ".lib" : "")];
+            return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : "")];
     }
     cpp.dynamicLibraries: {
         var libs = [];
@@ -100,7 +100,7 @@ Module {
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
     cpp.cxxFlags: {
         var flags;
-        if (qbs.toolchain === 'msvc') {
+        if (qbs.toolchain.contains('msvc')) {
             flags = ['/Zm200'];
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');

@@ -21,7 +21,7 @@ Module {
         return platforms
     }
     property string profile
-    property string toolchain
+    property stringList toolchain
     property string architecture
 
     property string endianness

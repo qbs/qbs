@@ -3,7 +3,7 @@ import qbs 1.0
 PathProbe {
     pathSuffixes: [ "include" ]
     platformEnvironmentPaths: {
-        if (qbs.toolchain === 'msvc')
+        if (qbs.toolchain.contains('msvc'))
             return [ "INCLUDE" ];
         return undefined;
     }

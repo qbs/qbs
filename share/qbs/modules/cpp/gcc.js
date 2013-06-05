@@ -88,11 +88,11 @@ function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIn
 
     var args = []
     if (effectiveType === EffectiveTypeEnum.LIB) {
-        if (product.moduleProperty("qbs", "toolchain") !== "mingw")
+        if (!product.moduleProperty("qbs", "toolchain").contains("mingw"))
             args.push('-fPIC');
     } else if (effectiveType === EffectiveTypeEnum.APP) {
         var positionIndependentCode = product.moduleProperty('cpp', 'positionIndependentCode')
-        if (positionIndependentCode && product.moduleProperty("qbs", "toolchain") !== "mingw")
+        if (positionIndependentCode && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
             args.push('-fPIE');
     } else {
         throw ("The product's type must be in " + JSON.stringify(

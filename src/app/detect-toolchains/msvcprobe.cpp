@@ -71,7 +71,7 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, const 
     p.removeProfile();
     p.setValue("qbs.targetOS", "windows");
     p.setValue("cpp.toolchainInstallPath", installPath);
-    p.setValue("qbs.toolchain", "msvc");
+    p.setValue("qbs.toolchain", QStringList("msvc"));
     p.setValue("cpp.windowsSDKPath", winSDKPath);
     profiles << p;
 }

@@ -7,7 +7,7 @@ import "bundle-tools.js" as BundleTools     // needed for path-tools.js
 import 'path-tools.js' as PathTools
 
 CppModule {
-    condition: qbs.hostOS === 'windows' && qbs.targetOS === 'windows' && qbs.toolchain === 'msvc'
+    condition: qbs.hostOS === 'windows' && qbs.targetOS === 'windows' && qbs.toolchain.contains('msvc')
 
     id: module
 

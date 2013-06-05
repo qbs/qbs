@@ -72,10 +72,17 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(cc);
 
     QString toolchainType;
-    if (cc.contains("clang"))
+    QStringList toolchainTypes;
+    if (cc.contains("clang")) {
         toolchainType = "clang";
-    else if (cc.contains("gcc"))
+        toolchainTypes << "clang" << "llvm" << "gcc";
+    } else if (cc.contains("llvm")) {
+        toolchainType = "llvm-gcc";
+        toolchainTypes << "llvm" << "gcc";
+    } else if (cc.contains("gcc")) {
         toolchainType = "gcc";
+        toolchainTypes << "gcc";
+    }
 
     QString path       = QString::fromLocal8Bit(qgetenv("PATH"));
     QString cxx        = QString::fromLocal8Bit(qgetenv("CXX"));
@@ -101,7 +108,9 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     if (cxx.isEmpty()) {
         if (toolchainType == "gcc")
             cxx = "g++";
-        else if(toolchainType == "clang")
+        else if (toolchainType == "llvm-gcc")
+            cxx = "llvm-g++";
+        else if (toolchainType == "clang")
             cxx = "clang++";
     }
     if(!cross.isEmpty() && !cc.startsWith("/")) {
@@ -156,9 +165,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     Profile profile(toolchainType, settings);
     profile.removeProfile();
 
-    // fixme should be cpp.toolchain
-    // also there is no toolchain:clang
-    profile.setValue("qbs.toolchain", "gcc");
+    profile.setValue("qbs.toolchain", toolchainTypes);
     profile.setValue("qbs.architecture", architecture);
     profile.setValue("qbs.endianness", endianness);
 
@@ -211,7 +218,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     qbsInfo() << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
     profile.setValue("qbs.targetOS", "windows");
     profile.setValue("cpp.toolchainInstallPath", mingwBinPath);
-    profile.setValue("qbs.toolchain", "mingw");
+    profile.setValue("qbs.toolchain", QStringList() << "mingw" << "gcc");
     profiles << profile;
 }
 

@@ -286,7 +286,7 @@ void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCo
                 Profile clangProfile(clangFullName, settings);
                 clangProfile.removeProfile();
                 clangProfile.setValue("qbs.targetOS", targetOS);
-                clangProfile.setValue("qbs.toolchain", "gcc");
+                clangProfile.setValue("qbs.toolchain", QStringList() << "clang" << "llvm" << "gcc");
                 QStringList extraFlags;
                 if (defaultProp.contains(QLatin1String("ARCHS"))) {
                     QString arch = defaultProp.value(QLatin1String("ARCHS")).toString();
@@ -313,7 +313,11 @@ void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCo
                 gccProfile.removeProfile();
                 // use the arm-apple-darwin10-llvm-* variant if available???
                 gccProfile.setValue("qbs.targetOS", targetOS);
-                gccProfile.setValue("qbs.toolchain", "gcc");
+                QStringList toolchainTypes;
+                toolchainTypes << "gcc";
+                if (gccFullName.contains("llvm"))
+                    toolchainTypes << "llvm";
+                gccProfile.setValue("qbs.toolchain", toolchainTypes);
                 if (!sysRoot.isEmpty())
                     gccProfile.setValue("qbs.sysroot", sysRoot);
                 gccProfile.setValue("cpp.platformPath",fInfo.canonicalFilePath());
