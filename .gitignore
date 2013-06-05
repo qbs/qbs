@@ -9,6 +9,7 @@ build
 *.obj
 *.pdb
 *.pro.user*
+*.qbs.user*
 *~
 *.o
 *.lib
