@@ -40,7 +40,8 @@ class SetupProjectParametersPrivate : public QSharedData
 {
 public:
     SetupProjectParametersPrivate()
-        : ignoreDifferentProjectFilePath(false), dryRun(false), logElapsedTime(false)
+        : ignoreDifferentProjectFilePath(false), dryRun(false), logElapsedTime(false),
+          environment(QProcessEnvironment::systemEnvironment())
     {
     }
 
@@ -52,6 +53,7 @@ public:
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
     bool logElapsedTime;
+    QProcessEnvironment environment;
 };
 
 } // namespace Internal
@@ -217,6 +219,22 @@ bool SetupProjectParameters::logElapsedTime() const
 void SetupProjectParameters::setLogElapsedTime(bool logElapsedTime)
 {
     d->logElapsedTime = logElapsedTime;
+}
+
+/*!
+ * \brief Gets the environment used while resolving the project.
+ */
+QProcessEnvironment SetupProjectParameters::environment() const
+{
+    return d->environment;
+}
+
+/*!
+ * \brief Sets the environment used while resolving the project.
+ */
+void SetupProjectParameters::setEnvironment(const QProcessEnvironment &env)
+{
+    d->environment = env;
 }
 
 } // namespace qbs

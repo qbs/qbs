@@ -243,9 +243,9 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
 }
 
 void BuildJob::build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
-                     const BuildOptions &options, const QProcessEnvironment &env)
+                     const BuildOptions &options)
 {
-    qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options, env);
+    qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options);
 }
 
 

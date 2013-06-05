@@ -41,6 +41,8 @@
 #include <tools/error.h>
 #include <tools/propertyfinder.h>
 
+#include <QProcessEnvironment>
+
 Q_DECLARE_METATYPE(QList<bool>)
 
 namespace qbs {
@@ -247,14 +249,23 @@ void TestLanguage::environmentVariable()
 {
     bool exceptionCaught = false;
     try {
-        const QByteArray productName = QByteArray("MyApp") + QByteArray::number(qrand());
-        qputenv("PRODUCT_NAME", productName);
+        // Create new environment:
+        const QString varName = QLatin1String("PRODUCT_NAME");
+        const QString productName = QLatin1String("MyApp") + QString::number(qrand());
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        env.insert(varName, productName);
+
+        QProcessEnvironment origEnv = defaultParameters.environment(); // store orig environment
+
+        defaultParameters.setEnvironment(env);
         defaultParameters.setProjectFilePath(testProject("environmentvariable.qbs"));
         project = loader->loadProject(defaultParameters);
-        qputenv("PRODUCT_NAME", QByteArray());
+
+        defaultParameters.setEnvironment(origEnv); // reset environment
+
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        ResolvedProductPtr product = products.value(QString::fromUtf8(productName));
+        ResolvedProductPtr product = products.value(productName);
         QVERIFY(product);
     } catch (const Error &e) {
         exceptionCaught = true;

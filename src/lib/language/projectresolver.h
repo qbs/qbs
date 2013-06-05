@@ -56,7 +56,9 @@ public:
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
-    ResolvedProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot, const QVariantMap &buildConfiguration);
+    ResolvedProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot,
+                               const QVariantMap &buildConfiguration,
+                               const QProcessEnvironment &environment);
 
 private:
     struct ProjectContext
@@ -126,6 +128,7 @@ private:
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     QSet<QString> m_groupPropertyDeclarations;
+    QProcessEnvironment m_environment;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item);
     typedef QMap<QByteArray, ItemFuncPtr> ItemFuncMap;

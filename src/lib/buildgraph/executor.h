@@ -40,7 +40,6 @@
 #include <tools/error.h>
 
 #include <QObject>
-#include <QProcessEnvironment>
 
 namespace qbs {
 class ProcessResult;
@@ -67,7 +66,6 @@ public:
     void setProducts(const QList<ResolvedProductPtr> &productsToBuild);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
-    void setBaseEnvironment(const QProcessEnvironment &env) { m_baseEnvironment = env; }
 
     Error error() const { return m_error; }
     bool hasError() const { return !error().entries().isEmpty(); }
@@ -119,7 +117,6 @@ private:
     BuildOptions m_buildOptions;
     Logger m_logger;
     ProgressObserver *m_progressObserver;
-    QProcessEnvironment m_baseEnvironment;
     QList<ExecutorJob*> m_availableJobs;
     QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;

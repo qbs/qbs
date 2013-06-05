@@ -161,6 +161,16 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     defineProperty(object, name, descriptor);
 }
 
+QProcessEnvironment ScriptEngine::environment() const
+{
+    return m_environment;
+}
+
+void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
+{
+    m_environment = env;
+}
+
 void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,
                                QScriptValue &targetObject)
 {
@@ -222,7 +232,7 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
     }
 }
 
-void ScriptEngine::addEnvironmentVariable(const QByteArray &name, const QByteArray &value)
+void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &value)
 {
     m_usedEnvironment.insert(name, value);
 }

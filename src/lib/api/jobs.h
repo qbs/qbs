@@ -115,7 +115,7 @@ private:
 
     void build(const Internal::ResolvedProjectPtr &project,
                const QList<qbs::Internal::ResolvedProductPtr> &products,
-               const BuildOptions &options, const QProcessEnvironment &env);
+               const BuildOptions &options);
 };
 
 

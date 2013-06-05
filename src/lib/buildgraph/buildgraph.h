@@ -35,6 +35,7 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
+#include <QProcessEnvironment>
 #include <QScriptValue>
 #include <QStringList>
 
@@ -82,7 +83,7 @@ QStringList toStringList(const T &artifactContainer)
 class BuildGraphLoader
 {
 public:
-    BuildGraphLoader(const Logger &logger);
+    BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger);
 
     class LoadResult
     {
@@ -111,6 +112,7 @@ private:
     RulesEvaluationContextPtr m_evalContext;
     LoadResult m_result;
     Logger m_logger;
+    QProcessEnvironment m_environment;
 };
 
 } // namespace Internal

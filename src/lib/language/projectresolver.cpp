@@ -83,7 +83,8 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 
 ResolvedProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
                                             const QString &buildRoot,
-                                            const QVariantMap &buildConfiguration)
+                                            const QVariantMap &buildConfiguration,
+                                            const QProcessEnvironment &environment)
 {
     QBS_ASSERT(FileInfo::isAbsolute(buildRoot), return ResolvedProjectPtr());
     if (m_logger.traceEnabled())
@@ -93,12 +94,14 @@ ResolvedProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     projectContext.loadResult = &loadResult;
     m_buildRoot = buildRoot;
     m_buildConfiguration = buildConfiguration;
+    m_environment = environment;
     m_projectContext = &projectContext;
     m_productContext = 0;
     m_moduleContext = 0;
     resolveProject(loadResult.root);
     m_projectContext = 0;
     projectContext.project->usedEnvironment = m_engine->usedEnvironment();
+    projectContext.project->environment = m_environment;
     return projectContext.project;
 }
 
@@ -181,6 +184,8 @@ void ProjectResolver::resolveProject(Item *item)
     project->location = item->location();
     project->setBuildConfiguration(m_buildConfiguration);
     project->buildDirectory = ResolvedProject::deriveBuildDirectory(m_buildRoot, project->id());
+
+    m_evaluator->engine()->setEnvironment(m_environment);
 
     QVariantMap projectProperties;
     for (QMap<QString, PropertyDeclaration>::const_iterator it

@@ -361,11 +361,11 @@ QScriptValue EvaluatorScriptClass::js_getenv(QScriptContext *context, QScriptEng
         return context->throwError(QScriptContext::SyntaxError,
                                    QLatin1String("getenv expects 1 argument"));
     }
-    const QByteArray name = context->argument(0).toString().toLocal8Bit();
-    const QByteArray value = qgetenv(name);
+    const QString name = context->argument(0).toString();
     ScriptEngine * const e = static_cast<ScriptEngine *>(engine);
+    const QString value = e->environment().value(name);
     e->addEnvironmentVariable(name, value);
-    return value.isNull() ? engine->undefinedValue() : QString::fromLocal8Bit(value);
+    return value.isNull() ? engine->undefinedValue() : value;
 }
 
 QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScriptEngine *engine)

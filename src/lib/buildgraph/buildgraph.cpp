@@ -437,7 +437,8 @@ void dumpProductBuildData(const ResolvedProductConstPtr &product)
 }
 
 
-BuildGraphLoader::BuildGraphLoader(const Logger &logger) : m_logger(logger)
+BuildGraphLoader::BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger) :
+    m_logger(logger), m_environment(env)
 {
 }
 
@@ -533,9 +534,9 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         m_logger.qbsTrace() << "Project file changed, must re-resolve project.";
 
     bool environmentChanged = false;
-    for (QHash<QByteArray, QByteArray>::ConstIterator it = restoredProject->usedEnvironment.constBegin();
+    for (QHash<QString, QString>::ConstIterator it = restoredProject->usedEnvironment.constBegin();
          !environmentChanged && it != restoredProject->usedEnvironment.constEnd(); ++it) {
-        environmentChanged = qgetenv(it.key()) != it.value();
+        environmentChanged = m_environment.value(it.key()) != it.value();
     }
     if (environmentChanged)
         m_logger.qbsTrace() << "A relevant environment variable changed, must re-resolve project.";

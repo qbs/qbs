@@ -220,7 +220,7 @@ void Executor::doBuild()
 
     // prepare products
     foreach (ResolvedProductPtr product, m_productsToBuild)
-        product->setupBuildEnvironment(m_evalContext->engine(), m_baseEnvironment);
+        product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);
 
     // find the root nodes
     m_roots.clear();

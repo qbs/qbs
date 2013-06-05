@@ -334,8 +334,9 @@ public:
 
     CodeLocation location;
     QString buildDirectory; // Not saved
+    QProcessEnvironment environment;
     QVariantMap platformEnvironment;
-    QHash<QByteArray, QByteArray> usedEnvironment; // Environment variables requested by the project while resolving.
+    QHash<QString, QString> usedEnvironment; // Environment variables requested by the project while resolving.
     QList<ResolvedProductPtr> products;
     QScopedPointer<ProjectBuildData> buildData;
 

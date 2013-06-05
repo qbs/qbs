@@ -78,12 +78,11 @@ public:
     RunEnvironment getRunEnvironment(const ProductData &product,
             const QProcessEnvironment &environment, Settings *settings) const;
 
-    BuildJob *buildAllProducts(const BuildOptions &options, const QProcessEnvironment &env,
-                               QObject *jobOwner = 0) const;
+    BuildJob *buildAllProducts(const BuildOptions &options, QObject *jobOwner = 0) const;
     BuildJob *buildSomeProducts(const QList<ProductData> &products, const BuildOptions &options,
-                                const QProcessEnvironment &env, QObject *jobOwner = 0) const;
+                                QObject *jobOwner = 0) const;
     BuildJob *buildOneProduct(const ProductData &product, const BuildOptions &options,
-                              const QProcessEnvironment &env, QObject *jobOwner = 0) const;
+                              QObject *jobOwner = 0) const;
 
     CleanJob *cleanAllProducts(const CleanOptions &options, QObject *jobOwner = 0) const;
     CleanJob *cleanSomeProducts(const QList<ProductData> &products, const CleanOptions &options,

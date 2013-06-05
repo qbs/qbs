@@ -650,9 +650,13 @@ void ResolvedProject::load(PersistentPool &pool)
         }
         products.append(rProduct);
     }
+    QHash<QString, QString> envHash;
     pool.stream()
         >> usedEnvironment
-        >> m_projectProperties;
+        >> m_projectProperties
+        >> envHash;
+    for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
+        environment.insert(i.key(), i.value());
     buildData.reset(pool.idLoad<ProjectBuildData>());
 }
 
@@ -667,9 +671,13 @@ void ResolvedProject::store(PersistentPool &pool) const
     pool.stream() << products.count();
     foreach (const ResolvedProductConstPtr &product, products)
         pool.store(product);
+    QHash<QString, QString> envHash;
+    foreach (const QString &key, environment.keys())
+        envHash.insert(key, environment.value(key));
     pool.stream()
         << usedEnvironment
-        << m_projectProperties;
+        << m_projectProperties
+        << envHash;
     pool.store(buildData.data());
 }
 

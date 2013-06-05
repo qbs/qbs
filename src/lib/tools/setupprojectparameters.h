@@ -31,6 +31,7 @@
 
 #include "qbs_export.h"
 
+#include <QProcessEnvironment>
 #include <QSharedDataPointer>
 #include <QStringList>
 #include <QVariantMap>
@@ -70,6 +71,9 @@ public:
 
     bool logElapsedTime() const;
     void setLogElapsedTime(bool logElapsedTime);
+
+    QProcessEnvironment environment() const;
+    void setEnvironment(const QProcessEnvironment &env);
 
 private:
     QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;

@@ -42,10 +42,6 @@
 #include <QObject>
 #include <QWaitCondition>
 
-QT_BEGIN_NAMESPACE
-class QProcessEnvironment;
-QT_END_NAMESPACE
-
 namespace qbs {
 class ProcessResult;
 class Settings;
@@ -150,7 +146,7 @@ public:
     InternalBuildJob(const Logger &logger, QObject *parent = 0);
 
     void build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
-               const BuildOptions &buildOptions, const QProcessEnvironment &env);
+               const BuildOptions &buildOptions);
 
 private slots:
     void handleFinished();

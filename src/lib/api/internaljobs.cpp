@@ -49,7 +49,6 @@
 #include <QtConcurrentRun>
 #include <QFutureWatcher>
 #include <QMutexLocker>
-#include <QProcessEnvironment>
 #include <QScopedPointer>
 #include <QThread>
 #include <QTimer>
@@ -188,7 +187,7 @@ void InternalSetupProjectJob::execute()
 {
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext(logger()));
     evalContext->setObserver(observer());
-    BuildGraphLoader bpLoader(logger());
+    BuildGraphLoader bpLoader(m_parameters.environment(), logger());
     const BuildGraphLoader::LoadResult loadResult = bpLoader.load(m_parameters, evalContext);
     if (!loadResult.discardLoadedProject)
         m_project = loadResult.loadedProject;
@@ -264,8 +263,7 @@ InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
 }
 
 void InternalBuildJob::build(const ResolvedProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions,
-        const QProcessEnvironment &env)
+        const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions)
 {
     setup(project, products, buildOptions.dryRun());
     setTimed(buildOptions.logElapsedTime());
@@ -275,7 +273,6 @@ void InternalBuildJob::build(const ResolvedProjectPtr &project,
     m_executor->setProducts(products);
     m_executor->setBuildOptions(buildOptions);
     m_executor->setProgressObserver(observer());
-    m_executor->setBaseEnvironment(env);
 
     QThread * const executorThread = new QThread(this);
     m_executor->moveToThread(executorThread);

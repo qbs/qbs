@@ -99,7 +99,8 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
                                    parameters.buildConfiguration(),
                                    true);
     return m_projectResolver->resolve(loadResult, parameters.buildRoot(),
-            parameters.buildConfiguration());
+                                      parameters.buildConfiguration(),
+                                      parameters.environment());
 }
 
 QByteArray Loader::qmlTypeInfo()

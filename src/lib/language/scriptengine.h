@@ -36,10 +36,11 @@
 #include <logging/logger.h>
 #include <tools/qbs_export.h>
 
-#include <QByteArray>
 #include <QHash>
 #include <QPair>
+#include <QProcessEnvironment>
 #include <QScriptEngine>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
@@ -72,8 +73,10 @@ public:
     void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
                              ScriptPropertyObserver *observer);
 
-    void addEnvironmentVariable(const QByteArray &name, const QByteArray &value);
-    QHash<QByteArray, QByteArray> usedEnvironment() const { return m_usedEnvironment; }
+    QProcessEnvironment environment() const;
+    void setEnvironment(const QProcessEnvironment &env);
+    void addEnvironmentVariable(const QString &name, const QString &value);
+    QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
 
 private:
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
@@ -85,7 +88,8 @@ private:
     Logger m_logger;
     QScriptValue m_definePropertyFunction;
     QScriptValue m_emptyFunction;
-    QHash<QByteArray, QByteArray> m_usedEnvironment;
+    QProcessEnvironment m_environment;
+    QHash<QString, QString> m_usedEnvironment;
 };
 
 } // namespace Internal
