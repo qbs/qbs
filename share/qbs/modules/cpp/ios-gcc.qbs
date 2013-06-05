@@ -35,6 +35,7 @@ DarwinGCC {
     }
 
     Rule {
+        condition: product.moduleProperty("cpp", "buildIpa")
         multiplex: true
         inputs: ["application", "infoplist", "pkginfo", "resourcerules", "nib"]
 
@@ -44,14 +45,6 @@ DarwinGCC {
         }
 
         prepare: {
-            if (!(product.moduleProperty("qbs","architecture").match("^arm"))) {
-                // to be removed when dynamic dependencies work
-                var cmd = new JavaScriptCommand();
-                cmd.description = "skipping ipa for simulator on arch " +
-                        product.moduleProperty("qbs", "architecture");
-                cmd.highlight = "codegen";
-                return cmd;
-            }
             var signingIdentity = product.moduleProperty("cpp", "signingIdentity");
             if (!signingIdentity)
                 throw "The name of a valid Signing identity should be stored in cpp.signingIdentity  to build package.";

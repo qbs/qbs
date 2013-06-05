@@ -195,15 +195,7 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: {
-            var res = ["application", "infoplist", "pkginfo", "dsym", "nib"];
-            if (product.moduleProperty("qbs", "targetOS") === "ios") {
-                res.push("resourcerules");
-                // if (ModUtils.moduleProperty(product, "buildIpa")) // ditto
-                    res.push("ipa");
-            }
-            return res;
-        }
+        inputs: ["application", "infoplist", "pkginfo", "dsym", "nib", "resourcerules", "ipa"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
