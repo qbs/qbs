@@ -223,6 +223,8 @@ int probe(Settings *settings)
         mingwProbe(settings, profiles);
     } else if (HostOsInfo::isOsxHost()) {
         osxProbe(settings, profiles);
+        specific_probe(settings, profiles, QLatin1String("gcc"));
+        specific_probe(settings, profiles, QLatin1String("clang"));
     } else {
         specific_probe(settings, profiles, QLatin1String("gcc"));
         specific_probe(settings, profiles, QLatin1String("clang"));
