@@ -15,6 +15,7 @@ Module {
     property string binPath
     property string incPath
     property string libPath
+    property string pluginPath
     property string mkspecPath
     property string mocName: "moc"
     property string lreleaseName: "lrelease"
