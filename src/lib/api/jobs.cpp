@@ -242,7 +242,7 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
 }
 
-void BuildJob::build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const BuildOptions &options)
 {
     qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options);
@@ -259,7 +259,7 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void CleanJob::clean(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const qbs::CleanOptions &options)
 {
     qobject_cast<InternalCleanJob *>(internalJob())->clean(project, products, options);
@@ -275,9 +275,10 @@ InstallJob::InstallJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InstallJob::install(const QList<ResolvedProductPtr> &products, const InstallOptions &options)
+void InstallJob::install(const TopLevelProjectPtr &project,
+                         const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
-    qobject_cast<InternalInstallJob *>(internalJob())->install(products, options);
+    qobject_cast<InternalInstallJob *>(internalJob())->install(project, products, options);
 }
 
 } // namespace qbs

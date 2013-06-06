@@ -107,7 +107,7 @@ public:
 
 private:
     Project();
-    Project(const Internal::ResolvedProjectPtr &internalProject, const Internal::Logger &logger);
+    Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);
 
     QExplicitlySharedDataPointer<Internal::ProjectPrivate> d;
 };

@@ -33,7 +33,6 @@
 #include "builtindeclarations.h"
 #include "evaluator.h"
 #include "filecontext.h"
-#include "item.h"
 #include "moduleloader.h"
 #include "propertymapinternal.h"
 #include "scriptengine.h"
@@ -48,6 +47,7 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QSet>
 #include <set>
 
 namespace qbs {
@@ -67,9 +67,8 @@ ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *b
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
+    , m_builtinDeclarations(builtins)
 {
-    foreach (const PropertyDeclaration &pd, builtins->declarationsForType("Group"))
-        m_groupPropertyDeclarations += pd.name;
 }
 
 ProjectResolver::~ProjectResolver()
@@ -81,12 +80,12 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
     m_progressObserver = observer;
 }
 
-ResolvedProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
+TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
                                             const QString &buildRoot,
                                             const QVariantMap &buildConfiguration,
                                             const QProcessEnvironment &environment)
 {
-    QBS_ASSERT(FileInfo::isAbsolute(buildRoot), return ResolvedProjectPtr());
+    QBS_ASSERT(FileInfo::isAbsolute(buildRoot), return TopLevelProjectPtr());
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[PR] resolving " << loadResult.root->file()->filePath();
 
@@ -95,62 +94,18 @@ ResolvedProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_buildRoot = buildRoot;
     m_buildConfiguration = buildConfiguration;
     m_environment = environment;
-    m_projectContext = &projectContext;
     m_productContext = 0;
     m_moduleContext = 0;
-    resolveProject(loadResult.root);
-    m_projectContext = 0;
-    projectContext.project->usedEnvironment = m_engine->usedEnvironment();
-    projectContext.project->environment = m_environment;
-    return projectContext.project;
+    resolveTopLevelProject(loadResult.root, &projectContext);
+    return projectContext.project.staticCast<TopLevelProject>();
 }
 
 void ProjectResolver::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw Error(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(ResolvedProject::deriveId(m_buildConfiguration)));
+                    .arg(TopLevelProject::deriveId(m_buildConfiguration)));
     }
-}
-
-bool ProjectResolver::boolValue(const Item *item, const QString &name, bool defaultValue) const
-{
-    QScriptValue v = m_evaluator->property(item, name);
-    if (Q_UNLIKELY(v.isError())) {
-        ValuePtr value = item->property(name);
-        throw Error(v.toString(), value ? value->location() : CodeLocation());
-    }
-    if (!v.isValid() || v.isUndefined())
-        return defaultValue;
-    return v.toBool();
-}
-
-FileTags ProjectResolver::fileTagsValue(const Item *item, const QString &name) const
-{
-    return FileTags::fromStringList(stringListValue(item, name));
-}
-
-QString ProjectResolver::stringValue(const Item *item, const QString &name,
-                                     const QString &defaultValue) const
-{
-    QScriptValue v = m_evaluator->property(item, name);
-    if (Q_UNLIKELY(v.isError())) {
-        ValuePtr value = item->property(name);
-        throw Error(v.toString(), value ? value->location() : CodeLocation());
-    }
-    if (!v.isValid() || v.isUndefined())
-        return defaultValue;
-    return v.toString();
-}
-
-QStringList ProjectResolver::stringListValue(const Item *item, const QString &name) const
-{
-    QScriptValue v = m_evaluator->property(item, name);
-    if (Q_UNLIKELY(v.isError())) {
-        ValuePtr value = item->property(name);
-        throw Error(v.toString(), value ? value->location() : CodeLocation());
-    }
-    return toStringList(v);
 }
 
 QString ProjectResolver::verbatimValue(const ValueConstPtr &value) const
@@ -168,22 +123,66 @@ QString ProjectResolver::verbatimValue(Item *item, const QString &name) const
     return verbatimValue(item->property(name));
 }
 
-void ProjectResolver::ignoreItem(Item *item)
+void ProjectResolver::ignoreItem(Item *item, ProjectContext *projectContext)
 {
     Q_UNUSED(item);
+    Q_UNUSED(projectContext);
 }
 
-void ProjectResolver::resolveProject(Item *item)
+static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
+{
+    QSet<QString> subProjectNames;
+    QSet<ResolvedProjectPtr> projectsInNeedOfNameChange;
+    foreach (const ResolvedProjectPtr &p, parentProject->subProjects) {
+        if (subProjectNames.contains(p->name))
+            projectsInNeedOfNameChange << p;
+        else
+            subProjectNames << p->name;
+        makeSubProjectNamesUniqe(p);
+    }
+    while (!projectsInNeedOfNameChange.isEmpty()) {
+        QSet<ResolvedProjectPtr>::Iterator it = projectsInNeedOfNameChange.begin();
+        while (it != projectsInNeedOfNameChange.end()) {
+            const ResolvedProjectPtr p = *it;
+            p->name += QLatin1Char('_');
+            if (!subProjectNames.contains(p->name)) {
+                subProjectNames << p->name;
+                it = projectsInNeedOfNameChange.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+}
+
+void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *projectContext)
+{
+    const TopLevelProjectPtr project = TopLevelProject::create();
+    project->setBuildConfiguration(m_buildConfiguration);
+    project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_buildRoot, project->id());
+    projectContext->project = project;
+    resolveProject(item, projectContext);
+    project->usedEnvironment = m_engine->usedEnvironment();
+    project->environment = m_environment;
+    makeSubProjectNamesUniqe(project);
+    resolveProductDependencies(projectContext);
+}
+
+void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
-    ResolvedProjectPtr project = ResolvedProject::create();
-    m_projectContext->project = project;
-    m_projectContext->dummyModule = ResolvedModule::create();
-    m_projectContext->dummyModule->jsImports = item->file()->jsImports();
-    project->location = item->location();
-    project->setBuildConfiguration(m_buildConfiguration);
-    project->buildDirectory = ResolvedProject::deriveBuildDirectory(m_buildRoot, project->id());
+    projectContext->project->name = m_evaluator->stringValue(item, QLatin1String("name"));
+    projectContext->project->location = item->location();
+    if (projectContext->project->name.isEmpty())
+        projectContext->project->name = FileInfo::baseName(item->location().fileName()); // FIXME: Must also be changed in item?
+    projectContext->project->enabled
+            = m_evaluator->boolValue(item, QLatin1String("condition"), true);
+    if (!projectContext->project->enabled)
+        return;
+
+    projectContext->dummyModule = ResolvedModule::create();
+    projectContext->dummyModule->jsImports = item->file()->jsImports();
 
     m_evaluator->engine()->setEnvironment(m_environment);
 
@@ -197,32 +196,36 @@ void ProjectResolver::resolveProject(Item *item)
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
         projectProperties.insert(it.key(), m_evaluator->property(item, it.key()).toVariant());
     }
-    project->setProjectProperties(projectProperties);
+    projectContext->project->setProjectProperties(projectProperties);
 
     ItemFuncMap mapping;
+    mapping["Project"] = &ProjectResolver::resolveProject;
+    mapping["SubProject"] = &ProjectResolver::resolveSubProject;
     mapping["Product"] = &ProjectResolver::resolveProduct;
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Rule"] = &ProjectResolver::resolveRule;
 
-    if (m_progressObserver)
-        m_progressObserver->setMaximum(item->children().count() + 2);
     foreach (Item *child, item->children()) {
-        callItemFunction(mapping, child);
+        callItemFunction(mapping, child, projectContext);
         if (m_progressObserver)
             m_progressObserver->incrementProgressValue();
     }
 
-    foreach (const ResolvedProductPtr &product, project->products)
-        postProcess(product);
-    if (m_progressObserver)
-        m_progressObserver->incrementProgressValue();
-
-    resolveProductDependencies();
-    if (m_progressObserver)
-        m_progressObserver->incrementProgressValue();
+    foreach (const ResolvedProductPtr &product, projectContext->project->products)
+        postProcess(product, projectContext);
 }
 
-void ProjectResolver::resolveProduct(Item *item)
+void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectContext *projectContext)
+{
+    ProjectContext subProjectContext = createProjectContext(projectContext);
+
+    foreach (Item * const subItem, item->children()) {
+        if (subItem->typeName() == QLatin1String("Project"))
+            resolveProject(subItem, &subProjectContext);
+    }
+}
+
+void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
     ProductContext productContext;
@@ -231,28 +234,30 @@ void ProjectResolver::resolveProduct(Item *item)
     const QString productSourceDirectory = QFileInfo(item->file()->filePath()).absolutePath();
     item->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(productSourceDirectory));
-    item->setProperty(QLatin1String("buildDirectory"),
-                      VariantValue::create(m_projectContext->project->buildDirectory));
+    item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(projectContext
+            ->project->topLevelProject()->buildDirectory));
     ResolvedProductPtr product = ResolvedProduct::create();
-    m_projectContext->productItemMap.insert(product, item);
-    m_projectContext->project->products += product;
+    product->project = projectContext->project;
+    m_productItemMap.insert(product, item);
+    projectContext->project->products += product;
     productContext.product = product;
-    product->name = stringValue(item, QLatin1String("name"));
+    product->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (product->name.isEmpty()) {
         product->name = FileInfo::completeBaseName(item->file()->filePath());
         item->setProperty("name", VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
     ModuleLoader::overrideItemProperties(item, product->name, m_buildConfiguration);
-    m_projectContext->productsByName.insert(product->name, product);
-    product->enabled = boolValue(item, QLatin1String("condition"), true);
-    product->additionalFileTags = fileTagsValue(item, QLatin1String("additionalFileTags"));
-    product->fileTags = fileTagsValue(item, QLatin1String("type"));
-    product->targetName = stringValue(item, QLatin1String("targetName"));
+    m_productsByName.insert(product->name, product);
+    product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"), true);
+    product->additionalFileTags
+            = m_evaluator->fileTagsValue(item, QLatin1String("additionalFileTags"));
+    product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
+    product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = productSourceDirectory;
-    product->destinationDirectory = stringValue(item, QLatin1String("destinationDirectory"));
+    product->destinationDirectory
+            = m_evaluator->stringValue(item, QLatin1String("destinationDirectory"));
     product->location = item->location();
-    product->project = m_projectContext->project;
     product->properties = PropertyMapInternal::create();
     product->properties->setValue(createProductConfig());
     ModuleProperties::init(m_evaluator->scriptValue(item), product);
@@ -283,15 +288,16 @@ void ProjectResolver::resolveProduct(Item *item)
     mapping["Probe"] = &ProjectResolver::ignoreItem;
 
     foreach (Item *child, subItems)
-        callItemFunction(mapping, child);
+        callItemFunction(mapping, child, projectContext);
 
     foreach (const Item::Module &module, item->modules())
-        resolveModule(module.name, module.item);
+        resolveModule(module.name, module.item, projectContext);
 
     m_productContext = 0;
 }
 
-void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item)
+void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
+                                    ProjectContext *projectContext)
 {
     checkCancelation();
     ModuleContext moduleContext;
@@ -304,7 +310,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item)
     module->setupRunEnvironmentScript = verbatimValue(item, "setupRunEnvironment");
 
     m_productContext->product->additionalFileTags
-            += fileTagsValue(item, "additionalProductFileTags");
+            += m_evaluator->fileTagsValue(item, "additionalProductFileTags");
 
     // TODO: instead of jsImports, we need the file context for both setup scripts separately.
     //       ATM the setup scripts must be in the first file of the inheritance chain.
@@ -323,7 +329,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item)
     mapping["Depends"] = &ProjectResolver::ignoreItem;
     mapping["Probe"] = &ProjectResolver::ignoreItem;
     foreach (Item *child, item->children())
-        callItemFunction(mapping, child);
+        callItemFunction(mapping, child, projectContext);
 
     m_moduleContext = 0;
 }
@@ -360,8 +366,9 @@ static bool isSomeModulePropertySet(Item *group)
     return false;
 }
 
-void ProjectResolver::resolveGroup(Item *item)
+void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 {
+    Q_UNUSED(projectContext);
     checkCancelation();
     PropertyMapPtr properties = m_productContext->product->properties;
     if (isSomeModulePropertySet(item)) {
@@ -369,8 +376,9 @@ void ProjectResolver::resolveGroup(Item *item)
         properties->setValue(evaluateModuleValues(item));
     }
 
-    QStringList files = stringListValue(item, QLatin1String("files"));
-    const QStringList fileTagsFilter = stringListValue(item, QLatin1String("fileTagsFilter"));
+    QStringList files = m_evaluator->stringListValue(item, QLatin1String("files"));
+    const QStringList fileTagsFilter
+            = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
     if (!fileTagsFilter.isEmpty()) {
         if (Q_UNLIKELY(!files.isEmpty()))
             throw Error(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
@@ -395,21 +403,21 @@ void ProjectResolver::resolveGroup(Item *item)
         if (FileInfo::isPattern(files[i]))
             patterns.append(files.takeAt(i));
     }
-    prefix = stringValue(item, QLatin1String("prefix"));
+    prefix = m_evaluator->stringValue(item, QLatin1String("prefix"));
     if (!prefix.isEmpty()) {
         for (int i = files.count(); --i >= 0;)
                 files[i].prepend(prefix);
     }
-    FileTags fileTags = fileTagsValue(item, QLatin1String("fileTags"));
-    bool overrideTags = boolValue(item, QLatin1String("overrideTags"), true);
+    FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
+    bool overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"), true);
 
     GroupPtr group = ResolvedGroup::create();
     group->location = item->location();
-    group->enabled = boolValue(item, QLatin1String("condition"), true);
+    group->enabled = m_evaluator->boolValue(item, QLatin1String("condition"), true);
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
-        wildcards->excludePatterns = stringListValue(item, "excludeFiles");
+        wildcards->excludePatterns = m_evaluator->stringListValue(item, "excludeFiles");
         wildcards->prefix = prefix;
         wildcards->patterns = patterns;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
@@ -432,7 +440,7 @@ void ProjectResolver::resolveGroup(Item *item)
     if (!fileError.entries().isEmpty())
         throw Error(fileError);
 
-    group->name = stringValue(item, "name");
+    group->name = m_evaluator->stringValue(item, "name");
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
     group->properties = properties;
@@ -451,11 +459,11 @@ static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
     }
 }
 
-void ProjectResolver::resolveRule(Item *item)
+void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
-    if (!boolValue(item, QLatin1String("condition"), true))
+    if (!m_evaluator->boolValue(item, QLatin1String("condition"), true))
         return;
 
     RulePtr rule = Rule::create();
@@ -484,15 +492,15 @@ void ProjectResolver::resolveRule(Item *item)
 
     rule->jsImports = item->file()->jsImports();
     rule->script = prepareScript;
-    rule->multiplex = boolValue(item, "multiplex", false);
-    rule->inputs = fileTagsValue(item, "inputs");
-    rule->usings = fileTagsValue(item, "usings");
-    rule->explicitlyDependsOn = fileTagsValue(item, "explicitlyDependsOn");
-    rule->module = m_moduleContext ? m_moduleContext->module : m_projectContext->dummyModule;
+    rule->multiplex = m_evaluator->boolValue(item, "multiplex", false);
+    rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
+    rule->usings = m_evaluator->fileTagsValue(item, "usings");
+    rule->explicitlyDependsOn = m_evaluator->fileTagsValue(item, "explicitlyDependsOn");
+    rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     if (m_productContext)
         m_productContext->product->rules += rule;
     else
-        m_projectContext->rules += rule;
+        projectContext->rules += rule;
 }
 
 class StringListLess
@@ -524,8 +532,8 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
     artifact->fileName = verbatimValue(item, "fileName");
-    artifact->fileTags = fileTagsValue(item, "fileTags");
-    artifact->alwaysUpdated = boolValue(item, "alwaysUpdated", true);
+    artifact->fileTags = m_evaluator->fileTagsValue(item, "fileTags");
+    artifact->alwaysUpdated = m_evaluator->boolValue(item, "alwaysUpdated", true);
     if (artifact->alwaysUpdated)
         *hasAlwaysUpdatedArtifact = true;
 
@@ -571,27 +579,27 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
     }
 }
 
-void ProjectResolver::resolveFileTagger(Item *item)
+void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
     QSet<FileTaggerConstPtr> &fileTaggers = m_productContext
-            ? m_productContext->product->fileTaggers : m_projectContext->fileTaggers;
-    fileTaggers += FileTagger::create(QRegExp(stringValue(item,"pattern")),
-            fileTagsValue(item, "fileTags"));
+            ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
+    fileTaggers += FileTagger::create(QRegExp(m_evaluator->stringValue(item,"pattern")),
+            m_evaluator->fileTagsValue(item, "fileTags"));
 }
 
-void ProjectResolver::resolveTransformer(Item *item)
+void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!boolValue(item, "condition", true)) {
+    if (!m_evaluator->boolValue(item, "condition", true)) {
         m_logger.qbsTrace() << "[PR] transformer condition is false";
         return;
     }
 
     ResolvedTransformer::Ptr rtrafo = ResolvedTransformer::create();
-    rtrafo->module = m_moduleContext ? m_moduleContext->module : m_projectContext->dummyModule;
+    rtrafo->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     rtrafo->jsImports = item->file()->jsImports();
-    rtrafo->inputs = stringListValue(item, "inputs");
+    rtrafo->inputs = m_evaluator->stringListValue(item, "inputs");
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));
     const PrepareScriptPtr transform = PrepareScript::create();
@@ -605,12 +613,12 @@ void ProjectResolver::resolveTransformer(Item *item)
             throw Error(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = m_productContext->product->properties;
-        QString fileName = stringValue(child, "fileName");
+        QString fileName = m_evaluator->stringValue(child, "fileName");
         if (Q_UNLIKELY(fileName.isEmpty()))
             throw Error(Tr::tr("Artifact fileName must not be empty."));
-        artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->project->buildDirectory,
+        artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->topLevelProject()->buildDirectory,
                                                            fileName);
-        artifact->fileTags = fileTagsValue(child, "fileTags");
+        artifact->fileTags = m_evaluator->fileTagsValue(child, "fileTags");
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
         rtrafo->outputs += artifact;
@@ -619,11 +627,12 @@ void ProjectResolver::resolveTransformer(Item *item)
     m_productContext->product->transformers += rtrafo;
 }
 
-void ProjectResolver::resolveExport(Item *item)
+void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
 {
+    Q_UNUSED(projectContext);
     checkCancelation();
     const QString &productName = m_productContext->product->name;
-    m_projectContext->exports[productName] = evaluateModuleValues(item);
+    m_exports[productName] = evaluateModuleValues(item);
 }
 
 static void insertExportedConfig(const QString &usedProductName,
@@ -655,26 +664,27 @@ static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
     *productsAdded = (oldCount != productInfo->usedProducts.count());
 }
 
-void ProjectResolver::resolveProductDependencies()
+void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
 {
     // Collect product dependencies from Export items.
     bool productDependenciesAdded;
+    QList<ResolvedProductPtr> allProducts = projectContext->project->allProducts();
     do {
         productDependenciesAdded = false;
-        foreach (ResolvedProductPtr rproduct, m_projectContext->project->products) {
-            Item *productItem = m_projectContext->productItemMap.value(rproduct);
+        foreach (const ResolvedProductPtr &rproduct, allProducts) {
+            Item *productItem = m_productItemMap.value(rproduct);
             ModuleLoaderResult::ProductInfo &productInfo
-                    = m_projectContext->loadResult->productInfos[productItem];
+                    = projectContext->loadResult->productInfos[productItem];
             foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
                         productInfo.usedProducts) {
                 ResolvedProductPtr usedProduct
-                        = m_projectContext->productsByName.value(dependency.name);
+                        = m_productsByName.value(dependency.name);
                 if (Q_UNLIKELY(!usedProduct))
                     throw Error(Tr::tr("Product dependency '%1' not found.").arg(dependency.name),
                                 productItem->location());
-                Item *usedProductItem = m_projectContext->productItemMap.value(usedProduct);
+                Item *usedProductItem = m_productItemMap.value(usedProduct);
                 const ModuleLoaderResult::ProductInfo usedProductInfo
-                        = m_projectContext->loadResult->productInfos.value(usedProductItem);
+                        = projectContext->loadResult->productInfos.value(usedProductItem);
                 bool added;
                 addUsedProducts(&productInfo, usedProductInfo, &added);
                 if (added)
@@ -684,21 +694,19 @@ void ProjectResolver::resolveProductDependencies()
     } while (productDependenciesAdded);
 
     // Resolve all inter-product dependencies.
-    foreach (ResolvedProductPtr rproduct, m_projectContext->project->products) {
-        Item *productItem = m_projectContext->productItemMap.value(rproduct);
+    foreach (const ResolvedProductPtr &rproduct, allProducts) {
+        Item *productItem = m_productItemMap.value(rproduct);
         foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
-                 m_projectContext->loadResult->productInfos.value(productItem).usedProducts) {
+                 projectContext->loadResult->productInfos.value(productItem).usedProducts) {
             const QString &usedProductName = dependency.name;
-            ResolvedProductPtr usedProduct
-                    = m_projectContext->productsByName.value(usedProductName);
+            ResolvedProductPtr usedProduct = m_productsByName.value(usedProductName);
             if (Q_UNLIKELY(!usedProduct))
                 throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
                             productItem->location());
             rproduct->dependencies.insert(usedProduct);
 
             // insert the configuration of the Export item into the product's configuration
-            const QVariantMap exportedConfig
-                    = m_projectContext->exports.value(usedProductName);
+            const QVariantMap exportedConfig = m_exports.value(usedProductName);
             if (exportedConfig.isEmpty())
                 continue;
 
@@ -714,10 +722,11 @@ void ProjectResolver::resolveProductDependencies()
     }
 }
 
-void ProjectResolver::postProcess(const ResolvedProductPtr &product) const
+void ProjectResolver::postProcess(const ResolvedProductPtr &product,
+                                  ProjectContext *projectContext) const
 {
-    product->fileTaggers += m_projectContext->fileTaggers;
-    foreach (const RulePtr &rule, m_projectContext->rules)
+    product->fileTaggers += projectContext->fileTaggers;
+    foreach (const RulePtr &rule, projectContext->rules)
         product->rules += rule;
     applyFileTaggers(product);
 }
@@ -855,8 +864,8 @@ QStringList ProjectResolver::convertPathListProperty(const QStringList &paths,
     return result;
 }
 
-void ProjectResolver::callItemFunction(const ItemFuncMap &mappings,
-                                       Item *item)
+void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
+                                       ProjectContext *projectContext)
 {
     const QByteArray typeName = item->typeName().toLocal8Bit();
     ItemFuncPtr f = mappings.value(typeName);
@@ -864,7 +873,22 @@ void ProjectResolver::callItemFunction(const ItemFuncMap &mappings,
         const QString msg = Tr::tr("Unexpected item type '%1'.");
         throw Error(msg.arg(item->typeName()), item->location());
     }
-    (this->*f)(item);
+    if (typeName == "Project") {
+        ProjectContext subProjectContext = createProjectContext(projectContext);
+        (this->*f)(item, &subProjectContext);
+    } else {
+        (this->*f)(item, projectContext);
+    }
+}
+
+ProjectResolver::ProjectContext ProjectResolver::createProjectContext(ProjectContext *parentProjectContext) const
+{
+    ProjectContext subProjectContext;
+    subProjectContext.project = ResolvedProject::create();
+    parentProjectContext->project->subProjects += subProjectContext.project;
+    subProjectContext.project->parentProject = parentProjectContext->project;
+    subProjectContext.loadResult = parentProjectContext->loadResult;
+    return subProjectContext;
 }
 
 } // namespace Internal

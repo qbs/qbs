@@ -273,7 +273,7 @@ private:
     ResolvedTransformer() {}
 };
 
-class ResolvedProject;
+class TopLevelProject;
 class ScriptEngine;
 
 class ResolvedProduct : public PersistentObject
@@ -313,6 +313,7 @@ public:
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 
     const QList<RuleConstPtr> &topSortedRules() const;
+    TopLevelProject *topLevelProject() const;
 
 private:
     ResolvedProduct();
@@ -321,43 +322,67 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class ResolvedProject: public PersistentObject
+class ResolvedProject : public PersistentObject
+{
+public:
+    static ResolvedProjectPtr create() { return ResolvedProjectPtr(new ResolvedProject); }
+
+    QString name;
+    CodeLocation location;
+    bool enabled;
+    QList<ResolvedProductPtr> products;
+    QList<ResolvedProjectPtr> subProjects;
+    WeakPointer<ResolvedProject> parentProject;
+
+    void setProjectProperties(const QVariantMap &config) { m_projectProperties = config; }
+    const QVariantMap &projectProperties() const { return m_projectProperties; }
+
+    TopLevelProject *topLevelProject();
+    QList<ResolvedProjectPtr> allSubProjects() const;
+    QList<ResolvedProductPtr> allProducts() const;
+
+protected:
+    ResolvedProject();
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+private:
+    QVariantMap m_projectProperties;
+    TopLevelProject *m_topLevelProject;
+};
+
+class TopLevelProject : public ResolvedProject
 {
     friend class BuildGraphLoader;
 public:
-    ~ResolvedProject();
+    ~TopLevelProject();
 
-    static ResolvedProjectPtr create() { return ResolvedProjectPtr(new ResolvedProject); }
+    static TopLevelProjectPtr create() { return TopLevelProjectPtr(new TopLevelProject); }
 
     static QString deriveId(const QVariantMap &config);
     static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
 
-    CodeLocation location;
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
     QVariantMap platformEnvironment;
     QHash<QString, QString> usedEnvironment; // Environment variables requested by the project while resolving.
-    QList<ResolvedProductPtr> products;
     QScopedPointer<ProjectBuildData> buildData;
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
-    void setProjectProperties(const QVariantMap &config);
-    const QVariantMap &projectProperties() const { return m_projectProperties; }
     QString id() const { return m_id; }
 
     QString buildGraphFilePath() const;
     void store(const Logger &logger) const;
 
 private:
-    ResolvedProject();
+    TopLevelProject();
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
-    QVariantMap m_buildConfiguration;
-    QVariantMap m_projectProperties;
     QString m_id;
+    QVariantMap m_buildConfiguration;
 };
 
 } // namespace Internal

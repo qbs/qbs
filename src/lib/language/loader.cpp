@@ -82,7 +82,7 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
     m_moduleLoader->setSearchPaths(searchPaths);
 }
 
-ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
+TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
 
@@ -92,7 +92,7 @@ ResolvedProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     // we have enough information.
     if (m_progressObserver) {
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
-                .arg(ResolvedProject::deriveId(parameters.buildConfiguration())), 1);
+                .arg(TopLevelProject::deriveId(parameters.buildConfiguration())), 1);
     }
     ModuleLoaderResult loadResult
             = m_moduleLoader->load(parameters.projectFilePath(),

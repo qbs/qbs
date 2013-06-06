@@ -88,12 +88,12 @@ static void resolveWithIncludePath(const QString &includePath,
     if (!dependency.isClean())
         absDirPath = QDir::cleanPath(absDirPath);
 
-    const ResolvedProject *project = product->project.data();
+    ResolvedProject *project = product->project.data();
     Artifact *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
     Artifact *dependencyInOtherProduct = 0;
-    foreach (Artifact *artifact,
-             project->buildData->lookupArtifacts(absDirPath, dependency.fileName())) {
+    foreach (Artifact *artifact, project->topLevelProject()
+             ->buildData->lookupArtifacts(absDirPath, dependency.fileName())) {
         if (artifact->artifactType == Artifact::FileDependency)
             fileDependencyArtifact = artifact;
         else if (artifact->product == product)
@@ -319,7 +319,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         dependency.artifact->artifactType = Artifact::FileDependency;
         dependency.artifact->properties = m_artifact->properties;
         dependency.artifact->setFilePath(dependency.filePath);
-        m_artifact->project->buildData->insertFileDependency(dependency.artifact);
+        m_artifact->topLevelProject()->buildData->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
         // The dependency exists in the project's list of file dependencies.
         if (m_logger.traceEnabled()) {

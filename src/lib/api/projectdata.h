@@ -139,9 +139,13 @@ public:
     ProjectData &operator=(const ProjectData &other);
     ~ProjectData();
 
+    QString name() const;
     CodeLocation location() const;
+    bool isEnabled() const;
     QString buildDirectory() const;
     QList<ProductData> products() const;
+    QList<ProjectData> subProjects() const;
+    QList<ProductData> allProducts() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ProjectDataPrivate> d;
@@ -149,6 +153,7 @@ private:
 
 QBS_EXPORT bool operator==(const ProjectData &lhs, const ProjectData &rhs);
 QBS_EXPORT bool operator!=(const ProjectData &lhs, const ProjectData &rhs);
+QBS_EXPORT bool operator<(const ProjectData &lhs, const ProjectData &rhs);
 
 } // namespace qbs
 

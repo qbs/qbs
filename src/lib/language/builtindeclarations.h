@@ -58,6 +58,7 @@ private:
     void addProjectItem();
     void addPropertyOptionsItem();
     void addRuleItem();
+    void addSubprojectItem();
     void addTransformerItem();
 
     QString m_languageVersion;

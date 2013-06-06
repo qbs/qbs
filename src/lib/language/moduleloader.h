@@ -145,6 +145,7 @@ private:
 
     void handleProject(ModuleLoaderResult *loadResult, Item *item);
     void handleProduct(ProjectContext *projectContext, Item *item);
+    void handleSubProject(ProjectContext *projectContext, Item *item);
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
     void handleGroup(ProductContext *productContext, Item *group);
     void handleArtifact(ProductContext *productContext, Item *item);
@@ -171,6 +172,7 @@ private:
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
     QStringList readExtraSearchPaths(Item *item);
+    void copyProperties(const Item *sourceProject, Item *targetProject);
     static Item *wrapWithProject(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QStringList &moduleName);

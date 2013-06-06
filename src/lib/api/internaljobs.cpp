@@ -119,7 +119,7 @@ void InternalJob::cancel()
     m_observer->cancel();
 }
 
-void InternalJob::storeBuildGraph(const ResolvedProjectConstPtr &project)
+void InternalJob::storeBuildGraph(const TopLevelProjectConstPtr &project)
 {
     try {
         project->store(logger());
@@ -154,7 +154,7 @@ void InternalSetupProjectJob::reportError(const Error &error)
                               Q_ARG(Internal::InternalJob *, this));
 }
 
-ResolvedProjectPtr InternalSetupProjectJob::project() const
+TopLevelProjectPtr InternalSetupProjectJob::project() const
 {
     return m_project;
 }
@@ -201,10 +201,6 @@ void InternalSetupProjectJob::execute()
             loader.setProgressObserver(observer());
             m_project = loader.loadProject(m_parameters);
         }
-        if (m_project->products.isEmpty()) {
-            throw Error(Tr::tr("Project '%1' does not contain products.")
-                        .arg(m_parameters.projectFilePath()));
-        }
     }
 
     // copy the environment from the platform config into the project's config
@@ -216,7 +212,7 @@ void InternalSetupProjectJob::execute()
     foreach (const ResolvedProductConstPtr &p, m_project->products) {
         logger().qbsDebug() << QString::fromLocal8Bit("  - [%1] %2 as %3")
                                .arg(p->fileTags.toStringList().join(QLatin1String(", ")))
-                               .arg(p->name).arg(p->project->id());
+                               .arg(p->name).arg(p->topLevelProject()->id());
     }
     logger().qbsDebug() << '\n';
 
@@ -244,7 +240,7 @@ BuildGraphTouchingJob::~BuildGraphTouchingJob()
 {
 }
 
-void BuildGraphTouchingJob::setup(const ResolvedProjectPtr &project,
+void BuildGraphTouchingJob::setup(const TopLevelProjectPtr &project,
                                   const QList<ResolvedProductPtr> &products, bool dryRun)
 {
     m_project = project;
@@ -263,7 +259,7 @@ InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalBuildJob::build(const ResolvedProjectPtr &project,
+void InternalBuildJob::build(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions)
 {
     setup(project, products, buildOptions.dryRun());
@@ -308,7 +304,7 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalCleanJob::clean(const ResolvedProjectPtr &project,
+void InternalCleanJob::clean(const TopLevelProjectPtr &project,
                              const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
     setup(project, products, options.dryRun());
@@ -350,9 +346,10 @@ InternalInstallJob::~InternalInstallJob()
 {
 }
 
-void InternalInstallJob::install(const QList<ResolvedProductPtr> &products,
-                                 const InstallOptions &options)
+void InternalInstallJob::install(const TopLevelProjectPtr &project,
+        const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
+    m_project = project;
     m_products = products;
     m_options = options;
     setTimed(options.logElapsedTime());
@@ -374,7 +371,7 @@ void InternalInstallJob::start()
 void InternalInstallJob::doInstall()
 {
     try {
-        ProductInstaller(m_products, m_options, observer(), logger()).install();
+        ProductInstaller(m_project, m_products, m_options, observer(), logger()).install();
     } catch (const Error &error) {
         setError(error);
     }

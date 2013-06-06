@@ -39,6 +39,8 @@ template<typename T> class WeakPointer : public QWeakPointer<T>
 public:
     WeakPointer() : QWeakPointer<T>() {}
     WeakPointer(const QSharedPointer<T> &sharedPointer) : QWeakPointer<T>(sharedPointer) {}
+    template <class X> WeakPointer(const QSharedPointer<X> &sp) : QWeakPointer<T>(sp) { }
+
 
     operator T*() const { return checkedData(); }
     T *operator->() const { return checkedData(); }

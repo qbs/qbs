@@ -91,7 +91,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
 class ProjectPrivate : public QSharedData
 {
 public:
-    ProjectPrivate(const ResolvedProjectPtr &internalProject, const Logger &logger)
+    ProjectPrivate(const TopLevelProjectPtr &internalProject, const Logger &logger)
         : internalProject(internalProject), logger(logger), m_projectDataRetrieved(false)
     {
     }
@@ -109,11 +109,12 @@ public:
     QList<ResolvedProductPtr> allEnabledInternalProducts() const;
     ResolvedProductPtr internalProduct(const ProductData &product) const;
 
-    const ResolvedProjectPtr internalProject;
+    const TopLevelProjectPtr internalProject;
     Logger logger;
 
 private:
-    void retrieveProjectData();
+    void retrieveProjectData(ProjectData &projectData,
+                             const ResolvedProjectConstPtr &internalProject);
 
     ProjectData m_projectData;
     bool m_projectDataRetrieved;
@@ -121,8 +122,11 @@ private:
 
 ProjectData ProjectPrivate::projectData()
 {
-    if (!m_projectDataRetrieved)
-        retrieveProjectData();
+    if (!m_projectDataRetrieved) {
+        retrieveProjectData(m_projectData, internalProject);
+        m_projectData.d->buildDir = internalProject->buildDirectory;
+        m_projectDataRetrieved = true;
+    }
     return m_projectData;
 }
 
@@ -165,7 +169,7 @@ InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &pro
     if (needsDepencencyResolving)
         addDependencies(productsToInstall);
     InstallJob * const job = new InstallJob(logger, jobOwner);
-    job->install(productsToInstall, options);
+    job->install(internalProject, productsToInstall, options);
     return job;
 }
 
@@ -179,30 +183,49 @@ QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductDa
     return internalProducts;
 }
 
-QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts() const
+static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectConstPtr &project)
 {
     QList<ResolvedProductPtr> products;
-    foreach (const ResolvedProductPtr &p, internalProject->products) {
+    foreach (const ResolvedProductPtr &p, project->products) {
         if (p->enabled)
             products << p;
     }
+    foreach (const ResolvedProjectConstPtr &subProject, project->subProjects)
+        products << enabledInternalProducts(subProject);
     return products;
+}
+
+QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts() const
+{
+    return enabledInternalProducts(internalProject);
+}
+
+static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPtr &project,
+                                                    const ProductData &product)
+{
+    foreach (const ResolvedProductPtr &resolvedProduct, project->products) {
+        if (product.name() == resolvedProduct->name)
+            return resolvedProduct;
+    }
+    foreach (const ResolvedProjectConstPtr &subProject, project->subProjects) {
+        const ResolvedProductPtr &p = internalProductForProject(subProject, product);
+        if (p)
+            return p;
+    }
+    return ResolvedProductPtr();
 }
 
 ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) const
 {
-    foreach (const ResolvedProductPtr &resolvedProduct, internalProject->products) {
-        if (product.name() == resolvedProduct->name)
-            return resolvedProduct;
-    }
-    qFatal("No build product '%s'", qPrintable(product.name()));
-    return ResolvedProductPtr();
+    return internalProductForProject(internalProject, product);
 }
 
-void ProjectPrivate::retrieveProjectData()
+void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
+                                         const ResolvedProjectConstPtr &internalProject)
 {
-    m_projectData.d->location = internalProject->location;
-    m_projectData.d->buildDir = internalProject->buildDirectory;
+    projectData.d->name = internalProject->name;
+    projectData.d->location = internalProject->location;
+    projectData.d->enabled = internalProject->enabled;
     foreach (const ResolvedProductConstPtr &resolvedProduct, internalProject->products) {
         ProductData product;
         product.d->name = resolvedProduct->name;
@@ -227,9 +250,15 @@ void ProjectPrivate::retrieveProjectData()
             product.d->groups << group;
         }
         qSort(product.d->groups);
-        m_projectData.d->products << product;
+        projectData.d->products << product;
     }
-    qSort(m_projectData.d->products);
+    foreach (const ResolvedProjectConstPtr &internalSubProject, internalProject->subProjects) {
+        ProjectData subProject;
+        retrieveProjectData(subProject, internalSubProject);
+        projectData.d->subProjects << subProject;
+    }
+    qSort(projectData.d->products);
+    qSort(projectData.d->subProjects);
     m_projectDataRetrieved = true;
 }
 
@@ -242,7 +271,7 @@ using namespace Internal;
   * \brief The \c Project class provides services related to a qbs project.
   */
 
-Project::Project(const ResolvedProjectPtr &internalProject, const Logger &logger)
+Project::Project(const TopLevelProjectPtr &internalProject, const Logger &logger)
     : d(new ProjectPrivate(internalProject, logger))
 {
 }

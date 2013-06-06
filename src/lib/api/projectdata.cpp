@@ -130,6 +130,11 @@ QStringList GroupData::allFilePaths() const
     return d->filePaths + d->expandedWildcards;
 }
 
+bool operator!=(const GroupData &lhs, const GroupData &rhs)
+{
+    return !(lhs == rhs);
+}
+
 bool operator==(const GroupData &lhs, const GroupData &rhs)
 {
     return lhs.name() == rhs.name()
@@ -140,9 +145,9 @@ bool operator==(const GroupData &lhs, const GroupData &rhs)
             && lhs.isEnabled() == rhs.isEnabled();
 }
 
-bool operator!=(const GroupData &lhs, const GroupData &rhs)
+bool operator<(const GroupData &lhs, const GroupData &rhs)
 {
-    return !(lhs == rhs);
+    return lhs.name() < rhs.name();
 }
 
 /*!
@@ -237,7 +242,7 @@ bool operator!=(const ProductData &lhs, const ProductData &rhs)
     return !(lhs == rhs);
 }
 
-bool operator<(const GroupData &lhs, const GroupData &rhs)
+bool operator<(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() < rhs.name();
 }
@@ -271,6 +276,14 @@ ProjectData::~ProjectData()
 }
 
 /*!
+ * \brief The name of this project.
+ */
+QString ProjectData::name() const
+{
+    return d->name;
+}
+
+/*!
  * \brief The location at which the project is defined in a qbs source file.
  */
 CodeLocation ProjectData::location() const
@@ -279,7 +292,17 @@ CodeLocation ProjectData::location() const
 }
 
 /*!
+ * \brief Whether the project is enabled.
+ * \note Disabled projects never have any products or sub-projects.
+ */
+bool ProjectData::isEnabled() const
+{
+    return d->enabled;
+}
+
+/*!
  * \brief The base directory under which the build artifacts of this project will be created.
+ * This is only valid for the top-level project.
  */
 QString ProjectData::buildDirectory() const
 {
@@ -295,9 +318,29 @@ QList<ProductData> ProjectData::products() const
     return d->products;
 }
 
+/*!
+ * The sub-projects of this project.
+ */
+QList<ProjectData> ProjectData::subProjects() const
+{
+    return d->subProjects;
+}
+
+/*!
+ * All products in this projects and its direct and indirect sub-projects.
+ */
+QList<ProductData> ProjectData::allProducts() const
+{
+    QList<ProductData> productList = products();
+    foreach (const ProjectData &pd, subProjects())
+        productList << pd.allProducts();
+    return productList;
+}
+
 bool operator==(const ProjectData &lhs, const ProjectData &rhs)
 {
     return lhs.location() == rhs.location()
+            && lhs.subProjects() == rhs.subProjects()
             && lhs.products() == rhs.products();
 }
 
@@ -306,7 +349,7 @@ bool operator!=(const ProjectData &lhs, const ProjectData &rhs)
     return !(lhs == rhs);
 }
 
-bool operator<(const ProductData &lhs, const ProductData &rhs)
+bool operator<(const ProjectData &lhs, const ProjectData &rhs)
 {
     return lhs.name() < rhs.name();
 }

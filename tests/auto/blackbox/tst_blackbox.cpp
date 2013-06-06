@@ -405,6 +405,47 @@ void TestBlackbox::clean()
     QVERIFY(QFile(depExeFilePath).exists());
 }
 
+void TestBlackbox::subProjects()
+{
+    QDir::setCurrent(testDataDir + "/subprojects");
+
+    // Check all three types of subproject creation, plus property overrides.
+    QCOMPARE(runQbs(), 0);
+
+    // Disabling both the project with the dependency and the one with the dependent
+    // should not cause an error.
+    waitForNewTimestamp();
+    QFile f(testDataDir + "/subprojects/toplevelproject.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    QByteArray contents = f.readAll();
+    contents.replace("condition: true", "condition: false");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    f.setFileName(testDataDir + "/subprojects/subproject2/subproject2.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    contents = f.readAll();
+    contents.replace("condition: true", "condition: false");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    QCOMPARE(runQbs(), 0);
+
+    // Disabling the project with the dependency only is an error.
+    // This tests also whether changes in sub-projects are detected.
+    waitForNewTimestamp();
+    f.setFileName(testDataDir + "/subprojects/toplevelproject.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    contents = f.readAll();
+    contents.replace("condition: false", "condition: true");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+}
+
 void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");

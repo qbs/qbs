@@ -26,50 +26,50 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROJECTDATA_P_H
-#define QBS_PROJECTDATA_P_H
+/*!
+    \contentspage index.html
+    \previouspage project-item.html
+    \page subproject-item.html
+    \nextpage properties-item.html
 
-#include "projectdata.h"
+    \title SubProject Item
 
-#include <QSharedData>
+    A \c SubProject item is used to add a project defined in another file as a sub-project to
+    the surrounding project:
+    \code
+    SubProject {
+        filePath: "subdir/project.qbs"
+        Properties {
+            name: "A sub-project"
+        }
+    }
+    \endcode
 
-namespace qbs {
-namespace Internal {
+    If you don't need to set any properties on the sub-project, you can also use the \c references
+    property, the same way you would do for a product:
+    \code
+    references: "subdir/project.qbs"
+    \endcode
 
-class GroupDataPrivate : public QSharedData
-{
-public:
-    QString name;
-    CodeLocation location;
-    QStringList filePaths;
-    QStringList expandedWildcards;
-    PropertyMap properties;
-    bool isEnabled;
-};
+    It is also possible to nest \c Project items directly in the same file.
 
-class ProductDataPrivate : public QSharedData
-{
-public:
-    QString name;
-    CodeLocation location;
-    QStringList fileTags;
-    PropertyMap properties;
-    QList<GroupData> groups;
-    bool isEnabled;
-};
-
-class ProjectDataPrivate : public QSharedData
-{
-public:
-    QString name;
-    CodeLocation location;
-    bool enabled;
-    QList<ProductData> products;
-    QList<ProjectData> subProjects;
-    QString buildDir;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // Include guard.
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li filePath
+            \li path
+            \li empty
+            \li The file path of the project to add as a sub-project. If the top-level item in this
+                file is a \c Product, it gets wrapped automatically in a new project.
+        \row
+            \li inheritProperties
+            \li bool
+            \li true
+            \li Whether the sub-project should inherit the properties of the surrounding project.
+                You can use this feature to share "global" settings between (sub-)projects.
+    \endtable
+*/

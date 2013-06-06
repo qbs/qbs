@@ -90,8 +90,8 @@ public:
     public:
         LoadResult() : discardLoadedProject(false) {}
 
-        ResolvedProjectPtr newlyResolvedProject;
-        ResolvedProjectPtr loadedProject;
+        TopLevelProjectPtr newlyResolvedProject;
+        TopLevelProjectPtr loadedProject;
         bool discardLoadedProject;
     };
 
@@ -101,7 +101,7 @@ public:
 private:
     void trackProjectChanges(const SetupProjectParameters &parameters,
                              const QString &buildGraphFilePath,
-                             const ResolvedProjectPtr &restoredProject);
+                             const TopLevelProjectPtr &restoredProject);
     void onProductRemoved(const ResolvedProductPtr &product);
     void onProductChanged(const ResolvedProductPtr &product,
                           const ResolvedProductPtr &changedProduct);

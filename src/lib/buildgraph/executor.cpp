@@ -161,7 +161,7 @@ void Executor::build()
     }
 }
 
-void Executor::setProject(const ResolvedProjectPtr &project)
+void Executor::setProject(const TopLevelProjectPtr &project)
 {
     m_project = project;
 }
@@ -632,7 +632,7 @@ void Executor::doSanityChecks()
     QBS_CHECK(!m_productsToBuild.isEmpty());
     foreach (const ResolvedProductConstPtr &product, m_productsToBuild) {
         QBS_CHECK(product->buildData);
-        QBS_CHECK(product->project == m_project);
+        QBS_CHECK(product->topLevelProject() == m_project);
     }
 }
 
@@ -711,7 +711,7 @@ void Executor::onProcessSuccess()
         QBS_CHECK(processedArtifact);
 
         // Update the timestamps of the outputs of the transformer we just executed.
-        processedArtifact->project->buildData->isDirty = true;
+        processedArtifact->topLevelProject()->buildData->isDirty = true;
         foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
             if (artifact->alwaysUpdated)
                 artifact->timestamp = FileTime::currentTime();

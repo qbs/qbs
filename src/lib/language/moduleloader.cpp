@@ -29,6 +29,7 @@
 
 #include "moduleloader.h"
 
+#include "builtindeclarations.h"
 #include "builtinvalue.h"
 #include "evaluator.h"
 #include "filecontext.h"
@@ -135,23 +136,36 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
 
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
-        if (child->typeName() == QLatin1String("Product"))
+        if (child->typeName() == QLatin1String("Product")) {
             handleProduct(&projectContext, child);
+        } else if (child->typeName() == QLatin1String("SubProject")) {
+            handleSubProject(&projectContext, child);
+        } else if (child->typeName() == QLatin1String("Project")) {
+            copyProperties(item, child);
+            handleProject(loadResult, child);
+        }
     }
 
     const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
     const QStringList refs = toStringList(m_evaluator->property(item, "references"));
     foreach (const QString &filePath, refs) {
         const QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
-        Item *subprj = m_reader->readFile(absReferencePath);
-        if (subprj->typeName() != "Product")
-            throw Error(Tr::tr("%1 is not a product.").arg(subprj->typeName()), subprj->location());
-        subprj->setScope(projectContext.scope);
-        subprj->setParent(projectContext.item);
+        Item *subItem = m_reader->readFile(absReferencePath);
+        subItem->setScope(projectContext.scope);
+        subItem->setParent(projectContext.item);
         QList<Item *> projectChildren = projectContext.item->children();
-        projectChildren += subprj;
+        projectChildren += subItem;
         projectContext.item->setChildren(projectChildren);
-        handleProduct(&projectContext, subprj);
+        if (subItem->typeName() == "Product") {
+            handleProduct(&projectContext, subItem);
+        } else if (subItem->typeName() == "Project") {
+            copyProperties(item, subItem);
+            handleProject(loadResult, subItem);
+        } else {
+            throw Error(Tr::tr("The top-level item of a file in a \"references\" list must be "
+                               "a Product or a Project, but it is \"%1\".").arg(subItem->typeName()),
+                        subItem->location());
+        }
     }
 }
 
@@ -190,6 +204,59 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     mergeExportItems(&productContext);
     projectContext->result->productInfos.insert(item, productContext.info);
+}
+
+void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *item)
+{
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] handleSubProject " << item->file()->filePath();
+
+    Item *propertiesItem = 0;
+    foreach (Item * const subItem, item->children()) {
+        if (subItem->typeName() == QLatin1String("Properties")) {
+            propertiesItem = subItem;
+            break;
+        }
+    }
+
+    bool subProjectEnabled = true;
+    if (propertiesItem)
+        subProjectEnabled = checkItemCondition(propertiesItem);
+    if (!subProjectEnabled)
+        return;
+
+    const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
+    QString subProjectFilePath = m_evaluator->property(item, "filePath").toString();
+    subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, subProjectFilePath);
+    Item *loadedItem = m_reader->readFile(subProjectFilePath);
+    if (loadedItem->typeName() == QLatin1String("Product"))
+        loadedItem = wrapWithProject(loadedItem);
+    const bool inheritProperties
+            = m_evaluator->boolValue(item, QLatin1String("inheritProperties"), true);
+
+    if (inheritProperties)
+        copyProperties(item->parent(), loadedItem);
+    if (propertiesItem) {
+        const Item::PropertyMap &overriddenProperties = propertiesItem->properties();
+        for (Item::PropertyMap::ConstIterator it = overriddenProperties.constBegin();
+             it != overriddenProperties.constEnd(); ++it) {
+            loadedItem->setProperty(it.key(), overriddenProperties.value(it.key()));
+        }
+    }
+
+    if (loadedItem->typeName() != QLatin1String("Project")) {
+        Error error;
+        error.append(Tr::tr("Expected Project item, but encountered '%1'.")
+                     .arg(loadedItem->typeName()), loadedItem->location());
+        const ValuePtr &filePathProperty = item->properties().value(QLatin1String("filePath"));
+        error.append(Tr::tr("The problematic file was referenced from here."),
+                     filePathProperty->location());
+        throw error;
+    }
+
+    Item::addChild(item, loadedItem);
+    item->setScope(projectContext->scope);
+    handleProject(projectContext->result, loadedItem);
 }
 
 void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *productContext)
@@ -723,27 +790,13 @@ void ModuleLoader::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw Error(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(ResolvedProject::deriveId(m_userProperties)));
+                    .arg(TopLevelProject::deriveId(m_userProperties)));
     }
 }
 
 bool ModuleLoader::checkItemCondition(Item *item)
 {
-    QScriptValue value = m_evaluator->property(item, QLatin1String("condition"));
-    if (!value.isValid() || value.isUndefined()) {
-        // Item doesn't have a condition binding. Handled as true.
-        return true;
-    }
-    if (Q_UNLIKELY(value.isError())) {
-        CodeLocation location;
-        ValuePtr prop = item->property("condition");
-        if (prop && prop->type() == Value::JSSourceValueType)
-            location = prop.staticCast<JSSourceValue>()->location();
-        Error e(Tr::tr("Error in condition."), location);
-        e.append(value.toString());
-        throw e;
-    }
-    return value.toBool();
+    return m_evaluator->boolValue(item, QLatin1String("condition"), true);
 }
 
 QStringList ModuleLoader::readExtraSearchPaths(Item *item)
@@ -753,6 +806,27 @@ QStringList ModuleLoader::readExtraSearchPaths(Item *item)
     foreach (const QString &path, toStringList(scriptValue))
         result += FileInfo::resolvePath(item->file()->dirPath(), path);
     return result;
+}
+
+void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject)
+{
+    if (!sourceProject)
+        return;
+    const QList<PropertyDeclaration> &builtinProjectProperties
+            = m_reader->builtins()->declarationsForType(QLatin1String("Project"));
+    QSet<QString> builtinProjectPropertyNames;
+    foreach (const PropertyDeclaration &p, builtinProjectProperties)
+        builtinProjectPropertyNames << p.name;
+    for (Item::PropertyDeclarationMap::ConstIterator it
+         = sourceProject->propertyDeclarations().constBegin();
+         it != sourceProject->propertyDeclarations().constEnd(); ++it) {
+        if (builtinProjectPropertyNames.contains(it.key()))
+            continue; // Ignore built-ins.
+        if (targetProject->propertyDeclarations().contains(it.key()))
+            continue; // Ignore stuff the target project already has.
+        targetProject->setPropertyDeclaration(it.key(), it.value());
+        copyProperty(it.key(), sourceProject, targetProject);
+    }
 }
 
 Item *ModuleLoader::wrapWithProject(Item *item)

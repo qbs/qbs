@@ -28,11 +28,14 @@
 ****************************************************************************/
 /*!
     \contentspage index.html
-    \previouspage project-item.html
+    \previouspage subproject-item.html
     \page properties-item.html
     \nextpage rule-item.html
 
     \title Properties Item
+
+    \note This documents the \c Properties item in the context of products. Usage within
+    a \c SubProject item is described \l{SubProject Item}{here}.
 
     The \c Properties item is an auxiliary item for setting multiple property values conditionally.
 

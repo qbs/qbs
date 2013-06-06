@@ -46,7 +46,7 @@
 namespace qbs {
 namespace Internal {
 
-ProjectBuildData::ProjectBuildData() : isDirty(false)
+ProjectBuildData::ProjectBuildData() : isDirty(true)
 {
 }
 
@@ -187,16 +187,17 @@ BuildDataResolver::BuildDataResolver(const Logger &logger) : m_logger(logger)
 {
 }
 
-void BuildDataResolver::resolveBuildData(const ResolvedProjectPtr &resolvedProject,
+void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProject,
                                           const RulesEvaluationContextPtr &evalContext)
 {
     QBS_CHECK(!resolvedProject->buildData);
     m_project = resolvedProject;
     resolvedProject->buildData.reset(new ProjectBuildData);
     resolvedProject->buildData->evaluationContext = evalContext;
+    const QList<ResolvedProductPtr> allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
-                                    .arg(resolvedProject->id()), resolvedProject->products.count());
-    foreach (ResolvedProductPtr rProduct, resolvedProject->products) {
+                                    .arg(resolvedProject->id()), allProducts.count());
+    foreach (ResolvedProductPtr rProduct, allProducts) {
         if (rProduct->enabled)
             resolveProductBuildData(rProduct);
         evalContext->incrementProgressValue();
@@ -204,7 +205,7 @@ void BuildDataResolver::resolveBuildData(const ResolvedProjectPtr &resolvedProje
     CycleDetector(m_logger).visitProject(m_project);
 }
 
-void BuildDataResolver::resolveProductBuildDataForExistingProject(const ResolvedProjectPtr &project,
+void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &freshProducts)
 {
     m_project = project;
@@ -217,8 +218,8 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const Resolved
  *    - dependencies between artifacts,
  *    - time stamps of artifacts, if their commands have not changed.
  */
-void BuildDataResolver::rescueBuildData(const ResolvedProjectConstPtr &source,
-                                      const ResolvedProjectPtr &target, Logger logger)
+void BuildDataResolver::rescueBuildData(const TopLevelProjectConstPtr &source,
+                                      const TopLevelProjectPtr &target, Logger logger)
 {
     QHash<QString, ResolvedProductConstPtr> sourceProductsByName;
     foreach (const ResolvedProductConstPtr &product, source->products)
@@ -295,7 +296,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     //add qbsFile artifact
     Artifact *qbsFileArtifact = lookupArtifact(product, product->location.fileName());
     if (!qbsFileArtifact) {
-        qbsFileArtifact = new Artifact(m_project);
+        qbsFileArtifact = new Artifact(product->project);
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(product->location.fileName());
         qbsFileArtifact->properties = product->properties;

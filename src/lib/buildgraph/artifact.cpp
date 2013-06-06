@@ -143,5 +143,10 @@ void Artifact::disconnectAll(const Logger &logger)
     disconnectParents(logger);
 }
 
+TopLevelProject *Artifact::topLevelProject() const
+{
+    return project->topLevelProject();
+}
+
 } // namespace Internal
 } // namespace qbs

@@ -70,7 +70,7 @@ private:
     FileTime m_now;
 };
 
-void TimestampsUpdater::updateTimestamps(const ResolvedProjectPtr &project,
+void TimestampsUpdater::updateTimestamps(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const Logger &logger)
 {
     TimestampsUpdateVisitor v;

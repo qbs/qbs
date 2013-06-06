@@ -39,6 +39,7 @@
 
 namespace qbs {
 namespace Internal {
+class FileTags;
 
 class EvaluatorScriptClass;
 
@@ -53,6 +54,14 @@ public:
     ScriptEngine *engine() const;
     QScriptValue property(const Item *item, const QString &name);
     QScriptValue property(const Item *item, const QStringList &nameParts);
+
+    bool boolValue(const Item *item, const QString &name, bool defaultValue = false,
+                   bool *propertyWasSet = 0);
+    FileTags fileTagsValue(const Item *item, const QString &name);
+    QString stringValue(const Item *item, const QString &name,
+                        const QString &defaultValue = QString(), bool *propertyWasSet = 0);
+    QStringList stringListValue(const Item *item, const QString &name);
+
     QScriptValue scriptValue(const Item *item);
     QScriptValue fileScope(const FileContextConstPtr &file);
 

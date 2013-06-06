@@ -35,6 +35,7 @@
 #include <tools/qbsassert.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/propertyfinder.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 
@@ -44,8 +45,9 @@
 namespace qbs {
 namespace Internal {
 
-ProductInstaller::ProductInstaller(const QList<ResolvedProductPtr> &products,
-        const InstallOptions &options, ProgressObserver *observer, const Logger &logger)
+ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
+        const QList<ResolvedProductPtr> &products, const InstallOptions &options,
+        ProgressObserver *observer, const Logger &logger)
     : m_products(products), m_options(options), m_observer(observer), m_logger(logger)
 {
     if (!m_options.installRoot().isEmpty()) {
@@ -61,18 +63,14 @@ ProductInstaller::ProductInstaller(const QList<ResolvedProductPtr> &products,
         return;
     }
 
-    if (m_products.isEmpty())
-        throw Error(Tr::tr("Cannot deduce install root, because there are no products."));
-
-    const ResolvedProductConstPtr &product = m_products.first();
     if (m_options.installIntoSysroot()) {
         if (m_options.removeExistingInstallation())
             throw Error(Tr::tr("Refusing to remove sysroot."));
-        m_options.setInstallRoot(product->properties
-                                 ->qbsPropertyValue(QLatin1String("sysroot")).toString());
+        m_options.setInstallRoot(PropertyFinder().propertyValue(project->buildConfiguration(),
+                QLatin1String("qbs"), QLatin1String("sysroot")).toString());
     } else {
-        m_options.setInstallRoot(product->project->buildDirectory
-            + QLatin1Char('/') + InstallOptions::defaultInstallRoot());
+        m_options.setInstallRoot(project->buildDirectory + QLatin1Char('/') +
+                                 InstallOptions::defaultInstallRoot());
     }
 }
 
@@ -119,7 +117,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
 {
     if (m_observer->canceled()) {
         throw Error(Tr::tr("Installation canceled for configuration '%1'.")
-                    .arg(m_products.first()->project->id()));
+                    .arg(m_products.first()->project->topLevelProject()->id()));
     }
     const QString relativeInstallDir
             = artifact->properties->qbsPropertyValue(QLatin1String("installDir")).toString();

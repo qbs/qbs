@@ -30,12 +30,11 @@
     \contentspage index.html
     \previouspage product-item.html
     \page project-item.html
-    \nextpage properties-item.html
+    \nextpage subproject-item.html
 
     \title Project Item
 
-    A \e project item represents one complete Qbs project. It always
-    is the top-level item in the hierarchy and usually comprises one or more \e products. In a
+    A \c Project item represents a collection of of products. In a
     non-trivial project, these products are typically defined in their own files and
     referenced in the main project file:
     \code
@@ -48,6 +47,10 @@
     \endcode
     Any property \c prop attached to this item is available in sub-items as \c project.prop.
 
+    While the root of the item hierarchy is always a \c Project, this kind of item can also
+    appear further down the hierarchy. Such sub-projects are ususally introduced to group products.
+    See the \l{SubProject Item} for details.
+
     \note If your project consists of only one product, the \c Project item can be omitted.
 
     \table
@@ -56,6 +59,17 @@
             \li Type
             \li Default
             \li Description
+        \row
+            \li name
+            \li string
+            \li basename of the file the project is defined in
+            \li The project name. Only relevant for e.g. displaying a project tree in an IDE.
+        \row
+            \li condition
+            \li bool
+            \li true
+            \li Whether the project is enabled. If false, no products or sub-projects will be
+                collected.
         \row
             \li moduleSearchPaths
             \li list of strings
@@ -67,7 +81,7 @@
                 listed in the \c preferences.qbsPath setting.
         \row
             \li references
-            \li list of strings
+            \li path list
             \li empty
             \li A list of files from which to import products. This is equivalent to defining
                 the respective \c Product items directly under this \c Project item.

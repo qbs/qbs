@@ -81,13 +81,13 @@ class BuildDataResolver
 {
 public:
     BuildDataResolver(const Logger &logger);
-    void resolveBuildData(const ResolvedProjectPtr &resolvedProject,
+    void resolveBuildData(const TopLevelProjectPtr &resolvedProject,
                           const RulesEvaluationContextPtr &evalContext);
-    void resolveProductBuildDataForExistingProject(const ResolvedProjectPtr &project,
+    void resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,
             const QList<ResolvedProductPtr> &freshProducts);
 
-    static void rescueBuildData(const ResolvedProjectConstPtr &source,
-                                const ResolvedProjectPtr &target, Logger logger);
+    static void rescueBuildData(const TopLevelProjectConstPtr &source,
+                                const TopLevelProjectPtr &target, Logger logger);
 
 private:
     void resolveProductBuildData(const ResolvedProductPtr &product);
@@ -95,7 +95,7 @@ private:
     ScriptEngine *engine() const;
     QScriptValue scope() const;
 
-    ResolvedProjectPtr m_project;
+    TopLevelProjectPtr m_project;
     Logger m_logger;
 };
 

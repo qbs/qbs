@@ -102,6 +102,7 @@ public:
     QString dirPath() const { return m_dirPath.toString(); }
     QString fileName() const { return m_fileName.toString(); }
     void disconnectAll(const Logger &logger);
+    TopLevelProject *topLevelProject() const;
 
 private:
     void load(PersistentPool &pool);

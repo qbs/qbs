@@ -31,10 +31,12 @@
 #include "evaluationdata.h"
 #include "evaluatorscriptclass.h"
 #include "filecontext.h"
+#include "filetags.h"
 #include "item.h"
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
+#include <tools/scripttools.h>
 #include <QDebug>
 #include <QScriptEngine>
 
@@ -80,6 +82,57 @@ QScriptValue Evaluator::property(const Item *item, const QStringList &nameParts)
         QBS_ASSERT(targetItem, return QScriptValue());
     }
     return property(targetItem, nameParts.last());
+}
+
+bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultValue,
+                          bool *propertyWasSet)
+{
+    QScriptValue v = property(item, name);
+    if (Q_UNLIKELY(v.isError())) {
+        ValuePtr value = item->property(name);
+        throw Error(v.toString(), value ? value->location() : CodeLocation());
+    }
+    if (!v.isValid() || v.isUndefined()) {
+        if (propertyWasSet)
+            *propertyWasSet = false;
+        return defaultValue;
+    }
+    if (propertyWasSet)
+        *propertyWasSet = true;
+    return v.toBool();
+}
+
+FileTags Evaluator::fileTagsValue(const Item *item, const QString &name)
+{
+    return FileTags::fromStringList(stringListValue(item, name));
+}
+
+QString Evaluator::stringValue(const Item *item, const QString &name,
+                               const QString &defaultValue, bool *propertyWasSet)
+{
+    QScriptValue v = property(item, name);
+    if (Q_UNLIKELY(v.isError())) {
+        ValuePtr value = item->property(name);
+        throw Error(v.toString(), value ? value->location() : CodeLocation());
+    }
+    if (!v.isValid() || v.isUndefined()) {
+        if (propertyWasSet)
+            *propertyWasSet = false;
+        return defaultValue;
+    }
+    if (propertyWasSet)
+        *propertyWasSet = true;
+    return v.toString();
+}
+
+QStringList Evaluator::stringListValue(const Item *item, const QString &name)
+{
+    QScriptValue v = property(item, name);
+    if (Q_UNLIKELY(v.isError())) {
+        ValuePtr value = item->property(name);
+        throw Error(v.toString(), value ? value->location() : CodeLocation());
+    }
+    return toStringList(v);
 }
 
 QScriptValue Evaluator::scriptValue(const Item *item)

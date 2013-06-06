@@ -113,7 +113,7 @@ signals:
 private:
     BuildJob(const Internal::Logger &logger, QObject *parent);
 
-    void build(const Internal::ResolvedProjectPtr &project,
+    void build(const Internal::TopLevelProjectPtr &project,
                const QList<qbs::Internal::ResolvedProductPtr> &products,
                const BuildOptions &options);
 };
@@ -127,7 +127,7 @@ class QBS_EXPORT CleanJob : public AbstractJob
 private:
     CleanJob(const Internal::Logger &logger, QObject *parent);
 
-    void clean(const Internal::ResolvedProjectPtr &project,
+    void clean(const Internal::TopLevelProjectPtr &project,
                const QList<Internal::ResolvedProductPtr> &products, const CleanOptions &options);
 };
 
@@ -138,8 +138,8 @@ class QBS_EXPORT InstallJob : public AbstractJob
 private:
     InstallJob(const Internal::Logger &logger, QObject *parent);
 
-    void install(const QList<Internal::ResolvedProductPtr> &products,
-                 const InstallOptions &options);
+    void install(const Internal::TopLevelProjectPtr &project,
+                 const QList<Internal::ResolvedProductPtr> &products, const InstallOptions &options);
 };
 
 } // namespace qbs

@@ -314,7 +314,7 @@ void TestLanguage::exports()
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("exports.qbs"));
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 8);
@@ -431,7 +431,7 @@ void TestLanguage::groupName()
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("groupname.qbs"));
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 2);
@@ -575,7 +575,7 @@ void TestLanguage::idUsage()
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("idusage.qbs"));
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 3);
@@ -686,7 +686,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
         params.setBuildConfiguration(customBuildConfig);
-        ResolvedProjectPtr project = loader->loadProject(params);
+        TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
@@ -755,7 +755,7 @@ void TestLanguage::moduleScope()
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("modulescope.qbs"));
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
@@ -827,7 +827,7 @@ void TestLanguage::outerInGroup()
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("outerInGroup.qbs"));
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 1);
@@ -892,7 +892,7 @@ void TestLanguage::productConditions()
     bool exceptionCaught = false;
     try {
         defaultParameters.setProjectFilePath(testProject("productconditions.qbs"));
-        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.count(), 4);

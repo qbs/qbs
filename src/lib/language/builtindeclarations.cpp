@@ -251,6 +251,8 @@ void BuiltinDeclarations::addProductItem()
 void BuiltinDeclarations::addProjectItem()
 {
     QList<PropertyDeclaration> properties;
+    properties += nameProperty();
+    properties += conditionProperty();
     properties += PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     properties += PropertyDeclaration(QLatin1String("moduleSearchPaths"),
@@ -278,6 +280,18 @@ void BuiltinDeclarations::addRuleItem()
                                       PropertyDeclaration::Variant);
     properties += PropertyDeclaration(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
     m_builtins[QLatin1String("Rule")] = properties;
+}
+
+void BuiltinDeclarations::addSubprojectItem()
+{
+    QList<PropertyDeclaration> properties;
+    properties += PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
+    PropertyDeclaration inheritProperty;
+    inheritProperty.name = QLatin1String("inheritProperties");
+    inheritProperty.type = PropertyDeclaration::Boolean;
+    inheritProperty.initialValueSource = QLatin1String("true");
+    properties += inheritProperty;
+    m_builtins[QLatin1String("SubProject")] = properties;
 }
 
 void BuiltinDeclarations::addTransformerItem()

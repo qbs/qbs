@@ -44,8 +44,8 @@ class ProgressObserver;
 class ProductInstaller
 {
 public:
-    ProductInstaller(const QList<ResolvedProductPtr> &products, const InstallOptions &options,
-                     ProgressObserver *observer, const Logger &logger);
+    ProductInstaller(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+            const InstallOptions &options, ProgressObserver *observer, const Logger &logger);
     void install();
 
 private:

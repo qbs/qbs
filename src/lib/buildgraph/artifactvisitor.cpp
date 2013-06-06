@@ -66,6 +66,8 @@ void ArtifactVisitor::visitProject(const ResolvedProjectConstPtr &project)
 {
     foreach (const ResolvedProductConstPtr &product, project->products)
         visitProduct(product);
+    foreach (const ResolvedProjectConstPtr &subProject, project->subProjects)
+        visitProject(subProject);
 }
 
 } // namespace Internal

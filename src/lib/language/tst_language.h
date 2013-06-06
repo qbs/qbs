@@ -52,7 +52,7 @@ private:
     Logger m_logger;
     ScriptEngine *m_engine;
     Loader *loader;
-    ResolvedProjectPtr project;
+    TopLevelProjectPtr project;
     SetupProjectParameters defaultParameters;
     const QString m_wildcardsTestDirPath;
 

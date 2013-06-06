@@ -441,7 +441,7 @@ enum EnvType
 static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
                                                  const QList<ResolvedModuleConstPtr> &modules,
                                                  const PropertyMapConstPtr &productConfiguration,
-                                                 ResolvedProject *project,
+                                                 TopLevelProject *project,
                                                  const QProcessEnvironment &env)
 {
     QProcessEnvironment procenv = env;
@@ -541,7 +541,8 @@ void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcess
     if (!buildEnvironment.isEmpty())
         return;
 
-    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, properties, project, env);
+    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, properties,
+                                             topLevelProject(), env);
 }
 
 void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEnvironment &env) const
@@ -549,7 +550,8 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
     if (!runEnvironment.isEmpty())
         return;
 
-    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, properties, project, env);
+    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, properties,
+                                           topLevelProject(), env);
 }
 
 const QList<RuleConstPtr> &ResolvedProduct::topSortedRules() const
@@ -568,8 +570,107 @@ const QList<RuleConstPtr> &ResolvedProduct::topSortedRules() const
     return buildData->topSortedRules;
 }
 
+TopLevelProject *ResolvedProduct::topLevelProject() const
+{
+     return project->topLevelProject();
+}
 
-QString ResolvedProject::deriveId(const QVariantMap &config)
+
+ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
+{
+}
+
+TopLevelProject *ResolvedProject::topLevelProject()
+{
+    if (m_topLevelProject)
+        return m_topLevelProject;
+    TopLevelProject *tlp = dynamic_cast<TopLevelProject *>(this);
+    if (tlp) {
+        m_topLevelProject = tlp;
+        return m_topLevelProject;
+    }
+    QBS_CHECK(!parentProject.isNull());
+    m_topLevelProject = parentProject->topLevelProject();
+    return m_topLevelProject;
+}
+
+QList<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
+{
+    QList<ResolvedProjectPtr> projectList = subProjects;
+    foreach (const ResolvedProjectConstPtr &subProject, subProjects)
+        projectList << subProject->allSubProjects();
+    return projectList;
+}
+
+QList<ResolvedProductPtr> ResolvedProject::allProducts() const
+{
+    QList<ResolvedProductPtr> productList = products;
+    foreach (const ResolvedProjectConstPtr &subProject, subProjects)
+        productList << subProject->allProducts();
+    return productList;
+}
+
+void ResolvedProject::load(PersistentPool &pool)
+{
+    name = pool.idLoadString();
+    const QString fileName = pool.idLoadString();
+    int line;
+    int column;
+    pool.stream() >> line;
+    pool.stream() >> column;
+    location = CodeLocation(fileName, line, column);
+    pool.stream() >> enabled;
+
+    int count;
+    pool.stream() >> count;
+    products.clear();
+    products.reserve(count);
+    for (; --count >= 0;) {
+        ResolvedProductPtr rProduct = pool.idLoadS<ResolvedProduct>();
+        if (rProduct->buildData) {
+            foreach (Artifact * const a, rProduct->buildData->artifacts)
+                a->product = rProduct;
+        }
+        products.append(rProduct);
+    }
+
+    pool.stream() >> count;
+    subProjects.clear();
+    subProjects.reserve(count);
+    for (; --count >= 0;) {
+        ResolvedProjectPtr p = pool.idLoadS<ResolvedProject>();
+        subProjects.append(p);
+    }
+
+    pool.stream() >> m_projectProperties;
+}
+
+void ResolvedProject::store(PersistentPool &pool) const
+{
+    pool.storeString(name);
+    pool.storeString(location.fileName());
+    pool.stream() << location.line();
+    pool.stream() << location.column();
+    pool.stream() << enabled;
+    pool.stream() << products.count();
+    foreach (const ResolvedProductConstPtr &product, products)
+        pool.store(product);
+    pool.stream() << subProjects.count();
+    foreach (const ResolvedProjectConstPtr &project, subProjects)
+        pool.store(project);
+    pool.stream() << m_projectProperties;
+}
+
+
+TopLevelProject::TopLevelProject()
+{
+}
+
+TopLevelProject::~TopLevelProject()
+{
+}
+
+QString TopLevelProject::deriveId(const QVariantMap &config)
 {
     const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
     const QString buildVariant = qbsProperties.value(QLatin1String("buildVariant")).toString();
@@ -577,28 +678,23 @@ QString ResolvedProject::deriveId(const QVariantMap &config)
     return profile + QLatin1Char('-') + buildVariant;
 }
 
-QString ResolvedProject::deriveBuildDirectory(const QString &buildRoot, const QString &id)
+QString TopLevelProject::deriveBuildDirectory(const QString &buildRoot, const QString &id)
 {
     return buildRoot + QLatin1Char('/') + id;
 }
 
-void ResolvedProject::setBuildConfiguration(const QVariantMap &config)
+void TopLevelProject::setBuildConfiguration(const QVariantMap &config)
 {
     m_buildConfiguration = config;
     m_id = deriveId(config);
 }
 
-void ResolvedProject::setProjectProperties(const QVariantMap &config)
-{
-    m_projectProperties = config;
-}
-
-QString ResolvedProject::buildGraphFilePath() const
+QString TopLevelProject::buildGraphFilePath() const
 {
     return ProjectBuildData::deriveBuildGraphFilePath(buildDirectory, id());
 }
 
-void ResolvedProject::store(const Logger &logger) const
+void TopLevelProject::store(const Logger &logger) const
 {
     // TODO: Use progress observer here.
 
@@ -619,65 +715,29 @@ void ResolvedProject::store(const Logger &logger) const
     buildData->isDirty = false;
 }
 
-ResolvedProject::ResolvedProject()
+void TopLevelProject::load(PersistentPool &pool)
 {
-}
-
-ResolvedProject::~ResolvedProject()
-{
-}
-
-void ResolvedProject::load(PersistentPool &pool)
-{
-    const QString fileName = pool.idLoadString();
-    int line;
-    int column;
-    pool.stream() >> line;
-    pool.stream() >> column;
-    location = CodeLocation(fileName, line, column);
+    ResolvedProject::load(pool);
     pool.stream() >> m_id;
     pool.stream() >> platformEnvironment;
-
-    int count;
-    pool.stream() >> count;
-    products.clear();
-    products.reserve(count);
-    for (; --count >= 0;) {
-        ResolvedProductPtr rProduct = pool.idLoadS<ResolvedProduct>();
-        if (rProduct->buildData) {
-            foreach (Artifact * const a, rProduct->buildData->artifacts)
-                a->product = rProduct;
-        }
-        products.append(rProduct);
-    }
+    pool.stream() >> usedEnvironment;
     QHash<QString, QString> envHash;
-    pool.stream()
-        >> usedEnvironment
-        >> m_projectProperties
-        >> envHash;
+    pool.stream() >> envHash;
     for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
         environment.insert(i.key(), i.value());
     buildData.reset(pool.idLoad<ProjectBuildData>());
+    buildData->isDirty = false;
 }
 
-void ResolvedProject::store(PersistentPool &pool) const
+void TopLevelProject::store(PersistentPool &pool) const
 {
-    pool.storeString(location.fileName());
-    pool.stream() << location.line();
-    pool.stream() << location.column();
+    ResolvedProject::store(pool);
     pool.stream() << m_id;
-    pool.stream() << platformEnvironment;
-
-    pool.stream() << products.count();
-    foreach (const ResolvedProductConstPtr &product, products)
-        pool.store(product);
+    pool.stream() << platformEnvironment << usedEnvironment;
     QHash<QString, QString> envHash;
     foreach (const QString &key, environment.keys())
         envHash.insert(key, environment.value(key));
-    pool.stream()
-        << usedEnvironment
-        << m_projectProperties
-        << envHash;
+    pool.stream() << envHash;
     pool.store(buildData.data());
 }
 

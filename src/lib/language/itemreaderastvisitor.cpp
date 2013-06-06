@@ -252,8 +252,10 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         }
     }
 
-    if (item->typeName() != QLatin1String("Properties"))
+    if (item->typeName() != QLatin1String("Properties")
+            && item->typeName() != QLatin1String("SubProject")) {
         setupAlternatives(item);
+    }
 
     // resolve inheritance
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);

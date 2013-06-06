@@ -44,7 +44,7 @@ class ArtifactCleaner
 {
 public:
     ArtifactCleaner(const Logger &logger, ProgressObserver *observer);
-    void cleanup(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    void cleanup(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                  const CleanOptions &options);
 
 private:

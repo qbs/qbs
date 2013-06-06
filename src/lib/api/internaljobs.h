@@ -68,7 +68,7 @@ protected:
     JobObserver *observer() const { return m_observer; }
     void setError(const Error &error) { m_error = error; }
     void setTimed(bool timed) { m_timed = timed; }
-    void storeBuildGraph(const ResolvedProjectConstPtr &project);
+    void storeBuildGraph(const TopLevelProjectConstPtr &project);
 
 signals:
     void finished(Internal::InternalJob *job);
@@ -94,7 +94,7 @@ public:
     void resolve(const SetupProjectParameters &parameters);
     void reportError(const Error &error);
 
-    ResolvedProjectPtr project() const;
+    TopLevelProjectPtr project() const;
 
 private slots:
     void start();
@@ -108,7 +108,7 @@ private:
     QMutex m_runMutex;
     QWaitCondition m_runWaitCondition;
 
-    ResolvedProjectPtr m_project;
+    TopLevelProjectPtr m_project;
     SetupProjectParameters m_parameters;
 };
 
@@ -118,7 +118,7 @@ class BuildGraphTouchingJob : public InternalJob
     Q_OBJECT
 public:
     const QList<ResolvedProductPtr> &products() const { return m_products; }
-    const ResolvedProjectPtr &project() const { return m_project; }
+    const TopLevelProjectPtr &project() const { return m_project; }
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
@@ -128,12 +128,12 @@ protected:
     BuildGraphTouchingJob(const Logger &logger, QObject *parent = 0);
     ~BuildGraphTouchingJob();
 
-    void setup(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    void setup(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                bool dryRun);
     void storeBuildGraph();
 
 private:
-    ResolvedProjectPtr m_project;
+    TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_products;
     bool m_dryRun;
 };
@@ -145,7 +145,7 @@ class InternalBuildJob : public BuildGraphTouchingJob
 public:
     InternalBuildJob(const Logger &logger, QObject *parent = 0);
 
-    void build(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    void build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                const BuildOptions &buildOptions);
 
 private slots:
@@ -163,7 +163,7 @@ class InternalCleanJob : public BuildGraphTouchingJob
 public:
     InternalCleanJob(const Logger &logger, QObject *parent = 0);
 
-    void clean(const ResolvedProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    void clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                const CleanOptions &options);
 
 private slots:
@@ -185,7 +185,8 @@ public:
     InternalInstallJob(const Logger &logger, QObject *parent = 0);
     ~InternalInstallJob();
 
-    void install(const QList<ResolvedProductPtr> &products, const InstallOptions &options);
+    void install(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+                 const InstallOptions &options);
 
 private slots:
     void handleFinished();
@@ -195,6 +196,7 @@ private:
     void doInstall();
 
 private:
+    TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_products;
     InstallOptions m_options;
 };

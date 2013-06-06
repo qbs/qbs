@@ -32,6 +32,7 @@
 
 #include "evaluator.h"
 #include "filetags.h"
+#include "item.h"
 #include "language.h"
 #include <logging/logger.h>
 
@@ -56,7 +57,7 @@ public:
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
-    ResolvedProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot,
+    TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot,
                                const QVariantMap &buildConfiguration,
                                const QProcessEnvironment &environment);
 
@@ -68,9 +69,6 @@ private:
         ModuleLoaderResult *loadResult;
         QList<RulePtr> rules;
         ResolvedModulePtr dummyModule;
-        QMap<QString, ResolvedProductPtr> productsByName;
-        QHash<ResolvedProductPtr, Item *> productItemMap;
-        QMap<QString, QVariantMap> exports;
     };
 
     struct ProductContext
@@ -85,27 +83,25 @@ private:
     };
 
     void checkCancelation() const;
-    bool boolValue(const Item *item, const QString &name, bool defaultValue = false) const;
-    FileTags fileTagsValue(const Item *item, const QString &name) const;
-    QString stringValue(const Item *item, const QString &name, const QString &defaultValue = QString()) const;
-    QStringList stringListValue(const Item *item, const QString &name) const;
     QString verbatimValue(const ValueConstPtr &value) const;
     QString verbatimValue(Item *item, const QString &name) const;
-    void ignoreItem(Item *item);
-    void resolveProject(Item *item);
-    void resolveProduct(Item *item);
-    void resolveModule(const QStringList &moduleName, Item *item);
-    void resolveGroup(Item *item);
-    void resolveRule(Item *item);
+    void ignoreItem(Item *item, ProjectContext *projectContext);
+    void resolveTopLevelProject(Item *item, ProjectContext *projectContext);
+    void resolveProject(Item *item, ProjectContext *projectContext);
+    void resolveSubProject(Item *item, ProjectContext *projectContext);
+    void resolveProduct(Item *item, ProjectContext *projectContext);
+    void resolveModule(const QStringList &moduleName, Item *item, ProjectContext *projectContext);
+    void resolveGroup(Item *item, ProjectContext *projectContext);
+    void resolveRule(Item *item, ProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item, bool *hasAlwaysUpdatedArtifact);
     static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
                                            const QStringList &namePrefix,
                                            StringListSet *seenBindings);
-    void resolveFileTagger(Item *item);
-    void resolveTransformer(Item *item);
-    void resolveExport(Item *item);
-    void resolveProductDependencies();
-    void postProcess(const ResolvedProductPtr &product) const;
+    void resolveFileTagger(Item *item, ProjectContext *projectContext);
+    void resolveTransformer(Item *item, ProjectContext *projectContext);
+    void resolveExport(Item *item, ProjectContext *projectContext);
+    void resolveProductDependencies(ProjectContext *projectContext);
+    void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     void applyFileTaggers(const SourceArtifactPtr &artifact,
                           const ResolvedProductConstPtr &product) const;
@@ -117,6 +113,7 @@ private:
     QVariantMap createProductConfig() const;
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
+    ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
 
     Evaluator *m_evaluator;
     Logger m_logger;
@@ -124,15 +121,17 @@ private:
     ProgressObserver *m_progressObserver;
     QString m_buildRoot;
     QVariantMap m_buildConfiguration;
-    ProjectContext *m_projectContext;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
-    QSet<QString> m_groupPropertyDeclarations;
     QProcessEnvironment m_environment;
+    QMap<QString, ResolvedProductPtr> m_productsByName;
+    QHash<ResolvedProductPtr, Item *> m_productItemMap;
+    QMap<QString, QVariantMap> m_exports;
+    const BuiltinDeclarations * const m_builtinDeclarations;
 
-    typedef void (ProjectResolver::*ItemFuncPtr)(Item *item);
+    typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<QByteArray, ItemFuncPtr> ItemFuncMap;
-    void callItemFunction(const ItemFuncMap &mappings, Item *item);
+    void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
 };
 
 } // namespace Internal

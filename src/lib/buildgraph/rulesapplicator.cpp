@@ -59,7 +59,7 @@ RulesApplicator::RulesApplicator(const ResolvedProductPtr &product,
 
 void RulesApplicator::applyAllRules()
 {
-    RulesEvaluationContext::Scope s(m_product->project->buildData->evaluationContext.data());
+    RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());
     foreach (const RuleConstPtr &rule, m_product->topSortedRules())
         applyRule(rule);
 }
@@ -147,7 +147,8 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         }
         m_transformer->outputs.insert(outputArtifact);
 
-        m_product->project->buildData->artifactsThatMustGetNewTransformers -= outputArtifact;
+        m_product->topLevelProject()->buildData->artifactsThatMustGetNewTransformers
+                -= outputArtifact;
     }
 
     m_transformer->setupInputs(engine(), scope());
@@ -199,7 +200,7 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
         QDir sourceDir(m_product->sourceDirectory);
         basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
     } else {
-        QDir buildDir(m_product->project->buildDirectory);
+        QDir buildDir(m_product->topLevelProject()->buildDirectory);
         basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
     }
 
@@ -303,7 +304,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 
 QString RulesApplicator::resolveOutPath(const QString &path) const
 {
-    QString buildDir = m_product->project->buildDirectory;
+    QString buildDir = m_product->topLevelProject()->buildDirectory;
     QString result = FileInfo::resolvePath(buildDir, path);
     result = QDir::cleanPath(result);
     return result;
@@ -311,7 +312,7 @@ QString RulesApplicator::resolveOutPath(const QString &path) const
 
 RulesEvaluationContextPtr RulesApplicator::evalContext() const
 {
-    return m_product->project->buildData->evaluationContext;
+    return m_product->topLevelProject()->buildData->evaluationContext;
 }
 
 ScriptEngine *RulesApplicator::engine() const

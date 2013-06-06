@@ -37,6 +37,7 @@
 #include "propertydeclaration.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
+#include <tools/error.h>
 #include <tools/weakpointer.h>
 
 #include <QList>
@@ -70,6 +71,8 @@ public:
         Item *item;
     };
     typedef QList<Module> Modules;
+    typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
+    typedef QMap<QString, ValuePtr> PropertyMap;
 
     static Item *create(ItemPool *pool);
     Item *clone(ItemPool *pool) const;
@@ -85,10 +88,11 @@ public:
     Item *parent() const;
     const FileContextPtr file() const;
     QList<Item *> children() const;
-    const QMap<QString, ValuePtr> &properties() const;
-    const QMap<QString, PropertyDeclaration> &propertyDeclarations() const;
+    const PropertyMap &properties() const;
+    const PropertyDeclarationMap &propertyDeclarations() const;
     const Modules &modules() const;
     Modules &modules();
+    const Error &error() const { return m_error; }
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -97,6 +101,7 @@ public:
     JSSourceValuePtr sourceProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
+    void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
     void setTypeName(const QString &name);
     void setLocation(const CodeLocation &location);
     void setPrototype(Item *prototype);
@@ -107,6 +112,7 @@ public:
     void setChildren(const QList<Item *> &children);
     void setParent(Item *item);
     static void addChild(Item *parent, Item *child);
+    void setError(const Error &error) { m_error = error; }
 
 private:
     ItemPool *m_pool;
@@ -121,10 +127,11 @@ private:
     Item *m_parent;
     QList<Item *> m_children;
     FileContextPtr m_file;
-    QMap<QString, ValuePtr> m_properties;
-    QMap<QString, PropertyDeclaration> m_propertyDeclarations;
+    PropertyMap m_properties;
+    PropertyDeclarationMap m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
+    Error m_error; // For SubProject items. May or may not be reported depending on their condition.
 };
 
 inline ItemPool *Item::pool() const
@@ -182,12 +189,12 @@ inline QList<Item *> Item::children() const
     return m_children;
 }
 
-inline const QMap<QString, ValuePtr> &Item::properties() const
+inline const Item::PropertyMap &Item::properties() const
 {
     return m_properties;
 }
 
-inline const QMap<QString, PropertyDeclaration> &Item::propertyDeclarations() const
+inline const Item::PropertyDeclarationMap &Item::propertyDeclarations() const
 {
     return m_propertyDeclarations;
 }
@@ -197,6 +204,12 @@ inline void Item::setProperty(const QString &name, const ValuePtr &value)
     m_properties.insert(name, value);
     if (m_propertyObserver)
         m_propertyObserver->onItemPropertyChanged(this);
+}
+
+inline void Item::setPropertyDeclaration(const QString &name,
+                                         const PropertyDeclaration &declaration)
+{
+    m_propertyDeclarations.insert(name, declaration);
 }
 
 inline void Item::setTypeName(const QString &name)

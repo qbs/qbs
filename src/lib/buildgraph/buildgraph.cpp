@@ -255,7 +255,7 @@ void connect(Artifact *p, Artifact *c)
     QBS_CHECK(p != c);
     p->children.insert(c);
     c->parents.insert(p);
-    p->project->buildData->isDirty = true;
+    p->topLevelProject()->buildData->isDirty = true;
 }
 
 void loggedConnect(Artifact *u, Artifact *v, const Logger &logger)
@@ -327,7 +327,7 @@ void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger)
 
 QString relativeArtifactFileName(const Artifact *n)
 {
-    const QString &buildDir = n->project->buildDirectory;
+    const QString &buildDir = n->topLevelProject()->buildDirectory;
     QString str = n->filePath();
     if (str.startsWith(buildDir))
         str.remove(0, buildDir.count());
@@ -340,7 +340,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &
                          const QString &fileName)
 {
     QList<Artifact *> artifacts
-            = product->project->buildData->lookupArtifacts(dirPath, fileName);
+            = product->topLevelProject()->buildData->lookupArtifacts(dirPath, fileName);
     for (QList<Artifact *>::const_iterator it = artifacts.constBegin();
          it != artifacts.constEnd(); ++it) {
         if ((*it)->product == product)
@@ -396,8 +396,8 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
 #endif
     product->buildData->artifacts.insert(artifact);
     artifact->product = product;
-    product->project->buildData->insertIntoArtifactLookupTable(artifact);
-    product->project->buildData->isDirty = true;
+    product->topLevelProject()->buildData->insertIntoArtifactLookupTable(artifact);
+    product->topLevelProject()->buildData->isDirty = true;
 
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] insert artifact '%1'")
@@ -459,15 +459,33 @@ static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &pr
     return true;
 }
 
+void restoreBackPointers(const ResolvedProjectPtr &project)
+{
+    foreach (const ResolvedProductPtr &product, project->products) {
+        product->project = project;
+        if (!product->buildData)
+            continue;
+        foreach (Artifact * const a, product->buildData->artifacts) {
+            a->project = project;
+            project->topLevelProject()->buildData->insertIntoArtifactLookupTable(a);
+        }
+    }
+
+    foreach (const ResolvedProjectPtr &subProject, project->subProjects) {
+        subProject->parentProject = project;
+        restoreBackPointers(subProject);
+    }
+}
+
 BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters &parameters,
         const RulesEvaluationContextPtr &evalContext)
 {
     m_result = LoadResult();
     m_evalContext = evalContext;
 
-    const QString projectId = ResolvedProject::deriveId(parameters.buildConfiguration());
+    const QString projectId = TopLevelProject::deriveId(parameters.buildConfiguration());
     const QString buildDir
-            = ResolvedProject::deriveBuildDirectory(parameters.buildRoot(), projectId);
+            = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(), projectId);
     const QString buildGraphFilePath
             = ProjectBuildData::deriveBuildGraphFilePath(buildDir, projectId);
 
@@ -481,23 +499,13 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
         return m_result;
     }
 
-    const ResolvedProjectPtr project = ResolvedProject::create();
+    const TopLevelProjectPtr project = TopLevelProject::create();
 
     // TODO: Store some meta data that will enable us to show actual progress (e.g. number of products).
     evalContext->initializeObserver(Tr::tr("Restoring build graph from disk"), 1);
 
     project->load(pool);
     project->buildData->evaluationContext = evalContext;
-    foreach (Artifact * const a, project->buildData->dependencyArtifacts)
-        a->project = project;
-    foreach (const ResolvedProductPtr &product, project->products) {
-        if (!product->buildData)
-            continue;
-        foreach (Artifact * const a, product->buildData->artifacts) {
-            a->project = project;
-            project->buildData->insertIntoArtifactLookupTable(a);
-        }
-    }
 
     if (QFileInfo(project->location.fileName()) != QFileInfo(parameters.projectFilePath())) {
         QString errorMessage = Tr::tr("Stored build graph is for project file '%1', but "
@@ -513,9 +521,13 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
         errorMessage += Tr::tr("Ignoring.");
         m_logger.qbsWarning() << errorMessage;
     }
-    foreach (const ResolvedProductPtr &p, project->products)
-        p->project = project;
-    project->location = CodeLocation(parameters.projectFilePath(), 1, 1);
+
+    restoreBackPointers(project);
+    foreach (Artifact * const a, project->buildData->dependencyArtifacts)
+        a->project = project;
+
+    project->location = CodeLocation(parameters.projectFilePath(), project->location.line(),
+                                     project->location.column());
     project->setBuildConfiguration(pool.headData().projectConfig);
     project->buildDirectory = buildDir;
     m_result.loadedProject = project;
@@ -524,14 +536,77 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     return m_result;
 }
 
+static void exchangeDependencies(const ResolvedProductPtr &newProduct,
+                                 const QList<ResolvedProductPtr> &allRestoredProducts,
+                                 const QList<ResolvedProductPtr> &addedProducts)
+{
+    QSet<ResolvedProductPtr> newDependencies;
+    foreach (const ResolvedProductPtr &dependency, newProduct->dependencies) {
+        if (addedProducts.contains(dependency)) {
+            newDependencies << dependency;
+            exchangeDependencies(dependency, allRestoredProducts, addedProducts);
+            continue;
+        }
+        bool counterPartFound = false;
+        foreach (const ResolvedProductPtr &restoredProduct, allRestoredProducts) {
+            if (restoredProduct->name == dependency->name) {
+                newDependencies << restoredProduct;
+                counterPartFound = true;
+                break;
+            }
+        }
+        QBS_CHECK(counterPartFound);
+    }
+    newProduct->dependencies = newDependencies;
+}
+
+static void manipulateAddedProducts(const QList<ResolvedProjectPtr> &allRestoredProjects,
+                                    const QList<ResolvedProductPtr> &allRestoredProducts,
+                                    const QList<ResolvedProductPtr> &addedProducts)
+{
+    foreach (const ResolvedProductPtr &product, addedProducts) {
+        // Find the right existing (sub-)project to put the new product into.
+        bool projectFound = false;
+        foreach (const ResolvedProjectPtr &project, allRestoredProjects) {
+            if (project->location != product->project->location)
+                continue;
+            product->project = project;
+            project->products.append(product);
+            projectFound = true;
+            break;
+        }
+        QBS_CHECK(projectFound);
+
+        // Exchange dependencies that are not new with their counterparts from the restored project.
+        exchangeDependencies(product, allRestoredProducts, addedProducts);
+    }
+}
+
+// TODO: Pay more attention to project metadata such as name and location. If these change,
+// we must transfer them over to the old build graph.
 void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &parameters,
-        const QString &buildGraphFilePath, const ResolvedProjectPtr &restoredProject)
+        const QString &buildGraphFilePath, const TopLevelProjectPtr &restoredProject)
 {
     const FileInfo bgfi(buildGraphFilePath);
-    const bool projectFileChanged
-            = bgfi.lastModified() < FileInfo(parameters.projectFilePath()).lastModified();
+    const QList<ResolvedProjectPtr> allRestoredProjects
+            = restoredProject->allSubProjects() << restoredProject;
+    bool projectFileChanged = false;
+    bool subProjectRemoved = false;
+    foreach (const ResolvedProjectConstPtr &p, allRestoredProjects) {
+        FileInfo fi(p->location.fileName());
+        if (!fi.exists()) {
+            subProjectRemoved = true;
+            break;
+        }
+        if (bgfi.lastModified() < fi.lastModified()) {
+            projectFileChanged = true;
+            break;
+        }
+    }
+    if (subProjectRemoved)
+        m_logger.qbsTrace() << "A sub-project was removed, must re-resolve project";
     if (projectFileChanged)
-        m_logger.qbsTrace() << "Project file changed, must re-resolve project.";
+        m_logger.qbsTrace() << "A project file changed, must re-resolve project.";
 
     bool environmentChanged = false;
     for (QHash<QString, QString>::ConstIterator it = restoredProject->usedEnvironment.constBegin();
@@ -541,12 +616,13 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     if (environmentChanged)
         m_logger.qbsTrace() << "A relevant environment variable changed, must re-resolve project.";
 
-    bool referencedProductRemoved = false;
+    bool productRemoved = false;
+    const QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
-    foreach (const ResolvedProductPtr &product, restoredProject->products) {
+    foreach (const ResolvedProductPtr &product, allRestoredProducts) {
         const FileInfo pfi(product->location.fileName());
         if (!pfi.exists()) {
-            referencedProductRemoved = true;
+            productRemoved = true;
         } else if (bgfi.lastModified() < pfi.lastModified()) {
             changedProducts += product;
         } else {
@@ -566,7 +642,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         }
     }
 
-    if (!environmentChanged && !projectFileChanged && !referencedProductRemoved
+    if (!environmentChanged && !projectFileChanged && !subProjectRemoved && !productRemoved
             && changedProducts.isEmpty()) {
         return;
     }
@@ -576,11 +652,13 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     m_result.newlyResolvedProject = ldr.loadProject(parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;
-    foreach (const ResolvedProductPtr &cp, m_result.newlyResolvedProject->products)
+    const QList<ResolvedProductPtr> allNewlyResolvedProducts
+            = m_result.newlyResolvedProject->allProducts();
+    foreach (const ResolvedProductPtr &cp, allNewlyResolvedProducts)
         freshProductsByName.insert(cp->name, cp);
 
     QSet<TransformerPtr> seenTransformers;
-    foreach (const ResolvedProductPtr &product, restoredProject->products) {
+    foreach (const ResolvedProductPtr &product, allRestoredProducts) {
         if (!product->buildData)
             continue;
         foreach (Artifact *artifact, product->buildData->artifacts) {
@@ -605,14 +683,14 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     }
 
     QSet<QString> oldProductNames, newProductNames;
-    foreach (const ResolvedProductConstPtr &product, restoredProject->products)
+    foreach (const ResolvedProductConstPtr &product, allRestoredProducts)
         oldProductNames += product->name;
-    foreach (const ResolvedProductConstPtr &product, m_result.newlyResolvedProject->products)
+    foreach (const ResolvedProductConstPtr &product, allNewlyResolvedProducts)
         newProductNames += product->name;
 
     const QSet<QString> removedProductsNames = oldProductNames - newProductNames;
     if (!removedProductsNames.isEmpty()) {
-        foreach (const ResolvedProductPtr &product, restoredProject->products) {
+        foreach (const ResolvedProductPtr &product, allRestoredProducts) {
             if (removedProductsNames.contains(product->name))
                 onProductRemoved(product);
         }
@@ -626,10 +704,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         addedProducts.append(freshProduct);
     }
     if (!addedProducts.isEmpty()) {
-        foreach (const ResolvedProductPtr &product, addedProducts) {
-            product->project = restoredProject;
-            restoredProject->products.append(product);
-        }
+        manipulateAddedProducts(allRestoredProjects, allRestoredProducts, addedProducts);
         BuildDataResolver bpr(m_logger);
         bpr.resolveProductBuildDataForExistingProject(restoredProject, addedProducts);
     }
@@ -641,7 +716,7 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product)
 {
     m_logger.qbsDebug() << "[BG] product '" << product->name << "' removed.";
 
-    product->project->buildData->isDirty = true;
+    product->topLevelProject()->buildData->isDirty = true;
     product->project->products.removeOne(product);
 
     // delete all removed artifacts physically from the disk
@@ -681,7 +756,7 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
             } else {
                 newArtifact = createArtifact(product, a, m_logger);
                 foreach (Artifact *oldArtifact,
-                         product->project->buildData->lookupArtifacts(newArtifact->filePath())) {
+                         product->topLevelProject()->buildData->lookupArtifacts(newArtifact->filePath())) {
                     if (oldArtifact == newArtifact
                             || oldArtifact->artifactType != Artifact::FileDependency) {
                         // The source file already exists in another product.
@@ -747,8 +822,8 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
     // parents of removed artifacts must update their transformers
     foreach (Artifact *removedArtifact, artifactsToRemove)
         foreach (Artifact *parent, removedArtifact->parents)
-            product->project->buildData->artifactsThatMustGetNewTransformers += parent;
-    product->project->buildData->updateNodesThatMustGetNewTransformer(m_logger);
+            product->topLevelProject()->buildData->artifactsThatMustGetNewTransformers += parent;
+    product->topLevelProject()->buildData->updateNodesThatMustGetNewTransformer(m_logger);
 
     // delete all removed artifacts physically from the disk
     foreach (Artifact *artifact, artifactsToRemove) {
@@ -773,14 +848,14 @@ void BuildGraphLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
-            artifact->project->buildData->artifactsThatMustGetNewTransformers += parent;
+            artifact->topLevelProject()->buildData->artifactsThatMustGetNewTransformers += parent;
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.isEmpty();
         }
         if (removeParent)
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
-    artifact->project->buildData->removeArtifact(artifact, m_logger);
+    artifact->topLevelProject()->buildData->removeArtifact(artifact, m_logger);
 }
 
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
@@ -824,8 +899,8 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(Artifact *filedep, Arti
             artifactInProduct->fileDependencies.remove(filedep);
         }
     }
-    filedep->project->buildData->dependencyArtifacts.remove(filedep);
-    filedep->project->buildData->removeFromArtifactLookupTable(filedep);
+    filedep->topLevelProject()->buildData->dependencyArtifacts.remove(filedep);
+    filedep->topLevelProject()->buildData->removeFromArtifactLookupTable(filedep);
     delete filedep;
 }
 

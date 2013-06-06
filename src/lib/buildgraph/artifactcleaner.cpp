@@ -61,7 +61,7 @@ static void invalidateArtifactTimestamp(Artifact *artifact)
 {
     if (artifact->timestamp.isValid()) {
         artifact->timestamp.clear();
-        artifact->project->buildData->isDirty = true;
+        artifact->topLevelProject()->buildData->isDirty = true;
     }
 }
 
@@ -134,7 +134,7 @@ ArtifactCleaner::ArtifactCleaner(const Logger &logger, ProgressObserver *observe
 {
 }
 
-void ArtifactCleaner::cleanup(const ResolvedProjectPtr &project,
+void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
     m_hasError = false;

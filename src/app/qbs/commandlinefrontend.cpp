@@ -265,7 +265,7 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
     foreach (const Project &project, m_projects) {
         QList<ProductData> &productList = products[project];
         const ProjectData projectData = project.projectData();
-        foreach (const ProductData &product, projectData.products()) {
+        foreach (const ProductData &product, projectData.allProducts()) {
             if (useAll || m_parser.products().contains(product.name())) {
                 productList << product;
                 productNames << product.name();
