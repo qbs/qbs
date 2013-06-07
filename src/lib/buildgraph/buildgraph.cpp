@@ -659,7 +659,8 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
     m_logger.qbsDebug() << "[BG] product '" << product->name << "' changed.";
 
     ArtifactsPerFileTagMap artifactsPerFileTag;
-    QList<Artifact *> addedArtifacts, artifactsToRemove;
+    QList<Artifact *> addedArtifacts;
+    ArtifactList artifactsToRemove;
     QHash<QString, SourceArtifactConstPtr> oldArtifacts, newArtifacts;
 
     const QList<SourceArtifactPtr> oldProductAllFiles = product->allEnabledFiles();
@@ -742,10 +743,10 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
   * not the resulting application (if there's more then one cpp artifact).
   */
 void BuildGraphLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
-                                                            QList<Artifact*> *removedArtifacts)
+        ArtifactList *removedArtifacts)
 {
     if (removedArtifacts)
-        removedArtifacts->append(artifact);
+        removedArtifacts->insert(artifact);
     foreach (Artifact *parent, artifact->parents) {
         bool removeParent = false;
         disconnect(parent, artifact, m_logger);

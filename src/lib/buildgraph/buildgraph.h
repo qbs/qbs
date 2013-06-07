@@ -106,7 +106,7 @@ private:
     void onProductChanged(const ResolvedProductPtr &product,
                           const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
-                                              QList<Artifact*> *removedArtifacts = 0);
+            ArtifactList *removedArtifacts = 0);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
 
     RulesEvaluationContextPtr m_evalContext;
