@@ -149,6 +149,8 @@ void ProjectBuildData::updateNodeThatMustGetNewTransformer(Artifact *artifact, c
     }
 
     removeGeneratedArtifactFromDisk(artifact, logger);
+    artifact->autoMocTimestamp.clear();
+    artifact->timestamp.clear();
 
     const RuleConstPtr rule = artifact->transformer->rule;
     isDirty = true;
