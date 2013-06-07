@@ -108,6 +108,7 @@ private:
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
             ArtifactList *removedArtifacts = 0);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
+    void replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact);
 
     RulesEvaluationContextPtr m_evalContext;
     LoadResult m_result;

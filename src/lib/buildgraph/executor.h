@@ -85,8 +85,9 @@ private:
     enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
 
     void doBuild();
-    void prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged);
-    void prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState, bool *sourceFilesChanged);
+    void prepareAllArtifacts(bool *sourceFilesChanged);
+    void prepareReachableArtifacts(const Artifact::BuildState buildState);
+    void prepareReachableArtifacts_impl(Artifact *artifact, const Artifact::BuildState buildState);
     void updateBuildGraph(Artifact::BuildState buildState);
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
     void initLeaves(const QList<Artifact *> &changedArtifacts);
@@ -95,7 +96,6 @@ private:
     void buildArtifact(Artifact *artifact);
     void finishJob(ExecutorJob *job, bool success);
     void finishArtifact(Artifact *artifact);
-    void initializeArtifactsState();
     void setState(ExecutorState);
     void addExecutorJobs(int jobNumber);
     void runAutoMoc();

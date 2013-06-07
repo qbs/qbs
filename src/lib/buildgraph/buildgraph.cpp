@@ -672,7 +672,27 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
             // artifact added
             m_logger.qbsDebug() << "[BG] artifact '" << a->absoluteFilePath
                                 << "' added to product " << product->name;
-            addedArtifacts += createArtifact(product, a, m_logger);
+            Artifact *newArtifact = lookupArtifact(product, a->absoluteFilePath);
+            if (newArtifact) {
+                // User added a source file that was a generated artifact in the previous
+                // build, e.g. a C++ source file that was generated and now is a non-generated
+                // source file.
+                newArtifact->artifactType = Artifact::SourceFile;
+            } else {
+                newArtifact = createArtifact(product, a, m_logger);
+                foreach (Artifact *oldArtifact,
+                         product->project->buildData->lookupArtifacts(newArtifact->filePath())) {
+                    if (oldArtifact == newArtifact
+                            || oldArtifact->artifactType != Artifact::FileDependency) {
+                        // The source file already exists in another product.
+                        continue;
+                    }
+                    // User added a source file that was recognized as file dependency in the
+                    // previous build, e.g. a C++ header file.
+                    replaceFileDependencyWithArtifact(oldArtifact, newArtifact);
+                }
+            }
+            addedArtifacts += newArtifact;
         }
     }
 
@@ -782,6 +802,31 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
             return true;
     }
     return false;
+}
+
+void BuildGraphLoader::replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact)
+{
+    QBS_ASSERT(filedep->project == artifact->project, return);
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace()
+            << QString::fromLocal8Bit("[BG] replace file dependency '%1' "
+                                      "with artifact of type '%2'")
+                             .arg(relativeArtifactFileName(filedep)).arg(artifact->artifactType);
+    }
+    foreach (const ResolvedProductPtr &product, filedep->project->products) {
+        if (!product->buildData)
+            continue;
+        foreach (Artifact *artifactInProduct, product->buildData->artifacts) {
+            if (artifactInProduct->children.contains(filedep)) {
+                disconnect(artifactInProduct, filedep, m_logger);
+                loggedConnect(artifactInProduct, artifact, m_logger);
+            }
+            artifactInProduct->fileDependencies.remove(filedep);
+        }
+    }
+    filedep->project->buildData->dependencyArtifacts.remove(filedep);
+    filedep->project->buildData->removeFromArtifactLookupTable(filedep);
+    delete filedep;
 }
 
 void addTargetArtifacts(const ResolvedProductPtr &product,

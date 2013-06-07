@@ -199,7 +199,8 @@ void Executor::doBuild()
     foreach (ExecutorJob * const job, m_availableJobs)
         job->setDryRun(m_buildOptions.dryRun());
 
-    initializeArtifactsState();
+    bool sourceFilesChanged = false;
+    prepareAllArtifacts(&sourceFilesChanged);
     Artifact::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
             ? Artifact::Buildable : Artifact::Built;
 
@@ -234,8 +235,7 @@ void Executor::doBuild()
         }
     }
 
-    bool sourceFilesChanged;
-    prepareBuildGraph(initialBuildState, &sourceFilesChanged);
+    prepareReachableArtifacts(initialBuildState);
     setupProgressObserver(sourceFilesChanged);
     if (sourceFilesChanged)
         runAutoMoc();
@@ -752,14 +752,26 @@ void Executor::finish()
 /**
   * Sets the state of all artifacts in the graph to "untouched".
   * This must be done before doing a build.
+  *
+  * Retrieves the timestamps of source artifacts.
+  *
+  * This function sets *sourceFilesChanged to true, if the timestamp of a reachable source artifact
+  * changed.
   */
-void Executor::initializeArtifactsState()
+void Executor::prepareAllArtifacts(bool *sourceFilesChanged)
 {
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
         foreach (Artifact *artifact, product->buildData->artifacts) {
             artifact->buildState = Artifact::Untouched;
             artifact->inputsScanned = false;
             artifact->timestampRetrieved = false;
+
+            if (artifact->artifactType == Artifact::SourceFile) {
+                const FileTime oldTimestamp = artifact->timestamp;
+                retrieveSourceFileTimestamp(artifact);
+                if (oldTimestamp != artifact->timestamp)
+                    *sourceFilesChanged = true;
+            }
 
             // Timestamps of file dependencies must be invalid for every build.
             foreach (Artifact *fileDependency, artifact->fileDependencies)
@@ -770,35 +782,23 @@ void Executor::initializeArtifactsState()
 
 /**
  * Walk the build graph top-down from the roots and for each reachable node N
- *  - mark N as buildable,
- *  - retrieve the timestamps of N, if N is a source file.
- *
- * This function sets *sourceFilesChanged to true, if the timestamp of a reachable source artifact
- * changed. Otherwise *sourceFilesChanged will be false.
+ *  - mark N as buildable.
  */
-void Executor::prepareBuildGraph(const Artifact::BuildState buildState, bool *sourceFilesChanged)
+void Executor::prepareReachableArtifacts(const Artifact::BuildState buildState)
 {
-    *sourceFilesChanged = false;
     foreach (Artifact *root, m_roots)
-        prepareBuildGraph_impl(root, buildState, sourceFilesChanged);
+        prepareReachableArtifacts_impl(root, buildState);
 }
 
-void Executor::prepareBuildGraph_impl(Artifact *artifact, const Artifact::BuildState buildState,
-                                      bool *sourceFilesChanged)
+void Executor::prepareReachableArtifacts_impl(Artifact *artifact,
+        const Artifact::BuildState buildState)
 {
     if (artifact->buildState != Artifact::Untouched)
         return;
 
     artifact->buildState = buildState;
-    if (artifact->artifactType == Artifact::SourceFile) {
-        const FileTime oldTimestamp = artifact->timestamp;
-        retrieveSourceFileTimestamp(artifact);
-        if (oldTimestamp != artifact->timestamp)
-            *sourceFilesChanged = true;
-    }
-
     foreach (Artifact *child, artifact->children)
-        prepareBuildGraph_impl(child, buildState, sourceFilesChanged);
+        prepareReachableArtifacts_impl(child, buildState);
 }
 
 void Executor::updateBuildGraph(Artifact::BuildState buildState)

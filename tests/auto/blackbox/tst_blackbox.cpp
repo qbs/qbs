@@ -746,7 +746,7 @@ void TestBlackbox::codegen()
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/codegen")));
 }
 
-void TestBlackbox::missingQObjectHeader()
+void TestBlackbox::trackAddQObjectHeader()
 {
     QDir::setCurrent(testDataDir + "/missingqobjectheader");
     const QString qbsFileName("missingheader.qbs");
@@ -758,12 +758,33 @@ void TestBlackbox::missingQObjectHeader()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
+    waitForNewTimestamp();
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
     qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
     qbsFile.close();
-    QEXPECT_FAIL("", "FIXME: This case is known to be broken", Abort);
+    params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::trackRemoveQObjectHeader()
+{
+    QDir::setCurrent(testDataDir + "/missingqobjectheader");
+    const QString qbsFileName("missingheader.qbs");
+    QFile qbsFile(qbsFileName);
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
+    qbsFile.close();
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+    waitForNewTimestamp();
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp']\n}");
+    qbsFile.close();
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
 }
 
 void TestBlackbox::overrideProjectProperties()

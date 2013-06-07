@@ -118,7 +118,8 @@ private slots:
     void recursiveWildcards();
     void ruleConditions();
     void codegen();
-    void missingQObjectHeader();
+    void trackAddQObjectHeader();
+    void trackRemoveQObjectHeader();
     void overrideProjectProperties();
     void productProperties();
     void propertyChanges();
