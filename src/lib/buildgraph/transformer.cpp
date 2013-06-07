@@ -180,7 +180,9 @@ void Transformer::load(PersistentPool &pool)
         Property p;
         p.moduleName = pool.idLoadString();
         p.propertyName = pool.idLoadString();
-        pool.stream() >> p.value;
+        int k;
+        pool.stream() >> p.value >> k;
+        p.kind = static_cast<Property::Kind>(k);
         modulePropertiesUsedInPrepareScript += p;
     }
     int cmdType;
@@ -203,7 +205,7 @@ void Transformer::store(PersistentPool &pool) const
     foreach (const Property &p, modulePropertiesUsedInPrepareScript) {
         pool.storeString(p.moduleName);
         pool.storeString(p.propertyName);
-        pool.stream() << p.value;
+        pool.stream() << p.value << static_cast<int>(p.kind);
     }
     pool.stream() << commands.count();
     foreach (AbstractCommand *cmd, commands) {

@@ -769,7 +769,9 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     PropertyFinder finder;
     foreach (const Property &property, restoredTrafo->modulePropertiesUsedInPrepareScript) {
         QVariant v;
-        if (property.value.type() == QVariant::List) {
+        if (property.kind == Property::PropertyInProduct) {
+            v = freshProduct->properties->value().value(property.propertyName);
+        } else if (property.value.type() == QVariant::List) {
             v = finder.propertyValues(freshProduct->properties->value(), property.moduleName,
                                       property.propertyName);
         } else {

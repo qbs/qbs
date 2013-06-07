@@ -38,9 +38,19 @@
 class Property
 {
 public:
-    Property() {}
-    Property(const QString &m, const QString &p, const QVariant &v)
-        : moduleName(m), propertyName(p), value(v)
+    enum Kind
+    {
+        PropertyInModule,
+        PropertyInProduct
+    };
+
+    Property()
+        : kind(PropertyInModule)
+    {
+    }
+
+    Property(const QString &m, const QString &p, const QVariant &v, Kind k = PropertyInModule)
+        : moduleName(m), propertyName(p), value(v), kind(k)
     {
         QBS_CHECK(!moduleName.contains(QLatin1Char('.')));
     }
@@ -48,6 +58,7 @@ public:
     QString moduleName;
     QString propertyName;
     QVariant value;
+    Kind kind;
 };
 
 inline bool operator==(const Property &p1, const Property &p2)

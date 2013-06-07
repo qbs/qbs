@@ -328,7 +328,8 @@ void RulesApplicator::onPropertyRead(const QScriptValue &object, const QString &
                                      const QScriptValue &value)
 {
     if (object.objectId() == m_productObjectId)
-        engine()->addProperty(Property(QLatin1String("product"), name, value.toVariant()));
+        engine()->addProperty(
+                    Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
 }
 
 } // namespace Internal
