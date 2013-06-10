@@ -80,14 +80,14 @@ static QStringList collectIncludePaths(const QVariantMap &modules)
     return QStringList(collectedPaths.toList());
 }
 
-static ResolvedDependency resolveWithIncludePath(const QString &includePath,
-        const ScanResultCache::Dependency &dependency, const ResolvedProduct *product)
+static void resolveWithIncludePath(const QString &includePath,
+        const ScanResultCache::Dependency &dependency, const ResolvedProduct *product,
+        ResolvedDependency *result)
 {
     QString absDirPath = dependency.dirPath().isEmpty() ? includePath : FileInfo::resolvePath(includePath, dependency.dirPath());
     if (!dependency.isClean())
         absDirPath = QDir::cleanPath(absDirPath);
 
-    ResolvedDependency result;
     const ResolvedProject *project = product->project.data();
     Artifact *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
@@ -103,19 +103,17 @@ static ResolvedDependency resolveWithIncludePath(const QString &includePath,
     }
 
     // prioritize found artifacts
-    if ((result.artifact = dependencyInProduct)
-        || (result.artifact = dependencyInOtherProduct)
-        || (result.artifact = fileDependencyArtifact))
+    if ((result->artifact = dependencyInProduct)
+        || (result->artifact = dependencyInOtherProduct)
+        || (result->artifact = fileDependencyArtifact))
     {
-        result.filePath = result.artifact->filePath();
-        return result;
+        result->filePath = result->artifact->filePath();
+        return;
     }
 
     QString absFilePath = absDirPath + QLatin1Char('/') + dependency.fileName();
     if (FileInfo::exists(absFilePath))
-        result.filePath = absFilePath;
-
-    return result;
+        result->filePath = absFilePath;
 }
 
 static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
@@ -247,11 +245,12 @@ void InputArtifactScanner::resolveScanResultDependencies(const QStringList &incl
     QString baseDirOfInFilePath;
     foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
         const QString &dependencyFilePath = dependency.filePath();
-        ResolvedDependency resolvedDependency;
+        ResolvedDependency pristineResolvedDependency;
+        ResolvedDependency *resolvedDependency = &pristineResolvedDependency;
         InputArtifactScannerContext::ResolvedDependencyCacheItem *cachedResolvedDependencyItem = 0;
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
-            resolvedDependency.filePath = dependencyFilePath;
+            resolvedDependency->filePath = dependencyFilePath;
             goto resolved;
         }
 
@@ -259,36 +258,31 @@ void InputArtifactScanner::resolveScanResultDependencies(const QStringList &incl
             // try base directory of source file
             if (baseDirOfInFilePath.isNull())
                 baseDirOfInFilePath = FileInfo::path(filePathToBeScanned);
-            resolvedDependency = resolveWithIncludePath(baseDirOfInFilePath, dependency,
-                                                        inputArtifact->product.data());
-            if (resolvedDependency.isValid())
+            resolveWithIncludePath(baseDirOfInFilePath, dependency, inputArtifact->product.data(),
+                                   resolvedDependency);
+            if (resolvedDependency->isValid())
                 goto resolved;
         }
 
         cachedResolvedDependencyItem = &resolvedDependenciesCache[dependency.fileName()][dependency.dirPath()];
+        resolvedDependency = &cachedResolvedDependencyItem->resolvedDependency;
         if (cachedResolvedDependencyItem->valid) {
 //            qDebug() << "RESCACHE HIT" << dependency.filePath();
-            resolvedDependency = cachedResolvedDependencyItem->resolvedDependency;
-            if (resolvedDependency.filePath.isEmpty())
+            if (resolvedDependency->filePath.isEmpty())
                 goto unresolved;
             goto resolved;
         }
 //        qDebug() << "RESCACHE MISS";
+        cachedResolvedDependencyItem->valid = true;
 
         // try include paths
         foreach (const QString &includePath, includePaths) {
-            resolvedDependency = resolveWithIncludePath(includePath, dependency,
-                                                        inputArtifact->product.data());
-            if (resolvedDependency.isValid()) {
-                cachedResolvedDependencyItem->valid = true;
-                cachedResolvedDependencyItem->resolvedDependency = resolvedDependency;
+            resolveWithIncludePath(includePath, dependency, inputArtifact->product.data(),
+                                   resolvedDependency);
+            if (resolvedDependency->isValid())
                 goto resolved;
-            }
         }
 
-        // we could not resolve the include
-        cachedResolvedDependencyItem->valid = true;
-        cachedResolvedDependencyItem->resolvedDependency = resolvedDependency;
 unresolved:
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN] unresolved '%1'")
@@ -300,11 +294,11 @@ resolved:
         // Do not scan artifacts that are being built. Otherwise we might read an incomplete
         // file or conflict with the writing process.
         if (filePathsToScan
-                && (!resolvedDependency.artifact
-                    || resolvedDependency.artifact->buildState != Artifact::Building)) {
-            filePathsToScan->append(resolvedDependency.filePath);
+                && (!resolvedDependency->artifact
+                    || resolvedDependency->artifact->buildState != Artifact::Building)) {
+            filePathsToScan->append(resolvedDependency->filePath);
         }
-        handleDependency(resolvedDependency);
+        handleDependency(*resolvedDependency);
     }
 }
 
