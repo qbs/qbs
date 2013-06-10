@@ -32,8 +32,8 @@ UnixGCC {
         if (product.type.indexOf("applicationbundle") !== -1)
             dict["CFBundleIconFile"] = product.targetName;
 
-        if (qbs.targetOS === "osx" && cpp.minimumOsxVersion)
-            dict["LSMinimumSystemVersion"] = cpp.minimumOsxVersion;
+        if (qbs.targetOS === "osx" && minimumOsxVersion)
+            dict["LSMinimumSystemVersion"] = minimumOsxVersion;
 
         if (qbs.targetOS === "ios") {
             dict["LSRequiresIPhoneOS"] = true;
