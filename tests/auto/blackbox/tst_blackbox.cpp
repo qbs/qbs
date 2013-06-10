@@ -90,8 +90,10 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     m_qbsStdout = process.readAllStandardOutput();
     if ((process.exitStatus() != QProcess::NormalExit
              || process.exitCode() != 0) && !params.expectFailure) {
-        qDebug("%s", m_qbsStderr.constData());
-        qDebug("%s", process.readAllStandardOutput().constData());
+        if (!m_qbsStderr.isEmpty())
+            qDebug("%s", m_qbsStderr.constData());
+        if (!m_qbsStdout.isEmpty())
+            qDebug("%s", m_qbsStdout.constData());
     }
     return process.exitCode();
 }
