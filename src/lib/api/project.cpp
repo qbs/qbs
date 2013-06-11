@@ -514,4 +514,14 @@ void Project::updateTimestamps(const QList<ProductData> &products)
                                          d->logger);
 }
 
+QVariantMap Project::projectConfiguration() const
+{
+    return d->internalProject->buildConfiguration();
+}
+
+QHash<QString, QString> Project::usedEnvironment() const
+{
+    return d->internalProject->usedEnvironment;
+}
+
 } // namespace qbs

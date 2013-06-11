@@ -100,6 +100,9 @@ public:
 
     bool operator==(const Project &other) const { return d.data() == other.d.data(); }
 
+    QVariantMap projectConfiguration() const;
+    QHash<QString, QString> usedEnvironment() const;
+
 private:
     Project();
     Project(const Internal::ResolvedProjectPtr &internalProject, const Internal::Logger &logger);
