@@ -110,6 +110,7 @@ InternalJob::InternalJob(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_observer(new JobObserver(this))
     , m_logger(logger)
+    , m_timed(false)
 {
 }
 
