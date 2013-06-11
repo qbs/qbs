@@ -86,7 +86,7 @@ QStringList Preferences::searchPaths(const QString &qbsRootPath) const
  */
 QStringList Preferences::pluginPaths(const QString &qbsRootPath) const
 {
-    return pathList(QLatin1String("pluginsPath"), qbsRootPath + QLatin1String("/plugins"));
+    return pathList(QLatin1String("pluginsPath"), qbsRootPath + QLatin1String("/lib/qbs/plugins"));
 }
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const

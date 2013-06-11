@@ -6,7 +6,7 @@
     else: \
         destdirPrefix = ../../../.. # Note: Will break if pri file is included from some other place
 }
-DESTDIR = $${destdirPrefix}/plugins
+DESTDIR = $${destdirPrefix}/lib/qbs/plugins
 TEMPLATE = lib
 
 CONFIG += depend_includepath
@@ -17,5 +17,5 @@ unix: CONFIG += plugin
     installPrefix = $${QBS_RESOURCES_INSTALL_DIR}
 else: \
     installPrefix = $${QBS_INSTALL_PREFIX}
-target.path = $${installPrefix}/plugins
+target.path = $${installPrefix}/lib/qbs/plugins
 INSTALLS += target
