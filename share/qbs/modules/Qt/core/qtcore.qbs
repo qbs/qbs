@@ -46,6 +46,9 @@ Module {
             defines.push("QT_NO_DEBUG");
         if (namespace)
             defines.push("QT_NAMESPACE=" + namespace);
+        if (qbs.targetOS === "ios")
+            defines = defines.concat(["DARWIN_NO_CARBON", "QT_NO_CORESERVICES", "QT_NO_PRINTER",
+                            "QT_NO_PRINTDIALOG", "main=qt_main"]);
         return defines;
     }
     cpp.includePaths: {
@@ -57,14 +60,42 @@ Module {
         paths.push(product.buildDirectory + '/' + generatedFilesDir);
         return paths;
     }
-    cpp.libraryPaths: [libPath]
+    cpp.libraryPaths: {
+        var libPaths = [libPath];
+        if (staticBuild && pluginPath)
+            libPaths.push(pluginPath + "/platforms");
+        return libPaths;
+    }
     cpp.staticLibraries: {
         if (qbs.targetOS === 'windows' && !product.consoleApplication)
             return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (qbs.toolchain !== "mingw" ? ".lib" : "")];
     }
-    cpp.dynamicLibraries: frameworkBuild ? undefined : [QtFunctions.getLibraryName('Core' + libInfix, qtcore, qbs)]
+    cpp.dynamicLibraries: {
+        var libs = [];
+        if (!frameworkBuild)
+            libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)];
+        if (qbs.targetOS === 'ios' && staticBuild)
+            libs = libs.concat(["z", "m",
+                                QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs),
+                                QtFunctions.getPlatformLibraryName("qiosmain", qtcore, qbs)]);
+        if (libs.length === 0)
+            return undefined;
+        return libs;
+    }
+    cpp.linkerFlags: ((qbs.targetOS === 'ios' && staticBuild) ?
+                          ["-force_load", pluginPath + "/platforms/" +
+                           QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs) + ".a"] : undefined)
     cpp.frameworkPaths: frameworkBuild ? [libPath] : undefined
-    cpp.frameworks: frameworkBuild ? [QtFunctions.getLibraryName('Core' + libInfix, qtcore, qbs)] : undefined
+    cpp.frameworks: {
+        var frameworks = [];
+        if (frameworkBuild)
+            frameworks = [QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)]
+        if (qbs.targetOS === 'ios' && staticBuild)
+            frameworks = frameworks.concat(["Foundation", "CoreFoundation"]);
+        if (frameworks.length === 0)
+            return undefined;
+        return frameworks;
+    }
     cpp.rpaths: qbs.targetOS === 'linux' ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
     cpp.cxxFlags: {
