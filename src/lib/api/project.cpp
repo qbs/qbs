@@ -46,10 +46,8 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/processresult.h>
-#include <tools/profile.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
-#include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/qbsassert.h>
 
@@ -290,64 +288,6 @@ Project &Project::operator=(const Project &other)
     return *this;
 }
 
-// Generates a full build configuration from user input, using the settings.
-static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig, Settings *settings)
-{
-    QVariantMap expandedConfig = buildConfig;
-
-    const QString buildVariant = expandedConfig.value(QLatin1String("qbs.buildVariant")).toString();
-    if (buildVariant.isEmpty())
-        throw Error(Tr::tr("No build variant set."));
-    if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
-        throw Error(Tr::tr("Invalid build variant '%1'. Must be 'debug' or 'release'.")
-                    .arg(buildVariant));
-    }
-
-    // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
-    // 1) Things specified on command line (already in buildCfg at this point)
-    // 2) Everything from the profile key
-    QString profileName = expandedConfig.value("qbs.profile").toString();
-    if (profileName.isNull()) {
-        profileName = settings->defaultProfile();
-        if (profileName.isNull()) {
-            const QString profileNames = settings->profiles().join(QLatin1String(", "));
-            throw Error(Tr::tr("No profile given and no default profile set.\n"
-                    "Either set the configuration value 'defaultProfile' to a valid profile name\n"
-                    "or specify the profile with the command line parameter 'profile:name'.\n"
-                    "The following profiles are available:\n%1").arg(profileNames));
-        }
-        expandedConfig.insert("qbs.profile", profileName);
-    }
-
-    // (2)
-    const Profile profile(profileName, settings);
-    const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive);
-    if (profileKeys.isEmpty())
-        throw Error(Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
-    foreach (const QString &profileKey, profileKeys) {
-        if (!expandedConfig.contains(profileKey))
-            expandedConfig.insert(profileKey, profile.value(profileKey));
-    }
-
-    if (!expandedConfig.value("qbs.buildVariant").isValid())
-        throw Error(Tr::tr("Property 'qbs.buildVariant' missing in build configuration."));
-
-    foreach (const QString &property, expandedConfig.keys()) {
-        QStringList nameElements = property.split('.');
-        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
-            QStringList allButLast = nameElements;
-            allButLast.removeLast();
-            QStringList newElements(allButLast.join("/"));
-            newElements.append(nameElements.last());
-            nameElements = newElements;
-        }
-        setConfigProperty(expandedConfig, nameElements, expandedConfig.value(property));
-        expandedConfig.remove(property);
-    }
-
-    return expandedConfig;
-}
-
 /*!
  * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
  * The function will finish immediately, returning a \c SetupProjectJob which can be used to
@@ -357,16 +297,13 @@ static QVariantMap expandBuildConfiguration(const QVariantMap &buildConfig, Sett
  *       Similarly, the value of \c parameters.searchPaths will not have an effect if
  *       a stored build graph is available.
  */
-SetupProjectJob *Project::setupProject(const SetupProjectParameters &_parameters,
-                                       Settings *settings, ILogSink *logSink, QObject *jobOwner)
+SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
+                                       ILogSink *logSink, QObject *jobOwner)
 {
     Logger logger(logSink);
     SetupProjectJob * const job = new SetupProjectJob(logger, jobOwner);
     try {
-        loadPlugins(_parameters.pluginPaths(), logger);
-        SetupProjectParameters parameters = _parameters;
-        parameters.setBuildConfiguration(expandBuildConfiguration(
-                                             parameters.buildConfiguration(), settings));
+        loadPlugins(parameters.pluginPaths(), logger);
         job->resolve(parameters);
     } catch (const Error &error) {
         // Throwing from here would complicate the API, so let's report the error the same way

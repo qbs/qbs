@@ -116,9 +116,9 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
 QString TestLanguage::buildDir(const SetupProjectParameters &params) const
 {
     return FileInfo::resolvePath(params.buildRoot(),
-        getConfigProperty(params.buildConfiguration(),
+        getConfigProperty(params.buildConfigurationTree(),
                           QStringList() << "qbs" << "profile").toString() + QLatin1Char('-')
-            + getConfigProperty(params.buildConfiguration(),
+            + getConfigProperty(params.buildConfigurationTree(),
                             QStringList() << "qbs" << "buildVariant").toString());
 }
 
@@ -137,7 +137,7 @@ void TestLanguage::initTestCase()
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../share/qbs"));
-    QVariantMap buildConfig = defaultParameters.buildConfiguration();
+    QVariantMap buildConfig = defaultParameters.buildConfigurationTree();
     setConfigProperty(buildConfig, QStringList() << "qbs" << "targetOS", "linux");
     setConfigProperty(buildConfig, QStringList() << "qbs" << "profile", "qbs_autotests");
     defaultParameters.setBuildConfiguration(buildConfig);
@@ -681,8 +681,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     bool exceptionCaught = false;
     try {
         QVariantMap customBuildConfig = defaultParameters.buildConfiguration();
-        setConfigProperty(customBuildConfig, QStringList() << "qbs" << "buildVariant",
-                          buildVariant);
+        customBuildConfig.insert(QLatin1String("qbs.buildVariant"), buildVariant);
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
         params.setBuildConfiguration(customBuildConfig);

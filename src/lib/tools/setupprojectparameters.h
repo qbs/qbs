@@ -31,12 +31,17 @@
 
 #include "qbs_export.h"
 
+#include <tools/error.h>
+
 #include <QProcessEnvironment>
 #include <QSharedDataPointer>
 #include <QStringList>
 #include <QVariantMap>
 
 namespace qbs {
+
+class Settings;
+
 namespace Internal { class SetupProjectParametersPrivate; }
 
 class QBS_EXPORT SetupProjectParameters
@@ -62,6 +67,8 @@ public:
 
     QVariantMap buildConfiguration() const;
     void setBuildConfiguration(const QVariantMap &buildConfiguration);
+    QVariantMap buildConfigurationTree() const;
+    Error expandBuildConfiguration(Settings *settings);
 
     bool ignoreDifferentProjectFilePath() const;
     void setIgnoreDifferentProjectFilePath(bool doIgnore);

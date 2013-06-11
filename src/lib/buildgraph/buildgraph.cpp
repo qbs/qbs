@@ -483,7 +483,7 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     m_result = LoadResult();
     m_evalContext = evalContext;
 
-    const QString projectId = TopLevelProject::deriveId(parameters.buildConfiguration());
+    const QString projectId = TopLevelProject::deriveId(parameters.buildConfigurationTree());
     const QString buildDir
             = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(), projectId);
     const QString buildGraphFilePath
@@ -493,7 +493,7 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     m_logger.qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
     if (!pool.load(buildGraphFilePath))
         return m_result;
-    if (!isConfigCompatible(parameters.buildConfiguration(), pool.headData().projectConfig)) {
+    if (!isConfigCompatible(parameters.buildConfigurationTree(), pool.headData().projectConfig)) {
         m_logger.qbsDebug() << "[BG] Cannot use stored build graph: "
                                "Incompatible project configuration.";
         return m_result;

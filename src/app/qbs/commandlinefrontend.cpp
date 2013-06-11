@@ -108,7 +108,12 @@ void CommandLineFrontend::start()
         params.setLogElapsedTime(m_parser.logTime());
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             params.setBuildConfiguration(buildConfig);
-            SetupProjectJob * const job = Project::setupProject(params, m_settings,
+
+            Error err = params.expandBuildConfiguration(m_settings);
+            if (!err.entries().isEmpty())
+                throw err;
+
+            SetupProjectJob * const job = Project::setupProject(params,
                     ConsoleLogger::instance().logSink(), this);
             connectJob(job);
             m_resolveJobs << job;

@@ -92,14 +92,14 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     // we have enough information.
     if (m_progressObserver) {
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
-                .arg(TopLevelProject::deriveId(parameters.buildConfiguration())), 1);
+                .arg(TopLevelProject::deriveId(parameters.buildConfigurationTree())), 1);
     }
     ModuleLoaderResult loadResult
             = m_moduleLoader->load(parameters.projectFilePath(),
-                                   parameters.buildConfiguration(),
+                                   parameters.buildConfigurationTree(),
                                    true);
     return m_projectResolver->resolve(loadResult, parameters.buildRoot(),
-                                      parameters.buildConfiguration(),
+                                      parameters.buildConfigurationTree(),
                                       parameters.environment());
 }
 

@@ -28,6 +28,12 @@
 ****************************************************************************/
 #include "setupprojectparameters.h"
 
+#include <logging/translator.h>
+#include <tools/profile.h>
+#include <tools/qbsassert.h>
+#include <tools/scripttools.h>
+#include <tools/settings.h>
+
 namespace qbs {
 namespace Internal {
 
@@ -50,6 +56,7 @@ public:
     QStringList searchPaths;
     QStringList pluginPaths;
     QVariantMap buildConfiguration;
+    mutable QVariantMap buildConfigurationTree;
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
     bool logElapsedTime;
@@ -160,10 +167,109 @@ QVariantMap SetupProjectParameters::buildConfiguration() const
 
 /*!
  * Sets the collection of properties to use for resolving the project.
+ *
+ * Keys are expected to be in dotted syntax (e.g. Qt.declarative.qmlDebugging) that is
+ * used by "qbs config".
  */
 void SetupProjectParameters::setBuildConfiguration(const QVariantMap &buildConfiguration)
 {
+    // warn if somebody tries to set a build configuration tree:
+    for (QVariantMap::const_iterator i = buildConfiguration.constBegin();
+         i != buildConfiguration.constEnd(); ++i) {
+        QBS_ASSERT(i.value().type() != QVariant::Map, return);
+    }
     d->buildConfiguration = buildConfiguration;
+    d->buildConfigurationTree.clear();
+}
+
+/*!
+ * \brief Returns the build configuration in tree form.
+ * \return the tree form of the build configuration.
+ */
+QVariantMap SetupProjectParameters::buildConfigurationTree() const
+{
+    if (!d->buildConfigurationTree.isEmpty() && !d->buildConfiguration.isEmpty())
+        return d->buildConfigurationTree;
+
+    QVariantMap result;
+    foreach (const QString &property, d->buildConfiguration.keys()) {
+        QStringList nameElements = property.split('.');
+        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
+            QStringList allButLast = nameElements;
+            allButLast.removeLast();
+            QStringList newElements(allButLast.join("/"));
+            newElements.append(nameElements.last());
+            nameElements = newElements;
+        }
+        Internal::setConfigProperty(result, nameElements, d->buildConfiguration.value(property));
+    }
+    d->buildConfigurationTree = result;
+    return result;
+}
+
+/*!
+ * \brief Expands the build configuration based on the given settings.
+ *
+ * Expansion is the process by which the build configuration is completed based on the given
+ * settings. E.g. the information configured in a profile is filled into the build
+ * configuration by this step.
+ *
+ * This method returns an Error. The list of entries in this error will be empty is the
+ * expansion was successful.
+ */
+Error SetupProjectParameters::expandBuildConfiguration(Settings *settings)
+{
+    Error err;
+
+    // Generates a full build configuration from user input, using the settings.
+    QVariantMap expandedConfig = d->buildConfiguration;
+
+    const QString buildVariant = expandedConfig.value(QLatin1String("qbs.buildVariant")).toString();
+    if (buildVariant.isEmpty())
+        throw Error(Internal::Tr::tr("No build variant set."));
+    if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
+        err.append(Internal::Tr::tr("Invalid build variant '%1'. Must be 'debug' or 'release'.")
+                   .arg(buildVariant));
+        return err;
+    }
+
+    // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
+    // 1) Things specified on command line (already in buildCfg at this point)
+    // 2) Everything from the profile key
+    QString profileName = expandedConfig.value("qbs.profile").toString();
+    if (profileName.isNull()) {
+        profileName = settings->defaultProfile();
+        if (profileName.isNull()) {
+            const QString profileNames = settings->profiles().join(QLatin1String(", "));
+            err.append(Internal::Tr::tr("No profile given and no default profile set.\n"
+                                        "Either set the configuration value 'defaultProfile' to a "
+                                        "valid profile name\n"
+                                        "or specify the profile with the command line parameter "
+                                        "'profile:name'.\n"
+                                        "The following profiles are available:\n%1")
+                       .arg(profileNames));
+            return err;
+        }
+        expandedConfig.insert("qbs.profile", profileName);
+    }
+
+    // (2)
+    const Profile profile(profileName, settings);
+    const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive);
+    if (profileKeys.isEmpty()) {
+        err.append(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
+        return err;
+    }
+    foreach (const QString &profileKey, profileKeys) {
+        if (!expandedConfig.contains(profileKey))
+            expandedConfig.insert(profileKey, profile.value(profileKey));
+    }
+
+    if (d->buildConfiguration != expandedConfig) {
+        d->buildConfigurationTree.clear();
+        d->buildConfiguration = expandedConfig;
+    }
+    return err;
 }
 
 /*!
