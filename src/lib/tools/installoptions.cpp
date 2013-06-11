@@ -37,7 +37,8 @@ class InstallOptionsPrivate : public QSharedData
 {
 public:
     InstallOptionsPrivate()
-        : useSysroot(false), removeExisting(false), dryRun(false), keepGoing(false)
+        : useSysroot(false), removeExisting(false), dryRun(false),
+          keepGoing(false), logElapsedTime(false)
     {}
 
     QString installRoot;

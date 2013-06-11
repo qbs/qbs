@@ -36,7 +36,10 @@ namespace Internal {
 class CleanOptionsPrivate : public QSharedData
 {
 public:
-    CleanOptionsPrivate() : cleanType(CleanOptions::CleanupAll), dryRun(false), keepGoing(false) {}
+    CleanOptionsPrivate()
+        : cleanType(CleanOptions::CleanupAll), dryRun(false),
+          keepGoing(false), logElapsedTime(false)
+    { }
 
     CleanOptions::CleanType cleanType;
     bool dryRun;
