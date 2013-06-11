@@ -33,7 +33,9 @@
 #include "../tools/qbs_export.h"
 
 #include <QExplicitlySharedDataPointer>
+#include <QHash>
 #include <QList>
+#include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
 class QObject;
