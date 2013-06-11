@@ -10,6 +10,14 @@ DarwinGCC {
     property string signingIdentity
     property string provisionFile
     property bool buildIpa: qbs.architecture.match("^arm") === "arm"
+    visibility: "hidden"
+    optimization: ((qbs.buildVariant === "debug"            ) ? "none"  :
+                   (qbs.architecture.match("^arm") === "arm") ? "small" :
+                                                                "fast")
+
+    platformCommonCompilerFlags: base.concat(["-fvisibility-inlines-hidden", "-g", "-gdwarf-2", "-fPIE"])
+    commonCompilerFlags: ["-fpascal-strings", "-fexceptions", "-fasm-blocks", "-fstrict-aliasing"]
+    linkerFlags: base.concat(["-dead_strip", "-headerpad_max_install_names"])
 
     Rule {
         multiplex: true
