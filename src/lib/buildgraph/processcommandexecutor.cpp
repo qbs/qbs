@@ -152,6 +152,7 @@ void ProcessCommandExecutor::doStart()
 
     logger().qbsDebug() << "[EXEC] Running external process; full command line is: " << program
                         << " " << commandArgsToString(arguments);
+    logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(cmd->workingDir());
     m_process.start(program, arguments);
 
