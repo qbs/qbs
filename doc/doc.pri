@@ -56,9 +56,10 @@ qch_docs.files = $$QCH_FILE
 qch_docs.path = $${QBS_INSTALL_PREFIX}/share/doc/qbs
 qch_docs.CONFIG += no_check_exist
 
+html_files.depends += html_docs
 html_files.files = $$HTML_DOC_PATH
 html_files.path = $$qch_docs.path
-html_files.CONFIG += no_check_exist
+html_files.CONFIG += no_check_exist no_default_install directory
 
 INSTALLS += qch_docs html_files
 
