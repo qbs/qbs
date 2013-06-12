@@ -50,6 +50,7 @@ public:
     QString qtLibInfix;
     QString qtNameSpace;
     QString mkspecPath;
+    QString debugReleaseBuild;
     QStringList configItems;
     QStringList qtConfigItems;
     QString qtVersion;
