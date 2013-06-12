@@ -19,21 +19,22 @@ HELPGENERATOR = $$targetPath($$[QT_INSTALL_BINS]/qhelpgenerator)
 
 VERSION_TAG = $$replace(QBS_VERSION, "[-.]", )
 
+HTML_DOC_PATH=$$OUT_PWD/doc/html
 equals(QMAKE_DIR_SEP, /) {   # unix, mingw+msys
-    QDOC = SRCDIR=$$PWD OUTDIR=$$OUT_PWD/doc/html QBS_VERSION=$$QBS_VERSION QBS_VERSION_TAG=$$VERSION_TAG QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS] $$QDOC_BIN
+    QDOC = SRCDIR=$$PWD OUTDIR=$$HTML_DOC_PATH QBS_VERSION=$$QBS_VERSION QBS_VERSION_TAG=$$VERSION_TAG QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS] $$QDOC_BIN
 } else:win32-g++* {   # just mingw
     # The lack of spaces in front of the && is necessary!
-    QDOC = set SRCDIR=$$PWD&& set OUTDIR=$$OUT_PWD/doc/html&& set QBS_VERSION=$$QBS_VERSION&& set QBS_VERSION_TAG=$$VERSION_TAG&& set QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS]&& $$QDOC_BIN
+    QDOC = set SRCDIR=$$PWD&& set OUTDIR=$$HTML_DOC_PATH&& set QBS_VERSION=$$QBS_VERSION&& set QBS_VERSION_TAG=$$VERSION_TAG&& set QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS]&& $$QDOC_BIN
 } else {   # nmake
     QDOC = set SRCDIR=$$PWD $$escape_expand(\\n\\t) \
-           set OUTDIR=$$OUT_PWD/doc/html $$escape_expand(\\n\\t) \
+           set OUTDIR=$$HTML_DOC_PATH $$escape_expand(\\n\\t) \
            set QBS_VERSION=$$QBS_VERSION $$escape_expand(\\n\\t) \
            set QBS_VERSION_TAG=$$VERSION_TAG $$escape_expand(\\n\\t) \
            set QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS] \
            $$QDOC_BIN
 }
 
-QHP_FILE = $$OUT_PWD/doc/html/qbs.qhp
+QHP_FILE = $$HTML_DOC_PATH/qbs.qhp
 QCH_FILE = $$OUT_PWD/doc/qbs.qch
 
 HELP_DEP_FILES = $$PWD/qbs.qdoc \
@@ -54,7 +55,12 @@ qch_docs.files = $$QCH_FILE
 
 qch_docs.path = $${QBS_INSTALL_PREFIX}/share/doc/qbs
 qch_docs.CONFIG += no_check_exist
-INSTALLS += qch_docs
+
+html_files.files = $$HTML_DOC_PATH
+html_files.path = $$qch_docs.path
+html_files.CONFIG += no_check_exist
+
+INSTALLS += qch_docs html_files
 
 docs.depends = qch_docs
 QMAKE_EXTRA_TARGETS += html_docs qch_docs docs
