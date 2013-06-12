@@ -242,14 +242,14 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 
     // determine whether Qt is built with debug, release or both
     if (qtEnvironment.qtConfigItems.contains("debug_and_release")) {
-        qtEnvironment.debugReleaseBuild = "debug_and_release";
+        qtEnvironment.buildVariant = "debug_and_release";
     } else {
         int idxDebug = qtEnvironment.qtConfigItems.indexOf("debug");
         int idxRelease = qtEnvironment.qtConfigItems.indexOf("release");
         if (idxDebug < idxRelease)
-            qtEnvironment.debugReleaseBuild = "release";
+            qtEnvironment.buildVariant = "release";
         else
-            qtEnvironment.debugReleaseBuild = "debug";
+            qtEnvironment.buildVariant = "debug";
     }
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
@@ -278,7 +278,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
     profile.setValue(settingsTemplate.arg("namespace"), qtEnvironment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
-    profile.setValue(settingsTemplate.arg("debugReleaseBuild"), qtEnvironment.debugReleaseBuild);
+    profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant);
     if (qtEnvironment.staticBuild)
         profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")),
                          qtEnvironment.staticBuild);

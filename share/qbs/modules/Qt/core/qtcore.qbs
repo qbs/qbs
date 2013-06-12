@@ -31,7 +31,7 @@ Module {
     property var versionPatch: versionParts[2]
     property bool frameworkBuild
     property bool staticBuild
-    property string debugReleaseBuild
+    property string buildVariant
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: product.destinationDirectory
 
