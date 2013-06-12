@@ -30,7 +30,7 @@ equals(QMAKE_DIR_SEP, /) {   # unix, mingw+msys
            set OUTDIR=$$HTML_DOC_PATH $$escape_expand(\\n\\t) \
            set QBS_VERSION=$$QBS_VERSION $$escape_expand(\\n\\t) \
            set QBS_VERSION_TAG=$$VERSION_TAG $$escape_expand(\\n\\t) \
-           set QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS] \
+           set QT_INSTALL_DOCS=$$[QT_INSTALL_DOCS] $$escape_expand(\\n\\t) \
            $$QDOC_BIN
 }
 
