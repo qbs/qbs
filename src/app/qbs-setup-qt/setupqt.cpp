@@ -242,14 +242,14 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 
     // determine whether Qt is built with debug, release or both
     if (qtEnvironment.qtConfigItems.contains("debug_and_release")) {
-        qtEnvironment.buildVariant = "debug_and_release";
+        qtEnvironment.buildVariant << QLatin1String("debug") << QLatin1String("release");
     } else {
         int idxDebug = qtEnvironment.qtConfigItems.indexOf("debug");
         int idxRelease = qtEnvironment.qtConfigItems.indexOf("release");
         if (idxDebug < idxRelease)
-            qtEnvironment.buildVariant = "release";
+            qtEnvironment.buildVariant << QLatin1String("release");
         else
-            qtEnvironment.buildVariant = "debug";
+            qtEnvironment.buildVariant << QLatin1String("debug");
     }
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
