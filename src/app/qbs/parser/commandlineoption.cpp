@@ -392,7 +392,7 @@ QString LogTimeOption::description(CommandType command) const
             .arg(longRepresentation());
     desc += Tr::tr("\tThis option is implied in log levels '%1' and higher.\n")
             .arg(logLevelName(LoggerDebug));
-    return desc += Tr::tr("\tThis options is mutually exclusive with '%1'.\n")
+    return desc += Tr::tr("\tThis option is mutually exclusive with '%1'.\n")
             .arg(showProgressRepresentation());
 }
 
