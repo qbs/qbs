@@ -47,21 +47,22 @@ HELP_DEP_FILES = $$PWD/qbs.qdoc \
 
 html_docs.commands = $$QDOC $$QDOC_MAINFILE
 html_docs.depends += $$HELP_DEP_FILES
-html_docs.files = $$QHP_FILE
 
 qch_docs.commands = $$HELPGENERATOR -o $$shell_quote($$QCH_FILE) $$QHP_FILE
 qch_docs.depends += html_docs
-qch_docs.files = $$QCH_FILE
 
-qch_docs.path = $${QBS_INSTALL_PREFIX}/share/doc/qbs
-qch_docs.CONFIG += no_check_exist
+inst_qch_docs.files = $$QCH_FILE
+inst_qch_docs.path = $${QBS_INSTALL_PREFIX}/share/doc/qbs
+inst_qch_docs.CONFIG += no_check_exist no_default_install
+INSTALLS += inst_qch_docs
 
-html_files.depends += html_docs
-html_files.files = $$HTML_DOC_PATH
-html_files.path = $$qch_docs.path
-html_files.CONFIG += no_check_exist no_default_install directory
+inst_html_docs.files = $$HTML_DOC_PATH
+inst_html_docs.path = $$inst_qch_docs.path
+inst_html_docs.CONFIG += no_check_exist no_default_install directory
+INSTALLS += inst_html_docs
 
-INSTALLS += qch_docs html_files
+install_docs.depends = install_inst_qch_docs install_inst_html_docs
+QMAKE_EXTRA_TARGETS += install_docs
 
 docs.depends = qch_docs
 QMAKE_EXTRA_TARGETS += html_docs qch_docs docs
