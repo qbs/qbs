@@ -7,7 +7,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
 
     // C or C++
     var isCxx = true;
-    if (input.fileTags.indexOf('c') >= 0) {
+    if (input.fileTags.contains('c')) {
         isCxx = false;
         args.push('/TC')
     }

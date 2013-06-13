@@ -2,20 +2,20 @@
 
 function isBundleProduct(product)
 {
-    return product.type.indexOf("applicationbundle") !== -1
-        || product.type.indexOf("frameworkbundle") !== -1
-        || product.type.indexOf("bundle") !== -1
-        || product.type.indexOf("inapppurchase") !== -1;
+    return product.type.contains("applicationbundle")
+        || product.type.contains("frameworkbundle")
+        || product.type.contains("bundle")
+        || product.type.contains("inapppurchase");
 }
 
 // Returns the package creator code for the given product based on its type
 function packageType(product)
 {
-    if (product.type.indexOf("applicationbundle") !== -1)
+    if (product.type.contains("applicationbundle"))
         return 'APPL';
-    else if (product.type.indexOf("frameworkbundle") !== -1)
+    else if (product.type.contains("frameworkbundle"))
         return 'FMWK';
-    else if (product.type.indexOf("bundle") !== -1)
+    else if (product.type.contains("bundle"))
         return 'BNDL';
 
     throw ("Unsupported product type " + product.type + ". "
@@ -40,7 +40,7 @@ function contentsFolderPath(product, version)
 {
     var path = wrapperName(product);
 
-    if (product.type.indexOf("frameworkbundle") !== -1)
+    if (product.type.contains("frameworkbundle"))
         path += "/Versions/" + (version || frameworkVersion(product));
     else if (!isShallowBundle(product))
         path += "/Contents";
@@ -54,7 +54,7 @@ function contentsFolderPath(product, version)
 function documentationFolderPath(product, localizationName, version)
 {
     var path = localizedResourcesFolderPath(product, localizationName, version);
-    if (product.type.indexOf("inapppurchase") === -1)
+    if (!product.type.contains("inapppurchase"))
         path += "/Documentation";
     return path;
 }
@@ -64,7 +64,7 @@ function documentationFolderPath(product, localizationName, version)
 // the version parameter is only used for framework bundles
 function executablesFolderPath(product, localizationName, version)
 {
-    if (product.type.indexOf("frameworkbundle") !== -1)
+    if (product.type.contains("frameworkbundle"))
         return localizedResourcesFolderPath(product, localizationName, version);
     else
         return _contentsFolderSubDirPath(product, "Executables", version);
@@ -77,8 +77,8 @@ function executableFolderPath(product, version)
 {
     var path = contentsFolderPath(product, version);
     if (!isShallowBundle(product)
-        && product.type.indexOf("frameworkbundle") === -1
-        && product.type.indexOf("inapppurchase") === -1)
+        && !product.type.contains("frameworkbundle")
+        && !product.type.contains("inapppurchase"))
         path += "/MacOS";
 
     return path;
@@ -96,7 +96,7 @@ function executablePath(product, version)
 // Major version number or letter corresponding to the bundle version
 function frameworkVersion(product)
 {
-    if (product.type.indexOf("frameworkbundle") === -1)
+    if (!product.type.contains("frameworkbundle"))
         throw "Product type must be a frameworkbundle, was " + product.type;
 
     var n = parseInt(product.version, 10);
@@ -117,9 +117,9 @@ function frameworksFolderPath(product, version)
 function infoPlistPath(product, version)
 {
     var path;
-    if (product.type.indexOf("frameworkbundle") !== -1)
+    if (product.type.contains("frameworkbundle"))
         path = unlocalizedResourcesFolderPath(product, version);
-    else if (product.type.indexOf("inapppurchase") !== -1)
+    else if (product.type.contains("inapppurchase"))
         path = wrapperName(product);
     else
         path = contentsFolderPath(product, version);
@@ -150,7 +150,7 @@ function localizedResourcesFolderPath(product, localizationName, version)
 // Path to the bundle's PkgInfo file
 function pkgInfoPath(product)
 {
-    var path = (product.type.indexOf("frameworkbundle") !== -1)
+    var path = (product.type.contains("frameworkbundle"))
         ? wrapperName(product)
         : contentsFolderPath(product);
     return path + "/PkgInfo";
@@ -161,7 +161,7 @@ function pkgInfoPath(product)
 // the version parameter is only used for framework bundles
 function pluginsFolderPath(product, version)
 {
-    if (product.type.indexOf("frameworkbundle") !== -1)
+    if (product.type.contains("frameworkbundle"))
         return unlocalizedResourcesFolderPath(product, version);
 
     return _contentsFolderSubDirPath(product, "PlugIns", version);
@@ -204,7 +204,7 @@ function scriptsFolderPath(product, version)
 function isShallowBundle(product)
 {
     return product.moduleProperty("qbs", "targetOS").contains("ios")
-        && product.type.indexOf("applicationbundle") !== -1;
+        && product.type.contains("applicationbundle");
 }
 
 // SHARED_FRAMEWORKS_FOLDER_PATH
@@ -220,7 +220,7 @@ function sharedFrameworksFolderPath(product, version)
 // the version parameter is only used for framework bundles
 function sharedSupportFolderPath(product, version)
 {
-    if (product.type.indexOf("frameworkbundle") !== -1)
+    if (product.type.contains("frameworkbundle"))
         return unlocalizedResourcesFolderPath(product, version);
 
     return _contentsFolderSubDirPath(product, "SharedSupport", version);
@@ -241,7 +241,7 @@ function unlocalizedResourcesFolderPath(product, version)
 // the version parameter is only used for framework bundles
 function versionPlistPath(product, version)
 {
-    var path = (product.type.indexOf("frameworkbundle") !== -1)
+    var path = (product.type.contains("frameworkbundle"))
         ? unlocalizedResourcesFolderPath(product, version)
         : contentsFolderPath(product, version);
     return path + "/version.plist";
@@ -251,13 +251,13 @@ function versionPlistPath(product, version)
 // The file extension of the bundle directory - app, framework, bundle, etc.
 function wrapperExtension(product)
 {
-    if (product.type.indexOf("applicationbundle") !== -1) {
+    if (product.type.contains("applicationbundle")) {
         return "app";
-    } else if (product.type.indexOf("frameworkbundle") !== -1) {
+    } else if (product.type.contains("frameworkbundle")) {
         return "framework";
-    } else if (product.type.indexOf("inapppurchase") !== -1) {
+    } else if (product.type.contains("inapppurchase")) {
         return "";
-    } else if (product.type.indexOf("bundle") !== -1) {
+    } else if (product.type.contains("bundle")) {
         // Potentially: kext, prefPane, qlgenerator, saver, mdimporter, or a custom extension
         var bundleExtension = ModUtils.moduleProperty(product, "bundleExtension");
 
@@ -293,7 +293,7 @@ function wrapperSuffix(product)
 function _contentsFolderSubDirPath(product, subdirectoryName, version)
 {
     var path = contentsFolderPath(product, version);
-    if (product.type.indexOf("inapppurchase") === -1)
+    if (!product.type.contains("inapppurchase"))
         path += "/" + subdirectoryName;
     return path;
 }
@@ -302,7 +302,7 @@ function _contentsFolderSubDirPath(product, subdirectoryName, version)
 // property list and filename of the corresponding strings file
 function _infoFileNames(product)
 {
-    if (product.type.indexOf("inapppurchase") !== -1)
+    if (product.type.contains("inapppurchase"))
         return ["ContentInfo.plist", "ContentInfo.strings"];
     else
         return ["Info.plist", "InfoPlist.strings"];

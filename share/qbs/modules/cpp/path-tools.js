@@ -79,11 +79,11 @@ function dwarfDsymFileName()
 {
     if (BundleTools.isBundleProduct(product))
         return BundleTools.wrapperName(product) + ".dSYM";
-    else if (product.type.indexOf("application") !== -1)
+    else if (product.type.contains("application"))
         return applicationFileName() + ".dSYM";
-    else if (product.type.indexOf("dynamiclibrary") !== -1)
+    else if (product.type.contains("dynamiclibrary"))
         return dynamicLibraryFileName() + ".dSYM";
-    else if (product.type.indexOf("staticlibrary") !== -1)
+    else if (product.type.contains("staticlibrary"))
         return staticLibraryFileName() + ".dSYM";
     else
         return product.targetName + ".dSYM";

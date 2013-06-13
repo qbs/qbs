@@ -326,7 +326,7 @@ CppModule {
 
             args.push('-pipe');
 
-            if (product.type.indexOf('staticlibrary') === -1
+            if (!product.type.contains('staticlibrary')
                     && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
                 if (visibility === 'hidden')
                     args.push('-fvisibility=hidden');
