@@ -466,6 +466,40 @@ void TestLanguage::groupName()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::homeDirectory()
+{
+    try {
+        defaultParameters.setProjectFilePath(testProject("homeDirectory.qbs"));
+        ResolvedProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+
+        ResolvedProductPtr product = products.value("home");
+        QVERIFY(product);
+
+        QDir dir = QDir::home();
+        QCOMPARE(product->properties->value().value("home").toString(), dir.canonicalPath());
+        QCOMPARE(product->properties->value().value("homeSlash").toString(), dir.canonicalPath());
+
+        dir.cdUp();
+        QCOMPARE(product->properties->value().value("homeUp").toString(), dir.canonicalPath());
+
+        dir = QDir::home();
+        QCOMPARE(product->properties->value().value("homeFile").toString(), dir.filePath("a"));
+
+        QCOMPARE(product->properties->value().value("bogus1").toString(),
+                 FileInfo::resolvePath(product->sourceDirectory, QLatin1String("a~b")));
+        QCOMPARE(product->properties->value().value("bogus2").toString(),
+                 FileInfo::resolvePath(product->sourceDirectory, QLatin1String("a/~/bb")));
+        QCOMPARE(product->properties->value().value("user").toString(),
+                 FileInfo::resolvePath(product->sourceDirectory, QLatin1String("~foo/bar")));
+    }
+    catch (const Error &e) {
+        qDebug() << e.toString();
+    }
+}
+
 void TestLanguage::identifierSearch_data()
 {
     QTest::addColumn<bool>("expectedHasNarf");

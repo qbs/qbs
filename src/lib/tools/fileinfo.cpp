@@ -168,6 +168,10 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel)
         return rel;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))
         return base;
+    if (rel.size() == 1 && rel.at(0) == QLatin1Char('~'))
+        return QDir::homePath();
+    if (rel.startsWith(QLatin1String("~/")))
+        return QDir::homePath() + rel.mid(1);
 
     QString r = base;
     if (r.endsWith(QLatin1Char('/')))

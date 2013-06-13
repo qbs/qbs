@@ -76,6 +76,7 @@ private slots:
     void groupConditions_data();
     void groupConditions();
     void groupName();
+    void homeDirectory();
     void identifierSearch_data();
     void identifierSearch();
     void idUsage();
