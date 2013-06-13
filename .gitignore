@@ -22,6 +22,7 @@ moc_*.cpp
 ui_*.h
 
 Makefile*
+/tests/auto/blackbox/testWorkDir
 /tests/auto/blackbox/tst_blackbox
 /tests/auto/buildgraph/tst_buildgraph
 /tests/auto/language/tst_language
