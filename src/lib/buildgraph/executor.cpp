@@ -119,6 +119,11 @@ Executor::~Executor()
 FileTime Executor::recursiveFileTime(const QString &filePath) const
 {
     FileTime newest;
+    if (m_progressObserver) {
+        qApp->processEvents();  // let the cancel event do its work
+        if (m_progressObserver->canceled())
+            return newest;
+    }
     FileInfo fileInfo(filePath);
     if (!fileInfo.exists()) {
         const QString nativeFilePath = QDir::toNativeSeparators(filePath);
