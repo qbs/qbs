@@ -11,7 +11,7 @@ function getPlatformLibraryName(name, qtcore, qbs)
             libName += '.lib';
     }
     if (qbs.targetPlatform.indexOf("darwin") !== -1) {
-        if (qtcore.buildVariant.indexOf("debug") !== -1 &&
+        if (!qtcore.frameworkBuild && qtcore.buildVariant.indexOf("debug") !== -1 &&
                 (qtcore.buildVariant.indexOf("release") === -1 || qbs.enableDebugCode))
             libName += '_debug';
     }
