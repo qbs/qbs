@@ -5,6 +5,7 @@ import "utils.js" as Utils
 Probe {
     // Inputs
     property var names
+    property var nameFilter
     property pathList pathPrefixes
     property var pathSuffixes
     property pathList platformPaths: [ '/usr', '/usr/local' ]
@@ -14,11 +15,14 @@ Probe {
     // Output
     property string path
     property string filePath
+    property string fileName
 
     configure: {
         if (!names)
             throw '"names" must be specified';
         var _names = Utils.concatAll(names);
+        if (nameFilter)
+            _names = _names.map(nameFilter);
         // FIXME: Suggest how to obtain paths from system
         var _paths = Utils.concatAll(pathPrefixes, platformPaths);
         // FIXME: Add getenv support
@@ -37,6 +41,7 @@ Probe {
                         found = true;
                         path = FileInfo.joinPaths(_paths[j], _suffixes[k]);
                         filePath = fileName;
+                        fileName = _names[i];
                         return;
                     }
                 }
