@@ -79,6 +79,7 @@ public:
     QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
 
 private:
+    void extendJavaScriptBuiltins();
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
                        QScriptValue &targetObject);
 

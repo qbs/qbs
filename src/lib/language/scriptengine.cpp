@@ -58,6 +58,7 @@ ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     QBS_ASSERT(m_emptyFunction.isFunction(), /* ignore */);
     // Initially push a new context to turn off scope chain insanity mode.
     QScriptEngine::pushContext();
+    extendJavaScriptBuiltins();
 }
 
 ScriptEngine::~ScriptEngine()
@@ -235,6 +236,39 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
 void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &value)
 {
     m_usedEnvironment.insert(name, value);
+}
+
+class JSTypeExtender
+{
+public:
+    JSTypeExtender(ScriptEngine *engine, const QString &typeName)
+        : m_engine(engine)
+    {
+        m_proto = engine->globalObject().property(typeName)
+                .property(QLatin1String("prototype"));
+        QBS_ASSERT(m_proto.isObject(), return);
+        m_descriptor = engine->newObject();
+    }
+
+    void addFunction(const QString &name, const QString &code)
+    {
+        QScriptValue f = m_engine->evaluate(code);
+        QBS_ASSERT(f.isFunction(), return);
+        m_descriptor.setProperty(QLatin1String("value"), f);
+        m_engine->defineProperty(m_proto, name, m_descriptor);
+    }
+
+private:
+    ScriptEngine *const m_engine;
+    QScriptValue m_proto;
+    QScriptValue m_descriptor;
+};
+
+void ScriptEngine::extendJavaScriptBuiltins()
+{
+    JSTypeExtender arrayExtender(this, QLatin1String("Array"));
+    arrayExtender.addFunction(QLatin1String("contains"),
+        QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
 }
 
 } // namespace Internal

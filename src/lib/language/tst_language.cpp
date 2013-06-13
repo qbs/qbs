@@ -617,6 +617,20 @@ void TestLanguage::itemScope()
     QCOMPARE(evaluator.property(item, "z").toVariant().toInt(), 3);
 }
 
+void TestLanguage::jsExtensions()
+{
+    QFile file(testProject("jsextensions.js"));
+    QVERIFY(file.open(QFile::ReadOnly));
+    QTextStream ts(&file);
+    QString code = ts.readAll();
+    QVERIFY(!code.isEmpty());
+    QScriptValue evaluated = m_engine->evaluate(code, file.fileName(), 1);
+    if (m_engine->hasUncaughtException() || evaluated.isError()) {
+        qDebug() << m_engine->uncaughtExceptionBacktrace();
+        QFAIL(qPrintable(evaluated.toString()));
+    }
+}
+
 void TestLanguage::jsImportUsedInMultipleScopes_data()
 {
     QTest::addColumn<QString>("buildVariant");

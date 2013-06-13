@@ -81,6 +81,7 @@ private slots:
     void idUsage();
     void itemPrototype();
     void itemScope();
+    void jsExtensions();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
     void moduleProperties_data();
