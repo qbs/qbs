@@ -179,6 +179,11 @@ bool CommandLineParser::logTime() const
     return d->logTime;
 }
 
+bool CommandLineParser::buildBeforeInstalling() const
+{
+    return !d->optionPool.noBuildOption()->enabled();
+}
+
 QStringList CommandLineParser::runArgs() const
 {
     Q_ASSERT(d->command->type() == RunCommandType);

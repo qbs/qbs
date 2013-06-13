@@ -54,6 +54,7 @@ public:
     AllArtifactsOption *allArtifactsOption() const;
     InstallRootOption *installRootOption() const;
     RemoveFirstOption *removeFirstoption() const;
+    NoBuildOption *noBuildOption() const;
     ForceOption *forceOption() const;
     LogTimeOption *logTimeOption() const;
 

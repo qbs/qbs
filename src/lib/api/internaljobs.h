@@ -29,6 +29,7 @@
 #ifndef QBS_INTERNALJOBS_H
 #define QBS_INTERNALJOBS_H
 
+#include <buildgraph/forward_decls.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 #include <tools/buildoptions.h>
@@ -47,8 +48,10 @@ class ProcessResult;
 class Settings;
 
 namespace Internal {
+class BuildGraphLoadResult;
 class Executor;
 class JobObserver;
+class ScriptEngine;
 
 class InternalJob : public QObject
 {
@@ -101,6 +104,10 @@ private slots:
     void handleFinished();
 
 private:
+    void resolveProjectFromScratch(Internal::ScriptEngine *engine);
+    void resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext);
+    void setupPlatformEnvironment();
+    BuildGraphLoadResult restoreProject(const RulesEvaluationContextPtr &evalContext);
     void doResolve();
     void execute();
 

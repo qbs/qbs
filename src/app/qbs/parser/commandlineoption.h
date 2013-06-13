@@ -48,7 +48,7 @@ public:
         ChangedFilesOptionType,
         ProductsOptionType,
         AllArtifactsOptionType,
-        InstallRootOptionType, RemoveFirstOptionType,
+        InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
         ForceOptionType,
         LogTimeOptionType
     };
@@ -242,6 +242,14 @@ private:
 };
 
 class RemoveFirstOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+};
+
+class NoBuildOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const;

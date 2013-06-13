@@ -80,23 +80,24 @@ QStringList toStringList(const T &artifactContainer)
     return l;
 }
 
+class BuildGraphLoadResult
+{
+public:
+    BuildGraphLoadResult() : discardLoadedProject(false) {}
+
+    TopLevelProjectPtr newlyResolvedProject;
+    TopLevelProjectPtr loadedProject;
+    bool discardLoadedProject;
+};
+
+
 class BuildGraphLoader
 {
 public:
     BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger);
 
-    class LoadResult
-    {
-    public:
-        LoadResult() : discardLoadedProject(false) {}
-
-        TopLevelProjectPtr newlyResolvedProject;
-        TopLevelProjectPtr loadedProject;
-        bool discardLoadedProject;
-    };
-
-    LoadResult load(const SetupProjectParameters &parameters,
-                    const RulesEvaluationContextPtr &evalContext);
+    BuildGraphLoadResult load(const SetupProjectParameters &parameters,
+                              const RulesEvaluationContextPtr &evalContext);
 
 private:
     void trackProjectChanges(const SetupProjectParameters &parameters,
@@ -111,7 +112,7 @@ private:
     void replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact);
 
     RulesEvaluationContextPtr m_evalContext;
-    LoadResult m_result;
+    BuildGraphLoadResult m_result;
     Logger m_logger;
     QProcessEnvironment m_environment;
 };

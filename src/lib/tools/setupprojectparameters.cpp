@@ -46,8 +46,11 @@ class SetupProjectParametersPrivate : public QSharedData
 {
 public:
     SetupProjectParametersPrivate()
-        : ignoreDifferentProjectFilePath(false), dryRun(false), logElapsedTime(false),
-          environment(QProcessEnvironment::systemEnvironment())
+        : ignoreDifferentProjectFilePath(false)
+        , dryRun(false)
+        , logElapsedTime(false)
+        , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
+        , environment(QProcessEnvironment::systemEnvironment())
     {
     }
 
@@ -60,6 +63,7 @@ public:
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
     bool logElapsedTime;
+    SetupProjectParameters::RestoreBehavior restoreBehavior;
     QProcessEnvironment environment;
 };
 
@@ -341,6 +345,39 @@ QProcessEnvironment SetupProjectParameters::environment() const
 void SetupProjectParameters::setEnvironment(const QProcessEnvironment &env)
 {
     d->environment = env;
+}
+
+
+/*!
+ * \enum SetupProjectParamaters::RestoreBehavior
+ * This enum type specifies how to deal with existing on-disk build information.
+ * \value RestoreOnly Indicates that a stored build graph is to be loaded and the information
+ *                    therein assumed to be up to date. It is then considered an error if no
+ *                    such build graph exists.
+ * \value ResolveOnly Indicates that no attempt should be made to restore an existing build graph.
+ *                    Instead, the project is to be resolved from scratch.
+ * \value RestoreAndTrackChanges Indicates that the build graph should be restored from disk
+ *                               if possible and otherwise set up from scratch. In the first case,
+ *                               (parts of) the project might still be re-resolved if certain
+ *                               parameters have changed (e.g. environment variables used in the
+ *                               project files).
+ */
+
+
+/*!
+ * Returns information about how restored build data will be handled.
+ */
+SetupProjectParameters::RestoreBehavior SetupProjectParameters::restoreBehavior() const
+{
+    return d->restoreBehavior;
+}
+
+/*!
+ * Controls how restored build data will be handled.
+ */
+void SetupProjectParameters::setRestoreBehavior(SetupProjectParameters::RestoreBehavior behavior)
+{
+    d->restoreBehavior = behavior;
 }
 
 } // namespace qbs

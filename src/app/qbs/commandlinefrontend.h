@@ -79,6 +79,7 @@ private:
     void connectBuildJob(AbstractJob *job);
     void connectJob(AbstractJob *job);
     void checkForExactlyOneProduct();
+    void install();
 
     Q_INVOKABLE void doCancel();
 

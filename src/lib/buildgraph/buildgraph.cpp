@@ -477,10 +477,10 @@ void restoreBackPointers(const ResolvedProjectPtr &project)
     }
 }
 
-BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters &parameters,
+BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parameters,
         const RulesEvaluationContextPtr &evalContext)
 {
-    m_result = LoadResult();
+    m_result = BuildGraphLoadResult();
     m_evalContext = evalContext;
 
     const QString projectId = TopLevelProject::deriveId(parameters.buildConfigurationTree());
@@ -491,11 +491,21 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
 
     PersistentPool pool(m_logger);
     m_logger.qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
-    if (!pool.load(buildGraphFilePath))
+    try {
+        pool.load(buildGraphFilePath);
+    } catch (const Error &loadError) {
+        if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+            throw loadError;
+        m_logger.qbsInfo() << loadError.toString();
         return m_result;
+    }
+
     if (!isConfigCompatible(parameters.buildConfigurationTree(), pool.headData().projectConfig)) {
-        m_logger.qbsDebug() << "[BG] Cannot use stored build graph: "
-                               "Incompatible project configuration.";
+        const QString message = Tr::tr("Cannot use stored build graph at '%1':"
+                "Incompatible project configuration.").arg(buildGraphFilePath);
+        if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+            throw Error(message);
+        m_logger.qbsInfo() << message;
         return m_result;
     }
 
@@ -532,6 +542,11 @@ BuildGraphLoader::LoadResult BuildGraphLoader::load(const SetupProjectParameters
     project->buildDirectory = buildDir;
     m_result.loadedProject = project;
     evalContext->incrementProgressValue();
+
+    if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+        return m_result;
+    QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
+
     trackProjectChanges(parameters, buildGraphFilePath, project);
     return m_result;
 }

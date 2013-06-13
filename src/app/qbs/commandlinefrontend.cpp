@@ -106,6 +106,8 @@ void CommandLineFrontend::start()
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());
         params.setLogElapsedTime(m_parser.logTime());
+        if (!m_parser.buildBeforeInstalling())
+            params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             params.setBuildConfiguration(buildConfig);
 
@@ -174,15 +176,9 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
         if (m_buildJobs.isEmpty()) {
             switch (m_parser.command()) {
             case RunCommandType:
-            case InstallCommandType: {
-                Q_ASSERT(m_projects.count() == 1);
-                const Project project = m_projects.first();
-                const ProductMap products = productsToUse();
-                InstallJob * const installJob = project.installSomeProducts(
-                            products.value(m_projects.first()), m_parser.installOptions());
-                connectJob(installJob);
+            case InstallCommandType:
+                install();
                 break;
-            }
             case BuildCommandType:
             case CleanCommandType:
                 qApp->quit();
@@ -315,9 +311,14 @@ void CommandLineFrontend::handleProjectsResolved()
             break;
         }
         case BuildCommandType:
+            build();
+            break;
         case InstallCommandType:
         case RunCommandType:
-            build();
+            if (m_parser.buildBeforeInstalling())
+                build();
+            else
+                install();
             break;
         case UpdateTimestampsCommandType:
             updateTimestamps();
@@ -459,6 +460,16 @@ void CommandLineFrontend::checkForExactlyOneProduct()
                            "with more than one product.\nUsage: %2")
                     .arg(m_parser.commandName(), m_parser.commandDescription()));
     }
+}
+
+void CommandLineFrontend::install()
+{
+    Q_ASSERT(m_projects.count() == 1);
+    const Project project = m_projects.first();
+    const ProductMap products = productsToUse();
+    InstallJob * const installJob = project.installSomeProducts(
+                products.value(m_projects.first()), m_parser.installOptions());
+    connectJob(installJob);
 }
 
 } // namespace qbs

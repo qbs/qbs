@@ -188,39 +188,35 @@ void InternalSetupProjectJob::execute()
 {
     RulesEvaluationContextPtr evalContext(new RulesEvaluationContext(logger()));
     evalContext->setObserver(observer());
-    BuildGraphLoader bpLoader(m_parameters.environment(), logger());
-    const BuildGraphLoader::LoadResult loadResult = bpLoader.load(m_parameters, evalContext);
-    if (!loadResult.discardLoadedProject)
-        m_project = loadResult.loadedProject;
-    if (!m_project) {
-        if (loadResult.newlyResolvedProject) {
-            m_project = loadResult.newlyResolvedProject;
-        } else {
-            Loader loader(evalContext->engine(), logger());
-            loader.setSearchPaths(m_parameters.searchPaths());
-            loader.setProgressObserver(observer());
-            m_project = loader.loadProject(m_parameters);
+
+    switch (m_parameters.restoreBehavior()) {
+    case SetupProjectParameters::ResolveOnly:
+        resolveProjectFromScratch(evalContext->engine());
+        resolveBuildDataFromScratch(evalContext);
+        setupPlatformEnvironment();
+        break;
+    case SetupProjectParameters::RestoreOnly:
+        restoreProject(evalContext);
+        break;
+    case SetupProjectParameters::RestoreAndTrackChanges: {
+        const BuildGraphLoadResult loadResult = restoreProject(evalContext);
+        if (!loadResult.discardLoadedProject)
+            m_project = loadResult.loadedProject;
+        if (!m_project) {
+            if (loadResult.newlyResolvedProject) {
+                m_project = loadResult.newlyResolvedProject;
+            } else {
+                resolveProjectFromScratch(evalContext->engine());
+            }
         }
+        if (!m_project->buildData) {
+            resolveBuildDataFromScratch(evalContext);
+            if (loadResult.loadedProject)
+                BuildDataResolver::rescueBuildData(loadResult.loadedProject, m_project, logger());
+        }
+        setupPlatformEnvironment();
+        break;
     }
-
-    // copy the environment from the platform config into the project's config
-    const QVariantMap platformEnvironment
-            = m_parameters.buildConfiguration().value(QLatin1String("environment")).toMap();
-    m_project->platformEnvironment = platformEnvironment;
-
-    logger().qbsDebug() << QString::fromLocal8Bit("for %1:").arg(m_project->id());
-    foreach (const ResolvedProductConstPtr &p, m_project->products) {
-        logger().qbsDebug() << QString::fromLocal8Bit("  - [%1] %2 as %3")
-                               .arg(p->fileTags.toStringList().join(QLatin1String(", ")))
-                               .arg(p->name).arg(p->topLevelProject()->id());
-    }
-    logger().qbsDebug() << '\n';
-
-    if (!m_project->buildData) {
-        TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
-        BuildDataResolver(logger()).resolveBuildData(m_project, evalContext);
-        if (loadResult.loadedProject)
-            BuildDataResolver::rescueBuildData(loadResult.loadedProject, m_project, logger());
     }
 
     if (!m_parameters.dryRun())
@@ -230,6 +226,35 @@ void InternalSetupProjectJob::execute()
     m_project->buildData->evaluationContext.clear();
 }
 
+void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
+{
+    Loader loader(engine, logger());
+    loader.setSearchPaths(m_parameters.searchPaths());
+    loader.setProgressObserver(observer());
+    m_project = loader.loadProject(m_parameters);
+}
+
+void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext)
+{
+    TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
+    BuildDataResolver(logger()).resolveBuildData(m_project, evalContext);
+}
+
+void InternalSetupProjectJob::setupPlatformEnvironment()
+{
+    const QVariantMap platformEnvironment
+            = m_parameters.buildConfiguration().value(QLatin1String("environment")).toMap();
+    m_project->platformEnvironment = platformEnvironment;
+}
+
+BuildGraphLoadResult InternalSetupProjectJob::restoreProject(const RulesEvaluationContextPtr &evalContext)
+{
+    BuildGraphLoader bgLoader(m_parameters.environment(), logger());
+    const BuildGraphLoadResult loadResult = bgLoader.load(m_parameters, evalContext);
+    if (!loadResult.discardLoadedProject)
+        m_project = loadResult.loadedProject;
+    return loadResult;
+}
 
 BuildGraphTouchingJob::BuildGraphTouchingJob(const Logger &logger, QObject *parent)
     : InternalJob(logger, parent), m_dryRun(false)

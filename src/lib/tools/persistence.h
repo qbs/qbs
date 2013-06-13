@@ -54,7 +54,7 @@ public:
         QVariantMap projectConfig;
     };
 
-    bool load(const QString &filePath);
+    void load(const QString &filePath);
     bool setupWriteStream(const QString &filePath);
     void closeStream();
     void clear();

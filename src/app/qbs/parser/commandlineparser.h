@@ -60,6 +60,7 @@ public:
     bool force() const;
     bool dryRun() const;
     bool logTime() const;
+    bool buildBeforeInstalling() const;
     QStringList runArgs() const;
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;

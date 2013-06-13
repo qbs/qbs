@@ -254,7 +254,8 @@ QString InstallCommand::longDescription() const
             .arg(representation());
     description += Tr::tr("Install all files marked as installable "
                           "to their respective destinations.\n"
-                          "The project is built first, if necessary.\n");
+                          "The project is built first, if necessary, unless the '%1' option "
+                          "is given.\n").arg(optionPool().noBuildOption()->longRepresentation());
     return description += supportedOptionsDescription();
 }
 
@@ -267,7 +268,8 @@ QList<CommandLineOption::Type> installOptions()
 {
     return buildOptions()
             << CommandLineOption::InstallRootOptionType
-            << CommandLineOption::RemoveFirstOptionType;
+            << CommandLineOption::RemoveFirstOptionType
+            << CommandLineOption::NoBuildOptionType;
 }
 
 QList<CommandLineOption::Type> InstallCommand::supportedOptions() const

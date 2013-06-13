@@ -972,6 +972,13 @@ void TestBlackbox::installedApp()
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/bin/installedApp"))));
     QVERIFY(!addedFile.exists());
+
+    rmDirR(buildDir);
+    QbsRunParameters params;
+    params.arguments << "install" << "--no-build";
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("No build graph"));
 }
 
 void TestBlackbox::toolLookup()

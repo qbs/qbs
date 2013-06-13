@@ -385,6 +385,21 @@ QString RemoveFirstOption::longRepresentation() const
     return QLatin1String("--remove-first");
 }
 
+
+QString NoBuildOption::description(CommandType command) const
+{
+    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tDo not build before installing.\n")
+            .arg(longRepresentation());
+}
+
+QString NoBuildOption::longRepresentation() const
+{
+    return QLatin1String("--no-build");
+}
+
+
 QString LogTimeOption::description(CommandType command) const
 {
     Q_UNUSED(command);

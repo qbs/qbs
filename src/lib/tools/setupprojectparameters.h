@@ -82,6 +82,10 @@ public:
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);
 
+    enum RestoreBehavior { RestoreOnly, ResolveOnly, RestoreAndTrackChanges };
+    RestoreBehavior restoreBehavior() const;
+    void setRestoreBehavior(RestoreBehavior behavior);
+
 private:
     QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;
 };

@@ -79,6 +79,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::RemoveFirstOptionType:
             option = new RemoveFirstOption;
             break;
+        case CommandLineOption::NoBuildOptionType:
+            option = new NoBuildOption;
+            break;
         case CommandLineOption::ForceOptionType:
             option = new ForceOption;
             break;
@@ -153,6 +156,11 @@ InstallRootOption *CommandLineOptionPool::installRootOption() const
 RemoveFirstOption *CommandLineOptionPool::removeFirstoption() const
 {
     return static_cast<RemoveFirstOption *>(getOption(CommandLineOption::RemoveFirstOptionType));
+}
+
+NoBuildOption *CommandLineOptionPool::noBuildOption() const
+{
+    return static_cast<NoBuildOption *>(getOption(CommandLineOption::NoBuildOptionType));
 }
 
 ForceOption *CommandLineOptionPool::forceOption() const
