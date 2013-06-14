@@ -58,6 +58,8 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
 {
     if (typeName == "bool")
         return PropertyDeclaration::Boolean;
+    if (typeName == QLatin1String("int"))
+        return PropertyDeclaration::Integer;
     if (typeName == "path")
         return PropertyDeclaration::Path;
     if (typeName == "pathList")

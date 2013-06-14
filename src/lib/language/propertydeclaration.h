@@ -43,6 +43,7 @@ public:
     {
         UnknownType,
         Boolean,
+        Integer,
         Path,
         PathList,
         String,

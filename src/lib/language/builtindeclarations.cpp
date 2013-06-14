@@ -90,6 +90,9 @@ QByteArray BuiltinDeclarations::qmlTypeInfo() const
             case qbs::Internal::PropertyDeclaration::Boolean:
                 result.append("type=\"bool\"");
                 break;
+            case qbs::Internal::PropertyDeclaration::Integer:
+                result.append("type=\"int\"");
+                break;
             case qbs::Internal::PropertyDeclaration::Path:
                 result.append("type=\"string\"");
                 break;
