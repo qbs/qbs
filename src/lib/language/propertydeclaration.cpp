@@ -56,19 +56,19 @@ bool PropertyDeclaration::isValid() const
 
 PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QString &typeName)
 {
-    if (typeName == "bool")
+    if (typeName == QLatin1String("bool"))
         return PropertyDeclaration::Boolean;
     if (typeName == QLatin1String("int"))
         return PropertyDeclaration::Integer;
-    if (typeName == "path")
+    if (typeName == QLatin1String("path"))
         return PropertyDeclaration::Path;
-    if (typeName == "pathList")
+    if (typeName == QLatin1String("pathList"))
         return PropertyDeclaration::PathList;
-    if (typeName == "string")
+    if (typeName == QLatin1String("string"))
         return PropertyDeclaration::String;
     if (typeName == QLatin1String("stringList"))
         return PropertyDeclaration::StringList;
-    if (typeName == "var" || typeName == "variant")
+    if (typeName == QLatin1String("var") || typeName == QLatin1String("variant"))
         return PropertyDeclaration::Variant;
     return PropertyDeclaration::UnknownType;
 }
