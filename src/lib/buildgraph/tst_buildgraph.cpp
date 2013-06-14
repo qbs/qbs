@@ -59,7 +59,7 @@ bool TestBuildGraph::cycleDetected(const ResolvedProductConstPtr &product)
     try {
         CycleDetector(Logger(m_logSink)).visitProduct(product);
         return false;
-    } catch (const Error &) {
+    } catch (const ErrorInfo &) {
         return true;
     }
 }

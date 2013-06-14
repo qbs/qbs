@@ -125,7 +125,7 @@ AbstractJob::~AbstractJob()
 /*!
  * \brief Returns the error which caused this operation to fail, if it did fail.
  */
-Error AbstractJob::error() const
+ErrorInfo AbstractJob::error() const
 {
     return internalJob()->error();
 }
@@ -163,7 +163,7 @@ void AbstractJob::handleFinished()
 {
     QBS_ASSERT(m_state != StateFinished, return);
     m_state = StateFinished;
-    emit finished(!hasError(), this);
+    emit finished(!error().hasError(), this);
 }
 
 
@@ -198,7 +198,7 @@ void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
     job->resolve(parameters);
 }
 
-void SetupProjectJob::reportError(const Error &error)
+void SetupProjectJob::reportError(const ErrorInfo &error)
 {
     InternalSetupProjectJob * const job = qobject_cast<InternalSetupProjectJob *>(internalJob());
     job->reportError(error);

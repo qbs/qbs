@@ -75,7 +75,7 @@ void CommandLineFrontend::start()
         case RunCommandType:
         case ShellCommandType:
             if (m_parser.products().count() > 1) {
-                throw Error(Tr::tr("Invalid use of command '%1': Cannot use more than one "
+                throw ErrorInfo(Tr::tr("Invalid use of command '%1': Cannot use more than one "
                                    "product.\nUsage: %2")
                             .arg(m_parser.commandName(), m_parser.commandDescription()));
             }
@@ -87,7 +87,7 @@ void CommandLineFrontend::start()
                 QString error = Tr::tr("Invalid use of command '%1': There can be only one "
                                "build configuration.\n").arg(m_parser.commandName());
                 error += Tr::tr("Usage: %1").arg(m_parser.commandDescription());
-                throw Error(error);
+                throw ErrorInfo(error);
             }
             break;
         default:
@@ -110,9 +110,8 @@ void CommandLineFrontend::start()
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             params.setBuildConfiguration(buildConfig);
-
-            Error err = params.expandBuildConfiguration(m_settings);
-            if (!err.entries().isEmpty())
+            const ErrorInfo err = params.expandBuildConfiguration(m_settings);
+            if (err.hasError())
                 throw err;
 
             SetupProjectJob * const job = Project::setupProject(params,
@@ -131,7 +130,7 @@ void CommandLineFrontend::start()
          */
         if (m_parser.showProgress() && resolvingMultipleProjects())
             m_observer->initialize(tr("Setting up projects"), m_resolveJobs.count());
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
         if (m_buildJobs.isEmpty() && m_resolveJobs.isEmpty())
             qApp->exit(EXIT_FAILURE);
@@ -276,7 +275,7 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
 
     foreach (const QString &productName, m_parser.products()) {
         if (!productNames.contains(productName))
-            throw Error(Tr::tr("No such product '%1'.").arg(productName));
+            throw ErrorInfo(Tr::tr("No such product '%1'.").arg(productName));
     }
 
     return products;
@@ -286,7 +285,7 @@ void CommandLineFrontend::handleProjectsResolved()
 {
     try {
         if (m_canceled)
-            throw Error(Tr::tr("Execution canceled."));
+            throw ErrorInfo(Tr::tr("Execution canceled."));
         switch (m_parser.command()) {
         case ResolveCommandType:
             qApp->quit();
@@ -327,7 +326,7 @@ void CommandLineFrontend::handleProjectsResolved()
         case HelpCommandType:
             Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
         }
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
         qApp->exit(EXIT_FAILURE);
     }
@@ -397,13 +396,13 @@ int CommandLineFrontend::runTarget()
         const QString executableFilePath = project.targetExecutable(productToRun,
                 m_parser.installOptions());
         if (executableFilePath.isEmpty()) {
-            throw Error(Tr::tr("Cannot run: Product '%1' is not an application.")
+            throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
                         .arg(productToRun.name()));
         }
         RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
                 QProcessEnvironment::systemEnvironment(), m_settings);
         return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
         return EXIT_FAILURE;
     }
@@ -456,7 +455,7 @@ void CommandLineFrontend::checkForExactlyOneProduct()
 {
     if (m_parser.products().count() == 0
             && m_projects.first().projectData().products().count() > 1) {
-        throw Error(Tr::tr("Ambiguous use of command '%1': No product given for project "
+        throw ErrorInfo(Tr::tr("Ambiguous use of command '%1': No product given for project "
                            "with more than one product.\nUsage: %2")
                     .arg(m_parser.commandName(), m_parser.commandDescription()));
     }

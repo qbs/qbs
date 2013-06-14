@@ -44,46 +44,49 @@ QT_END_NAMESPACE
 namespace qbs {
 class CodeLocation;
 
-class QBS_EXPORT ErrorData
+class QBS_EXPORT ErrorItem
 {
+    friend class ErrorInfo;
 public:
-    ErrorData();
-    ErrorData(const QString &description, const CodeLocation &codeLocation);
-    ErrorData(const ErrorData &rhs);
-    ErrorData &operator=(const ErrorData &other);
-    ~ErrorData();
+    ErrorItem();
+    ErrorItem(const ErrorItem &rhs);
+    ErrorItem &operator=(const ErrorItem &other);
+    ~ErrorItem();
 
     QString description() const;
     CodeLocation codeLocation() const;
     QString toString() const;
 
 private:
-    class ErrorDataPrivate;
-    QExplicitlySharedDataPointer<ErrorDataPrivate> d;
+    ErrorItem(const QString &description, const CodeLocation &codeLocation);
+
+    class ErrorItemPrivate;
+    QExplicitlySharedDataPointer<ErrorItemPrivate> d;
 };
 
-class QBS_EXPORT Error
+class QBS_EXPORT ErrorInfo
 {
 public:
-    Error();
-    Error(const Error &rhs);
-    Error(const QString &description, const CodeLocation &location = CodeLocation());
-    Error &operator=(const Error &other);
-    ~Error();
+    ErrorInfo();
+    ErrorInfo(const ErrorInfo &rhs);
+    ErrorInfo(const QString &description, const CodeLocation &location = CodeLocation());
+    ErrorInfo &operator=(const ErrorInfo &other);
+    ~ErrorInfo();
 
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
-    QList<ErrorData> entries() const;
+    QList<ErrorItem> items() const;
+    bool hasError() const { return !items().isEmpty(); }
     void clear();
     QString toString() const;
 
 private:
-    class ErrorPrivate;
-    QSharedDataPointer<ErrorPrivate> d;
+    class ErrorInfoPrivate;
+    QSharedDataPointer<ErrorInfoPrivate> d;
 };
 
 } // namespace qbs
 
-Q_DECLARE_METATYPE(qbs::Error)
+Q_DECLARE_METATYPE(qbs::ErrorInfo)
 
 #endif // QBS_ERROR

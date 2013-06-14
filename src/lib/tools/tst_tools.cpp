@@ -103,7 +103,7 @@ void TestTools::testProfiles()
         childProfile.setBaseProfile("foo");
         QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("gnampf"));
         exceptionCaught = false;
-    } catch (Error &) {
+    } catch (ErrorInfo &) {
         exceptionCaught = true;
     }
     QVERIFY(!exceptionCaught);
@@ -112,7 +112,7 @@ void TestTools::testProfiles()
         childProfile.setBaseProfile("SmurfAlongWithMe");
         childProfile.value("blubb");
         exceptionCaught = false;
-    } catch (Error &) {
+    } catch (ErrorInfo &) {
         exceptionCaught = true;
     }
     QVERIFY(exceptionCaught);
@@ -122,7 +122,7 @@ void TestTools::testProfiles()
         parentProfile.setBaseProfile("child");
         QVERIFY(!childProfile.value("blubb").isValid());
         exceptionCaught = false;
-    } catch (Error &) {
+    } catch (ErrorInfo &) {
         exceptionCaught = true;
     }
     QVERIFY(exceptionCaught);
@@ -130,7 +130,7 @@ void TestTools::testProfiles()
     try {
         QVERIFY(!childProfile.allKeys(Profile::KeySelectionNonRecursive).isEmpty());
         exceptionCaught = false;
-    } catch (Error &) {
+    } catch (ErrorInfo &) {
         exceptionCaught = true;
     }
     QVERIFY(!exceptionCaught);
@@ -138,7 +138,7 @@ void TestTools::testProfiles()
     try {
         QVERIFY(!childProfile.allKeys(Profile::KeySelectionRecursive).isEmpty());
         exceptionCaught = false;
-    } catch (Error &) {
+    } catch (ErrorInfo &) {
         exceptionCaught = true;
     }
     QVERIFY(exceptionCaught);

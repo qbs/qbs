@@ -113,7 +113,7 @@ void CommandLineParser::printHelp() const
             stream << commandToDescribe->longDescription();
         } else if (!QbsTool::tryToRunTool(helpCommand->commandToDescribe(),
                                           QStringList(QLatin1String("--help")))) {
-            throw Error(Tr::tr("No such command '%1'.\n%2")
+            throw ErrorInfo(Tr::tr("No such command '%1'.\n%2")
                         .arg(helpCommand->commandToDescribe(), d->generalHelp()));
         }
     }
@@ -308,7 +308,7 @@ bool CommandLineParser::parseCommandLine(const QStringList &args, Settings *sett
     try {
         d->doParse();
         return true;
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
         return false;
     }
@@ -425,13 +425,13 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 
     const QFileInfo projectFileInfo(projectFilePath);
     if (!projectFileInfo.exists())
-        throw Error(Tr::tr("Project file '%1' cannot be found.").arg(projectFilePath));
+        throw ErrorInfo(Tr::tr("Project file '%1' cannot be found.").arg(projectFilePath));
     if (projectFileInfo.isRelative())
         projectFilePath = projectFileInfo.absoluteFilePath();
     if (projectFileInfo.isFile())
         return;
     if (!projectFileInfo.isDir())
-        throw Error(Tr::tr("Project file '%1' has invalid type.").arg(projectFilePath));
+        throw ErrorInfo(Tr::tr("Project file '%1' has invalid type.").arg(projectFilePath));
 
     // TODO: Remove check for '.qbp' in 1.1
     const QStringList namePatterns = QStringList()
@@ -447,10 +447,10 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
         } else {
             error = Tr::tr("No project file found in directory '%1'.").arg(projectFilePath);
         }
-        throw Error(error);
+        throw ErrorInfo(error);
     }
     if (actualFileNames.count() > 1) {
-        throw Error(Tr::tr("More than one project file found in directory '%1'.")
+        throw ErrorInfo(Tr::tr("More than one project file found in directory '%1'.")
                 .arg(projectFilePath));
     }
     projectFilePath.append(QLatin1Char('/')).append(actualFileNames.first());

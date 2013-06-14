@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     try {
         probe(settings.data());
         return EXIT_SUCCESS;
-    } catch (const qbs::Error &error) {
+    } catch (const qbs::ErrorInfo &error) {
         qbsError() << Tr::tr("Probing for toolchains failed: %1").arg(error.toString());
         return EXIT_FAILURE;
     }

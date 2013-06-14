@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
         ConfigCommandExecutor(settings.data()).execute(parser.command());
-    } catch (const qbs::Error &e) {
+    } catch (const qbs::ErrorInfo &e) {
         qbsError() << e.toString();
         parser.printUsage();
         return EXIT_FAILURE;

@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
         app.setCommandLineFrontend(&clFrontend);
         QTimer::singleShot(0, &clFrontend, SLOT(start()));
         return app.exec();
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
         return EXIT_FAILURE;
     }

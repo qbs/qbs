@@ -67,8 +67,7 @@ public:
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
 
-    Error error() const { return m_error; }
-    bool hasError() const { return !error().entries().isEmpty(); }
+    ErrorInfo error() const { return m_error; }
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
@@ -77,7 +76,7 @@ signals:
     void finished();
 
 private slots:
-    void onProcessError(const qbs::Error &err);
+    void onProcessError(const qbs::ErrorInfo &err);
     void onProcessSuccess();
     void finish();
 
@@ -103,7 +102,7 @@ private:
     void cancelJobs();
     void setupProgressObserver(bool mocWillRun);
     void doSanityChecks();
-    void handleError(const Error &error);
+    void handleError(const ErrorInfo &error);
 
     bool mustExecuteTransformer(const TransformerPtr &transformer) const;
     bool isUpToDate(Artifact *artifact) const;
@@ -128,7 +127,7 @@ private:
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;
     int m_mocEffort;
-    Error m_error;
+    ErrorInfo m_error;
     bool m_explicitlyCanceled;
     const bool m_doTrace;
     const bool m_doDebug;

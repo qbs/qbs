@@ -54,7 +54,7 @@ void CycleDetector::visitProject(const ResolvedProjectConstPtr &project)
 void CycleDetector::visitArtifact(Artifact *artifact)
 {
     if (Q_UNLIKELY(m_artifactsInCurrentPath.contains(artifact))) {
-        Error error(Tr::tr("Cycle in build graph detected."));
+        ErrorInfo error(Tr::tr("Cycle in build graph detected."));
         foreach (const Artifact * const a, cycle(artifact))
             error.append(a->filePath());
         throw error;

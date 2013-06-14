@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
         }
         printUsage(appName);
         return EXIT_FAILURE;
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         qbsError() << Tr::tr("%1: %2").arg(appName, e.toString());
         return EXIT_FAILURE;
     }

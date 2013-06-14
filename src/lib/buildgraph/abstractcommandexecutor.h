@@ -39,7 +39,7 @@ class QScriptEngine;
 QT_END_NAMESPACE
 
 namespace qbs {
-class Error;
+class ErrorInfo;
 
 namespace Internal {
 class AbstractCommand;
@@ -61,7 +61,7 @@ public slots:
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
-    void error(const qbs::Error &err);
+    void error(const qbs::ErrorInfo &err);
     void finished();
 
 protected:

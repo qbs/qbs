@@ -164,7 +164,7 @@ QString Profile::baseProfileKey()
 void Profile::checkBaseProfileExistence(const Profile &baseProfile) const
 {
     if (!baseProfile.exists())
-        throw Error(Internal::Tr::tr("Profile \"%1\" has a non-existent base profile \"%2\".").arg(
+        throw ErrorInfo(Internal::Tr::tr("Profile \"%1\" has a non-existent base profile \"%2\".").arg(
                         name(), baseProfile.name()));
 }
 
@@ -216,7 +216,7 @@ void Profile::extendAndCheckProfileChain(QStringList &chain) const
 {
     chain << m_name;
     if (Q_UNLIKELY(chain.count(m_name) > 1)) {
-        throw Error(Internal::Tr::tr("Circular profile inheritance. Cycle is '%1'.")
+        throw ErrorInfo(Internal::Tr::tr("Circular profile inheritance. Cycle is '%1'.")
                     .arg(chain.join(QLatin1String(" -> "))));
     }
 }

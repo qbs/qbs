@@ -92,7 +92,7 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
                 m_logger.qbsDebug() << "[ENGINE] " << fileName << " (cache miss)";
             QFile file(fileName);
             if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
-                throw Error(tr("Cannot open '%1'.").arg(fileName));
+                throw ErrorInfo(tr("Cannot open '%1'.").arg(fileName));
             const QString sourceCode = QTextStream(&file).readAll();
             file.close();
             QScriptProgram program(sourceCode, fileName);
@@ -193,7 +193,7 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
         currentContext()->popScope();
     popContext();
     if (Q_UNLIKELY(result.isError()))
-        throw Error(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
+        throw ErrorInfo(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
 
     // If targetObject is already an object, it doesn't get overwritten but enhanced by the
     // contents of the .js file.

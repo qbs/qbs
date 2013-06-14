@@ -101,7 +101,7 @@ static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
     QProcess qmakeProcess;
     qmakeProcess.start(qmakePath, QStringList() << "-query");
     if (!qmakeProcess.waitForStarted())
-        throw Error(SetupQt::tr("%1 cannot be started.").arg(qmakePath));
+        throw ErrorInfo(SetupQt::tr("%1 cannot be started.").arg(qmakePath));
     qmakeProcess.waitForFinished();
     const QByteArray output = qmakeProcess.readAllStandardOutput();
 
@@ -184,7 +184,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         mkspecsBasePath = queryOutput.value("QT_INSTALL_DATA") + "/mkspecs";
 
     if (!QFile::exists(mkspecsBasePath))
-        throw Error(tr("Cannot extract the mkspecs directory."));
+        throw ErrorInfo(tr("Cannot extract the mkspecs directory."));
 
     const QByteArray qconfigContent = readFileContent(mkspecsBasePath + "/qconfig.pri");
     qtEnvironment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
@@ -214,7 +214,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         if (qtEnvironment.configItems.contains("qt_framework"))
             qtEnvironment.frameworkBuild = true;
         else if (!qtEnvironment.configItems.contains("qt_no_framework"))
-            throw Error(tr("could not determine whether Qt is a frameworks build"));
+            throw ErrorInfo(tr("could not determine whether Qt is a frameworks build"));
     }
 
     // determine whether we have a static build
@@ -230,7 +230,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
             const QStringList coreLibFiles
                     = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
             if (coreLibFiles.isEmpty())
-                throw Error(tr("Could not determine whether Qt is a static build."));
+                throw ErrorInfo(tr("Could not determine whether Qt is a static build."));
             foreach (const QString &fileName, coreLibFiles) {
                 if (QLibrary::isLibrary(qtEnvironment.libraryPath + QLatin1Char('/') + fileName)) {
                     qtEnvironment.staticBuild = false;
@@ -253,7 +253,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     }
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
-        throw Error(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
+        throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
 
     qtEnvironment.mkspecPath = QDir::toNativeSeparators(qtEnvironment.mkspecPath);
     return qtEnvironment;
@@ -323,7 +323,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
             }
 
             if (osxVersion.isEmpty())
-                throw Error(tr("error reading qconfig.h; could not determine whether Qt is using Cocoa or Carbon"));
+                throw ErrorInfo(tr("error reading qconfig.h; could not determine whether Qt is using Cocoa or Carbon"));
         }
     }
 

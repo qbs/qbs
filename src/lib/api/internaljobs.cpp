@@ -123,7 +123,7 @@ void InternalJob::storeBuildGraph(const TopLevelProjectConstPtr &project)
 {
     try {
         project->store(logger());
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         logger().printWarning(error);
     }
 }
@@ -147,7 +147,7 @@ void InternalSetupProjectJob::resolve(const SetupProjectParameters &parameters)
     QTimer::singleShot(0, this, SLOT(start()));
 }
 
-void InternalSetupProjectJob::reportError(const Error &error)
+void InternalSetupProjectJob::reportError(const ErrorInfo &error)
 {
     setError(error);
     QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection,
@@ -176,7 +176,7 @@ void InternalSetupProjectJob::doResolve()
 {
     try {
         execute();
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         setError(error);
     }
     QMutexLocker locker(&m_runMutex);
@@ -312,8 +312,7 @@ void InternalBuildJob::build(const TopLevelProjectPtr &project,
 
 void InternalBuildJob::handleFinished()
 {
-    if (m_executor->hasError())
-        setError(m_executor->error());
+    setError(m_executor->error());
     project()->buildData->evaluationContext.clear();
     storeBuildGraph();
     m_executor->deleteLater();
@@ -355,7 +354,7 @@ void InternalCleanJob::doClean()
     try {
         ArtifactCleaner cleaner(logger(), observer());
         cleaner.cleanup(project(), products(), m_options);
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         setError(error);
     }
     storeBuildGraph();
@@ -397,7 +396,7 @@ void InternalInstallJob::doInstall()
 {
     try {
         ProductInstaller(m_project, m_products, m_options, observer(), logger()).install();
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         setError(error);
     }
 }

@@ -40,7 +40,7 @@
 namespace qbs {
 class AbstractJob;
 class ConsoleProgressObserver;
-class Error;
+class ErrorInfo;
 class ProcessResult;
 class Settings;
 

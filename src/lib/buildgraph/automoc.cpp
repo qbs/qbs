@@ -82,7 +82,7 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
 void AutoMoc::apply(const ResolvedProductPtr &product)
 {
     if (scanners().isEmpty())
-        throw Error("C++ scanner cannot be loaded.");
+        throw ErrorInfo("C++ scanner cannot be loaded.");
 
     Artifact *pluginMetaDataFile = 0;
     Artifact *pchFile = 0;

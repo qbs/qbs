@@ -134,7 +134,7 @@ void ProcessCommandExecutor::doStart()
             responseFile.setAutoRemove(false);
             responseFile.setFileTemplate(QDir::tempPath() + "/qbsresp");
             if (!responseFile.open()) {
-                emit error(Error(Tr::tr("Cannot create response file '%1'.")
+                emit error(ErrorInfo(Tr::tr("Cannot create response file '%1'.")
                                  .arg(responseFile.fileName())));
                 return;
             }
@@ -174,7 +174,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
 
     QScriptValue filterFunction = scriptEngine()->evaluate("var f = " + filterFunctionSource + "; f");
     if (!filterFunction.isFunction()) {
-        emit error(Error(Tr::tr("Error in filter function: %1.\n%2")
+        emit error(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
                          .arg(filterFunctionSource, filterFunction.toString())));
         return output;
     }
@@ -183,7 +183,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     outputArg.setProperty(0, scriptEngine()->toScriptValue(output));
     QScriptValue filteredOutput = filterFunction.call(scriptEngine()->undefinedValue(), outputArg);
     if (filteredOutput.isError()) {
-        emit error(Error(Tr::tr("Error when calling output filter function: %1")
+        emit error(ErrorInfo(Tr::tr("Error when calling output filter function: %1")
                          .arg(filteredOutput.toString())));
         return output;
     }
@@ -248,7 +248,7 @@ void ProcessCommandExecutor::onProcessError()
         errorMessage = Tr::tr("Unknown process error running '%1'.").arg(binary);
         break;
     }
-    emit error(Error(errorMessage));
+    emit error(ErrorInfo(errorMessage));
 }
 
 void ProcessCommandExecutor::onProcessFinished(int exitCode)
@@ -258,7 +258,7 @@ void ProcessCommandExecutor::onProcessFinished(int exitCode)
     sendProcessOutput(!errorOccurred);
 
     if (Q_UNLIKELY(errorOccurred)) {
-        emit error(Error(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
+        emit error(ErrorInfo(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
         return;
     }
 

@@ -174,7 +174,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
             scriptValue = engine()->evaluate(binding.code);
             if (Q_UNLIKELY(scriptValue.isError())) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
-                throw Error(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
+                throw ErrorInfo(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
@@ -186,7 +186,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
     m_transformer->setupOutputs(engine(), scope());
     m_transformer->createCommands(m_rule->script, evalContext());
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
-        throw Error(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
+        throw ErrorInfo(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
 }
 
 void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
@@ -222,7 +222,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (Q_UNLIKELY(scriptValue.isError() || engine()->hasUncaughtException()))
-        throw Error("Error in Rule.Artifact fileName: " + scriptValue.toString());
+        throw ErrorInfo("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
     outputPath = resolveOutPath(outputPath);
@@ -256,7 +256,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
                     .arg(outputArtifact->transformer->rule->script->location.line())
                     .arg(outputArtifact->transformer->rule->script->location.column())
                     .arg(th);
-                throw Error(e);
+                throw ErrorInfo(e);
             }
         }
         outputArtifact->fileTags += ruleArtifact->fileTags;

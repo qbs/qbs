@@ -117,7 +117,7 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
 {
     QFile file(filename);
     if (!file.open(QFile::Truncate | QFile::WriteOnly | QFile::Text)) {
-        throw Error(tr("Could not open file '%1' for writing: %2")
+        throw ErrorInfo(tr("Could not open file '%1' for writing: %2")
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     QTextStream stream(&file);
@@ -130,7 +130,7 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
 {
     QFile file(filename);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        throw Error(tr("Could not open file '%1' for reading: %2")
+        throw ErrorInfo(tr("Could not open file '%1' for reading: %2")
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     // Remove all current settings

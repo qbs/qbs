@@ -60,8 +60,7 @@ public:
     enum State { StateRunning, StateCanceling, StateFinished };
     State state() const { return m_state; }
 
-    Error error() const;
-    bool hasError() const { return !error().entries().isEmpty(); }
+    ErrorInfo error() const;
 
     void cancel();
 
@@ -98,7 +97,7 @@ private:
     SetupProjectJob(const Internal::Logger &logger, QObject *parent);
 
     void resolve(const SetupProjectParameters &parameters);
-    void reportError(const Error &error);
+    void reportError(const ErrorInfo &error);
 };
 
 class QBS_EXPORT BuildJob : public AbstractJob

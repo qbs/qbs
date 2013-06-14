@@ -34,7 +34,7 @@
 #include <QString>
 
 namespace qbs {
-class Error;
+class ErrorInfo;
 
 enum LoggerLevel
 {
@@ -63,12 +63,12 @@ public:
 
     bool willPrint(LoggerLevel level) const { return level <= logLevel(); }
 
-    void printWarning(const Error &warning);
+    void printWarning(const ErrorInfo &warning);
     void printMessage(LoggerLevel level, const QString &message,
                       const QString &tag = QString(), bool force = false);
 
 private:
-    virtual void doPrintWarning(const Error &warning);
+    virtual void doPrintWarning(const ErrorInfo &warning);
     virtual void doPrintMessage(LoggerLevel level, const QString &message,
                                 const QString &tag) = 0;
 

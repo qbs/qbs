@@ -221,16 +221,16 @@ QVariantMap SetupProjectParameters::buildConfigurationTree() const
  * This method returns an Error. The list of entries in this error will be empty is the
  * expansion was successful.
  */
-Error SetupProjectParameters::expandBuildConfiguration(Settings *settings)
+ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
 {
-    Error err;
+    ErrorInfo err;
 
     // Generates a full build configuration from user input, using the settings.
     QVariantMap expandedConfig = d->buildConfiguration;
 
     const QString buildVariant = expandedConfig.value(QLatin1String("qbs.buildVariant")).toString();
     if (buildVariant.isEmpty())
-        throw Error(Internal::Tr::tr("No build variant set."));
+        throw ErrorInfo(Internal::Tr::tr("No build variant set."));
     if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
         err.append(Internal::Tr::tr("Invalid build variant '%1'. Must be 'debug' or 'release'.")
                    .arg(buildVariant));

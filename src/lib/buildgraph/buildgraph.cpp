@@ -388,7 +388,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
                     if (lookupArtifact(p, artifact->filePath()))
                         pl.append(QString("  - %1 \n").arg(p->name));
                 }
-                throw Error(QString ("BUG: already inserted in this project: %1\n%2")
+                throw ErrorInfo(QString ("BUG: already inserted in this project: %1\n%2")
                             .arg(artifact->filePath()).arg(pl));
             }
         }
@@ -493,7 +493,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     m_logger.qbsDebug() << "[BG] trying to load: " << buildGraphFilePath;
     try {
         pool.load(buildGraphFilePath);
-    } catch (const Error &loadError) {
+    } catch (const ErrorInfo &loadError) {
         if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
             throw loadError;
         m_logger.qbsInfo() << loadError.toString();
@@ -504,7 +504,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
         const QString message = Tr::tr("Cannot use stored build graph at '%1':"
                 "Incompatible project configuration.").arg(buildGraphFilePath);
         if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
-            throw Error(message);
+            throw ErrorInfo(message);
         m_logger.qbsInfo() << message;
         return m_result;
     }
@@ -524,7 +524,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
                      QDir::toNativeSeparators(parameters.projectFilePath()));
         if (!parameters.ignoreDifferentProjectFilePath()) {
             errorMessage += Tr::tr("Aborting.");
-            throw Error(errorMessage);
+            throw ErrorInfo(errorMessage);
         }
 
         // Okay, let's assume it's the same project anyway (the source dir might have moved).

@@ -155,7 +155,7 @@ void Executor::build()
 {
     try {
         doBuild();
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         m_error = e;
         QTimer::singleShot(0, this, SLOT(finish()));
     }
@@ -636,7 +636,7 @@ void Executor::doSanityChecks()
     }
 }
 
-void Executor::handleError(const Error &error)
+void Executor::handleError(const ErrorInfo &error)
 {
     m_error = error;
     if (m_processingJobs.isEmpty())
@@ -656,8 +656,8 @@ void Executor::addExecutorJobs(int jobNumber)
                 this, SIGNAL(reportCommandDescription(QString,QString)));
         connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
                 this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-        connect(job, SIGNAL(error(qbs::Error)),
-                this, SLOT(onProcessError(qbs::Error)));
+        connect(job, SIGNAL(error(qbs::ErrorInfo)),
+                this, SLOT(onProcessError(qbs::ErrorInfo)));
         connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()));
     }
 }
@@ -667,7 +667,7 @@ void Executor::runAutoMoc()
     bool autoMocApplied = false;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
         if (m_progressObserver && m_progressObserver->canceled())
-            throw Error(Tr::tr("Build canceled%1.").arg(configString()));
+            throw ErrorInfo(Tr::tr("Build canceled%1.").arg(configString()));
         // HACK call the automoc thingy here only if we have use Qt/core module
         foreach (const ResolvedModuleConstPtr &m, product->modules) {
             if (m->name == "Qt/core") {
@@ -685,11 +685,11 @@ void Executor::runAutoMoc()
         m_progressObserver->incrementProgressValue(m_mocEffort);
 }
 
-void Executor::onProcessError(const qbs::Error &err)
+void Executor::onProcessError(const qbs::ErrorInfo &err)
 {
     try {
         if (m_buildOptions.keepGoing()) {
-            Error fullWarning(err);
+            ErrorInfo fullWarning(err);
             fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
             m_logger.printWarning(fullWarning);
         } else {
@@ -697,7 +697,7 @@ void Executor::onProcessError(const qbs::Error &err)
         }
         ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
         finishJob(job, false);
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         handleError(error);
     }
 }
@@ -720,7 +720,7 @@ void Executor::onProcessSuccess()
         }
 
         finishJob(job, true);
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         handleError(error);
     }
 }

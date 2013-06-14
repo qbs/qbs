@@ -138,14 +138,14 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script,
     if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
         script->scriptFunction = engine->evaluate(script->script);
         if (Q_UNLIKELY(!script->scriptFunction.isFunction()))
-            throw Error(Tr::tr("Invalid prepare script."), script->location);
+            throw ErrorInfo(Tr::tr("Invalid prepare script."), script->location);
     }
 
     engine->clearProperties();
     QScriptValue scriptValue = script->scriptFunction.call();
     modulePropertiesUsedInPrepareScript = engine->properties();
     if (Q_UNLIKELY(engine->hasUncaughtException()))
-        throw Error("evaluating prepare script: " + engine->uncaughtException().toString(),
+        throw ErrorInfo("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName(),
                                  script->location.line() + engine->uncaughtExceptionLineNumber() - 1));
 

@@ -34,7 +34,7 @@
 
 namespace qbs {
 
-class ErrorData::ErrorDataPrivate : public QSharedData
+class ErrorItem::ErrorItemPrivate : public QSharedData
 {
 public:
     QString description;
@@ -48,37 +48,37 @@ public:
  * \sa Error
  */
 
-ErrorData::ErrorData() : d(new ErrorDataPrivate)
+ErrorItem::ErrorItem() : d(new ErrorItemPrivate)
 {
 }
 
-ErrorData::ErrorData(const QString &description, const CodeLocation &codeLocation)
-    : d(new ErrorDataPrivate)
+ErrorItem::ErrorItem(const QString &description, const CodeLocation &codeLocation)
+    : d(new ErrorItemPrivate)
 {
     d->description = description;
     d->codeLocation = codeLocation;
 }
 
-ErrorData::ErrorData(const ErrorData &rhs) : d(rhs.d)
+ErrorItem::ErrorItem(const ErrorItem &rhs) : d(rhs.d)
 {
 }
 
-ErrorData &ErrorData::operator=(const ErrorData &other)
+ErrorItem &ErrorItem::operator=(const ErrorItem &other)
 {
     d = other.d;
     return *this;
 }
 
-ErrorData::~ErrorData()
+ErrorItem::~ErrorItem()
 {
 }
 
-QString ErrorData::description() const
+QString ErrorItem::description() const
 {
     return d->description;
 }
 
-CodeLocation ErrorData::codeLocation() const
+CodeLocation ErrorItem::codeLocation() const
 {
     return d->codeLocation;
 }
@@ -97,7 +97,7 @@ CodeLocation ErrorData::codeLocation() const
 /*!
  * \brief A full textual description of the error using all available information.
  */
-QString ErrorData::toString() const
+QString ErrorItem::toString() const
 {
     QString str = codeLocation().toString();
     if (!str.isEmpty())
@@ -106,10 +106,10 @@ QString ErrorData::toString() const
 }
 
 
-class Error::ErrorPrivate : public QSharedData
+class ErrorInfo::ErrorInfoPrivate : public QSharedData
 {
 public:
-    QList<ErrorData> items;
+    QList<ErrorItem> items;
 };
 
 /*!
@@ -119,37 +119,37 @@ public:
  * \sa ErrorData
  */
 
-Error::Error() : d(new ErrorPrivate)
+ErrorInfo::ErrorInfo() : d(new ErrorInfoPrivate)
 {
 }
 
-Error::Error(const Error &rhs) : d(rhs.d)
+ErrorInfo::ErrorInfo(const ErrorInfo &rhs) : d(rhs.d)
 {
 }
 
-Error::Error(const QString &description, const CodeLocation &location) : d(new ErrorPrivate)
+ErrorInfo::ErrorInfo(const QString &description, const CodeLocation &location) : d(new ErrorInfoPrivate)
 {
     append(description, location);
 }
 
-Error &Error::operator =(const Error &other)
+ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other)
 {
     d = other.d;
     return *this;
 }
 
-Error::~Error()
+ErrorInfo::~ErrorInfo()
 {
 }
 
-void Error::append(const QString &description, const CodeLocation &location)
+void ErrorInfo::append(const QString &description, const CodeLocation &location)
 {
-    d->items.append(ErrorData(description, location));
+    d->items.append(ErrorItem(description, location));
 }
 
-void Error::prepend(const QString &description, const CodeLocation &location)
+void ErrorInfo::prepend(const QString &description, const CodeLocation &location)
 {
-    d->items.prepend(ErrorData(description, location));
+    d->items.prepend(ErrorItem(description, location));
 }
 
 /*!
@@ -157,12 +157,12 @@ void Error::prepend(const QString &description, const CodeLocation &location)
  * Most often, there will be one element in this list, but there can be more e.g. to illustrate
  * how an error condition propagates through several source files.
  */
-QList<ErrorData> Error::entries() const
+QList<ErrorItem> ErrorInfo::items() const
 {
     return d->items;
 }
 
-void Error::clear()
+void ErrorInfo::clear()
 {
     d->items.clear();
 }
@@ -172,10 +172,10 @@ void Error::clear()
  * All "sub-errors" will be represented.
  * \sa Error::entries()
  */
-QString Error::toString() const
+QString ErrorInfo::toString() const
 {
     QStringList lines;
-    foreach (const ErrorData &e, d->items)
+    foreach (const ErrorItem &e, d->items)
         lines.append(e.toString());
     return lines.join(QLatin1String("\n"));
 }

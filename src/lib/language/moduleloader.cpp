@@ -162,7 +162,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
             copyProperties(item, subItem);
             handleProject(loadResult, subItem);
         } else {
-            throw Error(Tr::tr("The top-level item of a file in a \"references\" list must be "
+            throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
                                "a Product or a Project, but it is \"%1\".").arg(subItem->typeName()),
                         subItem->location());
         }
@@ -245,7 +245,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     }
 
     if (loadedItem->typeName() != QLatin1String("Project")) {
-        Error error;
+        ErrorInfo error;
         error.append(Tr::tr("Expected Project item, but encountered '%1'.")
                      .arg(loadedItem->typeName()), loadedItem->location());
         const ValuePtr &filePathProperty = item->properties().value(QLatin1String("filePath"));
@@ -321,7 +321,7 @@ void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext,
 void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productContext,
                                        Item *item)
 {
-    m_logger.printWarning(Error(Tr::tr("ProductModule {} is deprecated. "
+    m_logger.printWarning(ErrorInfo(Tr::tr("ProductModule {} is deprecated. "
                                      "Please use Export {} instead."), item->location()));
     deferExportItem(productContext, item);
 }
@@ -349,7 +349,7 @@ void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext
     foreach (Item *exportItem, productContext->exportItems) {
         checkCancelation();
         if (Q_UNLIKELY(productContext->filesWithExportItem.contains(exportItem->file())))
-            throw Error(Tr::tr("Multiple Export items in one product are prohibited."),
+            throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
                         exportItem->location());
         merged->setLocation(exportItem->location());
         productContext->filesWithExportItem += exportItem->file();
@@ -422,7 +422,7 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
             foreach (const Item::Module &module, it.value()) {
                 const QString fullName = fullModuleName(module.name);
                 if (loadedModuleNames.contains(fullName)) {
-                    m_logger.printWarning(Error(Tr::tr("Duplicate dependency '%1'.").arg(fullName),
+                    m_logger.printWarning(ErrorInfo(Tr::tr("Duplicate dependency '%1'.").arg(fullName),
                                         item->location()));
                     continue;
                 }
@@ -451,21 +451,21 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
     const QStringList nameParts = name.split('.');
     if (Q_UNLIKELY(nameParts.count() > 2)) {
         QString msg = Tr::tr("There cannot be more than one dot in a module name.");
-        throw Error(msg, dependsItem->location());
+        throw ErrorInfo(msg, dependsItem->location());
     }
 
     QString superModuleName;
     QStringList submodules = toStringList(m_evaluator->property(dependsItem, "submodules"));
     if (nameParts.count() == 2) {
         if (Q_UNLIKELY(!submodules.isEmpty()))
-            throw Error(Tr::tr("Depends.submodules cannot be used if name contains a dot."),
+            throw ErrorInfo(Tr::tr("Depends.submodules cannot be used if name contains a dot."),
                         dependsItem->location());
         superModuleName = nameParts.first();
         submodules += nameParts.last();
     }
     if (Q_UNLIKELY(submodules.count() > 1 && !dependsItem->id().isEmpty())) {
         QString msg = Tr::tr("A Depends item with more than one module cannot have an id.");
-        throw Error(msg, dependsItem->location());
+        throw ErrorInfo(msg, dependsItem->location());
     }
     if (superModuleName.isEmpty()) {
         if (submodules.isEmpty())
@@ -578,7 +578,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     }
 
     if (Q_UNLIKELY(triedToLoadModule))
-        throw Error(Tr::tr("Module %1 could not be loaded.").arg(fullModuleName(moduleName)),
+        throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullModuleName(moduleName)),
                     dependsItemLocation);
 
     return 0;
@@ -626,7 +626,7 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
                                      baseModuleName);
     if (Q_UNLIKELY(!baseModuleDesc.item))
-        throw Error(Tr::tr("Cannot load base qbs module."));
+        throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
     baseModuleDesc.item->setProperty(QLatin1String("getenv"),
                                      BuiltinValue::create(BuiltinValue::GetEnvFunction));
     baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
@@ -687,8 +687,8 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
     if (!c.convert(vt)) {
         QStringList name = namePrefix;
         name << key;
-        throw Error(Tr::tr("Value '%1' of property '%2' has incompatible type.").arg(v.toString())
-                    .arg(name.join(QLatin1String("."))));
+        throw ErrorInfo(Tr::tr("Value '%1' of property '%2' has incompatible type.")
+                        .arg(v.toString(), name.join(QLatin1String("."))));
     }
     return c;
 }
@@ -769,10 +769,11 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
     // override module properties given on the command line
     const QVariantMap userModuleProperties = m_userProperties.value(fullName).toMap();
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
-         vmit != userModuleProperties.end(); ++vmit)
-    {
-        if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key())))
-            throw Error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName(moduleName), vmit.key()));
+         vmit != userModuleProperties.end(); ++vmit) {
+        if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
+            throw ErrorInfo(Tr::tr("Unknown property: %1.%2")
+                            .arg(fullModuleName(moduleName), vmit.key()));
+        }
         const PropertyDeclaration decl = firstValidPropertyDeclaration(moduleInstance, vmit.key());
         moduleInstance->setProperty(vmit.key(),
                 VariantValue::create(convertToPropertyType(vmit.value(), decl.type, moduleName,
@@ -808,7 +809,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
 {
     const JSSourceValueConstPtr configureScript = probe->sourceProperty(QLatin1String("configure"));
     if (Q_UNLIKELY(!configureScript))
-        throw Error(Tr::tr("Probe.configure must be set."), probe->location());
+        throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     typedef QPair<QString, QScriptValue> ProbeProperty;
     QList<ProbeProperty> probeBindings;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
@@ -818,7 +819,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
             QScriptValue sv = m_evaluator->property(probe, name);
             if (Q_UNLIKELY(sv.isError())) {
                 ValuePtr value = obj->property(name);
-                throw Error(sv.toString(), value ? value->location() : CodeLocation());
+                throw ErrorInfo(sv.toString(), value ? value->location() : CodeLocation());
             }
             probeBindings += ProbeProperty(name, sv);
         }
@@ -834,7 +835,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
         scope.setProperty(b.first, b.second);
     QScriptValue sv = m_engine->evaluate(configureScript->sourceCode());
     if (Q_UNLIKELY(sv.isError()))
-        throw Error(sv.toString(), configureScript->location());
+        throw ErrorInfo(sv.toString(), configureScript->location());
     foreach (const ProbeProperty &b, probeBindings) {
         const QVariant newValue = scope.property(b.first).toVariant();
         if (newValue != b.second.toVariant())
@@ -848,7 +849,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
 void ModuleLoader::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
-        throw Error(Tr::tr("Project resolving canceled for configuration %1.")
+        throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
                     .arg(TopLevelProject::deriveId(m_userProperties)));
     }
 }

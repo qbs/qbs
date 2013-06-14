@@ -139,9 +139,9 @@ void Settings::checkStatus()
     case QSettings::NoError:
         break;
     case QSettings::AccessError:
-        throw Error(Tr::tr("%1 is not accessible.").arg(m_settings->fileName()));
+        throw ErrorInfo(Tr::tr("%1 is not accessible.").arg(m_settings->fileName()));
     case QSettings::FormatError:
-        throw Error(Tr::tr("Format error in %1.").arg(m_settings->fileName()));
+        throw ErrorInfo(Tr::tr("Format error in %1.").arg(m_settings->fileName()));
     }
 }
 

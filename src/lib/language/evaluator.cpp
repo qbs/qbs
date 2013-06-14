@@ -90,7 +90,7 @@ bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultVal
     QScriptValue v = property(item, name);
     if (Q_UNLIKELY(v.isError())) {
         ValuePtr value = item->property(name);
-        throw Error(v.toString(), value ? value->location() : CodeLocation());
+        throw ErrorInfo(v.toString(), value ? value->location() : CodeLocation());
     }
     if (!v.isValid() || v.isUndefined()) {
         if (propertyWasSet)
@@ -113,7 +113,7 @@ QString Evaluator::stringValue(const Item *item, const QString &name,
     QScriptValue v = property(item, name);
     if (Q_UNLIKELY(v.isError())) {
         ValuePtr value = item->property(name);
-        throw Error(v.toString(), value ? value->location() : CodeLocation());
+        throw ErrorInfo(v.toString(), value ? value->location() : CodeLocation());
     }
     if (!v.isValid() || v.isUndefined()) {
         if (propertyWasSet)
@@ -130,7 +130,7 @@ QStringList Evaluator::stringListValue(const Item *item, const QString &name)
     QScriptValue v = property(item, name);
     if (Q_UNLIKELY(v.isError())) {
         ValuePtr value = item->property(name);
-        throw Error(v.toString(), value ? value->location() : CodeLocation());
+        throw ErrorInfo(v.toString(), value ? value->location() : CodeLocation());
     }
     return toStringList(v);
 }

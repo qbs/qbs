@@ -79,7 +79,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
     }
     ScannerPluginManager::instance()->loadPlugins(pluginPaths, logger);
 
-    qRegisterMetaType<Error>("qbs::Error");
+    qRegisterMetaType<ErrorInfo>("qbs::Error");
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");
     qRegisterMetaType<InternalJob *>("Internal::InternalJob *");
     pluginsLoaded = true;
@@ -305,7 +305,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
     try {
         loadPlugins(parameters.pluginPaths(), logger);
         job->resolve(parameters);
-    } catch (const Error &error) {
+    } catch (const ErrorInfo &error) {
         // Throwing from here would complicate the API, so let's report the error the same way
         // as all others, via AbstractJob::error().
         job->reportError(error);

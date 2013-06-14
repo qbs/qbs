@@ -92,7 +92,7 @@ public:
     const PropertyDeclarationMap &propertyDeclarations() const;
     const Modules &modules() const;
     Modules &modules();
-    const Error &error() const { return m_error; }
+    const ErrorInfo &error() const { return m_error; }
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -112,7 +112,7 @@ public:
     void setChildren(const QList<Item *> &children);
     void setParent(Item *item);
     static void addChild(Item *parent, Item *child);
-    void setError(const Error &error) { m_error = error; }
+    void setError(const ErrorInfo &error) { m_error = error; }
 
 private:
     ItemPool *m_pool;
@@ -131,7 +131,7 @@ private:
     PropertyDeclarationMap m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
-    Error m_error; // For SubProject items. May or may not be reported depending on their condition.
+    ErrorInfo m_error; // For SubProject items. May or may not be reported depending on their condition.
 };
 
 inline ItemPool *Item::pool() const

@@ -49,7 +49,7 @@ void CommandLineOption::parse(CommandType command, const QString &representation
 QString CommandLineOption::getArgument(const QString &representation, QStringList &input)
 {
     if (input.isEmpty()) {
-        throw Error(Tr::tr("Invalid use of option '%1': Missing argument.\nUsage: %2")
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': Missing argument.\nUsage: %2")
                     .arg(representation, description(command())));
     }
     return input.takeFirst();
@@ -150,7 +150,7 @@ void JobsOption::doParse(const QString &representation, QStringList &input)
     bool stringOk;
     m_jobCount = jobCountString.toInt(&stringOk);
     if (!stringOk || m_jobCount <= 0)
-        throw Error(Tr::tr("Invalid use of option '%1': Illegal job count '%2'.\nUsage: %3")
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': Illegal job count '%2'.\nUsage: %3")
                     .arg(representation, jobCountString, description(command())));
 }
 
@@ -219,12 +219,12 @@ void StringListOption::doParse(const QString &representation, QStringList &input
 {
     m_arguments = getArgument(representation, input).split(QLatin1Char(','));
     if (m_arguments.isEmpty()) {
-        throw Error(Tr::tr("Invalid use of option '%1': Argument list must not be empty.\n"
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not be empty.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
     foreach (const QString &element, m_arguments) {
         if (element.isEmpty()) {
-            throw Error(Tr::tr("Invalid use of option '%1': Argument list must not contain "
+            throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not contain "
                                "empty elements.\nUsage: %2")
                         .arg(representation, description(command())));
         }
@@ -304,7 +304,7 @@ void LogLevelOption::doParse(const QString &representation, QStringList &input)
             return;
         }
     }
-    throw Error(Tr::tr("Invalid use of option '%1': Unknown log level '%2'.\nUsage: %3")
+    throw ErrorInfo(Tr::tr("Invalid use of option '%1': Unknown log level '%2'.\nUsage: %3")
                 .arg(representation, levelString, description(command())));
 }
 
@@ -362,7 +362,7 @@ QString InstallRootOption::longRepresentation() const
 void InstallRootOption::doParse(const QString &representation, QStringList &input)
 {
     if (input.isEmpty()) {
-        throw Error(Tr::tr("Invalid use of option '%1: Argument expected.\n"
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1: Argument expected.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
     const QString installRoot = input.takeFirst();

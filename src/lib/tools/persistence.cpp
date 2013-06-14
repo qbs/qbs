@@ -56,9 +56,9 @@ void PersistentPool::load(const QString &filePath)
 {
     QScopedPointer<QFile> file(new QFile(filePath));
     if (!file->exists())
-        throw Error(Tr::tr("No build graph exists yet for this configuration."));
+        throw ErrorInfo(Tr::tr("No build graph exists yet for this configuration."));
     if (!file->open(QFile::ReadOnly)) {
-        throw Error(Tr::tr("Could not open open build graph file '%1': %2")
+        throw ErrorInfo(Tr::tr("Could not open open build graph file '%1': %2")
                     .arg(filePath, file->errorString()));
     }
 
@@ -69,7 +69,7 @@ void PersistentPool::load(const QString &filePath)
         file->close();
         file->remove();
         m_stream.setDevice(0);
-        throw Error(Tr::tr("Cannot use stored build graph at '%1': Incompatible file format. "
+        throw ErrorInfo(Tr::tr("Cannot use stored build graph at '%1': Incompatible file format. "
                            "Expected magic token '%2', got '%3'.")
                     .arg(filePath, QString::fromLatin1(QBS_PERSISTENCE_MAGIC),
                          QString::fromLatin1(magic)));

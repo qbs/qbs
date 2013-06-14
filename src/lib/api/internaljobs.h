@@ -59,8 +59,7 @@ class InternalJob : public QObject
     friend class JobObserver;
 public:
     void cancel();
-    Error error() const { return m_error; }
-    bool hasError() const { return !error().entries().isEmpty(); }
+    ErrorInfo error() const { return m_error; }
 
     Logger logger() const { return m_logger; }
     bool timed() const { return m_timed; }
@@ -69,7 +68,7 @@ protected:
     explicit InternalJob(const Logger &logger, QObject *parent = 0);
 
     JobObserver *observer() const { return m_observer; }
-    void setError(const Error &error) { m_error = error; }
+    void setError(const ErrorInfo &error) { m_error = error; }
     void setTimed(bool timed) { m_timed = timed; }
     void storeBuildGraph(const TopLevelProjectConstPtr &project);
 
@@ -80,7 +79,7 @@ signals:
     void taskProgress(int value, Internal::InternalJob *job);
 
 private:
-    Error m_error;
+    ErrorInfo m_error;
     JobObserver * const m_observer;
     Logger m_logger;
     bool m_timed;
@@ -95,7 +94,7 @@ public:
     ~InternalSetupProjectJob();
 
     void resolve(const SetupProjectParameters &parameters);
-    void reportError(const Error &error);
+    void reportError(const ErrorInfo &error);
 
     TopLevelProjectPtr project() const;
 

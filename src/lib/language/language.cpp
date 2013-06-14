@@ -528,7 +528,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         ctx->popScope();
         if (Q_UNLIKELY(scriptValue.isError() || engine->hasUncaughtException())) {
             QString envTypeStr = (envType == BuildEnv ? "build" : "run");
-            throw Error(QString("Error while setting up %1 environment: %2").arg(envTypeStr, scriptValue.toString()));
+            throw ErrorInfo(QString("Error while setting up %1 environment: %2").arg(envTypeStr, scriptValue.toString()));
         }
     }
 

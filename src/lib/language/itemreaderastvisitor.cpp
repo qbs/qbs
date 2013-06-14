@@ -69,7 +69,7 @@ bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
     m_file->m_filePath = m_filePath;
 
     if (Q_UNLIKELY(!ast->members->member))
-        throw Error(Tr::tr("No root item found in %1.").arg(m_filePath));
+        throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_filePath));
 
     return true;
 }
@@ -123,25 +123,25 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             if (isBase)
                 checkImportVersion(import->versionToken);
             else if (import->versionToken.length)
-                m_reader->logger().printWarning(Error(Tr::tr("Superfluous version specification."),
+                m_reader->logger().printWarning(ErrorInfo(Tr::tr("Superfluous version specification."),
                                                     toCodeLocation(import->versionToken)));
         }
 
         QString as;
         if (isBase) {
             if (Q_UNLIKELY(!import->importId.isNull())) {
-                throw Error(Tr::tr("Import of qbs.base must have no 'as <Name>'"),
+                throw ErrorInfo(Tr::tr("Import of qbs.base must have no 'as <Name>'"),
                             toCodeLocation(import->importIdToken));
             }
         } else {
             if (Q_UNLIKELY(import->importId.isNull())) {
-                throw Error(Tr::tr("Imports require 'as <Name>'"),
+                throw ErrorInfo(Tr::tr("Imports require 'as <Name>'"),
                             toCodeLocation(import->importToken));
             }
 
             as = import->importId.toString();
             if (Q_UNLIKELY(importAsNames.contains(as))) {
-                throw Error(Tr::tr("Can't import into the same name more than once."),
+                throw ErrorInfo(Tr::tr("Can't import into the same name more than once."),
                             toCodeLocation(import->importIdToken));
             }
             importAsNames.insert(as);
@@ -152,7 +152,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 
             QFileInfo fi(name);
             if (Q_UNLIKELY(!fi.exists()))
-                throw Error(Tr::tr("Can't find imported file %0.").arg(name),
+                throw ErrorInfo(Tr::tr("Can't find imported file %0.").arg(name),
                             CodeLocation(m_filePath, import->fileNameToken.startLine,
                                          import->fileNameToken.startColumn));
             name = fi.canonicalFilePath();
@@ -167,7 +167,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                 } else if (name.endsWith(".qbs", Qt::CaseInsensitive)) {
                     m_typeNameToFile.insert(QStringList(as), name);
                 } else {
-                    throw Error(Tr::tr("Can only import .qbs and .js files"),
+                    throw ErrorInfo(Tr::tr("Can only import .qbs and .js files"),
                                 CodeLocation(m_filePath, import->fileNameToken.startLine,
                                              import->fileNameToken.startColumn));
                 }
@@ -199,7 +199,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                 }
             }
             if (Q_UNLIKELY(!found)) {
-                throw Error(Tr::tr("import %1 not found").arg(importUri.join(".")),
+                throw ErrorInfo(Tr::tr("import %1 not found").arg(importUri.join(".")),
                             toCodeLocation(import->fileNameToken));
             }
         }
@@ -279,7 +279,7 @@ void ItemReaderASTVisitor::checkDuplicateBinding(Item *item, const QStringList &
 {
     if (Q_UNLIKELY(item->properties().contains(bindingName.last()))) {
         QString msg = Tr::tr("Duplicate binding for '%1'");
-        throw Error(msg.arg(bindingName.join(".")),
+        throw ErrorInfo(msg.arg(bindingName.join(".")),
                     qbs::Internal::toCodeLocation(m_file->filePath(), sourceLocation));
     }
 }
@@ -288,20 +288,20 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
 {
     PropertyDeclaration p;
     if (Q_UNLIKELY(ast->name.isEmpty()))
-        throw Error(Tr::tr("public member without name"));
+        throw ErrorInfo(Tr::tr("public member without name"));
     if (Q_UNLIKELY(ast->memberType.isEmpty()))
-        throw Error(Tr::tr("public member without type"));
+        throw ErrorInfo(Tr::tr("public member without type"));
     if (Q_UNLIKELY(ast->type == AST::UiPublicMember::Signal))
-        throw Error(Tr::tr("public member with signal type not supported"));
+        throw ErrorInfo(Tr::tr("public member with signal type not supported"));
     p.name = ast->name.toString();
     p.type = PropertyDeclaration::propertyTypeFromString(ast->memberType.toString());
     if (p.type == PropertyDeclaration::UnknownType)
-        throw Error(Tr::tr("Unknown type '%1' in property declaration.")
-                    .arg(ast->memberType.toString()), toCodeLocation(ast->typeToken));
+        throw ErrorInfo(Tr::tr("Unknown type '%1' in property declaration.")
+                        .arg(ast->memberType.toString()), toCodeLocation(ast->typeToken));
     if (ast->typeModifier.compare(QLatin1String("list")))
         p.flags |= PropertyDeclaration::ListProperty;
     else if (Q_UNLIKELY(!ast->typeModifier.isEmpty()))
-        throw Error(Tr::tr("public member with type modifier '%1' not supported").arg(
+        throw ErrorInfo(Tr::tr("public member with type modifier '%1' not supported").arg(
                         ast->typeModifier.toString()));
 
     m_item->m_propertyDeclarations.insert(p.name, p);
@@ -331,11 +331,11 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
         AST::ExpressionStatement *expStmt =
                 AST::cast<AST::ExpressionStatement *>(ast->statement);
         if (Q_UNLIKELY(!expStmt))
-            throw Error(Tr::tr("id: must be followed by identifier"));
+            throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
         AST::IdentifierExpression *idExp =
                 AST::cast<AST::IdentifierExpression *>(expStmt->expression);
         if (Q_UNLIKELY(!idExp || idExp->name.isEmpty()))
-            throw Error(Tr::tr("id: must be followed by identifier"));
+            throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
         m_item->m_id = idExp->name.toString();
         ensureIdScope(m_file);
         m_file->m_idScope->m_properties[m_item->m_id] = ItemValue::create(m_item);
@@ -358,7 +358,7 @@ bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
 {
     FunctionDeclaration f;
     if (Q_UNLIKELY(ast->name.isNull()))
-        throw Error(Tr::tr("function decl without name"));
+        throw ErrorInfo(Tr::tr("function decl without name"));
     f.setName(ast->name.toString());
 
     // remove the name
@@ -415,7 +415,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
         }
         if (Q_UNLIKELY(v->type() != Value::ItemValueType)) {
             QString msg = Tr::tr("Binding to non-item property.");
-            throw Error(msg, bindingLocation);
+            throw ErrorInfo(msg, bindingLocation);
         }
         ItemValuePtr jsv = v.staticCast<ItemValue>();
         targetItem = jsv->item();
@@ -431,7 +431,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
     const ImportVersion importVersion
             = ImportVersion::fromString(importVersionString, toCodeLocation(versionToken));
     if (Q_UNLIKELY(importVersion != m_languageVersion))
-        throw Error(Tr::tr("Incompatible qbs version %1. This is qbs %2.").arg(
+        throw ErrorInfo(Tr::tr("Incompatible qbs version %1. This is qbs %2.").arg(
                         importVersionString, m_reader->builtins()->languageVersion()),
                     toCodeLocation(versionToken));
 }
@@ -559,7 +559,7 @@ private:
             } else if (it.value()->type() == Value::JSSourceValueType) {
                 ValuePtr aval = a->property(it.key());
                 if (Q_UNLIKELY(aval && aval->type() != Value::JSSourceValueType))
-                    throw Error(Tr::tr("Incompatible value type in unconditional value at %1.").arg(
+                    throw ErrorInfo(Tr::tr("Incompatible value type in unconditional value at %1.").arg(
                                     aval->location().toString()));
                 apply(it.key(), a, aval.staticCast<JSSourceValue>(),
                       it.value().staticCast<JSSourceValue>());
@@ -589,10 +589,10 @@ void ItemReaderASTVisitor::handlePropertiesBlock(Item *item, const Item *block)
 {
     ValuePtr value = block->property(QLatin1String("condition"));
     if (Q_UNLIKELY(!value))
-        throw Error(Tr::tr("Properties.condition must be provided."),
+        throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
                     block->location());
     if (Q_UNLIKELY(value->type() != Value::JSSourceValueType))
-        throw Error(Tr::tr("Properties.condition must be a value binding."),
+        throw ErrorInfo(Tr::tr("Properties.condition must be a value binding."),
                     block->location());
     JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
     const QString condition = srcval->sourceCode();

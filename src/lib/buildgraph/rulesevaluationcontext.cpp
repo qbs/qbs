@@ -72,7 +72,7 @@ void RulesEvaluationContext::incrementProgressValue()
 void RulesEvaluationContext::checkForCancelation()
 {
     if (Q_UNLIKELY(m_observer && m_observer->canceled()))
-        throw Error(Tr::tr("Build canceled."));
+        throw ErrorInfo(Tr::tr("Build canceled."));
 }
 
 void RulesEvaluationContext::initScope()

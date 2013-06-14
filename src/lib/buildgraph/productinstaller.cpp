@@ -56,16 +56,16 @@ ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
         if (m_options.removeExistingInstallation()) {
             const QString cfp = installRootFileInfo.canonicalFilePath();
             if (cfp == QFileInfo(QDir::rootPath()).canonicalFilePath())
-                throw Error(Tr::tr("Refusing to remove root directory."));
+                throw ErrorInfo(Tr::tr("Refusing to remove root directory."));
             if (cfp == QFileInfo(QDir::homePath()).canonicalFilePath())
-                throw Error(Tr::tr("Refusing to remove home directory."));
+                throw ErrorInfo(Tr::tr("Refusing to remove home directory."));
         }
         return;
     }
 
     if (m_options.installIntoSysroot()) {
         if (m_options.removeExistingInstallation())
-            throw Error(Tr::tr("Refusing to remove sysroot."));
+            throw ErrorInfo(Tr::tr("Refusing to remove sysroot."));
         m_options.setInstallRoot(PropertyFinder().propertyValue(project->buildConfiguration(),
                 QLatin1String("qbs"), QLatin1String("sysroot")).toString());
     } else {
@@ -116,7 +116,7 @@ void ProductInstaller::removeInstallRoot()
 void ProductInstaller::copyFile(const Artifact *artifact)
 {
     if (m_observer->canceled()) {
-        throw Error(Tr::tr("Installation canceled for configuration '%1'.")
+        throw ErrorInfo(Tr::tr("Installation canceled for configuration '%1'.")
                     .arg(m_products.first()->project->topLevelProject()->id()));
     }
     const QString relativeInstallDir
@@ -148,7 +148,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
 void ProductInstaller::handleError(const QString &message)
 {
     if (!m_options.keepGoing())
-        throw Error(message);
+        throw ErrorInfo(message);
     m_logger.qbsWarning() << message;
 }
 

@@ -101,7 +101,7 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
 void ProjectResolver::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
-        throw Error(Tr::tr("Project resolving canceled for configuration %1.")
+        throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
                     .arg(TopLevelProject::deriveId(m_buildConfiguration)));
     }
 }
@@ -218,8 +218,24 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
     ProjectContext subProjectContext = createProjectContext(projectContext);
 
     foreach (Item * const subItem, item->children()) {
-        if (subItem->typeName() == QLatin1String("Project"))
+        if (subItem->typeName() == QLatin1String("Project")) {
             resolveProject(subItem, &subProjectContext);
+            return;
+        }
+    }
+
+    // No project item was found, which means the project was disabled.
+    subProjectContext.project->enabled = false;
+    Item *propertiesItem = 0;
+    foreach (Item * const subItem, item->children()) {
+        if (subItem->typeName() == QLatin1String("Properties")) {
+            propertiesItem = subItem;
+            break;
+        }
+    }
+    if (propertiesItem) {
+        subProjectContext.project->name
+                = m_evaluator->stringValue(propertiesItem, QLatin1String("name"));
     }
 }
 
@@ -379,7 +395,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
             = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
     if (!fileTagsFilter.isEmpty()) {
         if (Q_UNLIKELY(!files.isEmpty()))
-            throw Error(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
+            throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
         ArtifactPropertiesPtr aprops = ArtifactProperties::create();
         aprops->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
@@ -392,7 +408,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     if (Q_UNLIKELY(files.isEmpty() && !item->hasProperty(QLatin1String("files")))) {
         // Yield an error if Group without files binding is encountered.
         // An empty files value is OK but a binding must exist.
-        throw Error(Tr::tr("Group without files is not allowed."),
+        throw ErrorInfo(Tr::tr("Group without files is not allowed."),
                     item->location());
     }
     QStringList patterns;
@@ -428,15 +444,15 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     foreach (const QString &fileName, files)
         createSourceArtifact(m_productContext->product, properties, fileName,
                              fileTags, overrideTags, group->files);
-    Error fileError;
+    ErrorInfo fileError;
     foreach (const SourceArtifactConstPtr &a, group->files) {
         if (!FileInfo(a->absoluteFilePath).exists()) {
             fileError.append(Tr::tr("File '%1' does not exist.")
                          .arg(a->absoluteFilePath), item->property("files")->location());
         }
     }
-    if (!fileError.entries().isEmpty())
-        throw Error(fileError);
+    if (fileError.hasError())
+        throw ErrorInfo(fileError);
 
     group->name = m_evaluator->stringValue(item, "name");
     if (group->name.isEmpty())
@@ -470,14 +486,14 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     bool hasAlwaysUpdatedArtifact = false;
     foreach (Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
-            throw Error(Tr::tr("'Rule' can only have children of type 'Artifact'."),
+            throw ErrorInfo(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
 
         resolveRuleArtifact(rule, child, &hasAlwaysUpdatedArtifact);
     }
 
     if (Q_UNLIKELY(!hasAlwaysUpdatedArtifact))
-        throw Error(Tr::tr("At least one output artifact of a rule "
+        throw ErrorInfo(Tr::tr("At least one output artifact of a rule "
                            "must have alwaysUpdated set to true."),
                     item->location());
 
@@ -608,12 +624,12 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
 
     foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
-            throw Error(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
+            throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = m_productContext->product->properties;
         QString fileName = m_evaluator->stringValue(child, "fileName");
         if (Q_UNLIKELY(fileName.isEmpty()))
-            throw Error(Tr::tr("Artifact fileName must not be empty."));
+            throw ErrorInfo(Tr::tr("Artifact fileName must not be empty."));
         artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->topLevelProject()->buildDirectory,
                                                            fileName);
         artifact->fileTags = m_evaluator->fileTagsValue(child, "fileTags");
@@ -678,7 +694,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
                 ResolvedProductPtr usedProduct
                         = m_productsByName.value(dependency.name);
                 if (Q_UNLIKELY(!usedProduct))
-                    throw Error(Tr::tr("Product dependency '%1' not found.").arg(dependency.name),
+                    throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(dependency.name),
                                 productItem->location());
                 Item *usedProductItem = m_productItemMap.value(usedProduct);
                 const ModuleLoaderResult::ProductInfo usedProductInfo
@@ -699,7 +715,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             const QString &usedProductName = dependency.name;
             ResolvedProductPtr usedProduct = m_productsByName.value(usedProductName);
             if (Q_UNLIKELY(!usedProduct))
-                throw Error(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
+                throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
                             productItem->location());
             rproduct->dependencies.insert(usedProduct);
 
@@ -812,7 +828,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             }
             const QScriptValue scriptValue = m_evaluator->property(item, it.key());
             if (Q_UNLIKELY(scriptValue.isError()))
-                throw Error(scriptValue.toString(), it.value()->location());
+                throw ErrorInfo(scriptValue.toString(), it.value()->location());
             QVariant v = scriptValue.toVariant();
             if (pd.type == PropertyDeclaration::Path)
                 v = convertPathProperty(v.toString(),
@@ -869,7 +885,7 @@ void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
     ItemFuncPtr f = mappings.value(typeName);
     if (Q_UNLIKELY(!f)) {
         const QString msg = Tr::tr("Unexpected item type '%1'.");
-        throw Error(msg.arg(item->typeName()), item->location());
+        throw ErrorInfo(msg.arg(item->typeName()), item->location());
     }
     if (typeName == "Project") {
         ProjectContext subProjectContext = createProjectContext(projectContext);

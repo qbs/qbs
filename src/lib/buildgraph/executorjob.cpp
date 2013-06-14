@@ -51,13 +51,13 @@ ExecutorJob::ExecutorJob(const Logger &logger, QObject *parent)
             this, SIGNAL(reportCommandDescription(QString,QString)));
     connect(m_processCommandExecutor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(m_processCommandExecutor, SIGNAL(error(qbs::Error)),
-            this, SLOT(onCommandError(qbs::Error)));
+    connect(m_processCommandExecutor, SIGNAL(error(qbs::ErrorInfo)),
+            this, SLOT(onCommandError(qbs::ErrorInfo)));
     connect(m_processCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
     connect(m_jsCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
             this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(m_jsCommandExecutor, SIGNAL(error(qbs::Error)),
-            this, SLOT(onCommandError(qbs::Error)));
+    connect(m_jsCommandExecutor, SIGNAL(error(qbs::ErrorInfo)),
+            this, SLOT(onCommandError(qbs::ErrorInfo)));
     connect(m_jsCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
     setInactive();
 }
@@ -131,7 +131,7 @@ void ExecutorJob::runNextCommand()
     m_currentCommandExecutor->start(m_transformer, command);
 }
 
-void ExecutorJob::onCommandError(const Error &err)
+void ExecutorJob::onCommandError(const ErrorInfo &err)
 {
     setInactive();
     emit error(err);

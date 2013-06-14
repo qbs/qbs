@@ -50,7 +50,7 @@ void Command::parse(QStringList &input)
     parseOptions(input);
     parseMore(input);
     if (!input.isEmpty()) {
-        throw Error(Tr::tr("Invalid use of command '%1': Extraneous input '%2'.\nUsage: %3")
+        throw ErrorInfo(Tr::tr("Invalid use of command '%1': Extraneous input '%2'.\nUsage: %3")
                     .arg(representation(), input.join(QLatin1String(" ")), longDescription()));
     }
 }
@@ -65,7 +65,7 @@ void Command::addAllToAdditionalArguments(QStringList &input)
 void Command::addOneToAdditionalArguments(const QString &argument)
 {
     if (argument.startsWith(QLatin1Char('-'))) {
-        throw Error(Tr::tr("Invalid use of command '%1': Encountered option '%2', expected a "
+        throw ErrorInfo(Tr::tr("Invalid use of command '%1': Encountered option '%2', expected a "
                            "build variant or property.\nUsage: %3")
                            .arg(representation(), argument, longDescription()));
     }
@@ -91,7 +91,7 @@ void Command::parseOptions(QStringList &input)
             break;
         input.removeFirst();
         if (optionString.count() == 1) {
-            throw Error(Tr::tr("Invalid use of command '%1': Empty options are not allowed.\n"
+            throw ErrorInfo(Tr::tr("Invalid use of command '%1': Empty options are not allowed.\n"
                                "Usage: %2").arg(representation(), longDescription()));
         }
 
@@ -110,7 +110,7 @@ void Command::parseOptions(QStringList &input)
                 continue;
             }
             if (usedOptions.contains(option) && !option->canAppearMoreThanOnce()) {
-                throw Error(Tr::tr("Invalid use of command '%1': Option '%2' cannot appear "
+                throw ErrorInfo(Tr::tr("Invalid use of command '%1': Option '%2' cannot appear "
                                    "more than once.\nUsage: %3")
                             .arg(representation(), optionString, longDescription()));
             }
@@ -120,7 +120,7 @@ void Command::parseOptions(QStringList &input)
             break;
         }
         if (!matchFound) {
-            throw Error(Tr::tr("Invalid use of command '%1': Unknown option '%2'.\nUsage: %3")
+            throw ErrorInfo(Tr::tr("Invalid use of command '%1': Unknown option '%2'.\nUsage: %3")
                         .arg(representation(), optionString, longDescription()));
         }
     }
@@ -469,7 +469,7 @@ void HelpCommand::parseMore(QStringList &input)
     if (input.isEmpty())
         return;
     if (input.count() > 1) {
-        throw Error(Tr::tr("Invalid use of command '%1': Cannot describe more than one command.\n"
+        throw ErrorInfo(Tr::tr("Invalid use of command '%1': Cannot describe more than one command.\n"
                            "Usage: %2").arg(representation(), longDescription()));
     }
     m_command = input.takeFirst();

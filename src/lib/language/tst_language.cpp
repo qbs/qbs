@@ -100,7 +100,7 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
             defaultParameters.setProjectFilePath(testProject(projectFileName));
             project = loader->loadProject(defaultParameters);
             QVERIFY(project);
-        } catch (const Error &e) {
+        } catch (const ErrorInfo &e) {
             exceptionCaught = true;
             qDebug() << e.toString();
         }
@@ -162,7 +162,7 @@ void TestLanguage::baseProperty()
         QVariantMap cfg = product->properties->value();
         QCOMPARE(cfg.value("narf").toStringList(), QStringList() << "boo");
         QCOMPARE(cfg.value("zort").toStringList(), QStringList() << "bar" << "boo");
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -238,7 +238,7 @@ void TestLanguage::conditionalDepends()
         QVERIFY(product);
         dependency = findModuleByName(product, "doesonlyexistifhellfreezesover");
         QVERIFY(!dependency);
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -267,7 +267,7 @@ void TestLanguage::environmentVariable()
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value(productName);
         QVERIFY(product);
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -300,7 +300,7 @@ void TestLanguage::erroneousFiles()
     try {
         defaultParameters.setProjectFilePath(testProject("/erroneous/") + fileName);
         loader->loadProject(defaultParameters);
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         if (!e.toString().contains(errorMessage)) {
             qDebug() << "Message:  " << e.toString();
             qDebug() << "Expected: " << errorMessage;
@@ -360,7 +360,7 @@ void TestLanguage::exports()
         propertyValue = getConfigProperty(product->properties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -381,7 +381,7 @@ void TestLanguage::fileContextProperties()
         QCOMPARE(cfg.value("narf").toString(), defaultParameters.projectFilePath());
         QString dirPath = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
         QCOMPARE(cfg.value("zort").toString(), dirPath);
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -461,7 +461,7 @@ void TestLanguage::groupName()
         QVERIFY(group);
         QCOMPARE(group->name, QString("Group 2"));
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -497,7 +497,7 @@ void TestLanguage::homeDirectory()
         QCOMPARE(product->properties->value().value("user").toString(),
                  FileInfo::resolvePath(product->sourceDirectory, QLatin1String("~foo/bar")));
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         qDebug() << e.toString();
     }
 }
@@ -585,7 +585,7 @@ void TestLanguage::idUsage()
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -695,7 +695,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         QVERIFY(product);
         QCOMPARE(product->name, expectedProductName);
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -772,7 +772,7 @@ void TestLanguage::moduleScope()
         QCOMPARE(ipf.intValue("g"), 156);   // overridden, dependent on product properties
         QCOMPARE(ipf.intValue("h"), 158);   // overridden, base dependent on product properties
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -850,7 +850,7 @@ void TestLanguage::outerInGroup()
         installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -881,7 +881,7 @@ void TestLanguage::pathProperties()
                  FileInfo::resolvePath(projectFileDir, QLatin1String("foo")));
         QCOMPARE(cfg.value("base_fileInBaseProductDir").toString(),
                  FileInfo::resolvePath(projectFileDir, QLatin1String("subdir/bar")));
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -914,7 +914,7 @@ void TestLanguage::productConditions()
         QVERIFY(product);
         QVERIFY(!product->enabled);
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -938,7 +938,7 @@ void TestLanguage::productDirectories()
                  buildDir(defaultParameters));
         QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
     }
-    catch (const Error &e) {
+    catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }
@@ -1266,7 +1266,7 @@ void TestLanguage::wildcards()
         actualFilePaths.sort();
         expected.sort();
         QCOMPARE(actualFilePaths, expected);
-    } catch (const Error &e) {
+    } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
     }

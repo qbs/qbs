@@ -79,7 +79,7 @@ static void removeArtifactFromDisk(Artifact *artifact, bool dryRun, const Logger
     invalidateArtifactTimestamp(artifact);
     QString errorMessage;
     if (!removeFileRecursion(fileInfo, &errorMessage))
-        throw Error(errorMessage);
+        throw ErrorInfo(errorMessage);
 }
 
 class CleanupVisitor : public ArtifactVisitor
@@ -113,7 +113,7 @@ private:
         }
         try {
             removeArtifactFromDisk(artifact, m_options.dryRun(), m_logger);
-        } catch (const Error &error) {
+        } catch (const ErrorInfo &error) {
             if (!m_options.keepGoing())
                 throw;
             m_logger.printWarning(error);
@@ -161,7 +161,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     m_observer->incrementProgressValue();
 
     if (m_hasError)
-        throw Error(Tr::tr("Failed to remove some files."));
+        throw ErrorInfo(Tr::tr("Failed to remove some files."));
     m_observer->setFinished();
 }
 
@@ -180,7 +180,7 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Clean
     if (subTreeIsEmpty) {
         printRemovalMessage(rootDir, options.dryRun(), m_logger);
         if (!QDir::root().rmdir(rootDir)) {
-            Error error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
+            ErrorInfo error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
             if (!options.keepGoing())
                 throw error;
             m_logger.printWarning(error);

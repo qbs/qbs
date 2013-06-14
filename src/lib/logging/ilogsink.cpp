@@ -91,7 +91,7 @@ LoggerLevel ILogSink::logLevel() const
     return d->logLevel;
 }
 
-void ILogSink::printWarning(const Error &warning)
+void ILogSink::printWarning(const ErrorInfo &warning)
 {
     if (willPrint(LoggerWarning)) {
         d->mutex.lock();
@@ -110,7 +110,7 @@ void ILogSink::printMessage(LoggerLevel level, const QString &message, const QSt
     }
 }
 
-void ILogSink::doPrintWarning(const Error &warning)
+void ILogSink::doPrintWarning(const ErrorInfo &warning)
 {
     doPrintMessage(LoggerWarning, warning.toString(), QString());
 }
