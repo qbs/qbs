@@ -66,6 +66,8 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
         return PropertyDeclaration::PathList;
     if (typeName == "string")
         return PropertyDeclaration::String;
+    if (typeName == QLatin1String("stringList"))
+        return PropertyDeclaration::StringList;
     if (typeName == "var" || typeName == "variant")
         return PropertyDeclaration::Variant;
     return PropertyDeclaration::UnknownType;
