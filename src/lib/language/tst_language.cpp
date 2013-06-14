@@ -289,6 +289,8 @@ void TestLanguage::erroneousFiles_data()
             << "Can't find variable: outer";
     QTest::newRow("invalid_file")
             << "does not exist";
+    QTest::newRow("invalid_property_type")
+            << "Unknown type 'nonsense' in property declaration.";
 }
 
 void TestLanguage::erroneousFiles()

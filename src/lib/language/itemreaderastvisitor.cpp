@@ -295,6 +295,9 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         throw Error(Tr::tr("public member with signal type not supported"));
     p.name = ast->name.toString();
     p.type = PropertyDeclaration::propertyTypeFromString(ast->memberType.toString());
+    if (p.type == PropertyDeclaration::UnknownType)
+        throw Error(Tr::tr("Unknown type '%1' in property declaration.")
+                    .arg(ast->memberType.toString()), toCodeLocation(ast->typeToken));
     if (ast->typeModifier.compare(QLatin1String("list")))
         p.flags |= PropertyDeclaration::ListProperty;
     else if (Q_UNLIKELY(!ast->typeModifier.isEmpty()))
