@@ -835,6 +835,9 @@ void TestBlackbox::overrideProjectProperties()
                                      << QLatin1String("-f")
                                      << QLatin1String("project.qbs")
                                      << QLatin1String("project.nameSuffix:ForYou")
+                                     << QLatin1String("project.someBool:false")
+                                     << QLatin1String("project.someInt:156")
+                                     << QLatin1String("project.someStringList:one")
                                      << QLatin1String("MyAppForYou.mainFile:main.cpp"))), 0);
     QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/MyAppForYou")));
 

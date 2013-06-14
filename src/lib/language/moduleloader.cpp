@@ -649,6 +649,62 @@ static QList<Item *> collectItemsWithId(Item *item)
     return result;
 }
 
+// returns QVariant::Invalid for types that do not need conversion
+static QVariant::Type variantType(PropertyDeclaration::Type t)
+{
+    switch (t) {
+    case PropertyDeclaration::UnknownType:
+        break;
+    case PropertyDeclaration::Boolean:
+        return QVariant::Bool;
+    case PropertyDeclaration::Integer:
+        return QVariant::Int;
+    case PropertyDeclaration::Path:
+        return QVariant::String;
+    case PropertyDeclaration::PathList:
+        return QVariant::StringList;
+    case PropertyDeclaration::String:
+        return QVariant::String;
+    case PropertyDeclaration::StringList:
+        return QVariant::StringList;
+    case PropertyDeclaration::Variant:
+        break;
+    case PropertyDeclaration::Verbatim:
+        return QVariant::String;
+    }
+    return QVariant::Invalid;
+}
+
+static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Type t,
+    const QStringList &namePrefix, const QString &key)
+{
+    if (v.isNull() || !v.isValid())
+        return v;
+    const QVariant::Type vt = variantType(t);
+    if (vt == QVariant::Invalid)
+        return v;
+    QVariant c = v;
+    if (!c.convert(vt)) {
+        QStringList name = namePrefix;
+        name << key;
+        throw Error(Tr::tr("Value '%1' of property '%2' has incompatible type.").arg(v.toString())
+                    .arg(name.join(QLatin1String("."))));
+    }
+    return c;
+}
+
+static PropertyDeclaration firstValidPropertyDeclaration(Item *item, const QString &name)
+{
+    PropertyDeclaration decl;
+    do {
+        decl = item->propertyDeclarations().value(name);
+        if (decl.isValid())
+            return decl;
+        item = item->prototype();
+    } while (item);
+    return decl;
+}
+
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *instanceScope,
                                      Item *moduleInstance, Item *modulePrototype,
                                      const QStringList &moduleName)
@@ -717,7 +773,10 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
     {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key())))
             throw Error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName(moduleName), vmit.key()));
-        moduleInstance->setProperty(vmit.key(), VariantValue::create(vmit.value()));
+        const PropertyDeclaration decl = firstValidPropertyDeclaration(moduleInstance, vmit.key());
+        moduleInstance->setProperty(vmit.key(),
+                VariantValue::create(convertToPropertyType(vmit.value(), decl.type, moduleName,
+                        vmit.key())));
     }
 }
 
@@ -885,8 +944,12 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
         return;
     const QVariantMap overridden = buildConfigValue.toMap();
     for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
-            ++it)
-        item->setProperty(it.key(), VariantValue::create(it.value()));
+            ++it) {
+        const PropertyDeclaration decl = item->propertyDeclarations().value(it.key());
+        item->setProperty(it.key(),
+                VariantValue::create(convertToPropertyType(it.value(), decl.type,
+                        QStringList(buildConfigKey), it.key())));
+    }
 }
 
 } // namespace Internal
