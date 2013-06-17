@@ -7,5 +7,6 @@ QtModule {
         condition: Qt.core.staticBuild && qbs.targetOS == "ios"
         cpp.frameworks: base.concat(["OpenGLES", "QuartzCore", "CoreGraphics"])
     }
+    cpp.frameworks: base
 }
 
