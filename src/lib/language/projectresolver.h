@@ -32,7 +32,6 @@
 
 #include "evaluator.h"
 #include "filetags.h"
-#include "item.h"
 #include "language.h"
 #include <logging/logger.h>
 
@@ -42,8 +41,8 @@
 namespace qbs {
 namespace Internal {
 
-class BuiltinDeclarations;
 class Evaluator;
+class Item;
 class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
@@ -53,7 +52,7 @@ struct ModuleLoaderResult;
 class ProjectResolver
 {
 public:
-    ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins, const Logger &logger);
+    ProjectResolver(ModuleLoader *ldr, const Logger &logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
@@ -127,7 +126,6 @@ private:
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     QMap<QString, QVariantMap> m_exports;
-    const BuiltinDeclarations * const m_builtinDeclarations;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<QByteArray, ItemFuncPtr> ItemFuncMap;

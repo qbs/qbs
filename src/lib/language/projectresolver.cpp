@@ -30,9 +30,9 @@
 #include "projectresolver.h"
 
 #include "artifactproperties.h"
-#include "builtindeclarations.h"
 #include "evaluator.h"
 #include "filecontext.h"
+#include "item.h"
 #include "moduleloader.h"
 #include "propertymapinternal.h"
 #include "scriptengine.h"
@@ -61,13 +61,11 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
-ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins,
-                                 const Logger &logger)
+ProjectResolver::ProjectResolver(ModuleLoader *ldr, const Logger &logger)
     : m_evaluator(ldr->evaluator())
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
-    , m_builtinDeclarations(builtins)
 {
 }
 
