@@ -126,5 +126,14 @@ void Item::setPropertyObserver(ItemObserver *observer) const
     m_propertyObserver = observer;
 }
 
+Item *Item::child(const QString &type) const
+{
+    foreach (Item * const child, children()) {
+        if (child->typeName() == type)
+            return child;
+    }
+    return 0;
+}
+
 } // namespace Internal
 } // namespace qbs

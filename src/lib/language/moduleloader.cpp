@@ -211,14 +211,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleSubProject " << item->file()->filePath();
 
-    Item *propertiesItem = 0;
-    foreach (Item * const subItem, item->children()) {
-        if (subItem->typeName() == QLatin1String("Properties")) {
-            propertiesItem = subItem;
-            break;
-        }
-    }
-
+    Item * const propertiesItem = item->child(QLatin1String("Properties"));
     bool subProjectEnabled = true;
     if (propertiesItem)
         subProjectEnabled = checkItemCondition(propertiesItem);

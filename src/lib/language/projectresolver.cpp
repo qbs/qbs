@@ -217,22 +217,15 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
 {
     ProjectContext subProjectContext = createProjectContext(projectContext);
 
-    foreach (Item * const subItem, item->children()) {
-        if (subItem->typeName() == QLatin1String("Project")) {
-            resolveProject(subItem, &subProjectContext);
-            return;
-        }
+    Item * const projectItem = item->child(QLatin1String("Project"));
+    if (projectItem) {
+        resolveProject(projectItem, &subProjectContext);
+        return;
     }
 
     // No project item was found, which means the project was disabled.
     subProjectContext.project->enabled = false;
-    Item *propertiesItem = 0;
-    foreach (Item * const subItem, item->children()) {
-        if (subItem->typeName() == QLatin1String("Properties")) {
-            propertiesItem = subItem;
-            break;
-        }
-    }
+    Item * const propertiesItem = item->child(QLatin1String("Properties"));
     if (propertiesItem) {
         subProjectContext.project->name
                 = m_evaluator->stringValue(propertiesItem, QLatin1String("name"));
