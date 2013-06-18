@@ -8,8 +8,10 @@ unix {
     LIBS += -L$$QBSLIBDIR -lqbscore
 }
 
-linux-*:QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN/../lib\'
-macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../lib
+!disable_rpath {
+    linux-*:QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN/../lib\'
+    macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../lib
+}
 
 win32 {
     CONFIG(debug, debug|release) {

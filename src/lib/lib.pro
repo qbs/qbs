@@ -23,7 +23,10 @@ contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
 win32-msvc*|win32-icc:QMAKE_CXXFLAGS += /WX
 else:*g++*|*clang*|*icc*:QMAKE_CXXFLAGS += -Werror
-macx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+
+!disable_rpath {
+    macx:QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+}
 
 include(../../qbs_version.pri)
 include(api/api.pri)

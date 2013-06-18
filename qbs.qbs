@@ -3,6 +3,7 @@ import qbs 1.0
 Project {
     property string version: "1.0.1"
     property bool enableUnitTests: false
+    property bool enableRPath: true
 
     references: [
         "src/src.qbs",
