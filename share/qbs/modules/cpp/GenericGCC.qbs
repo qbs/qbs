@@ -133,6 +133,11 @@ CppModule {
                 var version = "";
                 var fname = FileInfo.fileName(output.fileName);
                 for (var i = 0; i < versionParts.length; ++i) {
+                    // Remove existing symlink
+                    cmd = new Command("rm", ["-f", PathTools.dynamicLibraryFileName(version)]);
+                    cmd.workingDirectory = FileInfo.path(output.fileName);
+                    commands.push(cmd);
+
                     cmd = new Command("ln", ["-s", fname,
                                              PathTools.dynamicLibraryFileName(version)]);
                     cmd.workingDirectory = FileInfo.path(output.fileName);
