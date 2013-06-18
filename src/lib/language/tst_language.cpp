@@ -138,8 +138,8 @@ void TestLanguage::initTestCase()
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../share/qbs"));
     QVariantMap buildConfig = defaultParameters.buildConfigurationTree();
-    setConfigProperty(buildConfig, QStringList() << "qbs" << "targetOS", "linux");
-    setConfigProperty(buildConfig, QStringList() << "qbs" << "profile", "qbs_autotests");
+    buildConfig.insert("qbs.targetOS", "linux");
+    buildConfig.insert("qbs.profile", "qbs_autotests");
     defaultParameters.setBuildConfiguration(buildConfig);
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
