@@ -127,6 +127,7 @@ CppModule {
 
             // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
             if (product.version
+                    && !product.type.contains("frameworkbundle")
                     && product.moduleProperty("qbs", "targetOS").contains("unix")) {
                 var versionParts = product.version.split('.');
                 var version = "";
