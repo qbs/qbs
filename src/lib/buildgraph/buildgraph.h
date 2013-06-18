@@ -33,14 +33,11 @@
 #include "rulesapplicator.h"
 
 #include <language/forward_decls.h>
-#include <logging/logger.h>
 
-#include <QProcessEnvironment>
 #include <QScriptValue>
 #include <QStringList>
 
 namespace qbs {
-class SetupProjectParameters;
 namespace Internal {
 class Logger;
 class ScriptEngine;
@@ -79,43 +76,6 @@ QStringList toStringList(const T &artifactContainer)
         l.append(relativeArtifactFileName(n));
     return l;
 }
-
-class BuildGraphLoadResult
-{
-public:
-    BuildGraphLoadResult() : discardLoadedProject(false) {}
-
-    TopLevelProjectPtr newlyResolvedProject;
-    TopLevelProjectPtr loadedProject;
-    bool discardLoadedProject;
-};
-
-
-class BuildGraphLoader
-{
-public:
-    BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger);
-
-    BuildGraphLoadResult load(const SetupProjectParameters &parameters,
-                              const RulesEvaluationContextPtr &evalContext);
-
-private:
-    void trackProjectChanges(const SetupProjectParameters &parameters,
-                             const QString &buildGraphFilePath,
-                             const TopLevelProjectPtr &restoredProject);
-    void onProductRemoved(const ResolvedProductPtr &product);
-    void onProductChanged(const ResolvedProductPtr &product,
-                          const ResolvedProductPtr &changedProduct);
-    void removeArtifactAndExclusiveDependents(Artifact *artifact,
-            ArtifactList *removedArtifacts = 0);
-    bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
-    void replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact);
-
-    RulesEvaluationContextPtr m_evalContext;
-    BuildGraphLoadResult m_result;
-    Logger m_logger;
-    QProcessEnvironment m_environment;
-};
 
 } // namespace Internal
 } // namespace qbs

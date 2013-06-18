@@ -31,7 +31,7 @@
 #include "jobs.h"
 
 #include <buildgraph/artifactcleaner.h>
-#include <buildgraph/buildgraph.h>
+#include <buildgraph/buildgraphloader.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/executor.h>

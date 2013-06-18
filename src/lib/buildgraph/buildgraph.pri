@@ -1,6 +1,7 @@
 SOURCES += \
     $$PWD/automoc.cpp\
     $$PWD/buildgraph.cpp\
+    $$PWD/buildgraphloader.cpp \
     $$PWD/executor.cpp\
     $$PWD/executorjob.cpp\
     $$PWD/rulegraph.cpp\
@@ -26,6 +27,7 @@ SOURCES += \
 HEADERS += \
     $$PWD/automoc.h\
     $$PWD/buildgraph.h\
+    $$PWD/buildgraphloader.h \
     $$PWD/executor.h\
     $$PWD/executorjob.h\
     $$PWD/rulegraph.h\

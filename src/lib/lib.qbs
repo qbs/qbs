@@ -76,6 +76,8 @@ DynamicLibrary {
             "automoc.h",
             "buildgraph.cpp",
             "buildgraph.h",
+            "buildgraphloader.cpp",
+            "buildgraphloader.h",
             "command.cpp",
             "command.h",
             "cycledetector.cpp",
