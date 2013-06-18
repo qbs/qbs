@@ -20,18 +20,18 @@ Module {
     property string mocName: "moc"
     property string lreleaseName: "lrelease"
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
-    property var qdocEnvironment
-    property var qdocQhpFileName
-    property var docPath
-    property var helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
+    property stringList qdocEnvironment
+    property string qdocQhpFileName
+    property string docPath
+    property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property string version
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
-    property var versionMajor: versionParts[0]
-    property var versionMinor: versionParts[1]
-    property var versionPatch: versionParts[2]
+    property int versionMajor: versionParts[0]
+    property int versionMinor: versionParts[1]
+    property int versionPatch: versionParts[2]
     property bool frameworkBuild
     property bool staticBuild
-    property var buildVariant
+    property stringList buildVariant
     property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
     property string qmFilesDir: product.destinationDirectory
 

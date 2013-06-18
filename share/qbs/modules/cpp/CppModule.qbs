@@ -11,9 +11,9 @@ Module {
     property bool debugInformation: qbs.debugInformation
     property path precompiledHeader
     property path precompiledHeaderDir: product.buildDirectory
-    property var defines
-    property var platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
-    property var compilerDefines
+    property stringList defines
+    property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]
+    property stringList compilerDefines
     PropertyOptions {
         name: "compilerDefines"
         description: "preprocessor macros that are defined when using this particular compiler"
@@ -84,54 +84,54 @@ Module {
     property string staticLibrarySuffix
     property string dynamicLibrarySuffix
     property string executableSuffix
-    property var dynamicLibraries // list of names, will be linked with -lname
-    property var staticLibraries // list of static library files
-    property var frameworks // list of frameworks, will be linked with '-framework <name>'
-    property var weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
-    property var rpaths
+    property stringList dynamicLibraries // list of names, will be linked with -lname
+    property stringList staticLibraries // list of static library files
+    property stringList frameworks // list of frameworks, will be linked with '-framework <name>'
+    property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
+    property stringList rpaths
 
-    property var cppFlags
+    property stringList cppFlags
     PropertyOptions {
         name: "cppFlags"
         description: "additional flags for the C preprocessor"
     }
 
-    property var cFlags
+    property stringList cFlags
     PropertyOptions {
         name: "cFlags"
         description: "additional flags for the C compiler"
     }
 
-    property var cxxFlags
+    property stringList cxxFlags
     PropertyOptions {
         name: "cxxFlags"
         description: "additional flags for the C++ compiler"
     }
 
-    property var objcFlags
+    property stringList objcFlags
     PropertyOptions {
         name: "objcFlags"
         description: "additional flags for the Objective-C compiler"
     }
 
-    property var objcxxFlags
+    property stringList objcxxFlags
     PropertyOptions {
         name: "objcxxFlags"
         description: "additional flags for the Objective-C++ compiler"
     }
-    property var commonCompilerFlags
+    property stringList commonCompilerFlags
     PropertyOptions {
         name: "commonCompilerFlags"
         description: "flags added to all compilation independently of the language"
     }
 
-    property var linkerFlags
+    property stringList linkerFlags
     PropertyOptions {
         name: "linkerFlags"
         description: "additional linker flags"
     }
 
-    property var positionIndependentCode
+    property bool positionIndependentCode
     PropertyOptions {
         name: "positionIndependentCode"
         description: "generate position independent code"
@@ -146,12 +146,12 @@ Module {
 
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.
-    property var platformCommonCompilerFlags
-    property var platformCFlags
-    property var platformCxxFlags
-    property var platformObjcFlags
-    property var platformObjcxxFlags
-    property var platformLinkerFlags
+    property stringList platformCommonCompilerFlags
+    property stringList platformCFlags
+    property stringList platformCxxFlags
+    property stringList platformObjcFlags
+    property stringList platformObjcxxFlags
+    property stringList platformLinkerFlags
 
     FileTagger {
         pattern: "*.c"

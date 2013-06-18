@@ -9,7 +9,7 @@ import 'path-tools.js' as PathTools
 CppModule {
     condition: false
 
-    property var transitiveSOs
+    property stringList transitiveSOs
     property string toolchainPrefix
     property string toolchainInstallPath
     compilerName: 'g++'

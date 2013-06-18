@@ -4,13 +4,13 @@ import "utils.js" as Utils
 
 Probe {
     // Inputs
-    property var names
+    property stringList names
     property var nameFilter
     property pathList pathPrefixes
-    property var pathSuffixes
+    property stringList pathSuffixes
     property pathList platformPaths: [ '/usr', '/usr/local' ]
-    property var environmentPaths
-    property var platformEnvironmentPaths
+    property pathList environmentPaths
+    property pathList platformEnvironmentPaths
 
     // Output
     property string path

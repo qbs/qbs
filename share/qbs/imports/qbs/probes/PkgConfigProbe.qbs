@@ -11,8 +11,8 @@ Probe {
     property string maxVersion
 
     // Output
-    property var cflags
-    property var libs
+    property stringList cflags
+    property stringList libs
 
     configure: {
         if (!name)
