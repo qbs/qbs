@@ -368,6 +368,8 @@ public:
     QHash<QString, QString> usedEnvironment; // Environment variables requested by the project while resolving.
     QScopedPointer<ProjectBuildData> buildData;
 
+    QSet<QString> buildSystemFiles;
+
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
     QString id() const { return m_id; }

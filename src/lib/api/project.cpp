@@ -491,4 +491,9 @@ QHash<QString, QString> Project::usedEnvironment() const
     return d->internalProject->usedEnvironment;
 }
 
+QSet<QString> Project::buildSystemFiles() const
+{
+    return d->internalProject->buildSystemFiles;
+}
+
 } // namespace qbs

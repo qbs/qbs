@@ -115,6 +115,11 @@ Item *ItemReader::readFile(const QString &filePath)
     return internalReadFile(filePath).rootItem;
 }
 
+QSet<QString> ItemReader::filesRead() const
+{
+    return m_filesRead;
+}
+
 ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
 {
     ASTCacheValue &cacheValue = (*m_astCache)[filePath];
@@ -126,6 +131,7 @@ ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
         if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
             throw ErrorInfo(Tr::tr("Couldn't open '%1'.").arg(filePath));
 
+        m_filesRead.insert(filePath);
         const QString code = QTextStream(&file).readAll();
         QbsQmlJS::Lexer lexer(cacheValue.engine());
         lexer.setCode(code, 1);

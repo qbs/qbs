@@ -79,6 +79,7 @@ struct ModuleLoaderResult
     QSharedPointer<ItemPool> itemPool;
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
+    QSet<QString> qbsFiles;
 };
 
 /*

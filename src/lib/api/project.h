@@ -105,6 +105,8 @@ public:
     QVariantMap projectConfiguration() const;
     QHash<QString, QString> usedEnvironment() const;
 
+    QSet<QString> buildSystemFiles() const;
+
 private:
     Project();
     Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);

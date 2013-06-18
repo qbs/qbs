@@ -95,7 +95,9 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_productContext = 0;
     m_moduleContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
-    return projectContext.project.staticCast<TopLevelProject>();
+    TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
+    top->buildSystemFiles.unite(loadResult.qbsFiles);
+    return top;
 }
 
 void ProjectResolver::checkCancelation() const
@@ -162,6 +164,7 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     resolveProject(item, projectContext);
     project->usedEnvironment = m_engine->usedEnvironment();
     project->environment = m_environment;
+    project->buildSystemFiles = m_engine->imports();
     makeSubProjectNamesUniqe(project);
     resolveProductDependencies(projectContext);
 }

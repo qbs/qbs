@@ -114,6 +114,7 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath, const QVariantMap
 
     handleProject(&result, root);
     result.root = root;
+    result.qbsFiles = m_reader->filesRead();
     return result;
 }
 

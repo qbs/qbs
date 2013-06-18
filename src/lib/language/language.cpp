@@ -725,6 +725,7 @@ void TopLevelProject::load(PersistentPool &pool)
     pool.stream() >> envHash;
     for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
         environment.insert(i.key(), i.value());
+    pool.stream() >> buildSystemFiles;
     buildData.reset(pool.idLoad<ProjectBuildData>());
     buildData->isDirty = false;
 }
@@ -738,6 +739,7 @@ void TopLevelProject::store(PersistentPool &pool) const
     foreach (const QString &key, environment.keys())
         envHash.insert(key, environment.value(key));
     pool.stream() << envHash;
+    pool.stream() << buildSystemFiles;
     pool.store(buildData.data());
 }
 

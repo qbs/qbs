@@ -215,12 +215,15 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         const QString &buildGraphFilePath, const TopLevelProjectPtr &restoredProject)
 {
     const FileInfo bgfi(buildGraphFilePath);
+    QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     const QList<ResolvedProjectPtr> allRestoredProjects
             = restoredProject->allSubProjects() << restoredProject;
     bool projectFileChanged = false;
     bool subProjectRemoved = false;
     foreach (const ResolvedProjectConstPtr &p, allRestoredProjects) {
-        FileInfo fi(p->location.fileName());
+        const QString fileName = p->location.fileName();
+        const FileInfo fi(fileName);
+        buildSystemFiles.remove(fileName);
         if (!fi.exists()) {
             subProjectRemoved = true;
             break;
@@ -230,10 +233,16 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
             break;
         }
     }
-    if (subProjectRemoved)
+    if (subProjectRemoved) {
         m_logger.qbsTrace() << "A sub-project was removed, must re-resolve project";
-    if (projectFileChanged)
+        // Save build graph to prevent a re-resolve on every run now.
+        restoredProject->buildData->isDirty = true;
+    }
+    if (projectFileChanged) {
         m_logger.qbsTrace() << "A project file changed, must re-resolve project.";
+        // Save build graph to prevent a re-resolve on every run now.
+        restoredProject->buildData->isDirty = true;
+    }
 
     bool environmentChanged = false;
     for (QHash<QString, QString>::ConstIterator it = restoredProject->usedEnvironment.constBegin();
@@ -247,7 +256,9 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     const QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
     foreach (const ResolvedProductPtr &product, allRestoredProducts) {
-        const FileInfo pfi(product->location.fileName());
+        const QString fileName = product->location.fileName();
+        const FileInfo pfi(fileName);
+        buildSystemFiles.remove(fileName);
         if (!pfi.exists()) {
             productRemoved = true;
         } else if (bgfi.lastModified() < pfi.lastModified()) {
@@ -269,10 +280,23 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         }
     }
 
-    if (!environmentChanged && !projectFileChanged && !subProjectRemoved && !productRemoved
-            && changedProducts.isEmpty()) {
-        return;
+    bool filesChanged = false;
+    foreach (const QString &file, buildSystemFiles) {
+        const FileInfo fi(file);
+        if (!fi.exists() || bgfi.lastModified() < fi.lastModified()) {
+            filesChanged = true;
+            break;
+        }
     }
+   if (filesChanged) {
+       m_logger.qbsTrace() << "A qbs or js file changed, must re-resolve project";
+       // Save build graph to prevent a re-resolve on every run now.
+       restoredProject->buildData->isDirty = true;
+   }
+
+   if (!filesChanged && !environmentChanged && !projectFileChanged
+           && !subProjectRemoved && !productRemoved && changedProducts.isEmpty())
+        return;
 
     Loader ldr(m_evalContext->engine(), m_logger);
     ldr.setSearchPaths(parameters.searchPaths());

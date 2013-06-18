@@ -80,6 +80,8 @@ public:
 
     Item *readFile(const QString &filePath);
 
+    QSet<QString> filesRead() const;
+
 private:
     ItemReaderResult internalReadFile(const QString &filePath);
 
@@ -91,6 +93,7 @@ private:
 
     class ASTCache;
     ASTCache *m_astCache;
+    QSet<QString> m_filesRead;
 };
 
 } // namespace Internal

@@ -77,6 +77,7 @@ public:
     void setEnvironment(const QProcessEnvironment &env);
     void addEnvironmentVariable(const QString &name, const QString &value);
     QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
+    QSet<QString> imports() const;
 
 private:
     void extendJavaScriptBuiltins();
