@@ -88,7 +88,7 @@ public:
     Item *parent() const;
     const FileContextPtr file() const;
     QList<Item *> children() const;
-    Item *child(const QString &type) const;
+    Item *child(const QString &type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const;
     const PropertyDeclarationMap &propertyDeclarations() const;
     const Modules &modules() const;

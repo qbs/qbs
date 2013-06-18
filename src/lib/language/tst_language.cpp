@@ -283,6 +283,9 @@ void TestLanguage::erroneousFiles_data()
             << "Depends.submodules cannot be used if name contains a dot";
     QTest::newRow("multiple_exports")
             << "Multiple Export items in one product are prohibited.";
+    QTest::newRow("multiple_properties_in_subproject")
+            << "Multiple instances of item 'Properties' found where at most one "
+               "is allowed.";
     QTest::newRow("importloop1")
             << "Loop detected when importing";
     QTest::newRow("nonexistentouter")

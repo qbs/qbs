@@ -30,6 +30,8 @@
 #include "item.h"
 #include "itempool.h"
 #include "filecontext.h"
+#include <logging/translator.h>
+#include <tools/error.h>
 #include <tools/qbsassert.h>
 
 namespace qbs {
@@ -126,13 +128,24 @@ void Item::setPropertyObserver(ItemObserver *observer) const
     m_propertyObserver = observer;
 }
 
-Item *Item::child(const QString &type) const
+Item *Item::child(const QString &type, bool checkForMultiple) const
 {
-    foreach (Item * const child, children()) {
-        if (child->typeName() == type)
-            return child;
+    Item *child = 0;
+    foreach (Item * const currentChild, children()) {
+        if (currentChild->typeName() == type) {
+            if (!checkForMultiple)
+                return currentChild;
+            if (child) {
+                ErrorInfo error(Tr::tr("Multiple instances of item '%1' found where at most one "
+                                       "is allowed.").arg(type));
+                error.append(Tr::tr("First item"), child->location());
+                error.append(Tr::tr("Second item"), currentChild->location());
+                throw error;
+            }
+            child = currentChild;
+        }
     }
-    return 0;
+    return child;
 }
 
 } // namespace Internal
