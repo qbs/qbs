@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Project {
-    property string version: "1.0.0"
+    property string version: "1.0.1"
     property bool enableUnitTests: false
 
     references: [
