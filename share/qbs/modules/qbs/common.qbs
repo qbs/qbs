@@ -7,7 +7,7 @@ Module {
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
     property stringList hostOS: getHostOS()
-    property stringList targetOS
+    property stringList targetOS: hostOS
     property string pathListSeparator: hostOS.contains("windows") ? ";" : ":"
     property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
     property string profile
