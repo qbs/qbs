@@ -59,6 +59,10 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
     args.push(FileInfo.toWindowsSeparators(input.fileName))
 
+    var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
+    for (i in prefixHeaders)
+        args.push("/FI" + FileInfo.toWindowsSeparators(prefixHeaders[i]));
+
     if (isCxx) {
         // precompiled header file
         var pch = ModUtils.moduleProperty(product, "precompiledHeader")

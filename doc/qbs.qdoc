@@ -1111,6 +1111,15 @@
     List of static libraries to be linked. If the library is part of your project, consider
     using a Depends item instead.
 
+    \section2 prefixHeaders
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of files to automatically include at the beginning of each source file in the product.
+
     \section2 precompiledHeader
 
     \table

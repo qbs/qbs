@@ -268,6 +268,12 @@ CppModule {
                     args.push('-fvisibility=default')
             }
 
+            var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
+            for (i in prefixHeaders) {
+                args.push('-include');
+                args.push(prefixHeaders[i]);
+            }
+
             args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
             for (i = 0, c = input.fileTags.length; i < c; ++i) {
                 if (input.fileTags[i] === "cpp") {
