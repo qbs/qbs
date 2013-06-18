@@ -1322,7 +1322,7 @@
     First, values from a list of defaults will be added to the dictionary if they were not already
     present. Then, values from the AdditionalInfo key of the platform SDK's Info.plist file will be
     added to the dictionary if they were not already present, as well as some other miscellaneous
-    keys, such as BuildMachineOSBuild and UIDeviceFamily (on iOS). \b{(not yet implemented)}
+    keys, such as BuildMachineOSBuild and UIDeviceFamily (on iOS).
     Finally, variable expansions will be performed such that substrings of the form ${VAR} will be
     replaced with their corresponding environment variables.
 
