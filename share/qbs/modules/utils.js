@@ -33,15 +33,15 @@ function traverseObject(obj, func, level)
 {
     if (!level)
         level = 0
-    var children = {}
-    for (var i in obj) {
-        if (typeof(obj[i]) == "object" && !(obj[i] instanceof Array))
+    var i, children = {}
+    for (i in obj) {
+        if (typeof(obj[i]) === "object" && !(obj[i] instanceof Array))
             children[i] = obj[i]
         else
             func.apply(this, [i, obj[i], level])
     }
     level++
-    for (var i in children) {
+    for (i in children) {
         func.apply(this, [i, children[i], level - 1])
         traverseObject(children[i], func, level)
     }
@@ -72,7 +72,7 @@ function EnvironmentVariable(name, separator, convertPathSeparators)
 
 EnvironmentVariable.prototype.prepend = function(v)
 {
-    if (this.value.length > 0 && this.value.charAt(0) != this.separator)
+    if (this.value.length > 0 && this.value.charAt(0) !== this.separator)
         this.value = this.separator + this.value
     if (this.convertPathSeparators)
         v = FileInfo.toWindowsSeparators(v)

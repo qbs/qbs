@@ -1,5 +1,5 @@
 function path(fp) {
-    if (fp[fp.length -1] == '/')
+    if (fp[fp.length -1] === '/')
         return fp;
     var last = fp.lastIndexOf('/');
     if (last < 0)
@@ -64,7 +64,7 @@ function isAbsolutePath(path)
 {
     if (!path)
         return false;
-    return (path.charAt(0) == '/' || windowsAbsolutePathPattern.test(path));
+    return (path.charAt(0) === '/' || windowsAbsolutePathPattern.test(path));
 }
 
 function toWindowsSeparators(str)
