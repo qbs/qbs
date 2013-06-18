@@ -13,6 +13,12 @@ UnixGCC {
     property path infoPlistFile
     property var infoPlist
     property bool processInfoPlist: true
+    property string infoPlistFormat: {
+        if (qbs.targetOS.contains("osx"))
+            return infoPlistFile ? "same-as-input" : "xml1"
+        else if (qbs.targetOS.contains("ios"))
+            return "binary1"
+    }
     property bool buildDsym: qbs.buildVariant === "release"
     property var buildEnv: {
         var env = {
@@ -131,6 +137,7 @@ UnixGCC {
             cmd.infoPlistFile = ModUtils.moduleProperty(product, "infoPlistFile");
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
+            cmd.infoPlistFormat = ModUtils.moduleProperty(product, "infoPlistFormat");
             cmd.platformPath = product.moduleProperty("cpp", "platformPath");
             cmd.toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
             cmd.sysroot = product.moduleProperty("qbs", "sysroot");
@@ -234,12 +241,17 @@ UnixGCC {
                 infoplist.write(JSON.stringify(aggregatePlist));
                 infoplist.close();
 
+                if (infoPlistFormat === "same-as-input" && infoPlistFile)
+                    infoPlistFormat = BundleTools.infoPlistFormat(infoPlistFile);
+
+                var validFormats = [ "xml1", "binary1", "json" ];
+                if (!validFormats.contains(infoPlistFormat))
+                    throw("Invalid Info.plist format " + infoPlistFormat + ". " +
+                          "Must be in [xml1, binary1, json].");
+
                 // Convert the written file to the format appropriate for the current platform
                 process = new Process();
-                process.start("plutil", ["-convert",
-                                        product.moduleProperty("qbs", "targetOS").contains("ios")
-                                            ? "binary1" : "xml1",
-                                        outputs.infoplist[0].fileName]);
+                process.start("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].fileName]);
                 process.waitForFinished();
             }
             return cmd;

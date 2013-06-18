@@ -33,6 +33,44 @@ function infoPlistContents(infoPlistFilePath)
     return JSON.parse(process.readAll());
 }
 
+function infoPlistFormat(infoPlistFilePath)
+{
+    if (infoPlistFilePath === undefined)
+        return undefined;
+
+    // Verify that the Info.plist format is actually valid in the first place
+    var process = new Process();
+    process.start("plutil", ["-lint", infoPlistFilePath]);
+    process.waitForFinished();
+    var lint = process.readAll().trim();
+    if (lint.indexOf(infoPlistFilePath + ": ") !== 0)
+        throw("Unexpected output from plutil command: " + lint);
+
+    lint = lint.slice(infoPlistFilePath.length + 2);
+
+    if (lint !== "OK")
+        throw("Info.plist was in an invalid format: " + lint);
+
+    process = new Process();
+    process.start("file", [infoPlistFilePath]);
+    process.waitForFinished();
+    var magic = process.readAll().trim();
+
+    if (magic.indexOf(infoPlistFilePath + ": ") !== 0)
+        throw("Unexpected output from file command: " + magic);
+
+    magic = magic.slice(infoPlistFilePath.length + 2);
+
+    if (magic === "Apple binary property list")
+        return "binary1";
+    else if (magic.indexOf("XML") === 0)
+        return "xml1";
+    else if (magic.indexOf("UTF-8 Unicode text") === 0)
+        return "json";
+
+    return undefined;
+}
+
 // CONTENTS_FOLDER_PATH
 // Main bundle directory
 // the version parameter is only used for framework bundles

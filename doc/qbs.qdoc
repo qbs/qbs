@@ -1292,6 +1292,18 @@
     Finally, variable expansions will be performed such that substrings of the form ${VAR} will be
     replaced with their corresponding environment variables.
 
+    \section2 infoPlistFormat
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"xml1"}, \c{"binary1"}, \c{"json"}, \c{"same-as-input"}
+    \row    \li \b{Default:}         \li \c{"binary1"} for iOS; \c{"same-as-input"} or \c{"xml1"}
+                                         for OS X depending on whether \c{infoPlistFile} is
+                                         specified; undefined for all other operating systems.
+    \endtable
+
+    The file format to write the product's resulting Info.plist in.
+
 
     \section1 Properties Specific to iOS
 
