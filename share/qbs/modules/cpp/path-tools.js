@@ -28,7 +28,7 @@ function staticLibraryFilePath()
         return staticLibraryFileName();
 }
 
-function dynamicLibraryFileName(version)
+function dynamicLibraryFileName(version, maxParts)
 {
     // If no override version was given, use the product's version
     // We specifically want to differentiate between undefined and i.e.
@@ -36,7 +36,14 @@ function dynamicLibraryFileName(version)
     // and undefined should be taken to mean "use the product's version"
     // (which could still end up being "no version")
     if (version === undefined)
-        version = product.version;
+        version = product.moduleProperty("cpp", "internalVersion");
+
+    // If we have a version number, potentially strip off some components
+    maxParts = parseInt(maxParts, 10);
+    if (maxParts === 0)
+        version = undefined;
+    else if (maxParts && version)
+        version = version.split('.').slice(0, maxParts).join('.');
 
     // Start with prefix + name (i.e. libqbs, qbs)
     var fileName = ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName;
@@ -58,12 +65,12 @@ function dynamicLibraryFileName(version)
     return fileName;
 }
 
-function dynamicLibraryFilePath(version)
+function dynamicLibraryFilePath(version, maxParts)
 {
     if (BundleTools.isBundleProduct(product))
         return BundleTools.executablePath(product, version);
     else
-        return dynamicLibraryFileName(version);
+        return dynamicLibraryFileName(version, maxParts);
 }
 
 function importLibraryFilePath()

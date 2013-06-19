@@ -215,9 +215,9 @@ function majorVersion(version, defaultValue)
     return isNaN(n) ? defaultValue : n;
 }
 
-function soname()
+function soname(product, outputFilePath)
 {
-    var outputFileName = FileInfo.fileName(output.fileName);
+    var outputFileName = FileInfo.fileName(outputFilePath);
     if (product.version) {
         var major = majorVersion(product.version);
         if (major) {

@@ -32,11 +32,37 @@ CppModule {
     property string compilerPath: { return toolchainPathPrefix + compilerName }
     property string archiverPath: { return toolchainPathPrefix + archiverName }
 
+    property bool createSymlinks: true
+
+    readonly property bool shouldCreateSymlinks: {
+        return createSymlinks && product.version &&
+                !type.contains("frameworkbundle") && qbs.targetOS.contains("unix");
+    }
+
+    readonly property string internalVersion: {
+        if (product.version === undefined)
+            return undefined;
+
+        if (typeof product.version !== "string"
+                || !product.version.match(/^([0-9]+\.){0,3}[0-9]+$/))
+            throw("product.version must be a string in the format x[.y[.z[.w]] "
+                + "where each component is an integer");
+
+        var maxVersionParts = 3;
+        var versionParts = product.version.split('.').slice(0, maxVersionParts);
+
+        // pad if necessary
+        for (var i = versionParts.length; i < maxVersionParts; ++i)
+            versionParts.push("0");
+
+        return versionParts.join('.');
+    }
+
     Rule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
+        usings: ["dynamiclibrary", "dynamiclibrary_symlink", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
@@ -53,7 +79,29 @@ CppModule {
             }
         }
 
+        // libfoo
+        Artifact {
+            condition: product.shouldCreateSymlinks
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 0)
+            fileTags: ["dynamiclibrary_symlink"]
+        }
+
+        // libfoo.1
+        Artifact {
+            condition: product.shouldCreateSymlinks
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 1)
+            fileTags: ["dynamiclibrary_symlink"]
+        }
+
+        // libfoo.1.0
+        Artifact {
+            condition: product.shouldCreateSymlinks
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 2)
+            fileTags: ["dynamiclibrary_symlink"]
+        }
+
         prepare: {
+            var libFilePath = outputs["dynamiclibrary"][0].fileName;
             var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var commands = [];
@@ -66,13 +114,13 @@ CppModule {
                     '-Wl,--as-needed',
                     '-Wl,--allow-shlib-undefined',
                     '-Wl,--no-undefined',
-                    '-Wl,-soname=' + Gcc.soname()
+                    '-Wl,-soname=' + Gcc.soname(product, libFilePath)
                 ]);
             } else if (product.moduleProperty("qbs", "targetOS").contains('darwin')) {
                 var installNamePrefix = product.moduleProperty("cpp", "installNamePrefix");
                 if (installNamePrefix !== undefined)
                     args.push("-Wl,-install_name,"
-                              + installNamePrefix + FileInfo.fileName(output.fileName));
+                              + installNamePrefix + FileInfo.fileName(libFilePath));
                 args.push("-Wl,-headerpad_max_install_names");
             }
             args = args.concat(platformLinkerFlags);
@@ -89,33 +137,24 @@ CppModule {
             }
 
             args.push('-o');
-            args.push(output.fileName);
+            args.push(libFilePath);
             args = args.concat(Gcc.libraryLinkerFlags(product, inputs));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
-            cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
+            cmd.description = 'linking ' + FileInfo.fileName(libFilePath);
             cmd.highlight = 'linker';
             cmd.responseFileUsagePrefix = '@';
             commands.push(cmd);
 
             // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
-            if (product.version
-                    && !product.type.contains("frameworkbundle")
-                    && product.moduleProperty("qbs", "targetOS").contains("unix")) {
-                var versionParts = product.version.split('.');
-                var version = "";
-                var fname = FileInfo.fileName(output.fileName);
-                for (var i = 0; i < versionParts.length; ++i) {
-                    // Remove existing symlink
-                    cmd = new Command("rm", ["-f", PathTools.dynamicLibraryFileName(version)]);
-                    cmd.workingDirectory = FileInfo.path(output.fileName);
+            if (ModUtils.moduleProperty(product, "shouldCreateSymlinks")) {
+                var links = outputs["dynamiclibrary_symlink"];
+                var symlinkCount = links.length;
+                for (var i = 0; i < symlinkCount; ++i) {
+                    cmd = new Command("ln", ["-sf", FileInfo.fileName(libFilePath),
+                                                    links[i].fileName]);
+                    cmd.workingDirectory = FileInfo.path(libFilePath);
                     commands.push(cmd);
-
-                    cmd = new Command("ln", ["-s", fname,
-                                             PathTools.dynamicLibraryFileName(version)]);
-                    cmd.workingDirectory = FileInfo.path(output.fileName);
-                    commands.push(cmd);
-                    version += (i !== 0 ? '.' : '') + versionParts[i];
                 }
             }
             return commands;
