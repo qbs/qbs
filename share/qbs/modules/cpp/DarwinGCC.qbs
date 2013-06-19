@@ -299,7 +299,7 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["application", "infoplist", "pkginfo", "dsym", "nib", "resourcerules", "ipa"]
+        inputs: ["application", "infoplist", "pkginfo", "dsym", "compiled_nib", "resourcerules", "ipa"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
@@ -317,7 +317,7 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "dsym", "nib"]
+        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "dsym", "compiled_nib"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
@@ -344,56 +344,6 @@ UnixGCC {
             cmd.workingDirectory = output.fileName;
             commands.push(cmd);
             return commands;
-        }
-    }
-
-    FileTagger {
-        pattern: "*.xib"
-        fileTags: ["xib"]
-    }
-
-    Rule {
-        inputs: ["xib"]
-        explicitlyDependsOn: ["infoplist"]
-
-        Artifact {
-            fileName: {
-                var path = product.destinationDirectory;
-
-                var xibFilePath = input.baseDir + '/' + input.fileName;
-                var key = DarwinTools.localizationKey(xibFilePath);
-                if (key) {
-                    path += '/' + BundleTools.localizedResourcesFolderPath(product, key);
-                    var subPath = DarwinTools.relativeResourcePath(xibFilePath);
-                    if (subPath && subPath !== '.')
-                        path += '/' + subPath;
-                } else {
-                    path += '/' + BundleTools.unlocalizedResourcesFolderPath(product);
-                    path += '/' + input.baseDir;
-                }
-
-                return path + '/' + input.completeBaseName + ".nib";
-            }
-
-            fileTags: ["nib"]
-        }
-
-        prepare: {
-            var cmd = new Command("ibtool", [
-                                      '--output-format', 'human-readable-text',
-                                      '--warnings', '--errors', '--notices',
-                                      '--compile', output.fileName, input.fileName,
-                                      '--sdk', product.moduleProperty("qbs", "sysroot")]);
-
-            cmd.description = 'ibtool ' + FileInfo.fileName(input.fileName);
-
-            // Also display the language name of the XIB being compiled if it has one
-            var localizationKey = DarwinTools.localizationKey(input.fileName);
-            if (localizationKey)
-                cmd.description += ' (' + localizationKey + ')';
-
-            cmd.highlight = 'compiler';
-            return cmd;
         }
     }
 }

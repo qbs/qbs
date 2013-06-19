@@ -48,7 +48,7 @@ DarwinGCC {
     Rule {
         condition: product.moduleProperty("cpp", "buildIpa")
         multiplex: true
-        inputs: ["application", "infoplist", "pkginfo", "resourcerules", "nib"]
+        inputs: ["application", "infoplist", "pkginfo", "resourcerules", "compiled_nib"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + product.targetName + ".ipa"

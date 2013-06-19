@@ -1,6 +1,7 @@
 import qbs 1.0
 
 CppApplication {
+    Depends { name: "ib" }
     condition: qbs.targetOS.contains("osx")
     type: "applicationbundle"
     name: "CocoaApplication"
