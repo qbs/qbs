@@ -1,35 +1,77 @@
-function libraryLinkerFlags(libraryPaths, frameworkPaths, systemFrameworkPaths, rpaths, dynamicLibraries, staticLibraries, frameworks, weakFrameworks)
+function libraryLinkerFlags(product, inputs)
 {
-    var i;
-    var args = [];
+    var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
+    var dynamicLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries');
+    var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
+    var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+    var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
+    var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
+    var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
+    var rpaths = ModUtils.moduleProperties(product, 'rpaths');
+    var args = [], i, prefix, suffix;
+
     if (rpaths && rpaths.length)
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
-    for (i in libraryPaths) {
-        args.push('-L' + libraryPaths[i]);
-    }
-    for (i in staticLibraries) {
-        if (staticLibraries[i].match(/\.(a|lib)$/i)) {
-            args.push(staticLibraries[i]);
-        } else {
-            args.push('-l' + staticLibraries[i]);
-        }
-    }
-    for (i in dynamicLibraries) {
-        if (FileInfo.isAbsolutePath(dynamicLibraries[i])) {
-            args.push(dynamicLibraries[i]);
-        } else {
-            args.push('-l' + dynamicLibraries[i]);
-        }
-    }
+
+    // Add filenames of internal library dependencies to the lists
+    for (i in inputs.staticlibrary)
+        staticLibraries.unshift(inputs.staticlibrary[i].fileName);
+    for (i in inputs.dynamiclibrary)
+        dynamicLibraries.unshift(inputs.dynamiclibrary[i].fileName);
+    for (i in inputs.frameworkbundle)
+        frameworks.unshift(inputs.frameworkbundle[i].fileName);
+
+    // Flags for library search paths
+    if (libraryPaths)
+        args = args.concat(libraryPaths.map(function(path) { return '-L' + path }));
     if (frameworkPaths)
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
     if (systemFrameworkPaths)
         args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
-    for (i in frameworks)
-        args = args.concat(['-framework', frameworks[i]]);
-    for (i in weakFrameworks)
-        args = args.concat(['-weak_framework', weakFrameworks[i]]);
+
+    prefix = ModUtils.moduleProperty(product, "staticLibraryPrefix");
+    suffix = ModUtils.moduleProperty(product, "staticLibrarySuffix");
+    for (i in staticLibraries) {
+        if (isLibraryFileName(product, FileInfo.fileName(staticLibraries[i]), prefix, suffix, false))
+            args.push(staticLibraries[i]);
+        else
+            args.push('-l' + staticLibraries[i]);
+    }
+
+    prefix = ModUtils.moduleProperty(product, "dynamicLibraryPrefix");
+    suffix = ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
+    for (i in dynamicLibraries) {
+        if (isLibraryFileName(product, FileInfo.fileName(dynamicLibraries[i]), prefix, suffix, true))
+            args.push(dynamicLibraries[i]);
+        else
+            args.push('-l' + dynamicLibraries[i]);
+    }
+
+    suffix = ".framework";
+    for (i in frameworks) {
+        if (frameworks[i].slice(-suffix.length) === suffix)
+            args.push(frameworks[i] + "/" + FileInfo.fileName(frameworks[i]).slice(0, -suffix.length));
+        else
+            args = args.concat(['-framework', frameworks[i]]);
+    }
+
+    for (i in weakFrameworks) {
+        if (weakFrameworks[i].slice(-suffix.length) === suffix)
+            args.push(weakFrameworks[i] + "/" + FileInfo.fileName(weakFrameworks[i]).slice(0, -suffix.length));
+        else
+            args = args.concat(['-weak_framework', weakFrameworks[i]]);
+    }
+
     return args;
+}
+
+// Returns whether the string looks like a library filename
+function isLibraryFileName(product, fileName, prefix, suffix, isShared)
+{
+    var os = product.moduleProperty("qbs", "targetOS");
+    if (os.contains("unix") && !os.contains("darwin") && isShared)
+        suffix += "(\\.[0-9]+){0,3}";
+    return fileName.match("^" + prefix + ".+?\\" + suffix + "$");
 }
 
 // for compiler AND linker
@@ -70,8 +112,13 @@ function removePrefixAndSuffix(str, prefix, suffix)
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIncludePaths, systemFrameworkPaths, fileName, output)
+function additionalCompilerFlags(product, input, output)
 {
+    var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+    var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
+    var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
+    var systemFrameworkPaths = ModUtils.moduleProperties(input, 'systemFrameworkPaths');
+
     var EffectiveTypeEnum = { UNKNOWN: 0, LIB: 1, APP: 2 };
     var effectiveType = EffectiveTypeEnum.UNKNOWN;
     var libTypes = {staticlibrary : 1, dynamiclibrary : 1, frameworkbundle : 1};
@@ -138,7 +185,7 @@ function additionalCompilerFlags(product, includePaths, frameworkPaths, systemIn
     }
 
     args.push('-c');
-    args.push(fileName);
+    args.push(input.fileName);
     args.push('-o');
     args.push(output.fileName);
     return args
