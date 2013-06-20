@@ -274,9 +274,14 @@ void ScriptEngine::extendJavaScriptBuiltins()
     JSTypeExtender arrayExtender(this, QLatin1String("Array"));
     arrayExtender.addFunction(QLatin1String("contains"),
         QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
+
     JSTypeExtender stringExtender(this, QLatin1String("String"));
     stringExtender.addFunction(QLatin1String("contains"),
         QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
+    stringExtender.addFunction(QLatin1String("startsWith"),
+        QLatin1String("(function(e){return this.slice(0, e.length) === e;})"));
+    stringExtender.addFunction(QLatin1String("endsWith"),
+        QLatin1String("(function(e){return this.slice(-e.length) === e;})"));
 }
 
 } // namespace Internal
