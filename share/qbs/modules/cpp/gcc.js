@@ -8,7 +8,7 @@ function libraryLinkerFlags(libraryPaths, frameworkPaths, systemFrameworkPaths, 
         args.push('-L' + libraryPaths[i]);
     }
     for (i in staticLibraries) {
-        if (FileInfo.isAbsolutePath(staticLibraries[i])) {
+        if (staticLibraries[i].match(/\.(a|lib)$/i)) {
             args.push(staticLibraries[i]);
         } else {
             args.push('-l' + staticLibraries[i]);
