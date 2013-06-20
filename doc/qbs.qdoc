@@ -859,7 +859,7 @@
     \section1 hostOS
 
     \table
-    \row    \li \b{Type:}            \li \c{Array} of \c{string}s (read only)
+    \row    \li \b{Type:}            \li \c{stringList} (read only)
     \endtable
 
     This property is set by qbs internally and specifies the OS qbs is running on.
@@ -870,7 +870,7 @@
     \section1 targetOS
 
     \table
-    \row    \li \b{Type:}            \li \c{Array} of \c{string}s
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Possible Values:} \li one or more of:
             \c{"aix"},
             \c{"android"},
@@ -944,7 +944,7 @@
     \section1 toolchain
 
     \table
-    \row    \li \b{Type:}            \li \c{Array} of \c{string}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Allowed Values:}  \li \c{"gcc"}, \c{"llvm"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}
     \endtable
 
@@ -1030,7 +1030,7 @@
     \section2 defines
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1043,7 +1043,7 @@
     \section2 platformDefines
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1053,7 +1053,7 @@
     \section2 compilerDefines
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1094,7 +1094,7 @@
     \section2 dynamicLibraries
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1104,7 +1104,7 @@
     \section2 staticLibraries
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1161,7 +1161,7 @@
     \section2 commonCompilerFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1170,7 +1170,7 @@
     \section2 cppFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1179,7 +1179,7 @@
     \section2 cFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1188,7 +1188,7 @@
     \section2 cxxFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1197,7 +1197,7 @@
     \section2 objcFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1206,7 +1206,7 @@
     \section2 objcxxFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1215,7 +1215,7 @@
     \section2 linkerFlags
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li undefined
     \endtable
 
@@ -1265,7 +1265,7 @@
     \section2 frameworks
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1275,7 +1275,7 @@
     \section2 weakFrameworks
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 
@@ -1381,7 +1381,7 @@
     \section2 rpaths
 
     \table
-    \row    \li \b{Type:}            \li \c{array of strings}
+    \row    \li \b{Type:}            \li \c{stringList}
     \row    \li \b{Default:}         \li \c{undefined}
     \endtable
 

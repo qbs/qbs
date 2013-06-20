@@ -84,7 +84,7 @@
             \li The name of the product. Used to identify the product in a \c Depends item, for example.
         \row
             \li type
-            \li list of strings
+            \li stringList
             \li empty list
             \li The file tags matching the product's target artifacts.
         \row
@@ -99,12 +99,12 @@
             \li The directory where the target artifacts will be located. Relative to the build directory.
         \row
             \li files
-            \li list of strings
+            \li stringList
             \li empty list
             \li A list of source files. Syntactic sugar to save a \c Group item for simple products.
         \row
             \li excludeFiles
-            \li list of strings
+            \li stringList
             \li empty list
             \li A list of source files not to include. Useful with wildcards.
                 For more information, see \l {Group Item}.
@@ -117,7 +117,7 @@
                 Only takes effect on Windows.
         \row
             \li moduleSearchPaths
-            \li list of strings
+            \li stringList
             \li \c project.moduleSearchPaths
             \li The paths that are searched when looking for a module this product depends on.
                 For more information, see \l{Project Item}. Setting this

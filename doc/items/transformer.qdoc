@@ -79,7 +79,7 @@
         \li Description
     \row
         \li inputs
-        \li list of strings
+        \li stringList
         \li empty list
         \li The list of inputs to the transformer.
     \row

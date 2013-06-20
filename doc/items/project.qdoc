@@ -72,7 +72,7 @@
                 collected.
         \row
             \li moduleSearchPaths
-            \li list of strings
+            \li stringList
             \li empty
             \li The paths that are searched when looking for a module a product depends on.
                 All products in the project inherit this value by default.
