@@ -36,11 +36,11 @@ Probe {
         for (i = 0; i < _names.length; ++i) {
             for (var j = 0; j < _paths.length; ++j) {
                 for (var k = 0; k < _suffixes.length; ++k) {
-                    var fileName = FileInfo.joinPaths(_paths[j], _suffixes[k], _names[i]);
-                    if (File.exists(fileName)) {
+                    var _filePath = FileInfo.joinPaths(_paths[j], _suffixes[k], _names[i]);
+                    if (File.exists(_filePath)) {
                         found = true;
                         path = FileInfo.joinPaths(_paths[j], _suffixes[k]);
-                        filePath = fileName;
+                        filePath = _filePath;
                         fileName = _names[i];
                         return;
                     }
@@ -49,5 +49,7 @@ Probe {
         }
         found = false;
         path = undefined;
+        filePath = undefined;
+        fileName = undefined;
     }
 }
