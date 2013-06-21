@@ -34,6 +34,7 @@
 #include "command.h"
 #include "transformer.h"
 
+#include <jsextensions/domxml.h>
 #include <jsextensions/file.h>
 #include <jsextensions/process.h>
 #include <jsextensions/textfile.h>
@@ -126,6 +127,7 @@ public:
             File::init(extensionObject);
             TextFile::init(extensionObject);
             Process::init(extensionObject);
+            DomXml::init(extensionObject);
             m_enginesPerThread.insert(currentThread, scriptEngine);
         } else {
             scriptEngine->setLogger(m_logger);

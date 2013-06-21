@@ -32,6 +32,31 @@ Project {
         }
 
         Transformer {
+            // no inputs -> just a generator
+            Artifact {
+                fileName: "foo.xml"
+                fileTags: "xml"
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating foo.xml";
+                cmd.highlight = "linker";
+                cmd.sourceCode = function () {
+                    File.remove(output.fileName);
+                    var doc = new XmlDomDocument();
+                    var root = doc.createElement("root");
+                    doc.appendChild(root);
+
+                    var tag = doc.createElement("Greeting");
+                    root.appendChild(tag);
+                    tag.appendChild(doc.createTextNode("text node"));
+                    doc.save(output.fileName);
+                }
+                return cmd;
+            }
+        }
+
+        Transformer {
             inputs: ["main.cpp"]    // will be taken from the source dir
             Artifact {
                 fileName: "bar.txt"

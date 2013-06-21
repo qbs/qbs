@@ -2,7 +2,7 @@ import qbs 1.0
 
 DynamicLibrary {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["core", "script", "test"] }
+    Depends { name: "Qt"; submodules: ["core", "script", "xml", "test"] }
     Depends { condition: Qt.core.versionMajor >= 5; name: "Qt.concurrent" }
     name: "qbscore"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
@@ -129,7 +129,9 @@ DynamicLibrary {
             "process.cpp",
             "process.h",
             "textfile.cpp",
-            "textfile.h"
+            "textfile.h",
+            "domxml.cpp",
+            "domxml.h"
         ]
     }
     Group {
