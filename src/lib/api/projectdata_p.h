@@ -39,31 +39,43 @@ namespace Internal {
 class GroupDataPrivate : public QSharedData
 {
 public:
+    GroupDataPrivate() : isValid(false)
+    { }
+
     QString name;
     CodeLocation location;
     QStringList filePaths;
     QStringList expandedWildcards;
     PropertyMap properties;
     bool isEnabled;
+    bool isValid;
 };
 
 class ProductDataPrivate : public QSharedData
 {
 public:
+    ProductDataPrivate() : isValid(false)
+    { }
+
     QString name;
     CodeLocation location;
     QStringList fileTags;
     PropertyMap properties;
     QList<GroupData> groups;
     bool isEnabled;
+    bool isValid;
 };
 
 class ProjectDataPrivate : public QSharedData
 {
 public:
+    ProjectDataPrivate() : isValid(false)
+    { }
+
     QString name;
     CodeLocation location;
     bool enabled;
+    bool isValid;
     QList<ProductData> products;
     QList<ProjectData> subProjects;
     QString buildDir;

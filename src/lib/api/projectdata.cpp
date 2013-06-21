@@ -61,6 +61,14 @@ GroupData::~GroupData()
 }
 
 /*!
+ * \brief Returns true if and only if the Group holds data that was initialized by Qbs.
+ */
+bool GroupData::isValid() const
+{
+    return d->isValid;
+}
+
+/*!
  * \brief The location at which the group is defined in the respective source file.
  */
 CodeLocation GroupData::location() const
@@ -174,6 +182,14 @@ ProductData::~ProductData()
 }
 
 /*!
+ * \brief Returns true if and only if the Product holds data that was initialized by Qbs.
+ */
+bool ProductData::isValid() const
+{
+    return d->isValid;
+}
+
+/*!
  * \brief The name of the product as given in the qbs source file.
  */
 QString ProductData::name() const
@@ -273,6 +289,14 @@ ProjectData &ProjectData::operator =(const ProjectData &other)
 
 ProjectData::~ProjectData()
 {
+}
+
+/*!
+ * \brief Returns true if and only if the Project holds data that was initialized by Qbs.
+ */
+bool ProjectData::isValid() const
+{
+    return d->isValid;
 }
 
 /*!

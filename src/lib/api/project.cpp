@@ -245,9 +245,11 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             qSort(group.d->expandedWildcards);
             group.d->properties.d->m_map = resolvedGroup->properties;
             group.d->isEnabled = resolvedGroup->enabled;
+            group.d->isValid = true;
             product.d->groups << group;
         }
         qSort(product.d->groups);
+        product.d->isValid = true;
         projectData.d->products << product;
     }
     foreach (const ResolvedProjectConstPtr &internalSubProject, internalProject->subProjects) {
@@ -255,6 +257,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         retrieveProjectData(subProject, internalSubProject);
         projectData.d->subProjects << subProject;
     }
+    projectData.d->isValid = true;
     qSort(projectData.d->products);
     qSort(projectData.d->subProjects);
     m_projectDataRetrieved = true;

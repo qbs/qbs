@@ -90,6 +90,8 @@ public:
     GroupData &operator=(const GroupData &other);
     ~GroupData();
 
+    bool isValid() const;
+
     CodeLocation location() const;
     QString name() const;
     QStringList filePaths() const;
@@ -115,6 +117,8 @@ public:
     ProductData &operator=(const ProductData &other);
     ~ProductData();
 
+    bool isValid() const;
+
     QString name() const;
     CodeLocation location() const;
     QStringList fileTags() const;
@@ -138,6 +142,8 @@ public:
     ProjectData(const ProjectData &other);
     ProjectData &operator=(const ProjectData &other);
     ~ProjectData();
+
+    bool isValid() const;
 
     QString name() const;
     CodeLocation location() const;
