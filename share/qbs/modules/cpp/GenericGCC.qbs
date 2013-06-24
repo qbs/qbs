@@ -143,12 +143,8 @@ CppModule {
             }
             cpp.dynamicLibraries: {
                 var result = []
-                for (var i in inputs.dynamiclibrary) {
-                    var lib = inputs.dynamiclibrary[i]
-                    result.push(lib.fileName)
-                    var impliedLibs = ModUtils.moduleProperties(lib, 'dynamicLibraries')
-                    result.concat(impliedLibs)
-                }
+                for (var i in inputs.dynamiclibrary)
+                    result.push(inputs.dynamiclibrary[i].fileName);
                 return result
             }
         }
