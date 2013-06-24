@@ -26,10 +26,11 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "helper.h"
+#include "helper1.h"
+#include <helper2.h>
 
 int getSomeNumber()
 {
-    return 156;
+    return 12 * getOddNumber();
 }
 

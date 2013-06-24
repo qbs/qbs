@@ -13,19 +13,33 @@ Project {
         name : "mystaticlib"
         files : [ "mystaticlib.cpp" ]
         Depends { name: "cpp" }
-        Depends { name: "helperlib" }
+        Depends { name: "helper1" }
     }
 
     StaticLibrary {
-        name : "helperlib"
+        name : "helper1"
         files : [
-            "helper/helper.h",
-            "helper/helper.cpp"
+            "helper1/helper1.h",
+            "helper1/helper1.cpp"
+        ]
+        Depends { name: "cpp" }
+        Depends { name: "helper2" }
+        Export {
+            Depends { name: "cpp" }
+            cpp.includePaths: ['helper1']
+        }
+    }
+
+    StaticLibrary {
+        name : "helper2"
+        files : [
+            "helper2/helper2.h",
+            "helper2/helper2.cpp"
         ]
         Depends { name: "cpp" }
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: ['helper']
+            cpp.includePaths: ['helper2']
         }
     }
 }

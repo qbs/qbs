@@ -26,10 +26,10 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef HELPER_H
-#define HELPER_H
+#include "helper2.h"
 
-extern int getSomeNumber();
-
-#endif
+int getOddNumber()
+{
+    return 13;
+}
 

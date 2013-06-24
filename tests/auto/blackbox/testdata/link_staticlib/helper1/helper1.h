@@ -26,13 +26,10 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef HELPER1_H
+#define HELPER1_H
 
-#include <stdio.h>
-#include <helper1.h>
+extern int getSomeNumber();
 
-int bla()
-{
-    int n = getSomeNumber();
-    printf("Hello World! The magic number is %d.", n);
-    return n;
-}
+#endif
+
