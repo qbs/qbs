@@ -78,7 +78,7 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
         if (!product->buildData)
             continue;
         foreach (Artifact * const a, product->buildData->artifacts) {
-            a->project = project;
+            a->topLevelProject = project->topLevelProject();
             project->topLevelProject()->buildData->insertIntoArtifactLookupTable(a);
         }
     }
@@ -146,7 +146,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
 
     restoreBackPointers(project);
     foreach (Artifact * const a, project->buildData->dependencyArtifacts)
-        a->project = project;
+        a->topLevelProject = project.data();
 
     project->location = CodeLocation(parameters.projectFilePath(), project->location.line(),
                                      project->location.column());
@@ -163,54 +163,6 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     return m_result;
 }
 
-static void exchangeDependencies(const ResolvedProductPtr &newProduct,
-                                 const QList<ResolvedProductPtr> &allRestoredProducts,
-                                 const QList<ResolvedProductPtr> &addedProducts)
-{
-    QSet<ResolvedProductPtr> newDependencies;
-    foreach (const ResolvedProductPtr &dependency, newProduct->dependencies) {
-        if (addedProducts.contains(dependency)) {
-            newDependencies << dependency;
-            exchangeDependencies(dependency, allRestoredProducts, addedProducts);
-            continue;
-        }
-        bool counterPartFound = false;
-        foreach (const ResolvedProductPtr &restoredProduct, allRestoredProducts) {
-            if (restoredProduct->name == dependency->name) {
-                newDependencies << restoredProduct;
-                counterPartFound = true;
-                break;
-            }
-        }
-        QBS_CHECK(counterPartFound);
-    }
-    newProduct->dependencies = newDependencies;
-}
-
-static void manipulateAddedProducts(const QList<ResolvedProjectPtr> &allRestoredProjects,
-                                    const QList<ResolvedProductPtr> &allRestoredProducts,
-                                    const QList<ResolvedProductPtr> &addedProducts)
-{
-    foreach (const ResolvedProductPtr &product, addedProducts) {
-        // Find the right existing (sub-)project to put the new product into.
-        bool projectFound = false;
-        foreach (const ResolvedProjectPtr &project, allRestoredProjects) {
-            if (project->location != product->project->location)
-                continue;
-            product->project = project;
-            project->products.append(product);
-            projectFound = true;
-            break;
-        }
-        QBS_CHECK(projectFound);
-
-        // Exchange dependencies that are not new with their counterparts from the restored project.
-        exchangeDependencies(product, allRestoredProducts, addedProducts);
-    }
-}
-
-// TODO: Pay more attention to project metadata such as name and location. If these change,
-// we must transfer them over to the old build graph.
 void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &parameters,
         const QString &buildGraphFilePath, const TopLevelProjectPtr &restoredProject)
 {
@@ -234,12 +186,12 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         }
     }
     if (subProjectRemoved) {
-        m_logger.qbsTrace() << "A sub-project was removed, must re-resolve project";
+        m_logger.qbsDebug() << "A sub-project was removed, must re-resolve project";
         // Save build graph to prevent a re-resolve on every run now.
         restoredProject->buildData->isDirty = true;
     }
     if (projectFileChanged) {
-        m_logger.qbsTrace() << "A project file changed, must re-resolve project.";
+        m_logger.qbsDebug() << "A project file changed, must re-resolve project.";
         // Save build graph to prevent a re-resolve on every run now.
         restoredProject->buildData->isDirty = true;
     }
@@ -250,10 +202,10 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         environmentChanged = m_environment.value(it.key()) != it.value();
     }
     if (environmentChanged)
-        m_logger.qbsTrace() << "A relevant environment variable changed, must re-resolve project.";
+        m_logger.qbsDebug() << "A relevant environment variable changed, must re-resolve project.";
 
     bool productRemoved = false;
-    const QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
+    QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
     foreach (const ResolvedProductPtr &product, allRestoredProducts) {
         const QString fileName = product->location.fileName();
@@ -288,11 +240,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
             break;
         }
     }
-   if (filesChanged) {
-       m_logger.qbsTrace() << "A qbs or js file changed, must re-resolve project";
-       // Save build graph to prevent a re-resolve on every run now.
-       restoredProject->buildData->isDirty = true;
-   }
+   if (filesChanged)
+       m_logger.qbsDebug() << "A qbs or js file changed, must re-resolve project";
 
    if (!filesChanged && !environmentChanged && !projectFileChanged
            && !subProjectRemoved && !productRemoved && changedProducts.isEmpty())
@@ -303,7 +252,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     m_result.newlyResolvedProject = ldr.loadProject(parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;
-    const QList<ResolvedProductPtr> allNewlyResolvedProducts
+    QList<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();
     foreach (const ResolvedProductPtr &cp, allNewlyResolvedProducts)
         freshProductsByName.insert(cp->name, cp);
@@ -318,6 +267,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
             seenTransformers.insert(artifact->transformer);
             ResolvedProductPtr freshProduct = freshProductsByName.value(product->name);
             if (freshProduct && checkForPropertyChanges(artifact->transformer, freshProduct)) {
+                m_logger.qbsDebug() << "Cannot re-use build graph due to property changes "
+                                       "in product '" << freshProduct->name << "'.";
                 m_result.discardLoadedProject = true;
                 return;
             }
@@ -333,41 +284,54 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
             return;
     }
 
-    QSet<QString> oldProductNames, newProductNames;
-    foreach (const ResolvedProductConstPtr &product, allRestoredProducts)
-        oldProductNames += product->name;
-    foreach (const ResolvedProductConstPtr &product, allNewlyResolvedProducts)
-        newProductNames += product->name;
+    // Move over restored build data to newly resolved project.
+    m_result.newlyResolvedProject->buildData.swap(restoredProject->buildData);
+    QBS_CHECK(m_result.newlyResolvedProject->buildData);
+    foreach (Artifact * const a, m_result.newlyResolvedProject->buildData->dependencyArtifacts)
+        a->topLevelProject = m_result.newlyResolvedProject.data();
+    m_result.newlyResolvedProject->buildData->isDirty = true;
+    for (int i = allNewlyResolvedProducts.count() - 1; i >= 0; --i) {
+        const ResolvedProductPtr &newlyResolvedProduct = allNewlyResolvedProducts.at(i);
+        for (int j = allRestoredProducts.count() - 1; j >= 0; --j) {
+            const ResolvedProductPtr &restoredProduct = allRestoredProducts.at(j);
+            if (newlyResolvedProduct->name == restoredProduct->name) {
+                newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
+                if (newlyResolvedProduct->buildData) {
+                    foreach (Artifact * const a, newlyResolvedProduct->buildData->artifacts) {
+                        a->product = newlyResolvedProduct;
+                        a->topLevelProject = newlyResolvedProduct->topLevelProject();
+                    }
+                }
 
-    const QSet<QString> removedProductsNames = oldProductNames - newProductNames;
-    if (!removedProductsNames.isEmpty()) {
-        foreach (const ResolvedProductPtr &product, allRestoredProducts) {
-            if (removedProductsNames.contains(product->name))
-                onProductRemoved(product);
+                // Keep in list if build data still needs to be resolved.
+                if (!newlyResolvedProduct->enabled || newlyResolvedProduct->buildData)
+                    allNewlyResolvedProducts.removeAt(i);
+
+                allRestoredProducts.removeAt(j);
+                break;
+            }
         }
     }
 
-    const QSet<QString> addedProductNames = newProductNames - oldProductNames;
-    QList<ResolvedProductPtr> addedProducts;
-    foreach (const QString &productName, addedProductNames) {
-        const ResolvedProductPtr &freshProduct = freshProductsByName.value(productName);
-        QBS_ASSERT(freshProduct, continue);
-        addedProducts.append(freshProduct);
-    }
-    if (!addedProducts.isEmpty()) {
-        manipulateAddedProducts(allRestoredProjects, allRestoredProducts, addedProducts);
+    // Products still left in the list need resolving, either because they are new
+    // or because they are newly enabled.
+    if (!allNewlyResolvedProducts.isEmpty()) {
         BuildDataResolver bpr(m_logger);
-        bpr.resolveProductBuildDataForExistingProject(restoredProject, addedProducts);
+        bpr.resolveProductBuildDataForExistingProject(m_result.newlyResolvedProject,
+                                                      allNewlyResolvedProducts);
     }
 
-    CycleDetector(m_logger).visitProject(restoredProject);
+    // Products still left in the list do not exist anymore.
+    foreach (const ResolvedProductPtr &removedProduct, allRestoredProducts)
+        onProductRemoved(removedProduct);
+
+    CycleDetector(m_logger).visitProject(m_result.newlyResolvedProject);
 }
 
 void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product)
 {
     m_logger.qbsDebug() << "[BG] product '" << product->name << "' removed.";
 
-    product->topLevelProject()->buildData->isDirty = true;
     product->project->products.removeOne(product);
 
     // delete all removed artifacts physically from the disk
@@ -499,14 +463,14 @@ void BuildGraphLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
-            artifact->topLevelProject()->buildData->artifactsThatMustGetNewTransformers += parent;
+            artifact->topLevelProject->buildData->artifactsThatMustGetNewTransformers += parent;
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.isEmpty();
         }
         if (removeParent)
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
-    artifact->topLevelProject()->buildData->removeArtifact(artifact, m_logger);
+    artifact->topLevelProject->buildData->removeArtifact(artifact, m_logger);
 }
 
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
@@ -524,22 +488,26 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
             v = finder.propertyValue(freshProduct->properties->value(), property.moduleName,
                                      property.propertyName);
         }
-        if (property.value != v)
+        if (property.value != v) {
+            m_logger.qbsDebug() << "Value for property '" << property.moduleName << "."
+                                << property.propertyName << "' has changed.";
+            m_logger.qbsDebug() << "Old value was '" << property.value << "'.";
+            m_logger.qbsDebug() << "New value is '" << v << "'.";
             return true;
+        }
     }
     return false;
 }
 
 void BuildGraphLoader::replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact)
 {
-    QBS_ASSERT(filedep->project == artifact->project, return);
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace()
             << QString::fromLocal8Bit("[BG] replace file dependency '%1' "
                                       "with artifact of type '%2'")
                              .arg(relativeArtifactFileName(filedep)).arg(artifact->artifactType);
     }
-    foreach (const ResolvedProductPtr &product, filedep->project->products) {
+    foreach (const ResolvedProductPtr &product, filedep->topLevelProject->allProducts()) {
         if (!product->buildData)
             continue;
         foreach (Artifact *artifactInProduct, product->buildData->artifacts) {
@@ -550,8 +518,8 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(Artifact *filedep, Arti
             artifactInProduct->fileDependencies.remove(filedep);
         }
     }
-    filedep->topLevelProject()->buildData->dependencyArtifacts.remove(filedep);
-    filedep->topLevelProject()->buildData->removeFromArtifactLookupTable(filedep);
+    filedep->topLevelProject->buildData->dependencyArtifacts.remove(filedep);
+    filedep->topLevelProject->buildData->removeFromArtifactLookupTable(filedep);
     delete filedep;
 }
 

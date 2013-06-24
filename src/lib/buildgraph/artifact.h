@@ -59,7 +59,7 @@ public:
     // include language.h in every file that includes artifact.h due to Qt 4's weird
     // QSharedPointer implementation.
     Artifact();
-    explicit Artifact(const ResolvedProjectPtr &project);
+    explicit Artifact(TopLevelProject *project);
 
     ~Artifact();
 
@@ -67,7 +67,7 @@ public:
     ArtifactList children;
     ArtifactList fileDependencies;
     FileTags fileTags;
-    WeakPointer<ResolvedProject> project;
+    TopLevelProject *topLevelProject;
     WeakPointer<ResolvedProduct> product;          // Note: file dependency artifacts don't belong to a product.
     TransformerPtr transformer;
     PropertyMapPtr properties;
@@ -102,7 +102,6 @@ public:
     QString dirPath() const { return m_dirPath.toString(); }
     QString fileName() const { return m_fileName.toString(); }
     void disconnectAll(const Logger &logger);
-    TopLevelProject *topLevelProject() const;
 
 private:
     void load(PersistentPool &pool);

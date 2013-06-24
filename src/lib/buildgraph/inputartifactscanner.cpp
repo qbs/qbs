@@ -315,11 +315,11 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]   + '%1'")
                                    .arg(dependency.filePath);
         }
-        dependency.artifact = new Artifact(m_artifact->project);
+        dependency.artifact = new Artifact(m_artifact->topLevelProject);
         dependency.artifact->artifactType = Artifact::FileDependency;
         dependency.artifact->properties = m_artifact->properties;
         dependency.artifact->setFilePath(dependency.filePath);
-        m_artifact->topLevelProject()->buildData->insertFileDependency(dependency.artifact);
+        m_artifact->topLevelProject->buildData->insertFileDependency(dependency.artifact);
     } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
         // The dependency exists in the project's list of file dependencies.
         if (m_logger.traceEnabled()) {

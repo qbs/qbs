@@ -246,7 +246,7 @@ void connect(Artifact *p, Artifact *c)
     QBS_CHECK(p != c);
     p->children.insert(c);
     c->parents.insert(p);
-    p->topLevelProject()->buildData->isDirty = true;
+    p->topLevelProject->buildData->isDirty = true;
 }
 
 void loggedConnect(Artifact *u, Artifact *v, const Logger &logger)
@@ -318,7 +318,7 @@ void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger)
 
 QString relativeArtifactFileName(const Artifact *n)
 {
-    const QString &buildDir = n->topLevelProject()->buildDirectory;
+    const QString &buildDir = n->topLevelProject->buildDirectory;
     QString str = n->filePath();
     if (str.startsWith(buildDir))
         str.remove(0, buildDir.count());
@@ -355,7 +355,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact, const Logger &logger)
 {
-    Artifact *artifact = new Artifact(product->project);
+    Artifact *artifact = new Artifact(product->topLevelProject());
     artifact->artifactType = Artifact::SourceFile;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->fileTags = sourceArtifact->fileTags;

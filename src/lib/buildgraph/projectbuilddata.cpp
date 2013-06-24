@@ -222,10 +222,10 @@ void BuildDataResolver::rescueBuildData(const TopLevelProjectConstPtr &source,
                                       const TopLevelProjectPtr &target, Logger logger)
 {
     QHash<QString, ResolvedProductConstPtr> sourceProductsByName;
-    foreach (const ResolvedProductConstPtr &product, source->products)
+    foreach (const ResolvedProductConstPtr &product, source->allProducts())
         sourceProductsByName.insert(product->name, product);
 
-    foreach (const ResolvedProductPtr &product, target->products) {
+    foreach (const ResolvedProductPtr &product, target->allProducts()) {
         ResolvedProductConstPtr sourceProduct = sourceProductsByName.value(product->name);
         if (!sourceProduct)
             continue;
@@ -296,7 +296,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     //add qbsFile artifact
     Artifact *qbsFileArtifact = lookupArtifact(product, product->location.fileName());
     if (!qbsFileArtifact) {
-        qbsFileArtifact = new Artifact(product->project);
+        qbsFileArtifact = new Artifact(product->topLevelProject());
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(product->location.fileName());
         qbsFileArtifact->properties = product->properties;

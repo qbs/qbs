@@ -711,7 +711,7 @@ void Executor::onProcessSuccess()
         QBS_CHECK(processedArtifact);
 
         // Update the timestamps of the outputs of the transformer we just executed.
-        processedArtifact->topLevelProject()->buildData->isDirty = true;
+        processedArtifact->topLevelProject->buildData->isDirty = true;
         foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
             if (artifact->alwaysUpdated)
                 artifact->timestamp = FileTime::currentTime();

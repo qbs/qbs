@@ -344,7 +344,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
                 m_logger.qbsTrace() << "[AUTOMOC] removing moc obj artifact "
                                     << relativeArtifactFileName(mocObjArtifact);
             }
-            artifact->topLevelProject()->buildData->removeArtifact(mocObjArtifact, m_logger);
+            artifact->topLevelProject->buildData->removeArtifact(mocObjArtifact, m_logger);
         }
     }
 
@@ -352,7 +352,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
         m_logger.qbsTrace() << "[AUTOMOC] removing generated artifact "
                             << relativeArtifactFileName(generatedMocArtifact);
     }
-    artifact->topLevelProject()->buildData->removeArtifact(generatedMocArtifact, m_logger);
+    artifact->topLevelProject->buildData->removeArtifact(generatedMocArtifact, m_logger);
     delete generatedMocArtifact;
 }
 

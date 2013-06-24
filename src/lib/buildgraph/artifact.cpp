@@ -57,13 +57,13 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-Artifact::Artifact()
+Artifact::Artifact() : topLevelProject(0)
 {
     initialize();
 }
 
-Artifact::Artifact(const ResolvedProjectPtr &project)
-    : project(project)
+Artifact::Artifact(TopLevelProject *project)
+    : topLevelProject(project)
 {
     initialize();
 }
@@ -141,11 +141,6 @@ void Artifact::disconnectAll(const Logger &logger)
 {
     disconnectChildren(logger);
     disconnectParents(logger);
-}
-
-TopLevelProject *Artifact::topLevelProject() const
-{
-    return project->topLevelProject();
 }
 
 } // namespace Internal

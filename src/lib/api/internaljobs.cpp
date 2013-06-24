@@ -196,19 +196,15 @@ void InternalSetupProjectJob::execute()
         setupPlatformEnvironment();
         break;
     case SetupProjectParameters::RestoreOnly:
-        restoreProject(evalContext);
+        m_project = restoreProject(evalContext).loadedProject;
         break;
     case SetupProjectParameters::RestoreAndTrackChanges: {
         const BuildGraphLoadResult loadResult = restoreProject(evalContext);
-        if (!loadResult.discardLoadedProject)
+        m_project = loadResult.newlyResolvedProject;
+        if (!m_project && !loadResult.discardLoadedProject)
             m_project = loadResult.loadedProject;
-        if (!m_project) {
-            if (loadResult.newlyResolvedProject) {
-                m_project = loadResult.newlyResolvedProject;
-            } else {
-                resolveProjectFromScratch(evalContext->engine());
-            }
-        }
+        if (!m_project)
+            resolveProjectFromScratch(evalContext->engine());
         if (!m_project->buildData) {
             resolveBuildDataFromScratch(evalContext);
             if (loadResult.loadedProject)
@@ -251,8 +247,6 @@ BuildGraphLoadResult InternalSetupProjectJob::restoreProject(const RulesEvaluati
 {
     BuildGraphLoader bgLoader(m_parameters.environment(), logger());
     const BuildGraphLoadResult loadResult = bgLoader.load(m_parameters, evalContext);
-    if (!loadResult.discardLoadedProject)
-        m_project = loadResult.loadedProject;
     return loadResult;
 }
 
