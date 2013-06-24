@@ -184,6 +184,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
+    QTest::newRow("code generator")
+            << QString("codegen")
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/codegen"));
     QTest::newRow("link static libs")
             << QString("link_staticlib")
             << QString(buildDir + QLatin1String("/")
@@ -778,13 +781,6 @@ void TestBlackbox::ruleConditions()
     QVERIFY(QFileInfo(buildDir + HostOsInfo::appendExecutableSuffix("/unzorted")).exists());
     QVERIFY(QFileInfo(buildDir + "/zorted.foo.narf.zort").exists());
     QVERIFY(!QFileInfo(buildDir + "/unzorted.foo.narf.zort").exists());
-}
-
-void TestBlackbox::codegen()
-{
-    QDir::setCurrent(testDataDir + "/codegen");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/codegen")));
 }
 
 void TestBlackbox::trackAddQObjectHeader()
