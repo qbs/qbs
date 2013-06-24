@@ -1409,6 +1409,18 @@
 
     \section1 Properties Specific to Windows
 
+    \section2 windowsApiCharacterSet
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"unicode"}, \c{"mbcs"}, \c{undefined}
+    \row    \li \b{Default:}         \li \c{"unicode"}
+    \endtable
+
+    Specifies the character set used in the Win32 API. "unicode" will define the
+    preprocessor symbols UNICODE and _UNICODE, "mbcs" will define _MBCS, and
+    setting the value to undefined will use the default character set.
+
     \section2 minimumWindowsVersion
 
     \table

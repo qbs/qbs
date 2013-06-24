@@ -20,6 +20,8 @@ Module {
         description: "preprocessor macros that are defined when using this particular compiler"
     }
 
+    property string windowsApiCharacterSet
+
     property string minimumWindowsVersion
     PropertyOptions {
         name: "minimumWindowsVersion"

@@ -1,6 +1,7 @@
 import qbs 1.0
 import qbs.fileinfo as FileInfo
 import '../utils.js' as ModUtils
+import "windows.js" as Windows
 
 GenericGCC {
     condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
@@ -10,7 +11,8 @@ GenericGCC {
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
-    platformDefines: base.concat(['UNICODE'])
+    windowsApiCharacterSet: "unicode"
+    platformDefines: base.concat(Windows.characterSetDefines(windowsApiCharacterSet))
     compilerDefines: ['__GNUC__', 'WIN32', '_WIN32']
 
     property string windresName: 'windres'

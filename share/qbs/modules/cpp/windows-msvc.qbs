@@ -11,7 +11,8 @@ CppModule {
 
     id: module
 
-    platformDefines: base.concat(['UNICODE'])
+    windowsApiCharacterSet: "unicode"
+    platformDefines: base.concat(Windows.characterSetDefines(windowsApiCharacterSet))
     compilerDefines: ['_WIN32']
     warningLevel: "default"
 
