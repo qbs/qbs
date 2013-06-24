@@ -222,7 +222,6 @@ void TestBlackbox::build_project()
     QDir::setCurrent(testDataDir + projectSubDir);
     rmDirR(buildDir);
 
-    QEXPECT_FAIL("link static libs", "QBS-294", Abort);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
     QVERIFY(QFile::exists(buildGraphPath));
