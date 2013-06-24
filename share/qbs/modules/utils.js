@@ -9,7 +9,6 @@ function moduleProperties(config, key)
 
 function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyName)
 {
-    var seenValues = []
     var result = product.moduleProperties(moduleName, propertyName)
     for (var i in artifacts)
         result = result.concat(artifacts[i].moduleProperties(moduleName, propertyName))
