@@ -68,6 +68,8 @@ public:
 private:
     void onItemPropertyChanged(Item *item);
     void onItemDestroyed(Item *item);
+    void handleEvaluationError(const Item *item, const QString &name,
+            const QScriptValue &scriptValue);
 
     ScriptEngine *m_scriptEngine;
     EvaluatorScriptClass *m_scriptClass;

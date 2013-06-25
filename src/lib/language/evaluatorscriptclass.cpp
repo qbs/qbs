@@ -179,7 +179,9 @@ private:
             pushScope(*object);
         }
         pushScope(extraScope);
-        *result = engine->evaluate(value->sourceCode());
+        const CodeLocation valueLocation = value->location();
+        *result = engine->evaluate(value->sourceCode(), valueLocation.fileName(),
+                                   valueLocation.line());
         popScopes();
     }
 

@@ -88,10 +88,7 @@ bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultVal
                           bool *propertyWasSet)
 {
     QScriptValue v = property(item, name);
-    if (Q_UNLIKELY(v.isError())) {
-        ValuePtr value = item->property(name);
-        throw ErrorInfo(v.toString(), value ? value->location() : CodeLocation());
-    }
+    handleEvaluationError(item, name, v);
     if (!v.isValid() || v.isUndefined()) {
         if (propertyWasSet)
             *propertyWasSet = false;
@@ -111,10 +108,7 @@ QString Evaluator::stringValue(const Item *item, const QString &name,
                                const QString &defaultValue, bool *propertyWasSet)
 {
     QScriptValue v = property(item, name);
-    if (Q_UNLIKELY(v.isError())) {
-        ValuePtr value = item->property(name);
-        throw ErrorInfo(v.toString(), value ? value->location() : CodeLocation());
-    }
+    handleEvaluationError(item, name, v);
     if (!v.isValid() || v.isUndefined()) {
         if (propertyWasSet)
             *propertyWasSet = false;
@@ -128,10 +122,7 @@ QString Evaluator::stringValue(const Item *item, const QString &name,
 QStringList Evaluator::stringListValue(const Item *item, const QString &name)
 {
     QScriptValue v = property(item, name);
-    if (Q_UNLIKELY(v.isError())) {
-        ValuePtr value = item->property(name);
-        throw ErrorInfo(v.toString(), value ? value->location() : CodeLocation());
-    }
+    handleEvaluationError(item, name, v);
     return toStringList(v);
 }
 
@@ -164,6 +155,18 @@ void Evaluator::onItemDestroyed(Item *item)
 {
     delete EvaluationData::get(m_scriptValueMap.value(item));
     m_scriptValueMap.remove(item);
+}
+
+void Evaluator::handleEvaluationError(const Item *item, const QString &name,
+        const QScriptValue &scriptValue)
+{
+    if (Q_LIKELY(!scriptValue.isError() && !m_scriptEngine->hasUncaughtException()))
+        return;
+    const ValueConstPtr value = item->property(name);
+    CodeLocation location = value ? value->location() : CodeLocation();
+    if (m_scriptEngine->hasUncaughtException())
+        location = CodeLocation(location.fileName(), m_scriptEngine->uncaughtExceptionLineNumber());
+    throw ErrorInfo(scriptValue.toString(), location);
 }
 
 QScriptValue Evaluator::fileScope(const FileContextConstPtr &file)

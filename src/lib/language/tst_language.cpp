@@ -294,6 +294,8 @@ void TestLanguage::erroneousFiles_data()
             << "does not exist";
     QTest::newRow("invalid_property_type")
             << "Unknown type 'nonsense' in property declaration.";
+    QTest::newRow("throw_in_property_binding")
+            << "something is wrong";
 }
 
 void TestLanguage::erroneousFiles()
