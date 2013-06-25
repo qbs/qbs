@@ -97,6 +97,8 @@ void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetSc
         QScriptValue inputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         QScriptValue inputScriptValue = inputsForFileTag.property(0);
         targetScriptValue.setProperty("input", inputScriptValue);
+    } else {
+        targetScriptValue.setProperty(QLatin1String("input"), scriptEngine->undefinedValue());
     }
 }
 
@@ -112,6 +114,8 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
         QScriptValue outputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
         targetScriptValue.setProperty("output", outputScriptValue);
+    } else {
+        targetScriptValue.setProperty(QLatin1String("output"), scriptEngine->undefinedValue());
     }
 }
 
