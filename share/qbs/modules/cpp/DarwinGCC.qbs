@@ -304,21 +304,21 @@ UnixGCC {
 
         prepare: {
             var commands = [];
-            var cmd = new Command("ln", ["-s", BundleTools.frameworkVersion(product), "Current"]);
+            var cmd = new Command("ln", ["-sf", BundleTools.frameworkVersion(product), "Current"]);
             cmd.workingDirectory = output.fileName + "/Versions";
             cmd.description = "creating framework " + product.targetName;
             cmd.highlight = "codegen";
             commands.push(cmd);
 
-            cmd = new Command("ln", ["-s", "Versions/Current/Headers", "Headers"]);
+            cmd = new Command("ln", ["-sf", "Versions/Current/Headers", "Headers"]);
             cmd.workingDirectory = output.fileName;
             commands.push(cmd);
 
-            cmd = new Command("ln", ["-s", "Versions/Current/Resources", "Resources"]);
+            cmd = new Command("ln", ["-sf", "Versions/Current/Resources", "Resources"]);
             cmd.workingDirectory = output.fileName;
             commands.push(cmd);
 
-            cmd = new Command("ln", ["-s", "Versions/Current/" + product.targetName, product.targetName]);
+            cmd = new Command("ln", ["-sf", "Versions/Current/" + product.targetName, product.targetName]);
             cmd.workingDirectory = output.fileName;
             commands.push(cmd);
             return commands;
