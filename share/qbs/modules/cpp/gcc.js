@@ -57,7 +57,7 @@ function libraryLinkerFlags(product, inputs)
 
     for (i in weakFrameworks) {
         if (weakFrameworks[i].slice(-suffix.length) === suffix)
-            args.push(weakFrameworks[i] + "/" + FileInfo.fileName(weakFrameworks[i]).slice(0, -suffix.length));
+            args = args.concat(['-weak_library', weakFrameworks[i] + "/" + FileInfo.fileName(weakFrameworks[i]).slice(0, -suffix.length)]);
         else
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
     }
