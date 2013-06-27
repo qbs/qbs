@@ -152,7 +152,7 @@ void SettingsModel::SettingsModelPrivate::addNode(qbs::Settings *settings, Node 
 {
     Node * const node = new Node;
     node->name = fullyQualifiedName.mid(fullyQualifiedName.lastIndexOf(QLatin1Char('.')) + 1);
-    node->value = settings->value(fullyQualifiedName).toString();
+    node->value = settings->value(fullyQualifiedName).toStringList().join(QLatin1String(","));
     node->parent = parentNode;
     parentNode->children << node;
     foreach (const QString &childKey, settings->directChildren(fullyQualifiedName))
