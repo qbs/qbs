@@ -1,20 +1,34 @@
-This is qbs; the "Qt Build Salvation".
-The main documentation is available as qdoc files in the doc subdirectory.
+Qt Build Suite
+==============
+Qbs is a cross-platform build tool.
+The project's homepage is http://qt-project.org/wiki/qbs
 
+Supported Platforms
+===================
 
-1. Build Prerequisites
-======================
+Windows XP SP2 or later
+Mac OS 10.6 or later
+Linux (tested on Debian 6/7 and Ubuntu 13)
 
-For building qbs you need:
+Building the sources requires Qt 4.8.0 or later.
 
- - a C++ compiler
- - Qt >= 4.8
+Build Instructions
+==================
+Prerequisites:
+   * Qt 4.8.0 or later
+   * On Windows:
+     -  MinGW or Visual Studio
+   * On Mac: Xcode
 
+The installed toolchains have to match the one Qt was compiled with.
 
-2. Building qbs
-===============
+You can build qbs with
 
- - qmake -r qbs.pro
- - make
- - make docs
+    cd $SOURCE_DIRECTORY
+    qmake -r
+    make (or mingw32-make or nmake or jom, depending on your platform)
+
+Installation ("make install") is not needed. It is however possible, using
+
+    make install INSTALL_ROOT=$INSTALL_DIRECTORY
 
