@@ -956,12 +956,12 @@ void TestBlackbox::installedApp()
 
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QLatin1String("/bin/installedApp"))));
+            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
 
     QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--install-root"
                                      << (testDataDir + "/installed-app"))), 0);
     QVERIFY(QFile::exists(testDataDir
-            + HostOsInfo::appendExecutableSuffix("/installed-app/bin/installedApp")));
+            + HostOsInfo::appendExecutableSuffix("/installed-app/usr/bin/installedApp")));
 
     QFile addedFile(defaultInstallRoot + QLatin1String("/blubb.txt"));
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
@@ -969,7 +969,7 @@ void TestBlackbox::installedApp()
     QVERIFY(addedFile.exists());
     QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--remove-first")), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QLatin1String("/bin/installedApp"))));
+            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
     QVERIFY(!addedFile.exists());
 
     rmDirR(buildDir);

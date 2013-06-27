@@ -85,7 +85,7 @@ QString InstallOptions::defaultInstallRoot()
 
 /*!
  * Returns the base directory for the installation.
- * All "qbs.installDir" paths are relative to this root. If the string is empty, either the value of
+ * The \c qbs.installPrefix path is relative to this root. If the string is empty, either the value of
  * qbs.sysroot or "<build dir>/install-root" will be used, depending on what \c installIntoSysroot()
  * returns.
  * The default is empty.

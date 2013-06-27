@@ -4,6 +4,7 @@ Application {
     name: "installedApp"
     Depends { name: "cpp" }
     files: "main.cpp"
+    qbs.installPrefix: "/usr"
     Group {
         fileTagsFilter: "application"
         qbs.install: true

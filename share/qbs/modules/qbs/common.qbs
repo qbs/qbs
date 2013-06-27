@@ -23,6 +23,7 @@ Module {
 
     property bool install: false
     property string installDir
+    property string installPrefix: ""
     property string sysroot
 
     PropertyOptions {

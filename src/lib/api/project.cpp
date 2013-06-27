@@ -46,6 +46,7 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/processresult.h>
+#include <tools/propertyfinder.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 #include <tools/setupprojectparameters.h>
@@ -369,8 +370,11 @@ QString Project::targetExecutable(const ProductData &product,
             }
             QString installDir = artifact->properties
                     ->qbsPropertyValue(QLatin1String("installDir")).toString();
-            return QDir::cleanPath(installRoot + QLatin1Char('/') + installDir + QLatin1Char('/')
-                                   + fileName);
+            const QString installPrefix = artifact->properties
+                    ->qbsPropertyValue(QLatin1String("installPrefix")).toString();
+            installDir.prepend(QLatin1Char('/')).prepend(installPrefix)
+                    .prepend(QLatin1Char('/')).prepend(installRoot);
+            return QDir::cleanPath(installDir + QLatin1Char('/') + fileName);
         }
     }
     return QString();

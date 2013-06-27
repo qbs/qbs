@@ -981,8 +981,18 @@
     \endtable
 
     Specifies the installation directory for the files of a product or a \c{Group}. The value of
-    this property is a path that is relative to the install root.
+    this property is a path that is relative to \c installPrefix.
 
+    \section1 installPrefix
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    Specifies the global installation prefix. It is implicitly prepended to all values
+    of \c installDir. The \c installPrefix itself is relative to the install root, which is not
+    a property of qbs, but an external installation parameter.
 
     \section1 pathListSeparator
 

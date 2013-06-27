@@ -121,8 +121,11 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     }
     const QString relativeInstallDir
             = artifact->properties->qbsPropertyValue(QLatin1String("installDir")).toString();
+    const QString installPrefix
+            = artifact->properties->qbsPropertyValue(QLatin1String("installPrefix")).toString();
     QString targetDir = m_options.installRoot();
-    targetDir.append(QLatin1Char('/')).append(relativeInstallDir);
+    targetDir.append(QLatin1Char('/')).append(installPrefix)
+            .append(QLatin1Char('/')).append(relativeInstallDir);
     targetDir = QDir::cleanPath(targetDir);
     const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
     const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
