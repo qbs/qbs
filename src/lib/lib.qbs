@@ -329,7 +329,7 @@ DynamicLibrary {
     }
     Export {
         Depends { name: "cpp" }
-        Depends { name: "Qt"; submodules: ["script"]}
+        Depends { name: "Qt"; submodules: ["script", "xml"] }
         cpp.rpaths: (project.enableRPath && qbs.targetOS.contains("linux"))
                 ? ["$ORIGIN/../lib"] : undefined
         cpp.includePaths: path
