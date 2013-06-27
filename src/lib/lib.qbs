@@ -1,10 +1,11 @@
 import qbs 1.0
 
-DynamicLibrary {
+Product {
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core", "script", "xml", "test"] }
     Depends { condition: Qt.core.versionMajor >= 5; name: "Qt.concurrent" }
     name: "qbscore"
+    type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
     destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : "lib"
     cpp.treatWarningsAsErrors: true
@@ -15,8 +16,8 @@ DynamicLibrary {
     cpp.defines: [
         "QBS_VERSION=\"" + project.version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
-        "QBS_LIBRARY", "SRCDIR=\"" + path + "\""
-    ]
+        "SRCDIR=\"" + path + "\""
+    ].concat(type == "staticlibrary" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
     Properties {
         condition: qbs.toolchain.contains("msvc")
         cpp.cxxFlags: ["/WX"]
@@ -333,5 +334,6 @@ DynamicLibrary {
         cpp.rpaths: (project.enableRPath && qbs.targetOS.contains("linux"))
                 ? ["$ORIGIN/../lib"] : undefined
         cpp.includePaths: path
+        cpp.defines: product.type === "staticlibrary" ? ["QBS_STATIC_LIB"] : []
     }
 }
