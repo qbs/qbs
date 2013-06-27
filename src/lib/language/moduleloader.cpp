@@ -859,8 +859,9 @@ QStringList ModuleLoader::readExtraSearchPaths(Item *item)
 {
     QStringList result;
     QScriptValue scriptValue = m_evaluator->property(item, QLatin1String("moduleSearchPaths"));
+    const ValueConstPtr prop = item->property(QLatin1String("moduleSearchPaths"));
     foreach (const QString &path, toStringList(scriptValue))
-        result += FileInfo::resolvePath(item->file()->dirPath(), path);
+        result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
     return result;
 }
 
@@ -873,13 +874,28 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
         builtinProjectPropertyNames << p.name;
+
     for (Item::PropertyDeclarationMap::ConstIterator it
          = sourceProject->propertyDeclarations().constBegin();
          it != sourceProject->propertyDeclarations().constEnd(); ++it) {
+
+        // We must not inherit built-in properties such as "name", but "moduleSearchPaths" is
+        // an exception.
+        if (it.key() == QLatin1String("moduleSearchPaths")) {
+            const JSSourceValueConstPtr &v
+                    = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
+            QBS_ASSERT(v, continue);
+            if (v->sourceCode() == QLatin1String("undefined"))
+                copyProperty(it.key(), sourceProject, targetProject);
+            continue;
+        }
+
         if (builtinProjectPropertyNames.contains(it.key()))
-            continue; // Ignore built-ins.
-        if (targetProject->propertyDeclarations().contains(it.key()))
+            continue;
+
+        if (targetProject->properties().contains(it.key()))
             continue; // Ignore stuff the target project already has.
+
         targetProject->setPropertyDeclaration(it.key(), it.value());
         copyProperty(it.key(), sourceProject, targetProject);
     }
