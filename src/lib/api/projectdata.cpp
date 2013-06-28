@@ -123,6 +123,7 @@ PropertyMap GroupData::properties() const
  */
 bool GroupData::isEnabled() const
 {
+    QBS_ASSERT(isValid(), return false);
     return d->isEnabled;
 }
 
@@ -240,6 +241,7 @@ QList<GroupData> ProductData::groups() const
  */
 bool ProductData::isEnabled() const
 {
+    QBS_ASSERT(isValid(), return false);
     return d->isEnabled;
 }
 
@@ -321,6 +323,7 @@ CodeLocation ProjectData::location() const
  */
 bool ProjectData::isEnabled() const
 {
+    QBS_ASSERT(isValid(), return false);
     return d->enabled;
 }
 
