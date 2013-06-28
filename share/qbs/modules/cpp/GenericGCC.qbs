@@ -355,7 +355,14 @@ CppModule {
             args = args.concat(ModUtils.moduleProperties(input, 'commonCompilerFlags'));
             args = args.concat(Gcc.additionalCompilerFlags(product, input, output));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
+            var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
+            if (wrapperArgs && wrapperArgs.length > 0) {
+                args.unshift(compilerPath);
+                compilerPath = wrapperArgs.shift();
+                args = wrapperArgs.concat(args);
+            }
+            var cmd = new Command(compilerPath, args);
             cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
             cmd.highlight = "compiler";
             cmd.responseFileUsagePrefix = '@';

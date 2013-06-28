@@ -1258,6 +1258,16 @@
 
     Directory where the compiler binary is located. This is set in the build profile.
 
+    \section2 compilerWrapper
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Wrapper binary and its arguments for wrapping compiler calls.
+    This is useful for compiler wrappers like ccache and alike.
+
 
     \section1 Properties Specific to iOS and OS X
 
