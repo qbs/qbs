@@ -33,13 +33,15 @@ UnixGCC {
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
-        v.prepend(platformPath + "/Developer/usr/bin");
-        var platformPathL = platformPath.split("/");
-        platformPathL.pop();
-        platformPathL.pop();
-        var devPath = platformPathL.join("/")
-        v.prepend(devPath + "/usr/bin");
-        v.set();
+        if (platformPath) {
+            v.prepend(platformPath + "/Developer/usr/bin");
+            var platformPathL = platformPath.split("/");
+            platformPathL.pop();
+            platformPathL.pop();
+            var devPath = platformPathL.join("/")
+            v.prepend(devPath + "/usr/bin");
+            v.set();
+        }
         for (var key in buildEnv) {
             v = new ModUtils.EnvironmentVariable(key);
             v.value = buildEnv[key];
