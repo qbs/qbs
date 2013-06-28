@@ -80,7 +80,7 @@ Module {
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
     property string compilerName
-    property string compilerPath
+    property string compilerPath: compilerName
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix
     property string executablePrefix

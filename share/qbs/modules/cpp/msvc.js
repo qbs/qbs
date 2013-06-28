@@ -92,7 +92,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
             args = args.concat(cFlags);
     }
 
-    var cmd = new Command("cl.exe", args)
+    var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args)
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName)
     cmd.highlight = "compiler";
     cmd.workingDirectory = FileInfo.path(objOutput.fileName)

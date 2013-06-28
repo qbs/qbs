@@ -15,6 +15,7 @@ CppModule {
     platformDefines: base.concat(Windows.characterSetDefines(windowsApiCharacterSet))
     compilerDefines: ['_WIN32']
     warningLevel: "default"
+    compilerName: "cl.exe"
 
     property bool generateManifestFiles: true
     property string toolchainInstallPath: "UNKNOWN"
