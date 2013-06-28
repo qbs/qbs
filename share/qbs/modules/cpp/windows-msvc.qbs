@@ -75,13 +75,11 @@ CppModule {
             fileName: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "precompiledHeader"));
-                // ### make the object file dir overridable
                 return ".obj/" + product.name + "/" + completeBaseName + '.obj'
             }
         }
         Artifact {
             fileTags: ['c++_pch']
-            // ### make the object file dir overridable
             fileName: ".obj/" + product.name + "/" + product.name + '.pch'
         }
         prepare: {
@@ -103,7 +101,6 @@ CppModule {
         explicitlyDependsOn: ["c++_pch"]
         Artifact {
             fileTags: ['obj']
-            // ### make the object file dir overridable
             fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
         }
 
