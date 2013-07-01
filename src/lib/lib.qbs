@@ -1,4 +1,5 @@
 import qbs 1.0
+import "../../version.js" as Version
 
 Product {
     Depends { name: "cpp" }
@@ -14,7 +15,7 @@ Product {
         ".."     // for the plugin headers
     ]
     cpp.defines: [
-        "QBS_VERSION=\"" + project.version + "\"",
+        "QBS_VERSION=\"" + Version.qbsVersion() + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
     ].concat(type == "staticlibrary" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])

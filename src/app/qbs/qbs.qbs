@@ -1,9 +1,10 @@
 import qbs 1.0
 import "../apptemplate.qbs" as QbsApp
+import "../../../version.js" as Version
 
 QbsApp {
     name: "qbs"
-    cpp.defines: ["QBS_VERSION=\"" + project.version + "\""]
+    cpp.defines: ["QBS_VERSION=\"" + Version.qbsVersion() + "\""]
     files: [
         "../shared/qbssettings.h",
         "application.cpp",
