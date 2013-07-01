@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "command.h"
+#include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/hostosinfo.h>
 
@@ -88,6 +89,7 @@ void AbstractCommand::store(QDataStream &s)
 static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)
 {
     QScriptValue cmd = context->thisObject();
+    QBS_ASSERT(context->isCalledAsConstructor(), cmd = engine->newObject());
     cmd.setProperty("description", engine->toScriptValue(AbstractCommand::defaultDescription()));
     cmd.setProperty("highlight", engine->toScriptValue(AbstractCommand::defaultHighLight()));
     cmd.setProperty("silent", engine->toScriptValue(AbstractCommand::defaultIsSilent()));
@@ -96,6 +98,8 @@ static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engin
 
 static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
 {
+    if (Q_UNLIKELY(!context->isCalledAsConstructor()))
+        return context->throwError(Tr::tr("Command constructor called without new."));
     if (Q_UNLIKELY(context->argumentCount() != 2)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    "Command c'tor expects 2 arguments");
@@ -214,6 +218,8 @@ void ProcessCommand::store(QDataStream &s)
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
 {
+    if (Q_UNLIKELY(!context->isCalledAsConstructor()))
+        return context->throwError(Tr::tr("JavaScriptCommand constructor called without new."));
     if (Q_UNLIKELY(context->argumentCount() != 0)) {
         return context->throwError(QScriptContext::SyntaxError,
                                    "JavaScriptCommand c'tor doesn't take arguments.");
