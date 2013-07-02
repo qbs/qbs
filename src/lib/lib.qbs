@@ -31,7 +31,7 @@ Product {
     Group {
         name: product.name
         files: ["qbs.h"]
-        qbs.install: true
+        qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix
     }
     Group {
@@ -50,7 +50,7 @@ Product {
     }
     Group {
         name: "public api headers"
-        qbs.install: true
+        qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/api"
         prefix: "api/"
         files: [
@@ -116,7 +116,7 @@ Product {
     }
     Group {
         name: "public buildgraph headers"
-        qbs.install: true
+        qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/buildgraph"
         files: "buildgraph/forward_decls.h"
     }
@@ -194,7 +194,7 @@ Product {
     }
     Group {
         name: "public language headers"
-        qbs.install: true
+        qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/language"
         files: "language/forward_decls.h"
     }
@@ -210,7 +210,7 @@ Product {
     }
     Group {
         name: "public logging headers"
-        qbs.install: true
+        qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/logging"
         files: "logging/ilogsink.h"
     }
@@ -293,7 +293,7 @@ Product {
             "settings.h",
             "setupprojectparameters.h",
         ]
-        qbs.install: true
+        qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix + "/tools"
     }
     Group {
@@ -327,13 +327,12 @@ Product {
     Group {
         fileTagsFilter: "dynamiclibrary"
         qbs.install: true
-        qbs.installDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
+        qbs.installDir: project.libInstallDir
     }
     Export {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["script", "xml"] }
-        cpp.rpaths: (project.enableRPath && qbs.targetOS.contains("linux"))
-                ? ["$ORIGIN/../lib"] : undefined
+        cpp.rpaths: project.libRPaths
         cpp.includePaths: path
         cpp.defines: product.type === "staticlibrary" ? ["QBS_STATIC_LIB"] : []
     }

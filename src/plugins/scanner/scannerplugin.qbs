@@ -7,7 +7,6 @@ DynamicLibrary {
     Group {
         fileTagsFilter: ["dynamiclibrary"]
         qbs.install: true
-        qbs.installDir: "lib/qbs/plugins"
+        qbs.installDir: project.resourcesInstallDir + "/lib/qbs/plugins"
     }
 }
-

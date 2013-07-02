@@ -1,11 +1,11 @@
 import qbs
 
 Product {
-    name: "share"
+    name: "qbs resources"
     Group {
         files: ["qbs"]
         qbs.install: true
-        qbs.installDir: "share"
+        qbs.installDir: project.resourcesInstallDir + "/share"
     }
 
     Transformer {
