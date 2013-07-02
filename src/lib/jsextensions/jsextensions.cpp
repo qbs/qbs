@@ -27,61 +27,39 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_FILECONTEXT_H
-#define QBS_FILECONTEXT_H
+#include "jsextensions.h"
 
-#include "item.h"
-#include "jsimports.h"
-
-#include <QStringList>
+#include "domxml.h"
+#include "file.h"
+#include "process.h"
+#include "textfile.h"
 
 namespace qbs {
 namespace Internal {
 
-class FileContext
+void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
 {
-    friend class ItemReaderASTVisitor;
-
-    FileContext();
-
-public:
-    static FileContextPtr create();
-
-    QString filePath() const;
-    QString dirPath() const;
-    JsImports jsImports() const;
-    QStringList jsExtensions() const;
-
-    Item *idScope() const;
-
-private:
-    QString m_filePath;
-    JsImports m_jsImports;
-    QStringList m_jsExtensions;
-    Item *m_idScope;
-};
-
-inline QString FileContext::filePath() const
-{
-    return m_filePath;
+    foreach (const QString &name, names)
+        initializers().value(name)(scope);
 }
 
-inline JsImports FileContext::jsImports() const
+bool JsExtensions::hasExtension(const QString &name)
 {
-    return m_jsImports;
+    return initializers().contains(name);
 }
 
-inline QStringList FileContext::jsExtensions() const
+JsExtensions::InitializerMap JsExtensions::initializers()
 {
-    return m_jsExtensions;
+    if (m_initializers.isEmpty()) {
+        m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
+        m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
+        m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
+        m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
+    }
+    return m_initializers;
 }
 
-inline Item *FileContext::idScope() const
-{
-    return m_idScope;
-}
+JsExtensions::InitializerMap JsExtensions::m_initializers;
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_FILECONTEXT_H

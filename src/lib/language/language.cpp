@@ -35,6 +35,7 @@
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
+#include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 #include <tools/error.h>
@@ -251,6 +252,7 @@ void ResolvedModule::load(PersistentPool &pool)
     setupBuildEnvironmentScript = pool.idLoadString();
     setupRunEnvironmentScript = pool.idLoadString();
     pool.stream() >> jsImports
+      >> jsExtensions
       >> setupBuildEnvironmentScript
       >> setupRunEnvironmentScript;
 }
@@ -262,6 +264,7 @@ void ResolvedModule::store(PersistentPool &pool) const
     pool.storeString(setupBuildEnvironmentScript);
     pool.storeString(setupRunEnvironmentScript);
     pool.stream() << jsImports
+      << jsExtensions
       << setupBuildEnvironmentScript
       << setupRunEnvironmentScript;
 }
@@ -285,6 +288,7 @@ void Rule::load(PersistentPool &pool)
     script = pool.idLoadS<PrepareScript>();
     module = pool.idLoadS<ResolvedModule>();
     pool.stream() >> jsImports
+        >> jsExtensions
         >> inputs
         >> usings
         >> explicitlyDependsOn
@@ -298,6 +302,7 @@ void Rule::store(PersistentPool &pool) const
     pool.store(script);
     pool.store(module);
     pool.stream() << jsImports
+        << jsExtensions
         << inputs
         << usings
         << explicitlyDependsOn
@@ -494,6 +499,7 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 
         // handle imports
         engine->import(module->jsImports, scope, scope);
+        JsExtensions::setupExtensions(module->jsExtensions, scope);
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;

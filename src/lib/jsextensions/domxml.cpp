@@ -36,7 +36,7 @@
 namespace qbs {
 namespace Internal {
 
-void DomXml::init(QScriptValue extensionObject)
+void initializeJsExtensionXml(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject, engine->newFunction(&XmlDomDocument::ctor));

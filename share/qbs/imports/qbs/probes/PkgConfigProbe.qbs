@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.Process
 import qbs.fileinfo as FileInfo
 import "utils.js" as Utils
 

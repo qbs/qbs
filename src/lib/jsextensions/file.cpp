@@ -38,7 +38,19 @@
 namespace qbs {
 namespace Internal {
 
-void File::init(QScriptValue extensionObject)
+class File
+{
+    friend void initializeJsExtensionFile(QScriptValue extensionObject);
+
+private:
+    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
+};
+
+
+void initializeJsExtensionFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileObj = engine->newFunction(File::js_ctor);

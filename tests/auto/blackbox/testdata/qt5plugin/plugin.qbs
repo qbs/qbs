@@ -1,4 +1,5 @@
 import qbs.base
+import qbs.File
 import qbs.fileinfo as FileInfo
 
 DynamicLibrary {

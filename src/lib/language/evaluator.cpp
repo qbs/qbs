@@ -33,6 +33,7 @@
 #include "filecontext.h"
 #include "filetags.h"
 #include "item.h"
+#include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
@@ -184,6 +185,7 @@ QScriptValue Evaluator::fileScope(const FileContextConstPtr &file)
     result.setProperty(QLatin1String("filePath"), file->filePath());
     result.setProperty(QLatin1String("path"), file->dirPath());
     m_scriptEngine->import(file->jsImports(), result, result);
+    JsExtensions::setupExtensions(file->jsExtensions(), result);
     return result;
 }
 

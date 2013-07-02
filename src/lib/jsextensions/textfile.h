@@ -42,13 +42,13 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
+void initializeJsExtensionTextFile(QScriptValue extensionObject);
+
 class TextFile : public QObject, public QScriptable
 {
     Q_OBJECT
     Q_ENUMS(OpenMode)
 public:
-    static void init(QScriptValue extensionObject);
-
     enum OpenMode { ReadOnly, WriteOnly, ReadWrite };
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     TextFile(QScriptContext *context, const QString &file, OpenMode mode = ReadOnly, const QString &codec = QLatin1String("UTF8"));

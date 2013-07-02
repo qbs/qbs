@@ -42,10 +42,7 @@ namespace Internal {
 
 class XmlDomDocument;
 
-namespace DomXml
-{
-    void init(QScriptValue extensionObject);
-}
+void initializeJsExtensionXml(QScriptValue extensionObject);
 
 class XmlDomNode: public QObject, public QScriptable
 {

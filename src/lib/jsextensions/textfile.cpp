@@ -39,7 +39,7 @@
 namespace qbs {
 namespace Internal {
 
-void TextFile::init(QScriptValue extensionObject)
+void initializeJsExtensionTextFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject, engine->newFunction(&TextFile::ctor));

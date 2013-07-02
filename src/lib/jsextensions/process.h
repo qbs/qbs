@@ -42,13 +42,12 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+void initializeJsExtensionProcess(QScriptValue extensionObject);
 
 class Process : public QObject, public QScriptable
 {
     Q_OBJECT
 public:
-    static void init(QScriptValue extensionObject);
-
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     Process(QScriptContext *context);
     ~Process();

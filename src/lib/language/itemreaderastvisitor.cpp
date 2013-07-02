@@ -32,6 +32,7 @@
 #include "builtindeclarations.h"
 #include "identifiersearch.h"
 #include "itemreader.h"
+#include <jsextensions/jsextensions.h>
 #include <parser/qmljsast_p.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -134,6 +135,23 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                             toCodeLocation(import->importIdToken));
             }
         } else {
+            if (importUri.count() == 2 && importUri.first() == QLatin1String("qbs")) {
+                const QString extensionName = importUri.last();
+                if (JsExtensions::hasExtension(extensionName)) {
+                    if (Q_UNLIKELY(!import->importId.isNull())) {
+                        throw ErrorInfo(Tr::tr("Import of built-in extension '%1' "
+                                               "must not have 'as' specifier.").arg(extensionName));
+                    }
+                    if (Q_UNLIKELY(m_file->m_jsExtensions.contains(extensionName))) {
+                        m_reader->logger().printWarning(Tr::tr("Built-in extension '%1' already "
+                                                               "imported.").arg(extensionName));
+                    } else {
+                        m_file->m_jsExtensions << extensionName;
+                    }
+                    continue;
+                }
+            }
+
             if (Q_UNLIKELY(import->importId.isNull())) {
                 throw ErrorInfo(Tr::tr("Imports require 'as <Name>'"),
                             toCodeLocation(import->importToken));
@@ -143,6 +161,10 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             if (Q_UNLIKELY(importAsNames.contains(as))) {
                 throw ErrorInfo(Tr::tr("Can't import into the same name more than once."),
                             toCodeLocation(import->importIdToken));
+            }
+            if (Q_UNLIKELY(JsExtensions::hasExtension(as))) {
+                throw ErrorInfo(Tr::tr("Cannot use the name of built-in extension '%1' in an 'as' "
+                                       "specifier.").arg(as));
             }
             importAsNames.insert(as);
         }

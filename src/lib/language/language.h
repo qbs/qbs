@@ -210,6 +210,7 @@ public:
     QString name;
     QStringList moduleDependencies;
     JsImports jsImports;
+    QStringList jsExtensions;
     QString setupBuildEnvironmentScript;
     QString setupRunEnvironmentScript;
 
@@ -236,6 +237,7 @@ public:
 
     ResolvedModuleConstPtr module;
     JsImports jsImports;
+    QStringList jsExtensions;
     PrepareScriptConstPtr script;
     FileTags inputs;
     FileTags usings;
@@ -268,6 +270,7 @@ public:
     QList<SourceArtifactPtr> outputs;
     PrepareScriptConstPtr transform;
     JsImports jsImports;
+    QStringList jsExtensions;
 
 private:
     ResolvedTransformer() {}

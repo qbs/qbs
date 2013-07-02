@@ -34,10 +34,6 @@
 #include "command.h"
 #include "transformer.h"
 
-#include <jsextensions/domxml.h>
-#include <jsextensions/file.h>
-#include <jsextensions/process.h>
-#include <jsextensions/textfile.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
@@ -123,11 +119,6 @@ public:
         ScriptEngine * scriptEngine = m_enginesPerThread.value(currentThread);
         if (!scriptEngine) {
             scriptEngine = new ScriptEngine(m_logger);
-            const QScriptValue extensionObject = scriptEngine->globalObject();
-            File::init(extensionObject);
-            TextFile::init(extensionObject);
-            Process::init(extensionObject);
-            DomXml::init(extensionObject);
             m_enginesPerThread.insert(currentThread, scriptEngine);
         } else {
             scriptEngine->setLogger(m_logger);

@@ -126,6 +126,8 @@ Product {
         files: [
             "file.cpp",
             "file.h",
+            "jsextensions.cpp",
+            "jsextensions.h",
             "moduleproperties.cpp",
             "moduleproperties.h",
             "process.cpp",

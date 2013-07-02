@@ -41,7 +41,7 @@
 namespace qbs {
 namespace Internal {
 
-void Process::init(QScriptValue extensionObject)
+void initializeJsExtensionProcess(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));

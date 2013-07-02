@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.TextFile
 
 Project {
     Product {

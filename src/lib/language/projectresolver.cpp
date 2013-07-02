@@ -325,6 +325,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     // TODO: instead of jsImports, we need the file context for both setup scripts separately.
     //       ATM the setup scripts must be in the first file of the inheritance chain.
     module->jsImports = item->file()->jsImports();
+    module->jsExtensions = item->file()->jsExtensions();
 
     foreach (const Item::Module &m, item->modules())
         module->moduleDependencies += ModuleLoader::fullModuleName(m.name);
@@ -501,6 +502,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     }
 
     rule->jsImports = item->file()->jsImports();
+    rule->jsExtensions = item->file()->jsExtensions();
     rule->script = prepareScript;
     rule->multiplex = m_evaluator->boolValue(item, "multiplex", false);
     rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
@@ -609,6 +611,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     ResolvedTransformer::Ptr rtrafo = ResolvedTransformer::create();
     rtrafo->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     rtrafo->jsImports = item->file()->jsImports();
+    rtrafo->jsExtensions = item->file()->jsExtensions();
     rtrafo->inputs = m_evaluator->stringListValue(item, "inputs");
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));

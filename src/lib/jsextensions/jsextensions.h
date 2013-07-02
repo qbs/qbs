@@ -27,61 +27,33 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_FILECONTEXT_H
-#define QBS_FILECONTEXT_H
+#ifndef QBS_JSEXTENSIONS_H
+#define QBS_JSEXTENSIONS_H
 
-#include "item.h"
-#include "jsimports.h"
-
+#include <QHash>
 #include <QStringList>
+
+QT_BEGIN_NAMESPACE
+class QScriptValue;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
 
-class FileContext
+class JsExtensions
 {
-    friend class ItemReaderASTVisitor;
-
-    FileContext();
-
 public:
-    static FileContextPtr create();
-
-    QString filePath() const;
-    QString dirPath() const;
-    JsImports jsImports() const;
-    QStringList jsExtensions() const;
-
-    Item *idScope() const;
+    static void setupExtensions(const QStringList &names, QScriptValue scope);
+    static bool hasExtension(const QString &name);
 
 private:
-    QString m_filePath;
-    JsImports m_jsImports;
-    QStringList m_jsExtensions;
-    Item *m_idScope;
+    typedef QHash<QString, void (*)(QScriptValue)> InitializerMap;
+    static InitializerMap initializers();
+
+    static InitializerMap m_initializers;
 };
-
-inline QString FileContext::filePath() const
-{
-    return m_filePath;
-}
-
-inline JsImports FileContext::jsImports() const
-{
-    return m_jsImports;
-}
-
-inline QStringList FileContext::jsExtensions() const
-{
-    return m_jsExtensions;
-}
-
-inline Item *FileContext::idScope() const
-{
-    return m_idScope;
-}
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_FILECONTEXT_H
+#endif // Include guard.

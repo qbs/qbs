@@ -36,10 +36,6 @@
 #include "item.h"
 #include "itemreader.h"
 #include "scriptengine.h"
-#include <jsextensions/domxml.h>
-#include <jsextensions/file.h>
-#include <jsextensions/process.h>
-#include <jsextensions/textfile.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
@@ -820,10 +816,6 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
         }
     }
     QScriptValue scope = m_engine->newObject();
-    File::init(scope);
-    Process::init(scope);
-    TextFile::init(scope);
-    DomXml::init(scope);
     m_engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
     m_engine->currentContext()->pushScope(scope);
     m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));

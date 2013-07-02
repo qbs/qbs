@@ -32,6 +32,7 @@
 #include "projectbuilddata.h"
 #include "productbuilddata.h"
 
+#include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
@@ -213,6 +214,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         productScriptValue.setProperty(QLatin1String("moduleName"), rule->module->name);
 
     engine->import(rule->jsImports, targetObject, targetObject);
+    JsExtensions::setupExtensions(rule->jsExtensions, targetObject);
 }
 
 bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)

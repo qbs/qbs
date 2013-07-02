@@ -36,17 +36,7 @@
 namespace qbs {
 namespace Internal {
 
-class File
-{
-public:
-    static void init(QScriptValue extensionObject);
-
-private:
-    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
-};
+void initializeJsExtensionFile(QScriptValue extensionObject);
 
 } // namespace Internal
 } // namespace qbs
