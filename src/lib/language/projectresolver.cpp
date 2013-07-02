@@ -682,6 +682,8 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
     do {
         productDependenciesAdded = false;
         foreach (const ResolvedProductPtr &rproduct, allProducts) {
+            if (!rproduct->enabled)
+                continue;
             Item *productItem = m_productItemMap.value(rproduct);
             ModuleLoaderResult::ProductInfo &productInfo
                     = projectContext->loadResult->productInfos[productItem];
@@ -705,6 +707,8 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
 
     // Resolve all inter-product dependencies.
     foreach (const ResolvedProductPtr &rproduct, allProducts) {
+        if (!rproduct->enabled)
+            continue;
         Item *productItem = m_productItemMap.value(rproduct);
         foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
                  projectContext->loadResult->productInfos.value(productItem).usedProducts) {
