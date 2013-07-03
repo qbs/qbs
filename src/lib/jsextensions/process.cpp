@@ -29,11 +29,13 @@
 
 #include "process.h"
 
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QProcess>
 #include <QScriptEngine>
 #include <QScriptValue>
+#include <QTextCodec>
 #include <QTextStream>
 
 namespace qbs {
@@ -62,7 +64,7 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
     // Get environment
     QVariant v = engine->property("_qbs_procenv");
     if (!v.isNull())
-        t->qenvironment
+        t->m_environment
             = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
 
     return obj;
@@ -70,132 +72,124 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
 
 Process::~Process()
 {
-    delete qstream;
-    delete qprocess;
+    delete m_textStream;
+    delete m_qProcess;
 }
 
 Process::Process(QScriptContext *context)
 {
     Q_UNUSED(context);
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = this;
 
-    t->qprocess = new QProcess;
-    t->qstream = new QTextStream(t->qprocess);
+    m_qProcess = new QProcess;
+    m_textStream = new QTextStream(m_qProcess);
 }
 
 QString Process::getEnv(const QString &name)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    return qenvironment.value(name);
+    return m_environment.value(name);
 }
 
 void Process::setEnv(const QString &name, const QString &value)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    qenvironment.insert(name, value);
+    m_environment.insert(name, value);
 }
 
 bool Process::start(const QString &program, const QStringList &arguments)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
 
-    t->qprocess->setProcessEnvironment(qenvironment);
-    t->qprocess->start(program, arguments);
-    return t->qprocess->waitForStarted();
+    m_qProcess->setProcessEnvironment(m_environment);
+    m_qProcess->start(program, arguments);
+    return m_qProcess->waitForStarted();
 }
 
-int Process::exec(const QString &program, const QStringList &arguments)
+int Process::exec(const QString &program, const QStringList &arguments, bool throwOnError)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
 
-    t->qprocess->setProcessEnvironment(qenvironment);
-    t->qprocess->start(program, arguments);
-    if (!t->qprocess->waitForStarted())
+    m_qProcess->setProcessEnvironment(m_environment);
+    m_qProcess->start(program, arguments);
+    if (!m_qProcess->waitForStarted()) {
+        if (throwOnError) {
+            context()->throwError(Tr::tr("Error running '%1': %2")
+                                  .arg(program, m_qProcess->errorString()));
+        }
         return -1;
-    qprocess->closeWriteChannel();
-    qprocess->waitForFinished();
-    return qprocess->exitCode();
+    }
+    m_qProcess->closeWriteChannel();
+    m_qProcess->waitForFinished();
+    if (throwOnError) {
+        if (m_qProcess->error() != QProcess::UnknownError) {
+            context()->throwError(Tr::tr("Error running '%1': %2")
+                                  .arg(program, m_qProcess->errorString()));
+        } else if (m_qProcess->exitCode() != 0) {
+            QString errorMessage = Tr::tr("Process '%1' finished with exit code %2.")
+                    .arg(program).arg(m_qProcess->exitCode());
+            const QString stdErr = readStdErr();
+            if (!stdErr.isEmpty())
+                errorMessage.append(Tr::tr(" The standard error output was:\n")).append(stdErr);
+            context()->throwError(errorMessage);
+        }
+    }
+    return m_qProcess->exitCode();
 }
 
 void Process::close()
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    delete t->qprocess;
-    t->qprocess = 0;
-    delete t->qstream;
-    t->qstream = 0;
-}
-
-void Process::closeWriteChannel()
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    Process *t = this;
-
-    t->qprocess->closeWriteChannel();
+    delete m_qProcess;
+    m_qProcess = 0;
+    delete m_textStream;
+    m_textStream = 0;
 }
 
 bool Process::waitForFinished(int msecs)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = this;
 
-    return t->qprocess->waitForFinished(msecs);
+    return m_qProcess->waitForFinished(msecs);
 }
 
 void Process::setCodec(const QString &codec)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    if (!t->qstream)
-        return;
-    t->qstream->setCodec(qPrintable(codec));
+    m_textStream->setCodec(qPrintable(codec));
 }
 
 QString Process::readLine()
 {
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    if (!t->qprocess)
-        return QString();
-    return t->qstream->readLine();
+    return m_textStream->readLine();
 }
 
-QString Process::readAll()
+QString Process::readStdOut()
 {
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    if (!t->qprocess)
-        return QString();
-    return t->qstream->readAll();
+    return m_textStream->readAll();
 }
 
-bool Process::atEof() const
+QString Process::readStdErr()
 {
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    if (!t->qstream)
-        return true;
-    return t->qstream->atEnd();
+    return m_textStream->codec()->toUnicode(m_qProcess->readAllStandardError());
+}
+
+int Process::exitCode() const
+{
+    return m_qProcess->exitCode();
 }
 
 void Process::write(const QString &str)
 {
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    if (!t->qstream)
-        return;
-    (*t->qstream) << str;
+    (*m_textStream) << str;
 }
 
 void Process::writeLine(const QString &str)
 {
-    Process *t = qscriptvalue_cast<Process*>(thisObject());
-    if (!t->qstream)
-        return;
-    (*t->qstream) << str;
+    (*m_textStream) << str;
     if (HostOsInfo::isWindowsHost())
-        (*t->qstream) << '\r';
-    (*t->qstream) << '\n';
+        (*m_textStream) << '\r';
+    (*m_textStream) << '\n';
 }
 
 } // namespace Internal

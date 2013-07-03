@@ -171,10 +171,9 @@ UnixGCC {
                     // Add keys from platform's Info.plist if not already present
                     if (platformPath) {
                         process = new Process();
-                        process.start("plutil", ["-convert", "json", "-o", "-",
-                                                 [platformPath, "Info.plist"].join('/')]);
-                        process.waitForFinished();
-                        platformInfo = JSON.parse(process.readAll());
+                        process.exec("plutil", ["-convert", "json", "-o", "-",
+                                                 [platformPath, "Info.plist"].join('/')], true);
+                        platformInfo = JSON.parse(process.readStdOut());
 
                         var additionalProps = platformInfo["AdditionalInfo"];
                         for (key in additionalProps) {
@@ -196,27 +195,24 @@ UnixGCC {
                     }
                     if (sysroot) {
                         process = new Process();
-                        process.start("plutil", ["-convert", "json", "-o", "-",
-                                                 sysroot + "/SDKSettings.plist"]);
-                        process.waitForFinished();
-                        sdkSettings = JSON.parse(process.readAll());
+                        process.exec("plutil", ["-convert", "json", "-o", "-",
+                                                 sysroot + "/SDKSettings.plist"], true);
+                        sdkSettings = JSON.parse(process.readStdOut());
                     } else {
                         print("Missing sysroot (SDK path)");
                     }
                     if (toolchainInstallPath) {
                         process = new Process();
-                        process.start("plutil", ["-convert", "json", "-o", "-",
-                                                 toolchainInstallPath + "/../../ToolchainInfo.plist"]);
-                        process.waitForFinished();
-                        toolchainInfo = JSON.parse(process.readAll());
+                        process.exec("plutil", ["-convert", "json", "-o", "-",
+                                toolchainInstallPath + "/../../ToolchainInfo.plist"], true);
+                        toolchainInfo = JSON.parse(process.readStdOut());
                     } else {
                         print("Cannot get the ToolchainInfo.plist from the toolchainInstallPath");
                     }
 
                     process = new Process();
-                    process.start("sw_vers", ["-buildVersion"]);
-                    process.waitForFinished();
-                    aggregatePlist["BuildMachineOSBuild"] = process.readAll().trim();
+                    process.exec("sw_vers", ["-buildVersion"], true);
+                    aggregatePlist["BuildMachineOSBuild"] = process.readStdOut().trim();
 
                     // setup env
                     env = {
@@ -228,9 +224,8 @@ UnixGCC {
                         "PLATFORM_PRODUCT_BUILD_VERSION": platformInfo["ProductBuildVersion"],
                     }
                     process = new Process();
-                    process.start("sw_vers", ["-buildVersion"]);
-                    process.waitForFinished();
-                    env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = process.readAll().trim();
+                    process.exec("sw_vers", ["-buildVersion"], true);
+                    env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = process.readStdOut().trim();
 
                     for (key in buildEnv)
                         env[key] = buildEnv[key];
@@ -253,8 +248,7 @@ UnixGCC {
 
                 // Convert the written file to the format appropriate for the current platform
                 process = new Process();
-                process.start("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].fileName]);
-                process.waitForFinished();
+                process.exec("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].fileName], true);
             }
             return cmd;
         }

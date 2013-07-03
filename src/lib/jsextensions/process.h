@@ -52,24 +52,30 @@ public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     Process(QScriptContext *context);
     ~Process();
+
     Q_INVOKABLE QString getEnv(const QString &name);
     Q_INVOKABLE void setEnv(const QString &name, const QString &value);
-    Q_INVOKABLE bool start(const QString &program, const QStringList &arguments);
-    Q_INVOKABLE int exec(const QString &program, const QStringList &arguments);
-    Q_INVOKABLE void close();
-    Q_INVOKABLE void closeWriteChannel();
-    Q_INVOKABLE bool waitForFinished(int msecs = 30000);
     Q_INVOKABLE void setCodec(const QString &codec);
+
+    Q_INVOKABLE bool start(const QString &program, const QStringList &arguments);
+    Q_INVOKABLE int exec(const QString &program, const QStringList &arguments,
+                         bool throwOnError = false);
+    Q_INVOKABLE void close();
+    Q_INVOKABLE bool waitForFinished(int msecs = 30000);
+
     Q_INVOKABLE QString readLine();
-    Q_INVOKABLE QString readAll();
-    Q_INVOKABLE bool atEof() const;
+    Q_INVOKABLE QString readStdOut();
+    Q_INVOKABLE QString readStdErr();
+
     Q_INVOKABLE void write(const QString &str);
     Q_INVOKABLE void writeLine(const QString &str);
 
+    Q_INVOKABLE int exitCode() const;
+
 private:
-    QProcess *qprocess;
-    QProcessEnvironment qenvironment;
-    QTextStream *qstream;
+    QProcess *m_qProcess;
+    QProcessEnvironment m_environment;
+    QTextStream *m_textStream;
 };
 
 } // namespace Internal
