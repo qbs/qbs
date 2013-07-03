@@ -249,6 +249,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 
     Loader ldr(m_evalContext->engine(), m_logger);
     ldr.setSearchPaths(parameters.searchPaths());
+    ldr.setProgressObserver(m_evalContext->observer());
     m_result.newlyResolvedProject = ldr.loadProject(parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;

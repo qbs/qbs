@@ -62,6 +62,7 @@ public:
     QScriptValue scope() const { return m_scope; }
 
     void setObserver(ProgressObserver *observer) { m_observer = observer; }
+    ProgressObserver *observer() const { return m_observer; }
     void initializeObserver(const QString &description, int maximumProgress);
     void incrementProgressValue();
     void checkForCancelation();
