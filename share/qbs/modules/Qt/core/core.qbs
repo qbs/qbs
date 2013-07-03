@@ -76,8 +76,7 @@ Module {
             libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)];
         if (qbs.targetOS.contains('ios') && staticBuild)
             libs = libs.concat(["z", "m",
-                                QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs),
-                                QtFunctions.getPlatformLibraryName("qiosmain", qtcore, qbs)]);
+                                QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs)]);
         if (libs.length === 0)
             return undefined;
         return libs;
