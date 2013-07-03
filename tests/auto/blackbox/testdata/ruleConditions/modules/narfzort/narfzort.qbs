@@ -14,7 +14,7 @@ Module {
             fileTags: ["zort"]
         }
         prepare: {
-            var cmd = JavaScriptCommand();
+            var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() {
                     var f = new TextFile(output.fileName, TextFile.WriteOnly);
                     f.write("NARF! ZORT!");
