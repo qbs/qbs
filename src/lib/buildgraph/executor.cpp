@@ -653,12 +653,12 @@ void Executor::addExecutorJobs(int jobNumber)
         job->setObjectName(QString(QLatin1String("J%1")).arg(i));
         m_availableJobs.append(job);
         connect(job, SIGNAL(reportCommandDescription(QString,QString)),
-                this, SIGNAL(reportCommandDescription(QString,QString)));
+                this, SIGNAL(reportCommandDescription(QString,QString)), Qt::QueuedConnection);
         connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
-                this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
+                this, SIGNAL(reportProcessResult(qbs::ProcessResult)), Qt::QueuedConnection);
         connect(job, SIGNAL(error(qbs::ErrorInfo)),
-                this, SLOT(onProcessError(qbs::ErrorInfo)));
-        connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()));
+                this, SLOT(onProcessError(qbs::ErrorInfo)), Qt::QueuedConnection);
+        connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()), Qt::QueuedConnection);
     }
 }
 
