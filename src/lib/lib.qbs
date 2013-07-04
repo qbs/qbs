@@ -27,6 +27,8 @@ Product {
         condition: qbs.toolchain.contains("gcc") && !qbs.targetOS.contains("windows")
         cpp.cxxFlags: ["-Werror"]
     }
+    cpp.installNamePrefix: "@rpath/"
+
     property string headerInstallPrefix: "/include/qbs"
     Group {
         name: product.name

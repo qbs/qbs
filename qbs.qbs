@@ -5,8 +5,14 @@ Project {
     property bool enableRPath: true
     property bool installApiHeaders: true
     property path libInstallDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
-    property path libRPaths: (project.enableRPath && qbs.targetOS.contains("linux"))
-                ? ["$ORIGIN/../lib"] : undefined
+    property path libRPaths: {
+        if (!project.enableRPath)
+            return undefined;
+        if (qbs.targetOS.contains("linux"))
+            return ["$ORIGIN/../lib"];
+        if (qbs.targetOS.contains("osx"))
+            return ["@loader_path/../lib"]
+    }
     property path resourcesInstallDir: ""
 
     references: [
