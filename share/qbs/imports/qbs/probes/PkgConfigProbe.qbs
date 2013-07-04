@@ -27,13 +27,13 @@ Probe {
         if (maxVersion !== undefined)
             args.push(name + ' <= ' + maxVersion);
         if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
-            cflags = p.readAll().trim();
+            cflags = p.readStdOut().trim();
             if (cflags === "")
                 cflags = undefined;
             else
                 cflags = cflags.split(/\s/);
             if (p.exec(executable, args.concat([ '--libs' ])) === 0) {
-                libs = p.readAll().trim();
+                libs = p.readStdOut().trim();
                 if (libs === "")
                     libs = undefined;
                 else
