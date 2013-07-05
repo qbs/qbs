@@ -152,19 +152,27 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                 }
             }
 
-            if (Q_UNLIKELY(import->importId.isNull())) {
-                throw ErrorInfo(Tr::tr("Imports require 'as <Name>'"),
-                            toCodeLocation(import->importToken));
+            if (import->importId.isNull()) {
+                if (!import->fileName.isNull()) {
+                    throw ErrorInfo(Tr::tr("File imports require 'as <Name>'"),
+                                    toCodeLocation(import->importToken));
+                }
+                if (importUri.isEmpty()) {
+                    throw ErrorInfo(Tr::tr("Invalid import URI."),
+                                    toCodeLocation(import->importToken));
+                }
+                as = importUri.last();
+            } else {
+                as = import->importId.toString();
             }
 
-            as = import->importId.toString();
             if (Q_UNLIKELY(importAsNames.contains(as))) {
                 throw ErrorInfo(Tr::tr("Can't import into the same name more than once."),
                             toCodeLocation(import->importIdToken));
             }
             if (Q_UNLIKELY(JsExtensions::hasExtension(as))) {
-                throw ErrorInfo(Tr::tr("Cannot use the name of built-in extension '%1' in an 'as' "
-                                       "specifier.").arg(as));
+                throw ErrorInfo(Tr::tr("Cannot reuse the name of built-in extension '%1'.")
+                                .arg(as));
             }
             importAsNames.insert(as);
         }
