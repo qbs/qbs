@@ -2,7 +2,7 @@ include(../../plugins.pri)
 
 TARGET = qbs_qt_scanner
 
-Qt = core xml
+QT = core
 
 HEADERS += ../scanner.h
 SOURCES += \
