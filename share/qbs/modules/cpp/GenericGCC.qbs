@@ -1,5 +1,5 @@
 import qbs 1.0
-import qbs.fileinfo as FileInfo
+import qbs.FileInfo
 import 'windows.js' as Windows
 import 'gcc.js' as Gcc
 import '../utils.js' as ModUtils

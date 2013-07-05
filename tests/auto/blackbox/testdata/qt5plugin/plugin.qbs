@@ -1,6 +1,6 @@
 import qbs.base
 import qbs.File
-import qbs.fileinfo as FileInfo
+import qbs.FileInfo
 
 DynamicLibrary {
     name: "echoplugin"

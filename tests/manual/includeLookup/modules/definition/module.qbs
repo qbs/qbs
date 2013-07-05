@@ -1,5 +1,5 @@
 import qbs 1.0
-import qbs.probes as Probes
+import qbs.Probes
 
 Module {
     name: 'definition'

@@ -2,7 +2,7 @@ import qbs 1.0
 import qbs.File
 import qbs.TextFile
 import qbs.Xml
-import qbs.fileinfo as FileInfo
+import qbs.FileInfo
 
 Project {
     Product {

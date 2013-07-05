@@ -1,6 +1,6 @@
 import qbs 1.0
 import qbs.TextFile
-import qbs.fileinfo as FileInfo
+import qbs.FileInfo
 
 Project {
     Product {

@@ -1,6 +1,6 @@
 import qbs 1.0
 import qbs.File
-import qbs.fileinfo as FileInfo
+import qbs.Fileinfo
 import "utils.js" as Utils
 
 Probe {

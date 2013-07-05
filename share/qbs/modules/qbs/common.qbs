@@ -1,5 +1,5 @@
 import qbs 1.0
-import qbs.fileinfo as FileInfo
+import qbs.FileInfo
 
 Module {
     property string buildVariant: "debug"
