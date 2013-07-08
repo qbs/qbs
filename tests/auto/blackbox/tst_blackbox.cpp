@@ -408,6 +408,39 @@ void TestBlackbox::clean()
     QVERIFY(QFile(depExeFilePath).exists());
 }
 
+void TestBlackbox::renameProduct()
+{
+    QDir::setCurrent(testDataDir + "/renameProduct");
+
+    // Initial run.
+    QCOMPARE(runQbs(), 0);
+
+    // Rename lib and adapt Depends item.
+    waitForNewTimestamp();
+    QFile f("rename.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    QByteArray contents = f.readAll();
+    contents.replace("TheLib", "thelib");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    QCOMPARE(runQbs(), 0);
+
+    // Rename lib and don't adapt Depends item.
+    waitForNewTimestamp();
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    contents = f.readAll();
+    const int libNameIndex = contents.lastIndexOf("thelib");
+    QVERIFY(libNameIndex != -1);
+    contents.replace(libNameIndex, 6, "TheLib");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+}
+
 void TestBlackbox::subProjects()
 {
     QDir::setCurrent(testDataDir + "/subprojects");

@@ -101,14 +101,10 @@ public:
     const QString &filePath() const { return m_filePath; }
     QString dirPath() const { return m_dirPath.toString(); }
     QString fileName() const { return m_fileName.toString(); }
-    void disconnectAll(const Logger &logger);
 
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
-
-    void disconnectChildren(const Logger &logger);
-    void disconnectParents(const Logger &logger);
 
 private:
     QString m_filePath;

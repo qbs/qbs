@@ -65,7 +65,7 @@ private:
     void trackProjectChanges(const SetupProjectParameters &parameters,
                              const QString &buildGraphFilePath,
                              const TopLevelProjectPtr &restoredProject);
-    void onProductRemoved(const ResolvedProductPtr &product);
+    void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData);
     void onProductChanged(const ResolvedProductPtr &product,
                           const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,

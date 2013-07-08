@@ -107,8 +107,44 @@ static bool commandsEqual(const TransformerConstPtr &t1, const TransformerConstP
     return true;
 }
 
+static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
+{
+    if (logger.traceEnabled()) {
+        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectChildren: '%1'")
+                             .arg(relativeArtifactFileName(artifact));
+    }
+    foreach (Artifact * const child, artifact->children)
+        child->parents.remove(artifact);
+    artifact->children.clear();
+}
 
-void ProjectBuildData::removeArtifact(Artifact *artifact, const Logger &logger)
+static void disconnectArtifactParents(Artifact *artifact, ProjectBuildData *projectBuildData,
+                               const Logger &logger)
+{
+    if (logger.traceEnabled()) {
+        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectParents: '%1'")
+                             .arg(relativeArtifactFileName(artifact));
+    }
+    foreach (Artifact * const parent, artifact->parents) {
+        parent->children.remove(artifact);
+        if (parent->transformer) {
+            parent->transformer->inputs.remove(artifact);
+            projectBuildData->artifactsThatMustGetNewTransformers += parent;
+        }
+    }
+
+    artifact->parents.clear();
+}
+
+static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
+                               const Logger &logger)
+{
+    disconnectArtifactChildren(artifact, logger);
+    disconnectArtifactParents(artifact, projectBuildData, logger);
+}
+
+void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
+                                      const Logger &logger)
 {
     if (logger.traceEnabled())
         logger.qbsTrace() << "[BG] remove artifact " << relativeArtifactFileName(artifact);
@@ -117,18 +153,14 @@ void ProjectBuildData::removeArtifact(Artifact *artifact, const Logger &logger)
     artifact->product->buildData->artifacts.remove(artifact);
     removeFromArtifactLookupTable(artifact);
     artifact->product->buildData->targetArtifacts.remove(artifact);
-    foreach (Artifact *parent, artifact->parents) {
-        parent->children.remove(artifact);
-        if (parent->transformer) {
-            parent->transformer->inputs.remove(artifact);
-            artifactsThatMustGetNewTransformers += parent;
-        }
-    }
-    foreach (Artifact *child, artifact->children)
-        child->parents.remove(artifact);
-    artifact->children.clear();
-    artifact->parents.clear();
+    disconnectArtifact(artifact, projectBuildData, logger);
+    projectBuildData->artifactsThatMustGetNewTransformers -= artifact;
     isDirty = true;
+}
+
+void ProjectBuildData::removeArtifact(Artifact *artifact, const Logger &logger)
+{
+    removeArtifact(artifact, artifact->topLevelProject->buildData.data(), logger);
 }
 
 void ProjectBuildData::updateNodesThatMustGetNewTransformer(const Logger &logger)

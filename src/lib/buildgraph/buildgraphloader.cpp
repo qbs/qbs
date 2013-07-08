@@ -324,12 +324,13 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 
     // Products still left in the list do not exist anymore.
     foreach (const ResolvedProductPtr &removedProduct, allRestoredProducts)
-        onProductRemoved(removedProduct);
+        onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.data());
 
     CycleDetector(m_logger).visitProject(m_result.newlyResolvedProject);
 }
 
-void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product)
+void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
+                                        ProjectBuildData *projectBuildData)
 {
     m_logger.qbsDebug() << "[BG] product '" << product->name << "' removed.";
 
@@ -337,10 +338,8 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product)
 
     // delete all removed artifacts physically from the disk
     if (product->buildData) {
-        foreach (Artifact *artifact, product->buildData->artifacts) {
-            artifact->disconnectAll(m_logger);
-            removeGeneratedArtifactFromDisk(artifact, m_logger);
-        }
+        foreach (Artifact *artifact, product->buildData->artifacts)
+            projectBuildData->removeArtifact(artifact, projectBuildData, m_logger);
     }
 }
 

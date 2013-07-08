@@ -28,12 +28,10 @@
 ****************************************************************************/
 
 #include "artifact.h"
-#include "transformer.h"
-#include "buildgraph.h"
 
-#include <language/language.h>
+#include "transformer.h"
+
 #include <language/propertymapinternal.h>
-#include <logging/logger.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 
@@ -113,34 +111,6 @@ void Artifact::store(PersistentPool &pool) const
             << timestamp
             << autoMocTimestamp
             << static_cast<unsigned char>(alwaysUpdated);
-}
-
-void Artifact::disconnectChildren(const Logger &logger)
-{
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectChildren: '%1'")
-                             .arg(relativeArtifactFileName(this));
-    }
-    foreach (Artifact * const child, children)
-        child->parents.remove(this);
-    children.clear();
-}
-
-void Artifact::disconnectParents(const Logger &logger)
-{
-    if (logger.traceEnabled()) {
-        logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectParents: '%1'")
-                             .arg(relativeArtifactFileName(this));
-    }
-    foreach (Artifact * const parent, parents)
-        parent->children.remove(this);
-    parents.clear();
-}
-
-void Artifact::disconnectAll(const Logger &logger)
-{
-    disconnectChildren(logger);
-    disconnectParents(logger);
 }
 
 } // namespace Internal

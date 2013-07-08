@@ -59,8 +59,10 @@ public:
     QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
     QList<Artifact *> lookupArtifacts(const Artifact *artifact) const;
     void insertFileDependency(Artifact *artifact);
-    void removeArtifact(Artifact *artifact, const Logger &logger);
     void updateNodesThatMustGetNewTransformer(const Logger &logger);
+    void removeArtifact(Artifact *artifact, const Logger &logger);
+    void removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
+                        const Logger &logger);
 
     ArtifactList dependencyArtifacts;
     RulesEvaluationContextPtr evaluationContext;
@@ -72,7 +74,6 @@ private:
     void store(PersistentPool &pool) const;
     void updateNodeThatMustGetNewTransformer(Artifact *artifact, const Logger &logger);
 
-private:
     QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
 };
 

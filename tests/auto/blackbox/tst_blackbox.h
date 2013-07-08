@@ -104,6 +104,7 @@ private slots:
     void resolve_project_dry_run_data();
     void resolve_project_dry_run();
     void clean();
+    void renameProduct();
     void subProjects();
     void track_qrc();
     void track_qobject_change();
