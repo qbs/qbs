@@ -3,7 +3,8 @@ import "../../version.js" as Version
 
 Product {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["core", "script", "xml", "test"] }
+    Depends { name: "Qt"; submodules: ["core", "script", "xml"] }
+    Depends { condition: project.enableUnitTests; name: "Qt.test" }
     Depends { condition: Qt.core.versionMajor >= 5; name: "Qt.concurrent" }
     name: "qbscore"
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
