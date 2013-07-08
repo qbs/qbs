@@ -145,9 +145,9 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script,
             throw ErrorInfo(Tr::tr("Invalid prepare script."), script->location);
     }
 
-    engine->clearProperties();
     QScriptValue scriptValue = script->scriptFunction.call();
     modulePropertiesUsedInPrepareScript = engine->properties();
+    engine->clearProperties();
     if (Q_UNLIKELY(engine->hasUncaughtException()))
         throw ErrorInfo("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName(),

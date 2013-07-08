@@ -441,6 +441,29 @@ void TestBlackbox::renameProduct()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackbox::renameTargetArtifact()
+{
+    QDir::setCurrent(testDataDir + "/renameTargetArtifact");
+
+    // Initial run.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling"));
+    QCOMPARE(m_qbsStdout.count("linking"), 2);
+
+    // Rename library file name.
+    waitForNewTimestamp();
+    QFile f("rename.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    QByteArray contents = f.readAll();
+    contents.replace("the_lib", "TheLib");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling"));
+    QCOMPARE(m_qbsStdout.count("linking"), 2);
+}
+
 void TestBlackbox::subProjects()
 {
     QDir::setCurrent(testDataDir + "/subprojects");
