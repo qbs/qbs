@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.File
 import qbs.Process
 import qbs.TextFile
 import qbs.FileInfo
@@ -92,6 +93,10 @@ UnixGCC {
         return dict;
     }
 
+    readonly property string platformInfoPlist: platformPath ? [platformPath, "Info.plist"].join("/") : undefined
+    readonly property string sdkSettingsPlist: sysroot ? [sysroot, "SDKSettings.plist"].join("/") : undefined
+    readonly property string toolchainInfoPlist: toolchainInstallPath ? [toolchainInstallPath, "../../ToolchainInfo.plist"].join("/") : undefined
+
     Rule {
         multiplex: true
         inputs: ["infoplist"]
@@ -146,6 +151,11 @@ UnixGCC {
             cmd.toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
             cmd.sysroot = product.moduleProperty("qbs", "sysroot");
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
+
+            cmd.platformInfoPlist = product.moduleProperty("cpp", "platformInfoPlist");
+            cmd.sdkSettingsPlist = product.moduleProperty("cpp", "sdkSettingsPlist");
+            cmd.toolchainInfoPlist = product.moduleProperty("cpp", "toolchainInfoPlist");
+
             cmd.sourceCode = function() {
                 var process, key;
 
@@ -172,44 +182,54 @@ UnixGCC {
 
                     // Add keys from platform's Info.plist if not already present
                     if (platformPath) {
-                        process = new Process();
-                        process.exec("plutil", ["-convert", "json", "-o", "-",
-                                                 [platformPath, "Info.plist"].join('/')], true);
-                        platformInfo = JSON.parse(process.readStdOut());
+                        if (File.exists(platformInfoPlist)) {
+                            process = new Process();
+                            process.exec("plutil", ["-convert", "json", "-o", "-",
+                                                     platformInfoPlist], true);
+                            platformInfo = JSON.parse(process.readStdOut());
 
-                        var additionalProps = platformInfo["AdditionalInfo"];
-                        for (key in additionalProps) {
-                            if (additionalProps.hasOwnProperty(key) && !(key in aggregatePlist)) // override infoPlist?
-                                aggregatePlist[key] = defaultValues[key];
-                        }
-                        props = platformInfo['OverrideProperties'];
-                        for (key in props) {
-                            aggregatePlist[key] = props[key];
-                        }
+                            var additionalProps = platformInfo["AdditionalInfo"];
+                            for (key in additionalProps) {
+                                if (additionalProps.hasOwnProperty(key) && !(key in aggregatePlist)) // override infoPlist?
+                                    aggregatePlist[key] = defaultValues[key];
+                            }
+                            props = platformInfo['OverrideProperties'];
+                            for (key in props) {
+                                aggregatePlist[key] = props[key];
+                            }
 
-                        if (product.moduleProperty("qbs", "targetOS").contains("ios")) {
-                            key = "UIDeviceFamily";
-                            if (key in platformInfo && !(key in aggregatePlist))
-                                aggregatePlist[key] = platformInfo[key];
+                            if (product.moduleProperty("qbs", "targetOS").contains("ios")) {
+                                key = "UIDeviceFamily";
+                                if (key in platformInfo && !(key in aggregatePlist))
+                                    aggregatePlist[key] = platformInfo[key];
+                            }
+                        } else {
+                            print("warning: platform path given but no platform Info.plist found");
                         }
                     } else {
-                        print("Missing platformPath property");
+                        print("no platform path specified");
                     }
+
                     if (sysroot) {
-                        process = new Process();
-                        process.exec("plutil", ["-convert", "json", "-o", "-",
-                                                 sysroot + "/SDKSettings.plist"], true);
-                        sdkSettings = JSON.parse(process.readStdOut());
+                        if (File.exists(sdkSettingsPlist)) {
+                            process = new Process();
+                            process.exec("plutil", ["-convert", "json", "-o", "-",
+                                                     sdkSettingsPlist], true);
+                            sdkSettings = JSON.parse(process.readStdOut());
+                        } else {
+                            print("warning: sysroot (SDK path) given but no SDKSettings.plist found");
+                        }
                     } else {
-                        print("Missing sysroot (SDK path)");
+                        print("no sysroot (SDK path) specified");
                     }
-                    if (toolchainInstallPath) {
+
+                    if (toolchainInstallPath && File.exists(toolchainInfoPlist)) {
                         process = new Process();
                         process.exec("plutil", ["-convert", "json", "-o", "-",
-                                toolchainInstallPath + "/../../ToolchainInfo.plist"], true);
+                                                 toolchainInfoPlist], true);
                         toolchainInfo = JSON.parse(process.readStdOut());
                     } else {
-                        print("Cannot get the ToolchainInfo.plist from the toolchainInstallPath");
+                        print("could not find a ToolchainInfo.plist near the toolchain install path");
                     }
 
                     process = new Process();
