@@ -50,6 +50,7 @@ Loader::Loader(ScriptEngine *engine, const Logger &logger)
     , m_builtins(new BuiltinDeclarations)
     , m_moduleLoader(new ModuleLoader(engine, m_builtins, logger))
     , m_projectResolver(new ProjectResolver(m_moduleLoader, logger))
+    , m_engine(engine)
 {
 }
 
@@ -85,6 +86,8 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
+
+    m_engine->clearExceptions();
 
     // At this point, we cannot set a sensible total effort, because we know nothing about
     // the project yet. That's why we use a placeholder here, so the user at least

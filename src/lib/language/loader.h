@@ -63,6 +63,7 @@ private:
     BuiltinDeclarations *m_builtins;
     ModuleLoader *m_moduleLoader;
     ProjectResolver *m_projectResolver;
+    ScriptEngine * const m_engine;
 };
 
 } // namespace Internal
