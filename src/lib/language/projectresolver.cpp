@@ -206,6 +206,8 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Rule"] = &ProjectResolver::resolveRule;
 
+    if (m_progressObserver)
+        m_progressObserver->setMaximum(item->children().count());
     foreach (Item *child, item->children()) {
         callItemFunction(mapping, child, projectContext);
         if (m_progressObserver)

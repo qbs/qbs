@@ -983,6 +983,12 @@ void TestBlackbox::disabledProduct()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::disabledProject()
+{
+    QDir::setCurrent(testDataDir + "/disabledProject");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");

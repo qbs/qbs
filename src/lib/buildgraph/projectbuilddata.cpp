@@ -228,12 +228,13 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
     resolvedProject->buildData->evaluationContext = evalContext;
     const QList<ResolvedProductPtr> allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
-                                    .arg(resolvedProject->id()), allProducts.count());
+                                    .arg(resolvedProject->id()), allProducts.count() + 1);
     foreach (ResolvedProductPtr rProduct, allProducts) {
         if (rProduct->enabled)
             resolveProductBuildData(rProduct);
         evalContext->incrementProgressValue();
     }
+    evalContext->incrementProgressValue();
     CycleDetector(m_logger).visitProject(m_project);
 }
 

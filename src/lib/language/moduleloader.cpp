@@ -117,6 +117,8 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath, const QVariantMap
 
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
 {
+    if (!checkItemCondition(item))
+        return;
     ProjectContext projectContext;
     projectContext.result = loadResult;
     projectContext.extraSearchPaths = readExtraSearchPaths(item);

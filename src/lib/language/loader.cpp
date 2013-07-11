@@ -101,9 +101,14 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
             = m_moduleLoader->load(parameters.projectFilePath(),
                                    parameters.buildConfigurationTree(),
                                    true);
-    return m_projectResolver->resolve(loadResult, parameters.buildRoot(),
-                                      parameters.buildConfigurationTree(),
-                                      parameters.environment());
+    const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult,
+            parameters.buildRoot(), parameters.buildConfigurationTree(), parameters.environment());
+
+    // E.g. if the top-level project is disabled.
+    if (m_progressObserver)
+        m_progressObserver->setFinished();
+
+    return project;
 }
 
 QByteArray Loader::qmlTypeInfo()
