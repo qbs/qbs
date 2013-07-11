@@ -125,7 +125,6 @@ private:
         descriptor.setProperty(QLatin1String("set"), engine->evaluate("(function(){})"));
         descriptor.setProperty(QLatin1String("enumerable"), true);
         engine->defineProperty(moduleScriptValue, QLatin1String("dependencies"), descriptor);
-        moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc);
         moduleScriptValue.setProperty(QLatin1String("type"), QLatin1String("module"));
     }
 
