@@ -41,6 +41,7 @@ class SetupProjectParameters;
 
 namespace Internal {
 class ArtifactList;
+class FileTime;
 
 class BuildGraphLoadResult
 {
@@ -65,6 +66,16 @@ private:
     void trackProjectChanges(const SetupProjectParameters &parameters,
                              const QString &buildGraphFilePath,
                              const TopLevelProjectPtr &restoredProject);
+    bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
+    bool hasProjectFileChanged(const QList<ResolvedProjectPtr> &restoredProjects,
+                               const FileTime &referenceTime,
+                               QSet<QString> &remainingBuildSystemFiles) const;
+    bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
+                               const FileTime &referenceTime,
+                               QSet<QString> &remainingBuildSystemFiles,
+                               QList<ResolvedProductPtr> &changedProducts);
+    bool hasBuildSystemFileChanged(const QSet<QString> &buildSystemFiles,
+                                   const FileTime &referenceTime);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData);
     void onProductChanged(const ResolvedProductPtr &product,
                           const ResolvedProductPtr &changedProduct);
