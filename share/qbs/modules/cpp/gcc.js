@@ -5,8 +5,8 @@ function libraryLinkerFlags(product, inputs)
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
     var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
     var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
-    var frameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'frameworks');
-    var weakFrameworks = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'weakFrameworks');
+    var frameworks = ModUtils.moduleProperties(product, 'frameworks');
+    var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = ModUtils.moduleProperties(product, 'rpaths');
     var args = [], i, prefix, suffix;
 
