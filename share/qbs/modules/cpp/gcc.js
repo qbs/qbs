@@ -1,7 +1,7 @@
 function libraryLinkerFlags(product, inputs)
 {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
-    var dynamicLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'dynamicLibraries');
+    var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
     var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
     var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
