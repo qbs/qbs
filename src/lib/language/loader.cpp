@@ -87,6 +87,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
 
+    m_engine->setEnvironment(parameters.environment());
     m_engine->clearExceptions();
 
     // At this point, we cannot set a sensible total effort, because we know nothing about
@@ -97,12 +98,13 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
                 .arg(TopLevelProject::deriveId(parameters.buildConfigurationTree())), 1);
     }
+
     ModuleLoaderResult loadResult
             = m_moduleLoader->load(parameters.projectFilePath(),
                                    parameters.buildConfigurationTree(),
                                    true);
     const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult,
-            parameters.buildRoot(), parameters.buildConfigurationTree(), parameters.environment());
+            parameters.buildRoot(), parameters.buildConfigurationTree());
 
     // E.g. if the top-level project is disabled.
     if (m_progressObserver)

@@ -80,8 +80,7 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 
 TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
                                             const QString &buildRoot,
-                                            const QVariantMap &buildConfiguration,
-                                            const QProcessEnvironment &environment)
+                                            const QVariantMap &buildConfiguration)
 {
     QBS_ASSERT(FileInfo::isAbsolute(buildRoot), return TopLevelProjectPtr());
     if (m_logger.traceEnabled())
@@ -91,7 +90,6 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     projectContext.loadResult = &loadResult;
     m_buildRoot = buildRoot;
     m_buildConfiguration = buildConfiguration;
-    m_environment = environment;
     m_productContext = 0;
     m_moduleContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
@@ -164,7 +162,7 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     resolveProject(item, projectContext);
     project->usedEnvironment = m_engine->usedEnvironment();
     project->fileExistsResults = m_engine->fileExistsResults();
-    project->environment = m_environment;
+    project->environment = m_engine->environment();
     project->buildSystemFiles = m_engine->imports();
     makeSubProjectNamesUniqe(project);
     resolveProductDependencies(projectContext);
@@ -185,8 +183,6 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
 
     projectContext->dummyModule = ResolvedModule::create();
     projectContext->dummyModule->jsImports = item->file()->jsImports();
-
-    m_evaluator->engine()->setEnvironment(m_environment);
 
     QVariantMap projectProperties;
     for (QMap<QString, PropertyDeclaration>::const_iterator it

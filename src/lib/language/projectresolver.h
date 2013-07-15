@@ -57,8 +57,7 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot,
-                               const QVariantMap &buildConfiguration,
-                               const QProcessEnvironment &environment);
+                               const QVariantMap &buildConfiguration);
 
 private:
     struct ProjectContext
@@ -122,7 +121,6 @@ private:
     QVariantMap m_buildConfiguration;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
-    QProcessEnvironment m_environment;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     QMap<QString, QVariantMap> m_exports;
