@@ -77,6 +77,8 @@ public:
     void setEnvironment(const QProcessEnvironment &env);
     void addEnvironmentVariable(const QString &name, const QString &value);
     QHash<QString, QString> usedEnvironment() const { return m_usedEnvironment; }
+    void addFileExistsResult(const QString &filePath, bool exists);
+    QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QSet<QString> imports() const;
 
 private:
@@ -92,6 +94,7 @@ private:
     QScriptValue m_emptyFunction;
     QProcessEnvironment m_environment;
     QHash<QString, QString> m_usedEnvironment;
+    QHash<QString, bool> m_fileExistsResult;
 };
 
 } // namespace Internal

@@ -238,6 +238,11 @@ void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &va
     m_usedEnvironment.insert(name, value);
 }
 
+void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
+{
+    m_fileExistsResult.insert(filePath, exists);
+}
+
 QSet<QString> ScriptEngine::imports() const
 {
     return QSet<QString>::fromList(m_jsImportCache.keys());

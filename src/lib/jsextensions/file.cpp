@@ -29,6 +29,7 @@
 
 #include "file.h"
 
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 
@@ -91,7 +92,11 @@ QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(QScriptContext::SyntaxError,
                                    Tr::tr("exist expects 1 argument"));
     }
-    return FileInfo::exists(context->argument(0).toString());
+    const QString filePath = context->argument(0).toString();
+    const bool exists = FileInfo::exists(filePath);
+    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    se->addFileExistsResult(filePath, exists);
+    return exists;
 }
 
 QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)

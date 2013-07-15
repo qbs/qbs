@@ -163,6 +163,7 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     projectContext->project = project;
     resolveProject(item, projectContext);
     project->usedEnvironment = m_engine->usedEnvironment();
+    project->fileExistsResults = m_engine->fileExistsResults();
     project->environment = m_environment;
     project->buildSystemFiles = m_engine->imports();
     makeSubProjectNamesUniqe(project);

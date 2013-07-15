@@ -596,6 +596,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
     QbsRunParameters params;
     params.environment.insert("QBS_TEST_PULL_IN_FILE_VIA_ENV", "1");
@@ -603,12 +604,14 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
     rmDirR(buildDir);
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
     waitForNewTimestamp();
     QFile jsFile("fileList.js");
@@ -622,6 +625,30 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+
+    rmDirR(buildDir);
+    QVERIFY(jsFile.open(QIODevice::ReadWrite));
+    jsCode = jsFile.readAll();
+    jsCode.replace("['jsFileChange.cpp']", "[]");
+    jsFile.resize(0);
+    jsFile.write(jsCode);
+    jsFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+
+    QFile cppFile("fileExists.cpp");
+    QVERIFY(cppFile.open(QIODevice::WriteOnly));
+    cppFile.write("void fileExists() { }\n");
+    cppFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling fileExists.cpp"));
 }
 
 void TestBlackbox::trackRemoveFile()

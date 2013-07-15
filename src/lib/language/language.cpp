@@ -727,6 +727,7 @@ void TopLevelProject::load(PersistentPool &pool)
     pool.stream() >> m_id;
     pool.stream() >> platformEnvironment;
     pool.stream() >> usedEnvironment;
+    pool.stream() >> fileExistsResults;
     QHash<QString, QString> envHash;
     pool.stream() >> envHash;
     for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
@@ -740,7 +741,7 @@ void TopLevelProject::store(PersistentPool &pool) const
 {
     ResolvedProject::store(pool);
     pool.stream() << m_id;
-    pool.stream() << platformEnvironment << usedEnvironment;
+    pool.stream() << platformEnvironment << usedEnvironment << fileExistsResults;
     QHash<QString, QString> envHash;
     foreach (const QString &key, environment.keys())
         envHash.insert(key, environment.value(key));
