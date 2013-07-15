@@ -111,6 +111,7 @@ private slots:
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();
+    void trackExternalProductChanges();
     void trackRemoveFile();
     void trackAddFileTag();
     void trackRemoveFileTag();

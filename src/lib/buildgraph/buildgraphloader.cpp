@@ -168,19 +168,21 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 {
     const FileTime buildGraphTimeStamp = FileInfo(buildGraphFilePath).lastModified();
     QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
-    const QList<ResolvedProjectPtr> allRestoredProjects
-            = restoredProject->allSubProjects() << restoredProject;
-
-    bool reResolvingNecessary = hasProjectFileChanged(allRestoredProjects, buildGraphTimeStamp,
-                                                      buildSystemFiles);
-    if (!reResolvingNecessary)
-        reResolvingNecessary = hasEnvironmentChanged(restoredProject);
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
-    reResolvingNecessary |= hasProductFileChanged(allRestoredProducts, buildGraphTimeStamp,
-                                                  buildSystemFiles, changedProducts);
-    if (!reResolvingNecessary)
-        reResolvingNecessary = hasBuildSystemFileChanged(buildSystemFiles, buildGraphTimeStamp);
+    bool reResolvingNecessary = hasProductFileChanged(allRestoredProducts, buildGraphTimeStamp,
+                                                      buildSystemFiles, changedProducts);
+
+    // "External" changes, e.g. in the environment or in a JavaScript file,
+    // can make the list of source files in a product change without the respective file
+    // having been touched. In such a case, the build data for that product will have to be set up
+    // anew.
+    bool allProductsPotentiallyChanged = false;
+    if (hasBuildSystemFileChanged(buildSystemFiles, buildGraphTimeStamp)
+            || hasEnvironmentChanged(restoredProject)) {
+        reResolvingNecessary = true;
+        allProductsPotentiallyChanged = true;
+    }
 
    if (!reResolvingNecessary)
        return;
@@ -215,6 +217,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         }
     }
 
+    if (allProductsPotentiallyChanged)
+        checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
     foreach (const ResolvedProductPtr &product, changedProducts) {
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->name);
         if (!freshProduct)
@@ -281,26 +285,6 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
     return false;
 }
 
-bool BuildGraphLoader::hasProjectFileChanged(const QList<ResolvedProjectPtr> &restoredProjects,
-                                             const FileTime &referenceTime,
-                                             QSet<QString> &remainingBuildSystemFiles) const
-{
-    foreach (const ResolvedProjectConstPtr &p, restoredProjects) {
-        const QString fileName = p->location.fileName();
-        const FileInfo fi(fileName);
-        remainingBuildSystemFiles.remove(fileName);
-        if (!fi.exists()) {
-            m_logger.qbsDebug() << "A sub-project was removed, must re-resolve project";
-            return true;
-        }
-        if (referenceTime < fi.lastModified()) {
-            m_logger.qbsDebug() << "A project file changed, must re-resolve project.";
-            return true;
-        }
-    }
-    return false;
-}
-
 bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
         const FileTime &referenceTime, QSet<QString> &remainingBuildSystemFiles,
         QList<ResolvedProductPtr> &changedProducts)
@@ -314,6 +298,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
             m_logger.qbsDebug() << "A product was removed, must re-resolve project";
             hasChanged = true;
         } else if (referenceTime < pfi.lastModified()) {
+            m_logger.qbsDebug() << "A product was changed, must re-resolve project";
             changedProducts += product;
         } else {
             foreach (const GroupPtr &group, product->groups) {
@@ -346,6 +331,25 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const QSet<QString> &buildSyste
         }
     }
     return false;
+}
+
+void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
+        const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,
+        QList<ResolvedProductPtr> &changedProducts)
+{
+    foreach (const ResolvedProductPtr &restoredProduct, restoredProducts) {
+        if (changedProducts.contains(restoredProduct))
+            continue;
+        const ResolvedProductPtr newlyResolvedProduct
+                = newlyResolvedProductsByName.value(restoredProduct->name);
+        if (!newlyResolvedProduct)
+            continue;
+        if (newlyResolvedProduct->allFiles() == restoredProduct->allFiles())
+            continue;
+        m_logger.qbsDebug() << "Product '" << restoredProduct->name
+                            << "' was changed, must re-resolve project";
+        changedProducts << restoredProduct;
+    }
 }
 
 void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,

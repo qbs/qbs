@@ -589,6 +589,41 @@ void TestBlackbox::trackAddFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 }
 
+void TestBlackbox::trackExternalProductChanges()
+{
+    QDir::setCurrent(testDataDir + "/trackExternalProductChanges");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+
+    QbsRunParameters params;
+    params.environment.insert("QBS_TEST_PULL_IN_FILE_VIA_ENV", "1");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+
+    rmDirR(buildDir);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
+
+    waitForNewTimestamp();
+    QFile jsFile("fileList.js");
+    QVERIFY(jsFile.open(QIODevice::ReadWrite));
+    QByteArray jsCode = jsFile.readAll();
+    jsCode.replace("[]", "['jsFileChange.cpp']");
+    jsFile.resize(0);
+    jsFile.write(jsCode);
+    jsFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling jsFileChange.cpp"));
+}
+
 void TestBlackbox::trackRemoveFile()
 {
     QProcess process;
