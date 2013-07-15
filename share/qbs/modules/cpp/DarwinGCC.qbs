@@ -181,6 +181,7 @@ UnixGCC {
                     }
 
                     // Add keys from platform's Info.plist if not already present
+                    var platformInfo = {};
                     if (platformPath) {
                         if (File.exists(platformInfoPlist)) {
                             process = new Process();
@@ -210,6 +211,7 @@ UnixGCC {
                         print("no platform path specified");
                     }
 
+                    var sdkSettings = {};
                     if (sysroot) {
                         if (File.exists(sdkSettingsPlist)) {
                             process = new Process();
@@ -223,6 +225,7 @@ UnixGCC {
                         print("no sysroot (SDK path) specified");
                     }
 
+                    var toolchainInfo = {};
                     if (toolchainInstallPath && File.exists(toolchainInfoPlist)) {
                         process = new Process();
                         process.exec("plutil", ["-convert", "json", "-o", "-",
