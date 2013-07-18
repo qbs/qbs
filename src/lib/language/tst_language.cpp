@@ -169,6 +169,26 @@ void TestLanguage::baseProperty()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::buildConfigStringListSyntax()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters parameters = defaultParameters;
+        QVariantMap overriddenValues;
+        overriddenValues.insert("project.someStrings", "foo,bar,baz");
+        parameters.setOverriddenValues(overriddenValues);
+        parameters.setProjectFilePath(testProject("buildconfigstringlistsyntax.qbs"));
+        project = loader->loadProject(parameters);
+        QVERIFY(project);
+        QCOMPARE(project->projectProperties().value("someStrings").toStringList(),
+                 QStringList() << "foo" << "bar" << "baz");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::conditionalDepends()
 {
     bool exceptionCaught = false;

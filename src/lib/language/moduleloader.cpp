@@ -690,6 +690,11 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
     const QVariant::Type vt = variantType(t);
     if (vt == QVariant::Invalid)
         return v;
+
+    // Handle the foo,bar,bla stringlist syntax.
+    if (t == PropertyDeclaration::StringList && v.type() == QVariant::String)
+        return v.toString().split(QLatin1Char(','));
+
     QVariant c = v;
     if (!c.convert(vt)) {
         QStringList name = namePrefix;

@@ -67,6 +67,7 @@ private slots:
     void cleanupTestCase();
 
     void baseProperty();
+    void buildConfigStringListSyntax();
     void conditionalDepends();
     void environmentVariable();
     void erroneousFiles_data();
