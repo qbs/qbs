@@ -98,8 +98,9 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     Evaluator *evaluator() const { return m_evaluator; }
 
-    ModuleLoaderResult load(const QString &filePath, const QVariantMap &userProperties,
-                            bool wrapWithProjectItem = false);
+    ModuleLoaderResult load(const QString &filePath,
+            const QVariantMap &overriddenProperties, const QVariantMap &buildConfigProperties,
+            bool wrapWithProjectItem = false);
 
     static QString fullModuleName(const QStringList &moduleName);
     static void overrideItemProperties(Item *item, const QString &buildConfigKey,
@@ -163,7 +164,7 @@ private:
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QStringList &moduleName,
             const QStringList &extraSearchPaths);
-    Item *loadModuleFile(ProductContext *productContext, bool isBaseModule, const QString &filePath);
+    Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName, bool isBaseModule, const QString &filePath);
     void loadBaseModule(ProductContext *productContext, Item *item);
     void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QStringList &moduleName);
     void createChildInstances(ProductContext *productContext, Item *instance,
@@ -188,7 +189,8 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
-    QVariantMap m_userProperties;
+    QVariantMap m_overriddenProperties;
+    QVariantMap m_buildConfigProperties;
 };
 
 } // namespace Internal

@@ -92,6 +92,7 @@ private slots:
     void modules();
     void outerInGroup();
     void pathProperties();
+    void profileValuesAndOverriddenValues();
     void productConditions();
     void productDirectories();
     void propertiesBlocks_data();

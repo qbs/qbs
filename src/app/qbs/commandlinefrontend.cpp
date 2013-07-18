@@ -109,6 +109,7 @@ void CommandLineFrontend::start()
         if (!m_parser.buildBeforeInstalling())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
+            params.setOverriddenValues(buildConfig);
             params.setBuildConfiguration(buildConfig);
             const ErrorInfo err = params.expandBuildConfiguration(m_settings);
             if (err.hasError())

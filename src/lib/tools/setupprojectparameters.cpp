@@ -58,7 +58,9 @@ public:
     QString buildRoot;
     QStringList searchPaths;
     QStringList pluginPaths;
+    QVariantMap overriddenValues;
     QVariantMap buildConfiguration;
+    mutable QVariantMap overriddenValuesTree;
     mutable QVariantMap buildConfigurationTree;
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
@@ -162,6 +164,52 @@ void SetupProjectParameters::setPluginPaths(const QStringList &pluginPaths)
 }
 
 /*!
+ * Returns the overridden values of the build configuration.
+ */
+QVariantMap SetupProjectParameters::overriddenValues() const
+{
+    return d->overriddenValues;
+}
+
+/*!
+ * Set the overridden values of the build configuration.
+ */
+void SetupProjectParameters::setOverriddenValues(const QVariantMap &values)
+{
+    // warn if somebody tries to set a build configuration tree:
+    for (QVariantMap::const_iterator i = values.constBegin();
+         i != values.constEnd(); ++i) {
+        QBS_ASSERT(i.value().type() != QVariant::Map, return);
+    }
+    d->overriddenValues = values;
+    d->overriddenValuesTree.clear();
+}
+
+static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
+{
+    if (!valueTree->isEmpty() || values.isEmpty())
+        return;
+
+    valueTree->clear();
+    for (QVariantMap::const_iterator it = values.constBegin(); it != values.constEnd(); ++it) {
+        QStringList nameElements = it.key().split(QLatin1Char('.'));
+        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
+            const QStringList allButLast = nameElements.mid(0, nameElements.length() - 1);
+            QStringList newElements(allButLast.join(QLatin1String("/")));
+            newElements.append(nameElements.last());
+            nameElements = newElements;
+        }
+        Internal::setConfigProperty(*valueTree, nameElements, it.value());
+    }
+}
+
+QVariantMap SetupProjectParameters::overriddenValuesTree() const
+{
+    provideValuesTree(d->overriddenValues, &d->overriddenValuesTree);
+    return d->overriddenValuesTree;
+}
+
+/*!
  * \brief The collection of properties to use for resolving the project.
  */
 QVariantMap SetupProjectParameters::buildConfiguration() const
@@ -192,23 +240,8 @@ void SetupProjectParameters::setBuildConfiguration(const QVariantMap &buildConfi
  */
 QVariantMap SetupProjectParameters::buildConfigurationTree() const
 {
-    if (!d->buildConfigurationTree.isEmpty() && !d->buildConfiguration.isEmpty())
-        return d->buildConfigurationTree;
-
-    QVariantMap result;
-    foreach (const QString &property, d->buildConfiguration.keys()) {
-        QStringList nameElements = property.split('.');
-        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
-            QStringList allButLast = nameElements;
-            allButLast.removeLast();
-            QStringList newElements(allButLast.join("/"));
-            newElements.append(nameElements.last());
-            nameElements = newElements;
-        }
-        Internal::setConfigProperty(result, nameElements, d->buildConfiguration.value(property));
-    }
-    d->buildConfigurationTree = result;
-    return result;
+    provideValuesTree(d->buildConfiguration, &d->buildConfigurationTree);
+    return d->buildConfigurationTree;
 }
 
 /*!

@@ -79,8 +79,8 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 }
 
 TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
-                                            const QString &buildRoot,
-                                            const QVariantMap &buildConfiguration)
+        const QString &buildRoot, const QVariantMap &overriddenProperties,
+        const QVariantMap &buildConfiguration)
 {
     QBS_ASSERT(FileInfo::isAbsolute(buildRoot), return TopLevelProjectPtr());
     if (m_logger.traceEnabled())
@@ -89,6 +89,7 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     ProjectContext projectContext;
     projectContext.loadResult = &loadResult;
     m_buildRoot = buildRoot;
+    m_overriddenProperties = overriddenProperties;
     m_buildConfiguration = buildConfiguration;
     m_productContext = 0;
     m_moduleContext = 0;
@@ -256,7 +257,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         item->setProperty("name", VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
-    ModuleLoader::overrideItemProperties(item, product->name, m_buildConfiguration);
+    ModuleLoader::overrideItemProperties(item, product->name, m_overriddenProperties);
     m_productsByName.insert(product->name, product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"), true);
     product->additionalFileTags
@@ -845,6 +846,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
         }
         case Value::VariantValueType:
         {
+            if (result.contains(it.key()))
+                break;
             VariantValuePtr vvp = it.value().staticCast<VariantValue>();
             result[it.key()] = vvp->value();
             break;

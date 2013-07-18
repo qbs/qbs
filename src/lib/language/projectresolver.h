@@ -57,7 +57,7 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot,
-                               const QVariantMap &buildConfiguration);
+            const QVariantMap &overriddenProperties, const QVariantMap &buildConfiguration);
 
 private:
     struct ProjectContext
@@ -118,6 +118,7 @@ private:
     ScriptEngine *m_engine;
     ProgressObserver *m_progressObserver;
     QString m_buildRoot;
+    QVariantMap m_overriddenProperties;
     QVariantMap m_buildConfiguration;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;

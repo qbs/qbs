@@ -65,6 +65,10 @@ public:
     QStringList pluginPaths() const;
     void setPluginPaths(const QStringList &pluginPaths);
 
+    QVariantMap overriddenValues() const;
+    void setOverriddenValues(const QVariantMap &values);
+    QVariantMap overriddenValuesTree() const;
+
     QVariantMap buildConfiguration() const;
     void setBuildConfiguration(const QVariantMap &buildConfiguration);
     QVariantMap buildConfigurationTree() const;

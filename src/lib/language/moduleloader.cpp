@@ -91,12 +91,14 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
         m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
 }
 
-ModuleLoaderResult ModuleLoader::load(const QString &filePath, const QVariantMap &userProperties,
-                                      bool wrapWithProjectItem)
+ModuleLoaderResult ModuleLoader::load(const QString &filePath,
+        const QVariantMap &overriddenProperties, const QVariantMap &buildConfigProperties,
+        bool wrapWithProjectItem)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << filePath;
-    m_userProperties = userProperties;
+    m_overriddenProperties = overriddenProperties;
+    m_buildConfigProperties = buildConfigProperties;
 
     ModuleLoaderResult result;
     m_pool = result.itemPool.data();
@@ -132,7 +134,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     loadBaseModule(&dummyProductContext, item);
-    overrideItemProperties(item, QLatin1String("project"), m_userProperties);
+    overrideItemProperties(item, QLatin1String("project"), m_overriddenProperties);
 
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
@@ -547,6 +549,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     searchPaths.append(m_moduleSearchPaths);
 
     bool triedToLoadModule = moduleName.count() > 1;
+    const QString fullName = fullModuleName(moduleName);
     foreach (const QString &path, searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
         if (dirPath.isEmpty())
@@ -561,7 +564,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         }
         foreach (const QString &filePath, moduleFileNames) {
             triedToLoadModule = true;
-            Item *module = loadModuleFile(productContext,
+            Item *module = loadModuleFile(productContext, fullName,
                                             moduleName.count() == 1
                                                 && moduleName.first() == QLatin1String("qbs"),
                                             filePath);
@@ -571,14 +574,14 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     }
 
     if (Q_UNLIKELY(triedToLoadModule))
-        throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullModuleName(moduleName)),
+        throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                     dependsItemLocation);
 
     return 0;
 }
 
-Item *ModuleLoader::loadModuleFile(ProductContext *productContext, bool isBaseModule,
-                                     const QString &filePath)
+Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
+        bool isBaseModule, const QString &filePath)
 {
     checkCancelation();
     Item *module = productContext->moduleItemCache.value(filePath);
@@ -604,6 +607,17 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, bool isBaseMo
     if (!checkItemCondition(module)) {
         m_logger.qbsTrace() << "[LDR] module condition is false";
         return 0;
+    }
+
+    // Module properties that are defined in the profile are used as default values.
+    const QVariantMap profileModuleProperties
+            = m_buildConfigProperties.value(fullModuleName).toMap();
+    for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
+            vmit != profileModuleProperties.end(); ++vmit)
+    {
+        if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
+            throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
+        module->setProperty(vmit.key(), VariantValue::create(vmit.value()));
     }
 
     productContext->moduleItemCache.insert(filePath, module);
@@ -760,7 +774,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
     }
 
     // override module properties given on the command line
-    const QVariantMap userModuleProperties = m_userProperties.value(fullName).toMap();
+    const QVariantMap userModuleProperties = m_overriddenProperties.value(fullName).toMap();
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
          vmit != userModuleProperties.end(); ++vmit) {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
@@ -840,7 +854,7 @@ void ModuleLoader::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_userProperties)));
+                    .arg(TopLevelProject::deriveId(m_buildConfigProperties)));
     }
 }
 

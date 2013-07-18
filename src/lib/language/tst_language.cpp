@@ -895,6 +895,46 @@ void TestLanguage::pathProperties()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::profileValuesAndOverriddenValues()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters parameters = defaultParameters;
+        QVariantMap buildConfig = parameters.buildConfiguration();
+        buildConfig.insert("dummy.defines", "IN_PROFILE");
+        buildConfig.insert("dummy.cFlags", "IN_PROFILE");
+        buildConfig.insert("dummy.cxxFlags", "IN_PROFILE");
+        parameters.setBuildConfiguration(buildConfig);
+        QVariantMap overriddenValues;
+        overriddenValues.insert("dummy.cFlags", "OVERRIDDEN");
+        parameters.setOverriddenValues(overriddenValues);
+        parameters.setProjectFilePath(testProject("profilevaluesandoverriddenvalues.qbs"));
+        project = loader->loadProject(parameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value("product1");
+        QVERIFY(product);
+        PropertyFinder pf;
+        QVariantList values;
+        values = pf.propertyValues(product->properties->value(),
+                                   "dummy", "cxxFlags", PropertyFinder::DoMergeLists);
+        QCOMPARE(values.length(), 1);
+        QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
+        values = pf.propertyValues(product->properties->value(),
+                                   "dummy", "defines", PropertyFinder::DoMergeLists);
+        QCOMPARE(values.length(), 1);
+        QCOMPARE(values.first().toString(), QString("IN_FILE"));
+        values = pf.propertyValues(product->properties->value(),
+                                   "dummy", "cFlags", PropertyFinder::DoMergeLists);
+        QCOMPARE(values.length(), 1);
+        QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::productConditions()
 {
     bool exceptionCaught = false;
