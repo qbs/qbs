@@ -1,7 +1,7 @@
 import "dummy_base.qbs" as DummyBase
 
 DummyBase {
-    property var defines
+    property stringList defines
     property pathList includePaths
-    property var cxxFlags
+    property stringList cxxFlags
 }
