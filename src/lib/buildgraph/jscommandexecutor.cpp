@@ -40,9 +40,8 @@
 #include <tools/codelocation.h>
 #include <tools/error.h>
 
-#include <QtConcurrentRun>
 #include <QDir>
-#include <QFutureWatcher>
+#include <QEventLoop>
 #include <QHash>
 #include <QMutex>
 #include <QMutexLocker>
@@ -52,33 +51,35 @@
 namespace qbs {
 namespace Internal {
 
-struct JavaScriptCommandFutureResult
+struct JavaScriptCommandResult
 {
     bool success;
     QString errorMessage;
     CodeLocation errorLocation;
 };
 
-class JavaScriptCommandFutureWatcher : public QFutureWatcher<JavaScriptCommandFutureResult>
+class JsCommandExecutorThreadObject : public QObject
 {
+    Q_OBJECT
 public:
-    JavaScriptCommandFutureWatcher(QObject *parent)
-        : QFutureWatcher<JavaScriptCommandFutureResult>(parent)
-    {}
-};
-
-class JSRunner
-{
-public:
-    typedef JavaScriptCommandFutureResult result_type;
-
-    JSRunner(const JavaScriptCommand *jsCommand, const Logger &logger)
-        : m_jsCommand(jsCommand), m_logger(logger) {}
-
-    JavaScriptCommandFutureResult operator() (Transformer *transformer)
+    JsCommandExecutorThreadObject(const Logger &logger)
+        : m_logger(logger)
     {
-        result_type result;
-        result.success = true;
+    }
+
+    const JavaScriptCommandResult &result() const
+    {
+        return m_result;
+    }
+
+signals:
+    void finished();
+
+public slots:
+    void start(const JavaScriptCommand *cmd, Transformer *transformer)
+    {
+        m_result.success = true;
+        m_result.errorMessage.clear();
         ScriptEngine * const scriptEngine = lookupEngine();
         QString trafoPtrStr = QString::number((qulonglong)transformer);
         if (scriptEngine->globalObject().property("_qbs_transformer_ptr").toString() != trafoPtrStr) {
@@ -95,23 +96,27 @@ public:
         }
 
         scriptEngine->pushContext();
-        for (QVariantMap::const_iterator it = m_jsCommand->properties().constBegin(); it != m_jsCommand->properties().constEnd(); ++it)
-            scriptEngine->currentContext()->activationObject().setProperty(it.key(), scriptEngine->toScriptValue(it.value()));
+        for (QVariantMap::const_iterator it = cmd->properties().constBegin();
+                it != cmd->properties().constEnd(); ++it) {
+            scriptEngine->currentContext()->activationObject().setProperty(it.key(),
+                    scriptEngine->toScriptValue(it.value()));
+        }
 
-        scriptEngine->evaluate(m_jsCommand->sourceCode());
+        scriptEngine->evaluate(cmd->sourceCode());
         if (scriptEngine->hasUncaughtException()) {
-            result.success = false;
-            result.errorMessage = scriptEngine->uncaughtException().toString();
-            const CodeLocation &origLocation = m_jsCommand->codeLocation();
-            result.errorLocation = CodeLocation(origLocation.fileName(),
+            m_result.success = false;
+            m_result.errorMessage = scriptEngine->uncaughtException().toString();
+            const CodeLocation &origLocation = cmd->codeLocation();
+            m_result.errorLocation = CodeLocation(origLocation.fileName(),
                     origLocation.line() + scriptEngine->uncaughtExceptionLineNumber(),
                     origLocation.column());
         }
         scriptEngine->popContext();
         scriptEngine->clearExceptions();
-        return result;
+        emit finished();
     }
 
+private:
     ScriptEngine *lookupEngine()
     {
         QThread * const currentThread = QThread::currentThread();
@@ -126,47 +131,63 @@ public:
         return scriptEngine;
     }
 
-private:
     static QHash<QThread *, ScriptEngine *> m_enginesPerThread;
     static QMutex m_cacheMutex;
-    const JavaScriptCommand *m_jsCommand;
     Logger m_logger;
+    JavaScriptCommandResult m_result;
 };
 
-QHash<QThread *, ScriptEngine *> JSRunner::m_enginesPerThread;
-QMutex JSRunner::m_cacheMutex;
+QHash<QThread *, ScriptEngine *> JsCommandExecutorThreadObject::m_enginesPerThread;
+QMutex JsCommandExecutorThreadObject::m_cacheMutex;
 
 
 JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
     : AbstractCommandExecutor(logger, parent)
-    , m_jsFutureWatcher(0)
+    , m_thread(new QThread(this))
+    , m_objectInThread(new JsCommandExecutorThreadObject(logger))
+    , m_running(false)
 {
+    m_objectInThread->moveToThread(m_thread);
+    connect(m_objectInThread, SIGNAL(finished()), this, SLOT(onJavaScriptCommandFinished()));
+    connect(this, SIGNAL(startRequested(const JavaScriptCommand *, Transformer *)),
+            m_objectInThread, SLOT(start(const JavaScriptCommand *, Transformer *)));
+}
+
+JsCommandExecutor::~JsCommandExecutor()
+{
+    waitForFinished();
+    delete m_objectInThread;
+    m_thread->quit();
+    m_thread->wait();
 }
 
 void JsCommandExecutor::waitForFinished()
 {
-    if (m_jsFutureWatcher && m_jsFutureWatcher->isRunning())
-        m_jsFutureWatcher->waitForFinished();
+    if (!m_running)
+        return;
+    QEventLoop loop;
+    loop.connect(m_objectInThread, SIGNAL(finished()), SLOT(quit()));
+    loop.exec();
 }
 
 void JsCommandExecutor::doStart()
 {
+    QBS_ASSERT(!m_running, return);
+    m_thread->start();
+
     if (dryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
     }
-    QFuture<JSRunner::result_type> future
-            = QtConcurrent::run(JSRunner(jsCommand(), logger()), transformer());
-    if (!m_jsFutureWatcher) {
-        m_jsFutureWatcher = new JavaScriptCommandFutureWatcher(this);
-        connect(m_jsFutureWatcher, SIGNAL(finished()), SLOT(onJavaScriptCommandFinished()));
-    }
-    m_jsFutureWatcher->setFuture(future);
+
+    m_running = true;
+    emit startRequested(jsCommand(), transformer());
 }
 
 void JsCommandExecutor::onJavaScriptCommandFinished()
 {
-    JavaScriptCommandFutureResult result = m_jsFutureWatcher->future().result();
+    m_running = false;
+    const JavaScriptCommandResult &result = m_objectInThread->result();
     if (!result.success) {
         logger().qbsDebug() << "JS context:\n" << jsCommand()->properties();
         logger().qbsDebug() << "JS code:\n" << jsCommand()->sourceCode();
@@ -184,3 +205,5 @@ const JavaScriptCommand *JsCommandExecutor::jsCommand() const
 
 } // namespace Internal
 } // namespace qbs
+
+#include <jscommandexecutor.moc>

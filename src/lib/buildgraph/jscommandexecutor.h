@@ -39,13 +39,17 @@ class CodeLocation;
 
 namespace Internal {
 class JavaScriptCommand;
-class JavaScriptCommandFutureWatcher;
+class JsCommandExecutorThreadObject;
 
 class JsCommandExecutor : public AbstractCommandExecutor
 {
     Q_OBJECT
 public:
     explicit JsCommandExecutor(const Logger &logger, QObject *parent = 0);
+    ~JsCommandExecutor();
+
+signals:
+    void startRequested(const JavaScriptCommand *cmd, Transformer *transformer);
 
 private slots:
     void onJavaScriptCommandFinished();
@@ -56,7 +60,9 @@ private:
 
     const JavaScriptCommand *jsCommand() const;
 
-    JavaScriptCommandFutureWatcher *m_jsFutureWatcher;
+    QThread *m_thread;
+    JsCommandExecutorThreadObject *m_objectInThread;
+    bool m_running;
 };
 
 } // namespace Internal
