@@ -5,7 +5,7 @@ import qbs.FileInfo
 DynamicLibrary {
     name: "echoplugin"
 
-    Depends { name: "Qt"; submodules: ["core", "widgets"] }
+    Depends { name: "Qt.core" }
     Depends { name: "cpp" }
 
     Group {
