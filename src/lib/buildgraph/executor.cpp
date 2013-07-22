@@ -727,7 +727,7 @@ void Executor::onProcessSuccess()
 
 void Executor::finish()
 {
-    QBS_CHECK(m_state != ExecutorIdle);
+    QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
 
     QStringList unbuiltProductNames;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
