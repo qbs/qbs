@@ -145,9 +145,11 @@ private:
     typedef QPair<Item *, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
     typedef QList<ProductDependencyResult> ProductDependencyResults;
 
-    void handleProject(ModuleLoaderResult *loadResult, Item *item);
+    void handleProject(ModuleLoaderResult *loadResult, Item *item,
+            const QSet<QString> &referencedFilePaths);
     void handleProduct(ProjectContext *projectContext, Item *item);
-    void handleSubProject(ProjectContext *projectContext, Item *item);
+    void handleSubProject(ProjectContext *projectContext, Item *item,
+            const QSet<QString> &referencedFilePaths);
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
     void handleGroup(ProductContext *productContext, Item *group);
     void handleArtifact(ProductContext *productContext, Item *item);

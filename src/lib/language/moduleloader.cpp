@@ -111,13 +111,14 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
     if (wrapWithProjectItem && root->typeName() != QLatin1String("Project"))
         root = wrapWithProject(root);
 
-    handleProject(&result, root);
+    handleProject(&result, root, QSet<QString>() << QDir::cleanPath(filePath));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
     return result;
 }
 
-void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
+void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
+        const QSet<QString> &referencedFilePaths)
 {
     if (!checkItemCondition(item))
         return;
@@ -141,10 +142,10 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
         if (child->typeName() == QLatin1String("Product")) {
             handleProduct(&projectContext, child);
         } else if (child->typeName() == QLatin1String("SubProject")) {
-            handleSubProject(&projectContext, child);
+            handleSubProject(&projectContext, child, referencedFilePaths);
         } else if (child->typeName() == QLatin1String("Project")) {
             copyProperties(item, child);
-            handleProject(loadResult, child);
+            handleProject(loadResult, child, referencedFilePaths);
         }
     }
 
@@ -152,6 +153,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
     const QStringList refs = toStringList(m_evaluator->property(item, "references"));
     foreach (const QString &filePath, refs) {
         const QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
+        if (referencedFilePaths.contains(absReferencePath))
+            throw ErrorInfo(Tr::tr("Cycle detected while referencing file '%1'.").arg(filePath),
+                            item->property(QLatin1String("references"))->location());
         Item *subItem = m_reader->readFile(absReferencePath);
         subItem->setScope(projectContext.scope);
         subItem->setParent(projectContext.item);
@@ -162,7 +166,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item)
             handleProduct(&projectContext, subItem);
         } else if (subItem->typeName() == "Project") {
             copyProperties(item, subItem);
-            handleProject(loadResult, subItem);
+            handleProject(loadResult, subItem,
+                          QSet<QString>(referencedFilePaths) << absReferencePath);
         } else {
             throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
                                "a Product or a Project, but it is \"%1\".").arg(subItem->typeName()),
@@ -208,7 +213,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     projectContext->result->productInfos.insert(item, productContext.info);
 }
 
-void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *item)
+void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *item,
+        const QSet<QString> &referencedFilePaths)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleSubProject " << item->file()->filePath();
@@ -221,8 +227,12 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         return;
 
     const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
-    QString subProjectFilePath = m_evaluator->property(item, "filePath").toString();
-    subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, subProjectFilePath);
+    const QString relativeFilePath = m_evaluator->property(item,
+                                                           QLatin1String("filePath")).toString();
+    QString subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, relativeFilePath);
+    if (referencedFilePaths.contains(subProjectFilePath))
+        throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
+                            .arg(relativeFilePath), item->location());
     Item *loadedItem = m_reader->readFile(subProjectFilePath);
     if (loadedItem->typeName() == QLatin1String("Product"))
         loadedItem = wrapWithProject(loadedItem);
@@ -251,7 +261,8 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
 
     Item::addChild(item, loadedItem);
     item->setScope(projectContext->scope);
-    handleProject(projectContext->result, loadedItem);
+    handleProject(projectContext->result, loadedItem,
+                  QSet<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
 void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *productContext)
