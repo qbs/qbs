@@ -5,7 +5,6 @@ Product {
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core", "script", "xml"] }
     Depends { condition: project.enableUnitTests; name: "Qt.test" }
-    Depends { condition: Qt.core.versionMajor >= 5; name: "Qt.concurrent" }
     name: "qbscore"
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name

@@ -1,7 +1,6 @@
 QT = core script
 all_tests:QT += testlib
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 TEMPLATE = lib
 !isEmpty(QBS_DLLDESTDIR):DLLDESTDIR = $${QBS_DLLDESTDIR}
 else:DLLDESTDIR = ../../bin
