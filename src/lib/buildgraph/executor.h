@@ -129,6 +129,7 @@ private:
     int m_mocEffort;
     ErrorInfo m_error;
     bool m_explicitlyCanceled;
+    FileTags m_activeFileTags;
     const bool m_doTrace;
     const bool m_doDebug;
 };

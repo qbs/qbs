@@ -182,6 +182,7 @@ void Executor::doBuild()
     m_leaves.clear();
     m_error.clear();
     m_explicitlyCanceled = false;
+    m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
 
     setState(ExecutorRunning);
 
@@ -414,6 +415,14 @@ void Executor::buildArtifact(Artifact *artifact)
             artifact->buildState = Artifact::Building;
             return;
         }
+    }
+
+    // Skip if we're building just one file and the file tags do not match.
+    if (!m_activeFileTags.isEmpty() && !m_activeFileTags.matches(artifact->fileTags)) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] file tags do not match. Skipping.";
+        finishArtifact(artifact);
+        return;
     }
 
     // Skip transformers that do not need to be built.

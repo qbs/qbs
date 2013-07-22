@@ -42,6 +42,7 @@ public:
     }
 
     QStringList changedFiles;
+    QStringList activeFileTags;
     int maxJobCount;
     bool dryRun;
     bool keepGoing;
@@ -93,6 +94,27 @@ QStringList BuildOptions::changedFiles() const
 void BuildOptions::setChangedFiles(const QStringList &changedFiles)
 {
     d->changedFiles = changedFiles;
+}
+
+/*!
+ * \brief The list of active file tags.
+ * \sa setActiveFileTags
+ */
+QStringList BuildOptions::activeFileTags() const
+{
+    return d->activeFileTags;
+}
+
+/*!
+ * \brief Set the list of active file tags.
+ * If this list is non-empty, then every transformer with non-matching output file tags is skipped.
+ * E.g. set changed files to "foo.cpp" and activeFileTags to ["obj"] to run the compiler
+ * on foo.cpp without further processing like linking.
+ * \sa activeFileTags
+ */
+void BuildOptions::setActiveFileTags(const QStringList &fileTags)
+{
+    d->activeFileTags = fileTags;
 }
 
 /*!

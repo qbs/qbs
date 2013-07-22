@@ -48,6 +48,9 @@ public:
     QStringList changedFiles() const;
     void setChangedFiles(const QStringList &changedFiles);
 
+    QStringList activeFileTags() const;
+    void setActiveFileTags(const QStringList &fileTags);
+
     static int defaultMaxJobCount();
     int maxJobCount() const;
     void setMaxJobCount(int jobCount);
