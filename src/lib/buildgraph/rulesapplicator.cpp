@@ -111,9 +111,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
             foreach (Artifact *targetArtifact, dep->buildData->targetArtifacts)
                 artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
-                FileTags matchingFileTags = artifact->fileTags;
-                matchingFileTags.intersect(usingsFileTags);
-                if (!matchingFileTags.isEmpty())
+                if (artifact->fileTags.matches(usingsFileTags))
                     usingArtifacts.insert(artifact);
             }
         }
@@ -279,8 +277,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 
     for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
-        FileTags filter = props->fileTagsFilter();
-        if (!filter.intersect(outputArtifact->fileTags).isEmpty()) {
+        if (outputArtifact->fileTags.matches(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
             break;
         }

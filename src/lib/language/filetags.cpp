@@ -54,6 +54,17 @@ FileTags FileTags::fromStringList(const QStringList &strings)
     return result;
 }
 
+/*!
+ * \return \c{true} if this file tags set has file tags in common with \c{other}.
+ */
+bool FileTags::matches(const FileTags &other) const
+{
+    for (FileTags::const_iterator it = other.begin(); it != other.end(); ++it)
+        if (contains(*it))
+            return true;
+    return false;
+}
+
 LogWriter operator <<(LogWriter w, const FileTags &tags)
 {
     bool firstLoop = true;

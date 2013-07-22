@@ -65,6 +65,7 @@ class FileTags : public QSet<FileTag>
 public:
     QStringList toStringList() const;
     static FileTags fromStringList(const QStringList &strings);
+    bool matches(const FileTags &other) const;
 };
 
 LogWriter operator <<(LogWriter w, const FileTags &tags);
