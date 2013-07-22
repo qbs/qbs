@@ -176,7 +176,7 @@ void AbstractJob::handleFinished()
  */
 
 SetupProjectJob::SetupProjectJob(const Logger &logger, QObject *parent)
-    : AbstractJob(new InternalSetupProjectJob(logger), parent)
+    : AbstractJob(new InternalJobThreadWrapper(new InternalSetupProjectJob(logger)), parent)
 {
 }
 
@@ -187,20 +187,29 @@ SetupProjectJob::SetupProjectJob(const Logger &logger, QObject *parent)
  */
 Project SetupProjectJob::project() const
 {
+    const InternalJobThreadWrapper * const wrapper
+            = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     const InternalSetupProjectJob * const job
-            = qobject_cast<InternalSetupProjectJob *>(internalJob());
+            = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
     return Project(job->project(), job->logger());
 }
 
 void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
 {
-    InternalSetupProjectJob * const job = qobject_cast<InternalSetupProjectJob *>(internalJob());
-    job->resolve(parameters);
+    InternalJobThreadWrapper * const wrapper
+            = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    InternalSetupProjectJob * const job
+            = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
+    job->init(parameters);
+    wrapper->start();
 }
 
 void SetupProjectJob::reportError(const ErrorInfo &error)
 {
-    InternalSetupProjectJob * const job = qobject_cast<InternalSetupProjectJob *>(internalJob());
+    InternalJobThreadWrapper * const wrapper
+            = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    InternalSetupProjectJob * const job
+            = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
     job->reportError(error);
 }
 
@@ -255,14 +264,16 @@ void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProd
  */
 
 CleanJob::CleanJob(const Logger &logger, QObject *parent)
-    : AbstractJob(new InternalCleanJob(logger), parent)
+    : AbstractJob(new InternalJobThreadWrapper(new InternalCleanJob(logger)), parent)
 {
 }
 
 void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const qbs::CleanOptions &options)
 {
-    qobject_cast<InternalCleanJob *>(internalJob())->clean(project, products, options);
+    InternalJobThreadWrapper * wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    qobject_cast<InternalCleanJob *>(wrapper->synchronousJob())->init(project, products, options);
+    wrapper->start();
 }
 
 /*!
@@ -271,14 +282,17 @@ void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProd
  */
 
 InstallJob::InstallJob(const Logger &logger, QObject *parent)
-    : AbstractJob(new InternalInstallJob(logger), parent)
+    : AbstractJob(new InternalJobThreadWrapper(new InternalInstallJob(logger)), parent)
 {
 }
 
 void InstallJob::install(const TopLevelProjectPtr &project,
                          const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
-    qobject_cast<InternalInstallJob *>(internalJob())->install(project, products, options);
+    InternalJobThreadWrapper *wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    InternalInstallJob *installJob = qobject_cast<InternalInstallJob *>(wrapper->synchronousJob());
+    installJob->init(project, products, options);
+    wrapper->start();
 }
 
 } // namespace qbs

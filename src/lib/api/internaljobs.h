@@ -39,9 +39,8 @@
 #include <tools/setupprojectparameters.h>
 
 #include <QList>
-#include <QMutex>
 #include <QObject>
-#include <QWaitCondition>
+#include <QThread>
 
 namespace qbs {
 class ProcessResult;
@@ -58,11 +57,14 @@ class InternalJob : public QObject
     Q_OBJECT
     friend class JobObserver;
 public:
+    ~InternalJob();
+
     void cancel();
     ErrorInfo error() const { return m_error; }
 
     Logger logger() const { return m_logger; }
     bool timed() const { return m_timed; }
+    void shareObserverWith(InternalJob *otherJob);
 
 protected:
     explicit InternalJob(const Logger &logger, QObject *parent = 0);
@@ -80,39 +82,56 @@ signals:
 
 private:
     ErrorInfo m_error;
-    JobObserver * const m_observer;
+    JobObserver *m_observer;
+    bool m_ownsObserver;
     Logger m_logger;
     bool m_timed;
 };
 
 
+class InternalJobThreadWrapper : public InternalJob
+{
+    Q_OBJECT
+public:
+    InternalJobThreadWrapper(InternalJob *synchronousJob, QObject *parent = 0);
+    ~InternalJobThreadWrapper();
+
+    void start();
+    InternalJob *synchronousJob() const { return m_job; }
+
+signals:
+    void startRequested();
+
+private slots:
+    void handleFinished();
+
+private:
+    QThread m_thread;
+    InternalJob *m_job;
+    bool m_running;
+};
+
 class InternalSetupProjectJob : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalSetupProjectJob(const Logger &logger, QObject *parent = 0);
+    InternalSetupProjectJob(const Logger &logger);
     ~InternalSetupProjectJob();
 
-    void resolve(const SetupProjectParameters &parameters);
+    void init(const SetupProjectParameters &parameters);
     void reportError(const ErrorInfo &error);
 
     TopLevelProjectPtr project() const;
 
 private slots:
     void start();
-    void handleFinished();
 
 private:
     void resolveProjectFromScratch(Internal::ScriptEngine *engine);
     void resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext);
     void setupPlatformEnvironment();
     BuildGraphLoadResult restoreProject(const RulesEvaluationContextPtr &evalContext);
-    void doResolve();
     void execute();
-
-    bool m_running;
-    QMutex m_runMutex;
-    QWaitCondition m_runWaitCondition;
 
     TopLevelProjectPtr m_project;
     SetupProjectParameters m_parameters;
@@ -169,37 +188,29 @@ class InternalCleanJob : public BuildGraphTouchingJob
 public:
     InternalCleanJob(const Logger &logger, QObject *parent = 0);
 
-    void clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
-               const CleanOptions &options);
+    void init(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+            const CleanOptions &options);
 
 private slots:
     void start();
-    void handleFinished();
 
 private:
-    void doClean();
-
     CleanOptions m_options;
 };
 
 
-// TODO: Common base class for all jobs that need to start a thread?
 class InternalInstallJob : public InternalJob
 {
     Q_OBJECT
 public:
-    InternalInstallJob(const Logger &logger, QObject *parent = 0);
+    InternalInstallJob(const Logger &logger);
     ~InternalInstallJob();
 
-    void install(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
-                 const InstallOptions &options);
+    void init(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+            const InstallOptions &options);
 
 private slots:
-    void handleFinished();
-
-private:
-    Q_INVOKABLE void start();
-    void doInstall();
+    void start();
 
 private:
     TopLevelProjectPtr m_project;

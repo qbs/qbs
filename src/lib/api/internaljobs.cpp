@@ -46,11 +46,8 @@
 #include <tools/preferences.h>
 #include <tools/qbsassert.h>
 
-#include <QtConcurrentRun>
-#include <QFutureWatcher>
-#include <QMutexLocker>
+#include <QEventLoop>
 #include <QScopedPointer>
-#include <QThread>
 #include <QTimer>
 
 namespace qbs {
@@ -109,14 +106,30 @@ private:
 InternalJob::InternalJob(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_observer(new JobObserver(this))
+    , m_ownsObserver(true)
     , m_logger(logger)
     , m_timed(false)
 {
 }
 
+InternalJob::~InternalJob()
+{
+    if (m_ownsObserver)
+        delete m_observer;
+}
+
 void InternalJob::cancel()
 {
     m_observer->cancel();
+}
+
+void InternalJob::shareObserverWith(InternalJob *otherJob)
+{
+    if (m_ownsObserver) {
+        delete m_observer;
+        m_ownsObserver = false;
+    }
+    m_observer = otherJob->m_observer;
 }
 
 void InternalJob::storeBuildGraph(const TopLevelProjectConstPtr &project)
@@ -128,30 +141,74 @@ void InternalJob::storeBuildGraph(const TopLevelProjectConstPtr &project)
     }
 }
 
-InternalSetupProjectJob::InternalSetupProjectJob(const Logger &logger, QObject *parent)
-    : InternalJob(logger, parent), m_running(false)
+
+/**
+ * Construct a new thread wrapper for a synchronous job.
+ * This object takes over ownership of the synchronous job.
+ */
+InternalJobThreadWrapper::InternalJobThreadWrapper(InternalJob *synchronousJob, QObject *parent)
+    : InternalJob(synchronousJob->logger(), parent)
+    , m_job(synchronousJob)
+    , m_running(false)
+{
+    synchronousJob->shareObserverWith(this);
+    m_job->moveToThread(&m_thread);
+    connect(m_job, SIGNAL(finished(Internal::InternalJob*)), SLOT(handleFinished()));
+    connect(m_job, SIGNAL(newTaskStarted(QString,int,Internal::InternalJob*)),
+            SIGNAL(newTaskStarted(QString,int,Internal::InternalJob*)));
+    connect(m_job, SIGNAL(taskProgress(int,Internal::InternalJob*)),
+            SIGNAL(taskProgress(int,Internal::InternalJob*)));
+    connect(m_job, SIGNAL(totalEffortChanged(int,Internal::InternalJob*)),
+            SIGNAL(totalEffortChanged(int,Internal::InternalJob*)));
+    m_job->connect(this, SIGNAL(startRequested()), SLOT(start()));
+}
+
+InternalJobThreadWrapper::~InternalJobThreadWrapper()
+{
+    if (m_running) {
+        QEventLoop loop;
+        loop.connect(m_job, SIGNAL(finished(Internal::InternalJob*)), SLOT(quit));
+        loop.exec();
+    }
+    m_thread.quit();
+    m_thread.wait();
+    delete m_job;
+}
+
+void InternalJobThreadWrapper::start()
+{
+    m_thread.start();
+    m_running = true;
+    emit startRequested();
+}
+
+void InternalJobThreadWrapper::handleFinished()
+{
+    m_running = false;
+    setError(m_job->error());
+    emit finished(this);
+}
+
+
+InternalSetupProjectJob::InternalSetupProjectJob(const Logger &logger)
+    : InternalJob(logger)
 {
 }
 
 InternalSetupProjectJob::~InternalSetupProjectJob()
 {
-    QMutexLocker locker(&m_runMutex);
-    while (m_running)
-        m_runWaitCondition.wait(&m_runMutex);
- }
+}
 
-void InternalSetupProjectJob::resolve(const SetupProjectParameters &parameters)
+void InternalSetupProjectJob::init(const SetupProjectParameters &parameters)
 {
     m_parameters = parameters;
     setTimed(parameters.logElapsedTime());
-    QTimer::singleShot(0, this, SLOT(start()));
 }
 
 void InternalSetupProjectJob::reportError(const ErrorInfo &error)
 {
     setError(error);
-    QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection,
-                              Q_ARG(Internal::InternalJob *, this));
+    emit finished(this);
 }
 
 TopLevelProjectPtr InternalSetupProjectJob::project() const
@@ -161,27 +218,12 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 
 void InternalSetupProjectJob::start()
 {
-    m_running = true;
-    QFutureWatcher<void> * const watcher = new QFutureWatcher<void>(this);
-    connect(watcher, SIGNAL(finished()), SLOT(handleFinished()));
-    watcher->setFuture(QtConcurrent::run(this, &InternalSetupProjectJob::doResolve));
-}
-
-void InternalSetupProjectJob::handleFinished()
-{
-    emit finished(this);
-}
-
-void InternalSetupProjectJob::doResolve()
-{
     try {
         execute();
     } catch (const ErrorInfo &error) {
         setError(error);
     }
-    QMutexLocker locker(&m_runMutex);
-    m_running = false;
-    m_runWaitCondition.wakeOne();
+    emit finished(this);
 }
 
 void InternalSetupProjectJob::execute()
@@ -322,28 +364,15 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void InternalCleanJob::clean(const TopLevelProjectPtr &project,
+void InternalCleanJob::init(const TopLevelProjectPtr &project,
                              const QList<ResolvedProductPtr> &products, const CleanOptions &options)
 {
     setup(project, products, options.dryRun());
     setTimed(options.logElapsedTime());
     m_options = options;
-    QTimer::singleShot(0, this, SLOT(start()));
 }
 
 void InternalCleanJob::start()
-{
-    QFutureWatcher<void> * const watcher = new QFutureWatcher<void>(this);
-    connect(watcher, SIGNAL(finished()), SLOT(handleFinished()));
-    watcher->setFuture(QtConcurrent::run(this, &InternalCleanJob::doClean));
-}
-
-void InternalCleanJob::handleFinished()
-{
-    emit finished(this);
-}
-
-void InternalCleanJob::doClean()
 {
     try {
         ArtifactCleaner cleaner(logger(), observer());
@@ -352,11 +381,12 @@ void InternalCleanJob::doClean()
         setError(error);
     }
     storeBuildGraph();
+    emit finished(this);
 }
 
 
-InternalInstallJob::InternalInstallJob(const Logger &logger, QObject *parent)
-    : InternalJob(logger, parent)
+InternalInstallJob::InternalInstallJob(const Logger &logger)
+    : InternalJob(logger)
 {
 }
 
@@ -364,35 +394,23 @@ InternalInstallJob::~InternalInstallJob()
 {
 }
 
-void InternalInstallJob::install(const TopLevelProjectPtr &project,
+void InternalInstallJob::init(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
     m_project = project;
     m_products = products;
     m_options = options;
     setTimed(options.logElapsedTime());
-    QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
-}
-
-void InternalInstallJob::handleFinished()
-{
-    emit finished(this);
 }
 
 void InternalInstallJob::start()
-{
-    QFutureWatcher<void> * const watcher = new QFutureWatcher<void>(this);
-    connect(watcher, SIGNAL(finished()), SLOT(handleFinished()));
-    watcher->setFuture(QtConcurrent::run(this, &InternalInstallJob::doInstall));
-}
-
-void InternalInstallJob::doInstall()
 {
     try {
         ProductInstaller(m_project, m_products, m_options, observer(), logger()).install();
     } catch (const ErrorInfo &error) {
         setError(error);
     }
+    emit finished(this);
 }
 
 } // namespace Internal
