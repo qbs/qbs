@@ -40,11 +40,7 @@
 #include <tools/codelocation.h>
 #include <tools/error.h>
 
-#include <QDir>
 #include <QEventLoop>
-#include <QHash>
-#include <QMutex>
-#include <QMutexLocker>
 #include <QThread>
 #include <QTimer>
 
@@ -64,6 +60,7 @@ class JsCommandExecutorThreadObject : public QObject
 public:
     JsCommandExecutorThreadObject(const Logger &logger)
         : m_logger(logger)
+        , m_scriptEngine(0)
     {
     }
 
@@ -80,7 +77,7 @@ public slots:
     {
         m_result.success = true;
         m_result.errorMessage.clear();
-        ScriptEngine * const scriptEngine = lookupEngine();
+        ScriptEngine * const scriptEngine = provideScriptEngine();
         QString trafoPtrStr = QString::number((qulonglong)transformer);
         if (scriptEngine->globalObject().property("_qbs_transformer_ptr").toString() != trafoPtrStr) {
             scriptEngine->globalObject().setProperty("_qbs_transformer_ptr", scriptEngine->toScriptValue(trafoPtrStr));
@@ -117,28 +114,17 @@ public slots:
     }
 
 private:
-    ScriptEngine *lookupEngine()
+    ScriptEngine *provideScriptEngine()
     {
-        QThread * const currentThread = QThread::currentThread();
-        QMutexLocker locker(&m_cacheMutex);
-        ScriptEngine * scriptEngine = m_enginesPerThread.value(currentThread);
-        if (!scriptEngine) {
-            scriptEngine = new ScriptEngine(m_logger);
-            m_enginesPerThread.insert(currentThread, scriptEngine);
-        } else {
-            scriptEngine->setLogger(m_logger);
-        }
-        return scriptEngine;
+        if (!m_scriptEngine)
+            m_scriptEngine = new ScriptEngine(m_logger, this);
+        return m_scriptEngine;
     }
 
-    static QHash<QThread *, ScriptEngine *> m_enginesPerThread;
-    static QMutex m_cacheMutex;
     Logger m_logger;
+    ScriptEngine *m_scriptEngine;
     JavaScriptCommandResult m_result;
 };
-
-QHash<QThread *, ScriptEngine *> JsCommandExecutorThreadObject::m_enginesPerThread;
-QMutex JsCommandExecutorThreadObject::m_cacheMutex;
 
 
 JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
