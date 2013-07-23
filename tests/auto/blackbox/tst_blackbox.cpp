@@ -1129,11 +1129,31 @@ void TestBlackbox::checkProjectFilePath()
     QVERIFY(m_qbsStderr.contains("project file"));
 }
 
+class TemporaryDefaultProfileRemover
+{
+public:
+    TemporaryDefaultProfileRemover(const SettingsPtr &settings)
+        : m_settings(settings), m_defaultProfile(settings->defaultProfile())
+    {
+        m_settings->remove(QLatin1String("defaultProfile"));
+    }
+
+    ~TemporaryDefaultProfileRemover()
+    {
+        if (!m_defaultProfile.isEmpty())
+            m_settings->setValue(QLatin1String("defaultProfile"), m_defaultProfile);
+    }
+
+private:
+    SettingsPtr m_settings;
+    const QString m_defaultProfile;
+};
+
 void TestBlackbox::missingProfile()
 {
     SettingsPtr settings = qbsSettings();
-    if (!settings->defaultProfile().isEmpty())
-        SKIP_TEST("default profile exists");
+    TemporaryDefaultProfileRemover dpr(settings);
+    QVERIFY(settings->defaultProfile().isEmpty());
     QDir::setCurrent(testDataDir + "/project_filepath_check");
     QbsRunParameters params;
     params.arguments = QStringList("-f") << "project1.qbs";
