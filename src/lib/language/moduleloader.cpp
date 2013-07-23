@@ -591,82 +591,6 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     return 0;
 }
 
-Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath)
-{
-    checkCancelation();
-    Item *module = productContext->moduleItemCache.value(filePath);
-    if (module) {
-        m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
-        return module;
-    }
-
-    module = productContext->project->moduleItemCache.value(filePath);
-    if (module) {
-        m_logger.qbsTrace() << "[LDR] loadModuleFile returns clone for " << filePath;
-        return module->clone(m_pool);
-    }
-
-    m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
-    module = m_reader->readFile(filePath);
-    if (!isBaseModule) {
-        DependsContext dependsContext;
-        dependsContext.product = productContext;
-        dependsContext.productDependencies = &productContext->info.usedProducts;
-        resolveDependencies(&dependsContext, module);
-    }
-    if (!checkItemCondition(module)) {
-        m_logger.qbsTrace() << "[LDR] module condition is false";
-        return 0;
-    }
-
-    // Module properties that are defined in the profile are used as default values.
-    const QVariantMap profileModuleProperties
-            = m_buildConfigProperties.value(fullModuleName).toMap();
-    for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
-            vmit != profileModuleProperties.end(); ++vmit)
-    {
-        if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
-            throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
-        module->setProperty(vmit.key(), VariantValue::create(vmit.value()));
-    }
-
-    productContext->moduleItemCache.insert(filePath, module);
-    productContext->project->moduleItemCache.insert(filePath, module);
-    return module;
-}
-
-void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
-{
-    const QStringList baseModuleName(QLatin1String("qbs"));
-    Item::Module baseModuleDesc;
-    baseModuleDesc.name = baseModuleName;
-    baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
-                                     baseModuleName);
-    if (Q_UNLIKELY(!baseModuleDesc.item))
-        throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    baseModuleDesc.item->setProperty(QLatin1String("getenv"),
-                                     BuiltinValue::create(BuiltinValue::GetEnvFunction));
-    baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
-                                     BuiltinValue::create(BuiltinValue::GetHostOSFunction));
-    item->modules() += baseModuleDesc;
-}
-
-static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
-{
-    if (!item->id().isEmpty())
-        result->append(item);
-    foreach (Item *child, item->children())
-        collectItemsWithId_impl(child, result);
-}
-
-static QList<Item *> collectItemsWithId(Item *item)
-{
-    QList<Item *> result;
-    collectItemsWithId_impl(item, &result);
-    return result;
-}
-
 // returns QVariant::Invalid for types that do not need conversion
 static QVariant::Type variantType(PropertyDeclaration::Type t)
 {
@@ -726,6 +650,85 @@ static PropertyDeclaration firstValidPropertyDeclaration(Item *item, const QStri
         item = item->prototype();
     } while (item);
     return decl;
+}
+
+Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
+        bool isBaseModule, const QString &filePath)
+{
+    checkCancelation();
+    Item *module = productContext->moduleItemCache.value(filePath);
+    if (module) {
+        m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
+        return module;
+    }
+
+    module = productContext->project->moduleItemCache.value(filePath);
+    if (module) {
+        m_logger.qbsTrace() << "[LDR] loadModuleFile returns clone for " << filePath;
+        return module->clone(m_pool);
+    }
+
+    m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
+    module = m_reader->readFile(filePath);
+    if (!isBaseModule) {
+        DependsContext dependsContext;
+        dependsContext.product = productContext;
+        dependsContext.productDependencies = &productContext->info.usedProducts;
+        resolveDependencies(&dependsContext, module);
+    }
+    if (!checkItemCondition(module)) {
+        m_logger.qbsTrace() << "[LDR] module condition is false";
+        return 0;
+    }
+
+    // Module properties that are defined in the profile are used as default values.
+    const QVariantMap profileModuleProperties
+            = m_buildConfigProperties.value(fullModuleName).toMap();
+    for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
+            vmit != profileModuleProperties.end(); ++vmit)
+    {
+        if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
+            throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
+        const PropertyDeclaration decl = firstValidPropertyDeclaration(module, vmit.key());
+        module->setProperty(vmit.key(),
+                VariantValue::create(convertToPropertyType(vmit.value(), decl.type,
+                        QStringList(fullModuleName), vmit.key())));
+    }
+
+    productContext->moduleItemCache.insert(filePath, module);
+    productContext->project->moduleItemCache.insert(filePath, module);
+    return module;
+}
+
+void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
+{
+    const QStringList baseModuleName(QLatin1String("qbs"));
+    Item::Module baseModuleDesc;
+    baseModuleDesc.name = baseModuleName;
+    baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
+                                     baseModuleName);
+    if (Q_UNLIKELY(!baseModuleDesc.item))
+        throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
+    baseModuleDesc.item->setProperty(QLatin1String("getenv"),
+                                     BuiltinValue::create(BuiltinValue::GetEnvFunction));
+    baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
+                                     BuiltinValue::create(BuiltinValue::GetHostOSFunction));
+    item->modules() += baseModuleDesc;
+}
+
+static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
+{
+    if (!item->id().isEmpty())
+        result->append(item);
+    foreach (Item *child, item->children())
+        collectItemsWithId_impl(child, result);
+}
+
+static QList<Item *> collectItemsWithId(Item *item)
+{
+    QList<Item *> result;
+    collectItemsWithId_impl(item, &result);
+    return result;
 }
 
 void ModuleLoader::instantiateModule(ProductContext *productContext, Item *instanceScope,
