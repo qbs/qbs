@@ -78,28 +78,23 @@ public slots:
         m_result.success = true;
         m_result.errorMessage.clear();
         ScriptEngine * const scriptEngine = provideScriptEngine();
-        QString trafoPtrStr = QString::number((qulonglong)transformer);
-        if (scriptEngine->globalObject().property("_qbs_transformer_ptr").toString() != trafoPtrStr) {
-            scriptEngine->globalObject().setProperty("_qbs_transformer_ptr", scriptEngine->toScriptValue(trafoPtrStr));
+        QScriptValue scope = scriptEngine->newObject();
+        Artifact *someOutputArtifact = *transformer->outputs.begin();
+        if (!someOutputArtifact->product.isNull())
+            setupScriptEngineForProduct(scriptEngine, someOutputArtifact->product,
+                                        transformer->rule, scope);
+        transformer->setupInputs(scriptEngine, scope);
+        transformer->setupOutputs(scriptEngine, scope);
 
-            Artifact *someOutputArtifact = *transformer->outputs.begin();
-            const ResolvedProductConstPtr product = someOutputArtifact->product.toStrongRef();
-            if (product) {
-                setupScriptEngineForProduct(scriptEngine, product, transformer->rule,
-                                            scriptEngine->globalObject());
-            }
-            transformer->setupInputs(scriptEngine, scriptEngine->globalObject());
-            transformer->setupOutputs(scriptEngine, scriptEngine->globalObject());
-        }
-
-        scriptEngine->pushContext();
         for (QVariantMap::const_iterator it = cmd->properties().constBegin();
                 it != cmd->properties().constEnd(); ++it) {
-            scriptEngine->currentContext()->activationObject().setProperty(it.key(),
-                    scriptEngine->toScriptValue(it.value()));
+            scope.setProperty(it.key(), scriptEngine->toScriptValue(it.value()));
         }
 
+        QScriptContext *ctx = scriptEngine->currentContext();
+        ctx->pushScope(scope);
         scriptEngine->evaluate(cmd->sourceCode());
+        ctx->popScope();
         if (scriptEngine->hasUncaughtException()) {
             m_result.success = false;
             m_result.errorMessage = scriptEngine->uncaughtException().toString();
@@ -108,8 +103,6 @@ public slots:
                     origLocation.line() + scriptEngine->uncaughtExceptionLineNumber(),
                     origLocation.column());
         }
-        scriptEngine->popContext();
-        scriptEngine->clearExceptions();
         emit finished();
     }
 
