@@ -490,7 +490,7 @@ QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScript
     hostSystem << "windowsphone";
 #endif
 #if defined(Q_OS_WINRT)
-    hostSystem << "windowsrt";
+    hostSystem << "winrt";
 #endif
 
     return engine->toScriptValue(hostSystem);
