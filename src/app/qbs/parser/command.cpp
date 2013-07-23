@@ -209,7 +209,8 @@ static QList<CommandLineOption::Type> buildOptions()
     QList<CommandLineOption::Type> options = resolveOptions();
     return options << CommandLineOption::KeepGoingOptionType
             << CommandLineOption::ProductsOptionType
-            << CommandLineOption::ChangedFilesOptionType;
+            << CommandLineOption::ChangedFilesOptionType
+            << CommandLineOption::ForceTimestampCheckOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const

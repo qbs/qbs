@@ -61,6 +61,9 @@ public:
     bool keepGoing() const;
     void setKeepGoing(bool keepGoing);
 
+    bool forceTimestampCheck() const;
+    void setForceTimestampCheck(bool enabled);
+
     bool logElapsedTime() const;
     void setLogElapsedTime(bool log);
 

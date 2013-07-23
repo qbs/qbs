@@ -64,6 +64,7 @@ private slots:
         args << "--products" << "blubb";
         args << "--changed-files" << "foo,bar" << fileArgs;
         args << "--force";
+        args << "--check-timestamps";
         CommandLineParser parser;
 
         QVERIFY(parser.parseCommandLine(args, settings.data()));
@@ -73,6 +74,7 @@ private slots:
         QCOMPARE(parser.buildOptions().changedFiles().count(), 2);
         QVERIFY(parser.buildOptions().keepGoing());
         QVERIFY(parser.force());
+        QVERIFY(parser.forceTimestampCheck());
         QVERIFY(!parser.logTime());
         QCOMPARE(parser.buildConfigurations().count(), 1);
 

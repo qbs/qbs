@@ -50,6 +50,7 @@ public:
         AllArtifactsOptionType,
         InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
         ForceOptionType,
+        ForceTimestampCheckOptionType,
         LogTimeOptionType
     };
 
@@ -174,6 +175,13 @@ class AllArtifactsOption : public OnOffOption
 };
 
 class ForceOption : public OnOffOption
+{
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+};
+
+class ForceTimeStampCheckOption : public OnOffOption
 {
     QString description(CommandType command) const;
     QString shortRepresentation() const { return QString(); }

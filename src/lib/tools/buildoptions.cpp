@@ -46,6 +46,7 @@ public:
     int maxJobCount;
     bool dryRun;
     bool keepGoing;
+    bool forceTimestampCheck;
     bool logElapsedTime;
 };
 
@@ -189,6 +190,24 @@ bool BuildOptions::keepGoing() const
 void BuildOptions::setKeepGoing(bool keepGoing)
 {
     d->keepGoing = keepGoing;
+}
+
+/*!
+ * \brief Returns true if qbs is to use physical timestamps instead of the timestamps stored in the
+ * build graph.
+ * The default is \c false.
+ */
+bool BuildOptions::forceTimestampCheck() const
+{
+    return d->forceTimestampCheck;
+}
+
+/*!
+ * \brief Controls whether qbs should use physical timestamps for up-to-date checks.
+ */
+void BuildOptions::setForceTimestampCheck(bool enabled)
+{
+    d->forceTimestampCheck = enabled;
 }
 
 /*!

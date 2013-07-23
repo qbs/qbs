@@ -56,6 +56,7 @@ public:
     RemoveFirstOption *removeFirstoption() const;
     NoBuildOption *noBuildOption() const;
     ForceOption *forceOption() const;
+    ForceTimeStampCheckOption *forceTimestampCheckOption() const;
     LogTimeOption *logTimeOption() const;
 
 private:

@@ -58,6 +58,7 @@ public:
     CleanOptions cleanOptions() const;
     InstallOptions installOptions() const;
     bool force() const;
+    bool forceTimestampCheck() const;
     bool dryRun() const;
     bool logTime() const;
     bool buildBeforeInstalling() const;

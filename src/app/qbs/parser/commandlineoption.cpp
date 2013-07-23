@@ -335,6 +335,19 @@ QString ForceOption::longRepresentation() const
     return QLatin1String("--force");
 }
 
+QString ForceTimeStampCheckOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tForce timestamp checks.\n"
+                  "\tInstead of using the file timestamps that are stored in the build graph, "
+                  "retrieve the timestamps from the file system.\n").arg(longRepresentation());
+}
+
+QString ForceTimeStampCheckOption::longRepresentation() const
+{
+    return QLatin1String("--check-timestamps");
+}
+
 
 InstallRootOption::InstallRootOption() : m_useSysroot(false)
 {

@@ -321,6 +321,14 @@ bool Executor::isUpToDate(Artifact *artifact) const
                             << artifact->timestamp.toString();
     }
 
+    if (m_buildOptions.forceTimestampCheck()) {
+        artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
+        if (debug) {
+            m_logger.qbsDebug() << "[UTD] timestamp retrieved from filesystem: "
+                                << artifact->timestamp.toString();
+        }
+    }
+
     if (!artifact->timestamp.isValid()) {
         if (debug)
             m_logger.qbsDebug() << "[UTD] invalid timestamp. Out of date.";
