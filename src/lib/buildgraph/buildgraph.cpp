@@ -164,53 +164,41 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
                                  const RuleConstPtr &rule, QScriptValue targetObject,
                                  ScriptPropertyObserver *observer)
 {
-    ScriptPropertyObserver *lastObserver = reinterpret_cast<ScriptPropertyObserver *>(
-                engine->property("lastObserver").toULongLong());
-    const ResolvedProject *lastSetupProject = 0;
-    const ResolvedProduct *lastSetupProduct = 0;
-    if (lastObserver == observer) {
-        lastSetupProject = reinterpret_cast<ResolvedProject *>(
-                    engine->property("lastSetupProject").toULongLong());
-        lastSetupProduct = reinterpret_cast<ResolvedProduct *>(
-                    engine->property("lastSetupProduct").toULongLong());
-    } else {
-        engine->setProperty("lastObserver", QVariant(reinterpret_cast<qulonglong>(observer)));
+    ScriptEngine::ScriptValueCache * const cache = engine->scriptValueCache();
+    if (cache->observer != observer) {
+        cache->project = 0;
+        cache->product = 0;
     }
 
-    if (lastSetupProject != product->project) {
-        engine->setProperty("lastSetupProject",
-                QVariant(reinterpret_cast<qulonglong>(product->project.data())));
-        QScriptValue projectScriptValue;
-        projectScriptValue = engine->newObject();
-        projectScriptValue.setProperty("filePath", product->project->location.fileName());
-        projectScriptValue.setProperty("path",
-                                       FileInfo::path(product->project->location.fileName()));
+    if (cache->project != product->project) {
+        cache->project = product->project.data();
+        cache->projectScriptValue = engine->newObject();
+        cache->projectScriptValue.setProperty(QLatin1String("filePath"),
+                product->project->location.fileName());
+        cache->projectScriptValue.setProperty(QLatin1String("path"),
+                FileInfo::path(product->project->location.fileName()));
         const QVariantMap &projectProperties = product->project->projectProperties();
         for (QVariantMap::const_iterator it = projectProperties.begin();
                 it != projectProperties.end(); ++it)
-            projectScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
-        targetObject.setProperty("project", projectScriptValue);
+            cache->projectScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
     }
+    targetObject.setProperty(QLatin1String("project"), cache->projectScriptValue);
 
-    QScriptValue productScriptValue;
-    if (lastSetupProduct != product.data()) {
-        engine->setProperty("lastSetupProduct",
-                QVariant(reinterpret_cast<qulonglong>(product.data())));
+    if (cache->product != product) {
+        cache->product = product.data();
         {
             QVariant v;
             v.setValue<void*>(&product->buildEnvironment);
             engine->setProperty("_qbs_procenv", v);
         }
-        productScriptValue = engine->newObject();
-        setupProductScriptValue(engine, productScriptValue, product, observer);
-        targetObject.setProperty("product", productScriptValue);
-    } else {
-        productScriptValue = targetObject.property("product");
+        cache->productScriptValue = engine->newObject();
+        setupProductScriptValue(engine, cache->productScriptValue, product, observer);
     }
+    targetObject.setProperty(QLatin1String("product"), cache->productScriptValue);
 
     // If the Rule is in a Module, set up the 'moduleName' property
-    if (!rule->module->name.isEmpty())
-        productScriptValue.setProperty(QLatin1String("moduleName"), rule->module->name);
+    cache->productScriptValue.setProperty(QLatin1String("moduleName"),
+            rule->module->name.isEmpty() ? QScriptValue() : rule->module->name);
 
     engine->import(rule->jsImports, targetObject, targetObject);
     JsExtensions::setupExtensions(rule->jsExtensions, targetObject);

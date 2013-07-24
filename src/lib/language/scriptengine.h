@@ -81,11 +81,26 @@ public:
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QSet<QString> imports() const;
 
+    class ScriptValueCache
+    {
+    public:
+        ScriptValueCache() : observer(0), project(0), product(0) {}
+        const void *observer;
+        const void *project;
+        const void *product;
+        QScriptValue observerScriptValue;
+        QScriptValue projectScriptValue;
+        QScriptValue productScriptValue;
+    };
+
+    ScriptValueCache *scriptValueCache() { return &m_scriptValueCache; }
+
 private:
     void extendJavaScriptBuiltins();
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
                        QScriptValue &targetObject);
 
+    ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QPair<QString, PropertyMapConstPtr>, QScriptValue> m_propertyCache;
     PropertyList m_properties;
