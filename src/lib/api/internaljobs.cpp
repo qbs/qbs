@@ -177,6 +177,7 @@ InternalJobThreadWrapper::~InternalJobThreadWrapper()
 
 void InternalJobThreadWrapper::start()
 {
+    setTimed(m_job->timed());
     m_thread.start();
     m_running = true;
     emit startRequested();
