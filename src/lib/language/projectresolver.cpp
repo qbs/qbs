@@ -183,7 +183,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     if (projectContext->project->name.isEmpty())
         projectContext->project->name = FileInfo::baseName(item->location().fileName()); // FIXME: Must also be changed in item?
     projectContext->project->enabled
-            = m_evaluator->boolValue(item, QLatin1String("condition"), true);
+            = m_evaluator->boolValue(item, QLatin1String("condition"));
     if (!projectContext->project->enabled)
         return;
 
@@ -259,7 +259,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
     ModuleLoader::overrideItemProperties(item, product->name, m_overriddenProperties);
     m_productsByName.insert(product->name, product);
-    product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"), true);
+    product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     product->additionalFileTags
             = m_evaluator->fileTagsValue(item, QLatin1String("additionalFileTags"));
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
@@ -423,11 +423,11 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                 files[i].prepend(prefix);
     }
     FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
-    bool overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"), true);
+    bool overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
 
     GroupPtr group = ResolvedGroup::create();
     group->location = item->location();
-    group->enabled = m_evaluator->boolValue(item, QLatin1String("condition"), true);
+    group->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
@@ -477,7 +477,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
-    if (!m_evaluator->boolValue(item, QLatin1String("condition"), true))
+    if (!m_evaluator->boolValue(item, QLatin1String("condition")))
         return;
 
     RulePtr rule = Rule::create();
@@ -507,7 +507,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->jsImports = item->file()->jsImports();
     rule->jsExtensions = item->file()->jsExtensions();
     rule->script = prepareScript;
-    rule->multiplex = m_evaluator->boolValue(item, "multiplex", false);
+    rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
     rule->usings = m_evaluator->fileTagsValue(item, "usings");
     rule->explicitlyDependsOn = m_evaluator->fileTagsValue(item, "explicitlyDependsOn");
@@ -548,7 +548,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
     rule->artifacts += artifact;
     artifact->fileName = verbatimValue(item, "fileName");
     artifact->fileTags = m_evaluator->fileTagsValue(item, "fileTags");
-    artifact->alwaysUpdated = m_evaluator->boolValue(item, "alwaysUpdated", true);
+    artifact->alwaysUpdated = m_evaluator->boolValue(item, "alwaysUpdated");
     if (artifact->alwaysUpdated)
         *hasAlwaysUpdatedArtifact = true;
 
@@ -606,7 +606,7 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
 void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, "condition", true)) {
+    if (!m_evaluator->boolValue(item, "condition")) {
         m_logger.qbsTrace() << "[PR] transformer condition is false";
         return;
     }

@@ -145,7 +145,9 @@ void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
 
 static PropertyDeclaration conditionProperty()
 {
-    return PropertyDeclaration(QLatin1String("condition"), PropertyDeclaration::Boolean);
+    PropertyDeclaration decl(QLatin1String("condition"), PropertyDeclaration::Boolean);
+    decl.initialValueSource = QLatin1String("true");
+    return decl;
 }
 
 static PropertyDeclaration nameProperty()
@@ -159,7 +161,9 @@ void BuiltinDeclarations::addArtifactItem()
     properties += conditionProperty();
     properties += PropertyDeclaration(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
     properties += PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
-    properties += PropertyDeclaration(QLatin1String("alwaysUpdated"), PropertyDeclaration::Boolean);
+    PropertyDeclaration decl(QLatin1String("alwaysUpdated"), PropertyDeclaration::Boolean);
+    decl.initialValueSource = QLatin1String("true");
+    properties += decl;
     m_builtins[QLatin1String("Artifact")] = properties;
 }
 
@@ -242,7 +246,7 @@ void BuiltinDeclarations::addProbeItem()
 void BuiltinDeclarations::addProductItem()
 {
     QList<PropertyDeclaration> properties;
-    properties += PropertyDeclaration(QLatin1String("condition"), PropertyDeclaration::Boolean);
+    properties += conditionProperty();
     properties += PropertyDeclaration(QLatin1String("type"), PropertyDeclaration::StringList);
     properties += nameProperty();
     PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
@@ -288,7 +292,9 @@ void BuiltinDeclarations::addRuleItem()
 {
     QList<PropertyDeclaration> properties;
     properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
+    PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
+    decl.initialValueSource = QLatin1String("false");
+    properties += decl;
     properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
     properties += PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::Variant);
     properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
