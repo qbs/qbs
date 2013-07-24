@@ -65,8 +65,8 @@ public:
     PropertyList properties() const { return m_properties; }
 
     void addToPropertyCache(const QString &moduleName, const QString &propertyName,
-        const PropertyMapConstPtr &propertyMap, QScriptValue value);
-    QScriptValue retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
+        const PropertyMapConstPtr &propertyMap, const QVariant &value);
+    QVariant retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
             const PropertyMapConstPtr &propertyMap);
 
     void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
@@ -102,7 +102,7 @@ private:
 
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
-    QHash<QPair<QString, PropertyMapConstPtr>, QScriptValue> m_propertyCache;
+    QHash<QPair<QString, PropertyMapConstPtr>, QVariant> m_propertyCache;
     PropertyList m_properties;
     Logger m_logger;
     QScriptValue m_definePropertyFunction;

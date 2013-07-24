@@ -109,13 +109,13 @@ void ScriptEngine::clearImportsCache()
 }
 
 void ScriptEngine::addToPropertyCache(const QString &moduleName, const QString &propertyName,
-        const PropertyMapConstPtr &propertyMap, QScriptValue value)
+        const PropertyMapConstPtr &propertyMap, const QVariant &value)
 {
     m_propertyCache.insert(qMakePair(moduleName + QLatin1Char('.') + propertyName, propertyMap),
                            value);
 }
 
-QScriptValue ScriptEngine::retrieveFromPropertyCache(const QString &moduleName,
+QVariant ScriptEngine::retrieveFromPropertyCache(const QString &moduleName,
         const QString &propertyName, const PropertyMapConstPtr &propertyMap)
 {
     return m_propertyCache.value(qMakePair(moduleName + QLatin1Char('.') + propertyName,

@@ -112,21 +112,21 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
     ScriptEngine * const qbsEngine = static_cast<ScriptEngine *>(engine);
     const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
-    QScriptValue scriptValue
-            = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
-    if (scriptValue.isValid())
-        return scriptValue;
 
-    QVariant value;
-    if (oneValue)
-        value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);
-    else
-        value = PropertyFinder().propertyValues(properties->value(), moduleName, propertyName);
-    const Property p(moduleName, propertyName, value);
-    qbsEngine->addProperty(p);
-    scriptValue = engine->toScriptValue(value);
-    qbsEngine->addToPropertyCache(moduleName, propertyName, properties, scriptValue);
-    return scriptValue;
+    QVariant value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
+    if (!value.isValid()) {
+        if (oneValue)
+            value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);
+        else
+            value = PropertyFinder().propertyValues(properties->value(), moduleName, propertyName);
+        const Property p(moduleName, propertyName, value);
+        qbsEngine->addProperty(p);
+
+        // Cache the variant value. We must not cache the QScriptValue here, because it's a
+        // reference and the user might change the actual object.
+        qbsEngine->addToPropertyCache(moduleName, propertyName, properties, value);
+    }
+    return engine->toScriptValue(value);
 }
 
 } // namespace Internal
