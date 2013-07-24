@@ -98,10 +98,8 @@ public slots:
         if (scriptEngine->hasUncaughtException()) {
             m_result.success = false;
             m_result.errorMessage = scriptEngine->uncaughtException().toString();
-            const CodeLocation &origLocation = cmd->codeLocation();
-            m_result.errorLocation = CodeLocation(origLocation.fileName(),
-                    origLocation.line() + scriptEngine->uncaughtExceptionLineNumber(),
-                    origLocation.column());
+            // ### We don't know the line number of the command's sourceCode property assignment.
+            m_result.errorLocation = cmd->codeLocation();
         }
         emit finished();
     }
