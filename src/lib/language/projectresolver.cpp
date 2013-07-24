@@ -156,6 +156,8 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 
 void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *projectContext)
 {
+    if (m_progressObserver)
+        m_progressObserver->setMaximum(projectContext->loadResult->productInfos.count());
     const TopLevelProjectPtr project = TopLevelProject::create();
     project->setBuildConfiguration(m_buildConfiguration);
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_buildRoot, project->id());
@@ -204,13 +206,8 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Rule"] = &ProjectResolver::resolveRule;
 
-    if (m_progressObserver)
-        m_progressObserver->setMaximum(item->children().count());
-    foreach (Item *child, item->children()) {
+    foreach (Item *child, item->children())
         callItemFunction(mapping, child, projectContext);
-        if (m_progressObserver)
-            m_progressObserver->incrementProgressValue();
-    }
 
     foreach (const ResolvedProductPtr &product, projectContext->project->products)
         postProcess(product, projectContext);
@@ -304,6 +301,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         resolveModule(module.name, module.item, projectContext);
 
     m_productContext = 0;
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue();
 }
 
 void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
