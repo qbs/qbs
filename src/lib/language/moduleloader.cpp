@@ -936,6 +936,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
     prj->setTypeName("Project");
     prj->setFile(item->file());
     prj->setLocation(item->location());
+    m_reader->builtins()->setupItemForBuiltinType(prj);
     return prj;
 }
 

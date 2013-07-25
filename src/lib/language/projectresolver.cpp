@@ -30,6 +30,7 @@
 #include "projectresolver.h"
 
 #include "artifactproperties.h"
+#include "builtindeclarations.h"
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
@@ -61,8 +62,10 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
-ProjectResolver::ProjectResolver(ModuleLoader *ldr, const Logger &logger)
+ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *builtins,
+        const Logger &logger)
     : m_evaluator(ldr->evaluator())
+    , m_builtins(builtins)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
@@ -282,6 +285,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
                                item->property(QLatin1String("excludeFiles")));
         fakeGroup->setProperty(QLatin1String("overrideTags"), VariantValue::create(false));
+        m_builtins->setupItemForBuiltinType(fakeGroup);
         subItems.prepend(fakeGroup);
     }
 

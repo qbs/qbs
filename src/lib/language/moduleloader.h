@@ -177,7 +177,7 @@ private:
     bool checkItemCondition(Item *item);
     QStringList readExtraSearchPaths(Item *item);
     void copyProperties(const Item *sourceProject, Item *targetProject);
-    static Item *wrapWithProject(Item *item);
+    Item *wrapWithProject(Item *item);
     static QString findExistingModulePath(const QString &searchPath,
             const QStringList &moduleName);
     static void copyProperty(const QString &propertyName, const Item *source, Item *destination);

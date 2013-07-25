@@ -53,6 +53,7 @@ class ProjectFile;
 
 class Item : public QbsQmlJS::Managed
 {
+    friend class BuiltinDeclarations;
     friend class ItemPool;
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)

@@ -30,12 +30,15 @@
 #ifndef QBS_BUILTINDECLARATIONS_H
 #define QBS_BUILTINDECLARATIONS_H
 
-#include <language/propertydeclaration.h>
+#include "propertydeclaration.h"
+
 #include <QByteArray>
 #include <QMap>
 
 namespace qbs {
 namespace Internal {
+
+class Item;
 
 class BuiltinDeclarations
 {
@@ -45,6 +48,7 @@ public:
     QString languageVersion() const;
     QByteArray qmlTypeInfo() const;
     QList<PropertyDeclaration> declarationsForType(const QString &typeName) const;
+    void setupItemForBuiltinType(qbs::Internal::Item *item) const;
 
 private:
     void addArtifactItem();

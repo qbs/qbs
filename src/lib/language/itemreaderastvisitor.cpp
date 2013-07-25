@@ -270,17 +270,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         qSwap(m_item, item);
     }
 
-    foreach (const PropertyDeclaration &pd, m_reader->builtins()->declarationsForType(typeName)) {
-        item->m_propertyDeclarations.insert(pd.name, pd);
-        ValuePtr &value = item->m_properties[pd.name];
-        if (!value) {
-            JSSourceValuePtr sourceValue = JSSourceValue::create();
-            sourceValue->setFile(item->file());
-            sourceValue->setSourceCode(pd.initialValueSource.isEmpty() ?
-                                           "undefined" : pd.initialValueSource);
-            value = sourceValue;
-        }
-    }
+    m_reader->m_builtins->setupItemForBuiltinType(item);
 
     if (item->typeName() != QLatin1String("Properties")
             && item->typeName() != QLatin1String("SubProject")) {

@@ -128,6 +128,21 @@ QList<PropertyDeclaration> BuiltinDeclarations::declarationsForType(const QStrin
     return m_builtins.value(typeName);
 }
 
+void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
+{
+    foreach (const PropertyDeclaration &pd, declarationsForType(item->typeName())) {
+        item->m_propertyDeclarations.insert(pd.name, pd);
+        ValuePtr &value = item->m_properties[pd.name];
+        if (!value) {
+            JSSourceValuePtr sourceValue = JSSourceValue::create();
+            sourceValue->setFile(item->file());
+            sourceValue->setSourceCode(pd.initialValueSource.isEmpty() ?
+                                           "undefined" : pd.initialValueSource);
+            value = sourceValue;
+        }
+    }
+}
+
 static PropertyDeclaration conditionProperty()
 {
     return PropertyDeclaration(QLatin1String("condition"), PropertyDeclaration::Boolean);
