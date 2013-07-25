@@ -269,6 +269,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
 
     Profile profile(cleanQtVersionName, settings);
     const QString settingsTemplate(QLatin1String("Qt.core.%1"));
+    profile.setValue(settingsTemplate.arg("qtConfig"), qtEnvironment.qtConfigItems);
     profile.setValue(settingsTemplate.arg("binPath"), qtEnvironment.binaryPath);
     profile.setValue(settingsTemplate.arg("libPath"), qtEnvironment.libraryPath);
     profile.setValue(settingsTemplate.arg("pluginPath"), qtEnvironment.pluginPath);
