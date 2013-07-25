@@ -27,35 +27,51 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
-    \previouspage module-cpp.html
-    \page export-item.html
-    \nextpage filetagger-item.html
+    \contentspage list-of-items.html
+    \previouspage project-item.html
+    \page subproject-item.html
+    \nextpage properties-item.html
+    \ingroup list-of-items
 
-    \title Export Item
+    \title SubProject Item
+    \brief Adds a project from a different file.
 
-    An \c Export item can appear inside a \l{Product Item}. The properties attached to it will
-    take effect in all products that depend on the product inside which the product module is defined.
-    As an example, consider these two products:
+    A \c SubProject item is used to add a project defined in another file as a sub-project to
+    the surrounding project:
     \code
-    Product {
-        name: "A"
-        Export {
-            Depends { name: "cpp" }
-            cpp.includePaths: "."
+    SubProject {
+        filePath: "subdir/project.qbs"
+        Properties {
+            name: "A sub-project"
         }
-    }
-
-    Product {
-        name: "B"
-        Depends { name: "A" }
     }
     \endcode
 
-    The sources in product B will be able to use headers from product A without specifiying
-    the full path to them, because the include path has been made known to the compiler via
-    A's product module.
+    If you don't need to set any properties on the sub-project, you can also use the \c references
+    property, the same way you would do for a product:
+    \code
+    references: "subdir/project.qbs"
+    \endcode
 
-    \note This relationship is transitive, so a product C depending on product B will also
-    get the include paths via A's product module.
+    It is also possible to nest \c Project items directly in the same file.
+
+    \table
+        \header
+            \li Property
+            \li Type
+            \li Default
+            \li Description
+        \row
+            \li filePath
+            \li path
+            \li empty
+            \li The file path of the project to add as a sub-project. If the top-level item in this
+                file is a \c Product, it gets wrapped automatically in a new project.
+        \row
+            \li inheritProperties
+            \li bool
+            \li true
+            \li Whether the sub-project should inherit the properties of the surrounding project.
+                You can use this feature to share "global" settings between (sub-)projects.
+    \endtable
 */

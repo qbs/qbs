@@ -1,0 +1,479 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page cpp-module.html
+    \ingroup list-of-modules
+
+    \title Module cpp
+    \brief Provides C/C++ support.
+
+    The \c cpp module contains the properties and rules for toolchains of the C/C++ family.
+    On OS X this includes support for Objective-C/C++.
+
+    \section1 General Properties
+
+
+    \section2 architecture
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{qbs.architecture}
+    \endtable
+
+    Target architecture. See \c{qbs.architecture}.
+
+    \section2 debugInformation
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{qbs.debugInformation}
+    \endtable
+
+    Generate debug information. See \c{qbs.debugInformation}.
+
+    \section2 defines
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that gets passed to the compiler.
+    To set macro values use the following syntax:
+    \code
+    cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    \endcode
+
+    \section2 platformDefines
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that are used for all projects that are built for the current
+    target platform. User project files usually do not set this property.
+
+    \section2 compilerDefines
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that are used for all projects that are using the current toolchain.
+    User project files usually do not set this property.
+
+    \section2 includePaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of include paths. Relative paths are considered to be relative to the .qbs product file
+    they are used in.
+
+    \section2 systemIncludePaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of include paths that are passed as system include paths to the compiler.
+    For header files in those paths warnings will be ignored.
+    Relative paths are considered to be relative to the .qbs product file they are used in.
+
+    \section2 libraryPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of library search paths. Relative paths are considered to be relative to the .qbs product
+    file they are used in.
+
+    \section2 dynamicLibraries
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of dynamic libraries to be linked. If the library is part of your project, consider
+    using a Depends item instead.
+
+    \section2 staticLibraries
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of static libraries to be linked. If the library is part of your project, consider
+    using a Depends item instead.
+
+    \section2 prefixHeaders
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of files to automatically include at the beginning of each source file in the product.
+
+    \section2 precompiledHeader
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Name of the C++ header file to be precompiled.
+
+    \section2 precompiledHeaderDir
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{product.buildDirectory}
+    \endtable
+
+    The directory that will contain the precompiled C++ header file.
+    Usually you won't need to set this.
+
+    \section2 optimization
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{qbs.optimization}
+    \endtable
+
+    Optimization level. See \c{qbs.optimization}.
+
+    \section2 treatWarningsAsErrors
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Warnings will be handled as errors and cause the build to fail.
+
+    \section2 warningLevel
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"all"}
+    \endtable
+
+    Specifies the installation directory for the files of a product or a \c{Group}. The value of
+    this property is a path that is relative to the install root.
+
+    \section2 commonCompilerFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Flags that are added to all compilation commands independently of the language.
+
+    \section2 cppFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the C preprocessor.
+
+    \section2 cFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the C compiler.
+
+    \section2 cxxFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the C++ compiler.
+
+    \section2 objcFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the Objective-C compiler.
+
+    \section2 objcxxFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the Objective-C++ compiler.
+
+    \section2 linkerFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the linker.
+
+    \section2 compilerName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Name of the compiler binary. This is set in the build profile.
+
+    \section2 compilerPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Directory where the compiler binary is located. This is set in the build profile.
+
+    \section2 compilerWrapper
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Wrapper binary and its arguments for wrapping compiler calls.
+    This is useful for compiler wrappers like ccache and alike.
+
+
+    \section1 Properties Specific to iOS and OS X
+
+    \section2 frameworkPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of framework search paths. Relative paths are considered to be relative to the .qbs product
+    file they are used in.
+
+    \section2 systemFrameworkPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of framework search paths. Relative paths are considered to be relative to the .qbs product
+    file they are used in. Header files in frameworks in those paths will not cause warnings.
+
+    \section2 frameworks
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of frameworks to be linked.
+    If the framework is part of your project, consider using a Depends item instead.
+
+    \section2 weakFrameworks
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of frameworks to be weakly linked.
+    If the framework is part of your project, consider using a Depends item instead.
+
+    \section2 infoPlistFile
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Path to the Info.plist file used by the bundle.
+    The contents of this file will be aggregated with the values in \c{infoPlist}.
+    If \c{infoPlistFile} and \c{infoPlist} contain the same key, the latter will take precedence,
+    but may also be overridden during postprocessing (see \c{processInfoPlist}).
+    If undefined, will not be taken into account.
+
+    \section2 infoPlist
+
+    \table
+    \row    \li \b{Type:}            \li \c{object}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Dictionary of key-value pairs to add to the bundle's Info.plist.
+    The contents of this property will be aggregated with the values from \c{infoPlistFile}.
+    If \c{infoPlist} and \c{infoPlistFile} contain the same key, the former will take precedence,
+    but may also be overridden during postprocessing (see \c{processInfoPlist}).
+    If undefined, will not be taken into account.
+
+    \section2 processInfoPlist
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to perform post-processing on the aggregated Info.plist contents.
+    If this property is \c{true}, various post-processing operations will be applied to the
+    bundle's property list dictionary after it has been aggregated from the contents of the file
+    specified by the \c{infoPlistFile} property and the \c{infoPlist} property.
+    First, values from a list of defaults will be added to the dictionary if they were not already
+    present. Then, values from the AdditionalInfo key of the platform SDK's Info.plist file will be
+    added to the dictionary if they were not already present, as well as some other miscellaneous
+    keys, such as BuildMachineOSBuild and UIDeviceFamily (on iOS).
+    Finally, variable expansions will be performed such that substrings of the form ${VAR} will be
+    replaced with their corresponding environment variables.
+
+    \section2 infoPlistFormat
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"xml1"}, \c{"binary1"}, \c{"json"}, \c{"same-as-input"}
+    \row    \li \b{Default:}         \li \c{"binary1"} for iOS; \c{"same-as-input"} or \c{"xml1"}
+                                         for OS X depending on whether \c{infoPlistFile} is
+                                         specified; undefined for all other operating systems.
+    \endtable
+
+    The file format to write the product's resulting Info.plist in.
+
+
+    \section1 Properties Specific to iOS
+
+    \section2 minimumIosVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li undefined, but may be set by generated profiles
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of OS X that the
+    product should run on. Passes -miphoneos-version-min=<version> to the compiler.
+    If undefined, compiler defaults will be used.
+
+
+    \section1 Properties Specific to OS X
+
+    \section2 minimumOsxVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li undefined, but may be set by generated profiles
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of OS X that the
+    product should run on. Passes -mmacosx-version-min=<version> to the compiler.
+    If undefined, compiler defaults will be used.
+
+
+    \section1 Properties Specific to Unix Platforms
+
+    \section2 positionIndependentCode
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Generate position independent code.
+
+    \section2 rpaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of rpaths that are passed to the linker.
+
+    \section2 visibility
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"}
+    \row    \li \b{Default:}         \li \c{"default"}
+    \endtable
+
+    Visibility level for exported symbols.
+
+
+    \section1 Properties Specific to Windows
+
+    \section2 windowsApiCharacterSet
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"unicode"}, \c{"mbcs"}, \c{undefined}
+    \row    \li \b{Default:}         \li \c{"unicode"}
+    \endtable
+
+    Specifies the character set used in the Win32 API. "unicode" will define the
+    preprocessor symbols UNICODE and _UNICODE, "mbcs" will define _MBCS, and
+    setting the value to undefined will use the default character set.
+
+    \section2 minimumWindowsVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li undefined, but may be set by generated profiles
+    \endtable
+
+    A version number in the format [major].[minor] indicating the earliest version of Windows that
+    the product should run on. Defines WINVER, _WIN32_WINNT, and _WIN32_WINDOWS, and applies a
+    version number to the linker flags /SUBSYSTEM and /OSVERSION for MSVC or
+    -Wl,--major-subsystem-version, -Wl,--minor-subsystem-version, -Wl,--major-os-version and
+    -Wl,--minor-os-version for MinGW.
+    If undefined, compiler defaults will be used.
+*/

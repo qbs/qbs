@@ -27,12 +27,14 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
+    \contentspage list-of-items.html
     \previouspage properties-item.html
     \page rule-item.html
     \nextpage transformer-item.html
+    \ingroup list-of-items
 
     \title Rule Item
+    \brief Creates transformers for input tags.
 
     A \e {multiplex rule} creates one \e transformer that takes all
     input artifacts with the matching input file tag and creates

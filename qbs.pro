@@ -40,7 +40,9 @@ SUBDIRS += \
 
 OTHER_FILES += \
     doc/*.qdoc \
-    doc/items/*.qdoc \
+    doc/reference/*.qdoc \
+    doc/reference/items/*.qdoc \
+    doc/reference/modules/*.qdoc \
     doc/qbs.qdocconf \
     doc/config/qbs-project.qdocconf
 

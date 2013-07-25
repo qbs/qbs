@@ -27,12 +27,14 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
+    \contentspage list-of-items.html
     \previouspage group-item.html
     \page product-item.html
     \nextpage project-item.html
+    \ingroup list-of-items
 
     \title Product Item
+    \brief Represents the result of a build process.
 
     A \e product typically represents the result of a build process. It specifies a set of
     input and output files and a way to transform the former into the latter. For example, the

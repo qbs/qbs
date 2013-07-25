@@ -27,11 +27,13 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
+    \contentspage list-of-items.html
     \previouspage rule-item.html
     \page transformer-item.html
+    \ingroup list-of-items
 
     \title Transformer Item
+    \brief Creates files, typically from other files.
 
     A \e transformer takes zero or more inputs and produces one or more output artifacts
     from them. The following transformer creates one output file from one input file:

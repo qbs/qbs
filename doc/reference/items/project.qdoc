@@ -27,12 +27,14 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
+    \contentspage list-of-items.html
     \previouspage product-item.html
     \page project-item.html
     \nextpage subproject-item.html
+    \ingroup list-of-items
 
     \title Project Item
+    \brief Represents a collection of products and properties.
 
     A \c Project item represents a collection of of products. In a
     non-trivial project, these products are typically defined in their own files and

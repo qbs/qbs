@@ -28,12 +28,14 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
+    \contentspage list-of-items.html
     \previouspage filetagger-item.html
     \page group-item.html
     \nextpage product-item.html
+    \ingroup list-of-items
 
     \title Group Item
+    \brief Groups files in a product.
 
     This item is attached to a product and used to group files that have something in common.
     For example:
@@ -68,7 +70,7 @@
      The pattern ** used in a pathname expansion context will match all files and zero or more
      directories and subdirectories.
      For example:
-     \snippet items/group.qbs 0
+     \snippet reference/items/group.qbs 0
 
      A group can also be used to attach properties to build artifacts such as executables or
      libraries. In the following example, an application is installed to "<install root>/bin".

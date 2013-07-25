@@ -27,12 +27,14 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
+    \contentspage list-of-items.html
     \previouspage export-item.html
     \page filetagger-item.html
     \nextpage group-item.html
+    \ingroup list-of-items
 
     \title FileTagger Item
+    \brief Maps file patterns to tags.
 
     This item maps file patterns to tags. It can be attached to a product or a module.
     In the latter case, its effect is the same as if it had been attached to all products having
