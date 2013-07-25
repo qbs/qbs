@@ -28,11 +28,13 @@
 ****************************************************************************/
 
 #include "evaluatorscriptclass.h"
+
 #include "builtinvalue.h"
 #include "evaluationdata.h"
 #include "evaluator.h"
-#include "item.h"
 #include "filecontext.h"
+#include "item.h"
+#include "propertydeclaration.h"
 #include <tools/qbsassert.h>
 
 #include <QScriptEngine>
@@ -302,6 +304,39 @@ Item *EvaluatorScriptClass::findParentOfType(const Item *item, const QString &ty
     return 0;
 }
 
+inline void convertToPropertyType(const PropertyDeclaration::Type t, QScriptValue &v)
+{
+    if (v.isUndefined())
+        return;
+    switch (t) {
+    case PropertyDeclaration::UnknownType:
+    case PropertyDeclaration::Variant:
+    case PropertyDeclaration::Verbatim:
+        break;
+    case PropertyDeclaration::Boolean:
+        if (!v.isBool())
+            v = v.toBool();
+        break;
+    case PropertyDeclaration::Integer:
+        if (!v.isNumber())
+            v = v.toNumber();
+        break;
+    case PropertyDeclaration::Path:
+    case PropertyDeclaration::String:
+        if (!v.isString())
+            v = v.toString();
+        break;
+    case PropertyDeclaration::PathList:
+    case PropertyDeclaration::StringList:
+        if (!v.isArray()) {
+            QScriptValue x = v.engine()->newArray(1);
+            x.setProperty(0, v.isString() ? v : v.toString());
+            v = x;
+        }
+        break;
+    }
+}
+
 QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QScriptString &name,
                                             uint id)
 {
@@ -338,6 +373,9 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     converter.data = data;
     converter.result = &result;
     converter.start();
+
+    const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
+    convertToPropertyType(decl.type, result);
 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);

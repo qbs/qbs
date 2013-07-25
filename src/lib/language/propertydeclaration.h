@@ -66,7 +66,7 @@ public:
 
     bool isValid() const;
 
-    static PropertyDeclaration::Type propertyTypeFromString(const QString &typeName);
+    static Type propertyTypeFromString(const QString &typeName);
 
     QString name;
     Type type;
