@@ -183,6 +183,11 @@ Module {
     }
 
     FileTagger {
+        pattern: "*.cc"
+        fileTags: ["cpp"]
+    }
+
+    FileTagger {
         pattern: "*.m"
         fileTags: ["objc"]
     }
