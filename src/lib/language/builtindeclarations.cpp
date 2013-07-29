@@ -295,10 +295,10 @@ void BuiltinDeclarations::addRuleItem()
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
     decl.initialValueSource = QLatin1String("false");
     properties += decl;
-    properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
-    properties += PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::Variant);
+    properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
+    properties += PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
-                                      PropertyDeclaration::Variant);
+                                      PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
     m_builtins[QLatin1String("Rule")] = properties;
 }
