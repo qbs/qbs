@@ -53,6 +53,7 @@ void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTag
 
     foreach (const RuleConstPtr &rule, m_artifacts) {
         FileTags inFileTags = rule->inputs;
+        inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
         foreach (const FileTag &fileTag, inFileTags) {
             inputFileTagToRule[fileTag].append(rule.data());

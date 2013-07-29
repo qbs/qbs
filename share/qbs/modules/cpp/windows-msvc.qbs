@@ -100,7 +100,9 @@ CppModule {
     Rule {
         id: compiler
         inputs: ["cpp", "c"]
+        auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c++_pch"]
+
         Artifact {
             fileTags: ['obj']
             fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"

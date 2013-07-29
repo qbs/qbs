@@ -290,6 +290,7 @@ void Rule::load(PersistentPool &pool)
     pool.stream() >> jsImports
         >> jsExtensions
         >> inputs
+        >> auxiliaryInputs
         >> usings
         >> explicitlyDependsOn
         >> multiplex;
@@ -304,6 +305,7 @@ void Rule::store(PersistentPool &pool) const
     pool.stream() << jsImports
         << jsExtensions
         << inputs
+        << auxiliaryInputs
         << usings
         << explicitlyDependsOn
         << multiplex;

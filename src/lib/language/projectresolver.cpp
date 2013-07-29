@@ -510,6 +510,8 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
     rule->usings = m_evaluator->fileTagsValue(item, "usings");
+    rule->auxiliaryInputs
+            = m_evaluator->fileTagsValue(item, QLatin1String("auxiliaryInputs"));
     rule->explicitlyDependsOn = m_evaluator->fileTagsValue(item, "explicitlyDependsOn");
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     if (m_productContext)

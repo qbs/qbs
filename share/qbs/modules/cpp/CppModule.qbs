@@ -2,8 +2,6 @@
 
 Module {
     condition: false
-    additionalProductFileTags: ["hpp"]  // to include all rules that generate hpp files
-
     property string warningLevel : 'all' // 'none', 'all'
     property bool treatWarningsAsErrors : false
     property string architecture: qbs.architecture

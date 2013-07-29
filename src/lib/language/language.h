@@ -240,6 +240,7 @@ public:
     QStringList jsExtensions;
     PrepareScriptConstPtr script;
     FileTags inputs;
+    FileTags auxiliaryInputs;
     FileTags usings;
     FileTags explicitlyDependsOn;
     bool multiplex;

@@ -274,6 +274,7 @@ CppModule {
     Rule {
         id: compiler
         inputs: ["cpp", "c", "objcpp", "objc"]
+        auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c++_pch"]
 
         Artifact {

@@ -297,6 +297,8 @@ void BuiltinDeclarations::addRuleItem()
     properties += decl;
     properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
+    properties += PropertyDeclaration(QLatin1String("auxiliaryInputs"),
+                                      PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("prepare"), PropertyDeclaration::Verbatim);

@@ -62,6 +62,14 @@
            the given input file tags. Also these artifacts are available in the
            inputs variable of the prepare script.
     \row
+        \li auxiliaryInputs
+        \li string list
+        \li undefined
+        \li A list of file tags. This rule will be dependent on every other rule and
+            transformer that produces artifacts that are compatible with \a{auxiliaryInputs}.
+            Unlike \a{inputs}, the property \a{auxiliaryInputs} has no effect on the content of the
+            \a{inputs} variable in the \a{prepare} script.
+    \row
         \li usings
         \li string list
         \li undefined
