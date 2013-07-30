@@ -156,21 +156,21 @@ template <class T> inline T *PersistentPool::loadRaw(PersistentObjectId id)
     if (id < 0)
         return 0;
 
-    PersistentObject *obj = 0;
     if (id < m_loadedRaw.count()) {
-        obj = m_loadedRaw.value(id);
-    } else {
-        int i = m_loadedRaw.count();
-        m_loadedRaw.resize(id + 1);
-        for (; i < m_loadedRaw.count(); ++i)
-            m_loadedRaw[i] = 0;
-
-        obj = new T;
-        m_loadedRaw[id] = obj;
-        obj->load(*this);
+        PersistentObject *obj = m_loadedRaw.value(id);
+        return dynamic_cast<T*>(obj);
     }
 
-    return static_cast<T*>(obj);
+    int i = m_loadedRaw.count();
+    m_loadedRaw.resize(id + 1);
+    for (; i < m_loadedRaw.count(); ++i)
+        m_loadedRaw[i] = 0;
+
+    T * const t = new T;
+    PersistentObject * const po = t;
+    m_loadedRaw[id] = po;
+    po->load(*this);
+    return t;
 }
 
 template <class T> inline QSharedPointer<T> PersistentPool::load(PersistentObjectId id)
@@ -178,17 +178,17 @@ template <class T> inline QSharedPointer<T> PersistentPool::load(PersistentObjec
     if (id < 0)
         return QSharedPointer<T>();
 
-    QSharedPointer<PersistentObject> obj;
     if (id < m_loaded.count()) {
-        obj = m_loaded.value(id);
-    } else {
-        m_loaded.resize(id + 1);
-        obj = T::create();
-        m_loaded[id] = obj;
-        obj->load(*this);
+        QSharedPointer<PersistentObject> obj = m_loaded.value(id);
+        return obj.dynamicCast<T>();
     }
 
-    return obj.staticCast<T>();
+    m_loaded.resize(id + 1);
+    const QSharedPointer<T> t = T::create();
+    m_loaded[id] = t;
+    PersistentObject * const po = t.data();
+    po->load(*this);
+    return t;
 }
 
 } // namespace Internal

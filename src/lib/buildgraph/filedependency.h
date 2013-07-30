@@ -36,7 +36,7 @@
 namespace qbs {
 namespace Internal {
 
-class FileResourceBase : public PersistentObject
+class FileResourceBase : public virtual PersistentObject
 {
 protected:
     FileResourceBase();
