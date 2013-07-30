@@ -26,58 +26,66 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "timestampsupdater.h"
 
-#include "artifact.h"
-#include "artifactvisitor.h"
-#include "productbuilddata.h"
-#include "projectbuilddata.h"
-#include <language/language.h>
-#include <tools/filetime.h>
-#include <tools/qbsassert.h>
+#include "filedependency.h"
 
-#include <QFile>
+#include <tools/fileinfo.h>
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
 
-class TimestampsUpdateVisitor : public ArtifactVisitor
+FileResourceBase::FileResourceBase()
 {
-public:
-    TimestampsUpdateVisitor()
-        : ArtifactVisitor(Artifact::Generated), m_now(FileTime::currentTime()) {}
+}
 
-    void visitProduct(const ResolvedProductConstPtr &product)
-    {
-        QBS_CHECK(product->buildData);
-        ArtifactVisitor::visitProduct(product);
-
-        // For target artifacts, we have to update the on-disk timestamp, because
-        // the executor will look at it.
-        foreach (Artifact * const targetArtifact, product->buildData->targetArtifacts) {
-            if (FileInfo(targetArtifact->filePath()).exists())
-                QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
-        }
-    }
-
-private:
-    void doVisit(Artifact *artifact)
-    {
-        if (FileInfo(artifact->filePath()).exists())
-            artifact->setTimestamp(m_now);
-    }
-
-    FileTime m_now;
-};
-
-void TimestampsUpdater::updateTimestamps(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const Logger &logger)
+FileResourceBase::~FileResourceBase()
 {
-    TimestampsUpdateVisitor v;
-    foreach (const ResolvedProductPtr &product, products)
-        v.visitProduct(product);
-    project->buildData->isDirty = !products.isEmpty();
-    project->store(logger);
+}
+
+void FileResourceBase::setTimestamp(const FileTime &t)
+
+{
+    m_timestamp = t;
+}
+
+const FileTime &FileResourceBase::timestamp() const
+{
+    return m_timestamp;
+}
+
+void FileResourceBase::setFilePath(const QString &filePath)
+{
+    m_filePath = filePath;
+    FileInfo::splitIntoDirectoryAndFileName(m_filePath, &m_dirPath, &m_fileName);
+}
+
+const QString &FileResourceBase::filePath() const
+{
+    return m_filePath;
+}
+
+void FileResourceBase::load(PersistentPool &pool)
+{
+    setFilePath(pool.idLoadString());
+    pool.stream()
+            >> m_timestamp;
+}
+
+void FileResourceBase::store(PersistentPool &pool) const
+{
+    pool.storeString(m_filePath);
+    pool.stream()
+            << m_timestamp;
+}
+
+
+FileDependency::FileDependency()
+{
+}
+
+FileDependency::~FileDependency()
+{
 }
 
 } // namespace Internal

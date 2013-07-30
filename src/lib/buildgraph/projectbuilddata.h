@@ -43,6 +43,8 @@
 
 namespace qbs {
 namespace Internal {
+class FileDependency;
+class FileResourceBase;
 class ScriptEngine;
 
 class ProjectBuildData : public PersistentObject
@@ -53,18 +55,19 @@ public:
 
     static QString deriveBuildGraphFilePath(const QString &buildDir, const QString &projectId);
 
-    void insertIntoArtifactLookupTable(Artifact *artifact);
-    void removeFromArtifactLookupTable(Artifact *artifact);
-    QList<Artifact *> lookupArtifacts(const QString &filePath) const;
-    QList<Artifact *> lookupArtifacts(const QString &dirPath, const QString &fileName) const;
-    QList<Artifact *> lookupArtifacts(const Artifact *artifact) const;
-    void insertFileDependency(Artifact *artifact);
+    void insertIntoLookupTable(FileResourceBase *fileres);
+    void removeFromLookupTable(FileResourceBase *fileres);
+
+    QList<FileResourceBase *> lookupFiles(const QString &filePath) const;
+    QList<FileResourceBase *> lookupFiles(const QString &dirPath, const QString &fileName) const;
+    QList<FileResourceBase *> lookupFiles(const Artifact *artifact) const;
+    void insertFileDependency(FileDependency *dependency);
     void updateNodesThatMustGetNewTransformer(const Logger &logger);
     void removeArtifact(Artifact *artifact, const Logger &logger);
     void removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
                         const Logger &logger);
 
-    ArtifactList dependencyArtifacts;
+    QSet<FileDependency *> fileDependencies;
     RulesEvaluationContextPtr evaluationContext;
     QSet<Artifact *> artifactsThatMustGetNewTransformers;
     bool isDirty;
@@ -74,7 +77,9 @@ private:
     void store(PersistentPool &pool) const;
     void updateNodeThatMustGetNewTransformer(Artifact *artifact, const Logger &logger);
 
-    QHash<QString, QHash<QString, QList<Artifact *> > > m_artifactLookupTable;
+    typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
+    typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
+    ArtifactLookupTable m_artifactLookupTable;
 };
 
 

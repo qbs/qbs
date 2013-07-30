@@ -41,6 +41,7 @@ class SetupProjectParameters;
 
 namespace Internal {
 class ArtifactList;
+class FileDependency;
 class FileTime;
 
 class BuildGraphLoadResult
@@ -83,7 +84,8 @@ private:
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
             ArtifactList *removedArtifacts = 0);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
-    void replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact);
+    void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
+            FileDependency *filedep, Artifact *artifact);
 
     RulesEvaluationContextPtr m_evalContext;
     BuildGraphLoadResult m_result;

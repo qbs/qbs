@@ -43,19 +43,20 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
+class FileResourceBase;
 class PropertyMapInternal;
 
 class ResolvedDependency
 {
 public:
     ResolvedDependency()
-        : artifact(0)
+        : file(0)
     {}
 
     bool isValid() const { return !filePath.isNull(); }
 
     QString filePath;
-    Artifact *artifact;
+    FileResourceBase *file;
 };
 
 class InputArtifactScannerContext

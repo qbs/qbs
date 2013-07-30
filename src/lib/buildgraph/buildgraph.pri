@@ -4,6 +4,7 @@ SOURCES += \
     $$PWD/buildgraphloader.cpp \
     $$PWD/executor.cpp\
     $$PWD/executorjob.cpp\
+    $$PWD/filedependency.cpp \
     $$PWD/rulegraph.cpp\
     $$PWD/scanresultcache.cpp \
     $$PWD/artifactlist.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     $$PWD/buildgraphloader.h \
     $$PWD/executor.h\
     $$PWD/executorjob.h\
+    $$PWD/filedependency.h \
     $$PWD/rulegraph.h\
     $$PWD/scanresultcache.h \
     $$PWD/artifactlist.h \

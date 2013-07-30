@@ -79,7 +79,7 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
             continue;
         foreach (Artifact * const a, product->buildData->artifacts) {
             a->topLevelProject = project->topLevelProject();
-            project->topLevelProject()->buildData->insertIntoArtifactLookupTable(a);
+            project->topLevelProject()->buildData->insertIntoLookupTable(a);
         }
     }
 
@@ -145,8 +145,6 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     }
 
     restoreBackPointers(project);
-    foreach (Artifact * const a, project->buildData->dependencyArtifacts)
-        a->topLevelProject = project.data();
 
     project->location = CodeLocation(parameters.projectFilePath(), project->location.line(),
                                      project->location.column());
@@ -232,8 +230,6 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     // Move over restored build data to newly resolved project.
     m_result.newlyResolvedProject->buildData.swap(restoredProject->buildData);
     QBS_CHECK(m_result.newlyResolvedProject->buildData);
-    foreach (Artifact * const a, m_result.newlyResolvedProject->buildData->dependencyArtifacts)
-        a->topLevelProject = m_result.newlyResolvedProject.data();
     m_result.newlyResolvedProject->buildData->isDirty = true;
     for (int i = allNewlyResolvedProducts.count() - 1; i >= 0; --i) {
         const ResolvedProductPtr &newlyResolvedProduct = allNewlyResolvedProducts.at(i);
@@ -408,16 +404,21 @@ void BuildGraphLoader::onProductChanged(const ResolvedProductPtr &product,
                 newArtifact->artifactType = Artifact::SourceFile;
             } else {
                 newArtifact = createArtifact(product, a, m_logger);
-                foreach (Artifact *oldArtifact,
-                         product->topLevelProject()->buildData->lookupArtifacts(newArtifact->filePath())) {
-                    if (oldArtifact == newArtifact
-                            || oldArtifact->artifactType != Artifact::FileDependency) {
+                foreach (FileResourceBase *oldArtifactLookupResult,
+                         product->topLevelProject()->buildData->lookupFiles(newArtifact->filePath())) {
+                    if (oldArtifactLookupResult == newArtifact)
+                        continue;
+                    FileDependency *oldFileDependency
+                            = dynamic_cast<FileDependency *>(oldArtifactLookupResult);
+                    if (!oldFileDependency) {
                         // The source file already exists in another product.
                         continue;
                     }
                     // User added a source file that was recognized as file dependency in the
                     // previous build, e.g. a C++ header file.
-                    replaceFileDependencyWithArtifact(oldArtifact, newArtifact);
+                    replaceFileDependencyWithArtifact(product,
+                                                      oldFileDependency,
+                                                      newArtifact);
                 }
             }
             addedArtifacts += newArtifact;
@@ -537,27 +538,27 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     return false;
 }
 
-void BuildGraphLoader::replaceFileDependencyWithArtifact(Artifact *filedep, Artifact *artifact)
+void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
+        FileDependency *filedep, Artifact *artifact)
 {
     if (m_logger.traceEnabled()) {
         m_logger.qbsTrace()
             << QString::fromLocal8Bit("[BG] replace file dependency '%1' "
                                       "with artifact of type '%2'")
-                             .arg(relativeArtifactFileName(filedep)).arg(artifact->artifactType);
+                             .arg(filedep->filePath()).arg(artifact->artifactType);
     }
-    foreach (const ResolvedProductPtr &product, filedep->topLevelProject->allProducts()) {
+    foreach (const ResolvedProductPtr &product, fileDepProduct->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
         foreach (Artifact *artifactInProduct, product->buildData->artifacts) {
-            if (artifactInProduct->children.contains(filedep)) {
-                disconnect(artifactInProduct, filedep, m_logger);
+            if (artifactInProduct->fileDependencies.contains(filedep)) {
+                artifactInProduct->fileDependencies.remove(filedep);
                 loggedConnect(artifactInProduct, artifact, m_logger);
             }
-            artifactInProduct->fileDependencies.remove(filedep);
         }
     }
-    filedep->topLevelProject->buildData->dependencyArtifacts.remove(filedep);
-    filedep->topLevelProject->buildData->removeFromArtifactLookupTable(filedep);
+    fileDepProduct->topLevelProject()->buildData->fileDependencies.remove(filedep);
+    fileDepProduct->topLevelProject()->buildData->removeFromLookupTable(filedep);
     delete filedep;
 }
 

@@ -26,59 +26,52 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "timestampsupdater.h"
 
-#include "artifact.h"
-#include "artifactvisitor.h"
-#include "productbuilddata.h"
-#include "projectbuilddata.h"
-#include <language/language.h>
+#ifndef QBS_FILEDEPENDENCY_H
+#define QBS_FILEDEPENDENCY_H
+
 #include <tools/filetime.h>
-#include <tools/qbsassert.h>
-
-#include <QFile>
+#include <tools/persistentobject.h>
 
 namespace qbs {
 namespace Internal {
 
-class TimestampsUpdateVisitor : public ArtifactVisitor
+class FileResourceBase : public PersistentObject
 {
+protected:
+    FileResourceBase();
+
 public:
-    TimestampsUpdateVisitor()
-        : ArtifactVisitor(Artifact::Generated), m_now(FileTime::currentTime()) {}
+    ~FileResourceBase();
 
-    void visitProduct(const ResolvedProductConstPtr &product)
-    {
-        QBS_CHECK(product->buildData);
-        ArtifactVisitor::visitProduct(product);
+    void setTimestamp(const FileTime &t);
+    const FileTime &timestamp() const;
+    void clearTimestamp() { m_timestamp.clear(); }
 
-        // For target artifacts, we have to update the on-disk timestamp, because
-        // the executor will look at it.
-        foreach (Artifact * const targetArtifact, product->buildData->targetArtifacts) {
-            if (FileInfo(targetArtifact->filePath()).exists())
-                QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
-        }
-    }
+    void setFilePath(const QString &filePath);
+    const QString &filePath() const;
+    QString dirPath() const { return m_dirPath.toString(); }
+    QString fileName() const { return m_fileName.toString(); }
+
+protected:
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 
 private:
-    void doVisit(Artifact *artifact)
-    {
-        if (FileInfo(artifact->filePath()).exists())
-            artifact->setTimestamp(m_now);
-    }
-
-    FileTime m_now;
+    FileTime m_timestamp;
+    QString m_filePath;
+    QStringRef m_dirPath;
+    QStringRef m_fileName;
 };
 
-void TimestampsUpdater::updateTimestamps(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const Logger &logger)
+class FileDependency : public FileResourceBase
 {
-    TimestampsUpdateVisitor v;
-    foreach (const ResolvedProductPtr &product, products)
-        v.visitProduct(product);
-    project->buildData->isDirty = !products.isEmpty();
-    project->store(logger);
-}
+public:
+    FileDependency();
+    ~FileDependency();
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_FILEDEPENDENCY_H

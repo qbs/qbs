@@ -89,25 +89,26 @@ static void resolveWithIncludePath(const QString &includePath,
         absDirPath = QDir::cleanPath(absDirPath);
 
     ResolvedProject *project = product->project.data();
-    Artifact *fileDependencyArtifact = 0;
+    FileDependency *fileDependencyArtifact = 0;
     Artifact *dependencyInProduct = 0;
     Artifact *dependencyInOtherProduct = 0;
-    foreach (Artifact *artifact, project->topLevelProject()
-             ->buildData->lookupArtifacts(absDirPath, dependency.fileName())) {
-        if (artifact->artifactType == Artifact::FileDependency)
-            fileDependencyArtifact = artifact;
-        else if (artifact->product == product)
-            dependencyInProduct = artifact;
+    foreach (FileResourceBase *lookupResult, project->topLevelProject()
+             ->buildData->lookupFiles(absDirPath, dependency.fileName())) {
+        if ((fileDependencyArtifact = dynamic_cast<FileDependency *>(lookupResult)))
+            continue;
+        Artifact * const foundArtifact = dynamic_cast<Artifact *>(lookupResult);
+        if (foundArtifact->product == product)
+            dependencyInProduct = foundArtifact;
         else
-            dependencyInOtherProduct = artifact;
+            dependencyInOtherProduct = foundArtifact;
     }
 
     // prioritize found artifacts
-    if ((result->artifact = dependencyInProduct)
-        || (result->artifact = dependencyInOtherProduct)
-        || (result->artifact = fileDependencyArtifact))
+    if ((result->file = dependencyInProduct)
+        || (result->file = dependencyInOtherProduct)
+        || (result->file = fileDependencyArtifact))
     {
-        result->filePath = result->artifact->filePath();
+        result->filePath = result->file->filePath();
         return;
     }
 
@@ -293,10 +294,10 @@ unresolved:
 resolved:
         // Do not scan artifacts that are being built. Otherwise we might read an incomplete
         // file or conflict with the writing process.
-        if (filePathsToScan
-                && (!resolvedDependency->artifact
-                    || resolvedDependency->artifact->buildState != Artifact::Building)) {
-            filePathsToScan->append(resolvedDependency->filePath);
+        if (filePathsToScan) {
+            Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency->file);
+            if (!artifactDependency || artifactDependency->buildState != Artifact::Building)
+                filePathsToScan->append(resolvedDependency->filePath);
         }
         handleDependency(*resolvedDependency);
     }
@@ -309,24 +310,27 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     QBS_CHECK(m_artifact->artifactType == Artifact::Generated);
     QBS_CHECK(product);
 
-    if (!dependency.artifact) {
+    Artifact *artifactDependency = dynamic_cast<Artifact *>(dependency.file);
+    FileDependency *fileDependency
+            = artifactDependency ? 0 : dynamic_cast<FileDependency *>(dependency.file);
+
+    if (!dependency.file) {
         // The dependency is an existing file but does not exist in the build graph.
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]   + '%1'")
                                    .arg(dependency.filePath);
         }
-        dependency.artifact = new Artifact(m_artifact->topLevelProject);
-        dependency.artifact->artifactType = Artifact::FileDependency;
-        dependency.artifact->properties = m_artifact->properties;
-        dependency.artifact->setFilePath(dependency.filePath);
-        m_artifact->topLevelProject->buildData->insertFileDependency(dependency.artifact);
-    } else if (dependency.artifact->artifactType == Artifact::FileDependency) {
+        fileDependency = new FileDependency();
+        dependency.file = fileDependency;
+        fileDependency->setFilePath(dependency.filePath);
+        m_artifact->topLevelProject->buildData->insertFileDependency(fileDependency);
+    } else if (fileDependency) {
         // The dependency exists in the project's list of file dependencies.
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  ok in deps '%1'")
                                    .arg(dependency.filePath);
         }
-    } else if (dependency.artifact->product == product) {
+    } else if (artifactDependency->product == product) {
         // The dependency is in our product.
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  ok in product '%1'")
@@ -335,7 +339,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         insertIntoProduct = false;
     } else {
         // The dependency is in some other product.
-        ResolvedProduct * const otherProduct = dependency.artifact->product;
+        ResolvedProduct * const otherProduct = artifactDependency->product;
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN]  found in product '%1': '%2'")
                                    .arg(otherProduct->name, dependency.filePath);
@@ -343,17 +347,17 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         insertIntoProduct = false;
     }
 
-    if (m_artifact == dependency.artifact)
+    if (m_artifact == dependency.file)
         return;
 
-    if (dependency.artifact->artifactType == Artifact::FileDependency) {
-        m_artifact->fileDependencies.insert(dependency.artifact);
+    if (fileDependency) {
+        m_artifact->fileDependencies.insert(fileDependency);
     } else {
-        if (m_artifact->children.contains(dependency.artifact))
+        if (m_artifact->children.contains(artifactDependency))
             return;
-        if (insertIntoProduct && !product->buildData->artifacts.contains(dependency.artifact))
-            insertArtifact(product, dependency.artifact, m_logger);
-        safeConnect(m_artifact, dependency.artifact, m_logger);
+        if (insertIntoProduct && !product->buildData->artifacts.contains(artifactDependency))
+            insertArtifact(product, artifactDependency, m_logger);
+        safeConnect(m_artifact, artifactDependency, m_logger);
         m_newDependencyAdded = true;
     }
 }

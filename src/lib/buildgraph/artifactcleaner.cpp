@@ -59,8 +59,8 @@ static void printRemovalMessage(const QString &path, bool dryRun, const Logger &
 
 static void invalidateArtifactTimestamp(Artifact *artifact)
 {
-    if (artifact->timestamp.isValid()) {
-        artifact->timestamp.clear();
+    if (artifact->timestamp().isValid()) {
+        artifact->clearTimestamp();
         artifact->topLevelProject->buildData->isDirty = true;
     }
 }

@@ -31,6 +31,7 @@
 #define QBS_ARTIFACT_H
 
 #include "artifactlist.h"
+#include "filedependency.h"
 #include "forward_decls.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
@@ -38,6 +39,7 @@
 #include <tools/persistentobject.h>
 #include <tools/weakpointer.h>
 
+#include <QSet>
 #include <QString>
 
 namespace qbs {
@@ -52,7 +54,7 @@ class Logger;
  *
  *
  */
-class Artifact : public PersistentObject
+class Artifact : public FileResourceBase
 {
 public:
     // We could save one constructor here by using a default argument, but then we'd have to
@@ -65,7 +67,7 @@ public:
 
     ArtifactList parents;
     ArtifactList children;
-    ArtifactList fileDependencies;
+    QSet<FileDependency *> fileDependencies;
     FileTags fileTags;
     TopLevelProject *topLevelProject;
     WeakPointer<ResolvedProduct> product;          // Note: file dependency artifacts don't belong to a product.
@@ -76,8 +78,7 @@ public:
     {
         Unknown = 1,
         SourceFile = 2,
-        Generated = 4,
-        FileDependency = 8
+        Generated = 4
     };
 
     enum BuildState
@@ -89,7 +90,6 @@ public:
     };
 
     ArtifactType artifactType;
-    FileTime timestamp;
     FileTime autoMocTimestamp;
     BuildState buildState;                  // Do not serialize. Will be refreshed for every build.
     bool inputsScanned : 1;                 // Do not serialize. Will be refreshed for every build.
@@ -97,19 +97,10 @@ public:
     bool alwaysUpdated : 1;
 
     void initialize();
-    void setFilePath(const QString &filePath);
-    const QString &filePath() const { return m_filePath; }
-    QString dirPath() const { return m_dirPath.toString(); }
-    QString fileName() const { return m_fileName.toString(); }
 
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
-
-private:
-    QString m_filePath;
-    QStringRef m_dirPath;
-    QStringRef m_fileName;
 };
 
 // debugging helper
@@ -120,8 +111,6 @@ inline QString toString(Artifact::ArtifactType t)
         return QLatin1String("SourceFile");
     case Artifact::Generated:
         return QLatin1String("Generated");
-    case Artifact::FileDependency:
-        return QLatin1String("FileDependency");
     case Artifact::Unknown:
     default:
         return QLatin1String("Unknown");

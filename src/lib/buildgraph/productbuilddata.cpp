@@ -75,7 +75,7 @@ void ProductBuildData::load(PersistentPool &pool)
         artifact->fileDependencies.clear();
         artifact->fileDependencies.reserve(k);
         for (; --k >= 0;)
-            artifact->fileDependencies.insert(pool.idLoad<Artifact>());
+            artifact->fileDependencies.insert(pool.idLoad<FileDependency>());
     }
 
     // other data
@@ -102,8 +102,8 @@ void ProductBuildData::store(PersistentPool &pool) const
         foreach (Artifact * n, artifact->children)
             pool.store(n);
         pool.stream() << artifact->fileDependencies.count();
-        foreach (Artifact * n, artifact->fileDependencies)
-            pool.store(n);
+        foreach (FileDependency *dependency, artifact->fileDependencies)
+            pool.store(dependency);
     }
 
     // other data

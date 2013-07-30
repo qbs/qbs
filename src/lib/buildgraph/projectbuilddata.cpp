@@ -52,7 +52,7 @@ ProjectBuildData::ProjectBuildData() : isDirty(true)
 
 ProjectBuildData::~ProjectBuildData()
 {
-    qDeleteAll(dependencyArtifacts);
+    qDeleteAll(fileDependencies);
 }
 
 QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, const QString &projectId)
@@ -60,41 +60,41 @@ QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, cons
     return buildDir + QLatin1Char('/') + projectId + QLatin1String(".bg");
 }
 
-void ProjectBuildData::insertIntoArtifactLookupTable(Artifact *artifact)
+void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
 {
-    QList<Artifact *> &lst = m_artifactLookupTable[artifact->fileName()][artifact->dirPath()];
-    if (!lst.contains(artifact))
-        lst.append(artifact);
+    QList<FileResourceBase *> &lst
+            = m_artifactLookupTable[fileres->fileName()][fileres->dirPath()];
+    if (!lst.contains(fileres))
+        lst.append(fileres);
 }
 
-void ProjectBuildData::removeFromArtifactLookupTable(Artifact *artifact)
+void ProjectBuildData::removeFromLookupTable(FileResourceBase *fileres)
 {
-    m_artifactLookupTable[artifact->fileName()][artifact->dirPath()].removeOne(artifact);
+    m_artifactLookupTable[fileres->fileName()][fileres->dirPath()].removeOne(fileres);
 }
 
-QList<Artifact *> ProjectBuildData::lookupArtifacts(const QString &filePath) const
+QList<FileResourceBase *> ProjectBuildData::lookupFiles(const QString &filePath) const
 {
     QString dirPath, fileName;
     FileInfo::splitIntoDirectoryAndFileName(filePath, &dirPath, &fileName);
-    return lookupArtifacts(dirPath, fileName);
+    return lookupFiles(dirPath, fileName);
 }
 
-QList<Artifact *> ProjectBuildData::lookupArtifacts(const QString &dirPath, const QString &fileName) const
+QList<FileResourceBase *> ProjectBuildData::lookupFiles(const QString &dirPath,
+        const QString &fileName) const
 {
-    QList<Artifact *> result = m_artifactLookupTable.value(fileName).value(dirPath);
-    return result;
+    return m_artifactLookupTable.value(fileName).value(dirPath);
 }
 
-QList<Artifact *> ProjectBuildData::lookupArtifacts(const Artifact *artifact) const
+QList<FileResourceBase *> ProjectBuildData::lookupFiles(const Artifact *artifact) const
 {
-    return lookupArtifacts(artifact->dirPath(), artifact->fileName());
+    return lookupFiles(artifact->dirPath(), artifact->fileName());
 }
 
-void ProjectBuildData::insertFileDependency(Artifact *artifact)
+void ProjectBuildData::insertFileDependency(FileDependency *dependency)
 {
-    QBS_CHECK(artifact->artifactType == Artifact::FileDependency);
-    dependencyArtifacts += artifact;
-    insertIntoArtifactLookupTable(artifact);
+    fileDependencies += dependency;
+    insertIntoLookupTable(dependency);
 }
 
 static bool commandsEqual(const TransformerConstPtr &t1, const TransformerConstPtr &t2)
@@ -151,7 +151,7 @@ void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *proj
 
     removeGeneratedArtifactFromDisk(artifact, logger);
     artifact->product->buildData->artifacts.remove(artifact);
-    removeFromArtifactLookupTable(artifact);
+    removeFromLookupTable(artifact);
     artifact->product->buildData->targetArtifacts.remove(artifact);
     disconnectArtifact(artifact, projectBuildData, logger);
     projectBuildData->artifactsThatMustGetNewTransformers -= artifact;
@@ -182,7 +182,7 @@ void ProjectBuildData::updateNodeThatMustGetNewTransformer(Artifact *artifact, c
 
     removeGeneratedArtifactFromDisk(artifact, logger);
     artifact->autoMocTimestamp.clear();
-    artifact->timestamp.clear();
+    artifact->clearTimestamp();
 
     const RuleConstPtr rule = artifact->transformer->rule;
     isDirty = true;
@@ -201,17 +201,17 @@ void ProjectBuildData::load(PersistentPool &pool)
 {
     int count;
     pool.stream() >> count;
-    dependencyArtifacts.clear();
-    dependencyArtifacts.reserve(count);
+    fileDependencies.clear();
+    fileDependencies.reserve(count);
     for (; --count >= 0;) {
-        Artifact *artifact = pool.idLoad<Artifact>();
-        insertFileDependency(artifact);
+        FileDependency *fileDependency = pool.idLoad<FileDependency>();
+        insertFileDependency(fileDependency);
     }
 }
 
 void ProjectBuildData::store(PersistentPool &pool) const
 {
-    pool.storeContainer(dependencyArtifacts);
+    pool.storeContainer(fileDependencies);
 }
 
 
@@ -291,16 +291,17 @@ void BuildDataResolver::rescueBuildData(const TopLevelProjectConstPtr &source,
                     logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact invalidated");
                 continue;
             }
-            artifact->timestamp = otherArtifact->timestamp;
+            artifact->setTimestamp(otherArtifact->timestamp());
 
             foreach (Artifact *otherChild, otherArtifact->children) {
                 // skip transform edges
                 if (otherArtifact->transformer->inputs.contains(otherChild))
                     continue;
 
-                QList<Artifact *> children = target->buildData->lookupArtifacts(otherChild);
-                foreach (Artifact *child, children) {
-                    if (!artifact->children.contains(child))
+                foreach (FileResourceBase *childFileRes,
+                         target->buildData->lookupFiles(otherChild)) {
+                    Artifact *child = dynamic_cast<Artifact *>(childFileRes);
+                    if (child && !artifact->children.contains(child))
                         safeConnect(artifact, child, logger);
                 }
             }

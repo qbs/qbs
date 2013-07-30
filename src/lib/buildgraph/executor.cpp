@@ -147,7 +147,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 {
     QBS_CHECK(artifact->artifactType == Artifact::SourceFile);
 
-    artifact->timestamp = recursiveFileTime(artifact->filePath());
+    artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
     artifact->timestampRetrieved = true;
 }
 
@@ -212,14 +212,16 @@ void Executor::doBuild()
 
     QList<Artifact *> changedArtifacts;
     foreach (const QString &filePath, m_buildOptions.changedFiles()) {
-        QList<Artifact *> artifacts;
-        artifacts.append(m_project->buildData->lookupArtifacts(filePath));
-        if (artifacts.isEmpty()) {
+        QList<FileResourceBase *> lookupResults;
+        lookupResults.append(m_project->buildData->lookupFiles(filePath));
+        if (lookupResults.isEmpty()) {
             m_logger.qbsWarning() << QString::fromLocal8Bit("Out of date file '%1' provided "
                     "but not found.").arg(QDir::toNativeSeparators(filePath));
             continue;
         }
-        changedArtifacts += artifacts;
+        foreach (FileResourceBase *lookupResult, lookupResults)
+            if (Artifact *artifact = dynamic_cast<Artifact *>(lookupResult))
+                changedArtifacts += artifact;
     }
     qSort(changedArtifacts);
     changedArtifacts.erase(std::unique(changedArtifacts.begin(), changedArtifacts.end()),
@@ -237,7 +239,7 @@ void Executor::doBuild()
 
             // The user expects that he can delete target artifacts and they get rebuilt.
             // To achieve this we must retrieve their timestamps.
-            targetArtifact->timestamp = FileInfo(targetArtifact->filePath()).lastModified();
+            targetArtifact->setTimestamp(FileInfo(targetArtifact->filePath()).lastModified());
         }
     }
 
@@ -318,40 +320,40 @@ bool Executor::isUpToDate(Artifact *artifact) const
     const bool debug = false;
     if (debug) {
         m_logger.qbsDebug() << "[UTD] check " << artifact->filePath() << " "
-                            << artifact->timestamp.toString();
+                            << artifact->timestamp().toString();
     }
 
     if (m_buildOptions.forceTimestampCheck()) {
-        artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
+        artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
         if (debug) {
             m_logger.qbsDebug() << "[UTD] timestamp retrieved from filesystem: "
-                                << artifact->timestamp.toString();
+                                << artifact->timestamp().toString();
         }
     }
 
-    if (!artifact->timestamp.isValid()) {
+    if (!artifact->timestamp().isValid()) {
         if (debug)
             m_logger.qbsDebug() << "[UTD] invalid timestamp. Out of date.";
         return false;
     }
 
     foreach (Artifact *child, artifact->children) {
-        QBS_CHECK(child->timestamp.isValid());
+        QBS_CHECK(child->timestamp().isValid());
         if (debug)
-            m_logger.qbsDebug() << "[UTD] child timestamp " << child->timestamp.toString();
-        if (artifact->timestamp < child->timestamp)
+            m_logger.qbsDebug() << "[UTD] child timestamp " << child->timestamp().toString();
+        if (artifact->timestamp() < child->timestamp())
             return false;
     }
 
-    foreach (Artifact *fileDependency, artifact->fileDependencies) {
-        if (!fileDependency->timestamp.isValid()) {
+    foreach (FileDependency *fileDependency, artifact->fileDependencies) {
+        if (!fileDependency->timestamp().isValid()) {
             FileInfo fi(fileDependency->filePath());
-            fileDependency->timestamp = fi.lastModified();
+            fileDependency->setTimestamp(fi.lastModified());
         }
         if (debug)
             m_logger.qbsDebug() << "[UTD] file dependency timestamp "
-                                << fileDependency->timestamp.toString();
-        if (artifact->timestamp < fileDependency->timestamp)
+                                << fileDependency->timestamp().toString();
+        if (artifact->timestamp() < fileDependency->timestamp())
             return false;
     }
 
@@ -731,9 +733,9 @@ void Executor::onProcessSuccess()
         processedArtifact->topLevelProject->buildData->isDirty = true;
         foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
             if (artifact->alwaysUpdated)
-                artifact->timestamp = FileTime::currentTime();
+                artifact->setTimestamp(FileTime::currentTime());
             else
-                artifact->timestamp = FileInfo(artifact->filePath()).lastModified();
+                artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
         }
 
         finishJob(job, true);
@@ -789,15 +791,15 @@ void Executor::prepareAllArtifacts(bool *sourceFilesChanged)
             artifact->timestampRetrieved = false;
 
             if (artifact->artifactType == Artifact::SourceFile) {
-                const FileTime oldTimestamp = artifact->timestamp;
+                const FileTime oldTimestamp = artifact->timestamp();
                 retrieveSourceFileTimestamp(artifact);
-                if (oldTimestamp != artifact->timestamp)
+                if (oldTimestamp != artifact->timestamp())
                     *sourceFilesChanged = true;
             }
 
             // Timestamps of file dependencies must be invalid for every build.
-            foreach (Artifact *fileDependency, artifact->fileDependencies)
-                fileDependency->timestamp.clear();
+            foreach (FileDependency *fileDependency, artifact->fileDependencies)
+                fileDependency->clearTimestamp();
         }
     }
 }

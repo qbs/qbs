@@ -319,12 +319,13 @@ QString relativeArtifactFileName(const Artifact *n)
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
                          const QString &fileName)
 {
-    QList<Artifact *> artifacts
-            = product->topLevelProject()->buildData->lookupArtifacts(dirPath, fileName);
-    for (QList<Artifact *>::const_iterator it = artifacts.constBegin();
-         it != artifacts.constEnd(); ++it) {
-        if ((*it)->product == product)
-            return *it;
+    const QList<FileResourceBase *> lookupResults
+            = product->topLevelProject()->buildData->lookupFiles(dirPath, fileName);
+    for (QList<FileResourceBase *>::const_iterator it = lookupResults.constBegin();
+            it != lookupResults.constEnd(); ++it) {
+        Artifact *artifact = dynamic_cast<Artifact *>(*it);
+        if (artifact && artifact->product == product)
+            return artifact;
     }
     return 0;
 }
@@ -376,7 +377,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
 #endif
     product->buildData->artifacts.insert(artifact);
     artifact->product = product;
-    product->topLevelProject()->buildData->insertIntoArtifactLookupTable(artifact);
+    product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
     product->topLevelProject()->buildData->isDirty = true;
 
     if (logger.traceEnabled()) {

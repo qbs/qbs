@@ -79,22 +79,15 @@ void Artifact::initialize()
     alwaysUpdated = true;
 }
 
-void Artifact::setFilePath(const QString &filePath)
-{
-    m_filePath = filePath;
-    FileInfo::splitIntoDirectoryAndFileName(m_filePath, &m_dirPath, &m_fileName);
-}
-
 void Artifact::load(PersistentPool &pool)
 {
-    setFilePath(pool.idLoadString());
+    FileResourceBase::load(pool);
     properties = pool.idLoadS<PropertyMapInternal>();
     transformer = pool.idLoadS<Transformer>();
     unsigned char c;
     pool.stream()
             >> fileTags
             >> artifactType
-            >> timestamp
             >> autoMocTimestamp
             >> c;
     alwaysUpdated = c;
@@ -102,13 +95,12 @@ void Artifact::load(PersistentPool &pool)
 
 void Artifact::store(PersistentPool &pool) const
 {
-    pool.storeString(m_filePath);
+    FileResourceBase::store(pool);
     pool.store(properties);
     pool.store(transformer);
     pool.stream()
             << fileTags
             << artifactType
-            << timestamp
             << autoMocTimestamp
             << static_cast<unsigned char>(alwaysUpdated);
 }

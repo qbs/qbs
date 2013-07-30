@@ -90,6 +90,8 @@ Product {
             "executor.h",
             "executorjob.cpp",
             "executorjob.h",
+            "filedependency.cpp",
+            "filedependency.h",
             "inputartifactscanner.cpp",
             "inputartifactscanner.h",
             "jscommandexecutor.cpp",

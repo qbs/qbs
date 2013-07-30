@@ -110,7 +110,7 @@ void AutoMoc::apply(const ResolvedProductPtr &product)
         }
         if (artifact->artifactType != Artifact::SourceFile)
             continue;
-        if (artifact->timestamp < artifact->autoMocTimestamp)
+        if (artifact->timestamp() < artifact->autoMocTimestamp)
             continue;
         artifact->autoMocTimestamp = currentTime;
         const FileType fileType = AutoMoc::fileType(artifact);
