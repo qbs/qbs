@@ -100,7 +100,6 @@ UnixGCC {
     Rule {
         multiplex: true
         inputs: ["infoplist"]
-        explicitlyDependsOn: ["infoplist"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.pkgInfoPath(product)
