@@ -264,16 +264,12 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags;
         outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
+        outputArtifact->properties = m_product->properties;
         insertArtifact(m_product, outputArtifact, m_logger);
     }
 
     if (outputArtifact->fileTags.isEmpty())
         outputArtifact->fileTags = m_product->fileTagsForFileName(outputArtifact->fileName());
-
-    if (m_rule->multiplex)
-        outputArtifact->properties = m_product->properties;
-    else
-        outputArtifact->properties= (*inputArtifacts.constBegin())->properties;
 
     for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
