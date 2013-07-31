@@ -29,7 +29,7 @@ CppModule {
         return path
     }
 
-    compilerPath: toolchainPathPrefix + compilerName + executableSuffix
+    compilerPath: toolchainPathPrefix + compilerName
     property string archiverPath: { return toolchainPathPrefix + archiverName }
 
     property bool createSymlinks: true
