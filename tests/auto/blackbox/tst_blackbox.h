@@ -74,7 +74,7 @@ class TestBlackbox : public QObject
     const QString testDataDir;
     const QString testSourceDir;
     const QString qbsExecutableFilePath;
-    const QString buildProfile;
+    const QString buildProfileName;
     const QString buildDir;
     const QString defaultInstallRoot;
     const QString buildGraphPath;

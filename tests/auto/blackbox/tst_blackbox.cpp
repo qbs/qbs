@@ -32,6 +32,7 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
+#include <tools/profile.h>
 
 #include <QLocale>
 #include <QTemporaryFile>
@@ -47,6 +48,7 @@
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
+using qbs::Profile;
 
 static QString initQbsExecutableFilePath()
 {
@@ -59,8 +61,8 @@ TestBlackbox::TestBlackbox()
     : testDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/blackbox/testWorkDir"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
-      buildProfile(QLatin1String("qbs_autotests")),
-      buildDir(buildProfile + QLatin1String("-debug")),
+      buildProfileName(QLatin1String("qbs_autotests")),
+      buildDir(buildProfileName + QLatin1String("-debug")),
       defaultInstallRoot(buildDir + QLatin1Char('/') + InstallOptions::defaultInstallRoot()),
       buildGraphPath(buildDir + QLatin1Char('/') + buildDir + QLatin1String(".bg"))
 {
@@ -71,7 +73,7 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
 {
     QStringList args = params.arguments;
     if (params.useProfile)
-        args.append(QLatin1String("profile:") + buildProfile);
+        args.append(QLatin1String("profile:") + buildProfileName);
     QString cmdLine = qbsExecutableFilePath;
     foreach (const QString &str, args)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
@@ -150,25 +152,20 @@ void TestBlackbox::waitForNewTimestamp()
 void TestBlackbox::initTestCase()
 {
     QVERIFY(QFile::exists(qbsExecutableFilePath));
-    QProcess process;
-    process.start(qbsExecutableFilePath, QStringList() << "config" << "--list");
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
-    QCOMPARE(process.exitCode(), 0);
-    bool found = false;
-    forever {
-        QByteArray line = process.readLine();
-        if (line.isEmpty())
-            break;
-        if (line.startsWith(QByteArray("profiles.") + buildProfile.toLatin1() + QByteArray("."))) {
-            found = true;
-            break;
-        }
-    }
-    if (!found)
-        qWarning("The build profile '%s' could not be found. Please set it up on your machine.",
-                 qPrintable(buildProfile));
-    QVERIFY(found);
+
+    SettingsPtr settings = qbsSettings();
+    if (!settings->profiles().contains(buildProfileName))
+        QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
+                         "' could not be found. Please set it up on your machine."));
+
+    Profile buildProfile(buildProfileName, settings.data());
+    QVariant qtBinPath = buildProfile.value(QLatin1String("Qt.core.binPath"));
+    if (!qtBinPath.isValid())
+        QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
+                         "' is not a valid Qt profile."));
+    if (!QFile::exists(qtBinPath.toString()))
+        QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
+                         "' points to an invalid Qt path."));
 
     // Initialize the test data directory.
     QVERIFY(testDataDir != testSourceDir);
