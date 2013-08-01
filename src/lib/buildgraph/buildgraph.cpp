@@ -385,36 +385,5 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
     }
 }
 
-static void dumpProductBuildDataInternal(const ResolvedProductConstPtr &product, Artifact *artifact,
-                         QByteArray indent)
-{
-    Artifact *artifactInProduct = lookupArtifact(product, artifact->filePath());
-    if (artifactInProduct && artifactInProduct != artifact) {
-        qFatal("\ntree corrupted. %p ('%s') resolves to %p ('%s')\n",
-                artifact,  qPrintable(artifact->filePath()), lookupArtifact(product, artifact->filePath()),
-                qPrintable(lookupArtifact(product, artifact->filePath())->filePath()));
-
-    }
-    printf("%s", indent.constData());
-    printf("Artifact (%p) ", artifact);
-    printf("%s%s %s [%s]",
-           qPrintable(QString(toString(artifact->buildState).at(0))),
-           artifactInProduct ? "" : " SBS",     // SBS == side-by-side artifact from other product
-           qPrintable(artifact->filePath()),
-           qPrintable(artifact->fileTags.toStringList().join(QLatin1String(", "))));
-    printf("\n");
-    indent.append("  ");
-    foreach (Artifact *child, artifact->children) {
-        dumpProductBuildDataInternal(product, child, indent);
-    }
-}
-
-void dumpProductBuildData(const ResolvedProductConstPtr &product)
-{
-    foreach (Artifact *artifact, product->buildData->artifacts)
-        if (artifact->parents.isEmpty())
-            dumpProductBuildDataInternal(product, artifact, QByteArray());
-}
-
 } // namespace Internal
 } // namespace qbs
