@@ -61,7 +61,7 @@ static void invalidateArtifactTimestamp(Artifact *artifact)
 {
     if (artifact->timestamp().isValid()) {
         artifact->clearTimestamp();
-        artifact->topLevelProject->buildData->isDirty = true;
+        artifact->product->topLevelProject()->buildData->isDirty = true;
     }
 }
 

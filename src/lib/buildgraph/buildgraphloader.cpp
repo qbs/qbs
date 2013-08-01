@@ -77,10 +77,8 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
         product->project = project;
         if (!product->buildData)
             continue;
-        foreach (Artifact * const a, product->buildData->artifacts) {
-            a->topLevelProject = project->topLevelProject();
+        foreach (Artifact * const a, product->buildData->artifacts)
             project->topLevelProject()->buildData->insertIntoLookupTable(a);
-        }
     }
 
     foreach (const ResolvedProjectPtr &subProject, project->subProjects) {
@@ -238,10 +236,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
             if (newlyResolvedProduct->name == restoredProduct->name) {
                 newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
                 if (newlyResolvedProduct->buildData) {
-                    foreach (Artifact * const a, newlyResolvedProduct->buildData->artifacts) {
+                    foreach (Artifact * const a, newlyResolvedProduct->buildData->artifacts)
                         a->product = newlyResolvedProduct;
-                        a->topLevelProject = newlyResolvedProduct->topLevelProject();
-                    }
                 }
 
                 // Keep in list if build data still needs to be resolved.
@@ -496,20 +492,21 @@ void BuildGraphLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
 {
     if (removedArtifacts)
         removedArtifacts->insert(artifact);
+    TopLevelProject * const project = artifact->product->topLevelProject();
     foreach (Artifact *parent, artifact->parents) {
         bool removeParent = false;
         disconnect(parent, artifact, m_logger);
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
-            artifact->topLevelProject->buildData->artifactsThatMustGetNewTransformers += parent;
+            project->buildData->artifactsThatMustGetNewTransformers += parent;
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.isEmpty();
         }
         if (removeParent)
             removeArtifactAndExclusiveDependents(parent, removedArtifacts);
     }
-    artifact->topLevelProject->buildData->removeArtifact(artifact, m_logger);
+    project->buildData->removeArtifact(artifact, m_logger);
 }
 
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,

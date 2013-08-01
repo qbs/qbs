@@ -323,7 +323,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         fileDependency = new FileDependency();
         dependency.file = fileDependency;
         fileDependency->setFilePath(dependency.filePath);
-        m_artifact->topLevelProject->buildData->insertFileDependency(fileDependency);
+        product->topLevelProject()->buildData->insertFileDependency(fileDependency);
     } else if (fileDependency) {
         // The dependency exists in the project's list of file dependencies.
         if (m_logger.traceEnabled()) {

@@ -326,6 +326,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
         return;
     }
 
+    TopLevelProject * const project = artifact->product->topLevelProject();
     if (mocFileTag == "moc_hpp") {
         Artifact *mocObjArtifact = 0;
         foreach (Artifact *parent, generatedMocArtifact->parents) {
@@ -344,7 +345,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
                 m_logger.qbsTrace() << "[AUTOMOC] removing moc obj artifact "
                                     << relativeArtifactFileName(mocObjArtifact);
             }
-            artifact->topLevelProject->buildData->removeArtifact(mocObjArtifact, m_logger);
+            project->buildData->removeArtifact(mocObjArtifact, m_logger);
         }
     }
 
@@ -352,7 +353,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
         m_logger.qbsTrace() << "[AUTOMOC] removing generated artifact "
                             << relativeArtifactFileName(generatedMocArtifact);
     }
-    artifact->topLevelProject->buildData->removeArtifact(generatedMocArtifact, m_logger);
+    project->buildData->removeArtifact(generatedMocArtifact, m_logger);
     delete generatedMocArtifact;
 }
 

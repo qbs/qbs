@@ -66,7 +66,7 @@ void disconnect(Artifact *u, Artifact *v, const Logger &logger);
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject,
                                  ScriptPropertyObserver *observer = 0);
-QString relativeArtifactFileName(const Artifact *n); // Debugging helpers
+QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 
 template <typename T>
 QStringList toStringList(const T &artifactContainer)

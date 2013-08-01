@@ -57,20 +57,14 @@ class Logger;
 class Artifact : public FileResourceBase
 {
 public:
-    // We could save one constructor here by using a default argument, but then we'd have to
-    // include language.h in every file that includes artifact.h due to Qt 4's weird
-    // QSharedPointer implementation.
     Artifact();
-    explicit Artifact(TopLevelProject *project);
-
     ~Artifact();
 
     ArtifactList parents;
     ArtifactList children;
     QSet<FileDependency *> fileDependencies;
     FileTags fileTags;
-    TopLevelProject *topLevelProject;
-    WeakPointer<ResolvedProduct> product;          // Note: file dependency artifacts don't belong to a product.
+    WeakPointer<ResolvedProduct> product;
     TransformerPtr transformer;
     PropertyMapPtr properties;
 

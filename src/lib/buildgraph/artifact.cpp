@@ -55,13 +55,7 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-Artifact::Artifact() : topLevelProject(0)
-{
-    initialize();
-}
-
-Artifact::Artifact(TopLevelProject *project)
-    : topLevelProject(project)
+Artifact::Artifact()
 {
     initialize();
 }

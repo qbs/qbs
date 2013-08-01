@@ -160,7 +160,7 @@ void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *proj
 
 void ProjectBuildData::removeArtifact(Artifact *artifact, const Logger &logger)
 {
-    removeArtifact(artifact, artifact->topLevelProject->buildData.data(), logger);
+    removeArtifact(artifact, artifact->product->topLevelProject()->buildData.data(), logger);
 }
 
 void ProjectBuildData::updateNodesThatMustGetNewTransformer(const Logger &logger)
@@ -330,7 +330,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     //add qbsFile artifact
     Artifact *qbsFileArtifact = lookupArtifact(product, product->location.fileName());
     if (!qbsFileArtifact) {
-        qbsFileArtifact = new Artifact(product->topLevelProject());
+        qbsFileArtifact = new Artifact;
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(product->location.fileName());
         qbsFileArtifact->properties = product->properties;

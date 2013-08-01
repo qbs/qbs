@@ -259,7 +259,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         }
         outputArtifact->fileTags += ruleArtifact->fileTags;
     } else {
-        outputArtifact = new Artifact(m_product->topLevelProject());
+        outputArtifact = new Artifact;
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = ruleArtifact->fileTags;
