@@ -76,6 +76,13 @@ void Artifact::initialize()
 void Artifact::load(PersistentPool &pool)
 {
     FileResourceBase::load(pool);
+    pool.loadContainer(children);
+
+    // restore parents of the loaded children
+    for (ArtifactList::const_iterator it = children.constBegin(); it != children.constEnd(); ++it)
+        (*it)->parents.insert(this);
+
+    pool.loadContainer(fileDependencies);
     properties = pool.idLoadS<PropertyMapInternal>();
     transformer = pool.idLoadS<Transformer>();
     unsigned char c;
@@ -90,6 +97,9 @@ void Artifact::load(PersistentPool &pool)
 void Artifact::store(PersistentPool &pool) const
 {
     FileResourceBase::store(pool);
+    // Do not store parents to avoid recursion.
+    pool.storeContainer(children);
+    pool.storeContainer(fileDependencies);
     pool.store(properties);
     pool.store(transformer);
     pool.stream()

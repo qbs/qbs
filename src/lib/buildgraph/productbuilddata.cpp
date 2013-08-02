@@ -46,67 +46,13 @@ ProductBuildData::~ProductBuildData()
 
 void ProductBuildData::load(PersistentPool &pool)
 {
-    // artifacts
-    int i;
-    pool.stream() >> i;
-    artifacts.clear();
-    for (; --i >= 0;) {
-        Artifact *artifact = pool.idLoad<Artifact>();
-        artifacts.insert(artifact);
-    }
-
-    // edges
-    for (i = artifacts.count(); --i >= 0;) {
-        Artifact *artifact = pool.idLoad<Artifact>();
-        int k;
-        pool.stream() >> k;
-        artifact->parents.clear();
-        artifact->parents.reserve(k);
-        for (; --k >= 0;)
-            artifact->parents.insert(pool.idLoad<Artifact>());
-
-        pool.stream() >> k;
-        artifact->children.clear();
-        artifact->children.reserve(k);
-        for (; --k >= 0;)
-            artifact->children.insert(pool.idLoad<Artifact>());
-
-        pool.stream() >> k;
-        artifact->fileDependencies.clear();
-        artifact->fileDependencies.reserve(k);
-        for (; --k >= 0;)
-            artifact->fileDependencies.insert(pool.idLoad<FileDependency>());
-    }
-
-    // other data
+    pool.loadContainer(artifacts);
     pool.loadContainer(targetArtifacts);
 }
 
 void ProductBuildData::store(PersistentPool &pool) const
 {
-    pool.stream() << artifacts.count();
-
-    //artifacts
-    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); ++i)
-        pool.store(*i);
-
-    // edges
-    for (ArtifactList::const_iterator i = artifacts.constBegin(); i != artifacts.constEnd(); ++i) {
-        Artifact * artifact = *i;
-        pool.store(artifact);
-
-        pool.stream() << artifact->parents.count();
-        foreach (Artifact * n, artifact->parents)
-            pool.store(n);
-        pool.stream() << artifact->children.count();
-        foreach (Artifact * n, artifact->children)
-            pool.store(n);
-        pool.stream() << artifact->fileDependencies.count();
-        foreach (FileDependency *dependency, artifact->fileDependencies)
-            pool.store(dependency);
-    }
-
-    // other data
+    pool.storeContainer(artifacts);
     pool.storeContainer(targetArtifacts);
 }
 
