@@ -583,6 +583,33 @@ TopLevelProject *ResolvedProduct::topLevelProject() const
      return project->topLevelProject();
 }
 
+static QStringList findGeneratedFiles(const Artifact *base, const FileTags &tags)
+{
+    QStringList result;
+    foreach (const Artifact *parent, base->parents) {
+        if (tags.isEmpty() || parent->fileTags.matches(tags))
+            result << parent->filePath();
+    }
+
+    if (result.isEmpty() || tags.isEmpty())
+        foreach (const Artifact *parent, base->parents)
+            result << findGeneratedFiles(parent, tags);
+
+    return result;
+}
+
+QStringList ResolvedProduct::generatedFiles(const QString &baseFile, const FileTags &tags) const
+{
+    ProductBuildData *data = buildData.data();
+    if (!data)
+        return QStringList();
+
+    foreach (const Artifact *art, data->artifacts) {
+        if (art->filePath() == baseFile)
+            return findGeneratedFiles(art, tags);
+    }
+    return QStringList();
+}
 
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {

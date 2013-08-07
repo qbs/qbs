@@ -35,6 +35,7 @@
 #include <QExplicitlySharedDataPointer>
 #include <QHash>
 #include <QList>
+#include <QStringList>
 #include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
@@ -101,6 +102,9 @@ public:
     void updateTimestamps(const QList<ProductData> &products);
 
     bool operator==(const Project &other) const { return d.data() == other.d.data(); }
+
+    QStringList generatedFiles(const ProductData &product, const QString &file,
+                               const QStringList &tags = QStringList()) const;
 
     QVariantMap projectConfiguration() const;
     QHash<QString, QString> usedEnvironment() const;

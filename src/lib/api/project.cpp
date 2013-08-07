@@ -488,6 +488,21 @@ void Project::updateTimestamps(const QList<ProductData> &products)
                                          d->logger);
 }
 
+/*!
+ * \brief Finds files generated from the given file in the given product.
+ * The function returns files generated from the given file and the given product. To do so it will
+ * traverse the graph of generated files and the files generated from those files.
+ *
+ * If an empty list of tags is given, then all directly and indirectly generated files will be
+ * returned. If there are tags, then processing will stop once matching files were found.
+ */
+QStringList Project::generatedFiles(const ProductData &product, const QString &file,
+                                    const QStringList &tags) const
+{
+    const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
+    return internalProduct->generatedFiles(file, FileTags::fromStringList(tags));
+}
+
 QVariantMap Project::projectConfiguration() const
 {
     return d->internalProject->buildConfiguration();

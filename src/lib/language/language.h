@@ -319,6 +319,8 @@ public:
     const QList<RuleConstPtr> &topSortedRules() const;
     TopLevelProject *topLevelProject() const;
 
+    QStringList generatedFiles(const QString &baseFile, const FileTags &tags) const;
+
 private:
     ResolvedProduct();
 
