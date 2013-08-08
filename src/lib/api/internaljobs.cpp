@@ -168,6 +168,7 @@ InternalJobThreadWrapper::~InternalJobThreadWrapper()
     if (m_running) {
         QEventLoop loop;
         loop.connect(m_job, SIGNAL(finished(Internal::InternalJob*)), SLOT(quit()));
+        cancel();
         loop.exec();
     }
     m_thread.quit();
