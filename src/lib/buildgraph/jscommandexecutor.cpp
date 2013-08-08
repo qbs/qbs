@@ -183,4 +183,4 @@ const JavaScriptCommand *JsCommandExecutor::jsCommand() const
 } // namespace Internal
 } // namespace qbs
 
-#include <jscommandexecutor.moc>
+#include "jscommandexecutor.moc"
