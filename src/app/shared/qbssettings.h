@@ -32,12 +32,27 @@
 #include <tools/settings.h>
 
 #include <QSharedPointer>
+#include <QStringList>
+#include <QVariant>
 
 typedef QSharedPointer<qbs::Settings> SettingsPtr;
 
 inline SettingsPtr qbsSettings()
 {
     return SettingsPtr(new qbs::Settings(QLatin1String("QtProject"), QLatin1String("qbs")));
+}
+
+inline QString settingsValueToRepresentation(const QVariant &value)
+{
+    return value.toStringList().join(QLatin1String(","));
+}
+
+inline QVariant representationToSettingsValue(const QString &representation)
+{
+    const QStringList list = representation.split(QLatin1Char(','), QString::SkipEmptyParts);
+    if (list.count() > 1)
+        return list;
+    return representation;
 }
 
 #endif // Include guard

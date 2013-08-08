@@ -38,6 +38,9 @@ struct Node
     Node() : parent(0) {}
     ~Node() { qDeleteAll(children); }
 
+    QString uniqueChildName() const;
+    bool hasDirectChildWithName(const QString &name) const;
+
     QString name;
     QString value;
     Node *parent;
@@ -48,15 +51,19 @@ class SettingsModel::SettingsModelPrivate
 {
 public:
     void readSettings();
-    void addNode(qbs::Settings *settings, Node *parentNode, const QString &fullyQualifiedName);
+    void addNode(Node *parentNode, const QString &fullyQualifiedName);
+    void doSave(const Node *node, const QString &prefix);
     Node *indexToNode(const QModelIndex &index);
 
     Node rootNode;
+    SettingsPtr settings;
+    bool dirty;
 };
 
 SettingsModel::SettingsModel(QObject *parent)
     : QAbstractItemModel(parent), d(new SettingsModelPrivate)
 {
+    d->settings = qbsSettings();
     d->readSettings();
 }
 
@@ -72,11 +79,63 @@ void SettingsModel::reload()
     endResetModel();
 }
 
+void SettingsModel::save()
+{
+    if (!d->dirty)
+        return;
+    d->settings->clear();
+    d->doSave(&d->rootNode, QString());
+    d->dirty = false;
+}
+
+void SettingsModel::addNewKey(const QModelIndex &parent)
+{
+    Node *parentNode = d->indexToNode(parent);
+    if (!parentNode)
+        return;
+    Node * const newNode = new Node;
+    newNode->parent = parentNode;
+    newNode->name = parentNode->uniqueChildName();
+    beginInsertRows(parent, parentNode->children.count(), parentNode->children.count());
+    parentNode->children << newNode;
+    endInsertRows();
+    d->dirty = true;
+}
+
+void SettingsModel::removeKey(const QModelIndex &index)
+{
+    Node * const node = d->indexToNode(index);
+    if (!node || node == &d->rootNode)
+        return;
+    const int positionInParent = node->parent->children.indexOf(node);
+    beginRemoveRows(parent(index), positionInParent, positionInParent);
+    node->parent->children.removeAt(positionInParent);
+    delete node;
+    endRemoveRows();
+    d->dirty = true;
+}
+
+bool SettingsModel::hasUnsavedChanges() const
+{
+    return d->dirty;
+}
+
 Qt::ItemFlags SettingsModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemFlags();
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    const Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    if (index.column() == keyColumn())
+        return flags | Qt::ItemIsEditable;
+    if (index.column() == valueColumn()) {
+        const Node * const node = d->indexToNode(index);
+        if (!node)
+            return Qt::ItemFlags();
+
+        // Only leaf nodes have values.
+        return node->children.isEmpty() ? flags | Qt::ItemIsEditable : flags;
+    }
+    return Qt::ItemFlags();
 }
 
 QVariant SettingsModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -85,9 +144,11 @@ QVariant SettingsModel::headerData(int section, Qt::Orientation orientation, int
         return QVariant();
     if (role != Qt::DisplayRole)
         return QVariant();
-    if (section == 0)
+    if (section == keyColumn())
         return tr("Key");
-    return tr("Value");
+    if (section == valueColumn())
+        return tr("Value");
+    return QVariant();
 }
 
 int SettingsModel::columnCount(const QModelIndex &parent) const
@@ -107,13 +168,40 @@ int SettingsModel::rowCount(const QModelIndex &parent) const
 
 QVariant SettingsModel::data(const QModelIndex &index, int role) const
 {
-    if (role != Qt::DisplayRole)
+    if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
-    const Node * const node = static_cast<Node *>(index.internalPointer());
-    Q_ASSERT(node);
-    if (index.column() == 0)
+    const Node * const node = d->indexToNode(index);
+    if (!node)
+        return QVariant();
+    if (index.column() == keyColumn())
         return node->name;
-    return node->value;
+    if (index.column() == valueColumn() && node->children.isEmpty())
+        return node->value;
+    return QVariant();
+}
+
+bool SettingsModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (!index.isValid() || role != Qt::EditRole)
+        return false;
+    Node * const node = d->indexToNode(index);
+    if (!node)
+        return false;
+    const QString valueString = value.toString();
+    QString *toChange = 0;
+    if (index.column() == keyColumn() && !valueString.isEmpty()
+            && !node->parent->hasDirectChildWithName(valueString)) {
+        toChange = &node->name;
+    } else if (index.column() == valueColumn() && valueString != node->value) {
+        toChange = &node->value;
+    }
+
+    if (toChange) {
+        *toChange = valueString;
+        emit dataChanged(index, index);
+        d->dirty = true;
+    }
+    return toChange;
 }
 
 QModelIndex SettingsModel::index(int row, int column, const QModelIndex &parent) const
@@ -142,24 +230,64 @@ void SettingsModel::SettingsModelPrivate::readSettings()
 {
     qDeleteAll(rootNode.children);
     rootNode.children.clear();
-    SettingsPtr settings = qbsSettings();
     foreach (const QString &topLevelKey, settings->directChildren(QString()))
-        addNode(settings.data(), &rootNode, topLevelKey);
+        addNode(&rootNode, topLevelKey);
+    dirty = false;
 }
 
-void SettingsModel::SettingsModelPrivate::addNode(qbs::Settings *settings, Node *parentNode,
+void SettingsModel::SettingsModelPrivate::addNode(Node *parentNode,
                                                   const QString &fullyQualifiedName)
 {
     Node * const node = new Node;
     node->name = fullyQualifiedName.mid(fullyQualifiedName.lastIndexOf(QLatin1Char('.')) + 1);
-    node->value = settings->value(fullyQualifiedName).toStringList().join(QLatin1String(","));
+    node->value = settingsValueToRepresentation(settings->value(fullyQualifiedName));
     node->parent = parentNode;
     parentNode->children << node;
     foreach (const QString &childKey, settings->directChildren(fullyQualifiedName))
-        addNode(settings, node, fullyQualifiedName + QLatin1Char('.') + childKey);
+        addNode(node, fullyQualifiedName + QLatin1Char('.') + childKey);
+    dirty = true;
+}
+
+void SettingsModel::SettingsModelPrivate::doSave(const Node *node, const QString &prefix)
+{
+    if (node->children.isEmpty()) {
+        settings->setValue(prefix + node->name, representationToSettingsValue(node->value));
+        return;
+    }
+
+    const QString newPrefix = prefix + node->name + QLatin1Char('.');
+    foreach (const Node * const child, node->children)
+        doSave(child, newPrefix);
 }
 
 Node *SettingsModel::SettingsModelPrivate::indexToNode(const QModelIndex &index)
 {
     return index.isValid() ? static_cast<Node *>(index.internalPointer()) : &rootNode;
+}
+
+
+QString Node::uniqueChildName() const
+{
+    QString newName = QLatin1String("newkey");
+    bool unique;
+    do {
+        unique = true;
+        foreach (const Node *childNode, children) {
+            if (childNode->name == newName) {
+                unique = false;
+                newName += QLatin1Char('_');
+                break;
+            }
+        }
+    } while (!unique);
+    return newName;
+}
+
+bool Node::hasDirectChildWithName(const QString &name) const
+{
+    foreach (const Node * const child, children) {
+        if (child->name == name)
+            return true;
+    }
+    return false;
 }

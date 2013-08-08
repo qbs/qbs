@@ -35,13 +35,20 @@
 #include <QKeySequence>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
+#include <QModelIndex>
+#include <QPoint>
+#include <QString>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     m_model = new SettingsModel(this);
     ui->treeView->setModel(m_model);
+    ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, SIGNAL(expanded(QModelIndex)), SLOT(adjustColumns()));
+    connect(ui->treeView, SIGNAL(customContextMenuRequested(QPoint)),
+            SLOT(provideContextMenu(QPoint)));
     adjustColumns();
 
     QMenu * const fileMenu = menuBar()->addMenu(tr("&File"));
@@ -50,6 +57,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QAction * const reloadAction = new QAction(tr("&Reload"), this);
     reloadAction->setShortcut(Qt::CTRL | Qt::Key_R);
     connect(reloadAction, SIGNAL(triggered()), SLOT(reloadSettings()));
+    QAction * const saveAction = new QAction(tr("&Save"), this);
+    saveAction->setShortcut(Qt::CTRL | Qt::Key_S);
+    connect(saveAction, SIGNAL(triggered()), SLOT(saveSettings()));
     QAction * const expandAllAction = new QAction(tr("&Expand All"), this);
     expandAllAction->setShortcut(Qt::CTRL | Qt::Key_E);
     connect(expandAllAction, SIGNAL(triggered()), SLOT(expandAll()));
@@ -58,9 +68,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(collapseAllAction, SIGNAL(triggered()), SLOT(collapseAll()));
     QAction * const exitAction = new QAction(tr("E&xit"), this);
     exitAction->setShortcut(Qt::CTRL | Qt::Key_Q);
-    connect(exitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(exitAction, SIGNAL(triggered()), SLOT(exit()));
 
     fileMenu->addAction(reloadAction);
+    fileMenu->addAction(saveAction);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
 
@@ -93,5 +104,56 @@ void MainWindow::collapseAll()
 
 void MainWindow::reloadSettings()
 {
+    if (m_model->hasUnsavedChanges()) {
+        const QMessageBox::StandardButton answer = QMessageBox::question(this,
+                tr("Unsaved Changes"),
+                tr("You have unsaved changes. Do you want to discard them?"));
+        if (answer != QMessageBox::Yes)
+            return;
+    }
     m_model->reload();
+}
+
+void MainWindow::saveSettings()
+{
+    m_model->save();
+}
+
+void MainWindow::exit()
+{
+    if (m_model->hasUnsavedChanges()) {
+        const QMessageBox::StandardButton answer = QMessageBox::question(this,
+                tr("Unsaved Changes"),
+                tr("You have unsaved changes. Do you want to save them now?"));
+        if (answer == QMessageBox::Yes)
+            m_model->save();
+    }
+    qApp->quit();
+}
+
+void MainWindow::provideContextMenu(const QPoint &pos)
+{
+    const QModelIndex index = ui->treeView->indexAt(pos);
+    if (index.isValid() && index.column() != m_model->keyColumn())
+        return;
+    const QString settingsKey = m_model->data(index).toString();
+
+    QMenu contextMenu;
+    QAction addKeyAction(this);
+    QAction removeKeyAction(this);
+    if (index.isValid()) {
+        addKeyAction.setText(tr("Add new key below '%1'").arg(settingsKey));
+        removeKeyAction.setText(tr("Remove key '%1' and all its sub-keys").arg(settingsKey));
+        contextMenu.addAction(&addKeyAction);
+        contextMenu.addAction(&removeKeyAction);
+    } else {
+        addKeyAction.setText(tr("Add new top-level key"));
+        contextMenu.addAction(&addKeyAction);
+    }
+
+    const QAction *action = contextMenu.exec(ui->treeView->mapToGlobal(pos));
+    if (action == &addKeyAction)
+        m_model->addNewKey(index);
+    else if (action == &removeKeyAction)
+        m_model->removeKey(index);
 }

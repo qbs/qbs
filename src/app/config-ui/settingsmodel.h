@@ -35,13 +35,22 @@ public:
     SettingsModel(QObject *parent = 0);
     ~SettingsModel();
 
+    int keyColumn() const { return 0; }
+    int valueColumn() const { return 1; }
+    bool hasUnsavedChanges() const;
+
     void reload();
+    void save();
+
+    void addNewKey(const QModelIndex &parent);
+    void removeKey(const QModelIndex &index);
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &child) const;
 

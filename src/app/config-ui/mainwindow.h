@@ -33,6 +33,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
+class QPoint;
 QT_END_NAMESPACE
 
 class SettingsModel;
@@ -50,6 +51,9 @@ private slots:
     void expandAll();
     void collapseAll();
     void reloadSettings();
+    void saveSettings();
+    void exit();
+    void provideContextMenu(const QPoint &pos);
 
 private:
     Ui::MainWindow *ui;

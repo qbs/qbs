@@ -30,6 +30,7 @@
 
 #include "configcommand.h"
 #include "../shared/logging/consolelogger.h"
+#include "../shared/qbssettings.h"
 
 #include <tools/error.h>
 #include <tools/settings.h>
@@ -81,13 +82,7 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
 
 void ConfigCommandExecutor::setValue(const QString &key, const QString &rawInput)
 {
-    const QStringList list = rawInput.split(QLatin1Char(','), QString::SkipEmptyParts);
-    QVariant actualValue;
-    if (list.count() > 1)
-        actualValue = list;
-    else
-        actualValue = rawInput;
-    m_settings->setValue(key, actualValue);
+    m_settings->setValue(key, representationToSettingsValue(rawInput));
 }
 
 void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
@@ -109,8 +104,8 @@ void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 
 void ConfigCommandExecutor::printOneSetting(const QString &key)
 {
-    const QStringList value = m_settings->value(key).toStringList();
-    printf("%s: %s\n", qPrintable(key), qPrintable(value.join(QLatin1String(","))));
+    printf("%s: %s\n", qPrintable(key),
+           qPrintable(settingsValueToRepresentation(m_settings->value(key))));
  }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
