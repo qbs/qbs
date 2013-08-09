@@ -53,6 +53,7 @@ public:
     QStringList allKeysWithPrefix(const QString &group) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
+    void clear();
 
     QString defaultProfile() const;
     QStringList profiles() const;

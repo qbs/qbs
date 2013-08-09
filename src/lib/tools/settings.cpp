@@ -99,6 +99,11 @@ void Settings::remove(const QString &key)
     checkStatus();
 }
 
+void Settings::clear()
+{
+    m_settings->clear();
+}
+
 QString Settings::defaultProfile() const
 {
     return value(QLatin1String("defaultProfile")).toString();
