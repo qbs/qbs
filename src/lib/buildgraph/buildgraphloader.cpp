@@ -173,12 +173,10 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     // can make the list of source files in a product change without the respective file
     // having been touched. In such a case, the build data for that product will have to be set up
     // anew.
-    bool allProductsPotentiallyChanged = false;
     if (hasBuildSystemFileChanged(buildSystemFiles, buildGraphTimeStamp)
             || hasEnvironmentChanged(restoredProject)
             || hasFileExistsResultChanged(restoredProject)) {
         reResolvingNecessary = true;
-        allProductsPotentiallyChanged = true;
     }
 
    if (!reResolvingNecessary)
@@ -214,8 +212,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         }
     }
 
-    if (allProductsPotentiallyChanged)
-        checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
+    checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts);
     foreach (const ResolvedProductPtr &product, changedProducts) {
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->name);
         if (!freshProduct)
