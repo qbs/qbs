@@ -153,10 +153,10 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
     const QVariantMap &propMap = product->properties->value();
     for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
         const QVariant &value = it.value();
-        if (value.isValid()
-                && (!value.canConvert<QVariantMap>() || it.key() != QLatin1String("modules")))
+        if (!value.canConvert<QVariantMap>() || it.key() != QLatin1String("modules")) {
             engine->setObservedProperty(productScriptValue, it.key(),
                                         engine->toScriptValue(value), observer);
+        }
     }
 }
 

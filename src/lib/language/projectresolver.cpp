@@ -837,7 +837,11 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             const QScriptValue scriptValue = m_evaluator->property(item, it.key());
             if (Q_UNLIKELY(scriptValue.isError()))
                 throw ErrorInfo(scriptValue.toString(), it.value()->location());
+
+            // NOTE: Loses type information if scriptValue.isUndefined == true,
+            //       as such QScriptValues become invalid QVariants.
             QVariant v = scriptValue.toVariant();
+
             if (pd.type == PropertyDeclaration::Path)
                 v = convertPathProperty(v.toString(),
                                         m_productContext->product->sourceDirectory);
