@@ -114,8 +114,7 @@ private:
                 = propertyMap.value(QLatin1String("modules")).toMap().value(moduleName).toMap();
         for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
             const QVariant &value = it.value();
-            if (value.isValid()
-                    && (!value.canConvert<QVariantMap>() || it.key() != QLatin1String("modules")))
+            if (value.isValid() && it.key() != QLatin1String("modules"))
                 moduleScriptValue.setProperty(it.key(), engine->toScriptValue(value));
         }
         QScriptValue depfunc = engine->newFunction(&js_moduleDependencies);
@@ -153,7 +152,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
     const QVariantMap &propMap = product->properties->value();
     for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
         const QVariant &value = it.value();
-        if (!value.canConvert<QVariantMap>() || it.key() != QLatin1String("modules")) {
+        if (it.key() != QLatin1String("modules")) {
             engine->setObservedProperty(productScriptValue, it.key(),
                                         engine->toScriptValue(value), observer);
         }
