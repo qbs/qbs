@@ -1027,6 +1027,14 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
 
+    // Incremental build, input property changed via command line for second product.
+    waitForNewTimestamp();
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("project.projectDefines:blubb002"))), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QEXPECT_FAIL(0, "Command-line overrides not taking part in property tracking atm", Continue);
+    QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+
     // Incremental build, input property changed via environment for third product.
     QbsRunParameters params;
     params.environment.insert("QBS_BLACKBOX_DEFINE", "newvalue");
