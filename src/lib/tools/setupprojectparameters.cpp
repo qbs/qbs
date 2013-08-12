@@ -194,10 +194,9 @@ static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
     for (QVariantMap::const_iterator it = values.constBegin(); it != values.constEnd(); ++it) {
         QStringList nameElements = it.key().split(QLatin1Char('.'));
         if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
-            const QStringList allButLast = nameElements.mid(0, nameElements.length() - 1);
-            QStringList newElements(allButLast.join(QLatin1String("/")));
-            newElements.append(nameElements.last());
-            nameElements = newElements;
+            const QString last = nameElements.takeLast();
+            nameElements = QStringList(nameElements.join(QLatin1String("/")));
+            nameElements.append(last);
         }
         Internal::setConfigProperty(*valueTree, nameElements, it.value());
     }
