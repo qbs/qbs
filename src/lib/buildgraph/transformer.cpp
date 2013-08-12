@@ -85,6 +85,13 @@ QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const 
     return jsTagFiles;
 }
 
+ResolvedProductPtr Transformer::product() const
+{
+    if (outputs.isEmpty())
+        return ResolvedProductPtr();
+    return (*outputs.begin())->product;
+}
+
 void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue)
 {
     const QString &defaultModuleName = rule->module->name;
