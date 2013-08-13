@@ -72,14 +72,17 @@ private:
     bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
                                const FileTime &referenceTime,
                                QSet<QString> &remainingBuildSystemFiles,
-                               QList<ResolvedProductPtr> &changedProducts);
+                               QList<ResolvedProductPtr> &productsWithChangedFiles);
     bool hasBuildSystemFileChanged(const QSet<QString> &buildSystemFiles,
                                    const FileTime &referenceTime);
     void checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
             const QMap<QString, ResolvedProductPtr> &newlyResolvedProductsByName,
-            QList<ResolvedProductPtr> &changedProducts);
+            QList<ResolvedProductPtr> &changedProducts,
+            QList<ResolvedProductPtr> &productsWithChangedFiles);
+    bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
+                                const ResolvedProductPtr &newlyResolvedProduct);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData);
-    void onProductChanged(const ResolvedProductPtr &product,
+    void onProductFileListChanged(const ResolvedProductPtr &product,
                           const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
             ArtifactList *removedArtifacts = 0);

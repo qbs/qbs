@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.TextFile
 
 Project {
     property var projectDefines: ["blubb2"]
@@ -16,5 +17,25 @@ Project {
         name: "product 3"
         cpp.defines: qbs.getenv("QBS_BLACKBOX_DEFINE")
         files: "source3.cpp"
+    }
+
+    Product {
+        name: "generated text file"
+
+        Transformer {
+            Artifact { fileName: "generated.txt" }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating " + output.fileName;
+                cmd.highlight = "codegen";
+                cmd.sourceCode = function() {
+                    file = new TextFile(output.fileName, TextFile.WriteOnly);
+                    file.truncate();
+                    file.write("contents 1");
+                    file.close();
+                }
+                return cmd;
+            }
+        }
     }
 }

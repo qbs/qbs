@@ -984,12 +984,18 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(m_qbsStdout.contains("generated.txt"));
+    QFile generatedFile(buildDir + QLatin1String("/generated.txt"));
+    QVERIFY(generatedFile.open(QIODevice::ReadOnly));
+    QCOMPARE(generatedFile.readAll(), QByteArray("contents 1"));
+    generatedFile.close();
 
     // Incremental build with no changes.
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build with no changes, but updated project file timestamp.
     waitForNewTimestamp();
@@ -1000,6 +1006,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build, input property changed for first product
     waitForNewTimestamp();
@@ -1013,6 +1020,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build, input property changed via project for second product.
     waitForNewTimestamp();
@@ -1026,6 +1034,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build, input property changed via command line for second product.
     waitForNewTimestamp();
@@ -1034,6 +1043,7 @@ void TestBlackbox::propertyChanges()
     QEXPECT_FAIL(0, "Command-line overrides not taking part in property tracking atm", Continue);
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build, input property changed via environment for third product.
     QbsRunParameters params;
@@ -1042,6 +1052,24 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
+
+    // Incremental build, prepare script of a transformer changed.
+    waitForNewTimestamp();
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    contents = projectFile.readAll();
+    contents.replace("contents 1", "contents 2");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(m_qbsStdout.contains("generated.txt"));
+    QVERIFY(generatedFile.open(QIODevice::ReadOnly));
+    QCOMPARE(generatedFile.readAll(), QByteArray("contents 2"));
+    generatedFile.close();
 }
 
 void TestBlackbox::disabledProduct()

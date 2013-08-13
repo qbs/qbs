@@ -45,6 +45,7 @@
 
 #include <QDir>
 #include <QDirIterator>
+#include <QMap>
 #include <QMutexLocker>
 #include <QScriptValue>
 
@@ -269,6 +270,25 @@ void ResolvedModule::store(PersistentPool &pool) const
       << jsExtensions
       << setupBuildEnvironmentScript
       << setupRunEnvironmentScript;
+}
+
+bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
+{
+    return m1.name == m2.name
+            && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
+            && m1.jsImports == m2.jsImports
+            && m1.jsExtensions.toSet() == m2.jsExtensions.toSet()
+            && m1.setupBuildEnvironmentScript == m2.setupBuildEnvironmentScript
+            && m1.setupRunEnvironmentScript == m2.setupRunEnvironmentScript;
+}
+
+static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2)
+{
+    if (!m1 && !m2)
+        return true;
+    if ((!m1 && m2) || (m1 && !m2))
+        return false;
+    return *m1 == *m2;
 }
 
 QString Rule::toString() const
@@ -908,6 +928,64 @@ void ResolvedTransformer::store(PersistentPool &pool) const
     pool.storeContainer(outputs);
     pool.store(transform);
     pool.stream() << jsImports << jsExtensions;
+}
+
+
+template<typename T> QMap<QString, T> listToMap(const QList<T> &list)
+{
+    QMap<QString, T> map;
+    foreach (const T &elem, list)
+        map.insert(keyFromElem(elem), elem);
+    return map;
+}
+
+template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
+{
+    if (l1.count() != l2.count())
+        return false;
+    const QMap<QString, T> map1 = listToMap(l1);
+    const QMap<QString, T> map2 = listToMap(l2);
+    foreach (const QString &key, map1.keys()) {
+        const T value2 = map2.value(key);
+        if (!value2)
+            return false;
+        if (*map1.value(key) != *value2)
+            return false;
+    }
+    return true;
+}
+
+QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
+QString keyFromElem(const ResolvedTransformer::Ptr &t) { return t->transform->script; }
+
+bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
+{
+    return sa1.absoluteFilePath == sa2.absoluteFilePath
+            && sa1.fileTags == sa2.fileTags
+            && sa1.overrideFileTags == sa2.overrideFileTags
+            && sa1.properties->value() == sa2.properties->value();
+}
+
+bool sourceArtifactListsAreEqual(const QList<SourceArtifactPtr> &l1,
+                                 const QList<SourceArtifactPtr> &l2)
+{
+    return listsAreEqual(l1, l2);
+}
+
+bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
+{
+    return modulesAreEqual(t1.module, t2.module)
+            && t1.inputs.toSet() == t2.inputs.toSet()
+            && sourceArtifactListsAreEqual(t1.outputs, t2.outputs)
+            && t1.transform->script == t2.transform->script
+            && t1.jsImports == t2.jsImports
+            && t1.jsExtensions.toSet() == t2.jsExtensions.toSet();
+}
+
+bool transformerListsAreEqual(const QList<ResolvedTransformer::Ptr> &l1,
+                              const QList<ResolvedTransformer::Ptr> &l2)
+{
+    return listsAreEqual(l1, l2);
 }
 
 } // namespace Internal

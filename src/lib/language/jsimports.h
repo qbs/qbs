@@ -31,6 +31,7 @@
 #define QBS_JSIMPORTS_H
 
 #include <tools/codelocation.h>
+#include <QSet>
 #include <QStringList>
 
 namespace qbs {
@@ -52,6 +53,11 @@ public:
 };
 
 typedef QList<JsImport> JsImports;
+
+inline bool operator==(const JsImport &jsi1, const JsImport &jsi2)
+{
+    return jsi1.scopeName == jsi2.scopeName && jsi1.fileNames.toSet() == jsi2.fileNames.toSet();
+}
 
 } // namespace Internal
 } // namespace qbs

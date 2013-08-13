@@ -132,6 +132,13 @@ private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
+bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2);
+inline bool operator!=(const SourceArtifact &sa1, const SourceArtifact &sa2) {
+    return !(sa1 == sa2);
+}
+
+bool sourceArtifactListsAreEqual(const QList<SourceArtifactPtr> &l1,
+                                 const QList<SourceArtifactPtr> &l2);
 
 class SourceWildCards : public PersistentObject
 {
@@ -220,6 +227,8 @@ private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
+bool operator==(const ResolvedModule &m1, const ResolvedModule &m2);
+inline bool operator!=(const ResolvedModule &m1, const ResolvedModule &m2) { return !(m1 == m2); }
 
 /**
   * Per default each rule is a "non-multiplex rule".
@@ -279,6 +288,13 @@ private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
+
+bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2);
+inline bool operator!=(const ResolvedTransformer &t1, const ResolvedTransformer &t2) {
+    return !(t1 == t2);
+}
+bool transformerListsAreEqual(const QList<ResolvedTransformer::Ptr> &l1,
+                              const QList<ResolvedTransformer::Ptr> &l2);
 
 class TopLevelProject;
 class ScriptEngine;
