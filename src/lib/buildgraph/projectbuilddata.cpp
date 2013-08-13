@@ -46,12 +46,20 @@
 namespace qbs {
 namespace Internal {
 
-ProjectBuildData::ProjectBuildData() : isDirty(true)
+ProjectBuildData::ProjectBuildData(const ProjectBuildData *other)
+    : isDirty(true), m_doCleanupInDestructor(true)
 {
+    // This is needed for temporary duplication of build data when doing change tracking.
+    if (other) {
+        *this = *other;
+        m_doCleanupInDestructor = false;
+    }
 }
 
 ProjectBuildData::~ProjectBuildData()
 {
+    if (!m_doCleanupInDestructor)
+        return;
     qDeleteAll(fileDependencies);
 }
 
@@ -97,16 +105,6 @@ void ProjectBuildData::insertFileDependency(FileDependency *dependency)
     insertIntoLookupTable(dependency);
 }
 
-static bool commandsEqual(const TransformerConstPtr &t1, const TransformerConstPtr &t2)
-{
-    if (t1->commands.count() != t2->commands.count())
-        return false;
-    for (int i = 0; i < t1->commands.count(); ++i)
-        if (!t1->commands.at(i)->equals(t2->commands.at(i)))
-            return false;
-    return true;
-}
-
 static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
 {
     if (logger.traceEnabled()) {
@@ -144,12 +142,13 @@ static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuil
 }
 
 void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
-                                      const Logger &logger)
+                                      const Logger &logger, bool removeFromDisk)
 {
     if (logger.traceEnabled())
         logger.qbsTrace() << "[BG] remove artifact " << relativeArtifactFileName(artifact);
 
-    removeGeneratedArtifactFromDisk(artifact, logger);
+    if (removeFromDisk)
+        removeGeneratedArtifactFromDisk(artifact, logger);
     artifact->product->buildData->artifacts.remove(artifact);
     removeFromLookupTable(artifact);
     artifact->product->buildData->targetArtifacts.remove(artifact);
@@ -244,69 +243,6 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
     m_project = project;
     foreach (const ResolvedProductPtr &product, freshProducts)
         resolveProductBuildData(product);
-}
-
-/**
- * Rescues the following data from the source to target:
- *    - dependencies between artifacts,
- *    - time stamps of artifacts, if their commands have not changed.
- */
-void BuildDataResolver::rescueBuildData(const TopLevelProjectConstPtr &source,
-                                      const TopLevelProjectPtr &target, Logger logger)
-{
-    QHash<QString, ResolvedProductConstPtr> sourceProductsByName;
-    foreach (const ResolvedProductConstPtr &product, source->allProducts())
-        sourceProductsByName.insert(product->name, product);
-
-    foreach (const ResolvedProductPtr &product, target->allProducts()) {
-        ResolvedProductConstPtr sourceProduct = sourceProductsByName.value(product->name);
-        if (!sourceProduct)
-            continue;
-
-        if (!product->enabled || !sourceProduct->enabled)
-            continue;
-        QBS_CHECK(product->buildData);
-
-        if (logger.traceEnabled()) {
-            logger.qbsTrace() << QString::fromLocal8Bit("[BG] rescue data of "
-                    "product '%1'").arg(product->name);
-        }
-
-        foreach (Artifact *artifact, product->buildData->artifacts) {
-            if (logger.traceEnabled()) {
-                logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact '%1'")
-                                       .arg(artifact->fileName());
-            }
-
-            Artifact *otherArtifact = lookupArtifact(sourceProduct, artifact);
-            if (!otherArtifact || !otherArtifact->transformer) {
-                if (logger.traceEnabled())
-                    logger.qbsTrace() << QString::fromLocal8Bit("[BG]    no transformer data");
-                continue;
-            }
-
-            if (artifact->transformer
-                    && !commandsEqual(artifact->transformer, otherArtifact->transformer)) {
-                if (logger.traceEnabled())
-                    logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact invalidated");
-                continue;
-            }
-            artifact->setTimestamp(otherArtifact->timestamp());
-
-            foreach (Artifact *otherChild, otherArtifact->children) {
-                // skip transform edges
-                if (otherArtifact->transformer->inputs.contains(otherChild))
-                    continue;
-
-                foreach (FileResourceBase *childFileRes,
-                         target->buildData->lookupFiles(otherChild)) {
-                    Artifact *child = dynamic_cast<Artifact *>(childFileRes);
-                    if (child && !artifact->children.contains(child))
-                        safeConnect(artifact, child, logger);
-                }
-            }
-        }
-    }
 }
 
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)

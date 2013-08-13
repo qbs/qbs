@@ -31,6 +31,7 @@
 #include "artifact.h"
 #include "artifactlist.h"
 #include "buildgraph.h"
+#include "command.h"
 #include "cycledetector.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
@@ -195,26 +196,12 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     foreach (const ResolvedProductPtr &cp, allNewlyResolvedProducts)
         freshProductsByName.insert(cp->name, cp);
 
-    QSet<TransformerPtr> seenTransformers;
-    foreach (const ResolvedProductPtr &product, allRestoredProducts) {
-        if (!product->buildData)
-            continue;
-        foreach (Artifact *artifact, product->buildData->artifacts) {
-            if (!artifact->transformer || seenTransformers.contains(artifact->transformer))
-                continue;
-            seenTransformers.insert(artifact->transformer);
-            ResolvedProductPtr freshProduct = freshProductsByName.value(product->name);
-            if (freshProduct && checkForPropertyChanges(artifact->transformer, freshProduct)) {
-                m_logger.qbsDebug() << "Cannot re-use build graph due to property changes "
-                                       "in product '" << freshProduct->name << "'.";
-                m_result.discardLoadedProject = true;
-                return;
-            }
-        }
-    }
-
     checkAllProductsForChanges(allRestoredProducts, freshProductsByName, changedProducts,
                                productsWithChangedFiles);
+
+    QSharedPointer<ProjectBuildData> oldBuildData;
+    if (!changedProducts.isEmpty())
+        oldBuildData.reset(new ProjectBuildData(restoredProject->buildData.data()));
 
     // For products with "serious" changes such as different prepare scripts, we set up the
     // build data from scratch to be on the safe side. This can be made more fine-grained
@@ -223,7 +210,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->name);
         if (!freshProduct)
             continue;
-        onProductRemoved(product, product->topLevelProject()->buildData.data());
+        onProductRemoved(product, product->topLevelProject()->buildData.data(), false);
         allRestoredProducts.removeOne(product);
         productsWithChangedFiles.removeOne(product);
     }
@@ -273,6 +260,11 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     // Products still left in the list do not exist anymore.
     foreach (const ResolvedProductPtr &removedProduct, allRestoredProducts)
         onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.data());
+
+    foreach (const ResolvedProductConstPtr &changedProduct, changedProducts) {
+        rescueOldBuildData(changedProduct, freshProductsByName.value(changedProduct->name),
+                           oldBuildData.data());
+    }
 
     CycleDetector(m_logger).visitProject(m_result.newlyResolvedProject);
 }
@@ -383,21 +375,42 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
                                               const ResolvedProductPtr &newlyResolvedProduct)
 {
     return !transformerListsAreEqual(restoredProduct->transformers,
-                                     newlyResolvedProduct->transformers);
+                                     newlyResolvedProduct->transformers)
+            || checkForPropertyChanges(restoredProduct, newlyResolvedProduct);
     // TODO: Check for more stuff.
 }
 
+bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
+                                               const ResolvedProductPtr &newlyResolvedProduct)
+{
+    QSet<TransformerPtr> seenTransformers;
+    if (!restoredProduct->buildData)
+        return false;
+    foreach (Artifact * const artifact, restoredProduct->buildData->artifacts) {
+        if (!artifact->transformer || seenTransformers.contains(artifact->transformer))
+            continue;
+        seenTransformers.insert(artifact->transformer);
+        if (checkForPropertyChanges(artifact->transformer, newlyResolvedProduct)) {
+                m_logger.qbsDebug() << "Property changes in product '"
+                                    << newlyResolvedProduct->name << "'.";
+                return true;
+        }
+    }
+    return false;
+}
+
 void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
-                                        ProjectBuildData *projectBuildData)
+        ProjectBuildData *projectBuildData, bool removeArtifactsFromDisk)
 {
     m_logger.qbsDebug() << "[BG] product '" << product->name << "' removed.";
 
     product->project->products.removeOne(product);
 
-    // delete all removed artifacts physically from the disk
     if (product->buildData) {
-        foreach (Artifact *artifact, product->buildData->artifacts)
-            projectBuildData->removeArtifact(artifact, projectBuildData, m_logger);
+        foreach (Artifact *artifact, product->buildData->artifacts) {
+            projectBuildData->removeArtifact(artifact, projectBuildData, m_logger,
+                                             removeArtifactsFromDisk);
+        }
     }
 }
 
@@ -587,6 +600,71 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
     fileDepProduct->topLevelProject()->buildData->fileDependencies.remove(filedep);
     fileDepProduct->topLevelProject()->buildData->removeFromLookupTable(filedep);
     delete filedep;
+}
+
+static bool commandsEqual(const TransformerConstPtr &t1, const TransformerConstPtr &t2)
+{
+    if (t1->commands.count() != t2->commands.count())
+        return false;
+    for (int i = 0; i < t1->commands.count(); ++i)
+        if (!t1->commands.at(i)->equals(t2->commands.at(i)))
+            return false;
+    return true;
+}
+
+/**
+ * Rescues the following data from the restoredProduct to newlyResolvedProduct:
+ *    - dependencies between artifacts,
+ *    - time stamps of artifacts, if their commands have not changed.
+ */
+void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
+        const ResolvedProductPtr &newlyResolvedProduct,
+        const ProjectBuildData *oldBuildData)
+{
+    if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
+        return;
+
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] rescue data of "
+                                                      "product '%1'").arg(restoredProduct->name);
+    }
+
+    foreach (Artifact *artifact, newlyResolvedProduct->buildData->artifacts) {
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact '%1'")
+                                   .arg(artifact->fileName());
+        }
+
+        Artifact * const oldArtifact = lookupArtifact(restoredProduct, oldBuildData,
+                                                      artifact->dirPath(), artifact->fileName());
+        if (!oldArtifact || !oldArtifact->transformer) {
+            if (m_logger.traceEnabled())
+                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    no transformer data");
+            continue;
+        }
+
+        if (artifact->transformer
+                && !commandsEqual(artifact->transformer, oldArtifact->transformer)) {
+            if (m_logger.traceEnabled())
+                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact invalidated");
+            removeGeneratedArtifactFromDisk(oldArtifact, m_logger);
+            continue;
+        }
+        artifact->setTimestamp(oldArtifact->timestamp());
+
+        foreach (Artifact * const oldChild, oldArtifact->children) {
+            // skip transform edges
+            if (oldArtifact->transformer->inputs.contains(oldChild))
+                continue;
+
+            foreach (FileResourceBase *childFileRes,
+                     newlyResolvedProduct->topLevelProject()->buildData->lookupFiles(oldChild)) {
+                Artifact * const child = dynamic_cast<Artifact *>(childFileRes);
+                if (child && !artifact->children.contains(child))
+                    safeConnect(artifact, child, m_logger);
+            }
+        }
+    }
 }
 
 void addTargetArtifacts(const ResolvedProductPtr &product,

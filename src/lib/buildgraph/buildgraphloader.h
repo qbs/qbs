@@ -47,11 +47,8 @@ class FileTime;
 class BuildGraphLoadResult
 {
 public:
-    BuildGraphLoadResult() : discardLoadedProject(false) {}
-
     TopLevelProjectPtr newlyResolvedProject;
     TopLevelProjectPtr loadedProject;
-    bool discardLoadedProject;
 };
 
 
@@ -81,7 +78,10 @@ private:
             QList<ResolvedProductPtr> &productsWithChangedFiles);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                 const ResolvedProductPtr &newlyResolvedProduct);
-    void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData);
+    bool checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
+                                 const ResolvedProductPtr &newlyResolvedProduct);
+    void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
+                          bool removeArtifactsFromDisk = true);
     void onProductFileListChanged(const ResolvedProductPtr &product,
                           const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
@@ -89,6 +89,9 @@ private:
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
+    void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
+                            const ResolvedProductPtr &newlyResolvedProduct,
+                            const ProjectBuildData *oldBuildData);
 
     RulesEvaluationContextPtr m_evalContext;
     BuildGraphLoadResult m_result;

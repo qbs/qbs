@@ -50,7 +50,7 @@ class ScriptEngine;
 class ProjectBuildData : public PersistentObject
 {
 public:
-    ProjectBuildData();
+    ProjectBuildData(const ProjectBuildData *other = 0);
     ~ProjectBuildData();
 
     static QString deriveBuildGraphFilePath(const QString &buildDir, const QString &projectId);
@@ -65,7 +65,7 @@ public:
     void updateNodesThatMustGetNewTransformer(const Logger &logger);
     void removeArtifact(Artifact *artifact, const Logger &logger);
     void removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
-                        const Logger &logger);
+                        const Logger &logger, bool removeFromDisk = true);
 
     QSet<FileDependency *> fileDependencies;
     RulesEvaluationContextPtr evaluationContext;
@@ -80,6 +80,7 @@ private:
     typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
     typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
     ArtifactLookupTable m_artifactLookupTable;
+    bool m_doCleanupInDestructor;
 };
 
 
@@ -91,9 +92,6 @@ public:
                           const RulesEvaluationContextPtr &evalContext);
     void resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,
             const QList<ResolvedProductPtr> &freshProducts);
-
-    static void rescueBuildData(const TopLevelProjectConstPtr &source,
-                                const TopLevelProjectPtr &target, Logger logger);
 
 private:
     void resolveProductBuildData(const ResolvedProductPtr &product);

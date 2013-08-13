@@ -245,14 +245,13 @@ void InternalSetupProjectJob::execute()
     case SetupProjectParameters::RestoreAndTrackChanges: {
         const BuildGraphLoadResult loadResult = restoreProject(evalContext);
         m_project = loadResult.newlyResolvedProject;
-        if (!m_project && !loadResult.discardLoadedProject)
-            m_project = loadResult.loadedProject;
         if (!m_project)
+            m_project = loadResult.loadedProject;
+        if (!m_project) {
             resolveProjectFromScratch(evalContext->engine());
-        if (!m_project->buildData) {
             resolveBuildDataFromScratch(evalContext);
-            if (loadResult.loadedProject)
-                BuildDataResolver::rescueBuildData(loadResult.loadedProject, m_project, logger());
+        } else {
+            QBS_CHECK(m_project->buildData);
         }
         setupPlatformEnvironment();
         break;

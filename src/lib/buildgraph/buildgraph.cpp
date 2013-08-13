@@ -315,11 +315,11 @@ QString relativeArtifactFileName(const Artifact *artifact)
     return str;
 }
 
-Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
-                         const QString &fileName)
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
+        const ProjectBuildData *projectBuildData, const QString &dirPath, const QString &fileName)
 {
     const QList<FileResourceBase *> lookupResults
-            = product->topLevelProject()->buildData->lookupFiles(dirPath, fileName);
+            = projectBuildData->lookupFiles(dirPath, fileName);
     for (QList<FileResourceBase *>::const_iterator it = lookupResults.constBegin();
             it != lookupResults.constEnd(); ++it) {
         Artifact *artifact = dynamic_cast<Artifact *>(*it);
@@ -327,6 +327,12 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &
             return artifact;
     }
     return 0;
+}
+
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
+                         const QString &fileName)
+{
+    return lookupArtifact(product, product->topLevelProject()->buildData.data(), dirPath, fileName);
 }
 
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath)

@@ -43,6 +43,10 @@ class Logger;
 class ScriptEngine;
 class ScriptPropertyObserver;
 
+
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
+                         const ProjectBuildData *projectBuildData,
+                         const QString &dirPath, const QString &fileName);
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
                          const QString &fileName);
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath);
