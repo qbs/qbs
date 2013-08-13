@@ -33,7 +33,7 @@ Module {
     property bool frameworkBuild
     property bool staticBuild
     property stringList buildVariant
-    property string generatedFilesDir: 'GeneratedFiles/' + product.name // ### TODO: changing this property does not change the path in the rule ATM.
+    property string generatedFilesDir: "GeneratedFiles/" + product.name
     property string qmFilesDir: product.destinationDirectory
 
     // private properties
@@ -165,7 +165,8 @@ Module {
         inputs: ["moc_cpp"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/' + input.completeBaseName + '.moc'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+                      + '/' + input.completeBaseName + ".moc"
             fileTags: ["hpp"]
         }
 
@@ -182,7 +183,8 @@ Module {
         inputs: ["moc_hpp"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/moc_' + input.completeBaseName + '.cpp'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+                      + "/moc_" + input.completeBaseName + ".cpp"
             fileTags: [ "cpp" ]
         }
 
@@ -199,7 +201,8 @@ Module {
         inputs: ["moc_hpp_inc"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/moc_' + input.completeBaseName + '.cpp'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+                      + "/moc_" + input.completeBaseName + ".cpp"
             fileTags: [ "hpp" ]
         }
 
@@ -216,8 +219,8 @@ Module {
         inputs: ["qrc"]
 
         Artifact {
-//  ### TODO we want to access the module's property "generatedFilesDir" here. But without evaluating all available properties a priori.
-            fileName: 'GeneratedFiles/' + product.name + '/qrc_' + input.completeBaseName + '.cpp'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+                      + "/qrc_" + input.completeBaseName + ".cpp";
             fileTags: ["cpp"]
         }
         prepare: {
@@ -255,12 +258,12 @@ Module {
         explicitlyDependsOn: ["qdoc", "qdocconf"]
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/html'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html"
             fileTags: ["qdoc-html"]
         }
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/html/'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html/"
                       + ModUtils.moduleProperty(product, "qdocQhpFileName")
             fileTags: ["qhp"]
         }
@@ -287,7 +290,8 @@ Module {
         inputs: "qhp"
 
         Artifact {
-            fileName: 'GeneratedFiles/' + product.name + '/' + input.completeBaseName + '.qch'
+            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+                      + '/' + input.completeBaseName + ".qch"
             fileTags: ["qch"]
         }
 
