@@ -599,7 +599,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
 void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    QSet<FileTaggerConstPtr> &fileTaggers = m_productContext
+    QList<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
     FileTaggerPtr tagger = FileTagger::create(
             QRegExp(m_evaluator->stringValue(item, QLatin1String("pattern"))),

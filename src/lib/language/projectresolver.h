@@ -64,7 +64,7 @@ private:
     struct ProjectContext
     {
         ResolvedProjectPtr project;
-        QSet<FileTaggerConstPtr> fileTaggers;
+        QList<FileTaggerConstPtr> fileTaggers;
         ModuleLoaderResult *loadResult;
         QList<RulePtr> rules;
         ResolvedModulePtr dummyModule;

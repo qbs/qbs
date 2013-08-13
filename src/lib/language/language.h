@@ -299,7 +299,7 @@ public:
     PropertyMapPtr properties;
     QSet<RulePtr> rules;
     QSet<ResolvedProductPtr> dependencies;
-    QSet<FileTaggerConstPtr> fileTaggers;
+    QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedTransformer::Ptr> transformers;
     QList<GroupPtr> groups;
