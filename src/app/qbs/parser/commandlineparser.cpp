@@ -438,9 +438,8 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
     if (!projectFileInfo.isDir())
         throw ErrorInfo(Tr::tr("Project file '%1' has invalid type.").arg(projectFilePath));
 
-    // TODO: Remove check for '.qbp' in 1.1
     const QStringList namePatterns = QStringList()
-            << QLatin1String("*.qbp") << QLatin1String("*.qbs");
+            << QLatin1String("*.qbs");
 
     const QStringList &actualFileNames
             = QDir(projectFilePath).entryList(namePatterns, QDir::Files);
@@ -462,11 +461,6 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 
     projectFilePath = QDir::current().filePath(projectFilePath);
     projectFilePath = QDir::cleanPath(projectFilePath);
-
-    // TODO: Remove in 1.1
-    if (projectFilePath.endsWith(QLatin1String(".qbp")))
-        qbsInfo() << Tr::tr("Your main project file has the old suffix '.qbp'. This does not "
-                        "hurt, but the convention is now to use '.qbs'.");
 
     qbsDebug() << "Using project file '" << QDir::toNativeSeparators(projectFilePath) << "'.";
 }

@@ -46,7 +46,6 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
     QList<QRegExp> ignoreRegularExpressionList;
     ignoreRegularExpressionList.append(QRegExp(projectRootPath + "/build.*"));
     ignoreRegularExpressionList.append(QRegExp("*.qbs", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.qbp", Qt::CaseSensitive, QRegExp::Wildcard));
     ignoreRegularExpressionList.append(QRegExp("*.pro", Qt::CaseSensitive, QRegExp::Wildcard));
     ignoreRegularExpressionList.append(QRegExp("*Makefile", Qt::CaseSensitive, QRegExp::Wildcard));
     ignoreRegularExpressionList.append(QRegExp("*.so*", Qt::CaseSensitive, QRegExp::Wildcard));
