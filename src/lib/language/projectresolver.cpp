@@ -601,8 +601,14 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     checkCancelation();
     QSet<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
-    fileTaggers += FileTagger::create(QRegExp(m_evaluator->stringValue(item,"pattern")),
+    FileTaggerPtr tagger = FileTagger::create(
+            QRegExp(m_evaluator->stringValue(item, QLatin1String("pattern"))),
             m_evaluator->fileTagsValue(item, "fileTags"));
+    if (tagger->artifactExpression().isEmpty())
+        throw ErrorInfo(Tr::tr("FileTagger.pattern must not be empty."), item->location());
+    if (tagger->fileTags().isEmpty())
+        throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
+    fileTaggers += tagger;
 }
 
 void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectContext)
