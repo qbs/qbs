@@ -259,7 +259,7 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class ResolvedTransformer
+class ResolvedTransformer : public PersistentObject
 {
 public:
     typedef QSharedPointer<ResolvedTransformer> Ptr;
@@ -275,6 +275,9 @@ public:
 
 private:
     ResolvedTransformer() {}
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 class TopLevelProject;

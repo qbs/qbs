@@ -97,6 +97,7 @@ void SourceArtifact::load(PersistentPool &pool)
 {
     pool.stream() >> absoluteFilePath;
     pool.stream() >> fileTags;
+    pool.stream() >> overrideFileTags;
     properties = pool.idLoadS<PropertyMapInternal>();
 }
 
@@ -104,6 +105,7 @@ void SourceArtifact::store(PersistentPool &pool) const
 {
     pool.stream() << absoluteFilePath;
     pool.stream() << fileTags;
+    pool.stream() << overrideFileTags;
     pool.store(properties);
 }
 
@@ -375,6 +377,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.loadContainerS(dependencies);
     pool.loadContainerS(fileTaggers);
     pool.loadContainerS(modules);
+    pool.loadContainerS(transformers);
     pool.loadContainerS(groups);
     pool.loadContainerS(artifactProperties);
     buildData.reset(pool.idLoad<ProductBuildData>());
@@ -397,6 +400,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeContainer(dependencies);
     pool.storeContainer(fileTaggers);
     pool.storeContainer(modules);
+    pool.storeContainer(transformers);
     pool.storeContainer(groups);
     pool.storeContainer(artifactProperties);
     pool.store(buildData.data());
@@ -886,6 +890,24 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
         else
             result += QDir::cleanPath(filePath);
     }
+}
+
+void ResolvedTransformer::load(PersistentPool &pool)
+{
+    module = pool.idLoadS<ResolvedModule>();
+    pool.stream() >> inputs;
+    pool.loadContainerS(outputs);
+    transform = pool.idLoadS<PrepareScript>();
+    pool.stream() >> jsImports >> jsExtensions;
+}
+
+void ResolvedTransformer::store(PersistentPool &pool) const
+{
+    pool.store(module);
+    pool.stream() << inputs;
+    pool.storeContainer(outputs);
+    pool.store(transform);
+    pool.stream() << jsImports << jsExtensions;
 }
 
 } // namespace Internal
