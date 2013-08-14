@@ -44,7 +44,6 @@
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/progressobserver.h>
-#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
@@ -150,7 +149,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     }
 
     const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
-    const QStringList refs = toStringList(m_evaluator->property(item, "references"));
+    const QStringList refs = m_evaluator->stringListValue(item, QLatin1String("references"));
     foreach (const QString &filePath, refs) {
         const QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
         if (referencedFilePaths.contains(absReferencePath))
@@ -461,7 +460,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
     }
 
     QString superModuleName;
-    QStringList submodules = toStringList(m_evaluator->property(dependsItem, "submodules"));
+    QStringList submodules = m_evaluator->stringListValue(dependsItem, QLatin1String("submodules"));
     if (nameParts.count() == 2) {
         if (Q_UNLIKELY(!submodules.isEmpty()))
             throw ErrorInfo(Tr::tr("Depends.submodules cannot be used if name contains a dot."),
@@ -885,9 +884,10 @@ bool ModuleLoader::checkItemCondition(Item *item)
 QStringList ModuleLoader::readExtraSearchPaths(Item *item)
 {
     QStringList result;
-    QScriptValue scriptValue = m_evaluator->property(item, QLatin1String("moduleSearchPaths"));
+    const QStringList paths = m_evaluator->stringListValue(item,
+                                                           QLatin1String("moduleSearchPaths"));
     const ValueConstPtr prop = item->property(QLatin1String("moduleSearchPaths"));
-    foreach (const QString &path, toStringList(scriptValue))
+    foreach (const QString &path, paths)
         result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
     return result;
 }
