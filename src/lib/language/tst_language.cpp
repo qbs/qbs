@@ -322,6 +322,8 @@ void TestLanguage::erroneousFiles_data()
             << "Cycle detected while referencing file 'references_cycle.qbs'.";
     QTest::newRow("subproject_cycle")
             << "Cycle detected while loading subproject file 'subproject_cycle.qbs'.";
+    QTest::newRow("invalid_stringlist_element")
+            << "Expected array element of type String at index 1.";
 }
 
 void TestLanguage::erroneousFiles()

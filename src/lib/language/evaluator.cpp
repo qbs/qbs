@@ -37,7 +37,6 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
-#include <tools/scripttools.h>
 #include <QDebug>
 #include <QScriptEngine>
 
@@ -120,11 +119,36 @@ QString Evaluator::stringValue(const Item *item, const QString &name,
     return v.toString();
 }
 
+static QStringList toStringList(const QScriptValue &scriptValue,
+        const Item *item, const QString &propertyName)
+{
+    if (scriptValue.isString()) {
+        return QStringList(scriptValue.toString());
+    } else if (scriptValue.isArray()) {
+        QStringList lst;
+        int i = 0;
+        forever {
+            QScriptValue elem = scriptValue.property(i++);
+            if (!elem.isValid())
+                break;
+            if (elem.isArray() || elem.isObject()) {
+                // Let's assume all other JS types are convertible to string.
+                throw ErrorInfo(Tr::tr("Expected array element of type String at index %1.")
+                                .arg(i - 1),
+                                item->property(propertyName)->location());
+            }
+            lst.append(elem.toString());
+        }
+        return lst;
+    }
+    return QStringList();
+}
+
 QStringList Evaluator::stringListValue(const Item *item, const QString &name)
 {
     QScriptValue v = property(item, name);
     handleEvaluationError(item, name, v);
-    return toStringList(v);
+    return toStringList(v, item, name);
 }
 
 QScriptValue Evaluator::scriptValue(const Item *item)

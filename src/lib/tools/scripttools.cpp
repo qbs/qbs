@@ -58,26 +58,6 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
-QStringList toStringList(const QScriptValue &scriptValue)
-{
-    if (scriptValue.isString()) {
-        return QStringList(scriptValue.toString());
-    } else if (scriptValue.isArray()) {
-        QStringList lst;
-        int i = 0;
-        forever {
-            QScriptValue item = scriptValue.property(i++);
-            if (!item.isValid())
-                break;
-            if (!item.isString())
-                continue;
-            lst.append(item.toString());
-        }
-        return lst;
-    }
-    return QStringList();
-}
-
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value)
 {
     if (name.length() == 1) {
