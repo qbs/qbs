@@ -200,8 +200,10 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
                                productsWithChangedFiles);
 
     QSharedPointer<ProjectBuildData> oldBuildData;
-    if (!changedProducts.isEmpty())
-        oldBuildData.reset(new ProjectBuildData(restoredProject->buildData.data()));
+    if (!changedProducts.isEmpty()) {
+        oldBuildData = QSharedPointer<ProjectBuildData>(
+                    new ProjectBuildData(restoredProject->buildData.data()));
+    }
 
     // For products with "serious" changes such as different prepare scripts, we set up the
     // build data from scratch to be on the safe side. This can be made more fine-grained
