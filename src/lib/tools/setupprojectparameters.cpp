@@ -62,6 +62,7 @@ public:
     QVariantMap buildConfiguration;
     mutable QVariantMap overriddenValuesTree;
     mutable QVariantMap buildConfigurationTree;
+    mutable QVariantMap finalBuildConfigtree;
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
     bool logElapsedTime;
@@ -183,6 +184,7 @@ void SetupProjectParameters::setOverriddenValues(const QVariantMap &values)
     }
     d->overriddenValues = values;
     d->overriddenValuesTree.clear();
+    d->finalBuildConfigtree.clear();
 }
 
 static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
@@ -231,6 +233,7 @@ void SetupProjectParameters::setBuildConfiguration(const QVariantMap &buildConfi
     }
     d->buildConfiguration = buildConfiguration;
     d->buildConfigurationTree.clear();
+    d->finalBuildConfigtree.clear();
 }
 
 /*!
@@ -306,6 +309,22 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
         d->buildConfiguration = expandedConfig;
     }
     return err;
+}
+
+/*!
+ * \brief Returns the build configuration in tree form, with overridden values taken into account.
+ */
+QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
+{
+    if (d->finalBuildConfigtree.isEmpty()) {
+        QVariantMap finalMap = d->buildConfiguration;
+        for (QVariantMap::ConstIterator it = d->overriddenValues.constBegin();
+             it != d->overriddenValues.constEnd(); ++it) {
+            finalMap.insert(it.key(), it.value());
+        }
+        provideValuesTree(finalMap, &d->finalBuildConfigtree);
+    }
+    return d->finalBuildConfigtree;
 }
 
 /*!

@@ -55,18 +55,19 @@ BuildGraphLoader::BuildGraphLoader(const QProcessEnvironment &env, const Logger 
 {
 }
 
-static bool isConfigCompatible(const QVariantMap &userCfg, const QVariantMap &projectCfg)
+static bool isConfigCompatible(const QVariantMap &cfg1, const QVariantMap &cfg2)
 {
-    QVariantMap::const_iterator it = userCfg.begin();
-    for (; it != userCfg.end(); ++it) {
+    if (cfg1.count() != cfg2.count())
+        return false;
+    QVariantMap::const_iterator it = cfg1.begin();
+    for (; it != cfg1.end(); ++it) {
         if (it.value().type() == QVariant::Map) {
-            if (!isConfigCompatible(it.value().toMap(), projectCfg.value(it.key()).toMap()))
+            if (!isConfigCompatible(it.value().toMap(), cfg2.value(it.key()).toMap()))
                 return false;
         } else {
-            QVariant value = projectCfg.value(it.key());
-            if (!value.isNull() && value != it.value()) {
+            QVariant value = cfg2.value(it.key());
+            if (value != it.value())
                 return false;
-            }
         }
     }
     return true;
@@ -111,15 +112,6 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
         return m_result;
     }
 
-    if (!isConfigCompatible(parameters.buildConfigurationTree(), pool.headData().projectConfig)) {
-        const QString message = Tr::tr("Cannot use stored build graph at '%1':"
-                "Incompatible project configuration.").arg(buildGraphFilePath);
-        if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
-            throw ErrorInfo(message);
-        m_logger.qbsInfo() << message;
-        return m_result;
-    }
-
     const TopLevelProjectPtr project = TopLevelProject::create();
 
     // TODO: Store some meta data that will enable us to show actual progress (e.g. number of products).
@@ -156,20 +148,26 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
         return m_result;
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
-    trackProjectChanges(parameters, buildGraphFilePath, project);
+    trackProjectChanges(parameters, buildGraphFilePath, project, pool.headData().projectConfig);
     return m_result;
 }
 
 void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &parameters,
-        const QString &buildGraphFilePath, const TopLevelProjectPtr &restoredProject)
+        const QString &buildGraphFilePath, const TopLevelProjectPtr &restoredProject,
+        const QVariantMap &oldProjectConfig)
 {
     const FileTime buildGraphTimeStamp = FileInfo(buildGraphFilePath).lastModified();
     QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
     QList<ResolvedProductPtr> productsWithChangedFiles;
-    bool reResolvingNecessary = hasProductFileChanged(allRestoredProducts, buildGraphTimeStamp,
-                                                      buildSystemFiles, productsWithChangedFiles);
+    bool reResolvingNecessary = false;
+    if (!isConfigCompatible(parameters.finalBuildConfigurationTree(), oldProjectConfig))
+        reResolvingNecessary = true;
+    if (hasProductFileChanged(allRestoredProducts, buildGraphTimeStamp,
+                              buildSystemFiles, productsWithChangedFiles)) {
+        reResolvingNecessary = true;
+    }
 
     // "External" changes, e.g. in the environment or in a JavaScript file,
     // can make the list of source files in a product change without the respective file

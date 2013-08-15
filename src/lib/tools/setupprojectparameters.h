@@ -74,6 +74,8 @@ public:
     QVariantMap buildConfigurationTree() const;
     ErrorInfo expandBuildConfiguration(Settings *settings);
 
+    QVariantMap finalBuildConfigurationTree() const;
+
     bool ignoreDifferentProjectFilePath() const;
     void setIgnoreDifferentProjectFilePath(bool doIgnore);
 

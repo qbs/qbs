@@ -4,7 +4,7 @@ import qbs.TextFile
 Project {
     property var projectDefines: ["blubb2"]
     CppApplication {
-        name: "product 1"
+        name: qbs.enableDebugCode ? "product 1.debug" : "product 1.release"
         cpp.defines: ["blubb1"]
         files: "source1.cpp"
     }

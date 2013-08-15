@@ -34,6 +34,8 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/setupprojectparameters.h>
+
 #include <QFileInfo>
 #include <QTemporaryFile>
 #include <QTest>
@@ -142,6 +144,34 @@ void TestTools::testProfiles()
         exceptionCaught = true;
     }
     QVERIFY(exceptionCaught);
+}
+
+void TestTools::testBuildConfigMerging()
+{
+    QVariantMap buildConfigMap;
+    buildConfigMap.insert(QLatin1String("topLevelKey"), QLatin1String("topLevelValue"));
+    buildConfigMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
+    buildConfigMap.insert(QLatin1String("qbs.architecture"),
+                          QLatin1String("Jean-Claude Pillemann"));
+    buildConfigMap.insert(QLatin1String("cpp.treatWarningsAsErrors"), true);
+    QVariantMap overrideMap;
+    overrideMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("clang"));
+    SetupProjectParameters params;
+    params.setBuildConfiguration(buildConfigMap);
+    params.setOverriddenValues(overrideMap);
+    const QVariantMap finalMap = params.finalBuildConfigurationTree();
+    QCOMPARE(finalMap.count(), 3);
+    QCOMPARE(finalMap.value(QLatin1String("topLevelKey")).toString(),
+             QString::fromLatin1("topLevelValue"));
+    const QVariantMap finalQbsMap = finalMap.value(QLatin1String("qbs")).toMap();
+    QCOMPARE(finalQbsMap.count(), 2);
+    QCOMPARE(finalQbsMap.value(QLatin1String("toolchain")).toString(),
+             QString::fromLatin1("clang"));
+    QCOMPARE(finalQbsMap.value(QLatin1String("architecture")).toString(),
+             QString::fromLatin1("Jean-Claude Pillemann"));
+    const QVariantMap finalCppMap = finalMap.value(QLatin1String("cpp")).toMap();
+    QCOMPARE(finalCppMap.count(), 1);
+    QCOMPARE(finalCppMap.value(QLatin1String("treatWarningsAsErrors")).toBool(), true);
 }
 
 } // namespace Internal

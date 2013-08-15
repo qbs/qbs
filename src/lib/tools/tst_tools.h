@@ -46,6 +46,7 @@ private slots:
     void testFileInfo();
     void fileCaseCheck();
     void testProfiles();
+    void testBuildConfigMerging();
 
 private:
     Settings * const m_settings;
