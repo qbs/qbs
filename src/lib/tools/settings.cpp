@@ -48,7 +48,6 @@ static QSettings::Format format()
 Settings::Settings(const QString &organization, const QString &application)
     : m_settings(new QSettings(format(), QSettings::UserScope, organization, application))
 {
-    m_settings->setFallbacksEnabled(false);
 }
 
 Settings::~Settings()
