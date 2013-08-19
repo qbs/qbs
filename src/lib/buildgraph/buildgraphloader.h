@@ -35,6 +35,7 @@
 #include <logging/logger.h>
 
 #include <QProcessEnvironment>
+#include <QVariantMap>
 
 namespace qbs {
 class SetupProjectParameters;
