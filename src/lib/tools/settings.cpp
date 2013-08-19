@@ -45,9 +45,41 @@ static QSettings::Format format()
     return HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat;
 }
 
+static void migrateValue(QSettings *settings, const QString &key)
+{
+    const QVariant v = settings->value(key);
+    if (!v.isValid())
+        return;
+    settings->setValue(QLatin1String("org/qt-project/qbs/") + key, v);
+    settings->remove(key);
+}
+
+static void migrateGroup(QSettings *settings, const QString &group)
+{
+    QStringList fullKeys;
+    settings->beginGroup(group);
+    foreach (const QString &key, settings->allKeys())
+        fullKeys += group + QLatin1Char('/') + key;
+    settings->endGroup();
+    foreach (const QString &key, fullKeys)
+        migrateValue(settings, key);
+}
+
 Settings::Settings(const QString &organization, const QString &application)
     : m_settings(new QSettings(format(), QSettings::UserScope, organization, application))
 {
+    if (HostOsInfo::isOsxHost()) {
+        // Migrate settings to internal group.
+        // ### remove in qbs 1.3
+        if (!m_settings->childGroups().contains(QLatin1String("org/qt-project/qbs"))) {
+            migrateValue(m_settings, QLatin1String("defaultProfile"));
+            migrateGroup(m_settings, QLatin1String("profiles"));
+            migrateGroup(m_settings, QLatin1String("preferences"));
+        }
+        // Actual qbs settings are stored within a group, because QSettings sees extra system global
+        // settings on OS X we're not interested in.
+        m_settings->beginGroup(QLatin1String("org/qt-project/qbs"));
+    }
 }
 
 Settings::~Settings()
