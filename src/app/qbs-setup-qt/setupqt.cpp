@@ -178,10 +178,13 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     const Version qtVersion = extractVersion(qtEnvironment.qtVersion);
 
     QByteArray mkspecsBasePath;
-    if (qtVersion.majorVersion >= 5)
+    QByteArray mkspecsBaseSrcPath;
+    if (qtVersion.majorVersion >= 5) {
         mkspecsBasePath = queryOutput.value("QT_HOST_DATA") + "/mkspecs";
-    else
+        mkspecsBaseSrcPath = queryOutput.value("QT_HOST_DATA/src") + "/mkspecs";
+    } else {
         mkspecsBasePath = queryOutput.value("QT_INSTALL_DATA") + "/mkspecs";
+    }
 
     if (!QFile::exists(mkspecsBasePath))
         throw ErrorInfo(tr("Cannot extract the mkspecs directory."));
@@ -199,6 +202,8 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     if (qtVersion.majorVersion >= 5) {
         const QString mkspecName = queryOutput.value("QMAKE_XSPEC");
         qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
+        if (!mkspecsBaseSrcPath.isEmpty() && !QFile::exists(qtEnvironment.mkspecPath))
+            qtEnvironment.mkspecPath = mkspecsBaseSrcPath + QLatin1Char('/') + mkspecName;
     } else {
         if (HostOsInfo::isWindowsHost()) {
             const QByteArray fileContent = readFileContent(mkspecsBasePath + "/default/qmake.conf");
