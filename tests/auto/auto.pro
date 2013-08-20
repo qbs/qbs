@@ -10,4 +10,5 @@ all_tests {
 
 SUBDIRS += \
     cmdlineparser \
-    blackbox
+    blackbox \
+    api

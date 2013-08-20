@@ -36,6 +36,7 @@
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/productbuilddata.h>
+#include <buildgraph/productinstaller.h>
 #include <buildgraph/timestampsupdater.h>
 #include <language/language.h>
 #include <logging/logger.h>
@@ -486,6 +487,66 @@ InstallJob *Project::installOneProduct(const ProductData &product, const Install
                                        QObject *jobOwner) const
 {
     return installSomeProducts(QList<ProductData>() << product, options, jobOwner);
+}
+
+/*!
+ * \brief All files in the product for which "qbs.install" is true.
+ * This includes source files as well as generated files.
+ */
+QList<InstallableFile> Project::installableFilesForProduct(const ProductData &product,
+                                                           const InstallOptions &options) const
+{
+    QList<InstallableFile> installableFiles;
+    const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
+    if (!internalProduct)
+        return installableFiles;
+    InstallOptions mutableOptions = options;
+    foreach (const GroupConstPtr &group, internalProduct->groups) {
+        foreach (const SourceArtifactConstPtr &artifact, group->allFiles()) {
+            InstallableFile f;
+            f.d->targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                    artifact->absoluteFilePath, artifact->properties, mutableOptions);
+            if (f.d->targetFilePath.isEmpty())
+                continue;
+            f.d->sourceFilePath = artifact->absoluteFilePath;
+            f.d->fileTags = artifact->fileTags.toStringList();
+            f.d->isValid = true;
+            installableFiles << f;
+        }
+    }
+    if (internalProduct->enabled) {
+        QBS_CHECK(internalProduct->buildData);
+        foreach (const Artifact * const artifact, internalProduct->buildData->artifacts) {
+            if (artifact->artifactType == Artifact::SourceFile)
+                continue;
+            InstallableFile f;
+            f.d->targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                    artifact->filePath(), artifact->properties, mutableOptions);
+            if (f.d->targetFilePath.isEmpty())
+                continue;
+            f.d->sourceFilePath = artifact->filePath();
+            f.d->fileTags = artifact->fileTags.toStringList();
+            f.d->isValid = true;
+            installableFiles << f;
+        }
+    }
+    qSort(installableFiles);
+    return installableFiles;
+}
+
+/*!
+ * \brief All files in the project for which "qbs.install" is true.
+ * This includes all sub-projects.
+ * \sa Project::installableFilesForProduct()
+ */
+QList<InstallableFile> Project::installableFilesForProject(const ProjectData &project,
+                                                           const InstallOptions &options) const
+{
+    QList<InstallableFile> installableFiles;
+    foreach (const ProductData &p, project.allProducts())
+        installableFiles << installableFilesForProduct(p, options);
+    qSort(installableFiles);
+    return installableFiles;
 }
 
 /*!

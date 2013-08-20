@@ -245,6 +245,88 @@ bool operator<(const TargetArtifact &ta1, const TargetArtifact &ta2)
 
 
 /*!
+ * \class InstallableFile
+ * \brief Describes a file that is marked for installation.
+ */
+
+InstallableFile::InstallableFile() : d(new Internal::InstallableFilePrivate)
+{
+}
+
+InstallableFile::InstallableFile(const InstallableFile &other) : d(other.d)
+{
+}
+
+InstallableFile &InstallableFile::operator=(const InstallableFile &other)
+{
+    d = other.d;
+    return *this;
+}
+
+InstallableFile::~InstallableFile()
+{
+}
+
+/*!
+ * \brief Returns true if and only if this object holds data that was initialized by Qbs.
+ */
+bool InstallableFile::isValid() const
+{
+    return d->isValid;
+}
+
+/*!
+ * \brief The location of the file from which it will be copied to \c targetFilePath()
+ *        on installation.
+ */
+QString InstallableFile::sourceFilePath() const
+{
+    return d->sourceFilePath;
+}
+
+/*!
+ * \brief The file path that this file will be copied to on installation.
+ */
+QString InstallableFile::targetFilePath() const
+{
+    return d->targetFilePath;
+}
+
+/*!
+ * \brief The file's tags.
+ */
+QStringList InstallableFile::fileTags() const
+{
+    return d->fileTags;
+}
+
+/*!
+ * \brief True if and only if the file is an executable.
+ */
+bool InstallableFile::isExecutable() const
+{
+    return d->fileTags.contains(QLatin1String("application"))
+            || d->fileTags.contains(QLatin1String("applicationbundle"));
+}
+
+bool operator==(const InstallableFile &file1, const InstallableFile &file2)
+{
+    return file1.sourceFilePath() == file2.sourceFilePath()
+            && file1.targetFilePath() == file2.targetFilePath()
+            && file1.fileTags() == file2.fileTags();
+}
+
+bool operator!=(const InstallableFile &file1, const InstallableFile &file2)
+{
+    return !(file1 == file2);
+}
+
+bool operator<(const InstallableFile &file1, const InstallableFile &file2)
+{
+    return file1.sourceFilePath() < file2.sourceFilePath();
+}
+
+/*!
  * \class ProductData
  * \brief The \c ProductData class corresponds to the Product item in a qbs source file.
  */

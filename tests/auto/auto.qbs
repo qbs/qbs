@@ -3,6 +3,7 @@ import qbs
 Project {
     name: "Autotests"
     references: [
+        "api/api.qbs",
         "blackbox/blackbox.qbs",
         "cmdlineparser/cmdlineparser.qbs"
     ].concat(unitTests)

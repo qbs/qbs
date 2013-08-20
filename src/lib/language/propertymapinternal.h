@@ -44,7 +44,7 @@ public:
     PropertyMapPtr clone() const { return PropertyMapPtr(new PropertyMapInternal(*this)); }
 
     const QVariantMap &value() const { return m_value; }
-    QVariant qbsPropertyValue(const QString &key); // Convenience function.
+    QVariant qbsPropertyValue(const QString &key) const; // Convenience function.
     void setValue(const QVariantMap &value);
     QString toJSLiteral() const;
 

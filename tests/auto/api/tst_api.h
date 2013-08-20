@@ -26,46 +26,32 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PRODUCT_INSTALLER_H
-#define QBS_PRODUCT_INSTALLER_H
 
-#include "forward_decls.h"
+#ifndef QBS_TST_API_H
+#define QBS_TST_API_H
 
-#include <language/forward_decls.h>
-#include <logging/logger.h>
-#include <tools/installoptions.h>
-
-#include <QList>
+#include <QObject>
 
 namespace qbs {
-namespace Internal {
-class ProgressObserver;
+class ILogSink;
+class SetupProjectParameters;
+}
 
-class ProductInstaller
+class TestApi : public QObject
 {
-public:
-    ProductInstaller(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
-            const InstallOptions &options, ProgressObserver *observer, const Logger &logger);
-    void install();
+    Q_OBJECT
 
-    static QString targetFilePath(const TopLevelProject *project,
-            const QString &sourceFilePath, const PropertyMapConstPtr &properties,
-            InstallOptions &options, QString *targetDirectory = 0);
-    static void initInstallRoot(const TopLevelProject *project, InstallOptions &options);
+public:
+    TestApi();
+    ~TestApi();
+
+private slots:
+    void installableFiles();
 
 private:
-    void removeInstallRoot();
-    void copyFile(const Artifact *artifact);
-    void handleError(const QString &message);
+    qbs::SetupProjectParameters defaultSetupParameters() const;
 
-    const TopLevelProjectConstPtr m_project;
-    const QList<ResolvedProductPtr> m_products;
-    InstallOptions m_options;
-    ProgressObserver * const m_observer;
-    Logger m_logger;
+    qbs::ILogSink * const m_logSink;
 };
 
-} // namespace Internal
-} // namespace qbs
-
-#endif // Header guard
+#endif // Include guard.

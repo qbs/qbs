@@ -62,6 +62,17 @@ public:
     bool isValid;
 };
 
+class InstallableFilePrivate: public QSharedData
+{
+public:
+    InstallableFilePrivate() : isValid(false) {}
+
+    QString sourceFilePath;
+    QString targetFilePath;
+    QStringList fileTags;
+    bool isValid;
+};
+
 class ProductDataPrivate : public QSharedData
 {
 public:

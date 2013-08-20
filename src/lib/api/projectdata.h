@@ -42,6 +42,7 @@
 namespace qbs {
 namespace Internal {
 class GroupDataPrivate;
+class InstallableFilePrivate;
 class ProductDataPrivate;
 class ProjectPrivate;
 class ProjectDataPrivate;
@@ -132,6 +133,31 @@ private:
 QBS_EXPORT bool operator==(const TargetArtifact &ta1, const TargetArtifact &ta2);
 QBS_EXPORT bool operator!=(const TargetArtifact &ta1, const TargetArtifact &ta2);
 QBS_EXPORT bool operator<(const TargetArtifact &ta1, const TargetArtifact &ta2);
+
+class QBS_EXPORT InstallableFile
+{
+    friend class Project;
+public:
+    InstallableFile();
+    InstallableFile(const InstallableFile &other);
+    InstallableFile &operator=(const InstallableFile &other);
+    ~InstallableFile();
+
+    bool isValid() const;
+
+    QString sourceFilePath() const;
+    QString targetFilePath() const;
+    QStringList fileTags() const;
+    bool isExecutable() const;
+
+private:
+    QExplicitlySharedDataPointer<Internal::InstallableFilePrivate> d;
+};
+
+QBS_EXPORT bool operator==(const InstallableFile &file1, const InstallableFile &file2);
+QBS_EXPORT bool operator!=(const InstallableFile &file1, const InstallableFile &file2);
+QBS_EXPORT bool operator<(const InstallableFile &file1, const InstallableFile &file2);
+
 
 class QBS_EXPORT ProductData
 {

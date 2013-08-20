@@ -55,7 +55,7 @@ PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other)
 {
 }
 
-QVariant PropertyMapInternal::qbsPropertyValue(const QString &key)
+QVariant PropertyMapInternal::qbsPropertyValue(const QString &key) const
 {
     return PropertyFinder().propertyValue(value(), QLatin1String("qbs"), key);
 }

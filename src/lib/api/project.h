@@ -49,6 +49,7 @@ class BuildOptions;
 class CleanJob;
 class CleanOptions;
 class ILogSink;
+class InstallableFile;
 class InstallJob;
 class InstallOptions;
 class ProductData;
@@ -98,6 +99,11 @@ public:
                                     const InstallOptions &options, QObject *jobOwner = 0) const;
     InstallJob *installOneProduct(const ProductData &product, const InstallOptions &options,
                                   QObject *jobOwner = 0) const;
+
+    QList<InstallableFile> installableFilesForProduct(const ProductData &product,
+                                                      const InstallOptions &options) const;
+    QList<InstallableFile> installableFilesForProject(const ProjectData &project,
+                                                      const InstallOptions &options) const;
 
     void updateTimestamps(const QList<ProductData> &products);
 

@@ -48,7 +48,11 @@ namespace Internal {
 ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
         const QList<ResolvedProductPtr> &products, const InstallOptions &options,
         ProgressObserver *observer, const Logger &logger)
-    : m_products(products), m_options(options), m_observer(observer), m_logger(logger)
+    : m_project(project),
+      m_products(products),
+      m_options(options),
+      m_observer(observer),
+      m_logger(logger)
 {
     if (!m_options.installRoot().isEmpty()) {
         QFileInfo installRootFileInfo(m_options.installRoot());
@@ -66,12 +70,8 @@ ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
     if (m_options.installIntoSysroot()) {
         if (m_options.removeExistingInstallation())
             throw ErrorInfo(Tr::tr("Refusing to remove sysroot."));
-        m_options.setInstallRoot(PropertyFinder().propertyValue(project->buildConfiguration(),
-                QLatin1String("qbs"), QLatin1String("sysroot")).toString());
-    } else {
-        m_options.setInstallRoot(project->buildDirectory + QLatin1Char('/') +
-                                 InstallOptions::defaultInstallRoot());
     }
+    initInstallRoot(project.data(), m_options);
 }
 
 void ProductInstaller::install()
@@ -92,6 +92,43 @@ void ProductInstaller::install()
     foreach (const Artifact * const a, artifactsToInstall) {
         copyFile(a);
         m_observer->incrementProgressValue();
+    }
+}
+
+QString ProductInstaller::targetFilePath(const TopLevelProject *project,
+        const QString &sourceFilePath, const PropertyMapConstPtr &properties,
+        InstallOptions &options, QString *targetDirectory)
+{
+    if (!properties->qbsPropertyValue(QLatin1String("install")).toBool())
+        return QString();
+    const QString relativeInstallDir
+            = properties->qbsPropertyValue(QLatin1String("installDir")).toString();
+    const QString installPrefix
+            = properties->qbsPropertyValue(QLatin1String("installPrefix")).toString();
+    initInstallRoot(project, options);
+    QString targetDir = options.installRoot();
+    targetDir.append(QLatin1Char('/')).append(installPrefix)
+            .append(QLatin1Char('/')).append(relativeInstallDir);
+    targetDir = QDir::cleanPath(targetDir);
+    const QString targetFilePath = QDir::cleanPath(targetDir + QLatin1Char('/')
+                                                   + FileInfo::fileName(sourceFilePath));
+    if (targetDirectory)
+        *targetDirectory = targetDir;
+    return targetFilePath;
+}
+
+void ProductInstaller::initInstallRoot(const TopLevelProject *project,
+                                       InstallOptions &options)
+{
+    if (!options.installRoot().isEmpty())
+        return;
+
+    if (options.installIntoSysroot()) {
+        options.setInstallRoot(PropertyFinder().propertyValue(project->buildConfiguration(),
+                QLatin1String("qbs"), QLatin1String("sysroot")).toString());
+    } else {
+        options.setInstallRoot(project->buildDirectory + QLatin1Char('/') +
+                               InstallOptions::defaultInstallRoot());
     }
 }
 
@@ -119,14 +156,9 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         throw ErrorInfo(Tr::tr("Installation canceled for configuration '%1'.")
                     .arg(m_products.first()->project->topLevelProject()->id()));
     }
-    const QString relativeInstallDir
-            = artifact->properties->qbsPropertyValue(QLatin1String("installDir")).toString();
-    const QString installPrefix
-            = artifact->properties->qbsPropertyValue(QLatin1String("installPrefix")).toString();
-    QString targetDir = m_options.installRoot();
-    targetDir.append(QLatin1Char('/')).append(installPrefix)
-            .append(QLatin1Char('/')).append(relativeInstallDir);
-    targetDir = QDir::cleanPath(targetDir);
+    QString targetDir;
+    const QString targetFilePath = this->targetFilePath(m_project.data(), artifact->filePath(),
+            artifact->properties, m_options, &targetDir);
     const QString nativeFilePath = QDir::toNativeSeparators(artifact->filePath());
     const QString nativeTargetDir = QDir::toNativeSeparators(targetDir);
     if (m_options.dryRun()) {
@@ -141,8 +173,6 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         handleError(Tr::tr("Directory '%1' could not be created.").arg(nativeTargetDir));
         return;
     }
-    const QString targetFilePath = QDir::cleanPath(targetDir + QLatin1Char('/')
-                                                   + FileInfo::fileName(artifact->filePath()));
     QString errorMessage;
     if (!copyFileRecursion(artifact->filePath(), targetFilePath, true, &errorMessage))
         handleError(Tr::tr("Installation error: %1").arg(errorMessage));
