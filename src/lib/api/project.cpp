@@ -229,8 +229,6 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         ProductData product;
         product.d->name = resolvedProduct->name;
         product.d->location = resolvedProduct->location;
-        product.d->fileTags = resolvedProduct->fileTags.toStringList();
-        product.d->properties.d->m_map = resolvedProduct->properties;
         product.d->isEnabled = resolvedProduct->enabled;
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
             GroupData group;
@@ -249,7 +247,19 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             group.d->isValid = true;
             product.d->groups << group;
         }
+        if (resolvedProduct->enabled) {
+            QBS_CHECK(resolvedProduct->buildData);
+            foreach (const Artifact * const a, resolvedProduct->buildData->targetArtifacts) {
+                TargetArtifact ta;
+                ta.d->filePath = a->filePath();
+                ta.d->fileTags = a->fileTags.toStringList();
+                ta.d->properties.d->m_map = a->properties;
+                ta.d->isValid = true;
+                product.d->targetArtifacts << ta;
+            }
+        }
         qSort(product.d->groups);
+        qSort(product.d->targetArtifacts);
         product.d->isValid = true;
         projectData.d->products << product;
     }

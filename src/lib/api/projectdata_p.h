@@ -51,6 +51,17 @@ public:
     bool isValid;
 };
 
+class TargetArtifactPrivate : public QSharedData
+{
+public:
+    TargetArtifactPrivate() : isValid(false) {}
+
+    QString filePath;
+    QStringList fileTags;
+    PropertyMap properties;
+    bool isValid;
+};
+
 class ProductDataPrivate : public QSharedData
 {
 public:
@@ -59,9 +70,8 @@ public:
 
     QString name;
     CodeLocation location;
-    QStringList fileTags;
-    PropertyMap properties;
     QList<GroupData> groups;
+    QList<TargetArtifact> targetArtifacts;
     bool isEnabled;
     bool isValid;
 };

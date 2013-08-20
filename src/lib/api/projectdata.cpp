@@ -159,6 +159,91 @@ bool operator<(const GroupData &lhs, const GroupData &rhs)
     return lhs.name() < rhs.name();
 }
 
+
+/*!
+ * \class TargetArtifact
+ * \brief The \c TargetArtifact class describes a top-level build result of a product.
+ * For instance, the target artifact of a product with type "application" is an executable file.
+ */
+
+TargetArtifact::TargetArtifact() : d(new Internal::TargetArtifactPrivate)
+{
+}
+
+TargetArtifact::TargetArtifact(const TargetArtifact &other) : d(other.d)
+{
+}
+
+TargetArtifact &TargetArtifact::operator=(const TargetArtifact &other)
+{
+    d = other.d;
+    return *this;
+}
+
+TargetArtifact::~TargetArtifact()
+{
+}
+
+/*!
+ * \brief Returns true if and only if this object holds data that was initialized by Qbs.
+ */
+bool TargetArtifact::isValid() const
+{
+    return d->isValid;
+}
+
+/*!
+ * \brief The full path of this file.
+ */
+QString TargetArtifact::filePath() const
+{
+    return d->filePath;
+}
+
+/*!
+ * \brief The tags of this file.
+ * Typically, this list will contain just one element.
+ */
+QStringList TargetArtifact::fileTags() const
+{
+    return d->fileTags;
+}
+
+/*!
+ * \brief True if and only if this file is an executable.
+ */
+bool TargetArtifact::isExecutable() const
+{
+    return d->fileTags.contains(QLatin1String("application"))
+            || d->fileTags.contains(QLatin1String("applicationbundle"));
+}
+
+/*!
+ * \brief The properties of this file.
+ */
+PropertyMap TargetArtifact::properties() const
+{
+    return d->properties;
+}
+
+bool operator==(const TargetArtifact &ta1, const TargetArtifact &ta2)
+{
+    return ta1.filePath() == ta2.filePath()
+            && ta1.fileTags() == ta2.fileTags()
+            && ta1.properties() == ta2.properties();
+}
+
+bool operator!=(const TargetArtifact &ta1, const TargetArtifact &ta2)
+{
+    return !(ta1 == ta2);
+}
+
+bool operator<(const TargetArtifact &ta1, const TargetArtifact &ta2)
+{
+    return ta1.filePath() < ta2.filePath();
+}
+
+
 /*!
  * \class ProductData
  * \brief The \c ProductData class corresponds to the Product item in a qbs source file.
@@ -207,22 +292,11 @@ CodeLocation ProductData::location() const
 }
 
 /*!
- * \brief The file tags of this product. Corresponds to a Product's "type" property in
- *        a qbs source file.
+ * \brief This product's target artifacts.
  */
-QStringList ProductData::fileTags() const
+QList<TargetArtifact> ProductData::targetArtifacts() const
 {
-    return d->fileTags;
-}
-
-/*!
- * \brief The set of properties valid in this product.
- * \note product properties can be overwritten in a group.
- * \sa GroupData::properties()
- */
-PropertyMap ProductData::properties() const
-{
-    return d->properties;
+    return d->targetArtifacts;
 }
 
 /*!
@@ -249,9 +323,8 @@ bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() == rhs.name()
             && lhs.location() == rhs.location()
-            && lhs.fileTags() == rhs.fileTags()
-            && lhs.properties() == rhs.properties()
             && lhs.groups() == rhs.groups()
+            && lhs.targetArtifacts() == rhs.targetArtifacts()
             && lhs.isEnabled() == rhs.isEnabled();
 }
 

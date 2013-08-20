@@ -46,6 +46,7 @@ class ProductDataPrivate;
 class ProjectPrivate;
 class ProjectDataPrivate;
 class PropertyMapPrivate;
+class TargetArtifactPrivate;
 } // namespace Internal
 
 class PropertyMap;
@@ -108,6 +109,30 @@ QBS_EXPORT bool operator==(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator!=(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator<(const GroupData &lhs, const GroupData &rhs);
 
+class QBS_EXPORT TargetArtifact
+{
+    friend class Internal::ProjectPrivate;
+public:
+    TargetArtifact();
+    TargetArtifact(const TargetArtifact &other);
+    TargetArtifact &operator=(const TargetArtifact &other);
+    ~TargetArtifact();
+
+    bool isValid() const;
+
+    QString filePath() const;
+    QStringList fileTags() const;
+    bool isExecutable() const;
+    PropertyMap properties() const;
+
+private:
+    QExplicitlySharedDataPointer<Internal::TargetArtifactPrivate> d;
+};
+
+QBS_EXPORT bool operator==(const TargetArtifact &ta1, const TargetArtifact &ta2);
+QBS_EXPORT bool operator!=(const TargetArtifact &ta1, const TargetArtifact &ta2);
+QBS_EXPORT bool operator<(const TargetArtifact &ta1, const TargetArtifact &ta2);
+
 class QBS_EXPORT ProductData
 {
     friend class Internal::ProjectPrivate;
@@ -121,8 +146,7 @@ public:
 
     QString name() const;
     CodeLocation location() const;
-    QStringList fileTags() const;
-    PropertyMap properties() const;
+    QList<TargetArtifact> targetArtifacts() const;
     QList<GroupData> groups() const;
     bool isEnabled() const;
 
