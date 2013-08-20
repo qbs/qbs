@@ -149,19 +149,6 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const;
 };
 
-class PropertiesCommand : public Command
-{
-public:
-    PropertiesCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
-
-private:
-    CommandType type() const { return PropertiesCommandType; }
-    QString shortDescription() const;
-    QString longDescription() const;
-    QString representation() const;
-    QList<CommandLineOption::Type> supportedOptions() const;
-};
-
 // TODO: It seems wrong that a configuration has to be given here. Ideally, this command would just track *all* files regardless of conditions. Is that possible?
 class StatusCommand : public Command
 {

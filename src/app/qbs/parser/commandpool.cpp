@@ -61,9 +61,6 @@ qbs::Command *CommandPool::getCommand(CommandType type) const
         case ShellCommandType:
             command = new ShellCommand(m_optionPool);
             break;
-        case PropertiesCommandType:
-            command = new PropertiesCommand(m_optionPool);
-            break;
         case StatusCommandType:
             command = new StatusCommand(m_optionPool);
             break;

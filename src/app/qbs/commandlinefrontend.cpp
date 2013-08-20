@@ -30,7 +30,6 @@
 
 #include "application.h"
 #include "consoleprogressobserver.h"
-#include "showproperties.h"
 #include "status.h"
 #include "../shared/logging/consolelogger.h"
 
@@ -80,7 +79,6 @@ void CommandLineFrontend::start()
                             .arg(m_parser.commandName(), m_parser.commandDescription()));
             }
             // Fall-through intended.
-        case PropertiesCommandType:
         case StatusCommandType:
         case InstallCommandType:
             if (m_parser.buildConfigurations().count() > 1) {
@@ -298,18 +296,9 @@ void CommandLineFrontend::handleProjectsResolved()
             checkForExactlyOneProduct();
             qApp->exit(runShell());
             break;
-        case StatusCommandType: {
+        case StatusCommandType:
             qApp->exit(printStatus(m_projects.first().projectData()));
             break;
-        }
-        case PropertiesCommandType: {
-            QList<ProductData> products;
-            const ProductMap &p = productsToUse();
-            foreach (const QList<ProductData> &pProducts, p)
-                products << pProducts;
-            qApp->exit(showProperties(products));
-            break;
-        }
         case BuildCommandType:
             build();
             break;

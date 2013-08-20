@@ -374,7 +374,6 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(CleanCommandType)
             << commandPool.getCommand(RunCommandType)
             << commandPool.getCommand(ShellCommandType)
-            << commandPool.getCommand(PropertiesCommandType)
             << commandPool.getCommand(StatusCommandType)
             << commandPool.getCommand(UpdateTimestampsCommandType)
             << commandPool.getCommand(InstallCommandType)

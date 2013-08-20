@@ -18,8 +18,6 @@ QbsApp {
         "main.cpp",
         "qbstool.cpp",
         "qbstool.h",
-        "showproperties.cpp",
-        "showproperties.h",
         "status.cpp",
         "status.h",
     ]

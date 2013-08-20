@@ -352,35 +352,6 @@ QList<CommandLineOption::Type> ShellCommand::supportedOptions() const
             << CommandLineOption::ProductsOptionType;
 }
 
-QString PropertiesCommand::shortDescription() const
-{
-    return Tr::tr("Show the project properties for a configuration.");
-}
-
-QString PropertiesCommand::longDescription() const
-{
-    QString description = Tr::tr("qbs %1 [options] [variant] [property:value] ...\n")
-            .arg(representation());
-    description += Tr::tr("Shows all properties of the project in the given configuration.\n");
-    return description += supportedOptionsDescription();
-}
-
-QString PropertiesCommand::representation() const
-{
-    return QLatin1String("properties");
-}
-
-QList<CommandLineOption::Type> PropertiesCommand::supportedOptions() const
-{
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::ProductsOptionType;
-}
-
 QString StatusCommand::shortDescription() const
 {
     return Tr::tr("Show the status of files in the project directory.");
