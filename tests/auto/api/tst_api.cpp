@@ -44,7 +44,6 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QScopedPointer>
-#include <QTemporaryDir>
 #include <QTest>
 
 class LogSink: public qbs::ILogSink
