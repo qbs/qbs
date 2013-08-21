@@ -476,6 +476,17 @@ static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
     }
 }
 
+PrepareScriptPtr ProjectResolver::scriptFunctionValue(Item *item, const QString &name) const
+{
+    PrepareScriptPtr script = PrepareScript::create();
+    JSSourceValuePtr value = item->sourceProperty(name);
+    if (value) {
+        script->script = sourceCodeAsFunction(value);
+        script->location = value->location();
+    }
+    return script;
+}
+
 void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
@@ -500,16 +511,9 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
                            "must have alwaysUpdated set to true."),
                     item->location());
 
-    const PrepareScriptPtr prepareScript = PrepareScript::create();
-    JSSourceValuePtr value = item->sourceProperty(QLatin1String("prepare"));
-    if (value) {
-        prepareScript->script = sourceCodeAsFunction(value);
-        prepareScript->location = value->location();
-    }
-
     rule->jsImports = item->file()->jsImports();
     rule->jsExtensions = item->file()->jsExtensions();
-    rule->script = prepareScript;
+    rule->script = scriptFunctionValue(item, QLatin1String("prepare"));
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
     rule->usings = m_evaluator->fileTagsValue(item, "usings");
@@ -629,11 +633,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     rtrafo->inputs = m_evaluator->stringListValue(item, "inputs");
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));
-    const PrepareScriptPtr transform = PrepareScript::create();
-    JSSourceValueConstPtr value = item->sourceProperty(QLatin1String("prepare"));
-    transform->script = sourceCodeAsFunction(value);
-    transform->location = value ? value->location() : item->location();
-    rtrafo->transform = transform;
+    rtrafo->transform = scriptFunctionValue(item, QLatin1String("prepare"));
 
     foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
