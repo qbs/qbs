@@ -84,25 +84,29 @@ void PersistentPool::load(const QString &filePath)
     m_inverseStringStorage.clear();
 }
 
-bool PersistentPool::setupWriteStream(const QString &filePath)
+void PersistentPool::setupWriteStream(const QString &filePath)
 {
     QString dirPath = FileInfo::path(filePath);
-    if (!FileInfo::exists(dirPath))
-        if (!QDir().mkpath(dirPath))
-            return false;
+    if (!FileInfo::exists(dirPath) && !QDir().mkpath(dirPath)) {
+        throw ErrorInfo(Tr::tr("Failure storing build graph: Cannot create directory '%1'.")
+                        .arg(dirPath));
+    }
 
-    if (QFile::exists(filePath) && !QFile::remove(filePath))
-        return false;
+    if (QFile::exists(filePath) && !QFile::remove(filePath)) {
+        throw ErrorInfo(Tr::tr("Failure storing build graph: Cannot remove old file '%1'")
+                        .arg(filePath));
+    }
     QBS_CHECK(!QFile::exists(filePath));
     QScopedPointer<QFile> file(new QFile(filePath));
-    if (!file->open(QFile::WriteOnly))
-        return false;
+    if (!file->open(QFile::WriteOnly)) {
+        throw ErrorInfo(Tr::tr("Failure storing build graph: "
+                "Cannot open file '%1' for writing: %2").arg(filePath, file->errorString()));
+    }
 
     m_stream.setDevice(file.take());
     m_stream << QByteArray(QBS_PERSISTENCE_MAGIC) << m_headData.projectConfig;
     m_lastStoredObjectId = 0;
     m_lastStoredStringId = 0;
-    return true;
 }
 
 void PersistentPool::closeStream()

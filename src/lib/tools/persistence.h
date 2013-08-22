@@ -55,7 +55,7 @@ public:
     };
 
     void load(const QString &filePath);
-    bool setupWriteStream(const QString &filePath);
+    void setupWriteStream(const QString &filePath);
     void closeStream();
     void clear();
     QDataStream &stream();
