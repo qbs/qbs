@@ -35,6 +35,9 @@
 #include <QString>
 #include <QVariant>
 
+namespace qbs {
+namespace Internal {
+
 class Property
 {
 public:
@@ -72,5 +75,8 @@ inline uint qHash(const Property &p)
 }
 
 typedef QSet<Property> PropertyList;
+
+} // namespace Internal
+} // namespace qbs
 
 #endif // Include guard
