@@ -33,6 +33,7 @@
 #include "filecontext.h"
 #include "propertymapinternal.h"
 #include "scriptpropertyobserver.h"
+#include <buildgraph/artifact.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 
@@ -106,6 +107,12 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
 void ScriptEngine::clearImportsCache()
 {
     m_jsImportCache.clear();
+}
+
+void ScriptEngine::addPropertyRequestedFromArtifact(const Artifact *artifact,
+                                                    const Property &property)
+{
+    m_propertiesRequestedFromArtifact[artifact->filePath()] << property;
 }
 
 void ScriptEngine::addToPropertyCache(const QString &moduleName, const QString &propertyName,

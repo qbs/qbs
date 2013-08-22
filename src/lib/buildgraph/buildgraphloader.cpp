@@ -383,17 +383,20 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
 bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                                const ResolvedProductPtr &newlyResolvedProduct)
 {
-    QSet<TransformerPtr> seenTransformers;
+    m_logger.qbsDebug() << "Checking for changes in properties requested in prepare scripts for "
+                           "product '"  << restoredProduct->name << "'.";
     if (!restoredProduct->buildData)
         return false;
+    QSet<TransformerConstPtr> seenTransformers;
     foreach (Artifact * const artifact, restoredProduct->buildData->artifacts) {
-        if (!artifact->transformer || seenTransformers.contains(artifact->transformer))
+        const TransformerConstPtr transformer = artifact->transformer;
+        if (!transformer || seenTransformers.contains(transformer))
             continue;
-        seenTransformers.insert(artifact->transformer);
-        if (checkForPropertyChanges(artifact->transformer, newlyResolvedProduct)) {
-                m_logger.qbsDebug() << "Property changes in product '"
-                                    << newlyResolvedProduct->name << "'.";
-                return true;
+        seenTransformers.insert(transformer);
+        if (checkForPropertyChanges(transformer, newlyResolvedProduct)) {
+            m_logger.qbsDebug() << "Property changes in product '"
+                                << newlyResolvedProduct->name << "'.";
+            return true;
         }
     }
     return false;
@@ -552,28 +555,66 @@ void BuildGraphLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
     project->buildData->removeArtifact(artifact, m_logger);
 }
 
-bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
-                                               const ResolvedProductPtr &freshProduct)
+static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &product,
+        const QString &artifactFilePath, QMap<QString, SourceArtifactConstPtr> &artifactMap)
+{
+    SourceArtifactConstPtr &artifact = artifactMap[artifactFilePath];
+    if (!artifact) {
+        foreach (const SourceArtifactConstPtr &a, product->allFiles()) {
+            if (a->absoluteFilePath == artifactFilePath) {
+                artifact = a;
+                break;
+            }
+        }
+    }
+    return artifact;
+}
+
+bool BuildGraphLoader::checkForPropertyChanges(const TransformerConstPtr &restoredTrafo,
+        const ResolvedProductPtr &freshProduct)
+{
+    foreach (const Property &property,
+             restoredTrafo->propertiesRequestedFromProductInPrepareScript) {
+        if (checkForPropertyChange(property, freshProduct->properties))
+            return true;
+    }
+
+    QMap<QString, SourceArtifactConstPtr> artifactMap;
+    for (QHash<QString, PropertyList>::ConstIterator it =
+         restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constBegin();
+         it != restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
+        const SourceArtifactConstPtr artifact
+                = findSourceArtifact(freshProduct, it.key(), artifactMap);
+        if (!artifact)
+            continue;
+        foreach (const Property &property, it.value()) {
+            if (checkForPropertyChange(property, artifact->properties))
+                return true;
+        }
+    }
+    return false;
+}
+
+bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
+                                              const PropertyMapConstPtr &newProperties)
 {
     PropertyFinder finder;
-    foreach (const Property &property, restoredTrafo->modulePropertiesUsedInPrepareScript) {
-        QVariant v;
-        if (property.kind == Property::PropertyInProduct) {
-            v = freshProduct->properties->value().value(property.propertyName);
-        } else if (property.value.type() == QVariant::List) {
-            v = finder.propertyValues(freshProduct->properties->value(), property.moduleName,
-                                      property.propertyName);
-        } else {
-            v = finder.propertyValue(freshProduct->properties->value(), property.moduleName,
-                                     property.propertyName);
-        }
-        if (property.value != v) {
-            m_logger.qbsDebug() << "Value for property '" << property.moduleName << "."
-                                << property.propertyName << "' has changed.";
-            m_logger.qbsDebug() << "Old value was '" << property.value << "'.";
-            m_logger.qbsDebug() << "New value is '" << v << "'.";
-            return true;
-        }
+    QVariant v;
+    if (restoredProperty.kind == Property::PropertyInProduct) {
+        v = newProperties->value().value(restoredProperty.propertyName);
+    } else if (restoredProperty.value.type() == QVariant::List) {
+        v = finder.propertyValues(newProperties->value(), restoredProperty.moduleName,
+                                  restoredProperty.propertyName);
+    } else {
+        v = finder.propertyValue(newProperties->value(), restoredProperty.moduleName,
+                                 restoredProperty.propertyName);
+    }
+    if (restoredProperty.value != v) {
+        m_logger.qbsDebug() << "Value for property '" << restoredProperty.moduleName << "."
+                            << restoredProperty.propertyName << "' has changed.";
+        m_logger.qbsDebug() << "Old value was '" << restoredProperty.value << "'.";
+        m_logger.qbsDebug() << "New value is '" << v << "'.";
+        return true;
     }
     return false;
 }

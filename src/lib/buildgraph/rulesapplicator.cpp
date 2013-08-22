@@ -322,7 +322,7 @@ void RulesApplicator::onPropertyRead(const QScriptValue &object, const QString &
                                      const QScriptValue &value)
 {
     if (object.objectId() == m_productObjectId)
-        engine()->addProperty(
+        engine()->addPropertyRequestedFromProduct(
                     Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
 }
 

@@ -44,6 +44,7 @@
 
 namespace qbs {
 namespace Internal {
+class Artifact;
 
 class ScriptPropertyObserver;
 
@@ -60,9 +61,18 @@ public:
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
     void clearImportsCache();
 
-    void addProperty(const Property &property) { m_properties += property; }
-    void clearProperties() { m_properties.clear(); }
-    PropertyList properties() const { return m_properties; }
+    void addPropertyRequestedFromProduct(const Property &property) {
+        m_propertiesRequestedFromProduct += property;
+    }
+    void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
+    void clearPropertiesRequestedInPrepareScripts() {
+        m_propertiesRequestedFromProduct.clear();
+        m_propertiesRequestedFromArtifact.clear();
+    }
+    PropertyList propertiesRequestedFromProduct() const { return m_propertiesRequestedFromProduct; }
+    QHash<QString, PropertyList> propertiesRequestedFromArtifact() const {
+        return m_propertiesRequestedFromArtifact;
+    }
 
     void addToPropertyCache(const QString &moduleName, const QString &propertyName,
         const PropertyMapConstPtr &propertyMap, const QVariant &value);
@@ -103,7 +113,8 @@ private:
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QPair<QString, PropertyMapConstPtr>, QVariant> m_propertyCache;
-    PropertyList m_properties;
+    PropertyList m_propertiesRequestedFromProduct;
+    QHash<QString, PropertyList> m_propertiesRequestedFromArtifact;
     Logger m_logger;
     QScriptValue m_definePropertyFunction;
     QScriptValue m_emptyFunction;

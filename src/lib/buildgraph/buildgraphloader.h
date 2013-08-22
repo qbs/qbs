@@ -44,6 +44,7 @@ namespace Internal {
 class ArtifactList;
 class FileDependency;
 class FileTime;
+class Property;
 
 class BuildGraphLoadResult
 {
@@ -88,7 +89,10 @@ private:
                           const ResolvedProductPtr &changedProduct);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
             ArtifactList *removedArtifacts = 0);
-    bool checkForPropertyChanges(const TransformerPtr &restoredTrafo, const ResolvedProductPtr &freshProduct);
+    bool checkForPropertyChanges(const TransformerConstPtr &restoredTrafo,
+            const ResolvedProductPtr &freshProduct);
+    bool checkForPropertyChange(const Property &restoredProperty,
+                                const PropertyMapConstPtr &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,

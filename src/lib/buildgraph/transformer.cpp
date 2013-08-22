@@ -153,8 +153,9 @@ void Transformer::createCommands(const PrepareScriptConstPtr &script,
     }
 
     QScriptValue scriptValue = script->scriptFunction.call();
-    modulePropertiesUsedInPrepareScript = engine->properties();
-    engine->clearProperties();
+    propertiesRequestedFromProductInPrepareScript = engine->propertiesRequestedFromProduct();
+    propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
+    engine->clearPropertiesRequestedInPrepareScripts();
     if (Q_UNLIKELY(engine->hasUncaughtException()))
         throw ErrorInfo("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName(),
@@ -186,7 +187,7 @@ void Transformer::load(PersistentPool &pool)
     pool.loadContainer(outputs);
     int count;
     pool.stream() >> count;
-    modulePropertiesUsedInPrepareScript.reserve(count);
+    propertiesRequestedFromProductInPrepareScript.reserve(count);
     while (--count >= 0) {
         Property p;
         p.moduleName = pool.idLoadString();
@@ -194,7 +195,25 @@ void Transformer::load(PersistentPool &pool)
         int k;
         pool.stream() >> p.value >> k;
         p.kind = static_cast<Property::Kind>(k);
-        modulePropertiesUsedInPrepareScript += p;
+        propertiesRequestedFromProductInPrepareScript += p;
+    }
+    pool.stream() >> count;
+    propertiesRequestedFromArtifactInPrepareScript.reserve(count);
+    while (--count >= 0) {
+        const QString artifactName = pool.idLoadString();
+        int listCount;
+        pool.stream() >> listCount;
+        PropertyList list;
+        list.reserve(listCount);
+        while (--listCount >= 0) {
+            Property p;
+            p.moduleName = pool.idLoadString();
+            p.propertyName = pool.idLoadString();
+            pool.stream() >> p.value;
+            p.kind = Property::PropertyInModule;
+            list += p;
+        }
+        propertiesRequestedFromArtifactInPrepareScript.insert(artifactName, list);
     }
     int cmdType;
     pool.stream() >> count;
@@ -212,11 +231,23 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(rule);
     pool.storeContainer(inputs);
     pool.storeContainer(outputs);
-    pool.stream() << modulePropertiesUsedInPrepareScript.count();
-    foreach (const Property &p, modulePropertiesUsedInPrepareScript) {
+    pool.stream() << propertiesRequestedFromProductInPrepareScript.count();
+    foreach (const Property &p, propertiesRequestedFromProductInPrepareScript) {
         pool.storeString(p.moduleName);
         pool.storeString(p.propertyName);
         pool.stream() << p.value << static_cast<int>(p.kind);
+    }
+    pool.stream() << propertiesRequestedFromArtifactInPrepareScript.count();
+    for (QHash<QString, PropertyList>::ConstIterator it = propertiesRequestedFromArtifactInPrepareScript.constBegin();
+         it != propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
+        pool.storeString(it.key());
+        const PropertyList &properties = it.value();
+        pool.stream() << properties.count();
+        foreach (const Property &p, properties) {
+            pool.storeString(p.moduleName);
+            pool.storeString(p.propertyName);
+            pool.stream() << p.value; // kind is always PropertyInModule
+        }
     }
     pool.stream() << commands.count();
     foreach (AbstractCommand *cmd, commands) {

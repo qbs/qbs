@@ -36,6 +36,7 @@
 #include <language/property.h>
 #include <tools/persistentobject.h>
 
+#include <QHash>
 #include <QScriptEngine>
 
 namespace qbs {
@@ -56,7 +57,8 @@ public:
     ArtifactList outputs;
     RuleConstPtr rule;
     QList<AbstractCommand *> commands;
-    PropertyList modulePropertiesUsedInPrepareScript;
+    PropertyList propertiesRequestedFromProductInPrepareScript;
+    QHash<QString, PropertyList> propertiesRequestedFromArtifactInPrepareScript;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
                                             Artifact *artifact,

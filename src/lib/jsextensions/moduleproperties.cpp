@@ -100,10 +100,12 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
 
     const void *ptr = reinterpret_cast<const void *>(qscriptvalue_cast<quintptr>(ptrScriptValue));
     PropertyMapConstPtr properties;
+    const Artifact *artifact = 0;
     if (typeScriptValue.toString() == productType()) {
         properties = static_cast<const ResolvedProduct *>(ptr)->properties;
     } else if (typeScriptValue.toString() == artifactType()) {
-        properties = static_cast<const Artifact *>(ptr)->properties;
+        artifact = static_cast<const Artifact *>(ptr);
+        properties = artifact->properties;
     } else {
         return context->throwError(QScriptContext::TypeError,
                                    QLatin1String("Internal error: invalid type"));
@@ -120,7 +122,10 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
         else
             value = PropertyFinder().propertyValues(properties->value(), moduleName, propertyName);
         const Property p(moduleName, propertyName, value);
-        qbsEngine->addProperty(p);
+        if (artifact)
+            qbsEngine->addPropertyRequestedFromArtifact(artifact, p);
+        else
+            qbsEngine->addPropertyRequestedFromProduct(p);
 
         // Cache the variant value. We must not cache the QScriptValue here, because it's a
         // reference and the user might change the actual object.
