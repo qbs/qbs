@@ -63,6 +63,30 @@ TestApi::~TestApi()
     delete m_logSink;
 }
 
+void TestApi::disabledInstallGroup()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
+        "/disabled_install_group/project.qbs")));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    QEventLoop loop;
+    connect(job.data(), SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
+    loop.exec();
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::Project project = job->project();
+    qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    qbs::ProductData product = projectData.allProducts().first();
+    const QList<qbs::TargetArtifact> targets = product.targetArtifacts();
+    QCOMPARE(targets.count(), 1);
+    QVERIFY(targets.first().isExecutable());
+    QList<qbs::InstallableFile> installableFiles
+            = project.installableFilesForProduct(product, qbs::InstallOptions());
+    QCOMPARE(installableFiles.count(), 0);
+    QCOMPARE(project.targetExecutable(product, qbs::InstallOptions()), targets.first().filePath());
+}
+
 void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();

@@ -390,6 +390,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         properties->setValue(evaluateModuleValues(item));
     }
 
+    const bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     QStringList files = m_evaluator->stringListValue(item, QLatin1String("files"));
     const QStringList fileTagsFilter
             = m_evaluator->stringListValue(item, QLatin1String("fileTagsFilter"));
@@ -397,6 +398,8 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         if (Q_UNLIKELY(!files.isEmpty()))
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
+        if (!isEnabled)
+            return;
         ArtifactPropertiesPtr aprops = ArtifactProperties::create();
         aprops->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
         PropertyMapPtr cfg = PropertyMapInternal::create();
@@ -427,7 +430,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 
     GroupPtr group = ResolvedGroup::create();
     group->location = item->location();
-    group->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
+    group->enabled = isEnabled;
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();

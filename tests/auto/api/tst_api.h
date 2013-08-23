@@ -46,6 +46,7 @@ public:
     ~TestApi();
 
 private slots:
+    void disabledInstallGroup();
     void installableFiles();
 
 private:
