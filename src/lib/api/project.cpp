@@ -339,53 +339,26 @@ ProjectData Project::projectData() const
     return d->projectData();
 }
 
-static bool isExecutable(const PropertyMapPtr &properties, const FileTags &tags)
-{
-    return tags.contains("application")
-        || (properties->qbsPropertyValue(QLatin1String("targetOS")).toStringList()
-                .contains(QLatin1String("osx"))
-            && tags.contains("applicationbundle"));
-}
-
 /*!
  * \brief Returns the file path of the executable associated with the given product.
  * If the product is not an application, an empty string is returned.
- * The \a installRoot parameter is used to look up the executable in case it is installable;
- * otherwise the parameter is ignored. To specify the default install root, leave it empty.
+ * The \a installOptions parameter is used to look up the executable in case it is installable;
+ * otherwise the parameter is ignored and the returned path will point to where the file is built.
  */
 QString Project::targetExecutable(const ProductData &product,
                                   const InstallOptions &installOptions) const
 {
     if (!product.isEnabled())
         return QString();
-    const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
-    if (!isExecutable(internalProduct->properties, internalProduct->fileTags))
-        return QString();
-
-    foreach (const Artifact * const artifact, internalProduct->buildData->targetArtifacts) {
-        if (isExecutable(artifact->properties, artifact->fileTags)) {
-            if (!artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
-                return artifact->filePath();
-            const QString fileName = FileInfo::fileName(artifact->filePath());
-            QString installRoot = installOptions.installRoot();
-            if (installRoot.isEmpty()) {
-                if (installOptions.installIntoSysroot()) {
-                    // Yes, the executable is unlikely to run in this case. But we should still
-                    // follow the protocol.
-                    installRoot = artifact->properties
-                            ->qbsPropertyValue(QLatin1String("sysroot")).toString();
-                } else  {
-                    installRoot = d->internalProject->buildDirectory
-                            + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
-                }
+    foreach (const TargetArtifact &ta, product.targetArtifacts()) {
+        if (ta.isExecutable()) {
+            const QList<InstallableFile> &installables
+                    = installableFilesForProduct(product, installOptions);
+            foreach (const InstallableFile &file, installables) {
+                if (file.sourceFilePath() == ta.filePath())
+                    return file.targetFilePath();
             }
-            QString installDir = artifact->properties
-                    ->qbsPropertyValue(QLatin1String("installDir")).toString();
-            const QString installPrefix = artifact->properties
-                    ->qbsPropertyValue(QLatin1String("installPrefix")).toString();
-            installDir.prepend(QLatin1Char('/')).prepend(installPrefix)
-                    .prepend(QLatin1Char('/')).prepend(installRoot);
-            return QDir::cleanPath(installDir + QLatin1Char('/') + fileName);
+            return ta.filePath();
         }
     }
     return QString();

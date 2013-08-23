@@ -88,6 +88,7 @@ void TestApi::installableFiles()
     QString expectedTargetFilePath
             = qbs::Internal::HostOsInfo::appendExecutableSuffix(QLatin1String("/tmp/usr/bin/installedApp"));
     QCOMPARE(application.targetFilePath(), expectedTargetFilePath);
+    QCOMPARE(project.targetExecutable(product, installOptions), expectedTargetFilePath);
 
     setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata"
         "/recursive_wildcards/recursive_wildcards.qbs")));
