@@ -155,7 +155,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     // Directories created during the build are not artifacts (TODO: should they be?),
     // so we have to clean them up manually.
     foreach (const QString &dir, directories) {
-        if (FileInfo(dir).exists())
+        if (dir.startsWith(project->buildDirectory) && FileInfo(dir).exists())
             removeEmptyDirectories(dir, options);
     }
     m_observer->incrementProgressValue();
