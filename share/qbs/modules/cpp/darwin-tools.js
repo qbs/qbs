@@ -57,8 +57,9 @@ function doRepl(obj, env, warn)
             var i = value.indexOf('$')
             var changes = false;
             while (i !== -1) {
-                if (value.charAt(i+1) === '(') {
-                    var j = value.indexOf(')', i + 2);
+                var brace = value.charAt(i+1);
+                if (brace === '(' || brace === '{') {
+                    var j = value.indexOf(brace === '(' ? ')' : '}', i + 2);
                     if (j === -1)
                         break;
                     var varName = value.slice(i + 2, j);

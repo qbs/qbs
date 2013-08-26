@@ -25,7 +25,9 @@ UnixGCC {
     property bool buildDsym: qbs.buildVariant === "release"
     property var buildEnv: {
         var env = {
-            "LANG": "en_US.US-ASCII"
+            "EXECUTABLE_NAME": product.targetName,
+            "LANG": "en_US.US-ASCII",
+            "PRODUCT_NAME": product.name
         }
         if (minimumIosVersion)
             env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
@@ -254,7 +256,7 @@ UnixGCC {
                     for (key in buildEnv)
                         env[key] = buildEnv[key];
 
-                    DarwinTools.doRepl(infoPlist, env, true);
+                    DarwinTools.doRepl(aggregatePlist, env, true);
                 }
 
                 // Write the plist contents as JSON
