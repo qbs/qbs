@@ -487,8 +487,10 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &produc
             QBS_CHECK(artifact);
 
             // handle added filetags
-            foreach (const FileTag &addedFileTag, changedArtifact->fileTags - a->fileTags)
+            foreach (const FileTag &addedFileTag, changedArtifact->fileTags - a->fileTags) {
+                artifact->fileTags += addedFileTag;
                 artifactsPerFileTag[addedFileTag] += artifact;
+            }
 
             // handle removed filetags
             foreach (const FileTag &removedFileTag, a->fileTags - changedArtifact->fileTags) {
