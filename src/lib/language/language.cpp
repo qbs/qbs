@@ -236,15 +236,15 @@ void RuleArtifact::store(PersistentPool &pool) const
    * This is mostly needed for diagnostics.
    */
 
-void PrepareScript::load(PersistentPool &pool)
+void ScriptFunction::load(PersistentPool &pool)
 {
-    pool.stream() >> script;
+    pool.stream() >> sourceCode;
     pool.stream() >> location;
 }
 
-void PrepareScript::store(PersistentPool &pool) const
+void ScriptFunction::store(PersistentPool &pool) const
 {
-    pool.stream() << script;
+    pool.stream() << sourceCode;
     pool.stream() << location;
 }
 
@@ -307,7 +307,7 @@ FileTags Rule::outputFileTags() const
 
 void Rule::load(PersistentPool &pool)
 {
-    script = pool.idLoadS<PrepareScript>();
+    script = pool.idLoadS<ScriptFunction>();
     module = pool.idLoadS<ResolvedModule>();
     pool.stream() >> jsImports
         >> jsExtensions
@@ -917,7 +917,7 @@ void ResolvedTransformer::load(PersistentPool &pool)
     module = pool.idLoadS<ResolvedModule>();
     pool.stream() >> inputs;
     pool.loadContainerS(outputs);
-    transform = pool.idLoadS<PrepareScript>();
+    transform = pool.idLoadS<ScriptFunction>();
     pool.stream() >> jsImports >> jsExtensions;
 }
 
@@ -956,7 +956,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 }
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
-QString keyFromElem(const ResolvedTransformer::Ptr &t) { return t->transform->script; }
+QString keyFromElem(const ResolvedTransformer::Ptr &t) { return t->transform->sourceCode; }
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
 {
@@ -977,7 +977,7 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
     return modulesAreEqual(t1.module, t2.module)
             && t1.inputs.toSet() == t2.inputs.toSet()
             && sourceArtifactListsAreEqual(t1.outputs, t2.outputs)
-            && t1.transform->script == t2.transform->script
+            && t1.transform->sourceCode == t2.transform->sourceCode
             && t1.jsImports == t2.jsImports
             && t1.jsExtensions.toSet() == t2.jsExtensions.toSet();
 }

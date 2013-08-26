@@ -193,17 +193,17 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class PrepareScript: public PersistentObject
+class ScriptFunction : public PersistentObject
 {
 public:
-    static PrepareScriptPtr create() { return PrepareScriptPtr(new PrepareScript); }
+    static ScriptFunctionPtr create() { return ScriptFunctionPtr(new ScriptFunction); }
 
-    QString script;
+    QString sourceCode;
     CodeLocation location;
     mutable QScriptValue scriptFunction;    // cache
 
 private:
-    PrepareScript() {}
+    ScriptFunction() {}
 
     void load(PersistentPool &);
     void store(PersistentPool &) const;
@@ -247,7 +247,7 @@ public:
     ResolvedModuleConstPtr module;
     JsImports jsImports;
     QStringList jsExtensions;
-    PrepareScriptConstPtr script;
+    ScriptFunctionConstPtr script;
     FileTags inputs;
     FileTags auxiliaryInputs;
     FileTags usings;
@@ -278,7 +278,7 @@ public:
     ResolvedModuleConstPtr module;
     QStringList inputs;
     QList<SourceArtifactPtr> outputs;
-    PrepareScriptConstPtr transform;
+    ScriptFunctionConstPtr transform;
     JsImports jsImports;
     QStringList jsExtensions;
 

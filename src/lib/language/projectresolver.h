@@ -84,7 +84,7 @@ private:
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value) const;
     QString verbatimValue(Item *item, const QString &name) const;
-    PrepareScriptPtr scriptFunctionValue(Item *item, const QString &name) const;
+    ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
     void ignoreItem(Item *item, ProjectContext *projectContext);
     void resolveTopLevelProject(Item *item, ProjectContext *projectContext);
     void resolveProject(Item *item, ProjectContext *projectContext);

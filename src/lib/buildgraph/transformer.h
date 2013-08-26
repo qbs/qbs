@@ -70,7 +70,7 @@ public:
     ResolvedProductPtr product() const;
     void setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
     void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
-    void createCommands(const PrepareScriptConstPtr &script,
+    void createCommands(const ScriptFunctionConstPtr &script,
                         const RulesEvaluationContextPtr &evalContext);
 
 private:

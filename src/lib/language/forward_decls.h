@@ -86,9 +86,9 @@ class SourceArtifact;
 typedef QSharedPointer<SourceArtifact> SourceArtifactPtr;
 typedef QSharedPointer<const SourceArtifact> SourceArtifactConstPtr;
 
-class PrepareScript;
-typedef QSharedPointer<PrepareScript> PrepareScriptPtr;
-typedef QSharedPointer<const PrepareScript> PrepareScriptConstPtr;
+class ScriptFunction;
+typedef QSharedPointer<ScriptFunction> ScriptFunctionPtr;
+typedef QSharedPointer<const ScriptFunction> ScriptFunctionConstPtr;
 
 class RuleArtifact;
 typedef QSharedPointer<RuleArtifact> RuleArtifactPtr;

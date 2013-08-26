@@ -476,12 +476,12 @@ static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
     }
 }
 
-PrepareScriptPtr ProjectResolver::scriptFunctionValue(Item *item, const QString &name) const
+ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString &name) const
 {
-    PrepareScriptPtr script = PrepareScript::create();
+    ScriptFunctionPtr script = ScriptFunction::create();
     JSSourceValuePtr value = item->sourceProperty(name);
     if (value) {
-        script->script = sourceCodeAsFunction(value);
+        script->sourceCode = sourceCodeAsFunction(value);
         script->location = value->location();
     }
     return script;

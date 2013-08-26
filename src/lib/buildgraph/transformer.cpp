@@ -142,12 +142,12 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
     return cmdBase;
 }
 
-void Transformer::createCommands(const PrepareScriptConstPtr &script,
+void Transformer::createCommands(const ScriptFunctionConstPtr &script,
                                  const RulesEvaluationContextPtr &evalContext)
 {
     ScriptEngine * const engine = evalContext->engine();
     if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
-        script->scriptFunction = engine->evaluate(script->script);
+        script->scriptFunction = engine->evaluate(script->sourceCode);
         if (Q_UNLIKELY(!script->scriptFunction.isFunction()))
             throw ErrorInfo(Tr::tr("Invalid prepare script."), script->location);
     }
