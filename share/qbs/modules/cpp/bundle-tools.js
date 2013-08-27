@@ -30,6 +30,9 @@ function infoPlistContents(infoPlistFilePath)
     var process = new Process();
     process.start("plutil", ["-convert", "json", "-o", "-", infoPlistFilePath]);
     process.waitForFinished();
+    if (process.exitCode() != 0)
+        throw("plutil: " + (process.readStdErr().trim() || process.readStdOut().trim()));
+
     return JSON.parse(process.readStdOut());
 }
 
@@ -42,14 +45,8 @@ function infoPlistFormat(infoPlistFilePath)
     var process = new Process();
     process.start("plutil", ["-lint", infoPlistFilePath]);
     process.waitForFinished();
-    var lint = process.readStdOut().trim();
-    if (lint.indexOf(infoPlistFilePath + ": ") !== 0)
-        throw("Unexpected output from plutil command: " + lint);
-
-    lint = lint.slice(infoPlistFilePath.length + 2);
-
-    if (lint !== "OK")
-        throw("Info.plist was in an invalid format: " + lint);
+    if (process.exitCode() != 0)
+        throw("plutil: " + (process.readStdErr().trim() || process.readStdOut().trim()));
 
     process = new Process();
     process.start("file", [infoPlistFilePath]);
