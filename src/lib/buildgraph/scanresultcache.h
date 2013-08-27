@@ -30,8 +30,9 @@
 #ifndef QBS_SCANRESULTCACHE_H
 #define QBS_SCANRESULTCACHE_H
 
+#include <language/filetags.h>
+
 #include <QHash>
-#include <QSet>
 #include <QString>
 #include <QVector>
 
@@ -68,6 +69,7 @@ public:
         {}
 
         QVector<Dependency> deps;
+        FileTags additionalFileTags;
         bool valid;
     };
 

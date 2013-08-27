@@ -154,7 +154,7 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
                 {
                     opaque->hasPluginMetaDataMacro = true;
                 }
-                if (opaque->hasQObjectMacro
+                if (!scanForDependencies && opaque->hasQObjectMacro
                     && (opaque->fileType == Opaq::FT_CPP || opaque->hasPluginMetaDataMacro))
                     break;
             }

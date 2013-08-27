@@ -188,36 +188,20 @@ void AutoMoc::scan(Artifact *artifact, FileType fileType, bool &hasQObjectMacro,
     hasQObjectMacro = false;
 
     foreach (ScannerPlugin *scanner, fileType == HppFileType ? hppScanners() : cppScanners()) {
-        void *opaq = scanner->open(artifact->filePath().utf16(), ScanForFileTagsFlag);
-        if (!opaq || !scanner->additionalFileTags)
-            continue;
-
-        // HACK: misuse the file dependency scanner as provider for file tags
-        int length = 0;
-        const char **szFileTagsFromScanner = scanner->additionalFileTags(opaq, &length);
-        if (szFileTagsFromScanner && length > 0) {
-            for (int i=length; --i >= 0;) {
-                artifact->fileTags.insert(szFileTagsFromScanner[i]);
-                if (m_logger.traceEnabled())
-                    m_logger.qbsTrace() << "[AUTOMOC] finds Q_OBJECT macro";
-                const QByteArray fileTagFromScanner
-                        = QByteArray::fromRawData(szFileTagsFromScanner[i],
-                                                  qstrlen(szFileTagsFromScanner[i]));
-                if (fileTagFromScanner.startsWith("moc"))
-                    hasQObjectMacro = true;
-            }
-        }
-
-        scanner->close(opaq);
-
-        ScanResultCache::Result scanResult;
-        if (m_scanResultCache)
-            scanResult = m_scanResultCache->value(artifact->filePath());
+        ScanResultCache::Result scanResult = m_scanResultCache->value(artifact->filePath());
         if (!scanResult.valid) {
             scanResult.valid = true;
-            opaq = scanner->open(artifact->filePath().utf16(), ScanForDependenciesFlag);
-            if (!opaq)
+            void *opaq = scanner->open(artifact->filePath().utf16(),
+                                       ScanForDependenciesFlag | ScanForFileTagsFlag);
+            if (!opaq || !scanner->additionalFileTags)
                 continue;
+
+            int length = 0;
+            const char **szFileTagsFromScanner = scanner->additionalFileTags(opaq, &length);
+            if (szFileTagsFromScanner && length > 0) {
+                for (int i = length; --i >= 0;)
+                    scanResult.additionalFileTags += szFileTagsFromScanner[i];
+            }
 
             forever {
                 int flags = 0;
@@ -232,8 +216,16 @@ void AutoMoc::scan(Artifact *artifact, FileType fileType, bool &hasQObjectMacro,
             }
 
             scanner->close(opaq);
-            if (m_scanResultCache)
-                m_scanResultCache->insert(artifact->filePath(), scanResult);
+            m_scanResultCache->insert(artifact->filePath(), scanResult);
+        }
+
+        foreach (const FileTag &tag, scanResult.additionalFileTags) {
+            artifact->fileTags.insert(tag);
+            if (tag.name().startsWith("moc")) {
+                hasQObjectMacro = true;
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << "[AUTOMOC] finds Q_OBJECT macro";
+            }
         }
 
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
