@@ -121,7 +121,7 @@ static bool scanWithScannerPlugin(ScannerPlugin *scannerPlugin,
                                   const QString &filePathToBeScanned,
                                   ScanResultCache::Result *scanResult)
 {
-    void *scannerHandle = scannerPlugin->open(filePathToBeScanned.utf16(), 0, 0);
+    void *scannerHandle = scannerPlugin->open(filePathToBeScanned.utf16(), ScanForDependenciesFlag);
     if (!scannerHandle)
         return false;
     while (true) {

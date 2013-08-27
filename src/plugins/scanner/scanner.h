@@ -37,16 +37,19 @@ extern "C" {
 #define SC_LOCAL_INCLUDE_FLAG   0x1
 #define SC_GLOBAL_INCLUDE_FLAG  0x2
 
+enum OpenScannerFlags
+{
+    ScanForDependenciesFlag = 0x01,
+    ScanForFileTagsFlag = 0x02
+};
+
 /**
   * Open a file that's going to be scanned.
   * The file path encoding is UTF-16 on all platforms.
   *
-  * If the scanner is used for more than one type hint (e.g. C++ header / source)
-  * the scanner can read the parameter fileTag which file type it is going to scan.
-  *
   * Returns a scanner handle.
   */
-typedef void *(*scanOpen_f)                 (const unsigned short *filePath, char **fileTags, int numFileTags);
+typedef void *(*scanOpen_f) (const unsigned short *filePath, int flags);
 
 /**
   * Closes the given scanner handle.

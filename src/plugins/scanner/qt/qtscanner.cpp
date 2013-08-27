@@ -87,10 +87,9 @@ struct Opaq
     }
 };
 
-static void *openScanner(const unsigned short *filePath, char **fileTags, int numFileTags)
+static void *openScanner(const unsigned short *filePath, int flags)
 {
-    Q_UNUSED(fileTags);
-    Q_UNUSED(numFileTags);
+    Q_UNUSED(flags);
     QScopedPointer<Opaq> opaque(new Opaq);
 
 #ifdef Q_OS_UNIX

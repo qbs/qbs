@@ -44,29 +44,6 @@
 namespace qbs {
 namespace Internal {
 
-static char **createCFileTags(const FileTags &fileTags)
-{
-    if (fileTags.isEmpty())
-        return 0;
-
-    char **buf = new char*[fileTags.count()];
-    size_t i = 0;
-    foreach (const FileTag &fileTag, fileTags) {
-        buf[i] = qstrdup(fileTag.toString().toLocal8Bit().data());
-        ++i;
-    }
-    return buf;
-}
-
-static void freeCFileTags(char **cFileTags, int numFileTags)
-{
-    if (!cFileTags)
-        return;
-    for (int i = numFileTags; --i >= 0;)
-        delete[] cFileTags[i];
-    delete[] cFileTags;
-}
-
 AutoMoc::AutoMoc(const Logger &logger, QObject *parent)
     : QObject(parent)
     , m_scanResultCache(0)
@@ -81,7 +58,7 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
 
 void AutoMoc::apply(const ResolvedProductPtr &product)
 {
-    if (scanners().isEmpty())
+    if (cppScanners().isEmpty() || hppScanners().isEmpty())
         throw ErrorInfo("C++ scanner cannot be loaded.");
 
     Artifact *pluginMetaDataFile = 0;
@@ -119,7 +96,7 @@ void AutoMoc::apply(const ResolvedProductPtr &product)
         FileTag mocFileTag;
         bool alreadyMocced = isVictimOfMoc(artifact, fileType, mocFileTag);
         bool hasQObjectMacro;
-        scan(artifact, hasQObjectMacro, includedMocCppFiles);
+        scan(artifact, fileType, hasQObjectMacro, includedMocCppFiles);
         if (hasQObjectMacro && !alreadyMocced) {
             artifactsToMoc += qMakePair(artifact, fileType);
         } else if (!hasQObjectMacro && alreadyMocced) {
@@ -202,17 +179,16 @@ AutoMoc::FileType AutoMoc::fileType(Artifact *artifact)
     return UnknownFileType;
 }
 
-void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles)
+void AutoMoc::scan(Artifact *artifact, FileType fileType, bool &hasQObjectMacro,
+        QSet<QString> &includedMocCppFiles)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[AUTOMOC] checks " << relativeArtifactFileName(artifact);
 
     hasQObjectMacro = false;
-    const int numFileTags = artifact->fileTags.count();
-    char **cFileTags = createCFileTags(artifact->fileTags);
 
-    foreach (ScannerPlugin *scanner, scanners()) {
-        void *opaq = scanner->open(artifact->filePath().utf16(), cFileTags, numFileTags);
+    foreach (ScannerPlugin *scanner, fileType == HppFileType ? hppScanners() : cppScanners()) {
+        void *opaq = scanner->open(artifact->filePath().utf16(), ScanForFileTagsFlag);
         if (!opaq || !scanner->additionalFileTags)
             continue;
 
@@ -239,7 +215,7 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
             scanResult = m_scanResultCache->value(artifact->filePath());
         if (!scanResult.valid) {
             scanResult.valid = true;
-            opaq = scanner->open(artifact->filePath().utf16(), 0, 0);
+            opaq = scanner->open(artifact->filePath().utf16(), ScanForDependenciesFlag);
             if (!opaq)
                 continue;
 
@@ -269,8 +245,6 @@ void AutoMoc::scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &inc
             }
         }
     }
-
-    freeCFileTags(cFileTags, numFileTags);
 }
 
 static FileTags provideMocHeaderFileTags()
@@ -357,12 +331,20 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
     delete generatedMocArtifact;
 }
 
-QList<ScannerPlugin *> AutoMoc::scanners() const
+const QList<ScannerPlugin *> &AutoMoc::cppScanners() const
 {
-    if (m_scanners.isEmpty())
-        m_scanners = ScannerPluginManager::scannersForFileTag("hpp");
+    if (m_cppScanners.isEmpty())
+        m_cppScanners = ScannerPluginManager::scannersForFileTag("cpp");
 
-    return m_scanners;
+    return m_cppScanners;
+}
+
+const QList<ScannerPlugin *> &AutoMoc::hppScanners() const
+{
+    if (m_hppScanners.isEmpty())
+        m_hppScanners = ScannerPluginManager::scannersForFileTag("hpp");
+
+    return m_hppScanners;
 }
 
 } // namespace Internal

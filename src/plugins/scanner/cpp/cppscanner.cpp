@@ -60,7 +60,7 @@ struct Opaq
 {
     enum FileType
     {
-        FT_UNKNOWN, FT_HPP, FT_CPP
+        FT_UNKNOWN, FT_HPP, FT_CPP, FT_C, FT_OBJC, FT_OBJCPP, FT_RC
     };
 
     Opaq()
@@ -103,7 +103,7 @@ struct Opaq
     int currentResultIndex;
 };
 
-static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
+static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool scanForDependencies)
 {
     const QLatin1Literal includeLiteral("include");
     const QLatin1Literal importLiteral("import");
@@ -120,7 +120,7 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
         if (tk.newline() && tk.is(T_POUND)) {
             yylex(&tk);
 
-            if (!scanForFileTags && !tk.newline() && tk.is(T_IDENTIFIER)) {
+            if (scanForDependencies && !tk.newline() && tk.is(T_IDENTIFIER)) {
                 if ((static_cast<int>(tk.length()) >= includeLiteral.size()
                      && (strncmp(opaque->fileContent + tk.begin(), includeLiteral.data(), includeLiteral.size()) == 0))
                         || (static_cast<int>(tk.length()) >= importLiteral.size()
@@ -164,7 +164,7 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags)
     }
 }
 
-static void *openScanner(const unsigned short *filePath, char **fileTags, int numFileTags)
+static Opaq *openScanner(const unsigned short *filePath, int flags)
 {
     QScopedPointer<Opaq> opaque(new Opaq);
     opaque->fileName = QString::fromUtf16(filePath);
@@ -200,19 +200,19 @@ static void *openScanner(const unsigned short *filePath, char **fileTags, int nu
     if (!vmap)
         return 0;
 
-    for (int i=0; i < numFileTags; ++i) {
-        const char *fileTag = fileTags[i];
-        if (strncmp("cpp", fileTag, 3) == 0)
-            opaque->fileType = Opaq::FT_CPP;
-        else if (strncmp("hpp", fileTag, 3) == 0)
-            opaque->fileType = Opaq::FT_HPP;
-    }
-
     opaque->fileContent = reinterpret_cast<char *>(vmap);
     Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
-    const bool scanForFileTags = fileTags && numFileTags;
-    scanCppFile(opaque.data(), lex, scanForFileTags);
-    return static_cast<void *>(opaque.take());
+    scanCppFile(opaque.data(), lex, flags & ScanForFileTagsFlag, flags & ScanForDependenciesFlag);
+    return opaque.take();
+}
+
+template <typename Opaq::FileType t>
+static void *openScannerT(const unsigned short *filePath, int flags)
+{
+    Opaq *opaq = openScanner(filePath, flags);
+    if (opaq)
+        opaq->fileType = t;
+    return opaq;
 }
 
 static void closeScanner(void *ptr)
@@ -264,7 +264,7 @@ ScannerPlugin hppScanner =
 {
     "include_scanner",
     "hpp",
-    openScanner,
+    openScannerT<Opaq::FT_HPP>,
     closeScanner,
     next,
     additionalFileTags,
@@ -275,7 +275,7 @@ ScannerPlugin cppScanner =
 {
     "include_scanner",
     "cpp",
-    openScanner,
+    openScannerT<Opaq::FT_CPP>,
     closeScanner,
     next,
     additionalFileTags,
@@ -286,7 +286,7 @@ ScannerPlugin cScanner =
 {
     "include_scanner",
     "c",
-    openScanner,
+    openScannerT<Opaq::FT_C>,
     closeScanner,
     next,
     0,
@@ -297,7 +297,7 @@ ScannerPlugin objcppScanner =
 {
     "include_scanner",
     "objcpp",
-    openScanner,
+    openScannerT<Opaq::FT_OBJCPP>,
     closeScanner,
     next,
     additionalFileTags,
@@ -308,7 +308,7 @@ ScannerPlugin objcScanner =
 {
     "include_scanner",
     "objc",
-    openScanner,
+    openScannerT<Opaq::FT_OBJC>,
     closeScanner,
     next,
     additionalFileTags,
@@ -319,7 +319,7 @@ ScannerPlugin rcScanner =
 {
     "include_scanner",
     "rc",
-    openScanner,
+    openScannerT<Opaq::FT_RC>,
     closeScanner,
     next,
     0,

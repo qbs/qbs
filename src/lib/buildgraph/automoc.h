@@ -76,12 +76,15 @@ private:
 private:
     static QString generateMocFileName(Artifact *artifact, FileType fileType);
     static FileType fileType(Artifact *artifact);
-    void scan(Artifact *artifact, bool &hasQObjectMacro, QSet<QString> &includedMocCppFiles);
+    void scan(Artifact *artifact, FileType fileType, bool &hasQObjectMacro,
+            QSet<QString> &includedMocCppFiles);
     bool isVictimOfMoc(Artifact *artifact, FileType fileType, FileTag &foundMocFileTag);
     void unmoc(Artifact *artifact, const FileTag &mocFileTag);
-    QList<ScannerPlugin *> scanners() const;
+    const QList<ScannerPlugin *> &cppScanners() const;
+    const QList<ScannerPlugin *> &hppScanners() const;
 
-    mutable QList<ScannerPlugin *> m_scanners;
+    mutable QList<ScannerPlugin *> m_cppScanners;
+    mutable QList<ScannerPlugin *> m_hppScanners;
     ScanResultCache *m_scanResultCache;
     Logger m_logger;
 };
