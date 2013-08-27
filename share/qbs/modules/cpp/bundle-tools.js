@@ -49,20 +49,15 @@ function infoPlistFormat(infoPlistFilePath)
         throw("plutil: " + (process.readStdErr().trim() || process.readStdOut().trim()));
 
     process = new Process();
-    process.start("file", [infoPlistFilePath]);
+    process.start("file", ["-bI", infoPlistFilePath]);
     process.waitForFinished();
     var magic = process.readStdOut().trim();
 
-    if (magic.indexOf(infoPlistFilePath + ": ") !== 0)
-        throw("Unexpected output from file command: " + magic);
-
-    magic = magic.slice(infoPlistFilePath.length + 2);
-
-    if (magic === "Apple binary property list")
+    if (magic.indexOf("application/octet-stream;") === 0)
         return "binary1";
-    else if (magic.indexOf("XML") === 0)
+    else if (magic.indexOf("application/xml;") === 0)
         return "xml1";
-    else if (magic.indexOf("UTF-8 Unicode text") === 0)
+    else if (magic.indexOf("text/plain;") == 0)
         return "json";
 
     return undefined;
