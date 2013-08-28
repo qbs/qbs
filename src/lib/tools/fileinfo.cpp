@@ -421,6 +421,12 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
 {
     QFileInfo srcFileInfo(srcFilePath);
     QFileInfo tgtFileInfo(tgtFilePath);
+    const QString targetDirPath = tgtFileInfo.absoluteDir().path();
+    if (!QDir::root().mkpath(targetDirPath)) {
+        *errorMessage = Tr::tr("The directory '%1' could not be created.")
+                .arg(QDir::toNativeSeparators(targetDirPath));
+        return false;
+    }
     if (HostOsInfo::isAnyUnixHost() && preserveSymLinks && srcFileInfo.isSymLink()) {
         // For now, disable symlink preserving copying on Windows.
         // MS did a good job to prevent people from using symlinks - even if they are supported.
@@ -430,13 +436,6 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
             return false;
         }
     } else if (srcFileInfo.isDir()) {
-        QDir targetDir(tgtFilePath);
-        targetDir.cdUp();
-        if (!targetDir.mkpath(tgtFileInfo.fileName())) {
-            *errorMessage = Tr::tr("The directory '%1' could not be created.")
-               .arg(QDir::toNativeSeparators(tgtFilePath));
-            return false;
-        }
         QDir sourceDir(srcFilePath);
         QStringList fileNames = sourceDir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot
             | QDir::Hidden | QDir::System);
