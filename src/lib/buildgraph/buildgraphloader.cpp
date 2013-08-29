@@ -508,6 +508,8 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &produc
     // Discard groups of the old product. Use the groups of the new one.
     product->groups = changedProduct->groups;
     product->properties = changedProduct->properties;
+    if (!product->enabled)
+        return;
 
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)

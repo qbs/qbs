@@ -588,6 +588,7 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
 
 const QList<RuleConstPtr> &ResolvedProduct::topSortedRules() const
 {
+    QBS_CHECK(buildData);
     if (buildData->topSortedRules.isEmpty()) {
         FileTags productFileTags = fileTags;
         productFileTags += additionalFileTags;
