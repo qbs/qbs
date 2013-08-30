@@ -477,9 +477,10 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
     foreach (const GroupConstPtr &group, internalProduct->groups) {
         foreach (const SourceArtifactConstPtr &artifact, group->allFiles()) {
             InstallableFile f;
-            f.d->targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
-                    artifact->absoluteFilePath, artifact->properties, mutableOptions);
-            if (f.d->targetFilePath.isEmpty())
+            const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                    artifact->absoluteFilePath, artifact->properties, mutableOptions,
+                    &f.d->targetDirectory);
+            if (targetFilePath.isEmpty())
                 continue;
             f.d->sourceFilePath = artifact->absoluteFilePath;
             f.d->fileTags = artifact->fileTags.toStringList();
@@ -493,9 +494,10 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
             InstallableFile f;
-            f.d->targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
-                    artifact->filePath(), artifact->properties, mutableOptions);
-            if (f.d->targetFilePath.isEmpty())
+            const QString &targetFilePath = ProductInstaller::targetFilePath(internalProduct->topLevelProject(),
+                    artifact->filePath(), artifact->properties, mutableOptions,
+                    &f.d->targetDirectory);
+            if (targetFilePath.isEmpty())
                 continue;
             f.d->sourceFilePath = artifact->filePath();
             f.d->fileTags = artifact->fileTags.toStringList();

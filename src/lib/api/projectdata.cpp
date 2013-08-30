@@ -31,6 +31,7 @@
 #include "projectdata_p.h"
 #include "propertymap_p.h"
 #include <language/propertymapinternal.h>
+#include <tools/fileinfo.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -285,11 +286,21 @@ QString InstallableFile::sourceFilePath() const
 }
 
 /*!
+ * \brief The directory that this file will be copied into on installation.
+ */
+QString InstallableFile::targetDirectory() const
+{
+    return d->targetDirectory;
+}
+
+/*!
  * \brief The file path that this file will be copied to on installation.
+ * This is a convenience function.
+ * \sa InstallableFile::targetDirectory()
  */
 QString InstallableFile::targetFilePath() const
 {
-    return d->targetFilePath;
+    return d->targetDirectory + QLatin1Char('/') + Internal::FileInfo::fileName(d->sourceFilePath);
 }
 
 /*!
