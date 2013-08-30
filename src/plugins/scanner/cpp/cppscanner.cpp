@@ -164,10 +164,11 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
     }
 }
 
-static Opaq *openScanner(const unsigned short *filePath, int flags)
+static Opaq *openScanner(const unsigned short *filePath, Opaq::FileType fileType, int flags)
 {
     QScopedPointer<Opaq> opaque(new Opaq);
     opaque->fileName = QString::fromUtf16(filePath);
+    opaque->fileType = fileType;
 
     size_t mapl = 0;
 #ifdef Q_OS_UNIX
@@ -209,10 +210,7 @@ static Opaq *openScanner(const unsigned short *filePath, int flags)
 template <typename Opaq::FileType t>
 static void *openScannerT(const unsigned short *filePath, int flags)
 {
-    Opaq *opaq = openScanner(filePath, flags);
-    if (opaq)
-        opaq->fileType = t;
-    return opaq;
+    return openScanner(filePath, t, flags);
 }
 
 static void closeScanner(void *ptr)
