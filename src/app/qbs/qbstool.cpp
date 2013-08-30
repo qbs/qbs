@@ -32,6 +32,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFileInfo>
 #include <QProcess>
 
 #include <iostream>
@@ -49,8 +50,14 @@ void QbsTool::runTool(const QString &toolName, const QStringList &arguments)
 {
     m_failedToStart = false;
     m_exitCode = -1;
+    const QString filePath = qbsToolFilePath(toolName);
+    const QFileInfo fi(filePath);
+    if (!fi.exists() || !fi.isFile() || !fi.isExecutable()) {
+        m_failedToStart = true;
+        return;
+    }
     QProcess toolProc;
-    toolProc.start(qbsToolFilePath(toolName), arguments);
+    toolProc.start(filePath, arguments);
     if (!toolProc.waitForStarted())
         m_failedToStart = true;
     toolProc.waitForFinished(-1);
