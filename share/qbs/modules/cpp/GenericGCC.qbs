@@ -283,6 +283,7 @@ CppModule {
         }
 
         prepare: {
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var cFlags = ModUtils.moduleProperties(input, 'cFlags');
             var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
             var objcFlags = ModUtils.moduleProperties(input, 'objcFlags');
