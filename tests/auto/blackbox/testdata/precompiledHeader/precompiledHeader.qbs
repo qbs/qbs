@@ -2,7 +2,7 @@ import qbs 1.0
 
 Product {
     type: "application"
-    name: "pch"
+    name: "MyApp"
     files: ["stable.h",
             "myobject.h",
             "main.cpp",

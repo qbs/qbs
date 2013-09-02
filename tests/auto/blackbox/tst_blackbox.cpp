@@ -188,6 +188,10 @@ void TestBlackbox::build_project_data()
             << QString("link_staticlib")
             << QString(buildDir + QLatin1String("/")
                        + HostOsInfo::appendExecutableSuffix("HelloWorld"));
+    QTest::newRow("precompiled header")
+            << QString("precompiledHeader")
+            << QString(buildDir + QLatin1String("/")
+                       + HostOsInfo::appendExecutableSuffix("MyApp"));
     QTest::newRow("lots of dots")
             << QString("lotsofdots")
             << QString(buildDir + QLatin1String("/")
