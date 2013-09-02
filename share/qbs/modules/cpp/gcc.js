@@ -123,7 +123,8 @@ function additionalCompilerFlags(product, input, output)
     var effectiveType = EffectiveTypeEnum.UNKNOWN;
     var libTypes = {staticlibrary : 1, dynamiclibrary : 1, frameworkbundle : 1};
     var appTypes = {application : 1, applicationbundle : 1};
-    for (var i = product.type.length; --i >= 0;) {
+    var i;
+    for (i = product.type.length; --i >= 0;) {
         if (libTypes.hasOwnProperty(product.type[i]) !== -1) {
             effectiveType = EffectiveTypeEnum.LIB;
             break;
@@ -153,7 +154,6 @@ function additionalCompilerFlags(product, input, output)
         else
             args.push('--sysroot=' + sysroot);
     }
-    var i;
     var cppFlags = ModUtils.moduleProperties(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
