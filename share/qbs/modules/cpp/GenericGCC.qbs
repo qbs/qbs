@@ -275,7 +275,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c", "objcpp", "objc"]
         auxiliaryInputs: ["hpp"]
-        explicitlyDependsOn: ["c++_pch"]
+        explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
 
         Artifact {
             fileTags: ["obj"]
@@ -283,106 +283,55 @@ CppModule {
         }
 
         prepare: {
-            var cFlags = ModUtils.moduleProperties(input, 'cFlags');
-            var cxxFlags = ModUtils.moduleProperties(input, 'cxxFlags');
-            var objcFlags = ModUtils.moduleProperties(input, 'objcFlags');
-            var objcxxFlags = ModUtils.moduleProperties(input, 'objcxxFlags');
-            var visibility = ModUtils.moduleProperty(product, 'visibility');
-            var args = Gcc.configFlags(input);
-            var i, c;
-
-            args.push('-pipe');
-
-            if (!product.type.contains('staticlibrary')
-                    && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-                if (visibility === 'hidden')
-                    args.push('-fvisibility=hidden');
-                if (visibility === 'hiddenInlines')
-                    args.push('-fvisibility-inlines-hidden');
-                if (visibility === 'default')
-                    args.push('-fvisibility=default')
-            }
-
-            var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
-            for (i in prefixHeaders) {
-                args.push('-include');
-                args.push(prefixHeaders[i]);
-            }
-
-            args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
-            for (i = 0, c = input.fileTags.length; i < c; ++i) {
-                if (input.fileTags[i] === "cpp") {
-                    if (ModUtils.moduleProperty(product, "precompiledHeader")) {
-                        var pchFilePath = FileInfo.joinPaths(
-                                    ModUtils.moduleProperty(product, "precompiledHeaderDir"),
-                                    product.name);
-                        args.push('-include', pchFilePath);
-                    }
-                    args = args.concat(
-                                ModUtils.moduleProperties(input, 'platformCxxFlags'),
-                                cxxFlags);
-                    break;
-                } else if (input.fileTags[i] === "c") {
-                    args.push('-x');
-                    args.push('c');
-                    args = args.concat(
-                                ModUtils.moduleProperties(input, 'platformCFlags'),
-                                cFlags);
-                    break;
-                } else if (input.fileTags[i] === "objc") {
-                    args.push('-x');
-                    args.push('objective-c');
-                    args = args.concat(
-                                ModUtils.moduleProperties(input, 'platformObjcFlags'),
-                                objcFlags);
-                    break;
-                } else if (input.fileTags[i] === "objcpp") {
-                    args.push('-x');
-                    args.push('objective-c++');
-                    args = args.concat(
-                                ModUtils.moduleProperties(input, 'platformObjcxxFlags'),
-                                objcxxFlags);
-                    break;
-                }
-            }
-            args = args.concat(ModUtils.moduleProperties(input, 'commonCompilerFlags'));
-            args = args.concat(Gcc.additionalCompilerFlags(product, input, output));
-            args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-            var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
-            var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
-            if (wrapperArgs && wrapperArgs.length > 0) {
-                args.unshift(compilerPath);
-                compilerPath = wrapperArgs.shift();
-                args = wrapperArgs.concat(args);
-            }
-            var cmd = new Command(compilerPath, args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
-            cmd.highlight = "compiler";
-            cmd.responseFileUsagePrefix = '@';
-            return cmd;
+            return Gcc.prepareCompiler(product, input, output);
         }
     }
 
     Transformer {
-        condition: precompiledHeader != null
-        inputs: precompiledHeader
+        condition: cPrecompiledHeader !== undefined
+        inputs: cPrecompiledHeader
         Artifact {
-            fileName: product.name + ".gch"
-            fileTags: "c++_pch"
+            fileName: product.name + "_c.gch"
+            fileTags: "c_pch"
         }
         prepare: {
-            var args = Gcc.configFlags(product);
-            args.push('-x');
-            args.push('c++-header');
-            var cxxFlags = ModUtils.moduleProperty(product, "cxxFlags")
-            if (cxxFlags)
-                args = args.concat(cxxFlags);
-            args = args.concat(Gcc.additionalCompilerFlags(product, input, output));
-            args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
-            cmd.description = 'precompiling ' + FileInfo.fileName(input.fileName);
-            cmd.responseFileUsagePrefix = '@';
-            return cmd;
+            return Gcc.prepareCompiler(product, input, output);
+        }
+    }
+
+    Transformer {
+        condition: cxxPrecompiledHeader !== undefined
+        inputs: cxxPrecompiledHeader
+        Artifact {
+            fileName: product.name + "_cpp.gch"
+            fileTags: "cpp_pch"
+        }
+        prepare: {
+            return Gcc.prepareCompiler(product, input, output);
+        }
+    }
+
+    Transformer {
+        condition: objcPrecompiledHeader !== undefined
+        inputs: objcPrecompiledHeader
+        Artifact {
+            fileName: product.name + "_objc.gch"
+            fileTags: "objc_pch"
+        }
+        prepare: {
+            return Gcc.prepareCompiler(product, input, output);
+        }
+    }
+
+    Transformer {
+        condition: objcxxPrecompiledHeader !== undefined
+        inputs: objcxxPrecompiledHeader
+        Artifact {
+            fileName: product.name + "_objcpp.gch"
+            fileTags: "objcpp_pch"
+        }
+        prepare: {
+            return Gcc.prepareCompiler(product, input, output);
         }
     }
 }

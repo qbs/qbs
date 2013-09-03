@@ -9,6 +9,11 @@ Module {
     property bool debugInformation: qbs.debugInformation
     property pathList prefixHeaders
     property path precompiledHeader
+    property path cPrecompiledHeader: precompiledHeader
+    property path cxxPrecompiledHeader: precompiledHeader
+    // ### default to undefined on non-Apple platforms for now - QBS-346
+    property path objcPrecompiledHeader: qbs.targetOS.contains("darwin") ? precompiledHeader : undefined
+    property path objcxxPrecompiledHeader: qbs.targetOS.contains("darwin") ? precompiledHeader : undefined
     property path precompiledHeaderDir: product.buildDirectory
     property stringList defines
     property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]

@@ -71,7 +71,7 @@ void AutoMoc::apply(const ResolvedProductPtr &product)
         Artifact *artifact = *it;
         if (!pchFile || !pluginMetaDataFile) {
             foreach (const FileTag &fileTag, artifact->fileTags) {
-                if (fileTag == "c++_pch")
+                if (fileTag == "cpp_pch")
                     pchFile = artifact;
                 else if (fileTag == "qt_plugin_metadata")
                     pluginMetaDataFile = artifact;
@@ -136,7 +136,7 @@ void AutoMoc::apply(const ResolvedProductPtr &product)
     }
 
     if (pchFile)
-        artifactsPerFileTag["c++_pch"] += pchFile;
+        artifactsPerFileTag["cpp_pch"] += pchFile;
     if (!artifactsPerFileTag.isEmpty()) {
         emit reportCommandDescription(QLatin1String("automoc"),
                                       Tr::tr("Applying moc rules for '%1'.")

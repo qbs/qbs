@@ -6,8 +6,7 @@ CppApplication {
     type: "applicationbundle"
     name: "CocoaApplication"
 
-    // Only works with C++ at the moment
-    //cpp.precompiledHeader: "CocoaApplication-Prefix.pch"
+    cpp.precompiledHeader: "CocoaApplication-Prefix.pch"
 
     cpp.infoPlistFile: "CocoaApplication/CocoaApplication-Info.plist"
 

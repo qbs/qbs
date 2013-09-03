@@ -5,12 +5,13 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
     var args = ['/nologo', '/c']
 
-    // C or C++
-    var isCxx = true;
-    if (input.fileTags.contains('c')) {
-        isCxx = false;
-        args.push('/TC')
-    }
+    // Determine which C-language we're compiling
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(Object.keys(outputs)));
+    if (!["c", "cpp"].contains(tag))
+        throw ("unsupported source language");
+
+    // Whether we're compiling a precompiled header or normal source file
+    var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
 
     // enable unwind semantics
     args.push("/EHsc")
@@ -63,34 +64,36 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     for (i in prefixHeaders)
         args.push("/FI" + FileInfo.toWindowsSeparators(prefixHeaders[i]));
 
-    if (isCxx) {
-        // precompiled header file
-        var pch = ModUtils.moduleProperty(product, "precompiledHeader")
-        if (pch) {
-            var pchOutput = outputs["c++_pch"] ? outputs["c++_pch"][0] : undefined
-            if (pchOutput) {
-                // create pch
-                args.push('/Yc')
-                args.push('/Fp' + FileInfo.toWindowsSeparators(pchOutput.fileName))
-                args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
-                args.push('/TP')
-                args.push(FileInfo.toWindowsSeparators(input.fileName))
-            } else {
-                // use pch
-                var pchHeaderName = FileInfo.toWindowsSeparators(pch)
-                var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
-                        + "\\.obj\\" + product.name + "\\" + product.name + ".pch")
-                args.push("/FI" + pchHeaderName)
-                args.push("/Yu" + pchHeaderName)
-                args.push("/Fp" + pchName)
-            }
+    // Language
+    if (tag === "cpp")
+        args.push("/TP");
+    else if (tag === "c")
+        args.push("/TC");
+
+    // precompiled header file
+    var pch = ModUtils.moduleProperty(product, "precompiledHeader", tag);
+    if (pch) {
+        if (pchOutput) {
+            // create PCH
+            args.push("/Yc");
+            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.fileName));
+            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.fileName));
+            args.push(FileInfo.toWindowsSeparators(input.fileName));
+        } else {
+            // use PCH
+            var pchHeaderName = FileInfo.toWindowsSeparators(pch);
+            var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
+                + "\\.obj\\" + product.name + "\\" + product.name + "_" + tag + ".pch");
+            args.push("/FI" + pchHeaderName);
+            args.push("/Yu" + pchHeaderName);
+            args.push("/Fp" + pchName);
         }
-        if (cxxFlags)
-            args = args.concat(cxxFlags);
-    } else {
-        if (cFlags)
-            args = args.concat(cFlags);
     }
+
+    if (cxxFlags && tag === "cpp")
+        args = args.concat(cxxFlags);
+    else if (cFlags && tag === "c")
+        args = args.concat(cFlags);
 
     var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
@@ -100,7 +103,9 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args = wrapperArgs.concat(args);
     }
     var cmd = new Command(compilerPath, args)
-    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName)
+    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName);
+    if (pchOutput)
+        cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";
     cmd.workingDirectory = FileInfo.path(objOutput.fileName)
     cmd.responseFileUsagePrefix = '@';

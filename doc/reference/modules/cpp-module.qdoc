@@ -155,20 +155,64 @@
     \section2 precompiledHeader
 
     \table
-    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Type:}            \li \c{path}
     \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Name of the header file to be precompiled.
+
+    If you want to use the same precompiled header for all languages (C, C++,
+    Objective-C and Objective-C++), set this property and ensure that the header
+    contains appropriate ifdefs.
+
+    Otherwise, use the \c{cPrecompiledHeader}, \c{cppPrecompiledHeader},
+    \c{objcPrecompiledHeader} and \c{objcppPrecompiledHeader} to specify
+    precompiled headers per-language.
+
+    \section2 cPrecompiledHeader
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{precompiledHeader}
+    \endtable
+
+    Name of the C header file to be precompiled.
+
+    \section2 cxxPrecompiledHeader
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{precompiledHeader}
     \endtable
 
     Name of the C++ header file to be precompiled.
 
+    \section2 objcPrecompiledHeader
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{precompiledHeader}
+    \endtable
+
+    Name of the Objective-C header file to be precompiled.
+
+    \section2 objcxxPrecompiledHeader
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{precompiledHeader}
+    \endtable
+
+    Name of the Objective-C++ header file to be precompiled.
+
     \section2 precompiledHeaderDir
 
     \table
-    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Type:}            \li \c{path}
     \row    \li \b{Default:}         \li \c{product.buildDirectory}
     \endtable
 
-    The directory that will contain the precompiled C++ header file.
+    The directory that will contain the precompiled header files.
     Usually you won't need to set this.
 
     \section2 optimization

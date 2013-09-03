@@ -70,19 +70,19 @@ CppModule {
     }
 
     Transformer {
-        condition: precompiledHeader !== undefined
-        inputs: precompiledHeader
+        condition: cPrecompiledHeader !== undefined
+        inputs: cPrecompiledHeader
         Artifact {
             fileTags: ['obj']
             fileName: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
-                        "precompiledHeader"));
-                return ".obj/" + product.name + "/" + completeBaseName + '.obj'
+                        "cPrecompiledHeader"));
+                return ".obj/" + product.name + "/" + completeBaseName + '_c.obj'
             }
         }
         Artifact {
-            fileTags: ['c++_pch']
-            fileName: ".obj/" + product.name + "/" + product.name + '.pch'
+            fileTags: ['c_pch']
+            fileName: ".obj/" + product.name + "/" + product.name + '_c.pch'
         }
         prepare: {
             var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
@@ -91,9 +91,34 @@ CppModule {
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
             var cFlags = ModUtils.moduleProperties(input, 'platformCFlags').concat(
                         ModUtils.moduleProperties(input, 'cFlags'));
+            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, undefined)
+        }
+    }
+
+    Transformer {
+        condition: cxxPrecompiledHeader !== undefined
+        inputs: cxxPrecompiledHeader
+        explicitlyDependsOn: ["c_pch"]  // to prevent vc--0.pdb conflict
+        Artifact {
+            fileTags: ['obj']
+            fileName: {
+                var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
+                        "cxxPrecompiledHeader"));
+                return ".obj/" + product.name + "/" + completeBaseName + '_cpp.obj'
+            }
+        }
+        Artifact {
+            fileTags: ['cpp_pch']
+            fileName: ".obj/" + product.name + "/" + product.name + '_cpp.pch'
+        }
+        prepare: {
+            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var defines = ModUtils.moduleProperties(input, 'defines');
+            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
+            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
             var cxxFlags = ModUtils.moduleProperties(input, 'platformCxxFlags').concat(
                         ModUtils.moduleProperties(input, 'cxxFlags'));
-            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, undefined, cxxFlags)
         }
     }
 
@@ -101,7 +126,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        explicitlyDependsOn: ["c++_pch"]
+        explicitlyDependsOn: ["c_pch", "cpp_pch"]
 
         Artifact {
             fileTags: ['obj']

@@ -227,3 +227,83 @@ function soname(product, outputFilePath)
     }
     return outputFileName;
 }
+
+// Returns the GCC language name equivalent to fileTag, accepted by the -x argument
+function languageName(fileTag)
+{
+    if (fileTag === 'c')
+        return 'c';
+    else if (fileTag === 'cpp')
+        return 'c++';
+    else if (fileTag === 'objc')
+        return 'objective-c';
+    else if (fileTag === 'objcpp')
+        return 'objective-c++';
+}
+
+function prepareCompiler(product, input, output)
+{
+    var i, c;
+
+    // Determine which C-language we're compiling
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+    if (!["c", "cpp", "objc", "objcpp"].contains(tag))
+        throw ("unsupported source language");
+
+    // Whether we're compiling a precompiled header or normal source file
+    var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
+
+    var args = configFlags(input);
+    args.push('-pipe');
+
+    var visibility = ModUtils.moduleProperty(product, 'visibility');
+    if (!product.type.contains('staticlibrary')
+            && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+        if (visibility === 'hidden')
+            args.push('-fvisibility=hidden');
+        if (visibility === 'hiddenInlines')
+            args.push('-fvisibility-inlines-hidden');
+        if (visibility === 'default')
+            args.push('-fvisibility=default')
+    }
+
+    var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
+    for (i in prefixHeaders) {
+        args.push('-include');
+        args.push(prefixHeaders[i]);
+    }
+
+    args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
+
+    args.push('-x');
+    args.push(Gcc.languageName(tag) + (pchOutput ? '-header' : ''));
+    args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', tag),
+                       ModUtils.moduleProperties(input, 'flags', tag));
+
+    if (!pchOutput && ModUtils.moduleProperty(product, 'precompiledHeader', tag)) {
+        var pchFilePath = FileInfo.joinPaths(
+            ModUtils.moduleProperty(product, "precompiledHeaderDir"),
+            product.name + "_" + tag);
+        args.push('-include', pchFilePath);
+    }
+
+    args = args.concat(ModUtils.moduleProperties(input, 'commonCompilerFlags'));
+    args = args.concat(additionalCompilerFlags(product, input, output));
+    args = args.concat(additionalCompilerAndLinkerFlags(product));
+
+    var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
+    var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
+    if (wrapperArgs && wrapperArgs.length > 0) {
+        args.unshift(compilerPath);
+        compilerPath = wrapperArgs.shift();
+        args = wrapperArgs.concat(args);
+    }
+
+    var cmd = new Command(compilerPath, args);
+    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName);
+    if (pchOutput)
+        cmd.description += ' (' + tag + ')';
+    cmd.highlight = "compiler";
+    cmd.responseFileUsagePrefix = '@';
+    return cmd;
+}
