@@ -80,7 +80,7 @@ static QString commandArgsToString(const QStringList &args)
     foreach (const QString &arg, args) {
         result += QLatin1Char(' ');
 
-        if (arg.contains(ws))
+        if (arg.contains(ws) || arg.isEmpty())
             result += QLatin1Char('"') + arg + QLatin1Char('"');
         else
             result += arg;
@@ -151,7 +151,7 @@ void ProcessCommandExecutor::doStart()
     }
 
     logger().qbsDebug() << "[EXEC] Running external process; full command line is: " << program
-                        << " " << commandArgsToString(arguments);
+                        << commandArgsToString(arguments);
     logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(cmd->workingDir());
     m_process.start(program, arguments);
