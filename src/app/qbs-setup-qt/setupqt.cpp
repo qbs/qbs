@@ -334,7 +334,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
     }
 
     if (qtEnvironment.mkspecPath.contains("ios") && qtEnvironment.qtMajorVersion >= 5)
-        iosVersion = QLatin1String("4.3");
+        iosVersion = QLatin1String("5.0");
 
     if (qtEnvironment.mkspecPath.contains("android")) {
         if (qtEnvironment.qtMajorVersion >= 5)
