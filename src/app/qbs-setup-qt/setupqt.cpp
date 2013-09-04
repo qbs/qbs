@@ -257,6 +257,10 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
             qtEnvironment.buildVariant << QLatin1String("debug");
     }
 
+    // determine whether user apps require C++11
+    if (qtEnvironment.qtConfigItems.contains("c++11") && qtEnvironment.staticBuild)
+        qtEnvironment.configItems.append("c++11");
+
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
         throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
 
@@ -332,6 +336,9 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
             if (osxVersion.isEmpty())
                 throw ErrorInfo(tr("error reading qconfig.h; could not determine whether Qt is using Cocoa or Carbon"));
         }
+
+        if (qtEnvironment.configItems.contains("c++11"))
+            osxVersion = QLatin1String("10.7");
     }
 
     if (qtEnvironment.mkspecPath.contains("ios") && qtEnvironment.qtMajorVersion >= 5)

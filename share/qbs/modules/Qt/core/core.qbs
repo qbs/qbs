@@ -106,6 +106,8 @@ Module {
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');
         }
+        if (qbs.toolchain.contains('clang') && config.contains('c++11'))
+            flags.push('-stdlib=libc++');
         return flags;
     }
 
