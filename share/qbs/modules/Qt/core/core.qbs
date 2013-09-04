@@ -12,6 +12,7 @@ Module {
     property string namespace
     property string libInfix: ""
     property string repository: versionMajor === 5 ? "qtbase" : undefined
+    property stringList config: []
     property stringList qtConfig: []
     property string binPath
     property string incPath
