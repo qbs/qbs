@@ -57,5 +57,7 @@ win32 {
 !qbs_no_dev_install {
     qbs_h.files = qbs.h
     qbs_h.path = $${QBS_INSTALL_PREFIX}/include/qbs
-    INSTALLS += qbs_h
+    use_pri.files = use_installed.pri
+    use_pri.path = $${qbs_h.path}
+    INSTALLS += qbs_h use_pri
 }
