@@ -270,7 +270,6 @@ Product {
             "progressobserver.h",
             "propertyfinder.cpp",
             "propertyfinder.h",
-            "qbs_export.h",
             "qbsassert.cpp",
             "qbsassert.h",
             "qttools.cpp",
@@ -296,6 +295,7 @@ Product {
             "preferences.h",
             "processresult.h",
             "profile.h",
+            "qbs_export.h",
             "settings.h",
             "setupprojectparameters.h",
         ]

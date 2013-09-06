@@ -70,6 +70,7 @@ all_tests {
         $$PWD/preferences.h \
         $$PWD/profile.h \
         $$PWD/processresult.h \
+        $$PWD/qbs_export.h \
         $$PWD/buildoptions.h \
         $$PWD/installoptions.h \
         $$PWD/setupprojectparameters.h
