@@ -223,6 +223,7 @@ void InternalSetupProjectJob::start()
     try {
         execute();
     } catch (const ErrorInfo &error) {
+        m_project.clear();
         setError(error);
     }
     emit finished(this);

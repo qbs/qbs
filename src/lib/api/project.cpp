@@ -297,6 +297,15 @@ Project::~Project()
 {
 }
 
+/*!
+ * \brief Returns true if and only if this object was retrieved from a successful \c SetupProjectJob.
+ * \sa SetupProjectJob
+ */
+bool Project::isValid() const
+{
+    return d && d->internalProject;
+}
+
 Project &Project::operator=(const Project &other)
 {
     d = other.d;
@@ -326,6 +335,10 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
         job->reportError(error);
     }
     return job;
+}
+
+Project::Project()
+{
 }
 
 

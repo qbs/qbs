@@ -72,10 +72,12 @@ public:
     static SetupProjectJob *setupProject(const SetupProjectParameters &parameters,
                                          ILogSink *logSink, QObject *jobOwner);
 
+    Project();
     Project(const Project &other);
     Project &operator=(const Project &other);
     ~Project();
 
+    bool isValid() const;
     ProjectData projectData() const;
     QString targetExecutable(const ProductData &product,
                              const InstallOptions &installoptions) const;
@@ -118,7 +120,6 @@ public:
     QSet<QString> buildSystemFiles() const;
 
 private:
-    Project();
     Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);
 
     QExplicitlySharedDataPointer<Internal::ProjectPrivate> d;
