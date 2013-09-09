@@ -105,6 +105,7 @@ private slots:
     void resolve_project_dry_run_data();
     void resolve_project_dry_run();
     void clean();
+    void exportWithRecursiveDepends();
     void renameProduct();
     void renameTargetArtifact();
     void subProjects();
