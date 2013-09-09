@@ -65,7 +65,7 @@ public:
     void updateNodesThatMustGetNewTransformer(const Logger &logger);
     void removeArtifact(Artifact *artifact, const Logger &logger);
     void removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
-                        const Logger &logger, bool removeFromDisk = true);
+            const Logger &logger, bool removeFromDisk = true, bool removeFromProduct = true);
 
     QSet<FileDependency *> fileDependencies;
     RulesEvaluationContextPtr evaluationContext;

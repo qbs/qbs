@@ -412,7 +412,7 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
     if (product->buildData) {
         foreach (Artifact *artifact, product->buildData->artifacts) {
             projectBuildData->removeArtifact(artifact, projectBuildData, m_logger,
-                                             removeArtifactsFromDisk);
+                                             removeArtifactsFromDisk, false);
         }
     }
 }

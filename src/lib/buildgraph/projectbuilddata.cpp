@@ -142,16 +142,18 @@ static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuil
 }
 
 void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
-                                      const Logger &logger, bool removeFromDisk)
+        const Logger &logger, bool removeFromDisk, bool removeFromProduct)
 {
     if (logger.traceEnabled())
         logger.qbsTrace() << "[BG] remove artifact " << relativeArtifactFileName(artifact);
 
     if (removeFromDisk)
         removeGeneratedArtifactFromDisk(artifact, logger);
-    artifact->product->buildData->artifacts.remove(artifact);
     removeFromLookupTable(artifact);
-    artifact->product->buildData->targetArtifacts.remove(artifact);
+    if (removeFromProduct) {
+        artifact->product->buildData->artifacts.remove(artifact);
+        artifact->product->buildData->targetArtifacts.remove(artifact);
+    }
     disconnectArtifact(artifact, projectBuildData, logger);
     projectBuildData->artifactsThatMustGetNewTransformers -= artifact;
     isDirty = true;

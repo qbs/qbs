@@ -312,6 +312,7 @@ void AutoMoc::unmoc(Artifact *artifact, const FileTag &mocFileTag)
                                     << relativeArtifactFileName(mocObjArtifact);
             }
             project->buildData->removeArtifact(mocObjArtifact, m_logger);
+            delete mocObjArtifact;
         }
     }
 
