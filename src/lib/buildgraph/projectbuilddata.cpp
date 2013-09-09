@@ -141,7 +141,7 @@ static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuil
     disconnectArtifactParents(artifact, projectBuildData, logger);
 }
 
-void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
+void ProjectBuildData::removeArtifact(Artifact *artifact,
         const Logger &logger, bool removeFromDisk, bool removeFromProduct)
 {
     if (logger.traceEnabled())
@@ -154,14 +154,9 @@ void ProjectBuildData::removeArtifact(Artifact *artifact, ProjectBuildData *proj
         artifact->product->buildData->artifacts.remove(artifact);
         artifact->product->buildData->targetArtifacts.remove(artifact);
     }
-    disconnectArtifact(artifact, projectBuildData, logger);
-    projectBuildData->artifactsThatMustGetNewTransformers -= artifact;
+    disconnectArtifact(artifact, this, logger);
+    artifactsThatMustGetNewTransformers -= artifact;
     isDirty = true;
-}
-
-void ProjectBuildData::removeArtifact(Artifact *artifact, const Logger &logger)
-{
-    removeArtifact(artifact, artifact->product->topLevelProject()->buildData.data(), logger);
 }
 
 void ProjectBuildData::updateNodesThatMustGetNewTransformer(const Logger &logger)
