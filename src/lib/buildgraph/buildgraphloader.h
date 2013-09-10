@@ -43,6 +43,7 @@ class SetupProjectParameters;
 namespace Internal {
 class ArtifactList;
 class FileDependency;
+class FileResourceBase;
 class FileTime;
 class Property;
 
@@ -58,6 +59,7 @@ class BuildGraphLoader
 {
 public:
     BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger);
+    ~BuildGraphLoader();
 
     BuildGraphLoadResult load(const SetupProjectParameters &parameters,
                               const RulesEvaluationContextPtr &evalContext);
@@ -85,8 +87,8 @@ private:
                                  const ResolvedProductPtr &newlyResolvedProduct);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
                           bool removeArtifactsFromDisk = true);
-    void onProductFileListChanged(const ResolvedProductPtr &product,
-                          const ResolvedProductPtr &changedProduct);
+    void onProductFileListChanged(const ResolvedProductPtr &restoredProduct,
+            const ResolvedProductPtr &newlyResolvedProduct, const ProjectBuildData *oldBuildData);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
             ArtifactList *removedArtifacts = 0);
     bool checkForPropertyChanges(const TransformerConstPtr &restoredTrafo,
@@ -103,6 +105,9 @@ private:
     BuildGraphLoadResult m_result;
     Logger m_logger;
     QProcessEnvironment m_environment;
+
+    // These must only be deleted at the end so we can still peek into the old look-up table.
+    QList<FileResourceBase *> m_objectsToDelete;
 };
 
 } // namespace Internal

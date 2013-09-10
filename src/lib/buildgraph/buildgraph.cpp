@@ -316,35 +316,49 @@ QString relativeArtifactFileName(const Artifact *artifact)
 }
 
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
-        const ProjectBuildData *projectBuildData, const QString &dirPath, const QString &fileName)
+        const ProjectBuildData *projectBuildData, const QString &dirPath, const QString &fileName,
+        bool compareByName)
 {
     const QList<FileResourceBase *> lookupResults
             = projectBuildData->lookupFiles(dirPath, fileName);
     for (QList<FileResourceBase *>::const_iterator it = lookupResults.constBegin();
             it != lookupResults.constEnd(); ++it) {
         Artifact *artifact = dynamic_cast<Artifact *>(*it);
-        if (artifact && artifact->product == product)
+        if (artifact && (compareByName
+                         ? artifact->product->name == product->name
+                         : artifact->product == product))
             return artifact;
     }
     return 0;
 }
 
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
-                         const QString &fileName)
+                         const QString &fileName, bool compareByName)
 {
-    return lookupArtifact(product, product->topLevelProject()->buildData.data(), dirPath, fileName);
+    return lookupArtifact(product, product->topLevelProject()->buildData.data(), dirPath, fileName,
+                          compareByName);
 }
 
-Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath)
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath,
+                         bool compareByName)
 {
     QString dirPath, fileName;
     FileInfo::splitIntoDirectoryAndFileName(filePath, &dirPath, &fileName);
-    return lookupArtifact(product, dirPath, fileName);
+    return lookupArtifact(product, dirPath, fileName, compareByName);
 }
 
-Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact *artifact)
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const ProjectBuildData *buildData,
+                         const QString &filePath, bool compareByName)
 {
-    return lookupArtifact(product, artifact->dirPath(), artifact->fileName());
+    QString dirPath, fileName;
+    FileInfo::splitIntoDirectoryAndFileName(filePath, &dirPath, &fileName);
+    return lookupArtifact(product, buildData, dirPath, fileName, compareByName);
+}
+
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact *artifact,
+                         bool compareByName)
+{
+    return lookupArtifact(product, artifact->dirPath(), artifact->fileName(), compareByName);
 }
 
 Artifact *createArtifact(const ResolvedProductPtr &product,

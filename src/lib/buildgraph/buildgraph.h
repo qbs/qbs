@@ -46,11 +46,16 @@ class ScriptPropertyObserver;
 
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
                          const ProjectBuildData *projectBuildData,
-                         const QString &dirPath, const QString &fileName);
+                         const QString &dirPath, const QString &fileName,
+                         bool compareByName = false);
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &dirPath,
-                         const QString &fileName);
-Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath);
-Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact *artifact);
+                         const QString &fileName, bool compareByName = false);
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const ProjectBuildData *buildData,
+                         const QString &filePath, bool compareByName = false);
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const QString &filePath,
+                         bool compareByName = false);
+Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact *artifact,
+                         bool compareByName);
 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
