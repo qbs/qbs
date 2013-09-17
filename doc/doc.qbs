@@ -9,7 +9,7 @@ Product {
     files: [
         "qbs.qdoc",
         "config/*.qdocconf",
-        "reference/**",
+        "reference/**/*",
     ]
     Group {
         name: "main qdocconf file"
