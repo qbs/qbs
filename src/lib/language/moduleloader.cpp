@@ -180,6 +180,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     checkCancelation();
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleProduct " << item->file()->filePath();
+
     ProductContext productContext;
     productContext.project = projectContext;
     productContext.extraSearchPaths = readExtraSearchPaths(item);
@@ -410,41 +411,31 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     loadBaseModule(dependsContext->product, item);
 
     // Resolve all Depends items.
-    QHash<Item *, ItemModuleList> loadedModules;
+    typedef QHash<Item *, ItemModuleList> ModuleHash;
+    ModuleHash loadedModules;
     ProductDependencyResults productDependencies;
     foreach (Item *child, item->children())
         if (child->typeName() == QLatin1String("Depends"))
             resolveDependsItem(dependsContext, item, child, &loadedModules[child],
                                &productDependencies);
 
-    // Check Depends conditions after all modules are loaded.
     QSet<QString> loadedModuleNames;
-    for (QHash<Item *, ItemModuleList>::const_iterator it = loadedModules.constBegin();
-         it != loadedModules.constEnd(); ++it)
-    {
-        Item *dependsItem = it.key();
-        if (checkItemCondition(dependsItem)) {
-            foreach (const Item::Module &module, it.value()) {
-                const QString fullName = fullModuleName(module.name);
-                if (loadedModuleNames.contains(fullName)) {
-                    m_logger.printWarning(ErrorInfo(Tr::tr("Duplicate dependency '%1'.").arg(fullName),
-                                        item->location()));
-                    continue;
-                }
-                loadedModuleNames.insert(fullName);
-                item->modules() += module;
-                resolveProbes(module.item);
+    foreach (const ItemModuleList &moduleList, loadedModules) {
+        foreach (const Item::Module &module, moduleList) {
+            const QString fullName = fullModuleName(module.name);
+            if (loadedModuleNames.contains(fullName)) {
+                m_logger.printWarning(ErrorInfo(Tr::tr("Duplicate dependency '%1'.").arg(fullName),
+                                                item->location()));
+                continue;
             }
+            loadedModuleNames.insert(fullName);
+            item->modules() += module;
+            resolveProbes(module.item);
         }
     }
 
-    // Check Depends conditions for all product dependencies.
-    for (ProductDependencyResults::const_iterator it = productDependencies.constBegin();
-             it != productDependencies.constEnd(); ++it) {
-        Item *dependsItem = it->first;
-        if (checkItemCondition(dependsItem))
-            dependsContext->productDependencies->append(it->second);
-    }
+    foreach (const ProductDependencyResult &pd, productDependencies)
+        dependsContext->productDependencies->append(pd.second);
 }
 
 void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item,
@@ -452,6 +443,11 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         ProductDependencyResults *productResults)
 {
     checkCancelation();
+    if (!checkItemCondition(dependsItem)) {
+        if (m_logger.traceEnabled())
+            m_logger.qbsTrace() << "Depends item disabled, ignoring.";
+        return;
+    }
     const QString name = m_evaluator->property(dependsItem, "name").toString();
     const QStringList nameParts = name.split('.');
     if (Q_UNLIKELY(nameParts.count() > 2)) {
