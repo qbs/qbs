@@ -102,6 +102,10 @@ class ResolvedGroup;
 typedef QSharedPointer<ResolvedGroup> GroupPtr;
 typedef QSharedPointer<const ResolvedGroup> GroupConstPtr;
 
+class ResolvedTransformer;
+typedef QSharedPointer<ResolvedTransformer> ResolvedTransformerPtr;
+typedef QSharedPointer<const ResolvedTransformer> ResolvedTransformerConstPtr;
+
 class ArtifactProperties;
 typedef QSharedPointer<ArtifactProperties> ArtifactPropertiesPtr;
 typedef QSharedPointer<const ArtifactProperties> ArtifactPropertiesConstPtr;

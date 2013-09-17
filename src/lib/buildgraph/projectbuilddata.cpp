@@ -284,7 +284,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     }
 
     // read manually added transformers
-    foreach (const ResolvedTransformer::Ptr rtrafo, product->transformers) {
+    foreach (const ResolvedTransformerConstPtr &rtrafo, product->transformers) {
         ArtifactList inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
             Artifact *artifact = lookupArtifact(product, inputFileName);

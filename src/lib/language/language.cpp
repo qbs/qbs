@@ -957,7 +957,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 }
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
-QString keyFromElem(const ResolvedTransformer::Ptr &t) { return t->transform->sourceCode; }
+QString keyFromElem(const ResolvedTransformerConstPtr &t) { return t->transform->sourceCode; }
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
 {
@@ -983,8 +983,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
             && t1.jsExtensions.toSet() == t2.jsExtensions.toSet();
 }
 
-bool transformerListsAreEqual(const QList<ResolvedTransformer::Ptr> &l1,
-                              const QList<ResolvedTransformer::Ptr> &l2)
+bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
+                              const QList<ResolvedTransformerConstPtr> &l2)
 {
     return listsAreEqual(l1, l2);
 }

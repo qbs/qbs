@@ -271,9 +271,10 @@ private:
 class ResolvedTransformer : public PersistentObject
 {
 public:
-    typedef QSharedPointer<ResolvedTransformer> Ptr;
-
-    static Ptr create() { return Ptr(new ResolvedTransformer); }
+    static ResolvedTransformerPtr create()
+    {
+        return ResolvedTransformerPtr(new ResolvedTransformer);
+    }
 
     ResolvedModuleConstPtr module;
     QStringList inputs;
@@ -293,8 +294,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2);
 inline bool operator!=(const ResolvedTransformer &t1, const ResolvedTransformer &t2) {
     return !(t1 == t2);
 }
-bool transformerListsAreEqual(const QList<ResolvedTransformer::Ptr> &l1,
-                              const QList<ResolvedTransformer::Ptr> &l2);
+bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
+                              const QList<ResolvedTransformerConstPtr> &l2);
 
 class TopLevelProject;
 class ScriptEngine;
@@ -320,7 +321,7 @@ public:
     QSet<ResolvedProductPtr> dependencies;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
-    QList<ResolvedTransformer::Ptr> transformers;
+    QList<ResolvedTransformerConstPtr> transformers;
     QList<GroupPtr> groups;
     QList<ArtifactPropertiesPtr> artifactProperties;
     QScopedPointer<ProductBuildData> buildData;

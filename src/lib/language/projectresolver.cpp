@@ -626,7 +626,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
         return;
     }
 
-    ResolvedTransformer::Ptr rtrafo = ResolvedTransformer::create();
+    ResolvedTransformerPtr rtrafo = ResolvedTransformer::create();
     rtrafo->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     rtrafo->jsImports = item->file()->jsImports();
     rtrafo->jsExtensions = item->file()->jsExtensions();
