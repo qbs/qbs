@@ -1,0 +1,108 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page jsextension-textfile.html
+    \ingroup list-of-builtin-services
+
+    \title The TextFile Service
+    \brief Provides read and write operations on text files.
+
+    The \c TextFile service allows you to read from and write into text files.
+
+    \section1 Making the service available
+    In order to gain access to these operations, you need to import the service using the
+    following statement at the top of your project file:
+    \code
+    import qbs.TextFile
+    \endcode
+
+    \section1 Available operations
+
+    \section2 Constructor
+    \code
+    TextFile(filePath, openMode)
+    \endcode
+    Opens the file at \c filePath in the given mode and returns the object representing the file.
+    Possible values for \c openMode are \c TextFile.ReadOnly (which is the default),
+    \c TextFile.WriteOnly and \c TextFile.ReadWrite. Note that the mode influences which
+    of the operations listed below can actually be used on the file.
+
+    \section2 atEof
+    \code
+    atEof()
+    \endcode
+    Returns true if no more data can be read from the file, false otherwise.
+
+    \section2 close
+    \code
+    close()
+    \endcode
+    Closes the file. We recommended to always call this function as soon as you are finished
+    with the file, in order to keep the number of in-flight file descriptors as low as possible.
+
+    \section2 readAll
+    \code
+    readAll()
+    \endcode
+    Reads all data from the file and returns it.
+
+    \section2 readLine
+    \code
+    readLine()
+    \endcode
+    Reads one line of text from the file and returns it. The returned string does not contain
+    the newline character(s).
+
+    \section2 setCodec
+    \code
+    setCodec(codec)
+    \endcode
+    Sets the text codec to \c codec. The supported codecs are the same as for \c QTextCodec,
+    e.g. "UTF-8", "UTF-16", "ISO 8859-1" and so on.
+
+    \section2 truncate
+    \code
+    truncate()
+    \endcode
+    Truncates the file, i.e. gives it a size of zero, removing all content.
+
+    \section2 write
+    \code
+    write(data)
+    \endcode
+    Writes \c data into the file at the current position.
+
+    \section2 writeLine
+    \code
+    writeLine(data)
+    \endcode
+    Writes \c data into the file at the current position and appends the newline character(s).
+*/

@@ -1,0 +1,140 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page jsextension-process.html
+    \ingroup list-of-builtin-services
+
+    \title The Process Service
+    \brief Allows to start external processes.
+
+    The \c Process service allows you to start processes, track their output and so on.
+
+    \section1 Making the service available
+    In order to gain access to these operations, you need to import the service using the
+    following statement at the top of your project file:
+    \code
+    import qbs.Process
+    \endcode
+
+    \section1 Available operations
+
+    \section2 Constructor
+    \code
+    Process()
+    \endcode
+    Allocates and returns a new Process object.
+
+    \section2 close
+    \code
+    close()
+    \endcode
+    Frees the resources associated with the process. We recommended to always call this function as
+    soon as you are finished with the process.
+
+    \section2 exec
+    \code
+    exec(filePath, arguments, throwOnError)
+    \endcode
+    Executes the program at \c filePath with the given argument list and blocks until the
+    process is finished. If an error occors (e.g. there is no executable file at \c filePath)
+    and \c throwOnError is true, then a JavaScript exception will be thrown. Otherwise
+    (the default), -1 will be returned in case of an error. The normal return code is the exit code
+    of the process.
+
+    \section2 exitCode
+    \code
+    exitCode()
+    \endcode
+    Returns the exit code of the process. This is needed for retrieving the exit code from
+    processes started via \c start(), rather than \c exec().
+
+    \section2 getEnv
+    \code
+    getEnv(varName)
+    \endcode
+    Returns the value of the variable \c varName in the process' environment.
+
+    \section2 readLine
+    \code
+    readLine()
+    \endcode
+    Reads and returns one line of text from the process output, without the newline character(s).
+
+    \section2 readStdErr
+    \code
+    readStdErr()
+    \endcode
+    Reads and returns all data from the process' standard error channel.
+
+    \section2 readStdOut
+    \code
+    readStdOut()
+    \endcode
+    Reads and returns all data from the process' standard output channel.
+
+    \section2 setEnv
+    \code
+    setEnv(varName, varValue)
+    \endcode
+    Sets the value of variable \c varName to \c varValue in the process environment.
+    This only has an effect if called before the process is started.
+
+    \section2 start
+    \code
+    start(filePath, arguments)
+    \endcode
+    Starts the program at \c filePath with the given list of arguments. Returns true if the
+    process could be started and false otherwise.
+    \note This call returns right after starting the process and should be used only if you need
+    to interact with the process while it is running. Most of the time, you want to use \c exec()
+    instead.
+
+    \section2 waitForFinished
+    \code
+    waitForFinished(timeout)
+    \endcode
+    Blocks until the process has finished or \c timeout milliseconds have passed (default is 30000).
+    Returns true if the process has finished and false if the operation has timed out.
+    Calling this function only makes sense for processes started via \c start() (as opposed to
+    \c exec()).
+
+    \section2 write
+    \code
+    write(data)
+    \endcode
+    Writes \c data into the process' input channel.
+
+    \section2 writeLine
+    \code
+    writeLine(data)
+    \endcode
+    Writes \c data, followed by the newline character(s), into the process' input channel.
+*/

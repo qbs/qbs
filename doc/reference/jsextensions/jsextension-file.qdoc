@@ -26,38 +26,47 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+
 /*!
     \contentspage index.html
-    \previouspage shell.html
-    \page reference.html
+    \page jsextension-file.html
+    \ingroup list-of-builtin-services
 
-    \title Reference
+    \title The File Service
+    \brief Provides files system operations.
 
-    \list
-        \li \l{List of Language Items}
-        \li \l{List of Built-in Services}
-        \li \l{List of Modules}
-    \endlist
-*/
+    The \c File service offers limited access to the file system for operations such as copying
+    or removing files.
 
-/*!
-    \contentspage reference.html
-    \group list-of-builtin-services
-    \title List of Built-in Services
-    Qbs provides the following built-in JavaScript extensions to simplify operations that
-    are expected to be needed often in project files.
-*/
+    \section1 Making the service available
+    In order to gain access to these operations, you need to import the service using the
+    following statement at the top of your project file:
+    \code
+    import qbs.File
+    \endcode
 
-/*!
-    \contentspage reference.html
-    \group list-of-modules
-    \title List of Modules
-    These are the modules shipped with qbs.
-*/
+    \section1 Available operations
 
-/*!
-    \contentspage reference.html
-    \group list-of-items
-    \title List of Language Items
-    Qbs provides the following built-in QML items to define projects.
+    \section2 copy
+    \code
+    File.copy(sourceFilePath, targetFilePath)
+    \endcode
+    Copies \c sourceFilePath to \c targetFilePath. Any directory components in \c targetFilePath
+    that do not yet exist will be created. If \c sourceFilePath is a directory, a recursive
+    copy will be made. If an error happens, a JavaScript exception will be thrown.
+    \note \c targetFilePath must be the counterpart of \c sourceFilePath at the new location,
+    \b{not} the new parent directory. This allows the copy to have a different name and is true
+    even if \c sourceFilePath is a directory.
+
+    \section2 exists
+    \code
+    File.exists(filePath)
+    \endcode
+    Returns true if and only if there is a file at \c filePath.
+
+    \section2 remove
+    \code
+    File.remove(filePath)
+    \endcode
+    Removes the file at \c filePath. In case of a directory, it will be removed recursively.
 */

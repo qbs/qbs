@@ -1,0 +1,110 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page jsextension-fileinfo.html
+    \ingroup list-of-builtin-services
+
+    \title The FileInfo Service
+    \brief Provides operations on file paths.
+
+    The \c FileInfo service offers various operations on file paths such as turning absolute
+    paths into relative ones, splitting a path into its components and so on.
+
+    \section1 Making the service available
+
+    In order to gain access to these operations, you need to import the service using the
+    following statement at the top of your project file:
+    \code
+    import qbs.FileInfo
+    \endcode
+
+    \section1 Available operations
+
+    \section2 baseName
+    \code
+    FileInfo.baseName(filePath)
+    \endcode
+    Returns the file name of \c filePath up to (but not including) the first '.' character.
+
+    \section2 completeBaseName
+    \code
+    FileInfo.completeBaseName(filePath)
+    \endcode
+    Returns the file name of \c filePath up to (but not including) the last '.' character.
+
+    \section2 fileName
+    \code
+    FileInfo.fileName(filePath)
+    \endcode
+    Returns the last component of \c filePath, i.e. everything after the last '/' character.
+
+    \section2 fromWindowsSeparator
+    \code
+    FileInfo.fromWindowsSeparator(filePath)
+    \endcode
+    Returns \c filePath with all '\\' characters replaced by '/'.
+
+    \section2 isAbsolutePath
+    \code
+    FileInfo.isAbsolutPath(filePath)
+    \endcode
+    Returns true if \c filePath is an absolute path and false if it is a relative one.
+
+    \section2 joinPaths
+    \code
+    FileInfo.joinPaths(path1, path2, ...)
+    \endcode
+    Concatenates the given paths using the '/' character.
+
+    \section2 path
+    \code
+    FileInfo.path(filePath)
+    \endcode
+    Returns the part of \c filePath that is not the file name, i.e. everything up to
+    (but not including) the last '/' character. If \c filePath is just a file name, then '.'
+    is returned. If \c filePath ends with a '/' character, then the file name is assumed to be empty
+    for the purpose of the above definition.
+
+    \section2 relativePath
+    \code
+    FileInfo.relativePath(dirPath, filePath)
+    \endcode
+    Returns a relative path so that joining \c dirPath and the returned path results in \c filePath.
+    If necessary, '..' components are inserted.
+    The function assumes \c dirPath and \c filePath to be absolute paths and \c dirPath to
+    be a directory.
+
+    \section2 toWindowsSeparator
+    \code
+    FileInfo.toWindowsSeparator(filePath)
+    \endcode
+    Returns \c filePath with all '/' characters replaced by '\\'.
+*/
