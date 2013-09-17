@@ -323,6 +323,8 @@ void BuiltinDeclarations::addTransformerItem()
     properties += conditionProperty();
     properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
     properties += PropertyDeclaration(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
+    properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
+                                      PropertyDeclaration::StringList);
     m_builtins[QLatin1String("Transformer")] = properties;
 }
 

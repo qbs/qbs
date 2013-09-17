@@ -284,6 +284,8 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     }
 
     // read manually added transformers
+    typedef QPair<ResolvedTransformerConstPtr, TransformerConstPtr> TrafoPair;
+    QList<TrafoPair> trafos;
     foreach (const ResolvedTransformerConstPtr &rtrafo, product->transformers) {
         ArtifactList inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
@@ -293,6 +295,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             inputArtifacts += artifact;
         }
         TransformerPtr transformer = Transformer::create();
+        trafos += TrafoPair(rtrafo, transformer);
         transformer->inputs = inputArtifacts;
         const RulePtr rule = Rule::create();
         rule->jsImports = rtrafo->jsImports;
@@ -326,6 +329,19 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         transformer->createCommands(rtrafo->transform, evalContext());
         if (Q_UNLIKELY(transformer->commands.isEmpty()))
             throw ErrorInfo(QString("There's a transformer without commands."), rtrafo->transform->location);
+    }
+
+    // Handle Transformer.explicitlyDependsOn after all transformer outputs have been created.
+    foreach (const TrafoPair &p, trafos) {
+        const ResolvedTransformerConstPtr &rtrafo = p.first;
+        const TransformerConstPtr &trafo = p.second;
+        foreach (const FileTag &tag, rtrafo->explicitlyDependsOn) {
+            foreach (Artifact *output, trafo->outputs) {
+                foreach (Artifact *dependency, artifactsPerFileTag.value(tag)) {
+                    loggedConnect(output, dependency, m_logger);
+                }
+            }
+        }
     }
 
     RulesApplicator(product, artifactsPerFileTag, m_logger).applyAllRules();

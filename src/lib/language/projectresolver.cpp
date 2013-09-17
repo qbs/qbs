@@ -634,6 +634,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));
     rtrafo->transform = scriptFunctionValue(item, QLatin1String("prepare"));
+    rtrafo->explicitlyDependsOn = m_evaluator->fileTagsValue(item, "explicitlyDependsOn");
 
     foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))

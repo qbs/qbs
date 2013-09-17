@@ -93,6 +93,12 @@
         \li bool
         \li true
         \li If true, the transformer is enabled, otherwise it does nothing.
+    \row
+        \li explicitlyDependsOn
+        \li stringList
+        \li \c{undefined}
+        \li A list of file tags. All output artifacts of this transformer will have a dependency
+            to all artifacts with the given file tags.
     \endtable
 
 */

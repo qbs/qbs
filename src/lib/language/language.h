@@ -280,6 +280,7 @@ public:
     QStringList inputs;
     QList<SourceArtifactPtr> outputs;
     ScriptFunctionConstPtr transform;
+    FileTags explicitlyDependsOn;
     JsImports jsImports;
     QStringList jsExtensions;
 
