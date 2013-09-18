@@ -218,20 +218,20 @@ void RuleArtifact::store(PersistentPool &pool) const
 }
 
 /*!
- * \class PrepareScript
- * \brief The \c PrepareScript class represents the JavaScript code found in the "prepare" binding
+ * \class ScriptFunction
+ * \brief The \c ScriptFunction class represents the JavaScript code found in the "prepare" binding
  *        of a \c Rule or \c Transformer item in a qbs file.
  * \sa Rule
  * \sa ResolvedTransformer
  */
 
  /*!
-  * \variable PrepareScript::script
+  * \variable ScriptFunction::script
   * \brief The actual Javascript code, taken verbatim from the qbs source file.
   */
 
   /*!
-   * \variable PrepareScript::location
+   * \variable ScriptFunction::location
    * \brief The exact location of the script in the qbs source file.
    * This is mostly needed for diagnostics.
    */
