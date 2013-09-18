@@ -85,6 +85,7 @@ private:
     QString verbatimValue(const ValueConstPtr &value) const;
     QString verbatimValue(Item *item, const QString &name) const;
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
+    ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
     void ignoreItem(Item *item, ProjectContext *projectContext);
     void resolveTopLevelProject(Item *item, ProjectContext *projectContext);
     void resolveProject(Item *item, ProjectContext *projectContext);
@@ -127,6 +128,7 @@ private:
     ModuleContext *m_moduleContext;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
+    mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     QMap<QString, QVariantMap> m_exports;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);

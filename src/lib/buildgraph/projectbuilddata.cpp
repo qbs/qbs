@@ -298,8 +298,6 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         trafos += TrafoPair(rtrafo, transformer);
         transformer->inputs = inputArtifacts;
         const RulePtr rule = Rule::create();
-        rule->jsImports = rtrafo->jsImports;
-        rule->jsExtensions = rtrafo->jsExtensions;
         ResolvedModulePtr module = ResolvedModule::create();
         module->name = rtrafo->module->name;
         rule->module = module;

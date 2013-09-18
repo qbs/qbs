@@ -78,6 +78,10 @@ class TopLevelProject;
 typedef QSharedPointer<TopLevelProject> TopLevelProjectPtr;
 typedef QSharedPointer<const TopLevelProject> TopLevelProjectConstPtr;
 
+class ResolvedFileContext;
+typedef QSharedPointer<ResolvedFileContext> ResolvedFileContextPtr;
+typedef QSharedPointer<const ResolvedFileContext> ResolvedFileContextConstPtr;
+
 class Rule;
 typedef QSharedPointer<Rule> RulePtr;
 typedef QSharedPointer<const Rule> RuleConstPtr;

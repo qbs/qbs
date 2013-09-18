@@ -199,8 +199,8 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
     cache->productScriptValue.setProperty(QLatin1String("moduleName"),
             rule->module->name.isEmpty() ? QScriptValue() : rule->module->name);
 
-    engine->import(rule->jsImports, targetObject, targetObject);
-    JsExtensions::setupExtensions(rule->jsExtensions, targetObject);
+    engine->import(rule->script->fileContext->jsImports, targetObject, targetObject);
+    JsExtensions::setupExtensions(rule->script->fileContext->jsExtensions, targetObject);
 }
 
 bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)

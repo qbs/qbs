@@ -188,7 +188,6 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
         return;
 
     projectContext->dummyModule = ResolvedModule::create();
-    projectContext->dummyModule->jsImports = item->file()->jsImports();
 
     QVariantMap projectProperties;
     for (QMap<QString, PropertyDeclaration>::const_iterator it
@@ -319,16 +318,11 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
 
     const ResolvedModulePtr &module = moduleContext.module;
     module->name = ModuleLoader::fullModuleName(moduleName);
-    module->setupBuildEnvironmentScript = verbatimValue(item, "setupBuildEnvironment");
-    module->setupRunEnvironmentScript = verbatimValue(item, "setupRunEnvironment");
+    module->setupBuildEnvironmentScript = scriptFunctionValue(item, "setupBuildEnvironment");
+    module->setupRunEnvironmentScript = scriptFunctionValue(item, "setupRunEnvironment");
 
     m_productContext->product->additionalFileTags
             += m_evaluator->fileTagsValue(item, "additionalProductFileTags");
-
-    // TODO: instead of jsImports, we need the file context for both setup scripts separately.
-    //       ATM the setup scripts must be in the first file of the inheritance chain.
-    module->jsImports = item->file()->jsImports();
-    module->jsExtensions = item->file()->jsExtensions();
 
     foreach (const Item::Module &m, item->modules())
         module->moduleDependencies += ModuleLoader::fullModuleName(m.name);
@@ -483,8 +477,21 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
     if (value) {
         script->sourceCode = sourceCodeAsFunction(value);
         script->location = value->location();
+        script->fileContext = resolvedFileContext(value->file());
     }
     return script;
+}
+
+ResolvedFileContextPtr ProjectResolver::resolvedFileContext(const FileContextConstPtr &ctx) const
+{
+    ResolvedFileContextPtr &result = m_fileContextMap[ctx];
+    if (!result) {
+        result = ResolvedFileContext::create();
+        result->filePath = ctx->filePath();
+        result->jsExtensions = ctx->jsExtensions();
+        result->jsImports = ctx->jsImports();
+    }
+    return result;
 }
 
 void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
@@ -511,8 +518,6 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
                            "must have alwaysUpdated set to true."),
                     item->location());
 
-    rule->jsImports = item->file()->jsImports();
-    rule->jsExtensions = item->file()->jsExtensions();
     rule->script = scriptFunctionValue(item, QLatin1String("prepare"));
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
@@ -628,8 +633,6 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
 
     ResolvedTransformerPtr rtrafo = ResolvedTransformer::create();
     rtrafo->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    rtrafo->jsImports = item->file()->jsImports();
-    rtrafo->jsExtensions = item->file()->jsExtensions();
     rtrafo->inputs = m_evaluator->stringListValue(item, "inputs");
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));

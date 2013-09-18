@@ -217,6 +217,28 @@ void RuleArtifact::store(PersistentPool &pool) const
     }
 }
 
+void ResolvedFileContext::load(PersistentPool &pool)
+{
+    filePath = pool.idLoadString();
+    jsExtensions = pool.idLoadStringList();
+    pool.stream() >> jsImports;
+}
+
+void ResolvedFileContext::store(PersistentPool &pool) const
+{
+    pool.storeString(filePath);
+    pool.storeStringList(jsExtensions);
+    pool.stream() << jsImports;
+}
+
+bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
+{
+    return a.filePath == b.filePath
+            && a.jsExtensions == b.jsExtensions
+            && a.jsImports == b.jsImports;
+}
+
+
 /*!
  * \class ScriptFunction
  * \brief The \c ScriptFunction class represents the JavaScript code found in the "prepare" binding
@@ -240,46 +262,45 @@ void ScriptFunction::load(PersistentPool &pool)
 {
     pool.stream() >> sourceCode;
     pool.stream() >> location;
+    fileContext = pool.idLoadS<ResolvedFileContext>();
 }
 
 void ScriptFunction::store(PersistentPool &pool) const
 {
     pool.stream() << sourceCode;
     pool.stream() << location;
+    pool.store(fileContext);
+}
+
+bool operator==(const ScriptFunction &a, const ScriptFunction &b)
+{
+    return a.sourceCode == b.sourceCode
+            && a.location == b.location
+            && *a.fileContext == *b.fileContext;
 }
 
 void ResolvedModule::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
     moduleDependencies = pool.idLoadStringList();
-    setupBuildEnvironmentScript = pool.idLoadString();
-    setupRunEnvironmentScript = pool.idLoadString();
-    pool.stream() >> jsImports
-      >> jsExtensions
-      >> setupBuildEnvironmentScript
-      >> setupRunEnvironmentScript;
+    setupBuildEnvironmentScript = pool.idLoadS<ScriptFunction>();
+    setupRunEnvironmentScript = pool.idLoadS<ScriptFunction>();
 }
 
 void ResolvedModule::store(PersistentPool &pool) const
 {
     pool.storeString(name);
     pool.storeStringList(moduleDependencies);
-    pool.storeString(setupBuildEnvironmentScript);
-    pool.storeString(setupRunEnvironmentScript);
-    pool.stream() << jsImports
-      << jsExtensions
-      << setupBuildEnvironmentScript
-      << setupRunEnvironmentScript;
+    pool.store(setupBuildEnvironmentScript);
+    pool.store(setupRunEnvironmentScript);
 }
 
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 {
     return m1.name == m2.name
             && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
-            && m1.jsImports == m2.jsImports
-            && m1.jsExtensions.toSet() == m2.jsExtensions.toSet()
-            && m1.setupBuildEnvironmentScript == m2.setupBuildEnvironmentScript
-            && m1.setupRunEnvironmentScript == m2.setupRunEnvironmentScript;
+            && *m1.setupBuildEnvironmentScript == *m2.setupBuildEnvironmentScript
+            && *m1.setupRunEnvironmentScript == *m2.setupRunEnvironmentScript;
 }
 
 static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2)
@@ -309,8 +330,7 @@ void Rule::load(PersistentPool &pool)
 {
     script = pool.idLoadS<ScriptFunction>();
     module = pool.idLoadS<ResolvedModule>();
-    pool.stream() >> jsImports
-        >> jsExtensions
+    pool.stream()
         >> inputs
         >> auxiliaryInputs
         >> usings
@@ -324,8 +344,7 @@ void Rule::store(PersistentPool &pool) const
 {
     pool.store(script);
     pool.store(module);
-    pool.stream() << jsImports
-        << jsExtensions
+    pool.stream()
         << inputs
         << auxiliaryInputs
         << usings
@@ -519,13 +538,24 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
     foreach (const ResolvedModule *module, topSortedModules) {
-        if ((envType == BuildEnv && module->setupBuildEnvironmentScript.isEmpty()) ||
-            (envType == RunEnv && module->setupBuildEnvironmentScript.isEmpty() && module->setupRunEnvironmentScript.isEmpty()))
+        if ((envType == BuildEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()) ||
+            (envType == RunEnv && module->setupBuildEnvironmentScript->sourceCode.isEmpty()
+             && module->setupRunEnvironmentScript->sourceCode.isEmpty()))
             continue;
 
+        ScriptFunctionConstPtr setupScript;
+        if (envType == BuildEnv) {
+            setupScript = module->setupBuildEnvironmentScript;
+        } else {
+            if (!module->setupRunEnvironmentScript)
+                setupScript = module->setupBuildEnvironmentScript;
+            else
+                setupScript = module->setupRunEnvironmentScript;
+        }
+
         // handle imports
-        engine->import(module->jsImports, scope, scope);
-        JsExtensions::setupExtensions(module->jsExtensions, scope);
+        engine->import(setupScript->fileContext->jsImports, scope, scope);
+        JsExtensions::setupExtensions(setupScript->fileContext->jsExtensions, scope);
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;
@@ -543,20 +573,9 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         for (QVariantMap::const_iterator it = moduleCfg.constBegin(); it != moduleCfg.constEnd(); ++it)
             scope.setProperty(it.key(), engine->toScriptValue(it.value()));
 
-        QString setupScript;
-        if (envType == BuildEnv) {
-            setupScript = module->setupBuildEnvironmentScript;
-        } else {
-            if (module->setupRunEnvironmentScript.isEmpty()) {
-                setupScript = module->setupBuildEnvironmentScript;
-            } else {
-                setupScript = module->setupRunEnvironmentScript;
-            }
-        }
-
         QScriptContext *ctx = engine->currentContext();
         ctx->pushScope(scope);
-        scriptValue = engine->evaluate(setupScript);
+        scriptValue = engine->evaluate(setupScript->sourceCode + QLatin1String("()"));
         ctx->popScope();
         if (Q_UNLIKELY(scriptValue.isError() || engine->hasUncaughtException())) {
             QString envTypeStr = (envType == BuildEnv ? "build" : "run");
@@ -919,7 +938,6 @@ void ResolvedTransformer::load(PersistentPool &pool)
     pool.stream() >> inputs;
     pool.loadContainerS(outputs);
     transform = pool.idLoadS<ScriptFunction>();
-    pool.stream() >> jsImports >> jsExtensions;
 }
 
 void ResolvedTransformer::store(PersistentPool &pool) const
@@ -928,7 +946,6 @@ void ResolvedTransformer::store(PersistentPool &pool) const
     pool.stream() << inputs;
     pool.storeContainer(outputs);
     pool.store(transform);
-    pool.stream() << jsImports << jsExtensions;
 }
 
 
@@ -978,9 +995,7 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
     return modulesAreEqual(t1.module, t2.module)
             && t1.inputs.toSet() == t2.inputs.toSet()
             && sourceArtifactListsAreEqual(t1.outputs, t2.outputs)
-            && t1.transform->sourceCode == t2.transform->sourceCode
-            && t1.jsImports == t2.jsImports
-            && t1.jsExtensions.toSet() == t2.jsExtensions.toSet();
+            && *t1.transform == *t2.transform;
 }
 
 bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,

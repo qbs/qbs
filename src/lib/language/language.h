@@ -193,6 +193,29 @@ private:
     void store(PersistentPool &pool) const;
 };
 
+class ResolvedFileContext : public PersistentObject
+{
+public:
+    static ResolvedFileContextPtr create()
+    {
+        return ResolvedFileContextPtr(new ResolvedFileContext);
+    }
+
+    QString filePath;
+    QStringList jsExtensions;
+    JsImports jsImports;
+
+private:
+    ResolvedFileContext() {}
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+};
+
+bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b);
+inline bool operator!=(const ResolvedFileContext &a, const ResolvedFileContext &b)
+{ return !(a == b); }
+
 class ScriptFunction : public PersistentObject
 {
 public:
@@ -200,6 +223,7 @@ public:
 
     QString sourceCode;
     CodeLocation location;
+    ResolvedFileContextConstPtr fileContext;
     mutable QScriptValue scriptFunction;    // cache
 
 private:
@@ -209,6 +233,9 @@ private:
     void store(PersistentPool &) const;
 };
 
+bool operator==(const ScriptFunction &a, const ScriptFunction &b);
+inline bool operator!=(const ScriptFunction &a, const ScriptFunction &b) { return !(a == b); }
+
 class ResolvedModule : public PersistentObject
 {
 public:
@@ -216,10 +243,8 @@ public:
 
     QString name;
     QStringList moduleDependencies;
-    JsImports jsImports;
-    QStringList jsExtensions;
-    QString setupBuildEnvironmentScript;
-    QString setupRunEnvironmentScript;
+    ScriptFunctionConstPtr setupBuildEnvironmentScript;
+    ScriptFunctionConstPtr setupRunEnvironmentScript;
 
 private:
     ResolvedModule() {}
@@ -245,8 +270,6 @@ public:
     static RulePtr create() { return RulePtr(new Rule); }
 
     ResolvedModuleConstPtr module;
-    JsImports jsImports;
-    QStringList jsExtensions;
     ScriptFunctionConstPtr script;
     FileTags inputs;
     FileTags auxiliaryInputs;
@@ -281,8 +304,6 @@ public:
     QList<SourceArtifactPtr> outputs;
     ScriptFunctionConstPtr transform;
     FileTags explicitlyDependsOn;
-    JsImports jsImports;
-    QStringList jsExtensions;
 
 private:
     ResolvedTransformer() {}
