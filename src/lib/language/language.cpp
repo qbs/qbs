@@ -233,6 +233,10 @@ void ResolvedFileContext::store(PersistentPool &pool) const
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 {
+    if (&a == &b)
+        return true;
+    if (!!&a != !!&b)
+        return false;
     return a.filePath == b.filePath
             && a.jsExtensions == b.jsExtensions
             && a.jsImports == b.jsImports;
@@ -274,6 +278,10 @@ void ScriptFunction::store(PersistentPool &pool) const
 
 bool operator==(const ScriptFunction &a, const ScriptFunction &b)
 {
+    if (&a == &b)
+        return true;
+    if (!!&a != !!&b)
+        return false;
     return a.sourceCode == b.sourceCode
             && a.location == b.location
             && *a.fileContext == *b.fileContext;
@@ -297,6 +305,10 @@ void ResolvedModule::store(PersistentPool &pool) const
 
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 {
+    if (&m1 == &m2)
+        return true;
+    if (!!&m1 != !!&m2)
+        return false;
     return m1.name == m2.name
             && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
             && *m1.setupBuildEnvironmentScript == *m2.setupBuildEnvironmentScript
@@ -305,10 +317,6 @@ bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 
 static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2)
 {
-    if (!m1 && !m2)
-        return true;
-    if ((!m1 && m2) || (m1 && !m2))
-        return false;
     return *m1 == *m2;
 }
 
@@ -978,6 +986,10 @@ QString keyFromElem(const ResolvedTransformerConstPtr &t) { return t->transform-
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
 {
+    if (&sa1 == &sa2)
+        return true;
+    if (!!&sa1 != !!&sa2)
+        return false;
     return sa1.absoluteFilePath == sa2.absoluteFilePath
             && sa1.fileTags == sa2.fileTags
             && sa1.overrideFileTags == sa2.overrideFileTags
