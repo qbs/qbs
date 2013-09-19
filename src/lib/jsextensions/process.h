@@ -61,6 +61,8 @@ public:
                          bool throwOnError = false);
     Q_INVOKABLE void close();
     Q_INVOKABLE bool waitForFinished(int msecs = 30000);
+    Q_INVOKABLE void terminate();
+    Q_INVOKABLE void kill();
 
     Q_INVOKABLE QString readLine();
     Q_INVOKABLE QString readStdOut();

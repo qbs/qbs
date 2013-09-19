@@ -134,6 +134,8 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
             context()->throwError(errorMessage);
         }
     }
+    if (m_qProcess->error() != QProcess::UnknownError)
+        return -1;
     return m_qProcess->exitCode();
 }
 
@@ -150,7 +152,19 @@ bool Process::waitForFinished(int msecs)
 {
     Q_ASSERT(thisObject().engine() == engine());
 
+    if (m_qProcess->state() == QProcess::NotRunning)
+        return true;
     return m_qProcess->waitForFinished(msecs);
+}
+
+void Process::terminate()
+{
+    m_qProcess->terminate();
+}
+
+void Process::kill()
+{
+    m_qProcess->kill();
 }
 
 void Process::setCodec(const QString &codec)

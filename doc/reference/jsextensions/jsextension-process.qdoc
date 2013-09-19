@@ -82,6 +82,12 @@
     \endcode
     Returns the value of the variable \c varName in the process' environment.
 
+    \section2 kill
+    \code
+    kill()
+    \endcode
+    Kills the process, causing it to exit immediately.
+
     \section2 readLine
     \code
     readLine()
@@ -116,6 +122,13 @@
     \note This call returns right after starting the process and should be used only if you need
     to interact with the process while it is running. Most of the time, you want to use \c exec()
     instead.
+
+    \section2 terminate
+    \code
+    terminate()
+    \endcode
+    Tries to terminate the process. This is not guaranteed to make the process exit immediately;
+    if you need that, use \c kill().
 
     \section2 waitForFinished
     \code
