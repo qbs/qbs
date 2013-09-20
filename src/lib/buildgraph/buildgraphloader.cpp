@@ -229,7 +229,20 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
         for (int j = allRestoredProducts.count() - 1; j >= 0; --j) {
             const ResolvedProductPtr &restoredProduct = allRestoredProducts.at(j);
             if (newlyResolvedProduct->name == restoredProduct->name) {
-                newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
+                if (newlyResolvedProduct->enabled) {
+                    newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
+                } else {
+                    if (restoredProduct->enabled) {
+                        QBS_CHECK(restoredProduct->buildData);
+                        foreach (Artifact * const a, newlyResolvedProduct->buildData->artifacts) {
+                            const bool removeFromDisk = a->artifactType == Artifact::Generated;
+                            newlyResolvedProduct->topLevelProject()->buildData->removeArtifact(a,
+                                    m_logger, removeFromDisk, true);
+                            m_objectsToDelete << a;
+                        }
+                    }
+                    productsWithChangedFiles.removeOne(restoredProduct);
+                }
                 if (newlyResolvedProduct->buildData) {
                     foreach (Artifact * const a, newlyResolvedProduct->buildData->artifacts)
                         a->product = newlyResolvedProduct;
@@ -427,6 +440,8 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
 {
     m_logger.qbsDebug() << "[BG] product '" << restoredProduct->name << "' changed.";
 
+    QBS_CHECK(newlyResolvedProduct->enabled);
+
     ArtifactsPerFileTagMap artifactsPerFileTag;
     QList<Artifact *> addedArtifacts;
     ArtifactList artifactsToRemove;
@@ -512,9 +527,6 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             }
         }
     }
-
-    if (!newlyResolvedProduct->enabled)
-        return;
 
     // apply rules for new artifacts
     foreach (Artifact *artifact, addedArtifacts)
