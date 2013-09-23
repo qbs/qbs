@@ -66,9 +66,9 @@
     \endcode
     Returns the last component of \c filePath, i.e. everything after the last '/' character.
 
-    \section2 fromWindowsSeparator
+    \section2 fromWindowsSeparators
     \code
-    FileInfo.fromWindowsSeparator(filePath)
+    FileInfo.fromWindowsSeparators(filePath)
     \endcode
     Returns \c filePath with all '\\' characters replaced by '/'.
 
@@ -102,9 +102,9 @@
     The function assumes \c dirPath and \c filePath to be absolute paths and \c dirPath to
     be a directory.
 
-    \section2 toWindowsSeparator
+    \section2 toWindowsSeparators
     \code
-    FileInfo.toWindowsSeparator(filePath)
+    FileInfo.toWindowsSeparators(filePath)
     \endcode
     Returns \c filePath with all '/' characters replaced by '\\'.
 */
