@@ -1145,6 +1145,91 @@ void TestBlackbox::fileDependencies()
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 }
 
+void TestBlackbox::jsExtensionsFile()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions");
+    QbsRunParameters params(QStringList() << "-nf" << "file.qbs");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!QFileInfo("original.txt").exists());
+    QFile copy("copy.txt");
+    QVERIFY(copy.exists());
+    QVERIFY(copy.open(QIODevice::ReadOnly));
+    const QList<QByteArray> lines = copy.readAll().trimmed().split('\n');
+    QCOMPARE(lines.count(), 2);
+    QCOMPARE(lines.at(0).trimmed().constData(), "false");
+    QCOMPARE(lines.at(1).trimmed().constData(), "true");
+}
+
+void TestBlackbox::jsExtensionsFileInfo()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions");
+    QbsRunParameters params(QStringList() << "-nf" << "fileinfo.qbs");
+    QCOMPARE(runQbs(params), 0);
+    QFile output("output.txt");
+    QVERIFY(output.exists());
+    QVERIFY(output.open(QIODevice::ReadOnly));
+    const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
+    QCOMPARE(lines.count(), 17);
+    QCOMPARE(lines.at(0).trimmed().constData(), "blubb");
+    QCOMPARE(lines.at(1).trimmed().constData(), "blubb.tar");
+    QCOMPARE(lines.at(2).trimmed().constData(), "blubb.tar.gz");
+    QCOMPARE(lines.at(3).trimmed().constData(), "/tmp/blubb.tar.gz");
+    QCOMPARE(lines.at(4).trimmed().constData(), "c:/tmp/blubb.tar.gz");
+    QCOMPARE(lines.at(5).trimmed().constData(), "true");
+    QCOMPARE(lines.at(6).trimmed().constData(), "true");
+    QCOMPARE(lines.at(7).trimmed().constData(), "false");
+    QCOMPARE(lines.at(8).trimmed().constData(), "false");
+    QCOMPARE(lines.at(9).trimmed().constData(), "/tmp/blubb.tar.gz");
+    QCOMPARE(lines.at(10).trimmed().constData(), "/tmp");
+    QCOMPARE(lines.at(11).trimmed().constData(), "/tmp/");
+    QCOMPARE(lines.at(12).trimmed().constData(), "blubb.tar.gz");
+    QCOMPARE(lines.at(13).trimmed().constData(), "tmp/blubb.tar.gz");
+    QCOMPARE(lines.at(14).trimmed().constData(), "../blubb.tar.gz");
+    QCOMPARE(lines.at(15).trimmed().constData(), "\\tmp\\blubb.tar.gz");
+    QCOMPARE(lines.at(16).trimmed().constData(), "c:\\tmp\\blubb.tar.gz");
+}
+
+void TestBlackbox::jsExtensionsProcess()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions");
+    QbsRunParameters params(QStringList() << "-nf" << "process.qbs" << "project.qbsFilePath:"
+                            + qbsExecutableFilePath);
+    QCOMPARE(runQbs(params), 0);
+    QFile output("output.txt");
+    QVERIFY(output.exists());
+    QVERIFY(output.open(QIODevice::ReadOnly));
+    const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
+    QCOMPARE(lines.count(), 7);
+    QCOMPARE(lines.at(0).trimmed().constData(), "0");
+    QVERIFY(lines.at(1).startsWith("qbs "));
+    QCOMPARE(lines.at(2).trimmed().constData(), "true");
+    QCOMPARE(lines.at(3).trimmed().constData(), "true");
+    QCOMPARE(lines.at(4).trimmed().constData(), "0");
+    QVERIFY(lines.at(5).startsWith("qbs "));
+    QCOMPARE(lines.at(6).trimmed().constData(), "false");
+}
+
+void TestBlackbox::jsExtensionsTextFile()
+{
+    QDir::setCurrent(testDataDir + "/jsextensions");
+    QbsRunParameters params(QStringList() << "-nf" << "textfile.qbs");
+    QCOMPARE(runQbs(params), 0);
+    QFile file1("file1.txt");
+    QVERIFY(file1.exists());
+    QVERIFY(file1.open(QIODevice::ReadOnly));
+    QCOMPARE(file1.size(), 0);
+    QFile file2("file2.txt");
+    QVERIFY(file2.exists());
+    QVERIFY(file2.open(QIODevice::ReadOnly));
+    const QList<QByteArray> lines = file2.readAll().trimmed().split('\n');
+    QCOMPARE(lines.count(), 5);
+    QCOMPARE(lines.at(0).trimmed().constData(), "false");
+    QCOMPARE(lines.at(1).trimmed().constData(), "First line.");
+    QCOMPARE(lines.at(2).trimmed().constData(), "Second line.");
+    QCOMPARE(lines.at(3).trimmed().constData(), "Third line.");
+    QCOMPARE(lines.at(4).trimmed().constData(), "true");
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");

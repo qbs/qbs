@@ -100,6 +100,10 @@ private slots:
     void disabledProduct();
     void disabledProject();
     void fileDependencies();
+    void jsExtensionsFile();
+    void jsExtensionsFileInfo();
+    void jsExtensionsProcess();
+    void jsExtensionsTextFile();
     void resolve_project_data();
     void resolve_project();
     void resolve_project_dry_run_data();
