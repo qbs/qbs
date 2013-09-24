@@ -1217,7 +1217,7 @@ void TestBlackbox::jsExtensionsTextFile()
     QFile file1("file1.txt");
     QVERIFY(file1.exists());
     QVERIFY(file1.open(QIODevice::ReadOnly));
-    QCOMPARE(file1.size(), 0);
+    QCOMPARE(file1.size(), qint64(0));
     QFile file2("file2.txt");
     QVERIFY(file2.exists());
     QVERIFY(file2.open(QIODevice::ReadOnly));
