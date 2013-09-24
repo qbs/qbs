@@ -159,6 +159,13 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
     }
 }
 
+void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
+        QScriptValue targetObject)
+{
+    engine->import(fileContext->jsImports, targetObject, targetObject);
+    JsExtensions::setupExtensions(fileContext->jsExtensions, targetObject);
+}
+
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject,
                                  ScriptPropertyObserver *observer)
@@ -198,9 +205,6 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
     // If the Rule is in a Module, set up the 'moduleName' property
     cache->productScriptValue.setProperty(QLatin1String("moduleName"),
             rule->module->name.isEmpty() ? QScriptValue() : rule->module->name);
-
-    engine->import(rule->script->fileContext->jsImports, targetObject, targetObject);
-    JsExtensions::setupExtensions(rule->script->fileContext->jsExtensions, targetObject);
 }
 
 bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)

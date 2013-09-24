@@ -92,6 +92,7 @@ public:
     Item *child(const QString &type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const;
     const PropertyDeclarationMap &propertyDeclarations() const;
+    const PropertyDeclaration propertyDeclaration(const QString &name) const;
     const Modules &modules() const;
     Modules &modules();
     const ErrorInfo &error() const { return m_error; }

@@ -143,7 +143,7 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
 }
 
 void Transformer::createCommands(const ScriptFunctionConstPtr &script,
-                                 const RulesEvaluationContextPtr &evalContext)
+        const RulesEvaluationContextPtr &evalContext, const QScriptValueList &args)
 {
     ScriptEngine * const engine = evalContext->engine();
     if (!script->scriptFunction.isValid() || script->scriptFunction.engine() != engine) {
@@ -152,7 +152,7 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
             throw ErrorInfo(Tr::tr("Invalid prepare script."), script->location);
     }
 
-    QScriptValue scriptValue = script->scriptFunction.call();
+    QScriptValue scriptValue = script->scriptFunction.call(QScriptValue(), args);
     propertiesRequestedFromProductInPrepareScript = engine->propertiesRequestedFromProduct();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearPropertiesRequestedInPrepareScripts();

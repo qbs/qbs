@@ -67,30 +67,35 @@ void RulesApplicator::applyAllRules()
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
-    QScriptValue scopeValue = scope();
-    setupScriptEngineForProduct(engine(), m_product, m_rule, scopeValue, this);
-    Q_ASSERT_X(scope().property("product").strictlyEquals(engine()->evaluate("product")),
-               "BG", "Product object is not in current scope.");
-    m_productObjectId = scopeValue.property(QLatin1String("product")).objectId();
+    QScriptValue prepareScriptContext = engine()->newObject();
+    setupScriptEngineForFile(engine(), m_rule->script->fileContext, scope());
+    setupScriptEngineForProduct(engine(), m_product, m_rule, prepareScriptContext, this);
+    m_productObjectId = prepareScriptContext.property(QLatin1String("product")).objectId();
 
     ArtifactList inputArtifacts;
     foreach (const FileTag &fileTag, m_rule->inputs)
         inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         if (!inputArtifacts.isEmpty())
-            doApply(inputArtifacts);
+            doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
         ArtifactList lst;
         foreach (Artifact * const inputArtifact, inputArtifacts) {
             setupScriptEngineForArtifact(inputArtifact);
             lst += inputArtifact;
-            doApply(lst);
+            doApply(lst, prepareScriptContext);
             lst.clear();
         }
     }
 }
 
-void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
+static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
+{
+    dst.setProperty(name, src.property(name));
+}
+
+void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
+    QScriptValue &prepareScriptContext)
 {
     evalContext()->checkForCancelation();
 
@@ -119,6 +124,8 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
 
     m_transformer.clear();
     // create the output artifacts from the set of input artifacts
+    copyProperty(QLatin1String("product"), prepareScriptContext, scope());
+    copyProperty(QLatin1String("project"), prepareScriptContext, scope());
     foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
         Artifact * const outputArtifact = createOutputArtifact(ruleArtifact, inputArtifacts);
         outputArtifacts << outputArtifact;
@@ -149,10 +156,12 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
                 -= outputArtifact;
     }
 
-    m_transformer->setupInputs(engine(), scope());
+    m_transformer->setupInputs(engine(), prepareScriptContext);
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
+    if (!ruleArtifactArtifactMap.isEmpty())
+        engine()->currentContext()->pushScope(prepareScriptContext);
     for (int i = ruleArtifactArtifactMap.count(); --i >= 0;) {
         const RuleArtifact *ra = ruleArtifactArtifactMap.at(i).first;
         if (ra->bindings.isEmpty())
@@ -180,9 +189,12 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts)
         outputArtifactConfig.insert("modules", artifactModulesCfg);
         outputArtifact->properties->setValue(outputArtifactConfig);
     }
+    if (!ruleArtifactArtifactMap.isEmpty())
+        engine()->currentContext()->popScope();
 
-    m_transformer->setupOutputs(engine(), scope());
-    m_transformer->createCommands(m_rule->script, evalContext());
+    m_transformer->setupOutputs(engine(), prepareScriptContext);
+    m_transformer->createCommands(m_rule->script, evalContext(),
+            ScriptEngine::argumentList(m_rule->script->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
         throw ErrorInfo(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
 }

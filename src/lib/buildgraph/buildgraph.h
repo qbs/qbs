@@ -72,6 +72,8 @@ bool safeConnect(Artifact *u, Artifact *v, const Logger &logger);
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
 void disconnect(Artifact *u, Artifact *v, const Logger &logger);
 
+void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
+        QScriptValue targetObject);
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject,
                                  ScriptPropertyObserver *observer = 0);

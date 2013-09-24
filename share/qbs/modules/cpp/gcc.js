@@ -241,7 +241,7 @@ function languageName(fileTag)
         return 'objective-c++';
 }
 
-function prepareCompiler(product, input, output)
+function prepareCompiler(project, product, inputs, outputs, input, output)
 {
     var i, c;
 

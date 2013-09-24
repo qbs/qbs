@@ -55,7 +55,7 @@ public:
     void applyRule(const RuleConstPtr &rule);
 
 private:
-    void doApply(const ArtifactList &inputArtifacts);
+    void doApply(const ArtifactList &inputArtifacts, QScriptValue &prepareScriptContext);
     void setupScriptEngineForArtifact(Artifact *artifact);
     Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
                                    const ArtifactList &inputArtifacts);

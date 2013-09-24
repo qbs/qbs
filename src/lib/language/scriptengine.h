@@ -90,6 +90,8 @@ public:
     void addFileExistsResult(const QString &filePath, bool exists);
     QHash<QString, bool> fileExistsResults() const { return m_fileExistsResult; }
     QSet<QString> imports() const;
+    static QScriptValueList argumentList(const QStringList &argumentNames,
+            const QScriptValue &context);
 
     class ScriptValueCache
     {

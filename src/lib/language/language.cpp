@@ -264,15 +264,19 @@ bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 
 void ScriptFunction::load(PersistentPool &pool)
 {
-    pool.stream() >> sourceCode;
-    pool.stream() >> location;
+    pool.stream()
+            >> sourceCode
+            >> argumentNames
+            >> location;
     fileContext = pool.idLoadS<ResolvedFileContext>();
 }
 
 void ScriptFunction::store(PersistentPool &pool) const
 {
-    pool.stream() << sourceCode;
-    pool.stream() << location;
+    pool.stream()
+            << sourceCode
+            << argumentNames
+            << location;
     pool.store(fileContext);
 }
 

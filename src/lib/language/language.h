@@ -222,6 +222,7 @@ public:
     static ScriptFunctionPtr create() { return ScriptFunctionPtr(new ScriptFunction); }
 
     QString sourceCode;
+    QStringList argumentNames;
     CodeLocation location;
     ResolvedFileContextConstPtr fileContext;
     mutable QScriptValue scriptFunction;    // cache

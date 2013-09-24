@@ -283,7 +283,7 @@ CppModule {
         }
 
         prepare: {
-            return Gcc.prepareCompiler(product, input, output);
+            return Gcc.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -295,7 +295,7 @@ CppModule {
             fileTags: "c_pch"
         }
         prepare: {
-            return Gcc.prepareCompiler(product, input, output);
+            return Gcc.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -307,7 +307,7 @@ CppModule {
             fileTags: "cpp_pch"
         }
         prepare: {
-            return Gcc.prepareCompiler(product, input, output);
+            return Gcc.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -319,7 +319,7 @@ CppModule {
             fileTags: "objc_pch"
         }
         prepare: {
-            return Gcc.prepareCompiler(product, input, output);
+            return Gcc.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -331,7 +331,7 @@ CppModule {
             fileTags: "objcpp_pch"
         }
         prepare: {
-            return Gcc.prepareCompiler(product, input, output);
+            return Gcc.prepareCompiler.apply(this, arguments);
         }
     }
 }

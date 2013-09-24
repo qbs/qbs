@@ -122,6 +122,12 @@ JSSourceValuePtr Item::sourceProperty(const QString &name) const
     return v.staticCast<JSSourceValue>();
 }
 
+const PropertyDeclaration Item::propertyDeclaration(const QString &name) const
+{
+    const PropertyDeclaration decl = m_propertyDeclarations.value(name);
+    return (!decl.isValid() && m_prototype) ? m_prototype->propertyDeclaration(name) : decl;
+}
+
 void Item::setPropertyObserver(ItemObserver *observer) const
 {
     QBS_ASSERT(!observer || !m_propertyObserver, return);   // warn if accidentally overwritten

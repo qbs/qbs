@@ -155,6 +155,16 @@ static PropertyDeclaration nameProperty()
     return PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
 }
 
+static PropertyDeclaration prepareScriptProperty()
+{
+    PropertyDeclaration decl(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
+    decl.functionArgumentNames
+            << QLatin1String("project") << QLatin1String("product")
+            << QLatin1String("inputs") << QLatin1String("outputs")
+            << QLatin1String("input") << QLatin1String("output");
+    return decl;
+}
+
 void BuiltinDeclarations::addArtifactItem()
 {
     QList<PropertyDeclaration> properties;
@@ -301,7 +311,7 @@ void BuiltinDeclarations::addRuleItem()
                                       PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);
-    properties += PropertyDeclaration(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
+    properties += prepareScriptProperty();
     m_builtins[QLatin1String("Rule")] = properties;
 }
 
@@ -322,7 +332,7 @@ void BuiltinDeclarations::addTransformerItem()
     QList<PropertyDeclaration> properties;
     properties += conditionProperty();
     properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
-    properties += PropertyDeclaration(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
+    properties += prepareScriptProperty();
     properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);
     m_builtins[QLatin1String("Transformer")] = properties;

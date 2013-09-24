@@ -31,6 +31,7 @@
 #define QBS_PROPERTYDECLARATION_H
 
 #include <QString>
+#include <QStringList>
 #include <QScriptValue>
 
 namespace qbs {
@@ -74,6 +75,7 @@ public:
     QScriptValue allowedValues;
     QString description;
     QString initialValueSource;
+    QStringList functionArgumentNames;
 };
 
 } // namespace Internal

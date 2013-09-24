@@ -321,10 +321,14 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         transformer->rule = rule;
 
         RulesEvaluationContext::Scope s(evalContext().data());
-        setupScriptEngineForProduct(engine(), product, transformer->rule, scope());
-        transformer->setupInputs(engine(), scope());
-        transformer->setupOutputs(engine(), scope());
-        transformer->createCommands(rtrafo->transform, evalContext());
+        setupScriptEngineForFile(engine(), transformer->rule->script->fileContext, scope());
+        QScriptValue prepareScriptContext = engine()->newObject();
+        setupScriptEngineForProduct(engine(), product, transformer->rule, prepareScriptContext);
+        transformer->setupInputs(engine(), prepareScriptContext);
+        transformer->setupOutputs(engine(), prepareScriptContext);
+        transformer->createCommands(rtrafo->transform, evalContext(),
+                ScriptEngine::argumentList(transformer->rule->script->argumentNames,
+                                           prepareScriptContext));
         if (Q_UNLIKELY(transformer->commands.isEmpty()))
             throw ErrorInfo(QString("There's a transformer without commands."), rtrafo->transform->location);
     }

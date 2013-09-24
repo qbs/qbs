@@ -71,7 +71,7 @@ public:
     void setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
     void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
     void createCommands(const ScriptFunctionConstPtr &script,
-                        const RulesEvaluationContextPtr &evalContext);
+                        const RulesEvaluationContextPtr &evalContext, const QScriptValueList &args);
 
 private:
     Transformer();

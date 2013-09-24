@@ -79,6 +79,7 @@ public slots:
         m_result.errorMessage.clear();
         ScriptEngine * const scriptEngine = provideScriptEngine();
         QScriptValue scope = scriptEngine->newObject();
+        setupScriptEngineForFile(scriptEngine, transformer->rule->script->fileContext, scope);
         setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule, scope);
         transformer->setupInputs(scriptEngine, scope);
         transformer->setupOutputs(scriptEngine, scope);

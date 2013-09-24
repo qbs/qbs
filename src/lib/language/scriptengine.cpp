@@ -255,6 +255,15 @@ QSet<QString> ScriptEngine::imports() const
     return QSet<QString>::fromList(m_jsImportCache.keys());
 }
 
+QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,
+        const QScriptValue &context)
+{
+    QScriptValueList result;
+    for (int i = 0; i < argumentNames.count(); ++i)
+        result += context.property(argumentNames.at(i));
+    return result;
+}
+
 class JSTypeExtender
 {
 public:

@@ -458,15 +458,20 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     m_productContext->product->groups += group;
 }
 
-static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value)
+static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
+        const PropertyDeclaration &decl)
 {
+    const QString args = decl.functionArgumentNames.join(QLatin1String(","));
     if (value->hasFunctionForm()) {
+        // Insert the argument list.
+        QString code = value->sourceCode();
+        code.insert(10, args);
         // Remove the function application "()" that has been
         // added in ItemReaderASTVisitor::visitStatement.
-        const QString &code = value->sourceCode();
         return code.left(code.length() - 2);
     } else {
-        return QLatin1String("(function(){return ") + value->sourceCode() + QLatin1String(";})");
+        return QLatin1String("(function(") + args + QLatin1String("){return ")
+                + value->sourceCode() + QLatin1String(";})");
     }
 }
 
@@ -475,7 +480,9 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
     ScriptFunctionPtr script = ScriptFunction::create();
     JSSourceValuePtr value = item->sourceProperty(name);
     if (value) {
-        script->sourceCode = sourceCodeAsFunction(value);
+        const PropertyDeclaration decl = item->propertyDeclaration(name);
+        script->sourceCode = sourceCodeAsFunction(value, decl);
+        script->argumentNames = decl.functionArgumentNames;
         script->location = value->location();
         script->fileContext = resolvedFileContext(value->file());
     }
