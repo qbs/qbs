@@ -313,7 +313,7 @@ void BuildGraphTouchingJob::setup(const TopLevelProjectPtr &project,
 
 void BuildGraphTouchingJob::storeBuildGraph()
 {
-    if (!m_dryRun)
+    if (!m_dryRun && !error().isInternalError())
         InternalJob::storeBuildGraph(m_project);
 }
 

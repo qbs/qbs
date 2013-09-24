@@ -109,7 +109,10 @@ QString ErrorItem::toString() const
 class ErrorInfo::ErrorInfoPrivate : public QSharedData
 {
 public:
+    ErrorInfoPrivate() : internalError(false) { }
+
     QList<ErrorItem> items;
+    bool internalError;
 };
 
 /*!
@@ -127,9 +130,11 @@ ErrorInfo::ErrorInfo(const ErrorInfo &rhs) : d(rhs.d)
 {
 }
 
-ErrorInfo::ErrorInfo(const QString &description, const CodeLocation &location) : d(new ErrorInfoPrivate)
+ErrorInfo::ErrorInfo(const QString &description, const CodeLocation &location, bool internalError)
+    : d(new ErrorInfoPrivate)
 {
     append(description, location);
+    d->internalError = internalError;
 }
 
 ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other)
@@ -178,6 +183,14 @@ QString ErrorInfo::toString() const
     foreach (const ErrorItem &e, d->items)
         lines.append(e.toString());
     return lines.join(QLatin1String("\n"));
+}
+
+/*!
+ * \brief Returns true if this error represents a bug in qbs, false otherwise.
+ */
+bool ErrorInfo::isInternalError() const
+{
+    return d->internalError;
 }
 
 } // namespace qbs

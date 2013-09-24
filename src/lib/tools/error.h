@@ -69,7 +69,8 @@ class QBS_EXPORT ErrorInfo
 public:
     ErrorInfo();
     ErrorInfo(const ErrorInfo &rhs);
-    ErrorInfo(const QString &description, const CodeLocation &location = CodeLocation());
+    ErrorInfo(const QString &description, const CodeLocation &location = CodeLocation(),
+              bool internalError = false);
     ErrorInfo &operator=(const ErrorInfo &other);
     ~ErrorInfo();
 
@@ -79,6 +80,7 @@ public:
     bool hasError() const { return !items().isEmpty(); }
     void clear();
     QString toString() const;
+    bool isInternalError() const;
 
 private:
     class ErrorInfoPrivate;
