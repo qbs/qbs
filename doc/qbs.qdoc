@@ -86,7 +86,7 @@
 
     Qbs builds applications based on the information in a project file that you
     specify in a QML dialect. Each project file specifies one project that can
-    contain several products. You specify the type of the product: application,
+    contain several \l{Product Item}{products}. You specify the type of the product: application,
     library, and so on.
 */
 
@@ -120,7 +120,7 @@
 
     \list
 
-        \li  Qt 4.8
+        \li  Qt >= 4.8
 
     \endlist
 
@@ -140,7 +140,9 @@
     \list 1
 
         \li  Enter the following command:
-            \c {qmake -r qbs.pro && make}
+        \code
+            qmake -r qbs.pro && make
+        \endcode
 
     \endlist
 
@@ -154,20 +156,6 @@
     \nextpage qt-versions.html
 
     \title Configuring Qbs
-
-    When you run Qbs from an in-source build, most paths are set up
-    automatically. If you do not build in-source, configure the following
-    paths:
-
-    \code
-    QBS_SOURCE_DIR=/path/to/qbs-source
-    QBS_BUILD_DIR=/path/to/qbs-build
-    qbs config preferences.qbsPath $QBS_SOURCE_DIR/share/qbs
-    qbs config preferences.pluginsPath $QBS_BUILD_DIR/plugins
-    \endcode
-
-    Currently, you also must tell Qbs where it can find Qt.
-    Please refer to \l{Managing Qt Versions} to set up your Qt builds.
 
     Open a build shell (on Windows open an MSVC command prompt,
     on other platforms you can usually open the default shell):
@@ -185,8 +173,12 @@
     Go into qbs/tests/manual/hello and type:
 
     \code
-    qbs
+    qbs profile:<profile name>
     \endcode
+
+    If you want to build projects that use Qt, additional steps are necessary. Please refer to
+    \l{Managing Qt Versions} for more information.
+
 */
 
 /*!
@@ -214,6 +206,12 @@
     qbs profile:myqt
     \endcode
 
+    \note If the \c setup-toolchains command has found more than one toolchain, you will need
+    to manually link your Qt profile to one of them, like this:
+    \code
+    qbs config profiles.myqt.baseProfile <profile name>
+    \endcode
+
 
     \section1 Manual Setup
 
@@ -227,11 +225,7 @@
     qbs config profiles.myqt.Qt.core.incPath /usr/include/qt4
     qbs config profiles.myqt.Qt.core.libPath /usr/lib/x86_64-linux-gnu
     qbs config profiles.myqt.Qt.core.mkspecPath /usr/share/qt4/mkspecs/linux-g++
-    \endcode
-
-    If you are using Qt 5, you must specify the version number like this:
-    \code
-    qbs config profiles.myqt.Qt.core.version 5.0.0
+    qbs config profiles.myqt.Qt.core.version 5.1.0
     \endcode
 
     \section1 Multiple Qt Builds
@@ -259,7 +253,7 @@
     \endcode
 
     You can set other properties in a profile (not just Qt ones), in the same way
-    you could override them from the command line. For example:
+    you override them from the command line. For example:
 
     \code
     qbs setup-qt C:\Qt\5.0.0\qtbase\bin\qmake.exe qt5
@@ -315,12 +309,12 @@
     \title Language Introduction
 
     Qbs uses project files (*.qbs) to describe the contents of a project.
-    A project contains one or more \e products. A product is the target of a build
+    A project contains one or more \l{Product Item}{products}. A product is the target of a build
     process, typically an application, library or maybe a tar ball.
 
     \section1 The Obligatory Hello World Example
 
-    The project files in this example are written using a QML dialect.
+    Qbs project files are written using a QML dialect.
     A very simple C++ hello world project looks like this:
     \code ---helloworld.qbs---
         import qbs 1.0
@@ -345,12 +339,12 @@
     \endcode
 
     The \a name is the name of the product. In this case it is also the
-    name of the produced executable.
+    name of the produced executable (on Windows, the ".exe" extension is added by default).
     In the property \a files, we specify the source files for our product.
     Unlike QML, the right-hand side can be either a string or a string list.
     A single string is converted to a stringlist containing just one element.
 
-    \a Depends adds the dependency to the module \a{cpp}. This is necessary to let Qbs know that
+    \a Depends adds the dependency to the module \l{Module cpp}{cpp}. This is necessary to let Qbs know that
     we have a C++ project and want to compile main.cpp with a C++ compiler. For more information
     about Qbs modules, see \l{Modules}.
 
@@ -367,6 +361,8 @@
     }
 
     ---hellocrazyworld.qbs---
+    import "CrazyProduct.qbs" as CrazyProduct
+
     CrazyProduct {
         craziness: "enormous"
         name: "hellocrazyworld"
@@ -602,7 +598,7 @@
             fileTags: ["cpp"]
         }
     \endcode
-    This construct means that each source file that matches the p *.cpp (and
+    This construct means that each source file that matches the pattern \c{*.cpp} (and
     has not explicitly set a file tag) gets the file tag \c{cpp}.
 
     The above example can be simplified to
@@ -620,7 +616,7 @@
 
     The \a FileTagger from the \a cpp module automatically assigns the \c cpp
     file tag to the source files. Groups that just contain the \a files
-    property can be simply expressed by using the \a files property of the product.
+    property can be more simply expressed by using the \a files property of the product.
 
     File tags are used by \a rules to transform one type of artifact into
     another. For instance, the C++ compiler rule transforms artifacts with the file tag
@@ -720,11 +716,11 @@
     qbs install --install-root /tmp/myProjectRoot --remove-first
     \endcode
 
-    Here, we want the "installDir" properties from the project file to be interpreted relative
-    to the directory "/tmp/myProjectRoot", and we want that directory to be removed first.
-    If the "--install-root" option is not given, a default is used, namely "<build root>/install-root".
-    Qbs understands the special install root value "@sysroot", which stands for the value of
-    the property qbs.sysroot.
+    Here, we want the installDir properties from the project file to be interpreted relative
+    to the directory \c{/tmp/myProjectRoot}, and we want that directory to be removed first.
+    If the \c{--install-root} option is not given, a default is used, namely \c{<build root>/install-root}.
+    Qbs understands the special install root value \c{@sysroot}, which stands for the value of
+    the property \c{qbs.sysroot}.
 */
 
 /*!
@@ -761,5 +757,9 @@
     \code
     qbs shell
     \endcode
+
+    This is mainly a debugging tool. It opens a shell with the same environment that qbs uses
+    when building the project, so you can, for example, inspect which environment variables
+    will be set up.
 
 */
