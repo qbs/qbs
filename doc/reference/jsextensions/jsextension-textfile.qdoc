@@ -32,13 +32,14 @@
     \page jsextension-textfile.html
     \ingroup list-of-builtin-services
 
-    \title The TextFile Service
+    \title TextFile Service
     \brief Provides read and write operations on text files.
 
     The \c TextFile service allows you to read from and write into text files.
 
-    \section1 Making the service available
-    In order to gain access to these operations, you need to import the service using the
+    \section1 Making the Service Available
+    In order to gain access to text file operations, you need to import the
+    service using the
     following statement at the top of your project file:
     \code
     import qbs.TextFile
@@ -79,20 +80,20 @@
     readLine()
     \endcode
     Reads one line of text from the file and returns it. The returned string does not contain
-    the newline character(s).
+    the newline characters.
 
     \section2 setCodec
     \code
     setCodec(codec)
     \endcode
     Sets the text codec to \c codec. The supported codecs are the same as for \c QTextCodec,
-    e.g. "UTF-8", "UTF-16", "ISO 8859-1" and so on.
+    for example: "UTF-8", "UTF-16", and "ISO 8859-1".
 
     \section2 truncate
     \code
     truncate()
     \endcode
-    Truncates the file, i.e. gives it a size of zero, removing all content.
+    Truncates the file, that is, gives it the size of zero, removing all content.
 
     \section2 write
     \code

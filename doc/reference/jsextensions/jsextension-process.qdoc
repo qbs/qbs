@@ -32,19 +32,21 @@
     \page jsextension-process.html
     \ingroup list-of-builtin-services
 
-    \title The Process Service
-    \brief Allows to start external processes.
+    \title Process Service
+    \brief Allows you to start external processes.
 
-    The \c Process service allows you to start processes, track their output and so on.
+    The \c Process service allows you to start processes, track their output,
+    and so on.
 
-    \section1 Making the service available
-    In order to gain access to these operations, you need to import the service using the
+    \section1 Making the Service Available
+    In order to gain access to process management operations, you need to import
+    the service using the
     following statement at the top of your project file:
     \code
     import qbs.Process
     \endcode
 
-    \section1 Available operations
+    \section1 Available Operations
 
     \section2 Constructor
     \code
@@ -64,7 +66,8 @@
     exec(filePath, arguments, throwOnError)
     \endcode
     Executes the program at \c filePath with the given argument list and blocks until the
-    process is finished. If an error occors (e.g. there is no executable file at \c filePath)
+    process is finished. If an error occurs (for example, there is no executable
+    file at \c filePath)
     and \c throwOnError is true, then a JavaScript exception will be thrown. Otherwise
     (the default), -1 will be returned in case of an error. The normal return code is the exit code
     of the process.

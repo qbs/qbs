@@ -32,20 +32,20 @@
     \page jsextension-file.html
     \ingroup list-of-builtin-services
 
-    \title The File Service
-    \brief Provides files system operations.
+    \title File Service
+    \brief Provides operations on the file system.
 
     The \c File service offers limited access to the file system for operations such as copying
     or removing files.
 
-    \section1 Making the service available
-    In order to gain access to these operations, you need to import the service using the
+    \section1 Making the Service Available
+    To gain access to file system operations, import the service using the
     following statement at the top of your project file:
     \code
     import qbs.File
     \endcode
 
-    \section1 Available operations
+    \section1 Available Operations
 
     \section2 copy
     \code
@@ -53,7 +53,7 @@
     \endcode
     Copies \c sourceFilePath to \c targetFilePath. Any directory components in \c targetFilePath
     that do not yet exist will be created. If \c sourceFilePath is a directory, a recursive
-    copy will be made. If an error happens, a JavaScript exception will be thrown.
+    copy will be made. If an error occurs, a JavaScript exception will be thrown.
     \note \c targetFilePath must be the counterpart of \c sourceFilePath at the new location,
     \b{not} the new parent directory. This allows the copy to have a different name and is true
     even if \c sourceFilePath is a directory.

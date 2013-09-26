@@ -32,21 +32,21 @@
     \page jsextension-fileinfo.html
     \ingroup list-of-builtin-services
 
-    \title The FileInfo Service
+    \title FileInfo Service
     \brief Provides operations on file paths.
 
-    The \c FileInfo service offers various operations on file paths such as turning absolute
-    paths into relative ones, splitting a path into its components and so on.
+    The \c FileInfo service offers various operations on file paths, such as turning absolute
+    paths into relative ones, splitting a path into its components, and so on.
 
-    \section1 Making the service available
+    \section1 Making the Service Available
 
-    In order to gain access to these operations, you need to import the service using the
+    In order to gain access to file path operations, you need to import the service using the
     following statement at the top of your project file:
     \code
     import qbs.FileInfo
     \endcode
 
-    \section1 Available operations
+    \section1 Available Operations
 
     \section2 baseName
     \code
@@ -64,7 +64,8 @@
     \code
     FileInfo.fileName(filePath)
     \endcode
-    Returns the last component of \c filePath, i.e. everything after the last '/' character.
+    Returns the last component of \c filePath, that is, everything after the
+    last '/' character.
 
     \section2 fromWindowsSeparators
     \code
@@ -88,7 +89,8 @@
     \code
     FileInfo.path(filePath)
     \endcode
-    Returns the part of \c filePath that is not the file name, i.e. everything up to
+    Returns the part of \c filePath that is not the file name, that is,
+    everything up to
     (but not including) the last '/' character. If \c filePath is just a file name, then '.'
     is returned. If \c filePath ends with a '/' character, then the file name is assumed to be empty
     for the purpose of the above definition.
