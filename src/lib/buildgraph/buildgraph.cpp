@@ -29,8 +29,10 @@
 #include "buildgraph.h"
 
 #include "artifact.h"
+#include "cycledetector.h"
 #include "projectbuilddata.h"
 #include "productbuilddata.h"
+#include "transformer.h"
 
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
@@ -406,6 +408,60 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] insert artifact '%1'")
                              .arg(artifact->filePath());
+    }
+}
+
+static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, const Logger &logger)
+{
+    logger.qbsDebug() << "Sanity checking product '" << product->name << "'";
+    CycleDetector cycleDetector(logger);
+    cycleDetector.visitProduct(product);
+    const ProductBuildData * const buildData = product->buildData.data();
+    QBS_CHECK(!!product->enabled == !!buildData);
+    if (!product->enabled)
+        return;
+    foreach (Artifact * const artifact, buildData->artifacts) {
+        logger.qbsDebug() << "Sanity checking artifact '" << artifact->fileName() << "'";
+        QBS_CHECK(artifact->product == product);
+        foreach (const Artifact * const parent, artifact->parents)
+            QBS_CHECK(parent->children.contains(artifact));
+        foreach (const Artifact * const child, artifact->children)
+            QBS_CHECK(child->parents.contains(artifact));
+        const TransformerConstPtr transformer = artifact->transformer;
+        if (artifact->artifactType == Artifact::SourceFile)
+            continue;
+
+        QBS_CHECK(transformer);
+        QBS_CHECK(transformer->outputs.contains(artifact));
+        ArtifactList transformerOutputChildren;
+        foreach (const Artifact * const output, transformer->outputs) {
+            QBS_CHECK(output->transformer == transformer);
+            transformerOutputChildren.unite(output->children);
+        }
+        if (logger.traceEnabled()) {
+            logger.qbsTrace() << "The transformer output children are:";
+            foreach (const Artifact * const a, transformerOutputChildren)
+                logger.qbsTrace() << "\t" << a->fileName();
+            logger.qbsTrace() << "The transformer inputs are:";
+            foreach (const Artifact * const a, transformer->inputs)
+                logger.qbsTrace() << "\t" << a->fileName();
+        }
+        QBS_CHECK(transformer->inputs.count() <= transformerOutputChildren.count());
+        foreach (Artifact * const transformerInput, transformer->inputs)
+            QBS_CHECK(transformerOutputChildren.contains(transformerInput));
+    }
+}
+
+void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
+{
+    logger.qbsDebug() << "Sanity checking project '" << project->name << "'";
+    foreach (const ResolvedProjectPtr &subProject, project->subProjects)
+        doSanityChecks(subProject, logger);
+
+    foreach (const ResolvedProductConstPtr &product, project->products) {
+        QBS_CHECK(product->project == project);
+        QBS_CHECK(product->topLevelProject() == project->topLevelProject());
+        doSanityChecksForProduct(product, logger);
     }
 }
 

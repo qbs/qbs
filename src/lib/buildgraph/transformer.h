@@ -53,7 +53,7 @@ public:
 
     ~Transformer();
 
-    ArtifactList inputs; // can be different from "children of all outputs"
+    ArtifactList inputs; // Subset of "children of all outputs".
     ArtifactList outputs;
     RuleConstPtr rule;
     QList<AbstractCommand *> commands;

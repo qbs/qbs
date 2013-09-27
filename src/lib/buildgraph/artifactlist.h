@@ -98,6 +98,10 @@ public:
         // no-op
     }
 
+    bool operator==(const ArtifactList &other) const { return m_data == other.m_data; }
+    bool operator!=(const ArtifactList &other) const { return !(*this == other); }
+
+
 private:
     std::set<Artifact *> m_data;
 };

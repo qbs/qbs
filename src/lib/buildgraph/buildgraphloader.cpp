@@ -148,6 +148,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     project->buildDirectory = buildDir;
     m_result.loadedProject = project;
     evalContext->incrementProgressValue();
+    doSanityChecks(project, m_logger);
 
     if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
         return m_result;
@@ -286,7 +287,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
                            oldBuildData.data());
     }
 
-    CycleDetector(m_logger).visitProject(m_result.newlyResolvedProject);
+    doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }
 
 bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const

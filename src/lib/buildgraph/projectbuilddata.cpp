@@ -32,7 +32,6 @@
 #include "buildgraph.h"
 #include "productbuilddata.h"
 #include "command.h"
-#include "cycledetector.h"
 #include "rulesapplicator.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
@@ -231,7 +230,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
         evalContext->incrementProgressValue();
     }
     evalContext->incrementProgressValue();
-    CycleDetector(m_logger).visitProject(m_project);
+    doSanityChecks(resolvedProject, m_logger);
 }
 
 void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,

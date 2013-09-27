@@ -79,6 +79,8 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
                                  ScriptPropertyObserver *observer = 0);
 QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 
+void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger);
+
 template <typename T>
 QStringList toStringList(const T &artifactContainer)
 {
