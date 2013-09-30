@@ -16,7 +16,7 @@ GenericGCC {
     compilerDefines: ['__GNUC__', 'WIN32', '_WIN32']
 
     property string windresName: 'windres'
-    property string windresPath: { return toolchainPathPrefix + windresName }
+    property path windresPath: { return toolchainPathPrefix + windresName }
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ";", true);

@@ -95,9 +95,9 @@ UnixGCC {
         return dict;
     }
 
-    readonly property string platformInfoPlist: platformPath ? [platformPath, "Info.plist"].join("/") : undefined
-    readonly property string sdkSettingsPlist: sysroot ? [sysroot, "SDKSettings.plist"].join("/") : undefined
-    readonly property string toolchainInfoPlist: toolchainInstallPath ? [toolchainInstallPath, "../../ToolchainInfo.plist"].join("/") : undefined
+    readonly property path platformInfoPlist: platformPath ? [platformPath, "Info.plist"].join("/") : undefined
+    readonly property path sdkSettingsPlist: sysroot ? [sysroot, "SDKSettings.plist"].join("/") : undefined
+    readonly property path toolchainInfoPlist: toolchainInstallPath ? [toolchainInstallPath, "../../ToolchainInfo.plist"].join("/") : undefined
 
     Rule {
         multiplex: true

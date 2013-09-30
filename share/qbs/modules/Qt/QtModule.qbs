@@ -7,9 +7,9 @@ Module {
     Depends { name: "Qt.core" }
 
     property string qtModuleName
-    property string binPath: Qt.core.binPath
-    property string incPath: Qt.core.incPath
-    property string libPath: Qt.core.libPath
+    property path binPath: Qt.core.binPath
+    property path incPath: Qt.core.incPath
+    property path libPath: Qt.core.libPath
     property string qtLibInfix: Qt.core.libInfix
     property string repository: Qt.core.versionMajor === 5 ? 'qtbase' : undefined
     property string includeDirName: 'Qt' + qtModuleName

@@ -19,8 +19,8 @@ CppModule {
     compilerName: "cl.exe"
 
     property bool generateManifestFiles: true
-    property string toolchainInstallPath
-    property string windowsSDKPath
+    property path toolchainInstallPath
+    property path windowsSDKPath
     property string architecture: qbs.architecture || "x86"
     staticLibraryPrefix: ""
     dynamicLibraryPrefix: ""

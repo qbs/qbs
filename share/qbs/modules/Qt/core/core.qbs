@@ -14,17 +14,17 @@ Module {
     property string repository: versionMajor === 5 ? "qtbase" : undefined
     property stringList config: []
     property stringList qtConfig: []
-    property string binPath
-    property string incPath
-    property string libPath
-    property string pluginPath
-    property string mkspecPath
+    property path binPath
+    property path incPath
+    property path libPath
+    property path pluginPath
+    property path mkspecPath
     property string mocName: "moc"
     property string lreleaseName: "lrelease"
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment
     property string qdocQhpFileName
-    property string docPath
+    property path docPath
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property string version
     property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
@@ -35,7 +35,7 @@ Module {
     property bool staticBuild
     property stringList buildVariant
     property string generatedFilesDir: "GeneratedFiles/" + product.name
-    property string qmFilesDir: product.destinationDirectory
+    property path qmFilesDir: product.destinationDirectory
 
     // private properties
     property string libraryInfix: cpp.debugInformation ? 'd' : ''

@@ -24,7 +24,7 @@ Module {
     property bool install: false
     property string installDir
     property string installPrefix: ""
-    property string sysroot
+    property path sysroot
 
     PropertyOptions {
         name: "buildVariant"

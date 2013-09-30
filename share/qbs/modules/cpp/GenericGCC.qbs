@@ -11,11 +11,11 @@ CppModule {
 
     property stringList transitiveSOs
     property string toolchainPrefix
-    property string toolchainInstallPath
+    property path toolchainInstallPath
     compilerName: 'g++'
     property string archiverName: 'ar'
-    property string sysroot: qbs.sysroot
-    property string platformPath
+    property path sysroot: qbs.sysroot
+    property path platformPath
 
     property string toolchainPathPrefix: {
         var path = ''
@@ -30,7 +30,7 @@ CppModule {
     }
 
     compilerPath: toolchainPathPrefix + compilerName
-    property string archiverPath: { return toolchainPathPrefix + archiverName }
+    property path archiverPath: { return toolchainPathPrefix + archiverName }
 
     property bool createSymlinks: true
 
