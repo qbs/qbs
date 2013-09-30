@@ -9,6 +9,7 @@ GenericGCC {
     dynamicLibraryPrefix: ""
     executablePrefix: ""
     staticLibrarySuffix: ".a"
+    supportedStaticLibrarySuffixes: [".a", ".lib"]
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     windowsApiCharacterSet: "unicode"

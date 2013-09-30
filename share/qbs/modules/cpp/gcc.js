@@ -8,7 +8,7 @@ function libraryLinkerFlags(product, inputs)
     var frameworks = ModUtils.moduleProperties(product, 'frameworks');
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = ModUtils.moduleProperties(product, 'rpaths');
-    var args = [], i, prefix, suffix;
+    var args = [], i, prefix, suffix, suffixes;
 
     if (rpaths && rpaths.length)
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
@@ -30,21 +30,25 @@ function libraryLinkerFlags(product, inputs)
         args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
 
     prefix = ModUtils.moduleProperty(product, "staticLibraryPrefix");
-    suffix = ModUtils.moduleProperty(product, "staticLibrarySuffix");
+    suffixes = ModUtils.moduleProperty(product, "supportedStaticLibrarySuffixes");
     for (i in staticLibraries) {
-        if (isLibraryFileName(product, FileInfo.fileName(staticLibraries[i]), prefix, suffix, false))
+        if (isLibraryFileName(product, FileInfo.fileName(staticLibraries[i]), prefix, suffixes,
+                              false)) {
             args.push(staticLibraries[i]);
-        else
+        } else {
             args.push('-l' + staticLibraries[i]);
+        }
     }
 
     prefix = ModUtils.moduleProperty(product, "dynamicLibraryPrefix");
     suffix = ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
     for (i in dynamicLibraries) {
-        if (isLibraryFileName(product, FileInfo.fileName(dynamicLibraries[i]), prefix, suffix, true))
+        if (isLibraryFileName(product, FileInfo.fileName(dynamicLibraries[i]), prefix, [suffix],
+                              true)) {
             args.push(dynamicLibraries[i]);
-        else
+        } else {
             args.push('-l' + dynamicLibraries[i]);
+        }
     }
 
     suffix = ".framework";
@@ -66,12 +70,18 @@ function libraryLinkerFlags(product, inputs)
 }
 
 // Returns whether the string looks like a library filename
-function isLibraryFileName(product, fileName, prefix, suffix, isShared)
+function isLibraryFileName(product, fileName, prefix, suffixes, isShared)
 {
+    var suffix, i;
     var os = product.moduleProperty("qbs", "targetOS");
-    if (os.contains("unix") && !os.contains("darwin") && isShared)
-        suffix += "(\\.[0-9]+){0,3}";
-    return fileName.match("^" + prefix + ".+?\\" + suffix + "$");
+    for (i = 0; i < suffixes.length; ++i) {
+        suffix = suffixes[i];
+        if (isShared && os.contains("unix") && !os.contains("darwin"))
+            suffix += "(\\.[0-9]+){0,3}";
+        if (fileName.match("^" + prefix + ".+?\\" + suffix + "$"))
+            return true;
+    }
+    return false;
 }
 
 // for compiler AND linker

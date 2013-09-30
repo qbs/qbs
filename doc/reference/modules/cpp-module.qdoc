@@ -334,6 +334,17 @@
     Wrapper binary and its arguments for wrapping compiler calls.
     This is useful for compiler wrappers like ccache and alike.
 
+    \section2 supportedStaticLibrarySuffixes
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of file suffixes this toolchain's linker accepts as input. For example, for MinGW this list
+    should be \c{[".a", ".lib"]}.
+
+
 
     \section1 Properties Specific to iOS and OS X
 
