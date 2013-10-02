@@ -237,8 +237,10 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
         const QList<ResolvedProductPtr> &freshProducts)
 {
     m_project = project;
-    foreach (const ResolvedProductPtr &product, freshProducts)
-        resolveProductBuildData(product);
+    foreach (const ResolvedProductPtr &product, freshProducts) {
+        if (product->enabled)
+            resolveProductBuildData(product);
+    }
 }
 
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)

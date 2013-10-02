@@ -417,6 +417,8 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
     const ProductBuildData * const buildData = product->buildData.data();
+    if (logger.traceEnabled())
+        logger.qbsTrace() << "enabled: " << product->enabled << "; build data: " << buildData;
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
