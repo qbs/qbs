@@ -35,6 +35,7 @@
 
 #include <QHash>
 #include <QSet>
+#include <QStack>
 #include <QStringList>
 
 namespace qbs {
@@ -76,7 +77,9 @@ public:
 
     void setPool(ItemPool *pool) { m_pool = pool; }
     void setSearchPaths(const QStringList &searchPaths);
-    const QStringList &searchPaths() const { return m_searchPaths; }
+    void pushExtraSearchPaths(const QStringList &extraSearchPaths);
+    void popExtraSearchPaths();
+    QStringList searchPaths() const;
 
     Item *readFile(const QString &filePath);
 
@@ -89,6 +92,7 @@ private:
     BuiltinDeclarations *m_builtins;
     Logger m_logger;
     QStringList m_searchPaths;
+    QStack<QStringList> m_extraSearchPaths;
     QHash<const Item *, QSet<JSSourceValuePtr> > m_conditionalValuesPerScopeItem;
 
     class ASTCache;

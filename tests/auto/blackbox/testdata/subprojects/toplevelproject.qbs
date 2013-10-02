@@ -14,4 +14,6 @@ Project {
             files: "subproject1/main.cpp"
         }
     }
+
+    qbsSearchPaths: ["resources"]
 }

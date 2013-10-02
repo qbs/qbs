@@ -80,6 +80,11 @@ void ModuleLoader::setProgressObserver(ProgressObserver *progressObserver)
     m_progressObserver = progressObserver;
 }
 
+static void addExtraModuleSearchPath(QStringList &list, const QString &searchPath)
+{
+    list += FileInfo::resolvePath(searchPath, moduleSearchSubDir);
+}
+
 void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
 {
     m_reader->setSearchPaths(searchPaths);
@@ -87,7 +92,7 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     m_moduleDirListCache.clear();
     m_moduleSearchPaths.clear();
     foreach (const QString &path, searchPaths)
-        m_moduleSearchPaths += FileInfo::resolvePath(path, moduleSearchSubDir);
+        addExtraModuleSearchPath(m_moduleSearchPaths, path);
 }
 
 ModuleLoaderResult ModuleLoader::load(const QString &filePath,
@@ -123,9 +128,11 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         return;
     ProjectContext projectContext;
     projectContext.result = loadResult;
-    projectContext.extraSearchPaths = readExtraSearchPaths(item);
-    projectContext.extraSearchPaths += FileInfo::resolvePath(item->file()->dirPath(),
+    projectContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
+    projectContext.extraModuleSearchPaths += FileInfo::resolvePath(item->file()->dirPath(),
                                                              moduleSearchSubDir);
+    projectContext.extraSearchPaths = readExtraSearchPaths(item);
+    m_reader->pushExtraSearchPaths(projectContext.extraSearchPaths);
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
@@ -173,6 +180,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
                         subItem->location());
         }
     }
+
+    m_reader->popExtraSearchPaths();
 }
 
 void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
@@ -183,7 +192,15 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     ProductContext productContext;
     productContext.project = projectContext;
-    productContext.extraSearchPaths = readExtraSearchPaths(item);
+    productContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
+    bool extraSearchPathsSet = false;
+    const QStringList extraSearchPaths = readExtraSearchPaths(item, &extraSearchPathsSet);
+    if (extraSearchPathsSet) { // Inherit from project if not set in product itself.
+        productContext.extraSearchPaths = extraSearchPaths;
+        m_reader->pushExtraSearchPaths(extraSearchPaths);
+    } else {
+        productContext.extraSearchPaths = projectContext->extraSearchPaths;
+    }
     productContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     productContext.scope = Item::create(m_pool);
@@ -211,6 +228,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     mergeExportItems(&productContext);
     projectContext->result->productInfos.insert(item, productContext.info);
+    if (extraSearchPathsSet)
+        m_reader->popExtraSearchPaths();
 }
 
 void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *item,
@@ -537,10 +556,12 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         return moduleInstance;
     }
 
-    const QStringList extraSearchPaths = productContext->extraSearchPaths.isEmpty()
-            ? productContext->project->extraSearchPaths : productContext->extraSearchPaths;
+    QStringList extraModuleSearchPaths = productContext->extraModuleSearchPaths.isEmpty()
+            ? productContext->project->extraModuleSearchPaths : productContext->extraModuleSearchPaths;
+    foreach (const QString &searchPath, productContext->extraSearchPaths)
+        addExtraModuleSearchPath(extraModuleSearchPaths, searchPath);
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                                                      moduleName, extraSearchPaths);
+                                                      moduleName, extraModuleSearchPaths);
     if (!modulePrototype)
         return 0;
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
@@ -877,12 +898,27 @@ bool ModuleLoader::checkItemCondition(Item *item)
     return m_evaluator->boolValue(item, QLatin1String("condition"), true);
 }
 
-QStringList ModuleLoader::readExtraSearchPaths(Item *item)
+QStringList ModuleLoader::readExtraModuleSearchPaths(Item *item)
 {
     QStringList result;
     const QStringList paths = m_evaluator->stringListValue(item,
                                                            QLatin1String("moduleSearchPaths"));
     const ValueConstPtr prop = item->property(QLatin1String("moduleSearchPaths"));
+    if (!paths.isEmpty()) {
+        m_logger.printWarning(ErrorInfo(Tr::tr("The 'moduleSearchPaths' property is deprecated. "
+                "Use 'qbsSearchPaths' instead."), prop->location()));
+    }
+    foreach (const QString &path, paths)
+        result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
+    return result;
+}
+
+QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
+{
+    QStringList result;
+    const QString propertyName = QLatin1String("qbsSearchPaths");
+    const QStringList paths = m_evaluator->stringListValue(item, propertyName, wasSet);
+    const ValueConstPtr prop = item->property(propertyName);
     foreach (const QString &path, paths)
         result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
     return result;
@@ -902,9 +938,10 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
          = sourceProject->propertyDeclarations().constBegin();
          it != sourceProject->propertyDeclarations().constEnd(); ++it) {
 
-        // We must not inherit built-in properties such as "name", but "moduleSearchPaths" is
-        // an exception.
-        if (it.key() == QLatin1String("moduleSearchPaths")) {
+        // We must not inherit built-in properties such as "name", but "moduleSearchPaths"
+        // and "qbsSearchPaths" are exceptions.
+        if (it.key() == QLatin1String("moduleSearchPaths")
+                || it.key() == QLatin1String("qbsSearchPaths")) {
             const JSSourceValueConstPtr &v
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);

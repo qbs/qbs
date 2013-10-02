@@ -110,9 +110,28 @@ void ItemReader::setSearchPaths(const QStringList &searchPaths)
     m_searchPaths = searchPaths;
 }
 
+void ItemReader::pushExtraSearchPaths(const QStringList &extraSearchPaths)
+{
+    m_extraSearchPaths.push(extraSearchPaths);
+}
+
+void ItemReader::popExtraSearchPaths()
+{
+    m_extraSearchPaths.pop();
+}
+
+QStringList ItemReader::searchPaths() const
+{
+    QStringList paths = m_searchPaths;
+    if (!m_extraSearchPaths.isEmpty())
+        paths += m_extraSearchPaths.top();
+    return paths;
+}
+
 Item *ItemReader::readFile(const QString &filePath)
 {
-    return internalReadFile(filePath).rootItem;
+    Item * const item = internalReadFile(filePath).rootItem;
+    return item;
 }
 
 QSet<QString> ItemReader::filesRead() const

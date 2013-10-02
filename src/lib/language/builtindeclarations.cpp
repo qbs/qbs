@@ -273,6 +273,8 @@ void BuiltinDeclarations::addProductItem()
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     properties += PropertyDeclaration(QLatin1String("moduleSearchPaths"),
                                       PropertyDeclaration::Variant);
+    properties += PropertyDeclaration(QLatin1String("qbsSearchPaths"),
+                                      PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
     m_builtins[QLatin1String("Product")] = properties;
 }
@@ -286,6 +288,8 @@ void BuiltinDeclarations::addProjectItem()
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     properties += PropertyDeclaration(QLatin1String("moduleSearchPaths"),
             PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
+    properties += PropertyDeclaration(QLatin1String("qbsSearchPaths"),
+            PropertyDeclaration::StringList, PropertyDeclaration::PropertyNotAvailableInConfig);
     m_builtins[QLatin1String("Project")] = properties;
 }
 

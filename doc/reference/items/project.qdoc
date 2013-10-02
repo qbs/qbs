@@ -73,14 +73,12 @@
             \li Whether the project is enabled. If false, no products or sub-projects will be
                 collected.
         \row
-            \li moduleSearchPaths
+            \li qbsSearchPaths
             \li stringList
             \li empty
-            \li The paths that are searched when looking for a module a product depends on.
+            \li These paths are searched for imports and modules in addition to the ones listed
+                in \c{preferences.qbsPath}.
                 All products in the project inherit this value by default.
-                In addition to what is given here, Qbs will also look in the directory where
-                the Qbs file defining this project is located, as well as in the paths
-                listed in the \c preferences.qbsPath setting.
         \row
             \li references
             \li path list

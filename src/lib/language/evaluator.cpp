@@ -144,9 +144,11 @@ static QStringList toStringList(const QScriptValue &scriptValue,
     return QStringList();
 }
 
-QStringList Evaluator::stringListValue(const Item *item, const QString &name)
+QStringList Evaluator::stringListValue(const Item *item, const QString &name, bool *propertyWasSet)
 {
     QScriptValue v = property(item, name);
+    if (propertyWasSet)
+        *propertyWasSet = v.isValid() && !v.isUndefined();
     handleEvaluationError(item, name, v);
     return toStringList(v, item, name);
 }

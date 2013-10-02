@@ -60,7 +60,7 @@ public:
     FileTags fileTagsValue(const Item *item, const QString &name);
     QString stringValue(const Item *item, const QString &name,
                         const QString &defaultValue = QString(), bool *propertyWasSet = 0);
-    QStringList stringListValue(const Item *item, const QString &name);
+    QStringList stringListValue(const Item *item, const QString &name, bool *propertyWasSet = 0);
 
     QScriptValue scriptValue(const Item *item);
     QScriptValue fileScope(const FileContextConstPtr &file);
