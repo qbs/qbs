@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_ILOGGER_H
-#define QBS_ILOGGER_H
+#ifndef QBS_ILOGSINK_H
+#define QBS_ILOGSINK_H
 
 #include "../tools/qbs_export.h"
 
