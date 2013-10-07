@@ -103,6 +103,9 @@ static void collectPrototypes(const QString &path, const QString &as,
 
 bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 {
+    foreach (const QString &searchPath, m_reader->searchPaths())
+        collectPrototypes(searchPath + QLatin1String("/imports"), QString(), &m_typeNameToFile);
+
     const QString path = FileInfo::path(m_filePath);
 
     // files in the same directory are available as prototypes
@@ -205,27 +208,29 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
         } else if (!importUri.isEmpty()) {
             const QString importPath = isBase
                     ? QLatin1String("qbs/base") : importUri.join(QDir::separator());
-            bool found = false;
-            foreach (const QString &searchPath, m_reader->searchPaths()) {
-                const QFileInfo fi(FileInfo::resolvePath(
-                                       FileInfo::resolvePath(searchPath, "imports"), importPath));
-                if (fi.isDir()) {
-                    // ### versioning, qbsdir file, etc.
-                    const QString &resultPath = fi.absoluteFilePath();
-                    collectPrototypes(resultPath, as, &m_typeNameToFile);
+            bool found = m_typeNameToFile.contains(importUri);
+            if (!found) {
+                foreach (const QString &searchPath, m_reader->searchPaths()) {
+                    const QFileInfo fi(FileInfo::resolvePath(
+                                           FileInfo::resolvePath(searchPath, "imports"), importPath));
+                    if (fi.isDir()) {
+                        // ### versioning, qbsdir file, etc.
+                        const QString &resultPath = fi.absoluteFilePath();
+                        collectPrototypes(resultPath, as, &m_typeNameToFile);
 
-                    QDirIterator dirIter(resultPath, QStringList("*.js"));
-                    while (dirIter.hasNext()) {
-                        dirIter.next();
-                        JsImport &jsImport = jsImports[as];
-                        if (jsImport.scopeName.isNull()) {
-                            jsImport.scopeName = as;
-                            jsImport.location = toCodeLocation(import->firstSourceLocation());
+                        QDirIterator dirIter(resultPath, QStringList("*.js"));
+                        while (dirIter.hasNext()) {
+                            dirIter.next();
+                            JsImport &jsImport = jsImports[as];
+                            if (jsImport.scopeName.isNull()) {
+                                jsImport.scopeName = as;
+                                jsImport.location = toCodeLocation(import->firstSourceLocation());
+                            }
+                            jsImport.fileNames.append(dirIter.filePath());
                         }
-                        jsImport.fileNames.append(dirIter.filePath());
+                        found = true;
+                        break;
                     }
-                    found = true;
-                    break;
                 }
             }
             if (Q_UNLIKELY(!found)) {
