@@ -116,6 +116,13 @@
     Sets the value of variable \c varName to \c varValue in the process environment.
     This only has an effect if called before the process is started.
 
+    \section2 setWorkingDirectory
+    \code
+    setWorkingDirectory(dir)
+    \endcode
+    Sets the directory the process will be started in.
+    This only has an effect if called before the process is started.
+
     \section2 start
     \code
     start(filePath, arguments)
@@ -141,6 +148,12 @@
     Returns true if the process has finished and false if the operation has timed out.
     Calling this function only makes sense for processes started via \c start() (as opposed to
     \c exec()).
+
+    \section2 workingDirectory
+    \code
+    \workingDirectory()
+    \endcode
+    Returns the directory the process will be started in.
 
     \section2 write
     \code

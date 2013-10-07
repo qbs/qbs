@@ -97,9 +97,24 @@ void Process::setEnv(const QString &name, const QString &value)
     m_environment.insert(name, value);
 }
 
+QString Process::workingDirectory()
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    return m_workingDirectory;
+}
+
+void Process::setWorkingDirectory(const QString &dir)
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    m_workingDirectory = dir;
+}
+
 bool Process::start(const QString &program, const QStringList &arguments)
 {
     Q_ASSERT(thisObject().engine() == engine());
+
+    if (!m_workingDirectory.isEmpty())
+        m_qProcess->setWorkingDirectory(m_workingDirectory);
 
     m_qProcess->setProcessEnvironment(m_environment);
     m_qProcess->start(program, arguments);

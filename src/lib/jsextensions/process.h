@@ -56,6 +56,9 @@ public:
     Q_INVOKABLE void setEnv(const QString &name, const QString &value);
     Q_INVOKABLE void setCodec(const QString &codec);
 
+    Q_INVOKABLE QString workingDirectory();
+    Q_INVOKABLE void setWorkingDirectory(const QString &dir);
+
     Q_INVOKABLE bool start(const QString &program, const QStringList &arguments);
     Q_INVOKABLE int exec(const QString &program, const QStringList &arguments,
                          bool throwOnError = false);
@@ -76,6 +79,7 @@ public:
 private:
     QProcess *m_qProcess;
     QProcessEnvironment m_environment;
+    QString m_workingDirectory;
     QTextStream *m_textStream;
 };
 
