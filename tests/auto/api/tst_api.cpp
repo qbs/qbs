@@ -134,6 +134,24 @@ void TestApi::installableFiles()
     QCOMPARE(installableFiles.last().targetFilePath(), QLatin1String("/tmp/dir/file2.txt"));
 }
 
+void TestApi::listBuildSystemFiles()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir
+            = QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata/subprojects"));
+    const QString topLevelProjectFile = projectDir + QLatin1String("/toplevelproject.qbs");
+    setupParams.setProjectFilePath(topLevelProjectFile);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    const QSet<QString> buildSystemFiles = job->project().buildSystemFiles();
+    QVERIFY(buildSystemFiles.contains(topLevelProjectFile));
+    QVERIFY(buildSystemFiles.contains(projectDir + QLatin1String("/subproject2/subproject2.qbs")));
+    QVERIFY(buildSystemFiles.contains(projectDir
+                                      + QLatin1String("/subproject2/subproject3/subproject3.qbs")));
+}
+
 qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 {
     qbs::SetupProjectParameters setupParams;
