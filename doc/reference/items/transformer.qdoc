@@ -51,6 +51,7 @@
             cmd.sourceCode = function() {
                 var file = new TextFile(input.fileName);
                 var content = file.readAll();
+                file.close()
                 content = content.replace(/\r\n/g, "\n");
                 file = new TextFile(output.fileName, TextFile.WriteOnly);
                 file.truncate();
