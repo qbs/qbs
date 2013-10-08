@@ -35,6 +35,7 @@
 #include <QExplicitlySharedDataPointer>
 #include <QHash>
 #include <QList>
+#include <QSet>
 #include <QStringList>
 #include <QVariantMap>
 
