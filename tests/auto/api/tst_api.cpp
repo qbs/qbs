@@ -63,6 +63,13 @@ TestApi::~TestApi()
     delete m_logSink;
 }
 
+static void waitForFinished(qbs::AbstractJob *job)
+{
+    QEventLoop loop;
+    QObject::connect(job, SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
+    loop.exec();
+}
+
 void TestApi::disabledInstallGroup()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -70,9 +77,7 @@ void TestApi::disabledInstallGroup()
         "/disabled_install_group/project.qbs")));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
                                                                         m_logSink, 0));
-    QEventLoop loop;
-    connect(job.data(), SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
-    loop.exec();
+    waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
     qbs::ProjectData projectData = project.projectData();
@@ -94,9 +99,7 @@ void TestApi::installableFiles()
         "/installed_artifact/installed_artifact.qbs")));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
                                                                         m_logSink, 0));
-    QEventLoop loop;
-    connect(job.data(), SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
-    loop.exec();
+    waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
     qbs::ProjectData projectData = project.projectData();
@@ -117,8 +120,7 @@ void TestApi::installableFiles()
     setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata"
         "/recursive_wildcards/recursive_wildcards.qbs")));
     job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
-    connect(job.data(), SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
-    loop.exec();
+    waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     projectData = project.projectData();
