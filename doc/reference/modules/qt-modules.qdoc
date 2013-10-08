@@ -1,0 +1,433 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page qt-modules.html
+    \ingroup list-of-modules
+
+    \title Qt Modules
+    \brief Provide Qt support.
+
+    The \c{Qt.*} modules contain properties and rules for Qt.
+
+    \section1 Creating Dependencies to Qt Modules
+
+    The Qt modules are special in that they are submodules within the \c Qt "namespace", which
+    has ramifications on the syntax when expressing dependencies. Assume your product depends
+    on the \c core and \c network modules. Then you could write:
+    \code
+    Depends { name: "Qt.core" }
+    Depends { name: "Qt.network" }
+    \endcode
+    Or, alternatively:
+    \code
+    Depends { name: "Qt"; submodules: ["core", "network" } }
+    \endcode
+
+    \section1 List of Submodules
+
+    \table
+    \header
+        \li Submodule Name
+        \li Qt Module Name
+        \li Notes
+    \row
+        \li \l axcontainer
+        \li QAxContainer
+        \li This module is only available on Windows.
+    \row
+        \li \l axserver
+        \li QAxServer
+        \li This module is only available on Windows.
+    \row
+        \li concurrent
+        \li Qt Concurrent
+        \li
+    \row
+        \li \l core
+        \li Qt Core
+        \li All other \c Qt modules have a dependency to this one, so you do not
+            need to list it in your dependencies if you depend on at least one
+            other \c Qt module.
+
+            For more information on the properties you can specify, see
+            \l{core Properties}.
+    \row
+        \li dbus
+        \li Qt D-Bus
+        \li
+    \row
+        \li declarative
+        \li Qt Quick 1
+        \li Provides the \c{Qt Quick 1} module. For more information, see
+            \l{declarative Properties}.
+    \row
+        \li designer
+        \li Qt Designer
+        \li
+    \row
+        \li enginio
+        \li Qt Enginio
+        \li
+    \row
+        \li \l gui
+        \li Qt GUI
+        \li For more information, see \l {gui Properties}.
+    \row
+        \li \l help
+        \li Qt Help
+        \li You do not need this module for building \c qdoc documentation,
+            because that functionality is part of the \c core module. This
+            module is for using Qt classes such as \c QHelpEngine.
+    \row
+        \li multimedia
+        \li Qt Multimedia
+        \li
+    \row
+        \li multimediawidgets
+        \li Qt Multimedia Widgets
+        \li
+    \row
+        \li network
+        \li Qt Network
+        \li
+    \row
+        \li opengl
+        \li Qt OpenGL
+        \li
+    \row
+        \li phonon
+        \li Phonon (Qt 4 only)
+        \li
+    \row
+        \li printsupport
+        \li Qt Print Support
+        \li
+    \row
+        \li \l quick
+        \li Qt Quick (2)
+        \li Provides the \c{Qt Quick} module (Qt Quick 2). For more information,
+            see \l {quick Properties}.
+    \row
+        \li qml
+        \li Qt QML
+        \li
+    \row
+        \li script
+        \li Qt Script
+        \li
+    \row
+        \li sql
+        \li Qt SQL
+        \li
+    \row
+        \li svg
+        \li Qt SVG
+        \li
+    \row
+        \li test
+        \li Qt Test
+        \li
+    \row
+        \li webkit
+        \li Qt WebKit
+        \li
+    \row
+        \li webkitwidgets
+        \li Qt WebKit Widgets
+        \li
+    \row
+        \li widgets
+        \li Qt Widgets
+        \li
+    \row
+        \li \l xml
+        \li Qt XML
+        \li You do not need this module for the \c QXmlStreamReader and
+            \c QXmlStreamWriter classes, because those classes are a part of the
+            \c core module. This module provides the deprecated DOM and SAX
+            classes.
+    \row
+        \li xmlpatterns
+        \li Qt XML Patterns
+        \li
+    \endtable
+
+    \section2 core Properties
+
+    As opposed to most other \c Qt modules, \c core defines a number of properties that can be
+    interesting to users. Some of them only need to be defined if the respective installation
+    of Qt was built in some unusual way, for instance by setting non-default \c configure flags.
+
+    \section3 binPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The path in which Qt tools such as \c qmake, \c moc and so on are located.
+
+    \section3 buildVariant
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Specifies the build variants for which Qt was built.
+
+    \section3 config
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    Corresponds to the default value of qmake's \c CONFIG variable.
+
+    \section3 docPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The path in which the Qt documentation is located.
+
+    \section3 frameworkBuild
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Specifies whether Qt was built as a framework. This is only relevant for Darwin systems.
+
+    \section3 incPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The base path of the Qt headers.
+
+    \section3 libInfix
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    The library infix can be set at Qt build time to change the name of Qt's libraries. For instance, if the infix
+    is "Test", then on Unix systems, the \c{Qt Core} library will be in a file called
+    \c{libQt5CoreTest.so} instead of the default \c{libQt5Core.so}.
+
+    \section3 libPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The path in which the Qt libraries are located.
+
+    \section3 lreleaseName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"lrelease"}
+    \endtable
+
+    The base name of the \c lrelease tool. Set this if your system uses a name such as "lrelease-qt4".
+
+    \section3 mkspecPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The path in which the Qt mkspecs are located.
+
+    \section3 mocName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"moc"}
+    \endtable
+
+    The base name of the \c moc tool. Set this if your system uses a name such as "moc-qt4".
+
+    \section3 namespace
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The Qt namespace that can be set at build time via the \c configure script. By default, Qt
+    is not built in a namespace.
+
+    \section3 pluginPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The path in which the Qt plugins are located.
+
+    \section3 qdocEnvironment
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringlist}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The environment for calls to \c qdoc. Typically, you will need to set some variables here
+    when running \c qdoc to build your project documentation.
+
+    \section3 qdocName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"qdoc3"} for Qt 4, \c{"qdoc"} otherwise
+    \endtable
+
+    The base name of the \c qdoc tool.
+
+    \section3 qdocQhpFileName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Controls which name the \c qhp file gets when generating documentation with \c qdoc.
+
+    \section3 qtConfig
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    Corresponds to the default value of qmake's \c QT_CONFIG variable.
+
+    \section3 staticBuild
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Specifies whether Qt was built statically.
+
+    \section3 version
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The Qt version. Consists of three numbers separated by dots, for instance "5.1.1".
+
+    \section3 versionMajor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[0]}
+    \endtable
+
+    The Qt major version.
+
+    \section3 versionMinor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[1]}
+    \endtable
+
+    The Qt minor version.
+
+    \section3 versionParts
+
+    \table
+    \row    \li \b{Type:}            \li \c{list}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    The Qt version as a list. For instance, Qt version 5.1.1 would correspond to a value of \c[5, 1, 1].
+
+    \section3 versionPatch
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[2]}
+    \endtable
+
+    The Qt patch level.
+
+    \section2 declarative Properties
+
+    \section3 qmlDebugging
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Specifies whether QML debugging support should be compiled into your binaries.
+
+    \section2 gui Properties
+
+    \section3 uicName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"uic"}
+    \endtable
+
+    The base name of the \c uic tool. Set this if your system uses a name such as "uic-qt4".
+
+    \section2 quick Properties
+
+    \section3 qmlDebugging
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Specifies whether QML debugging support should be compiled into your binaries.
+
+*/
