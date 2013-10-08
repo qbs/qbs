@@ -48,6 +48,7 @@ public:
 private slots:
     void disabledInstallGroup();
     void installableFiles();
+    void listBuildSystemFiles();
 
 private:
     qbs::SetupProjectParameters defaultSetupParameters() const;
