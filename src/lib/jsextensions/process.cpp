@@ -110,9 +110,7 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
 {
     Q_ASSERT(thisObject().engine() == engine());
 
-    m_qProcess->setProcessEnvironment(m_environment);
-    m_qProcess->start(program, arguments);
-    if (!m_qProcess->waitForStarted()) {
+    if (!start(program, arguments)) {
         if (throwOnError) {
             context()->throwError(Tr::tr("Error running '%1': %2")
                                   .arg(program, m_qProcess->errorString()));
