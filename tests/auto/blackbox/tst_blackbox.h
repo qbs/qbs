@@ -99,6 +99,7 @@ private slots:
     void dependenciesProperty();
     void disabledProduct();
     void disabledProject();
+    void explicitlyDependsOn();
     void fileDependencies();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();

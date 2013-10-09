@@ -1122,6 +1122,20 @@ void TestBlackbox::disabledProject()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::explicitlyDependsOn()
+{
+    QDir::setCurrent(testDataDir + "/explicitlyDependsOn");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
+    touch("dependency.txt");
+    waitForNewTimestamp();
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-394", Continue);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+}
+
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");
