@@ -190,6 +190,12 @@ void TestBlackbox::initTestCase()
     ccp(testSourceDir, testDataDir);
 }
 
+void TestBlackbox::baseProperties()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/baseProperties"));
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::build_project_data()
 {
     QTest::addColumn<QString>("projectSubDir");
@@ -884,6 +890,18 @@ void TestBlackbox::trackRemoveProduct()
     QVERIFY(!m_qbsStdout.contains("linking product3"));
 }
 
+void TestBlackbox::transformers()
+{
+    QDir::setCurrent(testDataDir + "/transformers");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::uic()
+{
+    QDir::setCurrent(testDataDir + "/uic");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::wildcardRenaming()
 {
     QDir::setCurrent(testDataDir + "/wildcard_renaming");
@@ -1149,6 +1167,12 @@ void TestBlackbox::disabledProject()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::dynamicLibs()
+{
+    QDir::setCurrent(testDataDir + "/dynamicLibs");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::explicitlyDependsOn()
 {
     QDir::setCurrent(testDataDir + "/explicitlyDependsOn");
@@ -1270,6 +1294,30 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(2).trimmed().constData(), "Second line.");
     QCOMPARE(lines.at(3).trimmed().constData(), "Third line.");
     QCOMPARE(lines.at(4).trimmed().constData(), "true");
+}
+
+void TestBlackbox::inheritQbsSearchPaths()
+{
+    QDir::setCurrent(testDataDir + "/inheritQbsSearchPaths");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::properQuoting()
+{
+    QDir::setCurrent(testDataDir + "/proper quoting");
+    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params(QStringList() << "run" << "-qp" << "Hello World");
+    params.expectFailure = true; // Because the exit code is non-zero.
+    QCOMPARE(runQbs(params), 156);
+    const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
+            "backslash\\\nbackslash\\\nHello World! The magic number is 156.";
+    QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
+}
+
+void TestBlackbox::propertiesBlocks()
+{
+    QDir::setCurrent(testDataDir + "/propertiesBlocks");
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::installedApp()

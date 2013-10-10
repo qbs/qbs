@@ -13,10 +13,9 @@ Project {
 
     Product {
         name: 'dummy'
-        type: 'installed_content'
         Group {
             files: 'main.cpp'
-            fileTags: 'install'
+            qbs.install: true
         }
         Export {
             Depends { name: 'dummy2' }
@@ -25,10 +24,9 @@ Project {
 
     Product {
         name: 'dummy2'
-        type: 'installed_content'
         Group {
             files: 'lib1.cpp'
-            fileTags: 'install'
+            qbs.install: true
         }
         Export {
             Depends { name: 'lib1' }

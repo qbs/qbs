@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.Process
 
 Module {
     name: 'definition'
@@ -24,6 +25,7 @@ Module {
                 found = false;
                 result = undefined;
             }
+            p.close();
         }
     }
     cpp.defines: node.found ? 'TEXT="Configured at ' + node.result + '"' : undefined
