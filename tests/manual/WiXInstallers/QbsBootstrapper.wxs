@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Bundle Name="QbsBootstrapper" Version="1.0.0.0" Manufacturer="Qt Project" UpgradeCode="7b05b159-c9ce-477c-9fb5-7fce3cd50396">
+        <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" />
+
+        <Chain>
+            <MsiPackage SourceFile="$(var.msiName)" />
+        </Chain>
+    </Bundle>
+</Wix>
