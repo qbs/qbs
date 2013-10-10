@@ -128,15 +128,13 @@ Module {
     }
 
     setupRunEnvironment: {
-        var v = getenv('PATH') || ''
-        if (v.length > 0 && v.charAt(0) != ';')
-            v = ';' + v
-        var y = binPath
-        if (qbs.targetOS.contains('windows'))
-            v = FileInfo.toWindowsSeparators(y) + v
-        else
-            v = y + v
-        putenv('PATH', v)
+        if (qbs.targetOS.contains('windows')) {
+            var v = getenv('PATH') || '';
+            if (v.length > 0 && v.charAt(0) != ';')
+                v = ';' + v;
+            v = FileInfo.toWindowsSeparators(binPath) + v;
+            putenv('PATH', v);
+        }
     }
 
     FileTagger {
