@@ -237,6 +237,9 @@ void BuiltinDeclarations::addModuleItem()
                                       PropertyDeclaration::Verbatim);
     properties += PropertyDeclaration(QLatin1String("setupRunEnvironment"),
                                       PropertyDeclaration::Verbatim);
+    properties += PropertyDeclaration(QLatin1String("validate"),
+                                      PropertyDeclaration::Variant,
+                                      PropertyDeclaration::PropertyNotAvailableInConfig);
     properties += PropertyDeclaration(QLatin1String("additionalProductFileTags"),
                                       PropertyDeclaration::Variant);
     m_builtins[QLatin1String("Module")] = properties;

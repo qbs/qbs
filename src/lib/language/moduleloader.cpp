@@ -711,6 +711,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
                         QStringList(fullModuleName), vmit.key())));
     }
 
+    callValidateScript(module);
     productContext->moduleItemCache.insert(filePath, module);
     productContext->project->moduleItemCache.insert(filePath, module);
     return module;
@@ -896,6 +897,11 @@ void ModuleLoader::checkCancelation() const
 bool ModuleLoader::checkItemCondition(Item *item)
 {
     return m_evaluator->boolValue(item, QLatin1String("condition"), true);
+}
+
+void ModuleLoader::callValidateScript(Item *module)
+{
+    m_evaluator->boolValue(module, QLatin1String("validate"));
 }
 
 QStringList ModuleLoader::readExtraModuleSearchPaths(Item *item)

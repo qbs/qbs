@@ -113,8 +113,7 @@ Module {
 
     additionalProductFileTags: ["qm"]
 
-    setupBuildEnvironment: {
-        // Not really a setup in this case. Just some sanity checks.
+    validate: {
         if (!binPath)
             throw "Qt.core.binPath not set. Set Qt.core.binPath in your profile.";
         if (!incPath)

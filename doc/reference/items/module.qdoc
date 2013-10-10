@@ -66,5 +66,11 @@
             \li script
             \li \c setupBuildEnvironment
             \li Script for setting up the environment in which the project is run.
+        \row
+            \li validate
+            \li script
+            \li \c undefined
+            \li Script that is run after the module is loaded. It can be used to check property
+            values and throw errors in unexpected cases. The return value is ignored.
     \endtable
 */
