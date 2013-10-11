@@ -194,6 +194,8 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
+    QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
+    QSet<Item *> m_disabledItems;
     QVariantMap m_overriddenProperties;
     QVariantMap m_buildConfigProperties;
 };

@@ -325,6 +325,10 @@ void TestLanguage::erroneousFiles_data()
             << "Cycle detected while loading subproject file 'subproject_cycle.qbs'.";
     QTest::newRow("invalid_stringlist_element")
             << "Expected array element of type String at index 1.";
+    QTest::newRow("undeclared_item")
+            << "Item 'cpp' is not declared.";
+    QTest::newRow("undeclared_property")
+            << "Property 'doesntexist' is not declared.";
 }
 
 void TestLanguage::erroneousFiles()
