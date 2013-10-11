@@ -37,4 +37,19 @@ Module {
         allowedValues: ['none', 'fast', 'small']
         description: "optimization level"
     }
+
+    validate: {
+        var architectureSynonyms = {
+            "x86": ["i386", "i486", "i586", "i686", "ia32", "ia-32", "x86_32", "x86-32", "intel32"],
+            "x86_64": ["x86-64", "x64", "amd64", "ia32e", "em64t", "intel64"],
+            "ia64": ["ia-64", "itanium"]
+        };
+
+        for (var arch in architectureSynonyms) {
+            if (architectureSynonyms[arch].contains(architecture.toLowerCase())) {
+                throw "qbs.architecture '" + architecture + "' is invalid. " +
+                      "You must use the canonical name '" + arch + "'";
+            }
+        }
+    }
 }
