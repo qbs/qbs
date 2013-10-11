@@ -1184,7 +1184,7 @@ void TestBlackbox::jsExtensionsFileInfo()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 17);
+    QCOMPARE(lines.count(), 19);
     QCOMPARE(lines.at(0).trimmed().constData(), "blubb");
     QCOMPARE(lines.at(1).trimmed().constData(), "blubb.tar");
     QCOMPARE(lines.at(2).trimmed().constData(), "blubb.tar.gz");
@@ -1196,12 +1196,14 @@ void TestBlackbox::jsExtensionsFileInfo()
     QCOMPARE(lines.at(8).trimmed().constData(), "false");
     QCOMPARE(lines.at(9).trimmed().constData(), "/tmp/blubb.tar.gz");
     QCOMPARE(lines.at(10).trimmed().constData(), "/tmp");
-    QCOMPARE(lines.at(11).trimmed().constData(), "/tmp/");
-    QCOMPARE(lines.at(12).trimmed().constData(), "blubb.tar.gz");
-    QCOMPARE(lines.at(13).trimmed().constData(), "tmp/blubb.tar.gz");
-    QCOMPARE(lines.at(14).trimmed().constData(), "../blubb.tar.gz");
-    QCOMPARE(lines.at(15).trimmed().constData(), "\\tmp\\blubb.tar.gz");
-    QCOMPARE(lines.at(16).trimmed().constData(), "c:\\tmp\\blubb.tar.gz");
+    QCOMPARE(lines.at(11).trimmed().constData(), "/tmp");
+    QCOMPARE(lines.at(12).trimmed().constData(), "/");
+    QCOMPARE(lines.at(13).trimmed().constData(), "d:/");
+    QCOMPARE(lines.at(14).trimmed().constData(), "blubb.tar.gz");
+    QCOMPARE(lines.at(15).trimmed().constData(), "tmp/blubb.tar.gz");
+    QCOMPARE(lines.at(16).trimmed().constData(), "../blubb.tar.gz");
+    QCOMPARE(lines.at(17).trimmed().constData(), "\\tmp\\blubb.tar.gz");
+    QCOMPARE(lines.at(18).trimmed().constData(), "c:\\tmp\\blubb.tar.gz");
 }
 
 void TestBlackbox::jsExtensionsProcess()
