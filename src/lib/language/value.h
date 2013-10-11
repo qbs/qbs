@@ -129,9 +129,7 @@ public:
     ~ItemValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }
-//    virtual ItemValue *toItemValue() { return this; }
     Item *item() const;
-
     void setItem(Item *ptr);
 
 private:
