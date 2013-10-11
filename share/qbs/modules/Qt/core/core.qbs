@@ -12,8 +12,8 @@ Module {
     property string namespace
     property string libInfix: ""
     property string repository: versionMajor === 5 ? "qtbase" : undefined
-    property stringList config: []
-    property stringList qtConfig: []
+    property stringList config
+    property stringList qtConfig
     property path binPath
     property path incPath
     property path libPath
@@ -27,7 +27,7 @@ Module {
     property path docPath
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property string version
-    property var versionParts: version.split('.').map(function(item) { return parseInt(item, 10); })
+    property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
     property int versionPatch: versionParts[2]
@@ -117,16 +117,54 @@ Module {
     additionalProductFileTags: ["qm"]
 
     validate: {
-        if (!binPath)
-            throw "Qt.core.binPath not set. Set Qt.core.binPath in your profile.";
-        if (!incPath)
-            throw "Qt.core.incPath not set. Set Qt.core.incPath in your profile.";
-        if (!libPath)
-            throw "Qt.core.libPath not set. Set Qt.core.libPath in your profile.";
-        if (!mkspecPath)
-            throw "Qt.core.mkspecPath not set. Set Qt.core.mkspecPath in your profile.";
-        if (!version)
-            throw "Qt.core.version not set. Set Qt.core.version in your profile.";
+        var requiredProperties = {
+            "binPath": binPath,
+            "incPath": incPath,
+            "libPath": libPath,
+            "mkspecPath": mkspecPath,
+            "version": version,
+            "config": config,
+            "qtConfig": qtConfig,
+            // Validate these in case 'version' is in some non-standard format
+            "versionMajor": versionMajor,
+            "versionMinor": versionMinor,
+            "versionPatch": versionPatch
+        };
+
+        if (!staticBuild) {
+            requiredProperties["pluginPath"] = pluginPath;
+        }
+
+        var missingProperties = [];
+        for (var i in requiredProperties) {
+            if (requiredProperties[i] === undefined) {
+                missingProperties.push("Qt.core." + i);
+            }
+        }
+
+        var invalidProperties = {};
+        if (versionMajor <= 0)
+            invalidProperties["versionMajor"] = "must be > 0";
+        if (versionMinor < 0)
+            invalidProperties["versionMinor"] = "must be >= 0";
+        if (versionPatch < 0)
+            invalidProperties["versionPatch"] = "must be >= 0";
+
+        var errorMessage = "";
+        if (missingProperties.length > 0) {
+            errorMessage += "The following Qt module properties are not set. " +
+                            "Set them in your profile:\n" +
+                            missingProperties.sort().join("\n");
+        }
+
+        if (Object.keys(invalidProperties).length > 0) {
+            errorMessage += "The following Qt module properties have invalid values:\n" +
+                            Object.map(invalidProperties,
+                                function(msg, prop) { return prop + ": " + msg; }).join("\n");
+        }
+
+        if (errorMessage.length > 0)
+            throw errorMessage;
     }
 
     setupRunEnvironment: {
