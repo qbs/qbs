@@ -62,6 +62,7 @@ public:
 
     ArtifactList parents;
     ArtifactList children;
+    ArtifactList childrenAddedByScanner;
     QSet<FileDependency *> fileDependencies;
     FileTags fileTags;
     WeakPointer<ResolvedProduct> product;

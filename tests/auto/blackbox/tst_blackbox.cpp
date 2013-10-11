@@ -1131,10 +1131,9 @@ void TestBlackbox::explicitlyDependsOn()
     QVERIFY(m_qbsStdout.contains("Creating output artifact"));
     QCOMPARE(runQbs(), 0);
     QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
-    touch("dependency.txt");
     waitForNewTimestamp();
+    touch("dependency.txt");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL(0, "QBS-394", Continue);
     QVERIFY(m_qbsStdout.contains("Creating output artifact"));
 }
 

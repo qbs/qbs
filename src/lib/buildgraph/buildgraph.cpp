@@ -291,6 +291,7 @@ void disconnect(Artifact *u, Artifact *v, const Logger &logger)
                              .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
     }
     u->children.remove(v);
+    u->childrenAddedByScanner.remove(v);
     v->parents.remove(u);
 }
 
@@ -429,6 +430,8 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
             QBS_CHECK(parent->children.contains(artifact));
         foreach (const Artifact * const child, artifact->children)
             QBS_CHECK(child->parents.contains(artifact));
+        foreach (Artifact * const child, artifact->childrenAddedByScanner)
+            QBS_CHECK(artifact->children.contains(child));
         const TransformerConstPtr transformer = artifact->transformer;
         if (artifact->artifactType == Artifact::SourceFile)
             continue;

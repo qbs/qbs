@@ -158,13 +158,10 @@ void InputArtifactScanner::scan()
     // clear file dependencies; they will be regenerated
     m_artifact->fileDependencies.clear();
 
-    // Remove all connections to children that do not belong to our transformer.
+    // Remove all connections to children that were added by the dependency scanner.
     // They will be regenerated.
-    foreach (Artifact *dependency, m_artifact->children) {
-        if (m_artifact->transformer->inputs.contains(dependency))
-            continue;
+    foreach (Artifact *dependency, m_artifact->childrenAddedByScanner)
         disconnect(m_artifact, dependency, m_logger);
-    }
 
     ArtifactList::const_iterator it = m_artifact->transformer->inputs.begin();
     for (; it != m_artifact->transformer->inputs.end(); ++it) {
@@ -358,6 +355,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         if (insertIntoProduct && !product->buildData->artifacts.contains(artifactDependency))
             insertArtifact(product, artifactDependency, m_logger);
         safeConnect(m_artifact, artifactDependency, m_logger);
+        m_artifact->childrenAddedByScanner += artifactDependency;
         m_newDependencyAdded = true;
     }
 }
