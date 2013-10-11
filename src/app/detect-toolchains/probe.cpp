@@ -156,7 +156,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     profile.removeProfile();
 
     profile.setValue("qbs.toolchain", toolchainTypes);
-    profile.setValue("qbs.architecture", architecture);
+    profile.setValue("qbs.architecture", canonicalizeArchitecture(architecture));
     profile.setValue("qbs.endianness", endianness);
 
     if (compilerName.contains('-')) {
@@ -236,4 +236,41 @@ int probe(Settings *settings)
         settings->setValue(QLatin1String("defaultProfile"), profileName);
     }
     return 0;
+}
+
+QString canonicalizeArchitecture(const QString &arch)
+{
+    QMap<QString, QStringList> archMap;
+    archMap.insert(QLatin1String("x86"), QStringList()
+        << QLatin1String("i386")
+        << QLatin1String("i486")
+        << QLatin1String("i586")
+        << QLatin1String("i686")
+        << QLatin1String("ia32")
+        << QLatin1String("ia-32")
+        << QLatin1String("x86_32")
+        << QLatin1String("x86-32")
+        << QLatin1String("intel32"));
+
+    archMap.insert(QLatin1String("x86_64"), QStringList()
+        << QLatin1String("x86-64")
+        << QLatin1String("x64")
+        << QLatin1String("amd64")
+        << QLatin1String("ia32e")
+        << QLatin1String("em64t")
+        << QLatin1String("intel64"));
+
+    archMap.insert(QLatin1String("ia64"), QStringList()
+        << QLatin1String("ia-64")
+        << QLatin1String("itanium"));
+
+    QMapIterator<QString, QStringList> i(archMap);
+    while (i.hasNext())
+    {
+        i.next();
+        if (i.value().contains(arch))
+            return i.key();
+    }
+
+    return arch;
 }

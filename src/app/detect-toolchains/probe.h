@@ -30,7 +30,9 @@
 #define QBS_PROBE_H
 
 namespace qbs { class Settings; }
+class QString;
 
 int probe(qbs::Settings *settings);
+QString canonicalizeArchitecture(const QString &arch);
 
 #endif // Header guard
