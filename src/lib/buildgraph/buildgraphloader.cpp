@@ -126,9 +126,10 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     project->buildData->evaluationContext = evalContext;
 
     if (QFileInfo(project->location.fileName()) != QFileInfo(parameters.projectFilePath())) {
-        QString errorMessage = Tr::tr("Stored build graph is for project file '%1', but "
-                                      "input file is '%2'. ")
-                .arg(QDir::toNativeSeparators(project->location.fileName()),
+        QString errorMessage = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
+                                      "input file is '%3'. ")
+                .arg(QDir::toNativeSeparators(buildGraphFilePath),
+                     QDir::toNativeSeparators(project->location.fileName()),
                      QDir::toNativeSeparators(parameters.projectFilePath()));
         if (!parameters.ignoreDifferentProjectFilePath()) {
             errorMessage += Tr::tr("Aborting.");
