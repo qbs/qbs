@@ -34,8 +34,11 @@ Module {
     property bool frameworkBuild
     property bool staticBuild
     property stringList buildVariant
+
+    // These are deliberately not path types
+    // We don't want to resolve them against the source directory
     property string generatedFilesDir: "GeneratedFiles/" + product.name
-    property path qmFilesDir: product.destinationDirectory
+    property string qmFilesDir: product.destinationDirectory
 
     // private properties
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
