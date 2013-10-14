@@ -423,6 +423,11 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
+    foreach (Artifact * const ta, buildData->targetArtifacts) {
+        if (logger.traceEnabled())
+            logger.qbsTrace() << "Checking target artifact '" << ta->fileName() << "'.";
+        QBS_CHECK(buildData->artifacts.contains(ta));
+    }
     foreach (Artifact * const artifact, buildData->artifacts) {
         logger.qbsDebug() << "Sanity checking artifact '" << artifact->fileName() << "'";
         QBS_CHECK(artifact->product == product);
