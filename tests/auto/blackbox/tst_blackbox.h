@@ -129,6 +129,7 @@ private slots:
     void recursiveRenaming();
     void recursiveWildcards();
     void ruleConditions();
+    void ruleCycle();
     void trackAddQObjectHeader();
     void trackRemoveQObjectHeader();
     void overrideProjectProperties();

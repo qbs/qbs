@@ -927,6 +927,15 @@ void TestBlackbox::ruleConditions()
     QVERIFY(!QFileInfo(buildDir + "/unzorted.foo.narf.zort").exists());
 }
 
+void TestBlackbox::ruleCycle()
+{
+    QDir::setCurrent(testDataDir + "/ruleCycle");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("Cycle detected in rule dependencies"));
+}
+
 void TestBlackbox::trackAddQObjectHeader()
 {
     QDir::setCurrent(testDataDir + "/missingqobjectheader");
