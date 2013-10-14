@@ -183,7 +183,10 @@ void ProjectBuildData::updateNodeThatMustGetNewTransformer(Artifact *artifact, c
 
     const RuleConstPtr rule = artifact->transformer->rule;
     isDirty = true;
-    artifact->transformer = TransformerPtr();
+
+    QBS_CHECK(artifact->transformer);
+    foreach (Artifact * const sibling, artifact->transformer->outputs)
+        sibling->transformer.clear();
 
     ArtifactsPerFileTagMap artifactsPerFileTag;
     foreach (Artifact *input, artifact->children) {
