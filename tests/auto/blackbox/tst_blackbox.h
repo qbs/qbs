@@ -87,6 +87,7 @@ protected:
     void rmDirR(const QString &dir);
     void touch(const QString &fn);
     static void waitForNewTimestamp();
+    static QByteArray unifiedLineEndings(const QByteArray &ba);
 
 public slots:
     void initTestCase();

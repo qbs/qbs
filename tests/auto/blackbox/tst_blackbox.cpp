@@ -149,6 +149,22 @@ void TestBlackbox::waitForNewTimestamp()
         QTest::qWait(1000);
 }
 
+QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
+{
+    if (HostOsInfo::isWindowsHost()) {
+        QByteArray result;
+        result.reserve(ba.size());
+        for (int i = 0; i < ba.size(); ++i) {
+            char c = ba.at(i);
+            if (c != '\r')
+                result.append(c);
+        }
+        return result;
+    } else {
+        return ba;
+    }
+}
+
 void TestBlackbox::initTestCase()
 {
     QVERIFY(QFile::exists(qbsExecutableFilePath));
