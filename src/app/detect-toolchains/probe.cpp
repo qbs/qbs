@@ -88,20 +88,10 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     QString cxx        = QString::fromLocal8Bit(qgetenv("CXX"));
     QString ld         = QString::fromLocal8Bit(qgetenv("LD"));
     QString cross      = QString::fromLocal8Bit(qgetenv("CROSS_COMPILE"));
-    QString arch       = QString::fromLocal8Bit(qgetenv("ARCH"));
 
     QString pathToGcc;
     QString architecture;
     QString endianness;
-
-    QString uname = qsystem("uname", QStringList() << "-m").simplified();
-
-    if (arch.isEmpty())
-        arch = uname;
-
-    // HACK: "uname -m" reports "i386" but "gcc -dumpmachine" reports "i686" on OS X.
-    if (HostOsInfo::isOsxHost() && arch == "i386")
-        arch = "i686";
 
     if (ld.isEmpty())
         ld = "ld";
