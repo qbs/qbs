@@ -39,8 +39,11 @@ Module {
     }
 
     validate: {
-        if (!architecture)  // ### remove and replace with suggestion to re-run detect-toolchains,
-            return;         //     once QBS-404 is fixed
+        if (!architecture) {    // ### don't warn but throw in 1.2
+            print("WARNING: qbs.architecture is not set. "
+                  + "You might want to re-run 'qbs detect-toolchains'.");
+            return;
+        }
 
         var architectureSynonyms = {
             "x86": ["i386", "i486", "i586", "i686", "ia32", "ia-32", "x86_32", "x86-32", "intel32"],
