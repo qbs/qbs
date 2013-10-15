@@ -237,11 +237,11 @@
 
     \table
     \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"none"}, \c{"all"}
     \row    \li \b{Default:}         \li \c{"all"}
     \endtable
 
-    Specifies the installation directory for the files of a product or a \c{Group}. The value of
-    this property is a path that is relative to the install root.
+    Specifies the warning level for the compiler.
 
     \section2 commonCompilerFlags
 
