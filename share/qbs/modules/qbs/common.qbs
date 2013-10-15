@@ -39,6 +39,9 @@ Module {
     }
 
     validate: {
+        if (!architecture)  // ### remove and replace with suggestion to re-run detect-toolchains,
+            return;         //     once QBS-404 is fixed
+
         var architectureSynonyms = {
             "x86": ["i386", "i486", "i586", "i686", "ia32", "ia-32", "x86_32", "x86-32", "intel32"],
             "x86_64": ["x86-64", "x64", "amd64", "ia32e", "em64t", "intel64"],
