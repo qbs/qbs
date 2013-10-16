@@ -1,6 +1,11 @@
 function path(fp) {
-    if (fp[fp.length -1] === '/')
+    if (fp === '/')
         return fp;
+
+    // Yes, this will be wrong for "clever" unix users calling their directory 'c:'. Boohoo.
+    if (fp.length === 3 && fp.slice(-2) === ':/')
+        return fp;
+
     var last = fp.lastIndexOf('/');
     if (last < 0)
         return '.';

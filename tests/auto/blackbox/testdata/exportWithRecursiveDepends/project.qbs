@@ -12,5 +12,5 @@ Project {
         Depends { name: "app1" }
         files: "main2.cpp"
     }
-    moduleSearchPaths: "qbs"
+    qbsSearchPaths: "qbs"
 }

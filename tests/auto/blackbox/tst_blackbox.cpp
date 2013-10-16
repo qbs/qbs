@@ -149,6 +149,22 @@ void TestBlackbox::waitForNewTimestamp()
         QTest::qWait(1000);
 }
 
+QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
+{
+    if (HostOsInfo::isWindowsHost()) {
+        QByteArray result;
+        result.reserve(ba.size());
+        for (int i = 0; i < ba.size(); ++i) {
+            char c = ba.at(i);
+            if (c != '\r')
+                result.append(c);
+        }
+        return result;
+    } else {
+        return ba;
+    }
+}
+
 void TestBlackbox::initTestCase()
 {
     QVERIFY(QFile::exists(qbsExecutableFilePath));
@@ -172,6 +188,12 @@ void TestBlackbox::initTestCase()
     rmDirR(testDataDir);
     QDir().mkpath(testDataDir);
     ccp(testSourceDir, testDataDir);
+}
+
+void TestBlackbox::baseProperties()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/baseProperties"));
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::build_project_data()
@@ -413,7 +435,9 @@ void TestBlackbox::exportWithRecursiveDepends()
 {
     QDir::setCurrent(testDataDir + "/exportWithRecursiveDepends");
     QEXPECT_FAIL("", "currently broken", Abort);
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params;
+    params.expectFailure = true; // Remove when test no longer fails.
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::renameProduct()
@@ -866,6 +890,18 @@ void TestBlackbox::trackRemoveProduct()
     QVERIFY(!m_qbsStdout.contains("linking product3"));
 }
 
+void TestBlackbox::transformers()
+{
+    QDir::setCurrent(testDataDir + "/transformers");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::uic()
+{
+    QDir::setCurrent(testDataDir + "/uic");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::wildcardRenaming()
 {
     QDir::setCurrent(testDataDir + "/wildcard_renaming");
@@ -907,6 +943,15 @@ void TestBlackbox::ruleConditions()
     QVERIFY(QFileInfo(buildDir + HostOsInfo::appendExecutableSuffix("/unzorted")).exists());
     QVERIFY(QFileInfo(buildDir + "/zorted.foo.narf.zort").exists());
     QVERIFY(!QFileInfo(buildDir + "/unzorted.foo.narf.zort").exists());
+}
+
+void TestBlackbox::ruleCycle()
+{
+    QDir::setCurrent(testDataDir + "/ruleCycle");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("Cycle detected in rule dependencies"));
 }
 
 void TestBlackbox::trackAddQObjectHeader()
@@ -1122,6 +1167,25 @@ void TestBlackbox::disabledProject()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::dynamicLibs()
+{
+    QDir::setCurrent(testDataDir + "/dynamicLibs");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::explicitlyDependsOn()
+{
+    QDir::setCurrent(testDataDir + "/explicitlyDependsOn");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
+    waitForNewTimestamp();
+    touch("dependency.txt");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+}
+
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");
@@ -1169,7 +1233,7 @@ void TestBlackbox::jsExtensionsFileInfo()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.count(), 17);
+    QCOMPARE(lines.count(), 19);
     QCOMPARE(lines.at(0).trimmed().constData(), "blubb");
     QCOMPARE(lines.at(1).trimmed().constData(), "blubb.tar");
     QCOMPARE(lines.at(2).trimmed().constData(), "blubb.tar.gz");
@@ -1181,12 +1245,14 @@ void TestBlackbox::jsExtensionsFileInfo()
     QCOMPARE(lines.at(8).trimmed().constData(), "false");
     QCOMPARE(lines.at(9).trimmed().constData(), "/tmp/blubb.tar.gz");
     QCOMPARE(lines.at(10).trimmed().constData(), "/tmp");
-    QCOMPARE(lines.at(11).trimmed().constData(), "/tmp/");
-    QCOMPARE(lines.at(12).trimmed().constData(), "blubb.tar.gz");
-    QCOMPARE(lines.at(13).trimmed().constData(), "tmp/blubb.tar.gz");
-    QCOMPARE(lines.at(14).trimmed().constData(), "../blubb.tar.gz");
-    QCOMPARE(lines.at(15).trimmed().constData(), "\\tmp\\blubb.tar.gz");
-    QCOMPARE(lines.at(16).trimmed().constData(), "c:\\tmp\\blubb.tar.gz");
+    QCOMPARE(lines.at(11).trimmed().constData(), "/tmp");
+    QCOMPARE(lines.at(12).trimmed().constData(), "/");
+    QCOMPARE(lines.at(13).trimmed().constData(), "d:/");
+    QCOMPARE(lines.at(14).trimmed().constData(), "blubb.tar.gz");
+    QCOMPARE(lines.at(15).trimmed().constData(), "tmp/blubb.tar.gz");
+    QCOMPARE(lines.at(16).trimmed().constData(), "../blubb.tar.gz");
+    QCOMPARE(lines.at(17).trimmed().constData(), "\\tmp\\blubb.tar.gz");
+    QCOMPARE(lines.at(18).trimmed().constData(), "c:\\tmp\\blubb.tar.gz");
 }
 
 void TestBlackbox::jsExtensionsProcess()
@@ -1228,6 +1294,30 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(2).trimmed().constData(), "Second line.");
     QCOMPARE(lines.at(3).trimmed().constData(), "Third line.");
     QCOMPARE(lines.at(4).trimmed().constData(), "true");
+}
+
+void TestBlackbox::inheritQbsSearchPaths()
+{
+    QDir::setCurrent(testDataDir + "/inheritQbsSearchPaths");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::properQuoting()
+{
+    QDir::setCurrent(testDataDir + "/proper quoting");
+    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params(QStringList() << "run" << "-qp" << "Hello World");
+    params.expectFailure = true; // Because the exit code is non-zero.
+    QCOMPARE(runQbs(params), 156);
+    const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
+            "backslash\\\nbackslash\\\nHello World! The magic number is 156.";
+    QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
+}
+
+void TestBlackbox::propertiesBlocks()
+{
+    QDir::setCurrent(testDataDir + "/propertiesBlocks");
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::installedApp()

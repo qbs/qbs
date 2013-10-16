@@ -240,6 +240,8 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
         if (outputArtifact->transformer && outputArtifact->transformer != m_transformer) {
+            QBS_CHECK(!m_transformer);
+
             // This can happen when applying rules after scanning for additional file tags.
             // We just regenerate the transformer.
             if (m_logger.traceEnabled()) {

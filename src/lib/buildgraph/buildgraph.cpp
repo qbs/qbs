@@ -291,6 +291,7 @@ void disconnect(Artifact *u, Artifact *v, const Logger &logger)
                              .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
     }
     u->children.remove(v);
+    u->childrenAddedByScanner.remove(v);
     v->parents.remove(u);
 }
 
@@ -422,6 +423,11 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
+    foreach (Artifact * const ta, buildData->targetArtifacts) {
+        if (logger.traceEnabled())
+            logger.qbsTrace() << "Checking target artifact '" << ta->fileName() << "'.";
+        QBS_CHECK(buildData->artifacts.contains(ta));
+    }
     foreach (Artifact * const artifact, buildData->artifacts) {
         logger.qbsDebug() << "Sanity checking artifact '" << artifact->fileName() << "'";
         QBS_CHECK(artifact->product == product);
@@ -429,6 +435,8 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
             QBS_CHECK(parent->children.contains(artifact));
         foreach (const Artifact * const child, artifact->children)
             QBS_CHECK(child->parents.contains(artifact));
+        foreach (Artifact * const child, artifact->childrenAddedByScanner)
+            QBS_CHECK(artifact->children.contains(child));
         const TransformerConstPtr transformer = artifact->transformer;
         if (artifact->artifactType == Artifact::SourceFile)
             continue;

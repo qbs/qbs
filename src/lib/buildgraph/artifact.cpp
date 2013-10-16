@@ -82,6 +82,7 @@ void Artifact::load(PersistentPool &pool)
     for (ArtifactList::const_iterator it = children.constBegin(); it != children.constEnd(); ++it)
         (*it)->parents.insert(this);
 
+    pool.loadContainer(childrenAddedByScanner);
     pool.loadContainer(fileDependencies);
     properties = pool.idLoadS<PropertyMapInternal>();
     transformer = pool.idLoadS<Transformer>();
@@ -99,6 +100,7 @@ void Artifact::store(PersistentPool &pool) const
     FileResourceBase::store(pool);
     // Do not store parents to avoid recursion.
     pool.storeContainer(children);
+    pool.storeContainer(childrenAddedByScanner);
     pool.storeContainer(fileDependencies);
     pool.store(properties);
     pool.store(transformer);

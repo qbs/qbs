@@ -176,6 +176,7 @@ private:
     void resolveProbe(Item *parent, Item *probe);
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
+    void callValidateScript(Item *module);
     QStringList readExtraModuleSearchPaths(Item *item);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);

@@ -3,7 +3,7 @@ import qbs.FileInfo
 
 Project {
     property string name: 'configure'
-    moduleSearchPaths: 'modules'
+    qbsSearchPaths: '.'
     Product {
         type: 'application'
         name: project.name

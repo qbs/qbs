@@ -390,7 +390,9 @@ static QByteArray storedLinkTarget(const QString &filePath)
 static bool createSymLink(const QByteArray &path1, const QString &path2)
 {
 #ifdef Q_OS_UNIX
-    return symlink(path1.constData(), QFile::encodeName(path2).constData()) == 0;
+    const QByteArray newPath = QFile::encodeName(path2);
+    unlink(newPath.constData());
+    return symlink(path1.constData(), newPath.constData()) == 0;
 #else
     Q_UNUSED(path1);
     Q_UNUSED(path2);

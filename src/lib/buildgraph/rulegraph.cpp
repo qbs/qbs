@@ -29,6 +29,7 @@
 
 #include "rulegraph.h"
 #include <language/language.h>
+#include <logging/translator.h>
 #include <tools/error.h>
 
 namespace qbs {
@@ -79,7 +80,9 @@ QList<RuleConstPtr> RuleGraph::topSorted()
     QList<RuleConstPtr> result;
     foreach (int rootIndex, rootRules) {
         RuleConstPtr rule = m_artifacts.at(rootIndex);
-        result.append(topSort(rule));
+        QSet<const Rule *> seenRules;
+        QList<const Rule *> rulePath;
+        result.append(topSort(rule, &seenRules, &rulePath));
     }
 
     // remove duplicates from the result of our post-order traversal
@@ -182,13 +185,28 @@ void RuleGraph::removeSiblings(const Rule *rule)
     }
 }
 
-QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule)
+QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
+        QList<const Rule *> *rulePath)
 {
+    if (seenRules->contains(rule.data())) {
+        QString pathstr;
+        foreach (const Rule *r, *rulePath) {
+            pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
+                    + r->script->location.toString();
+        }
+        throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
+    }
+
+    seenRules->insert(rule.data());
+    rulePath->prepend(rule.data());
+
     QList<RuleConstPtr> result;
     foreach (int childIndex, m_children.at(rule->ruleGraphId))
-        result.append(topSort(m_artifacts.at(childIndex)));
+        result.append(topSort(m_artifacts.at(childIndex), seenRules, rulePath));
 
     result.append(rule);
+    seenRules->remove(rule.data());
+    rulePath->removeFirst();
     return result;
 }
 

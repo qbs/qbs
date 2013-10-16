@@ -113,6 +113,7 @@ static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
     foreach (Artifact * const child, artifact->children)
         child->parents.remove(artifact);
     artifact->children.clear();
+    artifact->childrenAddedByScanner.clear();
 }
 
 static void disconnectArtifactParents(Artifact *artifact, ProjectBuildData *projectBuildData,
@@ -124,6 +125,7 @@ static void disconnectArtifactParents(Artifact *artifact, ProjectBuildData *proj
     }
     foreach (Artifact * const parent, artifact->parents) {
         parent->children.remove(artifact);
+        parent->childrenAddedByScanner.remove(artifact);
         if (parent->transformer) {
             parent->transformer->inputs.remove(artifact);
             projectBuildData->artifactsThatMustGetNewTransformers += parent;
@@ -181,7 +183,10 @@ void ProjectBuildData::updateNodeThatMustGetNewTransformer(Artifact *artifact, c
 
     const RuleConstPtr rule = artifact->transformer->rule;
     isDirty = true;
-    artifact->transformer = TransformerPtr();
+
+    QBS_CHECK(artifact->transformer);
+    foreach (Artifact * const sibling, artifact->transformer->outputs)
+        sibling->transformer.clear();
 
     ArtifactsPerFileTagMap artifactsPerFileTag;
     foreach (Artifact *input, artifact->children) {
