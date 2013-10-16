@@ -49,6 +49,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     addProjectItem();
     addPropertyOptionsItem();
     addRuleItem();
+    addSubprojectItem();
     addTransformerItem();
 }
 
