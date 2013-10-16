@@ -565,6 +565,8 @@ public:
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
                                           bool *hasAlwaysUpdatedArtifact)
 {
+    if (!m_evaluator->boolValue(item, QLatin1String("condition")))
+        return;
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
     artifact->fileName = verbatimValue(item, "fileName");
