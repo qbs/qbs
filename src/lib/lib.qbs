@@ -6,6 +6,7 @@ Product {
     Depends { name: "Qt"; submodules: ["core", "script", "xml"] }
     Depends { condition: project.enableUnitTests; name: "Qt.test" }
     name: "qbscore"
+    version: Version.qbsVersion()
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
     destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : "lib"
