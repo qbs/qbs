@@ -81,21 +81,18 @@ CppModule {
 
         // libfoo
         Artifact {
-            condition: product.shouldCreateSymlinks
             fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 0)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // libfoo.1
         Artifact {
-            condition: product.shouldCreateSymlinks
             fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 1)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // libfoo.1.0
         Artifact {
-            condition: product.shouldCreateSymlinks
             fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 2)
             fileTags: ["dynamiclibrary_symlink"]
         }
