@@ -306,24 +306,6 @@ void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *prod
     }
 }
 
-static Item *findTargetItem(Item *item, const QStringList &name, ItemPool *pool)
-{
-    Item *targetItem = item;
-    ValuePtr v;
-    for (int i = 0; i < name.count(); ++i) {
-        v = targetItem->properties().value(name.at(i));
-        if (v && v->type() == Value::ItemValueType)
-            targetItem = v.staticCast<ItemValue>()->item();
-        if (!v || !targetItem) {
-            Item *newItem = Item::create(pool);
-            targetItem->setProperty(name.at(i), ItemValue::create(newItem));
-            targetItem = newItem;
-        }
-    }
-    QBS_ASSERT(name.isEmpty() || targetItem != item, return 0);
-    return targetItem;
-}
-
 extern bool debugProperties;
 
 void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
@@ -409,7 +391,7 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
          it != productContext->item->modules().constEnd(); ++it)
     {
         Item::Module m = *it;
-        Item *targetItem = findTargetItem(item, m.name, m_pool);
+        Item *targetItem = moduleInstanceItem(item, m.name);
         targetItem->setPrototype(m.item);
         targetItem->setScope(m.item->scope());
         targetItem->modules() = m.item->modules();
@@ -541,6 +523,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
             instance = newItem;
         }
     }
+    QBS_ASSERT(moduleName.isEmpty() || instance != item, return 0);
     return instance;
 }
 
