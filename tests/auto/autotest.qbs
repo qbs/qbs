@@ -2,6 +2,7 @@ import qbs
 
 CppApplication {
     type: "application"
+    property string testName
     name: "tst_" + testName
     Depends { name: "Qt.test" }
     Depends { name: "qbscore" }
