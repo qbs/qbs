@@ -378,8 +378,6 @@ void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *prod
     }
 }
 
-extern bool debugProperties;
-
 void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
 {
     checkCancelation();
