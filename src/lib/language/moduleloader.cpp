@@ -104,6 +104,7 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
     m_overriddenProperties = overriddenProperties;
     m_buildConfigProperties = buildConfigProperties;
     m_validItemPropertyNamesPerItem.clear();
+    m_disabledItems.clear();
 
     ModuleLoaderResult result;
     m_pool = result.itemPool.data();
@@ -191,10 +192,8 @@ private:
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         const QSet<QString> &referencedFilePaths)
 {
-    if (!checkItemCondition(item)) {
-        m_disabledItems += item;
+    if (!checkItemCondition(item))
         return;
-    }
     ProjectContext projectContext;
     projectContext.result = loadResult;
     projectContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
@@ -262,6 +261,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleProduct " << item->file()->filePath();
 
+    if (!checkItemCondition(item))
+        return;
     ProductContext productContext;
     productContext.project = projectContext;
     productContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
@@ -952,7 +953,10 @@ void ModuleLoader::checkCancelation() const
 
 bool ModuleLoader::checkItemCondition(Item *item)
 {
-    return m_evaluator->boolValue(item, QLatin1String("condition"), true);
+    if (m_evaluator->boolValue(item, QLatin1String("condition"), true))
+        return true;
+    m_disabledItems += item;
+    return false;
 }
 
 void ModuleLoader::callValidateScript(Item *module)

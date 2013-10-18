@@ -630,6 +630,23 @@ void TestLanguage::idUsage()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::invalidBindingInDisabledItem()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("invalidBindingInDisabledItem.qbs"));
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
 class JSSourceValueCreator
 {
     FileContextPtr m_fileContext;
