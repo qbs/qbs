@@ -625,6 +625,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     if (!cacheHit && isBaseModule)
         setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
+    callValidateScript(moduleInstance);
     return moduleInstance;
 }
 
@@ -774,7 +775,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
                         QStringList(fullModuleName), vmit.key())));
     }
 
-    callValidateScript(module);
     productContext->moduleItemCache.insert(filePath, module);
     productContext->project->moduleItemCache.insert(filePath, module);
     return module;
