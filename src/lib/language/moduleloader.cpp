@@ -603,7 +603,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QStringList &moduleName)
+        const QString &moduleId, const QStringList &moduleName, bool isBaseModule)
 {
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
@@ -617,17 +617,20 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
             ? productContext->project->extraModuleSearchPaths : productContext->extraModuleSearchPaths;
     foreach (const QString &searchPath, productContext->extraSearchPaths)
         addExtraModuleSearchPath(extraModuleSearchPaths, searchPath);
+    bool cacheHit;
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                                                      moduleName, extraModuleSearchPaths);
+                                                    moduleName, extraModuleSearchPaths, &cacheHit);
     if (!modulePrototype)
         return 0;
+    if (!cacheHit && isBaseModule)
+        setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
     return moduleInstance;
 }
 
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QStringList &moduleName,
-        const QStringList &extraSearchPaths)
+        const QStringList &extraSearchPaths, bool *cacheHit)
 {
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
@@ -651,7 +654,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName,
                                             moduleName.count() == 1
                                                 && moduleName.first() == QLatin1String("qbs"),
-                                            filePath);
+                                            filePath, cacheHit);
             if (module)
                 return module;
         }
@@ -726,22 +729,25 @@ static PropertyDeclaration firstValidPropertyDeclaration(Item *item, const QStri
 }
 
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath)
+        bool isBaseModule, const QString &filePath, bool *cacheHit)
 {
     checkCancelation();
     Item *module = productContext->moduleItemCache.value(filePath);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
+        *cacheHit = true;
         return module;
     }
 
     module = productContext->project->moduleItemCache.value(filePath);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile returns clone for " << filePath;
+        *cacheHit = true;
         return module->clone(m_pool);
     }
 
     m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
+    *cacheHit = false;
     module = m_reader->readFile(filePath);
     if (!isBaseModule) {
         DependsContext dependsContext;
@@ -780,14 +786,18 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
-                                     baseModuleName);
+                                     baseModuleName, true);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    baseModuleDesc.item->setProperty(QLatin1String("getenv"),
-                                     BuiltinValue::create(BuiltinValue::GetEnvFunction));
-    baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
-                                     BuiltinValue::create(BuiltinValue::GetHostOSFunction));
     item->modules() += baseModuleDesc;
+}
+
+void ModuleLoader::setupBaseModulePrototype(Item *prototype)
+{
+    prototype->setProperty(QLatin1String("getenv"),
+                           BuiltinValue::create(BuiltinValue::GetEnvFunction));
+    prototype->setProperty(QLatin1String("getHostOS"),
+                           BuiltinValue::create(BuiltinValue::GetHostOSFunction));
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
