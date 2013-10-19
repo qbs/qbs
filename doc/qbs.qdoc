@@ -135,16 +135,25 @@
 
     \title Building Qbs
 
-    To build Qbs:
+    To build Qbs, enter the following command:
 
-    \list 1
+    \code
+        qmake -r qbs.pro && make
+    \endcode
 
-        \li  Enter the following command:
-        \code
-            qmake -r qbs.pro && make
-        \endcode
+    \section1 Configure Options
 
-    \endlist
+    Qbs recognizes the following qmake CONFIG options to customize the build:
+
+    \table
+    \header \li Option              \li Notes
+    \row    \li all_tests           \li Enable additional autotests.
+    \row    \li disable_rpath       \li Disable the use of rpath. This can be used when packaging
+                                        Qbs for distributions which do not permit the use of rpath,
+                                        such as Fedora.
+    \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a
+                                        non-developer build.
+    \endtable
 
 */
 
