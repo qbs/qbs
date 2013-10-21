@@ -261,8 +261,6 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleProduct " << item->file()->filePath();
 
-    if (!checkItemCondition(item))
-        return;
     ProductContext productContext;
     productContext.project = projectContext;
     productContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
@@ -284,6 +282,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     dependsContext.productDependencies = &productContext.info.usedProducts;
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
+    if (!checkItemCondition(item))
+        return;
     createAdditionalModuleInstancesInProduct(&productContext);
 
     foreach (Item *child, item->children()) {
