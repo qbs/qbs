@@ -13,29 +13,6 @@ UnixGCC {
     compilerDefines: ["__GNUC__", "__APPLE__"]
     dynamicLibrarySuffix: ".dylib"
 
-    property path infoPlistFile
-    property var infoPlist
-    property bool processInfoPlist: true
-    property string infoPlistFormat: {
-        if (qbs.targetOS.contains("osx"))
-            return infoPlistFile ? "same-as-input" : "xml1"
-        else if (qbs.targetOS.contains("ios"))
-            return "binary1"
-    }
-    property bool buildDsym: qbs.buildVariant === "release"
-    property var buildEnv: {
-        var env = {
-            "EXECUTABLE_NAME": product.targetName,
-            "LANG": "en_US.US-ASCII",
-            "PRODUCT_NAME": product.name
-        }
-        if (minimumIosVersion)
-            env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
-        if (minimumOsxVersion)
-            env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
-        return env;
-    }
-
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
         if (platformPath) {
@@ -52,6 +29,20 @@ UnixGCC {
             v.value = buildEnv[key];
             v.set();
         }
+    }
+
+    // private properties
+    readonly property var buildEnv: {
+        var env = {
+            "EXECUTABLE_NAME": product.targetName,
+            "LANG": "en_US.US-ASCII",
+            "PRODUCT_NAME": product.name
+        }
+        if (minimumIosVersion)
+            env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
+        if (minimumOsxVersion)
+            env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
+        return env;
     }
 
     readonly property var defaultInfoPlist: {

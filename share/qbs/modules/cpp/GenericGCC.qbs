@@ -32,8 +32,6 @@ CppModule {
     compilerPath: toolchainPathPrefix + compilerName
     property path archiverPath: { return toolchainPathPrefix + archiverName }
 
-    property bool createSymlinks: true
-
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && product.version &&
                 !product.type.contains("frameworkbundle") && qbs.targetOS.contains("unix");

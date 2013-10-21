@@ -8,9 +8,6 @@ import 'bundle-tools.js' as BundleTools
 DarwinGCC {
     condition: qbs.hostOS.contains('osx') && qbs.targetOS.contains('ios') && qbs.toolchain.contains('gcc')
 
-    property string signingIdentity
-    property string provisionFile
-    property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
     visibility: "hidden"
     optimization: {
         if (qbs.buildVariant === "debug")
