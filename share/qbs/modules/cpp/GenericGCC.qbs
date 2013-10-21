@@ -36,7 +36,7 @@ CppModule {
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && product.version &&
-                !type.contains("frameworkbundle") && qbs.targetOS.contains("unix");
+                !product.type.contains("frameworkbundle") && qbs.targetOS.contains("unix");
     }
 
     readonly property string internalVersion: {
