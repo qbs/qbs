@@ -40,10 +40,18 @@
 namespace qbs {
 namespace Internal {
 
+ScannerPluginManager::~ScannerPluginManager()
+{
+    foreach (QLibrary * const lib, m_libs) {
+        lib->unload();
+        delete lib;
+    }
+}
+
 ScannerPluginManager *ScannerPluginManager::instance()
 {
-    static ScannerPluginManager *i = new ScannerPluginManager;
-    return i;
+    static ScannerPluginManager scannerPlugin;
+    return &scannerPlugin;
 }
 
 ScannerPluginManager::ScannerPluginManager()

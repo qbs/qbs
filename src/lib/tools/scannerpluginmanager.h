@@ -47,6 +47,7 @@ class Logger;
 class ScannerPluginManager
 {
 public:
+    ~ScannerPluginManager();
     static ScannerPluginManager *instance();
     static QList<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
     void loadPlugins(const QStringList &paths, const Logger &logger);
