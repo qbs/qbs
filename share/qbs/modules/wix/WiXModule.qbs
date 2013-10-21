@@ -280,7 +280,7 @@ Module {
 
         Artifact {
             condition: product.type.contains("burnsetup")
-            fileTags: ["burnsetup"]
+            fileTags: ["burnsetup", "application"]
             fileName: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
         }
 
