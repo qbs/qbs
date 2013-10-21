@@ -1,0 +1,149 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Petroules Corporation.
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page nsis-module.html
+    \ingroup list-of-modules
+
+    \title Module nsis
+    \brief Provides Nullsoft Scriptable Install System support.
+
+    The \c nsis module contains properties and rules for building EXE installers
+    for Windows using the Nullsoft Scriptable Install System.
+
+    This module is only available on Windows.
+
+    \note A typical NSIS script includes an OutFile command to set the filename of the generated
+    installer executable. However, Qbs overrides any OutFile commands found in the script, and
+    therefore, you must use the targetName property to set the filename.
+
+    \section1 General Properties
+
+
+    \section2 defines
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of preprocessor macros that get passed to the compiler.
+    To set macro values, use the following syntax:
+    \code
+    cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    \endcode
+
+    \section2 disableConfig
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Whether to disable inclusion of nsisconf.nsh. Generally you do not need to set this property.
+
+    \section2 enableQbsDefines
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to define preprocessor macros corresponding to values from the project and product
+    objects. When building a 64-bit package, the preprocessor variable \c{Win64} will also be
+    defined.
+
+    \section2 warningLevel
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"none"}, \c{"normal"}, \c{"errors"},
+                                         \c{"warnings"}, \c{"info"}, \c{"all"}
+    \row    \li \b{Default:}         \li \c{"normal"}
+    \endtable
+
+    Severity of warnings to emit. The higher the level, the more warnings will be shown.
+    The levels \c{none}, \c{errors}, \c{warnings}, \c{info} and \c{all} correspond to NSIS
+    verbosity levels 0 through 4, inclusive. \c{normal} corresponds to the default level.
+
+    \section2 compilerFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the NSIS compiler.
+
+    \section2 compressor
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"default"},
+                                         \c{"zlib"}, \c{"zlib-solid"},
+                                         \c{"bzip2"}, \c{"bzip2-solid"},
+                                         \c{"lzma"}, \c{"lzma-solid"}
+    \row    \li \b{Default:}         \li \c{"default"}
+    \row
+    \endtable
+
+    Compression algorithm used to compress files and data in the installer.
+    Setting this property overrides any SetCompressor command in the NSI file being compiled.
+
+    \section2 toolchainInstallPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li determined automatically
+    \endtable
+
+    NSIS installation directory. Determined by searching known registry keys and
+    known installation paths until a match is found.
+    This should not normally need to be changed.
+
+    \section2 compilerName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"makensis.exe"}
+    \endtable
+
+    Name of the compiler binary. This should not normally need to be changed.
+
+    \section2 compilerPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{compilerName}
+    \endtable
+
+    Directory where the compiler binary is located. This should not normally need to be changed.
+*/
