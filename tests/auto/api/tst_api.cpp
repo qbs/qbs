@@ -92,6 +92,26 @@ void TestApi::disabledInstallGroup()
     QCOMPARE(project.targetExecutable(product, qbs::InstallOptions()), targets.first().filePath());
 }
 
+void TestApi::fileTagsFilterOverride()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
+        "/filetagsfilter_override/project.qbs")));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::Project project = job->project();
+    qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    const qbs::ProductData product = projectData.allProducts().first();
+    QList<qbs::InstallableFile> installableFiles
+            = project.installableFilesForProduct(product, qbs::InstallOptions());
+    QCOMPARE(installableFiles.count(), 1);
+    QEXPECT_FAIL(0, "QBS-424", Continue);
+    QVERIFY(installableFiles.first().targetDirectory().contains("habicht"));
+}
+
 void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();

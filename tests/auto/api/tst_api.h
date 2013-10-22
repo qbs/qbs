@@ -47,6 +47,7 @@ public:
 
 private slots:
     void disabledInstallGroup();
+    void fileTagsFilterOverride();
     void installableFiles();
     void listBuildSystemFiles();
 
