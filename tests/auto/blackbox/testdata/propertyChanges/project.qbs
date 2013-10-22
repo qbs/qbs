@@ -9,6 +9,7 @@ Project {
         files: "source1.cpp"
     }
     CppApplication {
+        Depends { name: 'library' }
         name: "product 2"
         cpp.defines: project.projectDefines
         files: "source2.cpp"
@@ -17,6 +18,11 @@ Project {
         name: "product 3"
         cpp.defines: qbs.getenv("QBS_BLACKBOX_DEFINE")
         files: "source3.cpp"
+    }
+    DynamicLibrary {
+        name: "library"
+        Depends { name: "cpp" }
+        files: "lib.cpp"
     }
 
     Product {
