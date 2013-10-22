@@ -29,8 +29,14 @@
 #ifndef QBS_PROBE_H
 #define QBS_PROBE_H
 
-namespace qbs { class Settings; }
+#include <QtGlobal>
+
+QT_BEGIN_NAMESPACE
 class QString;
+QT_END_NAMESPACE
+
+namespace qbs { class Settings; }
+
 
 int probe(qbs::Settings *settings);
 QString canonicalizeArchitecture(const QString &arch);
