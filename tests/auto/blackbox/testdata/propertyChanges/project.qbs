@@ -21,7 +21,7 @@ Project {
     }
     DynamicLibrary {
         name: "library"
-        Depends { name: "cpp" }
+        Depends { name: "Qt.core" }
         files: "lib.cpp"
     }
 
