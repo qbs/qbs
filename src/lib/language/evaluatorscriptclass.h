@@ -64,6 +64,7 @@ private:
                                  bool ignoreParent = false);
     static QString resultToString(const QScriptValue &scriptValue);
     static Item *findParentOfType(const Item *item, const QString &typeName);
+    static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
 
@@ -84,6 +85,7 @@ private:
     };
     QueryResult m_queryResult;
     Logger m_logger;
+    QScriptValue m_getNativeSettingBuiltin;
     QScriptValue m_getenvBuiltin;
     QScriptValue m_getHostOSBuiltin;
 };

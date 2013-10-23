@@ -781,6 +781,8 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
 
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
+    prototype->setProperty(QLatin1String("getNativeSetting"),
+                           BuiltinValue::create(BuiltinValue::GetNativeSettingFunction));
     prototype->setProperty(QLatin1String("getenv"),
                            BuiltinValue::create(BuiltinValue::GetEnvFunction));
     prototype->setProperty(QLatin1String("getHostOS"),

@@ -35,12 +35,15 @@
 #include "filecontext.h"
 #include "item.h"
 #include "propertydeclaration.h"
+#include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
+#include <tools/scripttools.h>
 
 #include <QScriptEngine>
 #include <QScriptString>
 #include <QScriptValue>
 #include <QDebug>
+#include <QSettings>
 
 namespace qbs {
 namespace Internal {
@@ -220,6 +223,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(QScriptEngine *scriptEngine, const Lo
     : QScriptClass(scriptEngine)
     , m_logger(logger)
 {
+    m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getenvBuiltin = scriptEngine->newFunction(js_getenv, 1);
     m_getHostOSBuiltin = scriptEngine->newFunction(js_getHostOS, 1);
 }
@@ -386,6 +390,8 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
 QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin builtin) const
 {
     switch (builtin) {
+    case BuiltinValue::GetNativeSettingFunction:
+        return m_getNativeSettingBuiltin;
     case BuiltinValue::GetEnvFunction:
         return m_getenvBuiltin;
     case BuiltinValue::GetHostOSFunction:
@@ -393,6 +399,26 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
+}
+
+QScriptValue EvaluatorScriptClass::js_getNativeSetting(QScriptContext *context, QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() < 1 || context->argumentCount() > 3)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("getNativeSetting expects between 1 and 3 arguments"));
+    }
+
+    QString key = context->argumentCount() > 1 ? context->argument(1).toString() : QString();
+
+    // We'll let empty string represent the default registry value
+    if (HostOsInfo::isWindowsHost() && key.isEmpty())
+        key = QLatin1String(".");
+
+    QVariant defaultValue = context->argumentCount() > 2 ? context->argument(2).toVariant() : QVariant();
+
+    QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
+    QVariant value = settings.value(key, defaultValue);
+    return value.isNull() ? engine->undefinedValue() : engine->toScriptValue(value);
 }
 
 QScriptValue EvaluatorScriptClass::js_getenv(QScriptContext *context, QScriptEngine *engine)

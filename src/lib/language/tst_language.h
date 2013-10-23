@@ -74,6 +74,7 @@ private slots:
     void erroneousFiles();
     void exports();
     void fileContextProperties();
+    void getNativeSetting();
     void groupConditions_data();
     void groupConditions();
     void groupName();

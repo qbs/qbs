@@ -39,6 +39,7 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/scripttools.h>
 #include <tools/error.h>
+#include <tools/hostosinfo.h>
 #include <tools/propertyfinder.h>
 
 #include <QProcessEnvironment>
@@ -419,6 +420,34 @@ void TestLanguage::fileContextProperties()
         QCOMPARE(cfg.value("narf").toString(), defaultParameters.projectFilePath());
         QString dirPath = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
         QCOMPARE(cfg.value("zort").toString(), dirPath);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::getNativeSetting()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("getNativeSetting.qbs"));
+        project = loader->loadProject(defaultParameters);
+
+        QString expectedProductName;
+        if (HostOsInfo::isOsxHost())
+            expectedProductName = QLatin1String("Mac OS X");
+        else if (HostOsInfo::isWindowsHost())
+            expectedProductName = QLatin1String("Windows");
+        else
+            expectedProductName = QLatin1String("Unix");
+
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value(expectedProductName);
+        QVERIFY(product);
+        ResolvedProductPtr product2 = products.value(QLatin1String("fallback"));
+        QVERIFY(product2);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

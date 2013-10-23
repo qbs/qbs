@@ -40,6 +40,7 @@ class BuiltinValue : public Value
 public:
     enum Builtin
     {
+        GetNativeSettingFunction,
         GetEnvFunction,
         GetHostOSFunction
     };
