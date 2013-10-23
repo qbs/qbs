@@ -72,6 +72,9 @@ private:
     void setupAlternatives(Item *item);
     static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
     void handlePropertiesBlock(Item *item, const Item *block);
+    void collectPrototypes(const QString &path, const QString &as);
+    bool addPrototype(const QString &fileName, const QString &filePath, const QString &as,
+                      bool needsCheck);
 
     ItemReader *m_reader;
     ItemReaderResult *m_readerResult;

@@ -88,6 +88,9 @@ public:
 private:
     ItemReaderResult internalReadFile(const QString &filePath);
 
+    void cacheDirectoryEntries(const QString &dirPath, const QStringList &entries);
+    bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
+
     ItemPool *m_pool;
     BuiltinDeclarations *m_builtins;
     Logger m_logger;
@@ -98,6 +101,7 @@ private:
     class ASTCache;
     ASTCache *m_astCache;
     QSet<QString> m_filesRead;
+    QHash<QString, QStringList> m_directoryEntries;
 };
 
 } // namespace Internal

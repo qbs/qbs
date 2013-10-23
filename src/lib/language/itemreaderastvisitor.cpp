@@ -75,41 +75,54 @@ bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
     return true;
 }
 
-static void collectPrototypes(const QString &path, const QString &as,
-                              QHash<QStringList, QString> *prototypeToFile)
+bool ItemReaderASTVisitor::addPrototype(const QString &fileName, const QString &filePath,
+                                        const QString &as, bool needsCheck)
 {
+    if (needsCheck && fileName.size() <= 4)
+        return false;
+
+    const QString componentName = fileName.left(fileName.size() - 4);
+    // ### validate componentName
+
+    if (needsCheck && !componentName.at(0).isUpper())
+        return false;
+
+    QStringList prototypeName;
+    if (!as.isEmpty())
+        prototypeName.append(as);
+    prototypeName.append(componentName);
+    m_typeNameToFile.insert(prototypeName, filePath);
+    return true;
+}
+
+void ItemReaderASTVisitor::collectPrototypes(const QString &path, const QString &as)
+{
+    QStringList fileNames; // Yes, file *names*.
+    if (m_reader->findDirectoryEntries(path, &fileNames)) {
+        foreach (const QString &fileName, fileNames)
+            addPrototype(fileName, path + QLatin1Char('/') + fileName, as, false);
+        return;
+    }
+
     QDirIterator dirIter(path, QStringList("*.qbs"));
     while (dirIter.hasNext()) {
         const QString filePath = dirIter.next();
         const QString fileName = dirIter.fileName();
-
-        if (fileName.size() <= 4)
-            continue;
-
-        const QString componentName = fileName.left(fileName.size() - 4);
-        // ### validate componentName
-
-        if (!componentName.at(0).isUpper())
-            continue;
-
-        QStringList prototypeName;
-        if (!as.isEmpty())
-            prototypeName.append(as);
-        prototypeName.append(componentName);
-
-        prototypeToFile->insert(prototypeName, filePath);
+        if (addPrototype(fileName, filePath, as, true))
+            fileNames << fileName;
     }
+    m_reader->cacheDirectoryEntries(path, fileNames);
 }
 
 bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 {
     foreach (const QString &searchPath, m_reader->searchPaths())
-        collectPrototypes(searchPath + QLatin1String("/imports"), QString(), &m_typeNameToFile);
+        collectPrototypes(searchPath + QLatin1String("/imports"), QString());
 
     const QString path = FileInfo::path(m_filePath);
 
     // files in the same directory are available as prototypes
-    collectPrototypes(path, QString(), &m_typeNameToFile);
+    collectPrototypes(path, QString());
 
     QSet<QString> importAsNames;
     QHash<QString, JsImport> jsImports;
@@ -190,7 +203,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                                          import->fileNameToken.startColumn));
             name = fi.canonicalFilePath();
             if (fi.isDir()) {
-                collectPrototypes(name, as, &m_typeNameToFile);
+                collectPrototypes(name, as);
             } else {
                 if (name.endsWith(".js", Qt::CaseInsensitive)) {
                     JsImport &jsImport = jsImports[as];
@@ -216,7 +229,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                     if (fi.isDir()) {
                         // ### versioning, qbsdir file, etc.
                         const QString &resultPath = fi.absoluteFilePath();
-                        collectPrototypes(resultPath, as, &m_typeNameToFile);
+                        collectPrototypes(resultPath, as);
 
                         QDirIterator dirIter(resultPath, QStringList("*.js"));
                         while (dirIter.hasNext()) {
