@@ -36,10 +36,12 @@
 #include <qbs.h>
 #include <api/runenvironment.h>
 #include <logging/translator.h>
+#include <tools/qbsassert.h>
 
 #include <QDir>
 #include <QMetaObject>
 #include <QProcessEnvironment>
+#include <QTimer>
 #include <cstdlib>
 
 namespace qbs {
@@ -47,24 +49,45 @@ using namespace Internal;
 
 CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settings *settings,
                                          QObject *parent)
-    : QObject(parent), m_parser(parser), m_settings(settings), m_observer(0), m_canceled(false)
+    : QObject(parent)
+    , m_parser(parser)
+    , m_settings(settings)
+    , m_observer(0)
+    , m_cancelStatus(CancelStatusNone)
+    , m_cancelTimer(new QTimer(this))
 {
 }
 
+CommandLineFrontend::~CommandLineFrontend()
+{
+    m_cancelTimer->stop();
+}
+
+// Called from interrupt handler. Don't do anything non-trivial here.
 void CommandLineFrontend::cancel()
 {
-    m_canceled = true;
-    QMetaObject::invokeMethod(this, "doCancel", Qt::QueuedConnection);
+    m_cancelStatus = CancelStatusRequested;
 }
 
-void CommandLineFrontend::doCancel()
+void CommandLineFrontend::checkCancelStatus()
 {
-    if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty())
-        std::exit(EXIT_FAILURE);
-    foreach (AbstractJob * const job, m_resolveJobs)
-        job->cancel();
-    foreach (AbstractJob * const job, m_buildJobs)
-        job->cancel();
+    switch (m_cancelStatus) {
+    case CancelStatusNone:
+        break;
+    case CancelStatusRequested:
+        m_cancelStatus = CancelStatusCanceling;
+        m_cancelTimer->stop();
+        if (m_resolveJobs.isEmpty() && m_buildJobs.isEmpty())
+            std::exit(EXIT_FAILURE);
+        foreach (AbstractJob * const job, m_resolveJobs)
+            job->cancel();
+        foreach (AbstractJob * const job, m_buildJobs)
+            job->cancel();
+        break;
+    case CancelStatusCanceling:
+        QBS_ASSERT(false, return);
+        break;
+    }
 }
 
 void CommandLineFrontend::start()
@@ -129,12 +152,21 @@ void CommandLineFrontend::start()
          */
         if (m_parser.showProgress() && resolvingMultipleProjects())
             m_observer->initialize(tr("Setting up projects"), m_resolveJobs.count());
+
+        // Check every two seconds whether we received a cancel request. This value has been
+        // experimentally found to be acceptable.
+        // Note that this polling approach is not problematic here, since we are doing work anyway,
+        // so there's no danger of waking up the processor for no reason.
+        connect(m_cancelTimer, SIGNAL(timeout()), SLOT(checkCancelStatus()));
+        m_cancelTimer->start(2000);
     } catch (const ErrorInfo &error) {
         qbsError() << error.toString();
-        if (m_buildJobs.isEmpty() && m_resolveJobs.isEmpty())
+        if (m_buildJobs.isEmpty() && m_resolveJobs.isEmpty()) {
             qApp->exit(EXIT_FAILURE);
-        else
+        } else {
             cancel();
+            checkCancelStatus();
+        }
     }
 }
 
@@ -283,7 +315,7 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
 void CommandLineFrontend::handleProjectsResolved()
 {
     try {
-        if (m_canceled)
+        if (m_cancelStatus != CancelStatusNone)
             throw ErrorInfo(Tr::tr("Execution canceled."));
         switch (m_parser.command()) {
         case ResolveCommandType:
