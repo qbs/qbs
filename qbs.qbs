@@ -4,6 +4,7 @@ Project {
     property bool enableUnitTests: false
     property bool enableRPath: true
     property bool installApiHeaders: true
+    property bool withExamples: true
     property path libInstallDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
     property path libRPaths: {
         if (!project.enableRPath)
@@ -16,9 +17,10 @@ Project {
     property path resourcesInstallDir: ""
 
     references: [
-        "src/src.qbs",
         "doc/doc.qbs",
+        "examples/examples.qbs",
         "share/share.qbs",
+        "src/src.qbs",
         "tests/auto/auto.qbs"
     ]
 }
