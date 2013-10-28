@@ -1188,6 +1188,25 @@ void TestBlackbox::disabledProject()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::duplicateProductNames()
+{
+    QDir::setCurrent(testDataDir + "/duplicateProductNames");
+    QFETCH(QString, projectFileName);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments = QStringList() << "-f" << projectFileName;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("Duplicate product name"));
+}
+
+void TestBlackbox::duplicateProductNames_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::newRow("Names explicitly set") << QString("explicit.qbs");
+    QTest::newRow("Unnamed products in same file") << QString("implicit.qbs");
+    QTest::newRow("Unnamed products in files of the same name") << QString("implicit-indirect.qbs");
+}
+
 void TestBlackbox::dynamicLibs()
 {
     QDir::setCurrent(testDataDir + "/dynamicLibs");

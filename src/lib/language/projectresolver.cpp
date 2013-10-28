@@ -81,6 +81,25 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
     m_progressObserver = observer;
 }
 
+static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
+{
+    const QList<ResolvedProductPtr> allProducts = project->allProducts();
+    for (int i = 0; i < allProducts.count(); ++i) {
+        const ResolvedProductConstPtr product1 = allProducts.at(i);
+        const QString productName = product1->name;
+        for (int j = i + 1; j < allProducts.count(); ++j) {
+            const ResolvedProductConstPtr product2 = allProducts.at(j);
+            if (product2->name == productName) {
+                ErrorInfo error;
+                error.append(Tr::tr("Duplicate product name '%1'.").arg(productName));
+                error.append(Tr::tr("First product defined here."), product1->location);
+                error.append(Tr::tr("Second product defined here."), product2->location);
+                throw error;
+            }
+        }
+    }
+}
+
 TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
         const QString &buildRoot, const QVariantMap &overriddenProperties,
         const QVariantMap &buildConfiguration)
@@ -98,6 +117,7 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_moduleContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
+    checkForDuplicateProductNames(top);
     top->buildSystemFiles.unite(loadResult.qbsFiles);
     return top;
 }
