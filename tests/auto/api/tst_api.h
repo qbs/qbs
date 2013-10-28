@@ -50,6 +50,8 @@ private slots:
     void fileTagsFilterOverride();
     void installableFiles();
     void listBuildSystemFiles();
+    void nonexistingProjectPropertyFromProduct();
+    void nonexistingProjectPropertyFromCommandLine();
 
 private:
     qbs::SetupProjectParameters defaultSetupParameters() const;

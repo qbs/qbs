@@ -172,6 +172,41 @@ void TestApi::listBuildSystemFiles()
                                       + QLatin1String("/subproject2/subproject3/subproject3.qbs")));
 }
 
+void TestApi::nonexistingProjectPropertyFromProduct()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir
+            = QDir::cleanPath(QLatin1String(SRCDIR "/testdata/nonexistingprojectproperties"));
+    const QString topLevelProjectFile = projectDir + QLatin1String("/invalidaccessfromproduct.qbs");
+    setupParams.setProjectFilePath(topLevelProjectFile);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QEXPECT_FAIL("", "QBS-432", Abort);
+    QVERIFY(job->error().hasError());
+    QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
+             qPrintable(job->error().toString()));
+}
+
+void TestApi::nonexistingProjectPropertyFromCommandLine()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir
+            = QDir::cleanPath(QLatin1String(SRCDIR "/testdata/nonexistingprojectproperties"));
+    const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
+    setupParams.setProjectFilePath(topLevelProjectFile);
+    QVariantMap projectProperties;
+    projectProperties.insert(QLatin1String("project.blubb"), QLatin1String("true"));
+    setupParams.setOverriddenValues(projectProperties);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QEXPECT_FAIL("", "QBS-431", Abort);
+    QVERIFY(job->error().hasError());
+    QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
+             qPrintable(job->error().toString()));
+}
+
 qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 {
     qbs::SetupProjectParameters setupParams;
