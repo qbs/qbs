@@ -69,9 +69,9 @@ CppModule {
                 var result = []
                 for (var i in inputs.dynamiclibrary) {
                     var lib = inputs.dynamiclibrary[i]
-                    result.push(lib.fileName)
                     var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
-                    result = result.concat(impliedLibs)
+                    var libsToAdd = impliedLibs.concat([lib.fileName]);
+                    result = ModUtils.uniqueConcat(result, libsToAdd);
                 }
                 return result
             }
@@ -251,8 +251,9 @@ CppModule {
 
             if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
                 var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'transitiveSOs')
-                for (i in transitiveSOs) {
-                    args.push("-Wl,-rpath-link=" + FileInfo.path(transitiveSOs[i]))
+                var uniqueSOs = ModUtils.uniqueConcat([], transitiveSOs)
+                for (i in uniqueSOs) {
+                    args.push("-Wl,-rpath-link=" + FileInfo.path(uniqueSOs[i]))
                 }
             }
 

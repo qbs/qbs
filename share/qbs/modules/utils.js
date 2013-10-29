@@ -136,6 +136,17 @@ function dumpObject(obj, description)
     traverseObject(obj, dumpProperty)
 }
 
+function uniqueConcat(array1, array2)
+{
+    var result = array1;
+    for (i in array2) {
+        var elem = array2[i];
+        if (result.indexOf(elem) === -1)
+            result.push(elem);
+    }
+    return result;
+}
+
 
 //////////////////////////////////////////////////////////
 // The EnvironmentVariable class
