@@ -261,9 +261,11 @@ void BuiltinDeclarations::addProductItem()
 {
     QList<PropertyDeclaration> properties;
     properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("type"), PropertyDeclaration::StringList);
+    PropertyDeclaration decl(QLatin1String("type"), PropertyDeclaration::StringList);
+    decl.initialValueSource = QLatin1String("[]");
+    properties += decl;
     properties += nameProperty();
-    PropertyDeclaration decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
+    decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
     decl.initialValueSource = QLatin1String("name");
     properties += decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);
