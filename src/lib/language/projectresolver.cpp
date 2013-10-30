@@ -101,18 +101,15 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
 }
 
 TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
-        const QString &buildRoot, const QVariantMap &overriddenProperties,
-        const QVariantMap &buildConfiguration)
+        const SetupProjectParameters &setupParameters)
 {
-    QBS_ASSERT(FileInfo::isAbsolute(buildRoot), return TopLevelProjectPtr());
+    QBS_ASSERT(FileInfo::isAbsolute(setupParameters.buildRoot()), return TopLevelProjectPtr());
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[PR] resolving " << loadResult.root->file()->filePath();
 
     ProjectContext projectContext;
     projectContext.loadResult = &loadResult;
-    m_buildRoot = buildRoot;
-    m_overriddenProperties = overriddenProperties;
-    m_buildConfiguration = buildConfiguration;
+    m_setupParams = setupParameters;
     m_productContext = 0;
     m_moduleContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
@@ -126,7 +123,7 @@ void ProjectResolver::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_buildConfiguration)));
+                    .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
     }
 }
 
@@ -182,8 +179,9 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     if (m_progressObserver)
         m_progressObserver->setMaximum(projectContext->loadResult->productInfos.count());
     const TopLevelProjectPtr project = TopLevelProject::create();
-    project->setBuildConfiguration(m_buildConfiguration);
-    project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_buildRoot, project->id());
+    project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
+    project->buildDirectory
+            = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(), project->id());
     projectContext->project = project;
     resolveProject(item, projectContext);
     project->usedEnvironment = m_engine->usedEnvironment();
@@ -298,7 +296,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
                     item->location());
     }
 
-    ModuleLoader::overrideItemProperties(item, product->name, m_overriddenProperties);
+    ModuleLoader::overrideItemProperties(item, product->name, m_setupParams.overriddenValuesTree());
     m_productsByName.insert(product->name, product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     product->additionalFileTags

@@ -34,6 +34,7 @@
 #include "filetags.h"
 #include "language.h"
 #include <logging/logger.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QMap>
 #include <QSet>
@@ -57,8 +58,8 @@ public:
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
-    TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult, const QString &buildRoot,
-            const QVariantMap &overriddenProperties, const QVariantMap &buildConfiguration);
+    TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult,
+                               const SetupProjectParameters &setupParameters);
 
 private:
     struct ProjectContext
@@ -121,15 +122,13 @@ private:
     Logger m_logger;
     ScriptEngine *m_engine;
     ProgressObserver *m_progressObserver;
-    QString m_buildRoot;
-    QVariantMap m_overriddenProperties;
-    QVariantMap m_buildConfiguration;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     QMap<QString, QVariantMap> m_exports;
+    SetupProjectParameters m_setupParams;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     typedef QMap<QByteArray, ItemFuncPtr> ItemFuncMap;
