@@ -396,7 +396,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
                         pl.append(QString("  - %1 \n").arg(p->name));
                 }
                 throw ErrorInfo(QString ("BUG: already inserted in this project: %1\n%2")
-                            .arg(artifact->filePath()).arg(pl));
+                            .arg(artifact->filePath()).arg(pl), CodeLocation(), true);
             }
         }
     }
@@ -462,17 +462,26 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     }
 }
 
-void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
+static void doSanityChecks(const ResolvedProjectPtr &project, QSet<QString> &productNames,
+                           const Logger &logger)
 {
     logger.qbsDebug() << "Sanity checking project '" << project->name << "'";
     foreach (const ResolvedProjectPtr &subProject, project->subProjects)
-        doSanityChecks(subProject, logger);
+        doSanityChecks(subProject, productNames, logger);
 
     foreach (const ResolvedProductConstPtr &product, project->products) {
         QBS_CHECK(product->project == project);
         QBS_CHECK(product->topLevelProject() == project->topLevelProject());
         doSanityChecksForProduct(product, logger);
+        QBS_CHECK(!productNames.contains(product->name));
+        productNames << product->name;
     }
+}
+
+void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
+{
+    QSet<QString> productNames;
+    doSanityChecks(project, productNames, logger);
 }
 
 } // namespace Internal

@@ -37,6 +37,10 @@
 #include <QList>
 #include <QObject>
 
+QT_BEGIN_NAMESPACE
+class QTimer;
+QT_END_NAMESPACE
+
 namespace qbs {
 class AbstractJob;
 class ConsoleProgressObserver;
@@ -50,6 +54,7 @@ class CommandLineFrontend : public QObject
 public:
     explicit CommandLineFrontend(const CommandLineParser &parser, Settings *settings,
                                  QObject *parent = 0);
+    ~CommandLineFrontend();
 
     void cancel();
 
@@ -61,6 +66,7 @@ private slots:
     void handleTotalEffortChanged(int totalEffort);
     void handleTaskProgress(int value, qbs::AbstractJob *job);
     void handleProcessResultReport(const qbs::ProcessResult &result);
+    void checkCancelStatus();
 
 private:
     typedef QHash<Project, QList<ProductData> > ProductMap;
@@ -81,8 +87,6 @@ private:
     void checkForExactlyOneProduct();
     void install();
 
-    Q_INVOKABLE void doCancel();
-
     const CommandLineParser &m_parser;
     Settings * const m_settings;
     QList<AbstractJob *> m_resolveJobs;
@@ -90,7 +94,11 @@ private:
     QList<Project> m_projects;
 
     ConsoleProgressObserver *m_observer;
-    bool m_canceled;
+
+    enum CancelStatus { CancelStatusNone, CancelStatusRequested, CancelStatusCanceling };
+    CancelStatus m_cancelStatus;
+    QTimer * const m_cancelTimer;
+
     int m_buildEffortsNeeded;
     int m_buildEffortsRetrieved;
     int m_totalBuildEffort;

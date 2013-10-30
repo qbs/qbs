@@ -41,6 +41,50 @@
     one or more artifacts (e.g. C++ linker).
     A \e {non-multiplex rule} creates one transformer per matching input file (e.g. C++
     compiler).
+    As a real-world example of a non-multiplex rule, here is a simplified version of qbs' rule for
+    transforming C++ sources into object files using gcc:
+    \code
+    Rule {
+        id: compiler
+        inputs: ['cpp']
+        auxiliaryInputs: ['hpp']
+
+        Artifact {
+            fileTags: ['obj']
+            fileName: '.obj/' + product.name + '/' + input.baseDir + '/' + input.fileName + '.o'
+        }
+
+        prepare: {
+            var args = [];
+            if (product.moduleProperty('cpp', 'debugInformation'))
+                args.push('-g');
+            var warnings = product.moduleProperty('cpp', 'warningLevel')
+            if (warnings === 'none')
+                args.push('-w');
+            if (warnings === 'all') {
+                args.push('-Wall');
+                args.push('-Wextra');
+            }
+            if (product.moduleProperty('cpp', 'treatWarningsAsErrors'))
+                args.push('-Werror');
+            var includePaths = product.moduleProperties('cpp', 'includePaths');
+            for (i in includePaths)
+                args.push('-I' + includePaths[i]);
+            var defines = product.moduleProperties('cpp', 'defines');
+            for (i in defines)
+                args.push('-D' + defines[i]);
+            args.push('-c');
+            args.push(input.fileName);
+            args.push('-o');
+            args.push(output.fileName);
+            var compilerPath = ModUtils.moduleProperty(product, 'compilerPath');
+            var cmd = new Command(compilerPath, args);
+            cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
+            cmd.highlight = 'compiler';
+            return cmd;
+        }
+    }
+    \endcode
 
     \section1 Rule Properties
 

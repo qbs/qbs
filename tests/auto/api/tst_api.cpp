@@ -92,6 +92,26 @@ void TestApi::disabledInstallGroup()
     QCOMPARE(project.targetExecutable(product, qbs::InstallOptions()), targets.first().filePath());
 }
 
+void TestApi::fileTagsFilterOverride()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
+        "/filetagsfilter_override/project.qbs")));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::Project project = job->project();
+    qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    const qbs::ProductData product = projectData.allProducts().first();
+    QList<qbs::InstallableFile> installableFiles
+            = project.installableFilesForProduct(product, qbs::InstallOptions());
+    QCOMPARE(installableFiles.count(), 1);
+    QEXPECT_FAIL(0, "QBS-424", Continue);
+    QVERIFY(installableFiles.first().targetDirectory().contains("habicht"));
+}
+
 void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -150,6 +170,40 @@ void TestApi::listBuildSystemFiles()
     QVERIFY(buildSystemFiles.contains(projectDir + QLatin1String("/subproject2/subproject2.qbs")));
     QVERIFY(buildSystemFiles.contains(projectDir
                                       + QLatin1String("/subproject2/subproject3/subproject3.qbs")));
+}
+
+void TestApi::nonexistingProjectPropertyFromProduct()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir
+            = QDir::cleanPath(QLatin1String(SRCDIR "/testdata/nonexistingprojectproperties"));
+    const QString topLevelProjectFile = projectDir + QLatin1String("/invalidaccessfromproduct.qbs");
+    setupParams.setProjectFilePath(topLevelProjectFile);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QEXPECT_FAIL("", "QBS-432", Abort);
+    QVERIFY(job->error().hasError());
+    QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
+             qPrintable(job->error().toString()));
+}
+
+void TestApi::nonexistingProjectPropertyFromCommandLine()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir
+            = QDir::cleanPath(QLatin1String(SRCDIR "/testdata/nonexistingprojectproperties"));
+    const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
+    setupParams.setProjectFilePath(topLevelProjectFile);
+    QVariantMap projectProperties;
+    projectProperties.insert(QLatin1String("project.blubb"), QLatin1String("true"));
+    setupParams.setOverriddenValues(projectProperties);
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY(job->error().hasError());
+    QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
+             qPrintable(job->error().toString()));
 }
 
 qbs::SetupProjectParameters TestApi::defaultSetupParameters() const

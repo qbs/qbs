@@ -133,7 +133,7 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
         return -1;
     }
     m_qProcess->closeWriteChannel();
-    m_qProcess->waitForFinished();
+    m_qProcess->waitForFinished(-1);
     if (throwOnError) {
         if (m_qProcess->error() != QProcess::UnknownError) {
             context()->throwError(Tr::tr("Error running '%1': %2")

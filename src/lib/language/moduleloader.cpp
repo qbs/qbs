@@ -103,6 +103,8 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
         m_logger.qbsTrace() << "[MODLDR] load" << filePath;
     m_overriddenProperties = overriddenProperties;
     m_buildConfigProperties = buildConfigProperties;
+    m_validItemPropertyNamesPerItem.clear();
+    m_disabledItems.clear();
 
     ModuleLoaderResult result;
     m_pool = result.itemPool.data();
@@ -120,6 +122,72 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
     result.qbsFiles = m_reader->filesRead();
     return result;
 }
+
+class PropertyDeclarationCheck : public ValueHandler
+{
+    const QHash<Item *, QSet<QString> > &m_validItemPropertyNamesPerItem;
+    const QSet<Item *> &m_disabledItems;
+    Item *m_parentItem;
+    QString m_currentName;
+public:
+    PropertyDeclarationCheck(const QHash<Item *, QSet<QString> > &validItemPropertyNamesPerItem,
+          const QSet<Item *> &disabledItems)
+        : m_validItemPropertyNamesPerItem(validItemPropertyNamesPerItem)
+        , m_disabledItems(disabledItems)
+        , m_parentItem(0)
+    {
+    }
+
+    void operator()(Item *item)
+    {
+        handleItem(item);
+    }
+
+private:
+    void handle(JSSourceValue *value)
+    {
+        if (!m_parentItem->propertyDeclaration(m_currentName).isValid()) {
+            throw ErrorInfo(Tr::tr("Property '%1' is not declared.").arg(m_currentName),
+                            value->location());
+        }
+    }
+
+    void handle(ItemValue *value)
+    {
+        if (!value->item()->isModuleInstance()
+                && !m_validItemPropertyNamesPerItem.value(m_parentItem).contains(m_currentName)
+                && !m_parentItem->file()->idScope()->hasProperty(m_currentName)) {
+            throw ErrorInfo(Tr::tr("Item '%1' is not declared. "
+                                   "Did you forget to add a Depends item?").arg(m_currentName),
+                            value->location().isValid() ? value->location()
+                                                        : m_parentItem->location());
+        }
+
+        handleItem(value->item());
+    }
+
+    void handleItem(Item *item)
+    {
+        if (m_disabledItems.contains(item) || item->typeName() == QLatin1String("SubProject"))
+            return;
+
+        Item *oldParentItem = m_parentItem;
+        for (Item::PropertyMap::const_iterator it = item->properties().constBegin();
+                it != item->properties().constEnd(); ++it) {
+            if (item->propertyDeclaration(it.key()).isValid())
+                continue;
+            m_currentName = it.key();
+            m_parentItem = item;
+            it.value()->apply(this);
+        }
+        m_parentItem = oldParentItem;
+        foreach (Item *child, item->children())
+            handleItem(child);
+    }
+
+    void handle(VariantValue *) { /* only created internally - no need to check */ }
+    void handle(BuiltinValue *) { /* only created internally - no need to check */ }
+};
 
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         const QSet<QString> &referencedFilePaths)
@@ -181,6 +249,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         }
     }
 
+    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems);
+    check(item);
+
     m_reader->popExtraSearchPaths();
 }
 
@@ -211,6 +282,8 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     dependsContext.productDependencies = &productContext.info.usedProducts;
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
+    if (!checkItemCondition(item))
+        return;
     createAdditionalModuleInstancesInProduct(&productContext);
 
     foreach (Item *child, item->children()) {
@@ -306,26 +379,6 @@ void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *prod
     }
 }
 
-static Item *findTargetItem(Item *item, const QStringList &name, ItemPool *pool)
-{
-    Item *targetItem = item;
-    ValuePtr v;
-    for (int i = 0; i < name.count(); ++i) {
-        v = targetItem->properties().value(name.at(i));
-        if (v && v->type() == Value::ItemValueType)
-            targetItem = v.staticCast<ItemValue>()->item();
-        if (!v || !targetItem) {
-            Item *newItem = Item::create(pool);
-            targetItem->setProperty(name.at(i), ItemValue::create(newItem));
-            targetItem = newItem;
-        }
-    }
-    QBS_ASSERT(name.isEmpty() || targetItem != item, return 0);
-    return targetItem;
-}
-
-extern bool debugProperties;
-
 void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
 {
     checkCancelation();
@@ -409,8 +462,9 @@ void ModuleLoader::propagateModulesFromProduct(ProductContext *productContext, I
          it != productContext->item->modules().constEnd(); ++it)
     {
         Item::Module m = *it;
-        Item *targetItem = findTargetItem(item, m.name, m_pool);
+        Item *targetItem = moduleInstanceItem(item, m.name);
         targetItem->setPrototype(m.item);
+        targetItem->setModuleInstanceFlag(true);
         targetItem->setScope(m.item->scope());
         targetItem->modules() = m.item->modules();
 
@@ -526,6 +580,8 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
 {
     Item *instance = item;
     for (int i = 0; i < moduleName.count(); ++i) {
+        const QString &moduleNameSegment = moduleName.at(i);
+        m_validItemPropertyNamesPerItem[instance].insert(moduleNameSegment);
         bool createNewItem = true;
         const ValuePtr v = instance->properties().value(moduleName.at(i));
         if (v && v->type() == Value::ItemValueType) {
@@ -537,16 +593,17 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
         }
         if (createNewItem) {
             Item *newItem = Item::create(m_pool);
-            instance->setProperty(moduleName.at(i), ItemValue::create(newItem));
+            instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }
     }
+    QBS_ASSERT(moduleName.isEmpty() || instance != item, return 0);
     return instance;
 }
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QStringList &moduleName)
+        const QString &moduleId, const QStringList &moduleName, bool isBaseModule)
 {
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
@@ -560,17 +617,21 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
             ? productContext->project->extraModuleSearchPaths : productContext->extraModuleSearchPaths;
     foreach (const QString &searchPath, productContext->extraSearchPaths)
         addExtraModuleSearchPath(extraModuleSearchPaths, searchPath);
+    bool cacheHit;
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                                                      moduleName, extraModuleSearchPaths);
+                                                    moduleName, extraModuleSearchPaths, &cacheHit);
     if (!modulePrototype)
         return 0;
+    if (!cacheHit && isBaseModule)
+        setupBaseModulePrototype(modulePrototype);
     instantiateModule(productContext, item, moduleInstance, modulePrototype, moduleName);
+    callValidateScript(moduleInstance);
     return moduleInstance;
 }
 
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QStringList &moduleName,
-        const QStringList &extraSearchPaths)
+        const QStringList &extraSearchPaths, bool *cacheHit)
 {
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
@@ -594,7 +655,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName,
                                             moduleName.count() == 1
                                                 && moduleName.first() == QLatin1String("qbs"),
-                                            filePath);
+                                            filePath, cacheHit);
             if (module)
                 return module;
         }
@@ -669,22 +730,25 @@ static PropertyDeclaration firstValidPropertyDeclaration(Item *item, const QStri
 }
 
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath)
+        bool isBaseModule, const QString &filePath, bool *cacheHit)
 {
     checkCancelation();
     Item *module = productContext->moduleItemCache.value(filePath);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
+        *cacheHit = true;
         return module;
     }
 
     module = productContext->project->moduleItemCache.value(filePath);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile returns clone for " << filePath;
+        *cacheHit = true;
         return module->clone(m_pool);
     }
 
     m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
+    *cacheHit = false;
     module = m_reader->readFile(filePath);
     if (!isBaseModule) {
         DependsContext dependsContext;
@@ -711,7 +775,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
                         QStringList(fullModuleName), vmit.key())));
     }
 
-    callValidateScript(module);
     productContext->moduleItemCache.insert(filePath, module);
     productContext->project->moduleItemCache.insert(filePath, module);
     return module;
@@ -723,14 +786,18 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
-                                     baseModuleName);
+                                     baseModuleName, true);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    baseModuleDesc.item->setProperty(QLatin1String("getenv"),
-                                     BuiltinValue::create(BuiltinValue::GetEnvFunction));
-    baseModuleDesc.item->setProperty(QLatin1String("getHostOS"),
-                                     BuiltinValue::create(BuiltinValue::GetHostOSFunction));
     item->modules() += baseModuleDesc;
+}
+
+void ModuleLoader::setupBaseModulePrototype(Item *prototype)
+{
+    prototype->setProperty(QLatin1String("getenv"),
+                           BuiltinValue::create(BuiltinValue::GetEnvFunction));
+    prototype->setProperty(QLatin1String("getHostOS"),
+                           BuiltinValue::create(BuiltinValue::GetHostOSFunction));
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)
@@ -896,7 +963,10 @@ void ModuleLoader::checkCancelation() const
 
 bool ModuleLoader::checkItemCondition(Item *item)
 {
-    return m_evaluator->boolValue(item, QLatin1String("condition"), true);
+    if (m_evaluator->boolValue(item, QLatin1String("condition"), true))
+        return true;
+    m_disabledItems += item;
+    return false;
 }
 
 void ModuleLoader::callValidateScript(Item *module)
@@ -1026,6 +1096,10 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
             ++it) {
         const PropertyDeclaration decl = item->propertyDeclarations().value(it.key());
+        if (!decl.isValid()) {
+            throw ErrorInfo(
+                    Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
+        }
         item->setProperty(it.key(),
                 VariantValue::create(convertToPropertyType(it.value(), decl.type,
                         QStringList(buildConfigKey), it.key())));

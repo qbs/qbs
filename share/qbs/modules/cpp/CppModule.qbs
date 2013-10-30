@@ -92,6 +92,7 @@ Module {
     property string dynamicLibrarySuffix
     property stringList supportedStaticLibrarySuffixes: [staticLibrarySuffix]
     property string executableSuffix
+    property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname
     property stringList staticLibraries // list of static library files
     property stringList frameworks // list of frameworks, will be linked with '-framework <name>'
@@ -160,6 +161,22 @@ Module {
     property stringList platformObjcFlags
     property stringList platformObjcxxFlags
     property stringList platformLinkerFlags
+
+    // OS X and iOS properties
+    property path infoPlistFile
+    property var infoPlist
+    property bool processInfoPlist: true
+    property string infoPlistFormat: {
+        if (qbs.targetOS.contains("osx"))
+            return infoPlistFile ? "same-as-input" : "xml1"
+        else if (qbs.targetOS.contains("ios"))
+            return "binary1"
+    }
+    property bool buildDsym: qbs.buildVariant === "release"
+    property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
+
+    property string signingIdentity
+    property string provisionFile
 
     FileTagger {
         pattern: "*.c"

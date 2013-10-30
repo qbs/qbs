@@ -1,3 +1,5 @@
+include(../../qbs_version.pri)
+
 isEmpty(QBSLIBDIR) {
     QBSLIBDIR = $$OUT_PWD/../../../lib
 }
@@ -15,10 +17,10 @@ unix {
 
 win32 {
     CONFIG(debug, debug|release) {
-        QBSCORELIB = qbscored
+        QBSCORELIB = qbscored$$QBS_VERSION_MAJ
     }
     CONFIG(release, debug|release) {
-        QBSCORELIB = qbscore
+        QBSCORELIB = qbscore$$QBS_VERSION_MAJ
     }
     win32-msvc* {
         LIBS += /LIBPATH:$$QBSLIBDIR

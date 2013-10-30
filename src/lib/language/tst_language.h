@@ -81,6 +81,7 @@ private slots:
     void identifierSearch_data();
     void identifierSearch();
     void idUsage();
+    void invalidBindingInDisabledItem();
     void itemPrototype();
     void itemScope();
     void jsExtensions();

@@ -325,6 +325,10 @@ void TestLanguage::erroneousFiles_data()
             << "Cycle detected while loading subproject file 'subproject_cycle.qbs'.";
     QTest::newRow("invalid_stringlist_element")
             << "Expected array element of type String at index 1.";
+    QTest::newRow("undeclared_item")
+            << "Item 'cpp' is not declared.";
+    QTest::newRow("undeclared_property")
+            << "Property 'doesntexist' is not declared.";
 }
 
 void TestLanguage::erroneousFiles()
@@ -618,6 +622,23 @@ void TestLanguage::idUsage()
         QVERIFY(products.contains("product1_1"));
         QVERIFY(products.contains("product2_2"));
         QVERIFY(products.contains("product3_3"));
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
+void TestLanguage::invalidBindingInDisabledItem()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("invalidBindingInDisabledItem.qbs"));
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.count(), 1);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

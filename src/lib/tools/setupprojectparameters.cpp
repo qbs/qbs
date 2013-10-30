@@ -265,7 +265,7 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
 
     const QString buildVariant = expandedConfig.value(QLatin1String("qbs.buildVariant")).toString();
     if (buildVariant.isEmpty())
-        throw ErrorInfo(Internal::Tr::tr("No build variant set."));
+        return ErrorInfo(Internal::Tr::tr("No build variant set."));
     if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
         err.append(Internal::Tr::tr("Invalid build variant '%1'. Must be 'debug' or 'release'.")
                    .arg(buildVariant));

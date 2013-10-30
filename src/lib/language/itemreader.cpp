@@ -128,6 +128,20 @@ QStringList ItemReader::searchPaths() const
     return paths;
 }
 
+void ItemReader::cacheDirectoryEntries(const QString &dirPath, const QStringList &entries)
+{
+    m_directoryEntries.insert(dirPath, entries);
+}
+
+bool ItemReader::findDirectoryEntries(const QString &dirPath, QStringList *entries) const
+{
+    const QHash<QString, QStringList>::ConstIterator it = m_directoryEntries.constFind(dirPath);
+    if (it == m_directoryEntries.constEnd())
+        return false;
+    *entries = it.value();
+    return true;
+}
+
 Item *ItemReader::readFile(const QString &filePath)
 {
     Item * const item = internalReadFile(filePath).rootItem;

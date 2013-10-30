@@ -81,6 +81,25 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
     m_progressObserver = observer;
 }
 
+static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
+{
+    const QList<ResolvedProductPtr> allProducts = project->allProducts();
+    for (int i = 0; i < allProducts.count(); ++i) {
+        const ResolvedProductConstPtr product1 = allProducts.at(i);
+        const QString productName = product1->name;
+        for (int j = i + 1; j < allProducts.count(); ++j) {
+            const ResolvedProductConstPtr product2 = allProducts.at(j);
+            if (product2->name == productName) {
+                ErrorInfo error;
+                error.append(Tr::tr("Duplicate product name '%1'.").arg(productName));
+                error.append(Tr::tr("First product defined here."), product1->location);
+                error.append(Tr::tr("Second product defined here."), product2->location);
+                throw error;
+            }
+        }
+    }
+}
+
 TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
         const QString &buildRoot, const QVariantMap &overriddenProperties,
         const QVariantMap &buildConfiguration)
@@ -98,6 +117,7 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_moduleContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
+    checkForDuplicateProductNames(top);
     top->buildSystemFiles.unite(loadResult.qbsFiles);
     return top;
 }
@@ -234,6 +254,20 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
     }
 }
 
+class ModuleNameEquals
+{
+    QString m_str;
+public:
+    ModuleNameEquals(const QString &str)
+        : m_str(str)
+    {}
+
+    bool operator()(const Item::Module &module)
+    {
+        return module.name.count() == 1 && module.name.first() == m_str;
+    }
+};
+
 void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
@@ -256,6 +290,14 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         item->setProperty("name", VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
+
+    if (std::find_if(item->modules().begin(), item->modules().end(),
+            ModuleNameEquals(product->name)) != item->modules().end()) {
+        throw ErrorInfo(
+                    Tr::tr("The product name '%1' collides with a module name.").arg(product->name),
+                    item->location());
+    }
+
     ModuleLoader::overrideItemProperties(item, product->name, m_overriddenProperties);
     m_productsByName.insert(product->name, product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
@@ -565,6 +607,8 @@ public:
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
                                           bool *hasAlwaysUpdatedArtifact)
 {
+    if (!m_evaluator->boolValue(item, QLatin1String("condition")))
+        return;
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
     artifact->fileName = verbatimValue(item, "fileName");

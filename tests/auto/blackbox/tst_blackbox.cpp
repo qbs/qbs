@@ -1040,6 +1040,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QFile generatedFile(buildDir + QLatin1String("/generated.txt"));
@@ -1052,6 +1053,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling lib.cpp.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
@@ -1064,6 +1066,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
@@ -1080,6 +1083,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(!m_qbsStdout.contains("linking product 2"));
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
+    QVERIFY(!m_qbsStdout.contains("linking library"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build, input property changed via project for second product.
@@ -1129,12 +1133,28 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("linking product 1.release"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("generated.txt"));
+
+    // Incremental build, non-essential dependency removed.
+    waitForNewTimestamp();
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    contents = projectFile.readAll();
+    contents.replace("Depends { name: 'library' }", "// Depends { name: 'library' }");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("linking product 1"));
+    QVERIFY(m_qbsStdout.contains("linking product 2"));
+    QVERIFY(!m_qbsStdout.contains("linking product 3"));
+    QVERIFY(!m_qbsStdout.contains("linking library"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
 
     // Incremental build, prepare script of a transformer changed.
@@ -1149,6 +1169,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("contents 2"));
@@ -1165,6 +1186,25 @@ void TestBlackbox::disabledProject()
 {
     QDir::setCurrent(testDataDir + "/disabledProject");
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::duplicateProductNames()
+{
+    QDir::setCurrent(testDataDir + "/duplicateProductNames");
+    QFETCH(QString, projectFileName);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    params.arguments = QStringList() << "-f" << projectFileName;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStderr.contains("Duplicate product name"));
+}
+
+void TestBlackbox::duplicateProductNames_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::newRow("Names explicitly set") << QString("explicit.qbs");
+    QTest::newRow("Unnamed products in same file") << QString("implicit.qbs");
+    QTest::newRow("Unnamed products in files of the same name") << QString("implicit-indirect.qbs");
 }
 
 void TestBlackbox::dynamicLibs()

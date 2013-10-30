@@ -163,12 +163,15 @@ private:
     void resolveDependsItem(DependsContext *dependsContext, Item *item, Item *dependsItem, ItemModuleList *moduleResults, ProductDependencyResults *productResults);
     Item *moduleInstanceItem(Item *item, const QStringList &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
-            const CodeLocation &dependsItemLocation, const QString &moduleId, const QStringList &moduleName);
+            const CodeLocation &dependsItemLocation, const QString &moduleId,
+            const QStringList &moduleName, bool isBaseModule = false);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QStringList &moduleName,
-            const QStringList &extraSearchPaths);
-    Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName, bool isBaseModule, const QString &filePath);
+            const QStringList &extraSearchPaths, bool *cacheHit);
+    Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
+            bool isBaseModule, const QString &filePath, bool *cacheHit);
     void loadBaseModule(ProductContext *productContext, Item *item);
+    void setupBaseModulePrototype(Item *prototype);
     void instantiateModule(ProductContext *productContext, Item *instanceScope, Item *moduleInstance, Item *modulePrototype, const QStringList &moduleName);
     void createChildInstances(ProductContext *productContext, Item *instance,
                               Item *prototype, QHash<Item *, Item *> *prototypeInstanceMap) const;
@@ -194,6 +197,8 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
+    QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
+    QSet<Item *> m_disabledItems;
     QVariantMap m_overriddenProperties;
     QVariantMap m_buildConfigProperties;
 };

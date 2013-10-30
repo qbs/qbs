@@ -30,6 +30,8 @@ else:*g++*|*clang*|*icc*:QMAKE_CXXFLAGS += -Werror
 }
 
 include(../../qbs_version.pri)
+VERSION = $${QBS_VERSION}
+
 include(api/api.pri)
 include(buildgraph/buildgraph.pri)
 include(jsextensions/jsextensions.pri)

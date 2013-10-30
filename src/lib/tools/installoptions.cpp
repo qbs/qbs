@@ -28,6 +28,7 @@
 ****************************************************************************/
 #include "installoptions.h"
 
+#include <QDir>
 #include <QSharedData>
 
 namespace qbs {
@@ -98,11 +99,15 @@ QString InstallOptions::installRoot() const
 /*!
  * \brief Sets the base directory for the installation.
  * \note The argument must either be an empty string or an absolute path to a directory
- *       (which might not yet exists, in which case it will be created).
+ *       (which might not yet exist, in which case it will be created).
  */
 void InstallOptions::setInstallRoot(const QString &installRoot)
 {
     d->installRoot = installRoot;
+    if (!QDir(installRoot).isRoot()) {
+        while (d->installRoot.endsWith(QLatin1Char('/')))
+            d->installRoot.chop(1);
+    }
 }
 
 /*!

@@ -82,9 +82,9 @@
         }
         cpp.includePaths: {
             if (qbs.targetOS.contains("windows"))
-                return ["ON_WINDOWS"];
+                return ["myWindowsIncludes"];
             if (qbs.targetOS.contains("linux"))
-                return ["ON_LINUX"];
+                return ["myLinuxIncludes"];
             return undefined;
         }
     }

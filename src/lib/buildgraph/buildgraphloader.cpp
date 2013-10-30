@@ -394,11 +394,26 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
     }
 }
 
+static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
+                                 const ResolvedProductConstPtr &p2)
+{
+    if (p1->dependencies.count() != p2->dependencies.count())
+        return false;
+    QSet<QString> names1;
+    QSet<QString> names2;
+    foreach (const ResolvedProductConstPtr &dep, p1->dependencies)
+        names1 << dep->name;
+    foreach (const ResolvedProductConstPtr &dep, p2->dependencies)
+        names2 << dep->name;
+    return names1 == names2;
+}
+
 bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                               const ResolvedProductPtr &newlyResolvedProduct)
 {
     return !transformerListsAreEqual(restoredProduct->transformers,
                                      newlyResolvedProduct->transformers)
+            || !dependenciesAreEqual(restoredProduct, newlyResolvedProduct)
             || checkForPropertyChanges(restoredProduct, newlyResolvedProduct);
     // TODO: Check for more stuff.
 }
