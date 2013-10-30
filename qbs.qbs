@@ -5,8 +5,8 @@ Project {
     property bool enableRPath: true
     property bool installApiHeaders: true
     property bool withExamples: true
-    property path libInstallDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
-    property path libRPaths: {
+    property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
+    property string libRPaths: {
         if (!project.enableRPath)
             return undefined;
         if (qbs.targetOS.contains("linux"))
@@ -14,7 +14,7 @@ Project {
         if (qbs.targetOS.contains("osx"))
             return ["@loader_path/../lib"]
     }
-    property path resourcesInstallDir: ""
+    property string resourcesInstallDir: ""
 
     references: [
         "doc/doc.qbs",
