@@ -431,6 +431,12 @@ void TestBlackbox::clean()
     QVERIFY(QFile(depExeFilePath).exists());
 }
 
+void TestBlackbox::exportSimple()
+{
+    QDir::setCurrent(testDataDir + "/exportSimple");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::exportWithRecursiveDepends()
 {
     QDir::setCurrent(testDataDir + "/exportWithRecursiveDepends");
@@ -438,6 +444,21 @@ void TestBlackbox::exportWithRecursiveDepends()
     QbsRunParameters params;
     params.expectFailure = true; // Remove when test no longer fails.
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::fileTagger()
+{
+    QDir::setCurrent(testDataDir + "/fileTagger");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("moc bla.cpp"));
+}
+
+void TestBlackbox::rc()
+{
+    QDir::setCurrent(testDataDir + "/rc");
+    QCOMPARE(runQbs(), 0);
+    const bool rcFileWasCompiled = m_qbsStdout.contains("compiling test.rc");
+    QCOMPARE(rcFileWasCompiled, HostOsInfo::isWindowsHost());
 }
 
 void TestBlackbox::renameProduct()
@@ -1339,6 +1360,12 @@ void TestBlackbox::jsExtensionsTextFile()
 void TestBlackbox::inheritQbsSearchPaths()
 {
     QDir::setCurrent(testDataDir + "/inheritQbsSearchPaths");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::objC()
+{
+    QDir::setCurrent(testDataDir + "/objc");
     QCOMPARE(runQbs(), 0);
 }
 
