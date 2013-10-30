@@ -77,7 +77,7 @@
             \li stringList
             \li empty
             \li These paths are searched for imports and modules in addition to the ones listed
-                in \c{preferences.qbsPath}.
+                in \c{preferences.qbsSearchPaths}.
                 All products in the project inherit this value by default.
         \row
             \li references
