@@ -59,11 +59,11 @@
         \li Qt Module Name
         \li Notes
     \row
-        \li \l axcontainer
+        \li axcontainer
         \li QAxContainer
         \li This module is only available on Windows.
     \row
-        \li \l axserver
+        \li axserver
         \li QAxServer
         \li This module is only available on Windows.
     \row
@@ -71,7 +71,7 @@
         \li Qt Concurrent
         \li
     \row
-        \li \l core
+        \li core
         \li Qt Core
         \li All other \c Qt modules have a dependency to this one, so you do not
             need to list it in your dependencies if you depend on at least one
@@ -97,11 +97,11 @@
         \li Qt Enginio
         \li
     \row
-        \li \l gui
+        \li gui
         \li Qt GUI
         \li For more information, see \l {gui Properties}.
     \row
-        \li \l help
+        \li help
         \li Qt Help
         \li You do not need this module for building \c qdoc documentation,
             because that functionality is part of the \c core module. This
@@ -131,7 +131,7 @@
         \li Qt Print Support
         \li
     \row
-        \li \l quick
+        \li quick
         \li Qt Quick (2)
         \li Provides the \c{Qt Quick} module (Qt Quick 2). For more information,
             see \l {quick Properties}.
@@ -168,7 +168,7 @@
         \li Qt Widgets
         \li
     \row
-        \li \l xml
+        \li xml
         \li Qt XML
         \li You do not need this module for the \c QXmlStreamReader and
             \c QXmlStreamWriter classes, because those classes are a part of the
