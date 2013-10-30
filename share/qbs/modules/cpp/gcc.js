@@ -167,7 +167,7 @@ function additionalCompilerFlags(product, input, output)
     var cppFlags = ModUtils.moduleProperties(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
-    var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+    var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
     for (i in platformDefines)
         args.push('-D' + platformDefines[i]);
     var defines = ModUtils.moduleProperties(input, 'defines');

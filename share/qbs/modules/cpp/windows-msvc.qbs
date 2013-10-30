@@ -85,7 +85,7 @@ CppModule {
             fileName: ".obj/" + product.name + "/" + product.name + '_c.pch'
         }
         prepare: {
-            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
             var defines = ModUtils.moduleProperties(input, 'defines');
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
@@ -112,7 +112,7 @@ CppModule {
             fileName: ".obj/" + product.name + "/" + product.name + '_cpp.pch'
         }
         prepare: {
-            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
             var defines = ModUtils.moduleProperties(input, 'defines');
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
@@ -134,7 +134,7 @@ CppModule {
         }
 
         prepare: {
-            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
             var defines = ModUtils.moduleProperties(input, 'defines');
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
@@ -245,7 +245,7 @@ CppModule {
         }
 
         prepare: {
-            var platformDefines = ModUtils.moduleProperties(input, 'platformDefines');
+            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
             var defines = ModUtils.moduleProperties(input, 'defines');
             var includePaths = ModUtils.moduleProperties(input, 'includePaths');
             var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
