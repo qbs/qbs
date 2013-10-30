@@ -18,9 +18,13 @@ Project {
 
     references: [
         "doc/doc.qbs",
-        "examples/examples.qbs",
         "share/share.qbs",
         "src/src.qbs",
         "tests/auto/auto.qbs"
     ]
+
+    SubProject {
+        filePath: "examples/examples.qbs"
+        condition: project.withExamples
+    }
 }

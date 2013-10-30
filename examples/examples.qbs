@@ -1,7 +1,6 @@
 import qbs
 
 Project {
-    condition: withExamples
     references: [
         "cocoa-application/CocoaApplication.qbs",
         "collidingmice/collidingmice.qbs",

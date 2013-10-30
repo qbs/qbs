@@ -85,4 +85,6 @@ share.files = share/qbs
 else: \
     installPrefix = $${QBS_INSTALL_PREFIX}
 share.path = $${installPrefix}/share
-INSTALLS += share
+examples.files = examples
+examples.path = $${share.path}/qbs
+INSTALLS += share examples

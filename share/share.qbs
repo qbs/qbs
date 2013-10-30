@@ -9,6 +9,12 @@ Product {
         qbs.installDir: project.resourcesInstallDir + "/share"
     }
 
+    Group {
+        files: "../examples"
+        qbs.install: true
+        qbs.installDir: project.resourcesInstallDir + "/share/qbs"
+    }
+
     Transformer {
         inputs: "qbs"
         Artifact {
