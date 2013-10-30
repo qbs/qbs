@@ -1096,6 +1096,10 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
             ++it) {
         const PropertyDeclaration decl = item->propertyDeclarations().value(it.key());
+        if (!decl.isValid()) {
+            throw ErrorInfo(
+                    Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
+        }
         item->setProperty(it.key(),
                 VariantValue::create(convertToPropertyType(it.value(), decl.type,
                         QStringList(buildConfigKey), it.key())));

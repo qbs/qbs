@@ -201,7 +201,6 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
-    QEXPECT_FAIL("", "QBS-431", Abort);
     QVERIFY(job->error().hasError());
     QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
              qPrintable(job->error().toString()));
