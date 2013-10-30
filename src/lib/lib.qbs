@@ -338,7 +338,7 @@ Product {
         ]
     }
     Group {
-        fileTagsFilter: "dynamiclibrary"
+        fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
         qbs.install: true
         qbs.installDir: project.libInstallDir
     }
