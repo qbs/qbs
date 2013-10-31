@@ -196,9 +196,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         return;
     ProjectContext projectContext;
     projectContext.result = loadResult;
-    projectContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
-    projectContext.extraModuleSearchPaths += FileInfo::resolvePath(item->file()->dirPath(),
-                                                             moduleSearchSubDir);
+    projectContext.localModuleSearchPath = FileInfo::resolvePath(item->file()->dirPath(),
+                                                                 moduleSearchSubDir);
     projectContext.extraSearchPaths = readExtraSearchPaths(item);
     m_reader->pushExtraSearchPaths(projectContext.extraSearchPaths);
     projectContext.item = item;
@@ -263,7 +262,6 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     ProductContext productContext;
     productContext.project = projectContext;
-    productContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
     bool extraSearchPathsSet = false;
     const QStringList extraSearchPaths = readExtraSearchPaths(item, &extraSearchPathsSet);
     if (extraSearchPathsSet) { // Inherit from project if not set in product itself.
@@ -603,13 +601,12 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         return moduleInstance;
     }
 
-    QStringList extraModuleSearchPaths = productContext->extraModuleSearchPaths.isEmpty()
-            ? productContext->project->extraModuleSearchPaths : productContext->extraModuleSearchPaths;
+    QStringList moduleSearchPaths(productContext->project->localModuleSearchPath);
     foreach (const QString &searchPath, productContext->extraSearchPaths)
-        addExtraModuleSearchPath(extraModuleSearchPaths, searchPath);
+        addExtraModuleSearchPath(moduleSearchPaths, searchPath);
     bool cacheHit;
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                                                    moduleName, extraModuleSearchPaths, &cacheHit);
+                                                    moduleName, moduleSearchPaths, &cacheHit);
     if (!modulePrototype)
         return 0;
     if (!cacheHit && isBaseModule)
@@ -964,21 +961,6 @@ void ModuleLoader::callValidateScript(Item *module)
     m_evaluator->boolValue(module, QLatin1String("validate"));
 }
 
-QStringList ModuleLoader::readExtraModuleSearchPaths(Item *item)
-{
-    QStringList result;
-    const QStringList paths = m_evaluator->stringListValue(item,
-                                                           QLatin1String("moduleSearchPaths"));
-    const ValueConstPtr prop = item->property(QLatin1String("moduleSearchPaths"));
-    if (!paths.isEmpty()) {
-        m_logger.printWarning(ErrorInfo(Tr::tr("The 'moduleSearchPaths' property is deprecated. "
-                "Use 'qbsSearchPaths' instead."), prop->location()));
-    }
-    foreach (const QString &path, paths)
-        result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
-    return result;
-}
-
 QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
 {
     QStringList result;
@@ -1004,10 +986,9 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
          = sourceProject->propertyDeclarations().constBegin();
          it != sourceProject->propertyDeclarations().constEnd(); ++it) {
 
-        // We must not inherit built-in properties such as "name", but "moduleSearchPaths"
-        // and "qbsSearchPaths" are exceptions.
-        if (it.key() == QLatin1String("moduleSearchPaths")
-                || it.key() == QLatin1String("qbsSearchPaths")) {
+        // We must not inherit built-in properties such as "name",
+        // but "qbsSearchPaths" is an exception.
+        if (it.key() == QLatin1String("qbsSearchPaths")) {
             const JSSourceValueConstPtr &v
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);

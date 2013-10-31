@@ -276,8 +276,6 @@ void BuiltinDeclarations::addProductItem()
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     properties += PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("moduleSearchPaths"),
-                                      PropertyDeclaration::Variant);
     properties += PropertyDeclaration(QLatin1String("qbsSearchPaths"),
                                       PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
@@ -291,8 +289,6 @@ void BuiltinDeclarations::addProjectItem()
     properties += conditionProperty();
     properties += PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("moduleSearchPaths"),
-            PropertyDeclaration::Variant, PropertyDeclaration::PropertyNotAvailableInConfig);
     properties += PropertyDeclaration(QLatin1String("qbsSearchPaths"),
             PropertyDeclaration::StringList, PropertyDeclaration::PropertyNotAvailableInConfig);
     m_builtins[QLatin1String("Project")] = properties;

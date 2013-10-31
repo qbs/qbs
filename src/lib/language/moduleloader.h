@@ -116,7 +116,6 @@ private:
 
         Item *item;
         Item *scope;
-        QStringList extraModuleSearchPaths; // TODO: Remove in 1.2
         QStringList extraSearchPaths;
         QMap<QString, Item *> moduleItemCache;
     };
@@ -125,6 +124,7 @@ private:
     {
     public:
         ModuleLoaderResult *result;
+        QString localModuleSearchPath;
     };
 
     class ProductContext : public ContextBase
@@ -179,7 +179,6 @@ private:
     void checkCancelation() const;
     bool checkItemCondition(Item *item);
     void callValidateScript(Item *module);
-    QStringList readExtraModuleSearchPaths(Item *item);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapWithProject(Item *item);
