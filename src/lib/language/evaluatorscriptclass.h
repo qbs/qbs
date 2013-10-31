@@ -67,6 +67,7 @@ private:
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
 
     struct QueryResult
     {
@@ -88,6 +89,7 @@ private:
     QScriptValue m_getNativeSettingBuiltin;
     QScriptValue m_getenvBuiltin;
     QScriptValue m_getHostOSBuiltin;
+    QScriptValue m_canonicalArchitectureBuiltin;
 };
 
 } // namespace Internal

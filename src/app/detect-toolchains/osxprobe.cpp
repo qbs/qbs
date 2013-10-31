@@ -163,7 +163,7 @@ void OsxProbe::setArch(Profile *profile, const QString &pathToGcc, const QString
                                             architecture);
 
     profile->setValue("qbs.endianness", endianness);
-    profile->setValue("qbs.architecture", canonicalizeArchitecture(architecture));
+    profile->setValue("qbs.architecture", HostOsInfo::canonicalArchitecture(architecture));
 }
 
 void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCodeName)

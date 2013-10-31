@@ -33,6 +33,7 @@
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
+#include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 
@@ -75,7 +76,7 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     p.setValue("cpp.toolchainInstallPath", installPath);
     p.setValue("qbs.toolchain", QStringList("msvc"));
     p.setValue("cpp.windowsSDKPath", winSDKPath);
-    p.setValue("qbs.architecture", canonicalizeArchitecture(architecture));
+    p.setValue("qbs.architecture", Internal::HostOsInfo::canonicalArchitecture(architecture));
     profiles << p;
 }
 

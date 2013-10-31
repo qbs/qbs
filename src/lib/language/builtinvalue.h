@@ -42,7 +42,8 @@ public:
     {
         GetNativeSettingFunction,
         GetEnvFunction,
-        GetHostOSFunction
+        GetHostOSFunction,
+        CanonicalArchitectureFunction
     };
 
     static BuiltinValuePtr create(Builtin builtin);

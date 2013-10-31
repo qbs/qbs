@@ -226,6 +226,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(QScriptEngine *scriptEngine, const Lo
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getenvBuiltin = scriptEngine->newFunction(js_getenv, 1);
     m_getHostOSBuiltin = scriptEngine->newFunction(js_getHostOS, 1);
+    m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -396,6 +397,8 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
         return m_getenvBuiltin;
     case BuiltinValue::GetHostOSFunction:
         return m_getHostOSBuiltin;
+    case BuiltinValue::CanonicalArchitectureFunction:
+        return m_canonicalArchitectureBuiltin;
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
@@ -558,6 +561,16 @@ QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScript
 #endif
 
     return engine->toScriptValue(hostSystem);
+}
+
+QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("canonicalArchitecture expects 1 argument"));
+    }
+    const QString architecture = context->argument(0).toString();
+    return engine->toScriptValue(HostOsInfo::canonicalArchitecture(architecture));
 }
 
 } // namespace Internal

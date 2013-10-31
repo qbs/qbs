@@ -787,6 +787,8 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
                            BuiltinValue::create(BuiltinValue::GetEnvFunction));
     prototype->setProperty(QLatin1String("getHostOS"),
                            BuiltinValue::create(BuiltinValue::GetHostOSFunction));
+    prototype->setProperty(QLatin1String("canonicalArchitecture"),
+                           BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)

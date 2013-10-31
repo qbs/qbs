@@ -191,6 +191,23 @@ void TestLanguage::buildConfigStringListSyntax()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::canonicalArchitecture()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("canonicalArchitecture.qbs"));
+        project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value(QLatin1String("x86"));
+        QVERIFY(product);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::conditionalDepends()
 {
     bool exceptionCaught = false;
