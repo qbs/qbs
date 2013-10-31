@@ -6,26 +6,14 @@ import "../utils.js" as ModUtils
 Module {
     condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: {
-        // First try the WIX environment variable
-        var wixEnv = qbs.getenv("WIX");
-        if (wixEnv)
-            return wixEnv;
-
-        // Couldn't find in environment, now attempt to locate the latest version by checking all known versions
-        var versions = [ "4.0", "3.8", "3.7", "3.6", "3.5", "3.0", "2.0" ];
-        for (var i in versions) {
-            // First try the registry...
-            //var regInstallPath = registryValue("HKLM/SOFTWARE/Wow6432Node/Microsoft/Windows Installer XML/" + versions[i] + "/InstallFolder");
-            //if (regInstallPath)
-            //    return regInstallPath;
-
-            // Then try the known filesystem path
-            var path = FileInfo.joinPaths(qbs.getenv("PROGRAMFILES(X86)"), "WiX Toolset v" + versions[i]);
-            if (File.exists(path))
-                return path;
-        }
-    }
+    property path toolchainInstallPath: getNativeSetting(registryKey, "InstallFolder")
+    property path toolchainInstallRoot: getNativeSetting(registryKey, "InstallRoot")
+    property string version: getNativeSetting(registryKey, "ProductVersion")
+    property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
+    property int versionMajor: versionParts[0]
+    property int versionMinor: versionParts[1]
+    property int versionPatch: versionParts[2]
+    property int versionBuild: versionParts[3]
 
     property string compilerName: "candle.exe"
     property string compilerPath: compilerName
@@ -103,14 +91,39 @@ Module {
     property string executableSuffix: ".exe"
     property string windowsInstallerSuffix: ".msi"
 
+    property string registryKey: {
+        var knownVersions = [ "4.0", "3.8", "3.7", "3.6", "3.5", "3.0", "2.0" ];
+        var keyNative = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\";
+        var keyWoW64 = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\";
+
+        for (i in knownVersions) {
+            if (getNativeSetting(keyNative + knownVersions[i], "ProductVersion"))
+                return keyNative + knownVersions[i];
+            if (getNativeSetting(keyWoW64 + knownVersions[i], "ProductVersion"))
+                return keyWoW64 + knownVersions[i];
+        }
+    }
+
     validate: {
         if (!toolchainInstallPath)
             throw "wix.toolchainInstallPath is not defined. Set wix.toolchainInstallPath in your profile.";
+
+        if (!toolchainInstallRoot)
+            throw "wix.toolchainInstallRoot is not defined. Set wix.toolchainInstallRoot in your profile."
+
+        if (!version)
+            throw "wix.version is not defined. Set wix.version in your profile.";
+
+        if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(version)) {
+            throw "wix.version is in an invalid format; it must be of the form x.y.z.w " +
+                    "where x, y, z and w are positive integers.";
+        }
     }
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
-        v.prepend(toolchainInstallPath + "/bin");
+        v.prepend(toolchainInstallPath);
+        v.prepend(toolchainInstallRoot);
         v.set();
     }
 

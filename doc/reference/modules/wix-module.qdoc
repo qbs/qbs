@@ -179,6 +179,61 @@
 
     List of extension assemblies to link into the output.
 
+    \section2 version
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The WiX version. Consists of four numbers separated by dots, for instance "3.7.1224.0".
+
+    \section2 versionMajor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[0]}
+    \endtable
+
+    The WiX major version.
+
+    \section2 versionMinor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[1]}
+    \endtable
+
+    The WiX minor version.
+
+    \section2 versionParts
+
+    \table
+    \row    \li \b{Type:}            \li \c{list}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    The WiX version as a list. For instance, WiX version 3.7.1224.0 would correspond to a value of
+    \c[3, 7, 1224, 0].
+
+    \section2 versionPatch
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[2]}
+    \endtable
+
+    The WiX patch level.
+
+    \section2 versionBuild
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[3]}
+    \endtable
+
+    The fourth WiX version number component.
+
     \section2 toolchainInstallPath
 
     \table
@@ -186,8 +241,17 @@
     \row    \li \b{Default:}         \li determined automatically
     \endtable
 
-    WiX installation directory. Determined by searching the \c{WIX} environment variable,
-    known registry keys, and known installation paths until a match is found.
+    WiX installation directory. Determined by searching the registry for the latest version.
+    This should not normally need to be changed.
+
+    \section2 toolchainInstallRoot
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li determined automatically
+    \endtable
+
+    WiX binaries directory. Determined by searching the registry for the latest version.
     This should not normally need to be changed.
 
     \section2 compilerName
