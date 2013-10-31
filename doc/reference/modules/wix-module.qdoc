@@ -37,7 +37,7 @@
     \brief Provides Windows Installer XML Toolset support.
 
     The \c wix module contains properties and rules for building MSI and
-    Burn setup packages with the Windows Installer XML Toolset.
+    EXE setup packages with the Windows Installer XML Toolset.
 
     This module is only available on Windows.
 
@@ -156,8 +156,8 @@
 
     \table
     \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{["WixBalExtension"]} if the product type is a Burn setup bundle,
-                                         otherwise \c{undefined}.
+    \row    \li \b{Default:}         \li \c{["WixBalExtension"]} if the product type is an EXE setup
+                                         application, otherwise \c{undefined}.
     \row    \li \b{Possible Values:} \li \c{"WixBalExtension"},
                                          \c{"WixComPlusExtension"},
                                          \c{"WixDependencyExtension"},

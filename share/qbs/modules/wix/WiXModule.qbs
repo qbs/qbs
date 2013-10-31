@@ -89,13 +89,13 @@ Module {
         description: "the list of localizations to build the MSI for; leave undefined to build all localizations"
     }
 
-    property stringList extensions: type.contains("burnsetup") ? ["WixBalExtension"] : [] // default to WiX Standard Bootstrapper extension
+    property stringList extensions: type.contains("wixsetup") ? ["WixBalExtension"] : [] // default to WiX Standard Bootstrapper extension
 
     // private properties
     property string targetSuffix: {
         if (type.contains("msi")) {
             return windowsInstallerSuffix;
-        } else if (type.contains("burnsetup")) {
+        } else if (type.contains("wixsetup")) {
             return executableSuffix;
         }
     }
@@ -279,8 +279,8 @@ Module {
         inputs: ["wixobj", "wxl"]
 
         Artifact {
-            condition: product.type.contains("burnsetup")
-            fileTags: ["burnsetup", "application"]
+            condition: product.type.contains("wixsetup")
+            fileTags: ["wixsetup", "application"]
             fileName: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
         }
 
@@ -299,8 +299,8 @@ Module {
         prepare: {
             var i;
             var primaryOutput;
-            if (product.type.contains("burnsetup")) {
-                primaryOutput = outputs.burnsetup[0];
+            if (product.type.contains("wixsetup")) {
+                primaryOutput = outputs.wixsetup[0];
             } else if (product.type.contains("msi")) {
                 primaryOutput = outputs.msi[0];
             } else {
