@@ -39,10 +39,9 @@ Module {
     }
 
     validate: {
-        if (!architecture) {    // ### don't warn but throw in 1.2
-            print("WARNING: qbs.architecture is not set. "
+        if (!architecture) {
+            throw new Error("qbs.architecture is not set. "
                   + "You might want to re-run 'qbs detect-toolchains'.");
-            return;
         }
 
         var architectureSynonyms = {
