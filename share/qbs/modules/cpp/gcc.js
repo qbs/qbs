@@ -145,11 +145,11 @@ function additionalCompilerFlags(product, input, output)
     }
 
     var args = []
+    var positionIndependentCode = product.moduleProperty('cpp', 'positionIndependentCode')
     if (effectiveType === EffectiveTypeEnum.LIB) {
-        if (!product.moduleProperty("qbs", "toolchain").contains("mingw"))
+        if (positionIndependentCode !== false && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
             args.push('-fPIC');
     } else if (effectiveType === EffectiveTypeEnum.APP) {
-        var positionIndependentCode = product.moduleProperty('cpp', 'positionIndependentCode')
         if (positionIndependentCode && !product.moduleProperty("qbs", "toolchain").contains("mingw"))
             args.push('-fPIE');
     } else {
