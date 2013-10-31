@@ -92,6 +92,57 @@
     though some may not be supported.
 
 
+    \section1 hostOSVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string} (read only)
+    \endtable
+
+    The host operating system version. Currently only defined for Windows and OS X.
+    Consists of two or three numbers separated by dots, for instance "10.9" or "6.3.9600".
+
+
+    \section1 versionMajor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{hostOSVersionParts[0]}
+    \endtable
+
+    The host operating system major version.
+
+
+    \section1 versionMinor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{hostOSVersionParts[1]}
+    \endtable
+
+    The host operating system minor version.
+
+
+    \section1 versionParts
+
+    \table
+    \row    \li \b{Type:}            \li \c{list}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    The host operating system version as a list.
+    For instance, Windows 8.1 (version 6.3.9600) would correspond to a value of \c[6, 3, 9600].
+
+
+    \section1 versionPatch
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{hostOSVersionParts[2]}
+    \endtable
+
+    The host operating system patch level.
+
+
     \section1 targetOS
 
     \table

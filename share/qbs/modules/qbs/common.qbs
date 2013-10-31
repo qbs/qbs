@@ -7,6 +7,21 @@ Module {
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
     property stringList hostOS: getHostOS()
+    property string hostOSVersion: {
+        if (hostOS.contains("osx")) {
+            return getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion") ||
+                   getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion");
+        } else if (hostOS.contains("windows")) {
+            var version = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
+            var build = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuildNumber");
+            return version + "." + build;
+        }
+    }
+    readonly property var hostOSVersionParts: hostOSVersion ? hostOSVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
+    readonly property int hostOSVersionMajor: hostOSVersionParts[0] || 0
+    readonly property int hostOSVersionMinor: hostOSVersionParts[1] || 0
+    readonly property int hostOSVersionPatch: hostOSVersionParts[2] || 0
+
     property stringList targetOS: hostOS
     property string pathListSeparator: hostOS.contains("windows") ? ";" : ":"
     property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
@@ -55,6 +70,17 @@ Module {
                 throw "qbs.architecture '" + architecture + "' is invalid. " +
                       "You must use the canonical name '" + arch + "'";
             }
+        }
+
+        if ((hostOS.contains("windows") || hostOS.contains("osx")) && !hostOSVersion) {
+            throw "Could not detect host operating system version; " +
+                    "verify that system files or registry have not been " +
+                    "tampered with.";
+        }
+
+        if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(hostOSVersion)) {
+            throw "qbs.hostOSVersion is in an invalid format; it must be of the form x.y or " +
+                    "x.y.z or x.y.z.w where x, y, z and w are positive integers.";
         }
     }
 }
