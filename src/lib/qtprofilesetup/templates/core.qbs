@@ -117,54 +117,29 @@ Module {
     additionalProductTypes: ["qm"]
 
     validate: {
-        var requiredProperties = {
-            "binPath": binPath,
-            "incPath": incPath,
-            "libPath": libPath,
-            "mkspecPath": mkspecPath,
-            "version": version,
-            "config": config,
-            "qtConfig": qtConfig,
-            // Validate these in case 'version' is in some non-standard format
-            "versionMajor": versionMajor,
-            "versionMinor": versionMinor,
-            "versionPatch": versionPatch
-        };
+        var validator = new ModUtils.PropertyValidator("Qt.core");
+        validator.setRequiredProperty("binPath", binPath);
+        validator.setRequiredProperty("incPath", incPath);
+        validator.setRequiredProperty("libPath", libPath);
+        validator.setRequiredProperty("mkspecPath", mkspecPath);
+        validator.setRequiredProperty("version", version);
+        validator.setRequiredProperty("config", config);
+        validator.setRequiredProperty("qtConfig", qtConfig);
+        validator.setRequiredProperty("versionMajor", versionMajor);
+        validator.setRequiredProperty("versionMinor", versionMinor);
+        validator.setRequiredProperty("versionPatch", versionPatch);
 
-        if (!staticBuild) {
-            requiredProperties["pluginPath"] = pluginPath;
-        }
+        if (!staticBuild)
+            validator.setRequiredProperty("pluginPath", pluginPath);
 
-        var missingProperties = [];
-        for (var i in requiredProperties) {
-            if (requiredProperties[i] === undefined) {
-                missingProperties.push("Qt.core." + i);
-            }
-        }
+        // Allow custom version suffix since some distributions might want to do this,
+        // but otherwise the version must start with a valid 3-component string
+        validator.addVersionValidator("version", version, 3, 3, true);
+        validator.addRangeValidator("versionMajor", versionMajor, 1);
+        validator.addRangeValidator("versionMinor", versionMinor, 0);
+        validator.addRangeValidator("versionPatch", versionPatch, 0);
 
-        var invalidProperties = {};
-        if (versionMajor <= 0)
-            invalidProperties["versionMajor"] = "must be > 0";
-        if (versionMinor < 0)
-            invalidProperties["versionMinor"] = "must be >= 0";
-        if (versionPatch < 0)
-            invalidProperties["versionPatch"] = "must be >= 0";
-
-        var errorMessage = "";
-        if (missingProperties.length > 0) {
-            errorMessage += "The following Qt module properties are not set. " +
-                            "Set them in your profile:\n" +
-                            missingProperties.sort().join("\n");
-        }
-
-        if (Object.keys(invalidProperties).length > 0) {
-            errorMessage += "The following Qt module properties have invalid values:\n" +
-                            Object.map(invalidProperties,
-                                function(msg, prop) { return prop + ": " + msg; }).join("\n");
-        }
-
-        if (errorMessage.length > 0)
-            throw errorMessage;
+        validator.validate();
     }
 
     setupRunEnvironment: {

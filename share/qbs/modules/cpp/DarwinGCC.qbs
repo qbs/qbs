@@ -16,10 +16,10 @@ UnixGCC {
 
     validate: {
         if (qbs.sysroot) {
-            if (!xcodeSdkName)
-                throw "cpp.xcodeSdkName not set. Set cpp.xcodeSdkName in your profile.";
-            if (!xcodeSdkVersion)
-                throw "cpp.xcodeSdkVersion not set. Set cpp.xcodeSdkVersion in your profile.";
+            var validator = new ModUtils.PropertyValidator("cpp");
+            validator.setRequiredProperty("xcodeSdkName", xcodeSdkName);
+            validator.setRequiredProperty("xcodeSdkVersion", xcodeSdkVersion);
+            validator.validate();
         }
     }
 

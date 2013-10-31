@@ -70,10 +70,23 @@ Module {
     }
 
     validate: {
+        var validator = new ModUtils.PropertyValidator("nsis");
+
         // Only *require* the toolchain install path on Windows
         // On other (Unix-like) operating systems it'll probably be in the PATH
-        if (qbs.hostOS.contains("windows") && !toolchainInstallPath)
-            throw "nsis.toolchainInstallPath is not defined. Set nsis.toolchainInstallPath in your profile.";
+        if (qbs.targetOS.contains("windows"))
+            validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
+
+        validator.setRequiredProperty("versionMajor", versionMajor);
+        validator.setRequiredProperty("versionMinor", versionMinor);
+        validator.setRequiredProperty("versionPatch", versionPatch);
+        validator.setRequiredProperty("versionBuild", versionBuild);
+        validator.addVersionValidator("version", version, 2, 4);
+        validator.addRangeValidator("versionMajor", versionMajor, 1);
+        validator.addRangeValidator("versionMinor", versionMinor, 0);
+        validator.addRangeValidator("versionPatch", versionPatch, 0);
+        validator.addRangeValidator("versionBuild", versionBuild, 0);
+        validator.validate();
     }
 
     setupBuildEnvironment: {

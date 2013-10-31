@@ -168,3 +168,109 @@ var EnvironmentVariable = (function () {
     };
     return EnvironmentVariable;
 })();
+
+var PropertyValidator = (function () {
+    function PropertyValidator(moduleName) {
+        this.requiredProperties = {};
+        this.propertyValidators = [];
+        if (!moduleName)
+            throw "PropertyValidator c'tor needs a module name as a first argument.";
+        this.moduleName = moduleName;
+    }
+    PropertyValidator.prototype.setRequiredProperty = function (propertyName, propertyValue, message) {
+        this.requiredProperties[propertyName] = { propertyValue: propertyValue, message: message };
+    };
+
+    PropertyValidator.prototype.addRangeValidator = function (propertyName, propertyValue, min, max, allowFloats) {
+        var message = [];
+        if (min !== undefined)
+            message.push(">= " + min);
+        if (max !== undefined)
+            message.push("<= " + max);
+
+        this.addCustomValidator(propertyName, propertyValue, function (value) {
+            if (typeof value !== "number")
+                return false;
+            if (!allowFloats && value % 1 !== 0)
+                return false;
+            if (min !== undefined && value < min)
+                return false;
+            if (max !== undefined && value > max)
+                return false;
+            return true;
+        }, "must be " + (!allowFloats ? "an integer " : "") + message.join(" and "));
+    };
+
+    PropertyValidator.prototype.addVersionValidator = function (propertyName, propertyValue, minComponents, maxComponents, allowSuffixes) {
+        if (minComponents !== undefined && (typeof minComponents !== "number" || minComponents % 1 !== 0 || minComponents < 1))
+            throw "minComponents must be at least 1";
+        if (maxComponents !== undefined && (typeof maxComponents !== "number" || maxComponents % 1 !== 0 || maxComponents < minComponents))
+            throw "maxComponents must be >= minComponents";
+
+        this.addCustomValidator(propertyName, propertyValue, function (value) {
+            if (typeof value !== "string")
+                return false;
+            return value && value.match("^[0-9]+(\\.[0-9]+){" + ((minComponents - 1) || 0) + "," + ((maxComponents - 1) || "") + "}" + (!allowSuffixes ? "$" : "")) !== null;
+        }, "must be a version number with " + minComponents + " to " + maxComponents + " components");
+    };
+
+    PropertyValidator.prototype.addCustomValidator = function (propertyName, propertyValue, validator, message) {
+        this.propertyValidators.push({
+            propertyName: propertyName,
+            propertyValue: propertyValue,
+            validator: validator,
+            message: message
+        });
+    };
+
+    PropertyValidator.prototype.validate = function (throwOnError) {
+        var i;
+        var lines;
+
+        // Find any missing properties
+        var missingProperties = {};
+        for (i in this.requiredProperties) {
+            var propValue = this.requiredProperties[i].propertyValue;
+            if (propValue === undefined || propValue === null || propValue === "") {
+                missingProperties[i] = this.requiredProperties[i];
+            }
+        }
+
+        // Find any properties that don't satisfy their validator function
+        var invalidProperties = {};
+        for (var j = 0; j < this.propertyValidators.length; ++j) {
+            var v = this.propertyValidators[j];
+            if (!v.validator(v.propertyValue)) {
+                invalidProperties[v.propertyName] = v.message;
+            }
+        }
+
+        var errorMessage = "";
+        if (Object.keys(missingProperties).length > 0) {
+            errorMessage += "The following properties are not set. Set them in your profile:\n";
+            lines = [];
+            for (i in missingProperties) {
+                var obj = missingProperties[i];
+                lines.push(this.moduleName + "." + i + ((obj && obj.message) ? (": " + obj.message) : ""));
+            }
+            errorMessage += lines.join("\n");
+        }
+
+        if (Object.keys(invalidProperties).length > 0) {
+            if (errorMessage)
+                errorMessage += "\n";
+            errorMessage += "The following properties have invalid values:\n";
+            lines = [];
+            for (i in invalidProperties) {
+                lines.push(this.moduleName + "." + i + ": " + invalidProperties[i]);
+            }
+            errorMessage += lines.join("\n");
+        }
+
+        if (throwOnError !== false && errorMessage.length > 0)
+            throw errorMessage;
+
+        return errorMessage.length == 0;
+    };
+    return PropertyValidator;
+})();

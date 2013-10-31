@@ -105,19 +105,20 @@ Module {
     }
 
     validate: {
-        if (!toolchainInstallPath)
-            throw "wix.toolchainInstallPath is not defined. Set wix.toolchainInstallPath in your profile.";
-
-        if (!toolchainInstallRoot)
-            throw "wix.toolchainInstallRoot is not defined. Set wix.toolchainInstallRoot in your profile."
-
-        if (!version)
-            throw "wix.version is not defined. Set wix.version in your profile.";
-
-        if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(version)) {
-            throw "wix.version is in an invalid format; it must be of the form x.y.z.w " +
-                    "where x, y, z and w are positive integers.";
-        }
+        var validator = new ModUtils.PropertyValidator("wix");
+        validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
+        validator.setRequiredProperty("toolchainInstallRoot", toolchainInstallRoot);
+        validator.setRequiredProperty("version", version);
+        validator.setRequiredProperty("versionMajor", versionMajor);
+        validator.setRequiredProperty("versionMinor", versionMinor);
+        validator.setRequiredProperty("versionPatch", versionPatch);
+        validator.setRequiredProperty("versionBuild", versionBuild);
+        validator.addVersionValidator("version", version, 4, 4);
+        validator.addRangeValidator("versionMajor", versionMajor, 1);
+        validator.addRangeValidator("versionMinor", versionMinor, 0);
+        validator.addRangeValidator("versionPatch", versionPatch, 0);
+        validator.addRangeValidator("versionBuild", versionBuild, 0);
+        validator.validate();
     }
 
     setupBuildEnvironment: {

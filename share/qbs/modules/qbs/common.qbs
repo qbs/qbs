@@ -1,5 +1,6 @@
 import qbs 1.0
 import qbs.FileInfo
+import qbs.ModUtils
 
 Module {
     property string buildVariant: "debug"
@@ -8,10 +9,10 @@ Module {
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
     property stringList hostOS: getHostOS()
     property string hostOSVersion: {
-        if (hostOS.contains("osx")) {
+        if (hostOS && hostOS.contains("osx")) {
             return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
                    getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
-        } else if (hostOS.contains("windows")) {
+        } else if (hostOS && hostOS.contains("windows")) {
             var version = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
             return version + "." + hostOSBuildVersion;
         }
@@ -38,7 +39,11 @@ Module {
     property stringList toolchain
     property string architecture
 
-    property string endianness
+    property string endianness: {
+        if (["x86", "x86_64"].contains(architecture))
+            return "little";
+    }
+
     PropertyOptions {
         name: "endianness"
         allowedValues: ["big", "little", "mixed"]
@@ -63,34 +68,34 @@ Module {
     }
 
     validate: {
-        if (!architecture) {
-            throw new Error("qbs.architecture is not set. "
-                  + "You might want to re-run 'qbs setup-toolchains'.");
+        var validator = new ModUtils.PropertyValidator("qbs");
+        validator.setRequiredProperty("architecture", architecture,
+                                      "you might want to re-run 'qbs-setup-toolchains'");
+        validator.setRequiredProperty("hostOS", hostOS);
+        validator.setRequiredProperty("targetOS", targetOS);
+        if (hostOS && (hostOS.contains("windows") || hostOS.contains("osx"))) {
+            validator.setRequiredProperty("hostOSVersion", hostOSVersion,
+                                          "could not detect host operating system version; " +
+                                          "verify that system files and registry keys have not " +
+                                          "been modified.");
+            if (hostOSVersion)
+                validator.addVersionValidator("hostOSVersion", hostOSVersion, 2, 4);
+
+            validator.setRequiredProperty("hostOSBuildVersion", hostOSBuildVersion,
+                                          "could not detect host operating system build version; " +
+                                          "verify that system files or registry have not been " +
+                                          "tampered with.");
         }
 
-        var canonicalArch = canonicalArchitecture(architecture);
-        if (architecture !== canonicalArch) {
-            throw "qbs.architecture '" + architecture + "' is invalid. " +
-                  "You must use the canonical name '" + canonicalArch + "'";
-        }
+        validator.addCustomValidator("architecture", architecture, function (value) {
+            return architecture === canonicalArchitecture(architecture);
+        }, "'" + architecture + "' is invalid. You must use the canonical name '" +
+        canonicalArchitecture(architecture) + "'");
 
-        if (hostOS.contains("windows") || hostOS.contains("osx")) {
-            if (!hostOSVersion) {
-                throw "Could not detect host operating system version; " +
-                        "verify that system files or registry have not been " +
-                        "tampered with.";
-            }
+        validator.addCustomValidator("endianness", endianness, function (value) {
+            return ["big", "little", "mixed"].indexOf(value) !== -1;
+        }, "must be in [big, little, mixed]");
 
-            if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(hostOSVersion)) {
-                throw "qbs.hostOSVersion is in an invalid format; it must be of the form x.y or " +
-                        "x.y.z or x.y.z.w where x, y, z and w are positive integers.";
-            }
-
-            if (!hostOSBuildVersion) {
-                throw "Could not detect host operating system build version; " +
-                        "verify that system files or registry have not been " +
-                        "tampered with.";
-            }
-        }
+        validator.validate();
     }
 }
