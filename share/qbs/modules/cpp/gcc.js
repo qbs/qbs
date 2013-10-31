@@ -249,6 +249,10 @@ function languageName(fileTag)
         return 'objective-c';
     else if (fileTag === 'objcpp')
         return 'objective-c++';
+    else if (fileTag === 'asm')
+        return 'assembler';
+    else if (fileTag === 'asm_cpp')
+        return 'assembler-with-cpp';
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output)
@@ -257,8 +261,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output)
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    if (!["c", "cpp", "objc", "objcpp"].contains(tag))
-        throw ("unsupported source language");
+    if (!["c", "cpp", "objc", "objcpp", "asm", "asm_cpp"].contains(tag))
+        throw ("unsupported source language: " + tag);
 
     // Whether we're compiling a precompiled header or normal source file
     var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;

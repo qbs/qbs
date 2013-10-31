@@ -272,7 +272,7 @@ CppModule {
 
     Rule {
         id: compiler
-        inputs: ["cpp", "c", "objcpp", "objc"]
+        inputs: ["cpp", "c", "objcpp", "objc", "asm", "asm_cpp"]
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
 
@@ -332,5 +332,20 @@ CppModule {
         prepare: {
             return Gcc.prepareCompiler.apply(this, arguments);
         }
+    }
+
+    FileTagger {
+        pattern: "*.s"
+        fileTags: ["asm"]
+    }
+
+    FileTagger {
+        pattern: "*.S"
+        fileTags: ["asm_cpp"]
+    }
+
+    FileTagger {
+        pattern: "*.sx"
+        fileTags: ["asm_cpp"]
     }
 }

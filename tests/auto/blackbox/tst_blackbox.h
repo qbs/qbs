@@ -152,6 +152,7 @@ private slots:
     void toolLookup();
     void checkProjectFilePath();
     void missingProfile();
+    void testAssembly();
 
 private:
     QByteArray m_qbsStderr;

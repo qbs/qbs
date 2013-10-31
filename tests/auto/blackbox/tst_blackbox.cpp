@@ -1476,4 +1476,19 @@ void TestBlackbox::missingProfile()
     QVERIFY(m_qbsStderr.contains("No profile"));
 }
 
+void TestBlackbox::testAssembly()
+{
+    SettingsPtr settings = qbsSettings();
+    Profile profile(buildProfileName, settings.data());
+    bool haveGcc = profile.value("qbs.toolchain").toString().contains("gcc");
+    QDir::setCurrent(testDataDir + "/assembly");
+    QVERIFY(runQbs() == 0);
+    QCOMPARE((bool)m_qbsStdout.contains("compiling testa.s"), haveGcc);
+    QCOMPARE((bool)m_qbsStdout.contains("compiling testb.S"), haveGcc);
+    QCOMPARE((bool)m_qbsStdout.contains("compiling testc.sx"), haveGcc);
+    QCOMPARE((bool)m_qbsStdout.contains("creating libtesta.a"), haveGcc);
+    QCOMPARE((bool)m_qbsStdout.contains("creating libtestb.a"), haveGcc);
+    QCOMPARE((bool)m_qbsStdout.contains("creating libtestc.a"), haveGcc);
+}
+
 QTEST_MAIN(TestBlackbox)
