@@ -21,7 +21,7 @@ CppModule {
     property bool generateManifestFiles: true
     property path toolchainInstallPath
     property path windowsSDKPath
-    architecture: qbs.architecture || "x86"     // ### remove in 1.2
+    architecture: qbs.architecture
     staticLibraryPrefix: ""
     dynamicLibraryPrefix: ""
     executablePrefix: ""
