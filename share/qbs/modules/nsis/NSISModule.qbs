@@ -6,16 +6,14 @@ import "../utils.js" as ModUtils
 Module {
     condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: {
-        // First try the registry key...
-        // HKLM\\SOFTWARE\\Wow6432Node\\NSIS\\(default),VersionMajor,VersionMinor,VersionBuild,VersionRevision
-        // HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NSIS\\DisplayVersion
+    property path toolchainInstallPath: getNativeSetting(registryKey)
 
-        // Then try the known default filesystem path
-        var path = FileInfo.joinPaths(qbs.getenv("PROGRAMFILES(X86)"), "NSIS");
-        if (File.exists(path))
-            return path;
-    }
+    property string version: versionMajor + "." + versionMinor
+    property var versionParts: [ versionMajor, versionMinor, versionPatch, versionBuild ]
+    property int versionMajor: getNativeSetting(registryKey, "VersionMajor")
+    property int versionMinor: getNativeSetting(registryKey, "VersionMinor")
+    property int versionPatch: getNativeSetting(registryKey, "VersionPatch")
+    property int versionBuild: getNativeSetting(registryKey, "VersionRevision")
 
     property string compilerName: "makensis.exe"
     property string compilerPath: compilerName
@@ -58,6 +56,15 @@ Module {
     }
 
     property string executableSuffix: ".exe"
+
+    // Private properties
+    property string registryKey: {
+        var keys = [ "HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS" ];
+        for (var i in keys) {
+            if (getNativeSetting(keys[i]))
+                return keys[i];
+        }
+    }
 
     validate: {
         if (!toolchainInstallPath)

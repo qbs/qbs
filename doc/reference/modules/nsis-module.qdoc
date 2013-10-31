@@ -118,6 +118,61 @@
     Compression algorithm used to compress files and data in the installer.
     Setting this property overrides any SetCompressor command in the NSI file being compiled.
 
+    \section2 version
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The NSIS version. Consists of four numbers separated by dots, for instance "2.46.0.0".
+
+    \section2 versionMajor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[0]}
+    \endtable
+
+    The NSIS major version.
+
+    \section2 versionMinor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[1]}
+    \endtable
+
+    The NSIS minor version.
+
+    \section2 versionParts
+
+    \table
+    \row    \li \b{Type:}            \li \c{list}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    The NSIS version as a list. For instance, NSIS version 2.46.0.0 would correspond to a value of
+    \c[2, 46, 0, 0].
+
+    \section2 versionPatch
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[2]}
+    \endtable
+
+    The NSIS patch level.
+
+    \section2 versionBuild
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[3]}
+    \endtable
+
+    The fourth NSIS version number component.
+
     \section2 toolchainInstallPath
 
     \table
