@@ -293,8 +293,6 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
             handleArtifact(&productContext, child);
         else if (child->typeName() == QLatin1String("Export"))
             deferExportItem(&productContext, child);
-        else if (child->typeName() == QLatin1String("ProductModule"))   // ### remove in 1.2
-            handleProductModule(&productContext, child);
         else if (child->typeName() == QLatin1String("Probe"))
             resolveProbe(item, child);
     }
@@ -394,14 +392,6 @@ void ModuleLoader::handleArtifact(ProductContext *productContext, Item *item)
 void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext, Item *item)
 {
     productContext->exportItems.append(item);
-}
-
-void ModuleLoader::handleProductModule(ModuleLoader::ProductContext *productContext,
-                                       Item *item)
-{
-    m_logger.printWarning(ErrorInfo(Tr::tr("ProductModule {} is deprecated. "
-                                     "Please use Export {} instead."), item->location()));
-    deferExportItem(productContext, item);
 }
 
 static void mergeProperty(Item *dst, const QString &name, const ValuePtr &value)

@@ -192,7 +192,6 @@ void BuiltinDeclarations::addDependsItem()
 void BuiltinDeclarations::addExportItem()
 {
     QList<PropertyDeclaration> properties;
-    m_builtins[QLatin1String("ProductModule")] = properties; // ### remove in 1.2
     m_builtins[QLatin1String("Export")] = properties;
 }
 
