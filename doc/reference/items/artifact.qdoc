@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -28,36 +29,40 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \previouspage depends-item.html
-    \page export-item.html
-    \nextpage filetagger-item.html
+    \page artifact-item.html
+    \nextpage depends-item.html
     \ingroup list-of-items
 
-    \title Export Item
-    \brief Exports dependencies and properties to other products.
+    \title Artifact Item
+    \brief Describes a file produced by a \c Rule or \c Transformer.
 
-    An \c Export item can appear inside a \l{Product Item}. The properties attached to it will
-    take effect in all products that depend on the product inside which the product module is defined.
-    As an example, consider these two products:
-    \code
-    Product {
-        name: "A"
-        Export {
-            Depends { name: "cpp" }
-            cpp.includePaths: "."
-        }
-    }
+    An \c Artifact represents a single file produced by a \c Rule or \c Transformer.
 
-    Product {
-        name: "B"
-        Depends { name: "A" }
-    }
-    \endcode
+    For example, if a rule produces three files, it needs to contain three Artifact items.
 
-    The sources in product B will be able to use headers from product A without specifiying
-    the full path to them, because the include path has been made known to the compiler via
-    A's product module.
+    \section1 Artifact Properties
 
-    \note This relationship is transitive, so a product C depending on product B will also
-    get the include paths via A's product module.
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li Determines whether the target file will actually be produced.
+    \row
+        \li fileName
+        \li string
+        \li undefined
+        \li The file path of the target artifact.
+    \row
+        \li fileTags
+        \li list
+        \li empty list
+        \li The tags to attach to the target file. These can then be matched by a rule.
+    \endtable
+
 */

@@ -28,7 +28,7 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \previouspage module-item.html
+    \previouspage probe-item.html
     \page product-item.html
     \nextpage project-item.html
     \ingroup list-of-items
@@ -124,6 +124,12 @@
             \li See the documentation of the \l {Project Item} property of the same name.
                 Setting this property here will overwrite the default value inherited from
                 the project, so use the \c concat() function if you want to add something.
+        \row
+            \li version
+            \li string
+            \li undefined
+            \li The version number of the product. Used in shared library filenames and generated
+                Info.plist files in OS X and iOS application and framework bundles, for example.
     \endtable
 
     The following properties are automatically set by qbs and usually are not changed by the user:

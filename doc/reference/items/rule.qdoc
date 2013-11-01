@@ -28,9 +28,9 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \previouspage properties-item.html
+    \previouspage propertyoptions-item.html
     \page rule-item.html
-    \nextpage transformer-item.html
+    \nextpage subproject-item.html
     \ingroup list-of-items
 
     \title Rule Item
@@ -130,6 +130,11 @@
            file tags will appear in the \a inputs variable of the prepare
            script. Also, each output artifact of this rule will be dependent on
            those artifacts.
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li If true, the rule is enabled, otherwise it does nothing.
     \row
         \li explicitlyDependsOn
         \li string list

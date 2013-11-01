@@ -30,7 +30,7 @@
     \contentspage list-of-items.html
     \previouspage group-item.html
     \page module-item.html
-    \nextpage product-item.html
+    \nextpage probe-item.html
     \ingroup list-of-items
 
     \title Module Item
