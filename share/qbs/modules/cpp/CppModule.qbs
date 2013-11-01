@@ -185,7 +185,7 @@ Module {
 
     FileTagger {
         pattern: "*.C"
-        fileTags: ["c"]
+        fileTags: ["cpp"]
     }
 
     FileTagger {
