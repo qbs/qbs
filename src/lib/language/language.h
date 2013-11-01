@@ -45,6 +45,7 @@
 #include <QDataStream>
 #include <QHash>
 #include <QProcessEnvironment>
+#include <QRegExp>
 #include <QScriptProgram>
 #include <QScriptValue>
 #include <QScopedPointer>
