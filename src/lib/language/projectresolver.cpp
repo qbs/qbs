@@ -663,7 +663,8 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     QList<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
     FileTaggerPtr tagger = FileTagger::create(
-            QRegExp(m_evaluator->stringValue(item, QLatin1String("pattern"))),
+            QRegExp(m_evaluator->stringValue(item, QLatin1String("pattern")), Qt::CaseSensitive,
+                    QRegExp::Wildcard),
             m_evaluator->fileTagsValue(item, "fileTags"));
     if (tagger->artifactExpression().isEmpty())
         throw ErrorInfo(Tr::tr("FileTagger.pattern must not be empty."), item->location());
