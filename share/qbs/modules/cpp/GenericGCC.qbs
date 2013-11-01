@@ -148,6 +148,9 @@ CppModule {
                 for (var i = 0; i < symlinkCount; ++i) {
                     cmd = new Command("ln", ["-sf", FileInfo.fileName(libFilePath),
                                                     links[i].fileName]);
+                    cmd.description = "filegen";
+                    cmd.description = "creating symbolic link '"
+                            + FileInfo.fileName(links[i].fileName) + "'";
                     cmd.workingDirectory = FileInfo.path(libFilePath);
                     commands.push(cmd);
                 }
