@@ -1,0 +1,123 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://www.qt.io/licensing.  For further information
+** use the contact form at http://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file.  Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page java-module.html
+    \ingroup list-of-modules
+
+    \title Module java
+    \brief Provides Java support.
+
+    The \c java module contains the properties and rules for building Java projects.
+
+    \section1 Java Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li additionalClassPaths
+        \li stringList
+        \li undefined
+        \li Locations beside this product's class output path to consider when compiling.
+    \row
+        \li additionalCompilerFlags
+        \li stringList
+        \li undefined
+        \li Use this to supply compiler flags not covered by any of the properties in this module.
+    \row
+        \li bootClassPaths
+        \li stringList
+        \li undefined
+        \li Use this if you need to specify non-standard bootstrap class files.
+    \row
+        \li compilerFilePath
+        \li string
+        \li \c compilerName, prefixed by \c jdkPath if it is defined
+        \li The command to invoke when compiling Java sources.
+    \row
+        \li compilerName
+        \li string
+        \li \c{"javac"}
+        \li The file name of the Java compiler.
+    \row
+        \li enableWarnings
+        \li bool
+        \li \c true
+        \li Controls whether warnings are emitted when compiling Java sources.
+    \row
+        \li interpreterFilePath
+        \li string
+        \li \c interpreterName, prefixed by \c jdkPath if it is defined
+        \li The command to invoke when executing Java code.
+    \row
+        \li interpreterName
+        \li string
+        \li \c{"java"}
+        \li The file name of the Java interpreter.
+    \row
+        \li jarFilePath
+        \li string
+        \li \c jarName, prefixed by \c jdkPath if it is defined
+        \li The command to run when creating or extracting \c jar files.
+    \row
+        \li jarName
+        \li string
+        \li \c{"jar"}
+        \li The file name of the \c jar tool.
+    \row
+        \li jdkPath
+        \li path
+        \li undefined
+        \li The base path of Java-related tools.
+    \row
+        \li languageVersion
+        \li string
+        \li undefined
+        \li The Java language version to interpret source code as. If undefined, the compiler
+            will use its default.
+    \row
+        \li runtimeVersion
+        \li string
+        \li undefined
+        \li The version of the Java runtime to generate compatible bytecode for. If undefined,
+            the compiler will use its default.
+    \row
+        \li warningsAsErrors
+        \li bool
+        \li \c false
+        \li If this property is enabled, the compiler will abort where it would normally emit
+            a warning.
+    \endtable
+*/

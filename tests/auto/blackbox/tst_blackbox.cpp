@@ -1246,6 +1246,42 @@ void TestBlackbox::inputsFromDependencies()
     QVERIFY2(output.count() == 3, m_qbsStderr.constData());
 }
 
+void TestBlackbox::java()
+{
+    Settings settings((QString()));
+    Profile p(profileName(), &settings);
+    if (p.value("java.jdkPath").toString().isEmpty())
+        QSKIP("java.jdkPath not set");
+    QDir::setCurrent(testDataDir + "/java");
+    QCOMPARE(runQbs(), 0);
+
+    const QStringList classFiles =
+            QStringList() << "Car" << "Jet" << "Ship" << "Vehicle" << "Vehicles";
+    QStringList classFiles1 = QStringList(classFiles) << "io/qt/qbs/HelloWorld" << "NoPackage";
+    for (int i = 0; i < classFiles1.count(); ++i) {
+        QString &classFile = classFiles1[i];
+        classFile = relativeProductBuildDir("class_collection") + "/classFiles/"
+                + classFile + ".class";
+        QVERIFY2(regularFileExists(classFile), qPrintable(classFile));
+    }
+
+    foreach (const QString &classFile, classFiles) {
+        const QString filePath = relativeProductBuildDir("jar_file") + "/classFiles/" + classFile
+                + ".class";
+        QVERIFY2(regularFileExists(filePath), qPrintable(filePath));
+    }
+    const QString jarFilePath = relativeProductBuildDir("jar_file") + '/' + "jar_file.jar";
+    QVERIFY2(regularFileExists(jarFilePath), qPrintable(jarFilePath));
+
+    // Now check whether we correctly predicted the class file output paths.
+    QCOMPARE(runQbs(QbsRunParameters("clean", QStringList() << "--all-artifacts")), 0);
+    foreach (const QString &classFile, classFiles1) {
+        if (classFile.contains("NoPackage"))
+            QEXPECT_FAIL(0, "Fix parser", Continue);
+        QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
+    }
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions");
