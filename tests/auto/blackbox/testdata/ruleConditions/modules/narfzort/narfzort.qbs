@@ -4,7 +4,7 @@ import qbs.TextFile
 Module {
     property bool buildZort: true
     FileTagger {
-        pattern: "*.narf"
+        patterns: "*.narf"
         fileTags: ["narf"]
     }
     Rule {

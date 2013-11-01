@@ -42,7 +42,7 @@
     the following file tagger:
     \code
     FileTagger {
-        pattern: "*.cpp"
+        patterns: "*.cpp"
         fileTags: ["cpp"]
     }
     \endcode
@@ -73,10 +73,11 @@
         \li Default
         \li Description
     \row
-        \li pattern
-        \li string
+        \li patterns
+        \li stringList
         \li none
-        \li The pattern to match against. Supports the usual wildcards '*', '?' and '[]'.
+        \li The patterns to match against. Supports the usual wildcards '*', '?' and '[]'.
+            Neither the list itself nor any of its elements may be empty.
     \row
         \li fileTags
         \li list

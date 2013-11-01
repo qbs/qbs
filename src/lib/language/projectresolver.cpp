@@ -662,15 +662,29 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     checkCancelation();
     QList<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
-    FileTaggerPtr tagger = FileTagger::create(
-            QRegExp(m_evaluator->stringValue(item, QLatin1String("pattern")), Qt::CaseSensitive,
-                    QRegExp::Wildcard),
-            m_evaluator->fileTagsValue(item, "fileTags"));
-    if (tagger->artifactExpression().isEmpty())
-        throw ErrorInfo(Tr::tr("FileTagger.pattern must not be empty."), item->location());
-    if (tagger->fileTags().isEmpty())
+    QStringList patterns = m_evaluator->stringListValue(item, QLatin1String("patterns"));
+    const FileTags fileTags = m_evaluator->fileTagsValue(item, "fileTags");
+    if (fileTags.isEmpty())
         throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
-    fileTaggers += tagger;
+
+    // TODO: Remove in 1.3.
+    bool patternWasSet;
+    const QStringList oldPatterns = m_evaluator->stringListValue(item, QLatin1String("pattern"),
+                                                                 &patternWasSet);
+    if (patternWasSet) {
+        m_logger.printWarning(ErrorInfo(Tr::tr("The 'pattern' property is deprecated. Please "
+                                               "use 'patterns' instead."), item->location()));
+        patterns << oldPatterns;
+    }
+
+    if (patterns.isEmpty())
+        throw ErrorInfo(Tr::tr("FileTagger.patterns must be a non-empty list."), item->location());
+
+    foreach (const QString &pattern, patterns) {
+        if (pattern.isEmpty())
+            throw ErrorInfo(Tr::tr("A FileTagger pattern must not be empty."), item->location());
+    }
+    fileTaggers += FileTagger::create(patterns, fileTags);
 }
 
 void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectContext)

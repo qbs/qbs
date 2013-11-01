@@ -69,19 +69,37 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 
+FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags)
+    : m_fileTags(fileTags)
+{
+    setPatterns(patterns);
+}
+
+void FileTagger::setPatterns(const QStringList &patterns)
+{
+    m_patterns.clear();
+    foreach (const QString &pattern, patterns) {
+        QBS_CHECK(!pattern.isEmpty());
+        m_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
+    }
+}
+
 /*!
  * \class FileTagger
  * \brief The \c FileTagger class maps 1:1 to the respective item in a qbs source file.
  */
 void FileTagger::load(PersistentPool &pool)
 {
-    m_artifactExpression.setPattern(pool.idLoadString());
+    setPatterns(pool.idLoadStringList());
     pool.stream() >> m_fileTags;
 }
 
 void FileTagger::store(PersistentPool &pool) const
 {
-    pool.storeString(m_artifactExpression.pattern());
+    QStringList patterns;
+    foreach (const QRegExp &regExp, m_patterns)
+        patterns << regExp.pattern();
+    pool.storeStringList(patterns);
     pool.stream() << m_fileTags;
 }
 
@@ -405,8 +423,10 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     FileTags result;
     foreach (FileTaggerConstPtr tagger, fileTaggers) {
-        if (FileInfo::globMatches(tagger->artifactExpression(), fileName)) {
-            result.unite(tagger->fileTags());
+        foreach (const QRegExp &pattern, tagger->patterns())
+            if (FileInfo::globMatches(pattern, fileName)) {
+                result.unite(tagger->fileTags());
+                break;
         }
     }
     return result;

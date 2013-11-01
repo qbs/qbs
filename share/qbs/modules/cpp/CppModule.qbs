@@ -179,67 +179,27 @@ Module {
     property string provisionFile
 
     FileTagger {
-        pattern: "*.c"
+        patterns: ["*.c"]
         fileTags: ["c"]
     }
 
     FileTagger {
-        pattern: "*.C"
+        patterns: ["*.C", "*.cpp", "*.cxx", "*.c++", "*.cc"]
         fileTags: ["cpp"]
     }
 
     FileTagger {
-        pattern: "*.cpp"
-        fileTags: ["cpp"]
-    }
-
-    FileTagger {
-        pattern: "*.cxx"
-        fileTags: ["cpp"]
-    }
-
-    FileTagger {
-        pattern: "*.c++"
-        fileTags: ["cpp"]
-    }
-
-    FileTagger {
-        pattern: "*.cc"
-        fileTags: ["cpp"]
-    }
-
-    FileTagger {
-        pattern: "*.m"
+        patterns: ["*.m"]
         fileTags: ["objc"]
     }
 
     FileTagger {
-        pattern: "*.mm"
+        patterns: ["*.mm"]
         fileTags: ["objcpp"]
     }
 
     FileTagger {
-        pattern: "*.h"
-        fileTags: ["hpp"]
-    }
-
-    FileTagger {
-        pattern: "*.H"
-        fileTags: ["hpp"]
-    }
-
-    FileTagger {
-        pattern: "*.hpp"
-        fileTags: ["hpp"]
-    }
-
-    FileTagger {
-        pattern: "*.hxx"
-        fileTags: ["hpp"]
-    }
-
-    FileTagger {
-        pattern: "*.h++"
+        patterns: ["*.h", "*.H", "*.hpp", "*.hxx", "*.h++"]
         fileTags: ["hpp"]
     }
 }

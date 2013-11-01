@@ -198,7 +198,11 @@ void BuiltinDeclarations::addExportItem()
 void BuiltinDeclarations::addFileTaggerItem()
 {
     QList<PropertyDeclaration> properties;
-    properties += PropertyDeclaration(QLatin1String("pattern"), PropertyDeclaration::String);
+
+    // TODO: Remove in 1.3
+    properties += PropertyDeclaration(QLatin1String("pattern"), PropertyDeclaration::StringList);
+
+    properties += PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
     properties += PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
     m_builtins[QLatin1String("FileTagger")] = properties;
 }

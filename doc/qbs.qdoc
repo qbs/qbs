@@ -417,7 +417,7 @@
         property path precompiledHeader
         // ...
         FileTagger {
-            pattern: "*.cpp"
+            patterns: "*.cpp"
             fileTags: ["cpp"]
         }
         Rule {...}  // compiler
@@ -603,7 +603,7 @@
     When you load the \a cpp module, you also load the following item:
     \code
         FileTagger {
-            pattern: "*.cpp"
+            patterns: "*.cpp"
             fileTags: ["cpp"]
         }
     \endcode

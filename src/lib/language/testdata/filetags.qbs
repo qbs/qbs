@@ -2,7 +2,7 @@ import qbs 1.0
 
 Project {
     FileTagger {
-        pattern: "*.cpp"
+        patterns: "*.cpp"
         fileTags: ["cpp"]
     }
 
@@ -15,7 +15,7 @@ Project {
         name: "filetagger_product_scope"
         files: ["drawline.asm"]
         FileTagger {
-            pattern: "*.asm"
+            patterns: "*.asm"
             fileTags: ["asm"]
         }
     }

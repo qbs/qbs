@@ -66,26 +66,23 @@ class FileTagger : public PersistentObject
 {
 public:
     static FileTaggerPtr create() { return FileTaggerPtr(new FileTagger); }
-    static FileTaggerPtr create(const QRegExp &artifactExpression, const FileTags &fileTags) {
-        return FileTaggerPtr(new FileTagger(artifactExpression, fileTags));
+    static FileTaggerPtr create(const QStringList &patterns, const FileTags &fileTags) {
+        return FileTaggerPtr(new FileTagger(patterns, fileTags));
     }
 
-    const QRegExp &artifactExpression() const { return m_artifactExpression; }
+    const QList<QRegExp> &patterns() const { return m_patterns; }
     const FileTags &fileTags() const { return m_fileTags; }
 
 private:
-    FileTagger(const QRegExp &artifactExpression, const FileTags &fileTags)
-        : m_artifactExpression(artifactExpression), m_fileTags(fileTags)
-    { }
+    FileTagger(const QStringList &patterns, const FileTags &fileTags);
+    FileTagger() {}
 
-    FileTagger()
-        : m_artifactExpression(QString(), Qt::CaseSensitive, QRegExp::Wildcard)
-    {}
+    void setPatterns(const QStringList &patterns);
 
     void load(PersistentPool &);
     void store(PersistentPool &) const;
 
-    QRegExp m_artifactExpression;
+    QList<QRegExp> m_patterns;
     FileTags m_fileTags;
 };
 

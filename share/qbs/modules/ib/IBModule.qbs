@@ -18,12 +18,7 @@ Module {
     property stringList flags
 
     FileTagger {
-        pattern: "*.nib"
-        fileTags: ["nib"]
-    }
-
-    FileTagger {
-        pattern: "*.xib"
+        patterns: ["*.nib", "*.xib"]
         fileTags: ["nib"]
     }
 

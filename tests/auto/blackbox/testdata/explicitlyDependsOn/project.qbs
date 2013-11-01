@@ -5,7 +5,7 @@ Product {
     type: "mytype"
     files: "dependency.txt"
     FileTagger {
-        pattern: "*.txt"
+        patterns: "*.txt"
         fileTags: ["txt"]
     }
     Transformer {

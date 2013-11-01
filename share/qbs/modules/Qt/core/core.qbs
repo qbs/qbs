@@ -178,27 +178,27 @@ Module {
     }
 
     FileTagger {
-        pattern: "*.qrc"
+        patterns: ["*.qrc"]
         fileTags: ["qrc"]
     }
 
     FileTagger {
-        pattern: "*.ts"
+        patterns: ["*.ts"]
         fileTags: ["ts"]
     }
 
     FileTagger {
-        pattern: "*.qdoc"
+        patterns: ["*.qdoc"]
         fileTags: ["qdoc"]
     }
 
     FileTagger {
-        pattern: "*.qdocconf"
+        patterns: ["*.qdocconf"]
         fileTags: ["qdocconf"]
     }
 
     FileTagger {
-        pattern: "*.qhp"
+        patterns: ["*.qhp"]
         fileTags: ["qhp"]
     }
 

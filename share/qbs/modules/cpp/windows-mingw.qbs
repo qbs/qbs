@@ -32,7 +32,7 @@ GenericGCC {
     }
 
     FileTagger {
-        pattern: "*.rc"
+        patterns: ["*.rc"]
         fileTags: ["rc"]
     }
 

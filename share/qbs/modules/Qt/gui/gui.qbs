@@ -9,7 +9,7 @@ QtModule {
     property string uicName: "uic"
 
     FileTagger {
-        pattern: "*.ui"
+        patterns: ["*.ui"]
         fileTags: ["ui"]
     }
 
