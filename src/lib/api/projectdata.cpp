@@ -211,12 +211,14 @@ QStringList TargetArtifact::fileTags() const
 }
 
 /*!
- * \brief True if and only if this file is an executable.
+ * \brief True if and only if this file is executable,
+ * either natively or through an interpreter or shell.
  */
 bool TargetArtifact::isExecutable() const
 {
     return d->fileTags.contains(QLatin1String("application"))
-            || d->fileTags.contains(QLatin1String("applicationbundle"));
+            || d->fileTags.contains(QLatin1String("applicationbundle"))
+            || d->fileTags.contains(QLatin1String("msi"));
 }
 
 /*!

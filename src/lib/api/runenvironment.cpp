@@ -126,9 +126,17 @@ int RunEnvironment::runShell()
 
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
-    if (!QFileInfo(targetBin).isExecutable()) {
+    QString targetExecutable = targetBin;
+    QStringList targetArguments = arguments;
+    const QString completeSuffix = QFileInfo(targetBin).completeSuffix();
+
+    if (HostOsInfo::isWindowsHost() && completeSuffix == QLatin1String("msi")) {
+        targetExecutable = QLatin1String("msiexec");
+        targetArguments.prepend(QDir::toNativeSeparators(targetBin));
+        targetArguments.prepend(QLatin1String("/package"));
+    } else if (!QFileInfo(targetExecutable).isExecutable()) {
         d->logger.qbsLog(LoggerError) << Tr::tr("File '%1' is not an executable.")
-                                .arg(QDir::toNativeSeparators(targetBin));
+                                .arg(QDir::toNativeSeparators(targetExecutable));
         return EXIT_FAILURE;
     }
 
@@ -138,7 +146,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     QProcess process;
     process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);
-    process.start(targetBin, arguments);
+    process.start(targetExecutable, targetArguments);
     process.waitForFinished(-1);
     return process.exitCode();
 }
