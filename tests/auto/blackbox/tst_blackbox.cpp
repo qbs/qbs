@@ -1377,7 +1377,7 @@ void TestBlackbox::properQuoting()
     params.expectFailure = true; // Because the exit code is non-zero.
     QCOMPARE(runQbs(params), 156);
     const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
-            "backslash\\\nbackslash\\\nHello World! The magic number is 156.";
+            "backslash\\\nHello World! The magic number is 156.";
     QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
 }
 
