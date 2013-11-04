@@ -65,15 +65,17 @@ Module {
                   "You must use the canonical name '" + canonicalArch + "'";
         }
 
-        if ((hostOS.contains("windows") || hostOS.contains("osx")) && !hostOSVersion) {
-            throw "Could not detect host operating system version; " +
-                    "verify that system files or registry have not been " +
-                    "tampered with.";
-        }
+        if (hostOS.contains("windows") || hostOS.contains("osx")) {
+            if (!hostOSVersion) {
+                throw "Could not detect host operating system version; " +
+                        "verify that system files or registry have not been " +
+                        "tampered with.";
+            }
 
-        if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(hostOSVersion)) {
-            throw "qbs.hostOSVersion is in an invalid format; it must be of the form x.y or " +
-                    "x.y.z or x.y.z.w where x, y, z and w are positive integers.";
+            if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(hostOSVersion)) {
+                throw "qbs.hostOSVersion is in an invalid format; it must be of the form x.y or " +
+                        "x.y.z or x.y.z.w where x, y, z and w are positive integers.";
+            }
         }
     }
 }
