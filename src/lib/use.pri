@@ -15,12 +15,16 @@ unix {
     macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../lib
 }
 
+CONFIG(shared, static|shared) {
+    QBSCORELIBSUFFIX = $$QBS_VERSION_MAJ
+}
+
 win32 {
     CONFIG(debug, debug|release) {
-        QBSCORELIB = qbscored$$QBS_VERSION_MAJ
+        QBSCORELIB = qbscored$$QBSCORELIBSUFFIX
     }
     CONFIG(release, debug|release) {
-        QBSCORELIB = qbscore$$QBS_VERSION_MAJ
+        QBSCORELIB = qbscore$$QBSCORELIBSUFFIX
     }
     win32-msvc* {
         LIBS += /LIBPATH:$$QBSLIBDIR
