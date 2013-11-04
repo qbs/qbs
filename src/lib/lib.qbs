@@ -321,7 +321,10 @@ Product {
     }
     Group {
         name: "use_installed.pri"
-        files: "use_installed.pri"
+        files: [
+            "use_installed.pri",
+            "../../qbs_version.pri"
+        ]
         qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix
     }
