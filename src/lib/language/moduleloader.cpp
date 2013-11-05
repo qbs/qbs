@@ -156,6 +156,7 @@ private:
     {
         if (!value->item()->isModuleInstance()
                 && !m_validItemPropertyNamesPerItem.value(m_parentItem).contains(m_currentName)
+                && m_parentItem->file()
                 && !m_parentItem->file()->idScope()->hasProperty(m_currentName)) {
             throw ErrorInfo(Tr::tr("Item '%1' is not declared. "
                                    "Did you forget to add a Depends item?").arg(m_currentName),
