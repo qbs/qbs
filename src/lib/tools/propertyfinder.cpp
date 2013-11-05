@@ -38,9 +38,8 @@ QVariantList PropertyFinder::propertyValues(const QVariantMap &properties,
 {
     m_moduleName = moduleName;
     m_key = key;
-    m_findOnlyOne = false;
     m_values.clear();
-    findModuleValues(properties);
+    findModuleValues(properties, true);
     if (mergeType == DoMergeLists)
         mergeLists(&m_values);
     return m_values;
@@ -51,15 +50,14 @@ QVariant PropertyFinder::propertyValue(const QVariantMap &properties, const QStr
 {
     m_moduleName = moduleName;
     m_key = key;
-    m_findOnlyOne = true;
     m_values.clear();
-    findModuleValues(properties);
+    findModuleValues(properties, false);
 
     QBS_ASSERT(m_values.count() <= 1, return QVariant());
     return m_values.isEmpty() ? QVariant() : m_values.first();
 }
 
-void PropertyFinder::findModuleValues(const QVariantMap &properties)
+void PropertyFinder::findModuleValues(const QVariantMap &properties, bool searchRecursively)
 {
     QVariantMap moduleProperties = properties.value(QLatin1String("modules")).toMap();
 
@@ -72,10 +70,13 @@ void PropertyFinder::findModuleValues(const QVariantMap &properties)
         moduleProperties.erase(modIt);
     }
 
+    if (!searchRecursively)
+        return;
+
     // These are the non-matching modules.
     for (QVariantMap::ConstIterator it = moduleProperties.constBegin();
-         it != moduleProperties.constEnd() && (m_values.isEmpty() || !m_findOnlyOne); ++it) {
-        findModuleValues(it->toMap());
+         it != moduleProperties.constEnd(); ++it) {
+        findModuleValues(it->toMap(), true);
     }
 }
 

@@ -47,14 +47,13 @@ public:
                          const QString &key);
 
 private:
-    void findModuleValues(const QVariantMap &properties);
+    void findModuleValues(const QVariantMap &properties, bool searchRecursively);
     void addToList(const QVariant &value);
     static void mergeLists(QVariantList *values);
 
     QString m_moduleName;
     QString m_key;
     QVariantList m_values;
-    bool m_findOnlyOne;
 };
 
 } // namespace Internal
