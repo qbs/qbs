@@ -173,8 +173,7 @@ void CommandLineFrontend::start()
 void CommandLineFrontend::handleCommandDescriptionReport(const QString &highlight,
                                                          const QString &message)
 {
-    if (!message.isEmpty())
-        qbsInfo() << MessageTag(highlight) << message;
+    qbsInfo() << MessageTag(highlight) << message;
 }
 
 void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)

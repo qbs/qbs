@@ -53,7 +53,7 @@ public:
     static AbstractCommand *createByType(CommandType commandType);
     static QString defaultDescription() { return QString(); }
     static QString defaultHighLight() { return QString(); }
-    static bool defaultIsSilent() { return true; }
+    static bool defaultIsSilent() { return false; }
 
     virtual CommandType type() const = 0;
     virtual bool equals(const AbstractCommand *other) const;
@@ -64,6 +64,7 @@ public:
     const QString description() const { return m_description; }
     const QString highlight() const { return m_highlight; }
     bool isSilent() const { return m_silent; }
+    CodeLocation codeLocation() const { return m_codeLocation; }
 
 protected:
     AbstractCommand();
@@ -72,6 +73,7 @@ private:
     QString m_description;
     QString m_highlight;
     bool m_silent;
+    CodeLocation m_codeLocation;
 };
 
 class ProcessCommand : public AbstractCommand

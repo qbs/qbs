@@ -70,20 +70,20 @@ bool AbstractCommand::equals(const AbstractCommand *other) const
 
 void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
-    Q_UNUSED(codeLocation);
     m_description = scriptValue->property("description").toString();
     m_highlight = scriptValue->property("highlight").toString();
     m_silent = scriptValue->property("silent").toBool();
+    m_codeLocation = codeLocation;
 }
 
 void AbstractCommand::load(QDataStream &s)
 {
-    s >> m_description >> m_highlight >> m_silent;
+    s >> m_description >> m_highlight >> m_silent >> m_codeLocation;
 }
 
 void AbstractCommand::store(QDataStream &s)
 {
-    s << m_description << m_highlight << m_silent;
+    s << m_description << m_highlight << m_silent << m_codeLocation;
 }
 
 static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)

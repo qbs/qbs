@@ -31,6 +31,9 @@
 
 #include "command.h"
 
+#include <logging/translator.h>
+#include <tools/error.h>
+
 namespace qbs {
 namespace Internal {
 
@@ -48,7 +51,14 @@ void AbstractCommandExecutor::start(Transformer *transformer, const AbstractComm
 {
     m_transformer = transformer;
     m_command = cmd;
-    emit reportCommandDescription(m_command->highlight(), m_command->description());
+    if (!m_command->isSilent()) {
+        if (m_command->description().isEmpty()) {
+            m_logger.printWarning(ErrorInfo(Tr::tr("Command is not marked silent, but has no "
+                                                   "description."), m_command->codeLocation()));
+        } else {
+            emit reportCommandDescription(m_command->highlight(), m_command->description());
+        }
+    }
     doStart();
 }
 

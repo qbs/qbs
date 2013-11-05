@@ -110,8 +110,6 @@ void ProcessCommandExecutor::doStart()
     QStringList arguments = cmd->arguments();
     QString argString = commandArgsToString(arguments);
 
-    if (!cmd->isSilent())
-        logger().qbsInfo() << program << argString;
     if (dryRun()) {
         QTimer::singleShot(0, this, SIGNAL(finished())); // Don't call back on the caller.
         return;
