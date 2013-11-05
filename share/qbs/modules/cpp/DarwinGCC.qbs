@@ -180,6 +180,7 @@ UnixGCC {
                             process.exec("plutil", ["-convert", "json", "-o", "-",
                                                      platformInfoPlist], true);
                             platformInfo = JSON.parse(process.readStdOut());
+                            process.close();
 
                             var additionalProps = platformInfo["AdditionalInfo"];
                             for (key in additionalProps) {
@@ -210,6 +211,7 @@ UnixGCC {
                             process.exec("plutil", ["-convert", "json", "-o", "-",
                                                      sdkSettingsPlist], true);
                             sdkSettings = JSON.parse(process.readStdOut());
+                            process.close();
                         } else {
                             print("warning: sysroot (SDK path) given but no SDKSettings.plist found");
                         }
@@ -223,6 +225,7 @@ UnixGCC {
                         process.exec("plutil", ["-convert", "json", "-o", "-",
                                                  toolchainInfoPlist], true);
                         toolchainInfo = JSON.parse(process.readStdOut());
+                        process.close();
                     } else {
                         print("could not find a ToolchainInfo.plist near the toolchain install path");
                     }
@@ -230,6 +233,7 @@ UnixGCC {
                     process = new Process();
                     process.exec("sw_vers", ["-buildVersion"], true);
                     aggregatePlist["BuildMachineOSBuild"] = process.readStdOut().trim();
+                    process.close();
 
                     // setup env
                     env = {
@@ -243,6 +247,7 @@ UnixGCC {
                     process = new Process();
                     process.exec("sw_vers", ["-buildVersion"], true);
                     env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = process.readStdOut().trim();
+                    process.close();
 
                     for (key in buildEnv)
                         env[key] = buildEnv[key];
@@ -266,6 +271,7 @@ UnixGCC {
                 // Convert the written file to the format appropriate for the current platform
                 process = new Process();
                 process.exec("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].fileName], true);
+                process.close();
             }
             return cmd;
         }

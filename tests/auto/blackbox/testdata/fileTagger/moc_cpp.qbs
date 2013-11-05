@@ -28,6 +28,7 @@ Project {
             cmd.sourceCode = function () {
                 var file = new TextFile(input.fileName, TextFile.ReadOnly);
                 var text = file.readAll();
+                file.close();
                 file = new TextFile(output.fileName, TextFile.WriteOnly);
                 file.truncate();
                 file.write(text);
