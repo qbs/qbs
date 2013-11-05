@@ -62,13 +62,8 @@ public:
     virtual void store(QDataStream &s);
 
     const QString description() const { return m_description; }
-    void setDescription(const QString &str) { m_description = str; }
-
     const QString highlight() const { return m_highlight; }
-    void setHighlight(const QString &str) { m_highlight = str; }
-
     bool isSilent() const { return m_silent; }
-    void setSilent(bool b) { m_silent = b; }
 
 protected:
     AbstractCommand();
