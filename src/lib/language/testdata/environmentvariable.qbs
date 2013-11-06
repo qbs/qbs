@@ -1,3 +1,3 @@
 Product {
-    name: qbs.getenv("PRODUCT_NAME")
+    name: qbs.getEnv("PRODUCT_NAME")
 }

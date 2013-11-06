@@ -169,11 +169,11 @@ Module {
 
     setupRunEnvironment: {
         if (qbs.targetOS.contains('windows')) {
-            var v = getenv('PATH') || '';
+            var v = getEnv('PATH') || '';
             if (v.length > 0 && v.charAt(0) != ';')
                 v = ';' + v;
             v = FileInfo.toWindowsSeparators(binPath) + v;
-            putenv('PATH', v);
+            putEnv('PATH', v);
         }
     }
 

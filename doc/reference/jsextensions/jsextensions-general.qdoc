@@ -40,9 +40,9 @@
 
     \section1 Available Operations
 
-    \section2 getenv
+    \section2 getEnv
     \code
-    qbs.getenv(name)
+    qbs.getEnv(name)
     \endcode
     Tries to find a variable with the given name in the build environment and returns its value. If
     no such variable could be found, \c undefined is returned.

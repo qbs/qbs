@@ -29,7 +29,7 @@ Probe {
         // FIXME: Add getenv support
         var envs = Utils.concatAll(platformEnvironmentPaths, environmentPaths);
         for (var i = 0; i < envs.length; ++i) {
-            var value = qbs.getenv(envs[i]) || '';
+            var value = qbs.getEnv(envs[i]) || '';
             if (value.length > 0)
                 _paths = _paths.concat(value.split(qbs.pathListSeparator));
         }

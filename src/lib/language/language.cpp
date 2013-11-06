@@ -474,21 +474,21 @@ QList<const ResolvedModule*> topSortModules(const QHash<const ResolvedModule*, Q
     return result;
 }
 
-static QScriptValue js_getenv(QScriptContext *context, QScriptEngine *engine)
+static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(context->argumentCount() < 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getenv expects 1 argument"));
+                                   QLatin1String("getEnv expects 1 argument"));
     QVariant v = engine->property("_qbs_procenv");
     QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
     return engine->toScriptValue(procenv->value(context->argument(0).toString()));
 }
 
-static QScriptValue js_putenv(QScriptContext *context, QScriptEngine *engine)
+static QScriptValue js_putEnv(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(context->argumentCount() < 2))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("putenv expects 2 arguments"));
+                                   QLatin1String("putEnv expects 2 arguments"));
     QVariant v = engine->property("_qbs_procenv");
     QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment*>(v.value<void*>());
     procenv->insert(context->argument(0).toString(), context->argument(1).toString());
@@ -544,8 +544,16 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 
     engine->clearImportsCache();
     QScriptValue scope = engine->newObject();
-    scope.setProperty("getenv", engine->newFunction(js_getenv, 1));
-    scope.setProperty("putenv", engine->newFunction(js_putenv, 2));
+
+    const QScriptValue getEnvValue = engine->newFunction(js_getEnv, 1);
+    const QScriptValue putEnvValue = engine->newFunction(js_putEnv, 1);
+
+    // TODO: Remove in 1.3
+    scope.setProperty("getenv", getEnvValue);
+    scope.setProperty("putenv", putEnvValue);
+
+    scope.setProperty("getEnv", getEnvValue);
+    scope.setProperty("putEnv", putEnvValue);
 
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);

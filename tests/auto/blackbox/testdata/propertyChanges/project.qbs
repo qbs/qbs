@@ -16,7 +16,7 @@ Project {
     }
     CppApplication {
         name: "product 3"
-        cpp.defines: qbs.getenv("QBS_BLACKBOX_DEFINE")
+        cpp.defines: qbs.getEnv("QBS_BLACKBOX_DEFINE")
         files: "source3.cpp"
     }
     DynamicLibrary {

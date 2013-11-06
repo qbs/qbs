@@ -59,7 +59,7 @@
             \li script
             \li \c undefined
             \li Script for setting up the environment in which the project is built.
-            Use the \c putenv and \c getenv functions to alter the environment.
+            Use the \c putEnv and \c getEnv functions to alter the environment.
             The return value of this script is ignored.
         \row
             \li setupRunEnvironment

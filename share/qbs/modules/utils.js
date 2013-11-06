@@ -156,7 +156,7 @@ function EnvironmentVariable(name, separator, convertPathSeparators)
     if (!name)
         throw "EnvironmentVariable c'tor needs a name as first argument."
     this.name = name
-    this.value = getenv(name).toString()
+    this.value = getEnv(name).toString()
     this.separator = separator || ''
     this.convertPathSeparators = convertPathSeparators || false
 }
@@ -181,6 +181,6 @@ EnvironmentVariable.prototype.append = function(v)
 
 EnvironmentVariable.prototype.set = function()
 {
-    putenv(this.name, this.value)
+    putEnv(this.name, this.value)
 }
 

@@ -784,8 +784,9 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
     prototype->setProperty(QLatin1String("getNativeSetting"),
                            BuiltinValue::create(BuiltinValue::GetNativeSettingFunction));
-    prototype->setProperty(QLatin1String("getenv"),
-                           BuiltinValue::create(BuiltinValue::GetEnvFunction));
+    const BuiltinValuePtr getEnvValue = BuiltinValue::create(BuiltinValue::GetEnvFunction);
+    prototype->setProperty(QLatin1String("getEnv"), getEnvValue);
+    prototype->setProperty(QLatin1String("getenv"), getEnvValue); // TODO: Remove in 1.3.
     prototype->setProperty(QLatin1String("getHostOS"),
                            BuiltinValue::create(BuiltinValue::GetHostOSFunction));
     prototype->setProperty(QLatin1String("canonicalArchitecture"),

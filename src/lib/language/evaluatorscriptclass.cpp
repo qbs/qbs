@@ -224,7 +224,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(QScriptEngine *scriptEngine, const Lo
     , m_logger(logger)
 {
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
-    m_getenvBuiltin = scriptEngine->newFunction(js_getenv, 1);
+    m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
     m_getHostOSBuiltin = scriptEngine->newFunction(js_getHostOS, 1);
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
 }
@@ -394,7 +394,7 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
     case BuiltinValue::GetNativeSettingFunction:
         return m_getNativeSettingBuiltin;
     case BuiltinValue::GetEnvFunction:
-        return m_getenvBuiltin;
+        return m_getEnvBuiltin;
     case BuiltinValue::GetHostOSFunction:
         return m_getHostOSBuiltin;
     case BuiltinValue::CanonicalArchitectureFunction:
@@ -424,11 +424,11 @@ QScriptValue EvaluatorScriptClass::js_getNativeSetting(QScriptContext *context, 
     return value.isNull() ? engine->undefinedValue() : engine->toScriptValue(value);
 }
 
-QScriptValue EvaluatorScriptClass::js_getenv(QScriptContext *context, QScriptEngine *engine)
+QScriptValue EvaluatorScriptClass::js_getEnv(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(context->argumentCount() < 1)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getenv expects 1 argument"));
+                                   QLatin1String("getEnv expects 1 argument"));
     }
     const QString name = context->argument(0).toString();
     ScriptEngine * const e = static_cast<ScriptEngine *>(engine);
