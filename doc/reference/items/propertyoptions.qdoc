@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -26,37 +27,43 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROPERTY_FINDER_H
-#define QBS_PROPERTY_FINDER_H
+/*!
+    \contentspage list-of-items.html
+    \previouspage properties-item.html
+    \page propertyoptions-item.html
+    \nextpage rule-item.html
+    \ingroup list-of-items
 
-#include <QVariantList>
-#include <QVariantMap>
+    \title PropertyOptions Item
+    \brief Provides inline documentation for properties within product and module items.
 
-namespace qbs {
-namespace Internal {
+    A \c PropertyOptions item can appear inside a \l{Product Item} or \l{Module Item} to provide
+    inline documentation for properties.
 
-class PropertyFinder
-{
-public:
-    enum MergeType { DoMergeLists, DoNotMergeLists };
-    QVariantList propertyValues(const QVariantMap &properties, const QString &moduleName,
-                              const QString &key, MergeType mergeType = DoMergeLists);
+    \section1 PropertyOptions Properties
 
-    // Note that this can still be a list if the property type itself is one.
-    QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
-                         const QString &key);
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li allowedValues
+        \li stringList
+        \li undefined
+        \li A list of the values permitted by the property. \c{undefined} indicates that any value
+            is permitted.
+    \row
+        \li description
+        \li string
+        \li undefined
+        \li A brief description of the property.
+    \row
+        \li name
+        \li string
+        \li undefined
+        \li The name of the property to document.
+    \endtable
 
-private:
-    void findModuleValues(const QVariantMap &properties, bool searchRecursively);
-    void addToList(const QVariant &value);
-    static void mergeLists(QVariantList *values);
-
-    QString m_moduleName;
-    QString m_key;
-    QVariantList m_values;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // Include guard
+*/

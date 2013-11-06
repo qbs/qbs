@@ -104,9 +104,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
                                    parameters.overriddenValuesTree(),
                                    parameters.buildConfigurationTree(),
                                    true);
-    const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult,
-            parameters.buildRoot(), parameters.overriddenValuesTree(),
-            parameters.buildConfigurationTree());
+    const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult, parameters);
 
     // E.g. if the top-level project is disabled.
     if (m_progressObserver)

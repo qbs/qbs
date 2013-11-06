@@ -2,9 +2,9 @@ import qbs 1.0
 
 Product {
     type: "application"
-    name : "HelloWorld"
+    name : "app-and-lib-app"
     files : [ "main.cpp" ]
     Depends { name: "cpp" }
-    Depends { name: "lol" }
+    Depends { name: "app-and-lib-lib" }
 }
 

@@ -26,37 +26,32 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROPERTY_FINDER_H
-#define QBS_PROPERTY_FINDER_H
 
-#include <QVariantList>
-#include <QVariantMap>
+/*!
+    \contentspage index.html
+    \page jsextensions-general.html
+    \ingroup list-of-builtin-services
 
-namespace qbs {
-namespace Internal {
+    \title General Services
+    \brief Provides various operations.
 
-class PropertyFinder
-{
-public:
-    enum MergeType { DoMergeLists, DoNotMergeLists };
-    QVariantList propertyValues(const QVariantMap &properties, const QString &moduleName,
-                              const QString &key, MergeType mergeType = DoMergeLists);
+    These are operations that do not fit into any of the other categories.
+    They are automatically available in any qbs project file.
 
-    // Note that this can still be a list if the property type itself is one.
-    QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
-                         const QString &key);
+    \section1 Available Operations
 
-private:
-    void findModuleValues(const QVariantMap &properties, bool searchRecursively);
-    void addToList(const QVariant &value);
-    static void mergeLists(QVariantList *values);
+    \section2 getenv
+    \code
+    qbs.getenv(name)
+    \endcode
+    Tries to find a variable with the given name in the build environment and returns its value. If
+    no such variable could be found, \c undefined is returned.
 
-    QString m_moduleName;
-    QString m_key;
-    QVariantList m_values;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // Include guard
+    \section2 getHostOS
+    \code
+    qbs.getHostOS(name)
+    \endcode
+    Returns the name of the operating system on which qbs is running.
+    \note Do not confuse this with the \c{qbs.targetOS} property, which represents the operating
+    system on which the binaries produced by qbs will run.
+*/

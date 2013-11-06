@@ -1,3 +1,5 @@
+include(qbs_version.pri)
+
 QT += script xml
 
 QBSLIBDIR=$${PWD}/../../lib
@@ -7,12 +9,16 @@ unix {
 
 !disable_rpath:unix:QMAKE_LFLAGS += -Wl,-rpath,$${QBSLIBDIR}
 
+CONFIG(shared, static|shared) {
+    QBSCORELIBSUFFIX = $$QBS_VERSION_MAJ
+}
+
 win32 {
     CONFIG(debug, debug|release) {
-        QBSCORELIB = qbscored
+        QBSCORELIB = qbscored$$QBSCORELIBSUFFIX
     }
     CONFIG(release, debug|release) {
-        QBSCORELIB = qbscore
+        QBSCORELIB = qbscore$$QBSCORELIBSUFFIX
     }
     win32-msvc* {
         LIBS += /LIBPATH:$$QBSLIBDIR

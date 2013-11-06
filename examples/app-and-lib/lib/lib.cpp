@@ -26,37 +26,15 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROPERTY_FINDER_H
-#define QBS_PROPERTY_FINDER_H
 
-#include <QVariantList>
-#include <QVariantMap>
+#include <stdio.h>
 
-namespace qbs {
-namespace Internal {
+#ifndef CRUCIAL_DEFINE
+#   error CRUCIAL_DEFINE not defined
+#endif
 
-class PropertyFinder
+int bla()
 {
-public:
-    enum MergeType { DoMergeLists, DoNotMergeLists };
-    QVariantList propertyValues(const QVariantMap &properties, const QString &moduleName,
-                              const QString &key, MergeType mergeType = DoMergeLists);
-
-    // Note that this can still be a list if the property type itself is one.
-    QVariant propertyValue(const QVariantMap &properties, const QString &moduleName,
-                         const QString &key);
-
-private:
-    void findModuleValues(const QVariantMap &properties, bool searchRecursively);
-    void addToList(const QVariant &value);
-    static void mergeLists(QVariantList *values);
-
-    QString m_moduleName;
-    QString m_key;
-    QVariantList m_values;
-};
-
-} // namespace Internal
-} // namespace qbs
-
-#endif // Include guard
+    puts("Hello World!");
+    return 2;
+}

@@ -76,6 +76,6 @@ Project {
         name: "macappstore"
         files: "main.cpp"
         cpp.frameworks: "Foundation"
-        cpp.minimumSystemVersion: "10.6.8"
+        cpp.minimumOsxVersion: "10.6.8"
     }
 }

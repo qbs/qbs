@@ -130,8 +130,17 @@ void CommandLineFrontend::start()
         if (!m_parser.buildBeforeInstalling())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
-            params.setOverriddenValues(buildConfig);
-            params.setBuildConfiguration(buildConfig);
+            QVariantMap baseConfig;
+            QVariantMap userConfig = buildConfig;
+            QString buildVariantKey = QLatin1String("qbs.buildVariant");
+            baseConfig.insert(buildVariantKey, userConfig.take(buildVariantKey));
+            const QVariantMap::Iterator it = userConfig.find(QLatin1String("qbs.profile"));
+            if (it != userConfig.end()) {
+                baseConfig.insert(it.key(), it.value());
+                userConfig.erase(it);
+            }
+            params.setBuildConfiguration(baseConfig);
+            params.setOverriddenValues(userConfig);
             const ErrorInfo err = params.expandBuildConfiguration(m_settings);
             if (err.hasError())
                 throw err;
