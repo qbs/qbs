@@ -431,6 +431,12 @@ void TestBlackbox::clean()
     QVERIFY(QFile(depExeFilePath).exists());
 }
 
+void TestBlackbox::exportSimple()
+{
+    QDir::setCurrent(testDataDir + "/exportSimple");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::exportWithRecursiveDepends()
 {
     QDir::setCurrent(testDataDir + "/exportWithRecursiveDepends");
@@ -438,6 +444,21 @@ void TestBlackbox::exportWithRecursiveDepends()
     QbsRunParameters params;
     params.expectFailure = true; // Remove when test no longer fails.
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::fileTagger()
+{
+    QDir::setCurrent(testDataDir + "/fileTagger");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("moc bla.cpp"));
+}
+
+void TestBlackbox::rc()
+{
+    QDir::setCurrent(testDataDir + "/rc");
+    QCOMPARE(runQbs(), 0);
+    const bool rcFileWasCompiled = m_qbsStdout.contains("compiling test.rc");
+    QCOMPARE(rcFileWasCompiled, HostOsInfo::isWindowsHost());
 }
 
 void TestBlackbox::renameProduct()
@@ -1342,6 +1363,12 @@ void TestBlackbox::inheritQbsSearchPaths()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::objC()
+{
+    QDir::setCurrent(testDataDir + "/objc");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
@@ -1350,7 +1377,7 @@ void TestBlackbox::properQuoting()
     params.expectFailure = true; // Because the exit code is non-zero.
     QCOMPARE(runQbs(params), 156);
     const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
-            "backslash\\\nbackslash\\\nHello World! The magic number is 156.";
+            "backslash\\\nHello World! The magic number is 156.";
     QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
 }
 

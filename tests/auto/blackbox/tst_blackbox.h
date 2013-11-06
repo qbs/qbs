@@ -111,6 +111,7 @@ private slots:
     void jsExtensionsProcess();
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
+    void objC();
     void properQuoting();
     void propertiesBlocks();
     void resolve_project_data();
@@ -118,7 +119,10 @@ private slots:
     void resolve_project_dry_run_data();
     void resolve_project_dry_run();
     void clean();
+    void exportSimple();
     void exportWithRecursiveDepends();
+    void fileTagger();
+    void rc();
     void renameProduct();
     void renameTargetArtifact();
     void subProjects();

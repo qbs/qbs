@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -26,15 +27,43 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+/*!
+    \contentspage list-of-items.html
+    \previouspage module-item.html
+    \page probe-item.html
+    \nextpage product-item.html
+    \ingroup list-of-items
 
-#include <stdio.h>
+    \title Probe Item
+    \brief Locates files outside the project.
 
-#ifndef CRUCIAL_DEFINE
-#   error CRUCIAL_DEFINE not defined
-#endif
+    A \c Probe item can appear inside a \l{Product Item} and is run prior to building products in
+    order to locate dependent headers, libraries, and other files outside the project directory
+    whose locations are not known ahead of time. \c Probes are similar to configure scripts.
 
-int bla()
-{
-    puts("Hello WOrld!");
-    return 2;
-}
+    \section1 Probe Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li Determines whether the probe will actually be run.
+    \row
+        \li found
+        \li bool
+        \li undefined
+        \li Indicates whether the probe was run successfully. Set by \c configure.
+    \row
+        \li configure
+        \li script
+        \li undefined
+        \li Script that is executed when the probe is run.
+    \endtable
+
+*/

@@ -4,6 +4,7 @@ import "../apptemplate.qbs" as QbsApp
 QbsApp {
     Depends { name: "Qt.widgets" }
     name: "qbs-config-ui"
+    consoleApplication: false
     files: [
         "main.cpp",
         "mainwindow.cpp",

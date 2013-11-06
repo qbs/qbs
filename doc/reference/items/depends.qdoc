@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -26,7 +27,41 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+/*!
+    \contentspage list-of-items.html
+    \previouspage artifact-item.html
+    \page depends-item.html
+    \nextpage export-item.html
+    \ingroup list-of-items
 
-int main(){
-    return 3;
-}
+    \title Depends Item
+    \brief Represents dependencies between between products and modules.
+
+    A \c Depends item can appear inside a \l{Product Item} or \l{Module Item}.
+
+    \section1 Depends Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li Determines whether the dependency will actually be applied.
+    \row
+        \li name
+        \li string
+        \li undefined
+        \li The name of the dependent product or module.
+    \row
+        \li submodules
+        \li stringList
+        \li undefined
+        \li The submodules of \c module to depend on, if applicable.
+    \endtable
+
+*/

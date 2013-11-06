@@ -12,9 +12,7 @@ Project {
             'DEFINEWITHSPACE="contains space"',
             'DEFINEWITHTAB="contains\ttab"',
             'DEFINEWITHBACKSLASH="backslash\\\\"',
-            'DEFINEWITHBACKSLASHRAW=backslash\\\\'
         ]
-//        cpp.responseFileThreshold: 0
     }
 
     Product {
@@ -23,7 +21,6 @@ Project {
         files : [ "my static lib.cpp" ]
         Depends { name: "cpp" }
         Depends { name: "helper lib" }
-//        cpp.responseFileThreshold: 0
     }
 
     Product {
@@ -38,6 +35,5 @@ Project {
             Depends { name: "cpp" }
             cpp.includePaths: ['some helper']
         }
-//        cpp.responseFileThreshold: 0
     }
 }

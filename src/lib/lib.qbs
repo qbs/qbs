@@ -321,7 +321,10 @@ Product {
     }
     Group {
         name: "use_installed.pri"
-        files: "use_installed.pri"
+        files: [
+            "use_installed.pri",
+            "../../qbs_version.pri"
+        ]
         qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix
     }
@@ -338,7 +341,7 @@ Product {
         ]
     }
     Group {
-        fileTagsFilter: "dynamiclibrary"
+        fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
         qbs.install: true
         qbs.installDir: project.libInstallDir
     }

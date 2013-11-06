@@ -29,9 +29,6 @@
 
 #include <stdio.h>
 
-#define __stringify__(x) #x
-#define stringify(x) __stringify__(x)
-
 int bla();
 
 int main()
@@ -40,8 +37,6 @@ int main()
     printf(DEFINEWITHSPACE"\n");
     printf(DEFINEWITHTAB"\n");
     printf(DEFINEWITHBACKSLASH"\n");
-    printf(stringify(DEFINEWITHBACKSLASHRAW)"\n");
 
     return bla();
 }
-
