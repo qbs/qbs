@@ -232,7 +232,8 @@ UnixGCC {
 
                     process = new Process();
                     process.exec("sw_vers", ["-buildVersion"], true);
-                    aggregatePlist["BuildMachineOSBuild"] = process.readStdOut().trim();
+                    var osBuildVersion = process.readStdOut().trim();
+                    aggregatePlist["BuildMachineOSBuild"] = osBuildVersion;
                     process.close();
 
                     // setup env
@@ -244,10 +245,7 @@ UnixGCC {
                         "XCODE_PRODUCT_BUILD_VERSION": platformInfo["DTPlatformBuild"],
                         "PLATFORM_PRODUCT_BUILD_VERSION": platformInfo["ProductBuildVersion"],
                     }
-                    process = new Process();
-                    process.exec("sw_vers", ["-buildVersion"], true);
-                    env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = process.readStdOut().trim();
-                    process.close();
+                    env["MAC_OS_X_PRODUCT_BUILD_VERSION"] = osBuildVersion;
 
                     for (key in buildEnv)
                         env[key] = buildEnv[key];
