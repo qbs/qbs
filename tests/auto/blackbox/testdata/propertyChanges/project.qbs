@@ -44,4 +44,8 @@ Project {
             }
         }
     }
+
+    references: "ruletest.qbs"
+
+    qbsSearchPaths: "."
 }

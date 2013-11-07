@@ -413,6 +413,8 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
 {
     return !transformerListsAreEqual(restoredProduct->transformers,
                                      newlyResolvedProduct->transformers)
+            || !ruleListsAreEqual(restoredProduct->rules.toList(),
+                                  newlyResolvedProduct->rules.toList())
             || !dependenciesAreEqual(restoredProduct, newlyResolvedProduct)
             || checkForPropertyChanges(restoredProduct, newlyResolvedProduct);
     // TODO: Check for more stuff.
