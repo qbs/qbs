@@ -325,14 +325,17 @@ UnixGCC {
 
             cmd = new Command("ln", ["-sf", "Versions/Current/Headers", "Headers"]);
             cmd.workingDirectory = output.fileName;
+            cmd.silent = true;
             commands.push(cmd);
 
             cmd = new Command("ln", ["-sf", "Versions/Current/Resources", "Resources"]);
             cmd.workingDirectory = output.fileName;
+            cmd.silent = true;
             commands.push(cmd);
 
             cmd = new Command("ln", ["-sf", "Versions/Current/" + product.targetName, product.targetName]);
             cmd.workingDirectory = output.fileName;
+            cmd.silent = true;
             commands.push(cmd);
             return commands;
         }
