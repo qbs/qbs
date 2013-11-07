@@ -483,6 +483,8 @@
     \endtable
 
     Generate position independent code.
+    If this property is \c{undefined}, then position independent code is generated for libraries,
+    but not for applications.
 
     \section2 rpaths
 
