@@ -4,18 +4,18 @@ import qbs.FileInfo
 import "../utils.js" as ModUtils
 
 Module {
-    condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: getNativeSetting(registryKey)
+    property path toolchainInstallPath: qbs.getNativeSetting(registryKey)
 
-    property string version: versionMajor + "." + versionMinor
+    property string version: (versionMajor !== undefined && versionMinor !== undefined) ? (versionMajor + "." + versionMinor) : undefined
     property var versionParts: [ versionMajor, versionMinor, versionPatch, versionBuild ]
-    property int versionMajor: getNativeSetting(registryKey, "VersionMajor")
-    property int versionMinor: getNativeSetting(registryKey, "VersionMinor")
-    property int versionPatch: getNativeSetting(registryKey, "VersionPatch")
-    property int versionBuild: getNativeSetting(registryKey, "VersionRevision")
+    property int versionMajor: qbs.getNativeSetting(registryKey, "VersionMajor")
+    property int versionMinor: qbs.getNativeSetting(registryKey, "VersionMinor")
+    property int versionPatch: qbs.getNativeSetting(registryKey, "VersionPatch")
+    property int versionBuild: qbs.getNativeSetting(registryKey, "VersionRevision")
 
-    property string compilerName: "makensis.exe"
+    property string compilerName: "makensis"
     property string compilerPath: compilerName
 
     property string warningLevel: "normal"
@@ -59,23 +59,30 @@ Module {
 
     // Private properties
     property string registryKey: {
+        if (!qbs.hostOS.contains("windows"))
+            return undefined;
+
         var keys = [ "HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS" ];
         for (var i in keys) {
-            if (getNativeSetting(keys[i]))
+            if (qbs.getNativeSetting(keys[i]))
                 return keys[i];
         }
     }
 
     validate: {
-        if (!toolchainInstallPath)
+        // Only *require* the toolchain install path on Windows
+        // On other (Unix-like) operating systems it'll probably be in the PATH
+        if (qbs.hostOS.contains("windows") && !toolchainInstallPath)
             throw "nsis.toolchainInstallPath is not defined. Set nsis.toolchainInstallPath in your profile.";
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
-        v.prepend(toolchainInstallPath);
-        v.prepend(FileInfo.joinPaths(toolchainInstallPath, "bin"));
-        v.set();
+        if (toolchainInstallPath) {
+            var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
+            v.prepend(toolchainInstallPath);
+            v.prepend(FileInfo.joinPaths(toolchainInstallPath, "bin"));
+            v.set();
+        }
     }
 
     // NSIS Script File
@@ -104,8 +111,11 @@ Module {
             var i;
             var args = [];
 
+            // Prefix character for makensis options
+            var opt = product.moduleProperty("qbs", "hostOS").contains("windows") ? "/" : "-";
+
             if (ModUtils.moduleProperty(product, "disableConfig")) {
-                args.push("/NOCONFIG");
+                args.push(opt + "NOCONFIG");
             }
 
             var warningLevel = ModUtils.moduleProperty(product, "warningLevel");
@@ -115,7 +125,7 @@ Module {
                 if (level < 0) {
                     throw("Unexpected warning level '" + warningLevel + "'.");
                 } else {
-                    args.push("/V" + level);
+                    args.push(opt + "V" + level);
                 }
             }
 
@@ -131,25 +141,25 @@ Module {
                     for (var prop in obj) {
                         var val = obj[prop];
                         if (typeof val !== 'function' && typeof val !== 'object' && !prop.startsWith("_")) {
-                            args.push("/D" + prefix + prop + "=" + val);
+                            args.push(opt + "D" + prefix + prop + "=" + val);
                         }
                     }
                 }
 
                 // Users are likely to need this
                 var arch = product.moduleProperty("qbs", "architecture");
-                args.push("/Dqbs.architecture=" + arch);
+                args.push(opt + "Dqbs.architecture=" + arch);
 
                 // Helper define for alternating between 32-bit and 64-bit logic
                 if (arch === "x86_64" || arch === "ia64") {
-                    args.push("/DWin64");
+                    args.push(opt + "DWin64");
                 }
             }
 
             // User-supplied defines
             var defines = ModUtils.moduleProperty(product, "defines");
             for (i in defines) {
-                args.push("/D" + defines[i]);
+                args.push(opt + "D" + defines[i]);
             }
 
             // User-supplied flags
@@ -158,26 +168,28 @@ Module {
                 args.push(flags[i]);
             }
 
-            var inputFileNames = [];
-            for (i in inputs.nsi) {
-                inputFileNames.push(FileInfo.fileName(inputs.nsi[i].fileName));
-                args.push(FileInfo.toWindowsSeparators(inputs.nsi[i].fileName));
-            }
-
-            // These flags go last so they override any commands in the NSIS script...
-
-            // Output file name
-            args.push("/XOutFile " + output.fileName);
-
-            // Set the compression algorithm
+            // Override the compression algorithm if needed
             var compressor = ModUtils.moduleProperty(product, "compressor");
             if (compressor !== "default") {
-                var compressorFlag = "/XSetCompressor ";
+                var compressorFlag = opt + "XSetCompressor /FINAL ";
                 if (compressor.endsWith("-solid")) {
                     compressorFlag += "/SOLID ";
                 }
-                args.push(compressorFlag + "/FINAL " + compressor);
+                args.push(compressorFlag + compressor.split('-')[0]);
             }
+
+            var inputFileNames = [];
+            for (i in inputs.nsi) {
+                inputFileNames.push(FileInfo.fileName(inputs.nsi[i].fileName));
+                if (product.moduleProperty("qbs", "hostOS").contains("windows")) {
+                    args.push(FileInfo.toWindowsSeparators(inputs.nsi[i].fileName));
+                } else {
+                    args.push(inputs.nsi[i].fileName);
+                }
+            }
+
+            // Output file name - this goes last to override any OutFile command in the script
+            args.push(opt + "XOutFile " + output.fileName);
 
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = "compiling " + inputFileNames.join(", ");

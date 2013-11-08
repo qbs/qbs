@@ -1,3 +1,5 @@
+SetCompressor zlib
+
 !ifdef Win64
     Name "Qbs Hello - ${qbs.architecture} (64-bit)"
 !else

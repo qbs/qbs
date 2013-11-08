@@ -5,5 +5,5 @@ NSISSetup {
     targetName: "qbs-hello-" + qbs.architecture
     files: ["hello.nsi", "hello.bat"]
     nsis.defines: ["batchFile=hello.bat"]
-    nsis.compression: "lzma-solid"
+    nsis.compressor: "lzma-solid"
 }
