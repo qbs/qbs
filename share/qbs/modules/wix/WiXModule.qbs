@@ -6,9 +6,9 @@ import "../utils.js" as ModUtils
 Module {
     condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
 
-    property path toolchainInstallPath: getNativeSetting(registryKey, "InstallFolder")
-    property path toolchainInstallRoot: getNativeSetting(registryKey, "InstallRoot")
-    property string version: getNativeSetting(registryKey, "ProductVersion")
+    property path toolchainInstallPath: qbs.getNativeSetting(registryKey, "InstallFolder")
+    property path toolchainInstallRoot: qbs.getNativeSetting(registryKey, "InstallRoot")
+    property string version: qbs.getNativeSetting(registryKey, "ProductVersion")
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
     property int versionMinor: versionParts[1]
@@ -97,9 +97,9 @@ Module {
         var keyWoW64 = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\";
 
         for (i in knownVersions) {
-            if (getNativeSetting(keyNative + knownVersions[i], "ProductVersion"))
+            if (qbs.getNativeSetting(keyNative + knownVersions[i], "ProductVersion"))
                 return keyNative + knownVersions[i];
-            if (getNativeSetting(keyWoW64 + knownVersions[i], "ProductVersion"))
+            if (qbs.getNativeSetting(keyWoW64 + knownVersions[i], "ProductVersion"))
                 return keyWoW64 + knownVersions[i];
         }
     }
