@@ -18,6 +18,7 @@ Project {
             fileTags: ['text']
         }
         Depends { name: 'cpp' }
+        Depends { name: 'Qt.core' }
     }
 
     Rule {
@@ -39,6 +40,11 @@ Project {
                 }
                 return str;
             }
+
+            // check whether multipart module name translation is working
+            var actual = product.moduleProperty("Qt.core", "mocName");
+            if (!actual || !actual.contains("moc"))
+                throw "multipart module name translation is broken";
 
             // check whether we can access project properties here
             var expected = "CODEGEN_" + product.moduleProperty("qbs", "targetOS")[0].toUpperCase();
