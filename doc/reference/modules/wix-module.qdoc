@@ -85,7 +85,7 @@
     \endtable
 
     Passes most of the same preprocessor macros to the compiler as Visual Studio does.
-    This allows easier authoring WiX files that are compatible with both QBS and MSBuild.
+    This allows easier authoring WiX files that are compatible with both \QBS and MSBuild.
 
     \section2 includePaths
 

@@ -43,11 +43,11 @@
 
     \section1 Version \qbsversion
 
-    Qt Build Suite (Qbs) is a tool that helps simplify the build process for
-    developing projects across multiple platforms. Qbs can be used for any
+    Qt Build Suite (\QBS) is a tool that helps simplify the build process for
+    developing projects across multiple platforms. \QBS can be used for any
     software project, whether it is written in Qt or not.
 
-    Qbs is an all-in-one tool that generates a build graph from a high-level
+    \QBS is an all-in-one tool that generates a build graph from a high-level
     project description (like qmake or cmake) and additionally undertakes the
     task of executing the commands in the low-level build graph (like make).
 
@@ -55,21 +55,21 @@
     \l{http://bugreports.qt-project.org/}{Qt Bug Tracker}.
 
     \list
-       \li  \l{Introducing Qbs}
-       \li  \l{Setting Up Qbs}
+       \li  \l{Introduction}
+       \li  \l{Setup}
            \list
                \li  \l{System Requirements}
-               \li  \l{Building Qbs}
-               \li  \l{Configuring Qbs}
+               \li  \l{Building}
+               \li  \l{Configuring}
                \li  \l{Managing Qt Versions}
            \endlist
-       \li  \l{Using Qbs}
+       \li  \l{Usage}
            \list
                \li  \l{Language Introduction}
-               \li  \l{Building Applications with Qbs}
+               \li  \l{Building Applications}
                \li  \l{Running Applications}
                \li  \l{Installing Files}
-               \li  \l{Using Qbs Shell}
+               \li  \l{Using the Shell}
            \endlist
        \li  \l{Reference}
     \endlist
@@ -82,9 +82,9 @@
     \page overview.html
     \nextpage setup.html
 
-    \title Introducing Qbs
+    \title Introduction
 
-    Qbs builds applications based on the information in a project file that you
+    \QBS builds applications based on the information in a project file that you
     specify in a QML dialect. Each project file specifies one project that can
     contain several \l{Product Item}{products}. You specify the type of the product: application,
     library, and so on.
@@ -97,12 +97,12 @@
     \page setup.html
     \nextpage system-requirements.html
 
-    \title Setting Up Qbs
+    \title Setup
 
     \list
         \li  \l{System Requirements}
-        \li  \l{Building Qbs}
-        \li  \l{Configuring Qbs}
+        \li  \l{Building}
+        \li  \l{Configuring}
         \li  \l{Managing Qt Versions}
     \endlist
 */
@@ -116,7 +116,7 @@
 
     \title System Requirements
 
-    To build Qbs from the source, you need the following:
+    To build \QBS from the source, you need the following:
 
     \list
 
@@ -133,9 +133,9 @@
     \page building.html
     \nextpage configuring.html
 
-    \title Building Qbs
+    \title Building
 
-    To build Qbs, enter the following command:
+    To build \QBS, enter the following command:
 
     \code
         qmake -r qbs.pro && make
@@ -143,13 +143,13 @@
 
     \section1 Configure Options
 
-    Qbs recognizes the following qmake CONFIG options to customize the build:
+    \QBS recognizes the following qmake CONFIG options to customize the build:
 
     \table
     \header \li Option              \li Notes
     \row    \li all_tests           \li Enable additional autotests.
     \row    \li disable_rpath       \li Disable the use of rpath. This can be used when packaging
-                                        Qbs for distributions which do not permit the use of rpath,
+                                        \QBS for distributions which do not permit the use of rpath,
                                         such as Fedora.
     \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a
                                         non-developer build.
@@ -164,7 +164,7 @@
     \page configuring.html
     \nextpage qt-versions.html
 
-    \title Configuring Qbs
+    \title Configuring
 
     Open a build shell (on Windows open an MSVC command prompt,
     on other platforms you can usually open the default shell):
@@ -178,7 +178,7 @@
     qbs config --list profiles
     \endcode
 
-    Now you should be ready to build your first project with Qbs.
+    Now you should be ready to build your first project with \QBS.
     Go into qbs/tests/manual/hello and type:
 
     \code
@@ -200,7 +200,7 @@
 
     \section1 Introduction
 
-    To let Qbs know where the Qt build or Qt version is that you want to use,
+    To let \QBS know where the Qt build or Qt version is that you want to use,
     you must register it.
 
     Register a Qt version like this:
@@ -296,14 +296,14 @@
     \page usage.html
     \nextpage language-introduction.html
 
-    \title Using Qbs
+    \title Usage
 
     \list
         \li  \l{Language Introduction}
-        \li  \l{Building Applications with Qbs}
+        \li  \l{Building Applications}
         \li  \l{Running Applications}
         \li  \l{Installing Files}
-        \li  \l{Using Qbs Shell}
+        \li  \l{Using the Shell}
     \endlist
 
 */
@@ -317,13 +317,13 @@
 
     \title Language Introduction
 
-    Qbs uses project files (*.qbs) to describe the contents of a project.
+    \QBS uses project files (*.qbs) to describe the contents of a project.
     A project contains one or more \l{Product Item}{products}. A product is the target of a build
     process, typically an application, library or maybe a tar ball.
 
     \section1 The Obligatory Hello World Example
 
-    Qbs project files are written using a QML dialect.
+    \QBS project files are written using a QML dialect.
     A very simple C++ hello world project looks like this:
     \code ---helloworld.qbs---
         import qbs 1.0
@@ -353,13 +353,13 @@
     Unlike QML, the right-hand side can be either a string or a string list.
     A single string is converted to a stringlist containing just one element.
 
-    \a Depends adds the dependency to the module \l{Module cpp}{cpp}. This is necessary to let Qbs know that
+    \a Depends adds the dependency to the module \l{Module cpp}{cpp}. This is necessary to let \QBS know that
     we have a C++ project and want to compile main.cpp with a C++ compiler. For more information
-    about Qbs modules, see \l{Modules}.
+    about \QBS modules, see \l{Modules}.
 
 
-    \section1 Reusing Qbs Project File Code
-    QML-like inheritance works also in Qbs.
+    \section1 Reusing Project File Code
+    QML-like inheritance works also in \QBS.
 
     \code
     ---CrazyProduct.qbs---
@@ -578,7 +578,7 @@
 
     \section1 File Tags and Taggers
 
-    Qbs itself knows nothing about C++ files or file extensions. All source files
+    \QBS itself knows nothing about C++ files or file extensions. All source files
     in a product are handled equally. However, you can assign \a{file tags} to an artifact
     to act as a marker or to specify a file type.
 
@@ -647,13 +647,13 @@
 
     \section1 Rules
 
-    Qbs applies a \e rule to a pool of artifacts (in the beginning it is just the set of
+    \QBS applies a \e rule to a pool of artifacts (in the beginning it is just the set of
     source files of the project) and chooses the ones that match the input file
     tags specified by the rule. Then it creates output artifacts in the build graph that have other
     filenames and file tags. It also creates a script that transforms the input artifact into the
     output artifact.
 
-    For examples of rules, see the share/qbs/modules directory in the Qbs
+    For examples of rules, see the share/qbs/modules directory in the \QBS
     repository.
 
     You can define rules in your own module to be provided along with
@@ -669,7 +669,7 @@
     \page building-applications.html
     \nextpage running-applications.html
 
-    \title Building Applications with Qbs
+    \title Building Applications
 
     To build applications from the command line, enter the following commands:
 
@@ -728,7 +728,7 @@
     Here, we want the installDir properties from the project file to be interpreted relative
     to the directory \c{/tmp/myProjectRoot}, and we want that directory to be removed first.
     If the \c{--install-root} option is not given, a default is used, namely \c{<build root>/install-root}.
-    Qbs understands the special install root value \c{@sysroot}, which stands for the value of
+    \QBS understands the special install root value \c{@sysroot}, which stands for the value of
     the property \c{qbs.sysroot}.
 */
 
@@ -759,9 +759,9 @@
     \page shell.html
     \nextpage reference.html
 
-    \title Using Qbs Shell
+    \title Using the Shell
 
-    To use the Qbs shell, enter the following command:
+    To use the \QBS shell, enter the following command:
 
     \code
     qbs shell

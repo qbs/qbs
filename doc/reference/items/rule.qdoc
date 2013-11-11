@@ -41,7 +41,7 @@
     one or more artifacts (e.g. C++ linker).
     A \e {non-multiplex rule} creates one transformer per matching input file (e.g. C++
     compiler).
-    As a real-world example of a non-multiplex rule, here is a simplified version of qbs' rule for
+    As a real-world example of a non-multiplex rule, here is a simplified version of \QBS' rule for
     transforming C++ sources into object files using gcc:
     \code
     Rule {

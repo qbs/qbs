@@ -44,7 +44,7 @@
     \contentspage reference.html
     \group list-of-builtin-services
     \title List of Built-in Services
-    Qbs provides the following built-in JavaScript extensions to simplify operations that
+    \QBS provides the following built-in JavaScript extensions to simplify operations that
     are expected to be needed often in project files.
 */
 
@@ -52,12 +52,12 @@
     \contentspage reference.html
     \group list-of-modules
     \title List of Modules
-    These are the modules shipped with qbs.
+    These are the modules shipped with \QBS.
 */
 
 /*!
     \contentspage reference.html
     \group list-of-items
     \title List of Language Items
-    Qbs provides the following built-in QML items to define projects.
+    \QBS provides the following built-in QML items to define projects.
 */

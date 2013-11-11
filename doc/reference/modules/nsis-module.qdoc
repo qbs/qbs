@@ -42,7 +42,7 @@
     This module is only available on Windows.
 
     \note A typical NSIS script includes an OutFile command to set the filename of the generated
-    installer executable. However, Qbs overrides any OutFile commands found in the script, and
+    installer executable. However, \QBS overrides any OutFile commands found in the script, and
     therefore, you must use the targetName property to set the filename.
 
     \section1 General Properties

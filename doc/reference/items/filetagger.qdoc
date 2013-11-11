@@ -38,7 +38,7 @@
 
     This item maps file patterns to tags. It can be attached to a product or a module.
     In the latter case, its effect is the same as if it had been attached to all products having
-    a dependency on the respective module. For instance, the cpp module of Qbs has, among others,
+    a dependency on the respective module. For instance, the cpp module of \QBS has, among others,
     the following file tagger:
     \code
     FileTagger {

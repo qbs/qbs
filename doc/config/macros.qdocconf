@@ -21,6 +21,7 @@ macro.QL                = "\\e{Qt Linguist}"
 macro.QMLD              = "\\e{Qt Quick Designer}"
 macro.QQV               = "\\e{Qt QML Viewer}"
 macro.QSDK              = "\\e{Qt SDK}"
+macro.QBS               = "Qbs"
 macro.qbsversion        = $QBS_VERSION
 macro.param             = "\\e"
 macro.raisedaster.HTML  = "<sup>*</sup>"

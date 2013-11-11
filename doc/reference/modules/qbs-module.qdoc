@@ -87,7 +87,7 @@
     \row    \li \b{Type:}            \li \c{stringList} (read only)
     \endtable
 
-    This property is set by qbs internally and specifies the OS qbs is running on.
+    This property is set by \QBS internally and specifies the OS \QBS is running on.
     The possible values for this property are the values of \c targetOS,
     though some may not be supported.
 
@@ -268,7 +268,7 @@
 
     Specifies the global installation prefix. It is implicitly prepended to all values
     of \c installDir. The \c installPrefix itself is relative to the install root, which is not
-    a property of qbs, but an external installation parameter.
+    a property of \QBS, but an external installation parameter.
 
     \section1 pathListSeparator
 

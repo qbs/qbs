@@ -65,7 +65,7 @@
      }
      \endcode
      When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
-     By default, matching files are only picked up directly from the parent directory, but you can tell Qbs to
+     By default, matching files are only picked up directly from the parent directory, but you can tell \QBS to
      consider the whole directory tree. It is also possible to exclude certain files from the list.
      The pattern ** used in a pathname expansion context will match all files and zero or more
      directories and subdirectories.

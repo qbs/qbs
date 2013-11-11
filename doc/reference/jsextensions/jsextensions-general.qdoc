@@ -36,7 +36,7 @@
     \brief Provides various operations.
 
     These are operations that do not fit into any of the other categories.
-    They are automatically available in any qbs project file.
+    They are automatically available in any \QBS project file.
 
     \section1 Available Operations
 
@@ -51,7 +51,7 @@
     \code
     qbs.getHostOS(name)
     \endcode
-    Returns the name of the operating system on which qbs is running.
+    Returns the name of the operating system on which \QBS is running.
     \note Do not confuse this with the \c{qbs.targetOS} property, which represents the operating
-    system on which the binaries produced by qbs will run.
+    system on which the binaries produced by \QBS will run.
 */
