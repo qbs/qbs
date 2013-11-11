@@ -205,9 +205,19 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
                                productsWithChangedFiles);
 
     QSharedPointer<ProjectBuildData> oldBuildData;
+    ChildListHash childLists;
     if (!changedProducts.isEmpty() || !productsWithChangedFiles.isEmpty()) {
         oldBuildData = QSharedPointer<ProjectBuildData>(
                     new ProjectBuildData(restoredProject->buildData.data()));
+        foreach (const ResolvedProductConstPtr &product, allRestoredProducts) {
+            if (!product->buildData)
+                continue;
+
+            // If the product gets temporarily removed, its artifacts will get disconnected
+            // and this structural information will no longer be directly available from them.
+            foreach (const Artifact * const a, product->buildData->artifacts)
+                childLists.insert(a, a->children);
+        }
     }
 
     // For products with "serious" changes such as different prepare scripts, we set up the
@@ -285,7 +295,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 
     foreach (const ResolvedProductConstPtr &changedProduct, changedProducts) {
         rescueOldBuildData(changedProduct, freshProductsByName.value(changedProduct->name),
-                           oldBuildData.data());
+                           oldBuildData.data(), childLists);
     }
 
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
@@ -700,7 +710,7 @@ static bool commandsEqual(const TransformerConstPtr &t1, const TransformerConstP
  */
 void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
         const ResolvedProductPtr &newlyResolvedProduct,
-        const ProjectBuildData *oldBuildData)
+        const ProjectBuildData *oldBuildData, const ChildListHash &childLists)
 {
     if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
         return;
@@ -733,11 +743,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         }
         artifact->setTimestamp(oldArtifact->timestamp());
 
-        foreach (Artifact * const oldChild, oldArtifact->children) {
-            // skip transform edges
-            if (oldArtifact->transformer->inputs.contains(oldChild))
-                continue;
-
+        foreach (Artifact * const oldChild, childLists.value(oldArtifact)) {
             foreach (FileResourceBase *childFileRes,
                      newlyResolvedProduct->topLevelProject()->buildData->lookupFiles(oldChild)) {
                 Artifact * const child = dynamic_cast<Artifact *>(childFileRes);
