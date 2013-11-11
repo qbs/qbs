@@ -1527,7 +1527,7 @@ void TestBlackbox::testAssembly()
 {
     SettingsPtr settings = qbsSettings();
     Profile profile(buildProfileName, settings.data());
-    bool haveGcc = profile.value("qbs.toolchain").toString().contains("gcc");
+    bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
     QCOMPARE((bool)m_qbsStdout.contains("compiling testa.s"), haveGcc);
