@@ -11,7 +11,7 @@
  */
 function fileTagForTargetLanguage(fileTags)
 {
-    var srcTags = ["c", "cpp", "objc", "objcpp"];
+    var srcTags = ["c", "cpp", "objc", "objcpp", "asm", "asm_cpp"];
     var pchTags = ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"];
 
     var canonicalTag = undefined;
