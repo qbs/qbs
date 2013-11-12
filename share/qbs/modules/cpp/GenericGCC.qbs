@@ -13,6 +13,7 @@ CppModule {
     property string toolchainPrefix
     property path toolchainInstallPath
     compilerName: 'g++'
+    linkerName: "g++"
     property string archiverName: 'ar'
     property path sysroot: qbs.sysroot
     property path platformPath
@@ -30,6 +31,7 @@ CppModule {
     }
 
     compilerPath: toolchainPathPrefix + compilerName
+    linkerPath: toolchainPathPrefix + linkerName
     property path archiverPath: { return toolchainPathPrefix + archiverName }
 
     readonly property bool shouldCreateSymlinks: {
@@ -135,7 +137,7 @@ CppModule {
             args.push(libFilePath);
             args = args.concat(Gcc.libraryLinkerFlags(product, inputs));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(libFilePath);
             cmd.highlight = 'linker';
             cmd.responseFileUsagePrefix = '@';
@@ -262,7 +264,7 @@ CppModule {
 
             args = args.concat(Gcc.libraryLinkerFlags(product, inputs));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-            var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
             cmd.highlight = 'linker'
             cmd.responseFileUsagePrefix = '@';
