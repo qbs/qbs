@@ -37,6 +37,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/preferences.h>
+#include <tools/propertyfinder.h>
 
 #include <QDir>
 #include <QProcess>
@@ -126,15 +127,32 @@ int RunEnvironment::runShell()
 
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
+    const QStringList targetOS = PropertyFinder().propertyValue(
+                d->resolvedProduct->properties->value(),
+                QLatin1String("qbs"),
+                QLatin1String("targetOS")).toStringList();
+
     QString targetExecutable = targetBin;
     QStringList targetArguments = arguments;
     const QString completeSuffix = QFileInfo(targetBin).completeSuffix();
 
-    if (HostOsInfo::isWindowsHost() && completeSuffix == QLatin1String("msi")) {
-        targetExecutable = QLatin1String("msiexec");
-        targetArguments.prepend(QDir::toNativeSeparators(targetBin));
-        targetArguments.prepend(QLatin1String("/package"));
-    } else if (!QFileInfo(targetExecutable).isExecutable()) {
+    if (targetOS.contains(QLatin1String("windows"))) {
+        if (completeSuffix == QLatin1String("msi")) {
+            targetExecutable = QLatin1String("msiexec");
+            targetArguments.prepend(QDir::toNativeSeparators(targetBin));
+            targetArguments.prepend(QLatin1String("/package"));
+        }
+
+        // Run Windows executables through Wine when not on Windows
+        if (!HostOsInfo::isWindowsHost()) {
+            targetArguments.prepend(targetExecutable);
+            targetExecutable = QLatin1String("wine");
+        }
+    }
+
+    // Only check if the target is executable if we're not running it through another
+    // known application such as msiexec or wine, as we can't check in this case anyways
+    if (targetBin == targetExecutable && !QFileInfo(targetExecutable).isExecutable()) {
         d->logger.qbsLog(LoggerError) << Tr::tr("File '%1' is not an executable.")
                                 .arg(QDir::toNativeSeparators(targetExecutable));
         return EXIT_FAILURE;
