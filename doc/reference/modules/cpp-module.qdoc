@@ -322,7 +322,7 @@
     \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
     \endtable
 
-    Directory where the compiler binary is located. This is set in the build profile.
+    Full path of the compiler binary. This is set in the build profile.
 
     \section2 compilerWrapper
 
