@@ -112,7 +112,7 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
         pool.load(buildGraphFilePath);
     } catch (const ErrorInfo &loadError) {
         if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
-            throw loadError;
+            throw;
         m_logger.qbsInfo() << loadError.toString();
         return m_result;
     }
