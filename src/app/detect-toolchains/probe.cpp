@@ -217,6 +217,8 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     profile.setValue("qbs.toolchain", QStringList() << "mingw" << "gcc");
     profile.setValue(QLatin1String("qbs.architecture"),
                      HostOsInfo::canonicalArchitecture(QString::fromLatin1(architecture)));
+    profile.setValue(QLatin1String("qbs.endianness"),
+                     QLatin1String("little"));
     profiles << profile;
 }
 
