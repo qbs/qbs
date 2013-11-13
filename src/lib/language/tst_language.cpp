@@ -329,6 +329,8 @@ void TestLanguage::erroneousFiles_data()
             << "Item 'cpp' is not declared.";
     QTest::newRow("undeclared_property")
             << "Property 'doesntexist' is not declared.";
+    QTest::newRow("unknown_item_type")
+            << "Unexpected item type 'Narf'";
 }
 
 void TestLanguage::erroneousFiles()

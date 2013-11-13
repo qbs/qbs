@@ -124,6 +124,11 @@ QByteArray BuiltinDeclarations::qmlTypeInfo() const
     return result;
 }
 
+bool BuiltinDeclarations::containsType(const QString &typeName) const
+{
+    return m_builtins.contains(typeName);
+}
+
 QList<PropertyDeclaration> BuiltinDeclarations::declarationsForType(const QString &typeName) const
 {
     return m_builtins.value(typeName);

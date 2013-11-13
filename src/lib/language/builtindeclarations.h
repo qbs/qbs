@@ -47,6 +47,7 @@ public:
 
     QString languageVersion() const;
     QByteArray qmlTypeInfo() const;
+    bool containsType(const QString &typeName) const;
     QList<PropertyDeclaration> declarationsForType(const QString &typeName) const;
     void setupItemForBuiltinType(qbs::Internal::Item *item) const;
 
