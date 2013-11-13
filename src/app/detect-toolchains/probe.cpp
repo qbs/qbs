@@ -203,6 +203,11 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
         return;
     }
 
+    QByteArray architecture = gccMachineName.split('-').first();
+    if (architecture == "mingw32")
+        architecture = "x86";
+    else if (architecture == "mingw64")
+        architecture = "x86_64";
 
     Profile profile(QString::fromLocal8Bit(gccMachineName), settings);
     qbsInfo() << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
@@ -210,6 +215,8 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     profile.setValue("cpp.toolchainInstallPath", mingwBinPath);
     profile.setValue("cpp.compilerName", QLatin1String("g++.exe"));
     profile.setValue("qbs.toolchain", QStringList() << "mingw" << "gcc");
+    profile.setValue(QLatin1String("qbs.architecture"),
+                     HostOsInfo::canonicalArchitecture(QString::fromLatin1(architecture)));
     profiles << profile;
 }
 
