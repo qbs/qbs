@@ -3,7 +3,7 @@ import "../../version.js" as Version
 
 Product {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["core", "script", "xml"] }
+    Depends { name: "Qt"; submodules: ["core", "gui", "script", "xml"] }
     Depends { condition: project.enableUnitTests; name: "Qt.test" }
     name: "qbscore"
     version: Version.qbsVersion()
@@ -41,12 +41,16 @@ Product {
         name: "api"
         prefix: name + '/'
         files: [
+            "changeset.cpp",
+            "changeset.h",
             "internaljobs.cpp",
             "internaljobs.h",
             "jobs.cpp",
             "project.cpp",
             "projectdata.cpp",
             "projectdata_p.h",
+            "qmljsrewriter.cpp",
+            "qmljsrewriter.h",
             "propertymap_p.h",
             "runenvironment.cpp",
         ]

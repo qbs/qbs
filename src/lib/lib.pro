@@ -1,4 +1,4 @@
-QT = core script
+QT = core script gui
 all_tests:QT += testlib
 
 TEMPLATE = lib
