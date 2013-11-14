@@ -1,0 +1,21 @@
+import qbs
+
+CppApplication {
+    Group {
+        name: "Existing Group 1"
+        files: ["existingfile1.txt"]
+    }
+    property string aFile: "existingfile2.txt"
+    Group {
+        name: "Existing Group 2"
+        files: product.aFile
+    }
+    Group {
+        name: "Existing Group 3"
+        files: {
+            var file = "existingfile3.txt";
+            return file;
+        }
+    }
+    files: "main.cpp"
+}

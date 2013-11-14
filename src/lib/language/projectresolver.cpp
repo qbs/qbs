@@ -831,11 +831,11 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
 void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
 {
     foreach (const SourceArtifactPtr &artifact, product->allEnabledFiles())
-        applyFileTaggers(artifact, product);
+        applyFileTaggers(artifact, product, m_logger);
 }
 
 void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
-                                       const ResolvedProductConstPtr &product) const
+        const ResolvedProductConstPtr &product, const Logger &logger)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
         const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
@@ -843,8 +843,8 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
+        if (logger.traceEnabled())
+            logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
                        << " to " << fileName;
     }
 }

@@ -35,7 +35,9 @@
 #include <api/project.h>
 #include <api/projectdata.h>
 #include <logging/ilogsink.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/buildoptions.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/setupprojectparameters.h>
@@ -44,6 +46,7 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QScopedPointer>
+#include <QStringList>
 #include <QTest>
 
 class LogSink: public qbs::ILogSink
@@ -54,13 +57,36 @@ class LogSink: public qbs::ILogSink
     void doPrintMessage(qbs::LoggerLevel, const QString &, const QString &) { }
 };
 
-TestApi::TestApi() : m_logSink(new LogSink)
+class BuildDescriptionReveiver : public QObject
+{
+    Q_OBJECT
+public:
+    QString descriptions;
+
+private slots:
+    void handleDescription(const QString &, const QString &description) {
+        descriptions += description;
+    }
+};
+
+TestApi::TestApi()
+    : m_logSink(new LogSink)
+    , m_sourceDataDir(QDir::cleanPath(SRCDIR "/testdata"))
+    , m_workingDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/api/testWorkDir")
 {
 }
 
 TestApi::~TestApi()
 {
     delete m_logSink;
+}
+
+void TestApi::initTestCase()
+{
+    QString errorMessage;
+    qbs::Internal::removeDirectoryWithContents(m_workingDataDir, &errorMessage);
+    QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
+            m_workingDataDir, false, &errorMessage), qPrintable(errorMessage));
 }
 
 static void waitForFinished(qbs::AbstractJob *job)
@@ -70,11 +96,160 @@ static void waitForFinished(qbs::AbstractJob *job)
     loop.exec();
 }
 
+
+void printProjectData(const qbs::ProjectData &project)
+{
+    foreach (const qbs::ProductData &p, project.products()) {
+        qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
+        foreach (const qbs::GroupData &g, p.groups()) {
+            qDebug("        Group '%s' at %s", qPrintable(g.name()), qPrintable(g.location().toString()));
+            qDebug("            Files: %s", qPrintable(g.filePaths().join(QLatin1String(", "))));
+        }
+    }
+}
+
+qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
+{
+    foreach (const qbs::GroupData &g, product.groups()) {
+        if (g.name() == name)
+            return g;
+    }
+    return qbs::GroupData();
+}
+
+void TestApi::changeContent()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
+        "/project-editing/project.qbs"));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::Project project = job->project();
+    qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    qbs::ProductData product = projectData.allProducts().first();
+    QCOMPARE(product.groups().count(), 4);
+
+    // Error handling: Invalid product.
+    qbs::ErrorInfo errorInfo = project.addGroup(qbs::ProductData(), "blubb");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY(errorInfo.toString().contains("invalid"));
+
+    // Error handling: Empty group name.
+    errorInfo = project.addGroup(product, QString());
+    QVERIFY(errorInfo.hasError());
+    QVERIFY(errorInfo.toString().contains("empty"));
+
+    errorInfo = project.addGroup(product, "New Group 1");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    errorInfo = project.addGroup(product, "New Group 2");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Error handling: Group already inserted.
+    errorInfo = project.addGroup(product, "New Group 1");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY(errorInfo.toString().contains("already"));
+
+    // Error handling: Add list of files with double entries.
+    errorInfo = project.addFiles(product, qbs::GroupData(), QStringList() << "file.cpp"
+                                 << "file.cpp");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("more than once"), qPrintable(errorInfo.toString()));
+
+    // Add files to empty array literal.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    QCOMPARE(product.groups().count(), 6);
+    qbs::GroupData group = findGroup(product, "New Group 1");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Error handling: Add the same file again.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    QCOMPARE(product.groups().count(), 6);
+    group = findGroup(product, "New Group 1");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "file.cpp");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("already"), qPrintable(errorInfo.toString()));
+
+    // Add file to non-empty array literal.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Existing Group 1");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "newfile1.txt");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Add files to list represented as a single string.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    errorInfo = project.addFiles(product, qbs::GroupData(), QStringList() << "newfile2.txt");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Add files to list represented as an identifier (not yet implmented).
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Existing Group 2");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "newfile3.txt");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
+
+    // Add files to list represented as a block of code (not yet implemented).
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Existing Group 3");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "newfile4.txt");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
+
+    // Check whether building will take the newly added cpp file into account.
+    // This must not be moved below the re-resolving test!!!
+    qbs::BuildOptions buildOptions;
+    buildOptions.setDryRun(true);
+    m_logSink->setLogLevel(qbs::LoggerMaxLevel);
+    BuildDescriptionReveiver rcvr;
+    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, this));
+    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString, QString)), &rcvr,
+            SLOT(handleDescription(QString,QString)));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
+
+    // Now check whether the data updates were done correctly.
+    projectData = project.projectData();
+    job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    const qbs::ProjectData newProjectData = job->project().projectData();
+    const bool projectDataMatches = newProjectData == projectData;
+    if (!projectDataMatches) {
+        qDebug("This is the assumed project:");
+        printProjectData(projectData);
+        qDebug("This is the actual project:");
+        printProjectData(newProjectData);
+    }
+    QVERIFY(projectDataMatches); // Will fail if e.g. code locations don't match.
+}
+
 void TestApi::disabledInstallGroup()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
-        "/disabled_install_group/project.qbs")));
+    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
+        "/disabled_install_group/project.qbs"));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -95,8 +270,8 @@ void TestApi::disabledInstallGroup()
 void TestApi::fileTagsFilterOverride()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
-        "/filetagsfilter_override/project.qbs")));
+    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
+        "/filetagsfilter_override/project.qbs"));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -176,7 +351,7 @@ void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
     const QString projectDir
-            = QDir::cleanPath(QLatin1String(SRCDIR "/testdata/nonexistingprojectproperties"));
+            = QDir::cleanPath(m_workingDataDir + "/nonexistingprojectproperties");
     const QString topLevelProjectFile = projectDir + QLatin1String("/invalidaccessfromproduct.qbs");
     setupParams.setProjectFilePath(topLevelProjectFile);
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
@@ -191,8 +366,7 @@ void TestApi::nonexistingProjectPropertyFromProduct()
 void TestApi::nonexistingProjectPropertyFromCommandLine()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir
-            = QDir::cleanPath(QLatin1String(SRCDIR "/testdata/nonexistingprojectproperties"));
+    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/nonexistingprojectproperties");
     const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
     setupParams.setProjectFilePath(topLevelProjectFile);
     QVariantMap projectProperties;
@@ -227,3 +401,5 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 }
 
 QTEST_MAIN(TestApi)
+
+#include "tst_api.moc"

@@ -49,6 +49,8 @@ class BuildJob;
 class BuildOptions;
 class CleanJob;
 class CleanOptions;
+class ErrorInfo;
+class GroupData;
 class ILogSink;
 class InstallableFile;
 class InstallJob;
@@ -119,6 +121,10 @@ public:
     QHash<QString, QString> usedEnvironment() const;
 
     QSet<QString> buildSystemFiles() const;
+
+    ErrorInfo addGroup(const ProductData &product, const QString &groupName);
+    ErrorInfo addFiles(const ProductData &product, const GroupData &group,
+                       const QStringList &filePaths);
 
 private:
     Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);

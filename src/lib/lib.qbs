@@ -49,6 +49,8 @@ Product {
             "project.cpp",
             "projectdata.cpp",
             "projectdata_p.h",
+            "projectfileupdater.cpp",
+            "projectfileupdater.h",
             "qmljsrewriter.cpp",
             "qmljsrewriter.h",
             "propertymap_p.h",

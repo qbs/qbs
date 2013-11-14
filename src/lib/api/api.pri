@@ -2,6 +2,7 @@ HEADERS += \
     $$PWD/changeset.h \
     $$PWD/internaljobs.h \
     $$PWD/projectdata.h \
+    $$PWD/projectfileupdater.h \
     $$PWD/runenvironment.h \
     $$PWD/jobs.h \
     $$PWD/project.h \
@@ -12,6 +13,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/changeset.cpp \
     $$PWD/internaljobs.cpp \
+    $$PWD/projectfileupdater.cpp \
     $$PWD/runenvironment.cpp \
     $$PWD/projectdata.cpp \
     $$PWD/jobs.cpp \

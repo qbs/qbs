@@ -32,13 +32,18 @@
 #include "jobs.h"
 #include "projectdata.h"
 #include "projectdata_p.h"
+#include "projectfileupdater.h"
 #include "propertymap_p.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
+#include <buildgraph/buildgraph.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/productinstaller.h>
+#include <buildgraph/projectbuilddata.h>
+#include <buildgraph/rulesevaluationcontext.h>
 #include <buildgraph/timestampsupdater.h>
 #include <language/language.h>
+#include <language/projectresolver.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/cleanoptions.h>
@@ -108,6 +113,17 @@ public:
     QList<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
     QList<ResolvedProductPtr> allEnabledInternalProducts() const;
     ResolvedProductPtr internalProduct(const ProductData &product) const;
+    ProductData findProductData(const QString &productName) const;
+    GroupData findGroupData(const ProductData &product, const QString &groupName) const;
+
+    GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup);
+
+    void addGroup(const ProductData &product, const QString &groupName);
+    void addFiles(const ProductData &product, const GroupData &group, const QStringList &filePaths);
+    void updateInternalCodeLocations(const ResolvedProjectPtr &project,
+                                     const CodeLocation &changeLocation, int lineOffset);
+    void updateExternalCodeLocations(const ProjectData &project,
+                                     const CodeLocation &changeLocation, int lineOffset);
 
     const TopLevelProjectPtr internalProject;
     Logger logger;
@@ -220,6 +236,235 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
     return internalProductForProject(internalProject, product);
 }
 
+ProductData ProjectPrivate::findProductData(const QString &productName) const
+{
+    foreach (const ProductData &p, m_projectData.allProducts()) {
+        if (p.name() == productName)
+            return p;
+    }
+    return ProductData();
+}
+
+GroupData ProjectPrivate::findGroupData(const ProductData &product, const QString &groupName) const
+{
+    foreach (const GroupData &g, product.groups()) {
+        if (g.name() == groupName)
+            return g;
+    }
+    return GroupData();
+}
+
+GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup)
+{
+    GroupData group;
+    group.d->name = resolvedGroup->name;
+    group.d->location = resolvedGroup->location;
+    foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
+        group.d->filePaths << sa->absoluteFilePath;
+    if (resolvedGroup->wildcards) {
+        foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
+            group.d->expandedWildcards << sa->absoluteFilePath;
+    }
+    qSort(group.d->filePaths);
+    qSort(group.d->expandedWildcards);
+    group.d->properties.d->m_map = resolvedGroup->properties;
+    group.d->isEnabled = resolvedGroup->enabled;
+    group.d->isValid = true;
+    return group;
+}
+
+void ProjectPrivate::addGroup(const ProductData &product, const QString &groupName)
+{
+    if (groupName.isEmpty())
+        throw ErrorInfo(Tr::tr("Group has an empty name."));
+    if (!product.isValid())
+        throw ErrorInfo(Tr::tr("Product is invalid."));
+    const ResolvedProductPtr resolvedProduct = internalProduct(product);
+    if (!resolvedProduct)
+        throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
+
+    // Guard against calls with outdated product data.
+    const ProductData currentProduct= findProductData(product.name());
+    QBS_CHECK(currentProduct.isValid());
+
+    foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
+        if (resolvedGroup->name == groupName) {
+            throw ErrorInfo(Tr::tr("Group '%1' already exists in product '%2'.")
+                            .arg(groupName, product.name()), resolvedGroup->location);
+        }
+    }
+
+    ProjectFileGroupInserter groupInserter(currentProduct, groupName);
+    groupInserter.apply();
+
+    m_projectData.d.detach(); // The data we already gave out must stay as it is.
+
+    updateInternalCodeLocations(internalProject, groupInserter.itemPosition(),
+                                groupInserter.lineOffset());
+    updateExternalCodeLocations(m_projectData, groupInserter.itemPosition(),
+                                groupInserter.lineOffset());
+
+    GroupPtr resolvedGroup = ResolvedGroup::create();
+    resolvedGroup->location = groupInserter.itemPosition();
+    resolvedGroup->enabled = true;
+    resolvedGroup->name = groupName;
+    resolvedGroup->properties = resolvedProduct->properties;
+    resolvedGroup->overrideTags = false;
+    resolvedProduct->groups << resolvedGroup;
+    foreach (const ProductData &newProduct, m_projectData.allProducts()) {
+        if (newProduct.name() == product.name()) {
+            newProduct.d->groups << createGroupDataFromGroup(resolvedGroup);
+            qSort(newProduct.d->groups);
+            break;
+        }
+    }
+}
+
+void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
+                              const QStringList &filePaths)
+{
+    if (!product.isValid())
+        throw ErrorInfo(Tr::tr("Product is invalid."));
+    const ResolvedProductPtr resolvedProduct = internalProduct(product);
+    if (!resolvedProduct)
+        throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
+
+    const ProductData currentProduct = findProductData(product.name());
+    QBS_CHECK(currentProduct.isValid());
+
+    GroupPtr resolvedGroup;
+    GroupData currentGroup;
+    const QString groupName = group.isValid() ? group.name() : product.name();
+    foreach (const GroupPtr &g, resolvedProduct->groups) {
+        if (g->name == groupName) {
+            resolvedGroup = g;
+            break;
+        }
+    }
+    if (!resolvedGroup)
+        throw ErrorInfo(Tr::tr("Group '%1' does not exist.").arg(groupName));
+    currentGroup = findGroupData(currentProduct, groupName);
+    QBS_CHECK(currentGroup.isValid());
+
+    if (filePaths.isEmpty())
+        return; // "No-op". Could also be defined to be an error, I guess.
+
+    if (!resolvedGroup->prefix.isEmpty())
+        throw ErrorInfo(Tr::tr("Cannot add files to a group with a prefix."));
+    QStringList absoluteFilePaths;
+    QString projectFileDir = QFileInfo(product.location().fileName()).dir().absolutePath();
+    foreach (const QString &filePath, filePaths) {
+        const QString absPath = QDir::cleanPath(FileInfo::resolvePath(projectFileDir,
+                                                                      filePath));
+        if (absoluteFilePaths.contains(absPath))
+            throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
+        if (!FileInfo(absPath).exists())
+            throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
+        absoluteFilePaths << absPath;
+    }
+
+    // We do not check for entries in other groups, because such doublettes might be legitimate
+    // due to conditions.
+    foreach (const QString &filePath, absoluteFilePaths) {
+        foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files) {
+            if (sa->absoluteFilePath == filePath) {
+                throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
+                                .arg(filePath, group.name()));
+            }
+        }
+    }
+
+    ProjectFileFilesAdder adder(currentProduct, group.isValid() ? currentGroup : GroupData(),
+                                absoluteFilePaths);
+    adder.apply();
+
+    m_projectData.d.detach();
+    updateInternalCodeLocations(internalProject, adder.itemPosition(), adder.lineOffset());
+    updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
+
+    QList<SourceArtifactPtr> addedSourceArtifacts;
+    foreach (const QString &file, absoluteFilePaths) {
+        const SourceArtifactPtr artifact = SourceArtifact::create();
+        artifact->absoluteFilePath = file;
+        artifact->properties = resolvedGroup->properties;
+        artifact->fileTags = resolvedGroup->fileTags;
+        artifact->overrideFileTags = resolvedGroup->overrideTags;
+        ProjectResolver::applyFileTaggers(artifact, resolvedProduct, logger);
+        addedSourceArtifacts << artifact;
+        resolvedGroup->files << artifact;
+    }
+    if (resolvedProduct->enabled) {
+        ArtifactsPerFileTagMap artifactsPerFileTag;
+        foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts) {
+            Artifact * const artifact = createArtifact(resolvedProduct, sa, logger);
+            foreach (const FileTag &ft, artifact->fileTags)
+                artifactsPerFileTag[ft] += artifact;
+        }
+        RulesEvaluationContextPtr &evalContext
+                = resolvedProduct->topLevelProject()->buildData->evaluationContext;
+        evalContext.reset(new RulesEvaluationContext(logger));
+        RulesApplicator(resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
+        addTargetArtifacts(resolvedProduct, artifactsPerFileTag, logger);
+        evalContext.clear();
+    }
+    doSanityChecks(internalProject, logger);
+    currentGroup.d->filePaths << absoluteFilePaths;
+    qSort(currentGroup.d->filePaths);
+}
+
+static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,
+                                      int lineOffset)
+{
+    if (location.fileName() == changeLocation.fileName()
+            && location.line() >= changeLocation.line()) {
+        location = CodeLocation(location.fileName(), location.line() + lineOffset,
+                                location.column());
+    }
+}
+
+void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &project,
+        const CodeLocation &changeLocation, int lineOffset)
+{
+    updateLocationIfNecessary(project->location, changeLocation, lineOffset);
+    foreach (const ResolvedProjectPtr &subProject, project->subProjects)
+        updateInternalCodeLocations(subProject, changeLocation, lineOffset);
+    foreach (const ResolvedProductPtr &product, project->products) {
+        updateLocationIfNecessary(product->location, changeLocation, lineOffset);
+        foreach (const GroupPtr &group, product->groups)
+            updateLocationIfNecessary(group->location, changeLocation, lineOffset);
+        foreach (const RulePtr &rule, product->rules) {
+            updateLocationIfNecessary(rule->script->location, changeLocation, lineOffset);
+            foreach (const RuleArtifactPtr &artifact, rule->artifacts) {
+                for (int i = 0; i < artifact->bindings.count(); ++i) {
+                    updateLocationIfNecessary(artifact->bindings[i].location, changeLocation,
+                                              lineOffset);
+                }
+            }
+        }
+        foreach (const ResolvedTransformerConstPtr &transformer, product->transformers)
+            updateLocationIfNecessary(transformer->transform->location, changeLocation, lineOffset);
+        foreach (const ResolvedModuleConstPtr &module, product->modules) {
+            updateLocationIfNecessary(module->setupBuildEnvironmentScript->location,
+                                      changeLocation, lineOffset);
+            updateLocationIfNecessary(module->setupRunEnvironmentScript->location,
+                                      changeLocation, lineOffset);
+        }
+    }
+}
+
+void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
+        const CodeLocation &changeLocation, int lineOffset)
+{
+    updateLocationIfNecessary(project.d->location, changeLocation, lineOffset);
+    foreach (const ProjectData &subProject, project.subProjects())
+        updateExternalCodeLocations(subProject, changeLocation, lineOffset);
+    foreach (const ProductData &product, project.products()) {
+        updateLocationIfNecessary(product.d->location, changeLocation, lineOffset);
+        foreach (const GroupData &group, product.groups())
+            updateLocationIfNecessary(group.d->location, changeLocation, lineOffset);
+    }
+}
+
 void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                                          const ResolvedProjectConstPtr &internalProject)
 {
@@ -231,23 +476,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->name = resolvedProduct->name;
         product.d->location = resolvedProduct->location;
         product.d->isEnabled = resolvedProduct->enabled;
-        foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups) {
-            GroupData group;
-            group.d->name = resolvedGroup->name;
-            group.d->location = resolvedGroup->location;
-            foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files)
-                group.d->filePaths << sa->absoluteFilePath;
-            if (resolvedGroup->wildcards) {
-                foreach (const SourceArtifactConstPtr &sa, resolvedGroup->wildcards->files)
-                    group.d->expandedWildcards << sa->absoluteFilePath;
-            }
-            qSort(group.d->filePaths);
-            qSort(group.d->expandedWildcards);
-            group.d->properties.d->m_map = resolvedGroup->properties;
-            group.d->isEnabled = resolvedGroup->enabled;
-            group.d->isValid = true;
-            product.d->groups << group;
-        }
+        foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups)
+            product.d->groups << createGroupDataFromGroup(resolvedGroup);
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
             foreach (const Artifact * const a, resolvedProduct->buildData->targetArtifacts) {
@@ -575,6 +805,47 @@ QHash<QString, QString> Project::usedEnvironment() const
 QSet<QString> Project::buildSystemFiles() const
 {
     return d->internalProject->buildSystemFiles;
+}
+
+/*!
+ * \brief Adds a new empty group to the given product.
+ * Returns an \c ErrorInfo object for which \c hasError() is false in case of a success
+ * and true otherwise. In the latter case, the object will have a sensible description.
+ * After calling this function, it is recommended to re-fetch the project data, as other
+ * items can be affected.
+ * \sa qbs::Project::projectData()
+ */
+ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName)
+{
+    try {
+        d->addGroup(product, groupName);
+        return ErrorInfo();
+    } catch (ErrorInfo errorInfo) {
+        errorInfo.prepend(Tr::tr("Failure adding group to product."));
+        return errorInfo;
+    }
+}
+
+/*!
+ * \brief Adds the given files to the given product.
+ * If \c group is a default-constructed object, the files will be added to the product's
+ * "files" property, otherwise to the one of \c group.
+ * The file paths can be absolute or relative to the location of \c product. The project file
+ * will always contain relative paths.
+ * After calling this function, it is recommended to re-fetch the project data, as other
+ * items can be affected.
+ * \sa qbs::Project::projectData()
+ */
+ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
+                            const QStringList &filePaths)
+{
+    try {
+        d->addFiles(product, group, filePaths);
+        return ErrorInfo();
+    } catch (ErrorInfo errorInfo) {
+        errorInfo.prepend(Tr::tr("Failure adding files to product."));
+        return errorInfo;
+    }
 }
 
 } // namespace qbs

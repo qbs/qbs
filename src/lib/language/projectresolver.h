@@ -61,6 +61,9 @@ public:
     TopLevelProjectPtr resolve(ModuleLoaderResult &loadResult,
                                const SetupProjectParameters &setupParameters);
 
+    static void applyFileTaggers(const SourceArtifactPtr &artifact,
+            const ResolvedProductConstPtr &product, const Logger &logger);
+
 private:
     struct ProjectContext
     {
@@ -105,8 +108,6 @@ private:
     void resolveProductDependencies(ProjectContext *projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
-    void applyFileTaggers(const SourceArtifactPtr &artifact,
-                          const ResolvedProductConstPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item) const;
     void evaluateModuleValues(Item *item, QVariantMap *modulesMap) const;
     QVariantMap evaluateProperties(Item *item) const;

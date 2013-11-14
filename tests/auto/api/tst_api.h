@@ -32,10 +32,9 @@
 
 #include <QObject>
 
-namespace qbs {
-class ILogSink;
-class SetupProjectParameters;
-}
+namespace qbs { class SetupProjectParameters; }
+
+class LogSink;
 
 class TestApi : public QObject
 {
@@ -46,6 +45,9 @@ public:
     ~TestApi();
 
 private slots:
+    void initTestCase();
+
+    void changeContent();
     void disabledInstallGroup();
     void fileTagsFilterOverride();
     void installableFiles();
@@ -56,7 +58,9 @@ private slots:
 private:
     qbs::SetupProjectParameters defaultSetupParameters() const;
 
-    qbs::ILogSink * const m_logSink;
+    LogSink * const m_logSink;
+    const QString m_sourceDataDir;
+    const QString m_workingDataDir;
 };
 
 #endif // Include guard.

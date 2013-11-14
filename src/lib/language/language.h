@@ -252,8 +252,8 @@ public:
 
     QString name;
     QStringList moduleDependencies;
-    ScriptFunctionConstPtr setupBuildEnvironmentScript;
-    ScriptFunctionConstPtr setupRunEnvironmentScript;
+    ScriptFunctionPtr setupBuildEnvironmentScript;
+    ScriptFunctionPtr setupRunEnvironmentScript;
 
 private:
     ResolvedModule() {}
@@ -279,13 +279,13 @@ public:
     static RulePtr create() { return RulePtr(new Rule); }
 
     ResolvedModuleConstPtr module;
-    ScriptFunctionConstPtr script;
+    ScriptFunctionPtr script;
     FileTags inputs;
     FileTags auxiliaryInputs;
     FileTags usings;
     FileTags explicitlyDependsOn;
     bool multiplex;
-    QList<RuleArtifactConstPtr> artifacts;
+    QList<RuleArtifactPtr> artifacts;
 
     // members that we don't need to save
     int ruleGraphId;
@@ -314,7 +314,7 @@ public:
     ResolvedModuleConstPtr module;
     QStringList inputs;
     QList<SourceArtifactPtr> outputs;
-    ScriptFunctionConstPtr transform;
+    ScriptFunctionPtr transform;
     FileTags explicitlyDependsOn;
 
 private:
