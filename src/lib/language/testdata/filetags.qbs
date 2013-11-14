@@ -24,7 +24,7 @@ Project {
         name: "filetagger_static_pattern"
         files: "Banana"
         FileTagger {
-            patterns: ["Banana"]
+            pattern: "Banana"
             fileTags: ["yellow"]
         }
     }
