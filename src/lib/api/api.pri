@@ -6,7 +6,7 @@ HEADERS += \
     $$PWD/jobs.h \
     $$PWD/project.h \
     $$PWD/propertymap_p.h \
-    $$PWD/projectdata_p.h
+    $$PWD/projectdata_p.h \
     $$PWD/qmljsrewriter.h
 
 SOURCES += \
@@ -15,7 +15,7 @@ SOURCES += \
     $$PWD/runenvironment.cpp \
     $$PWD/projectdata.cpp \
     $$PWD/jobs.cpp \
-    $$PWD/project.cpp
+    $$PWD/project.cpp \
     $$PWD/qmljsrewriter.cpp
 
 !qbs_no_dev_install {
