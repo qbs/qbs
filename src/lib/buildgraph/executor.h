@@ -40,6 +40,7 @@
 #include <tools/error.h>
 
 #include <QObject>
+#include <queue>
 
 namespace qbs {
 class ProcessResult;
@@ -83,6 +84,13 @@ private slots:
 private:
     enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
 
+    struct ComparePriority
+    {
+        bool operator() (const Artifact *x, const Artifact *y) const;
+    };
+
+    typedef std::priority_queue<Artifact *, std::vector<Artifact *>, ComparePriority> Leaves;
+
     void doBuild();
     void prepareAllArtifacts(bool *sourceFilesChanged);
     void prepareReachableArtifacts(const Artifact::BuildState buildState);
@@ -109,7 +117,7 @@ private:
     void retrieveSourceFileTimestamp(Artifact *artifact) const;
     FileTime recursiveFileTime(const QString &filePath) const;
     void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
-            QSet<Artifact *> *seenArtifacts, QList<Artifact *> *leaves) const;
+            QSet<Artifact *> *seenArtifacts, Leaves *leaves) const;
     QString configString() const;
 
     RulesEvaluationContextPtr m_evalContext;
@@ -122,7 +130,7 @@ private:
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
     QList<Artifact *> m_roots;
-    QList<Artifact *> m_leaves;
+    Leaves m_leaves;
     ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     AutoMoc *m_autoMoc;

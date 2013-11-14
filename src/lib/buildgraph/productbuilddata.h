@@ -50,6 +50,9 @@ public:
     ArtifactList artifacts;
     QList<RuleConstPtr> topSortedRules;
 
+    // Do not store, initialized in executor. Higher prioritized artifacts are built first.
+    unsigned int buildPriority;
+
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };

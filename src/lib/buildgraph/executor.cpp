@@ -52,6 +52,7 @@
 #include <QTimer>
 
 #include <algorithm>
+#include <climits>
 
 namespace qbs {
 namespace Internal {
@@ -88,6 +89,12 @@ private:
 
     int m_effort;
 };
+
+
+bool Executor::ComparePriority::operator() (const Artifact *x, const Artifact *y) const
+{
+    return x->product->buildData->buildPriority < y->product->buildData->buildPriority;
+}
 
 
 Executor::Executor(const Logger &logger, QObject *parent)
@@ -171,6 +178,44 @@ void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
     m_productsToBuild = productsToBuild;
 }
 
+class ProductPrioritySetter
+{
+    const TopLevelProject *m_topLevelProject;
+    unsigned int m_priority;
+    QSet<ResolvedProductPtr> m_seenProducts;
+public:
+    ProductPrioritySetter(const TopLevelProject *tlp)
+        : m_topLevelProject(tlp)
+    {
+    }
+
+    void apply()
+    {
+        QList<ResolvedProductPtr> allProducts = m_topLevelProject->allProducts();
+        QSet<ResolvedProductPtr> allDependencies;
+        foreach (const ResolvedProductPtr &product, allProducts)
+            allDependencies += product->dependencies;
+        QSet<ResolvedProductPtr> rootProducts = allProducts.toSet() - allDependencies;
+        m_priority = UINT_MAX;
+        m_seenProducts.clear();
+        foreach (const ResolvedProductPtr &rootProduct, rootProducts)
+            traverse(rootProduct);
+    }
+
+private:
+    void traverse(const ResolvedProductPtr &product)
+    {
+        if (m_seenProducts.contains(product))
+            return;
+        m_seenProducts += product;
+        foreach (const ResolvedProductPtr &dependency, product->dependencies)
+            traverse(dependency);
+        if (!product->buildData)
+            return;
+        product->buildData->buildPriority = m_priority--;
+    }
+};
+
 void Executor::doBuild()
 {
     if (m_buildOptions.maxJobCount() <= 0) {
@@ -179,7 +224,7 @@ void Executor::doBuild()
                             << m_buildOptions.maxJobCount();
     }
     QBS_CHECK(m_state == ExecutorIdle);
-    m_leaves.clear();
+    m_leaves = Leaves();
     m_error.clear();
     m_explicitlyCanceled = false;
     m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
@@ -228,6 +273,8 @@ void Executor::doBuild()
                            changedArtifacts.end());
 
     // prepare products
+    ProductPrioritySetter prioritySetter(m_productsToBuild.first()->topLevelProject());
+    prioritySetter.apply();
     foreach (ResolvedProductPtr product, m_productsToBuild)
         product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);
 
@@ -276,7 +323,7 @@ void Executor::initLeaves(const QList<Artifact *> &changedArtifacts)
             initLeavesTopDown(root, seenArtifacts);
     } else {
         foreach (Artifact *artifact, changedArtifacts) {
-            m_leaves.append(artifact);
+            m_leaves.push(artifact);
             initArtifactsBottomUp(artifact);
         }
     }
@@ -297,7 +344,7 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
     }
 
     if (artifact->children.isEmpty()) {
-        m_leaves.append(artifact);
+        m_leaves.push(artifact);
     } else {
         foreach (Artifact *child, artifact->children)
             initLeavesTopDown(child, seenArtifacts);
@@ -308,9 +355,12 @@ void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtif
 bool Executor::scheduleJobs()
 {
     QBS_CHECK(m_state == ExecutorRunning);
-    while (!m_leaves.isEmpty() && !m_availableJobs.isEmpty())
-        buildArtifact(m_leaves.takeFirst());
-    return !m_leaves.isEmpty() || !m_processingJobs.isEmpty();
+    while (!m_leaves.empty() && !m_availableJobs.isEmpty()) {
+        Artifact * const artifact = m_leaves.top();
+        m_leaves.pop();
+        buildArtifact(artifact);
+    }
+    return !m_leaves.empty() || !m_processingJobs.isEmpty();
 }
 
 bool Executor::isUpToDate(Artifact *artifact) const
@@ -560,7 +610,7 @@ void Executor::finishArtifact(Artifact *leaf)
         }
 
         if (allChildrenBuilt(parent)) {
-            m_leaves.append(parent);
+            m_leaves.push(parent);
             if (m_doTrace) {
                 m_logger.qbsTrace() << "[EXEC] finishArtifact adds leaf "
                         << relativeArtifactFileName(parent) << " " << toString(parent->buildState);
@@ -583,7 +633,7 @@ void Executor::finishArtifact(Artifact *leaf)
 }
 
 void Executor::insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
-        QSet<Artifact *> *seenArtifacts, QList<Artifact *> *leaves) const
+        QSet<Artifact *> *seenArtifacts, Leaves *leaves) const
 {
     if (seenArtifacts->contains(artifact))
         return;
@@ -603,7 +653,7 @@ void Executor::insertLeavesAfterAddingDependencies_recurse(Artifact *const artif
     if (isLeaf) {
         if (m_doDebug)
             m_logger.qbsDebug() << "[EXEC] adding leaf " << relativeArtifactFileName(artifact);
-        leaves->append(artifact);
+        leaves->push(artifact);
     }
 }
 
