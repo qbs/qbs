@@ -1538,4 +1538,44 @@ void TestBlackbox::testAssembly()
     QCOMPARE((bool)m_qbsStdout.contains("creating libtestc.a"), haveGcc);
 }
 
+void TestBlackbox::testNsis()
+{
+    QStringList regKeys;
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS");
+
+    QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    foreach (const QString &key, regKeys) {
+        QSettings settings(key, QSettings::NativeFormat);
+        QString str = settings.value(QLatin1String(".")).toString();
+        if (!str.isEmpty())
+            paths.prepend(str);
+    }
+
+    bool haveMakeNsis = false;
+    foreach (const QString &path, paths) {
+        if (QFile::exists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QLatin1String("/makensis")))) {
+            haveMakeNsis = true;
+            break;
+        }
+    }
+
+    if (!haveMakeNsis) {
+        SKIP_TEST("makensis is not installed");
+        return;
+    }
+
+    SettingsPtr settings = qbsSettings();
+    Profile profile(buildProfileName, settings.data());
+    bool targetIsWindows = profile.value("qbs.targetOS").toStringList().contains("windows");
+    QDir::setCurrent(testDataDir + "/nsis");
+    QVERIFY(runQbs() == 0);
+    QCOMPARE((bool)m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
+    QCOMPARE((bool)m_qbsStdout.contains("SetCompressor ignored due to previous call with the /FINAL switch"), targetIsWindows);
+    QVERIFY(!QFile::exists(defaultInstallRoot + "/you-should-not-see-a-file-with-this-name.exe"));
+}
+
 QTEST_MAIN(TestBlackbox)

@@ -153,6 +153,7 @@ private slots:
     void checkProjectFilePath();
     void missingProfile();
     void testAssembly();
+    void testNsis();
 
 private:
     QByteArray m_qbsStderr;
