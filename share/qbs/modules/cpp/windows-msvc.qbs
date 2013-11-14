@@ -17,6 +17,7 @@ CppModule {
     compilerDefines: ['_WIN32']
     warningLevel: "default"
     compilerName: "cl.exe"
+    linkerName: "link.exe"
 
     property bool generateManifestFiles: true
     property path toolchainInstallPath

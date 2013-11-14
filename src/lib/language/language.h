@@ -113,6 +113,13 @@ private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
+uint qHash(const RuleArtifact::Binding &b);
+bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2);
+inline bool operator!=(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2) {
+    return !(b1 == b2);
+}
+bool operator==(const RuleArtifact &a1, const RuleArtifact &a2);
+inline bool operator!=(const RuleArtifact &a1, const RuleArtifact &a2) { return !(a1 == a2); }
 
 class SourceArtifact : public PersistentObject
 {
@@ -289,6 +296,9 @@ private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
+bool operator==(const Rule &r1, const Rule &r2);
+inline bool operator!=(const Rule &r1, const Rule &r2) { return !(r1 == r2); }
+bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2);
 
 class ResolvedTransformer : public PersistentObject
 {

@@ -21,6 +21,15 @@ Project {
     }
 
     Product {
+        name: "filetagger_static_pattern"
+        files: "Banana"
+        FileTagger {
+            patterns: "Banana"
+            fileTags: ["yellow"]
+        }
+    }
+
+    Product {
         name: "unknown_file_tag"
         files: "narf.zort"
     }

@@ -196,7 +196,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     args = args.concat(linkerFlags);
 
     var commands = [];
-    var cmd = new Command("link.exe", args)
+    var cmd = new Command(product.moduleProperty("cpp", "linkerPath"), args)
     cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.fileName)
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)

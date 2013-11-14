@@ -322,7 +322,7 @@
     \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
     \endtable
 
-    Directory where the compiler binary is located. This is set in the build profile.
+    Full path of the compiler binary. This is set in the build profile.
 
     \section2 compilerWrapper
 
@@ -333,6 +333,24 @@
 
     Wrapper binary and its arguments for wrapping compiler calls.
     This is useful for compiler wrappers like ccache and alike.
+
+    \section2 linkerName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Name of the linker binary. This is set in the build profile.
+
+    \section2 linkerPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Full path of the linker binary. This is set in the build profile.
 
     \section2 supportedStaticLibrarySuffixes
 

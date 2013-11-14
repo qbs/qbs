@@ -840,13 +840,14 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
                                        const ResolvedProductConstPtr &product) const
 {
     if (!artifact->overrideFileTags || artifact->fileTags.isEmpty()) {
-        const FileTags fileTags = product->fileTagsForFileName(artifact->absoluteFilePath);
+        const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
+        const FileTags fileTags = product->fileTagsForFileName(fileName);
         artifact->fileTags.unite(fileTags);
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "[PR] adding file tags " << artifact->fileTags
-                       << " to " << FileInfo::fileName(artifact->absoluteFilePath);
+                       << " to " << fileName;
     }
 }
 
@@ -974,10 +975,7 @@ void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
 {
     const QByteArray typeName = item->typeName().toLocal8Bit();
     ItemFuncPtr f = mappings.value(typeName);
-    if (Q_UNLIKELY(!f)) {
-        const QString msg = Tr::tr("Unexpected item type '%1'.");
-        throw ErrorInfo(msg.arg(item->typeName()), item->location());
-    }
+    QBS_CHECK(f);
     if (typeName == "Project") {
         ProjectContext subProjectContext = createProjectContext(projectContext);
         (this->*f)(item, &subProjectContext);

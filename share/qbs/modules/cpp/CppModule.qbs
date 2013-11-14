@@ -85,6 +85,8 @@ Module {
     property string compilerName
     property string compilerPath: compilerName
     property stringList compilerWrapper
+    property string linkerName
+    property string linkerPath: linkerName
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix
     property string executablePrefix

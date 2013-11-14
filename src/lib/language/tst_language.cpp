@@ -347,6 +347,8 @@ void TestLanguage::erroneousFiles_data()
             << "Item 'cpp' is not declared.";
     QTest::newRow("undeclared_property")
             << "Property 'doesntexist' is not declared.";
+    QTest::newRow("unknown_item_type")
+            << "Unexpected item type 'Narf'";
 }
 
 void TestLanguage::erroneousFiles()
@@ -1154,6 +1156,7 @@ void TestLanguage::fileTags_data()
     QTest::newRow("init") << 0 << QStringList();
     QTest::newRow("filetagger_project_scope") << 1 << (QStringList() << "cpp");
     QTest::newRow("filetagger_product_scope") << 1 << (QStringList() << "asm");
+    QTest::newRow("filetagger_static_pattern") << 1 << (QStringList() << "yellow");
     QTest::newRow("unknown_file_tag") << 1 << (QStringList() << "unknown-file-tag");
     QTest::newRow("set_file_tag_via_group") << 2 << (QStringList() << "c++");
     QTest::newRow("override_file_tag_via_group") << 2 << (QStringList() << "c++");

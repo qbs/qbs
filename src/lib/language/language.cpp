@@ -1015,6 +1015,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
 QString keyFromElem(const ResolvedTransformerConstPtr &t) { return t->transform->sourceCode; }
+QString keyFromElem(const RulePtr &r) { return r->toString(); }
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
 {
@@ -1046,6 +1047,55 @@ bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
                               const QList<ResolvedTransformerConstPtr> &l2)
 {
     return listsAreEqual(l1, l2);
+}
+
+bool operator==(const Rule &r1, const Rule &r2)
+{
+    if (&r1 == &r2)
+        return true;
+    if (!&r1 != !&r2)
+        return false;
+    if (r1.artifacts.count() != r2.artifacts.count())
+        return false;
+    for (int i = 0; i < r1.artifacts.count(); ++i) {
+        if (*r1.artifacts.at(i) != *r2.artifacts.at(i))
+            return false;
+    }
+
+    return r1.module->name == r2.module->name
+            && r1.script->sourceCode == r2.script->sourceCode
+            && r1.inputs == r2.inputs
+            && r1.auxiliaryInputs == r2.auxiliaryInputs
+            && r1.usings == r2.usings
+            && r1.explicitlyDependsOn == r2.explicitlyDependsOn
+            && r1.multiplex == r2.multiplex;
+}
+
+bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2)
+{
+    return listsAreEqual(l1, l2);
+}
+
+bool operator==(const RuleArtifact &a1, const RuleArtifact &a2)
+{
+    if (&a1 == &a2)
+        return true;
+    if (!&a1 != !&a2)
+        return false;
+    return a1.fileName == a2.fileName
+            && a1.fileTags == a2.fileTags
+            && a1.alwaysUpdated == a2.alwaysUpdated
+            && a1.bindings.toList().toSet() == a2.bindings.toList().toSet();
+}
+
+bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2)
+{
+    return b1.code == b2.code && b1.name == b2.name;
+}
+
+uint qHash(const RuleArtifact::Binding &b)
+{
+    return qHash(qMakePair(b.code, b.name.join(QLatin1String(","))));
 }
 
 } // namespace Internal

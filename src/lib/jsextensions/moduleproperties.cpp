@@ -33,6 +33,7 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
+#include <tools/error.h>
 #include <tools/propertyfinder.h>
 
 #include <QScriptEngine>
@@ -70,12 +71,20 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
 
 QScriptValue ModuleProperties::js_moduleProperties(QScriptContext *context, QScriptEngine *engine)
 {
-    return moduleProperties(context, engine, false);
+    try {
+        return moduleProperties(context, engine, false);
+    } catch (const ErrorInfo &e) {
+        return context->throwError(e.toString());
+    }
 }
 
 QScriptValue ModuleProperties::js_moduleProperty(QScriptContext *context, QScriptEngine *engine)
 {
-    return moduleProperties(context, engine, true);
+    try {
+        return moduleProperties(context, engine, true);
+    } catch (const ErrorInfo &e) {
+        return context->throwError(e.toString());
+    }
 }
 
 QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScriptEngine *engine,
@@ -112,7 +121,7 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
     }
 
     ScriptEngine * const qbsEngine = static_cast<ScriptEngine *>(engine);
-    const QString moduleName = context->argument(0).toString();
+    const QString moduleName = internalModuleName(context->argument(0).toString());
     const QString propertyName = context->argument(1).toString();
 
     QVariant value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, properties);
@@ -132,6 +141,13 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
         qbsEngine->addToPropertyCache(moduleName, propertyName, properties, value);
     }
     return engine->toScriptValue(value);
+}
+
+QString ModuleProperties::internalModuleName(const QString &name)
+{
+    QString result = name;
+    result.replace(QLatin1Char('.'), QLatin1Char('/'));
+    return result;
 }
 
 } // namespace Internal

@@ -31,6 +31,7 @@
 
 #include "forward_decls.h"
 
+#include <buildgraph/artifactlist.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
@@ -41,7 +42,6 @@ namespace qbs {
 class SetupProjectParameters;
 
 namespace Internal {
-class ArtifactList;
 class FileDependency;
 class FileResourceBase;
 class FileTime;
@@ -97,9 +97,12 @@ private:
                                 const PropertyMapConstPtr &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
+
+    typedef QHash<const Artifact *, ArtifactList> ChildListHash;
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
                             const ResolvedProductPtr &newlyResolvedProduct,
-                            const ProjectBuildData *oldBuildData);
+                            const ProjectBuildData *oldBuildData,
+                            const ChildListHash &childLists);
 
     RulesEvaluationContextPtr m_evalContext;
     BuildGraphLoadResult m_result;

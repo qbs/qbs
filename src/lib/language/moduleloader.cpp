@@ -125,14 +125,17 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
 
 class PropertyDeclarationCheck : public ValueHandler
 {
+    const BuiltinDeclarations *m_builtins;
     const QHash<Item *, QSet<QString> > &m_validItemPropertyNamesPerItem;
     const QSet<Item *> &m_disabledItems;
     Item *m_parentItem;
     QString m_currentName;
 public:
-    PropertyDeclarationCheck(const QHash<Item *, QSet<QString> > &validItemPropertyNamesPerItem,
+    PropertyDeclarationCheck(const BuiltinDeclarations *builtins,
+          const QHash<Item *, QSet<QString> > &validItemPropertyNamesPerItem,
           const QSet<Item *> &disabledItems)
-        : m_validItemPropertyNamesPerItem(validItemPropertyNamesPerItem)
+        : m_builtins(builtins)
+        , m_validItemPropertyNamesPerItem(validItemPropertyNamesPerItem)
         , m_disabledItems(disabledItems)
         , m_parentItem(0)
     {
@@ -169,6 +172,12 @@ private:
 
     void handleItem(Item *item)
     {
+        if (Q_UNLIKELY(!item->typeName().isEmpty()
+                       && !m_builtins->containsType(item->typeName()))) {
+            const QString msg = Tr::tr("Unexpected item type '%1'.");
+            throw ErrorInfo(msg.arg(item->typeName()), item->location());
+        }
+
         if (m_disabledItems.contains(item) || item->typeName() == QLatin1String("SubProject"))
             return;
 
@@ -249,7 +258,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         }
     }
 
-    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems);
+    PropertyDeclarationCheck check(m_reader->builtins(), m_validItemPropertyNamesPerItem,
+                                   m_disabledItems);
     check(item);
 
     m_reader->popExtraSearchPaths();
