@@ -87,13 +87,13 @@ Module {
 
     // NSIS Script File
     FileTagger {
-        pattern: "*.nsi"
+        patterns: ["*.nsi"]
         fileTags: ["nsi"]
     }
 
     // NSIS Header File
     FileTagger {
-        pattern: "*.nsh"
+        patterns: ["*.nsh"]
         fileTags: ["nsh"]
     }
 

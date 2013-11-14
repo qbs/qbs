@@ -3,7 +3,7 @@ import qbs.File
 
 Module {
     FileTagger {
-        pattern: "*.in"
+        patterns: ["*.in"]
         fileTags: "test-input"
     }
 

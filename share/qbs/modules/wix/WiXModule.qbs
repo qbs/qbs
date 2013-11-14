@@ -129,19 +129,19 @@ Module {
 
     // WiX Include Files
     FileTagger {
-        pattern: "*.wxi"
+        patterns: ["*.wxi"]
         fileTags: ["wxi"]
     }
 
     // WiX Localization Files
     FileTagger {
-        pattern: "*.wxl"
+        patterns: ["*.wxl"]
         fileTags: ["wxl"]
     }
 
     // WiX Source Files
     FileTagger {
-        pattern: "*.wxs"
+        patterns: ["*.wxs"]
         fileTags: ["wxs"]
     }
 
