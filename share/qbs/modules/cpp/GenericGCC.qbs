@@ -335,17 +335,17 @@ CppModule {
     }
 
     FileTagger {
-        pattern: "*.s"
+        patterns: "*.s"
         fileTags: ["asm"]
     }
 
     FileTagger {
-        pattern: "*.S"
+        patterns: "*.S"
         fileTags: ["asm_cpp"]
     }
 
     FileTagger {
-        pattern: "*.sx"
+        patterns: "*.sx"
         fileTags: ["asm_cpp"]
     }
 }
