@@ -152,9 +152,7 @@ void OsxProbe::setArch(Profile *profile, const QString &pathToGcc, const QString
         return;
     }
 
-    QString endianness, architecture;
-    architecture = compilerTripletl.at(0);
-    endianness = "little";
+    const QString architecture = compilerTripletl.at(0);
 
     qbsInfo() << Tr::tr("    Toolchain %1 detected:\n"
                         "        binary: %2\n"
@@ -162,7 +160,7 @@ void OsxProbe::setArch(Profile *profile, const QString &pathToGcc, const QString
                         "        arch: %4").arg(profile->name(), pathToGcc, compilerTriplet,
                                             architecture);
 
-    profile->setValue("qbs.endianness", endianness);
+    profile->setValue("qbs.endianness", HostOsInfo::defaultEndianness(architecture));
     profile->setValue("qbs.architecture", HostOsInfo::canonicalArchitecture(architecture));
 }
 

@@ -70,6 +70,7 @@ public:
     static bool isOsxHost() { return hostOs() == HostOsOsx; }
     static inline bool isAnyUnixHost();
     static inline QString canonicalArchitecture(const QString &architecture);
+    static inline QString defaultEndianness(const QString &architecture);
 
     static QString appendExecutableSuffix(const QString &executable)
     {
@@ -164,6 +165,29 @@ QString HostOsInfo::canonicalArchitecture(const QString &architecture)
     }
 
     return architecture;
+}
+
+QString HostOsInfo::defaultEndianness(const QString &architecture)
+{
+    const QString canonicalArch = canonicalArchitecture(architecture);
+
+    QStringList little = QStringList()
+            << QLatin1String("x86")
+            << QLatin1String("x86_64")
+            << QLatin1String("arm")
+            << QLatin1String("arm64");
+
+    if (little.contains(canonicalArch))
+        return QLatin1String("little");
+
+    QStringList big = QStringList()
+            << QLatin1String("ppc")
+            << QLatin1String("ppc64");
+
+    if (big.contains(canonicalArch))
+        return QLatin1String("big");
+
+    return QString();
 }
 
 } // namespace Internal

@@ -77,6 +77,7 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     p.setValue("qbs.toolchain", QStringList("msvc"));
     p.setValue("cpp.windowsSDKPath", winSDKPath);
     p.setValue("qbs.architecture", Internal::HostOsInfo::canonicalArchitecture(architecture));
+    p.setValue("qbs.endianness", Internal::HostOsInfo::defaultEndianness(architecture));
     profiles << p;
 }
 

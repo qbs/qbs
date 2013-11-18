@@ -90,8 +90,6 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     QString cross      = QString::fromLocal8Bit(qgetenv("CROSS_COMPILE"));
 
     QString pathToGcc;
-    QString architecture;
-    QString endianness;
 
     if (ld.isEmpty())
         ld = "ld";
@@ -132,12 +130,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
         return;
     }
 
-    architecture = compilerTripletl.at(0);
-    if (architecture.contains("arm")) {
-        endianness = "big";
-    } else {
-        endianness = "little";
-    }
+    const QString architecture = compilerTripletl.at(0);
 
     QStringList pathToGccL = pathToGcc.split('/');
     QString compilerName = pathToGccL.takeLast().replace(cc, cxx);
@@ -157,7 +150,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
 
     profile.setValue("qbs.toolchain", toolchainTypes);
     profile.setValue("qbs.architecture", HostOsInfo::canonicalArchitecture(architecture));
-    profile.setValue("qbs.endianness", endianness);
+    profile.setValue("qbs.endianness", HostOsInfo::defaultEndianness(architecture));
 
     if (compilerName.contains('-')) {
         QStringList nl = compilerName.split('-');
@@ -218,7 +211,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     profile.setValue(QLatin1String("qbs.architecture"),
                      HostOsInfo::canonicalArchitecture(QString::fromLatin1(architecture)));
     profile.setValue(QLatin1String("qbs.endianness"),
-                     QLatin1String("little"));
+                     HostOsInfo::defaultEndianness(QString::fromLatin1(architecture)));
     profiles << profile;
 }
 
