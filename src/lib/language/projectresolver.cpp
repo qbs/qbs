@@ -454,17 +454,16 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         if (FileInfo::isPattern(files[i]))
             patterns.append(files.takeAt(i));
     }
-    prefix = m_evaluator->stringValue(item, QLatin1String("prefix"));
+    GroupPtr group = ResolvedGroup::create();
+    group->prefix = m_evaluator->stringValue(item, QLatin1String("prefix"));
     if (!prefix.isEmpty()) {
         for (int i = files.count(); --i >= 0;)
                 files[i].prepend(prefix);
     }
-    FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
-    bool overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
-
-    GroupPtr group = ResolvedGroup::create();
     group->location = item->location();
     group->enabled = isEnabled;
+    group->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
+    group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
@@ -474,13 +473,13 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
         foreach (const QString &fileName, files)
             createSourceArtifact(m_productContext->product, properties, fileName,
-                                 fileTags, overrideTags, wildcards->files);
+                                 group->fileTags, group->overrideTags, wildcards->files);
         group->wildcards = wildcards;
     }
 
     foreach (const QString &fileName, files)
         createSourceArtifact(m_productContext->product, properties, fileName,
-                             fileTags, overrideTags, group->files);
+                             group->fileTags, group->overrideTags, group->files);
     ErrorInfo fileError;
     foreach (const SourceArtifactConstPtr &a, group->files) {
         if (!FileInfo(a->absoluteFilePath).exists()) {

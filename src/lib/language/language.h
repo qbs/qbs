@@ -183,9 +183,12 @@ public:
 
     QString name;
     bool enabled;
+    QString prefix;
     QList<SourceArtifactPtr> files;
     SourceWildCards::Ptr wildcards;
     PropertyMapPtr properties;
+    FileTags fileTags;
+    bool overrideTags;
 
     QList<SourceArtifactPtr> allFiles() const;
 

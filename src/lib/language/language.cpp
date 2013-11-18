@@ -180,9 +180,13 @@ void ResolvedGroup::load(PersistentPool &pool)
     pool.stream()
             >> enabled
             >> location;
+    prefix = pool.idLoadString();
     pool.loadContainerS(files);
     wildcards = pool.idLoadS<SourceWildCards>();
     properties = pool.idLoadS<PropertyMapInternal>();
+    pool.stream()
+            >> fileTags
+            >> overrideTags;
 }
 
 void ResolvedGroup::store(PersistentPool &pool) const
@@ -191,9 +195,13 @@ void ResolvedGroup::store(PersistentPool &pool) const
     pool.stream()
             << enabled
             << location;
+    pool.storeString(prefix);
     pool.storeContainer(files);
     pool.store(wildcards);
     pool.store(properties);
+    pool.stream()
+            << fileTags
+            << overrideTags;
 }
 
 /*!
