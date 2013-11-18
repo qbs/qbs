@@ -640,7 +640,7 @@ void TestLanguage::invalidBindingInDisabledItem()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.count(), 2);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
