@@ -15,7 +15,7 @@ unix {
     macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../lib
 }
 
-CONFIG(shared, static|shared) {
+!CONFIG(static, static|shared) {
     QBSCORELIBSUFFIX = $$QBS_VERSION_MAJ
 }
 
