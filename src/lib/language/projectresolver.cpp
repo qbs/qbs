@@ -449,16 +449,15 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                     item->location());
     }
     QStringList patterns;
-    QString prefix;
     for (int i = files.count(); --i >= 0;) {
         if (FileInfo::isPattern(files[i]))
             patterns.append(files.takeAt(i));
     }
     GroupPtr group = ResolvedGroup::create();
     group->prefix = m_evaluator->stringValue(item, QLatin1String("prefix"));
-    if (!prefix.isEmpty()) {
+    if (!group->prefix.isEmpty()) {
         for (int i = files.count(); --i >= 0;)
-                files[i].prepend(prefix);
+                files[i].prepend(group->prefix);
     }
     group->location = item->location();
     group->enabled = isEnabled;
@@ -468,7 +467,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
         wildcards->excludePatterns = m_evaluator->stringListValue(item, "excludeFiles");
-        wildcards->prefix = prefix;
+        wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
         foreach (const QString &fileName, files)
