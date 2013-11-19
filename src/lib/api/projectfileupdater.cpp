@@ -41,9 +41,7 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/qbsassert.h>
 
-#include <QDir>
 #include <QFile>
-#include <QFileInfo>
 
 using namespace QbsQmlJS;
 using namespace AST;
@@ -220,11 +218,10 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
     QString newFilesString;
-    const QDir projectFileDir = QFileInfo(projectFile()).dir();
-    foreach (const QString &absFilePath, m_files) {
+    foreach (const QString &relFilePath, m_files) {
         newFilesString += QString(arrayElemIndentation, QLatin1Char(' '));
         newFilesString += QLatin1Char('"');
-        newFilesString += projectFileDir.relativeFilePath(absFilePath);
+        newFilesString += relFilePath;
         newFilesString += QLatin1Char('"');
         newFilesString += QLatin1String(",\n");
     }

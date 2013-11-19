@@ -350,18 +350,21 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     if (filePaths.isEmpty())
         return; // "No-op". Could also be defined to be an error, I guess.
 
-    if (!resolvedGroup->prefix.isEmpty())
-        throw ErrorInfo(Tr::tr("Cannot add files to a group with a prefix."));
+    if (!resolvedGroup->prefix.isEmpty() && !resolvedGroup->prefix.endsWith(QLatin1Char('/')))
+        throw ErrorInfo(Tr::tr("Cannot add files to a group with a non-directory prefix."));
     QStringList absoluteFilePaths;
-    QString projectFileDir = QFileInfo(product.location().fileName()).dir().absolutePath();
+    QStringList relativeFilePaths;
+    QString baseDirPath = QFileInfo(product.location().fileName()).dir().absolutePath()
+            + QLatin1Char('/') + resolvedGroup->prefix;
+    QDir baseDir(baseDirPath);
     foreach (const QString &filePath, filePaths) {
-        const QString absPath = QDir::cleanPath(FileInfo::resolvePath(projectFileDir,
-                                                                      filePath));
+        const QString absPath = QDir::cleanPath(FileInfo::resolvePath(baseDirPath, filePath));
         if (absoluteFilePaths.contains(absPath))
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
         if (!FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
         absoluteFilePaths << absPath;
+        relativeFilePaths << baseDir.relativeFilePath(absPath);
     }
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
@@ -376,7 +379,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     }
 
     ProjectFileFilesAdder adder(currentProduct, group.isValid() ? currentGroup : GroupData(),
-                                absoluteFilePaths);
+                                relativeFilePaths);
     adder.apply();
 
     m_projectData.d.detach();
@@ -831,8 +834,8 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
  * \brief Adds the given files to the given product.
  * If \c group is a default-constructed object, the files will be added to the product's
  * "files" property, otherwise to the one of \c group.
- * The file paths can be absolute or relative to the location of \c product. The project file
- * will always contain relative paths.
+ * The file paths can be absolute or relative to the location of \c product (including a possible
+ * prefix in the group). The project file will always contain relative paths.
  * After calling this function, it is recommended to re-fetch the project data, as other
  * items can be affected.
  * \sa qbs::Project::projectData()

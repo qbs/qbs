@@ -17,5 +17,15 @@ CppApplication {
             return file;
         }
     }
+    Group {
+        name: "Existing Group 4"
+        prefix: "subdir/"
+        files: []
+    }
+    Group {
+        name: "Existing Group 5"
+        prefix: "blubb"
+        files: []
+    }
     files: "main.cpp"
 }

@@ -130,7 +130,7 @@ void TestApi::changeContent()
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     qbs::ProductData product = projectData.allProducts().first();
-    QCOMPARE(product.groups().count(), 4);
+    QCOMPARE(product.groups().count(), 6);
 
     // Error handling: Invalid product.
     qbs::ErrorInfo errorInfo = project.addGroup(qbs::ProductData(), "blubb");
@@ -163,7 +163,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 6);
+    QCOMPARE(product.groups().count(), 8);
     qbs::GroupData group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
@@ -173,7 +173,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 6);
+    QCOMPARE(product.groups().count(), 8);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.cpp");
@@ -214,6 +214,25 @@ void TestApi::changeContent()
     errorInfo = project.addFiles(product, group, QStringList() << "newfile4.txt");
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
+
+    // Add file to group with directory prefix.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Existing Group 4");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "file.txt");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Error handling: Add file to group with non-directory prefix.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Existing Group 5");
+    QVERIFY(group.isValid());
+    errorInfo = project.addFiles(product, group, QStringList() << "newfile1.txt");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("prefix"), qPrintable(errorInfo.toString()));
 
     // Check whether building will take the newly added cpp file into account.
     // This must not be moved below the re-resolving test!!!
