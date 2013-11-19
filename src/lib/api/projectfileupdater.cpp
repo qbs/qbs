@@ -198,6 +198,13 @@ ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const G
 {
 }
 
+static QString getNodeRepresentation(const QString &fileContent, const Node *node)
+{
+    const quint32 start = node->firstSourceLocation().offset;
+    const quint32 end = node->lastSourceLocation().end();
+    return fileContent.mid(start, end - start);
+}
+
 void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 {
     // Find the item containing the "files" binding.
@@ -242,11 +249,8 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
             const ElementList *elem
                     = static_cast<ArrayLiteral *>(exprStatement->expression)->elements;
             while (elem) {
-                const quint32 start = elem->expression->firstSourceLocation().offset;
-                const quint32 end = elem->expression->lastSourceLocation().end();
-                const QString elemRepr = fileContent.mid(start, end - start);
                 filesString += QString(arrayElemIndentation, QLatin1Char(' '));
-                filesString += elemRepr;
+                filesString += getNodeRepresentation(fileContent, elem->expression);
                 filesString += QLatin1String(",\n");
                 elem = elem->next;
             }
@@ -273,10 +277,25 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
                                    filesString, Rewriter::ScriptBinding);
             break;
         }
-        default:
-            qDebug("unsupported kind: %d", exprStatement->expression->kind);
-            // TODO: If it's an identifier, call "concat()".
-            throw ErrorInfo(Tr::tr("Javascript construct in source file is too complex."));
+        default: {
+            // Note that we can often do better than simply concatenating: For instance,
+            // in the case where the existing list is of the form ["a", "b"].concat(myProperty),
+            // we could keep on parsing until we find the array literal and then merge it with
+            // the new files, preventing cascading concat() calls.
+            // But this is not essential and can be implemented when we have some downtime.
+            const QString rhsRepr = getNodeRepresentation(fileContent, exprStatement->expression);
+            QString filesString = QLatin1String("[\n");
+            filesString += newFilesString;
+            filesString += QLatin1Char('\n');
+            filesString += QString(bindingIndentation, QLatin1Char(' '));
+
+            // It cannot be the other way around, since the existing right-hand side could
+            // have string type.
+            filesString += QString::fromLatin1("].concat(%1)").arg(rhsRepr);
+
+            rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
+                                   filesString, Rewriter::ScriptBinding);
+        }
         }
     } else { // Can happen for the product itself, for which the "files" binding is not mandatory.
         newFilesString.prepend(QLatin1String("[\n"));

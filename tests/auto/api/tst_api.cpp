@@ -196,15 +196,14 @@ void TestApi::changeContent()
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList() << "newfile2.txt");
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
 
-    // Add files to list represented as an identifier (not yet implmented).
+    // Add files to list represented as an identifier.
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
     group = findGroup(product, "Existing Group 2");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile3.txt");
-    QVERIFY(errorInfo.hasError());
-    QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
 
     // Add files to list represented as a block of code (not yet implemented).
     projectData = project.projectData();
