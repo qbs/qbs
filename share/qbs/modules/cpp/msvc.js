@@ -216,6 +216,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         cmd.sourceCode = function() {
             File.copy(src, dst);
         }
+        cmd.silent = true
         commands.push(cmd);
         args = [
             '/nologo', '/manifest', manifestFileName,
