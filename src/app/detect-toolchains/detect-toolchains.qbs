@@ -8,10 +8,10 @@ QbsApp {
         "main.cpp",
         "msvcprobe.cpp",
         "msvcprobe.h",
-        "osxprobe.cpp",
-        "osxprobe.h",
         "probe.cpp",
-        "probe.h"
+        "probe.h",
+        "xcodeprobe.cpp",
+        "xcodeprobe.h"
     ]
 }
 

@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#include "osxprobe.h"
 #include "probe.h"
+#include "xcodeprobe.h"
 
 #include "../shared/logging/consolelogger.h"
 
@@ -59,10 +59,10 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
     return QString::fromLocal8Bit(p.readAll());
 }
 
-class OsxProbe
+class XcodeProbe
 {
 public:
-    OsxProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles)
+    XcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles)
         : settings(settings), profiles(profiles)
     { }
 
@@ -78,7 +78,7 @@ private:
     QStringList developerPaths;
 };
 
-int OsxProbe::compareVersions(const QString &v1, const QString &v2)
+int XcodeProbe::compareVersions(const QString &v1, const QString &v2)
 {
     QStringList v1L = v1.split(QLatin1Char('.'));
     QStringList v2L = v2.split(QLatin1Char('.'));
@@ -104,7 +104,7 @@ int OsxProbe::compareVersions(const QString &v1, const QString &v2)
     return 0;
 }
 
-bool OsxProbe::addDeveloperPath(const QString &path)
+bool XcodeProbe::addDeveloperPath(const QString &path)
 {
     if (path.isEmpty())
         return false;
@@ -118,7 +118,7 @@ bool OsxProbe::addDeveloperPath(const QString &path)
     return true;
 }
 
-void OsxProbe::detectDeveloperPaths()
+void XcodeProbe::detectDeveloperPaths()
 {
     QProcess selectedXcode;
     QString program = "/usr/bin/xcode-select";
@@ -133,7 +133,7 @@ void OsxProbe::detectDeveloperPaths()
     addDeveloperPath(QLatin1String("/Applications/Xcode.app/Contents/Developer"));
 }
 
-void OsxProbe::setArch(Profile *profile, const QString &pathToGcc, const QStringList &extraFlags)
+void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStringList &extraFlags)
 {
     if (!extraFlags.isEmpty()) {
         profile->setValue("cpp.platformCommonCompilerFlags", extraFlags);
@@ -164,7 +164,7 @@ void OsxProbe::setArch(Profile *profile, const QString &pathToGcc, const QString
     profile->setValue("qbs.architecture", HostOsInfo::canonicalArchitecture(architecture));
 }
 
-void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCodeName)
+void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &xCodeName)
 {
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(xCodeName);
     QString indent = QLatin1String("  ");
@@ -332,7 +332,7 @@ void OsxProbe::setupDefaultToolchains(const QString &devPath, const QString &xCo
     }
 }
 
-void OsxProbe::detectAll()
+void XcodeProbe::detectAll()
 {
     detectDeveloperPaths();
     QString xcodeName = QLatin1String("xcode");
@@ -343,9 +343,9 @@ void OsxProbe::detectAll()
 }
 } // end anonymous namespace
 
-void osxProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles)
+void xcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles)
 {
-    OsxProbe probe(settings, profiles);
+    XcodeProbe probe(settings, profiles);
     probe.detectAll();
 }
 

@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef OSXPROBE_H
-#define OSXPROBE_H
+#ifndef XCODEPROBE_H
+#define XCODEPROBE_H
 
 #include <QList>
 
@@ -37,6 +37,6 @@ class Profile;
 class Settings;
 }
 
-void osxProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void xcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // OSXPROBE_H
+#endif // XCODEPROBE_H
