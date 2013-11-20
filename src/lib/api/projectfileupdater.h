@@ -93,6 +93,20 @@ private:
     const QStringList m_files;
 };
 
+class ProjectFileFilesRemover : public ProjectFileUpdater
+{
+public:
+    ProjectFileFilesRemover(const ProductData &product, const GroupData &group,
+                            const QStringList &files);
+
+private:
+    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast);
+
+    const ProductData m_product;
+    const GroupData m_group;
+    const QStringList m_files;
+};
+
 } // namespace Internal
 } // namespace qbs
 

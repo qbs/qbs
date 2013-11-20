@@ -142,6 +142,36 @@ static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuil
     disconnectArtifactParents(artifact, projectBuildData, logger);
 }
 
+/*!
+  * Removes the artifact and all the artifacts that depend exclusively on it.
+  * Example: if you remove a cpp artifact then the obj artifact is removed but
+  * not the resulting application (if there's more then one cpp artifact).
+  */
+void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
+        const Logger &logger, bool removeFromProduct,
+        ArtifactList *removedArtifacts)
+{
+    if (removedArtifacts)
+        removedArtifacts->insert(artifact);
+    foreach (Artifact *parent, artifact->parents) {
+        bool removeParent = false;
+        disconnect(parent, artifact, logger);
+        if (parent->children.isEmpty()) {
+            removeParent = true;
+        } else if (parent->transformer) {
+            artifactsThatMustGetNewTransformers += parent;
+            parent->transformer->inputs.remove(artifact);
+            removeParent = parent->transformer->inputs.isEmpty();
+        }
+        if (removeParent) {
+            removeArtifactAndExclusiveDependents(parent, logger, removeFromProduct,
+                                                 removedArtifacts);
+        }
+    }
+    const bool removeFromDisk = artifact->artifactType == Artifact::Generated;
+    removeArtifact(artifact, logger, removeFromDisk, removeFromProduct);
+}
+
 void ProjectBuildData::removeArtifact(Artifact *artifact,
         const Logger &logger, bool removeFromDisk, bool removeFromProduct)
 {

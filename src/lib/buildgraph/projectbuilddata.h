@@ -63,6 +63,8 @@ public:
     QList<FileResourceBase *> lookupFiles(const Artifact *artifact) const;
     void insertFileDependency(FileDependency *dependency);
     void updateNodesThatMustGetNewTransformer(const Logger &logger);
+    void removeArtifactAndExclusiveDependents(Artifact *artifact, const Logger &logger,
+            bool removeFromProduct = true, ArtifactList *removedArtifacts = 0);
     void removeArtifact(Artifact *artifact, const Logger &logger, bool removeFromDisk = true,
                         bool removeFromProduct = true);
 

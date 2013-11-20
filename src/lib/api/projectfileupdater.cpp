@@ -187,6 +187,31 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
     changeSet.apply(&fileContent);
 }
 
+static QString getNodeRepresentation(const QString &fileContent, const Node *node)
+{
+    const quint32 start = node->firstSourceLocation().offset;
+    const quint32 end = node->lastSourceLocation().end();
+    return fileContent.mid(start, end - start);
+}
+
+static const ChangeSet::EditOp &getEditOp(const ChangeSet &changeSet)
+{
+    const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
+    QBS_CHECK(editOps.count() == 1);
+    return editOps.first();
+}
+
+static int getLineOffsetForChangedBinding(const ChangeSet &changeSet, const QString &oldRhs)
+{
+    return getEditOp(changeSet).text.count(QLatin1Char('\n')) - oldRhs.count(QLatin1Char('\n'));
+}
+
+static int getBindingLine(const ChangeSet &changeSet, const QString &fileContent)
+{
+    return fileContent.left(getEditOp(changeSet).pos1 + 1).count(QLatin1Char('\n')) + 1;
+}
+
+
 ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const GroupData &group,
                                              const QStringList &files)
     : ProjectFileUpdater(product.location().fileName())
@@ -194,13 +219,6 @@ ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const G
     , m_group(group)
     , m_files(files)
 {
-}
-
-static QString getNodeRepresentation(const QString &fileContent, const Node *node)
-{
-    const quint32 start = node->firstSourceLocation().offset;
-    const quint32 end = node->lastSourceLocation().end();
-    return fileContent.mid(start, end - start);
 }
 
 void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
@@ -305,17 +323,115 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
                             Rewriter::ScriptBinding);
     }
 
-    const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
-    QBS_CHECK(editOps.count() == 1);
-    const ChangeSet::EditOp &insertOp = editOps.first();
-    setLineOffset(insertOp.text.count(QLatin1Char('\n')));
-
-    const int insertionLine = fileContent.left(insertOp.pos1 + 1).count(QLatin1Char('\n')) + 2;
+    setLineOffset(getLineOffsetForChangedBinding(changeSet, getNodeRepresentation(fileContent,
+            filesBinding->statement)));
+    const int insertionLine = getBindingLine(changeSet, fileContent) + 1;
     const int insertionColumn = (filesBinding ? arrayElemIndentation : bindingIndentation) + 1;
     setItemPosition(CodeLocation(projectFile(), insertionLine, insertionColumn));
     changeSet.apply(&fileContent);
 }
 
+ProjectFileFilesRemover::ProjectFileFilesRemover(const ProductData &product, const GroupData &group,
+                                                 const QStringList &files)
+    : ProjectFileUpdater(product.location().fileName())
+    , m_product(product)
+    , m_group(group)
+    , m_files(files)
+{
+}
+
+void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
+{
+    // Find the item containing the "files" binding.
+    ItemFinder itemFinder(m_group.isValid() ? m_group.location() : m_product.location());
+    ast->accept(&itemFinder);
+    if (!itemFinder.item()) {
+        throw ErrorInfo(Tr::tr("The project file parser failed to find the item."),
+                        CodeLocation(projectFile()));
+    }
+
+    // Now get the binding itself.
+    FilesBindingFinder bindingFinder(itemFinder.item());
+    itemFinder.item()->accept(&bindingFinder);
+    if (!bindingFinder.binding()) {
+        throw ErrorInfo(Tr::tr("Could not find the 'files' binding in the project file."),
+                        m_product.location());
+    }
+
+    if (bindingFinder.binding()->statement->kind != Node::Kind_ExpressionStatement)
+        throw ErrorInfo(Tr::tr("JavaScript construct in source file is too complex."));
+    const CodeLocation bindingLocation
+            = toCodeLocation(projectFile(), bindingFinder.binding()->firstSourceLocation());
+
+    ChangeSet changeSet;
+    Rewriter rewriter(fileContent, &changeSet, QStringList());
+
+    const int itemIndentation
+            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+    const int bindingIndentation = itemIndentation + 4;
+    const int arrayElemIndentation = bindingIndentation + 4;
+
+    const ExpressionStatement * const exprStatement
+            = static_cast<ExpressionStatement *>(bindingFinder.binding()->statement);
+    switch (exprStatement->expression->kind) {
+    case Node::Kind_ArrayLiteral: {
+        QStringList filesToRemove = m_files;
+        QStringList newFilesList;
+        const ElementList *elem = static_cast<ArrayLiteral *>(exprStatement->expression)->elements;
+        while (elem) {
+            if (elem->expression->kind != Node::Kind_StringLiteral) {
+                throw ErrorInfo(Tr::tr("JavaScript construct in source file is too complex."),
+                                bindingLocation);
+            }
+            const QString existingFile
+                    = static_cast<StringLiteral *>(elem->expression)->value.toString();
+            if (!filesToRemove.removeOne(existingFile))
+                newFilesList << existingFile;
+            elem = elem->next;
+        }
+        if (!filesToRemove.isEmpty()) {
+            throw ErrorInfo(Tr::tr("The following files were not found in the 'files' list: %1")
+                            .arg(filesToRemove.join(QLatin1String(", "))), bindingLocation);
+        }
+        QString filesString = QLatin1String("[\n");
+        foreach (const QString &file, newFilesList) {
+            filesString += QString(arrayElemIndentation, QLatin1Char(' '));
+            filesString += QString::fromLocal8Bit("\"%1\",\n").arg(file);
+        }
+        filesString += QString(bindingIndentation, QLatin1Char(' '));
+        filesString += QLatin1Char(']');
+        rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
+                               filesString, Rewriter::ScriptBinding);
+        break;
+    }
+    case Node::Kind_StringLiteral: {
+        if (m_files.count() != 1) {
+            throw ErrorInfo(Tr::tr("Was requested to remove %1 files, but there is only "
+                                   "one in the list.").arg(m_files.count()), bindingLocation);
+        }
+        const QString existingFile
+                = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
+        if (existingFile != m_files.first()) {
+            throw ErrorInfo(Tr::tr("File '1' could not be found in the 'files' list."),
+                            bindingLocation);
+        }
+        rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
+                               QLatin1String("[]"), Rewriter::ScriptBinding);
+        break;
+    }
+    default:
+        throw ErrorInfo(Tr::tr("JavaScript construct in source file is too complex."),
+                        bindingLocation);
+    }
+
+    setLineOffset(getLineOffsetForChangedBinding(changeSet,
+            getNodeRepresentation(fileContent, exprStatement->expression)));
+    const int bindingLine = getBindingLine(changeSet, fileContent);
+    const int bindingColumn = (bindingFinder.binding()
+                               ? arrayElemIndentation : bindingIndentation) + 1;
+    setItemPosition(CodeLocation(projectFile(), bindingLine, bindingColumn));
+    changeSet.apply(&fileContent);
+}
 
 } // namespace Internal
 } // namespace qbs

@@ -548,7 +548,9 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             Artifact *artifact
                     = lookupArtifact(restoredProduct, oldBuildData, a->absoluteFilePath, true);
             QBS_CHECK(artifact);
-            removeArtifactAndExclusiveDependents(artifact, &artifactsToRemove);
+            newlyResolvedProduct->topLevelProject()->buildData
+                    ->removeArtifactAndExclusiveDependents(artifact, m_logger, true,
+                                                           &artifactsToRemove);
             continue;
         }
 
@@ -574,7 +576,9 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
                 foreach (Artifact *parent, artifact->parents) {
                     if (parent->transformer && parent->transformer->rule->inputs.contains(removedFileTag)) {
                         // this parent has been created because of the removed filetag
-                        removeArtifactAndExclusiveDependents(parent, &artifactsToRemove);
+                        newlyResolvedProduct->topLevelProject()->buildData
+                                ->removeArtifactAndExclusiveDependents(parent, m_logger, true,
+                                                                       &artifactsToRemove);
                     }
                 }
             }
@@ -600,33 +604,6 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
         removeGeneratedArtifactFromDisk(artifact, m_logger);
         m_objectsToDelete << artifact;
     }
-}
-
-/**
-  * Removes the artifact and all the artifacts that depend exclusively on it.
-  * Example: if you remove a cpp artifact then the obj artifact is removed but
-  * not the resulting application (if there's more then one cpp artifact).
-  */
-void BuildGraphLoader::removeArtifactAndExclusiveDependents(Artifact *artifact,
-        ArtifactList *removedArtifacts)
-{
-    if (removedArtifacts)
-        removedArtifacts->insert(artifact);
-    TopLevelProject * const project = artifact->product->topLevelProject();
-    foreach (Artifact *parent, artifact->parents) {
-        bool removeParent = false;
-        disconnect(parent, artifact, m_logger);
-        if (parent->children.isEmpty()) {
-            removeParent = true;
-        } else if (parent->transformer) {
-            project->buildData->artifactsThatMustGetNewTransformers += parent;
-            parent->transformer->inputs.remove(artifact);
-            removeParent = parent->transformer->inputs.isEmpty();
-        }
-        if (removeParent)
-            removeArtifactAndExclusiveDependents(parent, removedArtifacts);
-    }
-    project->buildData->removeArtifact(artifact, m_logger);
 }
 
 static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &product,

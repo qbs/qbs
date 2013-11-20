@@ -180,6 +180,32 @@ void TestApi::changeContent()
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("already"), qPrintable(errorInfo.toString()));
 
+    // Remove one of the newly added files again.
+    errorInfo = project.removeFiles(product, group, QStringList("file.h"));
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Error handling: Try to remove the same file again.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    QCOMPARE(product.groups().count(), 8);
+    group = findGroup(product, "New Group 1");
+    QVERIFY(group.isValid());
+    errorInfo = project.removeFiles(product, group, QStringList() << "file.h");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("not known"), qPrintable(errorInfo.toString()));
+
+    // Error handling: Try to remove a file from a complex list.
+    group = findGroup(product, "Existing Group 2");
+    QVERIFY(group.isValid());
+    errorInfo = project.removeFiles(product, group, QStringList() << "existingfile2.txt");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
+
+    // Remove file from product's 'files' binding.
+    errorInfo = project.removeFiles(product, qbs::GroupData(), QStringList("main.cpp"));
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
     // Add file to non-empty array literal.
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
@@ -234,18 +260,18 @@ void TestApi::changeContent()
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("prefix"), qPrintable(errorInfo.toString()));
 
-    // Check whether building will take the newly added cpp file into account.
+    // Check whether building will take the added and removed cpp files into account.
     // This must not be moved below the re-resolving test!!!
     qbs::BuildOptions buildOptions;
     buildOptions.setDryRun(true);
-    m_logSink->setLogLevel(qbs::LoggerMaxLevel);
     BuildDescriptionReveiver rcvr;
-    const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, this));
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, this));
     connect(buildJob.data(), SIGNAL(reportCommandDescription(QString, QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
+    QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
 
     // Now check whether the data updates were done correctly.
     projectData = project.projectData();
@@ -261,6 +287,15 @@ void TestApi::changeContent()
         printProjectData(newProjectData);
     }
     QVERIFY(projectDataMatches); // Will fail if e.g. code locations don't match.
+
+    // Now try building again and check if the newly resolved product behaves the same way.
+    buildJob.reset(job->project().buildAllProducts(buildOptions, this));
+    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString, QString)), &rcvr,
+            SLOT(handleDescription(QString,QString)));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
+    QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
 }
 
 void TestApi::disabledInstallGroup()

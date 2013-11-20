@@ -125,6 +125,8 @@ public:
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);
     ErrorInfo addFiles(const ProductData &product, const GroupData &group,
                        const QStringList &filePaths);
+    ErrorInfo removeFiles(const ProductData &product, const GroupData &group,
+                          const QStringList &filePaths);
 
 private:
     Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);

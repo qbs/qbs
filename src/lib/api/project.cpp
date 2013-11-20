@@ -119,8 +119,21 @@ public:
 
     GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup);
 
+    struct FileListUpdateContext {
+        ResolvedProductPtr resolvedProduct;
+        GroupPtr resolvedGroup;
+        ProductData currentProduct;
+        GroupData currentGroup;
+        QStringList absoluteFilePaths;
+        QStringList relativeFilePaths;
+    };
+    FileListUpdateContext getFileListContext(const ProductData &product, const GroupData &group,
+                                             const QStringList &filePaths);
+
     void addGroup(const ProductData &product, const QString &groupName);
     void addFiles(const ProductData &product, const GroupData &group, const QStringList &filePaths);
+    void removeFiles(const ProductData &product, const GroupData &group,
+                     const QStringList &filePaths);
     void updateInternalCodeLocations(const ResolvedProjectPtr &project,
                                      const CodeLocation &changeLocation, int lineOffset);
     void updateExternalCodeLocations(const ProjectData &project,
@@ -321,56 +334,63 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     }
 }
 
-void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
-                              const QStringList &filePaths)
+ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const ProductData &product,
+        const GroupData &group, const QStringList &filePaths)
 {
+    FileListUpdateContext context;
     if (!product.isValid())
         throw ErrorInfo(Tr::tr("Product is invalid."));
-    const ResolvedProductPtr resolvedProduct = internalProduct(product);
-    if (!resolvedProduct)
+    context.resolvedProduct = internalProduct(product);
+    if (!context.resolvedProduct)
         throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
 
-    const ProductData currentProduct = findProductData(product.name());
-    QBS_CHECK(currentProduct.isValid());
+    context.currentProduct = findProductData(product.name());
+    QBS_CHECK(context.currentProduct.isValid());
 
-    GroupPtr resolvedGroup;
-    GroupData currentGroup;
     const QString groupName = group.isValid() ? group.name() : product.name();
-    foreach (const GroupPtr &g, resolvedProduct->groups) {
+    foreach (const GroupPtr &g, context.resolvedProduct->groups) {
         if (g->name == groupName) {
-            resolvedGroup = g;
+            context.resolvedGroup = g;
             break;
         }
     }
-    if (!resolvedGroup)
+    if (!context.resolvedGroup)
         throw ErrorInfo(Tr::tr("Group '%1' does not exist.").arg(groupName));
-    currentGroup = findGroupData(currentProduct, groupName);
-    QBS_CHECK(currentGroup.isValid());
+    context.currentGroup = findGroupData(context.currentProduct, groupName);
+    QBS_CHECK(context.currentGroup.isValid());
 
     if (filePaths.isEmpty())
-        return; // "No-op". Could also be defined to be an error, I guess.
+        throw ErrorInfo(Tr::tr("No files supplied."));
 
-    if (!resolvedGroup->prefix.isEmpty() && !resolvedGroup->prefix.endsWith(QLatin1Char('/')))
-        throw ErrorInfo(Tr::tr("Cannot add files to a group with a non-directory prefix."));
-    QStringList absoluteFilePaths;
-    QStringList relativeFilePaths;
+    if (!context.resolvedGroup->prefix.isEmpty() &&
+            !context.resolvedGroup->prefix.endsWith(QLatin1Char('/'))) {
+        throw ErrorInfo(Tr::tr("Group has non-directory prefix."));
+    }
     QString baseDirPath = QFileInfo(product.location().fileName()).dir().absolutePath()
-            + QLatin1Char('/') + resolvedGroup->prefix;
+            + QLatin1Char('/') + context.resolvedGroup->prefix;
     QDir baseDir(baseDirPath);
     foreach (const QString &filePath, filePaths) {
         const QString absPath = QDir::cleanPath(FileInfo::resolvePath(baseDirPath, filePath));
-        if (absoluteFilePaths.contains(absPath))
+        if (context.absoluteFilePaths.contains(absPath))
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
         if (!FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
-        absoluteFilePaths << absPath;
-        relativeFilePaths << baseDir.relativeFilePath(absPath);
+        context.absoluteFilePaths << absPath;
+        context.relativeFilePaths << baseDir.relativeFilePath(absPath);
     }
+
+    return context;
+}
+
+void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
+                              const QStringList &filePaths)
+{
+    FileListUpdateContext context = getFileListContext(product, group, filePaths);
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
     // due to conditions.
-    foreach (const QString &filePath, absoluteFilePaths) {
-        foreach (const SourceArtifactConstPtr &sa, resolvedGroup->files) {
+    foreach (const QString &filePath, context.absoluteFilePaths) {
+        foreach (const SourceArtifactConstPtr &sa, context.resolvedGroup->files) {
             if (sa->absoluteFilePath == filePath) {
                 throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
                                 .arg(filePath, group.name()));
@@ -378,8 +398,8 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
     }
 
-    ProjectFileFilesAdder adder(currentProduct, group.isValid() ? currentGroup : GroupData(),
-                                relativeFilePaths);
+    ProjectFileFilesAdder adder(context.currentProduct,
+            group.isValid() ? context.currentGroup : GroupData(), context.relativeFilePaths);
     adder.apply();
 
     m_projectData.d.detach();
@@ -387,33 +407,80 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
 
     QList<SourceArtifactPtr> addedSourceArtifacts;
-    foreach (const QString &file, absoluteFilePaths) {
+    foreach (const QString &file, context.absoluteFilePaths) {
         const SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->absoluteFilePath = file;
-        artifact->properties = resolvedGroup->properties;
-        artifact->fileTags = resolvedGroup->fileTags;
-        artifact->overrideFileTags = resolvedGroup->overrideTags;
-        ProjectResolver::applyFileTaggers(artifact, resolvedProduct, logger);
+        artifact->properties = context.resolvedGroup->properties;
+        artifact->fileTags = context.resolvedGroup->fileTags;
+        artifact->overrideFileTags = context.resolvedGroup->overrideTags;
+        ProjectResolver::applyFileTaggers(artifact, context.resolvedProduct, logger);
         addedSourceArtifacts << artifact;
-        resolvedGroup->files << artifact;
+        context.resolvedGroup->files << artifact;
     }
-    if (resolvedProduct->enabled) {
+    if (context.resolvedProduct->enabled) {
         ArtifactsPerFileTagMap artifactsPerFileTag;
         foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts) {
-            Artifact * const artifact = createArtifact(resolvedProduct, sa, logger);
+            Artifact * const artifact = createArtifact(context.resolvedProduct, sa, logger);
             foreach (const FileTag &ft, artifact->fileTags)
                 artifactsPerFileTag[ft] += artifact;
         }
         RulesEvaluationContextPtr &evalContext
-                = resolvedProduct->topLevelProject()->buildData->evaluationContext;
+                = context.resolvedProduct->topLevelProject()->buildData->evaluationContext;
         evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
-        RulesApplicator(resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
-        addTargetArtifacts(resolvedProduct, artifactsPerFileTag, logger);
+        RulesApplicator(context.resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
+        addTargetArtifacts(context.resolvedProduct, artifactsPerFileTag, logger);
         evalContext.clear();
     }
     doSanityChecks(internalProject, logger);
-    currentGroup.d->filePaths << absoluteFilePaths;
-    qSort(currentGroup.d->filePaths);
+    context.currentGroup.d->filePaths << context.absoluteFilePaths;
+    qSort(context.currentGroup.d->filePaths);
+}
+
+void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &group,
+                                 const QStringList &filePaths)
+{
+    FileListUpdateContext context = getFileListContext(product, group, filePaths);
+
+    QStringList filesNotFound = context.absoluteFilePaths;
+    QList<SourceArtifactPtr> sourceArtifacts;
+    foreach (const SourceArtifactPtr &sa, context.resolvedGroup->files) {
+        if (filesNotFound.removeOne(sa->absoluteFilePath))
+            sourceArtifacts << sa;
+    }
+    if (!filesNotFound.isEmpty()) {
+        throw ErrorInfo(Tr::tr("The following files are not known to qbs: %1")
+                        .arg(filesNotFound.join(QLatin1String(", "))));
+    }
+
+    ProjectFileFilesRemover remover(context.currentProduct,
+            group.isValid() ? context.currentGroup : GroupData(), context.relativeFilePaths);
+    remover.apply();
+
+    foreach (const SourceArtifactPtr &sa, sourceArtifacts) {
+        if (context.resolvedProduct->enabled) {
+            QBS_CHECK(internalProject->buildData);
+            Artifact * const artifact = lookupArtifact(context.resolvedProduct,
+                                                       sa->absoluteFilePath);
+            QBS_CHECK(artifact);
+            internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger);
+        }
+        context.resolvedGroup->files.removeOne(sa);
+    }
+    if (context.resolvedProduct->enabled) {
+        RulesEvaluationContextPtr &evalContext
+                = context.resolvedProduct->topLevelProject()->buildData->evaluationContext;
+        evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
+        internalProject->buildData->updateNodesThatMustGetNewTransformer(logger);
+        evalContext.clear();
+    }
+    doSanityChecks(internalProject, logger);
+
+    m_projectData.d.detach();
+    updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
+    updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
+    foreach (const QString &filePath, context.absoluteFilePaths)
+        context.currentGroup.d->filePaths.removeOne(filePath);
+    qSort(context.currentGroup.d->filePaths);
 }
 
 static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,
@@ -429,6 +496,8 @@ static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation
 void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &project,
         const CodeLocation &changeLocation, int lineOffset)
 {
+    if (lineOffset == 0)
+        return;
     updateLocationIfNecessary(project->location, changeLocation, lineOffset);
     foreach (const ResolvedProjectPtr &subProject, project->subProjects)
         updateInternalCodeLocations(subProject, changeLocation, lineOffset);
@@ -459,6 +528,8 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
 void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
         const CodeLocation &changeLocation, int lineOffset)
 {
+    if (lineOffset == 0)
+        return;
     updateLocationIfNecessary(project.d->location, changeLocation, lineOffset);
     foreach (const ProjectData &subProject, project.subProjects())
         updateExternalCodeLocations(subProject, changeLocation, lineOffset);
@@ -848,6 +919,28 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding files to product."));
+        return errorInfo;
+    }
+}
+
+/*!
+ * \brief Removes the given files from the given product.
+ * If \c group is a default-constructed object, the files will be removed from the product's
+ * "files" property, otherwise from the one of \c group.
+ * The file paths can be absolute or relative to the location of \c product (including a possible
+ * prefix in the group).
+ * After calling this function, it is recommended to re-fetch the project data, as other
+ * items can be affected.
+ * \sa qbs::Project::projectData()
+ */
+ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &group,
+                               const QStringList &filePaths)
+{
+    try {
+        d->removeFiles(product, group, filePaths);
+        return ErrorInfo();
+    } catch (ErrorInfo errorInfo) {
+        errorInfo.prepend(Tr::tr("Failure removing files from product."));
         return errorInfo;
     }
 }
