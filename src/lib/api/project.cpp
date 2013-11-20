@@ -42,6 +42,7 @@
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulesevaluationcontext.h>
 #include <buildgraph/timestampsupdater.h>
+#include <buildgraph/transformer.h>
 #include <language/language.h>
 #include <language/projectresolver.h>
 #include <logging/logger.h>
@@ -402,7 +403,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
         RulesEvaluationContextPtr &evalContext
                 = resolvedProduct->topLevelProject()->buildData->evaluationContext;
-        evalContext.reset(new RulesEvaluationContext(logger));
+        evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
         RulesApplicator(resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
         addTargetArtifacts(resolvedProduct, artifactsPerFileTag, logger);
         evalContext.clear();
