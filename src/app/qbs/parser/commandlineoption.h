@@ -40,6 +40,7 @@ class CommandLineOption
 public:
     enum Type {
         FileOptionType,
+        BuildDirectoryOptionType,
         LogLevelOptionType, VerboseOptionType, QuietOptionType,
         JobsOptionType,
         KeepGoingOptionType,
@@ -85,6 +86,22 @@ private:
 
 private:
     QString m_projectFilePath;
+};
+
+class BuildDirectoryOption : public CommandLineOption
+{
+public:
+    QString projectBuildDirectory() const { return m_projectBuildDirectory; }
+    static QString magicProjectString();
+
+private:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const;
+    QString longRepresentation() const;
+    void doParse(const QString &representation, QStringList &input);
+
+private:
+    QString m_projectBuildDirectory;
 };
 
 class CountingOption : public CommandLineOption

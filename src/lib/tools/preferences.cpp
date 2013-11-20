@@ -72,6 +72,14 @@ QString Preferences::shell() const
 }
 
 /*!
+ * \brief Returns the default build directory used by Qbs if none is specified.
+ */
+QString Preferences::defaultBuildDirectory() const
+{
+    return getPreference(QLatin1String("defaultBuildDirectory")).toString();
+}
+
+/*!
  * \brief Returns the list of paths where qbs looks for module definitions and such.
  * If there is no such setting, \c qbsRootPath will be used to look up a fallback location.
  */

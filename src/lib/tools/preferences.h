@@ -45,6 +45,7 @@ public:
     bool useColoredOutput() const;
     int jobs() const;
     QString shell() const;
+    QString defaultBuildDirectory() const;
     QStringList searchPaths(const QString &qbsRootPath = QString()) const;
     QStringList pluginPaths(const QString &qbsRootPath = QString()) const;
 

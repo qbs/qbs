@@ -121,7 +121,7 @@ void CommandLineFrontend::start()
                                                    + QLatin1String("/../"));
         SetupProjectParameters params;
         params.setProjectFilePath(m_parser.projectFilePath());
-        params.setBuildRoot(QDir::currentPath());
+        params.setBuildRoot(m_parser.projectBuildDirectory());
         params.setSearchPaths(Preferences(m_settings).searchPaths(qbsRootPath));
         params.setPluginPaths(Preferences(m_settings).pluginPaths(qbsRootPath));
         params.setIgnoreDifferentProjectFilePath(m_parser.force());

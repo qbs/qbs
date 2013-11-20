@@ -45,12 +45,14 @@ public:
         init();
     }
 
-    QbsRunParameters(const QStringList &args) : arguments(args)
+    QbsRunParameters(const QString &cmd, const QStringList &args = QStringList())
+        : command(cmd), arguments(args)
     {
         init();
     }
 
-    QbsRunParameters(const QString &arg) : arguments(arg)
+    QbsRunParameters(const QStringList &args)
+        : arguments(args)
     {
         init();
     }
@@ -62,6 +64,7 @@ public:
         environment = QProcessEnvironment::systemEnvironment();
     }
 
+    QString command;
     QStringList arguments;
     QProcessEnvironment environment;
     bool expectFailure;

@@ -54,6 +54,7 @@ public:
     QString commandName() const;
     QString commandDescription() const;
     QString projectFilePath() const;
+    QString projectBuildDirectory() const;
     BuildOptions buildOptions() const;
     CleanOptions cleanOptions() const;
     InstallOptions installOptions() const;

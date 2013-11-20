@@ -69,6 +69,7 @@ public:
     QString generalHelp() const;
 
     void setupProjectFile();
+    void setupBuildDirectory();
     void setupProgress();
     void setupLogLevel();
     void setupBuildOptions();
@@ -81,6 +82,7 @@ public:
     Settings *settings;
     Command *command;
     QString projectFilePath;
+    QString projectBuildDirectory;
     BuildOptions buildOptions;
     CommandLineOptionPool optionPool;
     CommandPool commandPool;
@@ -127,6 +129,11 @@ CommandType CommandLineParser::command() const
 QString CommandLineParser::projectFilePath() const
 {
     return d->projectFilePath;
+}
+
+QString CommandLineParser::projectBuildDirectory() const
+{
+    return d->projectBuildDirectory;
 }
 
 BuildOptions CommandLineParser::buildOptions() const
@@ -351,6 +358,7 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
         return;
 
     setupProjectFile();
+    setupBuildDirectory();
     setupProgress();
     setupLogLevel();
     setupBuildOptions();
@@ -462,6 +470,27 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
     projectFilePath = QDir::cleanPath(projectFilePath);
 
     qbsDebug() << "Using project file '" << QDir::toNativeSeparators(projectFilePath) << "'.";
+}
+
+void CommandLineParser::CommandLineParserPrivate::setupBuildDirectory()
+{
+    projectBuildDirectory = optionPool.buildDirectoryOption()->projectBuildDirectory();
+    if (projectBuildDirectory.isEmpty()) {
+        projectBuildDirectory = Preferences(settings).defaultBuildDirectory();
+        if (projectBuildDirectory.isEmpty()) {
+            qbsDebug() << "No project build directory given; using current directory.";
+            projectBuildDirectory = QDir::currentPath();
+        } else {
+            qbsDebug() << "No project build directory given; using directory from preferences.";
+        }
+    }
+
+    QDir dir(QFileInfo(projectFilePath).path());
+    projectBuildDirectory.replace(optionPool.buildDirectoryOption()->magicProjectString(),
+                                  dir.dirName());
+
+    if (!QFileInfo(projectBuildDirectory).isAbsolute())
+        projectBuildDirectory = QDir::currentPath() + QLatin1Char('/') + projectBuildDirectory;
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()

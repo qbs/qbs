@@ -42,6 +42,7 @@ public:
 
     CommandLineOption *getOption(CommandLineOption::Type type) const;
     FileOption *fileOption() const;
+    BuildDirectoryOption *buildDirectoryOption() const;
     LogLevelOption *logLevelOption() const;
     VerboseOption *verboseOption() const;
     QuietOption *quietOption() const;

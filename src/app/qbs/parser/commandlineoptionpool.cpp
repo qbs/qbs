@@ -43,6 +43,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::FileOptionType:
             option = new FileOption;
             break;
+        case CommandLineOption::BuildDirectoryOptionType:
+            option = new BuildDirectoryOption;
+            break;
         case CommandLineOption::LogLevelOptionType:
             option = new LogLevelOption;
             break;
@@ -99,6 +102,11 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
 FileOption *CommandLineOptionPool::fileOption() const
 {
     return static_cast<FileOption *>(getOption(CommandLineOption::FileOptionType));
+}
+
+BuildDirectoryOption *CommandLineOptionPool::buildDirectoryOption() const
+{
+    return static_cast<BuildDirectoryOption *>(getOption(CommandLineOption::BuildDirectoryOptionType));
 }
 
 LogLevelOption *CommandLineOptionPool::logLevelOption() const

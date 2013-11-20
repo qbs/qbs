@@ -71,7 +71,15 @@ TestBlackbox::TestBlackbox()
 
 int TestBlackbox::runQbs(const QbsRunParameters &params)
 {
-    QStringList args = params.arguments;
+    QStringList args;
+    args << params.command;
+    if ((QStringList() << QLatin1String("") << QLatin1String("build") << QLatin1String("clean")
+         << QLatin1String("install") << QLatin1String("resolve") << QLatin1String("run")
+         << QLatin1String("shell") << QLatin1String("status") << QLatin1String("update-timestamps"))
+            .contains(params.command)) {
+        args.append(QStringList(QLatin1String("-d")) << QLatin1String("."));
+    }
+    args << params.arguments;
     if (params.useProfile)
         args.append(QLatin1String("profile:") + buildProfileName);
     QString cmdLine = qbsExecutableFilePath;
@@ -272,7 +280,7 @@ void TestBlackbox::build_project_dry_run()
     QDir::setCurrent(testDataDir + projectSubDir);
     rmDirR(buildDir);
 
-    QCOMPARE(runQbs(QbsRunParameters("-n")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("-n"))), 0);
     const QStringList &buildDirContents
             = QDir(buildDir).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
     QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
@@ -358,7 +366,7 @@ void TestBlackbox::resolve_project_dry_run()
     QDir::setCurrent(testDataDir + projectSubDir);
     rmDirR(buildDir);
 
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("resolve") << "-n")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("resolve"), QStringList("-n"))), 0);
     QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
     QVERIFY2(!QFile::exists(buildGraphPath), qPrintable(buildGraphPath));
 }
@@ -388,7 +396,7 @@ void TestBlackbox::clean()
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("clean") << "--all-artifacts")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("--all-artifacts"))), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
@@ -398,7 +406,8 @@ void TestBlackbox::clean()
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("clean") << "--all-artifacts" << "-n")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
+                                     QStringList("--all-artifacts") << "-n")), 0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
@@ -410,7 +419,8 @@ void TestBlackbox::clean()
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
     QVERIFY(QFile(depExeFilePath).exists());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("clean") << "--all-artifacts" << "-p" << "dep")),
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
+                                     QStringList("--all-artifacts") << "-p" << "dep")),
              0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
@@ -423,7 +433,8 @@ void TestBlackbox::clean()
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
     QVERIFY(QFile(depExeFilePath).exists());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("clean") << "--all-artifacts" << "-p" << "app")),
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
+                                     QStringList("--all-artifacts") << "-p" << "app")),
              0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
@@ -929,7 +940,7 @@ void TestBlackbox::wildcardRenaming()
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     QFile::rename(QDir::currentPath() + "/pioniere.txt", QDir::currentPath() + "/fdj.txt");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--remove-first")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/fdj.txt").exists());
 }
@@ -942,7 +953,7 @@ void TestBlackbox::recursiveRenaming()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
     waitForNewTimestamp();
     QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--remove-first")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wein.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
@@ -1420,7 +1431,7 @@ void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
     QCOMPARE(runQbs(), 0);
-    QbsRunParameters params(QStringList() << "run" << "-qp" << "Hello World");
+    QbsRunParameters params(QLatin1String("run"), QStringList() << "-q" << "-p" << "Hello World");
     params.expectFailure = true; // Because the exit code is non-zero.
     QCOMPARE(runQbs(params), 156);
     const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
@@ -1442,7 +1453,7 @@ void TestBlackbox::installedApp()
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
 
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--install-root"
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--install-root")
                                      << (testDataDir + "/installed-app"))), 0);
     QVERIFY(QFile::exists(testDataDir
             + HostOsInfo::appendExecutableSuffix("/installed-app/usr/bin/installedApp")));
@@ -1451,7 +1462,7 @@ void TestBlackbox::installedApp()
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
     addedFile.close();
     QVERIFY(addedFile.exists());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--remove-first")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
     QVERIFY(!addedFile.exists());
@@ -1465,7 +1476,7 @@ void TestBlackbox::installedApp()
     projectFile.resize(0);
     projectFile.write(content);
     QVERIFY(projectFile.flush());
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
 
@@ -1475,13 +1486,14 @@ void TestBlackbox::installedApp()
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.close();
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
 
     rmDirR(buildDir);
     QbsRunParameters params;
-    params.arguments << "install" << "--no-build";
+    params.command = "install";
+    params.arguments << "--no-build";
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains("No build graph"));
@@ -1489,7 +1501,7 @@ void TestBlackbox::installedApp()
 
 void TestBlackbox::toolLookup()
 {
-    QbsRunParameters params(QStringList("detect-toolchains") << "--help");
+    QbsRunParameters params(QLatin1String("detect-toolchains"), QStringList("--help"));
     params.useProfile = false;
     QCOMPARE(runQbs(params), 0);
 }

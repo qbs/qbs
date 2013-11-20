@@ -169,6 +169,7 @@ static QList<CommandLineOption::Type> resolveOptions()
 {
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::LogLevelOptionType
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType
@@ -345,6 +346,7 @@ QList<CommandLineOption::Type> ShellCommand::supportedOptions() const
 {
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::LogLevelOptionType
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType
@@ -375,6 +377,7 @@ QList<CommandLineOption::Type> StatusCommand::supportedOptions() const
 {
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::LogLevelOptionType
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType
@@ -408,6 +411,7 @@ QList<CommandLineOption::Type> UpdateTimestampsCommand::supportedOptions() const
 {
     return QList<CommandLineOption::Type>()
             << CommandLineOption::FileOptionType
+            << CommandLineOption::BuildDirectoryOptionType
             << CommandLineOption::LogLevelOptionType
             << CommandLineOption::VerboseOptionType
             << CommandLineOption::QuietOptionType

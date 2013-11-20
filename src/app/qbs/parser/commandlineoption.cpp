@@ -81,6 +81,39 @@ void FileOption::doParse(const QString &representation, QStringList &input)
     m_projectFilePath = getArgument(representation, input);
 }
 
+QString BuildDirectoryOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1|%2 <directory>\n"
+            "\tBuild in the given directory. The default value is the current directory\n"
+            "\tunless preferences.defaultBuildDirectory is set.\n"
+            "\tRelative paths will be interpreted relative to the current directory.\n"
+            "\tIf the directory does not exist, it will be created. Use the special\n"
+            "\tvalue '%3' as a placeholder for the name of the directory\n"
+            "\tcontaining the project file.\n")
+            .arg(longRepresentation(), shortRepresentation(), magicProjectString());
+}
+
+QString BuildDirectoryOption::shortRepresentation() const
+{
+    return QLatin1String("-d");
+}
+
+QString BuildDirectoryOption::longRepresentation() const
+{
+    return QLatin1String("--build-directory");
+}
+
+QString BuildDirectoryOption::magicProjectString()
+{
+    return QLatin1String("@project");
+}
+
+void BuildDirectoryOption::doParse(const QString &representation, QStringList &input)
+{
+    m_projectBuildDirectory = getArgument(representation, input);
+}
+
 static QString loglevelLongRepresentation() { return QLatin1String("--log-level"); }
 
 QString VerboseOption::description(CommandType command) const
