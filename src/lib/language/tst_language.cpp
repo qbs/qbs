@@ -190,6 +190,20 @@ void TestLanguage::buildConfigStringListSyntax()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::builtinFunctionInSearchPathsProperty()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters parameters = defaultParameters;
+        parameters.setProjectFilePath(testProject("builtinFunctionInSearchPathsProperty.qbs"));
+        QVERIFY(loader->loadProject(parameters));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::conditionalDepends()
 {
     bool exceptionCaught = false;

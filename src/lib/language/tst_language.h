@@ -68,6 +68,7 @@ private slots:
 
     void baseProperty();
     void buildConfigStringListSyntax();
+    void builtinFunctionInSearchPathsProperty();
     void conditionalDepends();
     void environmentVariable();
     void erroneousFiles_data();

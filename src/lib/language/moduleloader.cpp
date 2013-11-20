@@ -206,6 +206,12 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         return;
     ProjectContext projectContext;
     projectContext.result = loadResult;
+
+    ProductContext dummyProductContext;
+    dummyProductContext.project = &projectContext;
+    loadBaseModule(&dummyProductContext, item);
+    overrideItemProperties(item, QLatin1String("project"), m_overriddenProperties);
+
     projectContext.extraModuleSearchPaths = readExtraModuleSearchPaths(item);
     projectContext.extraModuleSearchPaths += FileInfo::resolvePath(item->file()->dirPath(),
                                                              moduleSearchSubDir);
@@ -215,11 +221,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
-
-    ProductContext dummyProductContext;
-    dummyProductContext.project = &projectContext;
-    loadBaseModule(&dummyProductContext, item);
-    overrideItemProperties(item, QLatin1String("project"), m_overriddenProperties);
 
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
