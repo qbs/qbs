@@ -55,5 +55,11 @@ void ArtifactProperties::store(PersistentPool &pool) const
     pool.store(m_propertyMap);
 }
 
+bool operator==(const ArtifactProperties &ap1, const ArtifactProperties &ap2)
+{
+    return ap1.fileTagsFilter() == ap2.fileTagsFilter()
+            && ap1.propertyMap()->value() == ap2.propertyMap()->value();
+}
+
 } // namespace Internal
 } // namespace qbs

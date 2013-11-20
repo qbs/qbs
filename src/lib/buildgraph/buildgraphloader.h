@@ -83,6 +83,8 @@ private:
             QList<ResolvedProductPtr> &productsWithChangedFiles);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                 const ResolvedProductPtr &newlyResolvedProduct);
+    bool checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,
+                                           const ResolvedProductPtr &newlyResolvedProduct);
     bool checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                  const ResolvedProductPtr &newlyResolvedProduct);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,

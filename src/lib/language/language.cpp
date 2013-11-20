@@ -988,6 +988,9 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
 QString keyFromElem(const ResolvedTransformerConstPtr &t) { return t->transform->sourceCode; }
 QString keyFromElem(const RulePtr &r) { return r->toString(); }
+QString keyFromElem(const ArtifactPropertiesPtr &ap) {
+    return ap->fileTagsFilter().toStringList().join(QLatin1String(","));
+}
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
 {
@@ -1068,6 +1071,12 @@ bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2
 uint qHash(const RuleArtifact::Binding &b)
 {
     return qHash(qMakePair(b.code, b.name.join(QLatin1String(","))));
+}
+
+bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
+                                   const QList<ArtifactPropertiesPtr> &l2)
+{
+    return listsAreEqual(l1, l2);
 }
 
 } // namespace Internal

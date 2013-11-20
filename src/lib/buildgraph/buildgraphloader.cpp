@@ -37,6 +37,7 @@
 #include "projectbuilddata.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
+#include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/loader.h>
 #include <logging/translator.h>
@@ -430,6 +431,23 @@ bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restored
     // TODO: Check for more stuff.
 }
 
+bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,
+        const ResolvedProductPtr &newlyResolvedProduct)
+{
+    // These are not requested from rules at build time, but we still need to take
+    // them into account.
+    const QStringList specialProperties = QStringList() << QLatin1String("install")
+            << QLatin1String("installDir") << QLatin1String("installPrefix");
+    foreach (const QString &key, specialProperties) {
+        if (restoredProduct->properties->qbsPropertyValue(key)
+                != newlyResolvedProduct->properties->qbsPropertyValue(key)) {
+            m_logger.qbsDebug() << "Product property 'qbs." << key << "' changed.";
+            return true;
+        }
+    }
+    return false;
+}
+
 bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                                const ResolvedProductPtr &newlyResolvedProduct)
 {
@@ -437,6 +455,12 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
                            "product '"  << restoredProduct->name << "'.";
     if (!restoredProduct->buildData)
         return false;
+    if (checkProductForInstallInfoChanges(restoredProduct, newlyResolvedProduct))
+        return true;
+    if (!artifactPropertyListsAreEqual(restoredProduct->artifactProperties,
+                                       newlyResolvedProduct->artifactProperties)) {
+        return true;
+    }
     QSet<TransformerConstPtr> seenTransformers;
     foreach (Artifact * const artifact, restoredProduct->buildData->artifacts) {
         const TransformerConstPtr transformer = artifact->transformer;

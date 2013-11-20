@@ -448,6 +448,9 @@ private:
     QVariantMap m_buildConfiguration;
 };
 
+bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
+                                   const QList<ArtifactPropertiesPtr> &l2);
+
 } // namespace Internal
 } // namespace qbs
 
