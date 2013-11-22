@@ -505,6 +505,8 @@ void TestLanguage::groupConditions_data()
             << 2 << (QList<bool>() << true << true);
     QTest::newRow("true_condition_from_project")
             << 2 << (QList<bool>() << true << true);
+    QTest::newRow("condition_accessing_module_property")
+            << 2 << (QList<bool>() << true << false);
     QTest::newRow("cleanup") << 0 << QList<bool>();
 }
 
