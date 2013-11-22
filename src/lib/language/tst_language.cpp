@@ -191,6 +191,20 @@ void TestLanguage::buildConfigStringListSyntax()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::builtinFunctionInSearchPathsProperty()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters parameters = defaultParameters;
+        parameters.setProjectFilePath(testProject("builtinFunctionInSearchPathsProperty.qbs"));
+        QVERIFY(loader->loadProject(parameters));
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::canonicalArchitecture()
 {
     bool exceptionCaught = false;
@@ -686,7 +700,7 @@ void TestLanguage::invalidBindingInDisabledItem()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 1);
+        QCOMPARE(products.count(), 2);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

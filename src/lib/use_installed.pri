@@ -9,7 +9,7 @@ unix {
 
 !disable_rpath:unix:QMAKE_LFLAGS += -Wl,-rpath,$${QBSLIBDIR}
 
-CONFIG(shared, static|shared) {
+!CONFIG(static, static|shared) {
     QBSCORELIBSUFFIX = $$QBS_VERSION_MAJ
 }
 

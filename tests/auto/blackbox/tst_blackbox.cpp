@@ -1456,6 +1456,29 @@ void TestBlackbox::installedApp()
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
     QVERIFY(!addedFile.exists());
 
+    // Check whether changing install parameters on the product causes re-installation.
+    QFile projectFile("installed_artifact.qbs");
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("qbs.installPrefix: \"/usr\"", "qbs.installPrefix: '/usr/local'");
+    waitForNewTimestamp();
+    projectFile.resize(0);
+    projectFile.write(content);
+    QVERIFY(projectFile.flush());
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
+    QVERIFY(QFile::exists(defaultInstallRoot
+            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
+
+    // Check whether changing install parameters on the artifact causes re-installation.
+    content.replace("qbs.installDir: \"bin\"", "qbs.installDir: 'custom'");
+    waitForNewTimestamp();
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
+    QVERIFY(QFile::exists(defaultInstallRoot
+            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
+
     rmDirR(buildDir);
     QbsRunParameters params;
     params.arguments << "install" << "--no-build";

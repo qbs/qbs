@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Build Suite.
@@ -43,7 +44,7 @@ CppApplication {
     type: "applicationbundle"
     name: "CocoaApplication"
 
-    cpp.precompiledHeader: "CocoaApplication-Prefix.pch"
+    cpp.precompiledHeader: "CocoaApplication/CocoaApplication-Prefix.pch"
 
     cpp.infoPlistFile: "CocoaApplication/CocoaApplication-Info.plist"
 
@@ -54,6 +55,7 @@ CppApplication {
         files: [
             "AppDelegate.h",
             "AppDelegate.m",
+            "CocoaApplication-Prefix.pch",
             "main.m"
         ]
     }

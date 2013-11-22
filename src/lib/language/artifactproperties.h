@@ -58,6 +58,11 @@ private:
     PropertyMapPtr m_propertyMap;
 };
 
+bool operator==(const ArtifactProperties &ap1, const ArtifactProperties &ap2);
+inline bool operator!=(const ArtifactProperties &ap1, const ArtifactProperties &ap2) {
+    return !(ap1 == ap2);
+}
+
 } // namespace Internal
 } // namespace qbs
 

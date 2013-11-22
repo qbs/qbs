@@ -117,8 +117,10 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings->allKeys())
-        stream << key << ": " << m_settings->value(key).toString() << endl;
+    foreach (const QString &key, m_settings->allKeys()) {
+        stream << key << ": " << m_settings->value(key).toStringList().join(QLatin1String(","))
+                                                                            << endl;
+    }
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)

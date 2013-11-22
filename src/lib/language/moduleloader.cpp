@@ -208,17 +208,18 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     projectContext.result = loadResult;
     projectContext.localModuleSearchPath = FileInfo::resolvePath(item->file()->dirPath(),
                                                                  moduleSearchSubDir);
+
+    ProductContext dummyProductContext;
+    dummyProductContext.project = &projectContext;
+    loadBaseModule(&dummyProductContext, item);
+    overrideItemProperties(item, QLatin1String("project"), m_overriddenProperties);
+
     projectContext.extraSearchPaths = readExtraSearchPaths(item);
     m_reader->pushExtraSearchPaths(projectContext.extraSearchPaths);
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
-
-    ProductContext dummyProductContext;
-    dummyProductContext.project = &projectContext;
-    loadBaseModule(&dummyProductContext, item);
-    overrideItemProperties(item, QLatin1String("project"), m_overriddenProperties);
 
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
@@ -389,6 +390,7 @@ void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *prod
 void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
 {
     checkCancelation();
+    checkItemCondition(item);
     propagateModulesFromProduct(productContext, item);
 }
 

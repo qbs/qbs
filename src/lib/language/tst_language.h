@@ -68,6 +68,7 @@ private slots:
 
     void baseProperty();
     void buildConfigStringListSyntax();
+    void builtinFunctionInSearchPathsProperty();
     void canonicalArchitecture();
     void conditionalDepends();
     void environmentVariable();
