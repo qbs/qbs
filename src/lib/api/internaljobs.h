@@ -61,6 +61,7 @@ public:
 
     void cancel();
     ErrorInfo error() const { return m_error; }
+    void setError(const ErrorInfo &error) { m_error = error; }
 
     Logger logger() const { return m_logger; }
     bool timed() const { return m_timed; }
@@ -70,7 +71,6 @@ protected:
     explicit InternalJob(const Logger &logger, QObject *parent = 0);
 
     JobObserver *observer() const { return m_observer; }
-    void setError(const ErrorInfo &error) { m_error = error; }
     void setTimed(bool timed) { m_timed = timed; }
     void storeBuildGraph(const TopLevelProjectConstPtr &project);
 

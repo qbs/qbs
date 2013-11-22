@@ -295,7 +295,8 @@ void TestApi::changeContent()
     job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    const qbs::ProjectData newProjectData = job->project().projectData();
+    project = job->project();
+    const qbs::ProjectData newProjectData = project.projectData();
     const bool projectDataMatches = newProjectData == projectData;
     if (!projectDataMatches) {
         qDebug("This is the assumed project:");
@@ -306,13 +307,22 @@ void TestApi::changeContent()
     QVERIFY(projectDataMatches); // Will fail if e.g. code locations don't match.
 
     // Now try building again and check if the newly resolved product behaves the same way.
-    buildJob.reset(job->project().buildAllProducts(buildOptions, this));
+    buildJob.reset(project.buildAllProducts(buildOptions, this));
     connect(buildJob.data(), SIGNAL(reportCommandDescription(QString, QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
     QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
+
+    // Error handling: Try to change the project during a build.
+    buildJob.reset(project.buildAllProducts(buildOptions, this));
+    errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("in process"), qPrintable(errorInfo.toString()));
+    waitForFinished(buildJob.data());
+    errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
 }
 
 void TestApi::disabledInstallGroup()

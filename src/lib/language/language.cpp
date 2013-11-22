@@ -789,7 +789,7 @@ void ResolvedProject::store(PersistentPool &pool) const
 }
 
 
-TopLevelProject::TopLevelProject()
+TopLevelProject::TopLevelProject() : locked(false)
 {
 }
 

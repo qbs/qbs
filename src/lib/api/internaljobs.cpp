@@ -53,6 +53,12 @@
 namespace qbs {
 namespace Internal {
 
+static void unlockBuildGraph(const TopLevelProjectPtr &project)
+{
+    QBS_ASSERT(project->locked, return);
+    project->locked = false;
+}
+
 class JobObserver : public ProgressObserver
 {
 public:
@@ -358,6 +364,7 @@ void InternalBuildJob::handleFinished()
 
 void InternalBuildJob::emitFinished()
 {
+    unlockBuildGraph(project());
     emit finished(this);
 }
 
@@ -383,6 +390,7 @@ void InternalCleanJob::start()
         setError(error);
     }
     storeBuildGraph();
+    unlockBuildGraph(project());
     emit finished(this);
 }
 
@@ -412,6 +420,7 @@ void InternalInstallJob::start()
     } catch (const ErrorInfo &error) {
         setError(error);
     }
+    unlockBuildGraph(m_project);
     emit finished(this);
 }
 

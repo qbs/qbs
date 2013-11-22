@@ -147,6 +147,7 @@ public:
                                      const CodeLocation &changeLocation, int lineOffset);
     void updateExternalCodeLocations(const ProjectData &project,
                                      const CodeLocation &changeLocation, int lineOffset);
+    void prepareChangeToProject();
 
     const TopLevelProjectPtr internalProject;
     Logger logger;
@@ -587,6 +588,14 @@ void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
     }
 }
 
+void ProjectPrivate::prepareChangeToProject()
+{
+    if (internalProject->locked)
+        throw ErrorInfo(Tr::tr("A job is currently in process."));
+    if (!m_projectDataRetrieved)
+        retrieveProjectData(m_projectData, internalProject);
+}
+
 void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                                          const ResolvedProjectConstPtr &internalProject)
 {
@@ -940,6 +949,7 @@ QSet<QString> Project::buildSystemFiles() const
 ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName)
 {
     try {
+        d->prepareChangeToProject();
         d->addGroup(product, groupName);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
@@ -963,6 +973,7 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
                             const QStringList &filePaths)
 {
     try {
+        d->prepareChangeToProject();
         d->addFiles(product, group, filePaths);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
@@ -985,6 +996,7 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
                                const QStringList &filePaths)
 {
     try {
+        d->prepareChangeToProject();
         d->removeFiles(product, group, filePaths);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
@@ -1002,6 +1014,7 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
 ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &group)
 {
     try {
+        d->prepareChangeToProject();
         d->removeGroup(product, group);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {

@@ -68,6 +68,8 @@ protected:
     AbstractJob(Internal::InternalJob *internalJob, QObject *parent);
     Internal::InternalJob *internalJob() const { return m_internalJob; }
 
+    bool lockBuildGraph(const Internal::TopLevelProjectPtr &project);
+
 signals:
     void taskStarted(const QString &description, int maximumProgressValue, qbs::AbstractJob *job);
     void totalEffortChanged(int totalEffort, qbs::AbstractJob *job);

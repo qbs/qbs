@@ -33,6 +33,8 @@
 #include <language/language.h>
 #include <tools/qbsassert.h>
 
+#include <QMetaObject>
+
 namespace qbs {
 using namespace Internal;
 
@@ -111,6 +113,20 @@ AbstractJob::AbstractJob(InternalJob *internalJob, QObject *parent)
             SLOT(handleTaskProgress(int)), Qt::QueuedConnection);
     connect(m_internalJob, SIGNAL(finished(Internal::InternalJob *)), SLOT(handleFinished()));
     m_state = StateRunning;
+}
+
+bool AbstractJob::lockBuildGraph(const TopLevelProjectPtr &project)
+{
+    // The API is not thread-safe, so we don't need a mutex here, as the API requests come in
+    // synchronously.
+    if (project->locked) {
+        internalJob()->setError(tr("Cannot start a job while another one is in process."));
+        QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection, Q_ARG(bool, false),
+                                  Q_ARG(qbs::AbstractJob *, this));
+        return false;
+    }
+    project->locked = true;
+    return true;
 }
 
 /*!
@@ -254,6 +270,8 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
 void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const BuildOptions &options)
 {
+    if (!lockBuildGraph(project))
+        return;
     qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options);
 }
 
@@ -271,6 +289,8 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const qbs::CleanOptions &options)
 {
+    if (!lockBuildGraph(project))
+        return;
     InternalJobThreadWrapper * wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     qobject_cast<InternalCleanJob *>(wrapper->synchronousJob())->init(project, products, options);
     wrapper->start();
@@ -289,6 +309,8 @@ InstallJob::InstallJob(const Logger &logger, QObject *parent)
 void InstallJob::install(const TopLevelProjectPtr &project,
                          const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
+    if (!lockBuildGraph(project))
+        return;
     InternalJobThreadWrapper *wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     InternalInstallJob *installJob = qobject_cast<InternalInstallJob *>(wrapper->synchronousJob());
     installJob->init(project, products, options);
