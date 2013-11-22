@@ -394,8 +394,8 @@ void ModuleLoader::createAdditionalModuleInstancesInProduct(ProductContext *prod
 void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
 {
     checkCancelation();
-    checkItemCondition(item);
     propagateModulesFromProduct(productContext, item);
+    checkItemCondition(item);
 }
 
 void ModuleLoader::handleArtifact(ProductContext *productContext, Item *item)
