@@ -433,5 +433,43 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
     changeSet.apply(&fileContent);
 }
 
+
+ProjectFileGroupRemover::ProjectFileGroupRemover(const ProductData &product, const GroupData &group)
+    : ProjectFileUpdater(product.location().fileName())
+    , m_product(product)
+    , m_group(group)
+{
+}
+
+void ProjectFileGroupRemover::doApply(QString &fileContent, UiProgram *ast)
+{
+    ItemFinder productFinder(m_product.location());
+    ast->accept(&productFinder);
+    if (!productFinder.item()) {
+        throw ErrorInfo(Tr::tr("The project file parser failed to find the product item."),
+                        CodeLocation(projectFile()));
+    }
+
+    ItemFinder groupFinder(m_group.location());
+    productFinder.item()->accept(&groupFinder);
+    if (!groupFinder.item()) {
+        throw ErrorInfo(Tr::tr("The project file parser failed to find the group item."),
+                        m_product.location());
+    }
+
+    ChangeSet changeSet;
+    Rewriter rewriter(fileContent, &changeSet, QStringList());
+    rewriter.removeObjectMember(groupFinder.item(), productFinder.item());
+
+    setItemPosition(m_group.location());
+    const QList<ChangeSet::EditOp> &editOps = changeSet.operationList();
+    QBS_CHECK(editOps.count() == 1);
+    const ChangeSet::EditOp &op = editOps.first();
+    const QString removedText = fileContent.mid(op.pos1, op.length1);
+    setLineOffset(-removedText.count(QLatin1Char('\n')));
+
+    changeSet.apply(&fileContent);
+}
+
 } // namespace Internal
 } // namespace qbs

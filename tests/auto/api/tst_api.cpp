@@ -260,6 +260,23 @@ void TestApi::changeContent()
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("prefix"), qPrintable(errorInfo.toString()));
 
+    // Remove group.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Existing Group 5");
+    QVERIFY(group.isValid());
+    errorInfo = project.removeGroup(product, group);
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    QCOMPARE(projectData.products().first().groups().count(), 7);
+
+    // Error handling: Try to remove the same group again.
+    errorInfo = project.removeGroup(product, group);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("does not exist"), qPrintable(errorInfo.toString()));
+
     // Check whether building will take the added and removed cpp files into account.
     // This must not be moved below the re-resolving test!!!
     qbs::BuildOptions buildOptions;

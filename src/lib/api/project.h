@@ -127,6 +127,7 @@ public:
                        const QStringList &filePaths);
     ErrorInfo removeFiles(const ProductData &product, const GroupData &group,
                           const QStringList &filePaths);
+    ErrorInfo removeGroup(const ProductData &product, const GroupData &group);
 
 private:
     Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);

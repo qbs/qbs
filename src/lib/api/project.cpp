@@ -119,14 +119,20 @@ public:
 
     GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup);
 
-    struct FileListUpdateContext {
+    struct GroupUpdateContext {
         ResolvedProductPtr resolvedProduct;
         GroupPtr resolvedGroup;
         ProductData currentProduct;
         GroupData currentGroup;
+    };
+
+    struct FileListUpdateContext {
+        GroupUpdateContext groupContext;
         QStringList absoluteFilePaths;
         QStringList relativeFilePaths;
     };
+
+    GroupUpdateContext getGroupContext(const ProductData &product, const GroupData &group);
     FileListUpdateContext getFileListContext(const ProductData &product, const GroupData &group,
                                              const QStringList &filePaths);
 
@@ -134,6 +140,9 @@ public:
     void addFiles(const ProductData &product, const GroupData &group, const QStringList &filePaths);
     void removeFiles(const ProductData &product, const GroupData &group,
                      const QStringList &filePaths);
+    void removeGroup(const ProductData &product, const GroupData &group);
+    void removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
+                                   const QList<SourceArtifactPtr> &files);
     void updateInternalCodeLocations(const ResolvedProjectPtr &project,
                                      const CodeLocation &changeLocation, int lineOffset);
     void updateExternalCodeLocations(const ProjectData &project,
@@ -334,10 +343,10 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     }
 }
 
-ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const ProductData &product,
-        const GroupData &group, const QStringList &filePaths)
+ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const ProductData &product,
+                                                                   const GroupData &group)
 {
-    FileListUpdateContext context;
+    GroupUpdateContext context;
     if (!product.isValid())
         throw ErrorInfo(Tr::tr("Product is invalid."));
     context.resolvedProduct = internalProduct(product);
@@ -358,39 +367,49 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
         throw ErrorInfo(Tr::tr("Group '%1' does not exist.").arg(groupName));
     context.currentGroup = findGroupData(context.currentProduct, groupName);
     QBS_CHECK(context.currentGroup.isValid());
+    return context;
+}
+
+ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const ProductData &product,
+        const GroupData &group, const QStringList &filePaths)
+{
+    FileListUpdateContext filesContext;
+    GroupUpdateContext &groupContext = filesContext.groupContext;
+    groupContext = getGroupContext(product, group);
 
     if (filePaths.isEmpty())
         throw ErrorInfo(Tr::tr("No files supplied."));
 
-    if (!context.resolvedGroup->prefix.isEmpty() &&
-            !context.resolvedGroup->prefix.endsWith(QLatin1Char('/'))) {
+    if (!groupContext.resolvedGroup->prefix.isEmpty() &&
+            !groupContext.resolvedGroup->prefix.endsWith(QLatin1Char('/'))) {
         throw ErrorInfo(Tr::tr("Group has non-directory prefix."));
     }
     QString baseDirPath = QFileInfo(product.location().fileName()).dir().absolutePath()
-            + QLatin1Char('/') + context.resolvedGroup->prefix;
+            + QLatin1Char('/') + groupContext.resolvedGroup->prefix;
     QDir baseDir(baseDirPath);
     foreach (const QString &filePath, filePaths) {
         const QString absPath = QDir::cleanPath(FileInfo::resolvePath(baseDirPath, filePath));
-        if (context.absoluteFilePaths.contains(absPath))
+        if (filesContext.absoluteFilePaths.contains(absPath))
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
         if (!FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
-        context.absoluteFilePaths << absPath;
-        context.relativeFilePaths << baseDir.relativeFilePath(absPath);
+        filesContext.absoluteFilePaths << absPath;
+        filesContext.relativeFilePaths << baseDir.relativeFilePath(absPath);
     }
 
-    return context;
+    return filesContext;
 }
 
 void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
                               const QStringList &filePaths)
 {
-    FileListUpdateContext context = getFileListContext(product, group, filePaths);
+    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
+    GroupUpdateContext &groupContext = filesContext.groupContext;
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
     // due to conditions.
-    foreach (const QString &filePath, context.absoluteFilePaths) {
-        foreach (const SourceArtifactConstPtr &sa, context.resolvedGroup->files) {
+    foreach (const QString &filePath, filesContext.absoluteFilePaths) {
+        foreach (const SourceArtifactConstPtr &sa, groupContext.resolvedGroup->files) {
             if (sa->absoluteFilePath == filePath) {
                 throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
                                 .arg(filePath, group.name()));
@@ -398,8 +417,8 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         }
     }
 
-    ProjectFileFilesAdder adder(context.currentProduct,
-            group.isValid() ? context.currentGroup : GroupData(), context.relativeFilePaths);
+    ProjectFileFilesAdder adder(groupContext.currentProduct,
+            group.isValid() ? groupContext.currentGroup : GroupData(), filesContext.relativeFilePaths);
     adder.apply();
 
     m_projectData.d.detach();
@@ -407,43 +426,44 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
 
     QList<SourceArtifactPtr> addedSourceArtifacts;
-    foreach (const QString &file, context.absoluteFilePaths) {
+    foreach (const QString &file, filesContext.absoluteFilePaths) {
         const SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->absoluteFilePath = file;
-        artifact->properties = context.resolvedGroup->properties;
-        artifact->fileTags = context.resolvedGroup->fileTags;
-        artifact->overrideFileTags = context.resolvedGroup->overrideTags;
-        ProjectResolver::applyFileTaggers(artifact, context.resolvedProduct, logger);
+        artifact->properties = groupContext.resolvedGroup->properties;
+        artifact->fileTags = groupContext.resolvedGroup->fileTags;
+        artifact->overrideFileTags = groupContext.resolvedGroup->overrideTags;
+        ProjectResolver::applyFileTaggers(artifact, groupContext.resolvedProduct, logger);
         addedSourceArtifacts << artifact;
-        context.resolvedGroup->files << artifact;
+        groupContext.resolvedGroup->files << artifact;
     }
-    if (context.resolvedProduct->enabled) {
+    if (groupContext.resolvedProduct->enabled) {
         ArtifactsPerFileTagMap artifactsPerFileTag;
         foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts) {
-            Artifact * const artifact = createArtifact(context.resolvedProduct, sa, logger);
+            Artifact * const artifact = createArtifact(groupContext.resolvedProduct, sa, logger);
             foreach (const FileTag &ft, artifact->fileTags)
                 artifactsPerFileTag[ft] += artifact;
         }
         RulesEvaluationContextPtr &evalContext
-                = context.resolvedProduct->topLevelProject()->buildData->evaluationContext;
+                = groupContext.resolvedProduct->topLevelProject()->buildData->evaluationContext;
         evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
-        RulesApplicator(context.resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
-        addTargetArtifacts(context.resolvedProduct, artifactsPerFileTag, logger);
+        RulesApplicator(groupContext.resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
+        addTargetArtifacts(groupContext.resolvedProduct, artifactsPerFileTag, logger);
         evalContext.clear();
     }
     doSanityChecks(internalProject, logger);
-    context.currentGroup.d->filePaths << context.absoluteFilePaths;
-    qSort(context.currentGroup.d->filePaths);
+    groupContext.currentGroup.d->filePaths << filesContext.absoluteFilePaths;
+    qSort(groupContext.currentGroup.d->filePaths);
 }
 
 void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &group,
                                  const QStringList &filePaths)
 {
-    FileListUpdateContext context = getFileListContext(product, group, filePaths);
+    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
+    GroupUpdateContext &groupContext = filesContext.groupContext;
 
-    QStringList filesNotFound = context.absoluteFilePaths;
+    QStringList filesNotFound = filesContext.absoluteFilePaths;
     QList<SourceArtifactPtr> sourceArtifacts;
-    foreach (const SourceArtifactPtr &sa, context.resolvedGroup->files) {
+    foreach (const SourceArtifactPtr &sa, groupContext.resolvedGroup->files) {
         if (filesNotFound.removeOne(sa->absoluteFilePath))
             sourceArtifacts << sa;
     }
@@ -452,35 +472,62 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
                         .arg(filesNotFound.join(QLatin1String(", "))));
     }
 
-    ProjectFileFilesRemover remover(context.currentProduct,
-            group.isValid() ? context.currentGroup : GroupData(), context.relativeFilePaths);
+    ProjectFileFilesRemover remover(groupContext.currentProduct,
+            group.isValid() ? groupContext.currentGroup
+                            : GroupData(), filesContext.relativeFilePaths);
     remover.apply();
 
+    removeFilesFromBuildGraph(groupContext.resolvedProduct, sourceArtifacts);
     foreach (const SourceArtifactPtr &sa, sourceArtifacts) {
-        if (context.resolvedProduct->enabled) {
-            QBS_CHECK(internalProject->buildData);
-            Artifact * const artifact = lookupArtifact(context.resolvedProduct,
-                                                       sa->absoluteFilePath);
-            QBS_CHECK(artifact);
-            internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger);
-        }
-        context.resolvedGroup->files.removeOne(sa);
-    }
-    if (context.resolvedProduct->enabled) {
-        RulesEvaluationContextPtr &evalContext
-                = context.resolvedProduct->topLevelProject()->buildData->evaluationContext;
-        evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
-        internalProject->buildData->updateNodesThatMustGetNewTransformer(logger);
-        evalContext.clear();
+        const bool removed = groupContext.resolvedGroup->files.removeOne(sa);
+        QBS_CHECK(removed);
     }
     doSanityChecks(internalProject, logger);
 
     m_projectData.d.detach();
     updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
     updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
-    foreach (const QString &filePath, context.absoluteFilePaths)
-        context.currentGroup.d->filePaths.removeOne(filePath);
-    qSort(context.currentGroup.d->filePaths);
+    foreach (const QString &filePath, filesContext.absoluteFilePaths) {
+        const bool removed = groupContext.currentGroup.d->filePaths.removeOne(filePath);
+        QBS_CHECK(removed);
+    }
+}
+
+void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &group)
+{
+    GroupUpdateContext context = getGroupContext(product, group);
+
+    ProjectFileGroupRemover remover(context.currentProduct, context.currentGroup);
+    remover.apply();
+
+    removeFilesFromBuildGraph(context.resolvedProduct, context.resolvedGroup->allFiles());
+    bool removed = context.resolvedProduct->groups.removeOne(context.resolvedGroup);
+    QBS_CHECK(removed);
+    doSanityChecks(internalProject, logger);
+
+    m_projectData.d.detach();
+    updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
+    updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
+    removed = context.currentProduct.d->groups.removeOne(context.currentGroup);
+    QBS_CHECK(removed);
+}
+
+void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
+                                               const QList<SourceArtifactPtr> &files)
+{
+    if (!product->enabled)
+        return;
+    QBS_CHECK(internalProject->buildData);
+    foreach (const SourceArtifactPtr &sa, files) {
+        Artifact * const artifact = lookupArtifact(product, sa->absoluteFilePath);
+        QBS_CHECK(artifact);
+        internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger);
+    }
+    RulesEvaluationContextPtr &evalContext
+            = internalProject->buildData->evaluationContext;
+    evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
+    internalProject->buildData->updateNodesThatMustGetNewTransformer(logger);
+    evalContext.clear();
 }
 
 static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,
@@ -896,7 +943,8 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
         d->addGroup(product, groupName);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
-        errorInfo.prepend(Tr::tr("Failure adding group to product."));
+        errorInfo.prepend(Tr::tr("Failure adding group '%1' to product '%2'.")
+                          .arg(groupName, product.name()));
         return errorInfo;
     }
 }
@@ -940,7 +988,25 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
         d->removeFiles(product, group, filePaths);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
-        errorInfo.prepend(Tr::tr("Failure removing files from product."));
+        errorInfo.prepend(Tr::tr("Failure removing files from product '%1'.").arg(product.name()));
+        return errorInfo;
+    }
+}
+
+/*!
+ * \brief Removes the given group from the given product.
+ * After calling this function, it is recommended to re-fetch the project data, as other
+ * items can be affected.
+ * \sa qbs::Project::projectData()
+ */
+ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &group)
+{
+    try {
+        d->removeGroup(product, group);
+        return ErrorInfo();
+    } catch (ErrorInfo errorInfo) {
+        errorInfo.prepend(Tr::tr("Failure removing group '%1' from product '%2'.")
+                          .arg(group.name(), product.name()));
         return errorInfo;
     }
 }
