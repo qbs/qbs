@@ -60,9 +60,9 @@ QString FileOption::description(CommandType command) const
     Q_UNUSED(command);
     return Tr::tr("%1|%2 <file>\n"
             "\tUse <file> as the project file.\n"
-            "\tIf <file> is a directory and it contains a single file ending in '.qbs', "
-            "that file will be used.\n"
-            "\tIf this option is not given at all, the behavior is the same as for '-f .'.\n")
+            "\tIf <file> is a directory and it contains a single file ending in '.qbs',\n"
+            "\tthat file will be used.\n"
+            "\tIf this option is not given at all, behavior is the same as for '-f .'.\n")
             .arg(longRepresentation(), shortRepresentation());
 }
 
@@ -88,9 +88,10 @@ QString VerboseOption::description(CommandType command) const
     Q_UNUSED(command);
     return Tr::tr("%1|%2\n"
             "\tBe more verbose. Increases the log level by one.\n"
-            "\tThis option can be given more than once. Excessive occurrences have no effect.\n"
-            "\tIf the option '%3' appears anywhere on the command line in addition to this option,\n"
-            "\tits value is taken as the base which to increase.\n")
+            "\tThis option can be given more than once.\n"
+            "\tExcessive occurrences have no effect.\n"
+            "\tIf option '%3' appears anywhere on the command line in addition\n"
+            "\tto this option, its value is taken as the base which to increase.\n")
             .arg(longRepresentation(), shortRepresentation(), loglevelLongRepresentation());
 }
 
@@ -109,9 +110,10 @@ QString QuietOption::description(CommandType command) const
     Q_UNUSED(command);
     return Tr::tr("%1|%2\n"
             "\tBe more quiet. Decreases the log level by one.\n"
-            "\tThis option can be given more than once. Excessive occurrences have no effect.\n"
-            "\tIf option '%3' appears anywhere on the command line in addition to this option,\n"
-            "\tits value is taken as the base which to decrease.\n")
+            "\tThis option can be given more than once.\n"
+            "\tExcessive occurrences have no effect.\n"
+            "\tIf option '%3' appears anywhere on the command line in addition\n"
+            "\tto this option, its value is taken as the base which to decrease.\n")
             .arg(longRepresentation(), shortRepresentation(), loglevelLongRepresentation());
 }
 
@@ -129,8 +131,8 @@ QString JobsOption::description(CommandType command) const
 {
     Q_UNUSED(command);
     return Tr::tr("%1|%2 <n>\n"
-            "\tUse <n> concurrent build jobs. <n> must be an integer greater than zero. "
-                  "The default is the number of cores.\n")
+            "\tUse <n> concurrent build jobs. <n> must be an integer greater than zero.\n"
+            "\tThe default is the number of cores.\n")
             .arg(longRepresentation(), shortRepresentation());
 }
 
@@ -176,8 +178,9 @@ QString DryRunOption::description(CommandType command) const
 {
     Q_UNUSED(command);
     return Tr::tr("%1|%2\n"
-            "\tDry run. No commands will be executed and no permanent changes to the "
-                  "build graph will be done.\n").arg(longRepresentation(), shortRepresentation());
+            "\tDry run. No commands will be executed and no permanent changes to the\n"
+            "\tbuild graph will be done.\n")
+            .arg(longRepresentation(), shortRepresentation());
 }
 
 QString DryRunOption::shortRepresentation() const
@@ -283,7 +286,8 @@ QString LogLevelOption::description(CommandType command) const
 {
     Q_UNUSED(command);
     return Tr::tr("%1 <level>\n"
-            "\tUse the specified log level. Possible values are '%2'.\n"
+            "\tUse the specified log level.\n"
+            "\tPossible values are '%2'.\n"
             "\tThe default is '%3'.\n").arg(longRepresentation(),
             allLogLevelStrings().join(QLatin1String("', '")), logLevelName(defaultLogLevel()));
 }
@@ -325,9 +329,9 @@ QString ForceOption::description(CommandType command) const
 {
     Q_UNUSED(command);
     return Tr::tr("%1\n\tDisregard objections.\n"
-                  "\tqbs might refuse to execute a given command because "
-                  "certain circumstances make it seem dubious. This option switches the "
-                  "respective checks off.\n").arg(longRepresentation());
+                  "\tqbs might refuse to execute a given command because certain\n"
+                  "\tcircumstances make it seem dubious. This option switches the\n"
+                  "\trespective checks off.\n").arg(longRepresentation());
 }
 
 QString ForceOption::longRepresentation() const
@@ -339,8 +343,8 @@ QString ForceTimeStampCheckOption::description(CommandType command) const
 {
     Q_UNUSED(command);
     return Tr::tr("%1\n\tForce timestamp checks.\n"
-                  "\tInstead of using the file timestamps that are stored in the build graph, "
-                  "retrieve the timestamps from the file system.\n").arg(longRepresentation());
+                  "\tInstead of using the file timestamps that are stored in the build graph,\n"
+                  "\tretrieve the timestamps from the file system.\n").arg(longRepresentation());
 }
 
 QString ForceTimeStampCheckOption::longRepresentation() const
@@ -360,10 +364,11 @@ QString InstallRootOption::description(CommandType command) const
     Q_ASSERT(command == InstallCommandType || command == RunCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1 <directory>\n"
-                  "\tInstall into the given directory. The default value is '<build dir>/%2'.\n"
-                  "\tIf the directory does not exist, it will be created. Use the special value "
-                  "'%3' to install into the sysroot (i.e. the value of the property "
-                  "qbs.sysroot).\n")
+                  "\tInstall into the given directory.\n"
+                  "\tThe default value is '<build dir>/%2'.\n"
+                  "\tIf the directory does not exist, it will be created. Use the special\n"
+                  "\tvalue '%3' to install into the sysroot (i.e. the value of the\n"
+                  "\tproperty qbs.sysroot).\n")
             .arg(longRepresentation(), InstallOptions::defaultInstallRoot(), magicSysrootString());
 }
 
