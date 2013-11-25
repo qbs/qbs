@@ -405,9 +405,8 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     FileTags result;
     foreach (FileTaggerConstPtr tagger, fileTaggers) {
-        if (FileInfo::globMatches(tagger->artifactExpression(), fileName)) {
+        if (FileInfo::globMatches(tagger->artifactExpression(), fileName))
             result.unite(tagger->fileTags());
-        }
     }
     return result;
 }

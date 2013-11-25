@@ -133,11 +133,10 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     }
 
     architecture = compilerTripletl.at(0);
-    if (architecture.contains("arm")) {
+    if (architecture.contains("arm"))
         endianness = "big";
-    } else {
+    else
         endianness = "little";
-    }
 
     QStringList pathToGccL = pathToGcc.split('/');
     QString compilerName = pathToGccL.takeLast().replace(cc, cxx);

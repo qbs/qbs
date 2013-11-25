@@ -52,17 +52,16 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 
     while (!args.isEmpty() && args.first().startsWith("--")) {
         const QString arg = args.takeFirst().mid(2);
-        if (arg == "list") {
+        if (arg == "list")
             setCommand(ConfigCommand::CfgList);
-        } else if (arg == "unset") {
+        else if (arg == "unset")
             setCommand(ConfigCommand::CfgUnset);
-        } else if (arg == "export") {
+        else if (arg == "export")
             setCommand(ConfigCommand::CfgExport);
-        } else if (arg == "import") {
+        else if (arg == "import")
             setCommand(ConfigCommand::CfgImport);
-        } else {
+        else
             throw ErrorInfo("Unknown option for config command.");
-        }
     }
 
     switch (command().command) {
