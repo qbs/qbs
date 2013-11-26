@@ -132,8 +132,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     }
 
     foreach (const WinSDK &sdk, winSDKs) {
-        qbsInfo() << Tr::tr("  Windows SDK detected:\n"
-                            "    version %1\n"
+        qbsInfo() << Tr::tr("  Windows SDK %1 detected:\n"
                             "    installed in %2").arg(sdk.version, sdk.installPath);
         if (!sdk.architectures.isEmpty())
             qbsInfo() << Tr::tr("    This SDK contains C++ compiler(s).");
