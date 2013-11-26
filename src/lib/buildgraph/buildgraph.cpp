@@ -428,8 +428,11 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
             logger.qbsTrace() << "Checking target artifact '" << ta->fileName() << "'.";
         QBS_CHECK(buildData->artifacts.contains(ta));
     }
+    QSet<QString> filePaths;
     foreach (Artifact * const artifact, buildData->artifacts) {
         logger.qbsDebug() << "Sanity checking artifact '" << artifact->fileName() << "'";
+        QBS_CHECK(!filePaths.contains(artifact->filePath()));
+        filePaths << artifact->filePath();
         QBS_CHECK(artifact->product == product);
         foreach (const Artifact * const parent, artifact->parents)
             QBS_CHECK(parent->children.contains(artifact));
