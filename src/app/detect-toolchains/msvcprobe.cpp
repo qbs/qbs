@@ -93,6 +93,15 @@ static void findSupportedArchitectures(MSVC *msvc, const QString &pathPrefix = Q
         msvc->architectures += QLatin1String("x86_64");
 }
 
+static QString wow6432Key()
+{
+#ifdef Q_OS_WIN64
+    return QLatin1String("\\Wow6432Node");
+#else
+    return QString();
+#endif
+}
+
 void msvcProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Detecting MSVC toolchains...");
@@ -100,7 +109,9 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     // 1) Installed SDKs preferred over standalone Visual studio
     QVector<WinSDK> winSDKs;
     WinSDK defaultWinSDK;
-    const QSettings sdkRegistry(QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows"),
+
+    const QSettings sdkRegistry(QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                                + QLatin1String("\\Microsoft\\Microsoft SDKs\\Windows"),
                                 QSettings::NativeFormat);
     const QString defaultSdkPath = sdkRegistry.value(QLatin1String("CurrentInstallFolder")).toString();
     if (!defaultSdkPath.isEmpty()) {
@@ -133,11 +144,8 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     // 2) Installed MSVCs
     QVector<MSVC> msvcs;
     const QSettings vsRegistry(
-#ifdef Q_OS_WIN64
-                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7"),
-#else
-                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7"),
-#endif
+                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                + QLatin1String("\\Microsoft\\VisualStudio\\SxS\\VC7"),
                 QSettings::NativeFormat);
     foreach (const QString &vsName, vsRegistry.allKeys()) {
         // Scan for version major.minor
