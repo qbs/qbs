@@ -117,7 +117,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     if (!defaultSdkPath.isEmpty()) {
         foreach (const QString &sdkKey, sdkRegistry.childGroups()) {
             WinSDK sdk;
-            sdk.version = sdkRegistry.value(sdkKey + QLatin1String("/ProductVersion")).toString();
+            sdk.version = sdkKey;
             sdk.installPath = sdkRegistry.value(sdkKey + QLatin1String("/InstallationFolder")).toString();
             sdk.isDefault = (sdk.installPath == defaultSdkPath);
             if (sdk.installPath.isEmpty())
