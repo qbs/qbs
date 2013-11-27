@@ -111,7 +111,8 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.stdoutFilterFunction = "function(output) {";
-    cmd.stdoutFilterFunction += "return output.replace('" + FileInfo.fileName(input.fileName) + "\\r\\n', '');";
+    cmd.stdoutFilterFunction += "return output.replace(/"
+            + FileInfo.fileName(input.fileName) + "\\r\\n/g, '');";
     cmd.stdoutFilterFunction += "}";
     return cmd;
 }
