@@ -491,6 +491,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildDirectory()
 
     if (!QFileInfo(projectBuildDirectory).isAbsolute())
         projectBuildDirectory = QDir::currentPath() + QLatin1Char('/') + projectBuildDirectory;
+    projectBuildDirectory = QDir::cleanPath(projectBuildDirectory);
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
