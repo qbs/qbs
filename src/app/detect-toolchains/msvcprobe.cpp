@@ -64,8 +64,9 @@ Q_DECLARE_TYPEINFO(WinSDK, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(MSVC, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
-static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QString name,
-        const QString &installPath, const QString &winSDKPath, const QString &architecture)
+static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile> &profiles,
+        QString name, const QString &installPath, const QString &winSDKPath,
+        const QString &architecture)
 {
     name.append(QLatin1Char('_') + architecture);
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
@@ -76,6 +77,11 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     p.setValue("qbs.toolchain", QStringList("msvc"));
     p.setValue("cpp.windowsSDKPath", winSDKPath);
     p.setValue("qbs.architecture", canonicalizeArchitecture(architecture));
+    if (msvc.version.toInt() >= 2013) {
+        const QStringList flags(QLatin1String("/FS"));
+        p.setValue("cpp.platformCFlags", flags);
+        p.setValue("cpp.platformCxxFlags", flags);
+    }
     profiles << p;
 }
 
@@ -192,14 +198,14 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 
     foreach (const WinSDK &sdk, winSDKs) {
         foreach (const QString &arch, sdk.architectures) {
-            addMSVCPlatform(settings, profiles, QLatin1String("WinSDK") + sdk.version,
+            addMSVCPlatform(sdk, settings, profiles, QLatin1String("WinSDK") + sdk.version,
                     sdk.installPath + QLatin1String("\\bin"), defaultWinSDK.installPath, arch);
         }
     }
 
     foreach (const MSVC &msvc, msvcs) {
         foreach (const QString &arch, msvc.architectures) {
-            addMSVCPlatform(settings, profiles, QLatin1String("MSVC") + msvc.version,
+            addMSVCPlatform(msvc, settings, profiles, QLatin1String("MSVC") + msvc.version,
                     msvc.installPath, defaultWinSDK.installPath, arch);
         }
     }
