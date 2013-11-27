@@ -1,8 +1,11 @@
 #ifndef MYOBJECT_H
 #define MYOBJECT_H
 
-class MyObject
+#include <QtCore/QObject>
+
+class MyObject : public QObject
 {
+    Q_OBJECT
 public:
     MyObject();
     ~MyObject();
