@@ -42,7 +42,7 @@ CppApplication {
     Depends { condition: product.condition; name: "ib" }
     condition: qbs.targetOS.contains("osx")
     type: "applicationbundle"
-    name: "CocoaApplication"
+    name: "Cocoa Application"
 
     cpp.precompiledHeader: "CocoaApplication/CocoaApplication-Prefix.pch"
 

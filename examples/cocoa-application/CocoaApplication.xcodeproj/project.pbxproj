@@ -16,7 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-        14ABF7A31717761200140DA2 /* CocoaApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CocoaApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        14ABF7A31717761200140DA2 /* Cocoa Application.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Cocoa Application.app"; sourceTree = BUILT_PRODUCTS_DIR; };
         14ABF7A61717761200140DA2 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
         14ABF7A91717761200140DA2 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
         14ABF7AA1717761200140DA2 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -55,7 +55,7 @@
         14ABF7A41717761200140DA2 /* Products */ = {
             isa = PBXGroup;
             children = (
-                14ABF7A31717761200140DA2 /* CocoaApplication.app */,
+                14ABF7A31717761200140DA2 /* Cocoa Application.app */,
             );
             name = Products;
             sourceTree = "<group>";
@@ -105,9 +105,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-        14ABF7A21717761200140DA2 /* CocoaApplication */ = {
+        14ABF7A21717761200140DA2 /* Cocoa Application */ = {
             isa = PBXNativeTarget;
-            buildConfigurationList = 14ABF7C01717761300140DA2 /* Build configuration list for PBXNativeTarget "CocoaApplication" */;
+            buildConfigurationList = 14ABF7C01717761300140DA2 /* Build configuration list for PBXNativeTarget "Cocoa Application" */;
             buildPhases = (
                 14ABF79F1717761200140DA2 /* Sources */,
                 14ABF7A01717761200140DA2 /* Frameworks */,
@@ -117,9 +117,9 @@
             );
             dependencies = (
             );
-            name = CocoaApplication;
+            name = "Cocoa Application";
             productName = CocoaApplication;
-            productReference = 14ABF7A31717761200140DA2 /* CocoaApplication.app */;
+            productReference = 14ABF7A31717761200140DA2 /* Cocoa Application.app */;
             productType = "com.apple.product-type.application";
         };
 /* End PBXNativeTarget section */
@@ -143,7 +143,7 @@
             projectDirPath = "";
             projectRoot = "";
             targets = (
-                14ABF7A21717761200140DA2 /* CocoaApplication */,
+                14ABF7A21717761200140DA2 /* Cocoa Application */,
             );
         };
 /* End PBXProject section */
@@ -294,13 +294,14 @@
             defaultConfigurationIsVisible = 0;
             defaultConfigurationName = Release;
         };
-        14ABF7C01717761300140DA2 /* Build configuration list for PBXNativeTarget "CocoaApplication" */ = {
+        14ABF7C01717761300140DA2 /* Build configuration list for PBXNativeTarget "Cocoa Application" */ = {
             isa = XCConfigurationList;
             buildConfigurations = (
                 14ABF7C11717761300140DA2 /* Debug */,
                 14ABF7C21717761300140DA2 /* Release */,
             );
             defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
         };
 /* End XCConfigurationList section */
     };
