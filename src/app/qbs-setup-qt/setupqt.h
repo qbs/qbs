@@ -50,9 +50,11 @@ public:
     QString qtLibInfix;
     QString qtNameSpace;
     QString mkspecPath;
+    QString mkspecName;
     QStringList buildVariant;
     QStringList configItems;
     QStringList qtConfigItems;
+    QString architecture;
     QString qtVersion;
     int qtMajorVersion;
     int qtMinorVersion;
@@ -72,6 +74,9 @@ public:
                                   Settings *settings);
     static bool checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
             const QList<QtEnvironment> &qtEnvironments);
+
+private:
+    static QString guessMinimumWindowsVersion(const QtEnvironment &qt);
 };
 
 } // namespace qbs

@@ -259,11 +259,10 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
     m_codeLocation = codeLocation;
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
     QScriptValue sourceCode = scriptValue->property("sourceCode");
-    if (sourceCode.isFunction()) {
+    if (sourceCode.isFunction())
         m_sourceCode = "(" + sourceCode.toString() + ")()";
-    } else {
+    else
         m_sourceCode = sourceCode.toString();
-    }
     static QSet<QString> predefinedProperties = QSet<QString>()
             << "description" << "highlight" << "silent" << "className" << "sourceCode";
 

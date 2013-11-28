@@ -41,6 +41,7 @@
 #include <QFileInfo>
 #include <QLibrary>
 #include <QProcess>
+#include <QRegExp>
 #include <QStringList>
 #include <QtDebug>
 
@@ -195,12 +196,18 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
     qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
     qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
+    qtEnvironment.architecture = configVariable(qconfigContent, "QT_TARGET_ARCH");
+    if (qtEnvironment.architecture.isEmpty())
+        qtEnvironment.architecture = configVariable(qconfigContent, "QT_ARCH");
+    if (qtEnvironment.architecture.isEmpty())
+        qtEnvironment.architecture = QLatin1String("x86");
     qtEnvironment.configItems = configVariableItems(qconfigContent, QLatin1String("CONFIG"));
     qtEnvironment.qtConfigItems = configVariableItems(qconfigContent, QLatin1String("QT_CONFIG"));
 
     // retrieve the mkspec
     if (qtVersion.majorVersion >= 5) {
         const QString mkspecName = queryOutput.value("QMAKE_XSPEC");
+        qtEnvironment.mkspecName = mkspecName;
         qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
         if (!mkspecsBaseSrcPath.isEmpty() && !QFile::exists(qtEnvironment.mkspecPath))
             qtEnvironment.mkspecPath = mkspecsBaseSrcPath + QLatin1Char('/') + mkspecName;
@@ -211,6 +218,10 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         } else {
             qtEnvironment.mkspecPath = QFileInfo(mkspecsBasePath + "/default").symLinkTarget();
         }
+        qtEnvironment.mkspecName = qtEnvironment.mkspecPath;
+        int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
+        if (idx != -1)
+            qtEnvironment.mkspecName.remove(0, idx + 1);
     }
 
     // determine whether we have a framework build
@@ -295,13 +306,8 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                          qtEnvironment.staticBuild);
 
     // Set the minimum operating system versions appropriate for this Qt version
-    QString windowsVersion, osxVersion, iosVersion, androidVersion;
-
-    // ### TODO: Also dependent on the toolchain, which we can't easily access here
-    // Most 32-bit Windows applications based on either Qt 5 or Qt 4 should run
-    // on 2000, so this is a good baseline for now.
-    if (qtEnvironment.mkspecPath.contains("win32") && qtEnvironment.qtMajorVersion >= 4)
-        windowsVersion = QLatin1String("5.0");
+    const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
+    QString osxVersion, iosVersion, androidVersion;
 
     if (qtEnvironment.mkspecPath.contains("macx")) {
         profile.setValue(settingsTemplate.arg("frameworkBuild"), qtEnvironment.frameworkBuild);
@@ -350,9 +356,6 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 8)
             androidVersion = QLatin1String("1.6"); // Necessitas
     }
-
-    if (qtEnvironment.mkspecPath.contains("winrt") && qtEnvironment.qtMajorVersion >= 5)
-        windowsVersion = QLatin1String("6.2");
 
     // ### TODO: wince, winphone, blackberry
 
@@ -430,6 +433,31 @@ bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
     }
 
     return false;
+}
+
+QString SetupQt::guessMinimumWindowsVersion(const QtEnvironment &qt)
+{
+    if (qt.mkspecName.startsWith("winrt-"))
+        return QLatin1String("6.2");
+
+    if (!qt.mkspecName.startsWith("win32-"))
+        return QString();
+
+    if (qt.architecture == QLatin1String("x86_64")
+            || qt.architecture == QLatin1String("ia64")) {
+        return QLatin1String("5.2");
+    }
+
+    QRegExp rex(QLatin1String("^win32-msvc(\\d+)$"));
+    if (rex.exactMatch(qt.mkspecName)) {
+        int msvcVersion = rex.cap(1).toInt();
+        if (msvcVersion < 2012)
+            return QLatin1String("5.0");
+        else
+            return QLatin1String("5.1");
+    }
+
+    return qt.qtMajorVersion < 5 ? QLatin1String("5.0") : QLatin1String("5.1");
 }
 
 } // namespace qbs

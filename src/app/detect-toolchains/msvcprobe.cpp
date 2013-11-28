@@ -65,8 +65,9 @@ Q_DECLARE_TYPEINFO(WinSDK, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(MSVC, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
-static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QString name,
-        const QString &installPath, const QString &winSDKPath, const QString &architecture)
+static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile> &profiles,
+        QString name, const QString &installPath, const QString &winSDKPath,
+        const QString &architecture)
 {
     name.append(QLatin1Char('_') + architecture);
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
@@ -78,6 +79,11 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     p.setValue("cpp.windowsSDKPath", winSDKPath);
     p.setValue("qbs.architecture", Internal::HostOsInfo::canonicalArchitecture(architecture));
     p.setValue("qbs.endianness", Internal::HostOsInfo::defaultEndianness(architecture));
+    if (msvc.version.toInt() >= 2013) {
+        const QStringList flags(QLatin1String("/FS"));
+        p.setValue("cpp.platformCFlags", flags);
+        p.setValue("cpp.platformCxxFlags", flags);
+    }
     profiles << p;
 }
 
@@ -89,6 +95,15 @@ static void findSupportedArchitectures(MSVC *msvc, const QString &pathPrefix = Q
         msvc->architectures += QLatin1String("x86_64");
 }
 
+static QString wow6432Key()
+{
+#ifdef Q_OS_WIN64
+    return QLatin1String("\\Wow6432Node");
+#else
+    return QString();
+#endif
+}
+
 void msvcProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Detecting MSVC toolchains...");
@@ -96,13 +111,15 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     // 1) Installed SDKs preferred over standalone Visual studio
     QVector<WinSDK> winSDKs;
     WinSDK defaultWinSDK;
-    const QSettings sdkRegistry(QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows"),
+
+    const QSettings sdkRegistry(QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                                + QLatin1String("\\Microsoft\\Microsoft SDKs\\Windows"),
                                 QSettings::NativeFormat);
     const QString defaultSdkPath = sdkRegistry.value(QLatin1String("CurrentInstallFolder")).toString();
     if (!defaultSdkPath.isEmpty()) {
         foreach (const QString &sdkKey, sdkRegistry.childGroups()) {
             WinSDK sdk;
-            sdk.version = sdkRegistry.value(sdkKey + QLatin1String("/ProductVersion")).toString();
+            sdk.version = sdkKey;
             sdk.installPath = sdkRegistry.value(sdkKey + QLatin1String("/InstallationFolder")).toString();
             sdk.isDefault = (sdk.installPath == defaultSdkPath);
             if (sdk.installPath.isEmpty())
@@ -117,8 +134,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     }
 
     foreach (const WinSDK &sdk, winSDKs) {
-        qbsInfo() << Tr::tr("  Windows SDK detected:\n"
-                            "    version %1\n"
+        qbsInfo() << Tr::tr("  Windows SDK %1 detected:\n"
                             "    installed in %2").arg(sdk.version, sdk.installPath);
         if (!sdk.architectures.isEmpty())
             qbsInfo() << Tr::tr("    This SDK contains C++ compiler(s).");
@@ -129,11 +145,8 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     // 2) Installed MSVCs
     QVector<MSVC> msvcs;
     const QSettings vsRegistry(
-#ifdef Q_OS_WIN64
-                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7"),
-#else
-                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7"),
-#endif
+                QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                + QLatin1String("\\Microsoft\\VisualStudio\\SxS\\VC7"),
                 QSettings::NativeFormat);
     foreach (const QString &vsName, vsRegistry.allKeys()) {
         // Scan for version major.minor
@@ -194,14 +207,14 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 
     foreach (const WinSDK &sdk, winSDKs) {
         foreach (const QString &arch, sdk.architectures) {
-            addMSVCPlatform(settings, profiles, QLatin1String("WinSDK") + sdk.version,
+            addMSVCPlatform(sdk, settings, profiles, QLatin1String("WinSDK") + sdk.version,
                     sdk.installPath + QLatin1String("\\bin"), defaultWinSDK.installPath, arch);
         }
     }
 
     foreach (const MSVC &msvc, msvcs) {
         foreach (const QString &arch, msvc.architectures) {
-            addMSVCPlatform(settings, profiles, QLatin1String("MSVC") + msvc.version,
+            addMSVCPlatform(msvc, settings, profiles, QLatin1String("MSVC") + msvc.version,
                     msvc.installPath, defaultWinSDK.installPath, arch);
         }
     }

@@ -268,6 +268,12 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
                     .arg(outputArtifact->transformer->rule->script->location.line())
                     .arg(outputArtifact->transformer->rule->script->location.column())
                     .arg(th);
+
+                QStringList inputFilePaths;
+                foreach (const Artifact * const a, m_transformer->inputs)
+                    inputFilePaths << a->filePath();
+                e.append(Tr::tr("The input artifacts are: %1")
+                         .arg(inputFilePaths.join(QLatin1String(", "))));
                 throw ErrorInfo(e);
             }
         }

@@ -72,11 +72,10 @@ void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant
 
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
 {
-    if (name.length() == 1) {
+    if (name.length() == 1)
         return cfg.value(name.first());
-    } else {
+    else
         return getConfigProperty(cfg.value(name.first()).toMap(), name.mid(1));
-    }
 }
 
 QString toJSLiteral(const bool b)

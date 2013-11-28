@@ -91,13 +91,12 @@ TextFile::TextFile(QScriptContext *context, const QString &file, OpenMode mode, 
 
     t->qfile = new QFile(file);
     QIODevice::OpenMode m = QIODevice::ReadOnly;
-    if (mode == ReadWrite) {
+    if (mode == ReadWrite)
         m = QIODevice::ReadWrite;
-    } else if (mode == ReadOnly) {
+    else if (mode == ReadOnly)
         m = QIODevice::ReadOnly;
-    } else if (mode == WriteOnly) {
+    else if (mode == WriteOnly)
        m = QIODevice::WriteOnly;
-    }
     if (Q_UNLIKELY(!t->qfile->open(m))) {
         delete t->qfile;
         t->qfile = 0;
