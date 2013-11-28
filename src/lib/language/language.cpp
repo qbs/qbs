@@ -431,10 +431,11 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     FileTags result;
     foreach (FileTaggerConstPtr tagger, fileTaggers) {
-        foreach (const QRegExp &pattern, tagger->patterns())
+        foreach (const QRegExp &pattern, tagger->patterns()) {
             if (FileInfo::globMatches(pattern, fileName)) {
                 result.unite(tagger->fileTags());
                 break;
+            }
         }
     }
     return result;

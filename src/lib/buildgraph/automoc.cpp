@@ -97,11 +97,10 @@ void AutoMoc::apply(const ResolvedProductPtr &product)
         bool alreadyMocced = isVictimOfMoc(artifact, fileType, mocFileTag);
         bool hasQObjectMacro;
         scan(artifact, fileType, hasQObjectMacro, includedMocCppFiles);
-        if (hasQObjectMacro && !alreadyMocced) {
+        if (hasQObjectMacro && !alreadyMocced)
             artifactsToMoc += qMakePair(artifact, fileType);
-        } else if (!hasQObjectMacro && alreadyMocced) {
+        else if (!hasQObjectMacro && alreadyMocced)
             unmoc(artifact, mocFileTag);
-        }
     }
 
     Artifact *pluginHeaderFile = 0;

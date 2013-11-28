@@ -367,9 +367,8 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
 Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QString &commandString) const
 {
     foreach (Command * const command, allCommands()) {
-        if (command->representation() == commandString) {
+        if (command->representation() == commandString)
             return command;
-        }
     }
     return 0;
 }

@@ -9,5 +9,6 @@ Product {
             "myobject.cpp"]
     Depends { name: "cpp" }
     cpp.precompiledHeader: "stable.h"
+    Depends { name: "Qt.core" }
 }
 
