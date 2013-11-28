@@ -599,11 +599,9 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             newlyResolvedProduct->topLevelProject()->buildData->artifactsThatMustGetNewTransformers += parent;
     newlyResolvedProduct->topLevelProject()->buildData->updateNodesThatMustGetNewTransformer(m_logger);
 
-    // delete all removed artifacts physically from the disk
-    foreach (Artifact *artifact, artifactsToRemove) {
-        removeGeneratedArtifactFromDisk(artifact, m_logger);
+    // defer destruction of removed artifacts
+    foreach (Artifact *artifact, artifactsToRemove)
         m_objectsToDelete << artifact;
-    }
 }
 
 static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &product,
