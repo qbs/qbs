@@ -56,7 +56,6 @@ private:
     void dump_impl(QByteArray &indent, int rootIndex) const;
     int insert(const RulePtr &rule);
     void connect(const Rule *creatingRule, const Rule *consumingRule);
-    void remove(Rule *rule);
     QList<RuleConstPtr> topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
             QList<const Rule *> *rulePath);
 

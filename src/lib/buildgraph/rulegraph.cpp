@@ -145,14 +145,6 @@ void RuleGraph::connect(const Rule *creatingRule, const Rule *consumingRule)
     m_children[creatingRule->ruleGraphId].append(consumingRule->ruleGraphId);
 }
 
-void RuleGraph::remove(Rule *rule)
-{
-    m_parents[rule->ruleGraphId].clear();
-    m_children[rule->ruleGraphId].clear();
-    m_artifacts[rule->ruleGraphId] = RulePtr();
-    rule->ruleGraphId = -1;
-}
-
 QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
         QList<const Rule *> *rulePath)
 {
