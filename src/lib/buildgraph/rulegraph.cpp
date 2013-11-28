@@ -163,28 +163,6 @@ void RuleGraph::removeParents(const Rule *rule)
     m_parents[rule->ruleGraphId].clear();
 }
 
-void RuleGraph::removeSiblings(const Rule *rule)
-{
-    foreach (int childIndex, m_children[rule->ruleGraphId]) {
-        const RuleConstPtr child = m_artifacts.at(childIndex);
-        QList<int> toRemove;
-        foreach (int siblingIndex, m_parents.at(child->ruleGraphId)) {
-            const RulePtr sibling = m_artifacts.at(siblingIndex);
-            if (sibling == rule)
-                continue;
-            toRemove.append(sibling->ruleGraphId);
-            remove(sibling.data());
-        }
-        QVector<int> &parents = m_parents[child->ruleGraphId];
-        qSort(parents);
-        foreach (int id, toRemove) {
-            QVector<int>::iterator it = qBinaryFind(parents.begin(), parents.end(), id);
-            if (it != parents.end())
-                parents.erase(it);
-        }
-    }
-}
-
 QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
         QList<const Rule *> *rulePath)
 {
