@@ -153,16 +153,6 @@ void RuleGraph::remove(Rule *rule)
     rule->ruleGraphId = -1;
 }
 
-void RuleGraph::removeParents(const Rule *rule)
-{
-    foreach (int parentIndex, m_parents[rule->ruleGraphId]) {
-        const RulePtr parent = m_artifacts.at(parentIndex);
-        removeParents(parent.data());
-        remove(parent.data());
-    }
-    m_parents[rule->ruleGraphId].clear();
-}
-
 QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
         QList<const Rule *> *rulePath)
 {

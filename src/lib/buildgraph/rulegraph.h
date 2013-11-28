@@ -57,7 +57,6 @@ private:
     int insert(const RulePtr &rule);
     void connect(const Rule *creatingRule, const Rule *consumingRule);
     void remove(Rule *rule);
-    void removeParents(const Rule *rule);
     QList<RuleConstPtr> topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
             QList<const Rule *> *rulePath);
 
