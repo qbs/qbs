@@ -236,7 +236,25 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
     const QStringList refs = m_evaluator->stringListValue(item, QLatin1String("references"));
     foreach (const QString &filePath, refs) {
-        const QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
+        QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
+        if (FileInfo(absReferencePath).isDir()) {
+            QString qbsFilePath;
+            QDirIterator dit(absReferencePath, QStringList(QLatin1String("*.qbs")));
+            while (dit.hasNext()) {
+                if (!qbsFilePath.isEmpty()) {
+                    throw ErrorInfo(Tr::tr("Referenced directory '%1' contains more than one "
+                                           "qbs file.").arg(absReferencePath),
+                                    item->property(QLatin1String("references"))->location());
+                }
+                qbsFilePath = dit.next();
+            }
+            if (qbsFilePath.isEmpty()) {
+                throw ErrorInfo(Tr::tr("Referenced directory '%1' does not contain a qbs file.")
+                                .arg(absReferencePath),
+                                item->property(QLatin1String("references"))->location());
+            }
+            absReferencePath = qbsFilePath;
+        }
         if (referencedFilePaths.contains(absReferencePath))
             throw ErrorInfo(Tr::tr("Cycle detected while referencing file '%1'.").arg(filePath),
                             item->property(QLatin1String("references"))->location());

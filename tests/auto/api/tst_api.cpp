@@ -45,6 +45,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
+#include <QFileInfo>
 #include <QScopedPointer>
 #include <QStringList>
 #include <QTest>
@@ -478,6 +479,36 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
     setupParams.setBuildConfiguration(buildConfig);
     setupParams.expandBuildConfiguration(settings.data());
     return setupParams;
+}
+
+void TestApi::references()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/references");
+    setupParams.setProjectFilePath(projectDir + QLatin1String("/invalid1.qbs"));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY(job->error().hasError());
+    QString errorString = job->error().toString();
+    QVERIFY2(errorString.contains("does not contain"), qPrintable(errorString));
+
+    setupParams.setProjectFilePath(projectDir + QLatin1String("/invalid2.qbs"));
+    job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY(job->error().hasError());
+    errorString = job->error().toString();
+    QVERIFY2(errorString.contains("contains more than one"), qPrintable(errorString));
+
+    setupParams.setProjectFilePath(projectDir + QLatin1String("/valid.qbs"));
+    job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    const qbs::ProjectData topLevelProject = job->project().projectData();
+    QCOMPARE(topLevelProject.subProjects().count(), 1);
+    const QString subProjectFileName
+            = QFileInfo(topLevelProject.subProjects().first().location().fileName()).fileName();
+    QCOMPARE(subProjectFileName, QString("p.qbs"));
 }
 
 QTEST_MAIN(TestApi)

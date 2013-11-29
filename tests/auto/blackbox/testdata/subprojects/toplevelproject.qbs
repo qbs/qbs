@@ -2,7 +2,7 @@ import qbs
 
 Project {
     name: "top level project"
-    references: ["subproject2/subproject2.qbs"]
+    references: ["subproject2"]
 
     Project {
         condition: true
