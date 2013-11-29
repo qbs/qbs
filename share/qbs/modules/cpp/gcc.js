@@ -16,8 +16,8 @@ function linkerFlags(product, inputs)
     // Add filenames of internal library dependencies to the lists
     for (i in inputs.staticlibrary)
         staticLibraries.unshift(inputs.staticlibrary[i].fileName);
-    for (i in inputs.dynamiclibrary)
-        dynamicLibraries.unshift(inputs.dynamiclibrary[i].fileName);
+    for (i in inputs.dynamiclibrary_copy)
+        dynamicLibraries.unshift(inputs.dynamiclibrary_copy[i].fileName);
     for (i in inputs.frameworkbundle)
         frameworks.unshift(inputs.frameworkbundle[i].fileName);
 

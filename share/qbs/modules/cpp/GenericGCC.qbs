@@ -1,5 +1,7 @@
 import qbs 1.0
+import qbs.File
 import qbs.FileInfo
+import qbs.Process
 import 'windows.js' as Windows
 import 'gcc.js' as Gcc
 import '../utils.js' as ModUtils
@@ -15,6 +17,7 @@ CppModule {
     compilerName: 'g++'
     linkerName: compilerName
     property string archiverName: 'ar'
+    property string nmName: 'nm'
     property path sysroot: qbs.sysroot
     property path platformPath
 
@@ -33,6 +36,7 @@ CppModule {
     compilerPath: toolchainPathPrefix + compilerName
     linkerPath: toolchainPathPrefix + linkerName
     property path archiverPath: { return toolchainPathPrefix + archiverName }
+    property path nmPath: { return toolchainPathPrefix + nmName }
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && product.version &&
@@ -62,21 +66,11 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
+        usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
             fileTags: ["dynamiclibrary"]
-            cpp.transitiveSOs: {
-                var result = []
-                for (var i in inputs.dynamiclibrary) {
-                    var lib = inputs.dynamiclibrary[i]
-                    var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
-                    var libsToAdd = impliedLibs.concat([lib.fileName]);
-                    result = ModUtils.uniqueConcat(result, libsToAdd);
-                }
-                return result
-            }
         }
 
         // libfoo
@@ -97,7 +91,26 @@ CppModule {
             fileTags: ["dynamiclibrary_symlink"]
         }
 
+        // Copy of dynamic lib for smart re-linking.
+        Artifact {
+            fileName: product.destinationDirectory + "/.socopy/"
+                      + PathTools.dynamicLibraryFilePath()
+            fileTags: ["dynamiclibrary_copy"]
+            alwaysUpdated: false
+            cpp.transitiveSOs: {
+                var result = []
+                for (var i in inputs.dynamiclibrary_copy) {
+                    var lib = inputs.dynamiclibrary_copy[i]
+                    var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
+                    var libsToAdd = impliedLibs.concat([lib.fileName]);
+                    result = ModUtils.uniqueConcat(result, libsToAdd);
+                }
+                return result
+            }
+        }
+
         prepare: {
+            // Actual linker command.
             var libFilePath = outputs["dynamiclibrary"][0].fileName;
             var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
@@ -141,6 +154,37 @@ CppModule {
             cmd.description = 'linking ' + FileInfo.fileName(libFilePath);
             cmd.highlight = 'linker';
             cmd.responseFileUsagePrefix = '@';
+            commands.push(cmd);
+
+            // Update the copy, if any global symbols have changed.
+            cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.sourceCode = function() {
+                var sourceFilePath = outputs.dynamiclibrary[0].fileName;
+                var targetFilePath = outputs.dynamiclibrary_copy[0].fileName;
+                if (!File.exists(targetFilePath)) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var process = new Process();
+                var command = ModUtils.moduleProperty(product, "nmPath");
+                var args = ["-g", "-P"];
+                if (process.exec(command, args.concat(sourceFilePath), false) != 0) {
+                    // Failure to run the nm tool is not fatal. We just fall back to the
+                    // "always relink" behavior.
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var globalSymbolsSource = process.readStdOut();
+                if (process.exec(command, args.concat(targetFilePath), false) != 0) {
+                    File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                var globalSymbolsTarget = process.readStdOut();
+                process.close();
+                if (globalSymbolsSource !== globalSymbolsTarget)
+                    File.copy(sourceFilePath, targetFilePath);
+            }
             commands.push(cmd);
 
             // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
@@ -204,7 +248,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
+        usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath()
@@ -255,10 +299,12 @@ CppModule {
             args.push(output.fileName);
 
             if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
-                var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product, inputs.dynamiclibrary, 'cpp', 'transitiveSOs')
+                var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
+                        inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
                 var uniqueSOs = ModUtils.uniqueConcat([], transitiveSOs)
                 for (i in uniqueSOs) {
-                    args.push("-Wl,-rpath-link=" + FileInfo.path(uniqueSOs[i]))
+                    // The real library is located one level up.
+                    args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));
                 }
             }
 
