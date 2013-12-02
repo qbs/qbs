@@ -103,6 +103,11 @@ struct Opaq
     int currentResultIndex;
 };
 
+inline bool equals(const char *identifier, const QLatin1Literal &literal)
+{
+    return strncmp(identifier, literal.data(), literal.size()) == 0;
+}
+
 static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool scanForDependencies)
 {
     const QLatin1Literal includeLiteral("include");
@@ -122,9 +127,9 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
 
             if (scanForDependencies && !tk.newline() && tk.is(T_IDENTIFIER)) {
                 if ((static_cast<int>(tk.length()) >= includeLiteral.size()
-                     && (strncmp(opaque->fileContent + tk.begin(), includeLiteral.data(), includeLiteral.size()) == 0))
-                        || (static_cast<int>(tk.length()) >= importLiteral.size()
-                            && (strncmp(opaque->fileContent + tk.begin(), importLiteral.data(), importLiteral.size()) == 0)))
+                        && equals(opaque->fileContent + tk.begin(), includeLiteral))
+                    || (static_cast<int>(tk.length()) >= importLiteral.size()
+                        && equals(opaque->fileContent + tk.begin(), importLiteral)))
                 {
                     yylex.setScanAngleStringLiteralTokens(true);
                     yylex(&tk);
@@ -144,13 +149,12 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
         } else if (tk.is(T_IDENTIFIER)) {
             if (scanForFileTags) {
                 const char *identifier = opaque->fileContent + tk.begin();
-                if (strncmp(identifier, qobjectLiteral.data(), qobjectLiteral.size()) == 0
-                    || strncmp(identifier, qgadgetLiteral.data(), qgadgetLiteral.size()) == 0)
+                if (equals(identifier, qobjectLiteral)
+                        || equals(identifier, qgadgetLiteral))
                 {
                     opaque->hasQObjectMacro = true;
                 } else if (opaque->fileType == Opaq::FT_HPP
-                           && strncmp(identifier, pluginMetaDataLiteral.data(),
-                                      pluginMetaDataLiteral.size()) == 0)
+                        && equals(identifier, pluginMetaDataLiteral))
                 {
                     opaque->hasPluginMetaDataMacro = true;
                 }
