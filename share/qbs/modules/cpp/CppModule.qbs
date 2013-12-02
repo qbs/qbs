@@ -82,6 +82,7 @@ Module {
     property pathList libraryPaths
     property pathList frameworkPaths
     property pathList systemFrameworkPaths
+    property pathList linkerScripts
     property string compilerName
     property string compilerPath: compilerName
     property stringList compilerWrapper

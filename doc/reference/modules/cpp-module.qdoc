@@ -317,6 +317,15 @@
 
     Additional flags for the linker.
 
+    \section2 linkerScripts
+
+    \table
+    \row    \li \b{Type:}            \li \c{pathList}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    List of linker script files.
+
     \section2 compilerName
 
     \table

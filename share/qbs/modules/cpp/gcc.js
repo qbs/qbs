@@ -7,6 +7,7 @@ function linkerFlags(product, inputs)
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
     var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
     var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
+    var linkerScripts = ModUtils.moduleProperties(product, 'linkerScripts');
     var frameworks = ModUtils.moduleProperties(product, 'frameworks');
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = ModUtils.moduleProperties(product, 'rpaths');
@@ -30,6 +31,9 @@ function linkerFlags(product, inputs)
         args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
     if (systemFrameworkPaths)
         args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
+
+    if (linkerScripts)
+        args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
 
     prefix = ModUtils.moduleProperty(product, "staticLibraryPrefix");
     suffixes = ModUtils.moduleProperty(product, "supportedStaticLibrarySuffixes");
