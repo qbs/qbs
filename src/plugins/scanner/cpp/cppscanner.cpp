@@ -112,11 +112,13 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
 {
     const QLatin1Literal includeLiteral("include");
     const QLatin1Literal importLiteral("import");
+    const QLatin1Literal defineLiteral("define");
     const QLatin1Literal qobjectLiteral("Q_OBJECT");
     const QLatin1Literal qgadgetLiteral("Q_GADGET");
     const QLatin1Literal pluginMetaDataLiteral("Q_PLUGIN_METADATA");
     Opaq *opaque = static_cast<Opaq *>(opaq);
     Token tk;
+    Token oldTk;
     ScanResult scanResult;
 
     yylex(&tk);
@@ -148,22 +150,29 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
             }
         } else if (tk.is(T_IDENTIFIER)) {
             if (scanForFileTags) {
-                const char *identifier = opaque->fileContent + tk.begin();
-                if (equals(identifier, qobjectLiteral)
-                        || equals(identifier, qgadgetLiteral))
-                {
-                    opaque->hasQObjectMacro = true;
-                } else if (opaque->fileType == Opaq::FT_HPP
-                        && equals(identifier, pluginMetaDataLiteral))
-                {
-                    opaque->hasPluginMetaDataMacro = true;
+                if (oldTk.is(T_IDENTIFIER)
+                        && equals(opaque->fileContent + oldTk.begin(), defineLiteral)) {
+                    // Someone was clever and redefined Q_OBJECT or Q_PLUGIN_METADATA.
+                    // Example: iplugin.h in Qt Creator.
+                } else {
+                    const char *identifier = opaque->fileContent + tk.begin();
+                    if (equals(identifier, qobjectLiteral)
+                            || equals(identifier, qgadgetLiteral))
+                    {
+                        opaque->hasQObjectMacro = true;
+                    } else if (opaque->fileType == Opaq::FT_HPP
+                            && equals(identifier, pluginMetaDataLiteral))
+                    {
+                        opaque->hasPluginMetaDataMacro = true;
+                    }
+                    if (!scanForDependencies && opaque->hasQObjectMacro
+                        && (opaque->fileType == Opaq::FT_CPP || opaque->hasPluginMetaDataMacro))
+                        break;
                 }
-                if (!scanForDependencies && opaque->hasQObjectMacro
-                    && (opaque->fileType == Opaq::FT_CPP || opaque->hasPluginMetaDataMacro))
-                    break;
             }
 
         }
+        oldTk = tk;
         yylex(&tk);
     }
 }
