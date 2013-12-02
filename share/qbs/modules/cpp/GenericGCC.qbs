@@ -62,7 +62,7 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ["dynamiclibrary", "dynamiclibrary_symlink", "staticlibrary", "frameworkbundle"]
+        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
