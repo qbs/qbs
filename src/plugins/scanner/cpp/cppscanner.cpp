@@ -115,7 +115,7 @@ public:
     bool equals(const Token &tk, const QLatin1Literal &literal) const
     {
         return static_cast<int>(tk.length()) == literal.size()
-                && strncmp(m_fileContent + tk.begin(), literal.data(), literal.size()) == 0;
+                && memcmp(m_fileContent + tk.begin(), literal.data(), literal.size()) == 0;
     }
 };
 
