@@ -135,7 +135,7 @@ CppModule {
 
             args.push('-o');
             args.push(libFilePath);
-            args = args.concat(Gcc.libraryLinkerFlags(product, inputs));
+            args = args.concat(Gcc.linkerFlags(product, inputs));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(libFilePath);
@@ -262,7 +262,7 @@ CppModule {
                 }
             }
 
-            args = args.concat(Gcc.libraryLinkerFlags(product, inputs));
+            args = args.concat(Gcc.linkerFlags(product, inputs));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
             cmd.description = 'linking ' + FileInfo.fileName(output.fileName);

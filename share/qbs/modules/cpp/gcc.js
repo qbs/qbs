@@ -1,4 +1,4 @@
-function libraryLinkerFlags(product, inputs)
+function linkerFlags(product, inputs)
 {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
