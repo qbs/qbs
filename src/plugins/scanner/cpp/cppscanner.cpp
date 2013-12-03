@@ -103,10 +103,21 @@ struct Opaq
     int currentResultIndex;
 };
 
-inline bool equals(const char *identifier, const QLatin1Literal &literal)
+class TokenComparator
 {
-    return strncmp(identifier, literal.data(), literal.size()) == 0;
-}
+    const char * const m_fileContent;
+public:
+    TokenComparator(const char *fileContent)
+        : m_fileContent(fileContent)
+    {
+    }
+
+    bool equals(const Token &tk, const QLatin1Literal &literal) const
+    {
+        return static_cast<int>(tk.length()) == literal.size()
+                && strncmp(m_fileContent + tk.begin(), literal.data(), literal.size()) == 0;
+    }
+};
 
 static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool scanForDependencies)
 {
@@ -117,6 +128,7 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
     const QLatin1Literal qgadgetLiteral("Q_GADGET");
     const QLatin1Literal pluginMetaDataLiteral("Q_PLUGIN_METADATA");
     Opaq *opaque = static_cast<Opaq *>(opaq);
+    const TokenComparator tc(opaque->fileContent);
     Token tk;
     Token oldTk;
     ScanResult scanResult;
@@ -128,10 +140,7 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
             yylex(&tk);
 
             if (scanForDependencies && !tk.newline() && tk.is(T_IDENTIFIER)) {
-                if ((static_cast<int>(tk.length()) >= includeLiteral.size()
-                        && equals(opaque->fileContent + tk.begin(), includeLiteral))
-                    || (static_cast<int>(tk.length()) >= importLiteral.size()
-                        && equals(opaque->fileContent + tk.begin(), importLiteral)))
+                if (tc.equals(tk, includeLiteral) || tc.equals(tk, importLiteral))
                 {
                     yylex.setScanAngleStringLiteralTokens(true);
                     yylex(&tk);
@@ -150,18 +159,15 @@ static void scanCppFile(void *opaq, Lexer &yylex, bool scanForFileTags, bool sca
             }
         } else if (tk.is(T_IDENTIFIER)) {
             if (scanForFileTags) {
-                if (oldTk.is(T_IDENTIFIER)
-                        && equals(opaque->fileContent + oldTk.begin(), defineLiteral)) {
+                if (oldTk.is(T_IDENTIFIER) && tc.equals(oldTk, defineLiteral)) {
                     // Someone was clever and redefined Q_OBJECT or Q_PLUGIN_METADATA.
                     // Example: iplugin.h in Qt Creator.
                 } else {
-                    const char *identifier = opaque->fileContent + tk.begin();
-                    if (equals(identifier, qobjectLiteral)
-                            || equals(identifier, qgadgetLiteral))
+                    if (tc.equals(tk, qobjectLiteral) || tc.equals(tk, qgadgetLiteral))
                     {
                         opaque->hasQObjectMacro = true;
                     } else if (opaque->fileType == Opaq::FT_HPP
-                            && equals(identifier, pluginMetaDataLiteral))
+                            && tc.equals(tk, pluginMetaDataLiteral))
                     {
                         opaque->hasPluginMetaDataMacro = true;
                     }
