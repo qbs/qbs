@@ -180,14 +180,19 @@ void InputArtifactScanner::scan()
 
         InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
         if (mustCollectIncludePaths) {
-            if (cacheItem.valid) {
-                //qDebug() << "CACHE HIT";
+            const bool cacheHit = cacheItem.valid;
+            if (cacheHit) {
                 includePaths = cacheItem.includePaths;
             } else {
-                //qDebug() << "CACHE MISS";
                 includePaths = collectIncludePaths(inputArtifact->properties->value().value("modules").toMap());
                 cacheItem.includePaths = includePaths;
                 cacheItem.valid = true;
+            }
+            if (m_logger.traceEnabled()) {
+                m_logger.qbsTrace()
+                        << "[DEPSCAN] include paths (cache " << (cacheHit ? "hit)" : "miss)");
+                foreach (const QString &s, includePaths)
+                    m_logger.qbsTrace() << "    " << s;
             }
         }
 
