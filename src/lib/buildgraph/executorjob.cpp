@@ -66,7 +66,7 @@ ExecutorJob::~ExecutorJob()
 {
 }
 
-void ExecutorJob::setMainThreadScriptEngine(QScriptEngine *engine)
+void ExecutorJob::setMainThreadScriptEngine(ScriptEngine *engine)
 {
     m_processCommandExecutor->setMainThreadScriptEngine(engine);
     m_jsCommandExecutor->setMainThreadScriptEngine(engine);

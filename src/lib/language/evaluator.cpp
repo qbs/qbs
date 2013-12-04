@@ -187,7 +187,7 @@ void Evaluator::onItemDestroyed(Item *item)
 void Evaluator::handleEvaluationError(const Item *item, const QString &name,
         const QScriptValue &scriptValue)
 {
-    if (Q_LIKELY(!scriptValue.isError() && !m_scriptEngine->hasUncaughtException()))
+    if (Q_LIKELY(!m_scriptEngine->hasErrorOrException(scriptValue)))
         return;
     const ValueConstPtr value = item->property(name);
     CodeLocation location = value ? value->location() : CodeLocation();

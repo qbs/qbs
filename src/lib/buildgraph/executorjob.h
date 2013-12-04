@@ -35,10 +35,6 @@
 
 #include <QObject>
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
-
 namespace qbs {
 class CodeLocation;
 class ProcessResult;
@@ -49,6 +45,7 @@ class ProductBuildData;
 class JsCommandExecutor;
 class Logger;
 class ProcessCommandExecutor;
+class ScriptEngine;
 class Transformer;
 
 class ExecutorJob : public QObject
@@ -58,7 +55,7 @@ public:
     ExecutorJob(const Logger &logger, QObject *parent);
     ~ExecutorJob();
 
-    void setMainThreadScriptEngine(QScriptEngine *engine);
+    void setMainThreadScriptEngine(ScriptEngine *engine);
     void setDryRun(bool enabled);
     void run(Transformer *t, const ResolvedProductPtr &product);
     void cancel();

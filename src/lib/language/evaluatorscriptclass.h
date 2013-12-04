@@ -42,13 +42,13 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
-
 class EvaluationData;
+class ScriptEngine;
 
 class EvaluatorScriptClass : public QScriptClass
 {
 public:
-    EvaluatorScriptClass(QScriptEngine *scriptEngine, const Logger &logger);
+    EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger);
 
     QueryFlags queryProperty(const QScriptValue &object,
                              const QScriptString &name,

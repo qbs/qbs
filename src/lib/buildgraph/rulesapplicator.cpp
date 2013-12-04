@@ -179,7 +179,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
         for (int i=0; i < ra->bindings.count(); ++i) {
             const RuleArtifact::Binding &binding = ra->bindings.at(i);
             scriptValue = engine()->evaluate(binding.code);
-            if (Q_UNLIKELY(scriptValue.isError())) {
+            if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
                 throw ErrorInfo(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
             }
@@ -231,7 +231,7 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
         const ArtifactList &inputArtifacts)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
-    if (Q_UNLIKELY(scriptValue.isError() || engine()->hasUncaughtException()))
+    if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
         throw ErrorInfo("Error in Rule.Artifact fileName: " + scriptValue.toString());
     QString outputPath = scriptValue.toString();
     outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir

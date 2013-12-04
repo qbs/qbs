@@ -34,15 +34,12 @@
 
 #include <QObject>
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
-
 namespace qbs {
 class ErrorInfo;
 
 namespace Internal {
 class AbstractCommand;
+class ScriptEngine;
 class Transformer;
 
 class AbstractCommandExecutor : public QObject
@@ -51,7 +48,7 @@ class AbstractCommandExecutor : public QObject
 public:
     explicit AbstractCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
 
-    void setMainThreadScriptEngine(QScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
+    void setMainThreadScriptEngine(ScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
     void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
 
     virtual void waitForFinished() = 0;
@@ -67,7 +64,7 @@ signals:
 protected:
     const AbstractCommand *command() const { return m_command; }
     Transformer *transformer() const { return m_transformer; }
-    QScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
+    ScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }
     bool dryRun() const { return m_dryRun; }
     Internal::Logger logger() const { return m_logger; }
 
@@ -77,7 +74,7 @@ private:
 private:
     const AbstractCommand *m_command;
     Transformer *m_transformer;
-    QScriptEngine *m_mainThreadScriptEngine;
+    ScriptEngine *m_mainThreadScriptEngine;
     bool m_dryRun;
     Internal::Logger m_logger;
 };

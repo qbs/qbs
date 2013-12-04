@@ -107,6 +107,10 @@ public:
 
     ScriptValueCache *scriptValueCache() { return &m_scriptValueCache; }
 
+    bool hasErrorOrException(const QScriptValue &v) const {
+        return v.isError() || hasUncaughtException();
+    }
+
 private:
     void extendJavaScriptBuiltins();
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,

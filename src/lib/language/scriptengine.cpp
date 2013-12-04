@@ -137,7 +137,7 @@ void ScriptEngine::defineProperty(QScriptValue &object, const QString &name,
     arguments.setProperty(1, name);
     arguments.setProperty(2, descriptor);
     QScriptValue result = m_definePropertyFunction.call(QScriptValue(), arguments);
-    QBS_ASSERT(!result.isError(), qDebug() << name << result.toString());
+    QBS_ASSERT(!hasErrorOrException(result), qDebug() << name << result.toString());
 }
 
 static QScriptValue js_observedGet(QScriptContext *context, QScriptEngine *, void *arg)
@@ -199,7 +199,7 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
     if (scope.isObject())
         currentContext()->popScope();
     popContext();
-    if (Q_UNLIKELY(result.isError()))
+    if (Q_UNLIKELY(hasErrorOrException(result)))
         throw ErrorInfo(tr("Error when importing '%1': %2").arg(program.fileName(), result.toString()));
 
     // If targetObject is already an object, it doesn't get overwritten but enhanced by the

@@ -34,12 +34,12 @@
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
+#include "scriptengine.h"
 #include "propertydeclaration.h"
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 
-#include <QScriptEngine>
 #include <QScriptString>
 #include <QScriptValue>
 #include <QDebug>
@@ -51,7 +51,7 @@ namespace Internal {
 class SVConverter : ValueHandler
 {
     EvaluatorScriptClass *const scriptClass;
-    QScriptEngine *const engine;
+    ScriptEngine *const engine;
     QScriptContext *const scriptContext;
     const QScriptValue *object;
     const ValuePtr &valuePtr;
@@ -66,7 +66,7 @@ public:
     SVConverter(EvaluatorScriptClass *esc, const QScriptValue *obj, const ValuePtr &v,
                 bool _inPrototype)
         : scriptClass(esc)
-        , engine(esc->engine())
+        , engine(static_cast<ScriptEngine *>(esc->engine()))
         , scriptContext(esc->engine()->currentContext())
         , object(obj)
         , valuePtr(v)
@@ -140,7 +140,7 @@ private:
             engine->currentContext()->popScope();
             engine->currentContext()->popScope();
             popScopes();
-            if (cr.isError()) {
+            if (engine->hasErrorOrException(cr)) {
                 *result = cr;
                 return;
             }
@@ -219,7 +219,7 @@ enum QueryPropertyType
     QPTParentProperty
 };
 
-EvaluatorScriptClass::EvaluatorScriptClass(QScriptEngine *scriptEngine, const Logger &logger)
+EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger)
     : QScriptClass(scriptEngine)
     , m_logger(logger)
 {

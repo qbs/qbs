@@ -932,7 +932,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
             if (name == QLatin1String("configure"))
                 continue;
             QScriptValue sv = m_evaluator->property(probe, name);
-            if (Q_UNLIKELY(sv.isError())) {
+            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(sv))) {
                 ValuePtr value = obj->property(name);
                 throw ErrorInfo(sv.toString(), value ? value->location() : CodeLocation());
             }
@@ -946,7 +946,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     QScriptValue sv = m_engine->evaluate(configureScript->sourceCode());
-    if (Q_UNLIKELY(sv.isError()))
+    if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
         throw ErrorInfo(sv.toString(), configureScript->location());
     foreach (const ProbeProperty &b, probeBindings) {
         const QVariant newValue = scope.property(b.first).toVariant();

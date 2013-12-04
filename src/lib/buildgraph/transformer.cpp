@@ -156,7 +156,7 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     propertiesRequestedFromProductInPrepareScript = engine->propertiesRequestedFromProduct();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearPropertiesRequestedInPrepareScripts();
-    if (Q_UNLIKELY(engine->hasUncaughtException()))
+    if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
         throw ErrorInfo("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName(),
                                  script->location.line() + engine->uncaughtExceptionLineNumber() - 1));

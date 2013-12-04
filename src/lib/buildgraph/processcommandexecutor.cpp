@@ -34,6 +34,7 @@
 #include "transformer.h"
 
 #include <language/language.h>
+#include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -180,7 +181,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     QScriptValue outputArg = scriptEngine()->newArray(1);
     outputArg.setProperty(0, scriptEngine()->toScriptValue(output));
     QScriptValue filteredOutput = filterFunction.call(scriptEngine()->undefinedValue(), outputArg);
-    if (filteredOutput.isError()) {
+    if (scriptEngine()->hasErrorOrException(filteredOutput)) {
         emit error(ErrorInfo(Tr::tr("Error when calling output filter function: %1")
                          .arg(filteredOutput.toString())));
         return output;
