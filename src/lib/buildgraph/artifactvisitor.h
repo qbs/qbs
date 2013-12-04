@@ -52,7 +52,6 @@ private:
     virtual void doVisit(Artifact *artifact) = 0;
 
     const int m_artifactType;
-    QSet<const Artifact *> m_allArtifacts;
 };
 
 } // namespace Internal

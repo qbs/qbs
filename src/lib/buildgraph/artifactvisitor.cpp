@@ -42,23 +42,16 @@ ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType
 
 void ArtifactVisitor::visitArtifact(Artifact *artifact)
 {
-    QBS_ASSERT(artifact, return);
-    if (m_allArtifacts.contains(artifact))
-        return;
-    m_allArtifacts << artifact;
+    QBS_CHECK(artifact);
     if (m_artifactType & artifact->artifactType)
         doVisit(artifact);
-    else if (m_artifactType == Artifact::Generated)
-        return;
-    foreach (Artifact * const child, artifact->children)
-        visitArtifact(child);
 }
 
 void ArtifactVisitor::visitProduct(const ResolvedProductConstPtr &product)
 {
     if (!product->buildData)
         return;
-    foreach (Artifact * const artifact, product->buildData->targetArtifacts)
+    foreach (Artifact * const artifact, product->buildData->artifacts)
         visitArtifact(artifact);
 }
 
