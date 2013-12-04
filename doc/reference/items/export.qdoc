@@ -37,7 +37,7 @@
     \brief Exports dependencies and properties to other products.
 
     An \c Export item can appear inside a \l{Product Item}. The properties attached to it will
-    take effect in all products that depend on the product inside which the product module is defined.
+    take effect in all products that depend on the product inside which the Export item is defined.
     As an example, consider these two products:
     \code
     Product {
@@ -56,8 +56,8 @@
 
     The sources in product B will be able to use headers from product A without specifiying
     the full path to them, because the include path has been made known to the compiler via
-    A's product module.
+    A's Export item.
 
     \note This relationship is transitive, so a product C depending on product B will also
-    get the include paths via A's product module.
+    get the include paths via A's Export item.
 */
