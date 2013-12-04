@@ -70,7 +70,8 @@ UnixGCC {
 
             // architectures supported, to support iPhone 3G for example one has to add
             // armv6 to the list and also compile for it (with Xcode 4.4.1 or earlier)
-            dict["UIRequiredDeviceCapabilities"] = [ "armv7" ];
+            if (!qbs.targetOS.contains("ios-simulator"))
+                dict["UIRequiredDeviceCapabilities"] = [ "armv7" ];
 
             var orientations = [
                 "UIInterfaceOrientationPortrait",
