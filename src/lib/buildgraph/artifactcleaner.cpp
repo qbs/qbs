@@ -30,6 +30,7 @@
 
 #include "artifact.h"
 #include "artifactvisitor.h"
+#include "productbuilddata.h"
 #include "projectbuilddata.h"
 
 #include <language/language.h>
@@ -107,7 +108,7 @@ private:
     {
         if (artifact->product != m_product)
             return;
-        if (artifact->parents.isEmpty()
+        if (artifact->product->buildData->targetArtifacts.contains(artifact)
                 && m_options.cleanType() == CleanOptions::CleanupTemporaries) {
             return;
         }
@@ -154,9 +155,16 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
 
     // Directories created during the build are not artifacts (TODO: should they be?),
     // so we have to clean them up manually.
-    foreach (const QString &dir, directories) {
+    QList<QString> dirList = directories.toList();
+    for (int i = 0; i < dirList.count(); ++i) {
+        const QString &dir = dirList.at(i);
         if (dir.startsWith(project->buildDirectory) && FileInfo(dir).exists())
             removeEmptyDirectories(dir, options);
+        if (dir != project->buildDirectory) {
+            const QString parentDir = QDir::cleanPath(dir + "/..");
+            if (parentDir != project->buildDirectory && !dirList.contains(parentDir))
+                dirList << parentDir;
+        }
     }
     m_observer->incrementProgressValue();
 

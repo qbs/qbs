@@ -1,9 +1,9 @@
 import qbs 1.0
 
 Project {
-    // Explicit type needed to prevent bundle generation on Darwin platforms.
-    CppApplication {
-        type: "application"
+    DynamicLibrary {
+        Depends { name: "cpp" }
+        version: "1.1.0"
         name: "dep"
         files: "dep.cpp"
     }
