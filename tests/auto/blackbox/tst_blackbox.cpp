@@ -1100,7 +1100,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("Making output from input"));
     QFile generatedFile(buildDir + QLatin1String("/generated.txt"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
-    QCOMPARE(generatedFile.readAll(), QByteArray("contents 1"));
+    QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 1"));
     generatedFile.close();
 
     // Incremental build with no changes.
@@ -1239,7 +1239,26 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(!m_qbsStdout.contains("Making output from input"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
-    QCOMPARE(generatedFile.readAll(), QByteArray("contents 2"));
+    QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 2"));
+    generatedFile.close();
+
+    // Incremental build, product property used in JavaScript command changed.
+    waitForNewTimestamp();
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    contents = projectFile.readAll();
+    contents.replace("prefix 1", "prefix 2");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
+    QVERIFY(m_qbsStdout.contains("generated.txt"));
+    QVERIFY(!m_qbsStdout.contains("Making output from input"));
+    QVERIFY(generatedFile.open(QIODevice::ReadOnly));
+    QCOMPARE(generatedFile.readAll(), QByteArray("prefix 2contents 2"));
     generatedFile.close();
 
     // Incremental build, prepare script of a rule in a module changed.

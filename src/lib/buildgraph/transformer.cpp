@@ -155,7 +155,7 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     QScriptValue scriptValue = script->scriptFunction.call(QScriptValue(), args);
     propertiesRequestedFromProductInPrepareScript = engine->propertiesRequestedFromProduct();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
-    engine->clearPropertiesRequestedInPrepareScripts();
+    engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
         throw ErrorInfo("evaluating prepare script: " + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName(),
@@ -180,14 +180,11 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     }
 }
 
-void Transformer::load(PersistentPool &pool)
+static void restorePropertyList(PersistentPool &pool, PropertyList &list)
 {
-    rule = pool.idLoadS<Rule>();
-    pool.loadContainer(inputs);
-    pool.loadContainer(outputs);
     int count;
     pool.stream() >> count;
-    propertiesRequestedFromProductInPrepareScript.reserve(count);
+    list.reserve(count);
     while (--count >= 0) {
         Property p;
         p.moduleName = pool.idLoadString();
@@ -195,8 +192,18 @@ void Transformer::load(PersistentPool &pool)
         int k;
         pool.stream() >> p.value >> k;
         p.kind = static_cast<Property::Kind>(k);
-        propertiesRequestedFromProductInPrepareScript += p;
+        list += p;
     }
+}
+
+void Transformer::load(PersistentPool &pool)
+{
+    rule = pool.idLoadS<Rule>();
+    pool.loadContainer(inputs);
+    pool.loadContainer(outputs);
+    restorePropertyList(pool, propertiesRequestedFromProductInPrepareScript);
+    restorePropertyList(pool, propertiesRequestedFromProductInCommands);
+    int count;
     pool.stream() >> count;
     propertiesRequestedFromArtifactInPrepareScript.reserve(count);
     while (--count >= 0) {
@@ -226,17 +233,23 @@ void Transformer::load(PersistentPool &pool)
     }
 }
 
+static void storePropertyList(PersistentPool &pool, const PropertyList &list)
+{
+    pool.stream() << list.count();
+    foreach (const Property &p, list) {
+        pool.storeString(p.moduleName);
+        pool.storeString(p.propertyName);
+        pool.stream() << p.value << static_cast<int>(p.kind);
+    }
+}
+
 void Transformer::store(PersistentPool &pool) const
 {
     pool.store(rule);
     pool.storeContainer(inputs);
     pool.storeContainer(outputs);
-    pool.stream() << propertiesRequestedFromProductInPrepareScript.count();
-    foreach (const Property &p, propertiesRequestedFromProductInPrepareScript) {
-        pool.storeString(p.moduleName);
-        pool.storeString(p.propertyName);
-        pool.stream() << p.value << static_cast<int>(p.kind);
-    }
+    storePropertyList(pool, propertiesRequestedFromProductInPrepareScript);
+    storePropertyList(pool, propertiesRequestedFromProductInCommands);
     pool.stream() << propertiesRequestedFromArtifactInPrepareScript.count();
     for (QHash<QString, PropertyList>::ConstIterator it = propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {

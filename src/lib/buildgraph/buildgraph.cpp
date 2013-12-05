@@ -37,6 +37,7 @@
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
+#include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -50,7 +51,7 @@ namespace Internal {
 
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
                                     const ResolvedProductConstPtr &product,
-                                    ScriptPropertyObserver *observer);
+                                    PrepareScriptObserver *observer);
 
 class DependenciesFunction
 {
@@ -147,10 +148,12 @@ private:
 
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
                                     const ResolvedProductConstPtr &product,
-                                    ScriptPropertyObserver *observer)
+                                    PrepareScriptObserver *observer)
 {
     ModuleProperties::init(productScriptValue, product);
     DependenciesFunction(engine).init(productScriptValue, product);
+    if (observer)
+        observer->setProductObjectId(productScriptValue.objectId());
     const QVariantMap &propMap = product->properties->value();
     for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
         const QVariant &value = it.value();
@@ -170,7 +173,7 @@ void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextCon
 
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject,
-                                 ScriptPropertyObserver *observer)
+                                 PrepareScriptObserver *observer)
 {
     ScriptEngine::ScriptValueCache * const cache = engine->scriptValueCache();
     if (cache->observer != observer) {

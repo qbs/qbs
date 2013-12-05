@@ -41,8 +41,7 @@ namespace qbs {
 namespace Internal {
 class Logger;
 class ScriptEngine;
-class ScriptPropertyObserver;
-
+class PrepareScriptObserver;
 
 Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
                          const ProjectBuildData *projectBuildData,
@@ -76,7 +75,7 @@ void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextCon
         QScriptValue targetObject);
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
                                  const RuleConstPtr &rule, QScriptValue targetObject,
-                                 ScriptPropertyObserver *observer = 0);
+                                 PrepareScriptObserver *observer = 0);
 QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 
 void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger);

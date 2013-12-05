@@ -35,6 +35,7 @@
 #include "transformer.h"
 
 #include <language/language.h>
+#include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <tools/codelocation.h>
@@ -79,8 +80,10 @@ public slots:
         m_result.errorMessage.clear();
         ScriptEngine * const scriptEngine = provideScriptEngine();
         QScriptValue scope = scriptEngine->newObject();
+        PrepareScriptObserver observer(scriptEngine);
         setupScriptEngineForFile(scriptEngine, transformer->rule->script->fileContext, scope);
-        setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule, scope);
+        setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule, scope,
+                                    &observer);
         transformer->setupInputs(scriptEngine, scope);
         transformer->setupOutputs(scriptEngine, scope);
 
@@ -93,6 +96,9 @@ public slots:
         ctx->pushScope(scope);
         scriptEngine->evaluate(cmd->sourceCode());
         ctx->popScope();
+        transformer->propertiesRequestedFromProductInCommands
+                += scriptEngine->propertiesRequestedFromProduct();
+        scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
             m_result.success = false;
             m_result.errorMessage = scriptEngine->uncaughtException().toString();

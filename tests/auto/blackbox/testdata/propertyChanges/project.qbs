@@ -27,6 +27,7 @@ Project {
 
     Product {
         name: "generated text file"
+        property string fileContentPrefix: "prefix 1"
 
         Transformer {
             Artifact { fileName: "generated.txt" }
@@ -37,7 +38,7 @@ Project {
                 cmd.sourceCode = function() {
                     file = new TextFile(output.fileName, TextFile.WriteOnly);
                     file.truncate();
-                    file.write("contents 1");
+                    file.write(product.fileContentPrefix + "contents 1");
                     file.close();
                 }
                 return cmd;

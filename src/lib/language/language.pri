@@ -21,6 +21,7 @@ HEADERS += \
     $$PWD/language.h \
     $$PWD/loader.h \
     $$PWD/moduleloader.h \
+    $$PWD/preparescriptobserver.h \
     $$PWD/projectresolver.h \
     $$PWD/property.h \
     $$PWD/propertydeclaration.h \
@@ -47,6 +48,7 @@ SOURCES += \
     $$PWD/language.cpp \
     $$PWD/loader.cpp \
     $$PWD/moduleloader.cpp \
+    $$PWD/preparescriptobserver.cpp \
     $$PWD/projectresolver.cpp \
     $$PWD/propertydeclaration.cpp \
     $$PWD/propertymapinternal.cpp \

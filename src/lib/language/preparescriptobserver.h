@@ -26,52 +26,30 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_RULESAPPLICATOR_H
-#define QBS_RULESAPPLICATOR_H
+#include "scriptpropertyobserver.h"
 
-#include "artifactlist.h"
-#include "forward_decls.h"
-#include <language/filetags.h>
-#include <language/forward_decls.h>
-#include <logging/logger.h>
-
-#include <QMap>
-#include <QScriptValue>
-#include <QString>
+#ifndef QBS_PREPARESCRIPTOBSERVER_H
+#define QBS_PREPARESCRIPTOBSERVER_H
 
 namespace qbs {
 namespace Internal {
 class ScriptEngine;
 
-typedef QMap<FileTag, ArtifactList> ArtifactsPerFileTagMap;
-
-class RulesApplicator
+class PrepareScriptObserver : public ScriptPropertyObserver
 {
 public:
-    RulesApplicator(const ResolvedProductPtr &product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-                    const Logger &logger);
-    void applyAllRules();
-    void applyRule(const RuleConstPtr &rule);
+    PrepareScriptObserver(ScriptEngine *engine);
+
+    void setProductObjectId(qint64 productId) { m_productObjectId = productId; }
 
 private:
-    void doApply(const ArtifactList &inputArtifacts, QScriptValue &prepareScriptContext);
-    void setupScriptEngineForArtifact(Artifact *artifact);
-    Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
-                                   const ArtifactList &inputArtifacts);
-    QString resolveOutPath(const QString &path) const;
-    RulesEvaluationContextPtr evalContext() const;
-    ScriptEngine *engine() const;
-    QScriptValue scope() const;
+    void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
 
-    const ResolvedProductPtr m_product;
-    ArtifactsPerFileTagMap &m_artifactsPerFileTag;
-
-    RuleConstPtr m_rule;
-    TransformerPtr m_transformer;
-    Logger m_logger;
+    ScriptEngine * const m_engine;
+    qint64 m_productObjectId;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_RULESAPPLICATOR_H
+#endif // Include guard.

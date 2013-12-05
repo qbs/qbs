@@ -65,7 +65,7 @@ public:
         m_propertiesRequestedFromProduct += property;
     }
     void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
-    void clearPropertiesRequestedInPrepareScripts() {
+    void clearRequestedProperties() {
         m_propertiesRequestedFromProduct.clear();
         m_propertiesRequestedFromArtifact.clear();
     }

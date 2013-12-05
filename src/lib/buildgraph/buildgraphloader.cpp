@@ -422,13 +422,18 @@ static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
 bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                               const ResolvedProductPtr &newlyResolvedProduct)
 {
+    // This check must come first, as it can prevent build data rescuing as a side effect.
+    // TODO: Similar special checks must be done for qbs.getEnv() and File.exists() in
+    // commands (or possibly it could be reasonable to just forbid such "dynamic" constructs
+    // within commands).
+    if (checkForPropertyChanges(restoredProduct, newlyResolvedProduct))
+        return true;
+
     return !transformerListsAreEqual(restoredProduct->transformers,
                                      newlyResolvedProduct->transformers)
             || !ruleListsAreEqual(restoredProduct->rules.toList(),
                                   newlyResolvedProduct->rules.toList())
-            || !dependenciesAreEqual(restoredProduct, newlyResolvedProduct)
-            || checkForPropertyChanges(restoredProduct, newlyResolvedProduct);
-    // TODO: Check for more stuff.
+            || !dependenciesAreEqual(restoredProduct, newlyResolvedProduct);
 }
 
 bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,
@@ -455,15 +460,26 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
                            "product '"  << restoredProduct->name << "'.";
     if (!restoredProduct->buildData)
         return false;
+
+    // This check must come first, as it can prevent build data rescuing.
+    if (checkTransformersForPropertyChanges(restoredProduct, newlyResolvedProduct))
+        return true;
+
     if (checkProductForInstallInfoChanges(restoredProduct, newlyResolvedProduct))
         return true;
     if (!artifactPropertyListsAreEqual(restoredProduct->artifactProperties,
                                        newlyResolvedProduct->artifactProperties)) {
         return true;
     }
+    return false;
+}
+
+bool BuildGraphLoader::checkTransformersForPropertyChanges(const ResolvedProductPtr &restoredProduct,
+        const ResolvedProductPtr &newlyResolvedProduct)
+{
     QSet<TransformerConstPtr> seenTransformers;
     foreach (Artifact * const artifact, restoredProduct->buildData->artifacts) {
-        const TransformerConstPtr transformer = artifact->transformer;
+        const TransformerPtr transformer = artifact->transformer;
         if (!transformer || seenTransformers.contains(transformer))
             continue;
         seenTransformers.insert(transformer);
@@ -619,9 +635,20 @@ static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &
     return artifact;
 }
 
-bool BuildGraphLoader::checkForPropertyChanges(const TransformerConstPtr &restoredTrafo,
+bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
         const ResolvedProductPtr &freshProduct)
 {
+    // This check must come first, as it can prevent build data rescuing.
+    foreach (const Property &property, restoredTrafo->propertiesRequestedFromProductInCommands) {
+        if (checkForPropertyChange(property, freshProduct->properties)) {
+            JavaScriptCommand * const pseudoCommand = new JavaScriptCommand;
+            pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
+                                                       "commandsEqual() to fail"));
+            restoredTrafo->commands << pseudoCommand;
+            return true;
+        }
+    }
+
     foreach (const Property &property,
              restoredTrafo->propertiesRequestedFromProductInPrepareScript) {
         if (checkForPropertyChange(property, freshProduct->properties))

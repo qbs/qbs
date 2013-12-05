@@ -87,13 +87,15 @@ private:
                                            const ResolvedProductPtr &newlyResolvedProduct);
     bool checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
                                  const ResolvedProductPtr &newlyResolvedProduct);
+    bool checkTransformersForPropertyChanges(const ResolvedProductPtr &restoredProduct,
+                                             const ResolvedProductPtr &newlyResolvedProduct);
     void onProductRemoved(const ResolvedProductPtr &product, ProjectBuildData *projectBuildData,
                           bool removeArtifactsFromDisk = true);
     void onProductFileListChanged(const ResolvedProductPtr &restoredProduct,
             const ResolvedProductPtr &newlyResolvedProduct, const ProjectBuildData *oldBuildData);
     void removeArtifactAndExclusiveDependents(Artifact *artifact,
             ArtifactList *removedArtifacts = 0);
-    bool checkForPropertyChanges(const TransformerConstPtr &restoredTrafo,
+    bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
     bool checkForPropertyChange(const Property &restoredProperty,
                                 const PropertyMapConstPtr &newProperties);

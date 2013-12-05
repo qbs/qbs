@@ -36,6 +36,7 @@
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 #include <language/language.h>
+#include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -359,7 +360,9 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         RulesEvaluationContext::Scope s(evalContext().data());
         setupScriptEngineForFile(engine(), transformer->rule->script->fileContext, scope());
         QScriptValue prepareScriptContext = engine()->newObject();
-        setupScriptEngineForProduct(engine(), product, transformer->rule, prepareScriptContext);
+        PrepareScriptObserver observer(engine());
+        setupScriptEngineForProduct(engine(), product, transformer->rule, prepareScriptContext,
+                                    &observer);
         transformer->setupInputs(engine(), prepareScriptContext);
         transformer->setupOutputs(engine(), prepareScriptContext);
         transformer->createCommands(rtrafo->transform, evalContext(),

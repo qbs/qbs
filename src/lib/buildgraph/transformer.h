@@ -58,6 +58,7 @@ public:
     RuleConstPtr rule;
     QList<AbstractCommand *> commands;
     PropertyList propertiesRequestedFromProductInPrepareScript;
+    PropertyList propertiesRequestedFromProductInCommands;
     QHash<QString, PropertyList> propertiesRequestedFromArtifactInPrepareScript;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,

@@ -37,6 +37,7 @@
 #include <jsextensions/moduleproperties.h>
 #include <language/artifactproperties.h>
 #include <language/language.h>
+#include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -53,7 +54,6 @@ RulesApplicator::RulesApplicator(const ResolvedProductPtr &product,
     : m_product(product)
     , m_artifactsPerFileTag(artifactsPerFileTag)
     , m_logger(logger)
-    , m_productObjectId(-1)
 {
 }
 
@@ -68,9 +68,9 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
     QScriptValue prepareScriptContext = engine()->newObject();
+    PrepareScriptObserver observer(engine());
     setupScriptEngineForFile(engine(), m_rule->script->fileContext, scope());
-    setupScriptEngineForProduct(engine(), m_product, m_rule, prepareScriptContext, this);
-    m_productObjectId = prepareScriptContext.property(QLatin1String("product")).objectId();
+    setupScriptEngineForProduct(engine(), m_product, m_rule, prepareScriptContext, &observer);
 
     ArtifactList inputArtifacts;
     foreach (const FileTag &fileTag, m_rule->inputs)
@@ -336,14 +336,6 @@ ScriptEngine *RulesApplicator::engine() const
 QScriptValue RulesApplicator::scope() const
 {
     return evalContext()->scope();
-}
-
-void RulesApplicator::onPropertyRead(const QScriptValue &object, const QString &name,
-                                     const QScriptValue &value)
-{
-    if (object.objectId() == m_productObjectId)
-        engine()->addPropertyRequestedFromProduct(
-                    Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
 }
 
 } // namespace Internal

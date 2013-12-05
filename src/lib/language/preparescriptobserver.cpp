@@ -26,52 +26,32 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_RULESAPPLICATOR_H
-#define QBS_RULESAPPLICATOR_H
 
-#include "artifactlist.h"
-#include "forward_decls.h"
-#include <language/filetags.h>
-#include <language/forward_decls.h>
-#include <logging/logger.h>
+#include "preparescriptobserver.h"
 
-#include <QMap>
+#include "property.h"
+#include "scriptengine.h"
+
 #include <QScriptValue>
-#include <QString>
 
 namespace qbs {
 namespace Internal {
-class ScriptEngine;
 
-typedef QMap<FileTag, ArtifactList> ArtifactsPerFileTagMap;
-
-class RulesApplicator
+PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine)
+    : m_engine(engine)
+    , m_productObjectId(-1)
 {
-public:
-    RulesApplicator(const ResolvedProductPtr &product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-                    const Logger &logger);
-    void applyAllRules();
-    void applyRule(const RuleConstPtr &rule);
+}
 
-private:
-    void doApply(const ArtifactList &inputArtifacts, QScriptValue &prepareScriptContext);
-    void setupScriptEngineForArtifact(Artifact *artifact);
-    Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
-                                   const ArtifactList &inputArtifacts);
-    QString resolveOutPath(const QString &path) const;
-    RulesEvaluationContextPtr evalContext() const;
-    ScriptEngine *engine() const;
-    QScriptValue scope() const;
+void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QString &name,
+                                           const QScriptValue &value)
+{
+    if (object.objectId() == m_productObjectId) {
+        m_engine->addPropertyRequestedFromProduct(
+                    Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
+    }
+}
 
-    const ResolvedProductPtr m_product;
-    ArtifactsPerFileTagMap &m_artifactsPerFileTag;
-
-    RuleConstPtr m_rule;
-    TransformerPtr m_transformer;
-    Logger m_logger;
-};
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_RULESAPPLICATOR_H

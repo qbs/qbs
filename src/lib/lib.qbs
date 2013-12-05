@@ -191,6 +191,8 @@ Product {
             "loader.h",
             "moduleloader.cpp",
             "moduleloader.h",
+            "preparescriptobserver.cpp",
+            "preparescriptobserver.h",
             "projectresolver.cpp",
             "projectresolver.h",
             "property.h",
