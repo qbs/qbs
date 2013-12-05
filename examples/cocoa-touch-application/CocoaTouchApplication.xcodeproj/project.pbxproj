@@ -25,7 +25,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-        14E3FEA6175FB2E800C857C6 /* CocoaTouchApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CocoaTouchApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        14E3FEA6175FB2E800C857C6 /* Cocoa Touch Application.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Cocoa Touch Application.app"; sourceTree = BUILT_PRODUCTS_DIR; };
         14E3FEA9175FB2E800C857C6 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
         14E3FEAB175FB2E800C857C6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
         14E3FEAD175FB2E800C857C6 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -74,7 +74,7 @@
         14E3FEA7175FB2E800C857C6 /* Products */ = {
             isa = PBXGroup;
             children = (
-                14E3FEA6175FB2E800C857C6 /* CocoaTouchApplication.app */,
+                14E3FEA6175FB2E800C857C6 /* Cocoa Touch Application.app */,
             );
             name = Products;
             sourceTree = "<group>";
@@ -124,9 +124,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-        14E3FEA5175FB2E800C857C6 /* CocoaTouchApplication */ = {
+        14E3FEA5175FB2E800C857C6 /* Cocoa Touch Application */ = {
             isa = PBXNativeTarget;
-            buildConfigurationList = 14E3FED5175FB2E900C857C6 /* Build configuration list for PBXNativeTarget "CocoaTouchApplication" */;
+            buildConfigurationList = 14E3FED5175FB2E900C857C6 /* Build configuration list for PBXNativeTarget "Cocoa Touch Application" */;
             buildPhases = (
                 14E3FEA2175FB2E800C857C6 /* Sources */,
                 14E3FEA3175FB2E800C857C6 /* Frameworks */,
@@ -136,9 +136,9 @@
             );
             dependencies = (
             );
-            name = CocoaTouchApplication;
+            name = "Cocoa Touch Application";
             productName = CocoaTouchApplication;
-            productReference = 14E3FEA6175FB2E800C857C6 /* CocoaTouchApplication.app */;
+            productReference = 14E3FEA6175FB2E800C857C6 /* Cocoa Touch Application.app */;
             productType = "com.apple.product-type.application";
         };
 /* End PBXNativeTarget section */
@@ -162,7 +162,7 @@
             projectDirPath = "";
             projectRoot = "";
             targets = (
-                14E3FEA5175FB2E800C857C6 /* CocoaTouchApplication */,
+                14E3FEA5175FB2E800C857C6 /* Cocoa Touch Application */,
             );
         };
 /* End PBXProject section */
@@ -333,13 +333,14 @@
             defaultConfigurationIsVisible = 0;
             defaultConfigurationName = Release;
         };
-        14E3FED5175FB2E900C857C6 /* Build configuration list for PBXNativeTarget "CocoaTouchApplication" */ = {
+        14E3FED5175FB2E900C857C6 /* Build configuration list for PBXNativeTarget "Cocoa Touch Application" */ = {
             isa = XCConfigurationList;
             buildConfigurations = (
                 14E3FED6175FB2E900C857C6 /* Debug */,
                 14E3FED7175FB2E900C857C6 /* Release */,
             );
             defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
         };
 /* End XCConfigurationList section */
     };

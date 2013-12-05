@@ -43,6 +43,7 @@ public:
     CycleDetector(const Logger &logger);
 
     void visitProject(const ResolvedProjectConstPtr &project);
+    void visitProduct(const ResolvedProductConstPtr &product);
     void visitArtifact(Artifact *artifact);
 
 private:

@@ -30,6 +30,7 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
+#include "productbuilddata.h"
 
 #include <language/language.h>
 #include <logging/translator.h>
@@ -49,6 +50,14 @@ void CycleDetector::visitProject(const ResolvedProjectConstPtr &project)
             .arg(project->name);
     TimedActivityLogger timeLogger(m_logger, description, QLatin1String("[BG] "), LoggerTrace);
     ArtifactVisitor::visitProject(project);
+}
+
+void CycleDetector::visitProduct(const ResolvedProductConstPtr &product)
+{
+    if (!product->buildData)
+        return;
+    foreach (Artifact * const artifact, product->buildData->targetArtifacts)
+        visitArtifact(artifact);
 }
 
 void CycleDetector::visitArtifact(Artifact *artifact)

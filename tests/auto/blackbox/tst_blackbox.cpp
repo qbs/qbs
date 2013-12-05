@@ -376,7 +376,16 @@ void TestBlackbox::clean()
     const QString appObjectFilePath = buildDir + "/.obj/app/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
     const QString appExeFilePath = buildDir + "/app" + QTC_HOST_EXE_SUFFIX;
     const QString depObjectFilePath = buildDir + "/.obj/dep/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString depExeFilePath = buildDir + "/dep" + QTC_HOST_EXE_SUFFIX;
+    const QString depLibBase = buildDir + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep"
+            + QTC_HOST_DYNAMICLIB_SUFFIX;
+    QString depLibFilePath;
+    QStringList symlinks;
+    if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
+        depLibFilePath = depLibBase + ".1.1.0";
+        symlinks << depLibBase + ".1.1" << depLibBase + ".1" << depLibBase;
+    } else {
+        depLibFilePath = depLibBase;
+    }
 
     QDir::setCurrent(testDataDir + "/clean");
 
@@ -385,12 +394,16 @@ void TestBlackbox::clean()
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depExeFilePath).exists());
+    QVERIFY(QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(QFile(symLink).exists(), qPrintable(symLink));
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depExeFilePath).exists());
+    QVERIFY(QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(!QFile(symLink).exists(), qPrintable(symLink));
 
     // Remove all.
     QCOMPARE(runQbs(), 0);
@@ -400,7 +413,9 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
-    QVERIFY(!QFile(depExeFilePath).exists());
+    QVERIFY(!QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(!QFile(symLink).exists(), qPrintable(symLink));
 
     // Dry run.
     QCOMPARE(runQbs(), 0);
@@ -411,35 +426,41 @@ void TestBlackbox::clean()
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depExeFilePath).exists());
+    QVERIFY(QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(QFile(symLink).exists(), qPrintable(symLink));
 
     // Product-wise, dependency only.
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depExeFilePath).exists());
+    QVERIFY(QFile(depLibFilePath).exists());
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
                                      QStringList("--all-artifacts") << "-p" << "dep")),
              0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
-    QVERIFY(!QFile(depExeFilePath).exists());
+    QVERIFY(!QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(!QFile(symLink).exists(), qPrintable(symLink));
 
     // Product-wise, dependent product only.
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile(appObjectFilePath).exists());
     QVERIFY(QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depExeFilePath).exists());
+    QVERIFY(QFile(depLibFilePath).exists());
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
                                      QStringList("--all-artifacts") << "-p" << "app")),
              0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depExeFilePath).exists());
+    QVERIFY(QFile(depLibFilePath).exists());
+    foreach (const QString &symLink, symlinks)
+        QVERIFY2(QFile(symLink).exists(), qPrintable(symLink));
 }
 
 void TestBlackbox::exportSimple()

@@ -62,7 +62,9 @@ function doRepl(obj, env, warn)
                     var j = value.indexOf(brace === '(' ? ')' : '}', i + 2);
                     if (j === -1)
                         break;
-                    var varName = value.slice(i + 2, j);
+                    var varParts = value.slice(i + 2, j).split(':');
+                    var varName = varParts[0];
+                    var varFormatter = varParts[1];
                     var varValue = env[varName];
                     if (undefined === varValue) {
                         // skip replacement
@@ -71,6 +73,8 @@ function doRepl(obj, env, warn)
                     } else {
                         changes = true;
                         varValue = String(varValue);
+                        if (varFormatter === "rfc1034identifier")
+                            varValue = rfc1034(varValue);
                         value = value.slice(0, i) + varValue + value.slice(j + 1);
                         // avoid recursive substitutions to avoid potentially infinite loops
                         i += varValue.length;
