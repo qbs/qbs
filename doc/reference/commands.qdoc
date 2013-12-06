@@ -1,0 +1,197 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+// TODO: "\c" markup is used for all properties in table due to QTBUG-35505.
+
+/*!
+    \contentspage reference.html
+    \page commands.html
+
+    \title Command and JavaScriptCommand
+    \brief Types of commands to be used in rules and transformers
+
+    A \e command is what \QBS executes at build time. It is represented in the language by an object
+    of type \c Command, which runs a process, or \c JavaScriptCommand, which executes arbitrary
+    JavaScript code. A command is always created in the prepare script of a \c Rule or
+    \c Transformer.
+
+    \section1 Command
+
+    A \c Command represents a process that will be invoked at build time. Its constructor
+    arguments are the binary to run and a list of command-line arguments. For instance:
+    \code
+        var insaneCommand = new Command("rm", ["-r", "/"]);
+    \endcode
+    The \l{Rule Item} documentation shows a \c Command in context.
+
+    \section1 JavaScriptCommand
+
+    A \c JavaScriptCommand represents a chunk of JavaScript code that is run at build time.
+    For instance:
+    \code
+        var cmd = new JavaScriptCommand();
+        cmd.apology = "Sorry.";
+        cmd.sourceCode = function() {
+            print("I'm a rather pointless command.");
+            print(apology);
+        };
+    \endcode
+
+    Within the source code, the special identifiers \c project and \c product
+    (giving access to project and product properties, respectively) as well as \c inputs and
+    \c outputs are available. As the example shows, arbitrary properties can be set on the command
+    object and then used within the source code. This technique is typically used to forward values
+    from the prepare script to the command.
+    The \l{Transformer Item} documentation shows a \c JavaScriptCommand in context.
+
+    \section1 Properties
+
+    \section2 Common Properties
+    The following properties are available in both \c Command and \c JavaScriptCommand.
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li \c description
+        \li string
+        \li empty
+        \li A message that is displayed when the command is executed.
+    \row
+        \li \c highlight
+        \li string
+        \li empty
+        \li A tag that can be used to influence how the \c description is displayed. In principle,
+            the values are arbitrary. The \QBS command-line tool understands the following values and
+            maps them to different colors if the output device is a terminal:
+            \list
+                \li "compiler" indicates that the command processes source code
+                \li "linker" indicates that the command links objects
+                \li "codegen" indicates that the command generates source code
+                \li "filegen" indicates that the command creates arbitrary files
+            \endlist
+            All other values are mapped to the default color.
+    \row
+        \li \c silent
+        \li bool
+        \li false
+        \li A flag that controls whether the \c description is printed. Set it to \c true for commands that
+            users need not know about. \note If this property is \c false, then \c description must
+            not be empty.
+    \endtable
+
+    \section2 Command Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li \c arguments
+        \li stringList
+        \li empty
+        \li The list of arguments to invoke the command with. Explicitly setting this property
+            overrides an argument list provided when instantiating the object.
+    \row
+        \li \c environment
+        \li stringList
+        \li empty
+        \li A list of environment variables that are added to the common build environment.
+            They are provided as a list of strings in the form "varName=value".
+    \row
+        \li \c maxExitCode
+        \li int
+        \li 0
+        \li The maximum exit code from the process to interpret as success. Setting this should
+            rarely be necessary, as all well-behaved applications use values other than zero
+            to indicate failure.
+    \row
+        \li \c program
+        \li string
+        \li undefined
+        \li The binary to invoke. Explicitly setting this property overrides a path provided when
+            instantiating the object.
+    \row
+        \li \c responseFileThreshold
+        \li int
+        \li 32000 on Windows, -1 elsewhere
+        \li If this value is greater than zero and less than the length of the full command line,
+            and if \c responseFileUsagePrefix is not empty, the contents of the command line are
+            moved to a temporary file, whose path becomes the entire contents of the
+            argument list. The program is then supposed to read the full argument list from that
+            file. This mechanism is mainly useful to work around Windows limitations regarding
+            the maximum length of the command line and will only work with programs that explicitly
+            support it.
+    \row
+        \li \c responseFileUsagePrefix
+        \li string
+        \li empty
+        \li The prefix that informs \c program that the rest of the argument
+            is a path to a file containing the actual command line.
+    \row
+        \li \c stderrFilterFunction
+        \li function
+        \li undefined
+        \li A function that takes as input the command's actual standard error output and returns a string
+            that is presented to the user as the command's standard error output.
+            If it is not set, the output is shown unfiltered.
+    \row
+        \li \c stdoutFilterFunction
+        \li function
+        \li undefined
+        \li A function that takes as input the command's actual standard output and returns a string
+            that is presented to the user as the command's standard output.
+            If it is not set, the output is shown unfiltered.
+    \row
+        \li \c workingDirectory
+        \li string
+        \li empty
+        \li The program's working directory.
+    \endtable
+
+    \section2 JavaScriptCommand Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li \c sourceCode
+        \li function
+        \li undefined
+        \li The JavaScript function to execute.
+    \endtable
+*/
