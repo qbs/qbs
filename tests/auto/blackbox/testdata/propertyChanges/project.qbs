@@ -30,6 +30,16 @@ Project {
         property string fileContentPrefix: "prefix 1"
 
         Transformer {
+            Artifact { fileName: "nothing" }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.silent = true;
+                cmd.sourceCode = function() { print(product.fileContentPrefix); }
+                return cmd;
+            }
+        }
+
+        Transformer {
             Artifact { fileName: "generated.txt" }
             prepare: {
                 var cmd = new JavaScriptCommand();

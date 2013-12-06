@@ -477,19 +477,21 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
 bool BuildGraphLoader::checkTransformersForPropertyChanges(const ResolvedProductPtr &restoredProduct,
         const ResolvedProductPtr &newlyResolvedProduct)
 {
+    bool transformerChanges = false;
     QSet<TransformerConstPtr> seenTransformers;
     foreach (Artifact * const artifact, restoredProduct->buildData->artifacts) {
         const TransformerPtr transformer = artifact->transformer;
         if (!transformer || seenTransformers.contains(transformer))
             continue;
         seenTransformers.insert(transformer);
-        if (checkForPropertyChanges(transformer, newlyResolvedProduct)) {
-            m_logger.qbsDebug() << "Property changes in product '"
-                                << newlyResolvedProduct->name << "'.";
-            return true;
-        }
+        if (checkForPropertyChanges(transformer, newlyResolvedProduct))
+            transformerChanges = true;
     }
-    return false;
+    if (transformerChanges) {
+        m_logger.qbsDebug() << "Property changes in product '"
+                            << newlyResolvedProduct->name << "'.";
+    }
+    return transformerChanges;
 }
 
 void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
