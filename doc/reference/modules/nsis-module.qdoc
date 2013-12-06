@@ -39,7 +39,7 @@
     The \c nsis module contains properties and rules for building EXE installers
     for Windows using the Nullsoft Scriptable Install System.
 
-    This module is only available on Windows.
+    This module is available on all platforms.
 
     \note A typical NSIS script includes an OutFile command to set the filename of the generated
     installer executable. However, \QBS overrides any OutFile commands found in the script, and
@@ -188,7 +188,7 @@
 
     \table
     \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Default:}         \li \c{"makensis.exe"}
+    \row    \li \b{Default:}         \li \c{"makensis"}
     \endtable
 
     Name of the compiler binary. This should not normally need to be changed.
