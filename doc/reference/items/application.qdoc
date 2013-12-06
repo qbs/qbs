@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -29,17 +28,19 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \previouspage cppapplication-item.html
-    \page depends-item.html
-    \nextpage dynamiclibrary-item.html
+    \page application-item.html
+    \nextpage artifact-item.html
     \ingroup list-of-items
 
-    \title Depends Item
-    \brief Represents dependencies between between products and modules.
+    \title Application Item
+    \brief Represents a product of application type.
 
-    A \c Depends item can appear inside a \l{Product Item} or \l{Module Item}.
+    An \c Application item is a \c Product that has its type set to "application"
+    (or "applicationbundle" on Darwin platforms such as OS X and iOS). It exists for the convenience
+    of project file authors.
 
-    \section1 Depends Properties
+    \section1 Application Properties
+    The following properties are available in addition to the ones inherited from \c Product.
 
     \table
     \header
@@ -48,20 +49,9 @@
         \li Default
         \li Description
     \row
-        \li condition
-        \li bool
-        \li true
-        \li Determines whether the dependency will actually be applied.
-    \row
-        \li name
+        \li bundleExtension
         \li string
-        \li undefined
-        \li The name of the dependent product or module.
-    \row
-        \li submodules
-        \li stringList
-        \li undefined
-        \li The submodules of \c module to depend on, if applicable.
+        \li empty
+        \li The extension to use for the product's bundle. Only relevant on Darwin systems.
     \endtable
-
 */
