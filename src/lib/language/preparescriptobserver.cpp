@@ -40,6 +40,7 @@ namespace Internal {
 PrepareScriptObserver::PrepareScriptObserver(ScriptEngine *engine)
     : m_engine(engine)
     , m_productObjectId(-1)
+    , m_projectObjectId(-1)
 {
 }
 
@@ -47,9 +48,13 @@ void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QSt
                                            const QScriptValue &value)
 {
     if (object.objectId() == m_productObjectId) {
-        m_engine->addPropertyRequestedFromProduct(
+        m_engine->addPropertyRequestedInScript(
                     Property(QString(), name, value.toVariant(), Property::PropertyInProduct));
+    } else if (object.objectId() == m_projectObjectId) {
+        m_engine->addPropertyRequestedInScript(
+                    Property(QString(), name, value.toVariant(), Property::PropertyInProject));
     }
+
 }
 
 

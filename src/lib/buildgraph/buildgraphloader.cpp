@@ -641,8 +641,10 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         const ResolvedProductPtr &freshProduct)
 {
     // This check must come first, as it can prevent build data rescuing.
-    foreach (const Property &property, restoredTrafo->propertiesRequestedFromProductInCommands) {
-        if (checkForPropertyChange(property, freshProduct->properties)) {
+    foreach (const Property &property, restoredTrafo->propertiesRequestedInCommands) {
+        const QVariantMap properties = property.kind == Property::PropertyInProduct
+                ? freshProduct->properties->value() : freshProduct->project->projectProperties();
+        if (checkForPropertyChange(property, properties)) {
             JavaScriptCommand * const pseudoCommand = new JavaScriptCommand;
             pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
                                                        "commandsEqual() to fail"));
@@ -651,9 +653,10 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         }
     }
 
-    foreach (const Property &property,
-             restoredTrafo->propertiesRequestedFromProductInPrepareScript) {
-        if (checkForPropertyChange(property, freshProduct->properties))
+    foreach (const Property &property, restoredTrafo->propertiesRequestedInPrepareScript) {
+        const QVariantMap properties = property.kind == Property::PropertyInProduct
+                ? freshProduct->properties->value() : freshProduct->project->projectProperties();
+        if (checkForPropertyChange(property, properties))
             return true;
     }
 
@@ -666,7 +669,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
         if (!artifact)
             continue;
         foreach (const Property &property, it.value()) {
-            if (checkForPropertyChange(property, artifact->properties))
+            if (checkForPropertyChange(property, artifact->properties->value()))
                 return true;
         }
     }
@@ -674,18 +677,24 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
 }
 
 bool BuildGraphLoader::checkForPropertyChange(const Property &restoredProperty,
-                                              const PropertyMapConstPtr &newProperties)
+                                              const QVariantMap &newProperties)
 {
     PropertyFinder finder;
     QVariant v;
-    if (restoredProperty.kind == Property::PropertyInProduct) {
-        v = newProperties->value().value(restoredProperty.propertyName);
-    } else if (restoredProperty.value.type() == QVariant::List) {
-        v = finder.propertyValues(newProperties->value(), restoredProperty.moduleName,
-                                  restoredProperty.propertyName);
-    } else {
-        v = finder.propertyValue(newProperties->value(), restoredProperty.moduleName,
-                                 restoredProperty.propertyName);
+    switch (restoredProperty.kind) {
+    case Property::PropertyInProduct:
+    case Property::PropertyInProject:
+        v = newProperties.value(restoredProperty.propertyName);
+        break;
+    case Property::PropertyInModule:
+        if (restoredProperty.value.type() == QVariant::List) {
+            v = finder.propertyValues(newProperties, restoredProperty.moduleName,
+                                      restoredProperty.propertyName);
+        } else {
+            v = finder.propertyValue(newProperties, restoredProperty.moduleName,
+                                     restoredProperty.propertyName);
+        }
+        break;
     }
     if (restoredProperty.value != v) {
         m_logger.qbsDebug() << "Value for property '" << restoredProperty.moduleName << "."

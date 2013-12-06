@@ -87,7 +87,7 @@ void ExecutorJob::run(Transformer *t, const ResolvedProductPtr &product)
         return;
     }
 
-    t->propertiesRequestedFromProductInCommands.clear();
+    t->propertiesRequestedInCommands.clear();
     m_processCommandExecutor->setProcessEnvironment(product->buildEnvironment);
 
     m_transformer = t;

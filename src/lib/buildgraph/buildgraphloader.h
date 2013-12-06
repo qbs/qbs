@@ -98,7 +98,7 @@ private:
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
     bool checkForPropertyChange(const Property &restoredProperty,
-                                const PropertyMapConstPtr &newProperties);
+                                const QVariantMap &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
 

@@ -3,6 +3,7 @@ import qbs.TextFile
 
 Project {
     property var projectDefines: ["blubb2"]
+    property string fileContentSuffix: "suffix 1"
     CppApplication {
         name: qbs.enableDebugCode ? "product 1.debug" : "product 1.release"
         cpp.defines: ["blubb1"]
@@ -48,7 +49,8 @@ Project {
                 cmd.sourceCode = function() {
                     file = new TextFile(output.fileName, TextFile.WriteOnly);
                     file.truncate();
-                    file.write(product.fileContentPrefix + "contents 1");
+                    file.write(product.fileContentPrefix + "contents 1"
+                               + project.fileContentSuffix);
                     file.close();
                 }
                 return cmd;

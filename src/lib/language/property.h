@@ -44,7 +44,8 @@ public:
     enum Kind
     {
         PropertyInModule,
-        PropertyInProduct
+        PropertyInProduct,
+        PropertyInProject
     };
 
     Property()

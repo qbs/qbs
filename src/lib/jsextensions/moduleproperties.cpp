@@ -134,7 +134,7 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
         if (artifact)
             qbsEngine->addPropertyRequestedFromArtifact(artifact, p);
         else
-            qbsEngine->addPropertyRequestedFromProduct(p);
+            qbsEngine->addPropertyRequestedInScript(p);
 
         // Cache the variant value. We must not cache the QScriptValue here, because it's a
         // reference and the user might change the actual object.

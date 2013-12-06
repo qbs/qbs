@@ -61,15 +61,15 @@ public:
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
     void clearImportsCache();
 
-    void addPropertyRequestedFromProduct(const Property &property) {
-        m_propertiesRequestedFromProduct += property;
+    void addPropertyRequestedInScript(const Property &property) {
+        m_propertiesRequestedInScript += property;
     }
     void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
     void clearRequestedProperties() {
-        m_propertiesRequestedFromProduct.clear();
+        m_propertiesRequestedInScript.clear();
         m_propertiesRequestedFromArtifact.clear();
     }
-    PropertyList propertiesRequestedFromProduct() const { return m_propertiesRequestedFromProduct; }
+    PropertyList propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
     QHash<QString, PropertyList> propertiesRequestedFromArtifact() const {
         return m_propertiesRequestedFromArtifact;
     }
@@ -119,7 +119,7 @@ private:
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<QPair<QString, PropertyMapConstPtr>, QVariant> m_propertyCache;
-    PropertyList m_propertiesRequestedFromProduct;
+    PropertyList m_propertiesRequestedInScript;
     QHash<QString, PropertyList> m_propertiesRequestedFromArtifact;
     Logger m_logger;
     QScriptValue m_definePropertyFunction;

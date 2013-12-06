@@ -41,12 +41,14 @@ public:
     PrepareScriptObserver(ScriptEngine *engine);
 
     void setProductObjectId(qint64 productId) { m_productObjectId = productId; }
+    void setProjectObjectId(qint64 projectId) { m_projectObjectId = projectId; }
 
 private:
     void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
 
     ScriptEngine * const m_engine;
     qint64 m_productObjectId;
+    qint64 m_projectObjectId;
 };
 
 } // namespace Internal

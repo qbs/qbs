@@ -96,8 +96,8 @@ public slots:
         ctx->pushScope(scope);
         scriptEngine->evaluate(cmd->sourceCode());
         ctx->popScope();
-        transformer->propertiesRequestedFromProductInCommands
-                += scriptEngine->propertiesRequestedFromProduct();
+        transformer->propertiesRequestedInCommands
+                += scriptEngine->propertiesRequestedInScript();
         scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
             m_result.success = false;

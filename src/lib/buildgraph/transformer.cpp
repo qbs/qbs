@@ -153,7 +153,7 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     }
 
     QScriptValue scriptValue = script->scriptFunction.call(QScriptValue(), args);
-    propertiesRequestedFromProductInPrepareScript = engine->propertiesRequestedFromProduct();
+    propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
@@ -201,8 +201,8 @@ void Transformer::load(PersistentPool &pool)
     rule = pool.idLoadS<Rule>();
     pool.loadContainer(inputs);
     pool.loadContainer(outputs);
-    restorePropertyList(pool, propertiesRequestedFromProductInPrepareScript);
-    restorePropertyList(pool, propertiesRequestedFromProductInCommands);
+    restorePropertyList(pool, propertiesRequestedInPrepareScript);
+    restorePropertyList(pool, propertiesRequestedInCommands);
     int count;
     pool.stream() >> count;
     propertiesRequestedFromArtifactInPrepareScript.reserve(count);
@@ -248,8 +248,8 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(rule);
     pool.storeContainer(inputs);
     pool.storeContainer(outputs);
-    storePropertyList(pool, propertiesRequestedFromProductInPrepareScript);
-    storePropertyList(pool, propertiesRequestedFromProductInCommands);
+    storePropertyList(pool, propertiesRequestedInPrepareScript);
+    storePropertyList(pool, propertiesRequestedInCommands);
     pool.stream() << propertiesRequestedFromArtifactInPrepareScript.count();
     for (QHash<QString, PropertyList>::ConstIterator it = propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {

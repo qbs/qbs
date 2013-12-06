@@ -190,10 +190,14 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
                 FileInfo::path(product->project->location.fileName()));
         const QVariantMap &projectProperties = product->project->projectProperties();
         for (QVariantMap::const_iterator it = projectProperties.begin();
-                it != projectProperties.end(); ++it)
-            cache->projectScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
+                it != projectProperties.end(); ++it) {
+            engine->setObservedProperty(cache->projectScriptValue, it.key(),
+                                        engine->toScriptValue(it.value()), observer);
+        }
     }
     targetObject.setProperty(QLatin1String("project"), cache->projectScriptValue);
+    if (observer)
+        observer->setProjectObjectId(cache->projectScriptValue.objectId());
 
     if (cache->product != product) {
         cache->product = product.data();

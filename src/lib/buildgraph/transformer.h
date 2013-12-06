@@ -57,8 +57,8 @@ public:
     ArtifactList outputs;
     RuleConstPtr rule;
     QList<AbstractCommand *> commands;
-    PropertyList propertiesRequestedFromProductInPrepareScript;
-    PropertyList propertiesRequestedFromProductInCommands;
+    PropertyList propertiesRequestedInPrepareScript;
+    PropertyList propertiesRequestedInCommands;
     QHash<QString, PropertyList> propertiesRequestedFromArtifactInPrepareScript;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
