@@ -741,16 +741,11 @@ QList<ResolvedProductPtr> ResolvedProject::allProducts() const
 void ResolvedProject::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
-    const QString fileName = pool.idLoadString();
-    int line;
-    int column;
-    pool.stream() >> line;
-    pool.stream() >> column;
-    location = CodeLocation(fileName, line, column);
-    pool.stream() >> enabled;
-
     int count;
-    pool.stream() >> count;
+    pool.stream()
+            >> location
+            >> enabled
+            >> count;
     products.clear();
     products.reserve(count);
     for (; --count >= 0;) {
@@ -776,11 +771,10 @@ void ResolvedProject::load(PersistentPool &pool)
 void ResolvedProject::store(PersistentPool &pool) const
 {
     pool.storeString(name);
-    pool.storeString(location.fileName());
-    pool.stream() << location.line();
-    pool.stream() << location.column();
-    pool.stream() << enabled;
-    pool.stream() << products.count();
+    pool.stream()
+            << location
+            << enabled
+            << products.count();
     foreach (const ResolvedProductConstPtr &product, products)
         pool.store(product);
     pool.stream() << subProjects.count();
