@@ -642,8 +642,8 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
 {
     // This check must come first, as it can prevent build data rescuing.
     foreach (const Property &property, restoredTrafo->propertiesRequestedInCommands) {
-        const QVariantMap properties = property.kind == Property::PropertyInProduct
-                ? freshProduct->properties->value() : freshProduct->project->projectProperties();
+        const QVariantMap properties = property.kind == Property::PropertyInProject
+                ? freshProduct->project->projectProperties() : freshProduct->properties->value();
         if (checkForPropertyChange(property, properties)) {
             JavaScriptCommand * const pseudoCommand = new JavaScriptCommand;
             pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
@@ -654,8 +654,8 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     }
 
     foreach (const Property &property, restoredTrafo->propertiesRequestedInPrepareScript) {
-        const QVariantMap properties = property.kind == Property::PropertyInProduct
-                ? freshProduct->properties->value() : freshProduct->project->projectProperties();
+        const QVariantMap properties = property.kind == Property::PropertyInProject
+                ? freshProduct->project->projectProperties() : freshProduct->properties->value();
         if (checkForPropertyChange(property, properties))
             return true;
     }
