@@ -1020,7 +1020,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
     return modulesAreEqual(t1.module, t2.module)
             && t1.inputs.toSet() == t2.inputs.toSet()
             && sourceArtifactListsAreEqual(t1.outputs, t2.outputs)
-            && *t1.transform == *t2.transform;
+            && *t1.transform == *t2.transform
+            && t1.explicitlyDependsOn == t2.explicitlyDependsOn;
 }
 
 bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
