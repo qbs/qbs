@@ -953,6 +953,7 @@ void ResolvedTransformer::load(PersistentPool &pool)
     pool.stream() >> inputs;
     pool.loadContainerS(outputs);
     transform = pool.idLoadS<ScriptFunction>();
+    pool.stream() >> explicitlyDependsOn;
 }
 
 void ResolvedTransformer::store(PersistentPool &pool) const
@@ -961,6 +962,7 @@ void ResolvedTransformer::store(PersistentPool &pool) const
     pool.stream() << inputs;
     pool.storeContainer(outputs);
     pool.store(transform);
+    pool.stream() << explicitlyDependsOn;
 }
 
 
