@@ -100,10 +100,6 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
 {
     if (Q_UNLIKELY(!context->isCalledAsConstructor()))
         return context->throwError(Tr::tr("Command constructor called without new."));
-    if (Q_UNLIKELY(context->argumentCount() != 2)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   "Command c'tor expects 2 arguments");
-    }
 
     static ProcessCommand commandPrototype;
 
