@@ -216,8 +216,10 @@ void ResolvedGroup::store(PersistentPool &pool) const
 void RuleArtifact::load(PersistentPool &pool)
 {
     Q_UNUSED(pool);
-    pool.stream() >> fileName;
-    pool.stream() >> fileTags;
+    pool.stream()
+            >> fileName
+            >> fileTags
+            >> alwaysUpdated;
 
     int i;
     pool.stream() >> i;
@@ -233,8 +235,10 @@ void RuleArtifact::load(PersistentPool &pool)
 void RuleArtifact::store(PersistentPool &pool) const
 {
     Q_UNUSED(pool);
-    pool.stream() << fileName;
-    pool.stream() << fileTags;
+    pool.stream()
+            << fileName
+            << fileTags
+            << alwaysUpdated;
 
     pool.stream() << bindings.count();
     for (int i = bindings.count(); --i >= 0;) {
@@ -981,6 +985,7 @@ void ResolvedTransformer::load(PersistentPool &pool)
     pool.stream() >> inputs;
     pool.loadContainerS(outputs);
     transform = pool.idLoadS<ScriptFunction>();
+    pool.stream() >> explicitlyDependsOn;
 }
 
 void ResolvedTransformer::store(PersistentPool &pool) const
@@ -989,6 +994,7 @@ void ResolvedTransformer::store(PersistentPool &pool) const
     pool.stream() << inputs;
     pool.storeContainer(outputs);
     pool.store(transform);
+    pool.stream() << explicitlyDependsOn;
 }
 
 
@@ -1046,7 +1052,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
     return modulesAreEqual(t1.module, t2.module)
             && t1.inputs.toSet() == t2.inputs.toSet()
             && sourceArtifactListsAreEqual(t1.outputs, t2.outputs)
-            && *t1.transform == *t2.transform;
+            && *t1.transform == *t2.transform
+            && t1.explicitlyDependsOn == t2.explicitlyDependsOn;
 }
 
 bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
