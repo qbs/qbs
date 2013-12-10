@@ -253,7 +253,7 @@ void ProcessCommandExecutor::onProcessError()
 void ProcessCommandExecutor::onProcessFinished(int exitCode)
 {
     removeResponseFile();
-    const bool errorOccurred = exitCode > processCommand()->maxExitCode();
+    const bool errorOccurred = quint32(exitCode) > quint32(processCommand()->maxExitCode());
     sendProcessOutput(!errorOccurred);
 
     if (Q_UNLIKELY(errorOccurred)) {
