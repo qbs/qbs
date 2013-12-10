@@ -246,13 +246,11 @@ bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) cons
     const JavaScriptCommand * const other
             = static_cast<const JavaScriptCommand *>(otherAbstractCommand);
     return m_sourceCode == other->m_sourceCode
-            && m_properties == other->m_properties
-            && m_codeLocation == other->m_codeLocation;
+            && m_properties == other->m_properties;
 }
 
 void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
 {
-    m_codeLocation = codeLocation;
     AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
     QScriptValue sourceCode = scriptValue->property("sourceCode");
     if (sourceCode.isFunction())
@@ -275,16 +273,14 @@ void JavaScriptCommand::load(QDataStream &s)
 {
     AbstractCommand::load(s);
     s   >> m_sourceCode
-        >> m_properties
-        >> m_codeLocation;
+        >> m_properties;
 }
 
 void JavaScriptCommand::store(QDataStream &s)
 {
     AbstractCommand::store(s);
     s   << m_sourceCode
-        << m_properties
-        << m_codeLocation;
+        << m_properties;
 }
 
 } // namespace Internal

@@ -129,13 +129,11 @@ public:
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
 
-    const CodeLocation &codeLocation() const { return m_codeLocation; }
     const QVariantMap &properties() const { return m_properties; }
 
 private:
     QString m_sourceCode;
     QVariantMap m_properties;
-    CodeLocation m_codeLocation;
 };
 
 } // namespace Internal
