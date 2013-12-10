@@ -190,8 +190,10 @@ void ResolvedGroup::store(PersistentPool &pool) const
 void RuleArtifact::load(PersistentPool &pool)
 {
     Q_UNUSED(pool);
-    pool.stream() >> fileName;
-    pool.stream() >> fileTags;
+    pool.stream()
+            >> fileName
+            >> fileTags
+            >> alwaysUpdated;
 
     int i;
     pool.stream() >> i;
@@ -207,8 +209,10 @@ void RuleArtifact::load(PersistentPool &pool)
 void RuleArtifact::store(PersistentPool &pool) const
 {
     Q_UNUSED(pool);
-    pool.stream() << fileName;
-    pool.stream() << fileTags;
+    pool.stream()
+            << fileName
+            << fileTags
+            << alwaysUpdated;
 
     pool.stream() << bindings.count();
     for (int i = bindings.count(); --i >= 0;) {
