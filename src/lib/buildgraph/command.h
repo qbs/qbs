@@ -90,29 +90,13 @@ public:
     void store(QDataStream &s);
 
     const QString program() const { return m_program; }
-    void setProgram(const QString &str) { m_program = str; }
-
     const QStringList arguments() const { return m_arguments; }
-    void setArguments(const QStringList &l) { m_arguments = l; }
-
     const QString workingDir() const { return m_workingDir; }
-    void setWorkingDir(const QString &str) { m_workingDir = str; }
-
     int maxExitCode() const { return m_maxExitCode; }
-    void setMaxExitCode(int n) { m_maxExitCode = n; }
-
     QString stdoutFilterFunction() const { return m_stdoutFilterFunction; }
-    void setStdoutFilterFunction(const QString &filter) { m_stdoutFilterFunction = filter; }
-
     QString stderrFilterFunction() const { return m_stderrFilterFunction; }
-    void setStderrFilterFunction(const QString &filter) { m_stderrFilterFunction = filter; }
-
     int responseFileThreshold() const { return m_responseFileThreshold; }
-    void setResponseFileThreshold(int n) { m_responseFileThreshold = n; }
-
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
-    void setResponseFileUsagePrefix(const QString &function) { m_responseFileUsagePrefix = function; }
-
     QProcessEnvironment environment() const { return m_environment; }
 
 private:
@@ -144,8 +128,8 @@ public:
 
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
+
     const CodeLocation &codeLocation() const { return m_codeLocation; }
-    void setCodeLocation(const CodeLocation &loc) { m_codeLocation = loc; }
     const QVariantMap &properties() const { return m_properties; }
 
 private:
