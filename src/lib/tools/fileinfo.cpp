@@ -326,12 +326,16 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
                                  arg(QDir::toNativeSeparators(f.absoluteFilePath())));
             return false;
         }
-    } else if (!QFile::remove(f.absoluteFilePath())) {
-        if (!errorMessage->isEmpty())
-            errorMessage->append(QLatin1Char('\n'));
-        errorMessage->append(Tr::tr("The file %1 could not be deleted.").
-                             arg(QDir::toNativeSeparators(f.absoluteFilePath())));
-        return false;
+    } else {
+        QFile file(f.absoluteFilePath());
+        file.setPermissions(f.permissions() | QFile::WriteUser);
+        if (!file.remove()) {
+            if (!errorMessage->isEmpty())
+                errorMessage->append(QLatin1Char('\n'));
+            errorMessage->append(Tr::tr("The file %1 could not be deleted.").
+                                 arg(QDir::toNativeSeparators(f.absoluteFilePath())));
+            return false;
+        }
     }
     return true;
 }
@@ -452,9 +456,12 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
             return true;
         QFile file(srcFilePath);
         QFile targetFile(tgtFilePath);
-        if (targetFile.exists() && !targetFile.remove()) {
-            *errorMessage = Tr::tr("Could not remove file '%1'. %2")
-                .arg(QDir::toNativeSeparators(tgtFilePath), targetFile.errorString());
+        if (targetFile.exists()) {
+            targetFile.setPermissions(targetFile.permissions() | QFile::WriteUser);
+            if (!targetFile.remove()) {
+                *errorMessage = Tr::tr("Could not remove file '%1'. %2")
+                        .arg(QDir::toNativeSeparators(tgtFilePath), targetFile.errorString());
+            }
         }
         if (!file.copy(tgtFilePath)) {
             *errorMessage = Tr::tr("Could not copy file '%1' to '%2'. %3")
