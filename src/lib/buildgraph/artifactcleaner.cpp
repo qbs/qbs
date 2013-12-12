@@ -32,6 +32,7 @@
 #include "artifactvisitor.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
+#include "transformer.h"
 
 #include <language/language.h>
 #include <logging/translator.h>
@@ -39,6 +40,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
+#include <tools/qbsassert.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -108,9 +110,12 @@ private:
     {
         if (artifact->product != m_product)
             return;
-        if (artifact->product->buildData->targetArtifacts.contains(artifact)
-                && m_options.cleanType() == CleanOptions::CleanupTemporaries) {
-            return;
+        if (m_options.cleanType() == CleanOptions::CleanupTemporaries) {
+            QBS_CHECK(artifact->transformer);
+            foreach (Artifact * const sibling, artifact->transformer->outputs) {
+                if (artifact->product->buildData->targetArtifacts.contains(sibling))
+                    return;
+            }
         }
         try {
             removeArtifactFromDisk(artifact, m_options.dryRun(), m_logger);

@@ -30,7 +30,8 @@
 /*!
     \contentspage list-of-items.html
     \page artifact-item.html
-    \nextpage depends-item.html
+    \previouspage application-item.html
+    \nextpage cppapplication-item.html
     \ingroup list-of-items
 
     \title Artifact Item

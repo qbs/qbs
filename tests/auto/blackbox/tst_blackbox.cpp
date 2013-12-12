@@ -403,7 +403,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(QFile(depLibFilePath).exists());
     foreach (const QString &symLink, symlinks)
-        QVERIFY2(!QFile(symLink).exists(), qPrintable(symLink));
+        QVERIFY2(QFile(symLink).exists(), qPrintable(symLink));
 
     // Remove all.
     QCOMPARE(runQbs(), 0);

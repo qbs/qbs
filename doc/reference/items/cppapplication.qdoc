@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Copyright (C) 2013 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -29,39 +28,17 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \previouspage cppapplication-item.html
-    \page depends-item.html
-    \nextpage dynamiclibrary-item.html
+    \page cppapplication-item.html
+    \previouspage artifact-item.html
+    \nextpage depends-item.html
     \ingroup list-of-items
 
-    \title Depends Item
-    \brief Represents dependencies between between products and modules.
+    \title CppApplication Item
+    \brief Represents a product of application type with a dependency to the cpp module.
 
-    A \c Depends item can appear inside a \l{Product Item} or \l{Module Item}.
-
-    \section1 Depends Properties
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li condition
-        \li bool
-        \li true
-        \li Determines whether the dependency will actually be applied.
-    \row
-        \li name
-        \li string
-        \li undefined
-        \li The name of the dependent product or module.
-    \row
-        \li submodules
-        \li stringList
-        \li undefined
-        \li The submodules of \c module to depend on, if applicable.
-    \endtable
-
+    A \c CppApplication is a convenience item that is entirely equivalent to the following:
+    \code
+    Application {
+        Depends { name: "cpp" } }
+    \endcode
 */
