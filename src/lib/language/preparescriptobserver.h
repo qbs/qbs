@@ -26,10 +26,10 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "scriptpropertyobserver.h"
-
 #ifndef QBS_PREPARESCRIPTOBSERVER_H
 #define QBS_PREPARESCRIPTOBSERVER_H
+
+#include "scriptpropertyobserver.h"
 
 namespace qbs {
 namespace Internal {
