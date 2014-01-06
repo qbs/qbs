@@ -172,12 +172,6 @@ private:
 
     void handleItem(Item *item)
     {
-        if (Q_UNLIKELY(!item->typeName().isEmpty()
-                       && !m_builtins->containsType(item->typeName()))) {
-            const QString msg = Tr::tr("Unexpected item type '%1'.");
-            throw ErrorInfo(msg.arg(item->typeName()), item->location());
-        }
-
         if (m_disabledItems.contains(item) || item->typeName() == QLatin1String("SubProject"))
             return;
 
@@ -276,6 +270,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
                         subItem->location());
         }
     }
+
+    checkItemTypes(item);
 
     PropertyDeclarationCheck check(m_reader->builtins(), m_validItemPropertyNamesPerItem,
                                    m_disabledItems);
@@ -990,6 +986,25 @@ bool ModuleLoader::checkItemCondition(Item *item)
         return true;
     m_disabledItems += item;
     return false;
+}
+
+void ModuleLoader::checkItemTypes(Item *item)
+{
+    if (Q_UNLIKELY(!item->typeName().isEmpty()
+                   && !m_reader->builtins()->containsType(item->typeName()))) {
+        const QString msg = Tr::tr("Unexpected item type '%1'.");
+        throw ErrorInfo(msg.arg(item->typeName()), item->location());
+    }
+
+    const ItemDeclaration decl = m_reader->builtins()->declarationsForType(item->typeName());
+    foreach (Item *child, item->children()) {
+        if (child->typeName().isEmpty())
+            continue;
+        checkItemTypes(child);
+        if (!decl.isChildTypeAllowed(child->typeName()))
+            throw ErrorInfo(Tr::tr("Items of type '%1' cannot contain items of type '%2'.")
+                .arg(item->typeName(), child->typeName()), item->location());
+    }
 }
 
 void ModuleLoader::callValidateScript(Item *module)

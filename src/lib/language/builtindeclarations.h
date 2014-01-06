@@ -62,6 +62,7 @@ private:
     void addProbeItem();
     void addProductItem();
     void addProjectItem();
+    void addPropertiesItem();
     void addPropertyOptionsItem();
     void addRuleItem();
     void addSubprojectItem();

@@ -40,6 +40,7 @@ ItemDeclaration::ItemDeclaration(const QString &typeName)
 ItemDeclaration::ItemDeclaration(const qbs::Internal::ItemDeclaration &other)
     : m_typeName(other.m_typeName)
     , m_properties(other.m_properties)
+    , m_allowedChildTypes(other.m_allowedChildTypes)
 {
 }
 
@@ -47,6 +48,11 @@ ItemDeclaration &ItemDeclaration::operator<<(const PropertyDeclaration &decl)
 {
     m_properties.append(decl);
     return *this;
+}
+
+bool ItemDeclaration::isChildTypeAllowed(const QString &typeName) const
+{
+    return m_allowedChildTypes.contains(typeName);
 }
 
 } // namespace Internal

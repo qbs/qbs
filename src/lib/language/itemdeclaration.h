@@ -50,9 +50,15 @@ public:
 
     ItemDeclaration &operator<<(const PropertyDeclaration &decl);
 
+    typedef QSet<QString> TypeNames;
+    void setAllowedChildTypes(const TypeNames &typeNames) { m_allowedChildTypes = typeNames; }
+    const TypeNames &allowedChildTypes() const { return m_allowedChildTypes; }
+    bool isChildTypeAllowed(const QString &typeName) const;
+
 private:
     QString m_typeName;
     Properties m_properties;
+    TypeNames m_allowedChildTypes;
 };
 
 } // namespace Internal

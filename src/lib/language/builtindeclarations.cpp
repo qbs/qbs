@@ -47,6 +47,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     addProbeItem();
     addProductItem();
     addProjectItem();
+    addPropertiesItem();
     addPropertyOptionsItem();
     addRuleItem();
     addSubprojectItem();
@@ -202,6 +203,10 @@ void BuiltinDeclarations::addDependsItem()
 void BuiltinDeclarations::addExportItem()
 {
     ItemDeclaration item(QLatin1String("Export"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Depends")
+            << QLatin1String("Module")  // needed, because we're adding module instances internally
+                              );
     insert(item);
 }
 
@@ -245,6 +250,9 @@ void BuiltinDeclarations::addGroupItem()
 void BuiltinDeclarations::addModuleItem()
 {
     ItemDeclaration item(QLatin1String("Module"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Module")  // needed, because we're adding module instances internally
+                              );
     item << nameProperty();
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
@@ -273,6 +281,15 @@ void BuiltinDeclarations::addProbeItem()
 void BuiltinDeclarations::addProductItem()
 {
     ItemDeclaration item(QLatin1String("Product"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Module")
+            << QLatin1String("Depends")
+            << QLatin1String("Transformer")
+            << QLatin1String("Group")
+            << QLatin1String("FileTagger")
+            << QLatin1String("Export")
+            << QLatin1String("Probe")
+            << QLatin1String("Rule"));
     item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("type"), PropertyDeclaration::StringList);
     decl.initialValueSource = QLatin1String("[]");
@@ -299,6 +316,13 @@ void BuiltinDeclarations::addProductItem()
 void BuiltinDeclarations::addProjectItem()
 {
     ItemDeclaration item(QLatin1String("Project"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Module")
+            << QLatin1String("Project")
+            << QLatin1String("SubProject")
+            << QLatin1String("Product")
+            << QLatin1String("FileTagger")
+            << QLatin1String("Rule"));
     item << nameProperty();
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
@@ -306,6 +330,11 @@ void BuiltinDeclarations::addProjectItem()
     item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),
             PropertyDeclaration::StringList, PropertyDeclaration::PropertyNotAvailableInConfig);
     insert(item);
+}
+
+void BuiltinDeclarations::addPropertiesItem()
+{
+    insert(ItemDeclaration(QLatin1String("Properties")));
 }
 
 void BuiltinDeclarations::addPropertyOptionsItem()
@@ -320,6 +349,8 @@ void BuiltinDeclarations::addPropertyOptionsItem()
 void BuiltinDeclarations::addRuleItem()
 {
     ItemDeclaration item(QLatin1String("Rule"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Artifact"));
     item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
     decl.initialValueSource = QLatin1String("false");
@@ -337,6 +368,9 @@ void BuiltinDeclarations::addRuleItem()
 void BuiltinDeclarations::addSubprojectItem()
 {
     ItemDeclaration item(QLatin1String("SubProject"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Project") // needed, because we're adding this internally
+            << QLatin1String("Properties"));
     item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
     PropertyDeclaration inheritProperty;
     inheritProperty.name = QLatin1String("inheritProperties");
@@ -349,6 +383,8 @@ void BuiltinDeclarations::addSubprojectItem()
 void BuiltinDeclarations::addTransformerItem()
 {
     ItemDeclaration item(QLatin1String("Transformer"));
+    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Artifact"));
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
     item << prepareScriptProperty();

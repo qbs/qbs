@@ -363,6 +363,8 @@ void TestLanguage::erroneousFiles_data()
             << "Property 'doesntexist' is not declared.";
     QTest::newRow("unknown_item_type")
             << "Unexpected item type 'Narf'";
+    QTest::newRow("invalid_child_item_type")
+            << "Items of type 'Project' cannot contain items of type 'Depends'.";
 }
 
 void TestLanguage::erroneousFiles()
