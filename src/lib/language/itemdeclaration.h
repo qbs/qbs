@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -27,51 +27,35 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_BUILTINDECLARATIONS_H
-#define QBS_BUILTINDECLARATIONS_H
+#ifndef QBS_ITEMDECLARATION_H
+#define QBS_ITEMDECLARATION_H
 
-#include "itemdeclaration.h"
-
-#include <QByteArray>
-#include <QMap>
+#include "propertydeclaration.h"
+#include <QSet>
 
 namespace qbs {
 namespace Internal {
 
-class Item;
-
-class BuiltinDeclarations
+class ItemDeclaration
 {
 public:
-    BuiltinDeclarations();
+    ItemDeclaration(const QString &typeName = QString());
+    ItemDeclaration(const ItemDeclaration &other);
 
-    QString languageVersion() const;
-    QByteArray qmlTypeInfo() const;
-    bool containsType(const QString &typeName) const;
-    ItemDeclaration declarationsForType(const QString &typeName) const;
-    void setupItemForBuiltinType(qbs::Internal::Item *item) const;
+    const QString &typeName() const { return m_typeName; }
+
+    typedef QList<PropertyDeclaration> Properties;
+    void setProperties(const Properties &props) { m_properties = props; }
+    const Properties &properties() const { return m_properties; }
+
+    ItemDeclaration &operator<<(const PropertyDeclaration &decl);
 
 private:
-    void insert(const ItemDeclaration &decl);
-    void addArtifactItem();
-    void addDependsItem();
-    void addExportItem();
-    void addFileTaggerItem();
-    void addGroupItem();
-    void addModuleItem();
-    void addProbeItem();
-    void addProductItem();
-    void addProjectItem();
-    void addPropertyOptionsItem();
-    void addRuleItem();
-    void addSubprojectItem();
-    void addTransformerItem();
-
-    QString m_languageVersion;
-    QMap<QString, ItemDeclaration> m_builtins;
+    QString m_typeName;
+    Properties m_properties;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_BUILTINDECLARATIONS_H
+#endif // QBS_ITEMDECLARATION_H

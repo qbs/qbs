@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -27,51 +27,27 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_BUILTINDECLARATIONS_H
-#define QBS_BUILTINDECLARATIONS_H
-
 #include "itemdeclaration.h"
-
-#include <QByteArray>
-#include <QMap>
 
 namespace qbs {
 namespace Internal {
 
-class Item;
-
-class BuiltinDeclarations
+ItemDeclaration::ItemDeclaration(const QString &typeName)
+    : m_typeName(typeName)
 {
-public:
-    BuiltinDeclarations();
+}
 
-    QString languageVersion() const;
-    QByteArray qmlTypeInfo() const;
-    bool containsType(const QString &typeName) const;
-    ItemDeclaration declarationsForType(const QString &typeName) const;
-    void setupItemForBuiltinType(qbs::Internal::Item *item) const;
+ItemDeclaration::ItemDeclaration(const qbs::Internal::ItemDeclaration &other)
+    : m_typeName(other.m_typeName)
+    , m_properties(other.m_properties)
+{
+}
 
-private:
-    void insert(const ItemDeclaration &decl);
-    void addArtifactItem();
-    void addDependsItem();
-    void addExportItem();
-    void addFileTaggerItem();
-    void addGroupItem();
-    void addModuleItem();
-    void addProbeItem();
-    void addProductItem();
-    void addProjectItem();
-    void addPropertyOptionsItem();
-    void addRuleItem();
-    void addSubprojectItem();
-    void addTransformerItem();
-
-    QString m_languageVersion;
-    QMap<QString, ItemDeclaration> m_builtins;
-};
+ItemDeclaration &ItemDeclaration::operator<<(const PropertyDeclaration &decl)
+{
+    m_properties.append(decl);
+    return *this;
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_BUILTINDECLARATIONS_H

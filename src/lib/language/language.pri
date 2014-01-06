@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/identifiersearch.h \
     $$PWD/importversion.h \
     $$PWD/item.h \
+    $$PWD/itemdeclaration.h \
     $$PWD/itemobserver.h \
     $$PWD/itempool.h \
     $$PWD/itemreader.h \
@@ -42,6 +43,7 @@ SOURCES += \
     $$PWD/identifiersearch.cpp \
     $$PWD/importversion.cpp \
     $$PWD/item.cpp \
+    $$PWD/itemdeclaration.cpp \
     $$PWD/itempool.cpp \
     $$PWD/itemreader.cpp \
     $$PWD/itemreaderastvisitor.cpp \

@@ -79,8 +79,8 @@ QByteArray BuiltinDeclarations::qmlTypeInfo() const
         result.append("\" ]\n");
         result.append("        prototype: \"QQuickItem\"\n");
 
-        QList<PropertyDeclaration> propertyList = m_builtins.value(component);
-        foreach (const PropertyDeclaration &property, propertyList) {
+        ItemDeclaration itemDecl = m_builtins.value(component);
+        foreach (const PropertyDeclaration &property, itemDecl.properties()) {
             result.append("        Property { name=\"");
             result.append(property.name.toUtf8());
             result.append("\"; ");
@@ -129,14 +129,14 @@ bool BuiltinDeclarations::containsType(const QString &typeName) const
     return m_builtins.contains(typeName);
 }
 
-QList<PropertyDeclaration> BuiltinDeclarations::declarationsForType(const QString &typeName) const
+ItemDeclaration BuiltinDeclarations::declarationsForType(const QString &typeName) const
 {
     return m_builtins.value(typeName);
 }
 
 void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
 {
-    foreach (const PropertyDeclaration &pd, declarationsForType(item->typeName())) {
+    foreach (const PropertyDeclaration &pd, declarationsForType(item->typeName()).properties()) {
         item->m_propertyDeclarations.insert(pd.name, pd);
         ValuePtr &value = item->m_properties[pd.name];
         if (!value) {
@@ -147,6 +147,11 @@ void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
             value = sourceValue;
         }
     }
+}
+
+void BuiltinDeclarations::insert(const ItemDeclaration &decl)
+{
+    m_builtins.insert(decl.typeName(), decl);
 }
 
 static PropertyDeclaration conditionProperty()
@@ -173,183 +178,183 @@ static PropertyDeclaration prepareScriptProperty()
 
 void BuiltinDeclarations::addArtifactItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
-    properties += PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
+    ItemDeclaration item(QLatin1String("Artifact"));
+    item << conditionProperty();
+    item << PropertyDeclaration(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
+    item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
     PropertyDeclaration decl(QLatin1String("alwaysUpdated"), PropertyDeclaration::Boolean);
     decl.initialValueSource = QLatin1String("true");
-    properties += decl;
-    m_builtins[QLatin1String("Artifact")] = properties;
+    item << decl;
+    insert(item);
 }
 
 void BuiltinDeclarations::addDependsItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
-    properties += nameProperty();
-    properties += PropertyDeclaration(QLatin1String("submodules"), PropertyDeclaration::Variant);
-    properties += PropertyDeclaration(QLatin1String("required"), PropertyDeclaration::Boolean);
-    properties += PropertyDeclaration(QLatin1String("failureMessage"), PropertyDeclaration::String);
-    m_builtins[QLatin1String("Depends")] = properties;
+    ItemDeclaration item(QLatin1String("Depends"));
+    item << conditionProperty();
+    item << nameProperty();
+    item << PropertyDeclaration(QLatin1String("submodules"), PropertyDeclaration::Variant);
+    item << PropertyDeclaration(QLatin1String("required"), PropertyDeclaration::Boolean);
+    item << PropertyDeclaration(QLatin1String("failureMessage"), PropertyDeclaration::String);
+    insert(item);
 }
 
 void BuiltinDeclarations::addExportItem()
 {
-    QList<PropertyDeclaration> properties;
-    m_builtins[QLatin1String("Export")] = properties;
+    ItemDeclaration item(QLatin1String("Export"));
+    insert(item);
 }
 
 void BuiltinDeclarations::addFileTaggerItem()
 {
-    QList<PropertyDeclaration> properties;
+    ItemDeclaration item(QLatin1String("FileTagger"));
 
     // TODO: Remove in 1.3
-    properties += PropertyDeclaration(QLatin1String("pattern"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("pattern"), PropertyDeclaration::StringList);
 
-    properties += PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
-    properties += PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
-    m_builtins[QLatin1String("FileTagger")] = properties;
+    item << PropertyDeclaration(QLatin1String("patterns"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
+    insert(item);
 }
 
 void BuiltinDeclarations::addGroupItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("files"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("fileTagsFilter"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("prefix"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
+    ItemDeclaration item(QLatin1String("Group"));
+    item << conditionProperty();
+    item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("files"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("fileTagsFilter"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("prefix"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
     PropertyDeclaration declaration;
     declaration.name = QLatin1String("overrideTags");
     declaration.type = PropertyDeclaration::Boolean;
     declaration.flags = PropertyDeclaration::PropertyNotAvailableInConfig;
     declaration.initialValueSource = QLatin1String("true");
-    properties += declaration;
-    m_builtins[QLatin1String("Group")] = properties;
+    item << declaration;
+    insert(item);
 }
 
 void BuiltinDeclarations::addModuleItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += nameProperty();
-    properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
+    ItemDeclaration item(QLatin1String("Module"));
+    item << nameProperty();
+    item << conditionProperty();
+    item << PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
                                       PropertyDeclaration::Verbatim);
-    properties += PropertyDeclaration(QLatin1String("setupRunEnvironment"),
+    item << PropertyDeclaration(QLatin1String("setupRunEnvironment"),
                                       PropertyDeclaration::Verbatim);
-    properties += PropertyDeclaration(QLatin1String("validate"),
+    item << PropertyDeclaration(QLatin1String("validate"),
                                       PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("additionalProductFileTags"),
+    item << PropertyDeclaration(QLatin1String("additionalProductFileTags"),
                                       PropertyDeclaration::Variant);
-    m_builtins[QLatin1String("Module")] = properties;
+    insert(item);
 }
 
 void BuiltinDeclarations::addProbeItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
+    ItemDeclaration item(QLatin1String("Probe"));
+    item << conditionProperty();
     PropertyDeclaration foundProperty(QLatin1String("found"), PropertyDeclaration::Boolean);
     foundProperty.initialValueSource = QLatin1String("false");
-    properties += foundProperty;
-    properties += PropertyDeclaration(QLatin1String("configure"), PropertyDeclaration::Verbatim);
-    m_builtins[QLatin1String("Probe")] = properties;
+    item << foundProperty;
+    item << PropertyDeclaration(QLatin1String("configure"), PropertyDeclaration::Verbatim);
+    insert(item);
 }
 
 void BuiltinDeclarations::addProductItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
+    ItemDeclaration item(QLatin1String("Product"));
+    item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("type"), PropertyDeclaration::StringList);
     decl.initialValueSource = QLatin1String("[]");
-    properties += decl;
-    properties += nameProperty();
+    item << decl;
+    item << nameProperty();
     decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
     decl.initialValueSource = QLatin1String("name");
-    properties += decl;
+    item << decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);
     decl.initialValueSource = QLatin1String("'.'");
-    properties += decl;
-    properties += PropertyDeclaration(QLatin1String("consoleApplication"),
-                                      PropertyDeclaration::Boolean);
-    properties += PropertyDeclaration(QLatin1String("files"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::Variant,
-                                      PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("qbsSearchPaths"),
-                                      PropertyDeclaration::StringList);
-    properties += PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
-    m_builtins[QLatin1String("Product")] = properties;
+    item << decl;
+    item << PropertyDeclaration(QLatin1String("consoleApplication"),
+                                PropertyDeclaration::Boolean);
+    item << PropertyDeclaration(QLatin1String("files"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("excludeFiles"), PropertyDeclaration::Variant,
+                                PropertyDeclaration::PropertyNotAvailableInConfig);
+    item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),
+                                PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("version"), PropertyDeclaration::String);
+    insert(item);
 }
 
 void BuiltinDeclarations::addProjectItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += nameProperty();
-    properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
+    ItemDeclaration item(QLatin1String("Project"));
+    item << nameProperty();
+    item << conditionProperty();
+    item << PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
-    properties += PropertyDeclaration(QLatin1String("qbsSearchPaths"),
+    item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),
             PropertyDeclaration::StringList, PropertyDeclaration::PropertyNotAvailableInConfig);
-    m_builtins[QLatin1String("Project")] = properties;
+    insert(item);
 }
 
 void BuiltinDeclarations::addPropertyOptionsItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += nameProperty();
-    properties += PropertyDeclaration(QLatin1String("allowedValues"), PropertyDeclaration::Variant);
-    properties += PropertyDeclaration(QLatin1String("description"), PropertyDeclaration::String);
-    m_builtins[QLatin1String("PropertyOptions")] = properties;
+    ItemDeclaration item(QLatin1String("PropertyOptions"));
+    item << nameProperty();
+    item << PropertyDeclaration(QLatin1String("allowedValues"), PropertyDeclaration::Variant);
+    item << PropertyDeclaration(QLatin1String("description"), PropertyDeclaration::String);
+    insert(item);
 }
 
 void BuiltinDeclarations::addRuleItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
+    ItemDeclaration item(QLatin1String("Rule"));
+    item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
     decl.initialValueSource = QLatin1String("false");
-    properties += decl;
-    properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
-    properties += PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
-    properties += PropertyDeclaration(QLatin1String("auxiliaryInputs"),
+    item << decl;
+    item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("auxiliaryInputs"),
                                       PropertyDeclaration::StringList);
-    properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
+    item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);
-    properties += prepareScriptProperty();
-    m_builtins[QLatin1String("Rule")] = properties;
+    item << prepareScriptProperty();
+    insert(item);
 }
 
 void BuiltinDeclarations::addSubprojectItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
+    ItemDeclaration item(QLatin1String("SubProject"));
+    item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
     PropertyDeclaration inheritProperty;
     inheritProperty.name = QLatin1String("inheritProperties");
     inheritProperty.type = PropertyDeclaration::Boolean;
     inheritProperty.initialValueSource = QLatin1String("true");
-    properties += inheritProperty;
-    m_builtins[QLatin1String("SubProject")] = properties;
+    item << inheritProperty;
+    insert(item);
 }
 
 void BuiltinDeclarations::addTransformerItem()
 {
-    QList<PropertyDeclaration> properties;
-    properties += conditionProperty();
-    properties += PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
-    properties += prepareScriptProperty();
-    properties += PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
+    ItemDeclaration item(QLatin1String("Transformer"));
+    item << conditionProperty();
+    item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::Variant);
+    item << prepareScriptProperty();
+    item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);
-    m_builtins[QLatin1String("Transformer")] = properties;
+    insert(item);
 }
 
 } // namespace Internal

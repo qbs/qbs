@@ -1013,7 +1013,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
     if (!sourceProject)
         return;
     const QList<PropertyDeclaration> &builtinProjectProperties
-            = m_reader->builtins()->declarationsForType(QLatin1String("Project"));
+            = m_reader->builtins()->declarationsForType(QLatin1String("Project")).properties();
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
         builtinProjectPropertyNames << p.name;

@@ -177,6 +177,8 @@ Product {
             "importversion.h",
             "item.cpp",
             "item.h",
+            "itemdeclaration.cpp",
+            "itemdeclaration.h",
             "itemobserver.h",
             "itempool.cpp",
             "itempool.h",
