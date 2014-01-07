@@ -71,6 +71,7 @@ private:
                              const QVariantMap &oldProjectConfig);
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
+    bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
                                const FileTime &referenceTime,
                                QSet<QString> &remainingBuildSystemFiles,

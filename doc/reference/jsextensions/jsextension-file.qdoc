@@ -64,6 +64,14 @@
     \endcode
     Returns true if and only if there is a file at \c filePath.
 
+    \section2 lastModified
+    \code
+    File.lastModified(filePath)
+    \endcode
+    Returns the time of last modification for the file at \c filePath. The concrete semantics of the
+    returned value are platform-specific. You should only rely on the property that a smaller value
+    indicates an older timestamp.
+
     \section2 remove
     \code
     File.remove(filePath)

@@ -183,7 +183,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     // anew.
     if (hasBuildSystemFileChanged(buildSystemFiles, buildGraphTimeStamp)
             || hasEnvironmentChanged(restoredProject)
-            || hasFileExistsResultChanged(restoredProject)) {
+            || hasFileExistsResultChanged(restoredProject)
+            || hasFileLastModifiedResultChanged(restoredProject)) {
         reResolvingNecessary = true;
     }
 
@@ -321,6 +322,21 @@ bool BuildGraphLoader::hasFileExistsResultChanged(const TopLevelProjectConstPtr 
          it != restoredProject->fileExistsResults.constEnd(); ++it) {
         if (FileInfo(it.key()).exists() != it.value()) {
             m_logger.qbsDebug() << "Existence check for file '" << it.key()
+                                << " 'changed, must re-resolve project.";
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool BuildGraphLoader::hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const
+{
+    for (QHash<QString, FileTime>::ConstIterator it
+         = restoredProject->fileLastModifiedResults.constBegin();
+         it != restoredProject->fileLastModifiedResults.constEnd(); ++it) {
+        if (FileInfo(it.key()).lastModified() != it.value()) {
+            m_logger.qbsDebug() << "Timestamp for file '" << it.key()
                                 << " 'changed, must re-resolve project.";
             return true;
         }

@@ -250,6 +250,11 @@ void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
     m_fileExistsResult.insert(filePath, exists);
 }
 
+void ScriptEngine::addFileLastModifiedResult(const QString &filePath, FileTime fileTime)
+{
+    m_fileLastModifiedResult.insert(filePath, fileTime);
+}
+
 QSet<QString> ScriptEngine::imports() const
 {
     return QSet<QString>::fromList(m_jsImportCache.keys());
