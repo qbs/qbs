@@ -282,7 +282,7 @@ UnixGCC {
 
         Artifact {
             fileName: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName()
-            fileTags: ["dsym"]
+            fileTags: ["application_dsym"]
         }
 
         prepare: {
@@ -295,7 +295,8 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["application", "infoplist", "pkginfo", "dsym", "compiled_nib", "resourcerules", "ipa"]
+        inputs: ["application", "infoplist", "pkginfo", "application_dsym", "compiled_nib",
+            "resourcerules", "ipa"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
@@ -313,7 +314,7 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "dsym", "compiled_nib"]
+        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "dynamiclibrary_dsym", "compiled_nib"]
 
         Artifact {
             fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
