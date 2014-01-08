@@ -1678,4 +1678,20 @@ void TestBlackbox::testNsis()
     QVERIFY(!QFile::exists(defaultInstallRoot + "/you-should-not-see-a-file-with-this-name.exe"));
 }
 
+void TestBlackbox::testEmbedInfoPlist()
+{
+    if (!HostOsInfo::isOsxHost())
+        SKIP_TEST("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));
+
+    QbsRunParameters params;
+    params.command = QLatin1String("run");
+    QCOMPARE(runQbs(params), 0);
+
+    params.arguments = QStringList(QLatin1String("cpp.embedInfoPlist:false"));
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+}
+
 QTEST_MAIN(TestBlackbox)

@@ -11,7 +11,7 @@ function isBundleProduct(product)
 // Returns the package creator code for the given product based on its type
 function packageType(product)
 {
-    if (product.type.contains("applicationbundle"))
+    if (product.type.contains("application") || product.type.contains("applicationbundle"))
         return 'APPL';
     else if (product.type.contains("frameworkbundle"))
         return 'FMWK';
@@ -19,7 +19,7 @@ function packageType(product)
         return 'BNDL';
 
     throw ("Unsupported product type " + product.type + ". "
-         + "Must be in {applicationbundle, frameworkbundle, bundle}.");
+         + "Must be in {application, applicationbundle, frameworkbundle, bundle}.");
 }
 
 function infoPlistContents(infoPlistFilePath)
@@ -156,7 +156,9 @@ function frameworksFolderPath(product, version)
 function infoPlistPath(product, version)
 {
     var path;
-    if (product.type.contains("frameworkbundle"))
+    if (product.type.contains("application"))
+        path = ".tmp/" + product.name;
+    else if (product.type.contains("frameworkbundle"))
         path = unlocalizedResourcesFolderPath(product, version);
     else if (product.type.contains("inapppurchase"))
         path = wrapperName(product);

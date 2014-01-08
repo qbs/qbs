@@ -158,6 +158,7 @@ private slots:
     void missingProfile();
     void testAssembly();
     void testNsis();
+    void testEmbedInfoPlist();
 
 private:
     QByteArray m_qbsStderr;

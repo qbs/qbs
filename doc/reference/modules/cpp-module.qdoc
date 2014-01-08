@@ -450,6 +450,17 @@
     Finally, variable expansions will be performed such that substrings of the form $(VAR) or ${VAR}
     will be replaced with their corresponding environment variables.
 
+    \section2 embedInfoPlist
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true} if the product is a command line tool,
+                                         otherwise \c{false}.
+    \endtable
+
+    Whether to create a __TEXT section in the product's executable containing the processed Info.plist.
+    Only applies to command line applications.
+
     \section2 infoPlistFormat
 
     \table

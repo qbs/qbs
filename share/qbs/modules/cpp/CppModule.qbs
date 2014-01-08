@@ -168,6 +168,7 @@ Module {
     property path infoPlistFile
     property var infoPlist
     property bool processInfoPlist: true
+    property bool embedInfoPlist: product.type.contains("application")
     property string infoPlistFormat: {
         if (qbs.targetOS.contains("osx"))
             return infoPlistFile ? "same-as-input" : "xml1"

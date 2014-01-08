@@ -247,7 +247,14 @@ CppModule {
     Rule {
         id: applicationLinker
         multiplex: true
-        inputs: ["obj"]
+        inputs: {
+            var tags = ["obj"];
+            if (product.type.contains("application") &&
+                product.moduleProperty("qbs", "targetOS").contains("darwin") &&
+                product.moduleProperty("cpp", "embedInfoPlist"))
+                tags.push("infoplist");
+            return tags;
+        }
         usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
@@ -297,6 +304,10 @@ CppModule {
             }
             args.push('-o');
             args.push(output.fileName);
+
+            if (inputs.infoplist) {
+                args = args.concat(["-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].fileName]);
+            }
 
             if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
                 var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
