@@ -138,7 +138,7 @@ static const char *nextQrc(void *opaq, int *size, int *flags)
         o->xml->readNext();
         switch (o->xml->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if ( o->xml->name() == "file") {
+                if (o->xml->name() == QLatin1String("file")) {
                     o->current = o->xml->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement).toUtf8();
                     *flags = SC_LOCAL_INCLUDE_FLAG;
                     *size = o->current.size();

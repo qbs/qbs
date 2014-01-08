@@ -40,9 +40,9 @@ void initializeJsExtensionXml(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject, engine->newFunction(&XmlDomDocument::ctor));
-    extensionObject.setProperty("XmlDomDocument", obj);
+    extensionObject.setProperty(QLatin1String("XmlDomDocument"), obj);
     obj = engine->newQMetaObject(&XmlDomNode::staticMetaObject, engine->newFunction(&XmlDomNode::ctor));
-    extensionObject.setProperty("XmlDomElement", obj);
+    extensionObject.setProperty(QLatin1String("XmlDomElement"), obj);
 }
 
 QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -56,7 +56,7 @@ QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine
         xml = new XmlDomDocument(context, context->argument(0).toString());
         break;
     default:
-        return context->throwError("DomXml(QString file = QLatin1String(\"\"))");
+        return context->throwError(QLatin1String("DomXml(QString file = QLatin1String(\"\"))"));
     }
     QScriptValue obj = engine->newQObject(xml, QScriptEngine::ScriptOwnership);
     return obj;

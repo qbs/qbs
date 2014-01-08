@@ -443,121 +443,121 @@ QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScript
     QStringList hostSystem;
 
 #if defined(Q_OS_AIX)
-    hostSystem << "aix";
+    hostSystem << QLatin1String("aix");
 #endif
 #if defined(Q_OS_ANDROID)
-    hostSystem << "android";
+    hostSystem << QLatin1String("android");
 #endif
 #if defined(Q_OS_BLACKBERRY)
-    hostSystem << "blackberry";
+    hostSystem << QLatin1String("blackberry");
 #endif
 #if defined(Q_OS_BSD4)
-    hostSystem << "bsd" << "bsd4";
+    hostSystem << QLatin1String("bsd") << QLatin1String("bsd4");
 #endif
 #if defined(Q_OS_BSDI)
-    hostSystem << "bsdi";
+    hostSystem << QLatin1String("bsdi");
 #endif
 #if defined(Q_OS_CYGWIN)
-    hostSystem << "cygwin";
+    hostSystem << QLatin1String("cygwin");
 #endif
 #if defined(Q_OS_DARWIN)
-    hostSystem << "darwin";
+    hostSystem << QLatin1String("darwin");
 #endif
 #if defined(Q_OS_DGUX)
-    hostSystem << "dgux";
+    hostSystem << QLatin1String("dgux");
 #endif
 #if defined(Q_OS_DYNIX)
-    hostSystem << "dynix";
+    hostSystem << QLatin1String("dynix");
 #endif
 #if defined(Q_OS_FREEBSD)
-    hostSystem << "freebsd";
+    hostSystem << QLatin1String("freebsd");
 #endif
 #if defined(Q_OS_HPUX)
-    hostSystem << "hpux";
+    hostSystem << QLatin1String("hpux");
 #endif
 #if defined(Q_OS_HURD)
-    hostSystem << "hurd";
+    hostSystem << QLatin1String("hurd");
 #endif
 #if defined(Q_OS_INTEGRITY)
-    hostSystem << "integrity";
+    hostSystem << QLatin1String("integrity");
 #endif
 #if defined(Q_OS_IOS)
-    hostSystem << "ios";
+    hostSystem << QLatin1String("ios");
 #endif
 #if defined(Q_OS_IRIX)
-    hostSystem << "irix";
+    hostSystem << QLatin1String("irix");
 #endif
 #if defined(Q_OS_LINUX)
-    hostSystem << "linux";
+    hostSystem << QLatin1String("linux");
 #endif
 #if defined(Q_OS_LYNX)
-    hostSystem << "lynx";
+    hostSystem << QLatin1String("lynx");
 #endif
 #if defined(Q_OS_MACX)
-    hostSystem << "osx";
+    hostSystem << QLatin1String("osx");
 #endif
 #if defined(Q_OS_MSDOS)
-    hostSystem << "msdos";
+    hostSystem << QLatin1String("msdos");
 #endif
 #if defined(Q_OS_NACL)
-    hostSystem << "nacl";
+    hostSystem << QLatin1String("nacl");
 #endif
 #if defined(Q_OS_NETBSD)
-    hostSystem << "netbsd";
+    hostSystem << QLatin1String("netbsd");
 #endif
 #if defined(Q_OS_OPENBSD)
-    hostSystem << "openbsd";
+    hostSystem << QLatin1String("openbsd");
 #endif
 #if defined(Q_OS_OS2)
-    hostSystem << "os2";
+    hostSystem << QLatin1String("os2");
 #endif
 #if defined(Q_OS_OS2EMX)
-    hostSystem << "os2emx";
+    hostSystem << QLatin1String("os2emx");
 #endif
 #if defined(Q_OS_OSF)
-    hostSystem << "osf";
+    hostSystem << QLatin1String("osf");
 #endif
 #if defined(Q_OS_QNX)
-    hostSystem << "qnx";
+    hostSystem << QLatin1String("qnx");
 #endif
 #if defined(Q_OS_ONX6)
-    hostSystem << "qnx6";
+    hostSystem << QLatin1String("qnx6");
 #endif
 #if defined(Q_OS_RELIANT)
-    hostSystem << "reliant";
+    hostSystem << QLatin1String("reliant");
 #endif
 #if defined(Q_OS_SCO)
-    hostSystem << "sco";
+    hostSystem << QLatin1String("sco");
 #endif
 #if defined(Q_OS_SOLARIS)
-    hostSystem << "solaris";
+    hostSystem << QLatin1String("solaris");
 #endif
 #if defined(Q_OS_SYMBIAN)
-    hostSystem << "symbian";
+    hostSystem << QLatin1String("symbian");
 #endif
 #if defined(Q_OS_ULTRIX)
-    hostSystem << "ultrix";
+    hostSystem << QLatin1String("ultrix");
 #endif
 #if defined(Q_OS_UNIX)
-    hostSystem << "unix";
+    hostSystem << QLatin1String("unix");
 #endif
 #if defined(Q_OS_UNIXWARE)
-    hostSystem << "unixware";
+    hostSystem << QLatin1String("unixware");
 #endif
 #if defined(Q_OS_VXWORKS)
-    hostSystem << "vxworks";
+    hostSystem << QLatin1String("vxworks");
 #endif
 #if defined(Q_OS_WIN32)
-    hostSystem << "windows";
+    hostSystem << QLatin1String("windows");
 #endif
 #if defined(Q_OS_WINCE)
-    hostSystem << "windowsce";
+    hostSystem << QLatin1String("windowsce");
 #endif
 #if defined(Q_OS_WINPHONE)
-    hostSystem << "windowsphone";
+    hostSystem << QLatin1String("windowsphone");
 #endif
 #if defined(Q_OS_WINRT)
-    hostSystem << "winrt";
+    hostSystem << QLatin1String("winrt");
 #endif
 
     return engine->toScriptValue(hostSystem);

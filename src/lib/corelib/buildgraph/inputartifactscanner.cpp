@@ -62,12 +62,14 @@ static void collectIncludePaths(const QVariantMap &modules, QSet<QString> *colle
     QMapIterator<QString, QVariant> iterator(modules);
     while (iterator.hasNext()) {
         iterator.next();
-        if (iterator.key() == "cpp") {
-            QVariant includePathsVariant = iterator .value().toMap().value("includePaths");
+        if (iterator.key() == QLatin1String("cpp")) {
+            QVariant includePathsVariant =
+                    iterator.value().toMap().value(QLatin1String("includePaths"));
             if (includePathsVariant.isValid())
                 collectedPaths->unite(QSet<QString>::fromList(includePathsVariant.toStringList()));
         } else {
-            collectIncludePaths(iterator.value().toMap().value("modules").toMap(), collectedPaths);
+            collectIncludePaths(iterator.value().toMap().value(QLatin1String("modules")).toMap(),
+                                collectedPaths);
         }
     }
 }
@@ -184,7 +186,8 @@ void InputArtifactScanner::scan()
             if (cacheHit) {
                 includePaths = cacheItem.includePaths;
             } else {
-                includePaths = collectIncludePaths(inputArtifact->properties->value().value("modules").toMap());
+                includePaths = collectIncludePaths(inputArtifact->properties->value()
+                                                   .value(QLatin1String("modules")).toMap());
                 cacheItem.includePaths = includePaths;
                 cacheItem.valid = true;
             }
@@ -212,7 +215,7 @@ void InputArtifactScanner::scanForFileDependencies(ScannerPlugin *scannerPlugin,
 {
     if (m_logger.debugEnabled()) {
         m_logger.qbsDebug() << QString::fromLocal8Bit("scanning %1 [%2]\n    from %3")
-                .arg(inputArtifact->filePath()).arg(scannerPlugin->fileTag)
+                .arg(inputArtifact->filePath()).arg(QLatin1String(scannerPlugin->fileTag))
                 .arg(m_artifact->filePath());
     }
 

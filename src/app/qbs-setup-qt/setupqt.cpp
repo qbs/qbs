@@ -101,7 +101,7 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
 static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
 {
     QProcess qmakeProcess;
-    qmakeProcess.start(qmakePath, QStringList() << "-query");
+    qmakeProcess.start(qmakePath, QStringList() << QLatin1String("-query"));
     if (!qmakeProcess.waitForStarted())
         throw ErrorInfo(SetupQt::tr("%1 cannot be started.").arg(qmakePath));
     qmakeProcess.waitForFinished();
@@ -135,7 +135,7 @@ static QString configVariable(const QByteArray &configContent, const QString &ke
     bool success = false;
 
     foreach (const QByteArray &configContentLine, configContentLines) {
-        success = regexp.exactMatch(configContentLine);
+        success = regexp.exactMatch(QString::fromLocal8Bit(configContentLine));
         if (success)
             break;
     }
@@ -154,7 +154,7 @@ static QStringList configVariableItems(const QByteArray &configContent, const QS
 static Version extractVersion(const QString &versionString)
 {
     Version v;
-    const QStringList parts = versionString.split('.', QString::SkipEmptyParts);
+    const QStringList parts = versionString.split(QLatin1Char('.'), QString::SkipEmptyParts);
     const QList<int *> vparts = QList<int *>() << &v.majorVersion << &v.minorVersion << &v.patchLevel;
     const int c = qMin(parts.count(), vparts.count());
     for (int i = 0; i < c; ++i)
@@ -167,15 +167,16 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     QtEnvironment qtEnvironment;
     QMap<QByteArray, QByteArray> queryOutput = qmakeQueryOutput(qmakePath);
 
-    qtEnvironment.installPrefixPath = queryOutput.value("QT_INSTALL_PREFIX");
-    qtEnvironment.documentationPath = queryOutput.value("QT_INSTALL_DOCS");
-    qtEnvironment.includePath = queryOutput.value("QT_INSTALL_HEADERS");
-    qtEnvironment.libraryPath = queryOutput.value("QT_INSTALL_LIBS");
-    qtEnvironment.binaryPath = queryOutput.value("QT_INSTALL_BINS");
-    qtEnvironment.documentationPath = queryOutput.value("QT_INSTALL_DOCS");
-    qtEnvironment.pluginPath = queryOutput.value("QT_INSTALL_PLUGINS");
-    qtEnvironment.qmlImportPath = queryOutput.value("QT_INSTALL_IMPORTS");
-    qtEnvironment.qtVersion = queryOutput.value("QT_VERSION");
+    qtEnvironment.installPrefixPath =
+            QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_PREFIX"));
+    qtEnvironment.documentationPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_DOCS"));
+    qtEnvironment.includePath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_HEADERS"));
+    qtEnvironment.libraryPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_LIBS"));
+    qtEnvironment.binaryPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_BINS"));
+    qtEnvironment.documentationPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_DOCS"));
+    qtEnvironment.pluginPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_PLUGINS"));
+    qtEnvironment.qmlImportPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_IMPORTS"));
+    qtEnvironment.qtVersion = QString::fromLocal8Bit(queryOutput.value("QT_VERSION"));
 
     const Version qtVersion = extractVersion(qtEnvironment.qtVersion);
 
@@ -188,18 +189,22 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         mkspecsBasePath = queryOutput.value("QT_INSTALL_DATA") + "/mkspecs";
     }
 
-    if (!QFile::exists(mkspecsBasePath))
+    if (!QFile::exists(QString::fromLocal8Bit(mkspecsBasePath)))
         throw ErrorInfo(tr("Cannot extract the mkspecs directory."));
 
-    const QByteArray qconfigContent = readFileContent(mkspecsBasePath + "/qconfig.pri");
-    qtEnvironment.qtMajorVersion = configVariable(qconfigContent, "QT_MAJOR_VERSION").toInt();
-    qtEnvironment.qtMinorVersion = configVariable(qconfigContent, "QT_MINOR_VERSION").toInt();
-    qtEnvironment.qtPatchVersion = configVariable(qconfigContent, "QT_PATCH_VERSION").toInt();
-    qtEnvironment.qtNameSpace = configVariable(qconfigContent, "QT_NAMESPACE");
-    qtEnvironment.qtLibInfix = configVariable(qconfigContent, "QT_LIBINFIX");
-    qtEnvironment.architecture = configVariable(qconfigContent, "QT_TARGET_ARCH");
+    const QByteArray qconfigContent = readFileContent(QString::fromLocal8Bit(mkspecsBasePath)
+                                                      + QLatin1String("/qconfig.pri"));
+    qtEnvironment.qtMajorVersion = configVariable(qconfigContent,
+                                                  QLatin1String("QT_MAJOR_VERSION")).toInt();
+    qtEnvironment.qtMinorVersion = configVariable(qconfigContent,
+                                                  QLatin1String("QT_MINOR_VERSION")).toInt();
+    qtEnvironment.qtPatchVersion = configVariable(qconfigContent,
+                                                  QLatin1String("QT_PATCH_VERSION")).toInt();
+    qtEnvironment.qtNameSpace = configVariable(qconfigContent, QLatin1String("QT_NAMESPACE"));
+    qtEnvironment.qtLibInfix = configVariable(qconfigContent, QLatin1String("QT_LIBINFIX"));
+    qtEnvironment.architecture = configVariable(qconfigContent, QLatin1String("QT_TARGET_ARCH"));
     if (qtEnvironment.architecture.isEmpty())
-        qtEnvironment.architecture = configVariable(qconfigContent, "QT_ARCH");
+        qtEnvironment.architecture = configVariable(qconfigContent, QLatin1String("QT_ARCH"));
     if (qtEnvironment.architecture.isEmpty())
         qtEnvironment.architecture = QLatin1String("x86");
     qtEnvironment.configItems = configVariableItems(qconfigContent, QLatin1String("CONFIG"));
@@ -207,17 +212,22 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 
     // retrieve the mkspec
     if (qtVersion.majorVersion >= 5) {
-        const QString mkspecName = queryOutput.value("QMAKE_XSPEC");
+        const QString mkspecName = QString::fromLocal8Bit(queryOutput.value("QMAKE_XSPEC"));
         qtEnvironment.mkspecName = mkspecName;
-        qtEnvironment.mkspecPath = mkspecsBasePath + QLatin1Char('/') + mkspecName;
+        qtEnvironment.mkspecPath = QString::fromLocal8Bit(mkspecsBasePath)
+                + QLatin1Char('/') + mkspecName;
         if (!mkspecsBaseSrcPath.isEmpty() && !QFile::exists(qtEnvironment.mkspecPath))
-            qtEnvironment.mkspecPath = mkspecsBaseSrcPath + QLatin1Char('/') + mkspecName;
+            qtEnvironment.mkspecPath = QString::fromLocal8Bit(mkspecsBaseSrcPath)
+                    + QLatin1Char('/') + mkspecName;
     } else {
         if (HostOsInfo::isWindowsHost()) {
-            const QByteArray fileContent = readFileContent(mkspecsBasePath + "/default/qmake.conf");
-            qtEnvironment.mkspecPath = configVariable(fileContent, "QMAKESPEC_ORIGINAL");
+            const QByteArray fileContent = readFileContent(QString::fromLocal8Bit(mkspecsBasePath)
+                                                           + QLatin1String("/default/qmake.conf"));
+            qtEnvironment.mkspecPath = configVariable(fileContent,
+                                                      QLatin1String("QMAKESPEC_ORIGINAL"));
         } else {
-            qtEnvironment.mkspecPath = QFileInfo(mkspecsBasePath + "/default").symLinkTarget();
+            qtEnvironment.mkspecPath = QFileInfo(QString::fromLocal8Bit(mkspecsBasePath)
+                                                 + QLatin1String("/default")).symLinkTarget();
         }
         qtEnvironment.mkspecName = qtEnvironment.mkspecPath;
         int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
@@ -227,10 +237,10 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 
     // determine whether we have a framework build
     qtEnvironment.frameworkBuild = false;
-    if (qtEnvironment.mkspecPath.contains("macx")) {
-        if (qtEnvironment.configItems.contains("qt_framework"))
+    if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
+        if (qtEnvironment.configItems.contains(QLatin1String("qt_framework")))
             qtEnvironment.frameworkBuild = true;
-        else if (!qtEnvironment.configItems.contains("qt_no_framework"))
+        else if (!qtEnvironment.configItems.contains(QLatin1String("qt_no_framework")))
             throw ErrorInfo(tr("could not determine whether Qt is a frameworks build"));
     }
 
@@ -258,11 +268,11 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     }
 
     // determine whether Qt is built with debug, release or both
-    if (qtEnvironment.qtConfigItems.contains("debug_and_release")) {
+    if (qtEnvironment.qtConfigItems.contains(QLatin1String("debug_and_release"))) {
         qtEnvironment.buildVariant << QLatin1String("debug") << QLatin1String("release");
     } else {
-        int idxDebug = qtEnvironment.qtConfigItems.indexOf("debug");
-        int idxRelease = qtEnvironment.qtConfigItems.indexOf("release");
+        int idxDebug = qtEnvironment.qtConfigItems.indexOf(QLatin1String("debug"));
+        int idxRelease = qtEnvironment.qtConfigItems.indexOf(QLatin1String("release"));
         if (idxDebug < idxRelease)
             qtEnvironment.buildVariant << QLatin1String("release");
         else
@@ -270,8 +280,8 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     }
 
     // determine whether user apps require C++11
-    if (qtEnvironment.qtConfigItems.contains("c++11") && qtEnvironment.staticBuild)
-        qtEnvironment.configItems.append("c++11");
+    if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && qtEnvironment.staticBuild)
+        qtEnvironment.configItems.append(QLatin1String("c++11"));
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
         throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));

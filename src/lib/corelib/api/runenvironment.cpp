@@ -115,7 +115,7 @@ int RunEnvironment::runShell()
         envFile.reset(new QTemporaryFile);
         if (envFile->open()) {
             if (command.endsWith(QLatin1String("bash")))
-                command += " --posix"; // Teach bash some manners.
+                command += QLatin1String(" --posix"); // Teach bash some manners.
             const QString promptLine = QLatin1String("PS1='") + prompt + QLatin1String("'\n");
             envFile->write(promptLine.toLocal8Bit());
             envFile->close();

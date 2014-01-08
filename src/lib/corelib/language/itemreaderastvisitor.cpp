@@ -104,7 +104,7 @@ void ItemReaderASTVisitor::collectPrototypes(const QString &path, const QString 
         return;
     }
 
-    QDirIterator dirIter(path, QStringList("*.qbs"));
+    QDirIterator dirIter(path, QStringList(QLatin1String("*.qbs")));
     while (dirIter.hasNext()) {
         const QString filePath = dirIter.next();
         const QString fileName = dirIter.fileName();
@@ -205,12 +205,12 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             if (fi.isDir()) {
                 collectPrototypes(name, as);
             } else {
-                if (name.endsWith(".js", Qt::CaseInsensitive)) {
+                if (name.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
                     JsImport &jsImport = jsImports[as];
                     jsImport.scopeName = as;
                     jsImport.fileNames.append(name);
                     jsImport.location = toCodeLocation(import->firstSourceLocation());
-                } else if (name.endsWith(".qbs", Qt::CaseInsensitive)) {
+                } else if (name.endsWith(QLatin1String(".qbs"), Qt::CaseInsensitive)) {
                     m_typeNameToFile.insert(QStringList(as), name);
                 } else {
                     throw ErrorInfo(Tr::tr("Can only import .qbs and .js files"),
@@ -225,13 +225,15 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             if (!found) {
                 foreach (const QString &searchPath, m_reader->searchPaths()) {
                     const QFileInfo fi(FileInfo::resolvePath(
-                                           FileInfo::resolvePath(searchPath, "imports"), importPath));
+                                           FileInfo::resolvePath(searchPath,
+                                                                 QLatin1String("imports")),
+                                           importPath));
                     if (fi.isDir()) {
                         // ### versioning, qbsdir file, etc.
                         const QString &resultPath = fi.absoluteFilePath();
                         collectPrototypes(resultPath, as);
 
-                        QDirIterator dirIter(resultPath, QStringList("*.js"));
+                        QDirIterator dirIter(resultPath, QStringList(QLatin1String("*.js")));
                         while (dirIter.hasNext()) {
                             dirIter.next();
                             JsImport &jsImport = jsImports[as];
@@ -247,8 +249,9 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                 }
             }
             if (Q_UNLIKELY(!found)) {
-                throw ErrorInfo(Tr::tr("import %1 not found").arg(importUri.join(".")),
-                            toCodeLocation(import->fileNameToken));
+                throw ErrorInfo(Tr::tr("import %1 not found")
+                                .arg(importUri.join(QLatin1String("."))),
+                                toCodeLocation(import->fileNameToken));
             }
         }
     }
@@ -317,7 +320,7 @@ void ItemReaderASTVisitor::checkDuplicateBinding(Item *item, const QStringList &
 {
     if (Q_UNLIKELY(item->properties().contains(bindingName.last()))) {
         QString msg = Tr::tr("Duplicate binding for '%1'");
-        throw ErrorInfo(msg.arg(bindingName.join(".")),
+        throw ErrorInfo(msg.arg(bindingName.join(QLatin1String("."))),
                     qbs::Internal::toCodeLocation(m_file->filePath(), sourceLocation));
     }
 }
@@ -401,8 +404,8 @@ bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
 
     // remove the name
     QString funcNoName = textOf(m_sourceCode, ast);
-    funcNoName.replace(QRegExp("^(\\s*function\\s*)\\w*"), "(\\1");
-    funcNoName.append(")");
+    funcNoName.replace(QRegExp(QLatin1String("^(\\s*function\\s*)\\w*")), QLatin1String("(\\1"));
+    funcNoName.append(QLatin1Char(')'));
     f.setSourceCode(funcNoName);
 
     f.setLocation(toCodeLocation(ast->firstSourceLocation()));
@@ -418,8 +421,8 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     QString sourceCode = textOf(m_sourceCode, statement);
     if (AST::cast<AST::Block *>(statement)) {
         // rewrite blocks to be able to use return statements in property assignments
-        sourceCode.prepend("(function()");
-        sourceCode.append(")()");
+        sourceCode.prepend(QLatin1String("(function()"));
+        sourceCode.append(QLatin1String(")()"));
         m_sourceValue->m_hasFunctionForm = true;
     }
 

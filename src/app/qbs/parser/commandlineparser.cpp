@@ -408,7 +408,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     QStringList toolNames = QbsTool::allToolNames();
     toolNames.sort();
     if (!toolNames.isEmpty()) {
-        help.append('\n').append(Tr::tr("Auxiliary commands:\n"));
+        help.append(QLatin1Char('\n')).append(Tr::tr("Auxiliary commands:\n"));
         foreach (const QString &toolName, toolNames) {
             help.append(QLatin1String("  ")).append(toolName);
             const QString whitespace = QString(rhsIndentation - 2 - toolName.count(),
@@ -550,10 +550,10 @@ void CommandLineParser::CommandLineParserPrivate::setupLogLevel()
 QString CommandLineParser::CommandLineParserPrivate::propertyName(const QString &aCommandLineName) const
 {
     // Make fully-qualified, ie "platform" -> "qbs.platform"
-    if (aCommandLineName.contains("."))
+    if (aCommandLineName.contains(QLatin1Char('.')))
         return aCommandLineName;
     else
-        return "qbs." + aCommandLineName;
+        return QLatin1String("qbs.") + aCommandLineName;
 }
 
 } // namespace qbs

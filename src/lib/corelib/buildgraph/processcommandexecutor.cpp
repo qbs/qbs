@@ -77,7 +77,7 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
 static QString commandArgsToString(const QStringList &args)
 {
     QString result;
-    QRegExp ws("\\s");
+    QRegExp ws(QLatin1String("\\s"));
     foreach (const QString &arg, args) {
         result += QLatin1Char(' ');
 
@@ -131,7 +131,7 @@ void ProcessCommandExecutor::doStart()
             // We need to delete the file manually, later.
             QTemporaryFile responseFile;
             responseFile.setAutoRemove(false);
-            responseFile.setFileTemplate(QDir::tempPath() + "/qbsresp");
+            responseFile.setFileTemplate(QDir::tempPath() + QLatin1String("/qbsresp"));
             if (!responseFile.open()) {
                 emit error(ErrorInfo(Tr::tr("Cannot create response file '%1'.")
                                  .arg(responseFile.fileName())));
@@ -171,7 +171,9 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     if (filterFunctionSource.isEmpty())
         return output;
 
-    QScriptValue filterFunction = scriptEngine()->evaluate("var f = " + filterFunctionSource + "; f");
+    QScriptValue filterFunction = scriptEngine()->evaluate(QLatin1String("var f = ")
+                                                           + filterFunctionSource
+                                                           + QLatin1String("; f"));
     if (!filterFunction.isFunction()) {
         emit error(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
                          .arg(filterFunctionSource, filterFunction.toString())));
@@ -285,8 +287,8 @@ QString ProcessCommandExecutor::findProcessCommandInPath()
     if (logger().traceEnabled())
         logger().qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
     const QProcessEnvironment &buildEnvironment = product->buildEnvironment;
-    QStringList pathEnv = buildEnvironment.value("PATH").split(HostOsInfo::pathListSeparator(),
-            QString::SkipEmptyParts);
+    QStringList pathEnv = buildEnvironment.value(QLatin1String("PATH"))
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
     if (HostOsInfo::isWindowsHost())
         pathEnv.prepend(QLatin1String("."));
     for (int i = 0; i < pathEnv.count(); ++i) {

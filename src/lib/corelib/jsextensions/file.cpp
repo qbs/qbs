@@ -56,11 +56,11 @@ void initializeJsExtensionFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileObj = engine->newFunction(File::js_ctor);
-    fileObj.setProperty("copy", engine->newFunction(File::js_copy));
-    fileObj.setProperty("exists", engine->newFunction(File::js_exists));
-    fileObj.setProperty("lastModified", engine->newFunction(File::js_lastModified));
-    fileObj.setProperty("remove", engine->newFunction(File::js_remove));
-    extensionObject.setProperty("File", fileObj);
+    fileObj.setProperty(QLatin1String("copy"), engine->newFunction(File::js_copy));
+    fileObj.setProperty(QLatin1String("exists"), engine->newFunction(File::js_exists));
+    fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
+    fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
+    extensionObject.setProperty(QLatin1String("File"), fileObj);
 }
 
 QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)

@@ -96,14 +96,14 @@ void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetSc
 {
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
-    targetScriptValue.setProperty("inputs", scriptValue);
+    targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
     if (inputs.count() == 1) {
         Artifact *input = *inputs.begin();
         const FileTags &fileTags = input->fileTags;
         QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue inputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         QScriptValue inputScriptValue = inputsForFileTag.property(0);
-        targetScriptValue.setProperty("input", inputScriptValue);
+        targetScriptValue.setProperty(QLatin1String("input"), inputScriptValue);
     } else {
         targetScriptValue.setProperty(QLatin1String("input"), scriptEngine->undefinedValue());
     }
@@ -113,14 +113,14 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
 {
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
-    targetScriptValue.setProperty("outputs", scriptValue);
+    targetScriptValue.setProperty(QLatin1String("outputs"), scriptValue);
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
         const FileTags &fileTags = output->fileTags;
         QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue outputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         QScriptValue outputScriptValue = outputsForFileTag.property(0);
-        targetScriptValue.setProperty("output", outputScriptValue);
+        targetScriptValue.setProperty(QLatin1String("output"), outputScriptValue);
     } else {
         targetScriptValue.setProperty(QLatin1String("output"), scriptEngine->undefinedValue());
     }
@@ -132,10 +132,10 @@ static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptV
     if (scriptValue.isUndefined() || !scriptValue.isValid())
         return 0;
     AbstractCommand *cmdBase = 0;
-    QString className = scriptValue.property("className").toString();
-    if (className == "Command")
+    QString className = scriptValue.property(QLatin1String("className")).toString();
+    if (className == QLatin1String("Command"))
         cmdBase = new ProcessCommand;
-    else if (className == "JavaScriptCommand")
+    else if (className == QLatin1String("JavaScriptCommand"))
         cmdBase = new JavaScriptCommand;
     if (cmdBase)
         cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
@@ -157,14 +157,15 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     engine->clearRequestedProperties();
     if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
-        throw ErrorInfo("evaluating prepare script: " + engine->uncaughtException().toString(),
+        throw ErrorInfo(Tr::tr("evaluating prepare script: ")
+                        + engine->uncaughtException().toString(),
                     CodeLocation(script->location.fileName(),
                                  script->location.line() + engine->uncaughtExceptionLineNumber() - 1));
 
     qDeleteAll(commands);
     commands.clear();
     if (scriptValue.isArray()) {
-        const int count = scriptValue.property("length").toInt32();
+        const int count = scriptValue.property(QLatin1String("length")).toInt32();
         for (qint32 i = 0; i < count; ++i) {
             QScriptValue item = scriptValue.property(i);
             if (item.isValid() && !item.isUndefined()) {

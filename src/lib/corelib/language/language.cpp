@@ -582,11 +582,11 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
     const QScriptValue putEnvValue = engine->newFunction(js_putEnv, 1);
 
     // TODO: Remove in 1.3
-    scope.setProperty("getenv", getEnvValue);
-    scope.setProperty("putenv", putEnvValue);
+    scope.setProperty(QLatin1String("getenv"), getEnvValue);
+    scope.setProperty(QLatin1String("putenv"), putEnvValue);
 
-    scope.setProperty("getEnv", getEnvValue);
-    scope.setProperty("putEnv", putEnvValue);
+    scope.setProperty(QLatin1String("getEnv"), getEnvValue);
+    scope.setProperty(QLatin1String("putEnv"), putEnvValue);
 
     QSet<QString> seenModuleNames;
     QList<const ResolvedModule *> topSortedModules = topSortModules(moduleChildren, rootModules, seenModuleNames);
@@ -612,7 +612,8 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 
         // expose properties of direct module dependencies
         QScriptValue scriptValue;
-        QVariantMap productModules = productConfiguration->value().value("modules").toMap();
+        QVariantMap productModules = productConfiguration->value()
+                .value(QLatin1String("modules")).toMap();
         foreach (const ResolvedModule * const depmod, moduleChildren.value(module)) {
             scriptValue = engine->newObject();
             QVariantMap moduleCfg = productModules.value(depmod->name).toMap();
@@ -631,8 +632,10 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
         scriptValue = engine->evaluate(setupScript->sourceCode + QLatin1String("()"));
         ctx->popScope();
         if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue))) {
-            QString envTypeStr = (envType == BuildEnv ? "build" : "run");
-            throw ErrorInfo(QString("Error while setting up %1 environment: %2").arg(envTypeStr, scriptValue.toString()));
+            QString envTypeStr = (envType == BuildEnv
+                                  ? QLatin1String("build") : QLatin1String("run"));
+            throw ErrorInfo(Tr::tr("Error while setting up %1 environment: %2")
+                            .arg(envTypeStr, scriptValue.toString()));
         }
     }
 
@@ -917,7 +920,7 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
     QSet<QString> files;
     foreach (QString pattern, patterns) {
         pattern.prepend(prefix);
-        pattern.replace('\\', '/');
+        pattern.replace(QLatin1Char('\\'), QLatin1Char('/'));
         QStringList parts = pattern.split(QLatin1Char('/'), QString::SkipEmptyParts);
         if (FileInfo::isAbsolute(pattern)) {
             QString rootDir;

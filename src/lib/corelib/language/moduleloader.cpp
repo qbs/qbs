@@ -255,9 +255,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         QList<Item *> projectChildren = projectContext.item->children();
         projectChildren += subItem;
         projectContext.item->setChildren(projectChildren);
-        if (subItem->typeName() == "Product") {
+        if (subItem->typeName() == QLatin1String("Product")) {
             handleProduct(&projectContext, subItem);
-        } else if (subItem->typeName() == "Project") {
+        } else if (subItem->typeName() == QLatin1String("Project")) {
             copyProperties(item, subItem);
             handleProject(loadResult, subItem,
                           QSet<QString>(referencedFilePaths) << absReferencePath);
@@ -532,8 +532,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             m_logger.qbsTrace() << "Depends item disabled, ignoring.";
         return;
     }
-    const QString name = m_evaluator->property(dependsItem, "name").toString();
-    const QStringList nameParts = name.split('.');
+    const QString name = m_evaluator->property(dependsItem, QLatin1String("name")).toString();
+    const QStringList nameParts = name.split(QLatin1Char('.'));
     if (Q_UNLIKELY(nameParts.count() > 2)) {
         QString msg = Tr::tr("There cannot be more than one dot in a module name.");
         throw ErrorInfo(msg, dependsItem->location());
@@ -1075,7 +1075,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
     Item *prj = Item::create(item->pool());
     prj->setChildren(QList<Item *>() << item);
     item->setParent(prj);
-    prj->setTypeName("Project");
+    prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
     m_reader->builtins()->setupItemForBuiltinType(prj);

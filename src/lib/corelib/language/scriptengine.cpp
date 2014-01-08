@@ -55,7 +55,7 @@ ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     QScriptValue objectProto = globalObject().property(QLatin1String("Object"));
     m_definePropertyFunction = objectProto.property(QLatin1String("defineProperty"));
     QBS_ASSERT(m_definePropertyFunction.isFunction(), /* ignore */);
-    m_emptyFunction = evaluate("(function(){})");
+    m_emptyFunction = evaluate(QLatin1String("(function(){})"));
     QBS_ASSERT(m_emptyFunction.isFunction(), /* ignore */);
     // Initially push a new context to turn off scope chain insanity mode.
     QScriptEngine::pushContext();

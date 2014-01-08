@@ -286,7 +286,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (product->name.isEmpty()) {
         product->name = FileInfo::completeBaseName(item->file()->filePath());
-        item->setProperty("name", VariantValue::create(product->name));
+        item->setProperty(QLatin1String("name"), VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
 
@@ -361,11 +361,13 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
 
     const ResolvedModulePtr &module = moduleContext.module;
     module->name = ModuleLoader::fullModuleName(moduleName);
-    module->setupBuildEnvironmentScript = scriptFunctionValue(item, "setupBuildEnvironment");
-    module->setupRunEnvironmentScript = scriptFunctionValue(item, "setupRunEnvironment");
+    module->setupBuildEnvironmentScript = scriptFunctionValue(item,
+                                                            QLatin1String("setupBuildEnvironment"));
+    module->setupRunEnvironmentScript = scriptFunctionValue(item,
+                                                            QLatin1String("setupRunEnvironment"));
 
     m_productContext->product->additionalFileTags
-            += m_evaluator->fileTagsValue(item, "additionalProductFileTags");
+            += m_evaluator->fileTagsValue(item, QLatin1String("additionalProductFileTags"));
 
     foreach (const Item::Module &m, item->modules())
         module->moduleDependencies += ModuleLoader::fullModuleName(m.name);
@@ -469,7 +471,8 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();
-        wildcards->excludePatterns = m_evaluator->stringListValue(item, "excludeFiles");
+        wildcards->excludePatterns = m_evaluator->stringListValue(item,
+                                                                  QLatin1String("excludeFiles"));
         wildcards->prefix = group->prefix;
         wildcards->patterns = patterns;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
@@ -486,13 +489,14 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     foreach (const SourceArtifactConstPtr &a, group->files) {
         if (!FileInfo(a->absoluteFilePath).exists()) {
             fileError.append(Tr::tr("File '%1' does not exist.")
-                         .arg(a->absoluteFilePath), item->property("files")->location());
+                         .arg(a->absoluteFilePath),
+                             item->property(QLatin1String("files"))->location());
         }
     }
     if (fileError.hasError())
         throw ErrorInfo(fileError);
 
-    group->name = m_evaluator->stringValue(item, "name");
+    group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
     group->properties = properties;
@@ -568,11 +572,12 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 
     rule->prepareScript = scriptFunctionValue(item, QLatin1String("prepare"));
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
-    rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
-    rule->usings = m_evaluator->fileTagsValue(item, "usings");
+    rule->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
+    rule->usings = m_evaluator->fileTagsValue(item, QLatin1String("usings"));
     rule->auxiliaryInputs
             = m_evaluator->fileTagsValue(item, QLatin1String("auxiliaryInputs"));
-    rule->explicitlyDependsOn = m_evaluator->fileTagsValue(item, "explicitlyDependsOn");
+    rule->explicitlyDependsOn
+            = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     if (m_productContext)
         m_productContext->product->rules += rule;
@@ -610,9 +615,9 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
         return;
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
-    artifact->fileName = verbatimValue(item, "fileName");
-    artifact->fileTags = m_evaluator->fileTagsValue(item, "fileTags");
-    artifact->alwaysUpdated = m_evaluator->boolValue(item, "alwaysUpdated");
+    artifact->fileName = verbatimValue(item, QLatin1String("fileName"));
+    artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
+    artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
     if (artifact->alwaysUpdated)
         *hasAlwaysUpdatedArtifact = true;
 
@@ -664,7 +669,7 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     QList<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
     QStringList patterns = m_evaluator->stringListValue(item, QLatin1String("patterns"));
-    const FileTags fileTags = m_evaluator->fileTagsValue(item, "fileTags");
+    const FileTags fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     if (fileTags.isEmpty())
         throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
 
@@ -691,30 +696,31 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
 void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, "condition")) {
+    if (!m_evaluator->boolValue(item, QLatin1String("condition"))) {
         m_logger.qbsTrace() << "[PR] transformer condition is false";
         return;
     }
 
     ResolvedTransformerPtr rtrafo = ResolvedTransformer::create();
     rtrafo->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    rtrafo->inputs = m_evaluator->stringListValue(item, "inputs");
+    rtrafo->inputs = m_evaluator->stringListValue(item, QLatin1String("inputs"));
     for (int i = 0; i < rtrafo->inputs.count(); ++i)
         rtrafo->inputs[i] = FileInfo::resolvePath(m_productContext->product->sourceDirectory, rtrafo->inputs.at(i));
     rtrafo->transform = scriptFunctionValue(item, QLatin1String("prepare"));
-    rtrafo->explicitlyDependsOn = m_evaluator->fileTagsValue(item, "explicitlyDependsOn");
+    rtrafo->explicitlyDependsOn = m_evaluator->fileTagsValue(item,
+                                                             QLatin1String("explicitlyDependsOn"));
 
     foreach (const Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = m_productContext->product->properties;
-        QString fileName = m_evaluator->stringValue(child, "fileName");
+        QString fileName = m_evaluator->stringValue(child, QLatin1String("fileName"));
         if (Q_UNLIKELY(fileName.isEmpty()))
             throw ErrorInfo(Tr::tr("Artifact fileName must not be empty."));
         artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->topLevelProject()->buildDirectory,
                                                            fileName);
-        artifact->fileTags = m_evaluator->fileTagsValue(child, "fileTags");
+        artifact->fileTags = m_evaluator->fileTagsValue(child, QLatin1String("fileTags"));
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
         rtrafo->outputs += artifact;
@@ -871,7 +877,7 @@ void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap) 
         const Item::Module &module = *it;
         evaluateModuleValues(module.item, &depmods);
         QVariantMap dep = evaluateProperties(module.item);
-        dep.insert("modules", depmods);
+        dep.insert(QLatin1String("modules"), depmods);
         modulesMap->insert(ModuleLoader::fullModuleName(module.name), dep);
     }
 }

@@ -38,7 +38,7 @@ namespace qbs {
 QString logLevelTag(LoggerLevel level)
 {
     if (level == LoggerInfo)
-        return QByteArray();
+        return QString();
     QString str = logLevelName(level).toUpper();
     if (!str.isEmpty())
         str.append(QLatin1String(": "));

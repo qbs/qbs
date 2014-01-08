@@ -43,7 +43,7 @@ void initializeJsExtensionTextFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject, engine->newFunction(&TextFile::ctor));
-    extensionObject.setProperty("TextFile", obj);
+    extensionObject.setProperty(QLatin1String("TextFile"), obj);
 }
 
 QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -68,7 +68,9 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
                     );
             break;
         default:
-            return context->throwError("TextFile(QString file, OpenMode mode = ReadOnly, QString codec = QLatin1String(\"UTF8\"))");
+            return context->throwError(QLatin1String("TextFile(QString file, "
+                                                     "OpenMode mode = ReadOnly, "
+                                                     "QString codec = QLatin1String(\"UTF8\"))"));
     }
 
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);

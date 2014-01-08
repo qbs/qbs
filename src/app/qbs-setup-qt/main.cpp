@@ -80,7 +80,8 @@ int main(int argc, char *argv[])
             foreach (const QtEnvironment &qtEnvironment, qtEnvironments) {
                 QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
-                    QStringList prefixPathParts = qtEnvironment.installPrefixPath.split("/", QString::SkipEmptyParts);
+                    QStringList prefixPathParts = qtEnvironment.installPrefixPath
+                            .split(QLatin1Char('/'), QString::SkipEmptyParts);
                     if (!prefixPathParts.isEmpty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
                 }
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
             }
             QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(qmakePath);
             QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
-            profileName.replace(".", "-");
+            profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
             SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
             return EXIT_SUCCESS;
         }
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
             }
             QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(qmakePath);
             QString profileName = args.at(1);
-            profileName.replace(".", "-");
+            profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
             SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
             return EXIT_SUCCESS;
         }

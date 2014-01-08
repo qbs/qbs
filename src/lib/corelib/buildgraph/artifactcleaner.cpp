@@ -166,7 +166,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
         if (dir.startsWith(project->buildDirectory) && FileInfo(dir).exists())
             removeEmptyDirectories(dir, options);
         if (dir != project->buildDirectory) {
-            const QString parentDir = QDir::cleanPath(dir + "/..");
+            const QString parentDir = QDir::cleanPath(dir + QLatin1String("/.."));
             if (parentDir != project->buildDirectory && !dirList.contains(parentDir))
                 dirList << parentDir;
         }

@@ -67,7 +67,8 @@ public:
         setProduct(depfunc, product.data());
         QScriptValue descriptor = m_engine->newObject();
         descriptor.setProperty(QLatin1String("get"), depfunc);
-        descriptor.setProperty(QLatin1String("set"), m_engine->evaluate("(function(){})"));
+        descriptor.setProperty(QLatin1String("set"),
+                               m_engine->evaluate(QLatin1String("(function(){})")));
         descriptor.setProperty(QLatin1String("enumerable"), true);
         m_engine->defineProperty(productScriptValue, QLatin1String("dependencies"), descriptor);
     }
@@ -124,7 +125,8 @@ private:
         depfunc.setData(engine->toScriptValue(propMap.value(QLatin1String("modules"))));
         QScriptValue descriptor = engine->newObject();
         descriptor.setProperty(QLatin1String("get"), depfunc);
-        descriptor.setProperty(QLatin1String("set"), engine->evaluate("(function(){})"));
+        descriptor.setProperty(QLatin1String("set"),
+                               engine->evaluate(QLatin1String("(function(){})")));
         descriptor.setProperty(QLatin1String("enumerable"), true);
         engine->defineProperty(moduleScriptValue, QLatin1String("dependencies"), descriptor);
         moduleScriptValue.setProperty(QLatin1String("type"), QLatin1String("module"));
@@ -324,7 +326,7 @@ QString relativeArtifactFileName(const Artifact *artifact)
     QString str = artifact->filePath();
     if (str.startsWith(buildDir))
         str.remove(0, buildDir.count());
-    if (str.startsWith('/'))
+    if (str.startsWith(QLatin1Char('/')))
         str.remove(0, 1);
     return str;
 }
@@ -397,12 +399,12 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
         if (lookupArtifact(otherProduct, artifact->filePath())) {
             if (artifact->artifactType == Artifact::Generated) {
                 QString pl;
-                pl.append(QString("  - %1 \n").arg(product->name));
+                pl.append(QString::fromLatin1("  - %1 \n").arg(product->name));
                 foreach (const ResolvedProductConstPtr &p, product->project->products) {
                     if (lookupArtifact(p, artifact->filePath()))
-                        pl.append(QString("  - %1 \n").arg(p->name));
+                        pl.append(QString::fromLatin1("  - %1 \n").arg(p->name));
                 }
-                throw ErrorInfo(QString ("BUG: already inserted in this project: %1\n%2")
+                throw ErrorInfo(QString::fromLatin1("BUG: already inserted in this project: %1\n%2")
                             .arg(artifact->filePath()).arg(pl), CodeLocation(), true);
             }
         }

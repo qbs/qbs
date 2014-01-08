@@ -45,7 +45,7 @@ void initializeJsExtensionProcess(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
-    extensionObject.setProperty("Process", obj);
+    extensionObject.setProperty(QLatin1String("Process"), obj);
 }
 
 QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -56,7 +56,7 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
         t = new Process(context);
         break;
     default:
-        return context->throwError("Process()");
+        return context->throwError(QLatin1String("Process()"));
     }
 
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);

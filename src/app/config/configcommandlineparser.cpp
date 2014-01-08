@@ -50,18 +50,18 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         return;
     }
 
-    while (!args.isEmpty() && args.first().startsWith("--")) {
+    while (!args.isEmpty() && args.first().startsWith(QLatin1String("--"))) {
         const QString arg = args.takeFirst().mid(2);
-        if (arg == "list")
+        if (arg == QLatin1String("list"))
             setCommand(ConfigCommand::CfgList);
-        else if (arg == "unset")
+        else if (arg == QLatin1String("unset"))
             setCommand(ConfigCommand::CfgUnset);
-        else if (arg == "export")
+        else if (arg == QLatin1String("export"))
             setCommand(ConfigCommand::CfgExport);
-        else if (arg == "import")
+        else if (arg == QLatin1String("import"))
             setCommand(ConfigCommand::CfgImport);
         else
-            throw ErrorInfo("Unknown option for config command.");
+            throw ErrorInfo(Tr::tr("Unknown option for config command."));
     }
 
     switch (command().command) {
@@ -69,7 +69,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         if (args.isEmpty())
             throw ErrorInfo(Tr::tr("No parameters supplied."));
         if (args.count() > 2)
-            throw ErrorInfo("Too many arguments.");
+            throw ErrorInfo(Tr::tr("Too many arguments."));
         m_command.varNames << args.first();
         if (args.count() == 1) {
             setCommand(ConfigCommand::CfgGet);
@@ -80,17 +80,17 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         break;
     case ConfigCommand::CfgUnset:
         if (args.isEmpty())
-            throw ErrorInfo("Need name of variable to unset.");
+            throw ErrorInfo(Tr::tr("Need name of variable to unset."));
         m_command.varNames = args;
         break;
     case ConfigCommand::CfgExport:
         if (args.count() != 1)
-            throw ErrorInfo("Need name of file to which to export.");
+            throw ErrorInfo(Tr::tr("Need name of file to which to export."));
         m_command.fileName = args.first();
         break;
     case ConfigCommand::CfgImport:
         if (args.count() != 1)
-            throw ErrorInfo("Need name of file from which to import.");
+            throw ErrorInfo(Tr::tr("Need name of file from which to import."));
         m_command.fileName = args.first();
         break;
     case ConfigCommand::CfgList:
@@ -104,7 +104,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 void ConfigCommandLineParser::setCommand(ConfigCommand::Command command)
 {
     if (m_command.command != ConfigCommand::CfgNone)
-        throw ErrorInfo("You cannot specify more than one command.");
+        throw ErrorInfo(Tr::tr("You cannot specify more than one command."));
     m_command.command = command;
 }
 

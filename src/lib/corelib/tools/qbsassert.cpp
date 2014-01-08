@@ -42,8 +42,8 @@ void writeAssertLocation(const char *condition, const char *file, int line)
 
 void throwAssertLocation(const char *condition, const char *file, int line)
 {
-    throw ErrorInfo(QString(QLatin1String("ASSERT: %1")).arg(condition),
-                CodeLocation(QString::fromLocal8Bit(file), line), true);
+    throw ErrorInfo(QString::fromLatin1("ASSERT: %1").arg(QLatin1String(condition)),
+                    CodeLocation(QString::fromLocal8Bit(file), line), true);
 }
 
 } // namespace Internal

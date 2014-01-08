@@ -80,49 +80,49 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
 
 QString toJSLiteral(const bool b)
 {
-    return b ? "true" : "false";
+    return b ? QLatin1String("true") : QLatin1String("false");
 }
 
 QString toJSLiteral(const QString &str)
 {
     QString js = str;
-    js.replace(QRegExp("([\\\\\"])"), "\\\\1");
-    js.prepend('"');
-    js.append('"');
+    js.replace(QRegExp(QLatin1String("([\\\\\"])")), QLatin1String("\\\\1"));
+    js.prepend(QLatin1Char('"'));
+    js.append(QLatin1Char('"'));
     return js;
 }
 
 QString toJSLiteral(const QStringList &strs)
 {
-    QString js = "[";
+    QString js = QLatin1String("[");
     for (int i = 0; i < strs.count(); ++i) {
         if (i != 0)
-            js.append(", ");
+            js.append(QLatin1String(", "));
         js.append(toJSLiteral(strs.at(i)));
     }
-    js.append(']');
+    js.append(QLatin1Char(']'));
     return js;
 }
 
 QString toJSLiteral(const QVariant &val)
 {
     if (!val.isValid()) {
-        return "undefined";
+        return QLatin1String("undefined");
     } else if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
         QString res;
         foreach (const QVariant &child, val.toList()) {
-            if (res.length()) res.append(", ");
+            if (res.length()) res.append(QLatin1String(", "));
             res.append(toJSLiteral(child));
         }
-        res.prepend("[");
-        res.append("]");
+        res.prepend(QLatin1Char('['));
+        res.append(QLatin1Char(']'));
         return res;
     } else if (val.type() == QVariant::Bool) {
-        return val.toBool() ? "true" : "false";
+        return val.toBool() ? QLatin1String("true") : QLatin1String("false");
     } else if (val.canConvert(QVariant::String)) {
         return QLatin1Char('"') + val.toString() + QLatin1Char('"');
     } else {
-        return QString("Unconvertible type %1").arg(val.typeName());
+        return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
     }
 }
 

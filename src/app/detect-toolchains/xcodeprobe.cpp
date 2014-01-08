@@ -121,7 +121,7 @@ bool XcodeProbe::addDeveloperPath(const QString &path)
 void XcodeProbe::detectDeveloperPaths()
 {
     QProcess selectedXcode;
-    QString program = "/usr/bin/xcode-select";
+    QString program = QLatin1String("/usr/bin/xcode-select");
     QStringList arguments(QLatin1String("--print-path"));
     selectedXcode.start(program, arguments, QProcess::ReadOnly);
     if (!selectedXcode.waitForFinished() || selectedXcode.exitCode()) {
@@ -136,15 +136,15 @@ void XcodeProbe::detectDeveloperPaths()
 void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStringList &extraFlags)
 {
     if (!extraFlags.isEmpty()) {
-        profile->setValue("cpp.platformCommonCompilerFlags", extraFlags);
-        profile->setValue("cpp.platformLinkerFlags", extraFlags);
+        profile->setValue(QLatin1String("cpp.platformCommonCompilerFlags"), extraFlags);
+        profile->setValue(QLatin1String("cpp.platformLinkerFlags"), extraFlags);
     }
     // setting architecture and endianness only here, bercause the same compiler
     // can support several ones
     QStringList flags(extraFlags);
     flags << QLatin1String("-dumpmachine");
     QString compilerTriplet = qsystem(pathToGcc, flags).simplified();
-    QStringList compilerTripletl = compilerTriplet.split('-');
+    QStringList compilerTripletl = compilerTriplet.split(QLatin1Char('-'));
     if (compilerTripletl.count() < 2) {
         qbsError() << QString::fromLocal8Bit("Detected '%1', but I don't understand "
                                              "its architecture '%2'.")
@@ -160,8 +160,10 @@ void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStri
                         "        arch: %4").arg(profile->name(), pathToGcc, compilerTriplet,
                                             architecture);
 
-    profile->setValue("qbs.endianness", HostOsInfo::defaultEndianness(architecture));
-    profile->setValue("qbs.architecture", HostOsInfo::canonicalArchitecture(architecture));
+    profile->setValue(QLatin1String("qbs.endianness"),
+                      HostOsInfo::defaultEndianness(architecture));
+    profile->setValue(QLatin1String("qbs.architecture"),
+                      HostOsInfo::canonicalArchitecture(architecture));
 }
 
 void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &xCodeName)
@@ -263,7 +265,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                                      + QLatin1String("-clang"), settings);
                         pSdk.removeProfile();
                         pSdk.setBaseProfile(clangFullName);
-                        pSdk.setValue("qbs.sysroot", sdkDirInfo.canonicalFilePath());
+                        pSdk.setValue(QLatin1String("qbs.sysroot"), sdkDirInfo.canonicalFilePath());
                         qbsInfo() << indent << Tr::tr("* adding profile %1").arg(pSdk.name());
                         profiles << pSdk;
                     }
@@ -272,7 +274,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                                      + QLatin1String("-gcc"), settings);
                         pSdk.removeProfile();
                         pSdk.setBaseProfile(gccFullName);
-                        pSdk.setValue("qbs.sysroot", sdkDirInfo.canonicalFilePath());
+                        pSdk.setValue(QLatin1String("qbs.sysroot"), sdkDirInfo.canonicalFilePath());
                         qbsInfo() << indent << Tr::tr("* adding profile %1").arg(pSdk.name());
                         profiles << pSdk;
                     }
@@ -285,8 +287,11 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
             if (hasClang) {
                 Profile clangProfile(clangFullName, settings);
                 clangProfile.removeProfile();
-                clangProfile.setValue("qbs.targetOS", targetOS);
-                clangProfile.setValue("qbs.toolchain", QStringList() << "clang" << "llvm" << "gcc");
+                clangProfile.setValue(QLatin1String("qbs.targetOS"), targetOS);
+                clangProfile.setValue(QLatin1String("qbs.toolchain"),
+                                      QStringList() << QLatin1String("clang")
+                                                    << QLatin1String("llvm")
+                                                    << QLatin1String("gcc"));
                 QStringList extraFlags;
                 if (defaultProp.contains(QLatin1String("ARCHS"))) {
                     QString arch = defaultProp.value(QLatin1String("ARCHS")).toString();
@@ -294,16 +299,17 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                         extraFlags << QLatin1String("-arch") << QLatin1String("i386");
                 }
                 if (defaultProp.contains(QLatin1String("NATIVE_ARCH"))) {
-                    QString arch = defaultProp.value("NATIVE_ARCH").toString();
+                    QString arch = defaultProp.value(QLatin1String("NATIVE_ARCH")).toString();
                     if (!arch.startsWith(QLatin1String("arm")))
                         qbsInfo() << indent << Tr::tr("Expected arm architecture, not %1").arg(arch);
                     extraFlags << QLatin1String("-arch") << arch;
                 }
                 if (!sysRoot.isEmpty())
-                    clangProfile.setValue("qbs.sysroot", sysRoot);
-                clangProfile.setValue("cpp.platformPath", fInfo.canonicalFilePath());
-                clangProfile.setValue("cpp.compilerName", clangFileInfo.fileName());
-                clangProfile.setValue("cpp.toolchainInstallPath", clangFileInfo.canonicalPath());
+                    clangProfile.setValue(QLatin1String("qbs.sysroot"), sysRoot);
+                clangProfile.setValue(QLatin1String("cpp.platformPath"), fInfo.canonicalFilePath());
+                clangProfile.setValue(QLatin1String("cpp.compilerName"), clangFileInfo.fileName());
+                clangProfile.setValue(QLatin1String("cpp.toolchainInstallPath"),
+                                      clangFileInfo.canonicalPath());
                 setArch(&clangProfile, clangFileInfo.canonicalFilePath(), extraFlags);
                 qbsInfo() << indent << Tr::tr("* adding profile %1").arg(clangProfile.name());
                 profiles << clangProfile;
@@ -312,17 +318,18 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                 Profile gccProfile(gccFullName, settings);
                 gccProfile.removeProfile();
                 // use the arm-apple-darwin10-llvm-* variant if available???
-                gccProfile.setValue("qbs.targetOS", targetOS);
+                gccProfile.setValue(QLatin1String("qbs.targetOS"), targetOS);
                 QStringList toolchainTypes;
-                toolchainTypes << "gcc";
-                if (gccFullName.contains("llvm"))
-                    toolchainTypes << "llvm";
-                gccProfile.setValue("qbs.toolchain", toolchainTypes);
+                toolchainTypes << QLatin1String("gcc");
+                if (gccFullName.contains(QLatin1String("llvm")))
+                    toolchainTypes << QLatin1String("llvm");
+                gccProfile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
                 if (!sysRoot.isEmpty())
-                    gccProfile.setValue("qbs.sysroot", sysRoot);
-                gccProfile.setValue("cpp.platformPath",fInfo.canonicalFilePath());
-                gccProfile.setValue("cpp.compilerName", gccFileInfo.fileName());
-                gccProfile.setValue("cpp.toolchainInstallPath", gccFileInfo.canonicalPath());
+                    gccProfile.setValue(QLatin1String("qbs.sysroot"), sysRoot);
+                gccProfile.setValue(QLatin1String("cpp.platformPath"),fInfo.canonicalFilePath());
+                gccProfile.setValue(QLatin1String("cpp.compilerName"), gccFileInfo.fileName());
+                gccProfile.setValue(QLatin1String("cpp.toolchainInstallPath"),
+                                    gccFileInfo.canonicalPath());
                 setArch(&gccProfile, gccFileInfo.canonicalFilePath(), QStringList());
                 qbsInfo() << indent << Tr::tr("* adding profile %1").arg(gccProfile.name());
                 profiles << gccProfile;

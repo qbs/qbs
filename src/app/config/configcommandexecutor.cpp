@@ -138,8 +138,8 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
     stream.setCodec("UTF-8");
     while (!stream.atEnd()) {
         QString line = stream.readLine();
-        int colon = line.indexOf(':');
-        if (colon >= 0 && !line.startsWith("#")) {
+        int colon = line.indexOf(QLatin1Char(':'));
+        if (colon >= 0 && !line.startsWith(QLatin1Char('#'))) {
             const QString key = line.left(colon).trimmed();
             const QString value = line.mid(colon + 1).trimmed();
             m_settings->setValue(key, value);

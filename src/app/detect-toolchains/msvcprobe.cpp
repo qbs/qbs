@@ -73,16 +73,18 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
     Profile p(name, settings);
     p.removeProfile();
-    p.setValue("qbs.targetOS", QStringList("windows"));
-    p.setValue("cpp.toolchainInstallPath", installPath);
-    p.setValue("qbs.toolchain", QStringList("msvc"));
-    p.setValue("cpp.windowsSDKPath", winSDKPath);
-    p.setValue("qbs.architecture", Internal::HostOsInfo::canonicalArchitecture(architecture));
-    p.setValue("qbs.endianness", Internal::HostOsInfo::defaultEndianness(architecture));
+    p.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
+    p.setValue(QLatin1String("cpp.toolchainInstallPath"), installPath);
+    p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
+    p.setValue(QLatin1String("cpp.windowsSDKPath"), winSDKPath);
+    p.setValue(QLatin1String("qbs.architecture"),
+               Internal::HostOsInfo::canonicalArchitecture(architecture));
+    p.setValue(QLatin1String("qbs.endianness"),
+               Internal::HostOsInfo::defaultEndianness(architecture));
     if (msvc.version.toInt() >= 2013) {
         const QStringList flags(QLatin1String("/FS"));
-        p.setValue("cpp.platformCFlags", flags);
-        p.setValue("cpp.platformCxxFlags", flags);
+        p.setValue(QLatin1String("cpp.platformCFlags"), flags);
+        p.setValue(QLatin1String("cpp.platformCxxFlags"), flags);
     }
     profiles << p;
 }

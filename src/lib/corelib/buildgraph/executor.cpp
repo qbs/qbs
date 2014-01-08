@@ -505,7 +505,7 @@ void Executor::buildArtifact(Artifact *artifact)
             Artifact *output = *it;
             QDir outDir = QFileInfo(output->filePath()).absoluteDir();
             if (!outDir.exists())
-                outDir.mkpath(".");
+                outDir.mkpath(QLatin1String("."));
         }
     }
 
@@ -547,7 +547,7 @@ void Executor::buildArtifact(Artifact *artifact)
     m_processingJobs.insert(job, artifact);
 
     Q_ASSERT_X(artifact->product, Q_FUNC_INFO,
-               qPrintable(QString("Generated artifact '%1' belongs to no product.")
+               qPrintable(QString::fromLatin1("Generated artifact '%1' belongs to no product.")
                .arg(QDir::toNativeSeparators(artifact->filePath()))));
 
     job->run(artifact->transformer.data(), artifact->product);
@@ -724,7 +724,7 @@ void Executor::addExecutorJobs(int jobNumber)
     for (int i = 1; i <= jobNumber; i++) {
         ExecutorJob *job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
-        job->setObjectName(QString(QLatin1String("J%1")).arg(i));
+        job->setObjectName(QString::fromLatin1("J%1").arg(i));
         m_availableJobs.append(job);
         connect(job, SIGNAL(reportCommandDescription(QString,QString)),
                 this, SIGNAL(reportCommandDescription(QString,QString)), Qt::QueuedConnection);
@@ -744,7 +744,7 @@ void Executor::runAutoMoc()
             throw ErrorInfo(Tr::tr("Build canceled%1.").arg(configString()));
         // HACK call the automoc thingy here only if we have use Qt/core module
         foreach (const ResolvedModuleConstPtr &m, product->modules) {
-            if (m->name == "Qt/core") {
+            if (m->name == QLatin1String("Qt/core")) {
                 autoMocApplied = true;
                 m_autoMoc->apply(product);
                 break;
@@ -817,7 +817,7 @@ void Executor::finish()
         m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
     } else {
         m_error.append(Tr::tr("The following products could not be built%1: %2.")
-                 .arg(configString(), unbuiltProductNames.join(", ")));
+                 .arg(configString(), unbuiltProductNames.join(QLatin1String(", "))));
     }
 
     if (m_explicitlyCanceled)

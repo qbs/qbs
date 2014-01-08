@@ -275,7 +275,7 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
     // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
     // 1) Things specified on command line (already in buildCfg at this point)
     // 2) Everything from the profile key
-    QString profileName = expandedConfig.value("qbs.profile").toString();
+    QString profileName = expandedConfig.value(QLatin1String("qbs.profile")).toString();
     if (profileName.isNull()) {
         profileName = settings->defaultProfile();
         if (profileName.isNull()) {
@@ -289,7 +289,7 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
                        .arg(profileNames));
             return err;
         }
-        expandedConfig.insert("qbs.profile", profileName);
+        expandedConfig.insert(QLatin1String("qbs.profile"), profileName);
     }
 
     // (2)

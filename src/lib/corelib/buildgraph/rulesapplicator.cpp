@@ -100,8 +100,9 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
     evalContext()->checkForCancelation();
 
     if (m_logger.debugEnabled()) {
-        m_logger.qbsDebug() << "[BG] apply rule " << m_rule->toString() << " "
-                   << toStringList(inputArtifacts).join(",\n            ");
+        m_logger.qbsDebug() << QString::fromLatin1("[BG] apply rule ") << m_rule->toString()
+                            << QString::fromLatin1(" ")
+                            << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
     }
 
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
@@ -171,22 +172,25 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
         Artifact *outputArtifact = ruleArtifactArtifactMap.at(i).second;
         outputArtifact->properties = outputArtifact->properties->clone();
 
-        scope().setProperty("fileName", engine()->toScriptValue(outputArtifact->filePath()));
-        scope().setProperty("fileTags",
+        scope().setProperty(QLatin1String("fileName"),
+                            engine()->toScriptValue(outputArtifact->filePath()));
+        scope().setProperty(QLatin1String("fileTags"),
                             toScriptValue(engine(), outputArtifact->fileTags.toStringList()));
 
-        QVariantMap artifactModulesCfg = outputArtifact->properties->value().value("modules").toMap();
+        QVariantMap artifactModulesCfg = outputArtifact->properties->value()
+                .value(QLatin1String("modules")).toMap();
         for (int i=0; i < ra->bindings.count(); ++i) {
             const RuleArtifact::Binding &binding = ra->bindings.at(i);
             scriptValue = engine()->evaluate(binding.code);
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
                 QString msg = QLatin1String("evaluating rule binding '%1': %2");
-                throw ErrorInfo(msg.arg(binding.name.join(QLatin1String(".")), scriptValue.toString()), binding.location);
+                throw ErrorInfo(msg.arg(binding.name.join(QLatin1String(".")),
+                                        scriptValue.toString()), binding.location);
             }
             setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
         }
         QVariantMap outputArtifactConfig = outputArtifact->properties->value();
-        outputArtifactConfig.insert("modules", artifactModulesCfg);
+        outputArtifactConfig.insert(QLatin1String("modules"), artifactModulesCfg);
         outputArtifact->properties->setValue(outputArtifactConfig);
     }
     if (!ruleArtifactArtifactMap.isEmpty())
@@ -196,7 +200,8 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
     m_transformer->createCommands(m_rule->prepareScript, evalContext(),
             ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
-        throw ErrorInfo(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->prepareScript->location);
+        throw ErrorInfo(Tr::tr("There's a rule without commands: %1.")
+                        .arg(m_rule->toString()), m_rule->prepareScript->location);
 }
 
 void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
@@ -217,13 +222,13 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
     // expose per file properties we want to use in an Artifact within a Rule
     QScriptValue scriptValue = engine()->newObject();
     ModuleProperties::init(scriptValue, artifact);
-    scriptValue.setProperty("fileName", inFileName);
-    scriptValue.setProperty("baseName", inBaseName);
-    scriptValue.setProperty("completeBaseName", inCompleteBaseName);
-    scriptValue.setProperty("baseDir", basedir);
+    scriptValue.setProperty(QLatin1String("fileName"), inFileName);
+    scriptValue.setProperty(QLatin1String("baseName"), inBaseName);
+    scriptValue.setProperty(QLatin1String("completeBaseName"), inCompleteBaseName);
+    scriptValue.setProperty(QLatin1String("baseDir"), basedir);
 
-    scope().setProperty("input", scriptValue);
-    Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate("input")),
+    scope().setProperty(QLatin1String("input"), scriptValue);
+    Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate(QLatin1String("input"))),
                "BG", "The input object is not in current scope.");
 }
 
@@ -232,9 +237,11 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
-        throw ErrorInfo("Error in Rule.Artifact fileName: " + scriptValue.toString());
+        throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName: ") + scriptValue.toString());
     QString outputPath = scriptValue.toString();
-    outputPath.replace("..", "dotdot");     // don't let the output artifact "escape" its build dir
+
+    // Don't let the output artifact "escape" its build dir
+    outputPath.replace(QLatin1String(".."), QLatin1String("dotdot"));
     outputPath = resolveOutPath(outputPath);
 
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
@@ -252,18 +259,21 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
             m_transformer->inputs.unite(inputArtifacts);
 
             if (Q_UNLIKELY(m_transformer->inputs.count() > 1 && !m_rule->multiplex)) {
-                QString th = "[" + outputArtifact->fileTags.toStringList().join(", ") + "]";
-                QString e = Tr::tr("Conflicting rules for producing %1 %2 \n").arg(outputArtifact->filePath(), th);
-                th = "[" + m_rule->inputs.toStringList().join(", ")
-                   + "] -> [" + outputArtifact->fileTags.toStringList().join(", ") + "]";
+                QString th = QLatin1Char('[') + outputArtifact->fileTags.toStringList()
+                        .join(QLatin1String(", ")) + QLatin1Char(']');
+                QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
+                        .arg(outputArtifact->filePath(), th);
+                th = QLatin1Char('[') + m_rule->inputs.toStringList().join(QLatin1String(", "))
+                   + QLatin1String("] -> [") + outputArtifact->fileTags.toStringList()
+                        .join(QLatin1String(", ")) + QLatin1Char(']');
 
-                e += QString("  while trying to apply:   %1:%2:%3  %4\n")
+                e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
                     .arg(m_rule->prepareScript->location.fileName())
                     .arg(m_rule->prepareScript->location.line())
                     .arg(m_rule->prepareScript->location.column())
                     .arg(th);
 
-                e += QString("  was already defined in:  %1:%2:%3  %4\n")
+                e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
                     .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
                     .arg(outputArtifact->transformer->rule->prepareScript->location.line())
                     .arg(outputArtifact->transformer->rule->prepareScript->location.column())

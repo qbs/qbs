@@ -328,7 +328,8 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         foreach (const QString &inputFileName, rtrafo->inputs) {
             Artifact *artifact = lookupArtifact(product, inputFileName);
             if (Q_UNLIKELY(!artifact))
-                throw ErrorInfo(QString("Can't find artifact '%0' in the list of source files.").arg(inputFileName));
+                throw ErrorInfo(Tr::tr("Can't find artifact '%0' in the list of source files.")
+                                .arg(inputFileName));
             inputArtifacts += artifact;
         }
         TransformerPtr transformer = Transformer::create();
@@ -369,7 +370,8 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
                 ScriptEngine::argumentList(transformer->rule->prepareScript->argumentNames,
                                            prepareScriptContext));
         if (Q_UNLIKELY(transformer->commands.isEmpty()))
-            throw ErrorInfo(QString("There's a transformer without commands."), rtrafo->transform->location);
+            throw ErrorInfo(Tr::tr("There's a transformer without commands."),
+                            rtrafo->transform->location);
     }
 
     // Handle Transformer.explicitlyDependsOn after all transformer outputs have been created.

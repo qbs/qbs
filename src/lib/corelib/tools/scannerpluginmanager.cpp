@@ -68,11 +68,11 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
     QStringList filters;
 
     if (HostOsInfo::isWindowsHost())
-        filters << "*.dll";
+        filters << QLatin1String("*.dll");
     else if (HostOsInfo::isOsxHost())
-        filters << "*.dylib";
+        filters << QLatin1String("*.dylib");
     else
-        filters << "*.so";
+        filters << QLatin1String("*.so");
 
     foreach (const QString &pluginPath, pluginPaths) {
         logger.qbsTrace() << QString::fromLocal8Bit("pluginmanager: loading plugins from '%1'.")

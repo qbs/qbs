@@ -61,9 +61,9 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
                             const QString &type)
 {
     QScriptEngine * const engine = objectWithProperties.engine();
-    objectWithProperties.setProperty("moduleProperties",
+    objectWithProperties.setProperty(QLatin1String("moduleProperties"),
                                      engine->newFunction(ModuleProperties::js_moduleProperties, 2));
-    objectWithProperties.setProperty("moduleProperty",
+    objectWithProperties.setProperty(QLatin1String("moduleProperty"),
                                      engine->newFunction(ModuleProperties::js_moduleProperty, 2));
     objectWithProperties.setProperty(ptrKey(), engine->toScriptValue(quintptr(ptr)));
     objectWithProperties.setProperty(typeKey(), type);

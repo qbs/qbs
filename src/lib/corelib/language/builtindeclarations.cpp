@@ -144,7 +144,7 @@ void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
             JSSourceValuePtr sourceValue = JSSourceValue::create();
             sourceValue->setFile(item->file());
             sourceValue->setSourceCode(pd.initialValueSource.isEmpty() ?
-                                           "undefined" : pd.initialValueSource);
+                                           QLatin1String("undefined") : pd.initialValueSource);
             value = sourceValue;
         }
     }
@@ -299,7 +299,7 @@ void BuiltinDeclarations::addProductItem()
     decl.initialValueSource = QLatin1String("[]");
     item << decl;
     item << nameProperty();
-    decl = PropertyDeclaration("targetName", PropertyDeclaration::String);
+    decl = PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String);
     decl.initialValueSource = QLatin1String("name");
     item << decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);

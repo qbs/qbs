@@ -44,21 +44,29 @@ namespace qbs {
 static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
 {
     QList<QRegExp> ignoreRegularExpressionList;
-    ignoreRegularExpressionList.append(QRegExp(projectRootPath + "/build.*"));
-    ignoreRegularExpressionList.append(QRegExp("*.qbs", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.pro", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*Makefile", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.so*", Qt::CaseSensitive, QRegExp::Wildcard));
-    ignoreRegularExpressionList.append(QRegExp("*.o", Qt::CaseSensitive, QRegExp::Wildcard));
-    QString ignoreFilePath = projectRootPath + "/.qbsignore";
+    ignoreRegularExpressionList.append(QRegExp(projectRootPath + QLatin1String("/build.*")));
+    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.qbs"),
+                                               Qt::CaseSensitive, QRegExp::Wildcard));
+    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.pro"),
+                                               Qt::CaseSensitive, QRegExp::Wildcard));
+    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*Makefile"),
+                                               Qt::CaseSensitive, QRegExp::Wildcard));
+    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.so*"),
+                                               Qt::CaseSensitive, QRegExp::Wildcard));
+    ignoreRegularExpressionList.append(QRegExp(QLatin1String("*.o"),
+                                               Qt::CaseSensitive, QRegExp::Wildcard));
+    QString ignoreFilePath = projectRootPath + QLatin1String("/.qbsignore");
 
     QFile ignoreFile(ignoreFilePath);
 
     if (ignoreFile.open(QFile::ReadOnly)) {
         QList<QByteArray> ignoreTokenList = ignoreFile.readAll().split('\n');
-        foreach (const QString &token, ignoreTokenList) {
-            if (token.left(1) == "/")
-                ignoreRegularExpressionList.append(QRegExp(projectRootPath + token + ".*", Qt::CaseSensitive, QRegExp::RegExp2));
+        foreach (const QByteArray &btoken, ignoreTokenList) {
+            const QString token = QString::fromLatin1(btoken);
+            if (token.left(1) == QLatin1String("/"))
+                ignoreRegularExpressionList.append(QRegExp(projectRootPath
+                                                           + token + QLatin1String(".*"),
+                                                           Qt::CaseSensitive, QRegExp::RegExp2));
             else if (!token.isEmpty())
                 ignoreRegularExpressionList.append(QRegExp(token, Qt::CaseSensitive, QRegExp::RegExp2));
 

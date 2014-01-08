@@ -73,15 +73,15 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
 
     QString toolchainType;
     QStringList toolchainTypes;
-    if (cc.contains("clang")) {
-        toolchainType = "clang";
-        toolchainTypes << "clang" << "llvm" << "gcc";
-    } else if (cc.contains("llvm")) {
-        toolchainType = "llvm-gcc";
-        toolchainTypes << "llvm" << "gcc";
-    } else if (cc.contains("gcc")) {
-        toolchainType = "gcc";
-        toolchainTypes << "gcc";
+    if (cc.contains(QLatin1String("clang"))) {
+        toolchainType = QLatin1String("clang");
+        toolchainTypes << QLatin1String("clang") << QLatin1String("llvm") << QLatin1String("gcc");
+    } else if (cc.contains(QLatin1String("llvm"))) {
+        toolchainType = QLatin1String("llvm-gcc");
+        toolchainTypes << QLatin1String("llvm") << QLatin1String("gcc");
+    } else if (cc.contains(QLatin1String("gcc"))) {
+        toolchainType = QLatin1String("gcc");
+        toolchainTypes << QLatin1String("gcc");
     }
 
     QString path       = QString::fromLocal8Bit(qgetenv("PATH"));
@@ -92,16 +92,16 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     QString pathToGcc;
 
     if (ld.isEmpty())
-        ld = "ld";
+        ld = QLatin1String("ld");
     if (cxx.isEmpty()) {
-        if (toolchainType == "gcc")
-            cxx = "g++";
-        else if (toolchainType == "llvm-gcc")
-            cxx = "llvm-g++";
-        else if (toolchainType == "clang")
-            cxx = "clang++";
+        if (toolchainType == QLatin1String("gcc"))
+            cxx = QLatin1String("g++");
+        else if (toolchainType == QLatin1String("llvm-gcc"))
+            cxx = QLatin1String("llvm-g++");
+        else if (toolchainType == QLatin1String("clang"))
+            cxx = QLatin1String("clang++");
     }
-    if(!cross.isEmpty() && !cc.startsWith("/")) {
+    if (!cross.isEmpty() && !cc.startsWith(QLatin1Char('/'))) {
         pathToGcc = searchPath(path, cross + cc);
         if (QFileInfo(pathToGcc).exists()) {
             if (!cc.contains(cross))
@@ -112,7 +112,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
                 ld.prepend(cross);
         }
     }
-    if (cc.startsWith("/"))
+    if (cc.startsWith(QLatin1Char('/')))
         pathToGcc = cc;
     else
         pathToGcc = searchPath(path, cc);
@@ -122,8 +122,9 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
         return;
     }
 
-    QString compilerTriplet = qsystem(pathToGcc, QStringList() << "-dumpmachine").simplified();
-    QStringList compilerTripletl = compilerTriplet.split('-');
+    QString compilerTriplet = qsystem(pathToGcc, QStringList()
+                                      << QLatin1String("-dumpmachine")).simplified();
+    QStringList compilerTripletl = compilerTriplet.split(QLatin1Char('-'));
     if (compilerTripletl.count() < 2) {
         qbsError() << QString::fromLocal8Bit("Detected '%1', but I don't understand "
                 "its architecture '%2'.").arg(pathToGcc, compilerTriplet);
@@ -132,7 +133,7 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
 
     const QString architecture = compilerTripletl.at(0);
 
-    QStringList pathToGccL = pathToGcc.split('/');
+    QStringList pathToGccL = pathToGcc.split(QLatin1Char('/'));
     QString compilerName = pathToGccL.takeLast().replace(cc, cxx);
 
     qbsInfo() << Tr::tr("Toolchain detected:\n"
@@ -148,18 +149,22 @@ static void specific_probe(Settings *settings, QList<Profile> &profiles, QString
     Profile profile(toolchainType, settings);
     profile.removeProfile();
 
-    profile.setValue("qbs.toolchain", toolchainTypes);
-    profile.setValue("qbs.architecture", HostOsInfo::canonicalArchitecture(architecture));
-    profile.setValue("qbs.endianness", HostOsInfo::defaultEndianness(architecture));
+    profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
+    profile.setValue(QLatin1String("qbs.architecture"),
+                     HostOsInfo::canonicalArchitecture(architecture));
+    profile.setValue(QLatin1String("qbs.endianness"),
+                     HostOsInfo::defaultEndianness(architecture));
 
-    if (compilerName.contains('-')) {
-        QStringList nl = compilerName.split('-');
-        profile.setValue("cpp.compilerName", nl.takeLast());
-        profile.setValue("cpp.toolchainPrefix", nl.join("-") + '-');
+    if (compilerName.contains(QLatin1Char('-'))) {
+        QStringList nl = compilerName.split(QLatin1Char('-'));
+        profile.setValue(QLatin1String("cpp.compilerName"), nl.takeLast());
+        profile.setValue(QLatin1String("cpp.toolchainPrefix"),
+                         nl.join(QLatin1String("-")) + QLatin1Char('-'));
     } else {
-        profile.setValue("cpp.compilerName", compilerName);
+        profile.setValue(QLatin1String("cpp.compilerName"), compilerName);
     }
-    profile.setValue("cpp.toolchainInstallPath", pathToGccL.join("/"));
+    profile.setValue(QLatin1String("cpp.toolchainInstallPath"),
+                     pathToGccL.join(QLatin1String("/")));
     profiles << profile;
 }
 
@@ -170,9 +175,10 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     QString gccPath;
     QByteArray envPath = qgetenv("PATH");
     foreach (const QByteArray &dir, envPath.split(';')) {
-        QFileInfo fi(dir + "/gcc.exe");
+        QFileInfo fi(QString::fromLocal8Bit(dir) + QLatin1String("/gcc.exe"));
         if (fi.exists()) {
-            mingwPath = QFileInfo(dir + "/..").canonicalFilePath();
+            mingwPath = QFileInfo(QString::fromLocal8Bit(dir)
+                                  + QLatin1String("/..")).canonicalFilePath();
             gccPath = fi.absoluteFilePath();
             mingwBinPath = fi.absolutePath();
             break;
@@ -181,7 +187,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     if (gccPath.isEmpty())
         return;
     QProcess process;
-    process.start(gccPath, QStringList() << "-dumpmachine");
+    process.start(gccPath, QStringList() << QLatin1String("-dumpmachine"));
     if (!process.waitForStarted()) {
         qbsError() << "Could not start \"gcc -dumpmachine\".";
         return;
@@ -189,8 +195,9 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     process.waitForFinished(-1);
     QByteArray gccMachineName = process.readAll().trimmed();
     QStringList validMinGWMachines;
-    validMinGWMachines << "mingw32" << "mingw64" << "i686-w64-mingw32" << "x86_64-w64-mingw32";
-    if (!validMinGWMachines.contains(gccMachineName)) {
+    validMinGWMachines << QLatin1String("mingw32") << QLatin1String("mingw64")
+                       << QLatin1String("i686-w64-mingw32") << QLatin1String("x86_64-w64-mingw32");
+    if (!validMinGWMachines.contains(QString::fromLocal8Bit(gccMachineName))) {
         qbsError() << QString::fromLocal8Bit("Detected gcc platform '%1' is not supported.")
                       .arg(QString::fromLocal8Bit(gccMachineName));
         return;
@@ -204,10 +211,11 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
 
     Profile profile(QString::fromLocal8Bit(gccMachineName), settings);
     qbsInfo() << Tr::tr("Platform '%1' detected in '%2'.").arg(profile.name(), mingwPath);
-    profile.setValue("qbs.targetOS", QStringList("windows"));
-    profile.setValue("cpp.toolchainInstallPath", mingwBinPath);
-    profile.setValue("cpp.compilerName", QLatin1String("g++.exe"));
-    profile.setValue("qbs.toolchain", QStringList() << "mingw" << "gcc");
+    profile.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
+    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), mingwBinPath);
+    profile.setValue(QLatin1String("cpp.compilerName"), QLatin1String("g++.exe"));
+    profile.setValue(QLatin1String("qbs.toolchain"), QStringList() << QLatin1String("mingw")
+                                                                   << QLatin1String("gcc"));
     profile.setValue(QLatin1String("qbs.architecture"),
                      HostOsInfo::canonicalArchitecture(QString::fromLatin1(architecture)));
     profile.setValue(QLatin1String("qbs.endianness"),

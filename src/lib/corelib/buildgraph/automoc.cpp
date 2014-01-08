@@ -59,7 +59,7 @@ void AutoMoc::setScanResultCache(ScanResultCache *scanResultCache)
 void AutoMoc::apply(const ResolvedProductPtr &product)
 {
     if (cppScanners().isEmpty() || hppScanners().isEmpty())
-        throw ErrorInfo("C++ scanner cannot be loaded.");
+        throw ErrorInfo(Tr::tr("C++ scanner cannot be loaded."));
 
     Artifact *pluginMetaDataFile = 0;
     Artifact *pchFile = 0;
@@ -159,10 +159,11 @@ QString AutoMoc::generateMocFileName(Artifact *artifact, FileType fileType)
     case UnknownFileType:
         break;
     case HppFileType:
-        mocFileName = "moc_" + FileInfo::baseName(artifact->filePath()) + ".cpp";
+        mocFileName = QLatin1String("moc_") + FileInfo::baseName(artifact->filePath()) +
+                                                                            QLatin1String(".cpp");
         break;
     case CppFileType:
-        mocFileName = FileInfo::baseName(artifact->filePath()) + ".moc";
+        mocFileName = FileInfo::baseName(artifact->filePath()) + QLatin1String(".moc");
         break;
     }
     return mocFileName;
@@ -229,7 +230,8 @@ void AutoMoc::scan(Artifact *artifact, FileType fileType, bool &hasQObjectMacro,
 
         foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
             const QString &includedFilePath = dependency.filePath();
-            if (includedFilePath.startsWith("moc_") && includedFilePath.endsWith(".cpp")) {
+            if (includedFilePath.startsWith(QLatin1String("moc_")) &&
+                includedFilePath.endsWith(QLatin1String(".cpp"))) {
                 if (m_logger.traceEnabled())
                     m_logger.qbsTrace() << "[AUTOMOC] finds included file: " << includedFilePath;
                 includedMocCppFiles += includedFilePath;

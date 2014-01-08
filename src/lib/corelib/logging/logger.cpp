@@ -150,7 +150,7 @@ LogWriter operator<<(LogWriter w, const QSet<QString> &strSet)
 
 LogWriter operator<<(LogWriter w, const QVariant &variant)
 {
-    QString str = variant.typeName() + QLatin1Char('(');
+    QString str = QLatin1String(variant.typeName()) + QLatin1Char('(');
     if (variant.type() == QVariant::List) {
         bool firstLoop = true;
         foreach (const QVariant &item, variant.toList()) {
@@ -180,7 +180,7 @@ LogWriter operator<<(LogWriter w, qint64 n)
 
 LogWriter operator<<(LogWriter w, bool b)
 {
-    return w << QString(QLatin1String(b ? "true" : "false"));
+    return w << QString::fromLatin1(b ? "true" : "false");
 }
 
 LogWriter operator<<(LogWriter w, const MessageTag &tag)
