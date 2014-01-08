@@ -46,6 +46,11 @@ UnixGCC {
     }
 
     readonly property var defaultInfoPlist: {
+        // Not a product type which uses Info.plists
+        if (!product.type.contains("application") && !product.type.contains("applicationbundle") &&
+            !product.type.contains("frameworkbundle") && !product.type.contains("bundle"))
+            return undefined;
+
         var dict = {
             CFBundleDevelopmentRegion: "en", // default localization
             CFBundleDisplayName: product.targetName, // localizable
