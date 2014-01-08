@@ -163,10 +163,10 @@ private:
     Item *moduleInstanceItem(Item *item, const QStringList &moduleName);
     Item *loadModule(ProductContext *productContext, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QStringList &moduleName, bool isBaseModule = false);
+            const QStringList &moduleName, bool isBaseModule, bool isRequired);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QStringList &moduleName,
-            const QStringList &extraSearchPaths, bool *cacheHit);
+            const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *cacheHit);
     void loadBaseModule(ProductContext *productContext, Item *item);

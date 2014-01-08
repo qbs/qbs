@@ -40,11 +40,26 @@
     product if the product depends on (or loads) the module.
 
     A Module can be loaded by adding a dependency to it in a product.
-    For example, the following product will load the \c cpp module:
+    For example, the following product will load the \c cpp module. In addition, it will try
+    to load modules that may or may not exist, and in the latter case use a fallback.
     \code
     Product {
         Depends { name: "cpp" }
-        ...
+        Depends {
+            name: "awesome_module"
+            required: false
+        }
+        Depends {
+            name: "adequate_module"
+            condition: !awesome_module.present
+            required: false
+        }
+        Depends {
+            name: "crappy_module"
+            condition: !awesome_module.present && !adequate_module.present
+        }
+
+        // ...
     }
     \endcode
 
@@ -54,6 +69,13 @@
             \li Type
             \li Default
             \li Description
+        \row
+            \li present
+            \li bool
+            \li \c true
+            \li This property is read-only. Its value is \c false if and only if the respective
+                \c Depends item had its \c required property set to \false and the module was
+                not found.
         \row
             \li setupBuildEnvironment
             \li script

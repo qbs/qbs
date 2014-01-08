@@ -353,6 +353,8 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
                                     ProjectContext *projectContext)
 {
     checkCancelation();
+    if (!m_evaluator->boolValue(item, QLatin1String("present")))
+        return;
     ModuleContext moduleContext;
     moduleContext.module = ResolvedModule::create();
     m_moduleContext = &moduleContext;

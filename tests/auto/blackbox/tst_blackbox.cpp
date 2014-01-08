@@ -549,6 +549,12 @@ void TestBlackbox::renameTargetArtifact()
     QCOMPARE(m_qbsStdout.count("linking"), 2);
 }
 
+void TestBlackbox::softDependency()
+{
+    QDir::setCurrent(testDataDir + "/soft-dependency");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::subProjects()
 {
     QDir::setCurrent(testDataDir + "/subprojects");

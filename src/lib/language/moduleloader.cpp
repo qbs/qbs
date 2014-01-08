@@ -568,8 +568,10 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         QStringList qualifiedModuleName(moduleName);
         if (!superModuleName.isEmpty())
             qualifiedModuleName.prepend(superModuleName);
+        const bool isRequired
+                = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
         Item *moduleItem = loadModule(dependsContext->product, item, dependsItem->location(),
-                                        dependsItem->id(), qualifiedModuleName);
+                                        dependsItem->id(), qualifiedModuleName, false, isRequired);
         if (moduleItem) {
             if (m_logger.traceEnabled())
                 m_logger.qbsTrace() << "module loaded: " << fullModuleName(qualifiedModuleName);
@@ -614,7 +616,7 @@ Item *ModuleLoader::moduleInstanceItem(Item *item, const QStringList &moduleName
 
 Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
-        const QString &moduleId, const QStringList &moduleName, bool isBaseModule)
+        const QString &moduleId, const QStringList &moduleName, bool isBaseModule, bool isRequired)
 {
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
@@ -629,7 +631,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         addExtraModuleSearchPath(moduleSearchPaths, searchPath);
     bool cacheHit;
     Item *modulePrototype = searchAndLoadModuleFile(productContext, dependsItemLocation,
-                                                    moduleName, moduleSearchPaths, &cacheHit);
+            moduleName, moduleSearchPaths, isRequired, &cacheHit);
     if (!modulePrototype)
         return 0;
     if (!cacheHit && isBaseModule)
@@ -639,9 +641,11 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
     return moduleInstance;
 }
 
+// It's not necessarily an error if we don't find a required module with the given name,
+// because the dependency could refer to a product instead.
 Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QStringList &moduleName,
-        const QStringList &extraSearchPaths, bool *cacheHit)
+        const QStringList &extraSearchPaths, bool isRequired, bool *cacheHit)
 {
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
@@ -669,6 +673,17 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             if (module)
                 return module;
         }
+    }
+
+    if (!isRequired) {
+        if (m_logger.traceEnabled()) {
+            m_logger.qbsTrace() << "Non-required module '" << fullName << "' not found."
+                                << "Creating dummy module for presence check.";
+        }
+        Item * const module = Item::create(m_pool);
+        module->setFile(FileContext::create());
+        module->setProperty(QLatin1String("present"), VariantValue::create(false));
+        return module;
     }
 
     if (Q_UNLIKELY(triedToLoadModule))
@@ -796,7 +811,7 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     Item::Module baseModuleDesc;
     baseModuleDesc.name = baseModuleName;
     baseModuleDesc.item = loadModule(productContext, item, CodeLocation(), QString(),
-                                     baseModuleName, true);
+                                     baseModuleName, true, true);
     if (Q_UNLIKELY(!baseModuleDesc.item))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
     item->modules() += baseModuleDesc;

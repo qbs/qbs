@@ -128,6 +128,7 @@ private slots:
     void rc();
     void renameProduct();
     void renameTargetArtifact();
+    void softDependency();
     void subProjects();
     void track_qrc();
     void track_qobject_change();

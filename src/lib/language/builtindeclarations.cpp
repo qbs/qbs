@@ -195,8 +195,9 @@ void BuiltinDeclarations::addDependsItem()
     item << conditionProperty();
     item << nameProperty();
     item << PropertyDeclaration(QLatin1String("submodules"), PropertyDeclaration::Variant);
-    item << PropertyDeclaration(QLatin1String("required"), PropertyDeclaration::Boolean);
-    item << PropertyDeclaration(QLatin1String("failureMessage"), PropertyDeclaration::String);
+    PropertyDeclaration requiredDecl(QLatin1String("required"), PropertyDeclaration::Boolean);
+    requiredDecl.initialValueSource = QLatin1String("true");
+    item << requiredDecl;
     insert(item);
 }
 
@@ -264,6 +265,9 @@ void BuiltinDeclarations::addModuleItem()
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     item << PropertyDeclaration(QLatin1String("additionalProductFileTags"),
                                       PropertyDeclaration::Variant);
+    PropertyDeclaration presentDecl(QLatin1String("present"), PropertyDeclaration::Boolean);
+    presentDecl.initialValueSource = QLatin1String("true");
+    item << presentDecl;
     insert(item);
 }
 
