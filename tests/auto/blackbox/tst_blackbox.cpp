@@ -72,7 +72,8 @@ TestBlackbox::TestBlackbox()
 int TestBlackbox::runQbs(const QbsRunParameters &params)
 {
     QStringList args;
-    args << params.command;
+    if (!params.command.isEmpty())
+        args << params.command;
     if ((QStringList() << QLatin1String("") << QLatin1String("build") << QLatin1String("clean")
          << QLatin1String("install") << QLatin1String("resolve") << QLatin1String("run")
          << QLatin1String("shell") << QLatin1String("status") << QLatin1String("update-timestamps"))
