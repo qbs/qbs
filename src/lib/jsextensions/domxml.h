@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 BogDan Vatra <bogdan@kde.org>
+** Copyright (C) 2014 BogDan Vatra <bogdan@kde.org>
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
