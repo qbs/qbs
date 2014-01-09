@@ -86,6 +86,8 @@ private:
     void connectJob(AbstractJob *job);
     void checkForExactlyOneProduct();
     void install();
+    BuildOptions buildOptions(const Project &project) const;
+    QString buildDirectory(const QString &profileName) const;
 
     const CommandLineParser &m_parser;
     Settings * const m_settings;

@@ -30,6 +30,7 @@
 
 #include "buildoptions.h"
 #include "hostosinfo.h"
+#include "profile.h"
 #include "settings.h"
 
 namespace qbs {
@@ -37,9 +38,11 @@ namespace qbs {
 /*!
  * \class Preferences
  * \brief The \c Preferences class gives access to all general qbs preferences.
+ * If a non-empty \c profileName is given, the profile's preferences take precedence over global
+ * ones. Otherwise, the global preferences are used.
  */
-
-Preferences::Preferences(Settings *settings) : m_settings(settings)
+Preferences::Preferences(Settings *settings, const QString &profileName)
+    : m_settings(settings), m_profile(profileName)
 {
 }
 
@@ -109,7 +112,14 @@ QStringList Preferences::pluginPaths(const QString &qbsRootPath) const
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const
 {
-    return m_settings->value(QLatin1String("preferences.") + key, defaultValue);
+    const QString fullKey = QLatin1String("preferences.") + key;
+    if (!m_profile.isEmpty()) {
+        const QVariant value = Profile(m_profile, m_settings).value(fullKey);
+        if (value.isValid())
+            return value;
+    }
+
+    return m_settings->value(fullKey, defaultValue);
 }
 
 QStringList Preferences::pathList(const QString &key, const QString &defaultValue) const

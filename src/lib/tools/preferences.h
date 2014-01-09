@@ -40,7 +40,7 @@ class Settings;
 class QBS_EXPORT Preferences
 {
 public:
-    explicit Preferences(Settings *settings);
+    explicit Preferences(Settings *settings, const QString &profileName = QString());
 
     bool useColoredOutput() const;
     int jobs() const;
@@ -54,6 +54,7 @@ private:
     QStringList pathList(const QString &key, const QString &defaultValue) const;
 
     Settings *m_settings;
+    QString m_profile;
 };
 
 } // namespace qbs

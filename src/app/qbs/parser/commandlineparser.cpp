@@ -474,23 +474,6 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
 void CommandLineParser::CommandLineParserPrivate::setupBuildDirectory()
 {
     projectBuildDirectory = optionPool.buildDirectoryOption()->projectBuildDirectory();
-    if (projectBuildDirectory.isEmpty()) {
-        projectBuildDirectory = Preferences(settings).defaultBuildDirectory();
-        if (projectBuildDirectory.isEmpty()) {
-            qbsDebug() << "No project build directory given; using current directory.";
-            projectBuildDirectory = QDir::currentPath();
-        } else {
-            qbsDebug() << "No project build directory given; using directory from preferences.";
-        }
-    }
-
-    QDir dir(QFileInfo(projectFilePath).path());
-    projectBuildDirectory.replace(optionPool.buildDirectoryOption()->magicProjectString(),
-                                  dir.dirName());
-
-    if (!QFileInfo(projectBuildDirectory).isAbsolute())
-        projectBuildDirectory = QDir::currentPath() + QLatin1Char('/') + projectBuildDirectory;
-    projectBuildDirectory = QDir::cleanPath(projectBuildDirectory);
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
@@ -506,8 +489,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setKeepGoing(optionPool.keepGoingOption()->enabled());
     buildOptions.setForceTimestampCheck(optionPool.forceTimestampCheckOption()->enabled());
     const JobsOption * jobsOption = optionPool.jobsOption();
-    buildOptions.setMaxJobCount(jobsOption->jobCount() > 0
-            ? jobsOption->jobCount() : Preferences(settings).jobs());
+    buildOptions.setMaxJobCount(jobsOption->jobCount());
     buildOptions.setLogElapsedTime(logTime);
 }
 

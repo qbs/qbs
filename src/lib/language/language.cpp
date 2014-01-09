@@ -855,6 +855,7 @@ void TopLevelProject::load(PersistentPool &pool)
         environment.insert(i.key(), i.value());
     pool.stream() >> buildSystemFiles;
     buildData.reset(pool.idLoad<ProjectBuildData>());
+    QBS_CHECK(buildData);
     buildData->isDirty = false;
 }
 

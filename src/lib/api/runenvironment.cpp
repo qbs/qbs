@@ -44,6 +44,7 @@
 #include <QProcessEnvironment>
 #include <QScopedPointer>
 #include <QTemporaryFile>
+#include <QVariantMap>
 
 #include <stdlib.h>
 
@@ -102,7 +103,10 @@ int RunEnvironment::runShell()
         const QString prompt = environment.value(QLatin1String("PROMPT"));
         command += QLatin1String(" /k prompt [qbs] ") + prompt;
     } else {
-        command = Preferences(d->settings).shell();
+        const QVariantMap qbsProps = d->resolvedProduct->topLevelProject()->buildConfiguration()
+                .value(QLatin1String("qbs")).toMap();
+        const QString profileName = qbsProps.value(QLatin1String("profile")).toString();
+        command = Preferences(d->settings, profileName).shell();
         if (command.isEmpty())
             command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
 

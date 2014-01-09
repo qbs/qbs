@@ -31,6 +31,7 @@
 #include "application.h"
 #include "consoleprogressobserver.h"
 #include "status.h"
+#include "parser/commandlineoption.h"
 #include "../shared/logging/consolelogger.h"
 
 #include <qbs.h>
@@ -121,9 +122,6 @@ void CommandLineFrontend::start()
                                                    + QLatin1String("/../"));
         SetupProjectParameters params;
         params.setProjectFilePath(m_parser.projectFilePath());
-        params.setBuildRoot(m_parser.projectBuildDirectory());
-        params.setSearchPaths(Preferences(m_settings).searchPaths(qbsRootPath));
-        params.setPluginPaths(Preferences(m_settings).pluginPaths(qbsRootPath));
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());
         params.setLogElapsedTime(m_parser.logTime());
@@ -134,11 +132,19 @@ void CommandLineFrontend::start()
             QVariantMap userConfig = buildConfig;
             QString buildVariantKey = QLatin1String("qbs.buildVariant");
             baseConfig.insert(buildVariantKey, userConfig.take(buildVariantKey));
+            QString profileName;
             const QVariantMap::Iterator it = userConfig.find(QLatin1String("qbs.profile"));
             if (it != userConfig.end()) {
+                profileName = it.value().toString();
                 baseConfig.insert(it.key(), it.value());
                 userConfig.erase(it);
             }
+            if (profileName.isEmpty())
+                profileName = m_settings->defaultProfile();
+            const Preferences prefs(m_settings, profileName);
+            params.setSearchPaths(prefs.searchPaths(qbsRootPath));
+            params.setPluginPaths(prefs.pluginPaths(qbsRootPath));
+            params.setBuildRoot(buildDirectory(profileName));
             params.setBuildConfiguration(baseConfig);
             params.setOverriddenValues(userConfig);
             const ErrorInfo err = params.expandBuildConfiguration(m_settings);
@@ -389,15 +395,49 @@ int CommandLineFrontend::runShell()
     return runEnvironment.runShell();
 }
 
+BuildOptions CommandLineFrontend::buildOptions(const Project &project) const
+{
+    BuildOptions options = m_parser.buildOptions();
+    if (options.maxJobCount() <= 0) {
+        const QVariantMap qbsProperties
+                = project.projectConfiguration().value(QLatin1String("qbs")).toMap();
+        const QString profileName = qbsProperties.value(QLatin1String("profile")).toString();
+        QBS_CHECK(!profileName.isEmpty());
+        options.setMaxJobCount(Preferences(m_settings, profileName).jobs());
+    }
+    return options;
+}
+
+QString CommandLineFrontend::buildDirectory(const QString &profileName) const
+{
+    QString buildDir = m_parser.projectBuildDirectory();
+    if (buildDir.isEmpty()) {
+        buildDir = Preferences(m_settings, profileName).defaultBuildDirectory();
+        if (buildDir.isEmpty()) {
+            qbsDebug() << "No project build directory given; using current directory.";
+            buildDir = QDir::currentPath();
+        } else {
+            qbsDebug() << "No project build directory given; using directory from preferences.";
+        }
+    }
+
+    QDir projectDir(QFileInfo(m_parser.projectFilePath()).path());
+    buildDir.replace(BuildDirectoryOption::magicProjectString(), projectDir.dirName());
+    if (!QFileInfo(buildDir).isAbsolute())
+        buildDir = QDir::currentPath() + QLatin1Char('/') + buildDir;
+    buildDir = QDir::cleanPath(buildDir);
+    return buildDir;
+}
+
 void CommandLineFrontend::build()
 {
     if (m_parser.products().isEmpty()) {
         foreach (const Project &project, m_projects)
-            m_buildJobs << project.buildAllProducts(m_parser.buildOptions(), this);
+            m_buildJobs << project.buildAllProducts(buildOptions(project), this);
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it)
-            m_buildJobs << it.key().buildSomeProducts(it.value(), m_parser.buildOptions(), this);
+            m_buildJobs << it.key().buildSomeProducts(it.value(), buildOptions(it.key()), this);
     }
     connectBuildJobs();
 
