@@ -31,6 +31,7 @@
 #include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
 
+#include <qtprofilesetup.h>
 #include <logging/translator.h>
 
 #include <QCoreApplication>

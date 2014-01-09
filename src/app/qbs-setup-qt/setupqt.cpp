@@ -29,8 +29,8 @@
 
 #include "setupqt.h"
 
-#include "setupqtprofile.h"
 #include "../shared/logging/consolelogger.h"
+#include <qtprofilesetup.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>

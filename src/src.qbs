@@ -3,7 +3,7 @@ import qbs
 Project {
     references: [
         "app/apps.qbs",
-        "lib/lib.qbs",
+        "lib/libs.qbs",
         "plugins/plugins.qbs"
     ]
 }

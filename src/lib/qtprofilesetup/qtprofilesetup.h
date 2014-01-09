@@ -29,13 +29,15 @@
 #ifndef QBS_SETUPQTPROFILE_H
 #define QBS_SETUPQTPROFILE_H
 
+#include <tools/qbs_export.h>
+
 #include <QStringList>
 
 namespace qbs {
 class ErrorInfo;
 class Settings;
 
-class QtEnvironment {
+class QBS_EXPORT QtEnvironment {
 public:
     QString installPrefixPath;
     QString libraryPath;
@@ -61,8 +63,8 @@ public:
     bool staticBuild;
 };
 
-ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
-                         const QtEnvironment &qtEnvironment);
+QBS_EXPORT ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
+                                    const QtEnvironment &qtEnvironment);
 
 } // namespace qbs
 

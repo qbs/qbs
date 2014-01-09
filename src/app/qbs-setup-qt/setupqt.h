@@ -30,13 +30,12 @@
 #ifndef QBS_SETUPQT_H
 #define QBS_SETUPQT_H
 
-#include "setupqtprofile.h"
-
 #include <tools/error.h>
 #include <QCoreApplication>
 #include <QStringList>
 
 namespace qbs {
+class QtEnvironment;
 class Settings;
 
 class SetupQt

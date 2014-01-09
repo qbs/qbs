@@ -29,7 +29,7 @@
 
 #include "tst_api.h"
 
-#include "../../src/app/shared/qbssettings.h"
+#include "../../../src/app/shared/qbssettings.h"
 
 #include <api/jobs.h>
 #include <api/project.h>

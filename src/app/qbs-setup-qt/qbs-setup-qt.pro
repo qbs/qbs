@@ -1,13 +1,12 @@
 include(../app.pri)
+include($${PWD}/../../lib/qtprofilesetup/use_qtprofilesetup.pri)
 
 TARGET = qbs-setup-qt
 
 SOURCES += \
     main.cpp \
-    setupqt.cpp \
-    setupqtprofile.cpp
+    setupqt.cpp
 
 HEADERS += \
     setupqt.h \
-    setupqtprofile.h \
     ../shared/qbssettings.h

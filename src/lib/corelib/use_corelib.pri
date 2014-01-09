@@ -1,4 +1,4 @@
-include(../../qbs_version.pri)
+include(../../../qbs_version.pri)
 
 isEmpty(QBSLIBDIR) {
     QBSLIBDIR = $$OUT_PWD/../../../lib

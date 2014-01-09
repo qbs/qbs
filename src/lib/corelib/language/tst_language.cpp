@@ -137,7 +137,7 @@ void TestLanguage::initTestCase()
     m_engine = new ScriptEngine(m_logger, this);
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
-                           << QLatin1String(SRCDIR "/../../share/qbs"));
+                           << QLatin1String(SRCDIR "/../../../share/qbs"));
     QVariantMap buildConfig = defaultParameters.buildConfigurationTree();
     buildConfig.insert("qbs.targetOS", "linux");
     buildConfig.insert("qbs.architecture", "x86_64");

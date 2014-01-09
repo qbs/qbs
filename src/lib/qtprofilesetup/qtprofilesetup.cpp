@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include "setupqtprofile.h"
+#include "qtprofilesetup.h"
 
 #include <logging/translator.h>
 #include <tools/error.h>

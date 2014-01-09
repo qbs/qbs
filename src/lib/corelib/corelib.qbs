@@ -1,36 +1,21 @@
 import qbs 1.0
-import "../../version.js" as Version
+import "../Library.qbs" as QbsLibrary
 
-Product {
+QbsLibrary {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["core", "gui", "script", "xml"] }
+    Depends { name: "Qt"; submodules: ["gui", "script", "xml"] }
     Depends { condition: project.enableUnitTests; name: "Qt.test" }
     name: "qbscore"
-    version: Version.qbsVersion()
-    type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
-    targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
-    destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : "lib"
-    cpp.treatWarningsAsErrors: true
-    cpp.includePaths: [
+    cpp.includePaths: base.concat([
         ".",
-        ".."     // for the plugin headers
-    ]
-    cpp.defines: [
-        "QBS_VERSION=\"" + Version.qbsVersion() + "\"",
+        "../.." // for the plugin headers
+    ])
+    cpp.defines: base.concat([
+        "QBS_VERSION=\"" + version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
-    ].concat(type == "staticlibrary" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
-    Properties {
-        condition: qbs.toolchain.contains("msvc")
-        cpp.cxxFlags: ["/WX"]
-    }
-    Properties {
-        condition: qbs.toolchain.contains("gcc") && !qbs.targetOS.contains("windows")
-        cpp.cxxFlags: ["-Werror"]
-    }
-    cpp.installNamePrefix: "@rpath/"
+    ])
 
-    property string headerInstallPrefix: "/include/qbs"
     Group {
         name: product.name
         files: ["qbs.h"]
@@ -332,8 +317,8 @@ Product {
     Group {
         name: "use_installed.pri"
         files: [
-            "use_installed.pri",
-            "../../qbs_version.pri"
+            "use_installed_corelib.pri",
+            "../../../qbs_version.pri"
         ]
         qbs.install: project.installApiHeaders
         qbs.installDir: headerInstallPrefix
@@ -350,16 +335,7 @@ Product {
             "tools/tst_tools.cpp"
         ]
     }
-    Group {
-        fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
-        qbs.install: true
-        qbs.installDir: project.libInstallDir
-    }
     Export {
-        Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["script", "xml"] }
-        cpp.rpaths: project.libRPaths
-        cpp.includePaths: path
-        cpp.defines: product.type === "staticlibrary" ? ["QBS_STATIC_LIB"] : []
     }
 }

@@ -8,4 +8,4 @@ CONFIG += depend_includepath testcase console
 CONFIG -= app_bundle
 target.CONFIG += no_default_install
 
-include(../../src/lib/use.pri)
+include(../../src/lib/corelib/use_corelib.pri)
