@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Copyright (C) 2013 Petroules Corporation.
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Build Suite.
