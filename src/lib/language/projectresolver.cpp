@@ -103,7 +103,7 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
 TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
         const SetupProjectParameters &setupParameters)
 {
-    QBS_ASSERT(FileInfo::isAbsolute(setupParameters.buildRoot()), return TopLevelProjectPtr());
+    QBS_CHECK(FileInfo::isAbsolute(setupParameters.buildRoot()));
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[PR] resolving " << loadResult.root->file()->filePath();
 

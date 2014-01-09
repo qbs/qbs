@@ -278,6 +278,7 @@ void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
     loader.setSearchPaths(m_parameters.searchPaths());
     loader.setProgressObserver(observer());
     m_project = loader.loadProject(m_parameters);
+    QBS_CHECK(m_project);
 }
 
 void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext)
