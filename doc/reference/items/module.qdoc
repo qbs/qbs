@@ -74,7 +74,7 @@
             \li bool
             \li \c true
             \li This property is read-only. Its value is \c false if and only if the respective
-                \c Depends item had its \c required property set to \false and the module was
+                \c Depends item had its \c required property set to \c false and the module was
                 not found.
         \row
             \li setupBuildEnvironment
