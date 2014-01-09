@@ -286,7 +286,10 @@ UnixGCC {
         }
 
         prepare: {
-            var cmd = new Command("dsymutil", ["--out=" + outputs.dsym[0].fileName, input.fileName]);
+            var cmd = new Command("dsymutil", [
+                                      "--out=" + outputs.application_dsym[0].fileName,
+                                      input.fileName
+                                  ]);
             cmd.description = "generating dsym";
             cmd.highlight = "codegen";
             return cmd;
