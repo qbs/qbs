@@ -56,7 +56,7 @@
         \li required
         \li bool
         \li \c true
-        \li Setting this property to \c false creates a "soft dependency", meaning that it is not
+        \li Setting this property to \c false creates a \e{soft dependency}, meaning that it is not
             considered an error if the given module cannot be found. In such a case, an instance of
             the respective module will be created, but only the \c present property will be
             available for querying, and it will be set to \c false.
