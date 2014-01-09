@@ -29,6 +29,7 @@
 
 #include "setupqt.h"
 
+#include "setupqtprofile.h"
 #include "../shared/logging/consolelogger.h"
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
@@ -287,93 +288,14 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
             .arg(cleanQtVersionName);
     printf("%s\n", qPrintable(msg));
 
-    Profile profile(cleanQtVersionName, settings);
-    const QString settingsTemplate(QLatin1String("Qt.core.%1"));
-    profile.setValue(settingsTemplate.arg("config"), qtEnvironment.configItems);
-    profile.setValue(settingsTemplate.arg("qtConfig"), qtEnvironment.qtConfigItems);
-    profile.setValue(settingsTemplate.arg("binPath"), qtEnvironment.binaryPath);
-    profile.setValue(settingsTemplate.arg("libPath"), qtEnvironment.libraryPath);
-    profile.setValue(settingsTemplate.arg("pluginPath"), qtEnvironment.pluginPath);
-    profile.setValue(settingsTemplate.arg("incPath"), qtEnvironment.includePath);
-    profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnvironment.mkspecPath);
-    profile.setValue(settingsTemplate.arg("docPath"), qtEnvironment.documentationPath);
-    profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
-    profile.setValue(settingsTemplate.arg("namespace"), qtEnvironment.qtNameSpace);
-    profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
-    profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant);
-    if (qtEnvironment.staticBuild)
-        profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")),
-                         qtEnvironment.staticBuild);
-
-    // Set the minimum operating system versions appropriate for this Qt version
-    const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
-    QString osxVersion, iosVersion, androidVersion;
-
-    if (qtEnvironment.mkspecPath.contains("macx")) {
-        profile.setValue(settingsTemplate.arg("frameworkBuild"), qtEnvironment.frameworkBuild);
-        if (qtEnvironment.qtMajorVersion >= 5) {
-            osxVersion = QLatin1String("10.6");
-        } else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 6) {
-            QDir qconfigDir;
-            if (qtEnvironment.frameworkBuild) {
-                qconfigDir.setPath(qtEnvironment.libraryPath);
-                qconfigDir.cd("QtCore.framework/Headers");
-            } else {
-                qconfigDir.setPath(qtEnvironment.includePath);
-                qconfigDir.cd("Qt");
-            }
-            QFile qconfig(qconfigDir.absoluteFilePath("qconfig.h"));
-            if (qconfig.open(QIODevice::ReadOnly)) {
-                bool qtCocoaBuild = false;
-                QTextStream ts(&qconfig);
-                QString line;
-                do {
-                    line = ts.readLine();
-                    if (QRegExp(QLatin1String("\\s*#define\\s+QT_MAC_USE_COCOA\\s+1\\s*"), Qt::CaseSensitive).exactMatch(line)) {
-                        qtCocoaBuild = true;
-                        break;
-                    }
-                } while (!line.isNull());
-
-                if (ts.status() == QTextStream::Ok)
-                    osxVersion = qtCocoaBuild ? QLatin1String("10.5") : QLatin1String("10.4");
-            }
-
-            if (osxVersion.isEmpty())
-                throw ErrorInfo(tr("error reading qconfig.h; could not determine whether Qt is using Cocoa or Carbon"));
-        }
-
-        if (qtEnvironment.configItems.contains("c++11"))
-            osxVersion = QLatin1String("10.7");
-    }
-
-    if (qtEnvironment.mkspecPath.contains("ios") && qtEnvironment.qtMajorVersion >= 5)
-        iosVersion = QLatin1String("5.0");
-
-    if (qtEnvironment.mkspecPath.contains("android")) {
-        if (qtEnvironment.qtMajorVersion >= 5)
-            androidVersion = QLatin1String("2.3");
-        else if (qtEnvironment.qtMajorVersion == 4 && qtEnvironment.qtMinorVersion >= 8)
-            androidVersion = QLatin1String("1.6"); // Necessitas
-    }
-
-    // ### TODO: wince, winphone, blackberry
-
-    if (!windowsVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumWindowsVersion"), windowsVersion);
-
-    if (!osxVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumOsxVersion"), osxVersion);
-
-    if (!iosVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumIosVersion"), iosVersion);
-
-    if (!androidVersion.isEmpty())
-        profile.setValue(QLatin1String("cpp.minimumAndroidVersion"), androidVersion);
+    const ErrorInfo errorInfo = setupQtProfile(cleanQtVersionName, settings, qtEnvironment);
+    if (errorInfo.hasError())
+        throw errorInfo;
 
     // If this profile does not specify a toolchain and we find exactly one profile that looks
     // like it might have been added by qbs-detect-toolchain, let's use that one as our
     // base profile.
+    Profile profile(cleanQtVersionName, settings);
     if (!profile.baseProfile().isEmpty())
         return;
     QStringList toolchainProfiles;
@@ -433,31 +355,6 @@ bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
     }
 
     return false;
-}
-
-QString SetupQt::guessMinimumWindowsVersion(const QtEnvironment &qt)
-{
-    if (qt.mkspecName.startsWith("winrt-"))
-        return QLatin1String("6.2");
-
-    if (!qt.mkspecName.startsWith("win32-"))
-        return QString();
-
-    if (qt.architecture == QLatin1String("x86_64")
-            || qt.architecture == QLatin1String("ia64")) {
-        return QLatin1String("5.2");
-    }
-
-    QRegExp rex(QLatin1String("^win32-msvc(\\d+)$"));
-    if (rex.exactMatch(qt.mkspecName)) {
-        int msvcVersion = rex.cap(1).toInt();
-        if (msvcVersion < 2012)
-            return QLatin1String("5.0");
-        else
-            return QLatin1String("5.1");
-    }
-
-    return qt.qtMajorVersion < 5 ? QLatin1String("5.0") : QLatin1String("5.1");
 }
 
 } // namespace qbs

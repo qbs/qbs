@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -26,32 +26,44 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_SETUPQTPROFILE_H
+#define QBS_SETUPQTPROFILE_H
 
-#ifndef QBS_SETUPQT_H
-#define QBS_SETUPQT_H
-
-#include "setupqtprofile.h"
-
-#include <tools/error.h>
-#include <QCoreApplication>
 #include <QStringList>
 
 namespace qbs {
+class ErrorInfo;
 class Settings;
 
-class SetupQt
-{
-    Q_DECLARE_TR_FUNCTIONS(SetupQt)
+class QtEnvironment {
 public:
-    static bool isQMakePathValid(const QString &qmakePath);
-    static QList<QtEnvironment> fetchEnvironments();
-    static QtEnvironment fetchEnvironment(const QString &qmakePath);
-    static void saveToQbsSettings(const QString &qtVersionName, const QtEnvironment & qtEnvironment,
-                                  Settings *settings);
-    static bool checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
-            const QList<QtEnvironment> &qtEnvironments);
+    QString installPrefixPath;
+    QString libraryPath;
+    QString includePath;
+    QString binaryPath;
+    QString qmlImportPath;
+    QString documentationPath;
+    QString dataPath;
+    QString pluginPath;
+    QString qtLibInfix;
+    QString qtNameSpace;
+    QString mkspecPath;
+    QString mkspecName;
+    QStringList buildVariant;
+    QStringList configItems;
+    QStringList qtConfigItems;
+    QString architecture;
+    QString qtVersion;
+    int qtMajorVersion;
+    int qtMinorVersion;
+    int qtPatchVersion;
+    bool frameworkBuild;
+    bool staticBuild;
 };
+
+ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
+                         const QtEnvironment &qtEnvironment);
 
 } // namespace qbs
 
-#endif // QBS_SETUPQT_H
+#endif // Include guard.

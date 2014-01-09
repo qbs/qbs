@@ -7,7 +7,9 @@ QbsApp {
         "../shared/qbssettings.h",
         "main.cpp",
         "setupqt.cpp",
-        "setupqt.h"
+        "setupqt.h",
+        "setupqtprofile.cpp",
+        "setupqtprofile.h",
     ]
 }
 
