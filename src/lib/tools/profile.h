@@ -36,6 +36,7 @@
 #include <QVariant>
 
 namespace qbs {
+class ErrorInfo;
 class Settings;
 
 class QBS_EXPORT Profile
@@ -44,7 +45,8 @@ public:
     explicit Profile(const QString &name, Settings *settings);
 
     bool exists() const;
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
+    QVariant value(const QString &key, const QVariant &defaultValue = QVariant(),
+                   ErrorInfo *error = 0) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
 
@@ -57,7 +59,7 @@ public:
     void removeProfile();
 
     enum KeySelection { KeySelectionRecursive,  KeySelectionNonRecursive };
-    QStringList allKeys(KeySelection selection) const;
+    QStringList allKeys(KeySelection selection, ErrorInfo *error = 0) const;
 
     static QString cleanName(const QString &name);
 
