@@ -15,7 +15,10 @@ QbsLibrary {
         qbs.installDir: headerInstallPrefix
     }
 
-    files: "qtprofilesetup.cpp"
+    files: [
+        "qtprofilesetup.cpp",
+        "templates.qrc"
+    ]
 
     Export {
         Depends { name: "qbscore" }

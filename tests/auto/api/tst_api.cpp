@@ -475,10 +475,12 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
     const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
                                                 + QLatin1String("/../"));
     SettingsPtr settings = qbsSettings();
-    setupParams.setSearchPaths(qbs::Preferences(settings.data()).searchPaths(qbsRootPath));
-    setupParams.setPluginPaths(qbs::Preferences(settings.data()).pluginPaths(qbsRootPath));
+    const QString profileName = QLatin1String("qbs_autotests");
+    const qbs::Preferences prefs(settings.data(), profileName);
+    setupParams.setSearchPaths(prefs.searchPaths(qbsRootPath));
+    setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath));
     QVariantMap buildConfig;
-    buildConfig.insert(QLatin1String("qbs.profile"), QLatin1String("qbs_autotests"));
+    buildConfig.insert(QLatin1String("qbs.profile"), profileName);
     buildConfig.insert(QLatin1String("qbs.buildVariant"), QLatin1String("debug"));
     setupParams.setBuildConfiguration(buildConfig);
     setupParams.expandBuildConfiguration(settings.data());

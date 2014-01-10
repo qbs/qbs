@@ -26,49 +26,22 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
-
-#include "qbs_export.h"
-
-#include <QStringList>
-#include <QVariant>
-
-QT_BEGIN_NAMESPACE
-class QSettings;
-QT_END_NAMESPACE
-
-namespace qbs {
-
-class QBS_EXPORT Settings
+function args(product, input, outputFileName)
 {
-public:
-    Settings(const QString &organization, const QString &application);
-    ~Settings();
+    var defines = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'compilerDefines');
+    defines = defines.concat(ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'platformDefines'));
+    defines = defines.concat(ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
+    var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
+    var args = [];
+    args = args.concat(
+                defines.map(function(item) { return '-D' + item; }),
+                includePaths.map(function(item) { return '-I' + item; }),
+                '-o', outputFileName,
+                input.fileName);
+    return args;
+}
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group) const;
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
-    void clear();
-
-    QString defaultProfile() const;
-    QStringList profiles() const;
-
-    QString fileName() const;
-
-private:
-    QString internalRepresentation(const QString &externalKey) const;
-    QString externalRepresentation(const QString &internalKey) const;
-    void fixupKeys(QStringList &keys) const;
-    void checkStatus();
-
-    QSettings * const m_settings;
-};
-
-} // namespace qbs
-
-#endif // QBS_SETTINGS_H
+function fullPath(product)
+{
+    return ModUtils.moduleProperty(product, "binPath") + '/' + ModUtils.moduleProperty(product, "mocName");
+}

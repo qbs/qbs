@@ -15,6 +15,7 @@ Module {
     property string includeDirName: 'Qt' + qtModuleName
     property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix, Qt.core, qbs)
     property string qtVersion: Qt.core.version
+    property bool hasLibrary: true
 
     Properties {
         condition: qtModuleName != undefined
@@ -29,8 +30,10 @@ Module {
             return paths;
         }
 
-        cpp.dynamicLibraries: Qt.core.frameworkBuild ? undefined : [internalLibraryName]
-        cpp.frameworks: Qt.core.frameworkBuild ? [internalLibraryName] : undefined
-        cpp.defines: [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
+        cpp.dynamicLibraries: Qt.core.frameworkBuild || !hasLibrary
+                              ? undefined : [internalLibraryName]
+        cpp.frameworks: Qt.core.frameworkBuild && hasLibrary ? [internalLibraryName] : undefined
+        cpp.defines: qtModuleName.contains("private")
+                     ? [] : [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
     }
 }

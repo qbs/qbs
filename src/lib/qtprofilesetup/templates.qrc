@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>templates/core.qbs</file>
+        <file>templates/gui.qbs</file>
+        <file>templates/module.qbs</file>
+        <file>templates/QtModule.qbs</file>
+        <file>templates/moc.js</file>
+        <file>templates/qtfunctions.js</file>
+        <file>templates/utils.js</file>
+    </qresource>
+</RCC>

@@ -146,6 +146,11 @@ QStringList Settings::profiles() const
     return result;
 }
 
+QString Settings::fileName() const
+{
+    return m_settings->fileName();
+}
+
 QString Settings::internalRepresentation(const QString &externalKey) const
 {
     QString internalKey = externalKey;

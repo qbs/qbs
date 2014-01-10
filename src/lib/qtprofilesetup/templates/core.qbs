@@ -1,8 +1,8 @@
 import qbs 1.0
 import qbs.FileInfo
-import '../../utils.js' as ModUtils
 import "moc.js" as Moc
 import '../qtfunctions.js' as QtFunctions
+import '../utils.js' as ModUtils
 
 Module {
     id: qtcore

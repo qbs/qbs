@@ -162,37 +162,45 @@ static Version extractVersion(const QString &versionString)
     return v;
 }
 
+typedef QMap<QByteArray, QByteArray> QueryMap;
+
+static QString pathQueryValue(const QueryMap &queryMap, const QByteArray &key)
+{
+    return QDir::fromNativeSeparators(QString::fromLocal8Bit(queryMap.value(key)));
+}
+
 QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 {
     QtEnvironment qtEnvironment;
-    QMap<QByteArray, QByteArray> queryOutput = qmakeQueryOutput(qmakePath);
+    QueryMap queryOutput = qmakeQueryOutput(qmakePath);
 
-    qtEnvironment.installPrefixPath =
-            QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_PREFIX"));
-    qtEnvironment.documentationPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_DOCS"));
-    qtEnvironment.includePath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_HEADERS"));
-    qtEnvironment.libraryPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_LIBS"));
-    qtEnvironment.binaryPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_BINS"));
-    qtEnvironment.documentationPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_DOCS"));
-    qtEnvironment.pluginPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_PLUGINS"));
-    qtEnvironment.qmlImportPath = QString::fromLocal8Bit(queryOutput.value("QT_INSTALL_IMPORTS"));
+    qtEnvironment.installPrefixPath = pathQueryValue(queryOutput, "QT_INSTALL_PREFIX");
+    qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
+    qtEnvironment.includePath = pathQueryValue(queryOutput, "QT_INSTALL_HEADERS");
+    qtEnvironment.libraryPath = pathQueryValue(queryOutput, "QT_INSTALL_LIBS");
+    qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_INSTALL_BINS");
+    qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
+    qtEnvironment.pluginPath = pathQueryValue(queryOutput, "QT_INSTALL_PLUGINS");
+    qtEnvironment.qmlImportPath = pathQueryValue(queryOutput, "QT_INSTALL_IMPORTS");
     qtEnvironment.qtVersion = QString::fromLocal8Bit(queryOutput.value("QT_VERSION"));
 
     const Version qtVersion = extractVersion(qtEnvironment.qtVersion);
 
-    QByteArray mkspecsBasePath;
-    QByteArray mkspecsBaseSrcPath;
+    QString mkspecsBaseSrcPath;
     if (qtVersion.majorVersion >= 5) {
-        mkspecsBasePath = queryOutput.value("QT_HOST_DATA") + "/mkspecs";
-        mkspecsBaseSrcPath = queryOutput.value("QT_HOST_DATA/src") + "/mkspecs";
+        qtEnvironment.mkspecBasePath
+                = pathQueryValue(queryOutput, "QT_HOST_DATA") + QLatin1String("/mkspecs");
+        mkspecsBaseSrcPath
+                = pathQueryValue(queryOutput, "QT_HOST_DATA/src") + QLatin1String("/mkspecs");
     } else {
-        mkspecsBasePath = queryOutput.value("QT_INSTALL_DATA") + "/mkspecs";
+        qtEnvironment.mkspecBasePath
+                = pathQueryValue(queryOutput, "QT_INSTALL_DATA") + QLatin1String("/mkspecs");
     }
 
-    if (!QFile::exists(QString::fromLocal8Bit(mkspecsBasePath)))
+    if (!QFile::exists(qtEnvironment.mkspecBasePath))
         throw ErrorInfo(tr("Cannot extract the mkspecs directory."));
 
-    const QByteArray qconfigContent = readFileContent(QString::fromLocal8Bit(mkspecsBasePath)
+    const QByteArray qconfigContent = readFileContent(qtEnvironment.mkspecBasePath
                                                       + QLatin1String("/qconfig.pri"));
     qtEnvironment.qtMajorVersion = configVariable(qconfigContent,
                                                   QLatin1String("QT_MAJOR_VERSION")).toInt();
@@ -214,20 +222,18 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     if (qtVersion.majorVersion >= 5) {
         const QString mkspecName = QString::fromLocal8Bit(queryOutput.value("QMAKE_XSPEC"));
         qtEnvironment.mkspecName = mkspecName;
-        qtEnvironment.mkspecPath = QString::fromLocal8Bit(mkspecsBasePath)
-                + QLatin1Char('/') + mkspecName;
+        qtEnvironment.mkspecPath = qtEnvironment.mkspecBasePath + QLatin1Char('/') + mkspecName;
         if (!mkspecsBaseSrcPath.isEmpty() && !QFile::exists(qtEnvironment.mkspecPath))
-            qtEnvironment.mkspecPath = QString::fromLocal8Bit(mkspecsBaseSrcPath)
-                    + QLatin1Char('/') + mkspecName;
+            qtEnvironment.mkspecPath = mkspecsBaseSrcPath + QLatin1Char('/') + mkspecName;
     } else {
         if (HostOsInfo::isWindowsHost()) {
-            const QByteArray fileContent = readFileContent(QString::fromLocal8Bit(mkspecsBasePath)
+            const QByteArray fileContent = readFileContent(qtEnvironment.mkspecBasePath
                                                            + QLatin1String("/default/qmake.conf"));
             qtEnvironment.mkspecPath = configVariable(fileContent,
                                                       QLatin1String("QMAKESPEC_ORIGINAL"));
         } else {
-            qtEnvironment.mkspecPath = QFileInfo(QString::fromLocal8Bit(mkspecsBasePath)
-                                                 + QLatin1String("/default")).symLinkTarget();
+            qtEnvironment.mkspecPath
+                    = QFileInfo(qtEnvironment.mkspecBasePath + "/default").symLinkTarget();
         }
         qtEnvironment.mkspecName = qtEnvironment.mkspecPath;
         int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
@@ -286,7 +292,6 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
         throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
 
-    qtEnvironment.mkspecPath = QDir::toNativeSeparators(qtEnvironment.mkspecPath);
     return qtEnvironment;
 }
 

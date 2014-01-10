@@ -4,6 +4,7 @@ include(../corelib/use_corelib.pri)
 
 HEADERS = qtprofilesetup.h
 SOURCES = qtprofilesetup.cpp
+RESOURCES = templates.qrc
 
 !qbs_no_dev_install {
     header.files = qtprofilesetup.h

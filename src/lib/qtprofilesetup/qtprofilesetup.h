@@ -51,6 +51,7 @@ public:
     QString qtNameSpace;
     QString mkspecPath;
     QString mkspecName;
+    QString mkspecBasePath;
     QStringList buildVariant;
     QStringList configItems;
     QStringList qtConfigItems;

@@ -31,15 +31,204 @@
 
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QRegExp>
 #include <QTextStream>
 
 namespace qbs {
+
+struct QtModuleInfo
+{
+    QtModuleInfo(const QString &name, const QString &qbsName,
+                 const QStringList &deps = QStringList(), bool hasLib = true)
+        : name(name), qbsName(qbsName), dependencies(deps), hasLibrary(hasLib)
+    {
+        const QString coreModule = QLatin1String("core");
+        if (qbsName != coreModule && !dependencies.contains(coreModule))
+            dependencies.prepend(coreModule);
+    }
+
+    QtModuleInfo() : hasLibrary(true) {}
+
+    QString name; // As in the path to the headers and ".name" in the pri files.
+    QString qbsName; // Lower-case version without "qt" prefix.
+    QStringList dependencies; // qbs names.
+    QStringList includePaths;
+    bool hasLibrary;
+};
+
+static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
+                             const QString &profileName)
+{
+    if (!QDir::root().mkpath(targetDirectory)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
+                                         "Cannot create directory '%2'.")
+                        .arg(profileName, targetDirectory));
+    }
+    QFile sourceFile(QLatin1String(":/templates/") + fileName);
+    const QString targetPath = targetDirectory + QLatin1Char('/') + fileName;
+    QFile::remove(targetPath); // QFile::copy() cannot overwrite.
+    if (!sourceFile.copy(targetPath)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
+            "Cannot copy file '%2' into directory '%3' (%4).")
+                        .arg(profileName, fileName, targetDirectory, sourceFile.errorString()));
+    }
+    QFile targetFile(targetPath);
+    if (!targetFile.setPermissions(targetFile.permissions() | QFile::WriteUser)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot set write "
+                "permission on file '%2' (%3).")
+                .arg(profileName, targetPath, targetFile.errorString()));
+    }
+}
+
+static void replaceListPlaceholder(QByteArray &content, const QByteArray &placeHolder,
+                                   const QStringList &list)
+{
+    QByteArray listString;
+    foreach (const QString &elem, list)
+        listString += "'" + elem.toUtf8() + "', ";
+    content.replace(placeHolder, listString);
+}
+
+static void createModules(Profile &profile, Settings *settings,
+                               const QtEnvironment &qtEnvironment)
+{
+    QList<QtModuleInfo> modules;
+    if (qtEnvironment.qtMajorVersion < 5) {
+        modules // as per http://qt-project.org/doc/qt-4.8/modules.html
+                << QtModuleInfo(QLatin1String("QtCore"), QLatin1String("core"))
+                << QtModuleInfo(QLatin1String("QtGui"), QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtMultimedia"), QLatin1String("multimedia"),
+                                QStringList() << QLatin1String("gui") << QLatin1String("network"))
+                << QtModuleInfo(QLatin1String("QtNetwork"), QLatin1String("network"))
+                << QtModuleInfo(QLatin1String("QtOpenGL"), QLatin1String("opengl"),
+                                QStringList() << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtOpenVG"), QLatin1String("openvg"),
+                                QStringList() << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtScript"), QLatin1String("script"))
+                << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttols"),
+                                QStringList() << QLatin1String("script") << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtSql"), QLatin1String("sql"))
+                << QtModuleInfo(QLatin1String("QtSvg"), QLatin1String("svg"),
+                                QStringList() << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtWebKit"), QLatin1String("webkit"),
+                                QStringList() << QLatin1String("gui") << QLatin1String("network"))
+                << QtModuleInfo(QLatin1String("QtXml"), QLatin1String("xml"))
+                << QtModuleInfo(QLatin1String("QtXmlPatterns"), QLatin1String("xmlpatterns"),
+                                QStringList() << "network")
+                << QtModuleInfo(QLatin1String("QtDeclarative"), QLatin1String("qtdeclarative"),
+                                QStringList() << QLatin1String("gui") << QLatin1String("script"))
+                << QtModuleInfo(QLatin1String("Phonon"), QLatin1String("phonon"))
+                << QtModuleInfo(QLatin1String("QtDesigner"), QLatin1String("designer"),
+                                QStringList() << QLatin1String("gui") << QLatin1String("xml"))
+                << QtModuleInfo(QLatin1String("QtUiTools"), QLatin1String("uitools"))
+                << QtModuleInfo(QLatin1String("QtHelp"), QLatin1String("help"),
+                                QStringList() << QLatin1String("network") << QLatin1String("sql"))
+                << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib"))
+                << QtModuleInfo(QLatin1String("QAxContainer"), QLatin1String("axcontainer"))
+                << QtModuleInfo(QLatin1String("QAxServer"), QLatin1String("axserver"))
+                << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"));
+    } else {
+        QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
+        while (dit.hasNext()) {
+            const QString moduleFileNamePrefix = QLatin1String("qt_lib_");
+            const QString moduleFileNameSuffix = QLatin1String(".pri");
+            dit.next();
+            if (!dit.fileName().startsWith(moduleFileNamePrefix)
+                    || !dit.fileName().endsWith(moduleFileNameSuffix)) {
+                continue;
+            }
+            QtModuleInfo moduleInfo;
+            moduleInfo.qbsName = dit.fileName().mid(moduleFileNamePrefix.count(),
+                    dit.fileName().count() - moduleFileNamePrefix.count()
+                    - moduleFileNameSuffix.count());
+            moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
+            QFile priFile(dit.filePath());
+            if (!priFile.open(QIODevice::ReadOnly)) {
+                throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
+                        "file '%1' (%2).").arg(priFile.fileName(), priFile.errorString()));
+            }
+            const QByteArray priFileContents = priFile.readAll();
+            foreach (const QByteArray &line, priFileContents.split('\n')) {
+                const QByteArray simplifiedLine = line.simplified();
+                const QList<QByteArray> parts = simplifiedLine.split('=');
+                if (parts.count() != 2)
+                    continue;
+                const QByteArray key = parts.first().simplified();
+                const QByteArray value = parts.last().simplified();
+                if (key.endsWith(".name")) {
+                    moduleInfo.name = QString::fromLocal8Bit(value);
+                } else if (key.endsWith(".depends")) {
+                    moduleInfo.dependencies = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
+                    for (int i = 0; i < moduleInfo.dependencies.count(); ++i) {
+                        moduleInfo.dependencies[i].replace(QLatin1String("_private"),
+                                                           QLatin1String("-private"));
+                    }
+                } else if (key.endsWith(".module_config") && value.contains("no_link")) {
+                    moduleInfo.hasLibrary = false;
+                } else if (key.endsWith(".includes")) {
+                    moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
+                    for (int i = 0; i < moduleInfo.includePaths.count(); ++i) {
+                        moduleInfo.includePaths[i].replace(
+                                    QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
+                                    qtEnvironment.includePath);
+                    }
+                }
+            }
+            modules << moduleInfo;
+        }
+    }
+
+    const QString profileBaseDir = QString::fromLocal8Bit("%1/qbs/profiles/%2")
+            .arg(QFileInfo(settings->fileName()).dir().absolutePath(), profile.name());
+    const QString qbsQtModuleBaseDir = profileBaseDir + QLatin1String("/modules/Qt");
+    QString removeError;
+    if (!qbs::Internal::removeDirectoryWithContents(qbsQtModuleBaseDir, &removeError)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Could not remove "
+                "the existing profile of the same name (%2).").arg(removeError));
+    }
+    copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile.name());
+    copyTemplateFile(QLatin1String("qtfunctions.js"), qbsQtModuleBaseDir, profile.name());
+    copyTemplateFile(QLatin1String("utils.js"), qbsQtModuleBaseDir, profile.name());
+    foreach (const QtModuleInfo &module, modules) {
+        const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
+        if (module.qbsName == QLatin1String("core")) {
+            copyTemplateFile(QLatin1String("core.qbs"), qbsQtModuleDir, profile.name());
+            copyTemplateFile(QLatin1String("moc.js"), qbsQtModuleDir, profile.name());
+        } else if (module.qbsName == QLatin1String("gui")) {
+            copyTemplateFile(QLatin1String("gui.qbs"), qbsQtModuleDir, profile.name());
+        } else {
+            copyTemplateFile(QLatin1String("module.qbs"), qbsQtModuleDir, profile.name());
+            QFile moduleFile(qbsQtModuleDir + QLatin1String("/module.qbs"));
+            if (!moduleFile.open(QIODevice::ReadWrite)) {
+                throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot adapt "
+                        "module file '%2' (%3).")
+                        .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
+            }
+            QByteArray content = moduleFile.readAll();
+            content.replace("### name", '"' + module.name.mid(2).toUtf8() + '"'); // Strip off "Qt".
+            content.replace("### has library", module.hasLibrary ? "true" : "false");
+            replaceListPlaceholder(content, "### dependencies", module.dependencies);
+            replaceListPlaceholder(content, "### includes", module.includePaths);
+            QByteArray propertiesString;
+            if (module.qbsName == QLatin1String("declarative")
+                    || module.qbsName == QLatin1String("quick")) {
+                propertiesString = "property bool qmlDebugging: false";
+            }
+            content.replace("### special properties", propertiesString);
+            moduleFile.resize(0);
+            moduleFile.write(content);
+        }
+    }
+    profile.setValue(QLatin1String("preferences.qbsSearchPaths"), profileBaseDir);
+}
 
 static QString guessMinimumWindowsVersion(const QtEnvironment &qt)
 {
@@ -156,6 +345,11 @@ ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
     if (!androidVersion.isEmpty())
         profile.setValue(QLatin1String("cpp.minimumAndroidVersion"), androidVersion);
 
+    try {
+        createModules(profile, settings, qtEnvironment);
+    } catch (const ErrorInfo &e) {
+        return e;
+    }
     return ErrorInfo();
 }
 
