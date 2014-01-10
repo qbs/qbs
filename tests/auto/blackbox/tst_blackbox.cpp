@@ -252,7 +252,8 @@ void TestBlackbox::build_project()
     QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
     QVERIFY(QFile::exists(buildGraphPath));
     QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
-    QCOMPARE(runQbs(), 0);
+    waitForNewTimestamp();
+    QCOMPARE(runQbs(QbsRunParameters("--check-timestamps")), 0);
     QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
     QVERIFY(QFile::exists(buildGraphPath));
 }

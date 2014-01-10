@@ -234,13 +234,8 @@ void Executor::doBuild()
     // find the root nodes
     m_roots.clear();
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (Artifact *targetArtifact, product->buildData->targetArtifacts) {
+        foreach (Artifact *targetArtifact, product->buildData->targetArtifacts)
             m_roots += targetArtifact;
-
-            // The user expects that he can delete target artifacts and they get rebuilt.
-            // To achieve this we must retrieve their timestamps.
-            targetArtifact->setTimestamp(FileInfo(targetArtifact->filePath()).lastModified());
-        }
     }
 
     prepareReachableArtifacts(initialBuildState);
@@ -362,14 +357,24 @@ bool Executor::isUpToDate(Artifact *artifact) const
 
 bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 {
-    foreach (Artifact *artifact, transformer->outputs)
-        if (artifact->alwaysUpdated)
-            return !isUpToDate(artifact);
+    bool hasAlwaysUpdatedArtifacts = false;
+    foreach (Artifact *artifact, transformer->outputs) {
+        if (!artifact->alwaysUpdated)
+            continue;
+        hasAlwaysUpdatedArtifacts = true;
+        const bool upToDate = isUpToDate(artifact);
 
-    // All outputs of the transformer have alwaysUpdated == false.
-    // We need at least on output that is always updated.
-    QBS_CHECK(false);
-    return true;
+        // The invariant is that all output artifacts of a transformer have the same
+        // "virtual" timestamp. However, if the user requested that on-disk timestamps be evaluated,
+        // they can differ and the oldest output file of the transformer decides.
+        if (!upToDate || !m_buildOptions.forceTimestampCheck())
+            return !upToDate;
+    }
+
+    // We need at least one output that is always updated.
+    QBS_CHECK(hasAlwaysUpdatedArtifacts);
+
+    return false;
 }
 
 void Executor::buildArtifact(Artifact *artifact)
