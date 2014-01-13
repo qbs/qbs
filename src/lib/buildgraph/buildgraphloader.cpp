@@ -778,12 +778,12 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         artifact->setTimestamp(oldArtifact->timestamp());
 
         foreach (Artifact * const oldChild, childLists.value(oldArtifact)) {
-            foreach (FileResourceBase *childFileRes,
-                     newlyResolvedProduct->topLevelProject()->buildData->lookupFiles(oldChild)) {
-                Artifact * const child = dynamic_cast<Artifact *>(childFileRes);
-                if (child && !artifact->children.contains(child))
-                    safeConnect(artifact, child, m_logger);
-            }
+            Artifact * const newChild = lookupArtifact(oldChild->product,
+                    newlyResolvedProduct->topLevelProject()->buildData.data(),
+                    oldChild->filePath(), true);
+            if (!newChild || artifact->children.contains(newChild))
+                    continue;
+            safeConnect(artifact, newChild, m_logger);
         }
     }
 }
