@@ -294,14 +294,19 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
 
     // (2)
     const Profile profile(profileName, settings);
-    const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive);
+    const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);
+    if (err.hasError())
+        return err;
     if (profileKeys.isEmpty()) {
         err.append(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
         return err;
     }
     foreach (const QString &profileKey, profileKeys) {
-        if (!expandedConfig.contains(profileKey))
-            expandedConfig.insert(profileKey, profile.value(profileKey));
+        if (!expandedConfig.contains(profileKey)) {
+            expandedConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
+            if (err.hasError())
+                return err;
+        }
     }
 
     if (d->buildConfiguration != expandedConfig) {

@@ -65,9 +65,15 @@ bool Profile::exists() const
 /*!
  * \brief Returns the value for property \c key in this profile.
  */
-QVariant Profile::value(const QString &key, const QVariant &defaultValue) const
+QVariant Profile::value(const QString &key, const QVariant &defaultValue, ErrorInfo *error) const
 {
-    return possiblyInheritedValue(key, defaultValue, QStringList());
+    try {
+        return possiblyInheritedValue(key, defaultValue, QStringList());
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return QVariant();
+    }
 }
 
 /*!
@@ -103,9 +109,15 @@ QString Profile::name() const
  * If and only if selection is Profile::KeySelectionRecursive, this will also list keys defined
  * in base profiles.
  */
-QStringList Profile::allKeys(KeySelection selection) const
+QStringList Profile::allKeys(KeySelection selection, ErrorInfo *error) const
 {
-    return allKeysInternal(selection, QStringList());
+    try {
+        return allKeysInternal(selection, QStringList());
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return QStringList();
+    }
 }
 
 /*!

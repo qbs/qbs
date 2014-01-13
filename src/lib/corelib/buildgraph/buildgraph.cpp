@@ -453,10 +453,21 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
 
         QBS_CHECK(transformer);
         QBS_CHECK(transformer->outputs.contains(artifact));
+        logger.qbsDebug() << "The transformer has " << transformer->outputs.count()
+                          << " outputs.";
         ArtifactList transformerOutputChildren;
         foreach (const Artifact * const output, transformer->outputs) {
             QBS_CHECK(output->transformer == transformer);
             transformerOutputChildren.unite(output->children);
+            QSet<QString> childFilePaths;
+            foreach (const Artifact * const a, output->children) {
+                if (childFilePaths.contains(a->filePath())) {
+                    throw ErrorInfo(QString::fromLocal8Bit("There is more than one artifact for "
+                        "file '%1' in the child list for output '%2'.")
+                        .arg(a->filePath(), output->filePath()), CodeLocation(), true);
+                }
+                childFilePaths << a->filePath();
+            }
         }
         if (logger.traceEnabled()) {
             logger.qbsTrace() << "The transformer output children are:";

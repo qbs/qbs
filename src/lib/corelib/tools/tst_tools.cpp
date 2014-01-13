@@ -83,67 +83,42 @@ void TestTools::fileCaseCheck()
 
 void TestTools::testProfiles()
 {
-    bool exceptionCaught;
     Profile parentProfile("parent", m_settings);
     Profile childProfile("child", m_settings);
-    try {
-        parentProfile.removeBaseProfile();
-        parentProfile.remove("testKey");
-        QCOMPARE(parentProfile.value("testKey", "none").toString(), QLatin1String("none"));
-        parentProfile.setValue("testKey", "testValue");
-        QCOMPARE(parentProfile.value("testKey").toString(), QLatin1String("testValue"));
+    parentProfile.removeBaseProfile();
+    parentProfile.remove("testKey");
+    QCOMPARE(parentProfile.value("testKey", "none").toString(), QLatin1String("none"));
+    parentProfile.setValue("testKey", "testValue");
+    QCOMPARE(parentProfile.value("testKey").toString(), QLatin1String("testValue"));
 
-        childProfile.remove("testKey");
-        childProfile.removeBaseProfile();
-        QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
-        childProfile.setBaseProfile("parent");
-        QCOMPARE(childProfile.value("testKey").toString(), QLatin1String("testValue"));
+    childProfile.remove("testKey");
+    childProfile.removeBaseProfile();
+    QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("none"));
+    childProfile.setBaseProfile("parent");
+    QCOMPARE(childProfile.value("testKey").toString(), QLatin1String("testValue"));
 
-        // Change base profile and check if the inherited value also changes.
-        Profile fooProfile("foo", m_settings);
-        fooProfile.setValue("testKey", "gnampf");
-        childProfile.setBaseProfile("foo");
-        QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("gnampf"));
-        exceptionCaught = false;
-    } catch (ErrorInfo &) {
-        exceptionCaught = true;
-    }
-    QVERIFY(!exceptionCaught);
+    // Change base profile and check if the inherited value also changes.
+    Profile fooProfile("foo", m_settings);
+    fooProfile.setValue("testKey", "gnampf");
+    childProfile.setBaseProfile("foo");
+    QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("gnampf"));
 
-    try {
-        childProfile.setBaseProfile("SmurfAlongWithMe");
-        childProfile.value("blubb");
-        exceptionCaught = false;
-    } catch (ErrorInfo &) {
-        exceptionCaught = true;
-    }
-    QVERIFY(exceptionCaught);
+    ErrorInfo errorInfo;
+    childProfile.setBaseProfile("SmurfAlongWithMe");
+    childProfile.value("blubb", QString(), &errorInfo);
+    QVERIFY(errorInfo.hasError());
 
-    try {
-        childProfile.setBaseProfile("parent");
-        parentProfile.setBaseProfile("child");
-        QVERIFY(!childProfile.value("blubb").isValid());
-        exceptionCaught = false;
-    } catch (ErrorInfo &) {
-        exceptionCaught = true;
-    }
-    QVERIFY(exceptionCaught);
+    errorInfo.clear();
+    childProfile.setBaseProfile("parent");
+    parentProfile.setBaseProfile("child");
+    QVERIFY(!childProfile.value("blubb", QString(), &errorInfo).isValid());
+    QVERIFY(errorInfo.hasError());
 
-    try {
-        QVERIFY(!childProfile.allKeys(Profile::KeySelectionNonRecursive).isEmpty());
-        exceptionCaught = false;
-    } catch (ErrorInfo &) {
-        exceptionCaught = true;
-    }
-    QVERIFY(!exceptionCaught);
+    QVERIFY(!childProfile.allKeys(Profile::KeySelectionNonRecursive).isEmpty());
 
-    try {
-        QVERIFY(!childProfile.allKeys(Profile::KeySelectionRecursive).isEmpty());
-        exceptionCaught = false;
-    } catch (ErrorInfo &) {
-        exceptionCaught = true;
-    }
-    QVERIFY(exceptionCaught);
+    errorInfo.clear();
+    QVERIFY(childProfile.allKeys(Profile::KeySelectionRecursive, &errorInfo).isEmpty());
+    QVERIFY(errorInfo.hasError());
 }
 
 void TestTools::testBuildConfigMerging()
