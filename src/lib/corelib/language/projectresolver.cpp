@@ -566,7 +566,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
                            "must have alwaysUpdated set to true."),
                     item->location());
 
-    rule->script = scriptFunctionValue(item, QLatin1String("prepare"));
+    rule->prepareScript = scriptFunctionValue(item, QLatin1String("prepare"));
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, "inputs");
     rule->usings = m_evaluator->fileTagsValue(item, "usings");

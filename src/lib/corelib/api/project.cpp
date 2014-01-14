@@ -554,7 +554,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
         foreach (const GroupPtr &group, product->groups)
             updateLocationIfNecessary(group->location, changeLocation, lineOffset);
         foreach (const RulePtr &rule, product->rules) {
-            updateLocationIfNecessary(rule->script->location, changeLocation, lineOffset);
+            updateLocationIfNecessary(rule->prepareScript->location, changeLocation, lineOffset);
             foreach (const RuleArtifactPtr &artifact, rule->artifacts) {
                 for (int i = 0; i < artifact->bindings.count(); ++i) {
                     updateLocationIfNecessary(artifact->bindings[i].location, changeLocation,

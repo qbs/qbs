@@ -338,7 +338,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         ResolvedModulePtr module = ResolvedModule::create();
         module->name = rtrafo->module->name;
         rule->module = module;
-        rule->script = rtrafo->transform;
+        rule->prepareScript = rtrafo->transform;
         foreach (const SourceArtifactConstPtr &sourceArtifact, rtrafo->outputs) {
             Artifact *outputArtifact = createArtifact(product, sourceArtifact, m_logger);
             outputArtifact->artifactType = Artifact::Generated;
@@ -358,7 +358,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         transformer->rule = rule;
 
         RulesEvaluationContext::Scope s(evalContext().data());
-        setupScriptEngineForFile(engine(), transformer->rule->script->fileContext, scope());
+        setupScriptEngineForFile(engine(), transformer->rule->prepareScript->fileContext, scope());
         QScriptValue prepareScriptContext = engine()->newObject();
         PrepareScriptObserver observer(engine());
         setupScriptEngineForProduct(engine(), product, transformer->rule, prepareScriptContext,
@@ -366,7 +366,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         transformer->setupInputs(engine(), prepareScriptContext);
         transformer->setupOutputs(engine(), prepareScriptContext);
         transformer->createCommands(rtrafo->transform, evalContext(),
-                ScriptEngine::argumentList(transformer->rule->script->argumentNames,
+                ScriptEngine::argumentList(transformer->rule->prepareScript->argumentNames,
                                            prepareScriptContext));
         if (Q_UNLIKELY(transformer->commands.isEmpty()))
             throw ErrorInfo(QString("There's a transformer without commands."), rtrafo->transform->location);

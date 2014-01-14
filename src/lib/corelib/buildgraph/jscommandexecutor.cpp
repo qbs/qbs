@@ -81,7 +81,7 @@ public slots:
         ScriptEngine * const scriptEngine = provideScriptEngine();
         QScriptValue scope = scriptEngine->newObject();
         PrepareScriptObserver observer(scriptEngine);
-        setupScriptEngineForFile(scriptEngine, transformer->rule->script->fileContext, scope);
+        setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope);
         setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule, scope,
                                     &observer);
         transformer->setupInputs(scriptEngine, scope);

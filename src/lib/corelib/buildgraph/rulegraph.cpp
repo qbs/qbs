@@ -152,7 +152,7 @@ QList<RuleConstPtr> RuleGraph::topSort(const RuleConstPtr &rule, QSet<const Rule
         QString pathstr;
         foreach (const Rule *r, *rulePath) {
             pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
-                    + r->script->location.toString();
+                    + r->prepareScript->location.toString();
         }
         throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
     }

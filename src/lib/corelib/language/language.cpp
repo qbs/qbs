@@ -370,7 +370,7 @@ FileTags Rule::outputFileTags() const
 
 void Rule::load(PersistentPool &pool)
 {
-    script = pool.idLoadS<ScriptFunction>();
+    prepareScript = pool.idLoadS<ScriptFunction>();
     module = pool.idLoadS<ResolvedModule>();
     pool.stream()
         >> inputs
@@ -384,7 +384,7 @@ void Rule::load(PersistentPool &pool)
 
 void Rule::store(PersistentPool &pool) const
 {
-    pool.store(script);
+    pool.store(prepareScript);
     pool.store(module);
     pool.stream()
         << inputs
@@ -1079,7 +1079,7 @@ bool operator==(const Rule &r1, const Rule &r2)
     }
 
     return r1.module->name == r2.module->name
-            && r1.script->sourceCode == r2.script->sourceCode
+            && r1.prepareScript->sourceCode == r2.prepareScript->sourceCode
             && r1.inputs == r2.inputs
             && r1.auxiliaryInputs == r2.auxiliaryInputs
             && r1.usings == r2.usings

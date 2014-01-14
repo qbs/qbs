@@ -69,7 +69,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     m_rule = rule;
     QScriptValue prepareScriptContext = engine()->newObject();
     PrepareScriptObserver observer(engine());
-    setupScriptEngineForFile(engine(), m_rule->script->fileContext, scope());
+    setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
     setupScriptEngineForProduct(engine(), m_product, m_rule, prepareScriptContext, &observer);
 
     ArtifactList inputArtifacts;
@@ -193,10 +193,10 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
         engine()->currentContext()->popScope();
 
     m_transformer->setupOutputs(engine(), prepareScriptContext);
-    m_transformer->createCommands(m_rule->script, evalContext(),
-            ScriptEngine::argumentList(m_rule->script->argumentNames, prepareScriptContext));
+    m_transformer->createCommands(m_rule->prepareScript, evalContext(),
+            ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
-        throw ErrorInfo(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->script->location);
+        throw ErrorInfo(QString("There's a rule without commands: %1.").arg(m_rule->toString()), m_rule->prepareScript->location);
 }
 
 void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
@@ -258,15 +258,15 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
                    + "] -> [" + outputArtifact->fileTags.toStringList().join(", ") + "]";
 
                 e += QString("  while trying to apply:   %1:%2:%3  %4\n")
-                    .arg(m_rule->script->location.fileName())
-                    .arg(m_rule->script->location.line())
-                    .arg(m_rule->script->location.column())
+                    .arg(m_rule->prepareScript->location.fileName())
+                    .arg(m_rule->prepareScript->location.line())
+                    .arg(m_rule->prepareScript->location.column())
                     .arg(th);
 
                 e += QString("  was already defined in:  %1:%2:%3  %4\n")
-                    .arg(outputArtifact->transformer->rule->script->location.fileName())
-                    .arg(outputArtifact->transformer->rule->script->location.line())
-                    .arg(outputArtifact->transformer->rule->script->location.column())
+                    .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
+                    .arg(outputArtifact->transformer->rule->prepareScript->location.line())
+                    .arg(outputArtifact->transformer->rule->prepareScript->location.column())
                     .arg(th);
 
                 QStringList inputFilePaths;

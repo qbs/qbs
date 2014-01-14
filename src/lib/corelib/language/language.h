@@ -279,7 +279,7 @@ public:
     static RulePtr create() { return RulePtr(new Rule); }
 
     ResolvedModuleConstPtr module;
-    ScriptFunctionPtr script;
+    ScriptFunctionPtr prepareScript;
     FileTags inputs;
     FileTags auxiliaryInputs;
     FileTags usings;
