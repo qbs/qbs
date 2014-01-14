@@ -94,8 +94,6 @@ private:
                           bool removeArtifactsFromDisk = true);
     void onProductFileListChanged(const ResolvedProductPtr &restoredProduct,
             const ResolvedProductPtr &newlyResolvedProduct, const ProjectBuildData *oldBuildData);
-    void removeArtifactAndExclusiveDependents(Artifact *artifact,
-            ArtifactList *removedArtifacts = 0);
     bool checkForPropertyChanges(const TransformerPtr &restoredTrafo,
             const ResolvedProductPtr &freshProduct);
     bool checkForPropertyChange(const Property &restoredProperty,
