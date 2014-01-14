@@ -181,6 +181,8 @@ Module {
     property string signingIdentity
     property string provisionFile
 
+    property bool allowUnresolvedSymbols: false
+
     FileTagger {
         patterns: ["*.c"]
         fileTags: ["c"]

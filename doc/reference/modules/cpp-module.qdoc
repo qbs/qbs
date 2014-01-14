@@ -40,6 +40,17 @@
 
     \section1 General Properties
 
+    \section2 allowUnresolvedSymbols
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Switch this on if you want the linking step to succeed even if the resulting binary contains
+    unresolved symbols. Normally this makes little sense, but in special cases it is possible that
+    the respective symbols will be available at load time even if they are not present during
+    linking.
 
     \section2 architecture
 

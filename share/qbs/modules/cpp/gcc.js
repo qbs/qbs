@@ -66,6 +66,23 @@ function linkerFlags(product, inputs)
             args = args.concat(['-weak_framework', weakFrameworks[i]]);
     }
 
+    var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
+    var unresolvedSymbolsAction = isDarwin ? "error" : "report-all";
+    if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
+        unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
+    var unresolvedSymbolsKey = isDarwin ? "-undefined," : "--unresolved-symbols=";
+    args.push("-Wl," + unresolvedSymbolsKey + unresolvedSymbolsAction);
+
+    if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
+        var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
+                                                                   inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
+        var uniqueSOs = ModUtils.uniqueConcat([], transitiveSOs)
+        for (i in uniqueSOs) {
+            // The real library is located one level up.
+            args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));
+        }
+    }
+
     return args;
 }
 
@@ -117,7 +134,6 @@ function configFlags(config) {
     }
     if (ModUtils.moduleProperty(config, "treatWarningsAsErrors"))
         args.push('-Werror');
-
     return args;
 }
 

@@ -122,8 +122,6 @@ CppModule {
                 args = args.concat([
                     '-Wl,--hash-style=gnu',
                     '-Wl,--as-needed',
-                    '-Wl,--allow-shlib-undefined',
-                    '-Wl,--no-undefined',
                     '-Wl,-soname=' + Gcc.soname(product, libFilePath)
                 ]);
             } else if (product.moduleProperty("qbs", "targetOS").contains('darwin')) {
@@ -307,16 +305,6 @@ CppModule {
 
             if (inputs.infoplist) {
                 args = args.concat(["-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].fileName]);
-            }
-
-            if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
-                var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
-                        inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
-                var uniqueSOs = ModUtils.uniqueConcat([], transitiveSOs)
-                for (i in uniqueSOs) {
-                    // The real library is located one level up.
-                    args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));
-                }
             }
 
             args = args.concat(Gcc.linkerFlags(product, inputs));

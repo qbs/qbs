@@ -195,6 +195,8 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
     args = args.concat(linkerFlags);
+    if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
+        args.push("/FORCE:UNRESOLVED");
 
     var commands = [];
     var cmd = new Command(product.moduleProperty("cpp", "linkerPath"), args)
