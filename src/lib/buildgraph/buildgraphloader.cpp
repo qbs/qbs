@@ -552,7 +552,7 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             continue;
         }
 
-        // TODO: overrideFileTags and properties have to be checked for changes as well.
+        // TODO: overrideFileTags has to be checked for changes as well.
         if (changedArtifact->fileTags != a->fileTags) {
             // artifact's filetags have changed
             m_logger.qbsDebug() << "[BG] filetags have changed for artifact '"
@@ -578,6 +578,16 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
                     }
                 }
             }
+        }
+
+        if (changedArtifact->properties->value() != a->properties->value()) {
+            m_logger.qbsDebug() << "[BG] properties have changed for artifact '"
+                                << a->absoluteFilePath << "'";
+            Artifact * const oldArtifact
+                    = lookupArtifact(restoredProduct, oldBuildData, a->absoluteFilePath, true);
+            QBS_CHECK(oldArtifact);
+            removeArtifactAndExclusiveDependents(oldArtifact, &artifactsToRemove);
+            addedArtifacts += createArtifact(newlyResolvedProduct, changedArtifact, m_logger);
         }
     }
 

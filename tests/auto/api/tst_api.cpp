@@ -129,7 +129,7 @@ void TestApi::installableFiles()
     installOptions.setInstallRoot(QLatin1String("/tmp"));
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, installOptions);
-    QCOMPARE(installableFiles.count(), 1);
+    QCOMPARE(installableFiles.count(), 2);
     qbs::InstallableFile const application = installableFiles.first();
     QVERIFY(application.isExecutable());
     QString expectedTargetFilePath

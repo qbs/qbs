@@ -698,7 +698,7 @@ void TestBlackbox::trackExternalProductChanges()
     QFile jsFile("fileList.js");
     QVERIFY(jsFile.open(QIODevice::ReadWrite));
     QByteArray jsCode = jsFile.readAll();
-    jsCode.replace("[]", "['jsFileChange.cpp']");
+    jsCode.replace("return []", "return ['jsFileChange.cpp']");
     jsFile.resize(0);
     jsFile.write(jsCode);
     jsFile.close();
@@ -1201,7 +1201,10 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
+
+    // Not actually necessary, but qbs cannot know that, since a property change is potentially
+    // relevant to all rules.
+    QVERIFY(m_qbsStdout.contains("Making output from input"));
 
     // Incremental build, non-essential dependency removed.
     waitForNewTimestamp();
@@ -1482,6 +1485,7 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters(QStringList("install") << "--remove-first")), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
+    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
     QVERIFY(!addedFile.exists());
 
     // Check whether changing install parameters on the product causes re-installation.
@@ -1496,16 +1500,26 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
+    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
     content.replace("qbs.installDir: \"bin\"", "qbs.installDir: 'custom'");
     waitForNewTimestamp();
     projectFile.resize(0);
     projectFile.write(content);
-    projectFile.close();
+    QVERIFY(projectFile.flush());
     QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
+
+    // Check whether changing install parameters on a source file causes re-installation.
+    content.replace("qbs.installDir: \"src\"", "qbs.installDir: 'source'");
+    waitForNewTimestamp();
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("install"))), 0);
+    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
     rmDirR(buildDir);
     QbsRunParameters params;

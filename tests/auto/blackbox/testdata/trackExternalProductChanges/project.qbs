@@ -3,8 +3,5 @@ import qbs.File
 import "fileList.js" as FileList
 
 CppApplication {
-    property pathList filesFromEnv: qbs.getenv("QBS_TEST_PULL_IN_FILE_VIA_ENV") ? ["environmentChange.cpp"] : []
-    property pathList filesFromJs: FileList.fileList()
-    property pathList filesFromFs: File.exists(path + "/fileExists.cpp") ? ["fileExists.cpp"] : []
-    files: ["main.cpp"].concat(filesFromJs).concat(filesFromEnv).concat(filesFromFs)
+    files: ["main.cpp"].concat(FileList.fileList()).concat(FileList.filesFromEnv(qbs)).concat(FileList.filesFromFs(qbs))
 }

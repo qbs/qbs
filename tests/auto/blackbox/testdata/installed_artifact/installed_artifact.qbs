@@ -4,7 +4,11 @@ Application {
     name: "installedApp"
     type: "application"
     Depends { name: "cpp" }
-    files: "main.cpp"
+    Group {
+        files: "main.cpp"
+        qbs.install: true
+        qbs.installDir: "src"
+    }
     qbs.installPrefix: "/usr"
     Group {
         fileTagsFilter: "application"
