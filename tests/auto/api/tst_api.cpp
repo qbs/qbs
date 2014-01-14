@@ -130,12 +130,16 @@ void TestApi::installableFiles()
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, installOptions);
     QCOMPARE(installableFiles.count(), 2);
-    qbs::InstallableFile const application = installableFiles.first();
-    QVERIFY(application.isExecutable());
-    QString expectedTargetFilePath
-            = qbs::Internal::HostOsInfo::appendExecutableSuffix(QLatin1String("/tmp/usr/bin/installedApp"));
-    QCOMPARE(application.targetFilePath(), expectedTargetFilePath);
-    QCOMPARE(project.targetExecutable(product, installOptions), expectedTargetFilePath);
+    foreach (const qbs::InstallableFile &f,installableFiles) {
+        if (!f.sourceFilePath().endsWith("main.cpp")) {
+            QVERIFY(f.isExecutable());
+            QString expectedTargetFilePath = qbs::Internal::HostOsInfo
+                    ::appendExecutableSuffix(QLatin1String("/tmp/usr/bin/installedApp"));
+            QCOMPARE(f.targetFilePath(), expectedTargetFilePath);
+            QCOMPARE(project.targetExecutable(product, installOptions), expectedTargetFilePath);
+            break;
+        }
+    }
 
     setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata"
         "/recursive_wildcards/recursive_wildcards.qbs")));
