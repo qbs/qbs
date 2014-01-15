@@ -588,7 +588,7 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             continue;
         }
 
-        // TODO: overrideFileTags and properties have to be checked for changes as well.
+        // TODO: overrideFileTags has to be checked for changes as well.
         if (changedArtifact->fileTags != a->fileTags) {
             // artifact's filetags have changed
             m_logger.qbsDebug() << "[BG] filetags have changed for artifact '"
@@ -616,6 +616,18 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
                     }
                 }
             }
+        }
+
+        if (changedArtifact->properties->value() != a->properties->value()) {
+            m_logger.qbsDebug() << "[BG] properties have changed for artifact '"
+                                << a->absoluteFilePath << "'";
+            Artifact * const oldArtifact
+                    = lookupArtifact(restoredProduct, oldBuildData, a->absoluteFilePath, true);
+            QBS_CHECK(oldArtifact);
+            newlyResolvedProduct->topLevelProject()->buildData
+                ->removeArtifactAndExclusiveDependents(oldArtifact, m_logger, true,
+                                                       &artifactsToRemove);
+            addedArtifacts += createArtifact(newlyResolvedProduct, changedArtifact, m_logger);
         }
     }
 
@@ -797,12 +809,12 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         artifact->setTimestamp(oldArtifact->timestamp());
 
         foreach (Artifact * const oldChild, childLists.value(oldArtifact)) {
-            foreach (FileResourceBase *childFileRes,
-                     newlyResolvedProduct->topLevelProject()->buildData->lookupFiles(oldChild)) {
-                Artifact * const child = dynamic_cast<Artifact *>(childFileRes);
-                if (child && !artifact->children.contains(child))
-                    safeConnect(artifact, child, m_logger);
-            }
+            Artifact * const newChild = lookupArtifact(oldChild->product,
+                    newlyResolvedProduct->topLevelProject()->buildData.data(),
+                    oldChild->filePath(), true);
+            if (!newChild || artifact->children.contains(newChild))
+                    continue;
+            safeConnect(artifact, newChild, m_logger);
         }
     }
 }

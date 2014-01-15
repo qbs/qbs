@@ -378,15 +378,21 @@ void TestBlackbox::clean()
     const QString appObjectFilePath = buildDir + "/.obj/app/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
     const QString appExeFilePath = buildDir + "/app" + QTC_HOST_EXE_SUFFIX;
     const QString depObjectFilePath = buildDir + "/.obj/dep/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString depLibBase = buildDir + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep"
-            + QTC_HOST_DYNAMICLIB_SUFFIX;
+    const QString depLibBase = buildDir + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
-    if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
-        depLibFilePath = depLibBase + ".1.1.0";
-        symlinks << depLibBase + ".1.1" << depLibBase + ".1" << depLibBase;
+    if (qbs::Internal::HostOsInfo::isOsxHost()) {
+        depLibFilePath = depLibBase + ".1.1.0" + QTC_HOST_DYNAMICLIB_SUFFIX;
+        symlinks << depLibBase + ".1.1" + QTC_HOST_DYNAMICLIB_SUFFIX
+                 << depLibBase + ".1"  + QTC_HOST_DYNAMICLIB_SUFFIX
+                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+    } else if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
+        depLibFilePath = depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
+        symlinks << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1.1"
+                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1"
+                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
     } else {
-        depLibFilePath = depLibBase;
+        depLibFilePath = depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
     }
 
     QDir::setCurrent(testDataDir + "/clean");
@@ -710,7 +716,7 @@ void TestBlackbox::trackExternalProductChanges()
     QFile jsFile("fileList.js");
     QVERIFY(jsFile.open(QIODevice::ReadWrite));
     QByteArray jsCode = jsFile.readAll();
-    jsCode.replace("[]", "['jsFileChange.cpp']");
+    jsCode.replace("return []", "return ['jsFileChange.cpp']");
     jsFile.resize(0);
     jsFile.write(jsCode);
     jsFile.close();
@@ -1213,7 +1219,10 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
+
+    // Not actually necessary, but qbs cannot know that, since a property change is potentially
+    // relevant to all rules.
+    QVERIFY(m_qbsStdout.contains("Making output from input"));
 
     // Incremental build, non-essential dependency removed.
     waitForNewTimestamp();
@@ -1532,6 +1541,7 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
+    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
     QVERIFY(!addedFile.exists());
 
     // Check whether changing install parameters on the product causes re-installation.
@@ -1546,16 +1556,26 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
+    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
     content.replace("qbs.installDir: \"bin\"", "qbs.installDir: 'custom'");
     waitForNewTimestamp();
     projectFile.resize(0);
     projectFile.write(content);
-    projectFile.close();
+    QVERIFY(projectFile.flush());
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
     QVERIFY(QFile::exists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
+
+    // Check whether changing install parameters on a source file causes re-installation.
+    content.replace("qbs.installDir: \"src\"", "qbs.installDir: 'source'");
+    waitForNewTimestamp();
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
+    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
     rmDirR(buildDir);
     QbsRunParameters params;

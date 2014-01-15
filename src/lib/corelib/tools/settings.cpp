@@ -68,18 +68,16 @@ static void migrateGroup(QSettings *settings, const QString &group)
 Settings::Settings(const QString &organization, const QString &application)
     : m_settings(new QSettings(format(), QSettings::UserScope, organization, application))
 {
-    if (HostOsInfo::isOsxHost()) {
-        // Migrate settings to internal group.
-        // ### remove in qbs 1.3
-        if (!m_settings->childGroups().contains(QLatin1String("org/qt-project/qbs"))) {
-            migrateValue(m_settings, QLatin1String("defaultProfile"));
-            migrateGroup(m_settings, QLatin1String("profiles"));
-            migrateGroup(m_settings, QLatin1String("preferences"));
-        }
-        // Actual qbs settings are stored within a group, because QSettings sees extra system global
-        // settings on OS X we're not interested in.
-        m_settings->beginGroup(QLatin1String("org/qt-project/qbs"));
+    // Migrate settings to internal group.
+    // ### remove in qbs 1.3
+    if (!m_settings->childGroups().contains(QLatin1String("org/qt-project/qbs"))) {
+        migrateValue(m_settings, QLatin1String("defaultProfile"));
+        migrateGroup(m_settings, QLatin1String("profiles"));
+        migrateGroup(m_settings, QLatin1String("preferences"));
     }
+    // Actual qbs settings are stored transparently within a group, because QSettings
+    // can see non-qbs fallback settings e.g. from QtProject that we're not interested in.
+    m_settings->beginGroup(QLatin1String("org/qt-project/qbs"));
 }
 
 Settings::~Settings()
