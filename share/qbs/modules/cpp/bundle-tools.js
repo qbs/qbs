@@ -27,16 +27,12 @@ function infoPlistContents(infoPlistFilePath)
     if (infoPlistFilePath === undefined)
         return undefined;
 
-    var process = new Process();
+    var plist = new PropertyList();
     try {
-        process.start("plutil", ["-convert", "json", "-o", "-", infoPlistFilePath]);
-        process.waitForFinished();
-        if (process.exitCode() !== 0)
-            throw("plutil: " + (process.readStdErr().trim() || process.readStdOut().trim()));
-
-        return JSON.parse(process.readStdOut());
+        plist.readFromFile(infoPlistFilePath);
+        return JSON.parse(plist.toJSONString());
     } finally {
-        process.close();
+        plist.clear();
     }
 }
 
@@ -45,31 +41,13 @@ function infoPlistFormat(infoPlistFilePath)
     if (infoPlistFilePath === undefined)
         return undefined;
 
-    // Verify that the Info.plist format is actually valid in the first place
-    var process = new Process();
+    var plist = new PropertyList();
     try {
-        process.start("plutil", ["-lint", infoPlistFilePath]);
-        process.waitForFinished();
-        if (process.exitCode() !== 0)
-            throw("plutil: " + (process.readStdErr().trim() || process.readStdOut().trim()));
+        plist.readFromFile(infoPlistFilePath);
+        return plist.format();
     } finally {
-        process.close();
+        plist.clear();
     }
-
-    process = new Process();
-    process.start("file", ["-bI", infoPlistFilePath]);
-    process.waitForFinished();
-    var magic = process.readStdOut().trim();
-    process.close();
-
-    if (magic.indexOf("application/octet-stream;") === 0)
-        return "binary1";
-    else if (magic.indexOf("application/xml;") === 0)
-        return "xml1";
-    else if (magic.indexOf("text/plain;") === 0)
-        return "json";
-
-    return undefined;
 }
 
 // CONTENTS_FOLDER_PATH

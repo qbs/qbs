@@ -87,14 +87,18 @@ Module {
                 if (process.exec("ibtool", ["--version"], true) !== 0)
                     print(process.readStdErr());
 
-                var plist = new PropertyList();
-                plist.readFromString(process.readStdOut());
+                var propertyList = new PropertyList();
+                try {
+                    propertyList.readFromString(process.readStdOut());
 
-                plist = JSON.parse(plist.toJSONString());
-                if (plist)
-                    plist = plist["com.apple.ibtool.version"];
-                if (plist)
-                    version = plist["short-bundle-version"];
+                    var plist = JSON.parse(propertyList.toJSONString());
+                    if (plist)
+                        plist = plist["com.apple.ibtool.version"];
+                    if (plist)
+                        version = plist["short-bundle-version"];
+                } finally {
+                    propertyList.clear();
+                }
             } finally {
                 process.close();
             }

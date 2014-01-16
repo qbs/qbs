@@ -1,6 +1,7 @@
 import qbs 1.0
 import qbs.File
 import qbs.Process
+import qbs.PropertyList
 import qbs.TextFile
 import qbs.ModUtils
 import "bundle-tools.js" as BundleTools
@@ -169,7 +170,7 @@ UnixGCC {
             cmd.osBuildVersion = product.moduleProperty("qbs", "hostOSBuildVersion");
 
             cmd.sourceCode = function() {
-                var process, key;
+                var plist, process, key;
 
                 // Contains the combination of default, file, and in-source keys and values
                 // Start out with the contents of this file as the "base", if given
@@ -196,11 +197,13 @@ UnixGCC {
                     var platformInfo = {};
                     if (platformPath) {
                         if (File.exists(platformInfoPlist)) {
-                            process = new Process();
-                            process.exec("plutil", ["-convert", "json", "-o", "-",
-                                                     platformInfoPlist], true);
-                            platformInfo = JSON.parse(process.readStdOut());
-                            process.close();
+                            plist = new PropertyList();
+                            try {
+                                plist.readFromFile(platformInfoPlist);
+                                platformInfo = JSON.parse(plist.toJSONString());
+                            } finally {
+                                plist.clear();
+                            }
 
                             var additionalProps = platformInfo["AdditionalInfo"];
                             for (key in additionalProps) {
@@ -227,11 +230,13 @@ UnixGCC {
                     var sdkSettings = {};
                     if (sysroot) {
                         if (File.exists(sdkSettingsPlist)) {
-                            process = new Process();
-                            process.exec("plutil", ["-convert", "json", "-o", "-",
-                                                     sdkSettingsPlist], true);
-                            sdkSettings = JSON.parse(process.readStdOut());
-                            process.close();
+                            plist = new PropertyList();
+                            try {
+                                plist.readFromFile(sdkSettingsPlist);
+                                sdkSettings = JSON.parse(plist.toJSONString());
+                            } finally {
+                                plist.clear();
+                            }
                         } else {
                             print("warning: sysroot (SDK path) given but no SDKSettings.plist found");
                         }
@@ -241,11 +246,13 @@ UnixGCC {
 
                     var toolchainInfo = {};
                     if (toolchainInstallPath && File.exists(toolchainInfoPlist)) {
-                        process = new Process();
-                        process.exec("plutil", ["-convert", "json", "-o", "-",
-                                                 toolchainInfoPlist], true);
-                        toolchainInfo = JSON.parse(process.readStdOut());
-                        process.close();
+                        plist = new PropertyList();
+                        try {
+                            plist.readFromFile(toolchainInfoPlist);
+                            toolchainInfo = JSON.parse(plist.toJSONString());
+                        } finally {
+                            plist.clear();
+                        }
                     } else {
                         print("could not find a ToolchainInfo.plist near the toolchain install path");
                     }
@@ -269,11 +276,6 @@ UnixGCC {
                     DarwinTools.doRepl(aggregatePlist, env, true);
                 }
 
-                // Write the plist contents as JSON
-                var infoplist = new TextFile(outputs.infoplist[0].filePath, TextFile.WriteOnly);
-                infoplist.write(JSON.stringify(aggregatePlist));
-                infoplist.close();
-
                 if (infoPlistFormat === "same-as-input" && infoPlistFile)
                     infoPlistFormat = BundleTools.infoPlistFormat(infoPlistFile);
 
@@ -282,10 +284,14 @@ UnixGCC {
                     throw("Invalid Info.plist format " + infoPlistFormat + ". " +
                           "Must be in [xml1, binary1, json].");
 
-                // Convert the written file to the format appropriate for the current platform
-                process = new Process();
-                process.exec("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].filePath], true);
-                process.close();
+                // Write the plist contents in the format appropriate for the current platform
+                plist = new PropertyList();
+                try {
+                    plist.readFromString(JSON.stringify(aggregatePlist));
+                    plist.writeToFile(outputs.infoplist[0].filePath, infoPlistFormat);
+                } finally {
+                    plist.clear();
+                }
             }
             return cmd;
         }
