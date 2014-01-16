@@ -179,7 +179,7 @@ Module {
     property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
 
     property string signingIdentity
-    property string provisioningProfile
+    property path provisioningProfile
 
     property bool allowUnresolvedSymbols: false
 
