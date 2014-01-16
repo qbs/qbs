@@ -56,18 +56,22 @@ DarwinGCC {
         prepare: {
             var signingIdentity = product.moduleProperty("cpp", "signingIdentity");
             if (!signingIdentity)
-                throw "The name of a valid Signing identity should be stored in cpp.signingIdentity  to build package.";
+                throw "The name of a valid signing identity must be set using " +
+                        "cpp.signingIdentity in order to build an IPA package.";
+
             var provisioningProfile = product.moduleProperty("cpp", "provisioningProfile");
             if (!provisioningProfile)
                 throw "The path to a provisioning profile must be set using " +
                         "cpp.provisioningProfile in order to build an IPA package.";
-            args = ["-sdk", "iphoneos", "PackageApplication", "-v",
-                    product.buildDirectory + "/" + product.targetName + ".app",
-                    "-o", outputs.ipa[0].fileName, "--sign", signingIdentity,
-                    "--embed", provisioningProfile];
+
+            var args = ["-sdk", "iphoneos", "PackageApplication", "-v",
+                        product.buildDirectory + "/" + BundleTools.wrapperName(product),
+                        "-o", outputs.ipa[0].fileName, "--sign", signingIdentity,
+                        "--embed", provisioningProfile];
+
             var command = "/usr/bin/xcrun";
             var cmd = new Command(command, args)
-            cmd.description = "creating ipa";
+            cmd.description = "creating ipa, signing with " + signingIdentity;
             cmd.highlight = "codegen";
             cmd.workingDirectory = product.buildDirectory;
             return cmd;
