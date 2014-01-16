@@ -67,7 +67,7 @@ function linkerFlags(product, inputs)
     }
 
     var isDarwin = product.moduleProperty("qbs", "targetOS").contains("darwin");
-    var unresolvedSymbolsAction = isDarwin ? "error" : "report-all";
+    var unresolvedSymbolsAction = isDarwin ? "error" : "ignore-in-shared-libs";
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         unresolvedSymbolsAction = isDarwin ? "suppress" : "ignore-all";
     var unresolvedSymbolsKey = isDarwin ? "-undefined," : "--unresolved-symbols=";
