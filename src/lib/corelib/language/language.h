@@ -291,7 +291,7 @@ public:
     int ruleGraphId;
 
     QString toString() const;
-    FileTags outputFileTags() const;
+    FileTags staticOutputFileTags() const;
 
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}

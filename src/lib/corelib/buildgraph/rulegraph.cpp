@@ -44,7 +44,7 @@ void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTag
     QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
     m_artifacts.reserve(rules.count());
     foreach (const RulePtr &rule, rules) {
-        foreach (const FileTag &fileTag, rule->outputFileTags())
+        foreach (const FileTag &fileTag, rule->staticOutputFileTags())
             m_outputFileTagToRule[fileTag].append(rule.data());
         insert(rule);
     }

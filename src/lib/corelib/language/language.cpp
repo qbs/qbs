@@ -357,10 +357,10 @@ static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModu
 QString Rule::toString() const
 {
     return QLatin1Char('[') + inputs.toStringList().join(QLatin1String(",")) + QLatin1String(" -> ")
-            + outputFileTags().toStringList().join(QLatin1String(",")) + QLatin1Char(']');
+            + staticOutputFileTags().toStringList().join(QLatin1String(",")) + QLatin1Char(']');
 }
 
-FileTags Rule::outputFileTags() const
+FileTags Rule::staticOutputFileTags() const
 {
     FileTags result;
     foreach (const RuleArtifactConstPtr &artifact, artifacts)
