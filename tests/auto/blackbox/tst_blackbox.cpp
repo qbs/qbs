@@ -1368,6 +1368,59 @@ void TestBlackbox::dynamicLibs()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::dynamicRuleOutputs()
+{
+    QSKIP("QBS-370");
+    const QString testDir = testDataDir + "/dynamicRuleOutputs";
+    QDir::setCurrent(testDir);
+    if (QFile::exists("work"))
+        rmDirR("work");
+    QDir().mkdir("work");
+    ccp("before", "work");
+    QDir::setCurrent(testDir + "/work");
+    QCOMPARE(runQbs(), 0);
+
+    const QString appFile = buildDir + "/genlexer" + QTC_HOST_EXE_SUFFIX;
+    const QString headerFile1 = buildDir + "/GeneratedFiles/genlexer/numberscanner.h";
+    const QString sourceFile1 = buildDir + "/GeneratedFiles/genlexer/numberscanner.c";
+    const QString sourceFile2 = buildDir + "/GeneratedFiles/genlexer/lex.yy.c";
+
+    // Check build #1: source and header file name are specified in numbers.l
+    QVERIFY(QFile::exists(appFile));
+    QVERIFY(QFile::exists(headerFile1));
+    QVERIFY(QFile::exists(sourceFile1));
+    QVERIFY(!QFile::exists(sourceFile2));
+
+    QDateTime appFileTimeStamp1 = QFileInfo(appFile).lastModified();
+    waitForNewTimestamp();
+    QFile::remove("numbers.l");
+    QFile::copy("../after/numbers.l", "numbers.l");
+    touch("numbers.l");
+    QCOMPARE(runQbs(), 0);
+
+    // Check build #2: no file names are specified in numbers.l
+    //                 flex will default to lex.yy.c without header file.
+    QDateTime appFileTimeStamp2 = QFileInfo(appFile).lastModified();
+    QVERIFY(appFileTimeStamp1 < appFileTimeStamp2);
+    QVERIFY(!QFile::exists(headerFile1));
+    QVERIFY(!QFile::exists(sourceFile1));
+    QVERIFY(QFile::exists(sourceFile2));
+
+    waitForNewTimestamp();
+    QFile::remove("numbers.l");
+    QFile::copy("../before/numbers.l", "numbers.l");
+    touch("numbers.l");
+    QCOMPARE(runQbs(), 0);
+
+    // Check build #3: source and header file name are specified in numbers.l
+    QDateTime appFileTimeStamp3 = QFileInfo(appFile).lastModified();
+    QVERIFY(appFileTimeStamp2 < appFileTimeStamp3);
+    QVERIFY(QFile::exists(appFile));
+    QVERIFY(QFile::exists(headerFile1));
+    QVERIFY(QFile::exists(sourceFile1));
+    QVERIFY(!QFile::exists(sourceFile2));
+}
+
 void TestBlackbox::explicitlyDependsOn()
 {
     QDir::setCurrent(testDataDir + "/explicitlyDependsOn");
