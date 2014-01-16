@@ -20,7 +20,7 @@ DarwinGCC {
     linkerFlags: base.concat(["-dead_strip", "-headerpad_max_install_names"])
 
     Rule {
-        condition: !qbs.targetOS.contains("ios-simulator")
+        condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
         multiplex: true
         inputs: ["qbs"]
 
