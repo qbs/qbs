@@ -142,7 +142,7 @@ inline bool operator!=(const SourceArtifact &sa1, const SourceArtifact &sa2) {
     return !(sa1 == sa2);
 }
 
-bool sourceArtifactListsAreEqual(const QList<SourceArtifactPtr> &l1,
+bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
                                  const QList<SourceArtifactPtr> &l2);
 
 class SourceWildCards : public PersistentObject

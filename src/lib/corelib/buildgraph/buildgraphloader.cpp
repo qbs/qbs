@@ -29,7 +29,7 @@
 #include "buildgraphloader.h"
 
 #include "artifact.h"
-#include "artifactlist.h"
+#include "artifactset.h"
 #include "buildgraph.h"
 #include "command.h"
 #include "cycledetector.h"
@@ -407,7 +407,7 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         if (!newlyResolvedProduct)
             continue;
         if (!productsWithChangedFiles.contains(restoredProduct)
-                && !sourceArtifactListsAreEqual(restoredProduct->allFiles(),
+                && !sourceArtifactSetsAreEqual(restoredProduct->allFiles(),
                                                 newlyResolvedProduct->allFiles())) {
             m_logger.qbsDebug() << "File list of product '" << restoredProduct->name
                                 << "' was changed.";
@@ -531,7 +531,7 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
 
     ArtifactsPerFileTagMap artifactsPerFileTag;
     QList<Artifact *> addedArtifacts;
-    ArtifactList artifactsToRemove;
+    ArtifactSet artifactsToRemove;
     QHash<QString, SourceArtifactConstPtr> oldArtifacts, newArtifacts;
 
     const QList<SourceArtifactPtr> restoredProductAllFiles = restoredProduct->allEnabledFiles();

@@ -225,7 +225,7 @@ bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
         return true;
     }
 
-    for (ArtifactList::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
+    for (ArtifactSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
         if (findPath(*it, v, path)) {
             path.prepend(u);
             return true;
@@ -267,7 +267,7 @@ static bool existsPath(Artifact *u, Artifact *v)
     if (u == v)
         return true;
 
-    for (ArtifactList::const_iterator it = u->children.begin(); it != u->children.end(); ++it)
+    for (ArtifactSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it)
         if (existsPath(*it, v))
             return true;
 
@@ -457,7 +457,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
         QBS_CHECK(transformer->outputs.contains(artifact));
         logger.qbsDebug() << "The transformer has " << transformer->outputs.count()
                           << " outputs.";
-        ArtifactList transformerOutputChildren;
+        ArtifactSet transformerOutputChildren;
         foreach (const Artifact * const output, transformer->outputs) {
             QBS_CHECK(output->transformer == transformer);
             transformerOutputChildren.unite(output->children);

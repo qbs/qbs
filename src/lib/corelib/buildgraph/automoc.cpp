@@ -66,7 +66,7 @@ void AutoMoc::apply(const ResolvedProductPtr &product)
     QList<QPair<Artifact *, FileType> > artifactsToMoc;
     QSet<QString> includedMocCppFiles;
     const FileTime currentTime = FileTime::currentTime();
-    ArtifactList::const_iterator it = product->buildData->artifacts.begin();
+    ArtifactSet::const_iterator it = product->buildData->artifacts.begin();
     for (; it != product->buildData->artifacts.end(); ++it) {
         Artifact *artifact = *it;
         if (!pchFile || !pluginMetaDataFile) {

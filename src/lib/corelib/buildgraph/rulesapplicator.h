@@ -29,7 +29,7 @@
 #ifndef QBS_RULESAPPLICATOR_H
 #define QBS_RULESAPPLICATOR_H
 
-#include "artifactlist.h"
+#include "artifactset.h"
 #include "forward_decls.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
@@ -43,7 +43,7 @@ namespace qbs {
 namespace Internal {
 class ScriptEngine;
 
-typedef QMap<FileTag, ArtifactList> ArtifactsPerFileTagMap;
+typedef QMap<FileTag, ArtifactSet> ArtifactsPerFileTagMap;
 
 class RulesApplicator
 {
@@ -54,10 +54,10 @@ public:
     void applyRule(const RuleConstPtr &rule);
 
 private:
-    void doApply(const ArtifactList &inputArtifacts, QScriptValue &prepareScriptContext);
+    void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     void setupScriptEngineForArtifact(Artifact *artifact);
     Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
-                                   const ArtifactList &inputArtifacts);
+                                   const ArtifactSet &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;

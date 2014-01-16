@@ -30,7 +30,7 @@
 #ifndef QBS_ARTIFACT_H
 #define QBS_ARTIFACT_H
 
-#include "artifactlist.h"
+#include "artifactset.h"
 #include "filedependency.h"
 #include "forward_decls.h"
 #include <language/filetags.h>
@@ -60,9 +60,9 @@ public:
     Artifact();
     ~Artifact();
 
-    ArtifactList parents;
-    ArtifactList children;
-    ArtifactList childrenAddedByScanner;
+    ArtifactSet parents;
+    ArtifactSet children;
+    ArtifactSet childrenAddedByScanner;
     QSet<FileDependency *> fileDependencies;
     FileTags fileTags;
     WeakPointer<ResolvedProduct> product;

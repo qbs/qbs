@@ -29,7 +29,7 @@
 #ifndef QBS_PRODUCTBUILDDATA_H
 #define QBS_PRODUCTBUILDDATA_H
 
-#include "artifactlist.h"
+#include "artifactset.h"
 #include <language/forward_decls.h>
 
 #include <tools/persistentobject.h>
@@ -47,7 +47,7 @@ public:
     ~ProductBuildData();
 
     QSet<Artifact *> targetArtifacts;
-    ArtifactList artifacts;
+    ArtifactSet artifacts;
     QList<RuleConstPtr> topSortedRules;
 
     // Do not store, initialized in executor. Higher prioritized artifacts are built first.

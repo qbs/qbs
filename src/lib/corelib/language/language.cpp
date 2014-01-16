@@ -1047,7 +1047,7 @@ bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
             && sa1.properties->value() == sa2.properties->value();
 }
 
-bool sourceArtifactListsAreEqual(const QList<SourceArtifactPtr> &l1,
+bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
                                  const QList<SourceArtifactPtr> &l2)
 {
     return listsAreEqual(l1, l2);
@@ -1057,7 +1057,7 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
 {
     return modulesAreEqual(t1.module, t2.module)
             && t1.inputs.toSet() == t2.inputs.toSet()
-            && sourceArtifactListsAreEqual(t1.outputs, t2.outputs)
+            && sourceArtifactSetsAreEqual(t1.outputs, t2.outputs)
             && *t1.transform == *t2.transform
             && t1.explicitlyDependsOn == t2.explicitlyDependsOn;
 }

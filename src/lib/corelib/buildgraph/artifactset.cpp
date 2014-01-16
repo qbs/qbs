@@ -27,19 +27,19 @@
 **
 ****************************************************************************/
 
-#include "artifactlist.h"
+#include "artifactset.h"
 
 namespace qbs {
 namespace Internal {
 
-ArtifactList::ArtifactList()
+ArtifactSet::ArtifactSet()
 {}
 
-ArtifactList::ArtifactList(const ArtifactList &other)
+ArtifactSet::ArtifactSet(const ArtifactSet &other)
     : m_data(other.m_data)
 {}
 
-ArtifactList &ArtifactList::unite(const ArtifactList &other)
+ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
 {
     std::set<Artifact *>::const_iterator it = other.m_data.begin();
     for (; it != other.m_data.end(); ++it)
@@ -47,7 +47,7 @@ ArtifactList &ArtifactList::unite(const ArtifactList &other)
     return *this;
 }
 
-void ArtifactList::remove(Artifact *artifact)
+void ArtifactSet::remove(Artifact *artifact)
 {
     iterator it = m_data.find(artifact);
     if (it != m_data.end())

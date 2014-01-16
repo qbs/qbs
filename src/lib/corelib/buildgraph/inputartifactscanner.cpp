@@ -165,7 +165,7 @@ void InputArtifactScanner::scan()
     foreach (Artifact *dependency, m_artifact->childrenAddedByScanner)
         disconnect(m_artifact, dependency, m_logger);
 
-    ArtifactList::const_iterator it = m_artifact->transformer->inputs.begin();
+    ArtifactSet::const_iterator it = m_artifact->transformer->inputs.begin();
     for (; it != m_artifact->transformer->inputs.end(); ++it) {
         Artifact *inputArtifact = *it;
         QStringList includePaths;

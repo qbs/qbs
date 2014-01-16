@@ -30,7 +30,7 @@
 #ifndef QBS_TRANSFORMER_H
 #define QBS_TRANSFORMER_H
 
-#include "artifactlist.h"
+#include "artifactset.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 #include <language/property.h>
@@ -53,8 +53,8 @@ public:
 
     ~Transformer();
 
-    ArtifactList inputs; // Subset of "children of all outputs".
-    ArtifactList outputs;
+    ArtifactSet inputs; // Subset of "children of all outputs".
+    ArtifactSet outputs;
     RuleConstPtr rule;
     QList<AbstractCommand *> commands;
     PropertyList propertiesRequestedInPrepareScript;
@@ -65,7 +65,7 @@ public:
                                             Artifact *artifact,
                                             const QString &defaultModuleName);
     static QScriptValue translateInOutputs(QScriptEngine *scriptEngine,
-                                           const ArtifactList &artifacts,
+                                           const ArtifactSet &artifacts,
                                            const QString &defaultModuleName);
 
     ResolvedProductPtr product() const;

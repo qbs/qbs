@@ -150,7 +150,7 @@ static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuil
   */
 void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
         const Logger &logger, bool removeFromProduct,
-        ArtifactList *removedArtifacts)
+        ArtifactSet *removedArtifacts)
 {
     if (removedArtifacts)
         removedArtifacts->insert(artifact);
@@ -324,7 +324,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     typedef QPair<ResolvedTransformerConstPtr, TransformerConstPtr> TrafoPair;
     QList<TrafoPair> trafos;
     foreach (const ResolvedTransformerConstPtr &rtrafo, product->transformers) {
-        ArtifactList inputArtifacts;
+        ArtifactSet inputArtifacts;
         foreach (const QString &inputFileName, rtrafo->inputs) {
             Artifact *artifact = lookupArtifact(product, inputFileName);
             if (Q_UNLIKELY(!artifact))

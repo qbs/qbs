@@ -79,7 +79,7 @@ void Artifact::load(PersistentPool &pool)
     pool.loadContainer(children);
 
     // restore parents of the loaded children
-    for (ArtifactList::const_iterator it = children.constBegin(); it != children.constEnd(); ++it)
+    for (ArtifactSet::const_iterator it = children.constBegin(); it != children.constEnd(); ++it)
         (*it)->parents.insert(this);
 
     pool.loadContainer(childrenAddedByScanner);

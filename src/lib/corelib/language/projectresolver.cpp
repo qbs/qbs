@@ -392,14 +392,14 @@ static void createSourceArtifact(const ResolvedProductConstPtr &rproduct,
                                  const QString &fileName,
                                  const FileTags &fileTags,
                                  bool overrideTags,
-                                 QList<SourceArtifactPtr> &artifactList)
+                                 QList<SourceArtifactPtr> &artifactSet)
 {
     SourceArtifactPtr artifact = SourceArtifact::create();
     artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
     artifact->fileTags = fileTags;
     artifact->overrideFileTags = overrideTags;
     artifact->properties = properties;
-    artifactList += artifact;
+    artifactSet += artifact;
 }
 
 static bool isSomeModulePropertySet(Item *group)

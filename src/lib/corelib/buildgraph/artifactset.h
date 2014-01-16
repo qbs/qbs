@@ -27,8 +27,8 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTLIST_H
-#define QBS_ARTIFACTLIST_H
+#ifndef QBS_ARTIFACTSET_H
+#define QBS_ARTIFACTSET_H
 
 #include <set>
 #include <cstddef>
@@ -39,16 +39,16 @@ namespace Internal {
 class Artifact;
 
 /**
-  * List that holds a bunch of build graph artifacts.
+  * Set that holds a bunch of build graph artifacts.
   * This is faster than QSet when iterating over the container.
   */
-class ArtifactList
+class ArtifactSet
 {
 public:
-    ArtifactList();
-    ArtifactList(const ArtifactList &other);
+    ArtifactSet();
+    ArtifactSet(const ArtifactSet &other);
 
-    ArtifactList &unite(const ArtifactList &other);
+    ArtifactSet &unite(const ArtifactSet &other);
 
     typedef std::set<Artifact *>::const_iterator const_iterator;
     typedef std::set<Artifact *>::iterator iterator;
@@ -98,8 +98,8 @@ public:
         // no-op
     }
 
-    bool operator==(const ArtifactList &other) const { return m_data == other.m_data; }
-    bool operator!=(const ArtifactList &other) const { return !(*this == other); }
+    bool operator==(const ArtifactSet &other) const { return m_data == other.m_data; }
+    bool operator!=(const ArtifactSet &other) const { return !(*this == other); }
 
 
 private:
@@ -109,4 +109,4 @@ private:
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ARTIFACTLIST_H
+#endif // QBS_ARTIFACTSET_H

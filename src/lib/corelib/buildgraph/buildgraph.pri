@@ -2,7 +2,7 @@ SOURCES += \
     $$PWD/abstractcommandexecutor.cpp \
     $$PWD/artifact.cpp \
     $$PWD/artifactcleaner.cpp \
-    $$PWD/artifactlist.cpp \
+    $$PWD/artifactset.cpp \
     $$PWD/artifactvisitor.cpp \
     $$PWD/automoc.cpp \
     $$PWD/buildgraph.cpp \
@@ -29,7 +29,7 @@ HEADERS += \
     $$PWD/abstractcommandexecutor.h \
     $$PWD/artifact.h \
     $$PWD/artifactcleaner.h \
-    $$PWD/artifactlist.h \
+    $$PWD/artifactset.h \
     $$PWD/artifactvisitor.h \
     $$PWD/automoc.h \
     $$PWD/buildgraph.h \

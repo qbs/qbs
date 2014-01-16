@@ -31,7 +31,7 @@
 
 #include "forward_decls.h"
 
-#include <buildgraph/artifactlist.h>
+#include <buildgraph/artifactset.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
@@ -101,7 +101,7 @@ private:
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
 
-    typedef QHash<const Artifact *, ArtifactList> ChildListHash;
+    typedef QHash<const Artifact *, ArtifactSet> ChildListHash;
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
                             const ResolvedProductPtr &newlyResolvedProduct,
                             const ProjectBuildData *oldBuildData,

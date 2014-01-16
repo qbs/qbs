@@ -29,7 +29,7 @@
 #ifndef QBS_PROJECTBUILDDATA_H
 #define QBS_PROJECTBUILDDATA_H
 
-#include "artifactlist.h"
+#include "artifactset.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
@@ -64,7 +64,7 @@ public:
     void insertFileDependency(FileDependency *dependency);
     void updateNodesThatMustGetNewTransformer(const Logger &logger);
     void removeArtifactAndExclusiveDependents(Artifact *artifact, const Logger &logger,
-            bool removeFromProduct = true, ArtifactList *removedArtifacts = 0);
+            bool removeFromProduct = true, ArtifactSet *removedArtifacts = 0);
     void removeArtifact(Artifact *artifact, const Logger &logger, bool removeFromDisk = true,
                         bool removeFromProduct = true);
 

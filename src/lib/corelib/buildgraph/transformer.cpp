@@ -63,7 +63,7 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
     return artifactConfig;
 }
 
-QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const ArtifactList &artifacts, const QString &defaultModuleName)
+QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const ArtifactSet &artifacts, const QString &defaultModuleName)
 {
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
     TagArtifactsMap tagArtifactsMap;
@@ -73,10 +73,10 @@ QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const 
 
     QScriptValue jsTagFiles = scriptEngine->newObject();
     for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
-        const QList<Artifact*> &artifactList = tag.value();
-        QScriptValue jsFileConfig = scriptEngine->newArray(artifactList.count());
+        const QList<Artifact*> &ArtifactSet = tag.value();
+        QScriptValue jsFileConfig = scriptEngine->newArray(ArtifactSet.count());
         int i=0;
-        foreach (Artifact *artifact, artifactList) {
+        foreach (Artifact *artifact, ArtifactSet) {
             jsFileConfig.setProperty(i++, translateFileConfig(scriptEngine, artifact, defaultModuleName));
         }
         jsTagFiles.setProperty(tag.key(), jsFileConfig);

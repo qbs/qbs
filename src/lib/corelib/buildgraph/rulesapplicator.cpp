@@ -72,14 +72,14 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
     setupScriptEngineForProduct(engine(), m_product, m_rule, prepareScriptContext, &observer);
 
-    ArtifactList inputArtifacts;
+    ArtifactSet inputArtifacts;
     foreach (const FileTag &fileTag, m_rule->inputs)
         inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         if (!inputArtifacts.isEmpty())
             doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
-        ArtifactList lst;
+        ArtifactSet lst;
         foreach (Artifact * const inputArtifact, inputArtifacts) {
             setupScriptEngineForArtifact(inputArtifact);
             lst += inputArtifact;
@@ -94,7 +94,7 @@ static void copyProperty(const QString &name, const QScriptValue &src, QScriptVa
     dst.setProperty(name, src.property(name));
 }
 
-void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
+void RulesApplicator::doApply(const ArtifactSet &inputArtifacts,
     QScriptValue &prepareScriptContext)
 {
     evalContext()->checkForCancelation();
@@ -108,12 +108,12 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
-    ArtifactList usingArtifacts;
+    ArtifactSet usingArtifacts;
     if (!m_rule->usings.isEmpty()) {
         const FileTags usingsFileTags = m_rule->usings;
         foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
             QBS_CHECK(dep->buildData);
-            ArtifactList artifactsToCheck;
+            ArtifactSet artifactsToCheck;
             foreach (Artifact *targetArtifact, dep->buildData->targetArtifacts)
                 artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
@@ -144,7 +144,7 @@ void RulesApplicator::doApply(const ArtifactList &inputArtifacts,
                 loggedConnect(outputArtifact, dependency, m_logger);
 
         // Transformer setup
-        for (ArtifactList::const_iterator it = usingArtifacts.constBegin();
+        for (ArtifactSet::const_iterator it = usingArtifacts.constBegin();
              it != usingArtifacts.constEnd(); ++it)
         {
             Artifact *dep = *it;
@@ -233,7 +233,7 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
 }
 
 Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
-        const ArtifactList &inputArtifacts)
+        const ArtifactSet &inputArtifacts)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
