@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Petroules Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -27,43 +28,38 @@
 **
 ****************************************************************************/
 
-#include "jsextensions.h"
+#ifndef QBS_PROPERTYLIST_H
+#define QBS_PROPERTYLIST_H
 
-#include "domxml.h"
-#include "file.h"
-#include "process.h"
-#include "propertylist.h"
-#include "textfile.h"
+#include <QObject>
+#include <QScriptable>
+#include <QVariant>
 
 namespace qbs {
 namespace Internal {
 
-void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
-{
-    foreach (const QString &name, names)
-        initializers().value(name)(scope);
-}
+void initializeJsExtensionPropertyList(QScriptValue extensionObject);
 
-bool JsExtensions::hasExtension(const QString &name)
-{
-    return initializers().contains(name);
-}
+class PropertyListPrivate;
 
-JsExtensions::InitializerMap JsExtensions::initializers()
+class PropertyList : public QObject, public QScriptable
 {
-    if (m_initializers.isEmpty()) {
-        m_initializers.insert(QLatin1String("File"), &initializeJsExtensionFile);
-        m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
-        m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
-        m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
-#ifdef Q_OS_MACX
-        m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
-#endif
-    }
-    return m_initializers;
-}
-
-JsExtensions::InitializerMap JsExtensions::m_initializers;
+    Q_OBJECT
+public:
+    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
+    PropertyList(QScriptContext *context);
+    ~PropertyList();
+    Q_INVOKABLE void read(const QString &input);
+    Q_INVOKABLE void readFile(const QString &filePath);
+    Q_INVOKABLE QString toXML() const;
+    Q_INVOKABLE QString toJSON() const;
+private:
+    PropertyListPrivate *d;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+Q_DECLARE_METATYPE(qbs::Internal::PropertyList *)
+
+#endif // QBS_PROPERTYLIST_H

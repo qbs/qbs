@@ -1523,6 +1523,23 @@ void TestBlackbox::jsExtensionsProcess()
     QCOMPARE(lines.at(6).trimmed().constData(), "false");
 }
 
+void TestBlackbox::jsExtensionsPropertyList()
+{
+    if (!HostOsInfo::isOsxHost())
+        SKIP_TEST("temporarily only applies on OS X");
+
+    QDir::setCurrent(testDataDir + "/jsextensions");
+    QbsRunParameters params(QStringList() << "-nf" << "propertylist.qbs");
+    QCOMPARE(runQbs(params), 0);
+    QFile file1("test.json");
+    QVERIFY(file1.exists());
+    QVERIFY(file1.open(QIODevice::ReadOnly));
+    QFile file2("test.xml");
+    QVERIFY(file2.exists());
+    QVERIFY(file2.open(QIODevice::ReadOnly));
+    QCOMPARE(file1.readAll(), file2.readAll());
+}
+
 void TestBlackbox::jsExtensionsTextFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions");

@@ -113,6 +113,7 @@ private slots:
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();
+    void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
     void objC();
