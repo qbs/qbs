@@ -13,6 +13,15 @@ UnixGCC {
     compilerDefines: ["__GNUC__", "__APPLE__"]
     dynamicLibrarySuffix: ".dylib"
 
+    validate: {
+        if (qbs.sysroot) {
+            if (!xcodeSdkName)
+                throw "cpp.xcodeSdkName not set. Set cpp.xcodeSdkName in your profile.";
+            if (!xcodeSdkVersion)
+                throw "cpp.xcodeSdkVersion not set. Set cpp.xcodeSdkVersion in your profile.";
+        }
+    }
+
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
         if (platformPath) {

@@ -181,6 +181,9 @@ Module {
     property string signingIdentity
     property path provisioningProfile
 
+    property string xcodeSdkName
+    property string xcodeSdkVersion
+
     property bool allowUnresolvedSymbols: false
 
     FileTagger {

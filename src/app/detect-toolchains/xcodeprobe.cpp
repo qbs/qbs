@@ -266,6 +266,8 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                         pSdk.removeProfile();
                         pSdk.setBaseProfile(clangFullName);
                         pSdk.setValue(QLatin1String("qbs.sysroot"), sdkDirInfo.canonicalFilePath());
+                        pSdk.setValue(QLatin1String("cpp.xcodeSdkName"), currentSdkName.toString());
+                        pSdk.setValue(QLatin1String("cpp.xcodeSdkVersion"), versionStr);
                         qbsInfo() << indent << Tr::tr("* adding profile %1").arg(pSdk.name());
                         profiles << pSdk;
                     }
@@ -275,6 +277,8 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                         pSdk.removeProfile();
                         pSdk.setBaseProfile(gccFullName);
                         pSdk.setValue(QLatin1String("qbs.sysroot"), sdkDirInfo.canonicalFilePath());
+                        pSdk.setValue(QLatin1String("cpp.xcodeSdkName"), currentSdkName.toString());
+                        pSdk.setValue(QLatin1String("cpp.xcodeSdkVersion"), versionStr);
                         qbsInfo() << indent << Tr::tr("* adding profile %1").arg(pSdk.name());
                         profiles << pSdk;
                     }

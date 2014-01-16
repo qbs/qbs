@@ -64,8 +64,8 @@ DarwinGCC {
                 throw "The path to a provisioning profile must be set using " +
                         "cpp.provisioningProfile in order to build an IPA package.";
 
-            var args = ["-sdk", "iphoneos", "PackageApplication", "-v",
-                        product.buildDirectory + "/" + BundleTools.wrapperName(product),
+            var args = ["-sdk", product.moduleProperty("cpp", "xcodeSdkName"), "PackageApplication",
+                        "-v", product.buildDirectory + "/" + BundleTools.wrapperName(product),
                         "-o", outputs.ipa[0].fileName, "--sign", signingIdentity,
                         "--embed", provisioningProfile];
 
