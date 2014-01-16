@@ -1,5 +1,6 @@
 import qbs 1.0
 import qbs.FileInfo
+import qbs.PropertyList
 import '../utils.js' as ModUtils
 import "../cpp/bundle-tools.js" as BundleTools
 import "../cpp/darwin-tools.js" as DarwinTools
@@ -78,14 +79,36 @@ Module {
             if (ModUtils.moduleProperty(product, "notices"))
                 args.push("--notices");
 
-            if (product.moduleProperty("cpp", "minimumOsxVersion")) {
-                args.push("--minimum-deployment-target");
-                args.push(product.moduleProperty("cpp", "minimumOsxVersion"));
+            var process;
+            var version;
+            try {
+                process = new Process();
+                if (process.exec("ibtool", ["--version"], true) !== 0)
+                    print(process.readStdErr());
+
+                var plist = new PropertyList();
+                plist.read(process.readStdOut());
+
+                plist = JSON.parse(plist.toJSON());
+                if (plist)
+                    plist = plist["com.apple.ibtool.version"];
+                if (plist)
+                    version = plist["short-bundle-version"];
+            } finally {
+                process.close();
             }
 
-            if (product.moduleProperty("cpp", "minimumIosVersion")) {
-                args.push("--minimum-deployment-target");
-                args.push(product.moduleProperty("cpp", "minimumIosVersion"));
+            // --minimum-deployment-target was introduced in Xcode 5.0
+            if (version && parseInt(version.split('.')[0], 10) >= 5) {
+                if (product.moduleProperty("cpp", "minimumOsxVersion")) {
+                    args.push("--minimum-deployment-target");
+                    args.push(product.moduleProperty("cpp", "minimumOsxVersion"));
+                }
+
+                if (product.moduleProperty("cpp", "minimumIosVersion")) {
+                    args.push("--minimum-deployment-target");
+                    args.push(product.moduleProperty("cpp", "minimumIosVersion"));
+                }
             }
 
             if (product.moduleProperty("qbs", "sysroot")) {
