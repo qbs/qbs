@@ -97,6 +97,16 @@ static void replaceListPlaceholder(QByteArray &content, const QByteArray &placeH
     content.replace(placeHolder, listString);
 }
 
+// We erroneously called the "testlib" module "test" for quite a while. Let's not punish users
+// for that.
+static void addTestModule(QList<QtModuleInfo> &modules)
+{
+    QtModuleInfo testModule(QLatin1String("QtTest"), QLatin1String("test"),
+                               QStringList() << QLatin1String("testlib"));
+    testModule.hasLibrary = false;
+    modules << testModule;
+}
+
 static void createModules(Profile &profile, Settings *settings,
                                const QtEnvironment &qtEnvironment)
 {
@@ -142,7 +152,7 @@ static void createModules(Profile &profile, Settings *settings,
                                    QStringList() << QLatin1String("gui"));
         widgetsModule.hasLibrary = false;
         modules << widgetsModule;
-
+        addTestModule(modules);
     } else {
         QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
         while (dit.hasNext()) {
@@ -191,6 +201,8 @@ static void createModules(Profile &profile, Settings *settings,
                 }
             }
             modules << moduleInfo;
+            if (moduleInfo.qbsName == QLatin1String("testlib"))
+                addTestModule(modules);
         }
     }
 
