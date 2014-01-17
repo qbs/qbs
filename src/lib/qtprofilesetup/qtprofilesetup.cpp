@@ -47,8 +47,9 @@ namespace qbs {
 struct QtModuleInfo
 {
     QtModuleInfo(const QString &name, const QString &qbsName,
-                 const QStringList &deps = QStringList(), bool hasLib = true)
-        : name(name), qbsName(qbsName), dependencies(deps), hasLibrary(hasLib)
+                 const QStringList &deps = QStringList())
+        : name(name), qbsName(qbsName), dependencies(deps),
+          hasLibrary(!qbsName.endsWith(QLatin1String("-private")))
     {
         const QString coreModule = QLatin1String("core");
         if (qbsName != coreModule && !dependencies.contains(coreModule))
@@ -107,52 +108,115 @@ static void addTestModule(QList<QtModuleInfo> &modules)
     modules << testModule;
 }
 
+// See above.
+static void addDesignerComponentsModule(QList<QtModuleInfo> &modules)
+{
+    QtModuleInfo module(QLatin1String("QtDesignerComponents"),
+                        QLatin1String("designercomponents"),
+                        QStringList() << QLatin1String("designercomponents-private"));
+    module.hasLibrary = false;
+    modules << module;
+}
+
 static void createModules(Profile &profile, Settings *settings,
                                const QtEnvironment &qtEnvironment)
 {
     QList<QtModuleInfo> modules;
     if (qtEnvironment.qtMajorVersion < 5) {
-        modules // as per http://qt-project.org/doc/qt-4.8/modules.html
+        modules // as per http://qt-project.org/doc/qt-4.8/modules.html + private stuff.
                 << QtModuleInfo(QLatin1String("QtCore"), QLatin1String("core"))
+                << QtModuleInfo(QLatin1String("QtCore"), QLatin1String("core-private"),
+                                QStringList() << QLatin1String("core"))
                 << QtModuleInfo(QLatin1String("QtGui"), QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtGui"), QLatin1String("gui-private"),
+                                QStringList() << QLatin1String("gui"))
                 << QtModuleInfo(QLatin1String("QtMultimedia"), QLatin1String("multimedia"),
                                 QStringList() << QLatin1String("gui") << QLatin1String("network"))
+                << QtModuleInfo(QLatin1String("QtMultimedia"), QLatin1String("multimedia-private"),
+                                QStringList() << QLatin1String("multimedia"))
                 << QtModuleInfo(QLatin1String("QtNetwork"), QLatin1String("network"))
+                << QtModuleInfo(QLatin1String("QtNetwork"), QLatin1String("network-private"),
+                                QStringList() << QLatin1String("network"))
                 << QtModuleInfo(QLatin1String("QtOpenGL"), QLatin1String("opengl"),
                                 QStringList() << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtOpenGL"), QLatin1String("opengl-private"),
+                                QStringList() << QLatin1String("opengl"))
                 << QtModuleInfo(QLatin1String("QtOpenVG"), QLatin1String("openvg"),
                                 QStringList() << QLatin1String("gui"))
                 << QtModuleInfo(QLatin1String("QtScript"), QLatin1String("script"))
+                << QtModuleInfo(QLatin1String("QtScript"), QLatin1String("script-private"),
+                                QStringList() << QLatin1String("script"))
                 << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttols"),
                                 QStringList() << QLatin1String("script") << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtScriptTools"), QLatin1String("scripttols-private"),
+                                QStringList() << QLatin1String("scripttols"))
                 << QtModuleInfo(QLatin1String("QtSql"), QLatin1String("sql"))
+                << QtModuleInfo(QLatin1String("QtSql"), QLatin1String("sql-private"),
+                                QStringList() << QLatin1String("sql"))
                 << QtModuleInfo(QLatin1String("QtSvg"), QLatin1String("svg"),
                                 QStringList() << QLatin1String("gui"))
+                << QtModuleInfo(QLatin1String("QtSvg"), QLatin1String("svg-private"),
+                                QStringList() << QLatin1String("svg"))
                 << QtModuleInfo(QLatin1String("QtWebKit"), QLatin1String("webkit"),
                                 QStringList() << QLatin1String("gui") << QLatin1String("network"))
+                << QtModuleInfo(QLatin1String("QtWebKit"), QLatin1String("webkit-private"),
+                                QStringList() << QLatin1String("webkit"))
                 << QtModuleInfo(QLatin1String("QtXml"), QLatin1String("xml"))
+                << QtModuleInfo(QLatin1String("QtXml"), QLatin1String("xml-private"),
+                                QStringList() << QLatin1String("xml"))
                 << QtModuleInfo(QLatin1String("QtXmlPatterns"), QLatin1String("xmlpatterns"),
                                 QStringList() << "network")
+                << QtModuleInfo(QLatin1String("QtXmlPatterns"),
+                                QLatin1String("xmlpatterns-private"),
+                                QStringList() << QLatin1String("xmlpatterns"))
                 << QtModuleInfo(QLatin1String("QtDeclarative"), QLatin1String("qtdeclarative"),
                                 QStringList() << QLatin1String("gui") << QLatin1String("script"))
+                << QtModuleInfo(QLatin1String("QtDeclarative"),
+                                QLatin1String("qtdeclarative-private"),
+                                QStringList() << QLatin1String("declarative"))
                 << QtModuleInfo(QLatin1String("Phonon"), QLatin1String("phonon"))
                 << QtModuleInfo(QLatin1String("QtDesigner"), QLatin1String("designer"),
                                 QStringList() << QLatin1String("gui") << QLatin1String("xml"))
+                << QtModuleInfo(QLatin1String("QtDesigner"), QLatin1String("designer-private"),
+                                QStringList() << QLatin1String("designer"))
                 << QtModuleInfo(QLatin1String("QtUiTools"), QLatin1String("uitools"))
+                << QtModuleInfo(QLatin1String("QtUiTools"), QLatin1String("uitools-private"),
+                                QStringList() << QLatin1String("uitools"))
                 << QtModuleInfo(QLatin1String("QtHelp"), QLatin1String("help"),
                                 QStringList() << QLatin1String("network") << QLatin1String("sql"))
+                << QtModuleInfo(QLatin1String("QtHelp"), QLatin1String("help-private"),
+                                QStringList() << QLatin1String("help"))
                 << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib"))
+                << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib-private"),
+                                QStringList() << QLatin1String("testlib"))
                 << QtModuleInfo(QLatin1String("QAxContainer"), QLatin1String("axcontainer"))
                 << QtModuleInfo(QLatin1String("QAxServer"), QLatin1String("axserver"))
-                << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"));
+                << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"))
+                << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
+                                QStringList() << QLatin1String("dbus"));
 
-        // This is a "virtual" module for the convenience of project file authors. It allows
-        // to add a dependency to "Qt.widgets" without a version check.
-        QtModuleInfo widgetsModule(QLatin1String("QtWidgets"), QLatin1String("widgets"),
-                                   QStringList() << QLatin1String("gui"));
-        widgetsModule.hasLibrary = false;
-        modules << widgetsModule;
+        QtModuleInfo designerComponentsPrivate(QLatin1String("QtDesignerComponents"),
+                QLatin1String("designercomponents-private"),
+                QStringList() << QLatin1String("gui-private") << QLatin1String("designer-private"));
+        designerComponentsPrivate.hasLibrary = true;
+        modules << designerComponentsPrivate;
+
+        // These are for the convenience of project file authors. It allows them
+        // to add a dependency to e.g. "Qt.widgets" without a version check.
+        QtModuleInfo virtualModule;
+        virtualModule.hasLibrary = false;
+        virtualModule.qbsName = QLatin1String("widgets");
+        virtualModule.dependencies = QStringList() << QLatin1String("core") << QLatin1String("gui");
+        modules << virtualModule;
+        virtualModule.qbsName = QLatin1String("concurrent");
+        virtualModule.dependencies = QStringList() << QLatin1String("core");
+        modules << virtualModule;
+        virtualModule.qbsName = QLatin1String("printsupport");
+        virtualModule.dependencies = QStringList() << QLatin1String("core") << QLatin1String("gui");
+        modules << virtualModule;
+
         addTestModule(modules);
+        addDesignerComponentsModule(modules);
     } else {
         QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
         while (dit.hasNext()) {
@@ -189,8 +253,8 @@ static void createModules(Profile &profile, Settings *settings,
                         moduleInfo.dependencies[i].replace(QLatin1String("_private"),
                                                            QLatin1String("-private"));
                     }
-                } else if (key.endsWith(".module_config") && value.contains("no_link")) {
-                    moduleInfo.hasLibrary = false;
+                } else if (key.endsWith(".module_config")) {
+                    moduleInfo.hasLibrary = !value.contains("no_link");
                 } else if (key.endsWith(".includes")) {
                     moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
                     for (int i = 0; i < moduleInfo.includePaths.count(); ++i) {
@@ -203,6 +267,8 @@ static void createModules(Profile &profile, Settings *settings,
             modules << moduleInfo;
             if (moduleInfo.qbsName == QLatin1String("testlib"))
                 addTestModule(modules);
+            if (moduleInfo.qbsName == QLatin1String("designercomponents-private"))
+                addDesignerComponentsModule(modules);
         }
     }
 
