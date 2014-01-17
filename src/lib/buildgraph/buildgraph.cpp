@@ -436,8 +436,12 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
         QBS_CHECK(artifact->product == product);
         foreach (const Artifact * const parent, artifact->parents)
             QBS_CHECK(parent->children.contains(artifact));
-        foreach (const Artifact * const child, artifact->children)
+        foreach (Artifact * const child, artifact->children) {
             QBS_CHECK(child->parents.contains(artifact));
+            QBS_CHECK(child->product);
+            QBS_CHECK(child->product->buildData);
+            QBS_CHECK(child->product->buildData->artifacts.contains(child));
+        }
         foreach (Artifact * const child, artifact->childrenAddedByScanner)
             QBS_CHECK(artifact->children.contains(child));
         const TransformerConstPtr transformer = artifact->transformer;
