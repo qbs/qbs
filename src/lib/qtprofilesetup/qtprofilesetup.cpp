@@ -135,6 +135,14 @@ static void createModules(Profile &profile, Settings *settings,
                 << QtModuleInfo(QLatin1String("QAxContainer"), QLatin1String("axcontainer"))
                 << QtModuleInfo(QLatin1String("QAxServer"), QLatin1String("axserver"))
                 << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"));
+
+        // This is a "virtual" module for the convenience of project file authors. It allows
+        // to add a dependency to "Qt.widgets" without a version check.
+        QtModuleInfo widgetsModule(QLatin1String("QtWidgets"), QLatin1String("widgets"),
+                                   QStringList() << QLatin1String("gui"));
+        widgetsModule.hasLibrary = false;
+        modules << widgetsModule;
+
     } else {
         QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
         while (dit.hasNext()) {
