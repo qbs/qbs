@@ -1370,7 +1370,7 @@ void TestBlackbox::dynamicLibs()
 
 void TestBlackbox::dynamicRuleOutputs()
 {
-    QSKIP("QBS-370");
+    SKIP_TEST("QBS-370");
     const QString testDir = testDataDir + "/dynamicRuleOutputs";
     QDir::setCurrent(testDir);
     if (QFile::exists("work"))
