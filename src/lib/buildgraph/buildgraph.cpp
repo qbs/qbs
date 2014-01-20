@@ -438,7 +438,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
             QBS_CHECK(parent->children.contains(artifact));
         foreach (Artifact * const child, artifact->children) {
             QBS_CHECK(child->parents.contains(artifact));
-            QBS_CHECK(child->product);
+            QBS_CHECK(!child->product.isNull());
             QBS_CHECK(child->product->buildData);
             QBS_CHECK(child->product->buildData->artifacts.contains(child));
         }
