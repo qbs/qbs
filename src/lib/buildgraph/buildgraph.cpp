@@ -238,6 +238,9 @@ bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
 void connect(Artifact *p, Artifact *c)
 {
     QBS_CHECK(p != c);
+    foreach (const Artifact * const child, p->children)
+        if (child != c && child->filePath() == c->filePath())
+            throw ErrorInfo(QString::fromLocal8Bit("Artifact %1 already has a child artifact %2 as different object.").arg(p->filePath(), c->filePath()), CodeLocation(), true);
     p->children.insert(c);
     c->parents.insert(p);
     p->product->topLevelProject()->buildData->isDirty = true;
