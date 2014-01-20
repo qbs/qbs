@@ -345,6 +345,7 @@ ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
                          const QtEnvironment &qtEnvironment)
 {
     Profile profile(profileName, settings);
+    profile.removeProfile();
     const QString settingsTemplate(QLatin1String("Qt.core.%1"));
     profile.setValue(settingsTemplate.arg("config"), qtEnvironment.configItems);
     profile.setValue(settingsTemplate.arg("qtConfig"), qtEnvironment.qtConfigItems);
