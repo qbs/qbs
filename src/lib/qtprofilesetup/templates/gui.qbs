@@ -1,7 +1,7 @@
 import qbs 1.0
 import qbs.FileInfo
+import qbs.ModUtils
 import '../QtModule.qbs' as QtModule
-import '../utils.js' as ModUtils
 
 QtModule {
     qtModuleName: "Gui"

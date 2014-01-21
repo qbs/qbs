@@ -1,7 +1,7 @@
 import qbs 1.0
 import qbs.File
 import qbs.FileInfo
-import '../utils.js' as ModUtils
+import qbs.ModUtils
 import 'windows.js' as Windows
 import 'msvc.js' as MSVC
 import "bundle-tools.js" as BundleTools     // needed for path-tools.js

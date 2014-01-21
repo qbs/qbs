@@ -1,6 +1,6 @@
 import qbs 1.0
 import qbs.FileInfo
-import '../utils.js' as ModUtils
+import qbs.ModUtils
 import "windows.js" as Windows
 
 GenericGCC {

@@ -1,10 +1,10 @@
 import qbs 1.0
 import qbs.File
 import qbs.FileInfo
+import qbs.ModUtils
 import qbs.Process
 import 'windows.js' as Windows
 import 'gcc.js' as Gcc
-import '../utils.js' as ModUtils
 import 'bundle-tools.js' as BundleTools
 import 'path-tools.js' as PathTools
 

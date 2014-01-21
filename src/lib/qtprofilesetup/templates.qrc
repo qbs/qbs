@@ -6,6 +6,5 @@
         <file>templates/QtModule.qbs</file>
         <file>templates/moc.js</file>
         <file>templates/qtfunctions.js</file>
-        <file>templates/utils.js</file>
     </qresource>
 </RCC>

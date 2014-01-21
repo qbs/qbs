@@ -1,7 +1,7 @@
 import qbs 1.0
 import qbs.File
 import qbs.FileInfo
-import "../utils.js" as ModUtils
+import qbs.ModUtils
 
 Module {
     condition: qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")
