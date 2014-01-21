@@ -37,7 +37,7 @@
 #include <QScriptValue>
 #include <QTextStream>
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 namespace qbs {
 namespace Internal {

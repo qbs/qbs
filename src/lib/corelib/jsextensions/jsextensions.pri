@@ -16,8 +16,8 @@ SOURCES += \
     $$PWD/domxml.cpp \
     $$PWD/jsextensions.cpp
 
-macx {
+mac {
     HEADERS += $$PWD/propertylist.h
     OBJECTIVE_SOURCES += $$PWD/propertylist.mm
-    LIBS += -framework Cocoa
+    LIBS += -framework Foundation
 }

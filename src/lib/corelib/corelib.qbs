@@ -18,7 +18,7 @@ QbsLibrary {
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
-        cpp.frameworks: "Cocoa"
+        cpp.frameworks: "Foundation"
     }
 
     Group {
@@ -140,7 +140,7 @@ QbsLibrary {
         ]
     }
     Group {
-        name: "jsextensions (OSX-specific)"
+        name: "jsextensions (Darwin-specific)"
         prefix: "jsextensions/"
         condition: qbs.targetOS.contains("darwin")
         files: [
