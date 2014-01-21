@@ -77,6 +77,7 @@ private:
     struct ProductContext
     {
         ResolvedProductPtr product;
+        FileTags additionalFileTags;
         Item *item;
     };
 

@@ -343,7 +343,6 @@ public:
 
     bool enabled;
     FileTags fileTags;
-    FileTags additionalFileTags;
     QString name;
     QString targetName;
     QString sourceDirectory;

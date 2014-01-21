@@ -448,7 +448,6 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.stream()
         >> enabled
         >> fileTags
-        >> additionalFileTags
         >> name
         >> targetName
         >> sourceDirectory
@@ -470,7 +469,6 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.stream()
         << enabled
         << fileTags
-        << additionalFileTags
         << name
         << targetName
         << sourceDirectory
@@ -663,10 +661,8 @@ const QList<RuleConstPtr> &ResolvedProduct::topSortedRules() const
 {
     QBS_CHECK(buildData);
     if (buildData->topSortedRules.isEmpty()) {
-        FileTags productFileTags = fileTags;
-        productFileTags += additionalFileTags;
         RuleGraph ruleGraph;
-        ruleGraph.build(rules, productFileTags);
+        ruleGraph.build(rules, fileTags);
 //        ruleGraph.dump();
         buildData->topSortedRules = ruleGraph.topSorted();
 //        int i=0;

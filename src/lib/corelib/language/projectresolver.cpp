@@ -300,8 +300,17 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     ModuleLoader::overrideItemProperties(item, product->name, m_setupParams.overriddenValuesTree());
     m_productsByName.insert(product->name, product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
-    product->additionalFileTags
-            = m_evaluator->fileTagsValue(item, QLatin1String("additionalFileTags"));
+
+    // TODO: Remove in 1.3.
+    bool additionalFileTagsWasSet;
+    const QStringList additionalFileTags = m_evaluator->stringListValue(item, QLatin1String("additionalFileTags"),
+                                                                 &additionalFileTagsWasSet);
+    if (additionalFileTagsWasSet) {
+        m_logger.printWarning(ErrorInfo(Tr::tr("The 'additionalFileTags' property is deprecated. Please "
+                                               "use 'type' instead."), item->location()));
+        productContext.additionalFileTags += FileTags::fromStringList(additionalFileTags);
+    }
+
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = productSourceDirectory;
@@ -344,6 +353,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     foreach (const Item::Module &module, item->modules())
         resolveModule(module.name, module.item, projectContext);
 
+    product->fileTags += productContext.additionalFileTags;
+
     m_productContext = 0;
     if (m_progressObserver)
         m_progressObserver->incrementProgressValue();
@@ -366,8 +377,17 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     module->setupRunEnvironmentScript = scriptFunctionValue(item,
                                                             QLatin1String("setupRunEnvironment"));
 
-    m_productContext->product->additionalFileTags
-            += m_evaluator->fileTagsValue(item, QLatin1String("additionalProductFileTags"));
+    m_productContext->additionalFileTags +=
+            m_evaluator->fileTagsValue(item, QLatin1String("additionalProductTypes"));
+    // TODO: Remove in 1.3.
+    bool additionalProductFileTagsWasSet;
+    const QStringList additionalProductFileTags = m_evaluator->stringListValue(item, QLatin1String("additionalProductFileTags"),
+                                                                 &additionalProductFileTagsWasSet);
+    if (additionalProductFileTagsWasSet) {
+        m_logger.printWarning(ErrorInfo(Tr::tr("The 'additionalProductFileTags' property is deprecated. Please "
+                                               "use 'additionalProductTypes' instead."), item->location()));
+        m_productContext->additionalFileTags += FileTags::fromStringList(additionalProductFileTags);
+    }
 
     foreach (const Item::Module &m, item->modules())
         module->moduleDependencies += ModuleLoader::fullModuleName(m.name);

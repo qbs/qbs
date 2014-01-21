@@ -114,7 +114,7 @@ Module {
         return flags;
     }
 
-    additionalProductFileTags: ["qm"]
+    additionalProductTypes: ["qm"]
 
     validate: {
         var requiredProperties = {
