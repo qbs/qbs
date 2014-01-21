@@ -16,6 +16,11 @@ QbsLibrary {
         "SRCDIR=\"" + path + "\""
     ])
 
+    Properties {
+        condition: qbs.targetOS.contains("darwin")
+        cpp.frameworks: "Cocoa"
+    }
+
     Group {
         name: product.name
         files: ["qbs.h"]
@@ -132,6 +137,15 @@ QbsLibrary {
             "textfile.h",
             "domxml.cpp",
             "domxml.h"
+        ]
+    }
+    Group {
+        name: "jsextensions (OSX-specific)"
+        prefix: "jsextensions/"
+        condition: qbs.targetOS.contains("darwin")
+        files: [
+            "propertylist.h",
+            "propertylist.mm"
         ]
     }
     Group {
