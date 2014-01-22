@@ -408,9 +408,10 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 {
     bool hasAlwaysUpdatedArtifacts = false;
     foreach (Artifact *artifact, transformer->outputs) {
-        if (!artifact->alwaysUpdated)
+        if (artifact->alwaysUpdated)
+            hasAlwaysUpdatedArtifacts = true;
+        else if (!m_buildOptions.forceTimestampCheck())
             continue;
-        hasAlwaysUpdatedArtifacts = true;
         const bool upToDate = isUpToDate(artifact);
 
         // The invariant is that all output artifacts of a transformer have the same

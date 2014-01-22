@@ -38,6 +38,7 @@
 #include "tools/error.h"
 #include "tools/installoptions.h"
 #include "tools/preferences.h"
+#include "tools/profile.h"
 #include "tools/processresult.h"
 #include "tools/settings.h"
 #include "tools/setupprojectparameters.h"

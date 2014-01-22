@@ -247,6 +247,9 @@ bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
 void connect(Artifact *p, Artifact *c)
 {
     QBS_CHECK(p != c);
+    foreach (const Artifact * const child, p->children)
+        if (child != c && child->filePath() == c->filePath())
+            throw ErrorInfo(QString::fromLocal8Bit("Artifact %1 already has a child artifact %2 as different object.").arg(p->filePath(), c->filePath()), CodeLocation(), true);
     p->children.insert(c);
     c->parents.insert(p);
     p->product->topLevelProject()->buildData->isDirty = true;
@@ -445,8 +448,12 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
         QBS_CHECK(artifact->product == product);
         foreach (const Artifact * const parent, artifact->parents)
             QBS_CHECK(parent->children.contains(artifact));
-        foreach (const Artifact * const child, artifact->children)
+        foreach (Artifact * const child, artifact->children) {
             QBS_CHECK(child->parents.contains(artifact));
+            QBS_CHECK(!child->product.isNull());
+            QBS_CHECK(child->product->buildData);
+            QBS_CHECK(child->product->buildData->artifacts.contains(child));
+        }
         foreach (Artifact * const child, artifact->childrenAddedByScanner)
             QBS_CHECK(artifact->children.contains(child));
         const TransformerConstPtr transformer = artifact->transformer;

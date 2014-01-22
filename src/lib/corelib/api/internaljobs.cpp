@@ -31,6 +31,7 @@
 #include "jobs.h"
 
 #include <buildgraph/artifactcleaner.h>
+#include <buildgraph/buildgraph.h>
 #include <buildgraph/buildgraphloader.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
@@ -138,9 +139,10 @@ void InternalJob::shareObserverWith(InternalJob *otherJob)
     m_observer = otherJob->m_observer;
 }
 
-void InternalJob::storeBuildGraph(const TopLevelProjectConstPtr &project)
+void InternalJob::storeBuildGraph(const TopLevelProjectPtr &project)
 {
     try {
+        doSanityChecks(project, logger());
         project->store(logger());
     } catch (const ErrorInfo &error) {
         logger().printWarning(error);
