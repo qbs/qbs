@@ -362,29 +362,28 @@ bool Executor::isUpToDate(Artifact *artifact) const
 {
     QBS_CHECK(artifact->artifactType == Artifact::Generated);
 
-    const bool debug = false;
-    if (debug) {
+    if (m_doDebug) {
         m_logger.qbsDebug() << "[UTD] check " << artifact->filePath() << " "
                             << artifact->timestamp().toString();
     }
 
     if (m_buildOptions.forceTimestampCheck()) {
         artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
-        if (debug) {
+        if (m_doDebug) {
             m_logger.qbsDebug() << "[UTD] timestamp retrieved from filesystem: "
                                 << artifact->timestamp().toString();
         }
     }
 
     if (!artifact->timestamp().isValid()) {
-        if (debug)
+        if (m_doDebug)
             m_logger.qbsDebug() << "[UTD] invalid timestamp. Out of date.";
         return false;
     }
 
     foreach (Artifact *child, artifact->children) {
         QBS_CHECK(child->timestamp().isValid());
-        if (debug)
+        if (m_doDebug)
             m_logger.qbsDebug() << "[UTD] child timestamp " << child->timestamp().toString();
         if (artifact->timestamp() < child->timestamp())
             return false;
@@ -395,7 +394,7 @@ bool Executor::isUpToDate(Artifact *artifact) const
             FileInfo fi(fileDependency->filePath());
             fileDependency->setTimestamp(fi.lastModified());
         }
-        if (debug)
+        if (m_doDebug)
             m_logger.qbsDebug() << "[UTD] file dependency timestamp "
                                 << fileDependency->timestamp().toString();
         if (artifact->timestamp() < fileDependency->timestamp())
