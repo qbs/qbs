@@ -515,6 +515,24 @@
 
     \section1 Properties Specific to Unix Platforms
 
+    \section2 archiverName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"ar"}
+    \endtable
+
+    Name of the archiver binary. This is set in the build profile.
+
+    \section2 archiverPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-detect-toolchains
+    \endtable
+
+    Full path of the archiver binary. This is set in the build profile.
+
     \section2 positionIndependentCode
 
     \table

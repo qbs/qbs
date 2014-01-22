@@ -72,7 +72,7 @@ protected:
 
     JobObserver *observer() const { return m_observer; }
     void setTimed(bool timed) { m_timed = timed; }
-    void storeBuildGraph(const TopLevelProjectConstPtr &project);
+    void storeBuildGraph(const TopLevelProjectPtr &project);
 
 signals:
     void finished(Internal::InternalJob *job);
