@@ -1,4 +1,5 @@
 import qbs 1.0
+import qbs.FileInfo
 import qbs.TextFile
 
 Module {
@@ -16,6 +17,7 @@ Module {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
+            cmd.description = "generating " + FileInfo.fileName(output.fileName);
             cmd.sourceCode = function() {
                     var f = new TextFile(output.fileName, TextFile.WriteOnly);
                     f.write("NARF! ZORT!");
