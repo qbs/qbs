@@ -43,7 +43,7 @@ namespace qbs {
 
 class QBS_EXPORT CodeLocation
 {
-    friend bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
+    friend QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
 public:
     CodeLocation();
     CodeLocation(const QString &aFileName, int aLine = -1, int aColumn = -1);
