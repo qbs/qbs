@@ -44,9 +44,8 @@ public:
     int column;
 };
 
-CodeLocation::CodeLocation() : d(new CodeLocationPrivate)
+CodeLocation::CodeLocation()
 {
-    d->line = d->column = -1;
 }
 
 CodeLocation::CodeLocation(const QString &aFileName, int aLine, int aColumn)
@@ -73,17 +72,17 @@ CodeLocation::~CodeLocation()
 
 QString CodeLocation::fileName() const
 {
-    return d->fileName;
+    return d ? d->fileName : QString();
 }
 
 int CodeLocation::line() const
 {
-    return d->line;
+    return d ? d->line : -1;
 }
 
 int CodeLocation::column() const
 {
-    return d->column;
+    return d ? d->column : -1;
 }
 
 bool CodeLocation::isValid() const
@@ -108,6 +107,8 @@ QString CodeLocation::toString() const
 
 bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
 {
+    if (cl1.d == cl2.d)
+        return true;
     return cl1.fileName() == cl2.fileName() && cl1.line() == cl2.line()
             && cl1.column() == cl2.column();
 }
