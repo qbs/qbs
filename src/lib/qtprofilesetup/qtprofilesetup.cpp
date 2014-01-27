@@ -169,10 +169,10 @@ static void createModules(Profile &profile, Settings *settings,
                 << QtModuleInfo(QLatin1String("QtXmlPatterns"),
                                 QLatin1String("xmlpatterns-private"),
                                 QStringList() << QLatin1String("xmlpatterns"))
-                << QtModuleInfo(QLatin1String("QtDeclarative"), QLatin1String("qtdeclarative"),
+                << QtModuleInfo(QLatin1String("QtDeclarative"), QLatin1String("declarative"),
                                 QStringList() << QLatin1String("gui") << QLatin1String("script"))
                 << QtModuleInfo(QLatin1String("QtDeclarative"),
-                                QLatin1String("qtdeclarative-private"),
+                                QLatin1String("declarative-private"),
                                 QStringList() << QLatin1String("declarative"))
                 << QtModuleInfo(QLatin1String("Phonon"), QLatin1String("phonon"))
                 << QtModuleInfo(QLatin1String("QtDesigner"), QLatin1String("designer"),
