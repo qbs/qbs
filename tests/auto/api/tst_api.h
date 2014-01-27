@@ -55,6 +55,7 @@ private slots:
     void nonexistingProjectPropertyFromProduct();
     void nonexistingProjectPropertyFromCommandLine();
     void references();
+    void sourceFileInBuildDir();
 
 private:
     qbs::SetupProjectParameters defaultSetupParameters() const;

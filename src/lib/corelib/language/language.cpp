@@ -940,10 +940,21 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
     return files;
 }
 
+static bool isQbsBuildDir(const QDir &dir)
+{
+    return dir.exists(dir.dirName() + QLatin1String(".bg"));
+}
+
 void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr &group,
                                      const QStringList &parts,
                                      const QString &baseDir) const
 {
+    // People might build directly in the project source directory. This is okay, since
+    // we keep the build data in a "container" directory. However, we must make sure we don't
+    // match any generated files therein as source files.
+    if (isQbsBuildDir(baseDir))
+        return;
+
     QStringList changed_parts = parts;
     bool recursive = false;
     QString part = changed_parts.takeFirst();
@@ -977,6 +988,8 @@ void SourceWildCards::expandPatterns(QSet<QString> &result, const GroupConstPtr 
     QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);
     while (it.hasNext()) {
         const QString filePath = it.next();
+        if (isQbsBuildDir(it.fileInfo().dir()))
+            continue; // See above.
         QBS_ASSERT(FileInfo(filePath).isDir() == isDir, break);
         if (isDir)
             expandPatterns(result, group, changed_parts, filePath);

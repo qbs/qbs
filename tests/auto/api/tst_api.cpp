@@ -517,6 +517,23 @@ void TestApi::references()
     QCOMPARE(subProjectFileName, QString("p.qbs"));
 }
 
+void TestApi::sourceFileInBuildDir()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/source-file-in-build-dir");
+    setupParams.setProjectFilePath(projectDir + QLatin1String("/project.qbs"));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    const qbs::ProjectData projectData = job->project().projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    const qbs::ProductData product = projectData.allProducts().first();
+    QCOMPARE(product.groups().count(), 1);
+    const qbs::GroupData group = product.groups().first();
+    QCOMPARE(group.allFilePaths().count(), 1);
+}
+
 QTEST_MAIN(TestApi)
 
 #include "tst_api.moc"
