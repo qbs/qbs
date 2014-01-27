@@ -142,12 +142,6 @@
         \li Each artifact that matches the file tags in \a explicitlyDependsOn
            is added to the dependencies of each output node.
     \row
-        \li scanners
-        \li string list
-        \li undefined
-        \li List of dependency scanner ids for this rule. The scanners are
-           run just before the prepare script is executed.
-    \row
         \li prepare
         \li script
         \li undefined
