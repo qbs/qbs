@@ -215,7 +215,6 @@ void ResolvedGroup::store(PersistentPool &pool) const
  */
 void RuleArtifact::load(PersistentPool &pool)
 {
-    Q_UNUSED(pool);
     pool.stream()
             >> fileName
             >> fileTags
@@ -234,7 +233,6 @@ void RuleArtifact::load(PersistentPool &pool)
 
 void RuleArtifact::store(PersistentPool &pool) const
 {
-    Q_UNUSED(pool);
     pool.stream()
             << fileName
             << fileTags
