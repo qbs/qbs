@@ -151,20 +151,18 @@ private slots:
         QVERIFY(projectFile.open());
         const QStringList fileArgs = QStringList() << "-f" << projectFile.fileName();
         CommandLineParser parser;
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-x" << fileArgs, settings.data())); // Unknown short option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--xyz" << fileArgs, settings.data())); // Unknown long option.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-vjv" << fileArgs, settings.data())); // Invalid position.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << fileArgs, settings.data()));  // Missing argument.
+        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-x", settings.data())); // Unknown short option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "--xyz", settings.data())); // Unknown long option.
+        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-vjv", settings.data())); // Invalid position.
+        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "-j", settings.data()));  // Missing argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << "-j" << "0" << fileArgs,
                                          settings.data())); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList() << "--products" << fileArgs,
+        QVERIFY(!parser.parseCommandLine(QStringList() << fileArgs << "--products",
                                          settings.data()));  // Missing argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << "--changed-files" << "," << fileArgs,
                                          settings.data())); // Wrong argument.
         QVERIFY(!parser.parseCommandLine(QStringList() << "--log-level" << "blubb" << fileArgs,
                                          settings.data())); // Wrong argument.
-        QVERIFY(!parser.parseCommandLine(QStringList("properties") << fileArgs << "--force",
-                settings.data())); // Invalid option for command.
     }
 
     void testProjectFileLookup()
