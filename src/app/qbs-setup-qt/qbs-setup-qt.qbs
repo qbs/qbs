@@ -10,5 +10,10 @@ QbsApp {
         "setupqt.cpp",
         "setupqt.h"
     ]
+    Group {
+        name: "MinGW specific files"
+        condition: qbs.toolchain.contains("mingw")
+        files: ["qbs-setup-qt.rc"]
+    }
 }
 

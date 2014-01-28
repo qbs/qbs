@@ -10,3 +10,7 @@ SOURCES += \
 HEADERS += \
     setupqt.h \
     ../shared/qbssettings.h
+
+mingw {
+    RC_FILE = qbs-setup-qt.rc
+}
