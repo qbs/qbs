@@ -54,4 +54,19 @@
     Returns the name of the operating system on which \QBS is running.
     \note Do not confuse this with the \c{qbs.targetOS} property, which represents the operating
     system on which the binaries produced by \QBS will run.
+
+
+    \section1 Extensions to JavaScript built-in objects
+
+    \section2 \c{Array.contains(e)}
+    Returns \c{true} if the array contains the element \c{e}. Returns \c{false} otherwise.
+
+    \section2 \c{String.contains(s)}
+    Returns \c{true} if the string contains the substring \c{s}. Returns \c{false} otherwise.
+
+    \section2 \c{String.startsWith(s)}
+    Returns \c{true} if the string starts with the substring \c{s}. Returns \c{false} otherwise.
+
+    \section2 \c{String.endsWith(s)}
+    Returns \c{true} if the string ends with the substring \c{s}. Returns \c{false} otherwise.
 */
