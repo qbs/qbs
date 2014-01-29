@@ -252,6 +252,11 @@ void BuiltinDeclarations::addModuleItem()
 {
     ItemDeclaration item(QLatin1String("Module"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
+            << QLatin1String("Depends")
+            << QLatin1String("FileTagger")
+            << QLatin1String("Rule")
+            << QLatin1String("PropertyOptions")
+            << QLatin1String("Transformer")
             << QLatin1String("Module")  // needed, because we're adding module instances internally
                               );
     item << nameProperty();

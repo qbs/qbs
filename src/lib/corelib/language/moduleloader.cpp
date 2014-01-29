@@ -1016,6 +1016,9 @@ void ModuleLoader::checkItemTypes(Item *item)
             throw ErrorInfo(Tr::tr("Items of type '%1' cannot contain items of type '%2'.")
                 .arg(item->typeName(), child->typeName()), item->location());
     }
+
+    foreach (const Item::Module &m, item->modules())
+        checkItemTypes(m.item);
 }
 
 void ModuleLoader::callValidateScript(Item *module)
