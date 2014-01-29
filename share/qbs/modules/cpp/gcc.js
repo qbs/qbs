@@ -76,7 +76,7 @@ function linkerFlags(product, inputs)
     if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
         var transitiveSOs = ModUtils.modulePropertiesFromArtifacts(product,
                                                                    inputs.dynamiclibrary_copy, 'cpp', 'transitiveSOs')
-        var uniqueSOs = ModUtils.uniqueConcat([], transitiveSOs)
+        var uniqueSOs = [].uniqueConcat(transitiveSOs)
         for (i in uniqueSOs) {
             // The real library is located one level up.
             args.push("-Wl,-rpath-link=" + FileInfo.path(FileInfo.path(uniqueSOs[i])));

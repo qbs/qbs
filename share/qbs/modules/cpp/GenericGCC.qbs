@@ -103,7 +103,7 @@ CppModule {
                     var lib = inputs.dynamiclibrary_copy[i]
                     var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
                     var libsToAdd = impliedLibs.concat([lib.fileName]);
-                    result = ModUtils.uniqueConcat(result, libsToAdd);
+                    result = result.uniqueConcat(libsToAdd);
                 }
                 return result
             }
