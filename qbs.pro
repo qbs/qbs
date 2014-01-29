@@ -45,6 +45,7 @@ OTHER_FILES += \
     doc/*.qdoc \
     doc/reference/*.qdoc \
     doc/reference/items/*.qdoc \
+    doc/reference/jsextensions/*.qdoc \
     doc/reference/modules/*.qdoc \
     doc/qbs.qdocconf \
     doc/config/qbs-project.qdocconf
