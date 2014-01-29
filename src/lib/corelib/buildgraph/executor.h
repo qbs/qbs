@@ -93,18 +93,20 @@ private:
 
     void doBuild();
     void prepareAllArtifacts(bool *sourceFilesChanged);
-    void prepareReachableArtifacts(const Artifact::BuildState buildState);
+    void prepareReachableArtifacts();
     void prepareReachableArtifacts_impl(Artifact *artifact, const Artifact::BuildState buildState);
+    void prepareProducts();
+    void setupRootNodes();
     void updateBuildGraph(Artifact::BuildState buildState);
     void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
-    void initLeaves(const QList<Artifact *> &changedArtifacts);
+    void initLeaves();
     void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
     bool scheduleJobs();
     void buildArtifact(Artifact *artifact);
     void finishJob(ExecutorJob *job, bool success);
     void finishArtifact(Artifact *artifact);
     void setState(ExecutorState);
-    void addExecutorJobs(int jobNumber);
+    void addExecutorJobs();
     void runAutoMoc();
     void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
     void cancelJobs();

@@ -244,52 +244,17 @@ void Executor::doBuild()
         m_project->buildData->evaluationContext = m_evalContext;
     }
 
-    m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] preparing executor for %1 jobs "
-                                                  "in parallel").arg(m_buildOptions.maxJobCount());
-    addExecutorJobs(m_buildOptions.maxJobCount());
-    foreach (ExecutorJob * const job, m_availableJobs)
-        job->setDryRun(m_buildOptions.dryRun());
+    addExecutorJobs();
 
     bool sourceFilesChanged = false;
     prepareAllArtifacts(&sourceFilesChanged);
-    Artifact::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
-            ? Artifact::Buildable : Artifact::Built;
-
-    QList<Artifact *> changedArtifacts;
-    foreach (const QString &filePath, m_buildOptions.changedFiles()) {
-        QList<FileResourceBase *> lookupResults;
-        lookupResults.append(m_project->buildData->lookupFiles(filePath));
-        if (lookupResults.isEmpty()) {
-            m_logger.qbsWarning() << QString::fromLocal8Bit("Out of date file '%1' provided "
-                    "but not found.").arg(QDir::toNativeSeparators(filePath));
-            continue;
-        }
-        foreach (FileResourceBase *lookupResult, lookupResults)
-            if (Artifact *artifact = dynamic_cast<Artifact *>(lookupResult))
-                changedArtifacts += artifact;
-    }
-    qSort(changedArtifacts);
-    changedArtifacts.erase(std::unique(changedArtifacts.begin(), changedArtifacts.end()),
-                           changedArtifacts.end());
-
-    // prepare products
-    ProductPrioritySetter prioritySetter(m_productsToBuild.first()->topLevelProject());
-    prioritySetter.apply();
-    foreach (ResolvedProductPtr product, m_productsToBuild)
-        product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);
-
-    // find the root nodes
-    m_roots.clear();
-    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (Artifact *targetArtifact, product->buildData->targetArtifacts)
-            m_roots += targetArtifact;
-    }
-
-    prepareReachableArtifacts(initialBuildState);
+    prepareProducts();
+    setupRootNodes();
+    prepareReachableArtifacts();
     setupProgressObserver(sourceFilesChanged);
     if (sourceFilesChanged)
         runAutoMoc();
-    initLeaves(changedArtifacts);
+    initLeaves();
     if (!scheduleJobs()) {
         m_logger.qbsTrace() << "Nothing to do at all, finishing.";
         QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
@@ -310,8 +275,25 @@ static void initArtifactsBottomUp(Artifact *artifact)
         initArtifactsBottomUp(parent);
 }
 
-void Executor::initLeaves(const QList<Artifact *> &changedArtifacts)
+void Executor::initLeaves()
 {
+    QList<Artifact *> changedArtifacts;
+    foreach (const QString &filePath, m_buildOptions.changedFiles()) {
+        QList<FileResourceBase *> lookupResults;
+        lookupResults.append(m_project->buildData->lookupFiles(filePath));
+        if (lookupResults.isEmpty()) {
+            m_logger.qbsWarning() << QString::fromLocal8Bit("Out of date file '%1' provided "
+                    "but not found.").arg(QDir::toNativeSeparators(filePath));
+            continue;
+        }
+        foreach (FileResourceBase *lookupResult, lookupResults)
+            if (Artifact *artifact = dynamic_cast<Artifact *>(lookupResult))
+                changedArtifacts += artifact;
+    }
+    qSort(changedArtifacts);
+    changedArtifacts.erase(std::unique(changedArtifacts.begin(), changedArtifacts.end()),
+                           changedArtifacts.end());
+
     if (changedArtifacts.isEmpty()) {
         QSet<Artifact *> seenArtifacts;
         foreach (Artifact *root, m_roots)
@@ -719,12 +701,15 @@ void Executor::handleError(const ErrorInfo &error)
         cancelJobs();
 }
 
-void Executor::addExecutorJobs(int jobNumber)
+void Executor::addExecutorJobs()
 {
-    for (int i = 1; i <= jobNumber; i++) {
+    m_logger.qbsDebug() << QString::fromLocal8Bit("[EXEC] preparing executor for %1 jobs "
+                                                  "in parallel").arg(m_buildOptions.maxJobCount());
+    for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
         ExecutorJob *job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QString::fromLatin1("J%1").arg(i));
+        job->setDryRun(m_buildOptions.dryRun());
         m_availableJobs.append(job);
         connect(job, SIGNAL(reportCommandDescription(QString,QString)),
                 this, SIGNAL(reportCommandDescription(QString,QString)), Qt::QueuedConnection);
@@ -863,10 +848,12 @@ void Executor::prepareAllArtifacts(bool *sourceFilesChanged)
  * Walk the build graph top-down from the roots and for each reachable node N
  *  - mark N as buildable.
  */
-void Executor::prepareReachableArtifacts(const Artifact::BuildState buildState)
+void Executor::prepareReachableArtifacts()
 {
+    const Artifact::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
+            ? Artifact::Buildable : Artifact::Built;
     foreach (Artifact *root, m_roots)
-        prepareReachableArtifacts_impl(root, buildState);
+        prepareReachableArtifacts_impl(root, initialBuildState);
 }
 
 void Executor::prepareReachableArtifacts_impl(Artifact *artifact,
@@ -878,6 +865,23 @@ void Executor::prepareReachableArtifacts_impl(Artifact *artifact,
     artifact->buildState = buildState;
     foreach (Artifact *child, artifact->children)
         prepareReachableArtifacts_impl(child, buildState);
+}
+
+void Executor::prepareProducts()
+{
+    ProductPrioritySetter prioritySetter(m_project.data());
+    prioritySetter.apply();
+    foreach (ResolvedProductPtr product, m_productsToBuild)
+        product->setupBuildEnvironment(m_evalContext->engine(), m_project->environment);
+}
+
+void Executor::setupRootNodes()
+{
+    m_roots.clear();
+    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
+        foreach (Artifact *targetArtifact, product->buildData->targetArtifacts)
+            m_roots += targetArtifact;
+    }
 }
 
 void Executor::updateBuildGraph(Artifact::BuildState buildState)
