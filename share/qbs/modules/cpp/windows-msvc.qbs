@@ -209,7 +209,7 @@ CppModule {
                     var lib = inputs.staticlibrary[i]
                     result.push(lib.fileName)
                     var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
-                    result = result.concat(impliedLibs);
+                    result = result.uniqueConcat(impliedLibs);
                 }
                 return result
             }
