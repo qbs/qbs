@@ -61,6 +61,11 @@
     \section2 \c{Array.contains(e)}
     Returns \c{true} if the array contains the element \c{e}. Returns \c{false} otherwise.
 
+    \section2 \c{Array.uniqueConcat(other)}
+    Returns a copy of this array joined with the array \c{other}.
+    Duplicates that would originate from the concatenation are removed.
+    The order of elements is preserved.
+
     \section2 \c{String.contains(s)}
     Returns \c{true} if the string contains the substring \c{s}. Returns \c{false} otherwise.
 

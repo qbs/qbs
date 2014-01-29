@@ -300,6 +300,18 @@ void ScriptEngine::extendJavaScriptBuiltins()
     JSTypeExtender arrayExtender(this, QLatin1String("Array"));
     arrayExtender.addFunction(QLatin1String("contains"),
         QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
+    arrayExtender.addFunction(QLatin1String("uniqueConcat"),
+        QLatin1String("(function(other){"
+                        "var r = this.concat();"
+                        "var s = {};"
+                        "r.forEach(function(x){ s[x] = true; });"
+                        "other.forEach(function(x){"
+                            "if (!s[x]) {"
+                              "s[x] = true;"
+                              "r.push(x);"
+                            "}"
+                        "});"
+                        "return r;})"));
 
     JSTypeExtender stringExtender(this, QLatin1String("String"));
     stringExtender.addFunction(QLatin1String("contains"),
