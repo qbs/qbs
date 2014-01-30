@@ -1038,8 +1038,11 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
 QString keyFromElem(const ResolvedTransformerConstPtr &t) { return t->transform->sourceCode; }
 QString keyFromElem(const RulePtr &r) { return r->toString(); }
-QString keyFromElem(const ArtifactPropertiesPtr &ap) {
-    return ap->fileTagsFilter().toStringList().join(QLatin1String(","));
+QString keyFromElem(const ArtifactPropertiesPtr &ap)
+{
+    QStringList lst = ap->fileTagsFilter().toStringList();
+    lst.sort();
+    return lst.join(QLatin1String(","));
 }
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
