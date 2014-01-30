@@ -354,8 +354,12 @@ static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModu
 
 QString Rule::toString() const
 {
-    return QLatin1Char('[') + inputs.toStringList().join(QLatin1String(",")) + QLatin1String(" -> ")
-            + staticOutputFileTags().toStringList().join(QLatin1String(",")) + QLatin1Char(']');
+    QStringList outputTagsSorted = staticOutputFileTags().toStringList();
+    outputTagsSorted.sort();
+    QStringList inputTagsSorted = inputs.toStringList();
+    inputTagsSorted.sort();
+    return QLatin1Char('[') + inputTagsSorted.join(QLatin1String(",")) + QLatin1String(" -> ")
+            + outputTagsSorted.join(QLatin1String(",")) + QLatin1Char(']');
 }
 
 FileTags Rule::staticOutputFileTags() const
