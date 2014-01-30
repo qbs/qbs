@@ -343,3 +343,20 @@ function prepareCompiler(project, product, inputs, outputs, input, output)
     cmd.responseFileUsagePrefix = '@';
     return cmd;
 }
+
+// Concatenates two arrays of library names and preserves the dependency order that ld needs.
+function concatLibs(libs, deplibs)
+{
+    var r = [];
+    var s = {};
+    function f(e)
+    {
+        if (!s[e]) {
+            s[e] = true;
+            r.unshift(e);
+        }
+    }
+    deplibs.forEach(f);
+    libs.forEach(f);
+    return r;
+}

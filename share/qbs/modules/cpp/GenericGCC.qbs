@@ -102,10 +102,11 @@ CppModule {
                 for (var i in inputs.dynamiclibrary_copy) {
                     var lib = inputs.dynamiclibrary_copy[i]
                     var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
-                    var libsToAdd = impliedLibs.uniqueConcat([lib.fileName]);
-                    result = result.uniqueConcat(libsToAdd);
+                    var libsToAdd = [lib.fileName].concat(impliedLibs);
+                    result = result.concat(libsToAdd);
                 }
-                return result
+                result = Gcc.concatLibs([], result);
+                return result;
             }
         }
 
@@ -218,7 +219,7 @@ CppModule {
                     var lib = inputs.staticlibrary[i]
                     result.push(lib.fileName)
                     var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
-                    result = result.uniqueConcat(impliedLibs);
+                    result = Gcc.concatLibs(result, impliedLibs);
                 }
                 return result
             }
