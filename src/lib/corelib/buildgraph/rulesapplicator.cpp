@@ -223,6 +223,7 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
     QScriptValue scriptValue = engine()->newObject();
     ModuleProperties::init(scriptValue, artifact);
     scriptValue.setProperty(QLatin1String("fileName"), inFileName);
+    scriptValue.setProperty(QLatin1String("filePath"), artifact->filePath());
     scriptValue.setProperty(QLatin1String("baseName"), inBaseName);
     scriptValue.setProperty(QLatin1String("completeBaseName"), inCompleteBaseName);
     scriptValue.setProperty(QLatin1String("baseDir"), basedir);
