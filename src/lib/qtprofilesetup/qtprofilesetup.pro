@@ -13,3 +13,5 @@ RESOURCES = templates.qrc
     use_pri.path = $${header.path}
     INSTALLS += header use_pri
 }
+
+OTHER_FILES += templates/*

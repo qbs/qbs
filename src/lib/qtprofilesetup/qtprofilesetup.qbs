@@ -17,7 +17,8 @@ QbsLibrary {
 
     files: [
         "qtprofilesetup.cpp",
-        "templates.qrc"
+        "templates.qrc",
+        "templates/*"
     ]
 
     Export {
