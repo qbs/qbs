@@ -73,10 +73,10 @@ QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const 
 
     QScriptValue jsTagFiles = scriptEngine->newObject();
     for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
-        const QList<Artifact*> &ArtifactSet = tag.value();
-        QScriptValue jsFileConfig = scriptEngine->newArray(ArtifactSet.count());
+        const QList<Artifact*> &artifacts = tag.value();
+        QScriptValue jsFileConfig = scriptEngine->newArray(artifacts.count());
         int i=0;
-        foreach (Artifact *artifact, ArtifactSet) {
+        foreach (Artifact *artifact, artifacts) {
             jsFileConfig.setProperty(i++, translateFileConfig(scriptEngine, artifact, defaultModuleName));
         }
         jsTagFiles.setProperty(tag.key(), jsFileConfig);
