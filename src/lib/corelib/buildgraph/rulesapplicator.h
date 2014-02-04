@@ -31,6 +31,7 @@
 
 #include "artifactset.h"
 #include "forward_decls.h"
+#include "nodeset.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
@@ -38,7 +39,6 @@
 #include <QHash>
 #include <QScriptValue>
 #include <QString>
-#include <QVector>
 
 namespace qbs {
 namespace Internal {
@@ -54,7 +54,7 @@ public:
     RulesApplicator(const ResolvedProductPtr &product, ArtifactsPerFileTagMap &artifactsPerFileTag,
                     const Logger &logger);
     ~RulesApplicator();
-    QVector<BuildGraphNode *> applyRuleInEvaluationContext(const RuleConstPtr &rule);
+    NodeSet applyRuleInEvaluationContext(const RuleConstPtr &rule);
     void applyRule(const RuleConstPtr &rule);
     static void handleRemovedRuleOutputs(ArtifactSet artifactsToRemove, const Logger &logger);
 
@@ -77,7 +77,7 @@ private:
 
     const ResolvedProductPtr m_product;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
-    QVector<BuildGraphNode *>  m_createdArtifacts;
+    NodeSet m_createdArtifacts;
 
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;

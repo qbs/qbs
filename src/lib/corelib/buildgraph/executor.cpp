@@ -226,18 +226,33 @@ void Executor::setBuildOptions(const BuildOptions &buildOptions)
     m_buildOptions = buildOptions;
 }
 
-static void initArtifactsBottomUp(BuildGraphNode *node)
+static void initNodesBottomUp(BuildGraphNode *node)
 {
     if (node->buildState == BuildGraphNode::Untouched)
         return;
     node->buildState = BuildGraphNode::Buildable;
     foreach (BuildGraphNode *parent, node->parents)
-        initArtifactsBottomUp(parent);
+        initNodesBottomUp(parent);
 }
 
 void Executor::initLeaves()
 {
-    QList<Artifact *> changedArtifacts;
+    if (m_buildOptions.changedFiles().isEmpty())
+        updateLeaves(m_roots);
+    else
+        initLeavesForSelectedFiles();
+}
+
+void Executor::updateLeaves(const NodeSet &nodes)
+{
+    NodeSet seenNodes;
+    foreach (BuildGraphNode * const node, nodes)
+        updateLeaves(node, seenNodes);
+}
+
+void Executor::initLeavesForSelectedFiles()
+{
+    ArtifactSet changedArtifacts;
     foreach (const QString &filePath, m_buildOptions.changedFiles()) {
         QList<FileResourceBase *> lookupResults;
         lookupResults.append(m_project->buildData->lookupFiles(filePath));
@@ -250,23 +265,14 @@ void Executor::initLeaves()
             if (Artifact *artifact = dynamic_cast<Artifact *>(lookupResult))
                 changedArtifacts += artifact;
     }
-    qSort(changedArtifacts);
-    changedArtifacts.erase(std::unique(changedArtifacts.begin(), changedArtifacts.end()),
-                           changedArtifacts.end());
 
-    if (changedArtifacts.isEmpty()) {
-        QSet<BuildGraphNode *> seenNodes;
-        foreach (BuildGraphNode *root, m_roots)
-            initLeavesTopDown(root, seenNodes);
-    } else {
-        foreach (BuildGraphNode *artifact, changedArtifacts) {
-            m_leaves.push(artifact);
-            initArtifactsBottomUp(artifact);
-        }
+    foreach (Artifact *artifact, changedArtifacts) {
+        m_leaves.push(artifact);
+        initNodesBottomUp(artifact);
     }
 }
 
-void Executor::initLeavesTopDown(BuildGraphNode *node, QSet<BuildGraphNode *> &seenNodes)
+void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
 {
     if (seenNodes.contains(node))
         return;
@@ -281,11 +287,18 @@ void Executor::initLeavesTopDown(BuildGraphNode *node, QSet<BuildGraphNode *> &s
             retrieveSourceFileTimestamp(artifact);
     }
 
-    if (node->children.isEmpty()) {
+    bool isLeaf = true;
+    foreach (BuildGraphNode *child, node->children) {
+        if (child->buildState != BuildGraphNode::Built) {
+            isLeaf = false;
+            updateLeaves(child, seenNodes);
+        }
+    }
+
+    if (isLeaf) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] adding leaf " << node->toString();
         m_leaves.push(node);
-    } else {
-        foreach (BuildGraphNode *child, node->children)
-            initLeavesTopDown(child, seenNodes);
     }
 }
 
@@ -522,16 +535,15 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     } else {
         if (m_doDebug)
             m_logger.qbsDebug() << "[EXEC] " << ruleNode->toString();
-        const QVector<BuildGraphNode *> &createdNodes = result.createdNodes;
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
         QSet<RuleNode *> parentRules;
-        if (!createdNodes.isEmpty()) {
+        if (!result.createdNodes.isEmpty()) {
             foreach (BuildGraphNode *parent, ruleNode->parents) {
                 if (RuleNode *parentRule = dynamic_cast<RuleNode *>(parent))
                     parentRules += parentRule;
             }
         }
-        foreach (BuildGraphNode *node, createdNodes) {
+        foreach (BuildGraphNode *node, result.createdNodes) {
             if (m_doDebug)
                 m_logger.qbsDebug() << "[EXEC] rule created " << node->toString();
             loggedConnect(node, ruleNode, m_logger);
@@ -547,7 +559,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             foreach (RuleNode *parentRule, parentRules)
                 loggedConnect(parentRule, outputArtifact, m_logger);
         }
-        insertLeavesAfterAddingDependencies(createdNodes);
+        updateLeaves(result.createdNodes);
     }
     finishNode(ruleNode);
     if (m_progressObserver)
@@ -642,41 +654,9 @@ void Executor::finishArtifact(Artifact *leaf)
     }
 }
 
-void Executor::insertLeavesAfterAddingDependencies_recurse(BuildGraphNode *const node,
-        QSet<BuildGraphNode *> *seenNodes, Leaves *leaves) const
-{
-    if (seenNodes->contains(node))
-        return;
-    seenNodes->insert(node);
-
-    if (node->buildState == BuildGraphNode::Untouched)
-        node->buildState = BuildGraphNode::Buildable;
-
-    bool isLeaf = true;
-    foreach (BuildGraphNode *child, node->children) {
-        if (child->buildState != BuildGraphNode::Built) {
-            isLeaf = false;
-            insertLeavesAfterAddingDependencies_recurse(child, seenNodes, leaves);
-        }
-    }
-
-    if (isLeaf) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] adding leaf " << node->toString();
-        leaves->push(node);
-    }
-}
-
 QString Executor::configString() const
 {
     return tr(" for configuration %1").arg(m_project->id());
-}
-
-void Executor::insertLeavesAfterAddingDependencies(QVector<BuildGraphNode *> dependencies)
-{
-    QSet<BuildGraphNode *> seenNodes;
-    foreach (BuildGraphNode *dependency, dependencies)
-        insertLeavesAfterAddingDependencies_recurse(dependency, &seenNodes, &m_leaves);
 }
 
 void Executor::cancelJobs()
@@ -792,7 +772,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 {
     bool buildingDependenciesFound = false;
-    QVector<BuildGraphNode *> unbuiltDependencies;
+    NodeSet unbuiltDependencies;
     foreach (BuildGraphNode *dependency, artifact->children) {
         switch (dependency->buildState) {
         case BuildGraphNode::Untouched:
@@ -818,7 +798,7 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
     }
     if (!unbuiltDependencies.isEmpty()) {
         artifact->inputsScanned = false;
-        insertLeavesAfterAddingDependencies(unbuiltDependencies);
+        updateLeaves(unbuiltDependencies);
         return true;
     }
     if (buildingDependenciesFound) {
@@ -995,26 +975,6 @@ void Executor::setupRootNodes()
         foreach (BuildGraphNode *root, product->buildData->roots)
             m_roots += root;
     }
-}
-
-void Executor::updateBuildGraph(Artifact::BuildState buildState)
-{
-    QSet<BuildGraphNode *> seenArtifacts;
-    foreach (BuildGraphNode *root, m_roots)
-        updateBuildGraph_impl(root, buildState, seenArtifacts);
-}
-
-void Executor::updateBuildGraph_impl(BuildGraphNode *node, Artifact::BuildState buildState,
-        QSet<BuildGraphNode *> &seenNodes)
-{
-    if (seenNodes.contains(node))
-        return;
-
-    seenNodes += node;
-    node->buildState = buildState;
-
-    foreach (BuildGraphNode *child, node->children)
-        updateBuildGraph_impl(child, buildState, seenNodes);
 }
 
 void Executor::setState(ExecutorState s)

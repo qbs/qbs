@@ -103,10 +103,10 @@ private:
     void prepareReachableNodes_impl(BuildGraphNode *node, const Artifact::BuildState buildState);
     void prepareProducts();
     void setupRootNodes();
-    void updateBuildGraph(Artifact::BuildState buildState);
-    void updateBuildGraph_impl(BuildGraphNode *node, Artifact::BuildState buildState, QSet<BuildGraphNode *> &seenNodes);
     void initLeaves();
-    void initLeavesTopDown(BuildGraphNode *artifact, QSet<BuildGraphNode *> &seenArtifacts);
+    void updateLeaves(const NodeSet &nodes);
+    void updateLeaves(BuildGraphNode *node, NodeSet &seenNodes);
+    void initLeavesForSelectedFiles();
     bool scheduleJobs();
     void buildArtifact(Artifact *artifact);
     void executeRuleNode(RuleNode *ruleNode);
@@ -115,7 +115,6 @@ private:
     void finishArtifact(Artifact *artifact);
     void setState(ExecutorState);
     void addExecutorJobs();
-    void insertLeavesAfterAddingDependencies(QVector<BuildGraphNode *> dependencies);
     void cancelJobs();
     void setupProgressObserver();
     void doSanityChecks();
@@ -127,8 +126,6 @@ private:
     bool isUpToDate(Artifact *artifact) const;
     void retrieveSourceFileTimestamp(Artifact *artifact) const;
     FileTime recursiveFileTime(const QString &filePath) const;
-    void insertLeavesAfterAddingDependencies_recurse(BuildGraphNode * const node,
-            QSet<BuildGraphNode *> *seenNodes, Leaves *leaves) const;
     QString configString() const;
 
     RulesEvaluationContextPtr m_evalContext;
@@ -140,7 +137,7 @@ private:
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
-    QList<BuildGraphNode *> m_roots;
+    NodeSet m_roots;
     Leaves m_leaves;
     QList<Artifact *> m_changedSourceArtifacts;
     ScanResultCache m_scanResultCache;

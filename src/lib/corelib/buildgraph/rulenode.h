@@ -34,8 +34,6 @@
 #include "buildgraphnode.h"
 #include <language/forward_decls.h>
 
-#include <QVector>
-
 namespace qbs {
 namespace Internal {
 
@@ -57,7 +55,7 @@ public:
     struct ApplicationResult
     {
         bool upToDate;
-        QVector<BuildGraphNode *> createdNodes;
+        NodeSet createdNodes;
     };
 
     void apply(const Logger &logger, const ArtifactSet &changedInputs, ApplicationResult *result);

@@ -64,7 +64,7 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-QVector<BuildGraphNode *> RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule)
+NodeSet RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule)
 {
     m_createdArtifacts.clear();
     RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());

@@ -35,8 +35,11 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
+class ArtifactSet;
 class ProjectBuildData;
 class ProductBuildData;
+class Node;
+class NodeSet;
 
 class Transformer;
 typedef QSharedPointer<Transformer> TransformerPtr;
