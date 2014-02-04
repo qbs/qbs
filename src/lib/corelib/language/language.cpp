@@ -699,14 +699,29 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
                                            topLevelProject(), env);
 }
 
+static bool removeFromHash(ProductBuildData::ArtifactSetByFileTag &tagHash, const FileTag &tag,
+                           Artifact *artifact)
+{
+    const ProductBuildData::ArtifactSetByFileTag::Iterator it = tagHash.find(tag);
+    if (it == tagHash.end())
+        return false;
+
+    ArtifactSet &artifacts = it.value();
+    const bool wasInSet = artifacts.remove(artifact);
+    if (wasInSet) {
+        if (artifacts.isEmpty())
+            tagHash.erase(it); // Do not keep empty artifact set in hash.
+        return true;
+    }
+    return false;
+}
+
 void ResolvedProduct::registerAddedFileTag(const FileTag &fileTag, Artifact *artifact)
 {
     QBS_CHECK(buildData);
     QBS_CHECK(artifact->product == this);
-    if (buildData->removedArtifactsByFileTag.value(fileTag).contains(artifact)) {
-        buildData->removedArtifactsByFileTag[fileTag].remove(artifact);
+    if (removeFromHash(buildData->removedArtifactsByFileTag, fileTag, artifact))
         return;
-    }
     buildData->addedArtifactsByFileTag[fileTag].insert(artifact);
 }
 
@@ -736,10 +751,8 @@ void ResolvedProduct::registerRemovedFileTag(const FileTag &fileTag, Artifact *a
 {
     QBS_CHECK(buildData);
     QBS_CHECK(artifact->product == this);
-    if (buildData->addedArtifactsByFileTag.value(fileTag).contains(artifact)) {
-        buildData->addedArtifactsByFileTag[fileTag].remove(artifact);
+    if (removeFromHash(buildData->addedArtifactsByFileTag, fileTag, artifact))
         return;
-    }
     buildData->removedArtifactsByFileTag[fileTag].insert(artifact);
 }
 
