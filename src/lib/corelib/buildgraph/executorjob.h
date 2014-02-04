@@ -57,7 +57,7 @@ public:
 
     void setMainThreadScriptEngine(ScriptEngine *engine);
     void setDryRun(bool enabled);
-    void run(Transformer *t, const ResolvedProductPtr &product);
+    void run(Transformer *t);
     void cancel();
     void waitForFinished();
 

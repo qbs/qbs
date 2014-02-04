@@ -29,6 +29,7 @@
 
 #include "executorjob.h"
 
+#include "artifact.h"
 #include "command.h"
 #include "jscommandexecutor.h"
 #include "processcommandexecutor.h"
@@ -78,7 +79,7 @@ void ExecutorJob::setDryRun(bool enabled)
     m_jsCommandExecutor->setDryRunEnabled(enabled);
 }
 
-void ExecutorJob::run(Transformer *t, const ResolvedProductPtr &product)
+void ExecutorJob::run(Transformer *t)
 {
     QBS_ASSERT(m_currentCommandIdx == -1, return);
 
@@ -88,8 +89,9 @@ void ExecutorJob::run(Transformer *t, const ResolvedProductPtr &product)
     }
 
     t->propertiesRequestedInCommands.clear();
-    m_processCommandExecutor->setProcessEnvironment(product->buildEnvironment);
-
+    QBS_CHECK(!t->outputs.isEmpty());
+    m_processCommandExecutor->setProcessEnvironment(
+                (*t->outputs.begin())->product->buildEnvironment);
     m_transformer = t;
     runNextCommand();
 }

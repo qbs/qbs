@@ -191,7 +191,6 @@ void Executor::doBuild()
     m_error.clear();
     m_explicitlyCanceled = false;
     m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
-
     setState(ExecutorRunning);
 
     if (m_productsToBuild.isEmpty()) {
@@ -407,10 +406,10 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 
 void Executor::buildArtifact(Artifact *artifact)
 {
-    QBS_CHECK(!m_availableJobs.isEmpty());
-
     if (m_doDebug)
         m_logger.qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
+
+    QBS_CHECK(artifact->buildState == BuildGraphNode::Buildable);
 
     // skip artifacts without transformer
     if (artifact->artifactType != Artifact::Generated) {
@@ -429,79 +428,7 @@ void Executor::buildArtifact(Artifact *artifact)
 
     // Every generated artifact must have a transformer.
     QBS_CHECK(artifact->transformer);
-
-    bool childrenAddedDueToRescue;
-    rescueOldBuildData(artifact, &childrenAddedDueToRescue);
-    if (childrenAddedDueToRescue && checkForUnbuiltDependencies(artifact))
-        return;
-
-    // Skip if outputs of this transformer are already built.
-    // That means we already ran the transformation.
-    foreach (Artifact *sideBySideArtifact, artifact->transformer->outputs) {
-        if (sideBySideArtifact == artifact)
-            continue;
-        switch (sideBySideArtifact->buildState)
-        {
-        case BuildGraphNode::Untouched:
-        case BuildGraphNode::Buildable:
-            break;
-        case BuildGraphNode::Built:
-            if (m_doDebug)
-                m_logger.qbsDebug() << "[EXEC] Side by side artifact already finished. Skipping.";
-            finishArtifact(artifact);
-            return;
-        case BuildGraphNode::Building:
-            if (m_doDebug)
-                m_logger.qbsDebug() << "[EXEC] Side by side artifact processing. Skipping.";
-            artifact->buildState = BuildGraphNode::Building;
-            return;
-        }
-    }
-
-    // Skip if we're building just one file and the file tags do not match.
-    if (!m_activeFileTags.isEmpty() && !m_activeFileTags.matches(artifact->fileTags)) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] file tags do not match. Skipping.";
-        finishArtifact(artifact);
-        return;
-    }
-
-    // Skip transformers that do not need to be built.
-    if (!mustExecuteTransformer(artifact->transformer)) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
-        finishArtifact(artifact);
-        return;
-    }
-
-    // create the output directories
-    if (!m_buildOptions.dryRun()) {
-        ArtifactSet::const_iterator it = artifact->transformer->outputs.begin();
-        for (; it != artifact->transformer->outputs.end(); ++it) {
-            Artifact *output = *it;
-            QDir outDir = QFileInfo(output->filePath()).absoluteDir();
-            if (!outDir.exists())
-                outDir.mkpath(QLatin1String("."));
-        }
-    }
-
-    // scan all input artifacts
-    InputArtifactScanner scanner(artifact, m_inputArtifactScanContext, m_logger);
-    scanner.scan();
-
-    // postpone the build of this artifact, if new dependencies found
-    if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(artifact))
-        return;
-
-    ExecutorJob *job = m_availableJobs.takeFirst();
-    artifact->buildState = BuildGraphNode::Building;
-    m_processingJobs.insert(job, artifact);
-
-    Q_ASSERT_X(artifact->product, Q_FUNC_INFO,
-               qPrintable(QString::fromLatin1("Generated artifact '%1' belongs to no product.")
-               .arg(QDir::toNativeSeparators(artifact->filePath()))));
-
-    job->run(artifact->transformer.data(), artifact->product);
+    potentiallyRunTransformer(artifact->transformer);
 }
 
 void Executor::executeRuleNode(RuleNode *ruleNode)
@@ -571,10 +498,19 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     QBS_CHECK(job);
     QBS_CHECK(m_state != ExecutorIdle);
 
-    const QHash<ExecutorJob *, Artifact *>::Iterator it = m_processingJobs.find(job);
+    const JobMap::Iterator it = m_processingJobs.find(job);
     QBS_CHECK(it != m_processingJobs.end());
-    if (success)
-        finishArtifact(it.value());
+    const TransformerPtr transformer = it.value();
+    if (success) {
+        m_project->buildData->isDirty = true;
+        foreach (Artifact *artifact, transformer->outputs) {
+            if (artifact->alwaysUpdated)
+                artifact->setTimestamp(FileTime::currentTime());
+            else
+                artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
+        }
+        finishTransformer(transformer);
+    }
     m_processingJobs.erase(it);
     m_availableJobs.append(job);
 
@@ -644,14 +580,6 @@ void Executor::finishArtifact(Artifact *leaf)
 
     finishNode(leaf);
     m_scanResultCache.remove(leaf->filePath());
-
-    if (leaf->transformer) {
-        foreach (Artifact *sideBySideArtifact, leaf->transformer->outputs)
-            if (leaf != sideBySideArtifact
-                    && sideBySideArtifact->buildState == BuildGraphNode::Building) {
-                finishArtifact(sideBySideArtifact);
-            }
-    }
 }
 
 QString Executor::configString() const
@@ -808,6 +736,79 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
     return false;
 }
 
+void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
+{
+    bool matchingFileTagsExist = m_activeFileTags.isEmpty();
+
+    foreach (Artifact * const output, transformer->outputs) {
+        // Rescuing build data can introduce new dependencies, potentially delaying execution of
+        // this transformer.
+        bool childrenAddedDueToRescue;
+        rescueOldBuildData(output, &childrenAddedDueToRescue);
+        if (childrenAddedDueToRescue && checkForUnbuiltDependencies(output))
+            return;
+
+        if (!matchingFileTagsExist && m_activeFileTags.matches(output->fileTags))
+            matchingFileTagsExist = true;
+    }
+
+    // Skip if we're building just one file and the file tags do not match.
+    if (!matchingFileTagsExist) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] file tags do not match. Skipping.";
+        finishTransformer(transformer);
+        return;
+    }
+
+    // Skip transformers that do not need to be built.
+    if (!mustExecuteTransformer(transformer)) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
+        finishTransformer(transformer);
+        return;
+    }
+
+    foreach (Artifact * const output, transformer->outputs) {
+        // Scan all input artifacts. If new dependencies were found during scanning, delay
+        // execution of this transformer.
+        InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
+        scanner.scan();
+        if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(output))
+            return;
+    }
+
+    runTransformer(transformer);
+}
+
+void Executor::runTransformer(const TransformerPtr &transformer)
+{
+    QBS_CHECK(transformer);
+
+    // create the output directories
+    if (!m_buildOptions.dryRun()) {
+        ArtifactSet::const_iterator it = transformer->outputs.begin();
+        for (; it != transformer->outputs.end(); ++it) {
+            Artifact *output = *it;
+            QDir outDir = QFileInfo(output->filePath()).absoluteDir();
+            if (!outDir.exists())
+                outDir.mkpath(QLatin1String("."));
+        }
+    }
+
+    QBS_CHECK(!m_availableJobs.isEmpty());
+    ExecutorJob *job = m_availableJobs.takeFirst();
+    foreach (Artifact * const artifact, transformer->outputs)
+        artifact->buildState = BuildGraphNode::Building;
+    m_processingJobs.insert(job, transformer);
+    job->run(transformer.data());
+}
+
+void Executor::finishTransformer(const TransformerPtr &transformer)
+{
+    foreach (Artifact * const artifact, transformer->outputs)
+        finishArtifact(artifact);
+}
+
 void Executor::onProcessError(const qbs::ErrorInfo &err)
 {
     try {
@@ -830,18 +831,6 @@ void Executor::onProcessSuccess()
     try {
         ExecutorJob *job = qobject_cast<ExecutorJob *>(sender());
         QBS_CHECK(job);
-        Artifact *processedArtifact = m_processingJobs.value(job);
-        QBS_CHECK(processedArtifact);
-
-        // Update the timestamps of the outputs of the transformer we just executed.
-        processedArtifact->product->topLevelProject()->buildData->isDirty = true;
-        foreach (Artifact *artifact, processedArtifact->transformer->outputs) {
-            if (artifact->alwaysUpdated)
-                artifact->setTimestamp(FileTime::currentTime());
-            else
-                artifact->setTimestamp(FileInfo(artifact->filePath()).lastModified());
-        }
-
         finishJob(job, true);
     } catch (const ErrorInfo &error) {
         handleError(error);

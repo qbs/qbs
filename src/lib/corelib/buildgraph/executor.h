@@ -121,6 +121,9 @@ private:
     void handleError(const ErrorInfo &error);
     void rescueOldBuildData(Artifact *artifact, bool *childrenAdded);
     bool checkForUnbuiltDependencies(Artifact *artifact);
+    void potentiallyRunTransformer(const TransformerPtr &transformer);
+    void runTransformer(const TransformerPtr &transformer);
+    void finishTransformer(const TransformerPtr &transformer);
 
     bool mustExecuteTransformer(const TransformerPtr &transformer) const;
     bool isUpToDate(Artifact *artifact) const;
@@ -128,12 +131,14 @@ private:
     FileTime recursiveFileTime(const QString &filePath) const;
     QString configString() const;
 
+    typedef QHash<ExecutorJob *, TransformerPtr> JobMap;
+    JobMap m_processingJobs;
+
     RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
     Logger m_logger;
     ProgressObserver *m_progressObserver;
     QList<ExecutorJob*> m_availableJobs;
-    QHash<ExecutorJob*, Artifact *> m_processingJobs;
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
