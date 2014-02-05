@@ -36,6 +36,7 @@
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <QDebug>
 #include <QScriptEngine>
@@ -54,7 +55,7 @@ Evaluator::~Evaluator()
 {
     QHash<const Item *, QScriptValue>::iterator it = m_scriptValueMap.begin();
     for (; it != m_scriptValueMap.end(); ++it) {
-        EvaluationData *data = EvaluationData::get(*it);
+        EvaluationData *data = attachedPointer<EvaluationData>(*it);
         if (data) {
             if (data->item)
                 data->item->setPropertyObserver(0);
@@ -167,20 +168,20 @@ QScriptValue Evaluator::scriptValue(const Item *item)
     edata->item->setPropertyObserver(this);
 
     scriptValue = m_scriptEngine->newObject(m_scriptClass);
-    edata->attachTo(scriptValue);
+    attachPointerTo(scriptValue, edata);
     return scriptValue;
 }
 
 void Evaluator::onItemPropertyChanged(Item *item)
 {
-    EvaluationData *data = EvaluationData::get(m_scriptValueMap.value(item));
+    EvaluationData *data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item));
     if (data)
         data->valueCache.clear();
 }
 
 void Evaluator::onItemDestroyed(Item *item)
 {
-    delete EvaluationData::get(m_scriptValueMap.value(item));
+    delete attachedPointer<EvaluationData>(m_scriptValueMap.value(item));
     m_scriptValueMap.remove(item);
 }
 

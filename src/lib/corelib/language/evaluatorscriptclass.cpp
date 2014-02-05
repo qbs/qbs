@@ -243,7 +243,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] queryProperty " << object.objectId() << " " << name;
 
-    EvaluationData *const data = EvaluationData::get(object);
+    EvaluationData *const data = attachedPointer<EvaluationData>(object);
     const QString nameString = name.toString();
     if (nameString == QLatin1String("parent")) {
         *id = QPTParentProperty;

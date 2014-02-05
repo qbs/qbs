@@ -42,6 +42,7 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
 #include <QFile>
@@ -134,15 +135,12 @@ private:
 
     static void setProduct(QScriptValue scriptValue, const ResolvedProduct *product)
     {
-        QVariant v;
-        v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
-        scriptValue.setData(scriptValue.engine()->newVariant(v));
+        attachPointerTo(scriptValue, product);
     }
 
     static const ResolvedProduct *getProduct(const QScriptValue &scriptValue)
     {
-        const quintptr ptr = scriptValue.data().toVariant().value<quintptr>();
-        return reinterpret_cast<const ResolvedProduct *>(ptr);
+        return attachedPointer<const ResolvedProduct>(scriptValue);
     }
 
     ScriptEngine *m_engine;

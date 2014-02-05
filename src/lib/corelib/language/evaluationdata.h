@@ -47,23 +47,7 @@ public:
     Evaluator *evaluator;
     const Item *item;
     mutable QHash<QScriptString, QScriptValue> valueCache;
-
-    void attachTo(QScriptValue &);
-    static EvaluationData *get(const QScriptValue &);
 };
-
-inline void EvaluationData::attachTo(QScriptValue &scriptValue)
-{
-    QVariant v;
-    v.setValue<quintptr>(reinterpret_cast<quintptr>(this));
-    scriptValue.setData(scriptValue.engine()->newVariant(v));
-}
-
-inline EvaluationData *EvaluationData::get(const QScriptValue &scriptValue)
-{
-    const quintptr ptr = scriptValue.data().toVariant().value<quintptr>();
-    return reinterpret_cast<EvaluationData *>(ptr);
-}
 
 } // namespace Internal
 } // namespace qbs

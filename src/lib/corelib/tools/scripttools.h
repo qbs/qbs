@@ -88,6 +88,21 @@ private:
     QScriptEngine *m_scriptEngine;
 };
 
+template <class T>
+void attachPointerTo(QScriptValue &scriptValue, T *ptr)
+{
+    QVariant v;
+    v.setValue<quintptr>(reinterpret_cast<quintptr>(ptr));
+    scriptValue.setData(scriptValue.engine()->newVariant(v));
+}
+
+template <class T>
+T *attachedPointer(const QScriptValue &scriptValue)
+{
+    const quintptr ptr = scriptValue.data().toVariant().value<quintptr>();
+    return reinterpret_cast<T *>(ptr);
+}
+
 } // namespace Internal
 } // namespace qbs
 
