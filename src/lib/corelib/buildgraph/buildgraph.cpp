@@ -263,16 +263,26 @@ void loggedConnect(Artifact *u, Artifact *v, const Logger &logger)
     connect(u, v);
 }
 
-static bool existsPath(Artifact *u, Artifact *v)
+static bool existsPath_impl(Artifact *u, Artifact *v, QSet<Artifact *> *seen)
 {
     if (u == v)
         return true;
 
+    if (seen->contains(u))
+        return false;
+
+    seen->insert(u);
     for (ArtifactSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it)
-        if (existsPath(*it, v))
+        if (existsPath_impl(*it, v, seen))
             return true;
 
     return false;
+}
+
+static bool existsPath(Artifact *u, Artifact *v)
+{
+    QSet<Artifact *> seen;
+    return existsPath_impl(u, v, &seen);
 }
 
 bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
