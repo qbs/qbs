@@ -20,7 +20,8 @@ Project {
         "doc/doc.qbs",
         "share/share.qbs",
         "src/src.qbs",
-        "tests/auto/auto.qbs"
+        "tests/auto/auto.qbs",
+        "tests/fuzzy-test/fuzzy-test.qbs",
     ]
 
     SubProject {
