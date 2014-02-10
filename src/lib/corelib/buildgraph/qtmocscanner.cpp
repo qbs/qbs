@@ -1,0 +1,189 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+#include "qtmocscanner.h"
+
+#include "artifact.h"
+#include "productbuilddata.h"
+#include "scanresultcache.h"
+#include <tools/qbsassert.h>
+#include <tools/scannerpluginmanager.h>
+#include <tools/scripttools.h>
+
+#include <QScriptContext>
+#include <QScriptEngine>
+#include <QDebug>
+
+namespace qbs {
+namespace Internal {
+
+QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue,
+        const Logger &logger)
+    : m_product(product)
+    , m_targetScriptValue(targetScriptValue)
+    , m_logger(logger)
+    , m_scanResultCache(new ScanResultCache)
+    , m_cppScanner(0)
+    , m_hppScanner(0)
+{
+    QScriptEngine *engine = targetScriptValue.engine();
+    QScriptValue scannerObj = engine->newObject();
+    targetScriptValue.setProperty(QLatin1String("QtMocScanner"), scannerObj);
+    QScriptValue applyFunction = engine->newFunction(&js_apply, this);
+    scannerObj.setProperty(QLatin1String("apply"), applyFunction);
+}
+
+QtMocScanner::~QtMocScanner()
+{
+    m_targetScriptValue.setProperty(QLatin1String("QtMocScanner"), QScriptValue());
+    delete m_scanResultCache;
+}
+
+static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact *artifact,
+        ScanResultCache *scanResultCache)
+{
+    ScanResultCache::Result scanResult = scanResultCache->value(artifact->filePath());
+    if (!scanResult.valid) {
+        scanResult.valid = true;
+        void *opaq = scanner->open(artifact->filePath().utf16(),
+                                   ScanForDependenciesFlag | ScanForFileTagsFlag);
+        if (!opaq || !scanner->additionalFileTags)
+            return scanResult;
+
+        int length = 0;
+        const char **szFileTagsFromScanner = scanner->additionalFileTags(opaq, &length);
+        if (szFileTagsFromScanner) {
+            for (int i = length; --i >= 0;)
+                scanResult.additionalFileTags += szFileTagsFromScanner[i];
+        }
+
+        forever {
+            int flags = 0;
+            const char *szOutFilePath = scanner->next(opaq, &length, &flags);
+            if (szOutFilePath == 0)
+                break;
+            QString includedFilePath = QString::fromLocal8Bit(szOutFilePath, length);
+            if (includedFilePath.isEmpty())
+                continue;
+            bool isLocalInclude = (flags & SC_LOCAL_INCLUDE_FLAG);
+            scanResult.deps += ScanResultCache::Dependency(includedFilePath, isLocalInclude);
+        }
+
+        scanner->close(opaq);
+        scanResultCache->insert(artifact->filePath(), scanResult);
+    }
+    return scanResult;
+}
+
+void QtMocScanner::findIncludedMocCppFiles()
+{
+    if (!m_includedMocCppFiles.isEmpty())
+        return;
+
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[QtMocScanner] looking for included moc_XXX.cpp files";
+
+    foreach (Artifact *artifact, m_product->lookupArtifactsByFileTag("cpp")) {
+        const ScanResultCache::Result scanResult
+                = runScanner(m_cppScanner, artifact, m_scanResultCache);
+        foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
+            QString includedFilePath = dependency.filePath();
+            if (includedFilePath.startsWith("moc_") && includedFilePath.endsWith(".cpp")) {
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << "[QtMocScanner] " << artifact->fileName()
+                                        << " includes " << includedFilePath;
+                includedFilePath.remove(0, 4);
+                includedFilePath.chop(4);
+                m_includedMocCppFiles.insert(includedFilePath, artifact->fileName());
+            }
+        }
+    }
+}
+
+QScriptValue QtMocScanner::js_apply(QScriptContext *ctx, QScriptEngine *engine, void *data)
+{
+    QtMocScanner *that = reinterpret_cast<QtMocScanner *>(data);
+    QScriptValue input = ctx->argument(0);
+    return that->apply(engine, attachedPointer<Artifact>(input));
+}
+
+QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact)
+{
+    if (!m_cppScanner) {
+        QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag("cpp");
+        QBS_CHECK(scanners.count() == 1);
+        m_cppScanner = scanners.first();
+        scanners = ScannerPluginManager::scannersForFileTag("hpp");
+        QBS_CHECK(scanners.count() == 1);
+        m_hppScanner = scanners.first();
+    }
+
+    findIncludedMocCppFiles();
+
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[QtMocScanner] scanning " << artifact->toString();
+
+    bool hasQObjectMacro = false;
+    bool mustCompile = false;
+    bool hasPluginMetaDataMacro = false;
+    const bool isHeaderFile = artifact->fileTags.contains("hpp");
+
+    ScannerPlugin * const scanner = isHeaderFile ? m_hppScanner : m_cppScanner;
+    const ScanResultCache::Result scanResult = runScanner(scanner, artifact, m_scanResultCache);
+    if (!scanResult.additionalFileTags.isEmpty()) {
+        if (isHeaderFile) {
+            if (scanResult.additionalFileTags.contains("moc_hpp"))
+                hasQObjectMacro = true;
+            if (scanResult.additionalFileTags.contains("moc_hpp_plugin")) {
+                hasQObjectMacro = true;
+                hasPluginMetaDataMacro = true;
+            }
+            if (!m_includedMocCppFiles.contains(FileInfo::completeBaseName(artifact->fileName())))
+                mustCompile = true;
+        } else {
+            if (scanResult.additionalFileTags.contains("moc_cpp"))
+                hasQObjectMacro = true;
+        }
+    }
+
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << "[QtMocScanner] hasQObjectMacro: " << hasQObjectMacro
+                            << " mustCompile: " << mustCompile
+                            << " hasPluginMetaDataMacro: " << hasPluginMetaDataMacro;
+    }
+
+    QScriptValue obj = engine->newObject();
+    obj.setProperty(QLatin1String("hasQObjectMacro"), hasQObjectMacro);
+    obj.setProperty(QLatin1String("mustCompile"), mustCompile);
+    obj.setProperty(QLatin1String("hasPluginMetaDataMacro"), hasPluginMetaDataMacro);
+    return obj;
+}
+
+} // namespace Internal
+} // namespace qbs

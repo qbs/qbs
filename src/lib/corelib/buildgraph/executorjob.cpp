@@ -117,7 +117,7 @@ void ExecutorJob::runNextCommand()
         return;
     }
 
-    const AbstractCommand * const command = m_transformer->commands.at(m_currentCommandIdx);
+    const AbstractCommandPtr &command = m_transformer->commands.at(m_currentCommandIdx);
     switch (command->type()) {
     case AbstractCommand::ProcessCommandType:
         m_currentCommandExecutor = m_processCommandExecutor;
@@ -129,7 +129,7 @@ void ExecutorJob::runNextCommand()
         qFatal("Missing implementation for command type %d", command->type());
     }
 
-    m_currentCommandExecutor->start(m_transformer, command);
+    m_currentCommandExecutor->start(m_transformer, command.data());
 }
 
 void ExecutorJob::onCommandError(const ErrorInfo &err)

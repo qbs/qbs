@@ -27,28 +27,29 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
-
-#include <QSet>
+#ifndef QBS_BUILDGRAPHVISITOR_H
+#define QBS_BUILDGRAPHVISITOR_H
 
 namespace qbs {
 namespace Internal {
 
 class Artifact;
-class NodeSet;
+class RuleNode;
 
-class ArtifactSet : public QSet<Artifact *>
+/*!
+ * \brief The BuildGraphVisitor class
+ *
+ * The return value of a visit method indicates whether the children of the current node
+ * are to be visited next.
+ */
+class BuildGraphVisitor
 {
 public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
+    virtual bool visit(Artifact *) { return true; }
+    virtual bool visit(RuleNode *) { return true; }
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ARTIFACTSET_H
+#endif // QBS_BUILDGRAPHVISITOR_H

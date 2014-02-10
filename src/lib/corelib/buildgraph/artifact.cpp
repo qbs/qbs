@@ -30,7 +30,7 @@
 #include "artifact.h"
 
 #include "transformer.h"
-
+#include "buildgraphvisitor.h"
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
@@ -62,6 +62,19 @@ Artifact::Artifact()
 
 Artifact::~Artifact()
 {
+    foreach (Artifact *p, parentArtifacts())
+        p->childrenAddedByScanner.remove(this);
+}
+
+void Artifact::accept(BuildGraphVisitor *visitor)
+{
+    if (visitor->visit(this))
+        acceptChildren(visitor);
+}
+
+QString Artifact::toString() const
+{
+    return QLatin1String("ARTIFACT ") + filePath();
 }
 
 void Artifact::initialize()
@@ -71,15 +84,35 @@ void Artifact::initialize()
     inputsScanned = false;
     timestampRetrieved = false;
     alwaysUpdated = true;
+    oldDataPossiblyPresent = true;
+}
+
+ArtifactSet Artifact::parentArtifacts() const
+{
+    return ArtifactSet::fromNodeSet(parents);
+}
+
+ArtifactSet Artifact::childArtifacts() const
+{
+    return ArtifactSet::fromNodeSet(children);
+}
+
+void Artifact::onChildDisconnected(BuildGraphNode *child)
+{
+    Artifact *childArtifact = dynamic_cast<Artifact *>(child);
+    if (!childArtifact)
+        return;
+    childrenAddedByScanner.remove(childArtifact);
 }
 
 void Artifact::load(PersistentPool &pool)
 {
     FileResourceBase::load(pool);
-    pool.loadContainer(children);
+    BuildGraphNode::load(pool);
+    children.load(pool);
 
     // restore parents of the loaded children
-    for (ArtifactSet::const_iterator it = children.constBegin(); it != children.constEnd(); ++it)
+    for (NodeSet::const_iterator it = children.constBegin(); it != children.constEnd(); ++it)
         (*it)->parents.insert(this);
 
     pool.loadContainer(childrenAddedByScanner);
@@ -90,16 +123,18 @@ void Artifact::load(PersistentPool &pool)
     pool.stream()
             >> fileTags
             >> artifactType
-            >> autoMocTimestamp
             >> c;
     alwaysUpdated = c;
+    pool.stream() >> c;
+    oldDataPossiblyPresent = c;
 }
 
 void Artifact::store(PersistentPool &pool) const
 {
     FileResourceBase::store(pool);
+    BuildGraphNode::store(pool);
     // Do not store parents to avoid recursion.
-    pool.storeContainer(children);
+    children.store(pool);
     pool.storeContainer(childrenAddedByScanner);
     pool.storeContainer(fileDependencies);
     pool.store(properties);
@@ -107,8 +142,8 @@ void Artifact::store(PersistentPool &pool) const
     pool.stream()
             << fileTags
             << artifactType
-            << autoMocTimestamp
-            << static_cast<unsigned char>(alwaysUpdated);
+            << static_cast<unsigned char>(alwaysUpdated)
+            << static_cast<unsigned char>(oldDataPossiblyPresent);
 }
 
 } // namespace Internal

@@ -54,7 +54,7 @@ public:
 
         // For target artifacts, we have to update the on-disk timestamp, because
         // the executor will look at it.
-        foreach (Artifact * const targetArtifact, product->buildData->targetArtifacts) {
+        foreach (Artifact * const targetArtifact, product->buildData->targetArtifacts()) {
             if (FileInfo(targetArtifact->filePath()).exists())
                 QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
         }

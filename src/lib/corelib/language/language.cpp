@@ -35,6 +35,7 @@
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
+#include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
@@ -290,6 +291,11 @@ bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
    * This is mostly needed for diagnostics.
    */
 
+bool ScriptFunction::isValid() const
+{
+    return location.isValid();
+}
+
 void ScriptFunction::load(PersistentPool &pool)
 {
     pool.stream()
@@ -354,12 +360,18 @@ static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModu
 
 QString Rule::toString() const
 {
-    QStringList outputTagsSorted = staticOutputFileTags().toStringList();
+    QStringList outputTagsSorted = collectedOutputFileTags().toStringList();
     outputTagsSorted.sort();
     QStringList inputTagsSorted = inputs.toStringList();
     inputTagsSorted.sort();
-    return QLatin1Char('[') + inputTagsSorted.join(QLatin1String(",")) + QLatin1String(" -> ")
-            + outputTagsSorted.join(QLatin1String(",")) + QLatin1Char(']');
+    return QLatin1Char('[') + outputTagsSorted.join(QLatin1String(","))
+            + QLatin1String("][")
+            + inputTagsSorted.join(QLatin1String(",")) + QLatin1Char(']');
+}
+
+bool Rule::acceptsAsInput(Artifact *artifact) const
+{
+    return artifact->fileTags.matches(inputs);
 }
 
 FileTags Rule::staticOutputFileTags() const
@@ -370,13 +382,27 @@ FileTags Rule::staticOutputFileTags() const
     return result;
 }
 
+FileTags Rule::collectedOutputFileTags() const
+{
+    return outputFileTags.isEmpty() ? staticOutputFileTags() : outputFileTags;
+}
+
+bool Rule::isDynamic() const
+{
+    return outputArtifactsScript->isValid();
+}
+
 void Rule::load(PersistentPool &pool)
 {
+    name = pool.idLoadString();
     prepareScript = pool.idLoadS<ScriptFunction>();
+    outputArtifactsScript = pool.idLoadS<ScriptFunction>();
     module = pool.idLoadS<ResolvedModule>();
     pool.stream()
         >> inputs
+        >> outputFileTags
         >> auxiliaryInputs
+        >> excludedAuxiliaryInputs
         >> usings
         >> explicitlyDependsOn
         >> multiplex;
@@ -386,11 +412,15 @@ void Rule::load(PersistentPool &pool)
 
 void Rule::store(PersistentPool &pool) const
 {
+    pool.storeString(name);
     pool.store(prepareScript);
+    pool.store(outputArtifactsScript);
     pool.store(module);
     pool.stream()
         << inputs
+        << outputFileTags
         << auxiliaryInputs
+        << excludedAuxiliaryInputs
         << usings
         << explicitlyDependsOn
         << multiplex;
@@ -405,6 +435,14 @@ ResolvedProduct::ResolvedProduct()
 
 ResolvedProduct::~ResolvedProduct()
 {
+}
+
+void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
+{
+    if (!buildData)
+        return;
+    foreach (BuildGraphNode * const node, buildData->roots)
+        node->accept(visitor);
 }
 
 /*!
@@ -661,19 +699,100 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
                                            topLevelProject(), env);
 }
 
-const QList<RuleConstPtr> &ResolvedProduct::topSortedRules() const
+void ResolvedProduct::registerAddedFileTag(const FileTag &fileTag, Artifact *artifact)
 {
     QBS_CHECK(buildData);
-    if (buildData->topSortedRules.isEmpty()) {
-        RuleGraph ruleGraph;
-        ruleGraph.build(rules, fileTags);
-//        ruleGraph.dump();
-        buildData->topSortedRules = ruleGraph.topSorted();
-//        int i=0;
-//        foreach (RulePtr r, m_topSortedRules)
-//            qDebug() << ++i << r->toString() << (void*)r.data();
+    QBS_CHECK(artifact->product == this);
+    if (buildData->removedArtifactsByFileTag.value(fileTag).contains(artifact)) {
+        buildData->removedArtifactsByFileTag[fileTag].remove(artifact);
+        return;
     }
-    return buildData->topSortedRules;
+    buildData->addedArtifactsByFileTag[fileTag].insert(artifact);
+}
+
+void ResolvedProduct::registerAddedArtifact(Artifact *artifact)
+{
+    QBS_CHECK(buildData);
+    QBS_CHECK(artifact->product == this);
+    foreach (const FileTag &tag, artifact->fileTags)
+        registerAddedFileTag(tag, artifact);
+}
+
+void ResolvedProduct::unregisterAddedArtifact(Artifact *artifact)
+{
+    ProductBuildData::ArtifactSetByFileTag::Iterator it
+            = buildData->addedArtifactsByFileTag.begin();
+    while (it != buildData->addedArtifactsByFileTag.end()) {
+        ArtifactSet &artifacts = it.value();
+        artifacts.remove(artifact);
+        if (artifacts.isEmpty())
+            it = buildData->addedArtifactsByFileTag.erase(it);
+        else
+            ++it;
+    }
+}
+
+void ResolvedProduct::registerRemovedFileTag(const FileTag &fileTag, Artifact *artifact)
+{
+    QBS_CHECK(buildData);
+    QBS_CHECK(artifact->product == this);
+    if (buildData->addedArtifactsByFileTag.value(fileTag).contains(artifact)) {
+        buildData->addedArtifactsByFileTag[fileTag].remove(artifact);
+        return;
+    }
+    buildData->removedArtifactsByFileTag[fileTag].insert(artifact);
+}
+
+void ResolvedProduct::registerArtifactWithChangedInputs(Artifact *artifact)
+{
+    QBS_CHECK(buildData);
+    QBS_CHECK(artifact->product == this);
+    QBS_CHECK(artifact->transformer);
+    if (artifact->transformer->rule->multiplex) {
+        // Reapplication of rules only makes sense for multiplex rules (e.g. linker).
+        buildData->artifactsWithChangedInputsPerRule[artifact->transformer->rule] += artifact;
+    }
+}
+
+void ResolvedProduct::unregisterArtifactWithChangedInputs(Artifact *artifact)
+{
+    QBS_CHECK(buildData);
+    QBS_CHECK(artifact->product == this);
+    QBS_CHECK(artifact->transformer);
+    buildData->artifactsWithChangedInputsPerRule[artifact->transformer->rule] -= artifact;
+}
+
+void ResolvedProduct::unmarkForReapplication(const RuleConstPtr &rule)
+{
+    QBS_CHECK(buildData);
+    buildData->artifactsWithChangedInputsPerRule.remove(rule);
+}
+
+const ArtifactSet ResolvedProduct::addedArtifactsByFileTag(const FileTag &tag) const
+{
+    return buildData->addedArtifactsByFileTag.value(tag);
+}
+
+const ArtifactSet ResolvedProduct::removedArtifactsByFileTag(const FileTag &tag) const
+{
+    return buildData->removedArtifactsByFileTag.value(tag);
+}
+
+bool ResolvedProduct::isMarkedForReapplication(const RuleConstPtr &rule) const
+{
+    return !buildData->artifactsWithChangedInputsPerRule.value(rule).isEmpty();
+}
+
+ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
+{
+    QBS_CHECK(buildData);
+    // ### slow. improve.
+    ArtifactSet result;
+    foreach (Artifact * const a, ArtifactSet::fromNodeSet(buildData->nodes)) {
+        if (a->fileTags.contains(tag))
+            result += a;
+    }
+    return result;
 }
 
 TopLevelProject *ResolvedProduct::topLevelProject() const
@@ -684,13 +803,13 @@ TopLevelProject *ResolvedProduct::topLevelProject() const
 static QStringList findGeneratedFiles(const Artifact *base, const FileTags &tags)
 {
     QStringList result;
-    foreach (const Artifact *parent, base->parents) {
+    foreach (const Artifact *parent, base->parentArtifacts()) {
         if (tags.isEmpty() || parent->fileTags.matches(tags))
             result << parent->filePath();
     }
 
     if (result.isEmpty() || tags.isEmpty())
-        foreach (const Artifact *parent, base->parents)
+        foreach (const Artifact *parent, base->parentArtifacts())
             result << findGeneratedFiles(parent, tags);
 
     return result;
@@ -702,7 +821,7 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, const FileT
     if (!data)
         return QStringList();
 
-    foreach (const Artifact *art, data->artifacts) {
+    foreach (const Artifact *art, ArtifactSet::fromNodeSet(data->nodes)) {
         if (art->filePath() == baseFile)
             return findGeneratedFiles(art, tags);
     }
@@ -711,6 +830,14 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, const FileT
 
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {
+}
+
+void ResolvedProject::accept(BuildGraphVisitor *visitor) const
+{
+    foreach (const ResolvedProductPtr &product, products)
+        product->accept(visitor);
+    foreach (const ResolvedProjectPtr &subProject, subProjects)
+        subProject->accept(visitor);
 }
 
 TopLevelProject *ResolvedProject::topLevelProject()
@@ -756,8 +883,13 @@ void ResolvedProject::load(PersistentPool &pool)
     for (; --count >= 0;) {
         ResolvedProductPtr rProduct = pool.idLoadS<ResolvedProduct>();
         if (rProduct->buildData) {
-            foreach (Artifact * const a, rProduct->buildData->artifacts)
-                a->product = rProduct;
+            foreach (BuildGraphNode * const node, rProduct->buildData->nodes) {
+                node->product = rProduct;
+
+                // restore parent links
+                foreach (BuildGraphNode *child, node->children)
+                    child->parents.insert(node);
+            }
         }
         products.append(rProduct);
     }
@@ -1097,8 +1229,11 @@ bool operator==(const Rule &r1, const Rule &r2)
 
     return r1.module->name == r2.module->name
             && r1.prepareScript->sourceCode == r2.prepareScript->sourceCode
+            && r1.outputArtifactsScript->sourceCode == r2.outputArtifactsScript->sourceCode
             && r1.inputs == r2.inputs
+            && r1.outputFileTags == r2.outputFileTags
             && r1.auxiliaryInputs == r2.auxiliaryInputs
+            && r1.excludedAuxiliaryInputs == r2.excludedAuxiliaryInputs
             && r1.usings == r2.usings
             && r1.explicitlyDependsOn == r2.explicitlyDependsOn
             && r1.multiplex == r2.multiplex;

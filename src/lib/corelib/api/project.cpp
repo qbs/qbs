@@ -438,18 +438,10 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         groupContext.resolvedGroup->files << artifact;
     }
     if (groupContext.resolvedProduct->enabled) {
-        ArtifactsPerFileTagMap artifactsPerFileTag;
         foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts) {
             Artifact * const artifact = createArtifact(groupContext.resolvedProduct, sa, logger);
-            foreach (const FileTag &ft, artifact->fileTags)
-                artifactsPerFileTag[ft] += artifact;
+            groupContext.resolvedProduct->registerAddedArtifact(artifact);
         }
-        RulesEvaluationContextPtr &evalContext
-                = groupContext.resolvedProduct->topLevelProject()->buildData->evaluationContext;
-        evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
-        RulesApplicator(groupContext.resolvedProduct, artifactsPerFileTag, logger).applyAllRules();
-        addTargetArtifacts(groupContext.resolvedProduct, artifactsPerFileTag, logger);
-        evalContext.clear();
     }
     doSanityChecks(internalProject, logger);
     groupContext.currentGroup.d->filePaths << filesContext.absoluteFilePaths;
@@ -521,14 +513,10 @@ void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &pr
     QBS_CHECK(internalProject->buildData);
     foreach (const SourceArtifactPtr &sa, files) {
         Artifact * const artifact = lookupArtifact(product, sa->absoluteFilePath);
-        QBS_CHECK(artifact);
-        internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger);
+        if (artifact) // Can be null if the executor has not yet applied the respective rule.
+            internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger);
+        delete artifact;
     }
-    RulesEvaluationContextPtr &evalContext
-            = internalProject->buildData->evaluationContext;
-    evalContext = QSharedPointer<RulesEvaluationContext>(new RulesEvaluationContext(logger));
-    internalProject->buildData->updateNodesThatMustGetNewTransformer(logger);
-    evalContext.clear();
 }
 
 static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,
@@ -611,7 +599,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             product.d->groups << createGroupDataFromGroup(resolvedGroup);
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
-            foreach (const Artifact * const a, resolvedProduct->buildData->targetArtifacts) {
+            foreach (const Artifact * const a, resolvedProduct->buildData->targetArtifacts()) {
                 TargetArtifact ta;
                 ta.d->filePath = a->filePath();
                 ta.d->fileTags = a->fileTags.toStringList();
@@ -864,7 +852,8 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
     }
     if (internalProduct->enabled) {
         QBS_CHECK(internalProduct->buildData);
-        foreach (const Artifact * const artifact, internalProduct->buildData->artifacts) {
+        foreach (const Artifact * const artifact,
+                 ArtifactSet::fromNodeSet(internalProduct->buildData->nodes)) {
             if (artifact->artifactType == Artifact::SourceFile)
                 continue;
             InstallableFile f;

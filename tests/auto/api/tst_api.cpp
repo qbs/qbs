@@ -326,6 +326,15 @@ void TestApi::changeContent()
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
 }
 
+static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
+{
+    qbs::BuildOptions buildOptions;
+    buildOptions.setDryRun(true);
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions));
+    waitForFinished(buildJob.data());
+    return buildJob->error();
+}
+
 void TestApi::disabledInstallGroup()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -335,7 +344,11 @@ void TestApi::disabledInstallGroup()
                                                                         m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    qbs::Project project = job->project();
+    const qbs::Project project = job->project();
+
+    const qbs::ErrorInfo errorInfo = forceRuleEvaluation(project);
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     qbs::ProductData product = projectData.allProducts().first();
@@ -358,6 +371,10 @@ void TestApi::fileTagsFilterOverride()
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
+
+    const qbs::ErrorInfo errorInfo = forceRuleEvaluation(project);
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     const qbs::ProductData product = projectData.allProducts().first();
@@ -378,6 +395,10 @@ void TestApi::installableFiles()
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     qbs::Project project = job->project();
+
+    const qbs::ErrorInfo errorInfo = forceRuleEvaluation(project);
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     qbs::ProductData product = projectData.allProducts().first();

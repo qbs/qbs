@@ -30,7 +30,8 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
-#include "productbuilddata.h"
+#include "projectbuilddata.h"
+#include "rulenode.h"
 
 #include <language/language.h>
 #include <logging/translator.h>
@@ -40,51 +41,58 @@ namespace qbs {
 namespace Internal {
 
 CycleDetector::CycleDetector(const Logger &logger)
-    : ArtifactVisitor(0), m_parent(0), m_logger(logger)
+    : m_parent(0), m_logger(logger)
 {
 }
 
-void CycleDetector::visitProject(const ResolvedProjectConstPtr &project)
+void CycleDetector::visitProject(const TopLevelProjectConstPtr &project)
 {
     const QString description = QString::fromLocal8Bit("Cycle detection for project '%1'")
             .arg(project->name);
     TimedActivityLogger timeLogger(m_logger, description, QLatin1String("[BG] "), LoggerTrace);
-    ArtifactVisitor::visitProject(project);
+
+    project->accept(this);
 }
 
 void CycleDetector::visitProduct(const ResolvedProductConstPtr &product)
 {
-    if (!product->buildData)
-        return;
-    foreach (Artifact * const artifact, product->buildData->targetArtifacts)
-        visitArtifact(artifact);
+    product->accept(this);
 }
 
-void CycleDetector::visitArtifact(Artifact *artifact)
+bool CycleDetector::visit(Artifact *artifact)
 {
-    if (Q_UNLIKELY(m_artifactsInCurrentPath.contains(artifact))) {
+    return visitNode(artifact);
+}
+
+bool CycleDetector::visit(RuleNode *ruleNode)
+{
+    return visitNode(ruleNode);
+}
+
+bool CycleDetector::visitNode(BuildGraphNode *node)
+{
+    if (Q_UNLIKELY(m_nodesInCurrentPath.contains(node))) {
         ErrorInfo error(Tr::tr("Cycle in build graph detected."));
-        foreach (const Artifact * const a, cycle(artifact))
-            error.append(a->filePath());
+        foreach (const BuildGraphNode * const node, cycle(node))
+            error.append(node->toString());
         throw error;
     }
 
-    if (m_allArtifacts.contains(artifact))
-        return;
+    if (m_allNodes.contains(node))
+        return false;
 
-    m_artifactsInCurrentPath += artifact;
-    m_parent = artifact;
-    foreach (Artifact * const child, artifact->children)
-        visitArtifact(child);
-    m_artifactsInCurrentPath -= artifact;
-    m_allArtifacts += artifact;
+    m_nodesInCurrentPath += node;
+    m_parent = node;
+    foreach (BuildGraphNode * const child, node->children)
+        child->accept(this);
+    m_nodesInCurrentPath -= node;
+    m_allNodes += node;
+    return false;
 }
 
-void CycleDetector::doVisit(Artifact *) { }
-
-QList<Artifact *> CycleDetector::cycle(Artifact *doubleEntry)
+QList<BuildGraphNode *> CycleDetector::cycle(BuildGraphNode *doubleEntry)
 {
-    QList<Artifact *> path;
+    QList<BuildGraphNode *> path;
     findPath(doubleEntry, m_parent, path);
     return path << doubleEntry;
 }

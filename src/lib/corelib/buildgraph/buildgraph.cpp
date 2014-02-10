@@ -216,14 +216,14 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
             rule->module->name.isEmpty() ? QScriptValue() : rule->module->name);
 }
 
-bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
+bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &path)
 {
     if (u == v) {
         path.append(v);
         return true;
     }
 
-    for (ArtifactSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
+    for (NodeSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it) {
         if (findPath(*it, v, path)) {
             path.prepend(u);
             return true;
@@ -242,28 +242,34 @@ bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path)
  * also:  children means i depend on or i am produced by
  *        parent means "produced by me" or "depends on me"
  */
-void connect(Artifact *p, Artifact *c)
+void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
     QBS_CHECK(p != c);
-    foreach (const Artifact * const child, p->children)
-        if (child != c && child->filePath() == c->filePath())
-            throw ErrorInfo(QString::fromLocal8Bit("Artifact %1 already has a child artifact %2 as different object.").arg(p->filePath(), c->filePath()), CodeLocation(), true);
+    if (Artifact *ac = dynamic_cast<Artifact *>(c)) {
+        foreach (const Artifact * const child, ArtifactSet::fromNodeSet(p->children))
+            if (child != ac && child->filePath() == ac->filePath()) {
+                throw ErrorInfo(QString::fromLocal8Bit("%1 already has a child artifact %2 as "
+                                                       "different object.").arg(p->toString(),
+                                                                                ac->filePath()),
+                                CodeLocation(), true);
+            }
+    }
     p->children.insert(c);
     c->parents.insert(p);
     p->product->topLevelProject()->buildData->isDirty = true;
 }
 
-void loggedConnect(Artifact *u, Artifact *v, const Logger &logger)
+void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
 {
     QBS_CHECK(u != v);
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] connect '%1' -> '%2'")
-                             .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
+                             .arg(u->toString(), v->toString());
     }
     connect(u, v);
 }
 
-static bool existsPath_impl(Artifact *u, Artifact *v, QSet<Artifact *> *seen)
+static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, QSet<BuildGraphNode *> *seen)
 {
     if (u == v)
         return true;
@@ -272,17 +278,25 @@ static bool existsPath_impl(Artifact *u, Artifact *v, QSet<Artifact *> *seen)
         return false;
 
     seen->insert(u);
-    for (ArtifactSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it)
+    for (NodeSet::const_iterator it = u->children.begin(); it != u->children.end(); ++it)
         if (existsPath_impl(*it, v, seen))
             return true;
 
     return false;
 }
 
-static bool existsPath(Artifact *u, Artifact *v)
+static bool existsPath(BuildGraphNode *u, BuildGraphNode *v)
 {
-    QSet<Artifact *> seen;
+    QSet<BuildGraphNode *> seen;
     return existsPath_impl(u, v, &seen);
+}
+
+static QStringList toStringList(const QList<BuildGraphNode *> &path)
+{
+    QStringList lst;
+    foreach (BuildGraphNode *node, path)
+        lst << node->toString();
+    return lst;
 }
 
 bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
@@ -294,7 +308,7 @@ bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
     }
 
     if (existsPath(v, u)) {
-        QList<Artifact *> circle;
+        QList<BuildGraphNode *> circle;
         findPath(v, u, circle);
         logger.qbsTrace() << "[BG] safeConnect: circle detected " << toStringList(circle);
         return false;
@@ -304,31 +318,32 @@ bool safeConnect(Artifact *u, Artifact *v, const Logger &logger)
     return true;
 }
 
-void disconnect(Artifact *u, Artifact *v, const Logger &logger)
+void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger)
 {
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnect: '%1' '%2'")
-                             .arg(relativeArtifactFileName(u), relativeArtifactFileName(v));
+                             .arg(u->toString(), v->toString());
     }
     u->children.remove(v);
-    u->childrenAddedByScanner.remove(v);
     v->parents.remove(u);
+    u->onChildDisconnected(v);
 }
 
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger)
 {
     if (artifact->artifactType != Artifact::Generated)
         return;
+    removeGeneratedArtifactFromDisk(artifact->filePath(), logger);
+}
 
-    QFile file(artifact->filePath());
+void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logger)
+{
+    QFile file(filePath);
     if (!file.exists())
         return;
-
-    logger.qbsDebug() << "removing " << artifact->fileName();
-    if (!file.remove()) {
-        logger.qbsWarning() << QString::fromLocal8Bit("Cannot remove '%1'.")
-                               .arg(artifact->filePath());
-    }
+    logger.qbsDebug() << "removing " << filePath;
+    if (!file.remove())
+        logger.qbsWarning() << QString::fromLocal8Bit("Cannot remove '%1'.").arg(filePath);
 }
 
 QString relativeArtifactFileName(const Artifact *artifact)
@@ -404,7 +419,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
 {
     QBS_CHECK(!artifact->product);
     QBS_CHECK(!artifact->filePath().isEmpty());
-    QBS_CHECK(!product->buildData->artifacts.contains(artifact));
+    QBS_CHECK(!product->buildData->nodes.contains(artifact));
 #ifdef QT_DEBUG
     foreach (const ResolvedProductConstPtr &otherProduct, product->project->products) {
         if (lookupArtifact(otherProduct, artifact->filePath())) {
@@ -421,7 +436,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
         }
     }
 #endif
-    product->buildData->artifacts.insert(artifact);
+    product->buildData->nodes.insert(artifact);
     artifact->product = product;
     product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
     product->topLevelProject()->buildData->isDirty = true;
@@ -443,25 +458,31 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     QBS_CHECK(!!product->enabled == !!buildData);
     if (!product->enabled)
         return;
-    foreach (Artifact * const ta, buildData->targetArtifacts) {
+    foreach (BuildGraphNode * const node, buildData->roots) {
         if (logger.traceEnabled())
-            logger.qbsTrace() << "Checking target artifact '" << ta->fileName() << "'.";
-        QBS_CHECK(buildData->artifacts.contains(ta));
+            logger.qbsTrace() << "Checking root node '" << node->toString() << "'.";
+        QBS_CHECK(buildData->nodes.contains(node));
     }
     QSet<QString> filePaths;
-    foreach (Artifact * const artifact, buildData->artifacts) {
-        logger.qbsDebug() << "Sanity checking artifact '" << artifact->fileName() << "'";
+    foreach (BuildGraphNode * const node, buildData->nodes) {
+        logger.qbsDebug() << "Sanity checking node '" << node->toString() << "'";
+        QBS_CHECK(node->product == product);
+        foreach (const BuildGraphNode * const parent, node->parents)
+            QBS_CHECK(parent->children.contains(node));
+        foreach (BuildGraphNode * const child, node->children) {
+            QBS_CHECK(child->parents.contains(node));
+            QBS_CHECK(child->product);
+            QBS_CHECK(!child->product->buildData.isNull());
+            QBS_CHECK(child->product->buildData->nodes.contains(child));
+        }
+
+        Artifact * const artifact = dynamic_cast<Artifact *>(node);
+        if (!artifact)
+            continue;
+
         QBS_CHECK(!filePaths.contains(artifact->filePath()));
         filePaths << artifact->filePath();
-        QBS_CHECK(artifact->product == product);
-        foreach (const Artifact * const parent, artifact->parents)
-            QBS_CHECK(parent->children.contains(artifact));
-        foreach (Artifact * const child, artifact->children) {
-            QBS_CHECK(child->parents.contains(artifact));
-            QBS_CHECK(!child->product.isNull());
-            QBS_CHECK(child->product->buildData);
-            QBS_CHECK(child->product->buildData->artifacts.contains(child));
-        }
+
         foreach (Artifact * const child, artifact->childrenAddedByScanner)
             QBS_CHECK(artifact->children.contains(child));
         const TransformerConstPtr transformer = artifact->transformer;
@@ -475,9 +496,9 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
         ArtifactSet transformerOutputChildren;
         foreach (const Artifact * const output, transformer->outputs) {
             QBS_CHECK(output->transformer == transformer);
-            transformerOutputChildren.unite(output->children);
+            transformerOutputChildren.unite(ArtifactSet::fromNodeSet(output->children));
             QSet<QString> childFilePaths;
-            foreach (const Artifact * const a, output->children) {
+            foreach (const Artifact * const a, ArtifactSet::fromNodeSet(output->children)) {
                 if (childFilePaths.contains(a->filePath())) {
                     throw ErrorInfo(QString::fromLocal8Bit("There is more than one artifact for "
                         "file '%1' in the child list for output '%2'.")

@@ -27,28 +27,54 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
+#include "buildgraphnode.h"
 
-#include <QSet>
+#include "buildgraphvisitor.h"
+#include "projectbuilddata.h"
+#include <language/language.h>
+#include <logging/translator.h>
+#include <tools/error.h>
+#include <tools/qbsassert.h>
+
+//#include <qglobal.h>
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class NodeSet;
-
-class ArtifactSet : public QSet<Artifact *>
+BuildGraphNode::BuildGraphNode()
 {
-public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
-};
+}
+
+BuildGraphNode::~BuildGraphNode()
+{
+    foreach (BuildGraphNode *p, parents)
+        p->children.remove(this);
+    foreach (BuildGraphNode *c, children)
+        c->parents.remove(this);
+}
+
+void BuildGraphNode::onChildDisconnected(BuildGraphNode *child)
+{
+    Q_UNUSED(child);
+}
+
+void BuildGraphNode::acceptChildren(BuildGraphVisitor *visitor)
+{
+    foreach (BuildGraphNode *child, children)
+        child->accept(visitor);
+}
+
+void BuildGraphNode::load(PersistentPool &pool)
+{
+    children.load(pool);
+    // Parents must be updated after loading all nodes.
+}
+
+void BuildGraphNode::store(PersistentPool &pool) const
+{
+    children.store(pool);
+    // Do not store parents to avoid recursion.
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_ARTIFACTSET_H

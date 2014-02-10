@@ -30,8 +30,11 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
+#include "buildgraphvisitor.h"
 #include "productbuilddata.h"
 #include "command.h"
+#include "rulegraph.h"
+#include "rulenode.h"
 #include "rulesapplicator.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
@@ -111,36 +114,36 @@ static void disconnectArtifactChildren(Artifact *artifact, const Logger &logger)
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectChildren: '%1'")
                              .arg(relativeArtifactFileName(artifact));
     }
-    foreach (Artifact * const child, artifact->children)
+    foreach (BuildGraphNode * const child, artifact->children)
         child->parents.remove(artifact);
     artifact->children.clear();
     artifact->childrenAddedByScanner.clear();
 }
 
-static void disconnectArtifactParents(Artifact *artifact, ProjectBuildData *projectBuildData,
-                               const Logger &logger)
+static void disconnectArtifactParents(Artifact *artifact, const Logger &logger)
 {
     if (logger.traceEnabled()) {
         logger.qbsTrace() << QString::fromLocal8Bit("[BG] disconnectParents: '%1'")
                              .arg(relativeArtifactFileName(artifact));
     }
-    foreach (Artifact * const parent, artifact->parents) {
+    foreach (BuildGraphNode * const parent, artifact->parents) {
         parent->children.remove(artifact);
-        parent->childrenAddedByScanner.remove(artifact);
-        if (parent->transformer) {
-            parent->transformer->inputs.remove(artifact);
-            projectBuildData->artifactsThatMustGetNewTransformers += parent;
+        Artifact *parentArtifact = dynamic_cast<Artifact *>(parent);
+        if (parentArtifact) {
+            QBS_CHECK(parentArtifact->transformer);
+            parentArtifact->childrenAddedByScanner.remove(artifact);
+            parentArtifact->transformer->inputs.remove(artifact);
+            parentArtifact->product->registerArtifactWithChangedInputs(parentArtifact);
         }
     }
 
     artifact->parents.clear();
 }
 
-static void disconnectArtifact(Artifact *artifact, ProjectBuildData *projectBuildData,
-                               const Logger &logger)
+static void disconnectArtifact(Artifact *artifact, const Logger &logger)
 {
     disconnectArtifactChildren(artifact, logger);
-    disconnectArtifactParents(artifact, projectBuildData, logger);
+    disconnectArtifactParents(artifact, logger);
 }
 
 /*!
@@ -154,13 +157,14 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
 {
     if (removedArtifacts)
         removedArtifacts->insert(artifact);
-    foreach (Artifact *parent, artifact->parents) {
+
+    foreach (Artifact *parent, ArtifactSet::fromNodeSet(artifact->parents)) {
         bool removeParent = false;
         disconnect(parent, artifact, logger);
         if (parent->children.isEmpty()) {
             removeParent = true;
         } else if (parent->transformer) {
-            artifactsThatMustGetNewTransformers += parent;
+            parent->product->registerArtifactWithChangedInputs(parent);
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.isEmpty();
         }
@@ -171,6 +175,7 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     }
     const bool removeFromDisk = artifact->artifactType == Artifact::Generated;
     removeArtifact(artifact, logger, removeFromDisk, removeFromProduct);
+
 }
 
 void ProjectBuildData::removeArtifact(Artifact *artifact,
@@ -183,49 +188,18 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
         removeGeneratedArtifactFromDisk(artifact, logger);
     removeFromLookupTable(artifact);
     if (removeFromProduct) {
-        artifact->product->buildData->artifacts.remove(artifact);
-        artifact->product->buildData->targetArtifacts.remove(artifact);
+        artifact->product->buildData->nodes.remove(artifact);
+        artifact->product->buildData->roots.remove(artifact);
     }
-    disconnectArtifact(artifact, this, logger);
-    artifactsThatMustGetNewTransformers -= artifact;
+
+    // If removal is requested and the executor has not run since the time the artifact was last
+    // added, we must undo the "register" operation.
+    artifact->product->unregisterAddedArtifact(artifact);
+
+    disconnectArtifact(artifact, logger);
+    if (artifact->transformer)
+        artifact->product->unregisterArtifactWithChangedInputs(artifact);
     isDirty = true;
-}
-
-void ProjectBuildData::updateNodesThatMustGetNewTransformer(const Logger &logger)
-{
-    RulesEvaluationContext::Scope s(evaluationContext.data());
-    foreach (Artifact *artifact, artifactsThatMustGetNewTransformers)
-        updateNodeThatMustGetNewTransformer(artifact, logger);
-    artifactsThatMustGetNewTransformers.clear();
-}
-
-void ProjectBuildData::updateNodeThatMustGetNewTransformer(Artifact *artifact, const Logger &logger)
-{
-    QBS_CHECK(artifact->transformer);
-
-    if (logger.debugEnabled()) {
-        logger.qbsDebug() << "[BG] updating transformer for "
-                            << relativeArtifactFileName(artifact);
-    }
-
-    removeGeneratedArtifactFromDisk(artifact, logger);
-    artifact->autoMocTimestamp.clear();
-    artifact->clearTimestamp();
-
-    const RuleConstPtr rule = artifact->transformer->rule;
-    isDirty = true;
-
-    QBS_CHECK(artifact->transformer);
-    foreach (Artifact * const sibling, artifact->transformer->outputs)
-        sibling->transformer.clear();
-
-    ArtifactsPerFileTagMap artifactsPerFileTag;
-    foreach (Artifact *input, artifact->children) {
-        foreach (const FileTag &fileTag, input->fileTags)
-            artifactsPerFileTag[fileTag] += input;
-    }
-    RulesApplicator rulesApplier(artifact->product, artifactsPerFileTag, logger);
-    rulesApplier.applyRule(rule);
 }
 
 void ProjectBuildData::load(PersistentPool &pool)
@@ -275,9 +249,171 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
     m_project = project;
     foreach (const ResolvedProductPtr &product, freshProducts) {
         if (product->enabled)
-            resolveProductBuildData(product);
+            resolveProductBuildDataForExistingProject(product);
     }
 }
+
+static QSet<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &product)
+{
+    QSet<ResolvedProductPtr> result;
+    foreach (const ResolvedProductPtr &parent, product->topLevelProject()->allProducts()) {
+        if (parent->dependencies.contains(product))
+            result += parent;
+    }
+    return result;
+}
+
+class FindLeafRules : public BuildGraphVisitor
+{
+public:
+    FindLeafRules()
+    {
+    }
+
+    const QSet<RuleNode *> &apply(const ResolvedProductPtr &product)
+    {
+        m_result.clear();
+        m_product = product;
+        foreach (BuildGraphNode *n, product->buildData->nodes)
+            n->accept(this);
+        return m_result;
+    }
+
+private:
+    virtual bool visit(Artifact *)
+    {
+        return false;
+    }
+
+    virtual bool visit(RuleNode *node)
+    {
+        if (!hasChildRuleInThisProduct(node))
+            m_result << node;
+        return false;
+    }
+
+    bool hasChildRuleInThisProduct(const RuleNode *node) const
+    {
+        foreach (BuildGraphNode *c, node->children) {
+            if (c->product == m_product && c->type() == BuildGraphNode::RuleNodeType)
+                return true;
+        }
+        return false;
+    }
+
+    ResolvedProductPtr m_product;
+    QSet<RuleNode *> m_result;
+};
+
+class FindRootRules : public BuildGraphVisitor
+{
+public:
+    FindRootRules()
+    {
+    }
+
+    const QList<RuleNode *> &apply(const ResolvedProductPtr &product)
+    {
+        m_result.clear();
+        foreach (BuildGraphNode *n, product->buildData->roots)
+            n->accept(this);
+        return m_result;
+    }
+
+private:
+    virtual bool visit(Artifact *)
+    {
+        return true;
+    }
+
+    virtual bool visit(RuleNode *node)
+    {
+        m_result << node;
+        return true;
+    }
+
+    QList<RuleNode *> m_result;
+};
+
+
+void BuildDataResolver::resolveProductBuildDataForExistingProject(const ResolvedProductPtr &product)
+{
+    resolveProductBuildData(product);
+
+    // Connect the leaf rules of all dependent products to the root rules of this product.
+    const QList<RuleNode *> rootRules = FindRootRules().apply(product);
+    QSet<ResolvedProductPtr> dependents = findDependentProducts(product);
+    foreach (const ResolvedProductPtr &dependentProduct, dependents) {
+        foreach (RuleNode *leaf, FindLeafRules().apply(dependentProduct)) {
+            foreach (RuleNode *root, rootRules) {
+                loggedConnect(leaf, root, m_logger);
+            }
+        }
+    }
+}
+
+class CreateRuleNodes : public RuleGraphVisitor
+{
+public:
+    CreateRuleNodes(const ResolvedProductPtr &product, const Logger &logger)
+        : m_product(product), m_logger(logger)
+    {
+    }
+
+    const QSet<RuleNode *> &leaves() const
+    {
+        return m_leaves;
+    }
+
+private:
+    const ResolvedProductPtr &m_product;
+    const Logger &m_logger;
+    QHash<RuleConstPtr, RuleNode *> m_nodePerRule;
+    QSet<const Rule *> m_rulesOnPath;
+    QList<const Rule *> m_rulePath;
+    QSet<RuleNode *> m_leaves;
+
+    void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule)
+    {
+        if (m_rulesOnPath.contains(rule.data())) {
+            QString pathstr;
+            foreach (const Rule *r, m_rulePath) {
+                pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
+                        + r->prepareScript->location.toString();
+            }
+            throw ErrorInfo(Tr::tr("Cycle detected in rule dependencies: %1").arg(pathstr));
+        }
+        m_rulesOnPath.insert(rule.data());
+        m_rulePath.append(rule.data());
+        RuleNode *node = m_nodePerRule.value(rule);
+        if (!node) {
+            node = new RuleNode;
+            m_leaves.insert(node);
+            m_nodePerRule.insert(rule, node);
+            node->product = m_product;
+            node->setRule(rule);
+            m_product->buildData->nodes += node;
+            if (m_logger.debugEnabled()) {
+                m_logger.qbsDebug() << "[BG] create " << node->toString()
+                                    << " for product " << m_product->name;
+            }
+        }
+        if (parentRule) {
+            RuleNode *parent = m_nodePerRule.value(parentRule);
+            QBS_CHECK(parent);
+            loggedConnect(parent, node, m_logger);
+            m_leaves.remove(parent);
+        } else {
+            m_product->buildData->roots += node;
+        }
+    }
+
+    void endVisit(const RuleConstPtr &rule)
+    {
+        m_rulesOnPath.remove(rule.data());
+        m_rulePath.removeLast();
+    }
+};
 
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)
 {
@@ -308,6 +444,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     }
     qbsFileArtifact->fileTags.insert("qbs");
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
+    product->registerAddedArtifact(qbsFileArtifact);
 
     // read sources
     foreach (const SourceArtifactConstPtr &sourceArtifact, product->allEnabledFiles()) {
@@ -316,6 +453,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             continue; // ignore duplicate artifacts
 
         Artifact *artifact = createArtifact(product, sourceArtifact, m_logger);
+        product->registerAddedArtifact(artifact);
         foreach (const FileTag &fileTag, artifact->fileTags)
             artifactsPerFileTag[fileTag].insert(artifact);
     }
@@ -345,11 +483,12 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             outputArtifact->artifactType = Artifact::Generated;
             outputArtifact->transformer = transformer;
             transformer->outputs += outputArtifact;
-            product->buildData->targetArtifacts += outputArtifact;
+            product->buildData->roots += outputArtifact;
             foreach (Artifact *inputArtifact, inputArtifacts)
                 safeConnect(outputArtifact, inputArtifact, m_logger);
             foreach (const FileTag &fileTag, outputArtifact->fileTags)
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
+            product->registerAddedArtifact(outputArtifact);
 
             RuleArtifactPtr ruleArtifact = RuleArtifact::create();
             ruleArtifact->fileName = outputArtifact->filePath();
@@ -364,7 +503,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         PrepareScriptObserver observer(engine());
         setupScriptEngineForProduct(engine(), product, transformer->rule, prepareScriptContext,
                                     &observer);
-        transformer->setupInputs(engine(), prepareScriptContext);
+        transformer->setupInputs(prepareScriptContext);
         transformer->setupOutputs(engine(), prepareScriptContext);
         transformer->createCommands(rtrafo->transform, evalContext(),
                 ScriptEngine::argumentList(transformer->rule->prepareScript->argumentNames,
@@ -387,8 +526,23 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         }
     }
 
-    RulesApplicator(product, artifactsPerFileTag, m_logger).applyAllRules();
-    addTargetArtifacts(product, artifactsPerFileTag, m_logger);
+    RuleGraph ruleGraph;
+    ruleGraph.build(product->rules, product->fileTags);
+    CreateRuleNodes crn(product, m_logger);
+    ruleGraph.accept(&crn);
+
+    // Connect the leaf rules of this product to the root rules of all product dependencies.
+    foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
+        if (!dep->buildData)
+            continue;
+        foreach (BuildGraphNode *depRoot, dep->buildData->roots) {
+            RuleNode *depRootRule = dynamic_cast<RuleNode *>(depRoot);
+            if (!depRootRule)
+                continue;
+            foreach (RuleNode *leafRule, crn.leaves())
+                loggedConnect(leafRule, depRootRule, m_logger);
+        }
+    }
 }
 
 RulesEvaluationContextPtr BuildDataResolver::evalContext() const

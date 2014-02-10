@@ -96,6 +96,8 @@ public slots:
     void initTestCase();
 
 private slots:
+    void addedFilePersistent();
+    void addQObjectMacroToCppFile();
     void baseProperties();
     void build_project_data();
     void build_project();
@@ -117,6 +119,7 @@ private slots:
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
+    void mocCppIncluded();
     void objC();
     void properQuoting();
     void propertiesBlocks();

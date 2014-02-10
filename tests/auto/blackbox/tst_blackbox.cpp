@@ -199,6 +199,63 @@ void TestBlackbox::initTestCase()
     ccp(testSourceDir, testDataDir);
 }
 
+void TestBlackbox::addedFilePersistent()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/added-file-persistent"));
+
+    // On the initial run, linking will fail.
+    QbsRunParameters failedRunParams;
+    failedRunParams.expectFailure = true;
+    QVERIFY(runQbs(failedRunParams) != 0);
+
+    // Add a file. qbs must schedule it for rule application on the next build.
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    const QByteArray originalContent = projectFile.readAll();
+    QByteArray addedFileContent = originalContent;
+    addedFileContent.replace("/* 'file.cpp' */", "'file.cpp'");
+    projectFile.resize(0);
+    projectFile.write(addedFileContent);
+    waitForNewTimestamp();
+    projectFile.flush();
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+
+    // Remove the file again. qbs must unschedule the rule application again.
+    // Consequently, the linking step must fail as in the initial run.
+    projectFile.resize(0);
+    projectFile.write(originalContent);
+    waitForNewTimestamp();
+    projectFile.flush();
+    QVERIFY(runQbs(failedRunParams) != 0);
+
+    // Add the file again. qbs must schedule it for rule application on the next build.
+    projectFile.resize(0);
+    projectFile.write(addedFileContent);
+    waitForNewTimestamp();
+    projectFile.close();
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+
+    // qbs must remember that a file was scheduled for rule application. The build must then
+    // succeed, as now all necessary symbols are linked in.
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::addQObjectMacroToCppFile()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/add-qobject-macro-to-cpp-file"));
+    QCOMPARE(runQbs(), 0);
+
+    waitForNewTimestamp();
+    QFile cppFile("object.cpp");
+    QVERIFY2(cppFile.open(QIODevice::ReadWrite), qPrintable(cppFile.errorString()));
+    QByteArray contents = cppFile.readAll();
+    contents.replace("// ", "");
+    cppFile.resize(0);
+    cppFile.write(contents);
+    cppFile.close();
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::baseProperties()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/baseProperties"));
@@ -1331,22 +1388,6 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(m_qbsStdout.contains("Making output from input"));
-
-    // Incremental build, irrelevant file tag of a rule in a module changed.
-    waitForNewTimestamp();
-    QVERIFY(moduleFile.open(QIODevice::ReadWrite));
-    contents = moduleFile.readAll();
-    contents.replace("inputs: ['test-input']", "inputs: ['test-input', 'hupe']");
-    moduleFile.resize(0);
-    moduleFile.write(contents);
-    moduleFile.close();
-    QCOMPARE(runQbs(params), 0);
-    QVERIFY(!m_qbsStdout.contains("compiling source1.cpp"));
-    QVERIFY(!m_qbsStdout.contains("compiling source2.cpp"));
-    QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
-    QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
-    QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
 }
 
 void TestBlackbox::disabledProduct()
@@ -1388,7 +1429,6 @@ void TestBlackbox::dynamicLibs()
 
 void TestBlackbox::dynamicRuleOutputs()
 {
-    SKIP_TEST("QBS-370");
     const QString testDir = testDataDir + "/dynamicRuleOutputs";
     QDir::setCurrent(testDir);
     if (QFile::exists("work"))
@@ -1582,6 +1622,30 @@ void TestBlackbox::jsExtensionsTextFile()
 void TestBlackbox::inheritQbsSearchPaths()
 {
     QDir::setCurrent(testDataDir + "/inheritQbsSearchPaths");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::mocCppIncluded()
+{
+    QDir::setCurrent(testDataDir + "/moc_hpp_included");
+    QCOMPARE(runQbs(), 0); // Initial build.
+
+    // Touch header and try again.
+    waitForNewTimestamp();
+    QFile headerFile("object.h");
+    QVERIFY2(headerFile.open(QIODevice::WriteOnly | QIODevice::Append),
+             qPrintable(headerFile.errorString()));
+    headerFile.write("\n");
+    headerFile.close();
+    QCOMPARE(runQbs(), 0);
+
+    // Touch cpp file and try again.
+    waitForNewTimestamp();
+    QFile cppFile("object.cpp");
+    QVERIFY2(cppFile.open(QIODevice::WriteOnly | QIODevice::Append),
+             qPrintable(cppFile.errorString()));
+    cppFile.write("\n");
+    cppFile.close();
     QCOMPARE(runQbs(), 0);
 }
 

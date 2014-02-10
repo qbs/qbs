@@ -29,6 +29,7 @@
 #include "productbuilddata.h"
 
 #include "artifact.h"
+#include "command.h"
 #include "projectbuilddata.h"
 #include <language/language.h>
 #include <logging/logger.h>
@@ -41,19 +42,74 @@ namespace Internal {
 
 ProductBuildData::~ProductBuildData()
 {
-    qDeleteAll(artifacts);
+    qDeleteAll(nodes);
+}
+
+ArtifactSet ProductBuildData::targetArtifacts() const
+{
+    return ArtifactSet::fromNodeSet(roots);
+}
+
+static void loadArtifactSetByFileTag(PersistentPool &pool,
+                                     ProductBuildData::ArtifactSetByFileTag &s)
+{
+    int elemCount;
+    pool.stream() >> elemCount;
+    for (int i = 0; i < elemCount; ++i) {
+        QVariant fileTag;
+        pool.stream() >> fileTag;
+        ArtifactSet artifacts;
+        pool.loadContainer(artifacts);
+        s.insert(FileTag::fromSetting(fileTag), artifacts);
+    }
 }
 
 void ProductBuildData::load(PersistentPool &pool)
 {
-    pool.loadContainer(artifacts);
-    pool.loadContainer(targetArtifacts);
+    nodes.load(pool);
+    roots.load(pool);
+    int rescuableArtifactCount;
+    pool.stream() >> rescuableArtifactCount;
+    rescuableArtifactData.reserve(rescuableArtifactCount);
+    for (int i = 0; i < rescuableArtifactCount; ++i) {
+        const QString filePath = pool.idLoadString();
+        RescuableArtifactData elem;
+        elem.load(pool);
+        rescuableArtifactData.insert(filePath, elem);
+    }
+    loadArtifactSetByFileTag(pool, addedArtifactsByFileTag);
+    loadArtifactSetByFileTag(pool, removedArtifactsByFileTag);
+}
+
+static void storeArtifactSetByFileTag(PersistentPool &pool,
+                                      const ProductBuildData::ArtifactSetByFileTag &s)
+{
+    pool.stream() << s.count();
+    ProductBuildData::ArtifactSetByFileTag::ConstIterator it;
+    for (it = s.constBegin(); it != s.constEnd(); ++it) {
+        pool.stream() << it.key().toSetting();
+        pool.storeContainer(it.value());
+    }
 }
 
 void ProductBuildData::store(PersistentPool &pool) const
 {
-    pool.storeContainer(artifacts);
-    pool.storeContainer(targetArtifacts);
+    nodes.store(pool);
+    roots.store(pool);
+    pool.stream() << rescuableArtifactData.count();
+    for (AllRescuableArtifactData::ConstIterator it = rescuableArtifactData.constBegin();
+             it != rescuableArtifactData.constEnd(); ++it) {
+        pool.storeString(it.key());
+        it.value().store(pool);
+    }
+    storeArtifactSetByFileTag(pool, addedArtifactsByFileTag);
+    storeArtifactSetByFileTag(pool, removedArtifactsByFileTag);
+}
+
+void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
+{
+    foreach (const FileTag &tag, artifact->fileTags)
+        container[tag] += artifact;
 }
 
 } // namespace Internal

@@ -29,7 +29,6 @@
 #ifndef QBS_PROJECTBUILDDATA_H
 #define QBS_PROJECTBUILDDATA_H
 
-#include "artifactset.h"
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
@@ -43,6 +42,8 @@
 
 namespace qbs {
 namespace Internal {
+class ArtifactSet;
+class BuildGraphNode;
 class FileDependency;
 class FileResourceBase;
 class ScriptEngine;
@@ -62,21 +63,21 @@ public:
     QList<FileResourceBase *> lookupFiles(const QString &dirPath, const QString &fileName) const;
     QList<FileResourceBase *> lookupFiles(const Artifact *artifact) const;
     void insertFileDependency(FileDependency *dependency);
-    void updateNodesThatMustGetNewTransformer(const Logger &logger);
     void removeArtifactAndExclusiveDependents(Artifact *artifact, const Logger &logger,
             bool removeFromProduct = true, ArtifactSet *removedArtifacts = 0);
     void removeArtifact(Artifact *artifact, const Logger &logger, bool removeFromDisk = true,
                         bool removeFromProduct = true);
 
+
     QSet<FileDependency *> fileDependencies;
+
+    // do not serialize:
     RulesEvaluationContextPtr evaluationContext;
-    QSet<Artifact *> artifactsThatMustGetNewTransformers;
     bool isDirty;
 
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
-    void updateNodeThatMustGetNewTransformer(Artifact *artifact, const Logger &logger);
 
     typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
     typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
@@ -95,6 +96,7 @@ public:
             const QList<ResolvedProductPtr> &freshProducts);
 
 private:
+    void resolveProductBuildDataForExistingProject(const ResolvedProductPtr &product);
     void resolveProductBuildData(const ResolvedProductPtr &product);
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;

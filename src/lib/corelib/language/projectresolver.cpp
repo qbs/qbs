@@ -576,26 +576,44 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     RulePtr rule = Rule::create();
 
     // read artifacts
+    bool hasArtifactChildren = false;
     bool hasAlwaysUpdatedArtifact = false;
     foreach (Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw ErrorInfo(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
 
+        hasArtifactChildren = true;
         resolveRuleArtifact(rule, child, &hasAlwaysUpdatedArtifact);
     }
 
-    if (Q_UNLIKELY(!hasAlwaysUpdatedArtifact))
+    if (Q_UNLIKELY(hasArtifactChildren && !hasAlwaysUpdatedArtifact))
         throw ErrorInfo(Tr::tr("At least one output artifact of a rule "
                            "must have alwaysUpdated set to true."),
                     item->location());
 
+    rule->name = m_evaluator->stringValue(item, QLatin1String("name"));
     rule->prepareScript = scriptFunctionValue(item, QLatin1String("prepare"));
+    rule->outputArtifactsScript = scriptFunctionValue(item, QLatin1String("outputArtifacts"));
+    if (rule->outputArtifactsScript->isValid()) {
+        if (hasArtifactChildren)
+            throw ErrorInfo(Tr::tr("The Rule.outputArtifacts script is not allowed in rules "
+                                   "that contain Artifact items."),
+                        item->location());
+        rule->outputFileTags = m_evaluator->fileTagsValue(item, "outputFileTags");
+        if (rule->outputFileTags.isEmpty())
+            throw ErrorInfo(Tr::tr("Rule.outputFileTags must be specified if "
+                                   "Rule.outputArtifacts is specified."),
+                            item->location());
+    }
+
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
     rule->usings = m_evaluator->fileTagsValue(item, QLatin1String("usings"));
     rule->auxiliaryInputs
             = m_evaluator->fileTagsValue(item, QLatin1String("auxiliaryInputs"));
+    rule->excludedAuxiliaryInputs
+            = m_evaluator->fileTagsValue(item, QLatin1String("excludedAuxiliaryInputs"));
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;

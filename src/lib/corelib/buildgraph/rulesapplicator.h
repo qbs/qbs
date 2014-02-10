@@ -35,29 +35,41 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
-#include <QMap>
+#include <QHash>
 #include <QScriptValue>
 #include <QString>
+#include <QVector>
 
 namespace qbs {
 namespace Internal {
+class BuildGraphNode;
+class QtMocScanner;
 class ScriptEngine;
 
-typedef QMap<FileTag, ArtifactSet> ArtifactsPerFileTagMap;
+typedef QHash<FileTag, ArtifactSet> ArtifactsPerFileTagMap;
 
 class RulesApplicator
 {
 public:
     RulesApplicator(const ResolvedProductPtr &product, ArtifactsPerFileTagMap &artifactsPerFileTag,
                     const Logger &logger);
-    void applyAllRules();
+    ~RulesApplicator();
+    QVector<BuildGraphNode *> applyRuleInEvaluationContext(const RuleConstPtr &rule);
     void applyRule(const RuleConstPtr &rule);
+    static void handleRemovedRuleOutputs(ArtifactSet artifactsToRemove, const Logger &logger);
 
 private:
-    void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
+    void doApply(ArtifactSet inputArtifacts, QScriptValue &prepareScriptContext);
     void setupScriptEngineForArtifact(Artifact *artifact);
-    Artifact *createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
-                                   const ArtifactSet &inputArtifacts);
+    ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
+    Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,
+            const ArtifactSet &inputArtifacts);
+    Artifact *createOutputArtifact(const QString &filePath, const FileTags &fileTags,
+            bool alwaysUpdated, const ArtifactSet &inputArtifacts);
+    QList<Artifact *> runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
+            const QScriptValueList &args);
+    Artifact *createOutputArtifactFromScriptValue(const QScriptValue &obj,
+            const ArtifactSet &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
@@ -65,9 +77,11 @@ private:
 
     const ResolvedProductPtr m_product;
     ArtifactsPerFileTagMap &m_artifactsPerFileTag;
+    QVector<BuildGraphNode *>  m_createdArtifacts;
 
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;
+    QtMocScanner *m_mocScanner;
     Logger m_logger;
 };
 

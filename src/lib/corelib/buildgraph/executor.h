@@ -31,6 +31,7 @@
 #define QBS_BUILDGRAPHEXECUTOR_H
 
 #include "forward_decls.h"
+#include "buildgraphvisitor.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/scanresultcache.h>
 #include <language/forward_decls.h>
@@ -46,13 +47,13 @@ namespace qbs {
 class ProcessResult;
 
 namespace Internal {
-class AutoMoc;
 class ExecutorJob;
 class FileTime;
 class InputArtifactScannerContext;
 class ProgressObserver;
+class RuleNode;
 
-class Executor : public QObject
+class Executor : public QObject, private BuildGraphVisitor
 {
     Q_OBJECT
 
@@ -82,44 +83,52 @@ private slots:
     void finish();
 
 private:
+    // BuildGraphVisitor implementation
+    bool visit(Artifact *artifact);
+    bool visit(RuleNode *ruleNode);
+
     enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
 
     struct ComparePriority
     {
-        bool operator() (const Artifact *x, const Artifact *y) const;
+        bool operator() (const BuildGraphNode *x, const BuildGraphNode *y) const;
     };
 
-    typedef std::priority_queue<Artifact *, std::vector<Artifact *>, ComparePriority> Leaves;
+    typedef std::priority_queue<Artifact *, std::vector<BuildGraphNode *>, ComparePriority> Leaves;
 
     void doBuild();
-    void prepareAllArtifacts(bool *sourceFilesChanged);
-    void prepareReachableArtifacts();
-    void prepareReachableArtifacts_impl(Artifact *artifact, const Artifact::BuildState buildState);
+    void prepareAllNodes();
+    void prepareArtifact(Artifact *artifact);
+    void prepareReachableNodes();
+    void prepareReachableNodes_impl(BuildGraphNode *node, const Artifact::BuildState buildState);
     void prepareProducts();
     void setupRootNodes();
     void updateBuildGraph(Artifact::BuildState buildState);
-    void updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts);
+    void updateBuildGraph_impl(BuildGraphNode *node, Artifact::BuildState buildState, QSet<BuildGraphNode *> &seenNodes);
     void initLeaves();
-    void initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts);
+    void initLeavesTopDown(BuildGraphNode *artifact, QSet<BuildGraphNode *> &seenArtifacts);
     bool scheduleJobs();
     void buildArtifact(Artifact *artifact);
+    void executeRuleNode(RuleNode *ruleNode);
     void finishJob(ExecutorJob *job, bool success);
+    void finishNode(BuildGraphNode *leaf);
     void finishArtifact(Artifact *artifact);
     void setState(ExecutorState);
     void addExecutorJobs();
-    void runAutoMoc();
-    void insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies);
+    void insertLeavesAfterAddingDependencies(QVector<BuildGraphNode *> dependencies);
     void cancelJobs();
-    void setupProgressObserver(bool mocWillRun);
+    void setupProgressObserver();
     void doSanityChecks();
     void handleError(const ErrorInfo &error);
+    void rescueOldBuildData(Artifact *artifact, bool *childrenAdded);
+    bool checkForUnbuiltDependencies(Artifact *artifact);
 
     bool mustExecuteTransformer(const TransformerPtr &transformer) const;
     bool isUpToDate(Artifact *artifact) const;
     void retrieveSourceFileTimestamp(Artifact *artifact) const;
     FileTime recursiveFileTime(const QString &filePath) const;
-    void insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
-            QSet<Artifact *> *seenArtifacts, Leaves *leaves) const;
+    void insertLeavesAfterAddingDependencies_recurse(BuildGraphNode * const node,
+            QSet<BuildGraphNode *> *seenNodes, Leaves *leaves) const;
     QString configString() const;
 
     RulesEvaluationContextPtr m_evalContext;
@@ -131,12 +140,11 @@ private:
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
     QList<ResolvedProductPtr> m_productsToBuild;
-    QList<Artifact *> m_roots;
+    QList<BuildGraphNode *> m_roots;
     Leaves m_leaves;
+    QList<Artifact *> m_changedSourceArtifacts;
     ScanResultCache m_scanResultCache;
     InputArtifactScannerContext *m_inputArtifactScanContext;
-    AutoMoc *m_autoMoc;
-    int m_mocEffort;
     ErrorInfo m_error;
     bool m_explicitlyCanceled;
     FileTags m_activeFileTags;

@@ -40,27 +40,26 @@ ArtifactVisitor::ArtifactVisitor(int artifactType) : m_artifactType(artifactType
 {
 }
 
-void ArtifactVisitor::visitArtifact(Artifact *artifact)
-{
-    QBS_CHECK(artifact);
-    if (m_artifactType & artifact->artifactType)
-        doVisit(artifact);
-}
-
 void ArtifactVisitor::visitProduct(const ResolvedProductConstPtr &product)
 {
     if (!product->buildData)
         return;
-    foreach (Artifact * const artifact, product->buildData->artifacts)
-        visitArtifact(artifact);
+    foreach (BuildGraphNode *node, product->buildData->nodes)
+        node->accept(this);
 }
 
 void ArtifactVisitor::visitProject(const ResolvedProjectConstPtr &project)
 {
-    foreach (const ResolvedProductConstPtr &product, project->products)
+    foreach (const ResolvedProductConstPtr &product, project->allProducts())
         visitProduct(product);
-    foreach (const ResolvedProjectConstPtr &subProject, project->subProjects)
-        visitProject(subProject);
+}
+
+bool ArtifactVisitor::visit(Artifact *artifact)
+{
+    QBS_CHECK(artifact);
+    if (m_artifactType & artifact->artifactType)
+        doVisit(artifact);
+    return false;
 }
 
 } // namespace Internal

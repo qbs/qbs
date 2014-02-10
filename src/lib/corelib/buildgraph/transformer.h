@@ -56,7 +56,7 @@ public:
     ArtifactSet inputs; // Subset of "children of all outputs".
     ArtifactSet outputs;
     RuleConstPtr rule;
-    QList<AbstractCommand *> commands;
+    QList<AbstractCommandPtr> commands;
     PropertyList propertiesRequestedInPrepareScript;
     PropertyList propertiesRequestedInCommands;
     QHash<QString, PropertyList> propertiesRequestedFromArtifactInPrepareScript;
@@ -69,7 +69,9 @@ public:
                                            const QString &defaultModuleName);
 
     ResolvedProductPtr product() const;
-    void setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
+    static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
+            const QString &defaultModuleName);
+    void setupInputs(QScriptValue targetScriptValue);
     void setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue);
     void createCommands(const ScriptFunctionConstPtr &script,
                         const RulesEvaluationContextPtr &evalContext, const QScriptValueList &args);

@@ -113,7 +113,7 @@ private:
         if (m_options.cleanType() == CleanOptions::CleanupTemporaries) {
             QBS_CHECK(artifact->transformer);
             foreach (Artifact * const sibling, artifact->transformer->outputs) {
-                if (artifact->product->buildData->targetArtifacts.contains(sibling))
+                if (artifact->product->buildData->targetArtifacts().contains(sibling))
                     return;
             }
         }

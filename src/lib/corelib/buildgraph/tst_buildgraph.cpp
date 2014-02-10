@@ -73,7 +73,7 @@ ResolvedProductConstPtr TestBuildGraph::productWithDirectCycle()
     child->children.insert(root);
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->buildData.reset(new ProductBuildData);
-    product->buildData->targetArtifacts.insert(root);
+    product->buildData->roots.insert(root);
     return product;
 }
 
@@ -88,7 +88,7 @@ ResolvedProductConstPtr TestBuildGraph::productWithLessDirectCycle()
     grandchild->children.insert(root);
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->buildData.reset(new ProductBuildData);
-    product->buildData->targetArtifacts << root;
+    product->buildData->roots << root;
     return product;
 }
 
@@ -101,7 +101,7 @@ ResolvedProductConstPtr TestBuildGraph::productWithNoCycle()
     root2->children.insert(root);
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->buildData.reset(new ProductBuildData);
-    product->buildData->targetArtifacts << root << root2;
+    product->buildData->roots << root << root2;
     return product;
 }
 

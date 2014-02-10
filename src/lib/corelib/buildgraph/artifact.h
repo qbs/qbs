@@ -32,12 +32,10 @@
 
 #include "artifactset.h"
 #include "filedependency.h"
+#include "buildgraphnode.h"
 #include "forward_decls.h"
 #include <language/filetags.h>
-#include <language/forward_decls.h>
 #include <tools/filetime.h>
-#include <tools/persistentobject.h>
-#include <tools/weakpointer.h>
 
 #include <QSet>
 #include <QString>
@@ -54,18 +52,19 @@ class Logger;
  *
  *
  */
-class Artifact : public FileResourceBase
+class Artifact : public FileResourceBase, public BuildGraphNode
 {
 public:
     Artifact();
     ~Artifact();
 
-    ArtifactSet parents;
-    ArtifactSet children;
+    Type type() const { return ArtifactNodeType; }
+    void accept(BuildGraphVisitor *visitor);
+    QString toString() const;
+
     ArtifactSet childrenAddedByScanner;
     QSet<FileDependency *> fileDependencies;
     FileTags fileTags;
-    WeakPointer<ResolvedProduct> product;
     TransformerPtr transformer;
     PropertyMapPtr properties;
 
@@ -76,22 +75,16 @@ public:
         Generated = 4
     };
 
-    enum BuildState
-    {
-        Untouched = 0,
-        Buildable,
-        Building,
-        Built
-    };
-
     ArtifactType artifactType;
-    FileTime autoMocTimestamp;
-    BuildState buildState;                  // Do not serialize. Will be refreshed for every build.
     bool inputsScanned : 1;                 // Do not serialize. Will be refreshed for every build.
     bool timestampRetrieved : 1;            // Do not serialize. Will be refreshed for every build.
     bool alwaysUpdated : 1;
+    bool oldDataPossiblyPresent : 1;
 
     void initialize();
+    ArtifactSet parentArtifacts() const;
+    ArtifactSet childArtifacts() const;
+    void onChildDisconnected(BuildGraphNode *child);
 
 private:
     void load(PersistentPool &pool);
@@ -113,16 +106,16 @@ inline QString toString(Artifact::ArtifactType t)
 }
 
 // debugging helper
-inline QString toString(Artifact::BuildState s)
+inline QString toString(BuildGraphNode::BuildState s)
 {
     switch (s) {
-    case Artifact::Untouched:
+    case BuildGraphNode::Untouched:
         return QLatin1String("Untouched");
-    case Artifact::Buildable:
+    case BuildGraphNode::Buildable:
         return QLatin1String("Buildable");
-    case Artifact::Building:
+    case BuildGraphNode::Building:
         return QLatin1String("Building");
-    case Artifact::Built:
+    case BuildGraphNode::Built:
         return QLatin1String("Built");
     default:
         return QLatin1String("Unknown");

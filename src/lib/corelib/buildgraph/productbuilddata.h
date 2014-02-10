@@ -30,8 +30,10 @@
 #define QBS_PRODUCTBUILDDATA_H
 
 #include "artifactset.h"
+#include "nodeset.h"
+#include "rescuableartifactdata.h"
+#include <language/filetags.h>
 #include <language/forward_decls.h>
-
 #include <tools/persistentobject.h>
 
 #include <QList>
@@ -39,6 +41,7 @@
 
 namespace qbs {
 namespace Internal {
+
 class Logger;
 
 class ProductBuildData : public PersistentObject
@@ -46,16 +49,32 @@ class ProductBuildData : public PersistentObject
 public:
     ~ProductBuildData();
 
-    QSet<Artifact *> targetArtifacts;
-    ArtifactSet artifacts;
-    QList<RuleConstPtr> topSortedRules;
+    ArtifactSet targetArtifacts() const;
+    NodeSet nodes;
+    NodeSet roots;
+
+    // After change tracking, this is the relevant data of artifacts that were in the build data
+    // of the restored product, and will potentially be re-created by our rules.
+    // If and when that happens, the relevant data will be copied over to the newly created
+    // artifact.
+    AllRescuableArtifactData rescuableArtifactData;
 
     // Do not store, initialized in executor. Higher prioritized artifacts are built first.
     unsigned int buildPriority;
 
+    typedef QHash<FileTag, ArtifactSet> ArtifactSetByFileTag;
+    ArtifactSetByFileTag addedArtifactsByFileTag;
+    ArtifactSetByFileTag removedArtifactsByFileTag;
+
+    // TODO: Serialize.
+    typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
+    ArtifactSetByRule artifactsWithChangedInputsPerRule;
+
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };
+
+void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
 
 } // namespace Internal
 } // namespace qbs

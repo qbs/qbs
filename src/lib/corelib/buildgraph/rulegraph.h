@@ -42,13 +42,20 @@
 namespace qbs {
 namespace Internal {
 
+class RuleGraphVisitor
+{
+public:
+    virtual void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule) = 0;
+    virtual void endVisit(const RuleConstPtr &rule) { Q_UNUSED(rule); }
+};
+
 class RuleGraph
 {
 public:
     RuleGraph();
 
     void build(const QSet<RulePtr> &rules, const FileTags &productFileTag);
-    QList<RuleConstPtr> topSorted();
+    void accept(RuleGraphVisitor *visitor) const;
 
     void dump() const;
 
@@ -56,8 +63,8 @@ private:
     void dump_impl(QByteArray &indent, int rootIndex) const;
     int insert(const RulePtr &rule);
     void connect(const Rule *creatingRule, const Rule *consumingRule);
-    QList<RuleConstPtr> topSort(const RuleConstPtr &rule, QSet<const Rule *> *seenRules,
-            QList<const Rule *> *rulePath);
+    void traverse(RuleGraphVisitor *visitor, const RuleConstPtr &parentRule,
+            const RuleConstPtr &rule) const;
 
 private:
     QMap<FileTag, QList<const Rule*> > m_outputFileTagToRule;

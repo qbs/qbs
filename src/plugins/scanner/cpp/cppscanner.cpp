@@ -257,7 +257,7 @@ static const char **additionalFileTags(void *opaq, int *size)
 {
     static const char *thMocCpp[] = { "moc_cpp" };
     static const char *thMocHpp[] = { "moc_hpp" };
-    static const char *thMocPluginHpp[] = { "moc_plugin_hpp" };
+    static const char *thMocPluginHpp[] = { "moc_hpp_plugin" };
 
     Opaq *opaque = static_cast<Opaq*>(opaq);
     if (opaque->hasQObjectMacro) {

@@ -84,7 +84,7 @@ public slots:
         setupScriptEngineForFile(scriptEngine, transformer->rule->prepareScript->fileContext, scope);
         setupScriptEngineForProduct(scriptEngine, transformer->product(), transformer->rule, scope,
                                     &observer);
-        transformer->setupInputs(scriptEngine, scope);
+        transformer->setupInputs(scope);
         transformer->setupOutputs(scriptEngine, scope);
 
         for (QVariantMap::const_iterator it = cmd->properties().constBegin();

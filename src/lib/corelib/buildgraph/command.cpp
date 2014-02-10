@@ -50,16 +50,16 @@ AbstractCommand::~AbstractCommand()
 {
 }
 
-AbstractCommand *AbstractCommand::createByType(AbstractCommand::CommandType commandType)
+AbstractCommandPtr AbstractCommand::createByType(AbstractCommand::CommandType commandType)
 {
     switch (commandType) {
     case AbstractCommand::ProcessCommandType:
-        return new ProcessCommand;
+        return ProcessCommand::create();
     case AbstractCommand::JavaScriptCommandType:
-        return new JavaScriptCommand;
+        return JavaScriptCommand::create();
     }
     qFatal("%s: Invalid command type %d", Q_FUNC_INFO, commandType);
-    return 0;
+    return AbstractCommandPtr();
 }
 
 bool AbstractCommand::equals(const AbstractCommand *other) const
@@ -104,33 +104,33 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
     if (Q_UNLIKELY(!context->isCalledAsConstructor()))
         return context->throwError(Tr::tr("Command constructor called without new."));
 
-    static ProcessCommand commandPrototype;
+    static ProcessCommandPtr commandPrototype = ProcessCommand::create();
 
     QScriptValue program = context->argument(0);
     if (program.isUndefined())
-        program = engine->toScriptValue(commandPrototype.program());
+        program = engine->toScriptValue(commandPrototype->program());
     QScriptValue arguments = context->argument(1);
     if (arguments.isUndefined())
-        arguments = engine->toScriptValue(commandPrototype.arguments());
+        arguments = engine->toScriptValue(commandPrototype->arguments());
     QScriptValue cmd = js_CommandBase(context, engine);
     cmd.setProperty(QLatin1String("className"),
                     engine->toScriptValue(QString::fromLatin1("Command")));
     cmd.setProperty(QLatin1String("program"), program);
     cmd.setProperty(QLatin1String("arguments"), arguments);
     cmd.setProperty(QLatin1String("workingDir"),
-                    engine->toScriptValue(commandPrototype.workingDir()));
+                    engine->toScriptValue(commandPrototype->workingDir()));
     cmd.setProperty(QLatin1String("maxExitCode"),
-                    engine->toScriptValue(commandPrototype.maxExitCode()));
+                    engine->toScriptValue(commandPrototype->maxExitCode()));
     cmd.setProperty(QLatin1String("stdoutFilterFunction"),
-                    engine->toScriptValue(commandPrototype.stdoutFilterFunction()));
+                    engine->toScriptValue(commandPrototype->stdoutFilterFunction()));
     cmd.setProperty(QLatin1String("stderrFilterFunction"),
-                    engine->toScriptValue(commandPrototype.stderrFilterFunction()));
+                    engine->toScriptValue(commandPrototype->stderrFilterFunction()));
     cmd.setProperty(QLatin1String("responseFileThreshold"),
-                    engine->toScriptValue(commandPrototype.responseFileThreshold()));
+                    engine->toScriptValue(commandPrototype->responseFileThreshold()));
     cmd.setProperty(QLatin1String("responseFileUsagePrefix"),
-                    engine->toScriptValue(commandPrototype.responseFileUsagePrefix()));
+                    engine->toScriptValue(commandPrototype->responseFileUsagePrefix()));
     cmd.setProperty(QLatin1String("environment"),
-                    engine->toScriptValue(commandPrototype.environment().toStringList()));
+                    engine->toScriptValue(commandPrototype->environment().toStringList()));
     return cmd;
 }
 
@@ -236,12 +236,12 @@ static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine 
                                   QLatin1String("JavaScriptCommand c'tor doesn't take arguments."));
     }
 
-    static JavaScriptCommand commandPrototype;
+    static JavaScriptCommandPtr commandPrototype = JavaScriptCommand::create();
     QScriptValue cmd = js_CommandBase(context, engine);
     cmd.setProperty(QLatin1String("className"),
                     engine->toScriptValue(QString::fromLatin1("JavaScriptCommand")));
     cmd.setProperty(QLatin1String("sourceCode"),
-                    engine->toScriptValue(commandPrototype.sourceCode()));
+                    engine->toScriptValue(commandPrototype->sourceCode()));
     return cmd;
 }
 
@@ -299,6 +299,42 @@ void JavaScriptCommand::store(QDataStream &s)
     AbstractCommand::store(s);
     s   << m_sourceCode
         << m_properties;
+}
+
+QList<AbstractCommandPtr> loadCommandList(QDataStream &s)
+{
+    QList<AbstractCommandPtr> commands;
+    int count;
+    s >> count;
+    commands.reserve(count);
+    while (--count >= 0) {
+        int cmdType;
+        s >> cmdType;
+        const AbstractCommandPtr cmd
+                = AbstractCommand::createByType(static_cast<AbstractCommand::CommandType>(cmdType));
+        cmd->load(s);
+        commands += cmd;
+    }
+    return commands;
+}
+
+void storeCommandList(const QList<AbstractCommandPtr> &commands, QDataStream &s)
+{
+    s << commands.count();
+    foreach (const AbstractCommandPtr &cmd, commands) {
+        s << int(cmd->type());
+        cmd->store(s);
+    }
+}
+
+bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<AbstractCommandPtr> &l2)
+{
+    if (l1.count() != l2.count())
+        return false;
+    for (int i = 0; i < l1.count(); ++i)
+        if (!l1.at(i)->equals(l2.at(i).data()))
+            return false;
+    return true;
 }
 
 } // namespace Internal

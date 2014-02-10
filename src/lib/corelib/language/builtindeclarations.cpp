@@ -364,9 +364,18 @@ void BuiltinDeclarations::addRuleItem()
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
     decl.initialValueSource = QLatin1String("false");
     item << decl;
+    item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("outputFileTags"), PropertyDeclaration::StringList);
+    decl = PropertyDeclaration(QLatin1String("outputArtifacts"), PropertyDeclaration::Verbatim);
+    decl.functionArgumentNames
+            << QLatin1String("project") << QLatin1String("product")
+            << QLatin1String("inputs") << QLatin1String("input");
+    item << decl;
     item << PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("auxiliaryInputs"),
+                                      PropertyDeclaration::StringList);
+    item << PropertyDeclaration(QLatin1String("excludedAuxiliaryInputs"),
                                       PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);

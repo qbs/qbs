@@ -30,8 +30,6 @@
 #define QBS_BUILDGRAPH_H
 
 #include "forward_decls.h"
-#include "rulesapplicator.h"
-
 #include <language/forward_decls.h>
 
 #include <QScriptValue>
@@ -39,6 +37,7 @@
 
 namespace qbs {
 namespace Internal {
+class BuildGraphNode;
 class Logger;
 class ScriptEngine;
 class PrepareScriptObserver;
@@ -59,17 +58,16 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact, const Logger &logger);
 void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const Logger &logger);
-void addTargetArtifacts(const ResolvedProductPtr &product,
-                        ArtifactsPerFileTagMap &artifactsPerFileTag, const Logger &logger);
 void dumpProductBuildData(const ResolvedProductConstPtr &product);
 
 
-bool findPath(Artifact *u, Artifact *v, QList<Artifact*> &path);
-void connect(Artifact *p, Artifact *c);
-void loggedConnect(Artifact *u, Artifact *v, const Logger &logger);
+bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);
+void connect(BuildGraphNode *p, BuildGraphNode *c);
+void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
 bool safeConnect(Artifact *u, Artifact *v, const Logger &logger);
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
-void disconnect(Artifact *u, Artifact *v, const Logger &logger);
+void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logger);
+void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
 
 void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
         QScriptValue targetObject);
@@ -79,15 +77,6 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
 QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 
 void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger);
-
-template <typename T>
-QStringList toStringList(const T &artifactContainer)
-{
-    QStringList l;
-    foreach (Artifact *n, artifactContainer)
-        l.append(relativeArtifactFileName(n));
-    return l;
-}
 
 } // namespace Internal
 } // namespace qbs

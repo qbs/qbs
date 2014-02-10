@@ -27,28 +27,50 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
+#ifndef QBS_RULENODE_H
+#define QBS_RULENODE_H
 
-#include <QSet>
+#include "artifactset.h"
+#include "buildgraphnode.h"
+#include <language/forward_decls.h>
+
+#include <QVector>
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class NodeSet;
+class Logger;
 
-class ArtifactSet : public QSet<Artifact *>
+class RuleNode : public BuildGraphNode
 {
 public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
+    RuleNode();
+    ~RuleNode();
+
+    void setRule(const RuleConstPtr &rule) { m_rule = rule; }
+    const RuleConstPtr &rule() const { return m_rule; }
+
+    Type type() const { return RuleNodeType; }
+    void accept(BuildGraphVisitor *visitor);
+    QString toString() const;
+
+    struct ApplicationResult
+    {
+        bool upToDate;
+        QVector<BuildGraphNode *> createdNodes;
+    };
+
+    void apply(const Logger &logger, const ArtifactSet &changedInputs, ApplicationResult *result);
+
+protected:
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
+private:
+    RuleConstPtr m_rule;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ARTIFACTSET_H
+#endif // QBS_RULENODE_H

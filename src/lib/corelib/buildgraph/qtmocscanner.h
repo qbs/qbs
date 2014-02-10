@@ -27,69 +27,50 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_AUTOMOC_H
-#define QBS_AUTOMOC_H
+#ifndef QBS_QTMOCSCANNER_H
+#define QBS_QTMOCSCANNER_H
 
-#include "forward_decls.h"
-
-#include <language/forward_decls.h>
+#include <language/language.h>
 #include <logging/logger.h>
 
-#include <QObject>
+#include <QHash>
+#include <QScriptValue>
+#include <QString>
 
-struct ScannerPlugin;
+QT_BEGIN_NAMESPACE
+class QScriptContext;
+QT_END_NAMESPACE
+
+class ScannerPlugin;
 
 namespace qbs {
 namespace Internal {
-class FileTag;
+
+class Artifact;
 class ScanResultCache;
 
-/**
-  * Scans cpp and hpp files for the Q_OBJECT / Q_GADGET macro and
-  * applies the corresponding rule then.
-  * Also scans the files for moc_XXX.cpp files to find out if we must
-  * compile and link a moc_XXX.cpp file or not.
-  *
-  * This whole thing is an ugly hack, I know.
-  */
-class AutoMoc : public QObject
+class QtMocScanner
 {
-    Q_OBJECT
-
 public:
-    AutoMoc(const Logger &logger, QObject *parent = 0);
-
-    void setScanResultCache(ScanResultCache *scanResultCache);
-    void apply(const ResolvedProductPtr &product);
-
-signals:
-    void reportCommandDescription(const QString &highlight, const QString &message);
+    explicit QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue,
+            const Logger &logger);
+    ~QtMocScanner();
 
 private:
-    enum FileType
-    {
-        UnknownFileType,
-        HppFileType,
-        CppFileType
-    };
+    void findIncludedMocCppFiles();
+    static QScriptValue js_apply(QScriptContext *ctx, QScriptEngine *engine, void *data);
+    QScriptValue apply(QScriptEngine *engine, const Artifact *artifact);
 
-private:
-    static QString generateMocFileName(Artifact *artifact, FileType fileType);
-    static FileType fileType(Artifact *artifact);
-    void scan(Artifact *artifact, FileType fileType, bool &hasQObjectMacro,
-            QSet<QString> &includedMocCppFiles);
-    bool isVictimOfMoc(Artifact *artifact, FileType fileType, FileTag &foundMocFileTag);
-    void unmoc(Artifact *artifact, const FileTag &mocFileTag);
-    const QList<ScannerPlugin *> &cppScanners() const;
-    const QList<ScannerPlugin *> &hppScanners() const;
-
-    mutable QList<ScannerPlugin *> m_cppScanners;
-    mutable QList<ScannerPlugin *> m_hppScanners;
+    const ResolvedProductPtr &m_product;
+    QScriptValue m_targetScriptValue;
+    const Logger &m_logger;
     ScanResultCache *m_scanResultCache;
-    Logger m_logger;
+    QHash<QString, QString> m_includedMocCppFiles;
+    ScannerPlugin *m_cppScanner;
+    ScannerPlugin *m_hppScanner;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_AUTOMOC_H
+#endif // QBS_QTMOCSCANNER_H

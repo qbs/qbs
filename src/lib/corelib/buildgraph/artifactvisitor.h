@@ -31,6 +31,7 @@
 
 #include "forward_decls.h"
 
+#include "buildgraphvisitor.h"
 #include <language/forward_decls.h>
 
 #include <QList>
@@ -39,14 +40,14 @@
 namespace qbs {
 namespace Internal {
 
-class ArtifactVisitor
+class ArtifactVisitor : public BuildGraphVisitor
 {
 public:
     ArtifactVisitor(int artifactType);
 
-    virtual void visitArtifact(Artifact *artifact);
-    virtual void visitProduct(const ResolvedProductConstPtr &product);
-    virtual void visitProject(const ResolvedProjectConstPtr &project);
+    void visitProduct(const ResolvedProductConstPtr &product);
+    void visitProject(const ResolvedProjectConstPtr &project);
+    bool visit(Artifact *artifact);
 
 private:
     virtual void doVisit(Artifact *artifact) = 0;

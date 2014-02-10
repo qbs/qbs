@@ -301,7 +301,7 @@ resolved:
         // file or conflict with the writing process.
         if (filePathsToScan) {
             Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency->file);
-            if (!artifactDependency || artifactDependency->buildState != Artifact::Building)
+            if (!artifactDependency || artifactDependency->buildState != BuildGraphNode::Building)
                 filePathsToScan->append(resolvedDependency->filePath);
         }
         handleDependency(*resolvedDependency);
@@ -360,7 +360,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;
-        if (insertIntoProduct && !product->buildData->artifacts.contains(artifactDependency))
+        if (insertIntoProduct && !product->buildData->nodes.contains(artifactDependency))
             insertArtifact(product, artifactDependency, m_logger);
         safeConnect(m_artifact, artifactDependency, m_logger);
         m_artifact->childrenAddedByScanner += artifactDependency;

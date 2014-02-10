@@ -27,28 +27,67 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
+#include "nodeset.h"
 
-#include <QSet>
+#include "artifact.h"
+#include "rulenode.h"
+#include <language/language.h>  // because of RulePtr
+#include <tools/persistence.h>
+#include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class NodeSet;
-
-class ArtifactSet : public QSet<Artifact *>
+NodeSet::NodeSet()
 {
-public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
-};
+}
+
+NodeSet::NodeSet(const NodeSet &other)
+    : m_data(other.m_data)
+{
+}
+
+NodeSet &NodeSet::unite(const NodeSet &other)
+{
+    m_data.insert(other.begin(), other.end());
+    return *this;
+}
+
+void NodeSet::remove(BuildGraphNode *node)
+{
+    m_data.erase(node);
+}
+
+void NodeSet::load(PersistentPool &pool)
+{
+    clear();
+    int i;
+    pool.stream() >> i;
+    for (; --i >= 0;) {
+        int t;
+        pool.stream() >> t;
+        BuildGraphNode *node = 0;
+        switch (static_cast<BuildGraphNode::Type>(t)) {
+        case BuildGraphNode::ArtifactNodeType:
+            node = pool.idLoad<Artifact>();
+            break;
+        case BuildGraphNode::RuleNodeType:
+            node = pool.idLoad<RuleNode>();
+            break;
+        }
+        QBS_CHECK(node);
+        insert(node);
+    }
+}
+
+void NodeSet::store(PersistentPool &pool) const
+{
+    pool.stream() << count();
+    for (NodeSet::const_iterator it = constBegin(); it != constEnd(); ++it) {
+        pool.stream() << int((*it)->type());
+        pool.store(*it);
+    }
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_ARTIFACTSET_H

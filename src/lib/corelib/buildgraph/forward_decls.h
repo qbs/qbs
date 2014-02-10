@@ -45,6 +45,15 @@ typedef QSharedPointer<const Transformer> TransformerConstPtr;
 class RulesEvaluationContext;
 typedef QSharedPointer<RulesEvaluationContext> RulesEvaluationContextPtr;
 
+class AbstractCommand;
+typedef QSharedPointer<AbstractCommand> AbstractCommandPtr;
+
+class ProcessCommand;
+typedef QSharedPointer<ProcessCommand> ProcessCommandPtr;
+
+class JavaScriptCommand;
+typedef QSharedPointer<JavaScriptCommand> JavaScriptCommandPtr;
+
 } // namespace Internal
 } // namespace qbs
 

@@ -45,6 +45,7 @@ namespace Internal {
 class FileDependency;
 class FileResourceBase;
 class FileTime;
+class NodeSet;
 class Property;
 
 class BuildGraphLoadResult
@@ -101,10 +102,17 @@ private:
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
 
-    typedef QHash<const Artifact *, ArtifactSet> ChildListHash;
+    struct ChildrenInfo {
+        ChildrenInfo() {}
+        ChildrenInfo(const ArtifactSet &c1, const ArtifactSet &c2)
+            : children(c1), childrenAddedByScanner(c2) {}
+        ArtifactSet children;
+        ArtifactSet childrenAddedByScanner;
+    };
+    typedef QHash<const Artifact *, ChildrenInfo> ChildListHash;
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
                             const ResolvedProductPtr &newlyResolvedProduct,
-                            const ProjectBuildData *oldBuildData,
+                            ProjectBuildData *oldBuildData,
                             const ChildListHash &childLists);
 
     RulesEvaluationContextPtr m_evalContext;

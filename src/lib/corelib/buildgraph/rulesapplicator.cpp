@@ -32,6 +32,7 @@
 #include "buildgraph.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
+#include "qtmocscanner.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 #include <jsextensions/moduleproperties.h>
@@ -53,20 +54,31 @@ RulesApplicator::RulesApplicator(const ResolvedProductPtr &product,
                                  ArtifactsPerFileTagMap &artifactsPerFileTag, const Logger &logger)
     : m_product(product)
     , m_artifactsPerFileTag(artifactsPerFileTag)
+    , m_mocScanner(0)
     , m_logger(logger)
 {
 }
 
-void RulesApplicator::applyAllRules()
+RulesApplicator::~RulesApplicator()
 {
+    delete m_mocScanner;
+}
+
+QVector<BuildGraphNode *> RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule)
+{
+    m_createdArtifacts.clear();
     RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());
-    foreach (const RuleConstPtr &rule, m_product->topSortedRules())
-        applyRule(rule);
+    applyRule(rule);
+    return m_createdArtifacts;
 }
 
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
+    if (rule->name == QLatin1String("QtCoreMocRule")) {
+        delete m_mocScanner;
+        m_mocScanner = new QtMocScanner(m_product, scope(), m_logger);
+    }
     QScriptValue prepareScriptContext = engine()->newObject();
     PrepareScriptObserver observer(engine());
     setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
@@ -89,13 +101,44 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     }
 }
 
+void RulesApplicator::handleRemovedRuleOutputs(ArtifactSet outputArtifactsToRemove,
+        const Logger &logger)
+{
+    ArtifactSet artifactsToRemove;
+    foreach (Artifact *removedArtifact, outputArtifactsToRemove) {
+        if (logger.traceEnabled()) {
+            logger.qbsTrace() << "[BG] dynamic rule removed output artifact "
+                                << removedArtifact->toString();
+        }
+        removedArtifact->product->topLevelProject()
+                ->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
+                                                                  &artifactsToRemove);
+    }
+    // parents of removed artifacts must update their transformers
+    foreach (Artifact *removedArtifact, artifactsToRemove) {
+        foreach (Artifact *parent, removedArtifact->parentArtifacts())
+            parent->product->registerArtifactWithChangedInputs(parent);
+    }
+    qDeleteAll(artifactsToRemove);
+}
+
 static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
 {
     dst.setProperty(name, src.property(name));
 }
 
-void RulesApplicator::doApply(const ArtifactSet &inputArtifacts,
-    QScriptValue &prepareScriptContext)
+static QStringList toStringList(const ArtifactSet &artifacts)
+{
+    QStringList lst;
+    foreach (const Artifact *artifact, artifacts) {
+        const QString str = artifact->filePath() + QLatin1String(" [")
+                + artifact->fileTags.toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
+        lst << str;
+    }
+    return lst;
+}
+
+void RulesApplicator::doApply(ArtifactSet inputArtifacts, QScriptValue &prepareScriptContext)
 {
     evalContext()->checkForCancelation();
 
@@ -108,30 +151,48 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts,
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
-    ArtifactSet usingArtifacts;
     if (!m_rule->usings.isEmpty()) {
         const FileTags usingsFileTags = m_rule->usings;
         foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
             QBS_CHECK(dep->buildData);
             ArtifactSet artifactsToCheck;
-            foreach (Artifact *targetArtifact, dep->buildData->targetArtifacts)
+            foreach (Artifact *targetArtifact, dep->buildData->targetArtifacts())
                 artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
                 if (artifact->fileTags.matches(usingsFileTags))
-                    usingArtifacts.insert(artifact);
+                    inputArtifacts.insert(artifact);
             }
         }
     }
 
     m_transformer.clear();
     // create the output artifacts from the set of input artifacts
+    Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);
+    copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
+    if (m_rule->multiplex) {
+        // ### awful! Revisit how the "input" property is set up!
+        copyProperty(QLatin1String("input"), prepareScriptContext, scope());
+    }
     copyProperty(QLatin1String("product"), prepareScriptContext, scope());
     copyProperty(QLatin1String("project"), prepareScriptContext, scope());
-    foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
-        Artifact * const outputArtifact = createOutputArtifact(ruleArtifact, inputArtifacts);
-        outputArtifacts << outputArtifact;
-        ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
+    if (m_rule->isDynamic()) {
+        outputArtifacts = runOutputArtifactsScript(inputArtifacts,
+                    ScriptEngine::argumentList(m_rule->outputArtifactsScript->argumentNames,
+                                               scope()));
+        ArtifactSet newOutputs = ArtifactSet::fromNodeList(outputArtifacts);
+        const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
+        handleRemovedRuleOutputs(oldOutputs - newOutputs, m_logger);
+    } else {
+        foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
+            Artifact * const outputArtifact
+                    = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts);
+            outputArtifacts << outputArtifact;
+            ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
+        }
     }
+
+    if (outputArtifacts.isEmpty())
+        return;
 
     foreach (Artifact *outputArtifact, outputArtifacts) {
         // insert the output artifacts into the pool of artifacts
@@ -143,21 +204,12 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts,
             foreach (Artifact *dependency, m_artifactsPerFileTag.value(fileTag))
                 loggedConnect(outputArtifact, dependency, m_logger);
 
-        // Transformer setup
-        for (ArtifactSet::const_iterator it = usingArtifacts.constBegin();
-             it != usingArtifacts.constEnd(); ++it)
-        {
-            Artifact *dep = *it;
-            loggedConnect(outputArtifact, dep, m_logger);
-            m_transformer->inputs.insert(dep);
-        }
         m_transformer->outputs.insert(outputArtifact);
-
-        m_product->topLevelProject()->buildData->artifactsThatMustGetNewTransformers
-                -= outputArtifact;
+        outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
     }
 
-    m_transformer->setupInputs(engine(), prepareScriptContext);
+    if (inputArtifacts != m_transformer->inputs)
+        m_transformer->setupInputs(prepareScriptContext);
 
     // change the transformer outputs according to the bindings in Artifact
     QScriptValue scriptValue;
@@ -227,21 +279,44 @@ void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
     scriptValue.setProperty(QLatin1String("baseName"), inBaseName);
     scriptValue.setProperty(QLatin1String("completeBaseName"), inCompleteBaseName);
     scriptValue.setProperty(QLatin1String("baseDir"), basedir);
+    scriptValue.setProperty(QLatin1String("fileTags"),
+            engine()->toScriptValue(artifact->fileTags.toStringList()));
+    attachPointerTo(scriptValue, artifact);
 
     scope().setProperty(QLatin1String("input"), scriptValue);
     Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate(QLatin1String("input"))),
                "BG", "The input object is not in current scope.");
 }
 
-Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &ruleArtifact,
-        const ArtifactSet &inputArtifacts)
+ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const
+{
+    ArtifactSet result;
+    foreach (Artifact *a, inputArtifacts) {
+        foreach (Artifact *p, a->parentArtifacts()) {
+            QBS_CHECK(p->transformer);
+            if (p->transformer->rule == m_rule && p->transformer->inputs.contains(a))
+                result += p;
+        }
+    }
+    return result;
+}
+
+Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
+        const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
         throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName: ") + scriptValue.toString());
     QString outputPath = scriptValue.toString();
+    return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
+                                inputArtifacts);
+}
 
-    // Don't let the output artifact "escape" its build dir
+Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const FileTags &fileTags,
+        bool alwaysUpdated, const ArtifactSet &inputArtifacts)
+{
+    QString outputPath = filePath;
+    // don't let the output artifact "escape" its build dir
     outputPath.replace(QLatin1String(".."), QLatin1String("dotdot"));
     outputPath = resolveOutPath(outputPath);
 
@@ -288,15 +363,17 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
                 throw ErrorInfo(e);
             }
         }
-        outputArtifact->fileTags += ruleArtifact->fileTags;
+        outputArtifact->fileTags += fileTags;
+        outputArtifact->clearTimestamp();
     } else {
         outputArtifact = new Artifact;
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
-        outputArtifact->fileTags = ruleArtifact->fileTags;
-        outputArtifact->alwaysUpdated = ruleArtifact->alwaysUpdated;
+        outputArtifact->fileTags = fileTags;
+        outputArtifact->alwaysUpdated = alwaysUpdated;
         outputArtifact->properties = m_product->properties;
         insertArtifact(m_product, outputArtifact, m_logger);
+        m_createdArtifacts += outputArtifact;
     }
 
     if (outputArtifact->fileTags.isEmpty())
@@ -324,6 +401,47 @@ Artifact *RulesApplicator::createOutputArtifact(const RuleArtifactConstPtr &rule
     outputArtifact->transformer = m_transformer;
 
     return outputArtifact;
+}
+
+QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
+        const QScriptValueList &args)
+{
+    QList<Artifact *> lst;
+    QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript->sourceCode);
+    if (!fun.isFunction())
+        throw ErrorInfo(QLatin1String("Function expected."),
+                        m_rule->outputArtifactsScript->location);
+    QScriptValue res = fun.call(QScriptValue(), args);
+    if (res.isError() || engine()->hasUncaughtException())
+        throw ErrorInfo(Tr::tr("Error while calling Rule.outputArtifacts: %1").arg(res.toString()),
+                        m_rule->outputArtifactsScript->location);
+    if (!res.isArray())
+        throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
+                        m_rule->outputArtifactsScript->location);
+    const quint32 c = res.property(QLatin1String("length")).toUInt32();
+    for (quint32 i = 0; i < c; ++i)
+        lst += createOutputArtifactFromScriptValue(res.property(i), inputArtifacts);
+    return lst;
+}
+
+Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValue &obj,
+        const ArtifactSet &inputArtifacts)
+{
+    QBS_CHECK(obj.isObject());
+    const QString filePath = obj.property(QLatin1String("filePath")).toVariant().toString();
+    const FileTags fileTags = FileTags::fromStringList(
+                obj.property(QLatin1String("fileTags")).toVariant().toStringList());
+    const QVariant alwaysUpdatedVar = obj.property(QLatin1String("alwaysUpdated")).toVariant();
+    const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
+    Artifact *output = createOutputArtifact(filePath, fileTags, alwaysUpdated, inputArtifacts);
+    const FileTags explicitlyDependsOn = FileTags::fromStringList(
+                obj.property(QLatin1String("explicitlyDependsOn")).toVariant().toStringList());
+    foreach (const FileTag &tag, explicitlyDependsOn) {
+        foreach (Artifact *dependency, m_product->lookupArtifactsByFileTag(tag)) {
+            loggedConnect(output, dependency, m_logger);
+        }
+    }
+    return output;
 }
 
 QString RulesApplicator::resolveOutPath(const QString &path) const

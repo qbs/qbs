@@ -27,28 +27,46 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
+#ifndef QBS_RESCUABLEARTIFACTDATA_H
+#define QBS_RESCUABLEARTIFACTDATA_H
 
-#include <QSet>
+#include "forward_decls.h"
+
+#include <tools/filetime.h>
+#include <tools/persistence.h>
+
+#include <QHash>
+#include <QList>
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class NodeSet;
-
-class ArtifactSet : public QSet<Artifact *>
+class RescuableArtifactData : public PersistentObject
 {
 public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
+    ~RescuableArtifactData();
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
+    struct ChildData
+    {
+        ChildData(const QString &p = QString(), const QString &c = QString(),
+                  bool byScanner = false)
+            : productName(p), childFilePath(c), addedByScanner(byScanner)
+        {}
+        QString productName;
+        QString childFilePath;
+        bool addedByScanner;
+    };
+
+    FileTime timeStamp;
+    QList<ChildData> children;
+    QList<AbstractCommandPtr> commands;
 };
+typedef QHash<QString, RescuableArtifactData> AllRescuableArtifactData;
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ARTIFACTSET_H
+#endif // Include guard.

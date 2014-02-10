@@ -28,30 +28,44 @@
 ****************************************************************************/
 
 #include "artifactset.h"
+#include "artifact.h"
 
 namespace qbs {
 namespace Internal {
 
 ArtifactSet::ArtifactSet()
-{}
-
-ArtifactSet::ArtifactSet(const ArtifactSet &other)
-    : m_data(other.m_data)
-{}
-
-ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
 {
-    std::set<Artifact *>::const_iterator it = other.m_data.begin();
-    for (; it != other.m_data.end(); ++it)
-        m_data.insert(*it);
-    return *this;
 }
 
-void ArtifactSet::remove(Artifact *artifact)
+ArtifactSet::ArtifactSet(const ArtifactSet &other)
+    : QSet<Artifact *>(other)
 {
-    iterator it = m_data.find(artifact);
-    if (it != m_data.end())
-        m_data.erase(it);
+}
+
+ArtifactSet::ArtifactSet(const QSet<Artifact *> &other)
+    : QSet<Artifact *>(other)
+{
+}
+
+ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
+{
+    ArtifactSet result;
+    result.reserve(nodes.count());
+    foreach (BuildGraphNode *node, nodes) {
+        Artifact *artifact = dynamic_cast<Artifact *>(node);
+        if (artifact)
+            result += artifact;
+    }
+    return result;
+}
+
+ArtifactSet ArtifactSet::fromNodeList(const QList<Artifact *> &lst)
+{
+    ArtifactSet result;
+    result.reserve(lst.count());
+    for (QList<Artifact *>::const_iterator it = lst.constBegin(); it != lst.end(); ++it)
+        result.insert(*it);
+    return result;
 }
 
 } // namespace Internal

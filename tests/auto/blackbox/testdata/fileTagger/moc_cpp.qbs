@@ -20,7 +20,7 @@ Project {
     Rule {
         inputs: ['text']
         Artifact {
-            fileTags: ['cpp', 'moc_cpp']
+            fileTags: ['cpp']
             fileName: input.baseName + '.cpp'
         }
         prepare: {

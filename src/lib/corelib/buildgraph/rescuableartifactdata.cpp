@@ -27,28 +27,44 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
+#include "rescuableartifactdata.h"
 
-#include <QSet>
+#include "command.h"
+
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class NodeSet;
-
-class ArtifactSet : public QSet<Artifact *>
+RescuableArtifactData::~RescuableArtifactData()
 {
-public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
-};
+}
+
+void RescuableArtifactData::load(PersistentPool &pool)
+{
+    pool.stream() >> timeStamp;
+
+    int c;
+    pool.stream() >> c;
+    for (int i = 0; i < c; ++i) {
+        ChildData cd;
+        pool.stream() >> cd.productName >> cd.childFilePath >> cd.addedByScanner;
+        children << cd;
+    }
+
+    commands = loadCommandList(pool.stream());
+}
+
+void RescuableArtifactData::store(PersistentPool &pool) const
+{
+    pool.stream() << timeStamp;
+
+    pool.stream() << children.count();
+    foreach (const ChildData &cd, children)
+        pool.stream() << cd.productName << cd.childFilePath << cd.addedByScanner;
+
+    storeCommandList(commands, pool.stream());
+}
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_ARTIFACTSET_H

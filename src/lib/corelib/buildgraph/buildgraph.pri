@@ -4,9 +4,9 @@ SOURCES += \
     $$PWD/artifactcleaner.cpp \
     $$PWD/artifactset.cpp \
     $$PWD/artifactvisitor.cpp \
-    $$PWD/automoc.cpp \
     $$PWD/buildgraph.cpp \
     $$PWD/buildgraphloader.cpp \
+    $$PWD/buildgraphnode.cpp \
     $$PWD/command.cpp \
     $$PWD/cycledetector.cpp \
     $$PWD/executor.cpp \
@@ -14,11 +14,15 @@ SOURCES += \
     $$PWD/filedependency.cpp \
     $$PWD/inputartifactscanner.cpp \
     $$PWD/jscommandexecutor.cpp \
+    $$PWD/nodeset.cpp \
     $$PWD/processcommandexecutor.cpp \
     $$PWD/productbuilddata.cpp \
     $$PWD/productinstaller.cpp \
     $$PWD/projectbuilddata.cpp \
+    $$PWD/qtmocscanner.cpp \
+    $$PWD/rescuableartifactdata.cpp \
     $$PWD/rulegraph.cpp \
+    $$PWD/rulenode.cpp \
     $$PWD/rulesapplicator.cpp \
     $$PWD/rulesevaluationcontext.cpp \
     $$PWD/scanresultcache.cpp \
@@ -31,9 +35,10 @@ HEADERS += \
     $$PWD/artifactcleaner.h \
     $$PWD/artifactset.h \
     $$PWD/artifactvisitor.h \
-    $$PWD/automoc.h \
     $$PWD/buildgraph.h \
     $$PWD/buildgraphloader.h \
+    $$PWD/buildgraphnode.h \
+    $$PWD/buildgraphvisitor.h \
     $$PWD/command.h \
     $$PWD/cycledetector.h \
     $$PWD/executor.h \
@@ -42,11 +47,15 @@ HEADERS += \
     $$PWD/forward_decls.h \
     $$PWD/inputartifactscanner.h \
     $$PWD/jscommandexecutor.h \
+    $$PWD/nodeset.h \
     $$PWD/processcommandexecutor.h \
     $$PWD/productbuilddata.h \
     $$PWD/productinstaller.h \
     $$PWD/projectbuilddata.h \
+    $$PWD/qtmocscanner.h \
+    $$PWD/rescuableartifactdata.h \
     $$PWD/rulegraph.h \
+    $$PWD/rulenode.h \
     $$PWD/rulesapplicator.h \
     $$PWD/rulesevaluationcontext.h \
     $$PWD/scanresultcache.h \

@@ -27,28 +27,59 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARTIFACTSET_H
-#define QBS_ARTIFACTSET_H
+#ifndef QBS_BUILDGRAPHNODE_H
+#define QBS_BUILDGRAPHNODE_H
 
-#include <QSet>
+#include "nodeset.h"
+#include <language/forward_decls.h>
+#include <tools/persistentobject.h>
+#include <tools/weakpointer.h>
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class NodeSet;
+class BuildGraphVisitor;
+class TopLevelProject;
 
-class ArtifactSet : public QSet<Artifact *>
+class BuildGraphNode : public virtual PersistentObject
 {
+    friend class NodeSet;
 public:
-    ArtifactSet();
-    ArtifactSet(const ArtifactSet &other);
-    ArtifactSet(const QSet<Artifact *> &other);
-    static ArtifactSet fromNodeSet(const NodeSet &nodes);
-    static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
+    virtual ~BuildGraphNode();
+
+    NodeSet parents;
+    NodeSet children;
+    WeakPointer<ResolvedProduct> product;
+
+    enum BuildState
+    {
+        Untouched = 0,
+        Buildable,
+        Building,
+        Built
+    };
+
+    BuildState buildState;                  // Do not serialize. Will be refreshed for every build.
+
+    enum Type
+    {
+        ArtifactNodeType,
+        RuleNodeType
+    };
+
+    virtual Type type() const = 0;
+    virtual void accept(BuildGraphVisitor *visitor) = 0;
+    virtual QString toString() const = 0;
+    virtual void onChildDisconnected(BuildGraphNode *child);
+
+protected:
+    explicit BuildGraphNode();
+    void acceptChildren(BuildGraphVisitor *visitor);
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ARTIFACTSET_H
+#endif // QBS_BUILDGRAPHNODE_H

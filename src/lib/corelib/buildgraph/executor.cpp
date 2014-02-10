@@ -28,14 +28,15 @@
 ****************************************************************************/
 #include "executor.h"
 
-#include "artifactvisitor.h"
-#include "automoc.h"
 #include "buildgraph.h"
+#include "command.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "cycledetector.h"
 #include "executorjob.h"
 #include "inputartifactscanner.h"
+#include "rescuableartifactdata.h"
+#include "rulenode.h"
 #include "rulesevaluationcontext.h"
 
 #include <buildgraph/transformer.h>
@@ -57,41 +58,7 @@
 namespace qbs {
 namespace Internal {
 
-class MocEffortCalculator : public ArtifactVisitor
-{
-public:
-    MocEffortCalculator() : ArtifactVisitor(Artifact::SourceFile), m_effort(0) {}
-
-    int effort() const { return m_effort; }
-
-private:
-    void doVisit(Artifact *) { m_effort += 10; }
-
-    int m_effort;
-};
-
-class BuildEffortCalculator : public ArtifactVisitor
-{
-public:
-    BuildEffortCalculator() : ArtifactVisitor(Artifact::Generated), m_effort(0) {}
-
-    int effort() const { return m_effort; }
-
-    static int multiplier(const Artifact *artifact) {
-        return artifact->transformer->rule->multiplex ? 200 : 20;
-    }
-
-private:
-    void doVisit(Artifact *artifact)
-    {
-        m_effort += multiplier(artifact);
-    }
-
-    int m_effort;
-};
-
-
-bool Executor::ComparePriority::operator() (const Artifact *x, const Artifact *y) const
+bool Executor::ComparePriority::operator() (const BuildGraphNode *x, const BuildGraphNode *y) const
 {
     return x->product->buildData->buildPriority < y->product->buildData->buildPriority;
 }
@@ -106,10 +73,6 @@ Executor::Executor(const Logger &logger, QObject *parent)
     , m_doDebug(logger.debugEnabled())
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
-    m_autoMoc = new AutoMoc(logger);
-    connect(m_autoMoc, SIGNAL(reportCommandDescription(QString,QString)),
-            this, SIGNAL(reportCommandDescription(QString,QString)));
-    m_autoMoc->setScanResultCache(&m_scanResultCache);
 }
 
 Executor::~Executor()
@@ -119,7 +82,6 @@ Executor::~Executor()
         delete job;
     foreach (ExecutorJob *job, m_processingJobs.keys())
         delete job;
-    delete m_autoMoc; // delete before shared scan result cache
     delete m_inputArtifactScanContext;
 }
 
@@ -225,6 +187,7 @@ void Executor::doBuild()
     }
     QBS_CHECK(m_state == ExecutorIdle);
     m_leaves = Leaves();
+    m_changedSourceArtifacts.clear();
     m_error.clear();
     m_explicitlyCanceled = false;
     m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
@@ -246,14 +209,11 @@ void Executor::doBuild()
 
     addExecutorJobs();
 
-    bool sourceFilesChanged = false;
-    prepareAllArtifacts(&sourceFilesChanged);
+    prepareAllNodes();
     prepareProducts();
     setupRootNodes();
-    prepareReachableArtifacts();
-    setupProgressObserver(sourceFilesChanged);
-    if (sourceFilesChanged)
-        runAutoMoc();
+    prepareReachableNodes();
+    setupProgressObserver();
     initLeaves();
     if (!scheduleJobs()) {
         m_logger.qbsTrace() << "Nothing to do at all, finishing.";
@@ -266,12 +226,12 @@ void Executor::setBuildOptions(const BuildOptions &buildOptions)
     m_buildOptions = buildOptions;
 }
 
-static void initArtifactsBottomUp(Artifact *artifact)
+static void initArtifactsBottomUp(BuildGraphNode *node)
 {
-    if (artifact->buildState == Artifact::Untouched)
+    if (node->buildState == BuildGraphNode::Untouched)
         return;
-    artifact->buildState = Artifact::Buildable;
-    foreach (Artifact *parent, artifact->parents)
+    node->buildState = BuildGraphNode::Buildable;
+    foreach (BuildGraphNode *parent, node->parents)
         initArtifactsBottomUp(parent);
 }
 
@@ -295,36 +255,37 @@ void Executor::initLeaves()
                            changedArtifacts.end());
 
     if (changedArtifacts.isEmpty()) {
-        QSet<Artifact *> seenArtifacts;
-        foreach (Artifact *root, m_roots)
-            initLeavesTopDown(root, seenArtifacts);
+        QSet<BuildGraphNode *> seenNodes;
+        foreach (BuildGraphNode *root, m_roots)
+            initLeavesTopDown(root, seenNodes);
     } else {
-        foreach (Artifact *artifact, changedArtifacts) {
+        foreach (BuildGraphNode *artifact, changedArtifacts) {
             m_leaves.push(artifact);
             initArtifactsBottomUp(artifact);
         }
     }
 }
 
-void Executor::initLeavesTopDown(Artifact *artifact, QSet<Artifact *> &seenArtifacts)
+void Executor::initLeavesTopDown(BuildGraphNode *node, QSet<BuildGraphNode *> &seenNodes)
 {
-    if (seenArtifacts.contains(artifact))
+    if (seenNodes.contains(node))
         return;
-    seenArtifacts += artifact;
+    seenNodes += node;
 
     // Artifacts that appear in the build graph after
     // prepareBuildGraph() has been called, must be initialized.
-    if (artifact->buildState == Artifact::Untouched) {
-        artifact->buildState = Artifact::Buildable;
-        if (artifact->artifactType == Artifact::SourceFile)
+    if (node->buildState == BuildGraphNode::Untouched) {
+        node->buildState = BuildGraphNode::Buildable;
+        Artifact *artifact = dynamic_cast<Artifact *>(node);
+        if (artifact && artifact->artifactType == Artifact::SourceFile)
             retrieveSourceFileTimestamp(artifact);
     }
 
-    if (artifact->children.isEmpty()) {
-        m_leaves.push(artifact);
+    if (node->children.isEmpty()) {
+        m_leaves.push(node);
     } else {
-        foreach (Artifact *child, artifact->children)
-            initLeavesTopDown(child, seenArtifacts);
+        foreach (BuildGraphNode *child, node->children)
+            initLeavesTopDown(child, seenNodes);
     }
 }
 
@@ -333,9 +294,30 @@ bool Executor::scheduleJobs()
 {
     QBS_CHECK(m_state == ExecutorRunning);
     while (!m_leaves.empty() && !m_availableJobs.isEmpty()) {
-        Artifact * const artifact = m_leaves.top();
+        BuildGraphNode * const nodeToBuild = m_leaves.top();
         m_leaves.pop();
-        buildArtifact(artifact);
+
+        switch (nodeToBuild->buildState) {
+        case BuildGraphNode::Untouched:
+            QBS_ASSERT(!"untouched node in leaves list", /* ignore */);
+            break;
+        case BuildGraphNode::Buildable:
+            // This is the only state in which we want to build a node.
+            nodeToBuild->accept(this);
+            break;
+        case BuildGraphNode::Building:
+            if (m_doDebug) {
+                m_logger.qbsDebug() << "[EXEC] " << nodeToBuild->toString();
+                m_logger.qbsDebug() << "[EXEC] node is currently being built. Skipping.";
+            }
+            break;
+        case BuildGraphNode::Built:
+            if (m_doDebug) {
+                m_logger.qbsDebug() << "[EXEC] " << nodeToBuild->toString();
+                m_logger.qbsDebug() << "[EXEC] node already built. Skipping.";
+            }
+            break;
+        }
     }
     return !m_leaves.empty() || !m_processingJobs.isEmpty();
 }
@@ -363,11 +345,12 @@ bool Executor::isUpToDate(Artifact *artifact) const
         return false;
     }
 
-    foreach (Artifact *child, artifact->children) {
-        QBS_CHECK(child->timestamp().isValid());
+    foreach (Artifact *childArtifact, ArtifactSet::fromNodeSet(artifact->children)) {
+        QBS_CHECK(childArtifact->timestamp().isValid());
         if (m_doDebug)
-            m_logger.qbsDebug() << "[UTD] child timestamp " << child->timestamp().toString();
-        if (artifact->timestamp() < child->timestamp())
+            m_logger.qbsDebug() << "[UTD] child timestamp "
+                                << childArtifact->timestamp().toString();
+        if (artifact->timestamp() < childArtifact->timestamp())
             return false;
     }
 
@@ -416,13 +399,6 @@ void Executor::buildArtifact(Artifact *artifact)
     if (m_doDebug)
         m_logger.qbsDebug() << "[EXEC] " << relativeArtifactFileName(artifact);
 
-    // Skip artifacts that are already built.
-    if (artifact->buildState == Artifact::Built) {
-        if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] artifact already built. Skipping.";
-        return;
-    }
-
     // skip artifacts without transformer
     if (artifact->artifactType != Artifact::Generated) {
         // For source artifacts, that were not reachable when initializing the build, we must
@@ -441,6 +417,11 @@ void Executor::buildArtifact(Artifact *artifact)
     // Every generated artifact must have a transformer.
     QBS_CHECK(artifact->transformer);
 
+    bool childrenAddedDueToRescue;
+    rescueOldBuildData(artifact, &childrenAddedDueToRescue);
+    if (childrenAddedDueToRescue && checkForUnbuiltDependencies(artifact))
+        return;
+
     // Skip if outputs of this transformer are already built.
     // That means we already ran the transformation.
     foreach (Artifact *sideBySideArtifact, artifact->transformer->outputs) {
@@ -448,18 +429,18 @@ void Executor::buildArtifact(Artifact *artifact)
             continue;
         switch (sideBySideArtifact->buildState)
         {
-        case Artifact::Untouched:
-        case Artifact::Buildable:
+        case BuildGraphNode::Untouched:
+        case BuildGraphNode::Buildable:
             break;
-        case Artifact::Built:
+        case BuildGraphNode::Built:
             if (m_doDebug)
                 m_logger.qbsDebug() << "[EXEC] Side by side artifact already finished. Skipping.";
             finishArtifact(artifact);
             return;
-        case Artifact::Building:
+        case BuildGraphNode::Building:
             if (m_doDebug)
                 m_logger.qbsDebug() << "[EXEC] Side by side artifact processing. Skipping.";
-            artifact->buildState = Artifact::Building;
+            artifact->buildState = BuildGraphNode::Building;
             return;
         }
     }
@@ -496,36 +477,11 @@ void Executor::buildArtifact(Artifact *artifact)
     scanner.scan();
 
     // postpone the build of this artifact, if new dependencies found
-    if (scanner.newDependencyAdded()) {
-        bool buildingDependenciesFound = false;
-        QVector<Artifact *> unbuiltDependencies;
-        foreach (Artifact *dependency, artifact->children) {
-            switch (dependency->buildState) {
-            case Artifact::Untouched:
-            case Artifact::Buildable:
-                unbuiltDependencies += dependency;
-                break;
-            case Artifact::Building:
-                buildingDependenciesFound = true;
-                break;
-            case Artifact::Built:
-                // do nothing
-                break;
-            }
-        }
-        if (!unbuiltDependencies.isEmpty()) {
-            artifact->inputsScanned = false;
-            insertLeavesAfterAddingDependencies(unbuiltDependencies);
-            return;
-        }
-        if (buildingDependenciesFound) {
-            artifact->inputsScanned = false;
-            return;
-        }
-    }
+    if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(artifact))
+        return;
 
     ExecutorJob *job = m_availableJobs.takeFirst();
-    artifact->buildState = Artifact::Building;
+    artifact->buildState = BuildGraphNode::Building;
     m_processingJobs.insert(job, artifact);
 
     Q_ASSERT_X(artifact->product, Q_FUNC_INFO,
@@ -533,6 +489,69 @@ void Executor::buildArtifact(Artifact *artifact)
                .arg(QDir::toNativeSeparators(artifact->filePath()))));
 
     job->run(artifact->transformer.data(), artifact->product);
+}
+
+void Executor::executeRuleNode(RuleNode *ruleNode)
+{
+    ArtifactSet changedInputArtifacts;
+    if (ruleNode->rule()->isDynamic()) {
+        foreach (Artifact *artifact, m_changedSourceArtifacts) {
+            if (artifact->product != ruleNode->product)
+                continue;
+            if (ruleNode->rule()->acceptsAsInput(artifact))
+                changedInputArtifacts += artifact;
+        }
+        foreach (Artifact *artifact,
+                ArtifactSet::fromNodeSet(ruleNode->product->buildData->nodes)) {
+            if (artifact->artifactType == Artifact::SourceFile)
+                continue;
+            if (artifact->timestampRetrieved && !isUpToDate(artifact)
+                    && ruleNode->rule()->acceptsAsInput(artifact)) {
+                changedInputArtifacts += artifact;
+            }
+        }
+    }
+
+    RuleNode::ApplicationResult result;
+    ruleNode->apply(m_logger, changedInputArtifacts, &result);
+
+    if (result.upToDate) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] " << ruleNode->toString()
+                                << " is up to date. Skipping.";
+    } else {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] " << ruleNode->toString();
+        const QVector<BuildGraphNode *> &createdNodes = result.createdNodes;
+        const WeakPointer<ResolvedProduct> &product = ruleNode->product;
+        QSet<RuleNode *> parentRules;
+        if (!createdNodes.isEmpty()) {
+            foreach (BuildGraphNode *parent, ruleNode->parents) {
+                if (RuleNode *parentRule = dynamic_cast<RuleNode *>(parent))
+                    parentRules += parentRule;
+            }
+        }
+        foreach (BuildGraphNode *node, createdNodes) {
+            if (m_doDebug)
+                m_logger.qbsDebug() << "[EXEC] rule created " << node->toString();
+            loggedConnect(node, ruleNode, m_logger);
+            Artifact *outputArtifact = dynamic_cast<Artifact *>(node);
+            if (!outputArtifact)
+                continue;
+            if (outputArtifact->fileTags.matches(product->fileTags))
+                product->buildData->roots += outputArtifact;
+
+            foreach (Artifact *inputArtifact, outputArtifact->transformer->inputs)
+                loggedConnect(ruleNode, inputArtifact, m_logger);
+
+            foreach (RuleNode *parentRule, parentRules)
+                loggedConnect(parentRule, outputArtifact, m_logger);
+        }
+        insertLeavesAfterAddingDependencies(createdNodes);
+    }
+    finishNode(ruleNode);
+    if (m_progressObserver)
+        m_progressObserver->incrementProgressValue();
 }
 
 void Executor::finishJob(ExecutorJob *job, bool success)
@@ -570,27 +589,21 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     }
 }
 
-static bool allChildrenBuilt(Artifact *artifact)
+static bool allChildrenBuilt(BuildGraphNode *node)
 {
-    foreach (Artifact *child, artifact->children)
-        if (child->buildState != Artifact::Built)
+    foreach (BuildGraphNode *child, node->children)
+        if (child->buildState != BuildGraphNode::Built)
             return false;
     return true;
 }
 
-void Executor::finishArtifact(Artifact *leaf)
+void Executor::finishNode(BuildGraphNode *leaf)
 {
-    QBS_CHECK(leaf);
-
-    if (m_doTrace)
-        m_logger.qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
-
-    leaf->buildState = Artifact::Built;
-    m_scanResultCache.remove(leaf->filePath());
-    foreach (Artifact *parent, leaf->parents) {
-        if (parent->buildState != Artifact::Buildable) {
+    leaf->buildState = BuildGraphNode::Built;
+    foreach (BuildGraphNode *parent, leaf->parents) {
+        if (parent->buildState != BuildGraphNode::Buildable) {
             if (m_doTrace) {
-                m_logger.qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent)
+                m_logger.qbsTrace() << "[EXEC] parent " << parent->toString()
                                     << " build state: " << toString(parent->buildState);
             }
             continue;
@@ -599,48 +612,58 @@ void Executor::finishArtifact(Artifact *leaf)
         if (allChildrenBuilt(parent)) {
             m_leaves.push(parent);
             if (m_doTrace) {
-                m_logger.qbsTrace() << "[EXEC] finishArtifact adds leaf "
-                        << relativeArtifactFileName(parent) << " " << toString(parent->buildState);
+                m_logger.qbsTrace() << "[EXEC] finishNode adds leaf "
+                        << parent->toString() << " " << toString(parent->buildState);
             }
         } else {
             if (m_doTrace) {
-                m_logger.qbsTrace() << "[EXEC] parent " << relativeArtifactFileName(parent)
+                m_logger.qbsTrace() << "[EXEC] parent " << parent->toString()
                                     << " build state: " << toString(parent->buildState);
             }
         }
     }
-
-    if (leaf->transformer)
-        foreach (Artifact *sideBySideArtifact, leaf->transformer->outputs)
-            if (leaf != sideBySideArtifact && sideBySideArtifact->buildState == Artifact::Building)
-                finishArtifact(sideBySideArtifact);
-
-    if (m_progressObserver && leaf->artifactType == Artifact::Generated)
-        m_progressObserver->incrementProgressValue(BuildEffortCalculator::multiplier(leaf));
 }
 
-void Executor::insertLeavesAfterAddingDependencies_recurse(Artifact *const artifact,
-        QSet<Artifact *> *seenArtifacts, Leaves *leaves) const
+void Executor::finishArtifact(Artifact *leaf)
 {
-    if (seenArtifacts->contains(artifact))
-        return;
-    seenArtifacts->insert(artifact);
+    QBS_CHECK(leaf);
+    if (m_doTrace)
+        m_logger.qbsTrace() << "[EXEC] finishArtifact " << relativeArtifactFileName(leaf);
 
-    if (artifact->buildState == Artifact::Untouched)
-        artifact->buildState = Artifact::Buildable;
+    finishNode(leaf);
+    m_scanResultCache.remove(leaf->filePath());
+
+    if (leaf->transformer) {
+        foreach (Artifact *sideBySideArtifact, leaf->transformer->outputs)
+            if (leaf != sideBySideArtifact
+                    && sideBySideArtifact->buildState == BuildGraphNode::Building) {
+                finishArtifact(sideBySideArtifact);
+            }
+    }
+}
+
+void Executor::insertLeavesAfterAddingDependencies_recurse(BuildGraphNode *const node,
+        QSet<BuildGraphNode *> *seenNodes, Leaves *leaves) const
+{
+    if (seenNodes->contains(node))
+        return;
+    seenNodes->insert(node);
+
+    if (node->buildState == BuildGraphNode::Untouched)
+        node->buildState = BuildGraphNode::Buildable;
 
     bool isLeaf = true;
-    foreach (Artifact *child, artifact->children) {
-        if (child->buildState != Artifact::Built) {
+    foreach (BuildGraphNode *child, node->children) {
+        if (child->buildState != BuildGraphNode::Built) {
             isLeaf = false;
-            insertLeavesAfterAddingDependencies_recurse(child, seenArtifacts, leaves);
+            insertLeavesAfterAddingDependencies_recurse(child, seenNodes, leaves);
         }
     }
 
     if (isLeaf) {
         if (m_doDebug)
-            m_logger.qbsDebug() << "[EXEC] adding leaf " << relativeArtifactFileName(artifact);
-        leaves->push(artifact);
+            m_logger.qbsDebug() << "[EXEC] adding leaf " << node->toString();
+        leaves->push(node);
     }
 }
 
@@ -649,11 +672,11 @@ QString Executor::configString() const
     return tr(" for configuration %1").arg(m_project->id());
 }
 
-void Executor::insertLeavesAfterAddingDependencies(QVector<Artifact *> dependencies)
+void Executor::insertLeavesAfterAddingDependencies(QVector<BuildGraphNode *> dependencies)
 {
-    QSet<Artifact *> seenArtifacts;
-    foreach (Artifact *dependency, dependencies)
-        insertLeavesAfterAddingDependencies_recurse(dependency, &seenArtifacts, &m_leaves);
+    QSet<BuildGraphNode *> seenNodes;
+    foreach (BuildGraphNode *dependency, dependencies)
+        insertLeavesAfterAddingDependencies_recurse(dependency, &seenNodes, &m_leaves);
 }
 
 void Executor::cancelJobs()
@@ -665,20 +688,19 @@ void Executor::cancelJobs()
         job->cancel();
 }
 
-void Executor::setupProgressObserver(bool mocWillRun)
+void Executor::setupProgressObserver()
 {
     if (!m_progressObserver)
         return;
-    MocEffortCalculator mocEffortCalculator;
-    BuildEffortCalculator buildEffortCalculator;
-    foreach (const ResolvedProductConstPtr &product, m_productsToBuild)
-        buildEffortCalculator.visitProduct(product);
-    if (mocWillRun) {
-        foreach (const ResolvedProductConstPtr &product, m_productsToBuild)
-            mocEffortCalculator.visitProduct(product);
+    int totalEffort = 1; // For the effort after the last rule application;
+    foreach (const ResolvedProductConstPtr &product, m_productsToBuild) {
+        QBS_CHECK(product->buildData);
+        foreach (const BuildGraphNode * const node, product->buildData->nodes) {
+            const RuleNode * const ruleNode = dynamic_cast<const RuleNode *>(node);
+            if (ruleNode)
+                ++totalEffort;
+        }
     }
-    m_mocEffort = mocEffortCalculator.effort();
-    const int totalEffort = m_mocEffort + buildEffortCalculator.effort();
     m_progressObserver->initialize(tr("Building%1").arg(configString()), totalEffort);
 }
 
@@ -721,27 +743,89 @@ void Executor::addExecutorJobs()
     }
 }
 
-void Executor::runAutoMoc()
+void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 {
-    bool autoMocApplied = false;
-    foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        if (m_progressObserver && m_progressObserver->canceled())
-            throw ErrorInfo(Tr::tr("Build canceled%1.").arg(configString()));
-        // HACK call the automoc thingy here only if we have use Qt/core module
-        foreach (const ResolvedModuleConstPtr &m, product->modules) {
-            if (m->name == QLatin1String("Qt/core")) {
-                autoMocApplied = true;
-                m_autoMoc->apply(product);
-                break;
+    if (childrenAdded)
+        *childrenAdded = false;
+    if (!artifact->oldDataPossiblyPresent)
+        return;
+    artifact->oldDataPossiblyPresent = false;
+    if (artifact->artifactType != Artifact::Generated)
+        return;
+
+    ResolvedProduct * const product = artifact->product.data();
+    AllRescuableArtifactData::Iterator it
+            = product->buildData->rescuableArtifactData.find(artifact->filePath());
+    if (it == product->buildData->rescuableArtifactData.end())
+        return;
+
+    const RescuableArtifactData &rad = it.value();
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] Attempting to rescue data of "
+                                                      "artifact '%1'").arg(artifact->fileName());
+    }
+    if (commandListsAreEqual(artifact->transformer->commands, rad.commands)) {
+        artifact->setTimestamp(rad.timeStamp);
+        ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
+        foreach (const RescuableArtifactData::ChildData &cd, rad.children) {
+            pseudoProduct->name = cd.productName;
+            Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.data(),
+                                                    cd.childFilePath, true);
+            if (!child || artifact->children.contains(child))
+                continue;
+            if (childrenAdded)
+                *childrenAdded = true;
+            safeConnect(artifact, child, m_logger);
+            if (cd.addedByScanner)
+                artifact->childrenAddedByScanner << child;
+        }
+        if (m_logger.traceEnabled())
+            m_logger.qbsTrace() << "Data was rescued.";
+    } else {
+        removeGeneratedArtifactFromDisk(artifact->filePath(), m_logger);
+        if (m_logger.traceEnabled())
+            m_logger.qbsTrace() << "Transformer commands changed, data not rescued.";
+    }
+    product->buildData->rescuableArtifactData.erase(it);
+}
+
+bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
+{
+    bool buildingDependenciesFound = false;
+    QVector<BuildGraphNode *> unbuiltDependencies;
+    foreach (BuildGraphNode *dependency, artifact->children) {
+        switch (dependency->buildState) {
+        case BuildGraphNode::Untouched:
+        case BuildGraphNode::Buildable:
+            if (m_logger.debugEnabled()) {
+                m_logger.qbsDebug() << "[EXEC] unbuilt dependency: "
+                                    << dependency->toString();
             }
+            unbuiltDependencies += dependency;
+            break;
+        case BuildGraphNode::Building: {
+            if (m_logger.debugEnabled()) {
+                m_logger.qbsDebug() << "[EXEC] dependency in state 'Building': "
+                                    << dependency->toString();
+            }
+            buildingDependenciesFound = true;
+            break;
+        }
+        case BuildGraphNode::Built:
+            // do nothing
+            break;
         }
     }
-    if (autoMocApplied) {
-        foreach (const ResolvedProductConstPtr &product, m_productsToBuild)
-            CycleDetector(m_logger).visitProduct(product);
+    if (!unbuiltDependencies.isEmpty()) {
+        artifact->inputsScanned = false;
+        insertLeavesAfterAddingDependencies(unbuiltDependencies);
+        return true;
     }
-    if (m_progressObserver)
-        m_progressObserver->incrementProgressValue(m_mocEffort);
+    if (buildingDependenciesFound) {
+        artifact->inputsScanned = false;
+        return true;
+    }
+    return false;
 }
 
 void Executor::onProcessError(const qbs::ErrorInfo &err)
@@ -790,11 +874,22 @@ void Executor::finish()
 
     QStringList unbuiltProductNames;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (Artifact *artifact, product->buildData->targetArtifacts) {
-            if (artifact->buildState != Artifact::Built) {
+        foreach (BuildGraphNode *rootNode, product->buildData->roots) {
+            if (rootNode->buildState != BuildGraphNode::Built) {
                 unbuiltProductNames += product->name;
                 break;
             }
+        }
+        if (!unbuiltProductNames.contains(product->name)) {
+            // Any element still left after a successful build has not been re-created
+            // by any rule and therefore does not exist anymore as an artifact.
+            foreach (const QString &filePath, product->buildData->rescuableArtifactData.keys())
+                removeGeneratedArtifactFromDisk(filePath, m_logger);
+            product->buildData->rescuableArtifactData.clear();
+
+            // Similar logic applies for the artifacts scheduled for potential rule application.
+            product->buildData->addedArtifactsByFileTag.clear();
+            product->buildData->removedArtifactsByFileTag.clear();
         }
     }
 
@@ -813,58 +908,76 @@ void Executor::finish()
     emit finished();
 }
 
+bool Executor::visit(Artifact *artifact)
+{
+    buildArtifact(artifact);
+    return false;
+}
+
+bool Executor::visit(RuleNode *ruleNode)
+{
+    executeRuleNode(ruleNode);
+    return false;
+}
+
 /**
   * Sets the state of all artifacts in the graph to "untouched".
   * This must be done before doing a build.
   *
   * Retrieves the timestamps of source artifacts.
   *
-  * This function sets *sourceFilesChanged to true, if the timestamp of a reachable source artifact
-  * changed.
+  * This function also fills the list of changed source files.
   */
-void Executor::prepareAllArtifacts(bool *sourceFilesChanged)
+void Executor::prepareAllNodes()
 {
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (Artifact *artifact, product->buildData->artifacts) {
-            artifact->buildState = Artifact::Untouched;
-            artifact->inputsScanned = false;
-            artifact->timestampRetrieved = false;
-
-            if (artifact->artifactType == Artifact::SourceFile) {
-                const FileTime oldTimestamp = artifact->timestamp();
-                retrieveSourceFileTimestamp(artifact);
-                if (oldTimestamp != artifact->timestamp())
-                    *sourceFilesChanged = true;
-            }
-
-            // Timestamps of file dependencies must be invalid for every build.
-            foreach (FileDependency *fileDependency, artifact->fileDependencies)
-                fileDependency->clearTimestamp();
+        foreach (BuildGraphNode *node, product->buildData->nodes) {
+            node->buildState = BuildGraphNode::Untouched;
+            Artifact *artifact = dynamic_cast<Artifact *>(node);
+            if (artifact)
+                prepareArtifact(artifact);
         }
     }
+}
+
+void Executor::prepareArtifact(Artifact *artifact)
+{
+    artifact->inputsScanned = false;
+    artifact->timestampRetrieved = false;
+
+    if (artifact->artifactType == Artifact::SourceFile) {
+        const FileTime oldTimestamp = artifact->timestamp();
+        retrieveSourceFileTimestamp(artifact);
+        if (oldTimestamp != artifact->timestamp())
+            m_changedSourceArtifacts.append(artifact);
+    }
+
+    // Timestamps of file dependencies must be invalid for every build.
+    foreach (FileDependency *fileDependency, artifact->fileDependencies)
+        fileDependency->clearTimestamp();
 }
 
 /**
  * Walk the build graph top-down from the roots and for each reachable node N
  *  - mark N as buildable.
  */
-void Executor::prepareReachableArtifacts()
+void Executor::prepareReachableNodes()
 {
-    const Artifact::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
-            ? Artifact::Buildable : Artifact::Built;
-    foreach (Artifact *root, m_roots)
-        prepareReachableArtifacts_impl(root, initialBuildState);
+    const BuildGraphNode::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
+            ? BuildGraphNode::Buildable : BuildGraphNode::Built;
+    foreach (BuildGraphNode *root, m_roots)
+        prepareReachableNodes_impl(root, initialBuildState);
 }
 
-void Executor::prepareReachableArtifacts_impl(Artifact *artifact,
-        const Artifact::BuildState buildState)
+void Executor::prepareReachableNodes_impl(BuildGraphNode *node,
+        const BuildGraphNode::BuildState buildState)
 {
-    if (artifact->buildState != Artifact::Untouched)
+    if (node->buildState != BuildGraphNode::Untouched)
         return;
 
-    artifact->buildState = buildState;
-    foreach (Artifact *child, artifact->children)
-        prepareReachableArtifacts_impl(child, buildState);
+    node->buildState = buildState;
+    foreach (BuildGraphNode *child, node->children)
+        prepareReachableNodes_impl(child, buildState);
 }
 
 void Executor::prepareProducts()
@@ -879,28 +992,29 @@ void Executor::setupRootNodes()
 {
     m_roots.clear();
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
-        foreach (Artifact *targetArtifact, product->buildData->targetArtifacts)
-            m_roots += targetArtifact;
+        foreach (BuildGraphNode *root, product->buildData->roots)
+            m_roots += root;
     }
 }
 
 void Executor::updateBuildGraph(Artifact::BuildState buildState)
 {
-    QSet<Artifact *> seenArtifacts;
-    foreach (Artifact *root, m_roots)
+    QSet<BuildGraphNode *> seenArtifacts;
+    foreach (BuildGraphNode *root, m_roots)
         updateBuildGraph_impl(root, buildState, seenArtifacts);
 }
 
-void Executor::updateBuildGraph_impl(Artifact *artifact, Artifact::BuildState buildState, QSet<Artifact *> &seenArtifacts)
+void Executor::updateBuildGraph_impl(BuildGraphNode *node, Artifact::BuildState buildState,
+        QSet<BuildGraphNode *> &seenNodes)
 {
-    if (seenArtifacts.contains(artifact))
+    if (seenNodes.contains(node))
         return;
 
-    seenArtifacts += artifact;
-    artifact->buildState = buildState;
+    seenNodes += node;
+    node->buildState = buildState;
 
-    foreach (Artifact *child, artifact->children)
-        updateBuildGraph_impl(child, buildState, seenArtifacts);
+    foreach (BuildGraphNode *child, node->children)
+        updateBuildGraph_impl(child, buildState, seenNodes);
 }
 
 void Executor::setState(ExecutorState s)

@@ -48,7 +48,6 @@ Transformer::Transformer()
 
 Transformer::~Transformer()
 {
-    qDeleteAll(commands);
 }
 
 QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
@@ -92,9 +91,10 @@ ResolvedProductPtr Transformer::product() const
     return (*outputs.begin())->product;
 }
 
-void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue)
+void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
+        const QString &defaultModuleName)
 {
-    const QString &defaultModuleName = rule->module->name;
+    QScriptEngine *const scriptEngine = targetScriptValue.engine();
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
     if (inputs.count() == 1) {
@@ -107,6 +107,11 @@ void Transformer::setupInputs(QScriptEngine *scriptEngine, QScriptValue targetSc
     } else {
         targetScriptValue.setProperty(QLatin1String("input"), scriptEngine->undefinedValue());
     }
+}
+
+void Transformer::setupInputs(QScriptValue targetScriptValue)
+{
+    setupInputs(targetScriptValue, inputs, rule->module->name);
 }
 
 void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetScriptValue)
@@ -126,17 +131,17 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     }
 }
 
-static AbstractCommand *createCommandFromScriptValue(const QScriptValue &scriptValue,
-                                                     const CodeLocation &codeLocation)
+static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
+                                                       const CodeLocation &codeLocation)
 {
+    AbstractCommandPtr cmdBase;
     if (scriptValue.isUndefined() || !scriptValue.isValid())
-        return 0;
-    AbstractCommand *cmdBase = 0;
+        return cmdBase;
     QString className = scriptValue.property(QLatin1String("className")).toString();
     if (className == QLatin1String("Command"))
-        cmdBase = new ProcessCommand;
+        cmdBase = ProcessCommand::create();
     else if (className == QLatin1String("JavaScriptCommand"))
-        cmdBase = new JavaScriptCommand;
+        cmdBase = JavaScriptCommand::create();
     if (cmdBase)
         cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
     return cmdBase;
@@ -162,20 +167,19 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
                     CodeLocation(script->location.fileName(),
                                  script->location.line() + engine->uncaughtExceptionLineNumber() - 1));
 
-    qDeleteAll(commands);
     commands.clear();
     if (scriptValue.isArray()) {
         const int count = scriptValue.property(QLatin1String("length")).toInt32();
         for (qint32 i = 0; i < count; ++i) {
             QScriptValue item = scriptValue.property(i);
             if (item.isValid() && !item.isUndefined()) {
-                AbstractCommand *cmd = createCommandFromScriptValue(item, script->location);
+                const AbstractCommandPtr cmd = createCommandFromScriptValue(item, script->location);
                 if (cmd)
                     commands += cmd;
             }
         }
     } else {
-        AbstractCommand *cmd = createCommandFromScriptValue(scriptValue, script->location);
+        const AbstractCommandPtr cmd = createCommandFromScriptValue(scriptValue, script->location);
         if (cmd)
             commands += cmd;
     }
@@ -223,15 +227,7 @@ void Transformer::load(PersistentPool &pool)
         }
         propertiesRequestedFromArtifactInPrepareScript.insert(artifactName, list);
     }
-    int cmdType;
-    pool.stream() >> count;
-    commands.reserve(count);
-    while (--count >= 0) {
-        pool.stream() >> cmdType;
-        AbstractCommand *cmd = AbstractCommand::createByType(static_cast<AbstractCommand::CommandType>(cmdType));
-        cmd->load(pool.stream());
-        commands += cmd;
-    }
+    commands = loadCommandList(pool.stream());
 }
 
 static void storePropertyList(PersistentPool &pool, const PropertyList &list)
@@ -263,11 +259,7 @@ void Transformer::store(PersistentPool &pool) const
             pool.stream() << p.value; // kind is always PropertyInModule
         }
     }
-    pool.stream() << commands.count();
-    foreach (AbstractCommand *cmd, commands) {
-        pool.stream() << int(cmd->type());
-        cmd->store(pool.stream());
-    }
+    storeCommandList(commands, pool.stream());
 }
 
 } // namespace Internal

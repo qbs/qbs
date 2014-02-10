@@ -34,6 +34,7 @@
 #include "forward_decls.h"
 #include "jsimports.h"
 #include "propertymapinternal.h"
+#include <buildgraph/artifactset.h>
 #include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
 #include <tools/fileinfo.h>
@@ -61,6 +62,7 @@ QT_END_NAMESPACE
 namespace qbs {
 namespace Internal {
 class BuildGraphLoader;
+class BuildGraphVisitor;
 
 class FileTagger : public PersistentObject
 {
@@ -235,6 +237,8 @@ public:
     ResolvedFileContextConstPtr fileContext;
     mutable QScriptValue scriptFunction;    // cache
 
+    bool isValid() const;
+
 private:
     ScriptFunction() {}
 
@@ -279,19 +283,26 @@ public:
     static RulePtr create() { return RulePtr(new Rule); }
 
     ResolvedModuleConstPtr module;
+    QString name;
     ScriptFunctionPtr prepareScript;
+    FileTags outputFileTags;                    // unused, if artifacts is non-empty
+    ScriptFunctionPtr outputArtifactsScript;    // unused, if artifacts is non-empty
     FileTags inputs;
     FileTags auxiliaryInputs;
+    FileTags excludedAuxiliaryInputs;
     FileTags usings;
     FileTags explicitlyDependsOn;
     bool multiplex;
-    QList<RuleArtifactPtr> artifacts;
+    QList<RuleArtifactPtr> artifacts;           // unused, if outputFileTags/outputArtifactsScript is non-empty
 
     // members that we don't need to save
     int ruleGraphId;
 
     QString toString() const;
+    bool acceptsAsInput(Artifact *artifact) const;
     FileTags staticOutputFileTags() const;
+    FileTags collectedOutputFileTags() const;
+    bool isDynamic() const;
 
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}
@@ -363,13 +374,25 @@ public:
     mutable QProcessEnvironment runEnvironment; // must not be saved
     QHash<QString, QString> executablePathCache;
 
+    void accept(BuildGraphVisitor *visitor) const;
     QList<SourceArtifactPtr> allFiles() const;
     QList<SourceArtifactPtr> allEnabledFiles() const;
     FileTags fileTagsForFileName(const QString &fileName) const;
     void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 
-    const QList<RuleConstPtr> &topSortedRules() const;
+    void registerAddedFileTag(const FileTag &fileTag, Artifact *artifact);
+    void registerAddedArtifact(Artifact *artifact);
+    void unregisterAddedArtifact(Artifact *artifact);
+    void registerRemovedFileTag(const FileTag &fileTag, Artifact *artifact);
+    void registerArtifactWithChangedInputs(Artifact *artifact);
+    void unregisterArtifactWithChangedInputs(Artifact *artifact);
+    void unmarkForReapplication(const RuleConstPtr &rule);
+    const ArtifactSet addedArtifactsByFileTag(const FileTag &tag) const;
+    const ArtifactSet removedArtifactsByFileTag(const FileTag &tag) const;
+    bool isMarkedForReapplication(const RuleConstPtr &rule) const;
+    ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
+
     TopLevelProject *topLevelProject() const;
 
     QStringList generatedFiles(const QString &baseFile, const FileTags &tags) const;
@@ -392,6 +415,8 @@ public:
     QList<ResolvedProductPtr> products;
     QList<ResolvedProjectPtr> subProjects;
     WeakPointer<ResolvedProject> parentProject;
+
+    void accept(BuildGraphVisitor *visitor) const;
 
     void setProjectProperties(const QVariantMap &config) { m_projectProperties = config; }
     const QVariantMap &projectProperties() const { return m_projectProperties; }

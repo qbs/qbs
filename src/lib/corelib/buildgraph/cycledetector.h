@@ -29,7 +29,8 @@
 #ifndef QBS_CYCLEDETECTOR_H
 #define QBS_CYCLEDETECTOR_H
 
-#include "artifactvisitor.h"
+#include "buildgraphvisitor.h"
+#include <language/forward_decls.h>
 #include <logging/logger.h>
 
 #include <QSet>
@@ -37,23 +38,27 @@
 namespace qbs {
 namespace Internal {
 
-class CycleDetector : public ArtifactVisitor
+class BuildGraphNode;
+
+class CycleDetector : private BuildGraphVisitor
 {
 public:
     CycleDetector(const Logger &logger);
 
-    void visitProject(const ResolvedProjectConstPtr &project);
+    void visitProject(const TopLevelProjectConstPtr &project);
     void visitProduct(const ResolvedProductConstPtr &product);
-    void visitArtifact(Artifact *artifact);
 
 private:
-    void doVisit(Artifact *artifact);
+    bool visit(Artifact *artifact);
+    bool visit(RuleNode *ruleNode);
 
-    QList<Artifact *> cycle(Artifact *doubleEntry);
+    bool visitNode(BuildGraphNode *node);
 
-    QSet<Artifact *> m_allArtifacts;
-    QSet<Artifact *> m_artifactsInCurrentPath;
-    Artifact *m_parent;
+    QList<BuildGraphNode *> cycle(BuildGraphNode *doubleEntry);
+
+    QSet<BuildGraphNode *> m_allNodes;
+    QSet<BuildGraphNode *> m_nodesInCurrentPath;
+    BuildGraphNode *m_parent;
     Logger m_logger;
 };
 

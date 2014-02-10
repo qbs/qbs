@@ -203,50 +203,28 @@ Module {
     }
 
     Rule {
-        inputs: ["moc_cpp"]
-
-        Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
-                      + '/' + input.completeBaseName + ".moc"
-            fileTags: ["hpp"]
+        name: "QtCoreMocRule"
+        inputs: ["cpp", "hpp"]
+        auxiliaryInputs: ["qt_plugin_metadata"]
+        excludedAuxiliaryInputs: ["unmocable"]
+        outputFileTags: ["hpp", "cpp", "unmocable"]
+        outputArtifacts: {
+            var mocinfo = QtMocScanner.apply(input);
+            if (!mocinfo.hasQObjectMacro)
+                return [];
+            var artifact = { fileTags: ["unmocable"] };
+            if (input.fileTags.contains("hpp")) {
+                artifact.filePath = ModUtils.moduleProperty(product, "generatedFilesDir")
+                        + "/moc_" + input.completeBaseName + ".cpp";
+            } else {
+                artifact.filePath = ModUtils.moduleProperty(product, "generatedFilesDir")
+                          + '/' + input.completeBaseName + ".moc";
+            }
+            artifact.fileTags.push(mocinfo.mustCompile ? "cpp" : "hpp");
+            if (mocinfo.hasPluginMetaDataMacro)
+                artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
+            return [artifact];
         }
-
-        prepare: {
-            var cmd = new Command(Moc.fullPath(product),
-                                  Moc.args(product, input, output.fileName));
-            cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
-            cmd.highlight = 'codegen';
-            return cmd;
-        }
-    }
-
-    Rule {
-        inputs: ["moc_hpp"]
-
-        Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
-                      + "/moc_" + input.completeBaseName + ".cpp"
-            fileTags: [ "cpp" ]
-        }
-
-        prepare: {
-            var cmd = new Command(Moc.fullPath(product),
-                                  Moc.args(product, input, output.fileName));
-            cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
-            cmd.highlight = 'codegen';
-            return cmd;
-        }
-    }
-
-    Rule {
-        inputs: ["moc_hpp_inc"]
-
-        Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
-                      + "/moc_" + input.completeBaseName + ".cpp"
-            fileTags: [ "hpp" ]
-        }
-
         prepare: {
             var cmd = new Command(Moc.fullPath(product),
                                   Moc.args(product, input, output.fileName));

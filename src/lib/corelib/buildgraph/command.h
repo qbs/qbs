@@ -30,6 +30,8 @@
 #ifndef QBS_COMMAND_H
 #define QBS_COMMAND_H
 
+#include "forward_decls.h"
+
 #include <tools/codelocation.h>
 
 #include <QProcessEnvironment>
@@ -50,7 +52,7 @@ public:
         JavaScriptCommandType
     };
 
-    static AbstractCommand *createByType(CommandType commandType);
+    static AbstractCommandPtr createByType(CommandType commandType);
     static QString defaultDescription() { return QString(); }
     static QString defaultHighLight() { return QString(); }
     static bool defaultIsSilent() { return false; }
@@ -79,9 +81,8 @@ private:
 class ProcessCommand : public AbstractCommand
 {
 public:
+    static ProcessCommandPtr create() { return ProcessCommandPtr(new ProcessCommand); }
     static void setupForJavaScript(QScriptValue targetObject);
-
-    ProcessCommand();
 
     CommandType type() const { return ProcessCommandType; }
     bool equals(const AbstractCommand *otherAbstractCommand) const;
@@ -100,6 +101,8 @@ public:
     QProcessEnvironment environment() const { return m_environment; }
 
 private:
+    ProcessCommand();
+
     void getEnvironmentFromList(const QStringList &envList);
 
     QString m_program;
@@ -116,9 +119,8 @@ private:
 class JavaScriptCommand : public AbstractCommand
 {
 public:
+    static JavaScriptCommandPtr create() { return JavaScriptCommandPtr(new JavaScriptCommand); }
     static void setupForJavaScript(QScriptValue targetObject);
-
-    JavaScriptCommand();
 
     virtual CommandType type() const { return JavaScriptCommandType; }
     bool equals(const AbstractCommand *otherAbstractCommand) const;
@@ -132,9 +134,16 @@ public:
     const QVariantMap &properties() const { return m_properties; }
 
 private:
+    JavaScriptCommand();
+
     QString m_sourceCode;
     QVariantMap m_properties;
 };
+
+QList<AbstractCommandPtr> loadCommandList(QDataStream &s);
+void storeCommandList(const QList<AbstractCommandPtr> &commands, QDataStream &s);
+
+bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<AbstractCommandPtr> &l2);
 
 } // namespace Internal
 } // namespace qbs

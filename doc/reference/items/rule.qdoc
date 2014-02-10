@@ -116,6 +116,13 @@
             Unlike \a{inputs}, the property \a{auxiliaryInputs} has no effect on the content of the
             \a{inputs} variable in the \a{prepare} script.
     \row
+        \li excludedAuxiliaryInputs
+        \li string list
+        \li undefined
+        \li A list of file tags. Connections to rules that produce these file tags are prevented.
+            This property has no effect on the content of the \a{inputs} variable in the \a{prepare}
+            script.
+    \row
         \li usings
         \li string list
         \li undefined
@@ -130,6 +137,28 @@
            file tags will appear in the \a inputs variable of the prepare
            script. Also, each output artifact of this rule will be dependent on
            those artifacts.
+    \row
+        \li outputArtifacts
+        \li array of objects
+        \li undefined
+        \li An array of output artifacts, specified as JavaScript objects.
+            Example:
+            \code
+            outputArtifacts: [{filePath: "myfile.txt", fileTags: ["foo", "bar"]}]
+            \endcode
+            For a description of the possible properties, see the documentation of the Artifact
+            item.
+            Output artifacts can be specified either by \c{Rule.outputArtifacts} or by \c{Artifact}
+            items. Use \c{Rule.outputArtifacts} if the set of outputs is not fixed but dependent on
+            the input's content.
+            The user may set the property \c{explicitlyDependsOn} on artifact objects, which is
+            similar to \c{Rule.explicitlyDependsOn}.
+    \row
+        \li outputFileTags
+        \li string list
+        \li undefined
+        \li If output artifacts are specified by \c{Rule.outputArtifacts}, then
+            \c{Rule.outputFileTags} must be a list of file tags the rule potentially produces.
     \row
         \li condition
         \li bool

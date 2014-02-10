@@ -40,7 +40,7 @@
 namespace qbs {
 namespace Internal {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-61";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-62";
 
 PersistentPool::PersistentPool(const Logger &logger) : m_logger(logger)
 {
