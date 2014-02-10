@@ -56,7 +56,7 @@
     system on which the binaries produced by \QBS will run.
 
 
-    \section1 Extensions to JavaScript built-in objects
+    \section1 Extensions to JavaScript Built-in Objects
 
     \section2 \c{Array.contains(e)}
     Returns \c{true} if the array contains the element \c{e}. Returns \c{false} otherwise.
