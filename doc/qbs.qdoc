@@ -678,17 +678,29 @@
     qbs
     \endcode
 
-    The application is built for the default target, which is the system on the
-    development PC. To build for other targets, specify options for the build
-    command. For example, to build debug and release configurations for the
-    default target and the Symbian target in parallel, enter the following
-    command:
+    The application is built using the default build profile that is set up
+    in your \QBS configuration.
+    To build with other profiles, specify options for the build
+    command. For example, to build debug and release configurations with a
+    profile named "Android", enter the following command:
 
     \code
-    qbs build debug release profile:Symbian
+    qbs build profile:Android debug release
     \endcode
 
-    This assumes you have already set up a profile called "Symbian".
+    The position of the property assignment is important. In the example
+    above, the profile property is set for all build variants that come
+    afterwards.
+
+    To set a property just for one build variant, place the assignment after
+    the build variant name.
+    In the following example, the property \c cpp.treatWarningsAsErrors is
+    set to \c true for debug only and \c cpp.optimization is set to
+    \c small for release only.
+
+    \code
+    qbs build debug cpp.treatWarningsAsErrors:true release cpp.optimization:small
+    \endcode
 */
 
 /*!
