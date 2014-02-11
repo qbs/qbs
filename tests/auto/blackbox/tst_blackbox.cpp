@@ -288,6 +288,24 @@ void TestBlackbox::build_project_dry_run()
     QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
 }
 
+void TestBlackbox::changeDependentLib()
+{
+    QDir::setCurrent(testDataDir + "/change-dependent-lib");
+    QCOMPARE(runQbs(), 0);
+    waitForNewTimestamp();
+    const QString qbsFileName("change-dependent-lib.qbs");
+    QFile qbsFile(qbsFileName);
+    QVERIFY(qbsFile.open(QIODevice::ReadWrite));
+    const QByteArray content1 = qbsFile.readAll();
+    QByteArray content2 = content1;
+    content2.replace("cpp.defines: [\"XXXX\"]", "cpp.defines: [\"ABCD\"]");
+    QVERIFY(content1 != content2);
+    qbsFile.seek(0);
+    qbsFile.write(content2);
+    qbsFile.close();
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
