@@ -507,11 +507,8 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     foreach (const ItemModuleList &moduleList, loadedModules) {
         foreach (const Item::Module &module, moduleList) {
             const QString fullName = fullModuleName(module.name);
-            if (loadedModuleNames.contains(fullName)) {
-                m_logger.printWarning(ErrorInfo(Tr::tr("Duplicate dependency '%1'.").arg(fullName),
-                                                item->location()));
+            if (loadedModuleNames.contains(fullName))
                 continue;
-            }
             loadedModuleNames.insert(fullName);
             item->modules() += module;
             resolveProbes(module.item);
