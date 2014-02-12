@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 SUBDIRS =\
     qbs\
-    detect-toolchains \
+    qbs-setup-toolchains \
     setupmaddeplatforms \
     qbs-setup-qt \
     config \

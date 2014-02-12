@@ -26,18 +26,37 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_PROBE_H
-#define QBS_PROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
+#define QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
 
-#include <QtGlobal>
+#include <QStringList>
 
-QT_BEGIN_NAMESPACE
-class QString;
-QT_END_NAMESPACE
+class CommandLineParser
+{
+public:
+    void parse(const QStringList &commandLine);
 
-namespace qbs { class Settings; }
+    bool helpRequested() const { return m_helpRequested; }
+    bool autoDetectionMode() const { return m_autoDetectionMode; }
 
+    QString compilerPath() const { return m_compilerPath; }
+    QString toolchainType() const { return m_toolchainType; }
+    QString profileName() const { return m_profileName; }
 
-int probe(qbs::Settings *settings);
+    QString usageString() const;
 
-#endif // Header guard
+private:
+    void throwError(const QString &message);
+    void assignOptionArgument(const QString &option, QString &argument);
+    void complainAboutExtraArguments();
+
+    bool m_helpRequested;
+    bool m_autoDetectionMode;
+    QString m_compilerPath;
+    QString m_toolchainType;
+    QString m_profileName;
+    QStringList m_commandLine;
+    QString m_command;
+};
+
+#endif // Include guard

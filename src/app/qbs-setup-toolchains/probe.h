@@ -26,44 +26,21 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_PROBE_H
+#define QBS_PROBE_H
 
-#include "probe.h"
-#include "../shared/logging/consolelogger.h"
-#include "../shared/qbssettings.h"
+#include <QtGlobal>
 
-#include <logging/translator.h>
-#include <tools/error.h>
+QT_BEGIN_NAMESPACE
+class QString;
+class QStringList;
+QT_END_NAMESPACE
 
-#include <QCoreApplication>
+namespace qbs { class Settings; }
 
-#include <cstdlib>
+void createProfile(const QString &profileName, const QString &toolchainType,
+                   const QString &compilerFilePath, qbs::Settings *settings);
 
-using qbs::Internal::Tr;
+void probe(qbs::Settings *settings);
 
-int main(int argc, char **argv)
-{
-    QCoreApplication app(argc, argv);
-
-    SettingsPtr settings = qbsSettings();
-    ConsoleLogger::instance(settings.data());
-    const QStringList args = app.arguments().mid(1);
-    if (args.count() == 1 && (args.first() == QLatin1String("--help")
-                              || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << Tr::tr("This tool tries to auto-detect known toolchains in your system.\n"
-                            "It takes no command-line parameters.");
-        return EXIT_SUCCESS;
-    }
-
-    if (!args.isEmpty()) {
-        qbsWarning() << Tr::tr("You supplied command-line parameters, "
-                               "but this tool does not use any.");
-    }
-
-    try {
-        probe(settings.data());
-        return EXIT_SUCCESS;
-    } catch (const qbs::ErrorInfo &error) {
-        qbsError() << Tr::tr("Probing for toolchains failed: %1").arg(error.toString());
-        return EXIT_FAILURE;
-    }
-}
+#endif // Header guard
