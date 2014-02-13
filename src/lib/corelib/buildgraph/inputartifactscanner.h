@@ -37,7 +37,7 @@
 #include <QHash>
 #include <QStringList>
 
-struct ScannerPlugin;
+class ScannerPlugin;
 
 namespace qbs {
 namespace Internal {

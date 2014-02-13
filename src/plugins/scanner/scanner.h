@@ -77,8 +77,9 @@ enum ScannerFlags
     ScannerRecursiveDependencies = 0x02
 };
 
-struct ScannerPlugin
+class ScannerPlugin
 {
+public:
     const char  *name;
     const char  *fileTag;
     scanOpen_f  open;
