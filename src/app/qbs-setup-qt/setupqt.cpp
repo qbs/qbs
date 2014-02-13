@@ -308,7 +308,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         throw errorInfo;
 
     // If this profile does not specify a toolchain and we find exactly one profile that looks
-    // like it might have been added by qbs-detect-toolchain, let's use that one as our
+    // like it might have been added by qbs-setup-toolchains, let's use that one as our
     // base profile.
     Profile profile(cleanQtVersionName, settings);
     if (!profile.baseProfile().isEmpty())
@@ -342,7 +342,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                                  "use this Qt version for building. ");
         if (toolchainProfiles.isEmpty()) {
             message += Tr::tr("However, no toolchain profile was found. Either create one "
-                              "using qbs-detect-toolchains and set it as this profile's "
+                              "using qbs-setup-toolchains and set it as this profile's "
                               "base profile or add the toolchain settings manually "
                               "to this profile.");
         } else {

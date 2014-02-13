@@ -169,7 +169,7 @@
     Open a build shell (on Windows open an MSVC command prompt,
     on other platforms you can usually open the default shell):
     \code
-    qbs detect-toolchains
+    qbs setup-toolchains --detect
     \endcode
 
     The tool chain detector automatically sets up a profile for each detected tool chain.

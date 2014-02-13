@@ -56,7 +56,7 @@ Module {
     validate: {
         if (!architecture) {
             throw new Error("qbs.architecture is not set. "
-                  + "You might want to re-run 'qbs detect-toolchains'.");
+                  + "You might want to re-run 'qbs setup-toolchains'.");
         }
 
         var canonicalArch = canonicalArchitecture(architecture);

@@ -1676,7 +1676,7 @@ void TestBlackbox::installedApp()
 
 void TestBlackbox::toolLookup()
 {
-    QbsRunParameters params(QLatin1String("detect-toolchains"), QStringList("--help"));
+    QbsRunParameters params(QLatin1String("setup-toolchains"), QStringList("--help"));
     params.useProfile = false;
     QCOMPARE(runQbs(params), 0);
 }
