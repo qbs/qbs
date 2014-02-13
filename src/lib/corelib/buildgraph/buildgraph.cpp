@@ -471,7 +471,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
             QBS_CHECK(parent->children.contains(node));
         foreach (BuildGraphNode * const child, node->children) {
             QBS_CHECK(child->parents.contains(node));
-            QBS_CHECK(child->product);
+            QBS_CHECK(!child->product.isNull());
             QBS_CHECK(!child->product->buildData.isNull());
             QBS_CHECK(child->product->buildData->nodes.contains(child));
         }
