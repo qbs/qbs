@@ -73,8 +73,8 @@ bool CycleDetector::visitNode(BuildGraphNode *node)
 {
     if (Q_UNLIKELY(m_nodesInCurrentPath.contains(node))) {
         ErrorInfo error(Tr::tr("Cycle in build graph detected."));
-        foreach (const BuildGraphNode * const node, cycle(node))
-            error.append(node->toString());
+        foreach (const BuildGraphNode * const n, cycle(node))
+            error.append(n->toString());
         throw error;
     }
 
