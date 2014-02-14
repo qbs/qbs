@@ -11,10 +11,11 @@ Module {
     Rule {
         condition: product.moduleProperty("narfzort", "buildZort");
         inputs: ["narf"]
-        Artifact {
-            fileName: product.name + "." + input.fileName + ".zort"
+        outputFileTags: ["zort"]
+        outputArtifacts: [{
+            filePath: product.name + "." + input.fileName + ".zort",
             fileTags: ["zort"]
-        }
+        }]
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating " + FileInfo.fileName(output.fileName);

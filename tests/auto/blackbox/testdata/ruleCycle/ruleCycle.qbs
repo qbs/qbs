@@ -10,10 +10,11 @@ Project {
         }
         Rule {
             inputs: ["grass"]
-            Artifact {
-                fileName: input.completeBaseName + ".cow"
+            outputFileTags: ["cow"]
+            outputArtifacts: [{
+                filePath: input.completeBaseName + ".cow",
                 fileTags: ["cow"]
-            }
+            }]
             prepare: { print("The cow feeds on grass."); }
         }
         Rule {
@@ -34,10 +35,11 @@ Project {
         }
         Rule {
             inputs: ["fertilizer"]
-            Artifact {
-                fileName: input.completeBaseName + ".grass"
+            outputFileTags: ["grass"]
+            outputArtifacts: [{
+                filePath: input.completeBaseName + ".grass",
                 fileTags: ["grass"]
-            }
+            }]
             prepare: { print("The fertilizer lets the grass grow."); }
         }
     }
