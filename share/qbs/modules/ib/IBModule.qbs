@@ -1,6 +1,7 @@
 import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Process
 import qbs.PropertyList
 import "../cpp/bundle-tools.js" as BundleTools
 import "../cpp/darwin-tools.js" as DarwinTools
