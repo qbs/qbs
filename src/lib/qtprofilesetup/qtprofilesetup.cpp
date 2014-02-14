@@ -39,6 +39,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QLibrary>
 #include <QRegExp>
 #include <QTextStream>
 
@@ -340,9 +341,34 @@ static QString guessMinimumWindowsVersion(const QtEnvironment &qt)
     return qt.qtMajorVersion < 5 ? QLatin1String("5.0") : QLatin1String("5.1");
 }
 
-ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
-                         const QtEnvironment &qtEnvironment)
+static bool checkForStaticBuild(const QtEnvironment &qt)
 {
+    if (qt.qtMajorVersion >= 5)
+        return qt.qtConfigItems.contains(QLatin1String("static"));
+    if (qt.frameworkBuild)
+        return false; // there are no Qt4 static frameworks
+    QDir libdir(qt.libraryPath);
+    const QStringList coreLibFiles
+            = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
+    if (coreLibFiles.isEmpty())
+        throw ErrorInfo(Internal::Tr::tr("Could not determine whether Qt is a static build."));
+    foreach (const QString &fileName, coreLibFiles) {
+        if (QLibrary::isLibrary(qt.libraryPath + QLatin1Char('/') + fileName))
+            return false;
+    }
+    return true;
+}
+
+ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
+                         const QtEnvironment &_qtEnvironment)
+{
+    QtEnvironment qtEnvironment = _qtEnvironment;
+    const bool staticBuild = checkForStaticBuild(qtEnvironment);
+
+    // determine whether user apps require C++11
+    if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && staticBuild)
+        qtEnvironment.configItems.append(QLatin1String("c++11"));
+
     Profile profile(profileName, settings);
     profile.removeProfile();
     const QString settingsTemplate(QLatin1String("Qt.core.%1"));
@@ -358,9 +384,7 @@ ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
     profile.setValue(settingsTemplate.arg("namespace"), qtEnvironment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
     profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant);
-    if (qtEnvironment.staticBuild)
-        profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")),
-                         qtEnvironment.staticBuild);
+    profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), staticBuild);
 
     // Set the minimum operating system versions appropriate for this Qt version
     const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);

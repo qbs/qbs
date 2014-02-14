@@ -40,7 +40,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
-#include <QLibrary>
 #include <QProcess>
 #include <QRegExp>
 #include <QStringList>
@@ -250,29 +249,6 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
             throw ErrorInfo(tr("could not determine whether Qt is a frameworks build"));
     }
 
-    // determine whether we have a static build
-    if (qtVersion.majorVersion >= 5) {
-        qtEnvironment.staticBuild = qtEnvironment.qtConfigItems.contains(QLatin1String("static"));
-    } else {
-        if (qtEnvironment.frameworkBuild) {
-            // there are no Qt4 static frameworks
-            qtEnvironment.staticBuild = false;
-        } else {
-            qtEnvironment.staticBuild = true;
-            QDir libdir(qtEnvironment.libraryPath);
-            const QStringList coreLibFiles
-                    = libdir.entryList(QStringList(QLatin1String("*Core*")), QDir::Files);
-            if (coreLibFiles.isEmpty())
-                throw ErrorInfo(tr("Could not determine whether Qt is a static build."));
-            foreach (const QString &fileName, coreLibFiles) {
-                if (QLibrary::isLibrary(qtEnvironment.libraryPath + QLatin1Char('/') + fileName)) {
-                    qtEnvironment.staticBuild = false;
-                    break;
-                }
-            }
-        }
-    }
-
     // determine whether Qt is built with debug, release or both
     if (qtEnvironment.qtConfigItems.contains(QLatin1String("debug_and_release"))) {
         qtEnvironment.buildVariant << QLatin1String("debug") << QLatin1String("release");
@@ -284,10 +260,6 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         else
             qtEnvironment.buildVariant << QLatin1String("debug");
     }
-
-    // determine whether user apps require C++11
-    if (qtEnvironment.qtConfigItems.contains(QLatin1String("c++11")) && qtEnvironment.staticBuild)
-        qtEnvironment.configItems.append(QLatin1String("c++11"));
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
         throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));

@@ -61,7 +61,6 @@ public:
     int qtMinorVersion;
     int qtPatchVersion;
     bool frameworkBuild;
-    bool staticBuild;
 };
 
 QBS_EXPORT ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
