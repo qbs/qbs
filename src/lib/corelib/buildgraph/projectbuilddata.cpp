@@ -49,6 +49,89 @@
 namespace qbs {
 namespace Internal {
 
+static QSet<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &product)
+{
+    QSet<ResolvedProductPtr> result;
+    foreach (const ResolvedProductPtr &parent, product->topLevelProject()->allProducts()) {
+        if (parent->dependencies.contains(product))
+            result += parent;
+    }
+    return result;
+}
+
+class FindLeafRules : public BuildGraphVisitor
+{
+public:
+    FindLeafRules()
+    {
+    }
+
+    const QSet<RuleNode *> &apply(const ResolvedProductPtr &product)
+    {
+        m_result.clear();
+        m_product = product;
+        QBS_CHECK(product->buildData);
+        foreach (BuildGraphNode *n, product->buildData->nodes)
+            n->accept(this);
+        return m_result;
+    }
+
+private:
+    virtual bool visit(Artifact *)
+    {
+        return false;
+    }
+
+    virtual bool visit(RuleNode *node)
+    {
+        if (!hasChildRuleInThisProduct(node))
+            m_result << node;
+        return false;
+    }
+
+    bool hasChildRuleInThisProduct(const RuleNode *node) const
+    {
+        foreach (BuildGraphNode *c, node->children) {
+            if (c->product == m_product && c->type() == BuildGraphNode::RuleNodeType)
+                return true;
+        }
+        return false;
+    }
+
+    ResolvedProductPtr m_product;
+    QSet<RuleNode *> m_result;
+};
+
+class FindRootRules : public BuildGraphVisitor
+{
+public:
+    FindRootRules()
+    {
+    }
+
+    const QList<RuleNode *> &apply(const ResolvedProductPtr &product)
+    {
+        m_result.clear();
+        foreach (BuildGraphNode *n, product->buildData->roots)
+            n->accept(this);
+        return m_result;
+    }
+
+private:
+    bool visit(Artifact *)
+    {
+        return false;
+    }
+
+    bool visit(RuleNode *node)
+    {
+        m_result << node;
+        return false;
+    }
+
+    QList<RuleNode *> m_result;
+};
+
 ProjectBuildData::ProjectBuildData(const ProjectBuildData *other)
     : isDirty(true), m_doCleanupInDestructor(true)
 {
@@ -249,104 +332,23 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
     m_project = project;
     foreach (const ResolvedProductPtr &product, freshProducts) {
         if (product->enabled)
-            resolveProductBuildDataForExistingProject(product);
-    }
-}
-
-static QSet<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &product)
-{
-    QSet<ResolvedProductPtr> result;
-    foreach (const ResolvedProductPtr &parent, product->topLevelProject()->allProducts()) {
-        if (parent->dependencies.contains(product))
-            result += parent;
-    }
-    return result;
-}
-
-class FindLeafRules : public BuildGraphVisitor
-{
-public:
-    FindLeafRules()
-    {
+            resolveProductBuildData(product);
     }
 
-    const QSet<RuleNode *> &apply(const ResolvedProductPtr &product)
-    {
-        m_result.clear();
-        m_product = product;
-        foreach (BuildGraphNode *n, product->buildData->nodes)
-            n->accept(this);
-        return m_result;
-    }
-
-private:
-    virtual bool visit(Artifact *)
-    {
-        return false;
-    }
-
-    virtual bool visit(RuleNode *node)
-    {
-        if (!hasChildRuleInThisProduct(node))
-            m_result << node;
-        return false;
-    }
-
-    bool hasChildRuleInThisProduct(const RuleNode *node) const
-    {
-        foreach (BuildGraphNode *c, node->children) {
-            if (c->product == m_product && c->type() == BuildGraphNode::RuleNodeType)
-                return true;
-        }
-        return false;
-    }
-
-    ResolvedProductPtr m_product;
-    QSet<RuleNode *> m_result;
-};
-
-class FindRootRules : public BuildGraphVisitor
-{
-public:
-    FindRootRules()
-    {
-    }
-
-    const QList<RuleNode *> &apply(const ResolvedProductPtr &product)
-    {
-        m_result.clear();
-        foreach (BuildGraphNode *n, product->buildData->roots)
-            n->accept(this);
-        return m_result;
-    }
-
-private:
-    virtual bool visit(Artifact *)
-    {
-        return true;
-    }
-
-    virtual bool visit(RuleNode *node)
-    {
-        m_result << node;
-        return true;
-    }
-
-    QList<RuleNode *> m_result;
-};
-
-
-void BuildDataResolver::resolveProductBuildDataForExistingProject(const ResolvedProductPtr &product)
-{
-    resolveProductBuildData(product);
-
-    // Connect the leaf rules of all dependent products to the root rules of this product.
-    const QList<RuleNode *> rootRules = FindRootRules().apply(product);
-    QSet<ResolvedProductPtr> dependents = findDependentProducts(product);
-    foreach (const ResolvedProductPtr &dependentProduct, dependents) {
-        foreach (RuleNode *leaf, FindLeafRules().apply(dependentProduct)) {
-            foreach (RuleNode *root, rootRules) {
-                loggedConnect(leaf, root, m_logger);
+    // Connect the leaf rules of all dependent products to the root rules of the dependency.
+    foreach (const ResolvedProductPtr &product, freshProducts) {
+        if (!product->enabled)
+            continue;
+        QBS_CHECK(product->buildData);
+        const QList<RuleNode *> rootRules = FindRootRules().apply(product);
+        QSet<ResolvedProductPtr> dependents = findDependentProducts(product);
+        foreach (const ResolvedProductPtr &dependentProduct, dependents) {
+            if (!dependentProduct->enabled)
+                continue;
+            foreach (RuleNode *leaf, FindLeafRules().apply(dependentProduct)) {
+                foreach (RuleNode *root, rootRules) {
+                    loggedConnect(leaf, root, m_logger);
+                }
             }
         }
     }

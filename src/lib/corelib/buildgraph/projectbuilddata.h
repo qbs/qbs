@@ -96,7 +96,6 @@ public:
             const QList<ResolvedProductPtr> &freshProducts);
 
 private:
-    void resolveProductBuildDataForExistingProject(const ResolvedProductPtr &product);
     void resolveProductBuildData(const ResolvedProductPtr &product);
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
