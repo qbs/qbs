@@ -57,7 +57,6 @@ private:
     ResolvedProductConstPtr productWithNoCycle();
     bool cycleDetected(const ResolvedProductConstPtr &product);
 
-    QList<Artifact *> m_artifacts;
     ILogSink * const m_logSink;
 };
 

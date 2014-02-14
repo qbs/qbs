@@ -29,8 +29,10 @@
 #include "tst_buildgraph.h"
 
 #include <buildgraph/artifact.h>
-#include <buildgraph/productbuilddata.h>
+#include <buildgraph/buildgraph.h>
 #include <buildgraph/cycledetector.h>
+#include <buildgraph/productbuilddata.h>
+#include <buildgraph/projectbuilddata.h>
 #include <language/language.h>
 #include <logging/logger.h>
 #include <tools/error.h>
@@ -40,8 +42,11 @@
 namespace qbs {
 namespace Internal {
 
+const TopLevelProjectPtr project = TopLevelProject::create();
+
 TestBuildGraph::TestBuildGraph(ILogSink *logSink) : m_logSink(logSink)
 {
+    project->buildData.reset(new ProjectBuildData);
 }
 
 void TestBuildGraph::initTestCase()
@@ -50,7 +55,6 @@ void TestBuildGraph::initTestCase()
 
 void TestBuildGraph::cleanupTestCase()
 {
-    qDeleteAll(m_artifacts);
 }
 
 
@@ -66,42 +70,52 @@ bool TestBuildGraph::cycleDetected(const ResolvedProductConstPtr &product)
 
 ResolvedProductConstPtr TestBuildGraph::productWithDirectCycle()
 {
-    Artifact * const root = new Artifact;
-    Artifact * const child = new Artifact;
-    m_artifacts << root << child;
-    root->children.insert(child);
-    child->children.insert(root);
     const ResolvedProductPtr product = ResolvedProduct::create();
+    product->project = project;
     product->buildData.reset(new ProductBuildData);
+    Artifact * const root = new Artifact;
+    root->product = product;
+    Artifact * const child = new Artifact;
+    child->product = product;
     product->buildData->roots.insert(root);
+    product->buildData->nodes << root << child;
+    qbs::Internal::connect(root, child);
+    qbs::Internal::connect(child, root);
     return product;
 }
 
 ResolvedProductConstPtr TestBuildGraph::productWithLessDirectCycle()
 {
+    const ResolvedProductPtr product = ResolvedProduct::create();
+    product->project = project;
+    product->buildData.reset(new ProductBuildData);
     Artifact * const root = new Artifact;
     Artifact * const child = new Artifact;
     Artifact * const grandchild = new Artifact;
-    m_artifacts << root << child << grandchild;
-    root->children.insert(child);
-    child->children.insert(grandchild);
-    grandchild->children.insert(root);
-    const ResolvedProductPtr product = ResolvedProduct::create();
-    product->buildData.reset(new ProductBuildData);
+    root->product = product;
+    child->product = product;
+    grandchild->product = product;
     product->buildData->roots << root;
+    product->buildData->nodes << root << child << grandchild;
+    qbs::Internal::connect(root, child);
+    qbs::Internal::connect(child, grandchild);
+    qbs::Internal::connect(grandchild, root);
     return product;
 }
 
 // root appears as a child, but in a different tree
 ResolvedProductConstPtr TestBuildGraph::productWithNoCycle()
 {
+    const ResolvedProductPtr product = ResolvedProduct::create();
+    product->project = project;
+    product->buildData.reset(new ProductBuildData);
     Artifact * const root = new Artifact;
     Artifact * const root2 = new Artifact;
-    m_artifacts << root << root2;
-    root2->children.insert(root);
-    const ResolvedProductPtr product = ResolvedProduct::create();
-    product->buildData.reset(new ProductBuildData);
+    root->product = product;
+    root2->product = product;
     product->buildData->roots << root << root2;
+    product->buildData->nodes << root << root2;
+    qbs::Internal::connect(root2, root);
     return product;
 }
 
