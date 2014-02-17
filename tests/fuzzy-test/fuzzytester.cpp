@@ -44,6 +44,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
     m_profile = profile;
 
     runGit(QStringList() << "describe" << "HEAD", &m_headCommit);
+    qDebug("HEAD is %s", qPrintable(m_headCommit));
 
     qDebug("Trying to find a buildable commit to start with...");
     const QString workingStartCommit = findWorkingStartCommit(startCommit);
@@ -67,6 +68,8 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
         foreach (const QString &currentCommit, allCommits) {
             buildSequence << currentCommit;
             checkoutCommit(currentCommit);
+            qDebug("Testing incremental build #%d (%s)", buildSequence.count() - 1,
+                   qPrintable(currentCommit));
             QString qbsError;
             if (!runQbs(defaultBuildDir(), &qbsError)) {
                 // An error could be due to the current commit being faulty. Check that it is
@@ -107,6 +110,7 @@ QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)
         removeDir(defaultBuildDir());
         if (runQbs(defaultBuildDir(), &qbsError))
             return currentCommit;
+        qDebug("Commit %s is not buildable.", qPrintable(currentCommit));
     }
     throw TestError(QString::fromLocal8Bit("Cannot run test: Failed to find a single commit that "
             "builds successfully with qbs. The last qbs error was: '%1'").arg(qbsError));
@@ -118,7 +122,7 @@ void FuzzyTester::runGit(const QStringList &arguments, QString *output)
     git.start("git", arguments);
     if (!git.waitForStarted())
         throw TestError("Failed to start git. It is expected to be in the PATH.");
-    if (!git.waitForFinished())
+    if (!git.waitForFinished(300000)) // 5 minutes ought to be enough for everyone
         throw TestError(QString::fromLocal8Bit("git failed: %1").arg(git.errorString()));
     if (output)
         *output = QString::fromLocal8Bit(git.readAllStandardOutput()).trimmed();
