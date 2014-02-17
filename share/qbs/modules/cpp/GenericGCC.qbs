@@ -167,7 +167,7 @@ CppModule {
                 }
                 var process = new Process();
                 var command = ModUtils.moduleProperty(product, "nmPath");
-                var args = ["-g", "-P"];
+                var args = ["-g", "-D", "-P"];
                 if (process.exec(command, args.concat(sourceFilePath), false) != 0) {
                     // Failure to run the nm tool is not fatal. We just fall back to the
                     // "always relink" behavior.
