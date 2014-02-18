@@ -298,7 +298,12 @@ void TestApi::changeContent()
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
     const qbs::ProjectData newProjectData = project.projectData();
-    const bool projectDataMatches = newProjectData == projectData;
+
+    // Can't use Project::operator== here, as the target artifacts will differ due to the build
+    // not having run yet.
+    const bool projectDataMatches = newProjectData.products().count() == 1
+            && projectData.products().count() == 1
+            && newProjectData.products().first().groups() == projectData.products().first().groups();
     if (!projectDataMatches) {
         qDebug("This is the assumed project:");
         printProjectData(projectData);
@@ -315,6 +320,9 @@ void TestApi::changeContent()
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
     QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
+
+    // Now, after the build, the project data must be entirely identical.
+    QVERIFY(projectData == project.projectData());
 
     // Error handling: Try to change the project during a build.
     buildJob.reset(project.buildAllProducts(buildOptions, this));

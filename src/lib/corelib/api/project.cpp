@@ -98,7 +98,7 @@ class ProjectPrivate : public QSharedData
 {
 public:
     ProjectPrivate(const TopLevelProjectPtr &internalProject, const Logger &logger)
-        : internalProject(internalProject), logger(logger), m_projectDataRetrieved(false)
+        : internalProject(internalProject), logger(logger)
     {
     }
 
@@ -157,16 +157,13 @@ private:
                              const ResolvedProjectConstPtr &internalProject);
 
     ProjectData m_projectData;
-    bool m_projectDataRetrieved;
 };
 
 ProjectData ProjectPrivate::projectData()
 {
-    if (!m_projectDataRetrieved) {
-        retrieveProjectData(m_projectData, internalProject);
-        m_projectData.d->buildDir = internalProject->buildDirectory;
-        m_projectDataRetrieved = true;
-    }
+    m_projectData = ProjectData();
+    retrieveProjectData(m_projectData, internalProject);
+    m_projectData.d->buildDir = internalProject->buildDirectory;
     return m_projectData;
 }
 
@@ -580,7 +577,7 @@ void ProjectPrivate::prepareChangeToProject()
 {
     if (internalProject->locked)
         throw ErrorInfo(Tr::tr("A job is currently in process."));
-    if (!m_projectDataRetrieved)
+    if (!m_projectData.isValid())
         retrieveProjectData(m_projectData, internalProject);
 }
 
@@ -621,7 +618,6 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
     projectData.d->isValid = true;
     qSort(projectData.d->products);
     qSort(projectData.d->subProjects);
-    m_projectDataRetrieved = true;
 }
 
 } // namespace Internal
