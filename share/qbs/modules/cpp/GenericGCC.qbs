@@ -181,8 +181,24 @@ CppModule {
                 }
                 var globalSymbolsTarget = process.readStdOut();
                 process.close();
-                if (globalSymbolsSource !== globalSymbolsTarget)
+
+                var globalSymbolsSourceLines = globalSymbolsSource.split('\n');
+                var globalSymbolsTargetLines = globalSymbolsTarget.split('\n');
+                if (globalSymbolsSourceLines.length !== globalSymbolsTargetLines.length) {
                     File.copy(sourceFilePath, targetFilePath);
+                    return;
+                }
+                while (globalSymbolsSourceLines.length > 0) {
+                    var sourceLine = globalSymbolsSourceLines.shift();
+                    var targetLine = globalSymbolsTargetLines.shift();
+                    var sourceLineElems = sourceLine.split(/\s+/);
+                    var targetLineElems = sourceLine.split(/\s+/);
+                    if (sourceLineElems[0] !== targetLineElems[0] // Object name.
+                            || sourceLineElems[1] !== targetLineElems[1]) { // Object type
+                        File.copy(sourceFilePath, targetFilePath);
+                        return;
+                    }
+                }
             }
             commands.push(cmd);
 
