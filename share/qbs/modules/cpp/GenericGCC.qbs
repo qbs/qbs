@@ -192,7 +192,7 @@ CppModule {
                     var sourceLine = globalSymbolsSourceLines.shift();
                     var targetLine = globalSymbolsTargetLines.shift();
                     var sourceLineElems = sourceLine.split(/\s+/);
-                    var targetLineElems = sourceLine.split(/\s+/);
+                    var targetLineElems = targetLine.split(/\s+/);
                     if (sourceLineElems[0] !== targetLineElems[0] // Object name.
                             || sourceLineElems[1] !== targetLineElems[1]) { // Object type
                         File.copy(sourceFilePath, targetFilePath);
