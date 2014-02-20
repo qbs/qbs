@@ -67,7 +67,7 @@ public:
 
     void store(const QSharedPointer<const PersistentObject> &ptr) { store(ptr.data()); }
     void store(const PersistentObject *object);
-    template <typename T> void storeContainer(T &container);
+    template <typename T> void storeContainer(const T &container);
 
     void storeString(const QString &t);
     QString loadString(int id);
@@ -142,7 +142,7 @@ template <typename T> inline void PersistentPool::loadContainerS(T &container)
         container += idLoadS<typename RemoveConst<typename T::value_type::value_type>::Type>();
 }
 
-template <typename T> inline void PersistentPool::storeContainer(T &container)
+template <typename T> inline void PersistentPool::storeContainer(const T &container)
 {
     stream() << container.count();
     typename T::const_iterator it = container.constBegin();
