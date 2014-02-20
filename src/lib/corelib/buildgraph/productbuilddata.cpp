@@ -68,10 +68,10 @@ void ProductBuildData::load(PersistentPool &pool)
 {
     nodes.load(pool);
     roots.load(pool);
-    int rescuableArtifactCount;
-    pool.stream() >> rescuableArtifactCount;
-    rescuableArtifactData.reserve(rescuableArtifactCount);
-    for (int i = 0; i < rescuableArtifactCount; ++i) {
+    int count;
+    pool.stream() >> count;
+    rescuableArtifactData.reserve(count);
+    for (int i = 0; i < count; ++i) {
         const QString filePath = pool.idLoadString();
         RescuableArtifactData elem;
         elem.load(pool);
@@ -79,6 +79,14 @@ void ProductBuildData::load(PersistentPool &pool)
     }
     loadArtifactSetByFileTag(pool, addedArtifactsByFileTag);
     loadArtifactSetByFileTag(pool, removedArtifactsByFileTag);
+
+    pool.stream() >> count;
+    for (int i = 0; i < count; ++i) {
+        const RulePtr r = pool.idLoadS<Rule>();
+        ArtifactSet s;
+        pool.loadContainer(s);
+        artifactsWithChangedInputsPerRule.insert(r, s);
+    }
 }
 
 static void storeArtifactSetByFileTag(PersistentPool &pool,
@@ -104,6 +112,13 @@ void ProductBuildData::store(PersistentPool &pool) const
     }
     storeArtifactSetByFileTag(pool, addedArtifactsByFileTag);
     storeArtifactSetByFileTag(pool, removedArtifactsByFileTag);
+
+    pool.stream() << artifactsWithChangedInputsPerRule.count();
+    for (ArtifactSetByRule::ConstIterator it = artifactsWithChangedInputsPerRule.constBegin();
+         it != artifactsWithChangedInputsPerRule.constEnd(); ++it) {
+        pool.store(it.key());
+        pool.storeContainer(it.value());
+    }
 }
 
 void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)

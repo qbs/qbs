@@ -856,6 +856,8 @@ void TestBlackbox::trackRemoveFile()
     QFile::copy("../before/main.cpp", "main.cpp");
     QVERIFY(QFile::remove("zort.h"));
     QVERIFY(QFile::remove("zort.cpp"));
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("resolve"))), 0);
+
     touch("main.cpp");
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);

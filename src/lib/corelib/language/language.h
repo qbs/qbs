@@ -303,7 +303,6 @@ public:
     FileTags staticOutputFileTags() const;
     FileTags collectedOutputFileTags() const;
     bool isDynamic() const;
-
 private:
     Rule() : multiplex(false), ruleGraphId(-1) {}
 

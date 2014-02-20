@@ -66,7 +66,6 @@ public:
     ArtifactSetByFileTag addedArtifactsByFileTag;
     ArtifactSetByFileTag removedArtifactsByFileTag;
 
-    // TODO: Serialize.
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
     ArtifactSetByRule artifactsWithChangedInputsPerRule;
 
