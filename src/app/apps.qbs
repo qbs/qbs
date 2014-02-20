@@ -8,6 +8,5 @@ Project {
         "qbs-qmltypes/qbs-qmltypes.qbs",
         "qbs-setup-qt/qbs-setup-qt.qbs",
         "qbs-setup-toolchains/qbs-setup-toolchains.qbs",
-        "setupmaddeplatforms/setupmaddeplatforms.qbs"
     ]
 }

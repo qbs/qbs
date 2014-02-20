@@ -2,7 +2,6 @@ TEMPLATE = subdirs
 SUBDIRS =\
     qbs\
     qbs-setup-toolchains \
-    setupmaddeplatforms \
     qbs-setup-qt \
     config \
     qbs-qmltypes
