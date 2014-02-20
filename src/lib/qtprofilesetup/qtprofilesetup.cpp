@@ -359,8 +359,8 @@ static bool checkForStaticBuild(const QtEnvironment &qt)
     return true;
 }
 
-ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
-                         const QtEnvironment &_qtEnvironment)
+void doSetupQtProfile(const QString &profileName, Settings *settings,
+                      const QtEnvironment &_qtEnvironment)
 {
     QtEnvironment qtEnvironment = _qtEnvironment;
     const bool staticBuild = checkForStaticBuild(qtEnvironment);
@@ -422,8 +422,8 @@ ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
             }
 
             if (osxVersion.isEmpty()) {
-                return ErrorInfo(Internal::Tr::tr("Error reading qconfig.h; could not determine "
-                                                  "whether Qt is using Cocoa or Carbon"));
+                throw ErrorInfo(Internal::Tr::tr("Error reading qconfig.h; could not determine "
+                                                 "whether Qt is using Cocoa or Carbon"));
             }
         }
 
@@ -455,12 +455,18 @@ ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
     if (!androidVersion.isEmpty())
         profile.setValue(QLatin1String("cpp.minimumAndroidVersion"), androidVersion);
 
+    createModules(profile, settings, qtEnvironment);
+}
+
+ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
+                         const QtEnvironment &qtEnvironment)
+{
     try {
-        createModules(profile, settings, qtEnvironment);
+        doSetupQtProfile(profileName, settings, qtEnvironment);
+        return ErrorInfo();
     } catch (const ErrorInfo &e) {
         return e;
     }
-    return ErrorInfo();
 }
 
 } // namespace qbs
