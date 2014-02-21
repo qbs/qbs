@@ -73,13 +73,16 @@ public:
     void setupProgress();
     void setupLogLevel();
     void setupBuildOptions();
+    bool checkForExistingBuildConfiguration(const QList<QVariantMap> &buildConfigs,
+                                            const QString &buildVariant, const QString &profile);
+    bool isSameProfile(const QString &profile1, const QString &profile2) const;
 
     bool dryRun() const { return optionPool.dryRunOption()->enabled(); }
+    QString settingsDir() const { return  optionPool.settingsDirOption()->settingsDir(); }
 
     QString propertyName(const QString &aCommandLineName) const;
 
     QStringList commandLine;
-    Settings *settings;
     Command *command;
     QString projectFilePath;
     QString projectBuildDirectory;
@@ -212,6 +215,11 @@ bool CommandLineParser::showProgress() const
     return d->showProgress;
 }
 
+QString CommandLineParser::settingsDir() const
+{
+    return d->settingsDir();
+}
+
 QString CommandLineParser::commandName() const
 {
     return d->command->representation();
@@ -222,18 +230,6 @@ QString CommandLineParser::commandDescription() const
     return d->command->longDescription();
 }
 
-static bool isSameProfile(const QString &profile1, const QString &profile2,
-                          const Settings *settings)
-{
-    if (profile1 == profile2)
-        return true;
-    if (profile1.isEmpty())
-        return profile2.isEmpty() || profile2 == settings->defaultProfile();
-    if (profile2.isEmpty())
-        return profile1 == settings->defaultProfile();
-    return false;
-}
-
 static QString getBuildVariant(const QVariantMap &buildConfig)
 {
     return buildConfig.value(QLatin1String("qbs.buildVariant")).toString();
@@ -242,18 +238,6 @@ static QString getBuildVariant(const QVariantMap &buildConfig)
 static QString getProfile(const QVariantMap &buildConfig)
 {
     return buildConfig.value(QLatin1String("qbs.profile")).toString();
-}
-
-static bool checkForExistingBuildConfiguration(const QList<QVariantMap> &buildConfigs,
-        const QString &buildVariant, const QString &profile, const Settings *settings)
-{
-    foreach (const QVariantMap &buildConfig, buildConfigs) {
-        if (buildVariant == getBuildVariant(buildConfig)
-            && isSameProfile(profile, getProfile(buildConfig), settings)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 QList<QVariantMap> CommandLineParser::buildConfigurations() const
@@ -298,7 +282,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
 
         const QString buildVariant = item.first;
         const QString profile = getProfile(properties);
-        if (checkForExistingBuildConfiguration(buildConfigs, buildVariant, profile, d->settings)) {
+        if (d->checkForExistingBuildConfiguration(buildConfigs, buildVariant, profile)) {
             qbsWarning() << Tr::tr("Ignoring redundant request to build for variant '%1' and "
                                    "profile '%2'.").arg(buildVariant, profile);
             continue;
@@ -311,12 +295,11 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
     return buildConfigs;
 }
 
-bool CommandLineParser::parseCommandLine(const QStringList &args, Settings *settings)
+bool CommandLineParser::parseCommandLine(const QStringList &args)
 {
     delete d;
     d = new CommandLineParserPrivate;
     d->commandLine = args;
-    d->settings = settings;
     try {
         d->doParse();
         return true;
@@ -554,6 +537,31 @@ QString CommandLineParser::CommandLineParserPrivate::propertyName(const QString 
         return aCommandLineName;
     else
         return QLatin1String("qbs.") + aCommandLineName;
+}
+
+bool CommandLineParser::CommandLineParserPrivate::checkForExistingBuildConfiguration(
+        const QList<QVariantMap> &buildConfigs, const QString &buildVariant, const QString &profile)
+{
+    foreach (const QVariantMap &buildConfig, buildConfigs) {
+        if (buildVariant == getBuildVariant(buildConfig)
+            && isSameProfile(profile, getProfile(buildConfig))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CommandLineParser::CommandLineParserPrivate::isSameProfile(const QString &profile1,
+                                                                const QString &profile2) const
+{
+    if (profile1 == profile2)
+        return true;
+    Settings settings(settingsDir());
+    if (profile1.isEmpty())
+        return profile2.isEmpty() || profile2 == settings.defaultProfile();
+    if (profile2.isEmpty())
+        return profile1 == settings.defaultProfile();
+    return false;
 }
 
 } // namespace qbs

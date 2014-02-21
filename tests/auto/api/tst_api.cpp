@@ -503,7 +503,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 
     const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
                                                 + QLatin1String("/../"));
-    SettingsPtr settings = qbsSettings();
+    SettingsPtr settings = qbsSettings(QString());
     const QString profileName = QLatin1String("qbs_autotests");
     const qbs::Preferences prefs(settings.data(), profileName);
     setupParams.setSearchPaths(prefs.searchPaths(qbsRootPath));

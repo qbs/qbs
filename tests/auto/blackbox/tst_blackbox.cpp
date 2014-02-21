@@ -178,7 +178,7 @@ void TestBlackbox::initTestCase()
 {
     QVERIFY(QFile::exists(qbsExecutableFilePath));
 
-    SettingsPtr settings = qbsSettings();
+    SettingsPtr settings = qbsSettings(QString());
     if (!settings->profiles().contains(buildProfileName))
         QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
@@ -1787,7 +1787,7 @@ private:
 
 void TestBlackbox::missingProfile()
 {
-    SettingsPtr settings = qbsSettings();
+    SettingsPtr settings = qbsSettings(QString());
     TemporaryDefaultProfileRemover dpr(settings);
     QVERIFY(settings->defaultProfile().isEmpty());
     QDir::setCurrent(testDataDir + "/project_filepath_check");
@@ -1801,7 +1801,7 @@ void TestBlackbox::missingProfile()
 
 void TestBlackbox::testAssembly()
 {
-    SettingsPtr settings = qbsSettings();
+    SettingsPtr settings = qbsSettings(QString());
     Profile profile(buildProfileName, settings.data());
     bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
     QDir::setCurrent(testDataDir + "/assembly");
@@ -1844,7 +1844,7 @@ void TestBlackbox::testNsis()
         return;
     }
 
-    SettingsPtr settings = qbsSettings();
+    SettingsPtr settings = qbsSettings(QString());
     Profile profile(buildProfileName, settings.data());
     bool targetIsWindows = profile.value("qbs.targetOS").toStringList().contains("windows");
     QDir::setCurrent(testDataDir + "/nsis");

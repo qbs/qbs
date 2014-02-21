@@ -32,7 +32,7 @@ class SettingsModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    SettingsModel(QObject *parent = 0);
+    SettingsModel(const QString &settingsDir, QObject *parent = 0);
     ~SettingsModel();
 
     int keyColumn() const { return 0; }

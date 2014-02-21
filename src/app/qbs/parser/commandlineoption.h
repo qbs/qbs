@@ -52,7 +52,8 @@ public:
         InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
         ForceOptionType,
         ForceTimestampCheckOptionType,
-        LogTimeOptionType
+        LogTimeOptionType,
+        SettingsDirOptionType
     };
 
     virtual ~CommandLineOption();
@@ -288,6 +289,23 @@ public:
     QString description(CommandType command) const;
     QString shortRepresentation() const;
     QString longRepresentation() const;
+};
+
+class SettingsDirOption : public CommandLineOption
+{
+public:
+    SettingsDirOption();
+
+    QString settingsDir() const { return m_settingsDir; }
+
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
+    QString longRepresentation() const;
+
+private:
+    void doParse(const QString &representation, QStringList &input);
+
+    QString m_settingsDir;
 };
 
 } // namespace qbs

@@ -472,4 +472,33 @@ QString LogTimeOption::longRepresentation() const
     return logTimeRepresentation();
 }
 
+
+SettingsDirOption::SettingsDirOption()
+{
+}
+
+QString SettingsDirOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1 <directory>\n"
+                  "\tRead all settings (such as profile information) from the given directory.\n"
+                  "\tThe default value is system-specific (see the QSettings documentation).\n"
+                  "\tIf the directory does not exist, it will be created.\n")
+            .arg(longRepresentation());
+}
+
+QString SettingsDirOption::longRepresentation() const
+{
+    return QLatin1String("--settings-dir");
+}
+
+void SettingsDirOption::doParse(const QString &representation, QStringList &input)
+{
+    if (input.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1: Argument expected.\n"
+                           "Usage: %2").arg(representation, description(command())));
+    }
+    m_settingsDir = input.takeFirst();
+}
+
 } // namespace qbs

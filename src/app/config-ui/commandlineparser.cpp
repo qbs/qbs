@@ -37,6 +37,7 @@ using qbs::Internal::Tr;
 
 static QString helpOptionShort() { return QLatin1String("-h"); }
 static QString helpOptionLong() { return QLatin1String("--help"); }
+static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -44,6 +45,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     Q_ASSERT(!m_commandLine.isEmpty());
     m_command = QFileInfo(m_commandLine.takeFirst()).fileName();
     m_helpRequested = false;
+    m_settingsDir.clear();
 
     if (m_commandLine.isEmpty())
         return;
@@ -51,6 +53,9 @@ void CommandLineParser::parse(const QStringList &commandLine)
     if (arg == helpOptionShort() || arg == helpOptionLong()) {
         m_commandLine.removeFirst();
         m_helpRequested = true;
+    } else if (arg == settingsDirOption()) {
+        m_commandLine.removeFirst();
+        assignOptionArgument(settingsDirOption(), m_settingsDir);
     }
 
     if (!m_commandLine.isEmpty())
@@ -70,8 +75,8 @@ QString CommandLineParser::usageString() const
                        "If you have more than a few settings, this might be preferable to "
                        "plain \"qbs config\", as it presents a hierarchical view.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%3|%4]\n")
-            .arg(m_command, helpOptionShort(), helpOptionLong());
+    s += Tr::tr("    %1 [%2 <settings directory>] [%3|%4]\n")
+            .arg(m_command, settingsDirOption(), helpOptionShort(), helpOptionLong());
     return s;
 }
 

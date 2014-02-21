@@ -44,7 +44,7 @@ namespace qbs {
 class QBS_EXPORT Settings
 {
 public:
-    Settings(const QString &organization, const QString &application);
+    Settings(const QString &baseDir); // Empty string means "system default"
     ~Settings();
 
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;

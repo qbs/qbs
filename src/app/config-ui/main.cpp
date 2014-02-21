@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    MainWindow mw;
+    MainWindow mw(clParser.settingsDir());
     mw.show();
     return app.exec();
 }

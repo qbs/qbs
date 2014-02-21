@@ -36,7 +36,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    SettingsPtr settings = qbsSettings();
+    SettingsPtr settings = qbsSettings(QString());
     qbs::Internal::TestTools tt(settings.data());
     return QTest::qExec(&tt, argc, argv);
 }

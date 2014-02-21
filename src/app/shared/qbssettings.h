@@ -37,9 +37,9 @@
 
 typedef QSharedPointer<qbs::Settings> SettingsPtr;
 
-inline SettingsPtr qbsSettings()
+inline SettingsPtr qbsSettings(const QString &baseDir)
 {
-    return SettingsPtr(new qbs::Settings(QLatin1String("QtProject"), QLatin1String("qbs")));
+    return SettingsPtr(new qbs::Settings(baseDir));
 }
 
 inline QString settingsValueToRepresentation(const QVariant &value)

@@ -27,7 +27,6 @@
 **
 ****************************************************************************/
 #include "../shared/logging/consolelogger.h"
-#include "../shared/qbssettings.h"
 
 #include <language/scriptengine.h>
 #include <language/loader.h>
@@ -46,8 +45,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    SettingsPtr settings = qbsSettings();
-    ConsoleLogger &cl = ConsoleLogger::instance(settings.data());
+    ConsoleLogger &cl = ConsoleLogger::instance();
     const QStringList args = app.arguments().mid(1);
     if (args.count() == 1 && (args.first() == QLatin1String("--help")
                               || args.first() == QLatin1String("-h"))) {

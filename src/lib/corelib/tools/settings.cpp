@@ -65,8 +65,15 @@ static void migrateGroup(QSettings *settings, const QString &group)
         migrateValue(settings, key);
 }
 
-Settings::Settings(const QString &organization, const QString &application)
-    : m_settings(new QSettings(format(), QSettings::UserScope, organization, application))
+static QSettings *createQSettings(const QString &baseDir)
+{
+    return baseDir.isEmpty()
+            ? new QSettings(format(), QSettings::UserScope, QLatin1String("QtProject"),
+                            QLatin1String("qbs"))
+            : new QSettings(baseDir + QLatin1String("/qbs.conf"), format());
+}
+
+Settings::Settings(const QString &baseDir) : m_settings(createQSettings(baseDir))
 {
     // Migrate settings to internal group.
     // ### remove in qbs 1.3

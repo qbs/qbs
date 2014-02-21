@@ -37,6 +37,7 @@ public:
     void parse(const QStringList &commandLine);
 
     bool helpRequested() const { return m_helpRequested; }
+    QString settingsDir() const { return m_settingsDir; }
 
     QString usageString() const;
 
@@ -46,6 +47,7 @@ private:
     void complainAboutExtraArguments();
 
     bool m_helpRequested;
+    QString m_settingsDir;
     QStringList m_commandLine;
     QString m_command;
 };

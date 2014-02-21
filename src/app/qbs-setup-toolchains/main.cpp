@@ -50,8 +50,6 @@ int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
 
-    SettingsPtr settings = qbsSettings();
-
     CommandLineParser clParser;
     try {
         clParser.parse(app.arguments());
@@ -59,6 +57,7 @@ int main(int argc, char **argv)
             printUsage(clParser.usageString());
             return EXIT_SUCCESS;
         }
+        SettingsPtr settings = qbsSettings(clParser.settingsDir());
         if (clParser.autoDetectionMode()) {
             probe(settings.data());
             return EXIT_SUCCESS;

@@ -40,10 +40,11 @@
 #include <QPoint>
 #include <QString>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_model = new SettingsModel(this);
+    m_model = new SettingsModel(settingsDir, this);
     ui->treeView->setModel(m_model);
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, SIGNAL(expanded(QModelIndex)), SLOT(adjustColumns()));

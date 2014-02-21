@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
 
-        SettingsPtr settings = qbsSettings();
+        SettingsPtr settings = qbsSettings(clParser.settingsDir());
 
         if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings

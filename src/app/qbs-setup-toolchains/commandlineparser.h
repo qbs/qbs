@@ -42,6 +42,7 @@ public:
     QString compilerPath() const { return m_compilerPath; }
     QString toolchainType() const { return m_toolchainType; }
     QString profileName() const { return m_profileName; }
+    QString settingsDir() const { return m_settingsDir; }
 
     QString usageString() const;
 
@@ -55,6 +56,7 @@ private:
     QString m_compilerPath;
     QString m_toolchainType;
     QString m_profileName;
+    QString m_settingsDir;
     QStringList m_commandLine;
     QString m_command;
 };

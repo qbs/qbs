@@ -53,8 +53,7 @@ static bool tryToRunTool(const QStringList &arguments, int &exitCode)
 
 int main(int argc, char *argv[])
 {
-    SettingsPtr settings = qbsSettings();
-    ConsoleLogger::instance(settings.data());
+    ConsoleLogger::instance();
 
     try {
         Application app(argc, argv);
@@ -66,7 +65,7 @@ int main(int argc, char *argv[])
             return toolExitCode;
 
         CommandLineParser parser;
-        if (!parser.parseCommandLine(arguments, settings.data()))
+        if (!parser.parseCommandLine(arguments))
             return EXIT_FAILURE;
 
         if (parser.command() == HelpCommandType) {
@@ -74,6 +73,8 @@ int main(int argc, char *argv[])
             return 0;
         }
 
+        SettingsPtr settings = qbsSettings(parser.settingsDir());
+        ConsoleLogger::instance().setSettings(settings.data());
         CommandLineFrontend clFrontend(parser, settings.data());
         app.setCommandLineFrontend(&clFrontend);
         QTimer::singleShot(0, &clFrontend, SLOT(start()));

@@ -38,6 +38,7 @@ using qbs::Internal::Tr;
 static QString helpOptionShort() { return QLatin1String("-h"); }
 static QString helpOptionLong() { return QLatin1String("--help"); }
 static QString detectOption() { return QLatin1String("--detect"); }
+static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -48,6 +49,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_autoDetectionMode = false;
     m_qmakePath.clear();
     m_profileName.clear();
+    m_settingsDir.clear();
 
     if (m_commandLine.isEmpty())
         throwError(Tr::tr("No command-line arguments provided."));
@@ -61,6 +63,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             m_helpRequested = true;
         else if (arg == detectOption())
             m_autoDetectionMode = true;
+        else if (arg == settingsDirOption())
+            assignOptionArgument(settingsDirOption(), m_settingsDir);
     }
 
     if (m_helpRequested || m_autoDetectionMode) {
@@ -93,10 +97,10 @@ QString CommandLineParser::usageString() const
 {
     QString s = Tr::tr("This tool creates qbs profiles from Qt versions.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 %3\n")
-            .arg(m_command, detectOption());
-    s += Tr::tr("    %1 <compiler path> <profile name>\n")
-            .arg(m_command);
+    s += Tr::tr("    %1 [%2 <settings directory>] %3\n")
+            .arg(m_command, settingsDirOption(), detectOption());
+    s += Tr::tr("    %1 [%3 <settings directory>] <compiler path> <profile name>\n")
+            .arg(m_command, settingsDirOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("The first form tries to auto-detect all known Qt versions, looking them up "
                 "via the PATH environment variable.\n");

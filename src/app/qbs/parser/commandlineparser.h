@@ -47,7 +47,7 @@ public:
     CommandLineParser();
     ~CommandLineParser();
 
-    bool parseCommandLine(const QStringList &args, Settings *settings);
+    bool parseCommandLine(const QStringList &args);
     void printHelp() const;
 
     CommandType command() const;
@@ -67,6 +67,7 @@ public:
     QStringList products() const;
     QList<QVariantMap> buildConfigurations() const;
     bool showProgress() const;
+    QString settingsDir() const;
 
 private:
     class CommandLineParserPrivate;

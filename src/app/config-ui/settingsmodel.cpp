@@ -60,10 +60,10 @@ public:
     bool dirty;
 };
 
-SettingsModel::SettingsModel(QObject *parent)
+SettingsModel::SettingsModel(const QString &settingsDir, QObject *parent)
     : QAbstractItemModel(parent), d(new SettingsModelPrivate)
 {
-    d->settings = qbsSettings();
+    d->settings = qbsSettings(settingsDir);
     d->readSettings();
 }
 

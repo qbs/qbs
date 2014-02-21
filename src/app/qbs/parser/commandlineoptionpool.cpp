@@ -94,6 +94,11 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::LogTimeOptionType:
             option = new LogTimeOption;
             break;
+        case CommandLineOption::SettingsDirOptionType:
+            option = new SettingsDirOption;
+            break;
+        default:
+            qFatal("Unknown option type %d", type);
         }
     }
     return option;
@@ -188,6 +193,11 @@ ForceTimeStampCheckOption *CommandLineOptionPool::forceTimestampCheckOption() co
 LogTimeOption *CommandLineOptionPool::logTimeOption() const
 {
     return static_cast<LogTimeOption *>(getOption(CommandLineOption::LogTimeOptionType));
+}
+
+SettingsDirOption *CommandLineOptionPool::settingsDirOption() const
+{
+    return static_cast<SettingsDirOption *>(getOption(CommandLineOption::SettingsDirOptionType));
 }
 
 } // namespace qbs

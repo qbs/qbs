@@ -40,18 +40,19 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 {
     m_command = ConfigCommand();
     m_helpRequested = false;
+    m_settingsDir.clear();
 
-    QStringList args = commandLine;
-    if (args.isEmpty())
+    m_commandLine = commandLine;
+    if (m_commandLine.isEmpty())
         throw ErrorInfo(Tr::tr("No parameters supplied."));
-    if (args.count() == 1 && (args.first() == QLatin1String("--help")
-                              || args.first() == QLatin1String("-h"))) {
+    if (m_commandLine.count() == 1 && (m_commandLine.first() == QLatin1String("--help")
+                              || m_commandLine.first() == QLatin1String("-h"))) {
         m_helpRequested = true;
         return;
     }
 
-    while (!args.isEmpty() && args.first().startsWith(QLatin1String("--"))) {
-        const QString arg = args.takeFirst().mid(2);
+    while (!m_commandLine.isEmpty() && m_commandLine.first().startsWith(QLatin1String("--"))) {
+        const QString arg = m_commandLine.takeFirst().mid(2);
         if (arg == QLatin1String("list"))
             setCommand(ConfigCommand::CfgList);
         else if (arg == QLatin1String("unset"))
@@ -60,41 +61,43 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             setCommand(ConfigCommand::CfgExport);
         else if (arg == QLatin1String("import"))
             setCommand(ConfigCommand::CfgImport);
+        else if (arg == QLatin1String("settings-dir"))
+            assignOptionArgument(arg, m_settingsDir);
         else
             throw ErrorInfo(Tr::tr("Unknown option for config command."));
     }
 
     switch (command().command) {
     case ConfigCommand::CfgNone:
-        if (args.isEmpty())
+        if (m_commandLine.isEmpty())
             throw ErrorInfo(Tr::tr("No parameters supplied."));
-        if (args.count() > 2)
+        if (m_commandLine.count() > 2)
             throw ErrorInfo(Tr::tr("Too many arguments."));
-        m_command.varNames << args.first();
-        if (args.count() == 1) {
+        m_command.varNames << m_commandLine.first();
+        if (m_commandLine.count() == 1) {
             setCommand(ConfigCommand::CfgGet);
         } else {
-            m_command.varValue = args.at(1);
+            m_command.varValue = m_commandLine.at(1);
             setCommand(ConfigCommand::CfgSet);
         }
         break;
     case ConfigCommand::CfgUnset:
-        if (args.isEmpty())
+        if (m_commandLine.isEmpty())
             throw ErrorInfo(Tr::tr("Need name of variable to unset."));
-        m_command.varNames = args;
+        m_command.varNames = m_commandLine;
         break;
     case ConfigCommand::CfgExport:
-        if (args.count() != 1)
+        if (m_commandLine.count() != 1)
             throw ErrorInfo(Tr::tr("Need name of file to which to export."));
-        m_command.fileName = args.first();
+        m_command.fileName = m_commandLine.first();
         break;
     case ConfigCommand::CfgImport:
-        if (args.count() != 1)
+        if (m_commandLine.count() != 1)
             throw ErrorInfo(Tr::tr("Need name of file from which to import."));
-        m_command.fileName = args.first();
+        m_command.fileName = m_commandLine.first();
         break;
     case ConfigCommand::CfgList:
-        m_command.varNames = args;
+        m_command.varNames = m_commandLine;
         break;
     default:
         break;
@@ -111,13 +114,22 @@ void ConfigCommandLineParser::setCommand(ConfigCommand::Command command)
 void ConfigCommandLineParser::printUsage() const
 {
     puts("Usage:\n"
-        "    qbs config <options>\n"
-        "    qbs config <key>\n"
-        "    qbs config <key> <value>"
+        "    qbs config [--settings-dir <settings directory] <options>\n"
+        "    qbs config [--settings-dir <settings directory] <key>\n"
+        "    qbs config [--settings-dir <settings directory] <key> <value>"
         "\n"
          "Options:\n"
          "    --list [<root> ...] list keys under key <root> or all keys\n"
          "    --unset <name>      remove key with given name\n"
          "    --import <file>     import settings from given file\n"
          "    --export <file>     export settings to given file\n");
+}
+
+void ConfigCommandLineParser::assignOptionArgument(const QString &option, QString &argument)
+{
+    if (m_commandLine.isEmpty())
+        throw ErrorInfo(Tr::tr("Option '%1' needs an argument.").arg(option));
+    argument = m_commandLine.takeFirst();
+    if (argument.isEmpty())
+        throw ErrorInfo(Tr::tr("Argument for option '%1' must not be empty.").arg(option));
 }

@@ -59,6 +59,7 @@ class ConsoleLogger : public qbs::Internal::Logger
 public:
     static ConsoleLogger &instance(qbs::Settings *settings = 0);
     ConsoleLogSink *logSink() { return &m_logSink; }
+    void setSettings(qbs::Settings *settings);
 
 private:
     ConsoleLogger(qbs::Settings *settings);

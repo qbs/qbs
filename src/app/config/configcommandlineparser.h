@@ -40,14 +40,18 @@ public:
 
     ConfigCommand command() const { return m_command; }
 
+    QString settingsDir() const { return m_settingsDir; }
     bool helpRequested() const { return m_helpRequested; }
     void printUsage() const;
 
 private:
+    void assignOptionArgument(const QString &option, QString &argument);
     void setCommand(ConfigCommand::Command command);
 
     ConfigCommand m_command;
     bool m_helpRequested;
+    QString m_settingsDir;
+    QStringList m_commandLine;
 };
 
 #endif // COMMANDLINEPARSER_H

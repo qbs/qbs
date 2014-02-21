@@ -39,6 +39,7 @@ static QString helpOptionShort() { return QLatin1String("-h"); }
 static QString helpOptionLong() { return QLatin1String("--help"); }
 static QString detectOption() { return QLatin1String("--detect"); }
 static QString typeOption() { return QLatin1String("--type"); }
+static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -50,20 +51,24 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_compilerPath.clear();
     m_toolchainType.clear();
     m_profileName.clear();
+    m_settingsDir.clear();
 
     if (m_commandLine.isEmpty())
         throwError(Tr::tr("No command-line arguments provided."));
 
-    const QString &arg = m_commandLine.first();
-    if (arg == helpOptionShort() || arg == helpOptionLong()) {
+    while (!m_commandLine.isEmpty()) {
+        const QString arg = m_commandLine.first();
+        if (!arg.startsWith(QLatin1String("--")))
+            break;
         m_commandLine.removeFirst();
-        m_helpRequested = true;
-    } else if (arg == detectOption()) {
-        m_autoDetectionMode = true;
-        m_commandLine.removeFirst();
-    } else if (arg == typeOption()) {
-        m_commandLine.removeFirst();
-        assignOptionArgument(typeOption(), m_toolchainType);
+        if (arg == helpOptionShort() || arg == helpOptionLong())
+            m_helpRequested = true;
+        else if (arg == detectOption())
+            m_autoDetectionMode = true;
+        else if (arg == typeOption())
+            assignOptionArgument(typeOption(), m_toolchainType);
+        else if (arg == settingsDirOption())
+            assignOptionArgument(settingsDirOption(), m_settingsDir);
     }
 
     if (m_helpRequested || m_autoDetectionMode) {
@@ -94,10 +99,13 @@ void CommandLineParser::throwError(const QString &message)
 
 QString CommandLineParser::usageString() const
 {
-    QString s = Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 %2\n").arg(m_command, detectOption());
-    s += Tr::tr("    %1 [%2 <toolchain type>] <compiler path> <profile name>\n")
-            .arg(m_command, typeOption());
+    QString s = Tr::tr("This tool creates qbs profiles from toolchains.\n");
+    s += Tr::tr("Usage:\n");
+    s += Tr::tr("    %1 [%2 <settings directory>] %3\n")
+            .arg(m_command, settingsDirOption(), detectOption());
+    s += Tr::tr("    %1 [%3 <settings directory>] [%2 <toolchain type>] "
+                "<compiler path> <profile name>\n")
+            .arg(m_command, typeOption(), settingsDirOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("The first form tries to auto-detect all known toolchains, looking them up "
                 "via the PATH environment variable.\n");

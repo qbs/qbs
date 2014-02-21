@@ -59,6 +59,7 @@ public:
     ForceOption *forceOption() const;
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
     LogTimeOption *logTimeOption() const;
+    SettingsDirOption *settingsDirOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

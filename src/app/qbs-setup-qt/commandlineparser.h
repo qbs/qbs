@@ -26,8 +26,8 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_SETUPQT_COMMANDLINEPARSER_H
-#define QBS_SETUPQT_COMMANDLINEPARSER_H
+#ifndef QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
+#define QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
 
 #include <QStringList>
 
@@ -41,6 +41,7 @@ public:
 
     QString qmakePath() const { return m_qmakePath; }
     QString profileName() const { return m_profileName; }
+    QString settingsDir() const { return m_settingsDir; }
 
     QString usageString() const;
 

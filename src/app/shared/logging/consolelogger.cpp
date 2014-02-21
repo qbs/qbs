@@ -94,8 +94,13 @@ ConsoleLogger &ConsoleLogger::instance(qbs::Settings *settings)
     return logger;
 }
 
-ConsoleLogger::ConsoleLogger(qbs::Settings *settings) : Logger(&m_logSink)
+void ConsoleLogger::setSettings(qbs::Settings *settings)
 {
     if (settings)
         m_logSink.setColoredOutputEnabled(qbs::Preferences(settings).useColoredOutput());
+}
+
+ConsoleLogger::ConsoleLogger(qbs::Settings *settings) : Logger(&m_logSink)
+{
+    setSettings(settings);
 }
