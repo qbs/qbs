@@ -57,7 +57,7 @@ private:
     QStringList findAllCommits(const QString &startCommit);
     QString findWorkingStartCommit(const QString &startCommit);
     void runGit(const QStringList &arguments, QString *output = 0);
-    bool runQbs(const QString &buildDir, QString *errorOutput = 0);
+    bool runQbs(const QString &buildDir, const QString &command, QString *errorOutput = 0);
     void removeDir(const QString &dir);
 
     static QString defaultBuildDir();

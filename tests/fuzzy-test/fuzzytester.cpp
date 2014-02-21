@@ -70,13 +70,19 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
             checkoutCommit(currentCommit);
             qDebug("Testing incremental build #%d (%s)", buildSequence.count() - 1,
                    qPrintable(currentCommit));
+
+            // Doing "resolve" and "build" separately introduces additional possibilities
+            // for errors, as information from change tracking has to be serialized correctly.
             QString qbsError;
-            if (!runQbs(defaultBuildDir(), &qbsError)) {
+            bool success = runQbs(defaultBuildDir(), QLatin1String("resolve"), &qbsError);
+            if (success)
+                success = runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError);
+            if (!success) {
                 // An error could be due to the current commit being faulty. Check that it is
                 // buildable on its own before reporting a qbs error.
                 const QString otherDir = "fuzzytest-verification-build";
                 removeDir(otherDir);
-                if (runQbs(otherDir)) {
+                if (runQbs(otherDir, QLatin1String("build"))) {
                     const QString buildSequenceString = buildSequence.join(QLatin1String(","));
                     throw TestError(QString::fromLocal8Bit("Found qbs bug with incremental build!\n"
                             "The error message was: '%1'\n"
@@ -108,7 +114,7 @@ QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)
         QString currentCommit = allCommits.at(i);
         checkoutCommit(currentCommit);
         removeDir(defaultBuildDir());
-        if (runQbs(defaultBuildDir(), &qbsError))
+        if (runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError))
             return currentCommit;
         qDebug("Commit %s is not buildable.", qPrintable(currentCommit));
     }
@@ -128,12 +134,12 @@ void FuzzyTester::runGit(const QStringList &arguments, QString *output)
         *output = QString::fromLocal8Bit(git.readAllStandardOutput()).trimmed();
 }
 
-bool FuzzyTester::runQbs(const QString &buildDir, QString *errorOutput)
+bool FuzzyTester::runQbs(const QString &buildDir, const QString &command, QString *errorOutput)
 {
     if (errorOutput)
         errorOutput->clear();
     QProcess qbs;
-    qbs.start("qbs", QStringList() << "-qq" << "-d" << buildDir << ("profile:" + m_profile));
+    qbs.start("qbs", QStringList(command) << "-qq" << "-d" << buildDir << ("profile:" + m_profile));
     if (!qbs.waitForStarted())
         throw TestError("Failed to start qbs. It is expected to be in the PATH.");
     if (!qbs.waitForFinished(-1) || qbs.exitCode() != 0) {
