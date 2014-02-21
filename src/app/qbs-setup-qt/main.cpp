@@ -28,53 +28,37 @@
 ****************************************************************************/
 #include "setupqt.h"
 
-#include "../shared/logging/consolelogger.h"
 #include "../shared/qbssettings.h"
+#include "commandlineparser.h"
 
 #include <qtprofilesetup.h>
 #include <logging/translator.h>
 
 #include <QCoreApplication>
 #include <QFileInfo>
-#include <QtDebug>
 #include <QStringList>
+
+#include <iostream>
 
 using namespace qbs;
 using Internal::Tr;
 
-static void printWrongQMakePath(const QString &qmakePath)
-{
-    qbsError() << QCoreApplication::translate("SetupQt", "Invalid path to qmake: %1").arg(qmakePath);
-}
-
-static void printUsage(const QString &appName)
-{
-    qbsInfo() << Tr::tr("Usage: %1 --detect | <qmake path> [<profile name>]").arg(appName);
-    qbsInfo() << Tr::tr("Use --detect to use all qmake executables found "
-                        "via the PATH environment variable.");
-}
-
 int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
-    SettingsPtr settings = qbsSettings();
-    ConsoleLogger::instance(settings.data());
 
-    QStringList args = application.arguments();
-    const QString appName = QFileInfo(args.takeFirst()).fileName();
     try {
-        if (args.isEmpty()) {
-            printUsage(appName);
-            return EXIT_FAILURE;
-        }
-        if (args.count() == 1 && (args.first() == QLatin1String("--help")
-                                  || args.first() == QLatin1String("-h"))) {
-            qbsInfo() << Tr::tr("This tool creates qbs profiles from Qt versions.");
-            printUsage(appName);
+        CommandLineParser clParser;
+        clParser.parse(application.arguments());
+
+        if (clParser.helpRequested()) {
+            std::cout << qPrintable(clParser.usageString()) << std::endl;
             return EXIT_SUCCESS;
         }
 
-        if (args.count() == 1 && args.first() == QLatin1String("--detect")) {
+        SettingsPtr settings = qbsSettings();
+
+        if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings
             QList<QtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
             foreach (const QtEnvironment &qtEnvironment, qtEnvironments) {
@@ -89,36 +73,20 @@ int main(int argc, char *argv[])
             }
             return EXIT_SUCCESS;
         }
-        if (args.count() == 1) {
-            QString qmakePath = args.first();
-            if (!SetupQt::isQMakePathValid(qmakePath)) {
-                printWrongQMakePath(qmakePath);
-                return 1;
-            }
-            QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(qmakePath);
-            QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
-            profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
-            SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
-            return EXIT_SUCCESS;
+
+        if (!SetupQt::isQMakePathValid(clParser.qmakePath())) {
+            std::cerr << qPrintable(Tr::tr("'%1' does not seem to be a qmake executable.")
+                                    .arg(clParser.qmakePath())) << std::endl;
+            return EXIT_FAILURE;
         }
-        if (args.count() == 2) {
-            QString qmakePath = args.first();
-            if (!SetupQt::isQMakePathValid(qmakePath)) {
-                printWrongQMakePath(qmakePath);
-                return 1;
-            }
-            QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(qmakePath);
-            QString profileName = args.at(1);
-            profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
-            SetupQt::saveToQbsSettings(profileName , qtEnvironment, settings.data());
-            return EXIT_SUCCESS;
-        }
-        printUsage(appName);
-        return EXIT_FAILURE;
+
+        QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(clParser.qmakePath());
+        QString profileName = clParser.profileName();
+        profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
+        SetupQt::saveToQbsSettings(profileName, qtEnvironment, settings.data());
+        return EXIT_SUCCESS;
     } catch (const ErrorInfo &e) {
-        qbsError() << Tr::tr("%1: %2").arg(appName, e.toString());
+        std::cerr << qPrintable(e.toString()) << std::endl;
         return EXIT_FAILURE;
     }
-
-    return 0;
 }

@@ -26,36 +26,28 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "mainwindow.h"
+#ifndef QBS_CONFIGUI_COMMANDLINEPARSER_H
+#define QBS_CONFIGUI_COMMANDLINEPARSER_H
 
-#include "commandlineparser.h"
+#include <QStringList>
 
-#include <logging/translator.h>
-#include <tools/error.h>
-
-#include <QApplication>
-#include <cstdlib>
-#include <iostream>
-
-using qbs::Internal::Tr;
-
-int main(int argc, char *argv[])
+class CommandLineParser
 {
-    QApplication app(argc, argv);
+public:
+    void parse(const QStringList &commandLine);
 
-    CommandLineParser clParser;
-    try {
-        clParser.parse(app.arguments());
-        if (clParser.helpRequested()) {
-            std::cout << qPrintable(clParser.usageString());
-            return EXIT_SUCCESS;
-        }
-    } catch (const qbs::ErrorInfo &error) {
-        std::cerr << qPrintable(error.toString());
-        return EXIT_FAILURE;
-    }
+    bool helpRequested() const { return m_helpRequested; }
 
-    MainWindow mw;
-    mw.show();
-    return app.exec();
-}
+    QString usageString() const;
+
+private:
+    void throwError(const QString &message);
+    void assignOptionArgument(const QString &option, QString &argument);
+    void complainAboutExtraArguments();
+
+    bool m_helpRequested;
+    QStringList m_commandLine;
+    QString m_command;
+};
+
+#endif // Include guard
