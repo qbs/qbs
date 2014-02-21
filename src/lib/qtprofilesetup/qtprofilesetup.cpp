@@ -242,7 +242,7 @@ static void createModules(Profile &profile, Settings *settings,
             foreach (const QByteArray &line, priFileContents.split('\n')) {
                 const QByteArray simplifiedLine = line.simplified();
                 const QList<QByteArray> parts = simplifiedLine.split('=');
-                if (parts.count() != 2)
+                if (parts.count() != 2 || parts.at(1).isEmpty())
                     continue;
                 const QByteArray key = parts.first().simplified();
                 const QByteArray value = parts.last().simplified();
