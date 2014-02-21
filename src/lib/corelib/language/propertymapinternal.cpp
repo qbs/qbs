@@ -28,6 +28,8 @@
 ****************************************************************************/
 
 #include "propertymapinternal.h"
+
+#include <tools/persistence.h>
 #include <tools/propertyfinder.h>
 #include <tools/scripttools.h>
 

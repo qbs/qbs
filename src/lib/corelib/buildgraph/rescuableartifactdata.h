@@ -33,15 +33,15 @@
 #include "forward_decls.h"
 
 #include <tools/filetime.h>
-#include <tools/persistence.h>
 
 #include <QHash>
 #include <QList>
 
 namespace qbs {
 namespace Internal {
+class PersistentPool;
 
-class RescuableArtifactData : public PersistentObject
+class RescuableArtifactData
 {
 public:
     ~RescuableArtifactData();

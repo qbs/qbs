@@ -69,6 +69,7 @@ public:
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
     ArtifactSetByRule artifactsWithChangedInputsPerRule;
 
+private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 };

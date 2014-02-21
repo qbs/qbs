@@ -33,6 +33,7 @@
 #include "forward_decls.h"
 
 #include <tools/codelocation.h>
+#include <tools/persistentobject.h>
 
 #include <QProcessEnvironment>
 #include <QStringList>
@@ -42,7 +43,7 @@
 namespace qbs {
 namespace Internal {
 
-class AbstractCommand
+class AbstractCommand : public PersistentObject
 {
 public:
     virtual ~AbstractCommand();
@@ -52,7 +53,6 @@ public:
         JavaScriptCommandType
     };
 
-    static AbstractCommandPtr createByType(CommandType commandType);
     static QString defaultDescription() { return QString(); }
     static QString defaultHighLight() { return QString(); }
     static bool defaultIsSilent() { return false; }
@@ -60,8 +60,6 @@ public:
     virtual CommandType type() const = 0;
     virtual bool equals(const AbstractCommand *other) const;
     virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
-    virtual void load(QDataStream &s);
-    virtual void store(QDataStream &s);
 
     const QString description() const { return m_description; }
     const QString highlight() const { return m_highlight; }
@@ -71,6 +69,8 @@ public:
 protected:
     AbstractCommand();
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 private:
     QString m_description;
     QString m_highlight;
@@ -87,9 +87,6 @@ public:
     CommandType type() const { return ProcessCommandType; }
     bool equals(const AbstractCommand *otherAbstractCommand) const;
     void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
-    void load(QDataStream &s);
-    void store(QDataStream &s);
-
     const QString program() const { return m_program; }
     const QStringList arguments() const { return m_arguments; }
     const QString workingDir() const { return m_workingDir; }
@@ -102,6 +99,9 @@ public:
 
 private:
     ProcessCommand();
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
 
     void getEnvironmentFromList(const QStringList &envList);
 
@@ -125,8 +125,6 @@ public:
     virtual CommandType type() const { return JavaScriptCommandType; }
     bool equals(const AbstractCommand *otherAbstractCommand) const;
     void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
-    void load(QDataStream &s);
-    void store(QDataStream &s);
 
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
@@ -136,12 +134,15 @@ public:
 private:
     JavaScriptCommand();
 
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+
     QString m_sourceCode;
     QVariantMap m_properties;
 };
 
-QList<AbstractCommandPtr> loadCommandList(QDataStream &s);
-void storeCommandList(const QList<AbstractCommandPtr> &commands, QDataStream &s);
+QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool);
+void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool);
 
 bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<AbstractCommandPtr> &l2);
 

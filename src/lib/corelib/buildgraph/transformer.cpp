@@ -227,7 +227,7 @@ void Transformer::load(PersistentPool &pool)
         }
         propertiesRequestedFromArtifactInPrepareScript.insert(artifactName, list);
     }
-    commands = loadCommandList(pool.stream());
+    commands = loadCommandList(pool);
 }
 
 static void storePropertyList(PersistentPool &pool, const PropertyList &list)
@@ -259,7 +259,7 @@ void Transformer::store(PersistentPool &pool) const
             pool.stream() << p.value; // kind is always PropertyInModule
         }
     }
-    storeCommandList(commands, pool.stream());
+    storeCommandList(commands, pool);
 }
 
 } // namespace Internal

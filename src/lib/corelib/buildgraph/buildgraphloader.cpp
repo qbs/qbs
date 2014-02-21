@@ -41,6 +41,7 @@
 #include <language/language.h>
 #include <language/loader.h>
 #include <logging/translator.h>
+#include <tools/persistence.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
 #include <tools/setupprojectparameters.h>

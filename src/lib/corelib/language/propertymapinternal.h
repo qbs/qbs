@@ -31,7 +31,7 @@
 #define QBS_PROPERTYMAPINTERNAL_H
 
 #include "forward_decls.h"
-#include <tools/persistence.h>
+#include <tools/persistentobject.h>
 #include <QVariantMap>
 
 namespace qbs {

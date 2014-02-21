@@ -38,6 +38,7 @@
 #include "transformer.h"
 #include <language/language.h>
 #include <logging/logger.h>
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {

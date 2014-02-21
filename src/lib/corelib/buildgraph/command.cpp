@@ -29,8 +29,9 @@
 
 #include "command.h"
 #include <logging/translator.h>
-#include <tools/qbsassert.h>
 #include <tools/hostosinfo.h>
+#include <tools/persistence.h>
+#include <tools/qbsassert.h>
 
 #include <QScriptEngine>
 #include <QScriptValueIterator>
@@ -50,18 +51,6 @@ AbstractCommand::~AbstractCommand()
 {
 }
 
-AbstractCommandPtr AbstractCommand::createByType(AbstractCommand::CommandType commandType)
-{
-    switch (commandType) {
-    case AbstractCommand::ProcessCommandType:
-        return ProcessCommand::create();
-    case AbstractCommand::JavaScriptCommandType:
-        return JavaScriptCommand::create();
-    }
-    qFatal("%s: Invalid command type %d", Q_FUNC_INFO, commandType);
-    return AbstractCommandPtr();
-}
-
 bool AbstractCommand::equals(const AbstractCommand *other) const
 {
     return m_description == other->m_description && m_highlight == other->m_highlight
@@ -76,14 +65,20 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
     m_codeLocation = codeLocation;
 }
 
-void AbstractCommand::load(QDataStream &s)
+void AbstractCommand::load(PersistentPool &pool)
 {
-    s >> m_description >> m_highlight >> m_silent >> m_codeLocation;
+    m_description = pool.idLoadString();
+    m_highlight = pool.idLoadString();
+    pool.stream() >> m_silent;
+    pool.stream() >> m_codeLocation;
 }
 
-void AbstractCommand::store(QDataStream &s)
+void AbstractCommand::store(PersistentPool &pool) const
 {
-    s << m_description << m_highlight << m_silent << m_codeLocation;
+    pool.storeString(m_description);
+    pool.storeString(m_highlight);
+    pool.stream() << m_silent;
+    pool.stream() << m_codeLocation;
 }
 
 static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)
@@ -197,34 +192,31 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     getEnvironmentFromList(envList);
 }
 
-void ProcessCommand::load(QDataStream &s)
+void ProcessCommand::load(PersistentPool &pool)
 {
-    AbstractCommand::load(s);
-    QStringList envList;
-    s   >> m_program
-        >> m_arguments
-        >> envList
-        >> m_workingDir
-        >> m_maxExitCode
-        >> m_stdoutFilterFunction
-        >> m_stderrFilterFunction
-        >> m_responseFileThreshold
-        >> m_responseFileUsagePrefix;
+    AbstractCommand::load(pool);
+    m_program = pool.idLoadString();
+    m_arguments = pool.idLoadStringList();
+    const QStringList envList = pool.idLoadStringList();
+    m_workingDir = pool.idLoadString();
+    m_stdoutFilterFunction = pool.idLoadString();
+    m_stderrFilterFunction = pool.idLoadString();
+    m_responseFileUsagePrefix = pool.idLoadString();
+    pool.stream() >> m_maxExitCode >> m_responseFileThreshold;
     getEnvironmentFromList(envList);
 }
 
-void ProcessCommand::store(QDataStream &s)
+void ProcessCommand::store(PersistentPool &pool) const
 {
-    AbstractCommand::store(s);
-    s   << m_program
-        << m_arguments
-        << m_environment.toStringList()
-        << m_workingDir
-        << m_maxExitCode
-        << m_stdoutFilterFunction
-        << m_stderrFilterFunction
-        << m_responseFileThreshold
-        << m_responseFileUsagePrefix;
+    AbstractCommand::store(pool);
+    pool.storeString(m_program);
+    pool.storeStringList(m_arguments);
+    pool.storeStringList(m_environment.toStringList());
+    pool.storeString(m_workingDir);
+    pool.storeString(m_stdoutFilterFunction);
+    pool.storeString(m_stderrFilterFunction);
+    pool.storeString(m_responseFileUsagePrefix);
+    pool.stream() << m_maxExitCode << m_responseFileThreshold;
 }
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
@@ -287,43 +279,51 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
     }
 }
 
-void JavaScriptCommand::load(QDataStream &s)
+void JavaScriptCommand::load(PersistentPool &pool)
 {
-    AbstractCommand::load(s);
-    s   >> m_sourceCode
-        >> m_properties;
+    AbstractCommand::load(pool);
+    m_sourceCode = pool.idLoadString();
+    pool.stream() >> m_properties;
 }
 
-void JavaScriptCommand::store(QDataStream &s)
+void JavaScriptCommand::store(PersistentPool &pool) const
 {
-    AbstractCommand::store(s);
-    s   << m_sourceCode
-        << m_properties;
+    AbstractCommand::store(pool);
+    pool.storeString(m_sourceCode);
+    pool.stream() << m_properties;
 }
 
-QList<AbstractCommandPtr> loadCommandList(QDataStream &s)
+QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
 {
     QList<AbstractCommandPtr> commands;
     int count;
-    s >> count;
+    pool.stream() >> count;
     commands.reserve(count);
     while (--count >= 0) {
         int cmdType;
-        s >> cmdType;
-        const AbstractCommandPtr cmd
-                = AbstractCommand::createByType(static_cast<AbstractCommand::CommandType>(cmdType));
-        cmd->load(s);
+        pool.stream() >> cmdType;
+        AbstractCommandPtr cmd;
+        switch (cmdType) {
+        case AbstractCommand::JavaScriptCommandType:
+            cmd = pool.idLoadS<JavaScriptCommand>();
+            break;
+        case AbstractCommand::ProcessCommandType:
+            cmd = pool.idLoadS<ProcessCommand>();
+            break;
+        default:
+            QBS_CHECK(false);
+        }
         commands += cmd;
     }
     return commands;
 }
 
-void storeCommandList(const QList<AbstractCommandPtr> &commands, QDataStream &s)
+void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool)
 {
-    s << commands.count();
+    pool.stream() << commands.count();
     foreach (const AbstractCommandPtr &cmd, commands) {
-        s << int(cmd->type());
-        cmd->store(s);
+        pool.stream() << int(cmd->type());
+        pool.store(cmd);
     }
 }
 

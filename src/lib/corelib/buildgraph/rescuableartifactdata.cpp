@@ -48,11 +48,13 @@ void RescuableArtifactData::load(PersistentPool &pool)
     pool.stream() >> c;
     for (int i = 0; i < c; ++i) {
         ChildData cd;
-        pool.stream() >> cd.productName >> cd.childFilePath >> cd.addedByScanner;
+        cd.productName = pool.idLoadString();
+        cd.childFilePath = pool.idLoadString();
+        pool.stream() >> cd.addedByScanner;
         children << cd;
     }
 
-    commands = loadCommandList(pool.stream());
+    commands = loadCommandList(pool);
 }
 
 void RescuableArtifactData::store(PersistentPool &pool) const
@@ -60,10 +62,13 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     pool.stream() << timeStamp;
 
     pool.stream() << children.count();
-    foreach (const ChildData &cd, children)
-        pool.stream() << cd.productName << cd.childFilePath << cd.addedByScanner;
+    foreach (const ChildData &cd, children) {
+        pool.storeString(cd.productName);
+        pool.storeString(cd.childFilePath);
+        pool.stream() << cd.addedByScanner;
+    }
 
-    storeCommandList(commands, pool.stream());
+    storeCommandList(commands, pool);
 }
 
 } // namespace Internal
