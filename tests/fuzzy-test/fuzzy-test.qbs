@@ -1,7 +1,7 @@
 import qbs
 
 CppApplication {
-    name: "qbs-fuzzy-test"
+    name: "qbs_fuzzy-test"
     destinationDirectory: "bin"
     Depends { name: "Qt.core" }
     condition: Qt.core.versionMajor >= 5 // We use QDir::removeRecursively()

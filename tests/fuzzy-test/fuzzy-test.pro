@@ -1,4 +1,4 @@
-TARGET = qbs-fuzzy-test
+TARGET = qbs_fuzzy-test
 DESTDIR = ../../bin
 CONFIG += console
 SOURCES = main.cpp \
