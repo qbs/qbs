@@ -163,7 +163,8 @@ bool FileInfo::isPattern(const QStringRef &str)
  */
 QString FileInfo::resolvePath(const QString &base, const QString &rel)
 {
-    QBS_ASSERT(isAbsolute(base), return QString());
+    QBS_ASSERT(isAbsolute(base), qDebug("base: %s, rel: %s", qPrintable(base), qPrintable(rel));
+            return QString());
     if (isAbsolute(rel))
         return rel;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))
