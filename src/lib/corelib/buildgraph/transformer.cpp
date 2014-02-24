@@ -52,14 +52,14 @@ Transformer::~Transformer()
 
 QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
 {
-    QScriptValue artifactConfig = scriptEngine->newObject();
-    ModuleProperties::init(artifactConfig, artifact);
-    artifactConfig.setProperty(QLatin1String("fileName"), artifact->filePath());
+    QScriptValue obj = scriptEngine->newObject();
+    ModuleProperties::init(obj, artifact);
+    obj.setProperty(QLatin1String("fileName"), artifact->filePath());
     const QStringList fileTags = artifact->fileTags.toStringList();
-    artifactConfig.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
+    obj.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
-        artifactConfig.setProperty(QLatin1String("moduleName"), defaultModuleName);
-    return artifactConfig;
+        obj.setProperty(QLatin1String("moduleName"), defaultModuleName);
+    return obj;
 }
 
 QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const ArtifactSet &artifacts, const QString &defaultModuleName)
