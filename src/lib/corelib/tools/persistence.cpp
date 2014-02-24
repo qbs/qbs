@@ -104,9 +104,25 @@ void PersistentPool::setupWriteStream(const QString &filePath)
     }
 
     m_stream.setDevice(file.take());
-    m_stream << QByteArray(QBS_PERSISTENCE_MAGIC) << m_headData.projectConfig;
+    m_stream << QByteArray(qstrlen(QBS_PERSISTENCE_MAGIC), 0) << m_headData.projectConfig;
     m_lastStoredObjectId = 0;
     m_lastStoredStringId = 0;
+}
+
+void PersistentPool::finalizeWriteStream()
+{
+    if (m_stream.status() != QDataStream::Ok)
+        throw ErrorInfo(Tr::tr("Failure serializing build graph."));
+    m_stream.device()->seek(0);
+    m_stream << QByteArray(QBS_PERSISTENCE_MAGIC);
+    if (m_stream.status() != QDataStream::Ok)
+        throw ErrorInfo(Tr::tr("Failure serializing build graph."));
+    QFile * const file = static_cast<QFile *>(m_stream.device());
+    if (!file->flush()) {
+        file->close();
+        file->remove();
+        throw ErrorInfo(Tr::tr("Failure serializing build graph: %1").arg(file->errorString()));
+    }
 }
 
 void PersistentPool::closeStream()

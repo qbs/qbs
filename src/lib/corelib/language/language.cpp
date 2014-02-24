@@ -984,6 +984,7 @@ void TopLevelProject::store(const Logger &logger) const
     pool.setHeadData(headData);
     pool.setupWriteStream(fileName);
     store(pool);
+    pool.finalizeWriteStream();
     buildData->isDirty = false;
 }
 
