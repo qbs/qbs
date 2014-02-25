@@ -46,8 +46,8 @@ public:
     int jobs() const;
     QString shell() const;
     QString defaultBuildDirectory() const;
-    QStringList searchPaths(const QString &qbsRootPath = QString()) const;
-    QStringList pluginPaths(const QString &qbsRootPath = QString()) const;
+    QStringList searchPaths(const QString &baseDir = QString()) const;
+    QStringList pluginPaths(const QString &baseDir = QString()) const;
 
 private:
     QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;

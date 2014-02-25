@@ -143,7 +143,7 @@ void CommandLineFrontend::start()
                 profileName = m_settings->defaultProfile();
             const Preferences prefs(m_settings, profileName);
             params.setSearchPaths(prefs.searchPaths(qbsRootPath));
-            params.setPluginPaths(prefs.pluginPaths(qbsRootPath));
+            params.setPluginPaths(prefs.pluginPaths(qbsRootPath + QLatin1String("/lib")));
             params.setBuildRoot(buildDirectory(profileName));
             params.setBuildConfiguration(baseConfig);
             params.setOverriddenValues(userConfig);

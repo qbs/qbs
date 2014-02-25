@@ -507,7 +507,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
     const QString profileName = QLatin1String("qbs_autotests");
     const qbs::Preferences prefs(settings.data(), profileName);
     setupParams.setSearchPaths(prefs.searchPaths(qbsRootPath));
-    setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath));
+    setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath + QLatin1String("/lib")));
     QVariantMap buildConfig;
     buildConfig.insert(QLatin1String("qbs.profile"), profileName);
     buildConfig.insert(QLatin1String("qbs.buildVariant"), QLatin1String("debug"));

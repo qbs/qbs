@@ -15,6 +15,7 @@ Project {
             return ["@loader_path/../lib"]
     }
     property string resourcesInstallDir: ""
+    property string pluginsInstallDir: "lib"
 
     references: [
         "doc/doc.qbs",

@@ -84,12 +84,12 @@ QString Preferences::defaultBuildDirectory() const
 
 /*!
  * \brief Returns the list of paths where qbs looks for module definitions and such.
- * If there is no such setting, \c qbsRootPath will be used to look up a fallback location.
+ * If there is no such setting, they will be looked up at \c{baseDir}/share/qbs.
  */
-QStringList Preferences::searchPaths(const QString &qbsRootPath) const
+QStringList Preferences::searchPaths(const QString &baseDir) const
 {
     const QStringList searchPaths = pathList(QLatin1String("qbsSearchPaths"),
-                                             qbsRootPath + QLatin1String("/share/qbs"));
+                                             baseDir + QLatin1String("/share/qbs"));
 
     // TODO: Remove in 1.2.
     const QStringList deprecatedSearchPaths = getPreference(QLatin1String("qbsPath")).toString()
@@ -103,11 +103,11 @@ QStringList Preferences::searchPaths(const QString &qbsRootPath) const
 
 /*!
  * \brief Returns the list of paths where qbs looks for plugins.
- * If there is no such setting, \c qbsRootPath will be used to look up a fallback location.
+ * If there is no such setting, they will be looked up at \c{baseDir}/qbs/plugins.
  */
-QStringList Preferences::pluginPaths(const QString &qbsRootPath) const
+QStringList Preferences::pluginPaths(const QString &baseDir) const
 {
-    return pathList(QLatin1String("pluginsPath"), qbsRootPath + QLatin1String("/lib/qbs/plugins"));
+    return pathList(QLatin1String("pluginsPath"), baseDir + QLatin1String("/qbs/plugins"));
 }
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const
