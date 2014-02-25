@@ -227,8 +227,8 @@ Module {
         }
         prepare: {
             var cmd = new Command(Moc.fullPath(product),
-                                  Moc.args(product, input, output.fileName));
-            cmd.description = 'moc ' + FileInfo.fileName(input.fileName);
+                                  Moc.args(product, input, output.filePath));
+            cmd.description = 'moc ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'codegen';
             return cmd;
         }
@@ -244,10 +244,10 @@ Module {
         }
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/rcc',
-                                  [input.fileName, '-name',
-                                   FileInfo.completeBaseName(input.fileName),
-                                   '-o', output.fileName]);
-            cmd.description = 'rcc ' + FileInfo.fileName(input.fileName);
+                                  [input.filePath, '-name',
+                                   FileInfo.completeBaseName(input.filePath),
+                                   '-o', output.filePath]);
+            cmd.description = 'rcc ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'codegen';
             return cmd;
         }
@@ -265,8 +265,8 @@ Module {
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
                                   + ModUtils.moduleProperty(product, "lreleaseName"),
-                                  ['-silent', input.fileName, '-qm', output.fileName]);
-            cmd.description = 'lrelease ' + FileInfo.fileName(input.fileName);
+                                  ['-silent', input.filePath, '-qm', output.filePath]);
+            cmd.description = 'lrelease ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'filegen';
             return cmd;
         }
@@ -288,8 +288,8 @@ Module {
         }
 
         prepare: {
-            var outputDir = outputs["qdoc-html"][0].fileName;
-            var args = [input.fileName];
+            var outputDir = outputs["qdoc-html"][0].filePath;
+            var args = [input.filePath];
             var qtVersion = ModUtils.moduleProperty(product, "versionMajor");
             if (qtVersion >= 5) {
                 args.push("-outputdir");
@@ -297,7 +297,7 @@ Module {
             }
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
                                   + ModUtils.moduleProperty(product, "qdocName"), args);
-            cmd.description = 'qdoc ' + FileInfo.fileName(input.fileName);
+            cmd.description = 'qdoc ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'filegen';
             cmd.environment = ModUtils.moduleProperty(product, "qdocEnvironment");
             cmd.environment.push("OUTDIR=" + outputDir); // Qt 4 replacement for -outputdir
@@ -315,13 +315,13 @@ Module {
         }
 
         prepare: {
-            var args = [input.fileName];
+            var args = [input.filePath];
             args = args.concat(ModUtils.moduleProperty(product, "helpGeneratorArgs"));
             args.push("-o");
-            args.push(output.fileName);
+            args.push(output.filePath);
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + "/qhelpgenerator",
                                   args);
-            cmd.description = 'qhelpgenerator ' + FileInfo.fileName(input.fileName);
+            cmd.description = 'qhelpgenerator ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'filegen';
             return cmd;
         }

@@ -82,7 +82,7 @@ function readFlexOptions(filePath)
         }
     }
 
-    var tf = new TextFile(input.fileName);
+    var tf = new TextFile(input.filePath);
     var line;
     var optrex = /^%option\s+(.*$)/;
     var res;

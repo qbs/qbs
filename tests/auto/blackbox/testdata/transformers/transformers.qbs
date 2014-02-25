@@ -23,8 +23,8 @@ Project {
                 cmd.description = "generating foo.txt";
                 cmd.highlight = "linker";
                 cmd.sourceCode = function () {
-                    File.remove(output.fileName);
-                    var f = new TextFile(output.fileName, TextFile.WriteOnly);
+                    File.remove(output.filePath);
+                    var f = new TextFile(output.filePath, TextFile.WriteOnly);
                     f.write("Dear Sir/Madam,\n\n");
                     f.write("this is a generated file.\n\n\n");
                     f.write("Best Regards and Mellow Greetings,\nYour Build Tool.\n");
@@ -45,7 +45,7 @@ Project {
                 cmd.description = "generating foo.xml";
                 cmd.highlight = "linker";
                 cmd.sourceCode = function () {
-                    File.remove(output.fileName);
+                    File.remove(output.filePath);
                     var doc = new XmlDomDocument();
                     var root = doc.createElement("root");
                     doc.appendChild(root);
@@ -53,7 +53,7 @@ Project {
                     var tag = doc.createElement("Greeting");
                     root.appendChild(tag);
                     tag.appendChild(doc.createTextNode("text node"));
-                    doc.save(output.fileName);
+                    doc.save(output.filePath);
                 }
                 return cmd;
             }
@@ -69,10 +69,10 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "generating bar.txt";
                 cmd.highlight = "linker";
-                cmd.inputFileName = input.fileName;
+                cmd.inputFileName = input.filePath;
                 cmd.sourceCode = function() {
-                    File.remove(output.fileName);
-                    var f = new TextFile(output.fileName, TextFile.WriteOnly);
+                    File.remove(output.filePath);
+                    var f = new TextFile(output.filePath, TextFile.WriteOnly);
                     f.write("Dear Sir/Madam,\n\n");
                     f.write("this file was generated from " + inputFileName + ".\n\n\n");
                     f.write("Best Regards and Mellow Greetings,\nYour Build Tool.\n");

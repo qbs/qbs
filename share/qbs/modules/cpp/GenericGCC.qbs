@@ -102,7 +102,7 @@ CppModule {
                 for (var i in inputs.dynamiclibrary_copy) {
                     var lib = inputs.dynamiclibrary_copy[i]
                     var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
-                    var libsToAdd = [lib.fileName].concat(impliedLibs);
+                    var libsToAdd = [lib.filePath].concat(impliedLibs);
                     result = result.concat(libsToAdd);
                 }
                 result = Gcc.concatLibs([], result);
@@ -112,7 +112,7 @@ CppModule {
 
         prepare: {
             // Actual linker command.
-            var libFilePath = outputs["dynamiclibrary"][0].fileName;
+            var libFilePath = outputs["dynamiclibrary"][0].filePath;
             var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var commands = [];
@@ -136,7 +136,7 @@ CppModule {
             for (i in linkerFlags)
                 args.push(linkerFlags[i])
             for (i in inputs.obj)
-                args.push(inputs.obj[i].fileName);
+                args.push(inputs.obj[i].filePath);
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot) {
                 if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
@@ -159,8 +159,8 @@ CppModule {
             cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                var sourceFilePath = outputs.dynamiclibrary[0].fileName;
-                var targetFilePath = outputs.dynamiclibrary_copy[0].fileName;
+                var sourceFilePath = outputs.dynamiclibrary[0].filePath;
+                var targetFilePath = outputs.dynamiclibrary_copy[0].filePath;
                 if (!File.exists(targetFilePath)) {
                     File.copy(sourceFilePath, targetFilePath);
                     return;
@@ -208,10 +208,10 @@ CppModule {
                 var symlinkCount = links.length;
                 for (var i = 0; i < symlinkCount; ++i) {
                     cmd = new Command("ln", ["-sf", FileInfo.fileName(libFilePath),
-                                                    links[i].fileName]);
+                                                    links[i].filePath]);
                     cmd.highlight = "filegen";
                     cmd.description = "creating symbolic link '"
-                            + FileInfo.fileName(links[i].fileName) + "'";
+                            + FileInfo.fileName(links[i].filePath) + "'";
                     cmd.workingDirectory = FileInfo.path(libFilePath);
                     commands.push(cmd);
                 }
@@ -233,7 +233,7 @@ CppModule {
                 var result = []
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
-                    result.push(lib.fileName)
+                    result.push(lib.filePath)
                     var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
                     result = Gcc.concatLibs(result, impliedLibs);
                 }
@@ -242,17 +242,17 @@ CppModule {
             cpp.dynamicLibraries: {
                 var result = []
                 for (var i in inputs.dynamiclibrary)
-                    result.push(inputs.dynamiclibrary[i].fileName);
+                    result.push(inputs.dynamiclibrary[i].filePath);
                 return result
             }
         }
 
         prepare: {
-            var args = ['rcs', output.fileName];
+            var args = ['rcs', output.filePath];
             for (var i in inputs.obj)
-                args.push(inputs.obj[i].fileName);
+                args.push(inputs.obj[i].filePath);
             var cmd = new Command(ModUtils.moduleProperty(product, "archiverPath"), args);
-            cmd.description = 'creating ' + FileInfo.fileName(output.fileName);
+            cmd.description = 'creating ' + FileInfo.fileName(output.filePath);
             cmd.highlight = 'linker'
             cmd.responseFileUsagePrefix = '@';
             return cmd;
@@ -282,7 +282,7 @@ CppModule {
             var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
             var args = Gcc.configFlags(product);
             for (var i in inputs.obj)
-                args.push(inputs.obj[i].fileName)
+                args.push(inputs.obj[i].filePath)
             var sysroot = ModUtils.moduleProperty(product, "sysroot")
             if (sysroot) {
                 if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
@@ -318,16 +318,16 @@ CppModule {
                 }
             }
             args.push('-o');
-            args.push(output.fileName);
+            args.push(output.filePath);
 
             if (inputs.infoplist) {
-                args = args.concat(["-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].fileName]);
+                args = args.concat(["-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath]);
             }
 
             args = args.concat(Gcc.linkerFlags(product, inputs));
             args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-            cmd.description = 'linking ' + FileInfo.fileName(output.fileName);
+            cmd.description = 'linking ' + FileInfo.fileName(output.filePath);
             cmd.highlight = 'linker'
             cmd.responseFileUsagePrefix = '@';
             return cmd;

@@ -74,12 +74,12 @@
             for (i in defines)
                 args.push('-D' + defines[i]);
             args.push('-c');
-            args.push(input.fileName);
+            args.push(input.filePath);
             args.push('-o');
-            args.push(output.fileName);
+            args.push(output.filePath);
             var compilerPath = ModUtils.moduleProperty(product, 'compilerPath');
             var cmd = new Command(compilerPath, args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
+            cmd.description = 'compiling ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'compiler';
             return cmd;
         }

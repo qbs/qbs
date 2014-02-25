@@ -57,8 +57,8 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     }
 
     var objOutput = outputs.obj ? outputs.obj[0] : undefined
-    args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.fileName))
-    args.push(FileInfo.toWindowsSeparators(input.fileName))
+    args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.filePath))
+    args.push(FileInfo.toWindowsSeparators(input.filePath))
 
     var prefixHeaders = ModUtils.moduleProperty(product, "prefixHeaders");
     for (i in prefixHeaders)
@@ -76,9 +76,9 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         if (pchOutput) {
             // create PCH
             args.push("/Yc");
-            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.fileName));
-            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.fileName));
-            args.push(FileInfo.toWindowsSeparators(input.fileName));
+            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
+            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
+            args.push(FileInfo.toWindowsSeparators(input.filePath));
         } else {
             // use PCH
             var pchHeaderName = FileInfo.toWindowsSeparators(pch);
@@ -103,7 +103,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args = wrapperArgs.concat(args);
     }
     var cmd = new Command(compilerPath, args)
-    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName);
+    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.filePath);
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";
@@ -112,7 +112,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.stdoutFilterFunction = "function(output) {";
     cmd.stdoutFilterFunction += "return output.replace(/"
-            + FileInfo.fileName(input.fileName) + "\\r\\n/g, '');";
+            + FileInfo.fileName(input.filePath) + "\\r\\n/g, '');";
     cmd.stdoutFilterFunction += "}";
     return cmd;
 }
@@ -128,7 +128,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     var args = ['/nologo']
     if (linkDLL) {
         args.push('/DLL');
-        args.push('/IMPLIB:' + FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].fileName));
+        args.push('/IMPLIB:' + FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].filePath));
     }
 
     if (debugInformation)
@@ -162,19 +162,19 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     if (generateManifestFiles) {
         linkerOutputNativeFilePath
                 = FileInfo.toWindowsSeparators(
-                    FileInfo.path(primaryOutput.fileName) + "/intermediate."
-                        + FileInfo.fileName(primaryOutput.fileName));
+                    FileInfo.path(primaryOutput.filePath) + "/intermediate."
+                        + FileInfo.fileName(primaryOutput.filePath));
         manifestFileName = linkerOutputNativeFilePath + ".manifest";
         args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName)
     } else {
-        linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.fileName);
+        linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
     }
 
     var allInputs = inputs.obj.concat(inputs.staticlibrary || [])
     if (inputs.dynamiclibrary_import)
         allInputs = allInputs.concat(inputs.dynamiclibrary_import);
     for (i in allInputs) {
-        var fileName = FileInfo.toWindowsSeparators(allInputs[i].fileName)
+        var fileName = FileInfo.toWindowsSeparators(allInputs[i].filePath)
         args.push(fileName)
     }
     for (i in staticLibraries) {
@@ -200,9 +200,9 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
 
     var commands = [];
     var cmd = new Command(product.moduleProperty("cpp", "linkerPath"), args)
-    cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.fileName)
+    cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.filePath)
     cmd.highlight = 'linker';
-    cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
+    cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';
     cmd.stdoutFilterFunction =
             function(output)
@@ -212,7 +212,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     commands.push(cmd);
 
     if (generateManifestFiles) {
-        var outputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.fileName);
+        var outputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
         cmd = new JavaScriptCommand();
         cmd.src = linkerOutputNativeFilePath;
         cmd.dst = outputNativeFilePath;
@@ -226,9 +226,9 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
             "/outputresource:" + outputNativeFilePath + ";#" + (linkDLL ? "2" : "1")
         ]
         cmd = new Command("mt.exe", args)
-        cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.fileName)
+        cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.filePath)
         cmd.highlight = 'linker';
-        cmd.workingDirectory = FileInfo.path(primaryOutput.fileName)
+        cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
         commands.push(cmd);
     }
 

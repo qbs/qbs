@@ -21,7 +21,7 @@ Project {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.sourceCode = "var file = new TextFile(output.fileName, TextFile.WriteOnly);";
+            cmd.sourceCode = "var file = new TextFile(output.filePath, TextFile.WriteOnly);";
             cmd.sourceCode += "file.truncate();"
             cmd.sourceCode += "file.write(\"There's nothing to see here!\");"
             cmd.sourceCode += "file.close();"
@@ -39,7 +39,7 @@ Project {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.sourceCode = "var file = new TextFile(output.fileName, TextFile.WriteOnly);";
+            cmd.sourceCode = "var file = new TextFile(output.filePath, TextFile.WriteOnly);";
             cmd.sourceCode += "file.truncate();";
             cmd.sourceCode += "file.write(\"// There's nothing to see here!\\n\");";
             cmd.sourceCode += "file.write(\"int foo() { return 15; }\\n\");";

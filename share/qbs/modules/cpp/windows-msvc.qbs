@@ -217,16 +217,16 @@ CppModule {
 
         prepare: {
             var args = ['/nologo']
-            var nativeOutputFileName = FileInfo.toWindowsSeparators(output.fileName)
+            var nativeOutputFileName = FileInfo.toWindowsSeparators(output.filePath)
             args.push('/OUT:' + nativeOutputFileName)
             for (var i in inputs.obj) {
-                var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].fileName)
+                var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].filePath)
                 args.push(fileName)
             }
             var cmd = new Command("lib.exe", args);
-            cmd.description = 'creating ' + FileInfo.fileName(output.fileName)
+            cmd.description = 'creating ' + FileInfo.fileName(output.filePath)
             cmd.highlight = 'linker';
-            cmd.workingDirectory = FileInfo.path(output.fileName)
+            cmd.workingDirectory = FileInfo.path(output.filePath)
             cmd.responseFileUsagePrefix = '@';
             return cmd;
          }
@@ -269,9 +269,9 @@ CppModule {
                 args.push(systemIncludePaths[i]);
             }
 
-            args = args.concat(['/fo', output.fileName, input.fileName]);
+            args = args.concat(['/fo', output.filePath, input.filePath]);
             var cmd = new Command('rc', args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
+            cmd.description = 'compiling ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'compiler';
 
             // Remove the first two lines of stdout. That's the logo.

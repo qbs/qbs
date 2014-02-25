@@ -15,11 +15,11 @@ function linkerFlags(product, inputs)
 
     // Add filenames of internal library dependencies to the lists
     for (i in inputs.staticlibrary)
-        staticLibraries.unshift(inputs.staticlibrary[i].fileName);
+        staticLibraries.unshift(inputs.staticlibrary[i].filePath);
     for (i in inputs.dynamiclibrary_copy)
-        dynamicLibraries.unshift(inputs.dynamiclibrary_copy[i].fileName);
+        dynamicLibraries.unshift(inputs.dynamiclibrary_copy[i].filePath);
     for (i in inputs.frameworkbundle)
-        frameworks.unshift(inputs.frameworkbundle[i].fileName);
+        frameworks.unshift(inputs.frameworkbundle[i].filePath);
 
     // Flags for library search paths
     if (libraryPaths)
@@ -217,9 +217,9 @@ function additionalCompilerFlags(product, input, output)
     }
 
     args.push('-c');
-    args.push(input.fileName);
+    args.push(input.filePath);
     args.push('-o');
-    args.push(output.fileName);
+    args.push(output.filePath);
     return args
 }
 
@@ -336,7 +336,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output)
     }
 
     var cmd = new Command(compilerPath, args);
-    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.fileName);
+    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.filePath);
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";

@@ -119,7 +119,7 @@ UnixGCC {
             cmd.description = "generating PkgInfo";
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
-                var infoPlist = BundleTools.infoPlistContents(inputs.infoplist[0].fileName);
+                var infoPlist = BundleTools.infoPlistContents(inputs.infoplist[0].filePath);
 
                 var pkgType = infoPlist['CFBundlePackageType'];
                 if (!pkgType)
@@ -129,7 +129,7 @@ UnixGCC {
                 if (!pkgSign)
                     throw("CFBundleSignature not found in Info.plist; this should not happen");
 
-                var pkginfo = new TextFile(outputs.pkginfo[0].fileName, TextFile.WriteOnly);
+                var pkginfo = new TextFile(outputs.pkginfo[0].filePath, TextFile.WriteOnly);
                 pkginfo.write(pkgType + pkgSign);
                 pkginfo.close();
             }
@@ -269,7 +269,7 @@ UnixGCC {
                 }
 
                 // Write the plist contents as JSON
-                var infoplist = new TextFile(outputs.infoplist[0].fileName, TextFile.WriteOnly);
+                var infoplist = new TextFile(outputs.infoplist[0].filePath, TextFile.WriteOnly);
                 infoplist.write(JSON.stringify(aggregatePlist));
                 infoplist.close();
 
@@ -283,7 +283,7 @@ UnixGCC {
 
                 // Convert the written file to the format appropriate for the current platform
                 process = new Process();
-                process.exec("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].fileName], true);
+                process.exec("plutil", ["-convert", infoPlistFormat, outputs.infoplist[0].filePath], true);
                 process.close();
             }
             return cmd;
@@ -301,8 +301,8 @@ UnixGCC {
 
         prepare: {
             var cmd = new Command("dsymutil", [
-                                      "--out=" + outputs.application_dsym[0].fileName,
-                                      input.fileName
+                                      "--out=" + outputs.application_dsym[0].filePath,
+                                      input.filePath
                                   ]);
             cmd.description = "generating dsym";
             cmd.highlight = "codegen";
@@ -341,23 +341,23 @@ UnixGCC {
         prepare: {
             var commands = [];
             var cmd = new Command("ln", ["-sf", BundleTools.frameworkVersion(product), "Current"]);
-            cmd.workingDirectory = output.fileName + "/Versions";
+            cmd.workingDirectory = output.filePath + "/Versions";
             cmd.description = "creating framework " + product.targetName;
             cmd.highlight = "codegen";
             commands.push(cmd);
 
             cmd = new Command("ln", ["-sf", "Versions/Current/Headers", "Headers"]);
-            cmd.workingDirectory = output.fileName;
+            cmd.workingDirectory = output.filePath;
             cmd.silent = true;
             commands.push(cmd);
 
             cmd = new Command("ln", ["-sf", "Versions/Current/Resources", "Resources"]);
-            cmd.workingDirectory = output.fileName;
+            cmd.workingDirectory = output.filePath;
             cmd.silent = true;
             commands.push(cmd);
 
             cmd = new Command("ln", ["-sf", "Versions/Current/" + product.targetName, product.targetName]);
-            cmd.workingDirectory = output.fileName;
+            cmd.workingDirectory = output.filePath;
             cmd.silent = true;
             commands.push(cmd);
             return commands;

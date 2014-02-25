@@ -180,21 +180,21 @@ Module {
 
             var inputFileNames = [];
             for (i in inputs.nsi) {
-                inputFileNames.push(FileInfo.fileName(inputs.nsi[i].fileName));
+                inputFileNames.push(FileInfo.fileName(inputs.nsi[i].filePath));
                 if (product.moduleProperty("qbs", "hostOS").contains("windows")) {
-                    args.push(FileInfo.toWindowsSeparators(inputs.nsi[i].fileName));
+                    args.push(FileInfo.toWindowsSeparators(inputs.nsi[i].filePath));
                 } else {
-                    args.push(inputs.nsi[i].fileName);
+                    args.push(inputs.nsi[i].filePath);
                 }
             }
 
             // Output file name - this goes last to override any OutFile command in the script
-            args.push(opt + "XOutFile " + output.fileName);
+            args.push(opt + "XOutFile " + output.filePath);
 
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = "compiling " + inputFileNames.join(", ");
             cmd.highlight = "compiler";
-            cmd.workingDirectory = FileInfo.path(output.fileName);
+            cmd.workingDirectory = FileInfo.path(output.filePath);
             return cmd;
         }
     }

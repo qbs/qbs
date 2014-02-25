@@ -37,7 +37,7 @@ DarwinGCC {
             cmd.highlight = "codegen";
             cmd.sysroot = product.moduleProperty("qbs","sysroot");
             cmd.sourceCode = function() {
-                File.copy(sysroot + "/ResourceRules.plist", outputs.resourcerules[0].fileName);
+                File.copy(sysroot + "/ResourceRules.plist", outputs.resourcerules[0].filePath);
             }
             return cmd;
         }
@@ -66,7 +66,7 @@ DarwinGCC {
 
             var args = ["-sdk", product.moduleProperty("cpp", "xcodeSdkName"), "PackageApplication",
                         "-v", product.buildDirectory + "/" + BundleTools.wrapperName(product),
-                        "-o", outputs.ipa[0].fileName, "--sign", signingIdentity,
+                        "-o", outputs.ipa[0].filePath, "--sign", signingIdentity,
                         "--embed", provisioningProfile];
 
             var command = "/usr/bin/xcrun";

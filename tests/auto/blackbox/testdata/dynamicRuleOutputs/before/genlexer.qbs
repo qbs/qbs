@@ -55,7 +55,7 @@ Project {
             inputs: ["flex"]
             outputFileTags: ["c", "hpp"]
             outputArtifacts: {
-                var options = FlexOptionsReader.readFlexOptions(input.fileName);
+                var options = FlexOptionsReader.readFlexOptions(input.filePath);
                 var sourceFileName = options["outfile"] || "lex.yy.c";
                 var headerFileName = options["header-file"];
                 var result = [{
@@ -74,13 +74,13 @@ Project {
                 var cmd;
                 if (product.isFlexAvailable) {
                     // flex is available. Let's call it.
-                    cmd = new Command("flex", [input.fileName]);
+                    cmd = new Command("flex", [input.filePath]);
                     cmd.workingDirectory = product.buildDirectory + "/GeneratedFiles/" + product.name;
                 } else {
                     // No flex available here, generate some C source and header.
                     cmd = new JavaScriptCommand();
-                    cmd.sourceFileName = outputs["c"][0].fileName;
-                    cmd.headerFileName = outputs["hpp"] ? outputs["hpp"][0].fileName : "";
+                    cmd.sourceFileName = outputs["c"][0].filePath;
+                    cmd.headerFileName = outputs["hpp"] ? outputs["hpp"][0].filePath : "";
                     cmd.sourceCode = function() {
                         var fsrc = new TextFile(sourceFileName, TextFile.WriteOnly);
                         if (headerFileName) {
@@ -94,7 +94,7 @@ Project {
                         fsrc.close();
                     };
                 }
-                cmd.description = "flexing " + FileInfo.fileName(input.fileName);
+                cmd.description = "flexing " + FileInfo.fileName(input.filePath);
                 return cmd;
             }
         }

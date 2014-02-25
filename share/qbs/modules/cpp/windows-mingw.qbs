@@ -68,9 +68,9 @@ GenericGCC {
                 args.push(systemIncludePaths[i]);
             }
 
-            args = args.concat(['-i', input.fileName, '-o', output.fileName]);
+            args = args.concat(['-i', input.filePath, '-o', output.filePath]);
             var cmd = new Command(ModUtils.moduleProperty(product, "windresPath"), args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.fileName);
+            cmd.description = 'compiling ' + FileInfo.fileName(input.filePath);
             cmd.highlight = 'compiler';
             return cmd;
         }

@@ -26,15 +26,15 @@ Project {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function () {
-                var file = new TextFile(input.fileName, TextFile.ReadOnly);
+                var file = new TextFile(input.filePath, TextFile.ReadOnly);
                 var text = file.readAll();
                 file.close();
-                file = new TextFile(output.fileName, TextFile.WriteOnly);
+                file = new TextFile(output.filePath, TextFile.WriteOnly);
                 file.truncate();
                 file.write(text);
                 file.close();
             }
-            cmd.description = 'generating ' + FileInfo.fileName(output.fileName);
+            cmd.description = 'generating ' + FileInfo.fileName(output.filePath);
             cmd.highlight = 'codegen';
             return cmd;
         }

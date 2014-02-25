@@ -266,7 +266,7 @@ Module {
             }
 
             args.push("-out");
-            args.push(FileInfo.toWindowsSeparators(output.fileName));
+            args.push(FileInfo.toWindowsSeparators(output.filePath));
             args.push("-arch");
             args.push(arch);
 
@@ -276,12 +276,12 @@ Module {
                 args.push(extensions[i]);
             }
 
-            args.push(FileInfo.toWindowsSeparators(inputs.wxs[0].fileName));
+            args.push(FileInfo.toWindowsSeparators(inputs.wxs[0].filePath));
 
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
-            cmd.description = "compiling " + FileInfo.fileName(inputs.wxs[0].fileName);
+            cmd.description = "compiling " + FileInfo.fileName(inputs.wxs[0].filePath);
             cmd.highlight = "compiler";
-            cmd.workingDirectory = FileInfo.path(output.fileName);
+            cmd.workingDirectory = FileInfo.path(output.filePath);
             return cmd;
         }
     }
@@ -339,11 +339,11 @@ Module {
             }
 
             args.push("-out");
-            args.push(FileInfo.toWindowsSeparators(primaryOutput.fileName));
+            args.push(FileInfo.toWindowsSeparators(primaryOutput.filePath));
 
             if (ModUtils.moduleProperty(product, "debugInformation")) {
                 args.push("-pdbout");
-                args.push(FileInfo.toWindowsSeparators(outputs.wixpdb[0].fileName));
+                args.push(FileInfo.toWindowsSeparators(outputs.wixpdb[0].filePath));
             } else {
                 args.push("-spdb");
             }
@@ -356,7 +356,7 @@ Module {
 
             for (i in inputs.wxl) {
                 args.push("-loc");
-                args.push(outputs.wxl[i].fileName);
+                args.push(outputs.wxl[i].filePath);
             }
 
             if (product.type.contains("msi")) {
@@ -371,13 +371,13 @@ Module {
             }
 
             for (i in inputs.wixobj) {
-                args.push(inputs.wixobj[i].fileName);
+                args.push(inputs.wixobj[i].filePath);
             }
 
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-            cmd.description = "linking " + FileInfo.fileName(input.fileName);
+            cmd.description = "linking " + FileInfo.fileName(input.filePath);
             cmd.highlight = "linker";
-            cmd.workingDirectory = FileInfo.path(primaryOutput.fileName);
+            cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
             return cmd;
         }
     }

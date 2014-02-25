@@ -44,10 +44,10 @@ Project {
             Artifact { fileName: "generated.txt" }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "generating " + output.fileName;
+                cmd.description = "generating " + output.filePath;
                 cmd.highlight = "codegen";
                 cmd.sourceCode = function() {
-                    file = new TextFile(output.fileName, TextFile.WriteOnly);
+                    file = new TextFile(output.filePath, TextFile.WriteOnly);
                     file.truncate();
                     file.write(product.fileContentPrefix + "contents 1"
                                + project.fileContentSuffix);

@@ -32,9 +32,9 @@ DynamicLibrary {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "generating " + FileInfo.fileName(output.fileName);
+            cmd.description = "generating " + FileInfo.fileName(output.filePath);
             cmd.sourceCode = function() {
-                File.copy(input.fileName, output.fileName);
+                File.copy(input.filePath, output.filePath);
             }
             return cmd;
         }

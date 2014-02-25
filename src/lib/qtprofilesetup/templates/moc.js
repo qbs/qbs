@@ -37,7 +37,7 @@ function args(product, input, outputFileName)
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
                 '-o', outputFileName,
-                input.fileName);
+                input.filePath);
     return args;
 }
 

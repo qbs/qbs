@@ -18,7 +18,7 @@ Product {
             cmd.highlight = "codegen";
             cmd.blubbProp = product.blubbProp;
             cmd.sourceCode = function() {
-                file = new TextFile(output.fileName, TextFile.WriteOnly);
+                file = new TextFile(output.filePath, TextFile.WriteOnly);
                 file.truncate();
                 file.write("#define BLUBB_PROP " + blubbProp);
                 file.close();

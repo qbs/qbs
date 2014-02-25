@@ -18,9 +18,9 @@ Module {
         }]
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "generating " + FileInfo.fileName(output.fileName);
+            cmd.description = "generating " + FileInfo.fileName(output.filePath);
             cmd.sourceCode = function() {
-                    var f = new TextFile(output.fileName, TextFile.WriteOnly);
+                    var f = new TextFile(output.filePath, TextFile.WriteOnly);
                     f.write("NARF! ZORT!");
                     f.close();
                 }

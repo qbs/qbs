@@ -19,7 +19,7 @@ Product {
             cmd.description = "Creating output artifact";
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
-                var file = new TextFile(output.fileName, TextFile.WriteOnly);
+                var file = new TextFile(output.filePath, TextFile.WriteOnly);
                 file.truncate();
                 file.close();
             }

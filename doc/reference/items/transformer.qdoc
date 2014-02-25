@@ -46,14 +46,14 @@
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Processing '" + input.fileName + "'";
+            cmd.description = "Processing '" + input.filePath + "'";
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
-                var file = new TextFile(input.fileName);
+                var file = new TextFile(input.filePath);
                 var content = file.readAll();
                 file.close()
                 content = content.replace(/\r\n/g, "\n");
-                file = new TextFile(output.fileName, TextFile.WriteOnly);
+                file = new TextFile(output.filePath, TextFile.WriteOnly);
                 file.truncate();
                 file.write(content);
                 file.close();

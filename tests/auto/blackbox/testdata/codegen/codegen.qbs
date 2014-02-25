@@ -54,7 +54,7 @@ Project {
 
             var code = '$NUMBERTYPE $FUNCTIONNAME($NUMBERTYPE, $STRINGTYPE) { return 0; }';
             code = expandMacros(code, product.replacements);
-            var args = ['echo ' + code + '>' + output.fileName]
+            var args = ['echo ' + code + '>' + output.filePath]
             var cmd
             if (product.moduleProperty("qbs", "hostOS").contains('windows')) {
                 cmd = new Command('cmd.exe', ['/C'].concat(args));
@@ -64,7 +64,7 @@ Project {
                 args[0] = args[0].replace(/;/g, '\\;')
                 cmd = new Command('/bin/sh', ['-c'].concat(args))
             }
-            cmd.description = 'generate\t' + FileInfo.fileName(output.fileName);
+            cmd.description = 'generate\t' + FileInfo.fileName(output.filePath);
             cmd.highlight = 'codegen';
             return cmd;
         }

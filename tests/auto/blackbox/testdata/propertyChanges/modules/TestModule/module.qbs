@@ -20,7 +20,7 @@ Module {
             cmd.description = "Making output from input";
             cmd.sourceCode = function() {
             // print('Change in source code');
-            File.copy(input.fileName, output.fileName);
+            File.copy(input.filePath, output.filePath);
             }
             return cmd;
         }
