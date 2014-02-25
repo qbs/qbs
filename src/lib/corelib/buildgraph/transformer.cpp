@@ -54,7 +54,13 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
 {
     QScriptValue obj = scriptEngine->newObject();
     ModuleProperties::init(obj, artifact);
-    obj.setProperty(QLatin1String("fileName"), artifact->filePath());
+
+    // ### undeprecate "fileName" and turn into a real file name in qbs 1.3
+    ScriptEngine *qbsScriptEngine = static_cast<ScriptEngine *>(scriptEngine);
+    qbsScriptEngine->setDeprecatedProperty(obj, QLatin1String("fileName"),
+            QLatin1String("filePath"), artifact->filePath());
+
+    obj.setProperty(QLatin1String("filePath"), artifact->filePath());
     const QStringList fileTags = artifact->fileTags.toStringList();
     obj.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
