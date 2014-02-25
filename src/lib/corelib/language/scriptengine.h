@@ -58,6 +58,7 @@ public:
     ~ScriptEngine();
 
     void setLogger(const Logger &logger) { m_logger = logger; }
+    const Logger &logger() const { return m_logger; }
     void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
     void clearImportsCache();
@@ -83,6 +84,8 @@ public:
     void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
     void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
                              ScriptPropertyObserver *observer);
+    void setDeprecatedProperty(QScriptValue &object, const QString &name, const QString &newName,
+            const QScriptValue &value);
 
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);

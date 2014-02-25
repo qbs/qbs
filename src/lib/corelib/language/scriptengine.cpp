@@ -169,6 +169,31 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     defineProperty(object, name, descriptor);
 }
 
+static QScriptValue js_deprecatedGet(QScriptContext *context, QScriptEngine *qtengine)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    const QScriptValue data = context->callee().property(QLatin1String("qbsdata"));
+    engine->logger().qbsWarning()
+            << ScriptEngine::tr("Property %1 is deprecated. Please use %2 instead.").arg(
+                   data.property(0).toString(), data.property(1).toString());
+    return data.property(2);
+}
+
+void ScriptEngine::setDeprecatedProperty(QScriptValue &object, const QString &oldName,
+        const QString &newName, const QScriptValue &value)
+{
+    QScriptValue data = newArray();
+    data.setProperty(0, oldName);
+    data.setProperty(1, newName);
+    data.setProperty(2, value);
+    QScriptValue getterFunc = newFunction(js_deprecatedGet);
+    getterFunc.setProperty(QLatin1String("qbsdata"), data);
+    QScriptValue descriptor = newObject();
+    descriptor.setProperty(QLatin1String("get"), getterFunc);
+    descriptor.setProperty(QLatin1String("set"), m_emptyFunction);
+    defineProperty(object, oldName, descriptor);
+}
+
 QProcessEnvironment ScriptEngine::environment() const
 {
     return m_environment;
