@@ -441,7 +441,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         qbsFileArtifact = new Artifact;
         qbsFileArtifact->artifactType = Artifact::SourceFile;
         qbsFileArtifact->setFilePath(product->location.fileName());
-        qbsFileArtifact->properties = product->properties;
+        qbsFileArtifact->properties = product->moduleProperties;
         insertArtifact(product, qbsFileArtifact, m_logger);
     }
     qbsFileArtifact->fileTags.insert("qbs");

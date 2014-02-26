@@ -359,7 +359,8 @@ public:
     QString destinationDirectory;
     CodeLocation location;
     WeakPointer<ResolvedProject> project;
-    PropertyMapPtr properties;
+    QVariantMap productProperties;
+    PropertyMapPtr moduleProperties;
     QSet<RulePtr> rules;
     QSet<ResolvedProductPtr> dependencies;
     QList<FileTaggerConstPtr> fileTaggers;

@@ -495,7 +495,8 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> sourceDirectory
         >> destinationDirectory
         >> location;
-    properties = pool.idLoadS<PropertyMapInternal>();
+    pool.stream() >> productProperties;
+    moduleProperties = pool.idLoadS<PropertyMapInternal>();
     pool.loadContainerS(rules);
     pool.loadContainerS(dependencies);
     pool.loadContainerS(fileTaggers);
@@ -517,7 +518,8 @@ void ResolvedProduct::store(PersistentPool &pool) const
         << destinationDirectory
         << location;
 
-    pool.store(properties);
+    pool.stream() << productProperties;
+    pool.store(moduleProperties);
     pool.storeContainer(rules);
     pool.storeContainer(dependencies);
     pool.storeContainer(fileTaggers);
@@ -686,7 +688,7 @@ void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcess
     if (!buildEnvironment.isEmpty())
         return;
 
-    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, properties,
+    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, moduleProperties,
                                              topLevelProject(), env);
 }
 
@@ -695,7 +697,7 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
     if (!runEnvironment.isEmpty())
         return;
 
-    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, properties,
+    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, moduleProperties,
                                            topLevelProject(), env);
 }
 

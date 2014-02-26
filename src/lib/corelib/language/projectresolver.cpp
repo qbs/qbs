@@ -317,8 +317,12 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->destinationDirectory
             = m_evaluator->stringValue(item, QLatin1String("destinationDirectory"));
     product->location = item->location();
-    product->properties = PropertyMapInternal::create();
-    product->properties->setValue(createProductConfig());
+    product->productProperties = createProductConfig();
+    QVariantMap moduleProperties;
+    moduleProperties.insert(QLatin1String("modules"),
+                            product->productProperties.take(QLatin1String("modules")));
+    product->moduleProperties = PropertyMapInternal::create();
+    product->moduleProperties->setValue(moduleProperties);
     ModuleProperties::init(m_evaluator->scriptValue(item), product);
 
     QList<Item *> subItems = item->children();
@@ -443,10 +447,10 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 {
     Q_UNUSED(projectContext);
     checkCancelation();
-    PropertyMapPtr properties = m_productContext->product->properties;
+    PropertyMapPtr moduleProperties = m_productContext->product->moduleProperties;
     if (isSomeModulePropertySet(item)) {
-        properties = PropertyMapInternal::create();
-        properties->setValue(evaluateModuleValues(item));
+        moduleProperties = PropertyMapInternal::create();
+        moduleProperties->setValue(evaluateModuleValues(item));
     }
 
     const bool isEnabled = m_evaluator->boolValue(item, QLatin1String("condition"));
@@ -497,13 +501,13 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         wildcards->patterns = patterns;
         QSet<QString> files = wildcards->expandPatterns(group, m_productContext->product->sourceDirectory);
         foreach (const QString &fileName, files)
-            createSourceArtifact(m_productContext->product, properties, fileName,
+            createSourceArtifact(m_productContext->product, moduleProperties, fileName,
                                  group->fileTags, group->overrideTags, wildcards->files);
         group->wildcards = wildcards;
     }
 
     foreach (const QString &fileName, files)
-        createSourceArtifact(m_productContext->product, properties, fileName,
+        createSourceArtifact(m_productContext->product, moduleProperties, fileName,
                              group->fileTags, group->overrideTags, group->files);
     ErrorInfo fileError;
     foreach (const SourceArtifactConstPtr &a, group->files) {
@@ -519,7 +523,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
         group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.count());
-    group->properties = properties;
+    group->properties = moduleProperties;
     m_productContext->product->groups += group;
 }
 
@@ -752,7 +756,7 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
-        artifact->properties = m_productContext->product->properties;
+        artifact->properties = m_productContext->product->moduleProperties;
         QString fileName = m_evaluator->stringValue(child, QLatin1String("fileName"));
         if (Q_UNLIKELY(fileName.isEmpty()))
             throw ErrorInfo(Tr::tr("Artifact fileName must not be empty."));
@@ -854,11 +858,11 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             if (exportedConfig.isEmpty())
                 continue;
 
-            insertExportedConfig(usedProductName, exportedConfig, rproduct->properties);
+            insertExportedConfig(usedProductName, exportedConfig, rproduct->moduleProperties);
 
             // insert the configuration of the Export item into the artifact configurations
             foreach (SourceArtifactPtr artifact, rproduct->allEnabledFiles()) {
-                if (artifact->properties != rproduct->properties)
+                if (artifact->properties != rproduct->moduleProperties)
                     insertExportedConfig(usedProductName, exportedConfig,
                                               artifact->properties);
             }

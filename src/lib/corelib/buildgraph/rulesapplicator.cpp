@@ -371,7 +371,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         outputArtifact->setFilePath(outputPath);
         outputArtifact->fileTags = fileTags;
         outputArtifact->alwaysUpdated = alwaysUpdated;
-        outputArtifact->properties = m_product->properties;
+        outputArtifact->properties = m_product->moduleProperties;
         insertArtifact(m_product, outputArtifact, m_logger);
         m_createdArtifacts += outputArtifact;
     }

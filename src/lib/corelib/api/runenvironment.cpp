@@ -132,7 +132,7 @@ int RunEnvironment::runShell()
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
     const QStringList targetOS = PropertyFinder().propertyValue(
-                d->resolvedProduct->properties->value(),
+                d->resolvedProduct->moduleProperties->value(),
                 QLatin1String("qbs"),
                 QLatin1String("targetOS")).toStringList();
 

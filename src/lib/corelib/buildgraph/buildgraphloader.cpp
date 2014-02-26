@@ -467,8 +467,8 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
     const QStringList specialProperties = QStringList() << QLatin1String("install")
             << QLatin1String("installDir") << QLatin1String("installPrefix");
     foreach (const QString &key, specialProperties) {
-        if (restoredProduct->properties->qbsPropertyValue(key)
-                != newlyResolvedProduct->properties->qbsPropertyValue(key)) {
+        if (restoredProduct->moduleProperties->qbsPropertyValue(key)
+                != newlyResolvedProduct->moduleProperties->qbsPropertyValue(key)) {
             m_logger.qbsDebug() << "Product property 'qbs." << key << "' changed.";
             return true;
         }
@@ -652,14 +652,24 @@ static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &
     return artifact;
 }
 
+static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product, Property::Kind kind)
+{
+    switch (kind) {
+    case Property::PropertyInModule:
+        return product->moduleProperties->value();
+    case Property::PropertyInProduct:
+        return product->productProperties;
+    case Property::PropertyInProject:
+        return product->project->projectProperties();
+    }
+}
+
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
         const ResolvedProductPtr &freshProduct)
 {
     // This check must come first, as it can prevent build data rescuing.
     foreach (const Property &property, restoredTrafo->propertiesRequestedInCommands) {
-        const QVariantMap properties = property.kind == Property::PropertyInProject
-                ? freshProduct->project->projectProperties() : freshProduct->properties->value();
-        if (checkForPropertyChange(property, properties)) {
+        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind))) {
             const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
             pseudoCommand->setSourceCode(QLatin1String("random stuff that will cause "
                                                        "commandsEqual() to fail"));
@@ -669,9 +679,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     }
 
     foreach (const Property &property, restoredTrafo->propertiesRequestedInPrepareScript) {
-        const QVariantMap properties = property.kind == Property::PropertyInProject
-                ? freshProduct->project->projectProperties() : freshProduct->properties->value();
-        if (checkForPropertyChange(property, properties))
+        if (checkForPropertyChange(property, propertyMapByKind(freshProduct, property.kind)))
             return true;
     }
 

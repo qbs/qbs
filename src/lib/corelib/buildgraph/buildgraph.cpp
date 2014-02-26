@@ -89,7 +89,7 @@ private:
         foreach (const ResolvedModuleConstPtr &dependency, product->modules) {
             QScriptValue obj = engine->newObject();
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj,
-                                   product->properties->value(), dependency->name);
+                                   product->moduleProperties->value(), dependency->name);
             result.setProperty(idx++, obj);
         }
         return result;
@@ -154,13 +154,10 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
     DependenciesFunction(engine).init(productScriptValue, product);
     if (observer)
         observer->setProductObjectId(productScriptValue.objectId());
-    const QVariantMap &propMap = product->properties->value();
+    const QVariantMap &propMap = product->productProperties;
     for (QVariantMap::ConstIterator it = propMap.constBegin(); it != propMap.constEnd(); ++it) {
-        const QVariant &value = it.value();
-        if (it.key() != QLatin1String("modules")) {
-            engine->setObservedProperty(productScriptValue, it.key(),
-                                        engine->toScriptValue(value), observer);
-        }
+        engine->setObservedProperty(productScriptValue, it.key(), engine->toScriptValue(it.value()),
+                                    observer);
     }
 }
 

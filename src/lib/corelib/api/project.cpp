@@ -329,7 +329,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     resolvedGroup->location = groupInserter.itemPosition();
     resolvedGroup->enabled = true;
     resolvedGroup->name = groupName;
-    resolvedGroup->properties = resolvedProduct->properties;
+    resolvedGroup->properties = resolvedProduct->moduleProperties;
     resolvedGroup->overrideTags = false;
     resolvedProduct->groups << resolvedGroup;
     foreach (const ProductData &newProduct, m_projectData.allProducts()) {

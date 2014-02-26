@@ -86,9 +86,14 @@ ResolvedModuleConstPtr TestLanguage::findModuleByName(ResolvedProductPtr product
 QVariant TestLanguage::productPropertyValue(ResolvedProductPtr product, QString propertyName)
 {
     QStringList propertyNameComponents = propertyName.split(QLatin1Char('.'));
-    if (propertyNameComponents.count() > 1)
+    QVariantMap properties;
+    if (propertyNameComponents.count() > 1) {
         propertyNameComponents.prepend(QLatin1String("modules"));
-    return getConfigProperty(product->properties->value(), propertyNameComponents);
+        properties = product->moduleProperties->value();
+    } else {
+        properties = product->productProperties;
+    }
+    return getConfigProperty(properties, propertyNameComponents);
 }
 
 void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *handled)
@@ -161,7 +166,7 @@ void TestLanguage::baseProperty()
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
-        QVariantMap cfg = product->properties->value();
+        QVariantMap cfg = product->productProperties;
         QCOMPARE(cfg.value("narf").toStringList(), QStringList() << "boo");
         QCOMPARE(cfg.value("zort").toStringList(), QStringList() << "bar" << "boo");
     } catch (const ErrorInfo &e) {
@@ -399,13 +404,13 @@ void TestLanguage::exports()
         QVERIFY(product);
         QStringList propertyName = QStringList() << "modules" << "mylib"
                                                  << "modules" << "dummy" << "defines";
-        QVariant propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
         product = products.value("mylib");
 
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "BUILD_MYLIB");
 
         product = products.value("A");
@@ -427,11 +432,11 @@ void TestLanguage::exports()
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "productWithInheritedExportItem"
                                      << "modules" << "dummy" << "cxxFlags";
-        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
         propertyName = QStringList() << "modules" << "productWithInheritedExportItem"
                                      << "modules" << "dummy" << "defines";
-        propertyValue = getConfigProperty(product->properties->value(), propertyName);
+        propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
     }
     catch (const ErrorInfo &e) {
@@ -451,7 +456,7 @@ void TestLanguage::fileContextProperties()
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
-        QVariantMap cfg = product->properties->value();
+        QVariantMap cfg = product->productProperties;
         QCOMPARE(cfg.value("narf").toString(), defaultParameters.projectFilePath());
         QString dirPath = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
         QCOMPARE(cfg.value("zort").toString(), dirPath);
@@ -585,20 +590,23 @@ void TestLanguage::homeDirectory()
         QVERIFY(product);
 
         QDir dir = QDir::home();
-        QCOMPARE(product->properties->value().value("home").toString(), dir.canonicalPath());
-        QCOMPARE(product->properties->value().value("homeSlash").toString(), dir.canonicalPath());
+        QCOMPARE(product->productProperties.value("home").toString(), dir.canonicalPath());
+        QCOMPARE(product->productProperties.value("homeSlash").toString(),
+                 dir.canonicalPath());
 
         dir.cdUp();
-        QCOMPARE(product->properties->value().value("homeUp").toString(), dir.canonicalPath());
+        QCOMPARE(product->productProperties.value("homeUp").toString(),
+                 dir.canonicalPath());
 
         dir = QDir::home();
-        QCOMPARE(product->properties->value().value("homeFile").toString(), dir.filePath("a"));
+        QCOMPARE(product->productProperties.value("homeFile").toString(),
+                 dir.filePath("a"));
 
-        QCOMPARE(product->properties->value().value("bogus1").toString(),
+        QCOMPARE(product->productProperties.value("bogus1").toString(),
                  FileInfo::resolvePath(product->sourceDirectory, QLatin1String("a~b")));
-        QCOMPARE(product->properties->value().value("bogus2").toString(),
+        QCOMPARE(product->productProperties.value("bogus2").toString(),
                  FileInfo::resolvePath(product->sourceDirectory, QLatin1String("a/~/bb")));
-        QCOMPARE(product->properties->value().value("user").toString(),
+        QCOMPARE(product->productProperties.value("user").toString(),
                  FileInfo::resolvePath(product->sourceDirectory, QLatin1String("~foo/bar")));
     }
     catch (const ErrorInfo &e) {
@@ -849,7 +857,7 @@ void TestLanguage::moduleProperties()
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(product);
-    QVariantList values = PropertyFinder().propertyValues(product->properties->value(),
+    QVariantList values = PropertyFinder().propertyValues(product->moduleProperties->value(),
                                                           "dummy", propertyName,
                                                           PropertyFinder::DoMergeLists);
     QStringList valueStrings;
@@ -883,7 +891,7 @@ void TestLanguage::moduleScope()
         QCOMPARE(products.count(), 1);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
-        IntPropertyFinder ipf(product->properties->value());
+        IntPropertyFinder ipf(product->moduleProperties->value());
         QCOMPARE(ipf.intValue("a"), 2);     // overridden in module instance
         QCOMPARE(ipf.intValue("b"), 1);     // genuine
         QCOMPARE(ipf.intValue("c"), 3);     // genuine, dependent on overridden value
@@ -941,7 +949,7 @@ void TestLanguage::modules()
     modulesInProduct.sort();
     expectedModulesInProduct.sort();
     QCOMPARE(modulesInProduct, expectedModulesInProduct);
-    QCOMPARE(product->properties->value().value("foo").toString(), expectedProductProperty);
+    QCOMPARE(product->productProperties.value("foo").toString(), expectedProductProperty);
 }
 
 void TestLanguage::outerInGroup()
@@ -988,19 +996,20 @@ void TestLanguage::pathProperties()
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         ResolvedProductPtr product = products.value("product1");
         QVERIFY(product);
-        QVariantMap cfg = product->properties->value();
         QString projectFileDir = QFileInfo(defaultParameters.projectFilePath()).absolutePath();
-        QCOMPARE(cfg.value("projectFileDir").toString(), projectFileDir);
+        const QVariantMap productProps = product->productProperties;
+        const QVariantMap moduleProps = product->moduleProperties->value();
+        QCOMPARE(productProps.value("projectFileDir").toString(), projectFileDir);
         QStringList filesInProjectFileDir = QStringList()
                 << FileInfo::resolvePath(projectFileDir, "aboutdialog.h")
                 << FileInfo::resolvePath(projectFileDir, "aboutdialog.cpp");
-        QCOMPARE(cfg.value("filesInProjectFileDir").toStringList(), filesInProjectFileDir);
-        QStringList includePaths = getConfigProperty(cfg, QStringList() << "modules" << "dummy"
-                                                     << "includePaths").toStringList();
+        QCOMPARE(productProps.value("filesInProjectFileDir").toStringList(), filesInProjectFileDir);
+        QStringList includePaths = getConfigProperty(moduleProps,
+                QStringList() << "modules" << "dummy" << "includePaths").toStringList();
         QCOMPARE(includePaths, QStringList() << projectFileDir);
-        QCOMPARE(cfg.value("base_fileInProductDir").toString(),
+        QCOMPARE(productProps.value("base_fileInProductDir").toString(),
                  FileInfo::resolvePath(projectFileDir, QLatin1String("foo")));
-        QCOMPARE(cfg.value("base_fileInBaseProductDir").toString(),
+        QCOMPARE(productProps.value("base_fileInBaseProductDir").toString(),
                  FileInfo::resolvePath(projectFileDir, QLatin1String("subdir/bar")));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1030,15 +1039,15 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QVERIFY(product);
         PropertyFinder pf;
         QVariantList values;
-        values = pf.propertyValues(product->properties->value(),
+        values = pf.propertyValues(product->moduleProperties->value(),
                                    "dummy", "cxxFlags", PropertyFinder::DoMergeLists);
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("IN_PROFILE"));
-        values = pf.propertyValues(product->properties->value(),
+        values = pf.propertyValues(product->moduleProperties->value(),
                                    "dummy", "defines", PropertyFinder::DoMergeLists);
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("IN_FILE"));
-        values = pf.propertyValues(product->properties->value(),
+        values = pf.propertyValues(product->moduleProperties->value(),
                                    "dummy", "cFlags", PropertyFinder::DoMergeLists);
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.first().toString(), QString("OVERRIDDEN"));
@@ -1094,7 +1103,7 @@ void TestLanguage::productDirectories()
         ResolvedProductPtr product;
         product = products.value("MyApp");
         QVERIFY(product);
-        const QVariantMap config = product->properties->value();
+        const QVariantMap config = product->productProperties;
         QCOMPARE(config.value(QLatin1String("buildDirectory")).toString(),
                  buildDir(defaultParameters));
         QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
