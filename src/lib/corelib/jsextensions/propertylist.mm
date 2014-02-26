@@ -42,19 +42,21 @@
 namespace qbs {
 namespace Internal {
 
-QString toQString(NSString *str)
+static inline QString fromNSString(const NSString *string)
 {
-    QString qstring;
-    if ([str length] > 0) {
-        qstring.resize([str length]);
-        [str getCharacters:(unichar *)qstring.data() range:NSMakeRange(0, qstring.size())];
-    }
-    return qstring;
+    if (!string)
+        return QString();
+   QString qstring;
+   qstring.resize([string length]);
+   [string getCharacters:reinterpret_cast<unichar*>(qstring.data())
+                   range:NSMakeRange(0, [string length])];
+   return qstring;
 }
 
-NSString *fromQString(const QString &str)
+static inline NSString *toNSString(const QString &qstring)
 {
-    return [NSString stringWithCharacters:(const unichar *)str.unicode() length:str.size()];
+    return [NSString stringWithCharacters:reinterpret_cast<const UniChar*>(qstring.unicode())
+                                   length:qstring.length()];
 }
 
 class PropertyListPrivate
@@ -104,7 +106,7 @@ void PropertyList::read(const QString &input)
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
 
-    NSString *inputString = fromQString(input);
+    NSString *inputString = toNSString(input);
     NSData *data = [NSData dataWithBytes:[inputString UTF8String]
                             length:[inputString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]];
     p->d->read(p->context(), data);
@@ -116,9 +118,9 @@ void PropertyList::readFile(const QString &filePath)
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
 
     NSError *error;
-    NSData *data = [NSData dataWithContentsOfFile:fromQString(filePath) options:0 error:&error];
+    NSData *data = [NSData dataWithContentsOfFile:toNSString(filePath) options:0 error:&error];
     if (!data) {
-        p->context()->throwError(toQString([error description]));
+        p->context()->throwError(fromNSString([error description]));
     }
 
     p->d->read(p->context(), data);
@@ -135,7 +137,7 @@ void PropertyListPrivate::read(QScriptContext *context, NSData *data)
                                                           options:0
                                                            format:NULL error:&error];
         if (Q_UNLIKELY(!plist)) {
-            context->throwError(toQString([error description]));
+            context->throwError(fromNSString([error description]));
         }
     }
     else
@@ -146,7 +148,7 @@ void PropertyListPrivate::read(QScriptContext *context, NSData *data)
                                                            format:NULL
                                                  errorDescription:&errorString];
         if (Q_UNLIKELY(!plist)) {
-            context->throwError(toQString(errorString));
+            context->throwError(fromNSString(errorString));
         }
     }
 
@@ -167,7 +169,7 @@ QString PropertyList::toXML() const
                                                           format:NSPropertyListXMLFormat_v1_0
                                                          options:0 error:&error];
         if (!data) {
-            p->context()->throwError(toQString([error description]));
+            p->context()->throwError(fromNSString([error description]));
         }
     } else {
         NSString *errorString = nil;
@@ -175,12 +177,12 @@ QString PropertyList::toXML() const
                                                           format:NSPropertyListXMLFormat_v1_0
                                                 errorDescription:&errorString];
         if (!data) {
-            p->context()->throwError(toQString(errorString));
+            p->context()->throwError(fromNSString(errorString));
         }
     }
 
-    return toQString([[[NSString alloc] initWithData:data
-                                            encoding:NSUTF8StringEncoding] autorelease]);
+    return fromNSString([[[NSString alloc] initWithData:data
+                                               encoding:NSUTF8StringEncoding] autorelease]);
 }
 
 QString PropertyList::toJSON() const
@@ -196,11 +198,11 @@ QString PropertyList::toJSON() const
                                                        options:0
                                                          error:&error];
         if (!data) {
-            p->context()->throwError(toQString([error description]));
+            p->context()->throwError(fromNSString([error description]));
         }
 
-        return toQString([[[NSString alloc] initWithData:data
-                                                encoding:NSUTF8StringEncoding] autorelease]);
+        return fromNSString([[[NSString alloc] initWithData:data
+                                                   encoding:NSUTF8StringEncoding] autorelease]);
     }
     else
 #endif
