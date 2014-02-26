@@ -30,7 +30,6 @@
 #define  QBS_LOADER_H
 
 #include "forward_decls.h"
-#include <tools/qbs_export.h>
 #include <logging/logger.h>
 
 #include <QStringList>
@@ -46,7 +45,7 @@ class ProgressObserver;
 class ScriptEngine;
 class ProjectResolver;
 
-class QBS_EXPORT Loader // FIXME: Exported for qbs-qmltypes
+class Loader
 {
 public:
     Loader(ScriptEngine *engine, const Logger &logger);

@@ -35,7 +35,6 @@
 #include "property.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
-#include <tools/qbs_export.h>
 
 #include <QHash>
 #include <QPair>
@@ -50,8 +49,7 @@ class Artifact;
 
 class ScriptPropertyObserver;
 
-// FIXME: Exported for qbs-qmltypes
-class QBS_EXPORT ScriptEngine : public QScriptEngine
+class ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
 public:
