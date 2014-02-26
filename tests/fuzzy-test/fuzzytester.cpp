@@ -80,6 +80,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
             if (!success) {
                 // An error could be due to the current commit being faulty. Check that it is
                 // buildable on its own before reporting a qbs error.
+                qDebug("Incremental build failed. Checking whether clean build works...");
                 const QString otherDir = "fuzzytest-verification-build";
                 removeDir(otherDir);
                 if (runQbs(otherDir, QLatin1String("build"))) {
@@ -87,6 +88,8 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
                     throw TestError(QString::fromLocal8Bit("Found qbs bug with incremental build!\n"
                             "The error message was: '%1'\n"
                             "The sequence of commits was: %2.").arg(qbsError, buildSequenceString));
+                } else {
+                    qDebug("Clean build also fails. Continuing.");
                 }
             }
         }
@@ -96,6 +99,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
 void FuzzyTester::checkoutCommit(const QString &commit)
 {
     runGit(QStringList() << "checkout" << commit);
+    runGit(QStringList() << "submodule" << "update" << "--init");
 }
 
 QStringList FuzzyTester::findAllCommits(const QString &startCommit)
@@ -128,8 +132,12 @@ void FuzzyTester::runGit(const QStringList &arguments, QString *output)
     git.start("git", arguments);
     if (!git.waitForStarted())
         throw TestError("Failed to start git. It is expected to be in the PATH.");
-    if (!git.waitForFinished(300000)) // 5 minutes ought to be enough for everyone
+    if (!git.waitForFinished(300000) || git.exitStatus() != QProcess::NormalExit) // 5 minutes ought to be enough for everyone
         throw TestError(QString::fromLocal8Bit("git failed: %1").arg(git.errorString()));
+    if (git.exitCode() != 0) {
+        throw TestError(QString::fromLocal8Bit("git failed: %1")
+                        .arg(QString::fromLocal8Bit(git.readAllStandardError())));
+    }
     if (output)
         *output = QString::fromLocal8Bit(git.readAllStandardOutput()).trimmed();
 }
