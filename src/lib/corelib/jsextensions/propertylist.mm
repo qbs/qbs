@@ -130,31 +130,47 @@ void PropertyList::readFromFile(const QString &filePath)
 void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
 {
     NSError *error = nil;
+    NSString *errorString = nil;
     id plist = nil;
+
     if ([NSPropertyListSerialization
             respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
         error = nil;
+        errorString = nil;
         plist = [NSPropertyListSerialization propertyListWithData:data
                                                           options:0
                                                            format:NULL error:&error];
         if (Q_UNLIKELY(!plist)) {
-            context->throwError(fromNSString([error localizedDescription]));
+            errorString = [error localizedDescription];
         }
     }
     else
     {
-        NSString *errorString = nil;
+        error = nil;
+        errorString = nil;
         plist = [NSPropertyListSerialization propertyListFromData:data
                                                  mutabilityOption:NSPropertyListImmutable
                                                            format:NULL
                                                  errorDescription:&errorString];
-        if (Q_UNLIKELY(!plist)) {
-            context->throwError(fromNSString(errorString));
-        }
     }
 
-    [propertyListObject release];
-    propertyListObject = [plist retain];
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
+    if (!plist && NSClassFromString(@"NSJSONSerialization")) {
+        error = nil;
+        errorString = nil;
+        plist = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        if (Q_UNLIKELY(!plist)) {
+            errorString = [error localizedDescription];
+        }
+    }
+#endif
+
+    if (Q_UNLIKELY(!plist)) {
+        context->throwError(fromNSString(errorString));
+    } else {
+        [propertyListObject release];
+        propertyListObject = [plist retain];
+    }
 }
 
 QString PropertyList::toXMLString() const
