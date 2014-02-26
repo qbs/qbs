@@ -36,6 +36,8 @@ QbsLibrary {
             "internaljobs.cpp",
             "internaljobs.h",
             "jobs.cpp",
+            "languageinfo.cpp",
+            "languageinfo.h",
             "project.cpp",
             "projectdata.cpp",
             "projectdata_p.h",

@@ -113,10 +113,5 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     return project;
 }
 
-QByteArray Loader::qmlTypeInfo()
-{
-    return m_builtins->qmlTypeInfo();
-}
-
 } // namespace Internal
 } // namespace qbs

@@ -55,7 +55,6 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
-    QByteArray qmlTypeInfo();
 
 private:
     Logger m_logger;

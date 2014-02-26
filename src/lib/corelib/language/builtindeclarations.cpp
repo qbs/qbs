@@ -59,75 +59,14 @@ QString BuiltinDeclarations::languageVersion() const
     return m_languageVersion;
 }
 
-QByteArray BuiltinDeclarations::qmlTypeInfo() const
-{
-    // Header:
-    QByteArray result;
-    result.append("import QtQuick.tooling 1.0\n\n");
-    result.append("// This file describes the plugin-supplied types contained in the library.\n");
-    result.append("// It is used for QML tooling purposes only.\n\n");
-    result.append("Module {\n");
-
-    // Individual Components:
-    foreach (const QString &component, m_builtins.keys()) {
-        QByteArray componentName = component.toUtf8();
-        result.append("    Component {\n");
-        result.append(QByteArray("        name: \"") + componentName + QByteArray("\"\n"));
-        result.append("        exports: [ \"qbs/");
-        result.append(componentName);
-        result.append(" ");
-        result.append(QBS_LANGUAGE_VERSION);
-        result.append("\" ]\n");
-        result.append("        prototype: \"QQuickItem\"\n");
-
-        ItemDeclaration itemDecl = m_builtins.value(component);
-        foreach (const PropertyDeclaration &property, itemDecl.properties()) {
-            result.append("        Property { name=\"");
-            result.append(property.name.toUtf8());
-            result.append("\"; ");
-            switch (property.type) {
-            case qbs::Internal::PropertyDeclaration::UnknownType:
-                result.append("type=\"unknown\"");
-                break;
-            case qbs::Internal::PropertyDeclaration::Boolean:
-                result.append("type=\"bool\"");
-                break;
-            case qbs::Internal::PropertyDeclaration::Integer:
-                result.append("type=\"int\"");
-                break;
-            case qbs::Internal::PropertyDeclaration::Path:
-                result.append("type=\"string\"");
-                break;
-            case qbs::Internal::PropertyDeclaration::PathList:
-                result.append("type=\"string\"; isList=true");
-                break;
-            case qbs::Internal::PropertyDeclaration::String:
-                result.append("type=\"string\"");
-                break;
-            case qbs::Internal::PropertyDeclaration::StringList:
-                result.append("type=\"string\"; isList=true");
-                break;
-            case qbs::Internal::PropertyDeclaration::Variant:
-                result.append("type=\"QVariant\"");
-                break;
-            case qbs::Internal::PropertyDeclaration::Verbatim:
-                result.append("type=\"string\"");
-                break;
-            }
-            result.append(" }\n"); // Property
-        }
-
-        result.append("    }\n"); // Component
-    }
-
-    // Footer:
-    result.append("}\n"); // Module
-    return result;
-}
-
 bool BuiltinDeclarations::containsType(const QString &typeName) const
 {
     return m_builtins.contains(typeName);
+}
+
+QStringList BuiltinDeclarations::allTypeNames() const
+{
+    return m_builtins.keys();
 }
 
 ItemDeclaration BuiltinDeclarations::declarationsForType(const QString &typeName) const

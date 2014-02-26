@@ -5,6 +5,7 @@ HEADERS += \
     $$PWD/projectfileupdater.h \
     $$PWD/runenvironment.h \
     $$PWD/jobs.h \
+    $$PWD/languageinfo.h \
     $$PWD/project.h \
     $$PWD/propertymap_p.h \
     $$PWD/projectdata_p.h \
@@ -17,6 +18,7 @@ SOURCES += \
     $$PWD/runenvironment.cpp \
     $$PWD/projectdata.cpp \
     $$PWD/jobs.cpp \
+    $$PWD/languageinfo.cpp \
     $$PWD/project.cpp \
     $$PWD/qmljsrewriter.cpp
 

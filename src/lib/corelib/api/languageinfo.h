@@ -26,41 +26,24 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#include "../shared/logging/consolelogger.h"
 
-#include <api/languageinfo.h>
-#include <logging/translator.h>
+#ifndef QBS_LANGUAGEINFO_H
+#define QBS_LANGUAGEINFO_H
 
-#include <QCoreApplication>
+#include "../tools/qbs_export.h"
+
 #include <QByteArray>
 
-#include <iostream>
+namespace qbs {
 
-using qbs::Internal::Tr;
-
-int main(int argc, char *argv[])
+class QBS_EXPORT LanguageInfo
 {
-    QCoreApplication app(argc, argv);
-    ConsoleLogger::instance();
+public:
+    LanguageInfo();
 
-    const QStringList args = app.arguments().mid(1);
-    if (args.count() == 1 && (args.first() == QLatin1String("--help")
-                              || args.first() == QLatin1String("-h"))) {
-        qbsInfo() << Tr::tr("This tool dumps information about the QML types supported by qbs.\n"
-                            "It takes no command-line parameters.\n"
-                            "The output is intended to be processed by other tools and has "
-                            "little value for humans.");
-        return EXIT_SUCCESS;
-    }
-    if (!args.isEmpty()) {
-        qbsWarning() << Tr::tr("You supplied command-line parameters, "
-                               "but this tool does not use any.");
-    }
+    QByteArray qmlTypeInfo();
+};
 
-    qbs::LanguageInfo languageInfo;
-    const QByteArray typeData = languageInfo.qmlTypeInfo();
+} // namespace qbs
 
-    std::cout << typeData.constData();
-
-    return 0;
-}
+#endif // QBS_LANGUAGEINFO_H
