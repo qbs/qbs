@@ -163,6 +163,8 @@ UnixGCC {
             cmd.sdkSettingsPlist = product.moduleProperty("cpp", "sdkSettingsPlist");
             cmd.toolchainInfoPlist = product.moduleProperty("cpp", "toolchainInfoPlist");
 
+            cmd.osBuildVersion = product.moduleProperty("qbs", "hostOSBuildVersion");
+
             cmd.sourceCode = function() {
                 var process, key;
 
@@ -245,11 +247,7 @@ UnixGCC {
                         print("could not find a ToolchainInfo.plist near the toolchain install path");
                     }
 
-                    process = new Process();
-                    process.exec("sw_vers", ["-buildVersion"], true);
-                    var osBuildVersion = process.readStdOut().trim();
                     aggregatePlist["BuildMachineOSBuild"] = osBuildVersion;
-                    process.close();
 
                     // setup env
                     env = {

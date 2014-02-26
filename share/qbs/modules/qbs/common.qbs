@@ -17,6 +17,14 @@ Module {
             return version + "." + build;
         }
     }
+
+    property string hostOSBuildVersion: {
+        if (hostOS.contains("osx")) {
+            return getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion") ||
+                   getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion");
+        }
+    }
+
     readonly property var hostOSVersionParts: hostOSVersion ? hostOSVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
     readonly property int hostOSVersionMajor: hostOSVersionParts[0] || 0
     readonly property int hostOSVersionMinor: hostOSVersionParts[1] || 0
@@ -75,6 +83,11 @@ Module {
             if (!/^[0-9]+(\.[0-9]+){1,3}$/.test(hostOSVersion)) {
                 throw "qbs.hostOSVersion is in an invalid format; it must be of the form x.y or " +
                         "x.y.z or x.y.z.w where x, y, z and w are positive integers.";
+            }
+
+            if (!hostOSBuildVersion && hostOS.contains("osx")) {
+                throw "Could not detect host operating system build version; " +
+                        "verify that system files have not been tampered with.";
             }
         }
     }

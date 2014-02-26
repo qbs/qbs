@@ -102,6 +102,16 @@
     Consists of two or three numbers separated by dots, for instance "10.9" or "6.3.9600".
 
 
+    \section1 hostOSBuildVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string} (read only)
+    \endtable
+
+    The host operating system's build version. Currently only defined for OS X.
+    This is a standard build number in the Apple versioning scheme, for instance "13C64".
+
+
     \section1 versionMajor
 
     \table
