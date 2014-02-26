@@ -209,6 +209,7 @@ void TestBlackbox::addedFilePersistent()
     QVERIFY(runQbs(failedRunParams) != 0);
 
     // Add a file. qbs must schedule it for rule application on the next build.
+    waitForNewTimestamp();
     QFile projectFile("project.qbs");
     QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
     const QByteArray originalContent = projectFile.readAll();
@@ -216,22 +217,21 @@ void TestBlackbox::addedFilePersistent()
     addedFileContent.replace("/* 'file.cpp' */", "'file.cpp'");
     projectFile.resize(0);
     projectFile.write(addedFileContent);
-    waitForNewTimestamp();
     projectFile.flush();
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
 
     // Remove the file again. qbs must unschedule the rule application again.
     // Consequently, the linking step must fail as in the initial run.
+    waitForNewTimestamp();
     projectFile.resize(0);
     projectFile.write(originalContent);
-    waitForNewTimestamp();
     projectFile.flush();
     QVERIFY(runQbs(failedRunParams) != 0);
 
     // Add the file again. qbs must schedule it for rule application on the next build.
+    waitForNewTimestamp();
     projectFile.resize(0);
     projectFile.write(addedFileContent);
-    waitForNewTimestamp();
     projectFile.close();
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
 
