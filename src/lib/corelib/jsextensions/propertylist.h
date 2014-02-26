@@ -33,6 +33,7 @@
 
 #include <QObject>
 #include <QScriptable>
+#include <QScriptValue>
 #include <QVariant>
 
 namespace qbs {
@@ -51,6 +52,7 @@ public:
     ~PropertyList();
     Q_INVOKABLE void readFromString(const QString &input);
     Q_INVOKABLE void readFromFile(const QString &filePath);
+    Q_INVOKABLE QScriptValue format() const;
     Q_INVOKABLE QString toXMLString() const;
     Q_INVOKABLE QString toJSONString() const;
 private:

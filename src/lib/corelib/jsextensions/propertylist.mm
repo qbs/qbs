@@ -39,6 +39,11 @@
 
 #import <Foundation/Foundation.h>
 
+// If this conflicts someday, just change it :)
+enum {
+    NSPropertyListJSONFormat = 1000
+};
+
 namespace qbs {
 namespace Internal {
 
@@ -65,6 +70,7 @@ public:
     PropertyListPrivate();
 
     id propertyListObject;
+    NSPropertyListFormat propertyListFormat;
 
     void readFromData(QScriptContext *context, NSData *data);
 };
@@ -85,7 +91,7 @@ QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 }
 
 PropertyListPrivate::PropertyListPrivate()
-    : propertyListObject()
+    : propertyListObject(), propertyListFormat()
 {
 }
 
@@ -129,6 +135,7 @@ void PropertyList::readFromFile(const QString &filePath)
 
 void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
 {
+    NSPropertyListFormat format = 0;
     NSError *error = nil;
     NSString *errorString = nil;
     id plist = nil;
@@ -139,7 +146,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
         errorString = nil;
         plist = [NSPropertyListSerialization propertyListWithData:data
                                                           options:0
-                                                           format:NULL error:&error];
+                                                           format:&format error:&error];
         if (Q_UNLIKELY(!plist)) {
             errorString = [error localizedDescription];
         }
@@ -150,7 +157,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
         errorString = nil;
         plist = [NSPropertyListSerialization propertyListFromData:data
                                                  mutabilityOption:NSPropertyListImmutable
-                                                           format:NULL
+                                                           format:&format
                                                  errorDescription:&errorString];
     }
 
@@ -161,6 +168,8 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
         plist = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
         if (Q_UNLIKELY(!plist)) {
             errorString = [error localizedDescription];
+        } else {
+            format = NSPropertyListJSONFormat;
         }
     }
 #endif
@@ -170,6 +179,26 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
     } else {
         [propertyListObject release];
         propertyListObject = [plist retain];
+        propertyListFormat = format;
+    }
+}
+
+QScriptValue PropertyList::format() const
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    switch (p->d->propertyListFormat)
+    {
+    case NSPropertyListOpenStepFormat:
+        return QLatin1String("openstep");
+    case NSPropertyListXMLFormat_v1_0:
+        return QLatin1String("xml1");
+    case NSPropertyListBinaryFormat_v1_0:
+        return QLatin1String("binary1");
+    case NSPropertyListJSONFormat:
+        return QLatin1String("json");
+    default:
+        return p->engine()->undefinedValue();
     }
 }
 
