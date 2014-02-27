@@ -1,0 +1,129 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Petroules Corporation.
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page jsextension-propertylist.html
+    \ingroup list-of-builtin-services
+
+    \title PropertyList Service
+    \brief Provides read, write and convert operations on property list files.
+
+    The \c PropertyList service allows you to read and write property list files in
+    all formats supported by the Core Foundation API: XML, binary, JSON, and OpenStep (read-only).
+
+    This service is only available on Darwin platforms such as OS X and iOS.
+
+    \section1 Making the Service Available
+    In order to gain access to property list operations, you need to import the
+    service using the
+    following statement at the top of your project file:
+    \code
+    import qbs.PropertyList
+    \endcode
+
+    \section1 Available operations
+
+    \section2 Constructor
+    \code
+    PropertyList()
+    \endcode
+    Allocates and returns a new PropertyList object.
+
+    \section2 clear
+    \code
+    clear()
+    \endcode
+    Voids the property list by deleting its internal object reference.
+
+    \section2 isEmpty
+    \code
+    isEmpty()
+    \endcode
+    Returns true if the property list has no internal object reference set, otherwise false.
+
+    \section2 format
+    \code
+    format()
+    \endcode
+    Returns the data format that the property list data was deserialized from. This property is set
+    after calling \c readFromString or \c readFromFile.
+    Possible return values include: \c "binary1", \c "json", \c "openstep", and \c "xml1".
+    If the property list object is empty or the input format could not be determined,
+    returns \c undefined.
+
+    \section2 readFromFile
+    \code
+    readFromFile(filePath)
+    \endcode
+    Parses the file and stores the result in the property list.
+    Throws an exception if an I/O error occurs or the input is in an invalid format.
+
+    \section2 readFromString
+    \code
+    readFromString(input)
+    \endcode
+    Parses \c input and stores the result in the property list.
+    This is most useful for initializing a property list object from the result of a
+    \c JSON.stringify call.
+    Throws an exception if the input is in an invalid format.
+
+    \section2 toJSONString
+    \code
+    toJSONString(style)
+    \endcode
+    Returns a string representation of the property list in JSON format.
+    Possible values for \c style include \c "pretty" and \c "compact". The default is compact.
+
+    \section2 toString
+    \code
+    toString(format)
+    \endcode
+    Returns a string representation of the property list in the specified format.
+    Possible values for \c format include: \c "json" (compact), \c "json-compact", \c "json-pretty",
+    and \c "xml1". Currently, the OpenStep format is not supported.
+    Throws an exception if the object cannot be written in the given format.
+
+    \section2 toXMLString
+    \code
+    toXMLString()
+    \endcode
+    Returns a string representation of the property list in XML format.
+    This function is a synonym for \c toString("xml1").
+
+    \section2 writeToFile
+    \code
+    writeToFile(filePath, format)
+    \endcode
+    Writes the property list to the file in the given format.
+    Possible values for \c format include: \c "binary1", \c "json" (compact), \c "json-compact",
+    \c "json-pretty", and \c "xml1". Currently, the OpenStep format is not supported for writing.
+    Throws an exception if an I/O error occurs or the object cannot be written in the given format.
+*/
