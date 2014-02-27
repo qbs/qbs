@@ -30,6 +30,7 @@
 #define QBS_H
 
 #include "api/jobs.h"
+#include "api/languageinfo.h"
 #include "api/project.h"
 #include "api/projectdata.h"
 #include "logging/ilogsink.h"
