@@ -91,6 +91,7 @@ PropertyListPrivate::PropertyListPrivate()
 
 PropertyList::~PropertyList()
 {
+    [d->propertyListObject release];
     delete d;
 }
 
@@ -152,7 +153,8 @@ void PropertyListPrivate::read(QScriptContext *context, NSData *data)
         }
     }
 
-    propertyListObject = plist;
+    [propertyListObject release];
+    propertyListObject = [plist retain];
 }
 
 QString PropertyList::toXML() const
