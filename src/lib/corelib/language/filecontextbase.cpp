@@ -27,19 +27,23 @@
 **
 ****************************************************************************/
 
-#include "filecontext.h"
+#include "filecontextbase.h"
+
+#include <tools/fileinfo.h>
 
 namespace qbs {
 namespace Internal {
 
-FileContext::FileContext()
-    : m_idScope(0)
+QString FileContextBase::dirPath() const
 {
+    return FileInfo::path(m_filePath);
 }
 
-FileContextPtr FileContext::create()
+FileContextBase::FileContextBase(const FileContextBase &other)
+    : m_filePath(other.m_filePath)
+    , m_jsImports(other.m_jsImports)
+    , m_jsExtensions(other.m_jsExtensions)
 {
-    return FileContextPtr(new FileContext);
 }
 
 } // namespace Internal

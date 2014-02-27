@@ -31,13 +31,14 @@
 #define QBS_RESOLVEDFILECONTEXT_H
 
 #include "forward_decls.h"
+#include "filecontextbase.h"
 #include "jsimports.h"
 #include <tools/persistentobject.h>
 
 namespace qbs {
 namespace Internal {
 
-class ResolvedFileContext : public PersistentObject
+class ResolvedFileContext : public FileContextBase, public PersistentObject
 {
 public:
     static ResolvedFileContextPtr create()
@@ -45,12 +46,14 @@ public:
         return ResolvedFileContextPtr(new ResolvedFileContext);
     }
 
-    QString filePath;
-    QStringList jsExtensions;
-    JsImports jsImports;
+    static ResolvedFileContextPtr create(const FileContextBase &baseContext)
+    {
+        return ResolvedFileContextPtr(new ResolvedFileContext(baseContext));
+    }
 
 private:
     ResolvedFileContext() {}
+    ResolvedFileContext(const FileContextBase &ctx);
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;

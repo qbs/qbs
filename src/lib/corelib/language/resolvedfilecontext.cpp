@@ -50,18 +50,23 @@ static inline QDataStream& operator<<(QDataStream &stream, const JsImport &jsImp
                   << jsImport.location;
 }
 
+ResolvedFileContext::ResolvedFileContext(const FileContextBase &ctx)
+    : FileContextBase(ctx)
+{
+}
+
 void ResolvedFileContext::load(PersistentPool &pool)
 {
-    filePath = pool.idLoadString();
-    jsExtensions = pool.idLoadStringList();
-    pool.stream() >> jsImports;
+    m_filePath = pool.idLoadString();
+    m_jsExtensions = pool.idLoadStringList();
+    pool.stream() >> m_jsImports;
 }
 
 void ResolvedFileContext::store(PersistentPool &pool) const
 {
-    pool.storeString(filePath);
-    pool.storeStringList(jsExtensions);
-    pool.stream() << jsImports;
+    pool.storeString(m_filePath);
+    pool.storeStringList(m_jsExtensions);
+    pool.stream() << m_jsImports;
 }
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
@@ -70,9 +75,9 @@ bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
         return true;
     if (!!&a != !!&b)
         return false;
-    return a.filePath == b.filePath
-            && a.jsExtensions == b.jsExtensions
-            && a.jsImports == b.jsImports;
+    return a.filePath() == b.filePath()
+            && a.jsExtensions() == b.jsExtensions()
+            && a.jsImports() == b.jsImports();
 }
 
 } // namespace Internal

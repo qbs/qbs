@@ -58,6 +58,10 @@ class FileContext;
 typedef QSharedPointer<FileContext> FileContextPtr;
 typedef QSharedPointer<const FileContext> FileContextConstPtr;
 
+class FileContextBase;
+typedef QSharedPointer<FileContextBase> FileContextBasePtr;
+typedef QSharedPointer<const FileContextBase> FileContextBaseConstPtr;
+
 class PropertyMapInternal;
 typedef QSharedPointer<PropertyMapInternal> PropertyMapPtr;
 typedef QSharedPointer<const PropertyMapInternal> PropertyMapConstPtr;

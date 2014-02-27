@@ -7,6 +7,7 @@ HEADERS += \
     $$PWD/evaluator.h \
     $$PWD/evaluatorscriptclass.h \
     $$PWD/filecontext.h \
+    $$PWD/filecontextbase.h \
     $$PWD/filetags.h \
     $$PWD/forward_decls.h \
     $$PWD/functiondeclaration.h \
@@ -40,6 +41,7 @@ SOURCES += \
     $$PWD/evaluator.cpp \
     $$PWD/evaluatorscriptclass.cpp \
     $$PWD/filecontext.cpp \
+    $$PWD/filecontextbase.cpp \
     $$PWD/filetags.cpp \
     $$PWD/identifiersearch.cpp \
     $$PWD/importversion.cpp \

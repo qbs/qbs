@@ -30,15 +30,13 @@
 #ifndef QBS_FILECONTEXT_H
 #define QBS_FILECONTEXT_H
 
+#include "filecontextbase.h"
 #include "item.h"
-#include "jsimports.h"
-
-#include <QStringList>
 
 namespace qbs {
 namespace Internal {
 
-class FileContext
+class FileContext : public FileContextBase
 {
     friend class ItemReaderASTVisitor;
 
@@ -47,34 +45,11 @@ class FileContext
 public:
     static FileContextPtr create();
 
-    QString filePath() const;
-    QString dirPath() const;
-    JsImports jsImports() const;
-    QStringList jsExtensions() const;
-
     Item *idScope() const;
 
 private:
-    QString m_filePath;
-    JsImports m_jsImports;
-    QStringList m_jsExtensions;
     Item *m_idScope;
 };
-
-inline QString FileContext::filePath() const
-{
-    return m_filePath;
-}
-
-inline JsImports FileContext::jsImports() const
-{
-    return m_jsImports;
-}
-
-inline QStringList FileContext::jsExtensions() const
-{
-    return m_jsExtensions;
-}
 
 inline Item *FileContext::idScope() const
 {

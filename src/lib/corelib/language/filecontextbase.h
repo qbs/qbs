@@ -27,20 +27,70 @@
 **
 ****************************************************************************/
 
-#include "filecontext.h"
+#ifndef QBS_FILECONTEXTBASE_H
+#define QBS_FILECONTEXTBASE_H
+
+#include "jsimports.h"
 
 namespace qbs {
 namespace Internal {
 
-FileContext::FileContext()
-    : m_idScope(0)
+class FileContextBase
 {
+    friend class ItemReaderASTVisitor;
+
+public:
+    void setFilePath(const QString &filePath);
+    QString filePath() const;
+
+    void setJsImports(const JsImports &jsImports);
+    JsImports jsImports() const;
+
+    void setJsExtensions(const QStringList &extensions);
+    QStringList jsExtensions() const;
+
+    QString dirPath() const;
+
+protected:
+    FileContextBase() {}
+    FileContextBase(const FileContextBase &other);
+
+    QString m_filePath;
+    JsImports m_jsImports;
+    QStringList m_jsExtensions;
+};
+
+inline void FileContextBase::setFilePath(const QString &filePath)
+{
+    m_filePath = filePath;
 }
 
-FileContextPtr FileContext::create()
+inline QString FileContextBase::filePath() const
 {
-    return FileContextPtr(new FileContext);
+    return m_filePath;
+}
+
+inline void FileContextBase::setJsImports(const JsImports &jsImports)
+{
+    m_jsImports = jsImports;
+}
+
+inline JsImports FileContextBase::jsImports() const
+{
+    return m_jsImports;
+}
+
+inline void FileContextBase::setJsExtensions(const QStringList &extensions)
+{
+    m_jsExtensions = extensions;
+}
+
+inline QStringList FileContextBase::jsExtensions() const
+{
+    return m_jsExtensions;
 }
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_FILECONTEXTBASE_H

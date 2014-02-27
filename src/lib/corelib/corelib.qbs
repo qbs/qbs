@@ -178,6 +178,8 @@ QbsLibrary {
             "evaluatorscriptclass.h",
             "filecontext.cpp",
             "filecontext.h",
+            "filecontextbase.cpp",
+            "filecontextbase.h",
             "filetags.cpp",
             "filetags.h",
             "functiondeclaration.h",

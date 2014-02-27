@@ -562,12 +562,8 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
 ResolvedFileContextPtr ProjectResolver::resolvedFileContext(const FileContextConstPtr &ctx) const
 {
     ResolvedFileContextPtr &result = m_fileContextMap[ctx];
-    if (!result) {
-        result = ResolvedFileContext::create();
-        result->filePath = ctx->filePath();
-        result->jsExtensions = ctx->jsExtensions();
-        result->jsImports = ctx->jsImports();
-    }
+    if (!result)
+        result = ResolvedFileContext::create(*ctx);
     return result;
 }
 
