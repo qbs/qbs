@@ -120,11 +120,11 @@ void PropertyList::readFile(const QString &filePath)
 
     NSError *error;
     NSData *data = [NSData dataWithContentsOfFile:toNSString(filePath) options:0 error:&error];
-    if (!data) {
+    if (data) {
+        p->d->read(p->context(), data);
+    } else {
         p->context()->throwError(fromNSString([error localizedDescription]));
     }
-
-    p->d->read(p->context(), data);
 }
 
 void PropertyListPrivate::read(QScriptContext *context, NSData *data)
