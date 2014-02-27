@@ -19,3 +19,6 @@ HEADERS += \
     commandlinefrontend.h \
     qbstool.h \
     ../shared/qbssettings.h
+
+include(../../library_dirname.pri)
+DEFINES += QBS_LIBRARY_DIRNAME=\\\"$${QBS_LIBRARY_DIRNAME}\\\"

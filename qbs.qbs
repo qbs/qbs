@@ -5,17 +5,18 @@ Project {
     property bool enableRPath: true
     property bool installApiHeaders: true
     property bool withExamples: true
-    property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : "lib"
+    property string libDirName: "lib"
+    property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
     property string libRPaths: {
         if (!project.enableRPath)
             return undefined;
         if (qbs.targetOS.contains("linux"))
-            return ["$ORIGIN/../lib"];
+            return ["$ORIGIN/../" + libDirName];
         if (qbs.targetOS.contains("osx"))
-            return ["@loader_path/../lib"]
+            return ["@loader_path/../" + libDirName]
     }
     property string resourcesInstallDir: ""
-    property string pluginsInstallDir: "lib"
+    property string pluginsInstallDir: libDirName
 
     references: [
         "doc/doc.qbs",

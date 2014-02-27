@@ -13,9 +13,11 @@ CONFIG += depend_includepath
 CONFIG += shared
 unix: CONFIG += plugin
 
+include(../library_dirname.pri)
+
 !isEmpty(QBS_PLUGINS_INSTALL_DIR): \
     installPrefix = $${QBS_PLUGINS_INSTALL_DIR}
 else: \
-    installPrefix = $${QBS_INSTALL_PREFIX}/lib
+    installPrefix = $${QBS_INSTALL_PREFIX}/$${QBS_LIBRARY_DIRNAME}
 target.path = $${installPrefix}/qbs/plugins
 INSTALLS += target

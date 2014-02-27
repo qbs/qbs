@@ -1,7 +1,8 @@
 include(../../../qbs_version.pri)
+include(../../library_dirname.pri)
 
 isEmpty(QBSLIBDIR) {
-    QBSLIBDIR = $${OUT_PWD}/../../../lib
+    QBSLIBDIR = $${OUT_PWD}/../../../$${QBS_LIBRARY_DIRNAME}
 }
 
 LIBNAME=qbsqtprofilesetup
@@ -11,8 +12,8 @@ unix {
 }
 
 !disable_rpath {
-    linux-*:QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN/../lib\'
-    macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../lib
+    linux-*:QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN/../$${QBS_LIBRARY_DIRNAME}\'
+    macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../$${QBS_LIBRARY_DIRNAME}
 }
 
 !CONFIG(static, static|shared) {

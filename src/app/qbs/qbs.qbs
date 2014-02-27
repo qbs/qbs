@@ -5,7 +5,10 @@ import "../../../version.js" as Version
 QbsApp {
     name: "qbs_app"
     targetName: "qbs"
-    cpp.defines: ["QBS_VERSION=\"" + Version.qbsVersion() + "\""]
+    cpp.defines: base.concat([
+        'QBS_VERSION="' + Version.qbsVersion() + '"',
+        'QBS_LIBRARY_DIRNAME="' + project.libDirName + '"'
+    ])
     files: [
         "../shared/qbssettings.h",
         "application.cpp",

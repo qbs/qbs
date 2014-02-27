@@ -1,9 +1,11 @@
+include(../library_dirname.pri)
+
 TEMPLATE = lib
 QT = core
 !isEmpty(QBS_DLLDESTDIR):DLLDESTDIR = $${QBS_DLLDESTDIR}
 else:DLLDESTDIR = ../../../bin
 !isEmpty(QBS_DESTDIR):DESTDIR = $${QBS_DESTDIR}
-else:DESTDIR = ../../../lib
+else:DESTDIR = ../../../$${QBS_LIBRARY_DIRNAME}
 CONFIG(static, static|shared) {
     DEFINES += QBS_STATIC_LIB
 } else {
@@ -22,11 +24,11 @@ win32 {
     dlltarget.path = $${QBS_INSTALL_PREFIX}/bin
     INSTALLS += dlltarget
 }
+
 !win32|!qbs_no_dev_install {
     !isEmpty(QBS_LIB_INSTALL_DIR): \
         target.path = $${QBS_LIB_INSTALL_DIR}
     else: \
-        target.path = $${QBS_INSTALL_PREFIX}/lib
+        target.path = $${QBS_INSTALL_PREFIX}/$${QBS_LIBRARY_DIRNAME}
     INSTALLS += target
 }
-
