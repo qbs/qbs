@@ -27,6 +27,7 @@ HEADERS += \
     $$PWD/property.h \
     $$PWD/propertydeclaration.h \
     $$PWD/propertymapinternal.h \
+    $$PWD/resolvedfilecontext.h \
     $$PWD/scriptengine.h \
     $$PWD/scriptpropertyobserver.h \
     $$PWD/value.h
@@ -54,6 +55,7 @@ SOURCES += \
     $$PWD/projectresolver.cpp \
     $$PWD/propertydeclaration.cpp \
     $$PWD/propertymapinternal.cpp \
+    $$PWD/resolvedfilecontext.cpp \
     $$PWD/scriptengine.cpp \
     $$PWD/value.cpp
 

@@ -212,6 +212,8 @@ QbsLibrary {
             "propertydeclaration.h",
             "propertymapinternal.cpp",
             "propertymapinternal.h",
+            "resolvedfilecontext.cpp",
+            "resolvedfilecontext.h",
             "scriptengine.cpp",
             "scriptengine.h",
             "scriptpropertyobserver.h",

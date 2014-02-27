@@ -30,6 +30,7 @@
 #include "language.h"
 
 #include "artifactproperties.h"
+#include "resolvedfilecontext.h"
 #include "scriptengine.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/productbuilddata.h>
@@ -49,23 +50,6 @@
 #include <QMap>
 #include <QMutexLocker>
 #include <QScriptValue>
-
-QT_BEGIN_NAMESPACE
-inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::JsImport &jsImport)
-{
-    stream >> jsImport.scopeName
-           >> jsImport.filePaths
-           >> jsImport.location;
-    return stream;
-}
-
-inline QDataStream& operator<<(QDataStream &stream, const qbs::Internal::JsImport &jsImport)
-{
-    return stream << jsImport.scopeName
-                  << jsImport.filePaths
-                  << jsImport.location;
-}
-QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
@@ -244,31 +228,6 @@ void RuleArtifact::store(PersistentPool &pool) const
         const Binding &binding = bindings.at(i);
         pool.stream() << binding.name << binding.code << binding.location;
     }
-}
-
-void ResolvedFileContext::load(PersistentPool &pool)
-{
-    filePath = pool.idLoadString();
-    jsExtensions = pool.idLoadStringList();
-    pool.stream() >> jsImports;
-}
-
-void ResolvedFileContext::store(PersistentPool &pool) const
-{
-    pool.storeString(filePath);
-    pool.storeStringList(jsExtensions);
-    pool.stream() << jsImports;
-}
-
-bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
-{
-    if (&a == &b)
-        return true;
-    if (!!&a != !!&b)
-        return false;
-    return a.filePath == b.filePath
-            && a.jsExtensions == b.jsExtensions
-            && a.jsImports == b.jsImports;
 }
 
 

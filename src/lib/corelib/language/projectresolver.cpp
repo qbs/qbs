@@ -36,6 +36,7 @@
 #include "item.h"
 #include "moduleloader.h"
 #include "propertymapinternal.h"
+#include "resolvedfilecontext.h"
 #include "scriptengine.h"
 #include <jsextensions/moduleproperties.h>
 #include <logging/translator.h>

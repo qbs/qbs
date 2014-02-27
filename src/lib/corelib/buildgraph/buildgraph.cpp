@@ -38,6 +38,7 @@
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
+#include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>

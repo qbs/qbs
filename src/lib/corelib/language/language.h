@@ -203,29 +203,6 @@ private:
     void store(PersistentPool &pool) const;
 };
 
-class ResolvedFileContext : public PersistentObject
-{
-public:
-    static ResolvedFileContextPtr create()
-    {
-        return ResolvedFileContextPtr(new ResolvedFileContext);
-    }
-
-    QString filePath;
-    QStringList jsExtensions;
-    JsImports jsImports;
-
-private:
-    ResolvedFileContext() {}
-
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
-};
-
-bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b);
-inline bool operator!=(const ResolvedFileContext &a, const ResolvedFileContext &b)
-{ return !(a == b); }
-
 class ScriptFunction : public PersistentObject
 {
 public:
