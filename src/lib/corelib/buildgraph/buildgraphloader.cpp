@@ -661,7 +661,10 @@ static QVariantMap propertyMapByKind(const ResolvedProductConstPtr &product, Pro
         return product->productProperties;
     case Property::PropertyInProject:
         return product->project->projectProperties();
+    default:
+        QBS_CHECK(false);
     }
+    return QVariantMap();
 }
 
 bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTrafo,
