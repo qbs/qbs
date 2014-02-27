@@ -88,9 +88,9 @@ Module {
                     print(process.readStdErr());
 
                 var plist = new PropertyList();
-                plist.read(process.readStdOut());
+                plist.readFromString(process.readStdOut());
 
-                plist = JSON.parse(plist.toJSON());
+                plist = JSON.parse(plist.toJSONString());
                 if (plist)
                     plist = plist["com.apple.ibtool.version"];
                 if (plist)

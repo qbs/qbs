@@ -49,10 +49,10 @@ public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     PropertyList(QScriptContext *context);
     ~PropertyList();
-    Q_INVOKABLE void read(const QString &input);
-    Q_INVOKABLE void readFile(const QString &filePath);
-    Q_INVOKABLE QString toXML() const;
-    Q_INVOKABLE QString toJSON() const;
+    Q_INVOKABLE void readFromString(const QString &input);
+    Q_INVOKABLE void readFromFile(const QString &filePath);
+    Q_INVOKABLE QString toXMLString() const;
+    Q_INVOKABLE QString toJSONString() const;
 private:
     PropertyListPrivate *d;
 };

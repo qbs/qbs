@@ -66,7 +66,7 @@ public:
 
     id propertyListObject;
 
-    void read(QScriptContext *context, NSData *data);
+    void readFromData(QScriptContext *context, NSData *data);
 };
 
 void initializeJsExtensionPropertyList(QScriptValue extensionObject)
@@ -102,7 +102,7 @@ PropertyList::PropertyList(QScriptContext *context)
     Q_ASSERT(thisObject().engine() == engine());
 }
 
-void PropertyList::read(const QString &input)
+void PropertyList::readFromString(const QString &input)
 {
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
@@ -110,10 +110,10 @@ void PropertyList::read(const QString &input)
     NSString *inputString = toNSString(input);
     NSData *data = [NSData dataWithBytes:[inputString UTF8String]
                             length:[inputString lengthOfBytesUsingEncoding:NSUTF8StringEncoding]];
-    p->d->read(p->context(), data);
+    p->d->readFromData(p->context(), data);
 }
 
-void PropertyList::readFile(const QString &filePath)
+void PropertyList::readFromFile(const QString &filePath)
 {
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
@@ -121,13 +121,13 @@ void PropertyList::readFile(const QString &filePath)
     NSError *error;
     NSData *data = [NSData dataWithContentsOfFile:toNSString(filePath) options:0 error:&error];
     if (data) {
-        p->d->read(p->context(), data);
+        p->d->readFromData(p->context(), data);
     } else {
         p->context()->throwError(fromNSString([error localizedDescription]));
     }
 }
 
-void PropertyListPrivate::read(QScriptContext *context, NSData *data)
+void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
 {
     NSError *error = nil;
     id plist = nil;
@@ -157,7 +157,7 @@ void PropertyListPrivate::read(QScriptContext *context, NSData *data)
     propertyListObject = [plist retain];
 }
 
-QString PropertyList::toXML() const
+QString PropertyList::toXMLString() const
 {
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
     if (!p->d->propertyListObject)
@@ -187,7 +187,7 @@ QString PropertyList::toXML() const
                                                encoding:NSUTF8StringEncoding] autorelease]);
 }
 
-QString PropertyList::toJSON() const
+QString PropertyList::toJSONString() const
 {
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
     if (!p->d->propertyListObject)

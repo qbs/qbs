@@ -22,11 +22,11 @@ Product {
 
         var xmlfile = new TextFile("test.xml", TextFile.ReadOnly);
         var propertyList = new PropertyList();
-        propertyList.read(xmlfile.readAll());
+        propertyList.readFromString(xmlfile.readAll());
         xmlfile.close();
 
         var jsontextfile = new TextFile("test.json", TextFile.WriteOnly);
-        jsontextfile.write(propertyList.toJSON());
+        jsontextfile.write(propertyList.toJSONString());
         jsontextfile.close();
 
         process = new Process();
