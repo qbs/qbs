@@ -120,7 +120,7 @@ void PropertyList::readFile(const QString &filePath)
     NSError *error;
     NSData *data = [NSData dataWithContentsOfFile:toNSString(filePath) options:0 error:&error];
     if (!data) {
-        p->context()->throwError(fromNSString([error description]));
+        p->context()->throwError(fromNSString([error localizedDescription]));
     }
 
     p->d->read(p->context(), data);
@@ -137,7 +137,7 @@ void PropertyListPrivate::read(QScriptContext *context, NSData *data)
                                                           options:0
                                                            format:NULL error:&error];
         if (Q_UNLIKELY(!plist)) {
-            context->throwError(fromNSString([error description]));
+            context->throwError(fromNSString([error localizedDescription]));
         }
     }
     else
@@ -169,7 +169,7 @@ QString PropertyList::toXML() const
                                                           format:NSPropertyListXMLFormat_v1_0
                                                          options:0 error:&error];
         if (!data) {
-            p->context()->throwError(fromNSString([error description]));
+            p->context()->throwError(fromNSString([error localizedDescription]));
         }
     } else {
         NSString *errorString = nil;
@@ -198,7 +198,7 @@ QString PropertyList::toJSON() const
                                                        options:0
                                                          error:&error];
         if (!data) {
-            p->context()->throwError(fromNSString([error description]));
+            p->context()->throwError(fromNSString([error localizedDescription]));
         }
 
         return fromNSString([[[NSString alloc] initWithData:data
