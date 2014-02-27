@@ -76,8 +76,12 @@ UnixGCC {
         if (product.type.contains("applicationbundle"))
             dict["CFBundleIconFile"] = product.targetName;
 
-        if (qbs.targetOS.contains("osx") && minimumOsxVersion)
-            dict["LSMinimumSystemVersion"] = minimumOsxVersion;
+        if (qbs.targetOS.contains("osx")) {
+            dict["NSPrincipalClass"] = "NSApplication"; // needed for Retina display support
+
+            if (minimumOsxVersion)
+                dict["LSMinimumSystemVersion"] = minimumOsxVersion;
+        }
 
         if (qbs.targetOS.contains("ios")) {
             dict["LSRequiresIPhoneOS"] = true;
