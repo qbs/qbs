@@ -194,24 +194,24 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
         }
 
         if (!import->fileName.isNull()) {
-            QString name = FileInfo::resolvePath(path, import->fileName.toString());
+            QString filePath = FileInfo::resolvePath(path, import->fileName.toString());
 
-            QFileInfo fi(name);
+            QFileInfo fi(filePath);
             if (Q_UNLIKELY(!fi.exists()))
-                throw ErrorInfo(Tr::tr("Can't find imported file %0.").arg(name),
+                throw ErrorInfo(Tr::tr("Can't find imported file %0.").arg(filePath),
                             CodeLocation(m_filePath, import->fileNameToken.startLine,
                                          import->fileNameToken.startColumn));
-            name = fi.canonicalFilePath();
+            filePath = fi.canonicalFilePath();
             if (fi.isDir()) {
-                collectPrototypes(name, as);
+                collectPrototypes(filePath, as);
             } else {
-                if (name.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
+                if (filePath.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
                     JsImport &jsImport = jsImports[as];
                     jsImport.scopeName = as;
-                    jsImport.filePaths.append(name);
+                    jsImport.filePaths.append(filePath);
                     jsImport.location = toCodeLocation(import->firstSourceLocation());
-                } else if (name.endsWith(QLatin1String(".qbs"), Qt::CaseInsensitive)) {
-                    m_typeNameToFile.insert(QStringList(as), name);
+                } else if (filePath.endsWith(QLatin1String(".qbs"), Qt::CaseInsensitive)) {
+                    m_typeNameToFile.insert(QStringList(as), filePath);
                 } else {
                     throw ErrorInfo(Tr::tr("Can only import .qbs and .js files"),
                                 CodeLocation(m_filePath, import->fileNameToken.startLine,
