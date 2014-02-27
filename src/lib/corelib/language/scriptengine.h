@@ -30,9 +30,9 @@
 #ifndef QBS_SCRIPTENGINE_H
 #define QBS_SCRIPTENGINE_H
 
-#include "jsimports.h"
 #include "forward_decls.h"
-#include <language/property.h>
+#include "jsimports.h"
+#include "property.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
 #include <tools/qbs_export.h>
