@@ -196,6 +196,21 @@ NSData *PropertyListPrivate::writeToData(QScriptContext *context, const QString 
     return data;
 }
 
+void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+
+    NSError *error = nil;
+    NSData *data = p->d->writeToData(p->context(), plistFormat);
+    if (Q_LIKELY(data)) {
+        if (Q_UNLIKELY(![data writeToFile:toNSString(filePath) options:NSDataWritingAtomic
+                                     error:&error])) {
+            p->context()->throwError(fromNSString([error localizedDescription]));
+        }
+    }
+}
+
 void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
 {
     NSPropertyListFormat format = 0;

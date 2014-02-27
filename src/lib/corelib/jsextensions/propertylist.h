@@ -52,6 +52,7 @@ public:
     ~PropertyList();
     Q_INVOKABLE void readFromString(const QString &input);
     Q_INVOKABLE void readFromFile(const QString &filePath);
+    Q_INVOKABLE void writeToFile(const QString &filePath, const QString &plistFormat);
     Q_INVOKABLE QScriptValue format() const;
     Q_INVOKABLE QString toString(const QString &plistFormat) const;
     Q_INVOKABLE QString toXMLString() const;
