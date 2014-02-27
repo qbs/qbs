@@ -1597,7 +1597,18 @@ void TestBlackbox::jsExtensionsPropertyList()
     QFile file2("test.xml");
     QVERIFY(file2.exists());
     QVERIFY(file2.open(QIODevice::ReadOnly));
-    QCOMPARE(file1.readAll(), file2.readAll());
+    QFile file3("test2.json");
+    QVERIFY(file3.exists());
+    QVERIFY(file3.open(QIODevice::ReadOnly));
+    QByteArray file1Contents = file1.readAll();
+    QCOMPARE(file3.readAll(), file1Contents);
+    QCOMPARE(file1Contents, file2.readAll());
+    QFile file4("test.openstep.plist");
+    QVERIFY(file4.exists());
+    QFile file5("test3.json");
+    QVERIFY(file5.exists());
+    QVERIFY(file5.open(QIODevice::ReadOnly));
+    QVERIFY(file1Contents != file5.readAll());
 }
 
 void TestBlackbox::jsExtensionsTextFile()
