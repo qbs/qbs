@@ -81,25 +81,25 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
     if (debugJSImports)
         m_logger.qbsDebug() << "[ENGINE] import into " << jsImport.scopeName;
 
-    foreach (const QString &fileName, jsImport.fileNames) {
+    foreach (const QString &filePath, jsImport.filePaths) {
         QScriptValue jsImportValue;
-        jsImportValue = m_jsImportCache.value(fileName);
+        jsImportValue = m_jsImportCache.value(filePath);
         if (jsImportValue.isValid()) {
             if (debugJSImports)
-                m_logger.qbsDebug() << "[ENGINE] " << fileName << " (cache hit)";
+                m_logger.qbsDebug() << "[ENGINE] " << filePath << " (cache hit)";
             targetObject.setProperty(jsImport.scopeName, jsImportValue);
         } else {
             if (debugJSImports)
-                m_logger.qbsDebug() << "[ENGINE] " << fileName << " (cache miss)";
-            QFile file(fileName);
+                m_logger.qbsDebug() << "[ENGINE] " << filePath << " (cache miss)";
+            QFile file(filePath);
             if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
-                throw ErrorInfo(tr("Cannot open '%1'.").arg(fileName));
+                throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));
             const QString sourceCode = QTextStream(&file).readAll();
             file.close();
-            QScriptProgram program(sourceCode, fileName);
+            QScriptProgram program(sourceCode, filePath);
             importProgram(program, scope, jsImportValue);
             targetObject.setProperty(jsImport.scopeName, jsImportValue);
-            m_jsImportCache.insert(fileName, jsImportValue);
+            m_jsImportCache.insert(filePath, jsImportValue);
         }
     }
 }

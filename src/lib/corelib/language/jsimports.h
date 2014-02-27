@@ -48,7 +48,7 @@ class JsImport
 {
 public:
     QString scopeName;
-    QStringList fileNames;
+    QStringList filePaths;
     CodeLocation location;
 };
 
@@ -56,7 +56,7 @@ typedef QList<JsImport> JsImports;
 
 inline bool operator==(const JsImport &jsi1, const JsImport &jsi2)
 {
-    return jsi1.scopeName == jsi2.scopeName && jsi1.fileNames.toSet() == jsi2.fileNames.toSet();
+    return jsi1.scopeName == jsi2.scopeName && jsi1.filePaths.toSet() == jsi2.filePaths.toSet();
 }
 
 } // namespace Internal

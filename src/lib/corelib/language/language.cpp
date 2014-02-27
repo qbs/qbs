@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::JsImport &jsImport)
 {
     stream >> jsImport.scopeName
-           >> jsImport.fileNames
+           >> jsImport.filePaths
            >> jsImport.location;
     return stream;
 }
@@ -62,7 +62,7 @@ inline QDataStream& operator>>(QDataStream &stream, qbs::Internal::JsImport &jsI
 inline QDataStream& operator<<(QDataStream &stream, const qbs::Internal::JsImport &jsImport)
 {
     return stream << jsImport.scopeName
-                  << jsImport.fileNames
+                  << jsImport.filePaths
                   << jsImport.location;
 }
 QT_END_NAMESPACE

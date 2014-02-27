@@ -208,7 +208,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                 if (name.endsWith(QLatin1String(".js"), Qt::CaseInsensitive)) {
                     JsImport &jsImport = jsImports[as];
                     jsImport.scopeName = as;
-                    jsImport.fileNames.append(name);
+                    jsImport.filePaths.append(name);
                     jsImport.location = toCodeLocation(import->firstSourceLocation());
                 } else if (name.endsWith(QLatin1String(".qbs"), Qt::CaseInsensitive)) {
                     m_typeNameToFile.insert(QStringList(as), name);
@@ -241,7 +241,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                                 jsImport.scopeName = as;
                                 jsImport.location = toCodeLocation(import->firstSourceLocation());
                             }
-                            jsImport.fileNames.append(dirIter.filePath());
+                            jsImport.filePaths.append(dirIter.filePath());
                         }
                         found = true;
                         break;
