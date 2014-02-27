@@ -109,6 +109,22 @@ PropertyList::PropertyList(QScriptContext *context)
     Q_ASSERT(thisObject().engine() == engine());
 }
 
+bool PropertyList::isEmpty() const
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    return !p->d->propertyListObject;
+}
+
+void PropertyList::clear()
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    [p->d->propertyListObject release];
+    p->d->propertyListObject = nil;
+    p->d->propertyListFormat = 0;
+}
+
 void PropertyList::readFromString(const QString &input)
 {
     Q_ASSERT(thisObject().engine() == engine());

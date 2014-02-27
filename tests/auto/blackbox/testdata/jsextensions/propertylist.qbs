@@ -5,6 +5,32 @@ import qbs.TextFile
 
 Product {
     type: {
+        var plistobj = new PropertyList();
+        if (!plistobj.isEmpty()) {
+            throw "newly created PropertyList was not empty!";
+        }
+
+        if (plistobj.format() !== undefined) {
+            throw "newly created PropertyList did not have an undefined format";
+        }
+
+        plistobj.clear();
+
+        if (!plistobj.isEmpty() || plistobj.format() !== undefined) {
+            throw "clear() somehow had an effect on an empty PropertyList";
+        }
+
+        plistobj.readFromString('{"key":["value"]}');
+        if (plistobj.isEmpty() || plistobj.format() !== "json") {
+            throw "readFromString did not set format to JSON or object thinks it is empty";
+        }
+
+        plistobj.clear();
+
+        if (!plistobj.isEmpty() || plistobj.format() !== undefined) {
+            throw "clear() had no effect on a non-empty PropertyList";
+        }
+
         var obj = {
             "Array": ["ListItem1", "ListItem2", "ListItem3"],
             "Integer": 1,

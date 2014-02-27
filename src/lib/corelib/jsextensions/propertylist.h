@@ -50,6 +50,8 @@ public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     PropertyList(QScriptContext *context);
     ~PropertyList();
+    Q_INVOKABLE bool isEmpty() const;
+    Q_INVOKABLE void clear();
     Q_INVOKABLE void readFromString(const QString &input);
     Q_INVOKABLE void readFromFile(const QString &filePath);
     Q_INVOKABLE void writeToFile(const QString &filePath, const QString &plistFormat);
