@@ -35,6 +35,8 @@
 #include "propertylist.h"
 #include "textfile.h"
 
+#include <QScriptEngine>
+
 namespace qbs {
 namespace Internal {
 
@@ -42,6 +44,16 @@ void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
 {
     foreach (const QString &name, names)
         initializers().value(name)(scope);
+}
+
+QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
+{
+    if (!hasExtension(name))
+        return QScriptValue();
+
+    QScriptValue extensionObj = engine->newObject();
+    initializers().value(name)(extensionObj);
+    return extensionObj.property(name);
 }
 
 bool JsExtensions::hasExtension(const QString &name)

@@ -34,6 +34,7 @@
 #include <QStringList>
 
 QT_BEGIN_NAMESPACE
+class QScriptEngine;
 class QScriptValue;
 QT_END_NAMESPACE
 
@@ -44,6 +45,7 @@ class JsExtensions
 {
 public:
     static void setupExtensions(const QStringList &names, QScriptValue scope);
+    static QScriptValue loadExtension(QScriptEngine *engine, const QString &name);
     static bool hasExtension(const QString &name);
 
 private:
