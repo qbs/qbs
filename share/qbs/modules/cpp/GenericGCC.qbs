@@ -3,7 +3,6 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
-import 'windows.js' as Windows
 import 'gcc.js' as Gcc
 import 'bundle-tools.js' as BundleTools
 import 'path-tools.js' as PathTools

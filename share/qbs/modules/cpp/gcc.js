@@ -1,3 +1,5 @@
+var Windows = loadFile("windows.js");
+
 function linkerFlags(product, inputs)
 {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
