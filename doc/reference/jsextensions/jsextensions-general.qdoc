@@ -55,6 +55,14 @@
     \note Do not confuse this with the \c{qbs.targetOS} property, which represents the operating
     system on which the binaries produced by \QBS will run.
 
+    \section2 loadFile
+    \code
+    var MyFunctions = loadFile("myfunctions.js");
+    MyFunctions.doSomething();
+    \endcode
+    Loads a JavaScript file and returns an object that contains the evaluated context of this file.
+    This function is only available in JavaScript files.
+
 
     \section1 Extensions to JavaScript Built-in Objects
 

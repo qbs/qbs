@@ -29,12 +29,13 @@
 
 #include "scriptengine.h"
 
+#include "filecontextbase.h"
 #include "item.h"
-#include "filecontext.h"
 #include "propertymapinternal.h"
 #include "scriptpropertyobserver.h"
 #include <buildgraph/artifact.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
 
 #include <QDebug>
@@ -66,10 +67,19 @@ ScriptEngine::~ScriptEngine()
 {
 }
 
-void ScriptEngine::import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject)
+void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue scope,
+        QScriptValue targetObject)
 {
-    for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it)
+    installImportFunctions();
+    m_currentDirPathStack.push(FileInfo::path(fileCtx->filePath()));
+
+    const JsImports jsImports = fileCtx->jsImports();
+    for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it) {
         import(*it, scope, targetObject);
+    }
+
+    m_currentDirPathStack.pop();
+    uninstallImportFunctions();
 }
 
 void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject)
@@ -91,13 +101,7 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue scope, QScriptV
         } else {
             if (debugJSImports)
                 m_logger.qbsDebug() << "[ENGINE] " << filePath << " (cache miss)";
-            QFile file(filePath);
-            if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
-                throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));
-            const QString sourceCode = QTextStream(&file).readAll();
-            file.close();
-            QScriptProgram program(sourceCode, filePath);
-            importProgram(program, scope, jsImportValue);
+            jsImportValue = importFile(filePath, scope);
             targetObject.setProperty(jsImport.scopeName, jsImportValue);
             m_jsImportCache.insert(filePath, jsImportValue);
         }
@@ -204,6 +208,21 @@ void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
     m_environment = env;
 }
 
+QScriptValue ScriptEngine::importFile(const QString &filePath, const QScriptValue &scope)
+{
+    QFile file(filePath);
+    if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
+        throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));
+    const QString sourceCode = QTextStream(&file).readAll();
+    file.close();
+    QScriptProgram program(sourceCode, filePath);
+    QScriptValue obj = newObject();
+    m_currentDirPathStack.push(FileInfo::path(filePath));
+    importProgram(program, scope, obj);
+    m_currentDirPathStack.pop();
+    return obj;
+}
+
 void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptValue &scope,
                                QScriptValue &targetObject)
 {
@@ -263,6 +282,32 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
         targetObject.setProperty(it.name(), it.value());
         it.remove();
     }
+}
+
+QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *qtengine)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    if (context->argumentCount() < 1) {
+        return context->throwError(
+                    ScriptEngine::tr("The loadFile function requires a file path."));
+    }
+
+    if (engine->m_currentDirPathStack.isEmpty()) {
+        return context->throwError(
+            ScriptEngine::tr("loadFile: internal error. No current directory."));
+    }
+
+    QScriptValue result;
+    const QString relativeFilePath = context->argument(0).toVariant().toString();
+    try {
+        const QString filePath = FileInfo::resolvePath(engine->m_currentDirPathStack.top(),
+                                                       relativeFilePath);
+        result = engine->importFile(filePath, QScriptValue());
+    } catch (ErrorInfo &e) {
+        result = context->throwError(e.toString());
+    }
+
+    return result;
 }
 
 void ScriptEngine::addEnvironmentVariable(const QString &name, const QString &value)
@@ -344,7 +389,25 @@ void ScriptEngine::extendJavaScriptBuiltins()
     stringExtender.addFunction(QLatin1String("startsWith"),
         QLatin1String("(function(e){return this.slice(0, e.length) === e;})"));
     stringExtender.addFunction(QLatin1String("endsWith"),
-        QLatin1String("(function(e){return this.slice(-e.length) === e;})"));
+                               QLatin1String("(function(e){return this.slice(-e.length) === e;})"));
+}
+
+void ScriptEngine::installFunction(const QString &name, QScriptValue *functionValue,
+        FunctionSignature f)
+{
+    if (!functionValue->isValid())
+        *functionValue = newFunction(f);
+    globalObject().setProperty(name, *functionValue);
+}
+
+void ScriptEngine::installImportFunctions()
+{
+    installFunction(QLatin1String("loadFile"), &m_loadFileFunction, js_loadFile);
+}
+
+void ScriptEngine::uninstallImportFunctions()
+{
+    globalObject().setProperty(QLatin1String("loadFile"), QScriptValue());
 }
 
 } // namespace Internal

@@ -41,6 +41,7 @@
 #include <QPair>
 #include <QProcessEnvironment>
 #include <QScriptEngine>
+#include <QStack>
 #include <QString>
 
 namespace qbs {
@@ -59,7 +60,8 @@ public:
 
     void setLogger(const Logger &logger) { m_logger = logger; }
     const Logger &logger() const { return m_logger; }
-    void import(const JsImports &jsImports, QScriptValue scope, QScriptValue targetObject);
+    void import(const FileContextBaseConstPtr &fileCtx, QScriptValue scope,
+            QScriptValue targetObject);
     void import(const JsImport &jsImport, QScriptValue scope, QScriptValue targetObject);
     void clearImportsCache();
 
@@ -119,8 +121,13 @@ public:
 
 private:
     void extendJavaScriptBuiltins();
+    void installFunction(const QString &name, QScriptValue *functionValue, FunctionSignature f);
+    void installImportFunctions();
+    void uninstallImportFunctions();
+    QScriptValue importFile(const QString &filePath, const QScriptValue &scope);
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
                        QScriptValue &targetObject);
+    static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
 
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
@@ -134,6 +141,8 @@ private:
     QHash<QString, QString> m_usedEnvironment;
     QHash<QString, bool> m_fileExistsResult;
     QHash<QString, FileTime> m_fileLastModifiedResult;
+    QStack<QString> m_currentDirPathStack;
+    QScriptValue m_loadFileFunction;
 };
 
 } // namespace Internal

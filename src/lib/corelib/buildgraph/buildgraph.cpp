@@ -165,7 +165,7 @@ static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productS
 void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
         QScriptValue targetObject)
 {
-    engine->import(fileContext->jsImports(), targetObject, targetObject);
+    engine->import(fileContext, targetObject, targetObject);
     JsExtensions::setupExtensions(fileContext->jsExtensions(), targetObject);
 }
 
