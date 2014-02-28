@@ -1,3 +1,4 @@
+var FileInfo = loadExtension("qbs.FileInfo");
 
 // replace chars non safe for a domain name (rfc1034) with a "-"
 function rfc1034(inStr)

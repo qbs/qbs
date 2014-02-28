@@ -2,7 +2,6 @@ import qbs 1.0
 import qbs.File
 import qbs.Process
 import qbs.TextFile
-import qbs.FileInfo
 import qbs.ModUtils
 import "bundle-tools.js" as BundleTools
 import "darwin-tools.js" as DarwinTools
