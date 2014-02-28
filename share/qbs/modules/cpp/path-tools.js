@@ -1,3 +1,5 @@
+var BundleTools = loadFile("bundle-tools.js");
+
 function applicationFileName()
 {
     return ModUtils.moduleProperty(product, "executablePrefix")
