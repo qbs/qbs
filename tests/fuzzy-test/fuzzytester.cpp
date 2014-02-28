@@ -77,17 +77,19 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
             bool success = runQbs(defaultBuildDir(), QLatin1String("resolve"), &qbsError);
             if (success)
                 success = runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError);
-            if (!success) {
-                // An error could be due to the current commit being faulty. Check that it is
-                // buildable on its own before reporting a qbs error.
+            if (success) {
+                if (!doCleanBuild()) {
+                    const QString message = QString::fromLocal8Bit("An incremental build succeeded "
+                            "with a commit for which a clean build failed.");
+                    throwIncrementalBuildError(message, buildSequence);
+                }
+            } else {
                 qDebug("Incremental build failed. Checking whether clean build works...");
-                const QString otherDir = "fuzzytest-verification-build";
-                removeDir(otherDir);
-                if (runQbs(otherDir, QLatin1String("build"))) {
-                    const QString buildSequenceString = buildSequence.join(QLatin1String(","));
-                    throw TestError(QString::fromLocal8Bit("Found qbs bug with incremental build!\n"
-                            "The error message was: '%1'\n"
-                            "The sequence of commits was: %2.").arg(qbsError, buildSequenceString));
+                if (doCleanBuild()) {
+                    const QString message = QString::fromLocal8Bit("An incremental build failed "
+                            "with a commit for which a clean build succeeded.\n"
+                            "The qbs error message was: '%1'").arg(qbsError);
+                    throwIncrementalBuildError(message, buildSequence);
                 } else {
                     qDebug("Clean build also fails. Continuing.");
                 }
@@ -165,6 +167,22 @@ void FuzzyTester::removeDir(const QString &dirPath)
         throw TestError(QString::fromLocal8Bit("Failed to remove temporary dir '%1'.")
                         .arg(dir.absolutePath()));
     }
+}
+
+bool FuzzyTester::doCleanBuild()
+{
+    const QString cleanBuildDir = "fuzzytest-verification-build";
+    removeDir(cleanBuildDir);
+    return runQbs(cleanBuildDir, QLatin1String("build"));
+}
+
+void FuzzyTester::throwIncrementalBuildError(const QString &message,
+                                             const QStringList &commitSequence)
+{
+    const QString commitSequenceString = commitSequence.join(QLatin1String(","));
+    throw TestError(QString::fromLocal8Bit("Found qbs bug with incremental build!\n"
+            "%1\n"
+            "The sequence of commits was: %2.").arg(message, commitSequenceString));
 }
 
 QString FuzzyTester::defaultBuildDir()

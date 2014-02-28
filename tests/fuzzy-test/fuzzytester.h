@@ -33,6 +33,10 @@
 
 #include <exception>
 
+QT_BEGIN_NAMESPACE
+class QStringList;
+QT_END_NAMESPACE
+
 class TestError {
 public:
     TestError(const QString &errorMessage) : errorMessage(errorMessage) {}
@@ -59,6 +63,8 @@ private:
     void runGit(const QStringList &arguments, QString *output = 0);
     bool runQbs(const QString &buildDir, const QString &command, QString *errorOutput = 0);
     void removeDir(const QString &dir);
+    bool doCleanBuild();
+    void throwIncrementalBuildError(const QString &message, const QStringList &commitSequence);
 
     static QString defaultBuildDir();
 
