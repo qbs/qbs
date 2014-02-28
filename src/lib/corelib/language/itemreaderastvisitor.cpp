@@ -68,6 +68,7 @@ bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
     m_sourceValue.clear();
     m_file = FileContext::create();
     m_file->m_filePath = m_filePath;
+    m_file->m_searchPaths = m_reader->searchPaths();
 
     if (Q_UNLIKELY(!ast->members->member))
         throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_filePath));

@@ -49,6 +49,9 @@ public:
     void setJsExtensions(const QStringList &extensions);
     QStringList jsExtensions() const;
 
+    void setSearchPaths(const QStringList &paths);
+    QStringList searchPaths() const;
+
     QString dirPath() const;
 
 protected:
@@ -58,6 +61,7 @@ protected:
     QString m_filePath;
     JsImports m_jsImports;
     QStringList m_jsExtensions;
+    QStringList m_searchPaths;
 };
 
 inline void FileContextBase::setFilePath(const QString &filePath)
@@ -88,6 +92,16 @@ inline void FileContextBase::setJsExtensions(const QStringList &extensions)
 inline QStringList FileContextBase::jsExtensions() const
 {
     return m_jsExtensions;
+}
+
+inline void FileContextBase::setSearchPaths(const QStringList &paths)
+{
+    m_searchPaths = paths;
+}
+
+inline QStringList FileContextBase::searchPaths() const
+{
+    return m_searchPaths;
 }
 
 } // namespace Internal

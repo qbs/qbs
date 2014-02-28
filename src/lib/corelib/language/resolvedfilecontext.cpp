@@ -59,6 +59,7 @@ void ResolvedFileContext::load(PersistentPool &pool)
 {
     m_filePath = pool.idLoadString();
     m_jsExtensions = pool.idLoadStringList();
+    m_searchPaths = pool.idLoadStringList();
     pool.stream() >> m_jsImports;
 }
 
@@ -66,6 +67,7 @@ void ResolvedFileContext::store(PersistentPool &pool) const
 {
     pool.storeString(m_filePath);
     pool.storeStringList(m_jsExtensions);
+    pool.storeStringList(m_searchPaths);
     pool.stream() << m_jsImports;
 }
 
