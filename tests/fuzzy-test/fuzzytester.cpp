@@ -43,7 +43,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
 {
     m_profile = profile;
 
-    runGit(QStringList() << "describe" << "HEAD", &m_headCommit);
+    runGit(QStringList() << "rev-parse" << "HEAD", &m_headCommit);
     qDebug("HEAD is %s", qPrintable(m_headCommit));
 
     qDebug("Trying to find a buildable commit to start with...");
