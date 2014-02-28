@@ -39,7 +39,9 @@
 #include <tools/qbsassert.h>
 
 #include <QDebug>
+#include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QScriptProgram>
 #include <QScriptValueIterator>
 #include <QSet>
@@ -72,6 +74,7 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue s
 {
     installImportFunctions();
     m_currentDirPathStack.push(FileInfo::path(fileCtx->filePath()));
+    m_extensionSearchPathsStack.push(fileCtx->searchPaths());
 
     const JsImports jsImports = fileCtx->jsImports();
     for (JsImports::const_iterator it = jsImports.begin(); it != jsImports.end(); ++it) {
@@ -79,6 +82,7 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue s
     }
 
     m_currentDirPathStack.pop();
+    m_extensionSearchPathsStack.pop();
     uninstallImportFunctions();
 }
 
@@ -284,6 +288,78 @@ void ScriptEngine::importProgram(const QScriptProgram &program, const QScriptVal
     }
 }
 
+static QString findExtensionDir(const QStringList &searchPaths, const QString &extensionPath)
+{
+    foreach (const QString &searchPath, searchPaths) {
+        const QString dirPath = searchPath + "/imports/" + extensionPath;
+        QFileInfo fi(dirPath);
+        if (fi.exists() && fi.isDir())
+            return dirPath;
+    }
+    return QString();
+}
+
+static QScriptValue mergeExtensionObjects(const QScriptValueList &lst)
+{
+    QScriptValue result;
+    foreach (const QScriptValue &v, lst) {
+        if (!result.isValid()) {
+            result = v;
+            continue;
+        }
+        QScriptValueIterator svit(v);
+        while (svit.hasNext()) {
+            svit.next();
+            result.setProperty(svit.name(), svit.value());
+        }
+    }
+    return result;
+}
+
+QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngine *qtengine)
+{
+    ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
+    if (context->argumentCount() < 1) {
+        return context->throwError(
+                    ScriptEngine::tr("The loadExtension function requires "
+                                     "an extension name."));
+    }
+
+    if (engine->m_extensionSearchPathsStack.isEmpty())
+        return context->throwError(
+                    ScriptEngine::tr("loadExtension: internal error. No search paths."));
+
+    const QString uri = context->argument(0).toVariant().toString();
+    if (engine->m_logger.debugEnabled()) {
+        engine->m_logger.qbsDebug()
+                << "[loadExtension] loading extension " << uri;
+    }
+
+    QString uriAsPath = uri;
+    uriAsPath.replace(QLatin1Char('.'), QLatin1Char('/'));
+    const QString dirPath = findExtensionDir(engine->m_extensionSearchPathsStack.top(), uriAsPath);
+    if (dirPath.isEmpty())
+        return context->throwError(
+                    ScriptEngine::tr("loadExtension: Cannot find extension '%1'.").arg(uri));
+
+    QDirIterator dit(dirPath, QDir::Files | QDir::Readable);
+    QScriptValueList values;
+    try {
+        while (dit.hasNext()) {
+            const QString filePath = dit.next();
+            if (engine->m_logger.debugEnabled()) {
+                engine->m_logger.qbsDebug()
+                        << "[loadExtension] importing file " << filePath;
+            }
+            values << engine->importFile(filePath, QScriptValue());
+        }
+    } catch (ErrorInfo &e) {
+        return context->throwError(e.toString());
+    }
+
+    return mergeExtensionObjects(values);
+}
+
 QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *qtengine)
 {
     ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
@@ -403,11 +479,13 @@ void ScriptEngine::installFunction(const QString &name, QScriptValue *functionVa
 void ScriptEngine::installImportFunctions()
 {
     installFunction(QLatin1String("loadFile"), &m_loadFileFunction, js_loadFile);
+    installFunction(QLatin1String("loadExtension"), &m_loadExtensionFunction, js_loadExtension);
 }
 
 void ScriptEngine::uninstallImportFunctions()
 {
     globalObject().setProperty(QLatin1String("loadFile"), QScriptValue());
+    globalObject().setProperty(QLatin1String("loadExtension"), QScriptValue());
 }
 
 } // namespace Internal

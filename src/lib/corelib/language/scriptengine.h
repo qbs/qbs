@@ -127,6 +127,7 @@ private:
     QScriptValue importFile(const QString &filePath, const QScriptValue &scope);
     void importProgram(const QScriptProgram &program, const QScriptValue &scope,
                        QScriptValue &targetObject);
+    static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
 
     ScriptValueCache m_scriptValueCache;
@@ -142,7 +143,9 @@ private:
     QHash<QString, bool> m_fileExistsResult;
     QHash<QString, FileTime> m_fileLastModifiedResult;
     QStack<QString> m_currentDirPathStack;
+    QStack<QStringList> m_extensionSearchPathsStack;
     QScriptValue m_loadFileFunction;
+    QScriptValue m_loadExtensionFunction;
 };
 
 } // namespace Internal

@@ -63,6 +63,14 @@
     Loads a JavaScript file and returns an object that contains the evaluated context of this file.
     This function is only available in JavaScript files.
 
+    \section2 loadExtension
+    \code
+    var FileInfo = loadExtension("qbs.FileInfo");
+    var fileName = FileInfo.fileName(filePath);
+    \endcode
+    Loads a \QBS extension and returns an object that contains all functions of that extension.
+    This function is only available in JavaScript files.
+
 
     \section1 Extensions to JavaScript Built-in Objects
 
