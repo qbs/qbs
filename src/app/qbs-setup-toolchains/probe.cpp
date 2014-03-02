@@ -150,37 +150,29 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
                      HostOsInfo::defaultEndianness(architecture));
 }
 
-static Profile createMingwProfile(const QString &_compilerFilePath, Settings *settings,
-        const QString &profileName = QString())
+static Profile createGccProfile(const QString &_compilerFilePath, Settings *settings,
+                                const QStringList &toolchainTypes,
+                                const QString &profileName = QString())
 {
     const QString compilerFilePath = actualCompilerFilePath(_compilerFilePath);
     const QString machineName = gccMachineName(compilerFilePath);
     const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
-    if (!validMinGWMachines().contains(machineName)) {
+    const bool isMingw = toolchainTypes.contains(QLatin1String("mingw"));
+
+    if (isMingw && !validMinGWMachines().contains(machineName)) {
         throw qbs::ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
                 .arg(machineName));
-    }
-    Profile profile(!profileName.isEmpty() ? profileName : machineName, settings);
-    profile.removeProfile();
-    profile.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
-    setCommonProperties(profile, compilerFilePath, completeToolchainList(QLatin1String("mingw")),
-                        compilerTriplet.first());
-    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(profile.name(), compilerFilePath)
-            << endl;
-    return profile;
-}
-
-static Profile createGccProfile(const QString &_compilerFilePath, Settings *settings,
-                                const QStringList &toolchainTypes, const QString &profileName)
-{
-    const QString compilerFilePath = actualCompilerFilePath(_compilerFilePath);
-    const QString machineName = gccMachineName(compilerFilePath);
-    const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
-    if (compilerTriplet.count() < 2) {
+    } else if (compilerTriplet.count() < 2) {
         throw qbs::ErrorInfo(Tr::tr("Architecture '%1' of compiler at '%1' not understood.")
                              .arg(compilerFilePath, machineName));
     }
-    Profile profile(profileName, settings);
+
+    Profile profile(!profileName.isEmpty() ? profileName : machineName, settings);
+    profile.removeProfile();
+    if (isMingw) {
+        profile.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
+    }
+
     setCommonProperties(profile, compilerFilePath, toolchainTypes, compilerTriplet.first());
     const QString compilerName = QFileInfo(compilerFilePath).fileName();
     if (compilerName.contains(QLatin1Char('-'))) {
@@ -225,7 +217,8 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
         const QString gccPath
                 = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!gccPath.isEmpty())
-            profiles << createMingwProfile(gccPath, settings);
+            profiles << createGccProfile(gccPath, settings,
+                                         completeToolchainList(QLatin1String("mingw")));
     }
 }
 
@@ -268,9 +261,7 @@ void createProfile(const QString &profileName, const QString &toolchainType,
                                     "via the auto-detection mechanism."));
     }
 
-    if (toolchainTypes.contains(QLatin1String("mingw")))
-        createMingwProfile(compilerFilePath, settings, profileName);
-    else if (toolchainTypes.contains(QLatin1String("gcc")))
+    if (toolchainTypes.contains(QLatin1String("gcc")))
         createGccProfile(compilerFilePath, settings, toolchainTypes, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
