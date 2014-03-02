@@ -45,6 +45,28 @@ function _resourceFileProperties(path)
 // => {"a":"X3$Y","b":{"t":"%Y $(k)"}}
 function expandPlistEnvironmentVariables(obj, env, warn)
 {
+    // Possible syntaxes for wrapping an environment variable name
+    var syntaxes = [
+        {"open": "${", "close": "}"},
+        {"open": "$(", "close": ")"},
+        {"open": "@",  "close": "@"}
+    ];
+
+    // Finds the first index of a replacement starting with one of the supported syntaxes
+    // This is needed so we don't do recursive substitutions
+    function indexOfReplacementStart(syntaxes, str, offset) {
+        var syntax;
+        var idx = str.length;
+        for (var i in syntaxes) {
+            var j = str.indexOf(syntaxes[i].open, offset);
+            if (j !== -1 && j < idx) {
+                syntax = syntaxes[i];
+                idx = j;
+            }
+        }
+        return { "syntax": syntax, "index": idx === str.length ? -1 : idx };
+    }
+
     function expandRecursive(obj, env, checked) {
         checked.push(obj);
         for (var key in obj) {
@@ -57,33 +79,32 @@ function expandPlistEnvironmentVariables(obj, env, warn)
             }
             if (type !== "string")
                 continue;
-            var i = value.indexOf('$')
+            var repl = indexOfReplacementStart(syntaxes, value);
+            var i = repl.index;
             var changes = false;
             while (i !== -1) {
-                var brace = value.charAt(i+1);
-                if (brace === '(' || brace === '{') {
-                    var j = value.indexOf(brace === '(' ? ')' : '}', i + 2);
-                    if (j === -1)
-                        break;
-                    var varParts = value.slice(i + 2, j).split(':');
-                    var varName = varParts[0];
-                    var varFormatter = varParts[1];
-                    var varValue = env[varName];
-                    if (undefined === varValue) {
-                        // skip replacement
-                        if (warn)
-                            print("Warning undefined variable ",varName, " in variable expansion");
-                    } else {
-                        changes = true;
-                        varValue = String(varValue);
-                        if (varFormatter === "rfc1034identifier")
-                            varValue = rfc1034(varValue);
-                        value = value.slice(0, i) + varValue + value.slice(j + 1);
-                        // avoid recursive substitutions to avoid potentially infinite loops
-                        i += varValue.length;
-                    }
+                var j = value.indexOf(repl.syntax.close, i + repl.syntax.open.length);
+                if (j === -1)
+                    break;
+                var varParts = value.slice(i + repl.syntax.open.length, j).split(':');
+                var varName = varParts[0];
+                var varFormatter = varParts[1];
+                var varValue = env[varName];
+                if (undefined === varValue) {
+                    // skip replacement
+                    if (warn)
+                        print("Warning undefined variable ",varName, " in variable expansion");
+                } else {
+                    changes = true;
+                    varValue = String(varValue);
+                    if (varFormatter === "rfc1034identifier")
+                        varValue = rfc1034(varValue);
+                    value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
+                    // avoid recursive substitutions to avoid potentially infinite loops
+                    i += varValue.length;
                 }
-                i = value.indexOf('$', i + 1);
+                repl = indexOfReplacementStart(syntaxes, value, i + repl.syntax.close.length);
+                i = repl.index;
             }
             if (changes)
                 obj[key] = value;
