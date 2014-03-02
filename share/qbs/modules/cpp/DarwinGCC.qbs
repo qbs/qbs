@@ -273,7 +273,7 @@ UnixGCC {
                     for (key in buildEnv)
                         env[key] = buildEnv[key];
 
-                    DarwinTools.doRepl(aggregatePlist, env, true);
+                    DarwinTools.expandPlistEnvironmentVariables(aggregatePlist, env, true);
                 }
 
                 if (infoPlistFormat === "same-as-input" && infoPlistFile)

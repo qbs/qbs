@@ -39,12 +39,13 @@ function _resourceFileProperties(path)
 }
 
 // perform replacements in env recursively
-// JSON.stringify(doRepl({a:"$(x)3$$(y)",b:{t:"%$(y) $(k)"}},{x:"X",y:"Y"}, true))
+// JSON.stringify(expandPlistEnvironmentVariables({a:"$(x)3$$(y)",b:{t:"%$(y) $(k)"}},
+//                                                {x:"X",y:"Y"}, true))
 //    Warning undefined variable  k  in variable expansion
 // => {"a":"X3$Y","b":{"t":"%Y $(k)"}}
-function doRepl(obj, env, warn)
+function expandPlistEnvironmentVariables(obj, env, warn)
 {
-    function doReplR(obj, env, checked) {
+    function expandRecursive(obj, env, checked) {
         checked.push(obj);
         for (var key in obj) {
             var value =obj[key];
@@ -52,7 +53,7 @@ function doRepl(obj, env, warn)
             if (type === "object") {
                 if (checked.indexOf(value) !== -1)
                     continue;
-                doReplR(value, env, checked);
+                expandRecursive(value, env, checked);
             }
             if (type !== "string")
                 continue;
@@ -88,6 +89,6 @@ function doRepl(obj, env, warn)
                 obj[key] = value;
         }
     }
-    doReplR(obj, env, []);
+    expandRecursive(obj, env, []);
     return obj;
 }
