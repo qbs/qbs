@@ -143,7 +143,8 @@ QString HostOsInfo::canonicalArchitecture(const QString &architecture)
         << QLatin1String("ia-32")
         << QLatin1String("x86_32")
         << QLatin1String("x86-32")
-        << QLatin1String("intel32"));
+        << QLatin1String("intel32")
+        << QLatin1String("mingw32"));
 
     archMap.insert(QLatin1String("x86_64"), QStringList()
         << QLatin1String("x86-64")
@@ -151,11 +152,18 @@ QString HostOsInfo::canonicalArchitecture(const QString &architecture)
         << QLatin1String("amd64")
         << QLatin1String("ia32e")
         << QLatin1String("em64t")
-        << QLatin1String("intel64"));
+        << QLatin1String("intel64")
+        << QLatin1String("mingw64"));
 
     archMap.insert(QLatin1String("ia64"), QStringList()
         << QLatin1String("ia-64")
         << QLatin1String("itanium"));
+
+    archMap.insert(QLatin1String("ppc"), QStringList()
+        << QLatin1String("powerpc"));
+
+    archMap.insert(QLatin1String("ppc64"), QStringList()
+        << QLatin1String("powerpc64"));
 
     QMapIterator<QString, QStringList> i(archMap);
     while (i.hasNext()) {

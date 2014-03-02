@@ -135,6 +135,7 @@ static Profile createMingwProfile(const QString &_compilerFilePath, Settings *se
 {
     const QString compilerFilePath = actualCompilerFilePath(_compilerFilePath);
     const QString machineName = gccMachineName(compilerFilePath);
+    const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
     const QStringList validMinGWMachines = QStringList() << QLatin1String("mingw32")
             << QLatin1String("mingw64") << QLatin1String("i686-w64-mingw32")
             << QLatin1String("x86_64-w64-mingw32");
@@ -142,18 +143,11 @@ static Profile createMingwProfile(const QString &_compilerFilePath, Settings *se
         throw qbs::ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
                 .arg(machineName));
     }
-
-    QString architecture = machineName.split(QLatin1Char('-')).first();
-    if (architecture == QLatin1String("mingw32"))
-        architecture = QLatin1String("x86");
-    else if (architecture == QLatin1String("mingw64"))
-        architecture = QLatin1String("x86_64");
-
     Profile profile(!profileName.isEmpty() ? profileName : machineName, settings);
     profile.removeProfile();
     profile.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
     setCommonProperties(profile, compilerFilePath, completeToolchainList(QLatin1String("mingw")),
-                        architecture);
+                        compilerTriplet.first());
     qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(profile.name(), compilerFilePath)
             << endl;
     return profile;
