@@ -90,22 +90,22 @@ static QStringList completeToolchainList(const QString &toolchainName)
 {
     QStringList toolchains(toolchainName);
     if (toolchainName == QLatin1String("clang"))
-        toolchains << QLatin1String("llvm") << QLatin1String("gcc");
-    else if (toolchainName == QLatin1String("mingw"))
-        toolchains << QLatin1String("gcc");
+        toolchains << completeToolchainList(QLatin1String("llvm"));
+    else if (toolchainName == QLatin1String("llvm") ||
+             toolchainName == QLatin1String("mingw")) {
+        toolchains << completeToolchainList(QLatin1String("gcc"));
+    }
     return toolchains;
 }
 
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
-    if (compilerName.contains(QLatin1String("clang")))
-        return completeToolchainList(QLatin1String("clang"));
-    if (compilerName.contains(QLatin1String("llvm")))
-        return QStringList() << QLatin1String("llvm") << QLatin1String("gcc");
-    if (compilerName.contains(QLatin1String("gcc")))
-        return QStringList() << QLatin1String("gcc");
     if (compilerName == QLatin1String("cl.exe"))
-        return QStringList() << QLatin1String("msvc");
+        return completeToolchainList(QLatin1String("msvc"));
+    foreach (const QString &type, (QStringList() << QLatin1String("clang") << QLatin1String("llvm")
+                                                 << QLatin1String("mingw") << QLatin1String("gcc")))
+        if (compilerName.contains(type))
+            return completeToolchainList(type);
     return QStringList();
 }
 
