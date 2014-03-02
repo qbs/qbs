@@ -200,10 +200,22 @@ static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString
 
 static void mingwProbe(Settings *settings, QList<Profile> &profiles)
 {
-    const QString gccPath
-            = findExecutable(HostOsInfo::appendExecutableSuffix(QLatin1String("gcc")));
-    if (!gccPath.isEmpty())
-        profiles << createMingwProfile(gccPath, settings);
+    // List of possible compiler binary names for this platform
+    QStringList compilerNames;
+    if (HostOsInfo::isWindowsHost()) {
+        compilerNames << QLatin1String("gcc");
+    } else {
+        foreach (const QString &machineName, validMinGWMachines()) {
+            compilerNames << machineName + QLatin1String("-gcc");
+        }
+    }
+
+    foreach (const QString &compilerName, compilerNames) {
+        const QString gccPath
+                = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+        if (!gccPath.isEmpty())
+            profiles << createMingwProfile(gccPath, settings);
+    }
 }
 
 void probe(Settings *settings)
@@ -211,15 +223,16 @@ void probe(Settings *settings)
     QList<Profile> profiles;
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
-        mingwProbe(settings, profiles);
-    } else if (HostOsInfo::isOsxHost()) {
-        xcodeProbe(settings, profiles);
-        gccProbe(settings, profiles, QLatin1String("gcc"));
-        gccProbe(settings, profiles, QLatin1String("clang"));
     } else {
         gccProbe(settings, profiles, QLatin1String("gcc"));
         gccProbe(settings, profiles, QLatin1String("clang"));
+
+        if (HostOsInfo::isOsxHost()) {
+            xcodeProbe(settings, profiles);
+        }
     }
+
+    mingwProbe(settings, profiles);
 
     if (profiles.isEmpty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
