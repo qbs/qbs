@@ -13,8 +13,7 @@ Module {
                    getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
         } else if (hostOS.contains("windows")) {
             var version = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
-            var build = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuildNumber");
-            return version + "." + build;
+            return version + "." + hostOSBuildVersion;
         }
     }
 
@@ -22,6 +21,8 @@ Module {
         if (hostOS.contains("osx")) {
             return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion") ||
                    getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion");
+        } else if (hostOS.contains("windows")) {
+            return getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuildNumber");
         }
     }
 
@@ -85,9 +86,10 @@ Module {
                         "x.y.z or x.y.z.w where x, y, z and w are positive integers.";
             }
 
-            if (!hostOSBuildVersion && hostOS.contains("osx")) {
+            if (!hostOSBuildVersion) {
                 throw "Could not detect host operating system build version; " +
-                        "verify that system files have not been tampered with.";
+                        "verify that system files or registry have not been " +
+                        "tampered with.";
             }
         }
     }

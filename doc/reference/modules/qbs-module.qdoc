@@ -108,8 +108,9 @@
     \row    \li \b{Type:}            \li \c{string} (read only)
     \endtable
 
-    The host operating system's build version. Currently only defined for OS X.
-    This is a standard build number in the Apple versioning scheme, for instance "13C64".
+    The host operating system's build version. Currently only defined for Windows and OS X.
+    On Windows, this is the 4 or 5 digit Windows build number and is equivalent to \c versionPatch.
+    On OS X, this is a standard build number in the Apple versioning scheme, for instance "13C64".
 
 
     \section1 versionMajor
