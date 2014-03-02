@@ -54,6 +54,17 @@ UnixGCC {
         return env;
     }
 
+    readonly property var qmakeEnv: {
+        return {
+            "BUNDLEIDENTIFIER": "org.example." + DarwinTools.rfc1034(product.targetName),
+            "EXECUTABLE": product.targetName,
+            "ICON": product.targetName, // ### QBS-73
+            "LIBRARY": product.targetName,
+            "SHORT_VERSION": product.version || "1.0", // CFBundleShortVersionString
+            "TYPEINFO": "????" // CFBundleSignature
+        };
+    }
+
     readonly property var defaultInfoPlist: {
         // Not a product type which uses Info.plists
         if (!product.type.contains("application") && !product.type.contains("applicationbundle") &&
@@ -74,7 +85,7 @@ UnixGCC {
         };
 
         if (product.type.contains("applicationbundle"))
-            dict["CFBundleIconFile"] = product.targetName;
+            dict["CFBundleIconFile"] = product.targetName; // ### QBS-73
 
         if (qbs.targetOS.contains("osx")) {
             dict["NSPrincipalClass"] = "NSApplication"; // needed for Retina display support
@@ -162,6 +173,7 @@ UnixGCC {
             cmd.toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
             cmd.sysroot = product.moduleProperty("qbs", "sysroot");
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
+            cmd.qmakeEnv = product.moduleProperty("cpp", "qmakeEnv");
 
             cmd.platformInfoPlist = product.moduleProperty("cpp", "platformInfoPlist");
             cmd.sdkSettingsPlist = product.moduleProperty("cpp", "sdkSettingsPlist");
@@ -272,6 +284,9 @@ UnixGCC {
 
                     for (key in buildEnv)
                         env[key] = buildEnv[key];
+
+                    for (key in qmakeEnv)
+                        env[key] = qmakeEnv[key];
 
                     DarwinTools.expandPlistEnvironmentVariables(aggregatePlist, env, true);
                 }
