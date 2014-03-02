@@ -510,8 +510,8 @@ void CommandLineFrontend::connectBuildJob(AbstractJob *job)
 
 void CommandLineFrontend::connectJob(AbstractJob *job)
 {
-    connect(job, SIGNAL(finished(bool, qbs::AbstractJob*)),
-            SLOT(handleJobFinished(bool, qbs::AbstractJob*)));
+    connect(job, SIGNAL(finished(bool,qbs::AbstractJob*)),
+            SLOT(handleJobFinished(bool,qbs::AbstractJob*)));
     connect(job, SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)),
             SLOT(handleNewTaskStarted(QString,int)));
     connect(job, SIGNAL(totalEffortChanged(int,qbs::AbstractJob*)),

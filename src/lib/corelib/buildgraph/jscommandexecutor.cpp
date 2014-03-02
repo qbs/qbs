@@ -130,8 +130,8 @@ JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
 {
     m_objectInThread->moveToThread(m_thread);
     connect(m_objectInThread, SIGNAL(finished()), this, SLOT(onJavaScriptCommandFinished()));
-    connect(this, SIGNAL(startRequested(const JavaScriptCommand *, Transformer *)),
-            m_objectInThread, SLOT(start(const JavaScriptCommand *, Transformer *)));
+    connect(this, SIGNAL(startRequested(const JavaScriptCommand*,Transformer*)),
+            m_objectInThread, SLOT(start(const JavaScriptCommand*,Transformer*)));
 }
 
 JsCommandExecutor::~JsCommandExecutor()

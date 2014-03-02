@@ -111,7 +111,7 @@ AbstractJob::AbstractJob(InternalJob *internalJob, QObject *parent)
             SLOT(handleTotalEffortChanged(int)));
     connect(m_internalJob, SIGNAL(taskProgress(int,Internal::InternalJob*)),
             SLOT(handleTaskProgress(int)), Qt::QueuedConnection);
-    connect(m_internalJob, SIGNAL(finished(Internal::InternalJob *)), SLOT(handleFinished()));
+    connect(m_internalJob, SIGNAL(finished(Internal::InternalJob*)), SLOT(handleFinished()));
     m_state = StateRunning;
 }
 

@@ -284,7 +284,7 @@ void TestApi::changeContent()
     buildOptions.setDryRun(true);
     BuildDescriptionReveiver rcvr;
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, this));
-    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString, QString)), &rcvr,
+    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
@@ -314,7 +314,7 @@ void TestApi::changeContent()
 
     // Now try building again and check if the newly resolved product behaves the same way.
     buildJob.reset(project.buildAllProducts(buildOptions, this));
-    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString, QString)), &rcvr,
+    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
