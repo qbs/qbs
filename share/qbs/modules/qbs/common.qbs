@@ -9,8 +9,8 @@ Module {
     property stringList hostOS: getHostOS()
     property string hostOSVersion: {
         if (hostOS.contains("osx")) {
-            return getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion") ||
-                   getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion");
+            return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||
+                   getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductVersion");
         } else if (hostOS.contains("windows")) {
             var version = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
             var build = getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuildNumber");
@@ -20,8 +20,8 @@ Module {
 
     property string hostOSBuildVersion: {
         if (hostOS.contains("osx")) {
-            return getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion") ||
-                   getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion");
+            return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductBuildVersion") ||
+                   getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductBuildVersion");
         }
     }
 
