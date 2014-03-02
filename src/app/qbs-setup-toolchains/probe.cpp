@@ -77,6 +77,15 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
     return QString::fromLocal8Bit(p.readAll());
 }
 
+static QStringList validMinGWMachines()
+{
+    // List of MinGW machine names (gcc -dumpmachine) recognized by Qbs
+    return QStringList()
+            << QLatin1String("mingw32") << QLatin1String("mingw64")
+            << QLatin1String("i686-w64-mingw32") << QLatin1String("x86_64-w64-mingw32")
+            << QLatin1String("i586-mingw32msvc") << QLatin1String("amd64-mingw32msvc");
+}
+
 static QStringList completeToolchainList(const QString &toolchainName)
 {
     QStringList toolchains(toolchainName);
@@ -136,10 +145,7 @@ static Profile createMingwProfile(const QString &_compilerFilePath, Settings *se
     const QString compilerFilePath = actualCompilerFilePath(_compilerFilePath);
     const QString machineName = gccMachineName(compilerFilePath);
     const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
-    const QStringList validMinGWMachines = QStringList() << QLatin1String("mingw32")
-            << QLatin1String("mingw64") << QLatin1String("i686-w64-mingw32")
-            << QLatin1String("x86_64-w64-mingw32");
-    if (!validMinGWMachines.contains(machineName)) {
+    if (!validMinGWMachines().contains(machineName)) {
         throw qbs::ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
                 .arg(machineName));
     }
