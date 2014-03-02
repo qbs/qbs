@@ -15,6 +15,7 @@ build
 *.lib
 *.so
 moc_*.cpp
+qrc_*.cpp
 *.moc
 *.qch
 *.a
@@ -31,3 +32,4 @@ Makefile*
 *.app/
 bin/*
 doc/html/*
+/lib
