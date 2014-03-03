@@ -68,10 +68,11 @@ QtMocScanner::~QtMocScanner()
 static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact *artifact,
         ScanResultCache *scanResultCache)
 {
-    ScanResultCache::Result scanResult = scanResultCache->value(artifact->filePath());
+    const QString &filepath = artifact->filePath();
+    ScanResultCache::Result scanResult = scanResultCache->value(scanner, filepath);
     if (!scanResult.valid) {
         scanResult.valid = true;
-        void *opaq = scanner->open(artifact->filePath().utf16(),
+        void *opaq = scanner->open(filepath.utf16(),
                                    ScanForDependenciesFlag | ScanForFileTagsFlag);
         if (!opaq || !scanner->additionalFileTags)
             return scanResult;
@@ -83,6 +84,7 @@ static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact
                 scanResult.additionalFileTags += szFileTagsFromScanner[i];
         }
 
+        QString baseDirOfInFilePath = artifact->dirPath();
         forever {
             int flags = 0;
             const char *szOutFilePath = scanner->next(opaq, &length, &flags);
@@ -92,11 +94,16 @@ static ScanResultCache::Result runScanner(ScannerPlugin *scanner, const Artifact
             if (includedFilePath.isEmpty())
                 continue;
             bool isLocalInclude = (flags & SC_LOCAL_INCLUDE_FLAG);
-            scanResult.deps += ScanResultCache::Dependency(includedFilePath, isLocalInclude);
+            if (isLocalInclude) {
+                QString localFilePath = FileInfo::resolvePath(baseDirOfInFilePath, includedFilePath);
+                if (FileInfo::exists(localFilePath))
+                    includedFilePath = localFilePath;
+            }
+            scanResult.deps += ScanResultCache::Dependency(includedFilePath);
         }
 
         scanner->close(opaq);
-        scanResultCache->insert(artifact->filePath(), scanResult);
+        scanResultCache->insert(scanner, filepath, scanResult);
     }
     return scanResult;
 }

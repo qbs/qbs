@@ -33,8 +33,7 @@
 namespace qbs {
 namespace Internal {
 
-ScanResultCache::Dependency::Dependency(const QString &filePath, bool isLocal)
-    : m_isLocal(isLocal)
+ScanResultCache::Dependency::Dependency(const QString &filePath)
 {
     FileInfo::splitIntoDirectoryAndFileName(filePath, &m_dirPath, &m_fileName);
 
@@ -42,19 +41,23 @@ ScanResultCache::Dependency::Dependency(const QString &filePath, bool isLocal)
             && !m_dirPath.contains(QLatin1String("//"));
 }
 
-ScanResultCache::Result ScanResultCache::value(const QString &fileName) const
+ScanResultCache::Result ScanResultCache::value(void *scanner, const QString &fileName) const
 {
-    return m_data.value(fileName);
+    return m_data[scanner][fileName];
 }
 
-void ScanResultCache::insert(const QString &fileName, const ScanResultCache::Result &value)
+void ScanResultCache::insert(void *scanner, const QString &fileName, const ScanResultCache::Result &value)
 {
-    m_data.insert(fileName, value);
+    m_data[scanner].insert(fileName, value);
 }
 
-void ScanResultCache::remove(const QString &filePath)
+void ScanResultCache::remove(const QString &fileName)
 {
-    m_data.remove(filePath);
+    ScanResultCacheData::iterator i = m_data.begin();
+    while (i != m_data.end()) {
+        i.value().remove(fileName);
+        ++i;
+    }
 }
 
 } // namespace Internal

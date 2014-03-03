@@ -52,6 +52,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     addRuleItem();
     addSubprojectItem();
     addTransformerItem();
+    addScannerItem();
 }
 
 QString BuiltinDeclarations::languageVersion() const
@@ -196,6 +197,7 @@ void BuiltinDeclarations::addModuleItem()
             << QLatin1String("Rule")
             << QLatin1String("PropertyOptions")
             << QLatin1String("Transformer")
+            << QLatin1String("Scanner")
             << QLatin1String("Module")  // needed, because we're adding module instances internally
                               );
     item << nameProperty();
@@ -347,6 +349,25 @@ void BuiltinDeclarations::addTransformerItem()
     item << prepareScriptProperty();
     item << PropertyDeclaration(QLatin1String("explicitlyDependsOn"),
                                       PropertyDeclaration::StringList);
+    insert(item);
+}
+
+void BuiltinDeclarations::addScannerItem()
+{
+    ItemDeclaration item(QLatin1String("Scanner"));
+    item << conditionProperty();
+    item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
+    PropertyDeclaration recursive(QLatin1String("recursive"), PropertyDeclaration::Boolean);
+    recursive.initialValueSource = QLatin1String("false");
+    item << recursive;
+    PropertyDeclaration searchPaths(QLatin1String("searchPaths"), PropertyDeclaration::Verbatim);
+    searchPaths.functionArgumentNames << QLatin1String("project")
+        << QLatin1String("product") << QLatin1String("input");
+    item << searchPaths;
+    PropertyDeclaration scan(QLatin1String("scan"), PropertyDeclaration::Verbatim);
+    scan.functionArgumentNames << QLatin1String("project")
+        << QLatin1String("product") << QLatin1String("input");
+    item << scan;
     insert(item);
 }
 

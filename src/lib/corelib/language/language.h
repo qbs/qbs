@@ -318,6 +318,26 @@ inline bool operator!=(const ResolvedTransformer &t1, const ResolvedTransformer 
 bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
                               const QList<ResolvedTransformerConstPtr> &l2);
 
+class ResolvedScanner : public PersistentObject
+{
+public:
+    static ResolvedScannerPtr create() { return ResolvedScannerPtr(new ResolvedScanner); }
+
+    ResolvedModuleConstPtr module;
+    FileTags inputs;
+    bool recursive;
+    ScriptFunctionPtr searchPathsScript;
+    ScriptFunctionPtr scanScript;
+
+private:
+    ResolvedScanner() :
+        recursive(false)
+    {}
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+};
+
 class TopLevelProject;
 class ScriptEngine;
 
@@ -343,6 +363,7 @@ public:
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
     QList<ResolvedTransformerConstPtr> transformers;
+    QList<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;
     QList<ArtifactPropertiesPtr> artifactProperties;
     QScopedPointer<ProductBuildData> buildData;

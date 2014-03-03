@@ -67,6 +67,7 @@ private:
     void addRuleItem();
     void addSubprojectItem();
     void addTransformerItem();
+    void addScannerItem();
 
     QString m_languageVersion;
     QMap<QString, ItemDeclaration> m_builtins;

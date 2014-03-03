@@ -105,6 +105,7 @@ private:
                                            StringListSet *seenBindings);
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
     void resolveTransformer(Item *item, ProjectContext *projectContext);
+    void resolveScanner(Item *item, ProjectContext *projectContext);
     void resolveExport(Item *item, ProjectContext *projectContext);
     void resolveProductDependencies(ProjectContext *projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;

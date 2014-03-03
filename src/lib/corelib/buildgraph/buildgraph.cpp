@@ -170,7 +170,7 @@ void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextCon
 }
 
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
-                                 const RuleConstPtr &rule, QScriptValue targetObject,
+                                 const ResolvedModuleConstPtr &module, QScriptValue targetObject,
                                  PrepareScriptObserver *observer)
 {
     ScriptEngine::ScriptValueCache * const cache = engine->scriptValueCache();
@@ -211,7 +211,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
 
     // If the Rule is in a Module, set up the 'moduleName' property
     cache->productScriptValue.setProperty(QLatin1String("moduleName"),
-            rule->module->name.isEmpty() ? QScriptValue() : rule->module->name);
+            module->name.isEmpty() ? QScriptValue() : module->name);
 }
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &path)

@@ -90,6 +90,10 @@ class Rule;
 typedef QSharedPointer<Rule> RulePtr;
 typedef QSharedPointer<const Rule> RuleConstPtr;
 
+class ResolvedScanner;
+typedef QSharedPointer<ResolvedScanner> ResolvedScannerPtr;
+typedef QSharedPointer<const ResolvedScanner> ResolvedScannerConstPtr;
+
 class SourceArtifact;
 typedef QSharedPointer<SourceArtifact> SourceArtifactPtr;
 typedef QSharedPointer<const SourceArtifact> SourceArtifactConstPtr;

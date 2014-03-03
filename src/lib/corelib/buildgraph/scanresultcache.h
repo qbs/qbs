@@ -45,19 +45,17 @@ public:
     class Dependency
     {
     public:
-        Dependency() : m_isLocal(false), m_isClean(true) {}
-        Dependency(const QString &filePath, bool m_isLocal);
+        Dependency() : m_isClean(true) {}
+        Dependency(const QString &filePath);
 
         QString filePath() const { return m_dirPath.isEmpty() ? m_fileName : m_dirPath + QLatin1Char('/') + m_fileName; }
         const QString &dirPath() const { return m_dirPath; }
         const QString &fileName() const { return m_fileName; }
-        bool isLocal() const { return m_isLocal; }
         bool isClean() const { return m_isClean; }
 
     private:
         QString m_dirPath;
         QString m_fileName;
-        bool m_isLocal;
         bool m_isClean;
     };
 
@@ -73,12 +71,13 @@ public:
         bool valid;
     };
 
-    Result value(const QString &fileName) const;
-    void insert(const QString &fileName, const Result &value);
-    void remove(const QString &filePath);
+    Result value(void* scanner, const QString &fileName) const;
+    void insert(void* scanner, const QString &fileName, const Result &value);
+    void remove(const QString &fileName);
 
 private:
-    QHash<QString, Result> m_data;
+    typedef QHash<void*, QHash<QString, Result> > ScanResultCacheData;
+    ScanResultCacheData m_data;
 };
 
 } // namespace qbs

@@ -1,0 +1,94 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-items.html
+    \page scanner-item.html
+    \ingroup list-of-items
+
+    \title Scanner Item
+    \brief Creates custom dependency scanners in modules.
+
+    An \c Scanner item can appear inside a \l{Module Item}, and allows to define
+    artifacts dependency, according to the artifacts contents.
+    For example scanner for "qrc" files:
+    \code
+    import qbs.Xml
+
+    Module {
+      Scanner {
+        condition: true
+        inputs: 'qrc'
+        scan: {
+          xml = XmlDomDocument(input.fileName);
+          dependencies = [];
+          // do something with the xml
+          return dependencies;
+        }
+      }
+    }
+    \endcode
+
+    \section1 Scanner Properties
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li condition
+        \li bool
+        \li true
+        \li If true, the scanner is enabled, otherwise it does nothing.
+    \row
+        \li inputs
+        \li string list
+        \li undefined
+        \li File tags the input artifacts must match.
+    \row
+        \li recursive
+        \li bool
+        \li false
+        \li Determines whether to scan dependencies recursively.
+    \row
+        \li searchPaths
+        \li script
+        \li undefined
+        \li Script that returns paths to look for dependencies.
+            The code in this script is treated as a function with the signature
+            \c{function(project, product, input)}.
+    \row
+        \li scan
+        \li script
+        \li undefined
+        \li Script that reads the input artifact and returns string list with dependencies.
+            The code in this script is treated as a function with the signature
+            \c{function(project, product, input)}.
+    \endtable
+*/

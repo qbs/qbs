@@ -461,6 +461,7 @@ void ResolvedProduct::load(PersistentPool &pool)
     pool.loadContainerS(fileTaggers);
     pool.loadContainerS(modules);
     pool.loadContainerS(transformers);
+    pool.loadContainerS(scanners);
     pool.loadContainerS(groups);
     pool.loadContainerS(artifactProperties);
     buildData.reset(pool.idLoad<ProductBuildData>());
@@ -484,6 +485,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
     pool.storeContainer(fileTaggers);
     pool.storeContainer(modules);
     pool.storeContainer(transformers);
+    pool.storeContainer(scanners);
     pool.storeContainer(groups);
     pool.storeContainer(artifactProperties);
     pool.store(buildData.data());
@@ -1245,6 +1247,22 @@ bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
                                    const QList<ArtifactPropertiesPtr> &l2)
 {
     return listsAreEqual(l1, l2);
+}
+
+void ResolvedScanner::load(PersistentPool &pool)
+{
+    module = pool.idLoadS<ResolvedModule>();
+    pool.stream() >> inputs >> recursive;
+    searchPathsScript = pool.idLoadS<ScriptFunction>();
+    scanScript = pool.idLoadS<ScriptFunction>();
+}
+
+void ResolvedScanner::store(PersistentPool &pool) const
+{
+    pool.store(module);
+    pool.stream() << inputs << recursive;
+    pool.store(searchPathsScript);
+    pool.store(scanScript);
 }
 
 } // namespace Internal

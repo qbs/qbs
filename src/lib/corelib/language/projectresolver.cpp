@@ -403,6 +403,7 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     mapping["Rule"] = &ProjectResolver::resolveRule;
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Transformer"] = &ProjectResolver::resolveTransformer;
+    mapping["Scanner"] = &ProjectResolver::resolveScanner;
     mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
     mapping["Depends"] = &ProjectResolver::ignoreItem;
     mapping["Probe"] = &ProjectResolver::ignoreItem;
@@ -766,6 +767,23 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
     }
 
     m_productContext->product->transformers += rtrafo;
+}
+
+void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)
+{
+    checkCancelation();
+    if (!m_evaluator->boolValue(item, QLatin1String("condition"))) {
+        m_logger.qbsTrace() << "[PR] scanner condition is false";
+        return;
+    }
+
+    ResolvedScannerPtr scanner = ResolvedScanner::create();
+    scanner->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
+    scanner->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
+    scanner->recursive = m_evaluator->boolValue(item, QLatin1String("recursive"));
+    scanner->searchPathsScript = scriptFunctionValue(item, QLatin1String("searchPaths"));
+    scanner->scanScript = scriptFunctionValue(item, QLatin1String("scan"));
+    m_productContext->product->scanners += scanner;
 }
 
 void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)

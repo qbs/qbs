@@ -9,6 +9,7 @@ SOURCES += \
     $$PWD/buildgraphnode.cpp \
     $$PWD/command.cpp \
     $$PWD/cycledetector.cpp \
+    $$PWD/depscanner.cpp \
     $$PWD/executor.cpp \
     $$PWD/executorjob.cpp \
     $$PWD/filedependency.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     $$PWD/buildgraphvisitor.h \
     $$PWD/command.h \
     $$PWD/cycledetector.h \
+    $$PWD/depscanner.h \
     $$PWD/executor.h \
     $$PWD/executorjob.h \
     $$PWD/filedependency.h \

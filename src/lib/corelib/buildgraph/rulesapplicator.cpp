@@ -82,7 +82,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     QScriptValue prepareScriptContext = engine()->newObject();
     PrepareScriptObserver observer(engine());
     setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
-    setupScriptEngineForProduct(engine(), m_product, m_rule, prepareScriptContext, &observer);
+    setupScriptEngineForProduct(engine(), m_product, m_rule->module, prepareScriptContext, &observer);
 
     ArtifactSet inputArtifacts;
     foreach (const FileTag &fileTag, m_rule->inputs)

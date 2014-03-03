@@ -72,7 +72,7 @@ void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
 void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,
         QScriptValue targetObject);
 void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductConstPtr &product,
-                                 const RuleConstPtr &rule, QScriptValue targetObject,
+                                 const ResolvedModuleConstPtr &module, QScriptValue targetObject,
                                  PrepareScriptObserver *observer = 0);
 QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 

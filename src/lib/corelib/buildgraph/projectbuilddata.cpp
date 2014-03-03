@@ -503,7 +503,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         setupScriptEngineForFile(engine(), transformer->rule->prepareScript->fileContext, scope());
         QScriptValue prepareScriptContext = engine()->newObject();
         PrepareScriptObserver observer(engine());
-        setupScriptEngineForProduct(engine(), product, transformer->rule, prepareScriptContext,
+        setupScriptEngineForProduct(engine(), product, transformer->rule->module, prepareScriptContext,
                                     &observer);
         transformer->setupInputs(prepareScriptContext);
         transformer->setupOutputs(engine(), prepareScriptContext);

@@ -86,6 +86,8 @@ QbsLibrary {
             "command.h",
             "cycledetector.cpp",
             "cycledetector.h",
+            "depscanner.cpp",
+            "depscanner.h",
             "executor.cpp",
             "executor.h",
             "executorjob.cpp",
