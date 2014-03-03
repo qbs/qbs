@@ -27,28 +27,32 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_MSVCINFO_H
-#define QBS_MSVCINFO_H
+#ifndef QBS_VSENVIRONMENTDETECTOR_H
+#define QBS_VSENVIRONMENTDETECTOR_H
 
-#include <QHash>
-#include <QProcessEnvironment>
 #include <QStringList>
 
-class MSVC
+QT_BEGIN_NAMESPACE
+class QIODevice;
+QT_END_NAMESPACE
+
+class MSVC;
+
+class VsEnvironmentDetector
 {
 public:
-    QString version;
-    QString installPath;
-    QStringList architectures;
+    VsEnvironmentDetector(MSVC *msvc);
 
-    typedef QHash<QString, QProcessEnvironment> EnvironmentPerArch;
-    EnvironmentPerArch environments;
+    bool start();
+    QString errorString() const { return m_errorString; }
+
+private:
+    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const;
+    void parseBatOutput(const QByteArray &output);
+
+    MSVC *m_msvc;
+    const QString m_windowsSystemDirPath;
+    QString m_errorString;
 };
 
-class WinSDK : public MSVC
-{
-public:
-    bool isDefault;
-};
-
-#endif // QBS_MSVCINFO_H
+#endif // QBS_VSENVIRONMENTDETECTOR_H
