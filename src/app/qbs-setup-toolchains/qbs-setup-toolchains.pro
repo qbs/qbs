@@ -5,6 +5,7 @@ TARGET = qbs-setup-toolchains
 HEADERS += \
     ../shared/qbssettings.h \
     commandlineparser.h \
+    msvcinfo.h \
     msvcprobe.h \
     probe.h \
     xcodeprobe.h
