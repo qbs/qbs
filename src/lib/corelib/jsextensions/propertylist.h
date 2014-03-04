@@ -75,13 +75,15 @@ public:
     ~PropertyList();
     Q_INVOKABLE bool isEmpty() const;
     Q_INVOKABLE void clear();
+    Q_INVOKABLE void readFromObject(const QScriptValue &value);
     Q_INVOKABLE void readFromString(const QString &input);
     Q_INVOKABLE void readFromFile(const QString &filePath);
     Q_INVOKABLE void writeToFile(const QString &filePath, const QString &plistFormat);
     Q_INVOKABLE QScriptValue format() const;
+    Q_INVOKABLE QScriptValue toObject() const;
     Q_INVOKABLE QString toString(const QString &plistFormat) const;
     Q_INVOKABLE QString toXMLString() const;
-    Q_INVOKABLE QString toJSONString(const QString &style = "") const;
+    Q_INVOKABLE QString toJSON(const QString &style = "") const;
 private:
     PropertyListPrivate *d;
 };

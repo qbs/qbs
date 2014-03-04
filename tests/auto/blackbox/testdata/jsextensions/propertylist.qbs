@@ -52,7 +52,7 @@ Product {
         xmlfile.close();
 
         var jsontextfile = new TextFile("test.json", TextFile.WriteOnly);
-        jsontextfile.write(propertyList.toJSONString());
+        jsontextfile.write(propertyList.toJSON());
         jsontextfile.close();
 
         propertyList.writeToFile("test2.json", "json-compact");
@@ -82,14 +82,14 @@ Product {
             throw "expected property list format openstep but got " + propertyList.format();
         }
 
-        var jsonObj = JSON.parse(propertyList.toJSONString());
+        var jsonObj = JSON.parse(propertyList.toJSON());
         if (jsonObj["rootObject"].length != 5) {
             throw "going from OpenStep to a JSON string to a JSON object somehow broke";
         }
 
         propertyList.clear();
         propertyList.readFromString('<dict><key>foo</key><string>barz</string></dict>');
-        jsonObj = JSON.parse(propertyList.toJSONString());
+        jsonObj = JSON.parse(propertyList.toJSON());
         if (jsonObj["foo"] !== "barz") {
             throw "the XML plist did not get parsed properly";
         }
@@ -111,12 +111,12 @@ Product {
         }
 
         if (propertyList.toString("json") !== propertyList.toString("json-compact") ||
-            propertyList.toJSONString() !== propertyList.toJSONString("compact")) {
+            propertyList.toJSON() !== propertyList.toJSON("compact")) {
             throw "json and json-compact formats were not equivalent";
         }
 
         if (propertyList.toString("json") === propertyList.toString("json-pretty") ||
-            propertyList.toJSONString() === propertyList.toJSONString("pretty")) {
+            propertyList.toJSON() === propertyList.toJSON("pretty")) {
             throw "json and json-pretty formats were not different";
         }
 

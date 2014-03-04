@@ -78,6 +78,13 @@
     Parses the file and stores the result in the property list.
     Throws an exception if an I/O error occurs or the input is in an invalid format.
 
+    \section2 readFromObject
+    \code
+    readFromObject(obj: any): void
+    \endcode
+    Sets the given object as the property list's internal object.
+    \c format() will return \c undefined as this method does not deserialize a storage format.
+
     \section2 readFromString
     \code
     readFromString(input: string): void
@@ -87,9 +94,15 @@
     \c JSON.stringify call.
     Throws an exception if the input is in an invalid format.
 
-    \section2 toJSONString
+    \section2 toObject
     \code
-    toJSONString(style: string = "compact"): string
+    toObject(): any
+    \endcode
+    Returns an object representing the property list.
+
+    \section2 toJSON
+    \code
+    toJSON(style: string = "compact"): string
     \endcode
     Returns a string representation of the property list in JSON format.
     Possible values for \c style include \c "pretty" and \c "compact". The default is compact.

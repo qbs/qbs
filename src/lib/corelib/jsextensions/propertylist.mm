@@ -30,6 +30,7 @@
 ****************************************************************************/
 
 #include "propertylist.h"
+#include "propertylistutils.h"
 
 #include <tools/hostosinfo.h>
 
@@ -70,7 +71,7 @@ class PropertyListPrivate
 public:
     PropertyListPrivate();
 
-    id propertyListObject;
+    QVariant propertyListObject;
     int propertyListFormat;
 
     void readFromData(QScriptContext *context, NSData *data);
@@ -99,7 +100,6 @@ PropertyListPrivate::PropertyListPrivate()
 
 PropertyList::~PropertyList()
 {
-    [d->propertyListObject release];
     delete d;
 }
 
@@ -114,16 +114,23 @@ bool PropertyList::isEmpty() const
 {
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-    return !p->d->propertyListObject;
+    return p->d->propertyListObject.isNull();
 }
 
 void PropertyList::clear()
 {
     Q_ASSERT(thisObject().engine() == engine());
     PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
-    [p->d->propertyListObject release];
-    p->d->propertyListObject = nil;
+    p->d->propertyListObject = QVariant();
     p->d->propertyListFormat = 0;
+}
+
+void PropertyList::readFromObject(const QScriptValue &value)
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    p->d->propertyListObject = value.toVariant();
+    p->d->propertyListFormat = 0; // wasn't deserialized from any external format
 }
 
 void PropertyList::readFromString(const QString &input)
@@ -156,16 +163,23 @@ NSData *PropertyListPrivate::writeToData(QScriptContext *context, const QString 
     NSError *error = nil;
     NSString *errorString = nil;
     NSData *data = nil;
+
+    id obj = QPropertyListUtils::toPropertyList(propertyListObject);
+    if (!obj) {
+        context->throwError(QLatin1String("error converting property list"));
+        return 0;
+    }
+
     if (format == QLatin1String("json") || format == QLatin1String("json-pretty") ||
         format == QLatin1String("json-compact")) {
 #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
         if (NSClassFromString(@"NSJSONSerialization")) {
-            if ([NSJSONSerialization isValidJSONObject:propertyListObject]) {
+            if ([NSJSONSerialization isValidJSONObject:obj]) {
                 error = nil;
                 errorString = nil;
                 const NSJSONWritingOptions options = format == QLatin1String("json-pretty")
                         ? NSJSONWritingPrettyPrinted : 0;
-                data = [NSJSONSerialization dataWithJSONObject:propertyListObject
+                data = [NSJSONSerialization dataWithJSONObject:obj
                                                        options:options
                                                          error:&error];
                 if (Q_UNLIKELY(!data)) {
@@ -189,7 +203,7 @@ NSData *PropertyListPrivate::writeToData(QScriptContext *context, const QString 
         errorString = nil;
         if ([NSPropertyListSerialization
                 respondsToSelector:@selector(dataWithPropertyList:format:options:error:)]) {
-            data = [NSPropertyListSerialization dataWithPropertyList:propertyListObject
+            data = [NSPropertyListSerialization dataWithPropertyList:obj
                                                               format:plistFormat
                                                              options:0
                                                                error:&error];
@@ -197,7 +211,7 @@ NSData *PropertyListPrivate::writeToData(QScriptContext *context, const QString 
                 errorString = [error localizedDescription];
             }
         } else {
-            data = [NSPropertyListSerialization dataFromPropertyList:propertyListObject
+            data = [NSPropertyListSerialization dataFromPropertyList:obj
                                                               format:plistFormat
                                                     errorDescription:&errorString];
         }
@@ -274,9 +288,13 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
     if (Q_UNLIKELY(!plist)) {
         context->throwError(fromNSString(errorString));
     } else {
-        [propertyListObject release];
-        propertyListObject = [plist retain];
-        propertyListFormat = internalFormat;
+        QVariant obj = QPropertyListUtils::fromPropertyList(plist);
+        if (!obj.isNull()) {
+            propertyListObject = obj;
+            propertyListFormat = internalFormat;
+        } else {
+            context->throwError(QLatin1String("error converting property list"));
+        }
     }
 }
 
@@ -299,6 +317,13 @@ QScriptValue PropertyList::format() const
     }
 }
 
+QScriptValue PropertyList::toObject() const
+{
+    Q_ASSERT(thisObject().engine() == engine());
+    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    return p->engine()->toScriptValue(p->d->propertyListObject);
+}
+
 QString PropertyList::toString(const QString &plistFormat) const
 {
     Q_ASSERT(thisObject().engine() == engine());
@@ -311,7 +336,7 @@ QString PropertyList::toString(const QString &plistFormat) const
         return QString();
     }
 
-    if (p->d->propertyListObject)
+    if (!isEmpty())
     {
         NSData *data = p->d->writeToData(p->context(), plistFormat);
         if (data)
@@ -327,7 +352,7 @@ QString PropertyList::toXMLString() const
     return toString(QLatin1String("xml1"));
 }
 
-QString PropertyList::toJSONString(const QString &style) const
+QString PropertyList::toJSON(const QString &style) const
 {
     QString format = QLatin1String("json");
     if (!style.isEmpty())

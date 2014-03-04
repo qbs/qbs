@@ -17,7 +17,7 @@ SOURCES += \
     $$PWD/jsextensions.cpp
 
 mac {
-    HEADERS += $$PWD/propertylist.h
-    OBJECTIVE_SOURCES += $$PWD/propertylist.mm
+    HEADERS += $$PWD/propertylist.h $$PWD/propertylistutils.h
+    OBJECTIVE_SOURCES += $$PWD/propertylist.mm $$PWD/propertylistutils.mm
     LIBS += -framework Foundation
 }

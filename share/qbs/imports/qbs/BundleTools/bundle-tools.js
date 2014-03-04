@@ -31,7 +31,7 @@ function infoPlistContents(infoPlistFilePath) {
     var plist = new PropertyList();
     try {
         plist.readFromFile(infoPlistFilePath);
-        return JSON.parse(plist.toJSONString());
+        return plist.toObject();
     } finally {
         plist.clear();
     }

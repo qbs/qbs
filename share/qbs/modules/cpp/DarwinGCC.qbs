@@ -239,7 +239,7 @@ UnixGCC {
                             plist = new PropertyList();
                             try {
                                 plist.readFromFile(platformInfoPlist);
-                                platformInfo = JSON.parse(plist.toJSONString());
+                                platformInfo = plist.toObject();
                             } finally {
                                 plist.clear();
                             }
@@ -272,7 +272,7 @@ UnixGCC {
                             plist = new PropertyList();
                             try {
                                 plist.readFromFile(sdkSettingsPlist);
-                                sdkSettings = JSON.parse(plist.toJSONString());
+                                sdkSettings = plist.toObject();
                             } finally {
                                 plist.clear();
                             }
@@ -288,7 +288,7 @@ UnixGCC {
                         plist = new PropertyList();
                         try {
                             plist.readFromFile(toolchainInfoPlist);
-                            toolchainInfo = JSON.parse(plist.toJSONString());
+                            toolchainInfo = plist.toObject();
                         } finally {
                             plist.clear();
                         }
@@ -348,7 +348,7 @@ UnixGCC {
                 // Write the plist contents in the format appropriate for the current platform
                 plist = new PropertyList();
                 try {
-                    plist.readFromString(JSON.stringify(aggregatePlist));
+                    plist.readFromObject(aggregatePlist);
                     plist.writeToFile(outputs.infoplist[0].filePath, infoPlistFormat);
                 } finally {
                     plist.clear();

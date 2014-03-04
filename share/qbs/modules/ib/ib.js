@@ -114,7 +114,7 @@ function runActool(actool, args) {
         try {
             propertyList.readFromString(process.readStdOut());
 
-            var plist = JSON.parse(propertyList.toJSONString());
+            var plist = propertyList.toObject();
             if (plist)
                 plist = plist["com.apple.actool.compilation-results"];
             if (plist)
@@ -140,7 +140,7 @@ function ibtoolVersion(ibtool) {
         try {
             propertyList.readFromString(process.readStdOut());
 
-            var plist = JSON.parse(propertyList.toJSONString());
+            var plist = propertyList.toObject();
             if (plist)
                 plist = plist["com.apple.ibtool.version"];
             if (plist)

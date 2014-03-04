@@ -175,7 +175,9 @@ QbsLibrary {
         condition: qbs.targetOS.contains("darwin")
         files: [
             "propertylist.h",
-            "propertylist.mm"
+            "propertylist.mm",
+            "propertylistutils.h",
+            "propertylistutils.mm"
         ]
     }
     Group {
