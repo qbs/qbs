@@ -24,7 +24,7 @@ Product {
             var cmd = new JavaScriptCommand();
             cmd.description = "Copying share/qbs to build directory.";
             cmd.highlight = "codegen";
-            cmd.sourceCode = function() { File.copy(input.fileName, output.fileName); }
+            cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); }
             return cmd;
         }
     }
