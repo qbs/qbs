@@ -56,9 +56,7 @@ JsExtensions::InitializerMap JsExtensions::initializers()
         m_initializers.insert(QLatin1String("Process"), &initializeJsExtensionProcess);
         m_initializers.insert(QLatin1String("Xml"), &initializeJsExtensionXml);
         m_initializers.insert(QLatin1String("TextFile"), &initializeJsExtensionTextFile);
-#ifdef Q_OS_MAC
         m_initializers.insert(QLatin1String("PropertyList"), &initializeJsExtensionPropertyList);
-#endif
     }
     return m_initializers;
 }

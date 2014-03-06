@@ -31,6 +31,26 @@
 #ifndef QBS_PROPERTYLIST_H
 #define QBS_PROPERTYLIST_H
 
+#ifndef Q_OS_MAC
+
+#include <QScriptEngine>
+
+namespace qbs {
+namespace Internal {
+
+// provide a fake initializer for other platforms
+void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+{
+    // provide a fake object
+    QScriptEngine *engine = extensionObject.engine();
+    extensionObject.setProperty(QLatin1String("PropertyList"), engine->newObject());
+}
+
+} // namespace Internal
+} // namespace qbs
+
+#else // Q_OS_MAC
+
 #include <QObject>
 #include <QScriptable>
 #include <QScriptValue>
@@ -67,5 +87,7 @@ private:
 } // namespace qbs
 
 Q_DECLARE_METATYPE(qbs::Internal::PropertyList *)
+
+#endif // Q_OS_MAC
 
 #endif // QBS_PROPERTYLIST_H
