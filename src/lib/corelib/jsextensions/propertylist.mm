@@ -70,7 +70,7 @@ public:
     PropertyListPrivate();
 
     id propertyListObject;
-    NSPropertyListFormat propertyListFormat;
+    int propertyListFormat;
 
     void readFromData(QScriptContext *context, NSData *data);
     NSData *writeToData(QScriptContext *context, const QString &format);
@@ -92,7 +92,7 @@ QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 }
 
 PropertyListPrivate::PropertyListPrivate()
-    : propertyListObject(), propertyListFormat()
+    : propertyListObject(), propertyListFormat(0)
 {
 }
 
@@ -229,7 +229,8 @@ void PropertyList::writeToFile(const QString &filePath, const QString &plistForm
 
 void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
 {
-    NSPropertyListFormat format = 0;
+    NSPropertyListFormat format;
+    int internalFormat = 0;
     NSError *error = nil;
     NSString *errorString = nil;
     id plist = nil;
@@ -254,7 +255,8 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
                                                            format:&format
                                                  errorDescription:&errorString];
     }
-
+    if (plist)
+        internalFormat = format;
 #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_7
     if (!plist && NSClassFromString(@"NSJSONSerialization")) {
         error = nil;
@@ -263,7 +265,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
         if (Q_UNLIKELY(!plist)) {
             errorString = [error localizedDescription];
         } else {
-            format = NSPropertyListJSONFormat;
+            internalFormat = NSPropertyListJSONFormat;
         }
     }
 #endif
@@ -273,7 +275,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, NSData *data)
     } else {
         [propertyListObject release];
         propertyListObject = [plist retain];
-        propertyListFormat = format;
+        propertyListFormat = internalFormat;
     }
 }
 
