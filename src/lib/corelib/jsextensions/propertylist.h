@@ -31,6 +31,8 @@
 #ifndef QBS_PROPERTYLIST_H
 #define QBS_PROPERTYLIST_H
 
+#include <qglobal.h>
+
 #ifndef Q_OS_MAC
 
 #include <QScriptEngine>
