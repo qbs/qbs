@@ -355,14 +355,19 @@ function concatLibs(libs, deplibs)
 {
     var r = [];
     var s = {};
-    function f(e)
+
+    function addLibs(lst)
     {
-        if (!s[e]) {
-            s[e] = true;
-            r.unshift(e);
+        for (var i = lst.length; --i >= 0;) {
+            var lib = lst[i];
+            if (!s[lib]) {
+                s[lib] = true;
+                r.unshift(lib);
+            }
         }
     }
-    deplibs.forEach(f);
-    libs.forEach(f);
+
+    addLibs(deplibs);
+    addLibs(libs);
     return r;
 }

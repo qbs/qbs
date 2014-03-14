@@ -231,9 +231,9 @@ CppModule {
                 var result = []
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
-                    result.push(lib.filePath)
-                    var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
-                    result = Gcc.concatLibs(result, impliedLibs);
+                    result = Gcc.concatLibs(result, [lib.filePath,
+                                                     ModUtils.moduleProperties(lib,
+                                                                               'staticLibraries')]);
                 }
                 return result
             }

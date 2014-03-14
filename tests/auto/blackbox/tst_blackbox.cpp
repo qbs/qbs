@@ -302,6 +302,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("source files with the same base name but different extensions")
             << QString("sameBaseName")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/basename"));
+    QTest::newRow("static library dependencies")
+            << QString("staticLibDeps")
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/staticLibDeps"));
 }
 
 void TestBlackbox::build_project()
