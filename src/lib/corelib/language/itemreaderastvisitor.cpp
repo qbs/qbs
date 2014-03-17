@@ -523,7 +523,7 @@ void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
         }
     }
 
-    for (QMap<QString, PropertyDeclaration>::const_iterator it
+    for (Item::PropertyDeclarationMap::const_iterator it
             = src->m_propertyDeclarations.constBegin();
             it != src->m_propertyDeclarations.constEnd(); ++it) {
         dst->m_propertyDeclarations[it.key()] = it.value();

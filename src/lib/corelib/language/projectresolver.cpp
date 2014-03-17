@@ -210,7 +210,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     projectContext->dummyModule = ResolvedModule::create();
 
     QVariantMap projectProperties;
-    for (QMap<QString, PropertyDeclaration>::const_iterator it
+    for (Item::PropertyDeclarationMap::const_iterator it
                 = item->propertyDeclarations().constBegin();
             it != item->propertyDeclarations().constEnd(); ++it) {
         if (it.value().flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
