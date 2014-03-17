@@ -793,7 +793,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
             throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
         const PropertyDeclaration decl = firstValidPropertyDeclaration(module, vmit.key());
         module->setProperty(vmit.key(),
-                VariantValue::create(convertToPropertyType(vmit.value(), decl.type,
+                VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
                         QStringList(fullModuleName), vmit.key())));
     }
 
@@ -913,7 +913,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
         }
         const PropertyDeclaration decl = firstValidPropertyDeclaration(moduleInstance, vmit.key());
         moduleInstance->setProperty(vmit.key(),
-                VariantValue::create(convertToPropertyType(vmit.value(), decl.type, moduleName,
+                VariantValue::create(convertToPropertyType(vmit.value(), decl.type(), moduleName,
                         vmit.key())));
     }
 }
@@ -1042,7 +1042,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
             = m_reader->builtins()->declarationsForType(QLatin1String("Project")).properties();
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
-        builtinProjectPropertyNames << p.name;
+        builtinProjectPropertyNames << p.name();
 
     for (Item::PropertyDeclarationMap::ConstIterator it
          = sourceProject->propertyDeclarations().constBegin();
@@ -1134,7 +1134,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
                     Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
         }
         item->setProperty(it.key(),
-                VariantValue::create(convertToPropertyType(it.value(), decl.type,
+                VariantValue::create(convertToPropertyType(it.value(), decl.type(),
                         QStringList(buildConfigKey), it.key())));
     }
 }

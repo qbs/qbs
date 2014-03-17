@@ -30,12 +30,15 @@
 #ifndef QBS_PROPERTYDECLARATION_H
 #define QBS_PROPERTYDECLARATION_H
 
+#include <QSharedDataPointer>
 #include <QString>
 #include <QStringList>
 #include <QScriptValue>
 
 namespace qbs {
 namespace Internal {
+
+class PropertyDeclarationData;
 
 class PropertyDeclaration
 {
@@ -63,19 +66,38 @@ public:
 
     PropertyDeclaration();
     PropertyDeclaration(const QString &name, Type type, Flags flags = DefaultFlags);
+    PropertyDeclaration(const PropertyDeclaration &other);
     ~PropertyDeclaration();
+
+    PropertyDeclaration &operator=(const PropertyDeclaration &other);
 
     bool isValid() const;
 
     static Type propertyTypeFromString(const QString &typeName);
 
-    QString name;
-    Type type;
-    Flags flags;
-    QScriptValue allowedValues;
-    QString description;
-    QString initialValueSource;
-    QStringList functionArgumentNames;
+    const QString &name() const;
+    void setName(const QString &name);
+
+    Type type() const;
+    void setType(Type t);
+
+    Flags flags() const;
+    void setFlags(Flags f);
+
+    const QScriptValue &allowedValues() const;
+    void setAllowedValues(const QScriptValue &v);
+
+    const QString &description() const;
+    void setDescripton(const QString &str);
+
+    const QString &initialValueSource() const;
+    void setInitialValueSource(const QString &str);
+
+    const QStringList &functionArgumentNames() const;
+    void setFunctionArgumentNames(const QStringList &lst);
+
+private:
+    QSharedDataPointer<PropertyDeclarationData> d;
 };
 
 } // namespace Internal

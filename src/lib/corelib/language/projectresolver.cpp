@@ -213,7 +213,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     for (Item::PropertyDeclarationMap::const_iterator it
                 = item->propertyDeclarations().constBegin();
             it != item->propertyDeclarations().constEnd(); ++it) {
-        if (it.value().flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
+        if (it.value().flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             continue;
         const ValueConstPtr v = item->property(it.key());
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
@@ -532,7 +532,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
         const PropertyDeclaration &decl)
 {
-    const QString args = decl.functionArgumentNames.join(QLatin1String(","));
+    const QString args = decl.functionArgumentNames().join(QLatin1String(","));
     if (value->hasFunctionForm()) {
         // Insert the argument list.
         QString code = value->sourceCode();
@@ -553,7 +553,7 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
     if (value) {
         const PropertyDeclaration decl = item->propertyDeclaration(name);
         script->sourceCode = sourceCodeAsFunction(value, decl);
-        script->argumentNames = decl.functionArgumentNames;
+        script->argumentNames = decl.functionArgumentNames();
         script->location = value->location();
         script->fileContext = resolvedFileContext(value->file());
     }
@@ -971,8 +971,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
                 if (pd.isValid())
                     break;
             }
-            if (pd.type == PropertyDeclaration::Verbatim
-                || pd.flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
+            if (pd.type() == PropertyDeclaration::Verbatim
+                || pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             {
                 break;
             }
@@ -984,13 +984,13 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             //       as such QScriptValues become invalid QVariants.
             QVariant v = scriptValue.toVariant();
 
-            if (pd.type == PropertyDeclaration::Path)
+            if (pd.type() == PropertyDeclaration::Path)
                 v = convertPathProperty(v.toString(),
                                         m_productContext->product->sourceDirectory);
-            else if (pd.type == PropertyDeclaration::PathList)
+            else if (pd.type() == PropertyDeclaration::PathList)
                 v = convertPathListProperty(v.toStringList(),
                                             m_productContext->product->sourceDirectory);
-            else if (pd.type == PropertyDeclaration::StringList)
+            else if (pd.type() == PropertyDeclaration::StringList)
                 v = v.toStringList();
             result[it.key()] = v;
             break;

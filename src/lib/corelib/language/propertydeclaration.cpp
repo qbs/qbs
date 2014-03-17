@@ -29,19 +29,45 @@
 
 #include "propertydeclaration.h"
 
+#include <QSharedData>
+
 namespace qbs {
 namespace Internal {
 
+class PropertyDeclarationData : public QSharedData
+{
+public:
+    PropertyDeclarationData()
+        : type(PropertyDeclaration::UnknownType)
+        , flags(PropertyDeclaration::DefaultFlags)
+    {
+    }
+
+    QString name;
+    PropertyDeclaration::Type type;
+    PropertyDeclaration::Flags flags;
+    QScriptValue allowedValues;
+    QString description;
+    QString initialValueSource;
+    QStringList functionArgumentNames;
+};
+
+
 PropertyDeclaration::PropertyDeclaration()
-    : type(UnknownType)
-    , flags(DefaultFlags)
+    : d(new PropertyDeclarationData)
 {
 }
 
 PropertyDeclaration::PropertyDeclaration(const QString &name, Type type, Flags flags)
-    : name(name)
-    , type(type)
-    , flags(flags)
+    : d(new PropertyDeclarationData)
+{
+    d->name = name;
+    d->type = type;
+    d->flags = flags;
+}
+
+PropertyDeclaration::PropertyDeclaration(const PropertyDeclaration &other)
+    : d(other.d)
 {
 }
 
@@ -49,9 +75,15 @@ PropertyDeclaration::~PropertyDeclaration()
 {
 }
 
+PropertyDeclaration &PropertyDeclaration::operator=(const PropertyDeclaration &other)
+{
+    d = other.d;
+    return *this;
+}
+
 bool PropertyDeclaration::isValid() const
 {
-    return type != UnknownType;
+    return d && d->type != UnknownType;
 }
 
 PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QString &typeName)
@@ -71,6 +103,76 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
     if (typeName == QLatin1String("var") || typeName == QLatin1String("variant"))
         return PropertyDeclaration::Variant;
     return PropertyDeclaration::UnknownType;
+}
+
+const QString &PropertyDeclaration::name() const
+{
+    return d->name;
+}
+
+void PropertyDeclaration::setName(const QString &name)
+{
+    d->name = name;
+}
+
+PropertyDeclaration::Type PropertyDeclaration::type() const
+{
+    return d->type;
+}
+
+void PropertyDeclaration::setType(PropertyDeclaration::Type t)
+{
+    d->type = t;
+}
+
+PropertyDeclaration::Flags PropertyDeclaration::flags() const
+{
+    return d->flags;
+}
+
+void PropertyDeclaration::setFlags(Flags f)
+{
+    d->flags = f;
+}
+
+const QScriptValue &PropertyDeclaration::allowedValues() const
+{
+    return d->allowedValues;
+}
+
+void PropertyDeclaration::setAllowedValues(const QScriptValue &v)
+{
+    d->allowedValues = v;
+}
+
+const QString &PropertyDeclaration::description() const
+{
+    return d->description;
+}
+
+void PropertyDeclaration::setDescripton(const QString &str)
+{
+    d->description = str;
+}
+
+const QString &PropertyDeclaration::initialValueSource() const
+{
+    return d->initialValueSource;
+}
+
+void PropertyDeclaration::setInitialValueSource(const QString &str)
+{
+    d->initialValueSource = str;
+}
+
+const QStringList &PropertyDeclaration::functionArgumentNames() const
+{
+    return d->functionArgumentNames;
+}
+
+void PropertyDeclaration::setFunctionArgumentNames(const QStringList &lst)
+{
+    d->functionArgumentNames = lst;
 }
 
 } // namespace Internal

@@ -380,7 +380,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     converter.start();
 
     const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
-    convertToPropertyType(decl.type, result);
+    convertToPropertyType(decl.type(), result);
 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);

@@ -335,18 +335,18 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         throw ErrorInfo(Tr::tr("public member without type"));
     if (Q_UNLIKELY(ast->type == AST::UiPublicMember::Signal))
         throw ErrorInfo(Tr::tr("public member with signal type not supported"));
-    p.name = ast->name.toString();
-    p.type = PropertyDeclaration::propertyTypeFromString(ast->memberType.toString());
-    if (p.type == PropertyDeclaration::UnknownType)
+    p.setName(ast->name.toString());
+    p.setType(PropertyDeclaration::propertyTypeFromString(ast->memberType.toString()));
+    if (p.type() == PropertyDeclaration::UnknownType)
         throw ErrorInfo(Tr::tr("Unknown type '%1' in property declaration.")
                         .arg(ast->memberType.toString()), toCodeLocation(ast->typeToken));
     if (ast->typeModifier.compare(QLatin1String("list")))
-        p.flags |= PropertyDeclaration::ListProperty;
+        p.setFlags(p.flags() | PropertyDeclaration::ListProperty);
     else if (Q_UNLIKELY(!ast->typeModifier.isEmpty()))
         throw ErrorInfo(Tr::tr("public member with type modifier '%1' not supported").arg(
                         ast->typeModifier.toString()));
 
-    m_item->m_propertyDeclarations.insert(p.name, p);
+    m_item->m_propertyDeclarations.insert(p.name(), p);
 
     JSSourceValuePtr value = JSSourceValue::create();
     value->setFile(m_file);
@@ -354,11 +354,11 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         m_sourceValue.swap(value);
         visitStatement(ast->statement);
         m_sourceValue.swap(value);
-        const QStringList bindingName(p.name);
+        const QStringList bindingName(p.name());
         checkDuplicateBinding(m_item, bindingName, ast->colonToken);
     }
 
-    m_item->m_properties.insert(p.name, value);
+    m_item->m_properties.insert(p.name(), value);
     return false;
 }
 
