@@ -75,6 +75,16 @@ class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
     JSSourceValue();
+
+    enum Flag
+    {
+        NoFlags = 0x00,
+        SourceUsesBase = 0x01,
+        SourceUsesOuter = 0x02,
+        HasFunctionForm = 0x04
+    };
+    Q_DECLARE_FLAGS(Flags, Flag)
+
 public:
     static JSSourceValuePtr create();
     ~JSSourceValue();
@@ -90,9 +100,9 @@ public:
     void setFile(const FileContextPtr &file) { m_file = file; }
     const FileContextPtr &file() const { return m_file; }
 
-    bool sourceUsesBase() const { return m_sourceUsesBase; }
-    bool sourceUsesOuter() const { return m_sourceUsesOuter; }
-    bool hasFunctionForm() const { return m_hasFunctionForm; }
+    bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
+    bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
+    bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
@@ -112,9 +122,7 @@ private:
     QString m_sourceCode;
     CodeLocation m_location;
     FileContextPtr m_file;
-    bool m_sourceUsesBase;
-    bool m_sourceUsesOuter;
-    bool m_hasFunctionForm;
+    Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
 };

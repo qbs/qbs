@@ -424,16 +424,21 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
         // rewrite blocks to be able to use return statements in property assignments
         sourceCode.prepend(QLatin1String("(function()"));
         sourceCode.append(QLatin1String(")()"));
-        m_sourceValue->m_hasFunctionForm = true;
+        m_sourceValue->m_flags |= JSSourceValue::HasFunctionForm;
     }
 
     m_sourceValue->setSourceCode(sourceCode);
     m_sourceValue->setLocation(toCodeLocation(statement->firstSourceLocation()));
 
+    bool usesBase, usesOuter;
     IdentifierSearch idsearch;
-    idsearch.add(QLatin1String("base"), &m_sourceValue->m_sourceUsesBase);
-    idsearch.add(QLatin1String("outer"), &m_sourceValue->m_sourceUsesOuter);
+    idsearch.add(QLatin1String("base"), &usesBase);
+    idsearch.add(QLatin1String("outer"), &usesOuter);
     idsearch.start(statement);
+    if (usesBase)
+        m_sourceValue->m_flags |= JSSourceValue::SourceUsesBase;
+    if (usesOuter)
+        m_sourceValue->m_flags |= JSSourceValue::SourceUsesOuter;
     return false;
 }
 

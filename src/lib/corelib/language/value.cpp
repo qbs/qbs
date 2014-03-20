@@ -45,9 +45,6 @@ Value::~Value()
 
 JSSourceValue::JSSourceValue()
     : Value(JSSourceValueType)
-    , m_sourceUsesBase(false)
-    , m_sourceUsesOuter(false)
-    , m_hasFunctionForm(false)
 {
 }
 
