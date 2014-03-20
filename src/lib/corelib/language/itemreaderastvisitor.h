@@ -66,7 +66,7 @@ private:
     Item *targetItemForBinding(Item *item, const QStringList &binding,
                                  const CodeLocation &bindingLocation);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
-    static void mergeItem(Item *dst, const Item *src,
+    static void inheritItem(Item *dst, const Item *src,
                           const ItemReaderResult &baseFile);
     void ensureIdScope(const FileContextPtr &file);
     void setupAlternatives(Item *item);

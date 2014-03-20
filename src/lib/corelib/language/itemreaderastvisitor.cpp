@@ -304,7 +304,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
         const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName);
-        mergeItem(item, baseFile.rootItem, baseFile);
+        inheritItem(item, baseFile.rootItem, baseFile);
         if (baseFile.rootItem->m_file->m_idScope) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
@@ -478,8 +478,8 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
                     toCodeLocation(versionToken));
 }
 
-void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
-                                     const ItemReaderResult &baseFile)
+void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src,
+        const ItemReaderResult &baseFile)
 {
     if (!src->typeName().isEmpty())
         dst->setTypeName(src->typeName());
@@ -511,9 +511,9 @@ void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
                 } else if (v->type() == Value::ItemValueType) {
                     QBS_CHECK(v.staticCast<ItemValue>()->item());
                     QBS_CHECK(it.value().staticCast<const ItemValue>()->item());
-                    mergeItem(v.staticCast<ItemValue>()->item(),
-                              it.value().staticCast<const ItemValue>()->item(),
-                              baseFile);
+                    inheritItem(v.staticCast<ItemValue>()->item(),
+                                it.value().staticCast<const ItemValue>()->item(),
+                                baseFile);
                 } else {
                     QBS_CHECK(!"unexpected value type");
                 }
