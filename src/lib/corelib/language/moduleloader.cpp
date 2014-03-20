@@ -739,18 +739,6 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
     return c;
 }
 
-static PropertyDeclaration firstValidPropertyDeclaration(Item *item, const QString &name)
-{
-    PropertyDeclaration decl;
-    do {
-        decl = item->propertyDeclarations().value(name);
-        if (decl.isValid())
-            return decl;
-        item = item->prototype();
-    } while (item);
-    return decl;
-}
-
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
         bool isBaseModule, const QString &filePath, bool *cacheHit)
 {
@@ -791,7 +779,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     {
         if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
             throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
-        const PropertyDeclaration decl = firstValidPropertyDeclaration(module, vmit.key());
+        const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
         module->setProperty(vmit.key(),
                 VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
                         QStringList(fullModuleName), vmit.key())));
@@ -911,7 +899,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
             throw ErrorInfo(Tr::tr("Unknown property: %1.%2")
                             .arg(fullModuleName(moduleName), vmit.key()));
         }
-        const PropertyDeclaration decl = firstValidPropertyDeclaration(moduleInstance, vmit.key());
+        const PropertyDeclaration decl = moduleInstance->propertyDeclaration(vmit.key());
         moduleInstance->setProperty(vmit.key(),
                 VariantValue::create(convertToPropertyType(vmit.value(), decl.type(), moduleName,
                         vmit.key())));
