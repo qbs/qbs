@@ -91,8 +91,9 @@ public:
 
     void apply(ValueHandler *handler) { handler->handle(this); }
 
-    void setSourceCode(const QString &sourceCode) { m_sourceCode = sourceCode; }
-    const QString &sourceCode() const { return m_sourceCode; }
+    void setSourceCode(const QStringRef &sourceCode) { m_sourceCode = sourceCode; }
+    const QStringRef &sourceCode() const { return m_sourceCode; }
+    QString sourceCodeForEvaluation() const;
 
     void setLocation(const CodeLocation &location) { m_location = location; }
     CodeLocation location() const { return m_location; }
@@ -103,6 +104,7 @@ public:
     bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
     bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
+    void setHasFunctionForm(bool b);
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
@@ -119,7 +121,7 @@ public:
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
 
 private:
-    QString m_sourceCode;
+    QStringRef m_sourceCode;
     CodeLocation m_location;
     FileContextPtr m_file;
     Flags m_flags;

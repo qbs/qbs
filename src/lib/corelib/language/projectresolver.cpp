@@ -133,7 +133,7 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value) const
     QString result;
     if (value && value->type() == Value::JSSourceValueType) {
         const JSSourceValueConstPtr sourceValue = value.staticCast<const JSSourceValue>();
-        result = sourceValue->sourceCode();
+        result = sourceValue->sourceCodeForEvaluation();
     }
     return result;
 }
@@ -535,14 +535,14 @@ static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
     const QString args = decl.functionArgumentNames().join(QLatin1String(","));
     if (value->hasFunctionForm()) {
         // Insert the argument list.
-        QString code = value->sourceCode();
+        QString code = value->sourceCodeForEvaluation();
         code.insert(10, args);
         // Remove the function application "()" that has been
         // added in ItemReaderASTVisitor::visitStatement.
         return code.left(code.length() - 2);
     } else {
         return QLatin1String("(function(") + args + QLatin1String("){return ")
-                + value->sourceCode() + QLatin1String(";})");
+                + value->sourceCode().toString() + QLatin1String(";})");
     }
 }
 
@@ -694,7 +694,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
             RuleArtifact::Binding rab;
             rab.name = name;
-            rab.code = sourceValue->sourceCode();
+            rab.code = sourceValue->sourceCodeForEvaluation();
             rab.location = sourceValue->location();
             ruleArtifact->bindings += rab;
         } else {

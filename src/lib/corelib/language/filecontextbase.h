@@ -43,6 +43,9 @@ public:
     void setFilePath(const QString &filePath);
     QString filePath() const;
 
+    void setContent(const QString &content);
+    const QString &content() const;
+
     void setJsImports(const JsImports &jsImports);
     JsImports jsImports() const;
 
@@ -59,6 +62,7 @@ protected:
     FileContextBase(const FileContextBase &other);
 
     QString m_filePath;
+    QString m_content;
     JsImports m_jsImports;
     QStringList m_jsExtensions;
     QStringList m_searchPaths;
@@ -72,6 +76,16 @@ inline void FileContextBase::setFilePath(const QString &filePath)
 inline QString FileContextBase::filePath() const
 {
     return m_filePath;
+}
+
+inline void FileContextBase::setContent(const QString &content)
+{
+    m_content = content;
+}
+
+inline const QString &FileContextBase::content() const
+{
+    return m_content;
 }
 
 inline void FileContextBase::setJsImports(const JsImports &jsImports)

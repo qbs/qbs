@@ -48,8 +48,8 @@ public:
     ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result);
     ~ItemReaderASTVisitor();
 
-    void setFilePath(const QString &filePath) { m_filePath = filePath; }
-    void setSourceCode(const QString &sourceCode) { m_sourceCode = sourceCode; }
+    void setFilePath(const QString &filePath);
+    void setSourceCode(const QString &sourceCode);
 
     bool visit(QbsQmlJS::AST::UiProgram *ast);
     bool visit(QbsQmlJS::AST::UiImportList *uiImportList);
@@ -79,8 +79,6 @@ private:
     ItemReader *m_reader;
     ItemReaderResult *m_readerResult;
     const ImportVersion m_languageVersion;
-    QString m_filePath;
-    QString m_sourceCode;
     FileContextPtr m_file;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item;

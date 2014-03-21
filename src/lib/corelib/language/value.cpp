@@ -57,6 +57,25 @@ JSSourceValue::~JSSourceValue()
 {
 }
 
+QString JSSourceValue::sourceCodeForEvaluation() const
+{
+    if (!hasFunctionForm())
+        return m_sourceCode.toString();
+
+    // rewrite blocks to be able to use return statements in property assignments
+    static const QString prefix = "(function()";
+    static const QString suffix = ")()";
+    return prefix + m_sourceCode.toString() + suffix;
+}
+
+void JSSourceValue::setHasFunctionForm(bool b)
+{
+    if (b)
+        m_flags |= HasFunctionForm;
+    else
+        m_flags &= ~HasFunctionForm;
+}
+
 
 ItemValue::ItemValue(Item *item)
     : Value(ItemValueType)

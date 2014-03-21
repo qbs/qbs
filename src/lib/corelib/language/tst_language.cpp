@@ -724,17 +724,25 @@ void TestLanguage::invalidBindingInDisabledItem()
 class JSSourceValueCreator
 {
     FileContextPtr m_fileContext;
+    QList<QString *> m_strings;
 public:
     JSSourceValueCreator(const FileContextPtr &fileContext)
         : m_fileContext(fileContext)
     {
     }
 
+    ~JSSourceValueCreator()
+    {
+        qDeleteAll(m_strings);
+    }
+
     JSSourceValuePtr create(const QString &sourceCode)
     {
         JSSourceValuePtr value = JSSourceValue::create();
         value->setFile(m_fileContext);
-        value->setSourceCode(sourceCode);
+        QString *str = new QString(sourceCode);
+        m_strings += str;
+        value->setSourceCode(QStringRef(str));
         return value;
     }
 };

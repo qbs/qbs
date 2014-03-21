@@ -150,6 +150,7 @@ private:
                     // Clone value but without alternatives.
                     JSSourceValuePtr outerValue = JSSourceValue::create();
                     outerValue->setFile(value->file());
+                    outerValue->setHasFunctionForm(value->hasFunctionForm());
                     outerValue->setSourceCode(value->sourceCode());
                     outerValue->setBaseValue(value->baseValue());
                     outerValue->setLocation(value->location());
@@ -185,7 +186,7 @@ private:
         }
         pushScope(extraScope);
         const CodeLocation valueLocation = value->location();
-        *result = engine->evaluate(value->sourceCode(), valueLocation.fileName(),
+        *result = engine->evaluate(value->sourceCodeForEvaluation(), valueLocation.fileName(),
                                    valueLocation.line());
         popScopes();
     }

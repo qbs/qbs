@@ -955,7 +955,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
-    QScriptValue sv = m_engine->evaluate(configureScript->sourceCode());
+    QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
     if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
         throw ErrorInfo(sv.toString(), configureScript->location());
     foreach (const ProbeProperty &b, probeBindings) {

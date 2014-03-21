@@ -83,8 +83,10 @@ void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
         if (!value) {
             JSSourceValuePtr sourceValue = JSSourceValue::create();
             sourceValue->setFile(item->file());
-            sourceValue->setSourceCode(pd.initialValueSource().isEmpty() ?
-                                           QLatin1String("undefined") : pd.initialValueSource());
+            static const QString undefinedKeyword = QLatin1String("undefined");
+            sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
+                                       ? QStringRef(&undefinedKeyword)
+                                       : QStringRef(&pd.initialValueSource()));
             value = sourceValue;
         }
     }

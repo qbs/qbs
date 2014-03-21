@@ -53,6 +53,7 @@ ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult 
     : m_reader(reader)
     , m_readerResult(result)
     , m_languageVersion(ImportVersion::fromString(reader->builtins()->languageVersion()))
+    , m_file(FileContext::create())
     , m_item(0)
     , m_sourceValue(0)
 {
@@ -62,16 +63,24 @@ ItemReaderASTVisitor::~ItemReaderASTVisitor()
 {
 }
 
+void ItemReaderASTVisitor::setFilePath(const QString &filePath)
+{
+    m_file->setFilePath(filePath);
+}
+
+void ItemReaderASTVisitor::setSourceCode(const QString &sourceCode)
+{
+    m_file->setContent(sourceCode);
+}
+
 bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
 {
     Q_UNUSED(ast);
     m_sourceValue.clear();
-    m_file = FileContext::create();
-    m_file->m_filePath = m_filePath;
     m_file->m_searchPaths = m_reader->searchPaths();
 
     if (Q_UNLIKELY(!ast->members->member))
-        throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_filePath));
+        throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_file->filePath()));
 
     return true;
 }
@@ -120,7 +129,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
     foreach (const QString &searchPath, m_reader->searchPaths())
         collectPrototypes(searchPath + QLatin1String("/imports"), QString());
 
-    const QString path = FileInfo::path(m_filePath);
+    const QString path = FileInfo::path(m_file->filePath());
 
     // files in the same directory are available as prototypes
     collectPrototypes(path, QString());
@@ -200,7 +209,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             QFileInfo fi(filePath);
             if (Q_UNLIKELY(!fi.exists()))
                 throw ErrorInfo(Tr::tr("Can't find imported file %0.").arg(filePath),
-                            CodeLocation(m_filePath, import->fileNameToken.startLine,
+                            CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
                                          import->fileNameToken.startColumn));
             filePath = fi.canonicalFilePath();
             if (fi.isDir()) {
@@ -215,7 +224,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                     m_typeNameToFile.insert(QStringList(as), filePath);
                 } else {
                     throw ErrorInfo(Tr::tr("Can only import .qbs and .js files"),
-                                CodeLocation(m_filePath, import->fileNameToken.startLine,
+                                CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
                                              import->fileNameToken.startColumn));
                 }
             }
@@ -404,7 +413,7 @@ bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
     f.setName(ast->name.toString());
 
     // remove the name
-    QString funcNoName = textOf(m_sourceCode, ast);
+    QString funcNoName = textOf(m_file->content(), ast);
     funcNoName.replace(QRegExp(QLatin1String("^(\\s*function\\s*)\\w*")), QLatin1String("(\\1"));
     funcNoName.append(QLatin1Char(')'));
     f.setSourceCode(funcNoName);
@@ -419,15 +428,10 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     QBS_CHECK(statement);
     QBS_CHECK(m_sourceValue);
 
-    QString sourceCode = textOf(m_sourceCode, statement);
-    if (AST::cast<AST::Block *>(statement)) {
-        // rewrite blocks to be able to use return statements in property assignments
-        sourceCode.prepend(QLatin1String("(function()"));
-        sourceCode.append(QLatin1String(")()"));
+    if (AST::cast<AST::Block *>(statement))
         m_sourceValue->m_flags |= JSSourceValue::HasFunctionForm;
-    }
 
-    m_sourceValue->setSourceCode(sourceCode);
+    m_sourceValue->setSourceCode(textRefOf(m_file->content(), statement));
     m_sourceValue->setLocation(toCodeLocation(statement->firstSourceLocation()));
 
     bool usesBase, usesOuter;
@@ -444,7 +448,7 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
 
 CodeLocation ItemReaderASTVisitor::toCodeLocation(AST::SourceLocation location) const
 {
-    return CodeLocation(m_filePath, location.startLine, location.startColumn);
+    return CodeLocation(m_file->filePath(), location.startLine, location.startColumn);
 }
 
 Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
@@ -474,7 +478,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
 {
     if (!versionToken.length)
         return;
-    const QString importVersionString = m_sourceCode.mid(versionToken.offset, versionToken.length);
+    const QString importVersionString = m_file->content().mid(versionToken.offset, versionToken.length);
     const ImportVersion importVersion
             = ImportVersion::fromString(importVersionString, toCodeLocation(versionToken));
     if (Q_UNLIKELY(importVersion != m_languageVersion))
@@ -624,7 +628,8 @@ private:
             value = JSSourceValue::create();
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
-            value->setSourceCode(QLatin1String("undefined"));
+            static const QString undefinedKeyword = QLatin1String("undefined");
+            value->setSourceCode(QStringRef(&undefinedKeyword));
         }
         m_alternative.value = conditionalValue;
         value->addAlternative(m_alternative);
@@ -642,7 +647,7 @@ void ItemReaderASTVisitor::handlePropertiesBlock(Item *item, const Item *block)
         throw ErrorInfo(Tr::tr("Properties.condition must be a value binding."),
                     block->location());
     JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
-    const QString condition = srcval->sourceCode();
+    const QString condition = srcval->sourceCodeForEvaluation();
     PropertiesBlockConverter convertBlock(condition, item, block,
                                           &m_readerResult->conditionalValuesPerScopeItem[item]);
     convertBlock();
