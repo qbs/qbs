@@ -28,6 +28,9 @@
 ****************************************************************************/
 
 #include "tst_blackbox.h"
+
+#include "../skip.h"
+
 #include <app/shared/qbssettings.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -38,12 +41,6 @@
 #include <QTemporaryFile>
 #include <QScriptEngine>
 #include <QScriptValue>
-
-#if QT_VERSION >= 0x050000
-#define SKIP_TEST(message) QSKIP(message)
-#else
-#define SKIP_TEST(message) QSKIP(message, SkipAll)
-#endif
 
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
