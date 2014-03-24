@@ -47,6 +47,7 @@ public:
 private slots:
     void initTestCase();
 
+    void buildSingleFile();
     void changeContent();
     void disabledInstallGroup();
     void fileTagsFilterOverride();

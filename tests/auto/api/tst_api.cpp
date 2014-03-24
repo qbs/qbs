@@ -58,7 +58,7 @@ class LogSink: public qbs::ILogSink
     void doPrintMessage(qbs::LoggerLevel, const QString &, const QString &) { }
 };
 
-class BuildDescriptionReveiver : public QObject
+class BuildDescriptionReceiver : public QObject
 {
     Q_OBJECT
 public:
@@ -107,6 +107,33 @@ void printProjectData(const qbs::ProjectData &project)
             qDebug("            Files: %s", qPrintable(g.filePaths().join(QLatin1String(", "))));
         }
     }
+}
+
+void TestApi::buildSingleFile()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
+        "/build-single-file/project.qbs"));
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    qbs::BuildOptions options;
+    options.setDryRun(true);
+    options.setChangedFiles(QStringList(m_workingDataDir + "/build-single-file/compiled.cpp"));
+    options.setActiveFileTags(QStringList("obj"));
+    m_logSink->setLogLevel(qbs::LoggerMaxLevel);
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
+    BuildDescriptionReceiver receiver;
+    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &receiver,
+            SLOT(handleDescription(QString,QString)));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QEXPECT_FAIL(0, "QBS-537", Abort);
+    QCOMPARE(receiver.descriptions.count("compiling"), 1);
+    QVERIFY2(receiver.descriptions.contains("compiling compiled.cpp"),
+             qPrintable(receiver.descriptions));
 }
 
 qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
@@ -282,7 +309,7 @@ void TestApi::changeContent()
     // This must not be moved below the re-resolving test!!!
     qbs::BuildOptions buildOptions;
     buildOptions.setDryRun(true);
-    BuildDescriptionReveiver rcvr;
+    BuildDescriptionReceiver rcvr;
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, this));
     connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
