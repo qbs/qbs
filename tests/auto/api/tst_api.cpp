@@ -112,8 +112,8 @@ void printProjectData(const qbs::ProjectData &project)
 void TestApi::buildSingleFile()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
-        "/build-single-file/project.qbs"));
+    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/build-single-file");
+    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project::setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -121,7 +121,7 @@ void TestApi::buildSingleFile()
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
     options.setDryRun(true);
-    options.setChangedFiles(QStringList(m_workingDataDir + "/build-single-file/compiled.cpp"));
+    options.setFilesToConsider(QStringList(projectDirPath + "/compiled.cpp"));
     options.setActiveFileTags(QStringList("obj"));
     m_logSink->setLogLevel(qbs::LoggerMaxLevel);
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
@@ -130,7 +130,6 @@ void TestApi::buildSingleFile()
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
-    QEXPECT_FAIL(0, "QBS-537", Abort);
     QCOMPARE(receiver.descriptions.count("compiling"), 1);
     QVERIFY2(receiver.descriptions.contains("compiling compiled.cpp"),
              qPrintable(receiver.descriptions));

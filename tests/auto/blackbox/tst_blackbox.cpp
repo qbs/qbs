@@ -363,6 +363,26 @@ void TestBlackbox::changeDependentLib()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::changedFiles()
+{
+    QDir::setCurrent(testDataDir + "/changed-files");
+    const QString changedFile = QDir::cleanPath(QDir::currentPath() + "/file1.cpp");
+    QbsRunParameters params(QStringList("--changed-files") << changedFile);
+
+    // Initial run: Build all files, even though only one of them was marked as changed.
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStdout.count("compiling"), 3);
+
+    waitForNewTimestamp();
+    touch(QDir::currentPath() + "/main.cpp");
+
+    // Now only the file marked as changed must be compiled, even though it hasn't really
+    // changed and another one has.
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStdout.count("compiling"), 1);
+    QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));

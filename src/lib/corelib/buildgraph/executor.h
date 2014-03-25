@@ -100,13 +100,12 @@ private:
     void prepareAllNodes();
     void prepareArtifact(Artifact *artifact);
     void prepareReachableNodes();
-    void prepareReachableNodes_impl(BuildGraphNode *node, const Artifact::BuildState buildState);
+    void prepareReachableNodes_impl(BuildGraphNode *node);
     void prepareProducts();
     void setupRootNodes();
     void initLeaves();
     void updateLeaves(const NodeSet &nodes);
     void updateLeaves(BuildGraphNode *node, NodeSet &seenNodes);
-    void initLeavesForSelectedFiles();
     bool scheduleJobs();
     void buildArtifact(Artifact *artifact);
     void executeRuleNode(RuleNode *ruleNode);
@@ -130,6 +129,8 @@ private:
     void retrieveSourceFileTimestamp(Artifact *artifact) const;
     FileTime recursiveFileTime(const QString &filePath) const;
     QString configString() const;
+    bool transformerHasMatchingOutputTags(const TransformerConstPtr &transformer) const;
+    bool transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const;
 
     typedef QHash<ExecutorJob *, TransformerPtr> JobMap;
     JobMap m_processingJobs;

@@ -75,6 +75,20 @@ FileTime FileTime::currentTime()
     return result;
 }
 
+FileTime FileTime::oldestTime()
+{
+    SYSTEMTIME st = {
+        1601,
+        1,
+        5,
+        2
+    };
+    FileTime result;
+    FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
+    SystemTimeToFileTime(&st, ft);
+    return result;
+}
+
 QString FileTime::toString() const
 {
     const FILETIME *const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);

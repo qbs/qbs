@@ -104,6 +104,7 @@ private slots:
     void build_project_dry_run_data();
     void build_project_dry_run();
     void changeDependentLib();
+    void changedFiles();
     void dependenciesProperty();
     void disabledProduct();
     void disabledProject();

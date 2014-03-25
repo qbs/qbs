@@ -62,6 +62,11 @@ FileTime FileTime::currentTime()
     return time(0);
 }
 
+FileTime FileTime::oldestTime()
+{
+    return 1;
+}
+
 QString FileTime::toString() const
 {
     QDateTime dt;
