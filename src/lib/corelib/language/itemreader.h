@@ -81,12 +81,13 @@ public:
     void popExtraSearchPaths();
     QStringList searchPaths() const;
 
-    Item *readFile(const QString &filePath);
+    void clearItemCache();
+    Item *readFile(const QString &filePath, bool enableItemCache = false);
 
     QSet<QString> filesRead() const;
 
 private:
-    ItemReaderResult internalReadFile(const QString &filePath);
+    ItemReaderResult internalReadFile(const QString &filePath, bool enableItemCache);
 
     void cacheDirectoryEntries(const QString &dirPath, const QStringList &entries);
     bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
@@ -100,6 +101,7 @@ private:
 
     class ASTCache;
     ASTCache *m_astCache;
+    QHash<QString, ItemReaderResult> m_itemCache;
     QSet<QString> m_filesRead;
     QHash<QString, QStringList> m_directoryEntries;
 };

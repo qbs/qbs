@@ -128,6 +128,11 @@ QStringList ItemReader::searchPaths() const
     return paths;
 }
 
+void ItemReader::clearItemCache()
+{
+    m_itemCache.clear();
+}
+
 void ItemReader::cacheDirectoryEntries(const QString &dirPath, const QStringList &entries)
 {
     m_directoryEntries.insert(dirPath, entries);
@@ -142,9 +147,9 @@ bool ItemReader::findDirectoryEntries(const QString &dirPath, QStringList *entri
     return true;
 }
 
-Item *ItemReader::readFile(const QString &filePath)
+Item *ItemReader::readFile(const QString &filePath, bool enableItemCache)
 {
-    Item * const item = internalReadFile(filePath).rootItem;
+    Item * const item = internalReadFile(filePath, enableItemCache).rootItem;
     return item;
 }
 
@@ -153,8 +158,15 @@ QSet<QString> ItemReader::filesRead() const
     return m_filesRead;
 }
 
-ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
+ItemReaderResult ItemReader::internalReadFile(const QString &filePath, bool enableItemCache)
 {
+    ItemReaderResult result;
+    if (enableItemCache) {
+        result = m_itemCache.value(filePath);
+        if (result.rootItem)
+            return result;
+    }
+
     ASTCacheValue &cacheValue = (*m_astCache)[filePath];
     if (cacheValue.isValid()) {
         if (Q_UNLIKELY(cacheValue.isProcessing()))
@@ -185,13 +197,16 @@ ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
         cacheValue.setAst(parser.ast());
     }
 
-    ItemReaderResult result;
     ItemReaderASTVisitor itemReader(this, &result);
     itemReader.setFilePath(QFileInfo(filePath).absoluteFilePath());
     itemReader.setSourceCode(cacheValue.code());
     cacheValue.setProcessingFlag(true);
     cacheValue.ast()->accept(&itemReader);
     cacheValue.setProcessingFlag(false);
+
+    if (enableItemCache)
+        m_itemCache.insert(filePath, result);
+
     return result;
 }
 

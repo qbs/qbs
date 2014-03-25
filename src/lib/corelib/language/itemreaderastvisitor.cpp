@@ -312,7 +312,8 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
-        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName);
+        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName, false);
+
         inheritItem(item, baseFile.rootItem, baseFile);
         if (baseFile.rootItem->m_file->m_idScope) {
             // Make ids from the derived file visible in the base file.
