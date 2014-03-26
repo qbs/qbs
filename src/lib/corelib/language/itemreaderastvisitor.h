@@ -64,7 +64,7 @@ private:
     void checkDuplicateBinding(Item *item, const QStringList &bindingName,
             const QbsQmlJS::AST::SourceLocation &sourceLocation);
     Item *targetItemForBinding(Item *item, const QStringList &binding,
-                                 const CodeLocation &bindingLocation);
+                                 const JSSourceValueConstPtr &value);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
     static void inheritItem(Item *dst, const Item *src,
                           const ItemReaderResult &baseFile);

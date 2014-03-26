@@ -153,7 +153,7 @@ private:
                     outerValue->setHasFunctionForm(value->hasFunctionForm());
                     outerValue->setSourceCode(value->sourceCode());
                     outerValue->setBaseValue(value->baseValue());
-                    outerValue->setLocation(value->location());
+                    outerValue->setLocation(value->line(), value->column());
                     outerItem = Item::create(data->item->pool());
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
@@ -185,9 +185,8 @@ private:
             pushScope(*object);
         }
         pushScope(extraScope);
-        const CodeLocation valueLocation = value->location();
-        *result = engine->evaluate(value->sourceCodeForEvaluation(), valueLocation.fileName(),
-                                   valueLocation.line());
+        *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
+                                   value->line());
         popScopes();
     }
 

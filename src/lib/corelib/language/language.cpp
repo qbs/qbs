@@ -252,7 +252,7 @@ void RuleArtifact::store(PersistentPool &pool) const
 
 bool ScriptFunction::isValid() const
 {
-    return location.isValid();
+    return location.line() != -1;
 }
 
 void ScriptFunction::load(PersistentPool &pool)

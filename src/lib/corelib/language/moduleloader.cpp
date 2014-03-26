@@ -1016,9 +1016,9 @@ QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
     QStringList result;
     const QString propertyName = QLatin1String("qbsSearchPaths");
     const QStringList paths = m_evaluator->stringListValue(item, propertyName, wasSet);
-    const ValueConstPtr prop = item->property(propertyName);
+    const JSSourceValueConstPtr prop = item->sourceProperty(propertyName);
     foreach (const QString &path, paths)
-        result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
+        result += FileInfo::resolvePath(FileInfo::path(prop->file()->filePath()), path);
     return result;
 }
 

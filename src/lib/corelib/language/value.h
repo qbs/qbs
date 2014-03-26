@@ -95,8 +95,10 @@ public:
     const QStringRef &sourceCode() const { return m_sourceCode; }
     QString sourceCodeForEvaluation() const;
 
-    void setLocation(const CodeLocation &location) { m_location = location; }
-    CodeLocation location() const { return m_location; }
+    void setLocation(int line, int column);
+    int line() const { return m_line; }
+    int column() const { return m_column; }
+    CodeLocation location() const;
 
     void setFile(const FileContextPtr &file) { m_file = file; }
     const FileContextPtr &file() const { return m_file; }
@@ -122,7 +124,8 @@ public:
 
 private:
     QStringRef m_sourceCode;
-    CodeLocation m_location;
+    int m_line;
+    int m_column;
     FileContextPtr m_file;
     Flags m_flags;
     JSSourceValuePtr m_baseValue;

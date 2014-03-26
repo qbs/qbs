@@ -44,7 +44,7 @@ Value::~Value()
 
 
 JSSourceValue::JSSourceValue()
-    : Value(JSSourceValueType)
+    : Value(JSSourceValueType), m_line(-1), m_column(-1)
 {
 }
 
@@ -66,6 +66,17 @@ QString JSSourceValue::sourceCodeForEvaluation() const
     static const QString prefix = "(function()";
     static const QString suffix = ")()";
     return prefix + m_sourceCode.toString() + suffix;
+}
+
+void JSSourceValue::setLocation(int line, int column)
+{
+    m_line = line;
+    m_column = column;
+}
+
+CodeLocation JSSourceValue::location() const
+{
+    return CodeLocation(m_file->filePath(), m_line, m_column);
 }
 
 void JSSourceValue::setHasFunctionForm(bool b)

@@ -399,7 +399,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
     visitStatement(ast->statement);
     m_sourceValue.swap(value);
 
-    Item *targetItem = targetItemForBinding(m_item, bindingName, value->location());
+    Item *targetItem = targetItemForBinding(m_item, bindingName, value);
     checkDuplicateBinding(targetItem, bindingName, ast->qualifiedId->identifierToken);
     targetItem->m_properties.insert(bindingName.last(), value);
     return false;
@@ -431,8 +431,10 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     if (AST::cast<AST::Block *>(statement))
         m_sourceValue->m_flags |= JSSourceValue::HasFunctionForm;
 
+    m_sourceValue->setFile(m_file);
     m_sourceValue->setSourceCode(textRefOf(m_file->content(), statement));
-    m_sourceValue->setLocation(toCodeLocation(statement->firstSourceLocation()));
+    m_sourceValue->setLocation(statement->firstSourceLocation().startLine,
+                               statement->firstSourceLocation().startColumn);
 
     bool usesBase, usesOuter;
     IdentifierSearch idsearch;
@@ -453,7 +455,7 @@ CodeLocation ItemReaderASTVisitor::toCodeLocation(AST::SourceLocation location) 
 
 Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
                                                    const QStringList &bindingName,
-                                                   const CodeLocation &bindingLocation)
+                                                   const JSSourceValueConstPtr &value)
 {
     Item *targetItem = item;
     const int c = bindingName.count() - 1;
@@ -466,7 +468,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
         }
         if (Q_UNLIKELY(v->type() != Value::ItemValueType)) {
             QString msg = Tr::tr("Binding to non-item property.");
-            throw ErrorInfo(msg, bindingLocation);
+            throw ErrorInfo(msg, value->location());
         }
         ItemValuePtr jsv = v.staticCast<ItemValue>();
         targetItem = jsv->item();
