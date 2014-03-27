@@ -114,7 +114,6 @@ public:
     struct Alternative
     {
         QString condition;
-        const Item *conditionScopeItem;
         JSSourceValuePtr value;
     };
 

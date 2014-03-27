@@ -127,9 +127,9 @@ private:
         for (int i = 0; i < value->alternatives().count(); ++i) {
             const JSSourceValue::Alternative *alternative = 0;
             alternative = &value->alternatives().at(i);
-            if (conditionScopeItem != alternative->conditionScopeItem) {
-                conditionScopeItem = alternative->conditionScopeItem;
-                conditionScope = data->evaluator->scriptValue(alternative->conditionScopeItem);
+            if (conditionScopeItem != data->item->scope()) {
+                conditionScopeItem = data->item->scope();
+                conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
                 conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
             }

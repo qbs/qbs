@@ -217,6 +217,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
+    projectContext.scope->setFile(item->file());
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
 
     foreach (Item *child, item->children()) {
@@ -303,6 +304,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     ItemValuePtr itemValue = ItemValue::create(item);
     productContext.scope = Item::create(m_pool);
     productContext.scope->setProperty(QLatin1String("product"), itemValue);
+    productContext.scope->setFile(item->file());
     productContext.scope->setScope(projectContext->scope);
     DependsContext dependsContext;
     dependsContext.product = &productContext;
@@ -859,6 +861,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
 
     // create module scope
     Item *moduleScope = Item::create(m_pool);
+    moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
     copyProperty(QLatin1String("project"), productContext->project->scope, moduleScope);
     copyProperty(QLatin1String("product"), productContext->scope, moduleScope);

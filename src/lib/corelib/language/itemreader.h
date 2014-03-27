@@ -52,8 +52,6 @@ struct ItemReaderResult
     {}
 
     Item *rootItem;
-    typedef QHash<const Item *, QSet<JSSourceValuePtr> > SourceValuesPerItem;
-    SourceValuesPerItem conditionalValuesPerScopeItem;
 };
 
 /*

@@ -314,7 +314,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     if (!baseTypeFileName.isEmpty()) {
         const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName, false);
 
-        inheritItem(item, baseFile.rootItem, baseFile);
+        inheritItem(item, baseFile.rootItem);
         if (baseFile.rootItem->m_file->m_idScope) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
@@ -490,8 +490,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
                     toCodeLocation(versionToken));
 }
 
-void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src,
-        const ItemReaderResult &baseFile)
+void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
 {
     if (!src->typeName().isEmpty())
         dst->setTypeName(src->typeName());
@@ -524,8 +523,7 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src,
                     QBS_CHECK(v.staticCast<ItemValue>()->item());
                     QBS_CHECK(it.value().staticCast<const ItemValue>()->item());
                     inheritItem(v.staticCast<ItemValue>()->item(),
-                                it.value().staticCast<const ItemValue>()->item(),
-                                baseFile);
+                                it.value().staticCast<const ItemValue>()->item());
                 } else {
                     QBS_CHECK(!"unexpected value type");
                 }
@@ -539,10 +537,6 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src,
             = src->m_propertyDeclarations.constBegin();
             it != src->m_propertyDeclarations.constEnd(); ++it) {
         dst->m_propertyDeclarations[it.key()] = it.value();
-    }
-    foreach (const JSSourceValuePtr &valueWithAlternatives,
-            baseFile.conditionalValuesPerScopeItem.value(src)) {
-        replaceConditionScopes(valueWithAlternatives, dst);
     }
 }
 
@@ -568,26 +562,15 @@ void ItemReaderASTVisitor::setupAlternatives(Item *item)
     }
 }
 
-void ItemReaderASTVisitor::replaceConditionScopes(const JSSourceValuePtr &value,
-                                                  Item *newScope)
-{
-    for (QList<JSSourceValue::Alternative>::iterator it
-            = value->m_alternatives.begin(); it != value->m_alternatives.end(); ++it)
-        it->conditionScopeItem = newScope;
-}
-
 class PropertiesBlockConverter
 {
 public:
     PropertiesBlockConverter(const QString &condition, Item *propertiesBlockContainer,
-                             const Item *propertiesBlock,
-                             QSet<JSSourceValuePtr> *valuesWithAlternatives)
+                             const Item *propertiesBlock)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
-        , m_valuesWithAlternatives(valuesWithAlternatives)
     {
         m_alternative.condition = condition;
-        m_alternative.conditionScopeItem = propertiesBlockContainer;
     }
 
     void operator()()
@@ -599,7 +582,6 @@ private:
     JSSourceValue::Alternative m_alternative;
     Item *m_propertiesBlockContainer;
     const Item *m_propertiesBlock;
-    QSet<JSSourceValuePtr> *m_valuesWithAlternatives;
 
     void apply(Item *a, const Item *b)
     {
@@ -636,7 +618,6 @@ private:
         }
         m_alternative.value = conditionalValue;
         value->addAlternative(m_alternative);
-        m_valuesWithAlternatives->insert(value);
     }
 };
 
@@ -651,8 +632,7 @@ void ItemReaderASTVisitor::handlePropertiesBlock(Item *item, const Item *block)
                     block->location());
     JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
     const QString condition = srcval->sourceCodeForEvaluation();
-    PropertiesBlockConverter convertBlock(condition, item, block,
-                                          &m_readerResult->conditionalValuesPerScopeItem[item]);
+    PropertiesBlockConverter convertBlock(condition, item, block);
     convertBlock();
 }
 

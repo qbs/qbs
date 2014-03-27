@@ -66,8 +66,7 @@ private:
     Item *targetItemForBinding(Item *item, const QStringList &binding,
                                  const JSSourceValueConstPtr &value);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
-    static void inheritItem(Item *dst, const Item *src,
-                          const ItemReaderResult &baseFile);
+    static void inheritItem(Item *dst, const Item *src);
     void ensureIdScope(const FileContextPtr &file);
     void setupAlternatives(Item *item);
     static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
