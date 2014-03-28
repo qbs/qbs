@@ -93,6 +93,12 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     m_moduleSearchPaths.clear();
     foreach (const QString &path, searchPaths)
         addExtraModuleSearchPath(m_moduleSearchPaths, path);
+
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << "[MODLDR] module search paths:";
+        foreach (const QString &path, m_moduleSearchPaths)
+            m_logger.qbsTrace() << "    " << path;
+    }
 }
 
 ModuleLoaderResult ModuleLoader::load(const QString &filePath,
@@ -616,6 +622,9 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
         const QString &moduleId, const QStringList &moduleName, bool isBaseModule, bool isRequired)
 {
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
+
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
             : moduleInstanceItem(item, QStringList(moduleId));
@@ -744,6 +753,10 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         bool isBaseModule, const QString &filePath, bool *cacheHit)
 {
     checkCancelation();
+
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] trying to load " << fullModuleName << " from " << filePath;
+
     Item *module = productContext->moduleItemCache.value(filePath);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
