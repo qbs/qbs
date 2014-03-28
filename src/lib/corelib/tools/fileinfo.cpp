@@ -218,7 +218,7 @@ bool FileInfo::isFileCaseCorrect(const QString &filePath)
     return actualFileName == fi.fileName();
 #elif defined(Q_OS_DARWIN)
     QFileInfo fi(filePath);
-    return fi.absoluteFilePath() == fi.canonicalFilePath();
+    return fi.fileName() == fileName(fi.canonicalFilePath());
 #else
     Q_UNUSED(filePath)
     return true;
