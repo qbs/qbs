@@ -1025,8 +1025,11 @@ QSet<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
         const QStringList &patterns, const QString &baseDir) const
 {
     QSet<QString> files;
+    QString expandedPrefix = prefix;
+    if (expandedPrefix.startsWith(QLatin1String("~/")))
+        expandedPrefix.replace(0, 1, QDir::homePath());
     foreach (QString pattern, patterns) {
-        pattern.prepend(prefix);
+        pattern.prepend(expandedPrefix);
         pattern.replace(QLatin1Char('\\'), QLatin1Char('/'));
         QStringList parts = pattern.split(QLatin1Char('/'), QString::SkipEmptyParts);
         if (FileInfo::isAbsolute(pattern)) {
