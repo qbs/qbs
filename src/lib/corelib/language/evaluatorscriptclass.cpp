@@ -127,9 +127,9 @@ private:
         for (int i = 0; i < value->alternatives().count(); ++i) {
             const JSSourceValue::Alternative *alternative = 0;
             alternative = &value->alternatives().at(i);
-            if (conditionScopeItem != alternative->conditionScopeItem) {
-                conditionScopeItem = alternative->conditionScopeItem;
-                conditionScope = data->evaluator->scriptValue(alternative->conditionScopeItem);
+            if (conditionScopeItem != data->item->scope()) {
+                conditionScopeItem = data->item->scope();
+                conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
                 conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
             }
@@ -150,9 +150,10 @@ private:
                     // Clone value but without alternatives.
                     JSSourceValuePtr outerValue = JSSourceValue::create();
                     outerValue->setFile(value->file());
+                    outerValue->setHasFunctionForm(value->hasFunctionForm());
                     outerValue->setSourceCode(value->sourceCode());
                     outerValue->setBaseValue(value->baseValue());
-                    outerValue->setLocation(value->location());
+                    outerValue->setLocation(value->line(), value->column());
                     outerItem = Item::create(data->item->pool());
                     outerItem->setProperty(propertyName->toString(), outerValue);
                 }
@@ -184,9 +185,8 @@ private:
             pushScope(*object);
         }
         pushScope(extraScope);
-        const CodeLocation valueLocation = value->location();
-        *result = engine->evaluate(value->sourceCode(), valueLocation.fileName(),
-                                   valueLocation.line());
+        *result = engine->evaluate(value->sourceCodeForEvaluation(), value->file()->filePath(),
+                                   value->line());
         popScopes();
     }
 
@@ -380,7 +380,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     converter.start();
 
     const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
-    convertToPropertyType(decl.type, result);
+    convertToPropertyType(decl.type(), result);
 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);

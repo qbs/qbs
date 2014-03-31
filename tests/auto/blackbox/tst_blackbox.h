@@ -104,6 +104,7 @@ private slots:
     void build_project_dry_run_data();
     void build_project_dry_run();
     void changeDependentLib();
+    void changedFiles();
     void dependenciesProperty();
     void disabledProduct();
     void disabledProject();
@@ -121,6 +122,7 @@ private slots:
     void inheritQbsSearchPaths();
     void mocCppIncluded();
     void objC();
+    void qmlDebugging();
     void properQuoting();
     void propertiesBlocks();
     void resolve_project_data();

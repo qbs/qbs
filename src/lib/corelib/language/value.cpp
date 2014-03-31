@@ -44,10 +44,7 @@ Value::~Value()
 
 
 JSSourceValue::JSSourceValue()
-    : Value(JSSourceValueType)
-    , m_sourceUsesBase(false)
-    , m_sourceUsesOuter(false)
-    , m_hasFunctionForm(false)
+    : Value(JSSourceValueType), m_line(-1), m_column(-1)
 {
 }
 
@@ -58,6 +55,36 @@ JSSourceValuePtr JSSourceValue::create()
 
 JSSourceValue::~JSSourceValue()
 {
+}
+
+QString JSSourceValue::sourceCodeForEvaluation() const
+{
+    if (!hasFunctionForm())
+        return m_sourceCode.toString();
+
+    // rewrite blocks to be able to use return statements in property assignments
+    static const QString prefix = "(function()";
+    static const QString suffix = ")()";
+    return prefix + m_sourceCode.toString() + suffix;
+}
+
+void JSSourceValue::setLocation(int line, int column)
+{
+    m_line = line;
+    m_column = column;
+}
+
+CodeLocation JSSourceValue::location() const
+{
+    return CodeLocation(m_file->filePath(), m_line, m_column);
+}
+
+void JSSourceValue::setHasFunctionForm(bool b)
+{
+    if (b)
+        m_flags |= HasFunctionForm;
+    else
+        m_flags &= ~HasFunctionForm;
 }
 
 

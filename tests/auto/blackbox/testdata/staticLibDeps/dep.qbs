@@ -58,6 +58,7 @@ Project {
     }
     CppApplication {
         name: "staticLibDeps"
+        type: "application"
 
         Depends { name: "e" }
 

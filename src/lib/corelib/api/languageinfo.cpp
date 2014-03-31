@@ -63,9 +63,9 @@ QByteArray LanguageInfo::qmlTypeInfo()
         Internal::ItemDeclaration itemDecl = builtins.declarationsForType(typeName);
         foreach (const Internal::PropertyDeclaration &property, itemDecl.properties()) {
             result.append("        Property { name=\"");
-            result.append(property.name.toUtf8());
+            result.append(property.name().toUtf8());
             result.append("\"; ");
-            switch (property.type) {
+            switch (property.type()) {
             case qbs::Internal::PropertyDeclaration::UnknownType:
                 result.append("type=\"unknown\"");
                 break;

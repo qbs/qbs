@@ -75,24 +75,38 @@ class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
     JSSourceValue();
+
+    enum Flag
+    {
+        NoFlags = 0x00,
+        SourceUsesBase = 0x01,
+        SourceUsesOuter = 0x02,
+        HasFunctionForm = 0x04
+    };
+    Q_DECLARE_FLAGS(Flags, Flag)
+
 public:
     static JSSourceValuePtr create();
     ~JSSourceValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }
 
-    void setSourceCode(const QString &sourceCode) { m_sourceCode = sourceCode; }
-    const QString &sourceCode() const { return m_sourceCode; }
+    void setSourceCode(const QStringRef &sourceCode) { m_sourceCode = sourceCode; }
+    const QStringRef &sourceCode() const { return m_sourceCode; }
+    QString sourceCodeForEvaluation() const;
 
-    void setLocation(const CodeLocation &location) { m_location = location; }
-    CodeLocation location() const { return m_location; }
+    void setLocation(int line, int column);
+    int line() const { return m_line; }
+    int column() const { return m_column; }
+    CodeLocation location() const;
 
     void setFile(const FileContextPtr &file) { m_file = file; }
     const FileContextPtr &file() const { return m_file; }
 
-    bool sourceUsesBase() const { return m_sourceUsesBase; }
-    bool sourceUsesOuter() const { return m_sourceUsesOuter; }
-    bool hasFunctionForm() const { return m_hasFunctionForm; }
+    bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
+    bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
+    bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
+    void setHasFunctionForm(bool b);
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
@@ -100,7 +114,6 @@ public:
     struct Alternative
     {
         QString condition;
-        const Item *conditionScopeItem;
         JSSourceValuePtr value;
     };
 
@@ -109,12 +122,11 @@ public:
     void addAlternative(const Alternative &alternative) { m_alternatives.append(alternative); }
 
 private:
-    QString m_sourceCode;
-    CodeLocation m_location;
+    QStringRef m_sourceCode;
+    int m_line;
+    int m_column;
     FileContextPtr m_file;
-    bool m_sourceUsesBase;
-    bool m_sourceUsesOuter;
-    bool m_hasFunctionForm;
+    Flags m_flags;
     JSSourceValuePtr m_baseValue;
     QList<Alternative> m_alternatives;
 };

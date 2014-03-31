@@ -111,7 +111,12 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 {
     QBS_CHECK(artifact->artifactType == Artifact::SourceFile);
 
-    artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
+    if (m_buildOptions.changedFiles().contains(artifact->filePath()))
+        artifact->setTimestamp(FileTime::currentTime());
+    else if (m_buildOptions.changedFiles().isEmpty())
+        artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
+    else
+        artifact->setTimestamp(FileTime::oldestTime());
     artifact->timestampRetrieved = true;
 }
 
@@ -220,21 +225,10 @@ void Executor::setBuildOptions(const BuildOptions &buildOptions)
     m_buildOptions = buildOptions;
 }
 
-static void initNodesBottomUp(BuildGraphNode *node)
-{
-    if (node->buildState == BuildGraphNode::Untouched)
-        return;
-    node->buildState = BuildGraphNode::Buildable;
-    foreach (BuildGraphNode *parent, node->parents)
-        initNodesBottomUp(parent);
-}
 
 void Executor::initLeaves()
 {
-    if (m_buildOptions.changedFiles().isEmpty())
-        updateLeaves(m_roots);
-    else
-        initLeavesForSelectedFiles();
+    updateLeaves(m_roots);
 }
 
 void Executor::updateLeaves(const NodeSet &nodes)
@@ -242,28 +236,6 @@ void Executor::updateLeaves(const NodeSet &nodes)
     NodeSet seenNodes;
     foreach (BuildGraphNode * const node, nodes)
         updateLeaves(node, seenNodes);
-}
-
-void Executor::initLeavesForSelectedFiles()
-{
-    ArtifactSet changedArtifacts;
-    foreach (const QString &filePath, m_buildOptions.changedFiles()) {
-        QList<FileResourceBase *> lookupResults;
-        lookupResults.append(m_project->buildData->lookupFiles(filePath));
-        if (lookupResults.isEmpty()) {
-            m_logger.qbsWarning() << QString::fromLocal8Bit("Out of date file '%1' provided "
-                    "but not found.").arg(QDir::toNativeSeparators(filePath));
-            continue;
-        }
-        foreach (FileResourceBase *lookupResult, lookupResults)
-            if (Artifact *artifact = dynamic_cast<Artifact *>(lookupResult))
-                changedArtifacts += artifact;
-    }
-
-    foreach (Artifact *artifact, changedArtifacts) {
-        m_leaves.push(artifact);
-        initNodesBottomUp(artifact);
-    }
 }
 
 void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
@@ -306,7 +278,8 @@ bool Executor::scheduleJobs()
 
         switch (nodeToBuild->buildState) {
         case BuildGraphNode::Untouched:
-            QBS_ASSERT(!"untouched node in leaves list", /* ignore */);
+            QBS_ASSERT(!"untouched node in leaves list",
+                       qDebug("%s", qPrintable(nodeToBuild->toString())));
             break;
         case BuildGraphNode::Buildable:
             // This is the only state in which we want to build a node.
@@ -582,6 +555,34 @@ QString Executor::configString() const
     return tr(" for configuration %1").arg(m_project->id());
 }
 
+bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &transformer) const
+{
+    if (m_activeFileTags.isEmpty())
+        return true; // No filtering requested.
+
+    foreach (Artifact * const output, transformer->outputs) {
+        if (m_activeFileTags.matches(output->fileTags))
+            return true;
+    }
+
+    return false;
+}
+
+bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const
+{
+    if (m_buildOptions.filesToConsider().isEmpty())
+        return true; // No filtering requested.
+
+    foreach (const Artifact * const input, transformer->inputs) {
+        foreach (const QString &filePath, m_buildOptions.filesToConsider()) {
+            if (input->filePath() == filePath)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 void Executor::cancelJobs()
 {
     m_logger.qbsTrace() << "Canceling all jobs.";
@@ -733,8 +734,6 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 
 void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
 {
-    bool matchingFileTagsExist = m_activeFileTags.isEmpty();
-
     foreach (Artifact * const output, transformer->outputs) {
         // Rescuing build data can introduce new dependencies, potentially delaying execution of
         // this transformer.
@@ -742,20 +741,22 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
         rescueOldBuildData(output, &childrenAddedDueToRescue);
         if (childrenAddedDueToRescue && checkForUnbuiltDependencies(output))
             return;
-
-        if (!matchingFileTagsExist && m_activeFileTags.matches(output->fileTags))
-            matchingFileTagsExist = true;
     }
 
-    // Skip if we're building just one file and the file tags do not match.
-    if (!matchingFileTagsExist) {
+    if (!transformerHasMatchingOutputTags(transformer)) {
         if (m_doDebug)
             m_logger.qbsDebug() << "[EXEC] file tags do not match. Skipping.";
         finishTransformer(transformer);
         return;
     }
 
-    // Skip transformers that do not need to be built.
+    if (!transformerHasMatchingInputFiles(transformer)) {
+        if (m_doDebug)
+            m_logger.qbsDebug() << "[EXEC] input files do not match. Skipping.";
+        finishTransformer(transformer);
+        return;
+    }
+
     if (!mustExecuteTransformer(transformer)) {
         if (m_doDebug)
             m_logger.qbsDebug() << "[EXEC] Up to date. Skipping.";
@@ -927,21 +928,18 @@ void Executor::prepareArtifact(Artifact *artifact)
  */
 void Executor::prepareReachableNodes()
 {
-    const BuildGraphNode::BuildState initialBuildState = m_buildOptions.changedFiles().isEmpty()
-            ? BuildGraphNode::Buildable : BuildGraphNode::Built;
     foreach (BuildGraphNode *root, m_roots)
-        prepareReachableNodes_impl(root, initialBuildState);
+        prepareReachableNodes_impl(root);
 }
 
-void Executor::prepareReachableNodes_impl(BuildGraphNode *node,
-        const BuildGraphNode::BuildState buildState)
+void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
 {
     if (node->buildState != BuildGraphNode::Untouched)
         return;
 
-    node->buildState = buildState;
+    node->buildState = BuildGraphNode::Buildable;
     foreach (BuildGraphNode *child, node->children)
-        prepareReachableNodes_impl(child, buildState);
+        prepareReachableNodes_impl(child);
 }
 
 void Executor::prepareProducts()

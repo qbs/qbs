@@ -26,53 +26,13 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_TEST_SKIP_H
+#define QBS_TEST_SKIP_H
 
-#include "filetime.h"
+#if QT_VERSION >= 0x050000
+#define SKIP_TEST(message) QSKIP(message)
+#else
+#define SKIP_TEST(message) QSKIP(message, SkipAll)
+#endif
 
-#include <QDateTime>
-#include <QString>
-
-#include <time.h>
-
-namespace qbs {
-namespace Internal {
-
-FileTime::FileTime()
-    : m_fileTime(0)
-{
-}
-
-bool FileTime::operator < (const FileTime &rhs) const
-{
-    return m_fileTime < rhs.m_fileTime;
-}
-
-void FileTime::clear()
-{
-    m_fileTime = 0;
-}
-
-bool FileTime::isValid() const
-{
-    return m_fileTime != 0;
-}
-
-FileTime FileTime::currentTime()
-{
-    return time(0);
-}
-
-FileTime FileTime::oldestTime()
-{
-    return 1;
-}
-
-QString FileTime::toString() const
-{
-    QDateTime dt;
-    dt.setTime_t(m_fileTime);
-    return dt.toString();
-}
-
-} // namespace Internal
-} // namespace qbs
+#endif // Include guard.

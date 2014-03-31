@@ -42,6 +42,7 @@ public:
     }
 
     QStringList changedFiles;
+    QStringList filesToConsider;
     QStringList activeFileTags;
     int maxJobCount;
     bool dryRun;
@@ -98,6 +99,26 @@ void BuildOptions::setChangedFiles(const QStringList &changedFiles)
 }
 
 /*!
+ * \brief The list of files to consider.
+ * \sa setFilesToConsider.
+ * By default, this list is empty.
+ */
+QStringList BuildOptions::filesToConsider() const
+{
+    return d->filesToConsider;
+}
+
+/*!
+ * \brief If the given list is non-empty, qbs will run only commands whose rule has at least one
+ *        of these files as an input.
+ * \note The list elements must be absolute file paths.
+ */
+void BuildOptions::setFilesToConsider(const QStringList &files)
+{
+    d->filesToConsider = files;
+}
+
+/*!
  * \brief The list of active file tags.
  * \sa setActiveFileTags
  */
@@ -109,8 +130,8 @@ QStringList BuildOptions::activeFileTags() const
 /*!
  * \brief Set the list of active file tags.
  * If this list is non-empty, then every transformer with non-matching output file tags is skipped.
- * E.g. set changed files to "foo.cpp" and activeFileTags to ["obj"] to run the compiler
- * on foo.cpp without further processing like linking.
+ * E.g. call \c setFilesToConsider() with "foo.cpp" and \c setActiveFileTags() with "obj" to
+ * run the compiler on foo.cpp without further processing like linking.
  * \sa activeFileTags
  */
 void BuildOptions::setActiveFileTags(const QStringList &fileTags)

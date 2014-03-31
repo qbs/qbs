@@ -133,7 +133,7 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value) const
     QString result;
     if (value && value->type() == Value::JSSourceValueType) {
         const JSSourceValueConstPtr sourceValue = value.staticCast<const JSSourceValue>();
-        result = sourceValue->sourceCode();
+        result = sourceValue->sourceCodeForEvaluation();
     }
     return result;
 }
@@ -210,10 +210,10 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     projectContext->dummyModule = ResolvedModule::create();
 
     QVariantMap projectProperties;
-    for (QMap<QString, PropertyDeclaration>::const_iterator it
+    for (Item::PropertyDeclarationMap::const_iterator it
                 = item->propertyDeclarations().constBegin();
             it != item->propertyDeclarations().constEnd(); ++it) {
-        if (it.value().flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
+        if (it.value().flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             continue;
         const ValueConstPtr v = item->property(it.key());
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
@@ -512,15 +512,17 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         createSourceArtifact(m_productContext->product, moduleProperties, fileName,
                              group->fileTags, group->overrideTags, group->files);
     ErrorInfo fileError;
-    foreach (const SourceArtifactConstPtr &a, group->files) {
-        if (!FileInfo(a->absoluteFilePath).exists()) {
-            fileError.append(Tr::tr("File '%1' does not exist.")
-                         .arg(a->absoluteFilePath),
-                             item->property(QLatin1String("files"))->location());
+    if (group->enabled) {
+        foreach (const SourceArtifactConstPtr &a, group->files) {
+            if (!FileInfo(a->absoluteFilePath).exists()) {
+                fileError.append(Tr::tr("File '%1' does not exist.")
+                                 .arg(a->absoluteFilePath),
+                                 item->property(QLatin1String("files"))->location());
+            }
         }
+        if (fileError.hasError())
+            throw ErrorInfo(fileError);
     }
-    if (fileError.hasError())
-        throw ErrorInfo(fileError);
 
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
@@ -532,17 +534,17 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 static QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
         const PropertyDeclaration &decl)
 {
-    const QString args = decl.functionArgumentNames.join(QLatin1String(","));
+    const QString args = decl.functionArgumentNames().join(QLatin1String(","));
     if (value->hasFunctionForm()) {
         // Insert the argument list.
-        QString code = value->sourceCode();
+        QString code = value->sourceCodeForEvaluation();
         code.insert(10, args);
         // Remove the function application "()" that has been
         // added in ItemReaderASTVisitor::visitStatement.
         return code.left(code.length() - 2);
     } else {
         return QLatin1String("(function(") + args + QLatin1String("){return ")
-                + value->sourceCode() + QLatin1String(";})");
+                + value->sourceCode().toString() + QLatin1String(";})");
     }
 }
 
@@ -553,7 +555,7 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
     if (value) {
         const PropertyDeclaration decl = item->propertyDeclaration(name);
         script->sourceCode = sourceCodeAsFunction(value, decl);
-        script->argumentNames = decl.functionArgumentNames;
+        script->argumentNames = decl.functionArgumentNames();
         script->location = value->location();
         script->fileContext = resolvedFileContext(value->file());
     }
@@ -694,7 +696,7 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
             JSSourceValuePtr sourceValue = it.value().staticCast<JSSourceValue>();
             RuleArtifact::Binding rab;
             rab.name = name;
-            rab.code = sourceValue->sourceCode();
+            rab.code = sourceValue->sourceCodeForEvaluation();
             rab.location = sourceValue->location();
             ruleArtifact->bindings += rab;
         } else {
@@ -971,8 +973,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
                 if (pd.isValid())
                     break;
             }
-            if (pd.type == PropertyDeclaration::Verbatim
-                || pd.flags.testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
+            if (pd.type() == PropertyDeclaration::Verbatim
+                || pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig))
             {
                 break;
             }
@@ -984,13 +986,13 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             //       as such QScriptValues become invalid QVariants.
             QVariant v = scriptValue.toVariant();
 
-            if (pd.type == PropertyDeclaration::Path)
+            if (pd.type() == PropertyDeclaration::Path)
                 v = convertPathProperty(v.toString(),
                                         m_productContext->product->sourceDirectory);
-            else if (pd.type == PropertyDeclaration::PathList)
+            else if (pd.type() == PropertyDeclaration::PathList)
                 v = convertPathListProperty(v.toStringList(),
                                             m_productContext->product->sourceDirectory);
-            else if (pd.type == PropertyDeclaration::StringList)
+            else if (pd.type() == PropertyDeclaration::StringList)
                 v = v.toStringList();
             result[it.key()] = v;
             break;

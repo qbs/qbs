@@ -54,5 +54,11 @@ QString textOf(const QString &source, QbsQmlJS::AST::Node *node)
                       node->lastSourceLocation().end() - node->firstSourceLocation().begin());
 }
 
+QStringRef textRefOf(const QString &source, QbsQmlJS::AST::Node *node)
+{
+    const quint32 firstBegin = node->firstSourceLocation().begin();
+    return source.midRef(firstBegin, node->lastSourceLocation().end() - firstBegin);
+}
+
 } // namespace Internal
 } // namespace qbs

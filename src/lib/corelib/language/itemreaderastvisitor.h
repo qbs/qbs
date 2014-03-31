@@ -48,8 +48,8 @@ public:
     ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result);
     ~ItemReaderASTVisitor();
 
-    void setFilePath(const QString &filePath) { m_filePath = filePath; }
-    void setSourceCode(const QString &sourceCode) { m_sourceCode = sourceCode; }
+    void setFilePath(const QString &filePath);
+    void setSourceCode(const QString &sourceCode);
 
     bool visit(QbsQmlJS::AST::UiProgram *ast);
     bool visit(QbsQmlJS::AST::UiImportList *uiImportList);
@@ -64,10 +64,9 @@ private:
     void checkDuplicateBinding(Item *item, const QStringList &bindingName,
             const QbsQmlJS::AST::SourceLocation &sourceLocation);
     Item *targetItemForBinding(Item *item, const QStringList &binding,
-                                 const CodeLocation &bindingLocation);
+                                 const JSSourceValueConstPtr &value);
     void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
-    static void mergeItem(Item *dst, const Item *src,
-                          const ItemReaderResult &baseFile);
+    static void inheritItem(Item *dst, const Item *src);
     void ensureIdScope(const FileContextPtr &file);
     void setupAlternatives(Item *item);
     static void replaceConditionScopes(const JSSourceValuePtr &value, Item *newScope);
@@ -79,8 +78,6 @@ private:
     ItemReader *m_reader;
     ItemReaderResult *m_readerResult;
     const ImportVersion m_languageVersion;
-    QString m_filePath;
-    QString m_sourceCode;
     FileContextPtr m_file;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item;

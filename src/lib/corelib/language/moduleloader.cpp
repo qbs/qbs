@@ -93,6 +93,12 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     m_moduleSearchPaths.clear();
     foreach (const QString &path, searchPaths)
         addExtraModuleSearchPath(m_moduleSearchPaths, path);
+
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << "[MODLDR] module search paths:";
+        foreach (const QString &path, m_moduleSearchPaths)
+            m_logger.qbsTrace() << "    " << path;
+    }
 }
 
 ModuleLoaderResult ModuleLoader::load(const QString &filePath,
@@ -101,6 +107,7 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << filePath;
+    m_reader->clearItemCache();
     m_overriddenProperties = overriddenProperties;
     m_buildConfigProperties = buildConfigProperties;
     m_validItemPropertyNamesPerItem.clear();
@@ -210,6 +217,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     projectContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     projectContext.scope = Item::create(m_pool);
+    projectContext.scope->setFile(item->file());
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
 
     foreach (Item *child, item->children()) {
@@ -296,6 +304,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     ItemValuePtr itemValue = ItemValue::create(item);
     productContext.scope = Item::create(m_pool);
     productContext.scope->setProperty(QLatin1String("product"), itemValue);
+    productContext.scope->setFile(item->file());
     productContext.scope->setScope(projectContext->scope);
     DependsContext dependsContext;
     dependsContext.product = &productContext;
@@ -615,6 +624,9 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *item,
         const CodeLocation &dependsItemLocation,
         const QString &moduleId, const QStringList &moduleName, bool isBaseModule, bool isRequired)
 {
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] loadModule name: " << moduleName << ", id: " << moduleId;
+
     Item *moduleInstance = moduleId.isEmpty()
             ? moduleInstanceItem(item, moduleName)
             : moduleInstanceItem(item, QStringList(moduleId));
@@ -739,22 +751,14 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
     return c;
 }
 
-static PropertyDeclaration firstValidPropertyDeclaration(Item *item, const QString &name)
-{
-    PropertyDeclaration decl;
-    do {
-        decl = item->propertyDeclarations().value(name);
-        if (decl.isValid())
-            return decl;
-        item = item->prototype();
-    } while (item);
-    return decl;
-}
-
 Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
         bool isBaseModule, const QString &filePath, bool *cacheHit)
 {
     checkCancelation();
+
+    if (m_logger.traceEnabled())
+        m_logger.qbsTrace() << "[MODLDR] trying to load " << fullModuleName << " from " << filePath;
+
     Item *module = productContext->moduleItemCache.value(filePath);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
@@ -771,7 +775,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
     *cacheHit = false;
-    module = m_reader->readFile(filePath);
+    module = m_reader->readFile(filePath, true);
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;
@@ -791,9 +795,9 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     {
         if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
             throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
-        const PropertyDeclaration decl = firstValidPropertyDeclaration(module, vmit.key());
+        const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
         module->setProperty(vmit.key(),
-                VariantValue::create(convertToPropertyType(vmit.value(), decl.type,
+                VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
                         QStringList(fullModuleName), vmit.key())));
     }
 
@@ -857,6 +861,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
 
     // create module scope
     Item *moduleScope = Item::create(m_pool);
+    moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
     copyProperty(QLatin1String("project"), productContext->project->scope, moduleScope);
     copyProperty(QLatin1String("product"), productContext->scope, moduleScope);
@@ -911,9 +916,9 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
             throw ErrorInfo(Tr::tr("Unknown property: %1.%2")
                             .arg(fullModuleName(moduleName), vmit.key()));
         }
-        const PropertyDeclaration decl = firstValidPropertyDeclaration(moduleInstance, vmit.key());
+        const PropertyDeclaration decl = moduleInstance->propertyDeclaration(vmit.key());
         moduleInstance->setProperty(vmit.key(),
-                VariantValue::create(convertToPropertyType(vmit.value(), decl.type, moduleName,
+                VariantValue::create(convertToPropertyType(vmit.value(), decl.type(), moduleName,
                         vmit.key())));
     }
 }
@@ -967,7 +972,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
-    QScriptValue sv = m_engine->evaluate(configureScript->sourceCode());
+    QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
     if (Q_UNLIKELY(m_engine->hasErrorOrException(sv)))
         throw ErrorInfo(sv.toString(), configureScript->location());
     foreach (const ProbeProperty &b, probeBindings) {
@@ -1028,9 +1033,9 @@ QStringList ModuleLoader::readExtraSearchPaths(Item *item, bool *wasSet)
     QStringList result;
     const QString propertyName = QLatin1String("qbsSearchPaths");
     const QStringList paths = m_evaluator->stringListValue(item, propertyName, wasSet);
-    const ValueConstPtr prop = item->property(propertyName);
+    const JSSourceValueConstPtr prop = item->sourceProperty(propertyName);
     foreach (const QString &path, paths)
-        result += FileInfo::resolvePath(FileInfo::path(prop->location().fileName()), path);
+        result += FileInfo::resolvePath(FileInfo::path(prop->file()->filePath()), path);
     return result;
 }
 
@@ -1042,7 +1047,7 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
             = m_reader->builtins()->declarationsForType(QLatin1String("Project")).properties();
     QSet<QString> builtinProjectPropertyNames;
     foreach (const PropertyDeclaration &p, builtinProjectProperties)
-        builtinProjectPropertyNames << p.name;
+        builtinProjectPropertyNames << p.name();
 
     for (Item::PropertyDeclarationMap::ConstIterator it
          = sourceProject->propertyDeclarations().constBegin();
@@ -1134,7 +1139,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
                     Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
         }
         item->setProperty(it.key(),
-                VariantValue::create(convertToPropertyType(it.value(), decl.type,
+                VariantValue::create(convertToPropertyType(it.value(), decl.type(),
                         QStringList(buildConfigKey), it.key())));
     }
 }

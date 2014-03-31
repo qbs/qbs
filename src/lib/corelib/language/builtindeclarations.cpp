@@ -78,13 +78,15 @@ ItemDeclaration BuiltinDeclarations::declarationsForType(const QString &typeName
 void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
 {
     foreach (const PropertyDeclaration &pd, declarationsForType(item->typeName()).properties()) {
-        item->m_propertyDeclarations.insert(pd.name, pd);
-        ValuePtr &value = item->m_properties[pd.name];
+        item->m_propertyDeclarations.insert(pd.name(), pd);
+        ValuePtr &value = item->m_properties[pd.name()];
         if (!value) {
             JSSourceValuePtr sourceValue = JSSourceValue::create();
             sourceValue->setFile(item->file());
-            sourceValue->setSourceCode(pd.initialValueSource.isEmpty() ?
-                                           QLatin1String("undefined") : pd.initialValueSource);
+            static const QString undefinedKeyword = QLatin1String("undefined");
+            sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
+                                       ? QStringRef(&undefinedKeyword)
+                                       : QStringRef(&pd.initialValueSource()));
             value = sourceValue;
         }
     }
@@ -98,7 +100,7 @@ void BuiltinDeclarations::insert(const ItemDeclaration &decl)
 static PropertyDeclaration conditionProperty()
 {
     PropertyDeclaration decl(QLatin1String("condition"), PropertyDeclaration::Boolean);
-    decl.initialValueSource = QLatin1String("true");
+    decl.setInitialValueSource(QLatin1String("true"));
     return decl;
 }
 
@@ -110,10 +112,11 @@ static PropertyDeclaration nameProperty()
 static PropertyDeclaration prepareScriptProperty()
 {
     PropertyDeclaration decl(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
-    decl.functionArgumentNames
-            << QLatin1String("project") << QLatin1String("product")
-            << QLatin1String("inputs") << QLatin1String("outputs")
-            << QLatin1String("input") << QLatin1String("output");
+    decl.setFunctionArgumentNames(
+                QStringList()
+                << QLatin1String("project") << QLatin1String("product")
+                << QLatin1String("inputs") << QLatin1String("outputs")
+                << QLatin1String("input") << QLatin1String("output"));
     return decl;
 }
 
@@ -124,7 +127,7 @@ void BuiltinDeclarations::addArtifactItem()
     item << PropertyDeclaration(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
     item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
     PropertyDeclaration decl(QLatin1String("alwaysUpdated"), PropertyDeclaration::Boolean);
-    decl.initialValueSource = QLatin1String("true");
+    decl.setInitialValueSource(QLatin1String("true"));
     item << decl;
     insert(item);
 }
@@ -136,7 +139,7 @@ void BuiltinDeclarations::addDependsItem()
     item << nameProperty();
     item << PropertyDeclaration(QLatin1String("submodules"), PropertyDeclaration::Variant);
     PropertyDeclaration requiredDecl(QLatin1String("required"), PropertyDeclaration::Boolean);
-    requiredDecl.initialValueSource = QLatin1String("true");
+    requiredDecl.setInitialValueSource(QLatin1String("true"));
     item << requiredDecl;
     insert(item);
 }
@@ -145,9 +148,7 @@ void BuiltinDeclarations::addExportItem()
 {
     ItemDeclaration item(QLatin1String("Export"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Depends")
-            << QLatin1String("Module")  // needed, because we're adding module instances internally
-                              );
+            << QLatin1String("Depends"));
     insert(item);
 }
 
@@ -180,10 +181,10 @@ void BuiltinDeclarations::addGroupItem()
     item << PropertyDeclaration(QLatin1String("prefix"), PropertyDeclaration::Variant,
                                 PropertyDeclaration::PropertyNotAvailableInConfig);
     PropertyDeclaration declaration;
-    declaration.name = QLatin1String("overrideTags");
-    declaration.type = PropertyDeclaration::Boolean;
-    declaration.flags = PropertyDeclaration::PropertyNotAvailableInConfig;
-    declaration.initialValueSource = QLatin1String("true");
+    declaration.setName(QLatin1String("overrideTags"));
+    declaration.setType(PropertyDeclaration::Boolean);
+    declaration.setFlags(PropertyDeclaration::PropertyNotAvailableInConfig);
+    declaration.setInitialValueSource(QLatin1String("true"));
     item << declaration;
     insert(item);
 }
@@ -197,9 +198,7 @@ void BuiltinDeclarations::addModuleItem()
             << QLatin1String("Rule")
             << QLatin1String("PropertyOptions")
             << QLatin1String("Transformer")
-            << QLatin1String("Scanner")
-            << QLatin1String("Module")  // needed, because we're adding module instances internally
-                              );
+            << QLatin1String("Scanner"));
     item << nameProperty();
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
@@ -212,7 +211,7 @@ void BuiltinDeclarations::addModuleItem()
     item << PropertyDeclaration(QLatin1String("additionalProductFileTags"),
                                       PropertyDeclaration::Variant);
     PropertyDeclaration presentDecl(QLatin1String("present"), PropertyDeclaration::Boolean);
-    presentDecl.initialValueSource = QLatin1String("true");
+    presentDecl.setInitialValueSource(QLatin1String("true"));
     item << presentDecl;
     insert(item);
 }
@@ -222,7 +221,7 @@ void BuiltinDeclarations::addProbeItem()
     ItemDeclaration item(QLatin1String("Probe"));
     item << conditionProperty();
     PropertyDeclaration foundProperty(QLatin1String("found"), PropertyDeclaration::Boolean);
-    foundProperty.initialValueSource = QLatin1String("false");
+    foundProperty.setInitialValueSource(QLatin1String("false"));
     item << foundProperty;
     item << PropertyDeclaration(QLatin1String("configure"), PropertyDeclaration::Verbatim);
     insert(item);
@@ -232,7 +231,6 @@ void BuiltinDeclarations::addProductItem()
 {
     ItemDeclaration item(QLatin1String("Product"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Module")
             << QLatin1String("Depends")
             << QLatin1String("Transformer")
             << QLatin1String("Group")
@@ -242,14 +240,14 @@ void BuiltinDeclarations::addProductItem()
             << QLatin1String("Rule"));
     item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("type"), PropertyDeclaration::StringList);
-    decl.initialValueSource = QLatin1String("[]");
+    decl.setInitialValueSource(QLatin1String("[]"));
     item << decl;
     item << nameProperty();
     decl = PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String);
-    decl.initialValueSource = QLatin1String("name");
+    decl.setInitialValueSource(QLatin1String("name"));
     item << decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);
-    decl.initialValueSource = QLatin1String("'.'");
+    decl.setInitialValueSource(QLatin1String("'.'"));
     item << decl;
     item << PropertyDeclaration(QLatin1String("consoleApplication"),
                                 PropertyDeclaration::Boolean);
@@ -267,7 +265,6 @@ void BuiltinDeclarations::addProjectItem()
 {
     ItemDeclaration item(QLatin1String("Project"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Module")
             << QLatin1String("Project")
             << QLatin1String("SubProject")
             << QLatin1String("Product")
@@ -303,15 +300,16 @@ void BuiltinDeclarations::addRuleItem()
             << QLatin1String("Artifact"));
     item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("multiplex"), PropertyDeclaration::Boolean);
-    decl.initialValueSource = QLatin1String("false");
+    decl.setInitialValueSource(QLatin1String("false"));
     item << decl;
     item << PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("outputFileTags"), PropertyDeclaration::StringList);
     decl = PropertyDeclaration(QLatin1String("outputArtifacts"), PropertyDeclaration::Verbatim);
-    decl.functionArgumentNames
-            << QLatin1String("project") << QLatin1String("product")
-            << QLatin1String("inputs") << QLatin1String("input");
+    decl.setFunctionArgumentNames(
+                QStringList()
+                << QLatin1String("project") << QLatin1String("product")
+                << QLatin1String("inputs") << QLatin1String("input"));
     item << decl;
     item << PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("auxiliaryInputs"),
@@ -332,9 +330,9 @@ void BuiltinDeclarations::addSubprojectItem()
             << QLatin1String("Properties"));
     item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
     PropertyDeclaration inheritProperty;
-    inheritProperty.name = QLatin1String("inheritProperties");
-    inheritProperty.type = PropertyDeclaration::Boolean;
-    inheritProperty.initialValueSource = QLatin1String("true");
+    inheritProperty.setName(QLatin1String("inheritProperties"));
+    inheritProperty.setType(PropertyDeclaration::Boolean);
+    inheritProperty.setInitialValueSource(QLatin1String("true"));
     item << inheritProperty;
     insert(item);
 }
@@ -358,15 +356,21 @@ void BuiltinDeclarations::addScannerItem()
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("inputs"), PropertyDeclaration::StringList);
     PropertyDeclaration recursive(QLatin1String("recursive"), PropertyDeclaration::Boolean);
-    recursive.initialValueSource = QLatin1String("false");
+    recursive.setInitialValueSource(QLatin1String("false"));
     item << recursive;
     PropertyDeclaration searchPaths(QLatin1String("searchPaths"), PropertyDeclaration::Verbatim);
-    searchPaths.functionArgumentNames << QLatin1String("project")
-        << QLatin1String("product") << QLatin1String("input");
+    searchPaths.setFunctionArgumentNames(
+                QStringList()
+                << QLatin1String("project")
+                << QLatin1String("product")
+                << QLatin1String("input"));
     item << searchPaths;
     PropertyDeclaration scan(QLatin1String("scan"), PropertyDeclaration::Verbatim);
-    scan.functionArgumentNames << QLatin1String("project")
-        << QLatin1String("product") << QLatin1String("input");
+    scan.setFunctionArgumentNames(
+                QStringList()
+                << QLatin1String("project")
+                << QLatin1String("product")
+                << QLatin1String("input"));
     item << scan;
     insert(item);
 }

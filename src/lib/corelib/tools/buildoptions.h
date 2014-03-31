@@ -45,6 +45,9 @@ public:
     BuildOptions &operator=(const BuildOptions &other);
     ~BuildOptions();
 
+    QStringList filesToConsider() const;
+    void setFilesToConsider(const QStringList &files);
+
     QStringList changedFiles() const;
     void setChangedFiles(const QStringList &changedFiles);
 

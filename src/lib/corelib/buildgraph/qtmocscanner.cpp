@@ -32,7 +32,7 @@
 #include "artifact.h"
 #include "productbuilddata.h"
 #include "scanresultcache.h"
-#include <tools/qbsassert.h>
+#include <logging/translator.h>
 #include <tools/scannerpluginmanager.h>
 #include <tools/scripttools.h>
 
@@ -140,14 +140,24 @@ QScriptValue QtMocScanner::js_apply(QScriptContext *ctx, QScriptEngine *engine, 
     return that->apply(engine, attachedPointer<Artifact>(input));
 }
 
+static QScriptValue scannerCountError(QScriptEngine *engine, int scannerCount,
+        const QString &fileTag)
+{
+    return engine->currentContext()->throwError(
+                Tr::tr("There are %1 scanners for the file tag %2. "
+                       "Expected is exactly one.").arg(scannerCount).arg(fileTag));
+}
+
 QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact)
 {
     if (!m_cppScanner) {
         QList<ScannerPlugin *> scanners = ScannerPluginManager::scannersForFileTag("cpp");
-        QBS_CHECK(scanners.count() == 1);
+        if (scanners.count() != 1)
+            return scannerCountError(engine, scanners.count(), QLatin1String("cpp"));
         m_cppScanner = scanners.first();
         scanners = ScannerPluginManager::scannersForFileTag("hpp");
-        QBS_CHECK(scanners.count() == 1);
+        if (scanners.count() != 1)
+            return scannerCountError(engine, scanners.count(), QLatin1String("hpp"));
         m_hppScanner = scanners.first();
     }
 

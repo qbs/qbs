@@ -68,6 +68,7 @@ public:
     QString toString() const;
 
     static FileTime currentTime();
+    static FileTime oldestTime();
 
     friend class FileInfo;
     InternalType m_fileTime;

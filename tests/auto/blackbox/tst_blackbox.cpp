@@ -28,6 +28,9 @@
 ****************************************************************************/
 
 #include "tst_blackbox.h"
+
+#include "../skip.h"
+
 #include <app/shared/qbssettings.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -38,12 +41,6 @@
 #include <QTemporaryFile>
 #include <QScriptEngine>
 #include <QScriptValue>
-
-#if QT_VERSION >= 0x050000
-#define SKIP_TEST(message) QSKIP(message)
-#else
-#define SKIP_TEST(message) QSKIP(message, SkipAll)
-#endif
 
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
@@ -364,6 +361,26 @@ void TestBlackbox::changeDependentLib()
     qbsFile.write(content2);
     qbsFile.close();
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::changedFiles()
+{
+    QDir::setCurrent(testDataDir + "/changed-files");
+    const QString changedFile = QDir::cleanPath(QDir::currentPath() + "/file1.cpp");
+    QbsRunParameters params(QStringList("--changed-files") << changedFile);
+
+    // Initial run: Build all files, even though only one of them was marked as changed.
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStdout.count("compiling"), 3);
+
+    waitForNewTimestamp();
+    touch(QDir::currentPath() + "/main.cpp");
+
+    // Now only the file marked as changed must be compiled, even though it hasn't really
+    // changed and another one has.
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStdout.count("compiling"), 1);
+    QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::dependenciesProperty()
@@ -1669,6 +1686,20 @@ void TestBlackbox::objC()
 {
     QDir::setCurrent(testDataDir + "/objc");
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::qmlDebugging()
+{
+    QDir::setCurrent(testDataDir + "/qml-debugging");
+    QCOMPARE(runQbs(), 0);
+    QProcess nm;
+    nm.start("nm", QStringList(HostOsInfo::appendExecutableSuffix(buildDir + "/debuggable-app")));
+    if (nm.waitForStarted()) { // Let's ignore hosts without nm.
+        QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
+        QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
+        const QByteArray output = nm.readAllStandardOutput();
+        QVERIFY2(output.toLower().contains("debugginghelper"), output.constData());
+    }
 }
 
 void TestBlackbox::properQuoting()

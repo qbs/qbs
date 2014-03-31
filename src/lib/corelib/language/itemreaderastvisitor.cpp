@@ -53,6 +53,7 @@ ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult 
     : m_reader(reader)
     , m_readerResult(result)
     , m_languageVersion(ImportVersion::fromString(reader->builtins()->languageVersion()))
+    , m_file(FileContext::create())
     , m_item(0)
     , m_sourceValue(0)
 {
@@ -62,16 +63,24 @@ ItemReaderASTVisitor::~ItemReaderASTVisitor()
 {
 }
 
+void ItemReaderASTVisitor::setFilePath(const QString &filePath)
+{
+    m_file->setFilePath(filePath);
+}
+
+void ItemReaderASTVisitor::setSourceCode(const QString &sourceCode)
+{
+    m_file->setContent(sourceCode);
+}
+
 bool ItemReaderASTVisitor::visit(AST::UiProgram *ast)
 {
     Q_UNUSED(ast);
     m_sourceValue.clear();
-    m_file = FileContext::create();
-    m_file->m_filePath = m_filePath;
     m_file->m_searchPaths = m_reader->searchPaths();
 
     if (Q_UNLIKELY(!ast->members->member))
-        throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_filePath));
+        throw ErrorInfo(Tr::tr("No root item found in %1.").arg(m_file->filePath()));
 
     return true;
 }
@@ -120,7 +129,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
     foreach (const QString &searchPath, m_reader->searchPaths())
         collectPrototypes(searchPath + QLatin1String("/imports"), QString());
 
-    const QString path = FileInfo::path(m_filePath);
+    const QString path = FileInfo::path(m_file->filePath());
 
     // files in the same directory are available as prototypes
     collectPrototypes(path, QString());
@@ -200,7 +209,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             QFileInfo fi(filePath);
             if (Q_UNLIKELY(!fi.exists()))
                 throw ErrorInfo(Tr::tr("Can't find imported file %0.").arg(filePath),
-                            CodeLocation(m_filePath, import->fileNameToken.startLine,
+                            CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
                                          import->fileNameToken.startColumn));
             filePath = fi.canonicalFilePath();
             if (fi.isDir()) {
@@ -215,7 +224,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
                     m_typeNameToFile.insert(QStringList(as), filePath);
                 } else {
                     throw ErrorInfo(Tr::tr("Can only import .qbs and .js files"),
-                                CodeLocation(m_filePath, import->fileNameToken.startLine,
+                                CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
                                              import->fileNameToken.startColumn));
                 }
             }
@@ -303,8 +312,9 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
-        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName);
-        mergeItem(item, baseFile.rootItem, baseFile);
+        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName, false);
+
+        inheritItem(item, baseFile.rootItem);
         if (baseFile.rootItem->m_file->m_idScope) {
             // Make ids from the derived file visible in the base file.
             // ### Do we want to turn off this feature? It's QMLish but kind of strange.
@@ -335,18 +345,18 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         throw ErrorInfo(Tr::tr("public member without type"));
     if (Q_UNLIKELY(ast->type == AST::UiPublicMember::Signal))
         throw ErrorInfo(Tr::tr("public member with signal type not supported"));
-    p.name = ast->name.toString();
-    p.type = PropertyDeclaration::propertyTypeFromString(ast->memberType.toString());
-    if (p.type == PropertyDeclaration::UnknownType)
+    p.setName(ast->name.toString());
+    p.setType(PropertyDeclaration::propertyTypeFromString(ast->memberType.toString()));
+    if (p.type() == PropertyDeclaration::UnknownType)
         throw ErrorInfo(Tr::tr("Unknown type '%1' in property declaration.")
                         .arg(ast->memberType.toString()), toCodeLocation(ast->typeToken));
     if (ast->typeModifier.compare(QLatin1String("list")))
-        p.flags |= PropertyDeclaration::ListProperty;
+        p.setFlags(p.flags() | PropertyDeclaration::ListProperty);
     else if (Q_UNLIKELY(!ast->typeModifier.isEmpty()))
         throw ErrorInfo(Tr::tr("public member with type modifier '%1' not supported").arg(
                         ast->typeModifier.toString()));
 
-    m_item->m_propertyDeclarations.insert(p.name, p);
+    m_item->m_propertyDeclarations.insert(p.name(), p);
 
     JSSourceValuePtr value = JSSourceValue::create();
     value->setFile(m_file);
@@ -354,11 +364,11 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
         m_sourceValue.swap(value);
         visitStatement(ast->statement);
         m_sourceValue.swap(value);
-        const QStringList bindingName(p.name);
+        const QStringList bindingName(p.name());
         checkDuplicateBinding(m_item, bindingName, ast->colonToken);
     }
 
-    m_item->m_properties.insert(p.name, value);
+    m_item->m_properties.insert(p.name(), value);
     return false;
 }
 
@@ -390,7 +400,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
     visitStatement(ast->statement);
     m_sourceValue.swap(value);
 
-    Item *targetItem = targetItemForBinding(m_item, bindingName, value->location());
+    Item *targetItem = targetItemForBinding(m_item, bindingName, value);
     checkDuplicateBinding(targetItem, bindingName, ast->qualifiedId->identifierToken);
     targetItem->m_properties.insert(bindingName.last(), value);
     return false;
@@ -404,7 +414,7 @@ bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
     f.setName(ast->name.toString());
 
     // remove the name
-    QString funcNoName = textOf(m_sourceCode, ast);
+    QString funcNoName = textOf(m_file->content(), ast);
     funcNoName.replace(QRegExp(QLatin1String("^(\\s*function\\s*)\\w*")), QLatin1String("(\\1"));
     funcNoName.append(QLatin1Char(')'));
     f.setSourceCode(funcNoName);
@@ -419,32 +429,34 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     QBS_CHECK(statement);
     QBS_CHECK(m_sourceValue);
 
-    QString sourceCode = textOf(m_sourceCode, statement);
-    if (AST::cast<AST::Block *>(statement)) {
-        // rewrite blocks to be able to use return statements in property assignments
-        sourceCode.prepend(QLatin1String("(function()"));
-        sourceCode.append(QLatin1String(")()"));
-        m_sourceValue->m_hasFunctionForm = true;
-    }
+    if (AST::cast<AST::Block *>(statement))
+        m_sourceValue->m_flags |= JSSourceValue::HasFunctionForm;
 
-    m_sourceValue->setSourceCode(sourceCode);
-    m_sourceValue->setLocation(toCodeLocation(statement->firstSourceLocation()));
+    m_sourceValue->setFile(m_file);
+    m_sourceValue->setSourceCode(textRefOf(m_file->content(), statement));
+    m_sourceValue->setLocation(statement->firstSourceLocation().startLine,
+                               statement->firstSourceLocation().startColumn);
 
+    bool usesBase, usesOuter;
     IdentifierSearch idsearch;
-    idsearch.add(QLatin1String("base"), &m_sourceValue->m_sourceUsesBase);
-    idsearch.add(QLatin1String("outer"), &m_sourceValue->m_sourceUsesOuter);
+    idsearch.add(QLatin1String("base"), &usesBase);
+    idsearch.add(QLatin1String("outer"), &usesOuter);
     idsearch.start(statement);
+    if (usesBase)
+        m_sourceValue->m_flags |= JSSourceValue::SourceUsesBase;
+    if (usesOuter)
+        m_sourceValue->m_flags |= JSSourceValue::SourceUsesOuter;
     return false;
 }
 
 CodeLocation ItemReaderASTVisitor::toCodeLocation(AST::SourceLocation location) const
 {
-    return CodeLocation(m_filePath, location.startLine, location.startColumn);
+    return CodeLocation(m_file->filePath(), location.startLine, location.startColumn);
 }
 
 Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
                                                    const QStringList &bindingName,
-                                                   const CodeLocation &bindingLocation)
+                                                   const JSSourceValueConstPtr &value)
 {
     Item *targetItem = item;
     const int c = bindingName.count() - 1;
@@ -457,7 +469,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(Item *item,
         }
         if (Q_UNLIKELY(v->type() != Value::ItemValueType)) {
             QString msg = Tr::tr("Binding to non-item property.");
-            throw ErrorInfo(msg, bindingLocation);
+            throw ErrorInfo(msg, value->location());
         }
         ItemValuePtr jsv = v.staticCast<ItemValue>();
         targetItem = jsv->item();
@@ -469,7 +481,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
 {
     if (!versionToken.length)
         return;
-    const QString importVersionString = m_sourceCode.mid(versionToken.offset, versionToken.length);
+    const QString importVersionString = m_file->content().mid(versionToken.offset, versionToken.length);
     const ImportVersion importVersion
             = ImportVersion::fromString(importVersionString, toCodeLocation(versionToken));
     if (Q_UNLIKELY(importVersion != m_languageVersion))
@@ -478,8 +490,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
                     toCodeLocation(versionToken));
 }
 
-void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
-                                     const ItemReaderResult &baseFile)
+void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
 {
     if (!src->typeName().isEmpty())
         dst->setTypeName(src->typeName());
@@ -511,9 +522,8 @@ void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
                 } else if (v->type() == Value::ItemValueType) {
                     QBS_CHECK(v.staticCast<ItemValue>()->item());
                     QBS_CHECK(it.value().staticCast<const ItemValue>()->item());
-                    mergeItem(v.staticCast<ItemValue>()->item(),
-                              it.value().staticCast<const ItemValue>()->item(),
-                              baseFile);
+                    inheritItem(v.staticCast<ItemValue>()->item(),
+                                it.value().staticCast<const ItemValue>()->item());
                 } else {
                     QBS_CHECK(!"unexpected value type");
                 }
@@ -523,14 +533,10 @@ void ItemReaderASTVisitor::mergeItem(Item *dst, const Item *src,
         }
     }
 
-    for (QMap<QString, PropertyDeclaration>::const_iterator it
+    for (Item::PropertyDeclarationMap::const_iterator it
             = src->m_propertyDeclarations.constBegin();
             it != src->m_propertyDeclarations.constEnd(); ++it) {
         dst->m_propertyDeclarations[it.key()] = it.value();
-    }
-    foreach (const JSSourceValuePtr &valueWithAlternatives,
-            baseFile.conditionalValuesPerScopeItem.value(src)) {
-        replaceConditionScopes(valueWithAlternatives, dst);
     }
 }
 
@@ -556,26 +562,15 @@ void ItemReaderASTVisitor::setupAlternatives(Item *item)
     }
 }
 
-void ItemReaderASTVisitor::replaceConditionScopes(const JSSourceValuePtr &value,
-                                                  Item *newScope)
-{
-    for (QList<JSSourceValue::Alternative>::iterator it
-            = value->m_alternatives.begin(); it != value->m_alternatives.end(); ++it)
-        it->conditionScopeItem = newScope;
-}
-
 class PropertiesBlockConverter
 {
 public:
     PropertiesBlockConverter(const QString &condition, Item *propertiesBlockContainer,
-                             const Item *propertiesBlock,
-                             QSet<JSSourceValuePtr> *valuesWithAlternatives)
+                             const Item *propertiesBlock)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
-        , m_valuesWithAlternatives(valuesWithAlternatives)
     {
         m_alternative.condition = condition;
-        m_alternative.conditionScopeItem = propertiesBlockContainer;
     }
 
     void operator()()
@@ -587,7 +582,6 @@ private:
     JSSourceValue::Alternative m_alternative;
     Item *m_propertiesBlockContainer;
     const Item *m_propertiesBlock;
-    QSet<JSSourceValuePtr> *m_valuesWithAlternatives;
 
     void apply(Item *a, const Item *b)
     {
@@ -619,11 +613,11 @@ private:
             value = JSSourceValue::create();
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
-            value->setSourceCode(QLatin1String("undefined"));
+            static const QString undefinedKeyword = QLatin1String("undefined");
+            value->setSourceCode(QStringRef(&undefinedKeyword));
         }
         m_alternative.value = conditionalValue;
         value->addAlternative(m_alternative);
-        m_valuesWithAlternatives->insert(value);
     }
 };
 
@@ -637,9 +631,8 @@ void ItemReaderASTVisitor::handlePropertiesBlock(Item *item, const Item *block)
         throw ErrorInfo(Tr::tr("Properties.condition must be a value binding."),
                     block->location());
     JSSourceValuePtr srcval = value.staticCast<JSSourceValue>();
-    const QString condition = srcval->sourceCode();
-    PropertiesBlockConverter convertBlock(condition, item, block,
-                                          &m_readerResult->conditionalValuesPerScopeItem[item]);
+    const QString condition = srcval->sourceCodeForEvaluation();
+    PropertiesBlockConverter convertBlock(condition, item, block);
     convertBlock();
 }
 
