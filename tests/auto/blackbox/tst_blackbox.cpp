@@ -1698,7 +1698,7 @@ void TestBlackbox::qmlDebugging()
         QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
         QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
         const QByteArray output = nm.readAllStandardOutput();
-        QVERIFY2(output.contains("qQmlEnableDebuggingHelper"), output.constData());
+        QVERIFY2(output.toLower().contains("debugginghelper"), output.constData());
     }
 }
 

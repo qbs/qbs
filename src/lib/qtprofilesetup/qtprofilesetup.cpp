@@ -209,6 +209,9 @@ static void createModules(Profile &profile, Settings *settings,
         virtualModule.qbsName = QLatin1String("widgets");
         virtualModule.dependencies = QStringList() << QLatin1String("core") << QLatin1String("gui");
         modules << virtualModule;
+        virtualModule.qbsName = QLatin1String("quick");
+        virtualModule.dependencies = QStringList() << QLatin1String("declarative");
+        modules << virtualModule;
         virtualModule.qbsName = QLatin1String("concurrent");
         virtualModule.dependencies = QStringList() << QLatin1String("core");
         modules << virtualModule;
@@ -306,9 +309,12 @@ static void createModules(Profile &profile, Settings *settings,
             QByteArray propertiesString;
             if (module.qbsName == QLatin1String("declarative")
                     || module.qbsName == QLatin1String("quick")) {
+                const QByteArray debugMacro = module.qbsName == QLatin1String("declarative")
+                            || qtEnvironment.qtMajorVersion < 5
+                        ? "QT_DECLARATIVE_DEBUG" : "QT_QML_DEBUG";
                 propertiesString = "property bool qmlDebugging: false\n"
                         "    cpp.defines: "
-                        "qmlDebugging ? base.concat('QT_QML_DEBUG') : base";
+                        "qmlDebugging ? base.concat('" + debugMacro + "') : base";
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);
