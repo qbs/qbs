@@ -1693,8 +1693,7 @@ void TestBlackbox::qmlDebugging()
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
     QProcess nm;
-    nm.start("nm", QStringList("-C")
-             << HostOsInfo::appendExecutableSuffix(buildDir + "/debuggable-app"));
+    nm.start("nm", QStringList(HostOsInfo::appendExecutableSuffix(buildDir + "/debuggable-app")));
     if (nm.waitForStarted()) { // Let's ignore hosts without nm.
         QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
         QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
