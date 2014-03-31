@@ -88,17 +88,7 @@ QString Preferences::defaultBuildDirectory() const
  */
 QStringList Preferences::searchPaths(const QString &baseDir) const
 {
-    const QStringList searchPaths = pathList(QLatin1String("qbsSearchPaths"),
-                                             baseDir + QLatin1String("/share/qbs"));
-
-    // TODO: Remove in 1.2.
-    const QStringList deprecatedSearchPaths = getPreference(QLatin1String("qbsPath")).toString()
-            .split(Internal::HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
-    if (!deprecatedSearchPaths.isEmpty()) {
-        qDebug("Warning: preferences.qbsPath is deprecated, "
-               "use preferences.qbsSearchPaths instead.");
-    }
-    return deprecatedSearchPaths + searchPaths;
+    return pathList(QLatin1String("qbsSearchPaths"), baseDir + QLatin1String("/share/qbs"));
 }
 
 /*!
