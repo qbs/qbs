@@ -306,7 +306,9 @@ static void createModules(Profile &profile, Settings *settings,
             QByteArray propertiesString;
             if (module.qbsName == QLatin1String("declarative")
                     || module.qbsName == QLatin1String("quick")) {
-                propertiesString = "property bool qmlDebugging: false";
+                propertiesString = "property bool qmlDebugging: false\n"
+                        "    cpp.defines: "
+                        "qmlDebugging ? base.concat('QT_QML_DEBUG') : base";
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);

@@ -122,6 +122,7 @@ private slots:
     void inheritQbsSearchPaths();
     void mocCppIncluded();
     void objC();
+    void qmlDebugging();
     void properQuoting();
     void propertiesBlocks();
     void resolve_project_data();

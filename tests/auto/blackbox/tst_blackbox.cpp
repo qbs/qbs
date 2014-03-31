@@ -1688,6 +1688,21 @@ void TestBlackbox::objC()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::qmlDebugging()
+{
+    QDir::setCurrent(testDataDir + "/qml-debugging");
+    QCOMPARE(runQbs(), 0);
+    QProcess nm;
+    nm.start("nm", QStringList("-C")
+             << HostOsInfo::appendExecutableSuffix(buildDir + "/debuggable-app"));
+    if (nm.waitForStarted()) { // Let's ignore hosts without nm.
+        QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
+        QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
+        const QByteArray output = nm.readAllStandardOutput();
+        QVERIFY2(output.contains("qQmlEnableDebuggingHelper"), output.constData());
+    }
+}
+
 void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
