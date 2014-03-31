@@ -512,15 +512,17 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         createSourceArtifact(m_productContext->product, moduleProperties, fileName,
                              group->fileTags, group->overrideTags, group->files);
     ErrorInfo fileError;
-    foreach (const SourceArtifactConstPtr &a, group->files) {
-        if (!FileInfo(a->absoluteFilePath).exists()) {
-            fileError.append(Tr::tr("File '%1' does not exist.")
-                         .arg(a->absoluteFilePath),
-                             item->property(QLatin1String("files"))->location());
+    if (group->enabled) {
+        foreach (const SourceArtifactConstPtr &a, group->files) {
+            if (!FileInfo(a->absoluteFilePath).exists()) {
+                fileError.append(Tr::tr("File '%1' does not exist.")
+                                 .arg(a->absoluteFilePath),
+                                 item->property(QLatin1String("files"))->location());
+            }
         }
+        if (fileError.hasError())
+            throw ErrorInfo(fileError);
     }
-    if (fileError.hasError())
-        throw ErrorInfo(fileError);
 
     group->name = m_evaluator->stringValue(item, QLatin1String("name"));
     if (group->name.isEmpty())
