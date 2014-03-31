@@ -148,9 +148,7 @@ void BuiltinDeclarations::addExportItem()
 {
     ItemDeclaration item(QLatin1String("Export"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Depends")
-            << QLatin1String("Module")  // needed, because we're adding module instances internally
-                              );
+            << QLatin1String("Depends"));
     insert(item);
 }
 
@@ -200,9 +198,7 @@ void BuiltinDeclarations::addModuleItem()
             << QLatin1String("Rule")
             << QLatin1String("PropertyOptions")
             << QLatin1String("Transformer")
-            << QLatin1String("Scanner")
-            << QLatin1String("Module")  // needed, because we're adding module instances internally
-                              );
+            << QLatin1String("Scanner"));
     item << nameProperty();
     item << conditionProperty();
     item << PropertyDeclaration(QLatin1String("setupBuildEnvironment"),
@@ -235,7 +231,6 @@ void BuiltinDeclarations::addProductItem()
 {
     ItemDeclaration item(QLatin1String("Product"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Module")
             << QLatin1String("Depends")
             << QLatin1String("Transformer")
             << QLatin1String("Group")
@@ -270,7 +265,6 @@ void BuiltinDeclarations::addProjectItem()
 {
     ItemDeclaration item(QLatin1String("Project"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << QLatin1String("Module")
             << QLatin1String("Project")
             << QLatin1String("SubProject")
             << QLatin1String("Product")
