@@ -2020,4 +2020,23 @@ void TestBlackbox::testNodeJs()
     QVERIFY(QFile::exists(buildDir + "/hello.js"));
 }
 
+void TestBlackbox::testTypeScript()
+{
+    if (!haveNodeJs()) {
+        SKIP_TEST("node.js is not installed");
+        return;
+    }
+
+    QDir::setCurrent(testDataDir + QLatin1String("/typescript"));
+
+    QbsRunParameters params;
+    params.command = QLatin1String("run");
+    params.arguments = QStringList() << "-p" << "animals";
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(QFile::exists(buildDir + "/animals.js"));
+    QVERIFY(QFile::exists(buildDir + "/extra.js"));
+    QVERIFY(QFile::exists(buildDir + "/main.js"));
+}
+
 QTEST_MAIN(TestBlackbox)

@@ -170,6 +170,7 @@ private slots:
     void testEmbedInfoPlist();
     void testWiX();
     void testNodeJs();
+    void testTypeScript();
 
 private:
     QByteArray m_qbsStderr;

@@ -1,0 +1,210 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Petroules Corporation.
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page typescript-module.html
+    \ingroup list-of-modules
+
+    \title Module typescript
+    \brief Provides TypeScript support.
+
+    The \c typescript module contains properties and rules for building
+    \l{http://www.typescriptlang.org}{TypeScript} applications and may be used in combination with
+    the \l {Module nodejs} {nodejs} module to run TypeScript applications directly from \QBS.
+
+    \section1 General Properties
+
+
+    \section2 warningLevel
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"normal"}, \c{"pedantic"}
+    \row    \li \b{Default:}         \li \c{"normal"}
+    \endtable
+
+    Severity of warnings to emit. The higher the level, the more warnings will be shown.
+    \c{pedantic} causes the TypeScript to emit warnings on expressions and declarations with an
+    implied 'any' type.
+
+    \section2 targetVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"ES3"}, \c{"ES5"}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    ECMAScript target version for generated JavaScript code. \c{undefined} uses the TypeScript
+    compiler default, which is currently \c{"ES3"}.
+
+    \section2 moduleLoader
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Allowed Values:}  \li \c{"commonjs"}, \c{"amd"}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    If TypeScript modules are being used, the JavaScript module loading mechanism to use in the
+    generated JavaScript code. \c{undefined} indicates modules are not being used.
+
+    \section2 stripComments
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{!qbs.debugInformation}
+    \endtable
+
+    Whether to remove comments from the generated JavaScript files.
+
+    \section2 generateDeclarations
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Whether to generate corresponding .d.ts files during compilation; these are TypeScript's
+    equivalent of header files.
+
+    \section2 generateSourceMaps
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{qbs.debugInformation}
+    \endtable
+
+    Whether to generate corresponding .map files during compilation.
+
+    \section2 compilerFlags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags for the TypeScript compiler.
+
+    \section2 singleFile
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false}
+    \endtable
+
+    Whether to compile all TypeScript source files to a single JavaScript output file. The default
+    is to compile each TypeScript file to a corresponding JavaScript file. This property is
+    incompatible with \c{moduleLoader}.
+
+    \section2 version
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The TypeScript version. Consists of four numbers separated by dots, for instance "1.0.0.0".
+
+    \section2 versionMajor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[0]}
+    \endtable
+
+    The TypeScript major version.
+
+    \section2 versionMinor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[1]}
+    \endtable
+
+    The TypeScript minor version.
+
+    \section2 versionParts
+
+    \table
+    \row    \li \b{Type:}            \li \c{list}
+    \row    \li \b{Default:}         \li \c{empty}
+    \endtable
+
+    The TypeScript version as a list. For instance, TypeScript version 1.0 would correspond to a
+    value of \c[1, 0, 0, 0].
+
+    \section2 versionPatch
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[2]}
+    \endtable
+
+    The TypeScript patch level.
+
+    \section2 versionBuild
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li \c{versionParts[3]}
+    \endtable
+
+    The fourth TypeScript version number component.
+
+    \section2 toolchainInstallPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{path}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    TypeScript installation directory. This should not normally need to be changed provided that
+    \c{tsc} is already available by searching the PATH environment variable.
+
+    \section2 compilerName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"tsc"}
+    \endtable
+
+    Name of the compiler binary. This should not normally need to be changed.
+
+    \section2 compilerPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{compilerName}
+    \endtable
+
+    Directory where the compiler binary is located. This should not normally need to be changed.
+*/
