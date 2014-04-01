@@ -1980,4 +1980,44 @@ void TestBlackbox::testWiX()
     QVERIFY(QFile::exists(buildDir + "/qbs-setup-" + arch + ".exe"));
 }
 
+static QString findExecutable(const QStringList &fileNames)
+{
+    const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    foreach (const QString &fileName, fileNames) {
+        foreach (const QString &ppath, path) {
+            const QString fullPath = ppath + QLatin1Char('/') + fileName;
+            if (QFileInfo(fullPath).exists())
+                return QDir::cleanPath(fullPath);
+        }
+    }
+    return QString();
+}
+
+static bool haveNodeJs()
+{
+    // The Node.js binary is called nodejs on Debian/Ubuntu-family operating systems due to a
+    // conflict with another package containing a binary named node
+    return !findExecutable(QStringList()
+                                      << QLatin1String("nodejs")
+                                      << QLatin1String("node")).isEmpty();
+}
+
+void TestBlackbox::testNodeJs()
+{
+    if (!haveNodeJs()) {
+        SKIP_TEST("Node.js is not installed");
+        return;
+    }
+
+    QDir::setCurrent(testDataDir + QLatin1String("/nodejs"));
+
+    QbsRunParameters params;
+    params.command = QLatin1String("run");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY((bool)m_qbsStdout.contains("hello world"));
+    QVERIFY(QFile::exists(buildDir + "/hello.js"));
+}
+
 QTEST_MAIN(TestBlackbox)

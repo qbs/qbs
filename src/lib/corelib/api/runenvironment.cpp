@@ -129,6 +129,21 @@ int RunEnvironment::runShell()
     return system(command.toLocal8Bit().constData());
 }
 
+static QString findExecutable(const QStringList &fileNames)
+{
+    const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    foreach (const QString &fileName, fileNames) {
+        foreach (const QString &ppath, path) {
+            const QString fullPath = ppath + QLatin1Char('/') + fileName;
+            if (QFileInfo(fullPath).exists())
+                return QDir::cleanPath(fullPath);
+        }
+    }
+    return QString();
+}
+
 int RunEnvironment::runTarget(const QString &targetBin, const QStringList &arguments)
 {
     const QStringList targetOS = PropertyFinder().propertyValue(
@@ -154,6 +169,15 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         }
     }
 
+    if (completeSuffix == QLatin1String("js")) {
+        // The Node.js binary is called nodejs on Debian/Ubuntu-family operating systems due to a
+        // conflict with another package containing a binary named node
+        targetExecutable = findExecutable(QStringList()
+                                          << QLatin1String("nodejs")
+                                          << QLatin1String("node"));
+        targetArguments.prepend(targetBin);
+    }
+
     // Only check if the target is executable if we're not running it through another
     // known application such as msiexec or wine, as we can't check in this case anyways
     if (targetBin == targetExecutable && !QFileInfo(targetExecutable).isExecutable()) {
@@ -166,6 +190,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
 
     d->logger.qbsInfo() << Tr::tr("Starting target '%1'.").arg(QDir::toNativeSeparators(targetBin));
     QProcess process;
+    process.setWorkingDirectory(QFileInfo(targetBin).absolutePath());
     process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);
     process.start(targetExecutable, targetArguments);
