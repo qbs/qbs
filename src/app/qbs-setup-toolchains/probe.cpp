@@ -250,9 +250,18 @@ void probe(Settings *settings)
 void createProfile(const QString &profileName, const QString &toolchainType,
                    const QString &compilerFilePath, Settings *settings)
 {
+    QFileInfo compiler(compilerFilePath);
+    if (compilerFilePath == compiler.fileName() && !compiler.exists())
+        compiler = QFileInfo(findExecutable(compilerFilePath));
+
+    if (!compiler.exists()) {
+        throw qbs::ErrorInfo(Tr::tr("Compiler '%1' not found")
+                             .arg(compilerFilePath));
+    }
+
     QStringList toolchainTypes;
     if (toolchainType.isEmpty())
-        toolchainTypes = toolchainTypeFromCompilerName(QFileInfo(compilerFilePath).fileName());
+        toolchainTypes = toolchainTypeFromCompilerName(compiler.fileName());
     else
         toolchainTypes = completeToolchainList(toolchainType);
 
@@ -262,7 +271,7 @@ void createProfile(const QString &profileName, const QString &toolchainType,
     }
 
     if (toolchainTypes.contains(QLatin1String("gcc")))
-        createGccProfile(compilerFilePath, settings, toolchainTypes, profileName);
+        createGccProfile(compiler.absoluteFilePath(), settings, toolchainTypes, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
