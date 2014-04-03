@@ -282,7 +282,7 @@ static void createModules(Profile &profile, Settings *settings,
     QString removeError;
     if (!qbs::Internal::removeDirectoryWithContents(qbsQtModuleBaseDir, &removeError)) {
         throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Could not remove "
-                "the existing profile of the same name (%2).").arg(removeError));
+                "the existing profile of the same name (%2).").arg(profile.name(), removeError));
     }
     copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile.name());
     copyTemplateFile(QLatin1String("qtfunctions.js"), qbsQtModuleBaseDir, profile.name());
