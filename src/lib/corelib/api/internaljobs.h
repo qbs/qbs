@@ -129,7 +129,6 @@ private slots:
 private:
     void resolveProjectFromScratch(Internal::ScriptEngine *engine);
     void resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext);
-    void setupPlatformEnvironment();
     BuildGraphLoadResult restoreProject(const RulesEvaluationContextPtr &evalContext);
     void execute();
 
