@@ -184,7 +184,7 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Clean
                                              bool *isEmpty)
 {
     bool subTreeIsEmpty = true;
-    QDirIterator it(rootDir, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    QDirIterator it(rootDir, QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot);
     while (it.hasNext()) {
         it.next();
         if (!it.fileInfo().isSymLink() && it.fileInfo().isDir())
