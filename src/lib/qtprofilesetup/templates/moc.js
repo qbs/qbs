@@ -29,8 +29,10 @@
 function args(product, input, outputFileName)
 {
     var defines = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'compilerDefines');
-    defines = defines.concat(ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'platformDefines'));
-    defines = defines.concat(ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
+    defines = defines.uniqueConcat(
+                ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'platformDefines'));
+    defines = defines.uniqueConcat(
+                ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
     var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
     var args = [];
     args = args.concat(
