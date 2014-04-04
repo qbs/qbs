@@ -34,10 +34,14 @@ function args(product, input, outputFileName)
     defines = defines.uniqueConcat(
                 ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
     var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
+    var frameworkPaths = product.moduleProperties("cpp", "frameworkPaths");
+    frameworkPaths = frameworkPaths.uniqueConcat(
+                product.moduleProperties("cpp", "systemFrameworkPaths"));
     var args = [];
     args = args.concat(
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
+                frameworkPaths.map(function(item) { return '-F' + item; }),
                 '-o', outputFileName,
                 input.filePath);
     return args;
