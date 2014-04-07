@@ -8,7 +8,7 @@ Project {
         wix.defines: ["scriptName=ExampleScript.bat"]
     }
 
-    BurnSetupPackage {
+    WindowsSetupPackage {
         Depends { name: "QbsSetup" }
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
