@@ -123,6 +123,7 @@ private slots:
     void mocCppIncluded();
     void objC();
     void qmlDebugging();
+    void projectWithPropertiesItem();
     void properQuoting();
     void propertiesBlocks();
     void resolve_project_data();

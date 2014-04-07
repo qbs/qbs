@@ -1702,6 +1702,12 @@ void TestBlackbox::qmlDebugging()
     }
 }
 
+void TestBlackbox::projectWithPropertiesItem()
+{
+    QDir::setCurrent(testDataDir + "/project-with-properties-item");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
