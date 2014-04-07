@@ -375,7 +375,7 @@ Module {
             }
 
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-            cmd.description = "linking " + FileInfo.fileName(input.filePath);
+            cmd.description = "linking " + FileInfo.fileName(primaryOutput.filePath);
             cmd.highlight = "linker";
             cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
             return cmd;

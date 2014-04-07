@@ -1974,6 +1974,8 @@ void TestBlackbox::testWiX()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling QbsSetup.wxs"));
     QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
+    QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
+    QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
     QVERIFY(QFile::exists(buildDir + "/qbs-" + arch + ".msi"));
     QVERIFY(QFile::exists(buildDir + "/qbs-setup-" + arch + ".exe"));
 }
