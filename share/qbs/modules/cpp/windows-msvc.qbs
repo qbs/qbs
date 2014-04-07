@@ -114,7 +114,7 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
         }
 
         prepare: {
@@ -135,12 +135,12 @@ CppModule {
 
         Artifact {
             fileTags: ["dynamiclibrary"]
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
-            fileName: product.destinationDirectory + "/" + PathTools.importLibraryFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.importLibraryFilePath(product)
             alwaysUpdated: false
         }
 
@@ -162,7 +162,7 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {

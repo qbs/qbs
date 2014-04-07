@@ -67,32 +67,32 @@ CppModule {
         usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
             fileTags: ["dynamiclibrary"]
         }
 
         // libfoo
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 0)
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 0)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // libfoo.1
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 1)
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 1)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // libfoo.1.0
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(undefined, 2)
+            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 2)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // Copy of dynamic lib for smart re-linking.
         Artifact {
             fileName: product.destinationDirectory + "/.socopy/"
-                      + PathTools.dynamicLibraryFilePath()
+                      + PathTools.dynamicLibraryFilePath(product)
             fileTags: ["dynamiclibrary_copy"]
             alwaysUpdated: false
             cpp.transitiveSOs: {
@@ -225,7 +225,7 @@ CppModule {
         usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
                 var result = []
@@ -271,7 +271,7 @@ CppModule {
         usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath()
+            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
             fileTags: ["application"]
         }
 

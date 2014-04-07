@@ -1,37 +1,32 @@
 var BundleTools = loadExtension("qbs.BundleTools");
 
-function applicationFileName()
-{
-    return ModUtils.moduleProperty(product, "executablePrefix")
+function applicationFileName(product) {
+    return product.moduleProperty("cpp", "executablePrefix")
          + product.targetName
-         + ModUtils.moduleProperty(product, "executableSuffix");
+         + product.moduleProperty("cpp", "executableSuffix");
 }
 
-function applicationFilePath()
-{
+function applicationFilePath(product) {
     if (BundleTools.isBundleProduct(product))
         return BundleTools.executablePath(product);
     else
-        return applicationFileName();
+        return applicationFileName(product);
 }
 
-function staticLibraryFileName()
-{
-    return ModUtils.moduleProperty(product, "staticLibraryPrefix")
+function staticLibraryFileName(product) {
+    return product.moduleProperty("cpp", "staticLibraryPrefix")
          + product.targetName
-         + ModUtils.moduleProperty(product, "staticLibrarySuffix");
+         + product.moduleProperty("cpp", "staticLibrarySuffix");
 }
 
-function staticLibraryFilePath()
-{
+function staticLibraryFilePath(product) {
     if (BundleTools.isBundleProduct(product))
         return BundleTools.executablePath(product);
     else
-        return staticLibraryFileName();
+        return staticLibraryFileName(product);
 }
 
-function dynamicLibraryFileName(version, maxParts)
-{
+function dynamicLibraryFileName(product, version, maxParts) {
     // If no override version was given, use the product's version
     // We specifically want to differentiate between undefined and i.e.
     // empty string as empty string should be taken to mean "no version"
@@ -48,7 +43,7 @@ function dynamicLibraryFileName(version, maxParts)
         version = version.split('.').slice(0, maxParts).join('.');
 
     // Start with prefix + name (i.e. libqbs, qbs)
-    var fileName = ModUtils.moduleProperty(product, "dynamicLibraryPrefix") + product.targetName;
+    var fileName = product.moduleProperty("cpp", "dynamicLibraryPrefix") + product.targetName;
 
     // For Darwin platforms, append the version number if there is one (i.e. libqbs.1.0.0)
     var targetOS = product.moduleProperty("qbs", "targetOS");
@@ -58,7 +53,7 @@ function dynamicLibraryFileName(version, maxParts)
     }
 
     // Append the suffix (i.e. libqbs.1.0.0.dylib, libqbs.so, qbs.dll)
-    fileName += ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
+    fileName += product.moduleProperty("cpp", "dynamicLibrarySuffix");
 
     // For non-Darwin Unix platforms, append the version number if there is one (i.e. libqbs.so.1.0.0)
     if (version && targetOS.contains("unix") && !targetOS.contains("darwin"))
@@ -67,33 +62,30 @@ function dynamicLibraryFileName(version, maxParts)
     return fileName;
 }
 
-function dynamicLibraryFilePath(version, maxParts)
-{
+function dynamicLibraryFilePath(product, version, maxParts) {
     if (BundleTools.isBundleProduct(product))
         return BundleTools.executablePath(product, version);
     else
-        return dynamicLibraryFileName(version, maxParts);
+        return dynamicLibraryFileName(product, version, maxParts);
 }
 
-function importLibraryFilePath()
-{
-    return ModUtils.moduleProperty(product, "dynamicLibraryPrefix")
+function importLibraryFilePath(product) {
+    return product.moduleProperty("cpp", "dynamicLibraryPrefix")
          + product.targetName
-         + ModUtils.moduleProperty(product, "dynamicLibraryImportSuffix");
+         + product.moduleProperty("cpp", "dynamicLibraryImportSuffix");
 }
 
 // DWARF_DSYM_FILE_NAME
 // Filename of the target's corresponding dSYM file
-function dwarfDsymFileName()
-{
+function dwarfDsymFileName(product) {
     if (BundleTools.isBundleProduct(product))
         return BundleTools.wrapperName(product) + ".dSYM";
     else if (product.type.contains("application"))
-        return applicationFileName() + ".dSYM";
+        return applicationFileName(product) + ".dSYM";
     else if (product.type.contains("dynamiclibrary"))
-        return dynamicLibraryFileName() + ".dSYM";
+        return dynamicLibraryFileName(product) + ".dSYM";
     else if (product.type.contains("staticlibrary"))
-        return staticLibraryFileName() + ".dSYM";
+        return staticLibraryFileName(product) + ".dSYM";
     else
         return product.targetName + ".dSYM";
 }

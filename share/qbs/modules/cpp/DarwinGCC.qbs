@@ -318,7 +318,7 @@ UnixGCC {
         inputs: ["application"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName()
+            fileName: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName(product)
             fileTags: ["application_dsym"]
         }
 
