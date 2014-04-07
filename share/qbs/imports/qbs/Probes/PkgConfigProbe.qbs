@@ -1,7 +1,6 @@
 import qbs 1.0
 import qbs.Process
 import qbs.FileInfo
-import "utils.js" as Utils
 
 Probe {
     // Inputs
