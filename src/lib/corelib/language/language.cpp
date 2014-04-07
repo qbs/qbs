@@ -537,16 +537,8 @@ enum EnvType
 static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType envType,
                                                  const QList<ResolvedModuleConstPtr> &modules,
                                                  const PropertyMapConstPtr &productConfiguration,
-                                                 TopLevelProject *project,
                                                  const QProcessEnvironment &env)
 {
-    QProcessEnvironment procenv = env;
-
-    // Copy the environment of the platform configuration to the process environment.
-    const QVariantMap &platformEnv = project->platformEnvironment;
-    for (QVariantMap::const_iterator it = platformEnv.constBegin(); it != platformEnv.constEnd(); ++it)
-        procenv.insert(it.key(), it.value().toString());
-
     QMap<QString, const ResolvedModule *> moduleMap;
     foreach (const ResolvedModuleConstPtr &module, modules)
         moduleMap.insert(module->name, module.data());
@@ -569,6 +561,8 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
             rootModules.append(module.data());
         }
     }
+
+    QProcessEnvironment procenv = env;
 
     {
         QVariant v;
@@ -649,8 +643,7 @@ void ResolvedProduct::setupBuildEnvironment(ScriptEngine *engine, const QProcess
     if (!buildEnvironment.isEmpty())
         return;
 
-    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, moduleProperties,
-                                             topLevelProject(), env);
+    buildEnvironment = getProcessEnvironment(engine, BuildEnv, modules, moduleProperties, env);
 }
 
 void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEnvironment &env) const
@@ -658,8 +651,7 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
     if (!runEnvironment.isEmpty())
         return;
 
-    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, moduleProperties,
-                                           topLevelProject(), env);
+    runEnvironment = getProcessEnvironment(engine, RunEnv, modules, moduleProperties, env);
 }
 
 static bool removeFromHash(ProductBuildData::ArtifactSetByFileTag &tagHash, const FileTag &tag,
@@ -955,7 +947,6 @@ void TopLevelProject::load(PersistentPool &pool)
 {
     ResolvedProject::load(pool);
     pool.stream() >> m_id;
-    pool.stream() >> platformEnvironment;
     pool.stream() >> usedEnvironment;
     pool.stream() >> fileExistsResults;
     pool.stream() >> fileLastModifiedResults;
@@ -973,7 +964,7 @@ void TopLevelProject::store(PersistentPool &pool) const
 {
     ResolvedProject::store(pool);
     pool.stream() << m_id;
-    pool.stream() << platformEnvironment << usedEnvironment << fileExistsResults
+    pool.stream() << usedEnvironment << fileExistsResults
                   << fileLastModifiedResults;
     QHash<QString, QString> envHash;
     foreach (const QString &key, environment.keys())

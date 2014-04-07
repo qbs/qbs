@@ -446,7 +446,6 @@ public:
 
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
-    QVariantMap platformEnvironment;
     QHash<QString, QString> usedEnvironment; // Environment variables requested by the project while resolving.
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".

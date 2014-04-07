@@ -8,6 +8,7 @@ QbsApp {
         "commandlineparser.cpp",
         "commandlineparser.h",
         "main.cpp",
+        "msvcinfo.h",
         "msvcprobe.cpp",
         "msvcprobe.h",
         "probe.cpp",

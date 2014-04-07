@@ -246,7 +246,6 @@ void InternalSetupProjectJob::execute()
     case SetupProjectParameters::ResolveOnly:
         resolveProjectFromScratch(evalContext->engine());
         resolveBuildDataFromScratch(evalContext);
-        setupPlatformEnvironment();
         break;
     case SetupProjectParameters::RestoreOnly:
         m_project = restoreProject(evalContext).loadedProject;
@@ -262,7 +261,6 @@ void InternalSetupProjectJob::execute()
         } else {
             QBS_CHECK(m_project->buildData);
         }
-        setupPlatformEnvironment();
         break;
     }
     }
@@ -287,13 +285,6 @@ void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationC
 {
     TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
     BuildDataResolver(logger()).resolveBuildData(m_project, evalContext);
-}
-
-void InternalSetupProjectJob::setupPlatformEnvironment()
-{
-    const QVariantMap platformEnvironment
-            = m_parameters.buildConfiguration().value(QLatin1String("environment")).toMap();
-    m_project->platformEnvironment = platformEnvironment;
 }
 
 BuildGraphLoadResult InternalSetupProjectJob::restoreProject(const RulesEvaluationContextPtr &evalContext)

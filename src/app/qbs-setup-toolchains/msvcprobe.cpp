@@ -29,6 +29,7 @@
 
 #include "msvcprobe.h"
 
+#include "msvcinfo.h"
 #include "probe.h"
 #include "../shared/logging/consolelogger.h"
 
@@ -45,20 +46,6 @@
 
 using namespace qbs;
 using Internal::Tr;
-
-class MSVC
-{
-public:
-    QString version;
-    QString installPath;
-    QStringList architectures;
-};
-
-class WinSDK : public MSVC
-{
-public:
-    bool isDefault;
-};
 
 QT_BEGIN_NAMESPACE
 Q_DECLARE_TYPEINFO(WinSDK, Q_MOVABLE_TYPE);

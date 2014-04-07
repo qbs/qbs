@@ -26,28 +26,24 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-function args(product, input, outputFileName)
-{
-    var defines = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'compilerDefines');
-    defines = defines.uniqueConcat(
-                ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'platformDefines'));
-    defines = defines.uniqueConcat(
-                ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'defines'));
-    var includePaths = ModUtils.modulePropertiesFromArtifacts(product, [input], 'cpp', 'includePaths');
-    var frameworkPaths = product.moduleProperties("cpp", "frameworkPaths");
-    frameworkPaths = frameworkPaths.uniqueConcat(
-                product.moduleProperties("cpp", "systemFrameworkPaths"));
-    var args = [];
-    args = args.concat(
-                defines.map(function(item) { return '-D' + item; }),
-                includePaths.map(function(item) { return '-I' + item; }),
-                frameworkPaths.map(function(item) { return '-F' + item; }),
-                '-o', outputFileName,
-                input.filePath);
-    return args;
-}
 
-function fullPath(product)
+#ifndef QBS_MSVCINFO_H
+#define QBS_MSVCINFO_H
+
+#include <QStringList>
+
+class MSVC
 {
-    return ModUtils.moduleProperty(product, "binPath") + '/' + ModUtils.moduleProperty(product, "mocName");
-}
+public:
+    QString version;
+    QString installPath;
+    QStringList architectures;
+};
+
+class WinSDK : public MSVC
+{
+public:
+    bool isDefault;
+};
+
+#endif // QBS_MSVCINFO_H
