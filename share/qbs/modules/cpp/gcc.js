@@ -1,3 +1,4 @@
+var PathTools = loadExtension("qbs.PathTools");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function linkerFlags(product, inputs)
@@ -38,8 +39,8 @@ function linkerFlags(product, inputs)
     prefix = ModUtils.moduleProperty(product, "staticLibraryPrefix");
     suffixes = ModUtils.moduleProperty(product, "supportedStaticLibrarySuffixes");
     for (i in staticLibraries) {
-        if (isLibraryFileName(product, FileInfo.fileName(staticLibraries[i]), prefix, suffixes,
-                              false)) {
+        if (PathTools.isLibraryFileName(product, FileInfo.fileName(staticLibraries[i]), prefix,
+                                        suffixes, false)) {
             args.push(staticLibraries[i]);
         } else {
             args.push('-l' + staticLibraries[i]);
@@ -49,8 +50,8 @@ function linkerFlags(product, inputs)
     prefix = ModUtils.moduleProperty(product, "dynamicLibraryPrefix");
     suffix = ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
     for (i in dynamicLibraries) {
-        if (isLibraryFileName(product, FileInfo.fileName(dynamicLibraries[i]), prefix, [suffix],
-                              true)) {
+        if (PathTools.isLibraryFileName(product, FileInfo.fileName(dynamicLibraries[i]), prefix,
+                                        [suffix], true)) {
             args.push(dynamicLibraries[i]);
         } else {
             args.push('-l' + dynamicLibraries[i]);
@@ -92,21 +93,6 @@ function linkerFlags(product, inputs)
     return args;
 }
 
-// Returns whether the string looks like a library filename
-function isLibraryFileName(product, fileName, prefix, suffixes, isShared)
-{
-    var suffix, i;
-    var os = product.moduleProperty("qbs", "targetOS");
-    for (i = 0; i < suffixes.length; ++i) {
-        suffix = suffixes[i];
-        if (isShared && os.contains("unix") && !os.contains("darwin"))
-            suffix += "(\\.[0-9]+){0,3}";
-        if (fileName.match("^" + prefix + ".+?\\" + suffix + "$"))
-            return true;
-    }
-    return false;
-}
-
 // for compiler AND linker
 function configFlags(config) {
     var args = [];
@@ -141,11 +127,6 @@ function configFlags(config) {
     if (ModUtils.moduleProperty(config, "treatWarningsAsErrors"))
         args.push('-Werror');
     return args;
-}
-
-function removePrefixAndSuffix(str, prefix, suffix)
-{
-    return str.substr(prefix.length, str.length - prefix.length - suffix.length);
 }
 
 // ### what we actually need here is something like product.usedFileTags
@@ -245,25 +226,6 @@ function additionalCompilerAndLinkerFlags(product) {
     }
 
     return args
-}
-
-function majorVersion(version, defaultValue)
-{
-    var n = parseInt(product.version, 10);
-    return isNaN(n) ? defaultValue : n;
-}
-
-function soname(product, outputFilePath)
-{
-    var outputFileName = FileInfo.fileName(outputFilePath);
-    if (product.version) {
-        var major = majorVersion(product.version);
-        if (major) {
-            return outputFileName.substr(0, outputFileName.length - product.version.length)
-                    + major;
-        }
-    }
-    return outputFileName;
 }
 
 // Returns the GCC language name equivalent to fileTag, accepted by the -x argument

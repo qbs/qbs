@@ -4,6 +4,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PathTools
 import qbs.Process
+import qbs.UnixUtils
 import 'gcc.js' as Gcc
 
 CppModule {
@@ -121,7 +122,7 @@ CppModule {
                 args = args.concat([
                     '-Wl,--hash-style=gnu',
                     '-Wl,--as-needed',
-                    '-Wl,-soname=' + Gcc.soname(product, libFilePath)
+                    '-Wl,-soname=' + UnixUtils.soname(product, libFilePath)
                 ]);
             } else if (product.moduleProperty("qbs", "targetOS").contains('darwin')) {
                 var installNamePrefix = product.moduleProperty("cpp", "installNamePrefix");

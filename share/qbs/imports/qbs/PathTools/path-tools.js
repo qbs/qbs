@@ -89,3 +89,17 @@ function dwarfDsymFileName(product) {
     else
         return product.targetName + ".dSYM";
 }
+
+// Returns whether the string looks like a library filename
+function isLibraryFileName(product, fileName, prefix, suffixes, isShared) {
+    var suffix, i;
+    var os = product.moduleProperty("qbs", "targetOS");
+    for (i = 0; i < suffixes.length; ++i) {
+        suffix = suffixes[i];
+        if (isShared && os.contains("unix") && !os.contains("darwin"))
+            suffix += "(\\.[0-9]+){0,3}";
+        if (fileName.match("^" + prefix + ".+?\\" + suffix + "$"))
+            return true;
+    }
+    return false;
+}
