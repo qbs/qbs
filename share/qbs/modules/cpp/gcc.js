@@ -1,4 +1,4 @@
-var Windows = loadFile("windows.js");
+var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function linkerFlags(product, inputs)
 {
@@ -212,7 +212,7 @@ function additionalCompilerFlags(product, input, output)
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS").contains("windows")) {
-        var hexVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
+        var hexVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
             for (i in versionDefs)

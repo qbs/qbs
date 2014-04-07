@@ -2,9 +2,9 @@ import qbs 1.0
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
-import 'windows.js' as Windows
+import qbs.PathTools
+import qbs.WindowsUtils
 import 'msvc.js' as MSVC
-import 'path-tools.js' as PathTools
 
 CppModule {
     condition: qbs.hostOS.contains('windows') && qbs.targetOS.contains('windows') && qbs.toolchain.contains('msvc')
@@ -12,7 +12,7 @@ CppModule {
     id: module
 
     windowsApiCharacterSet: "unicode"
-    platformDefines: base.concat(Windows.characterSetDefines(windowsApiCharacterSet))
+    platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
     compilerDefines: ['_WIN32']
     warningLevel: "default"
     compilerName: "cl.exe"

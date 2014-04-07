@@ -1,10 +1,10 @@
 import qbs 1.0
+import qbs.BundleTools
+import qbs.DarwinTools
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
 import qbs.PropertyList
-import "../cpp/bundle-tools.js" as BundleTools
-import "../cpp/darwin-tools.js" as DarwinTools
 
 Module {
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")

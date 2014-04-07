@@ -1,8 +1,8 @@
 import qbs 1.0
+import qbs.BundleTools
+import qbs.DarwinTools
 import qbs.File
 import qbs.ModUtils
-import 'darwin-tools.js' as DarwinTools
-import 'bundle-tools.js' as BundleTools
 
 DarwinGCC {
     condition: qbs.hostOS.contains('osx') && qbs.targetOS.contains('ios') && qbs.toolchain.contains('gcc')

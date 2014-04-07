@@ -2,9 +2,9 @@ import qbs 1.0
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.PathTools
 import qbs.Process
 import 'gcc.js' as Gcc
-import 'path-tools.js' as PathTools
 
 CppModule {
     condition: false

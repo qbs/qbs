@@ -1,4 +1,4 @@
-var BundleTools = loadFile("bundle-tools.js");
+var BundleTools = loadExtension("qbs.BundleTools");
 
 function applicationFileName()
 {
