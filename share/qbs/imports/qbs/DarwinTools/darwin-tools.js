@@ -1,28 +1,30 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 
-// replace chars non safe for a domain name (rfc1034) with a "-"
-function rfc1034(inStr)
-{
-    return inStr.replace(/[^-A-Za-z0-9.]/g,'-');
+/**
+  * Replace characters unsafe for use in a domain name with a '-' character (RFC 1034).
+  */
+function rfc1034(inStr) {
+    return inStr.replace(/[^-A-Za-z0-9.]/g, '-');
 }
 
-// Returns the localization of a resource at the given path,
-// or undefined if the path does not contain an {xx}.lproj path segment
-function localizationKey(path)
-{
+/**
+  * Returns the localization of the resource at the given path,
+  * or undefined if the path does not contain an {xx}.lproj path segment.
+  */
+function localizationKey(path) {
     return _resourceFileProperties(path)[0];
 }
 
-// Returns the path of a localized resource at the given path,
-// relative to its containing {xx}.lproj directory, or '.'
-// if the resource is unlocalized (not contained in an lproj directory)
-function relativeResourcePath(path)
-{
+/**
+  * Returns the path of a localized resource at the given path,
+  * relative to its containing {xx}.lproj directory, or '.'
+  * if the resource is unlocalized (not contained in an lproj directory).
+  */
+function relativeResourcePath(path) {
     return _resourceFileProperties(path)[1];
 }
 
-function _resourceFileProperties(path)
-{
+function _resourceFileProperties(path) {
     var lprojKey = ".lproj/";
     var lproj = path.indexOf(lprojKey);
     if (lproj >= 0) {
@@ -38,13 +40,15 @@ function _resourceFileProperties(path)
     return [ undefined, '.' ];
 }
 
-// perform replacements in env recursively
-// JSON.stringify(expandPlistEnvironmentVariables({a:"$(x)3$$(y)",b:{t:"%$(y) $(k)"}},
-//                                                {x:"X",y:"Y"}, true))
-//    Warning undefined variable  k  in variable expansion
-// => {"a":"X3$Y","b":{"t":"%Y $(k)"}}
-function expandPlistEnvironmentVariables(obj, env, warn)
-{
+/**
+  * Recursively perform variable replacements in an environment dictionary.
+  *
+  * JSON.stringify(expandPlistEnvironmentVariables({a:"$(x)3$$(y)",b:{t:"%$(y) $(k)"}},
+  *                                                {x:"X",y:"Y"}, true))
+  *    Warning undefined variable  k  in variable expansion
+  * => {"a":"X3$Y","b":{"t":"%Y $(k)"}}
+  */
+function expandPlistEnvironmentVariables(obj, env, warn) {
     // Possible syntaxes for wrapping an environment variable name
     var syntaxes = [
         {"open": "${", "close": "}"},
@@ -52,8 +56,10 @@ function expandPlistEnvironmentVariables(obj, env, warn)
         {"open": "@",  "close": "@"}
     ];
 
-    // Finds the first index of a replacement starting with one of the supported syntaxes
-    // This is needed so we don't do recursive substitutions
+    /**
+      * Finds the first index of a replacement starting with one of the supported syntaxes
+      * This is needed so we don't do recursive substitutions
+      */
     function indexOfReplacementStart(syntaxes, str, offset) {
         var syntax;
         var idx = str.length;
@@ -70,7 +76,7 @@ function expandPlistEnvironmentVariables(obj, env, warn)
     function expandRecursive(obj, env, checked) {
         checked.push(obj);
         for (var key in obj) {
-            var value =obj[key];
+            var value = obj[key];
             var type = typeof(value);
             if (type === "object") {
                 if (checked.indexOf(value) !== -1)

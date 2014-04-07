@@ -1,5 +1,4 @@
-function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
-{
+function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags) {
     var i;
     var optimization = ModUtils.moduleProperty(input, "optimization")
     var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
@@ -117,8 +116,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     return cmd;
 }
 
-function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
-{
+function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags) {
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
@@ -204,11 +202,9 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';
-    cmd.stdoutFilterFunction =
-            function(output)
-            {
-                return output.replace(/^ +Creating library.*\r\n$/, "");
-            };
+    cmd.stdoutFilterFunction = function(output) {
+        return output.replace(/^ +Creating library.*\r\n$/, "");
+    };
     commands.push(cmd);
 
     if (generateManifestFiles) {

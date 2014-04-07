@@ -1,9 +1,12 @@
+var _windowsAbsolutePathPattern = new RegExp("^[a-z,A-Z]:[/,\\\\]");
+var _removeDoubleSlashesPattern = new RegExp("/{2,}", "g");
+
 function path(fp) {
     if (fp === '/')
         return fp;
 
     // Yes, this will be wrong for "clever" unix users calling their directory 'c:'. Boohoo.
-    if (fp.length === 3 && fp.slice(-2) === ':/')
+    if (fp.length === 3 && fp.slice(-2) === ":/")
         return fp;
 
     var last = fp.lastIndexOf('/');
@@ -27,17 +30,16 @@ function baseName(fph) {
 
 function completeBaseName(fph) {
     var fn = fileName(fph);
-    var last = fn.lastIndexOf(".");
+    var last = fn.lastIndexOf('.');
     if (last < 0)
         return fn;
     else
         return fn.slice(0, last);
 }
 
-function relativePath(base, rel)
-{
+function relativePath(base, rel) {
     var basel = base.split('/');
-    var rell  = rel.split('/');
+    var rell = rel.split('/');
     var i;
     for (i = basel.length; i-- >= 0;) {
         if (basel[i] === '.' || basel[i] === '')
@@ -56,7 +58,7 @@ function relativePath(base, rel)
     var r = [];
 
     for (; i < basel.length; i++)
-        r.push('..');
+        r.push("..");
 
     for (; j < rell.length; j++)
         r.push(rell[j]);
@@ -64,34 +66,27 @@ function relativePath(base, rel)
     return r.join('/');
 }
 
-var windowsAbsolutePathPattern = new RegExp("^[a-z,A-Z]:[/,\\\\]")
-function isAbsolutePath(path)
-{
+function isAbsolutePath(path) {
     if (!path)
         return false;
-    return (path.charAt(0) === '/' || windowsAbsolutePathPattern.test(path));
+    return (path.charAt(0) === '/' || _windowsAbsolutePathPattern.test(path));
 }
 
-function toWindowsSeparators(str)
-{
+function toWindowsSeparators(str) {
     return str.toString().replace(/\//g, '\\');
 }
 
-function fromWindowsSeparators(str)
-{
+function fromWindowsSeparators(str) {
     return str.toString().replace(/\\/g, '/');
 }
 
-var removeDoubleSlashesPattern = new RegExp("/{2,}", "g")
-
-function joinPaths()
-{
+function joinPaths() {
     function pathFilter(path) {
-        return path && typeof path === 'string';
+        return path && typeof path === "string";
     }
 
     var paths = Array.prototype.slice.call(arguments, 0).filter(pathFilter);
     var joinedPaths = paths.join('/');
 
-    return joinedPaths.replace(removeDoubleSlashesPattern, "/")
+    return joinedPaths.replace(_removeDoubleSlashesPattern, '/');
 }

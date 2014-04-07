@@ -2,30 +2,29 @@
 
 var PropertyList = loadExtension("qbs.PropertyList");
 
-function isBundleProduct(product)
-{
+function isBundleProduct(product) {
     return product.type.contains("applicationbundle")
         || product.type.contains("frameworkbundle")
         || product.type.contains("bundle")
         || product.type.contains("inapppurchase");
 }
 
-// Returns the package creator code for the given product based on its type
-function packageType(product)
-{
+/**
+  * Returns the package creator code for the given product based on its type.
+  */
+function packageType(product) {
     if (product.type.contains("application") || product.type.contains("applicationbundle"))
-        return 'APPL';
+        return "APPL";
     else if (product.type.contains("frameworkbundle"))
-        return 'FMWK';
+        return "FMWK";
     else if (product.type.contains("bundle"))
-        return 'BNDL';
+        return "BNDL";
 
     throw ("Unsupported product type " + product.type + ". "
          + "Must be in {application, applicationbundle, frameworkbundle, bundle}.");
 }
 
-function infoPlistContents(infoPlistFilePath)
-{
+function infoPlistContents(infoPlistFilePath) {
     if (infoPlistFilePath === undefined)
         return undefined;
 
@@ -38,8 +37,7 @@ function infoPlistContents(infoPlistFilePath)
     }
 }
 
-function infoPlistFormat(infoPlistFilePath)
-{
+function infoPlistFormat(infoPlistFilePath) {
     if (infoPlistFilePath === undefined)
         return undefined;
 
@@ -52,11 +50,12 @@ function infoPlistFormat(infoPlistFilePath)
     }
 }
 
-// CONTENTS_FOLDER_PATH
-// Main bundle directory
-// the version parameter is only used for framework bundles
-function contentsFolderPath(product, version)
-{
+/**
+  * Returns the main bundle directory.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: CONTENTS_FOLDER_PATH
+  */
+function contentsFolderPath(product, version) {
     var path = wrapperName(product);
 
     if (product.type.contains("frameworkbundle"))
@@ -67,33 +66,36 @@ function contentsFolderPath(product, version)
     return path;
 }
 
-// DOCUMENTATION_FOLDER_PATH
-// Directory for documentation files
-// the version parameter is only used for framework bundles
-function documentationFolderPath(product, localizationName, version)
-{
+/**
+  * Returns the directory for documentation files.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: DOCUMENTATION_FOLDER_PATH
+  */
+function documentationFolderPath(product, localizationName, version) {
     var path = localizedResourcesFolderPath(product, localizationName, version);
     if (!product.type.contains("inapppurchase"))
         path += "/Documentation";
     return path;
 }
 
-// EXECUTABLES_FOLDER_PATH
-// Destination directory for auxiliary executables
-// the version parameter is only used for framework bundles
-function executablesFolderPath(product, localizationName, version)
-{
+/**
+  * Returns the destination directory for auxiliary executables.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: EXECUTABLES_FOLDER_PATH
+  */
+function executablesFolderPath(product, localizationName, version) {
     if (product.type.contains("frameworkbundle"))
         return localizedResourcesFolderPath(product, localizationName, version);
     else
         return _contentsFolderSubDirPath(product, "Executables", version);
 }
 
-// EXECUTABLE_FOLDER_PATH
-// Destination directory for the primary executable
-// the version parameter is only used for framework bundles
-function executableFolderPath(product, version)
-{
+/**
+  * Returns the destination directory for the primary executable.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: EXECUTABLE_FOLDER_PATH
+  */
+function executableFolderPath(product, version) {
     var path = contentsFolderPath(product, version);
     if (!isShallowBundle(product)
         && !product.type.contains("frameworkbundle")
@@ -103,18 +105,20 @@ function executableFolderPath(product, version)
     return path;
 }
 
-// EXECUTABLE_PATH
-// Path to the bundle's primary executable file
-// the version parameter is only used for framework bundles
-function executablePath(product, version)
-{
+/**
+  * Returns the path to the bundle's primary executable file.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: EXECUTABLE_PATH
+  */
+function executablePath(product, version) {
     return executableFolderPath(product, version) + "/" + productName(product);
 }
 
-// FRAMEWORK_VERSION
-// Major version number or letter corresponding to the bundle version
-function frameworkVersion(product)
-{
+/**
+  * Returns the major version number or letter corresponding to the bundle version.
+  * @note Xcode equivalent: FRAMEWORK_VERSION
+  */
+function frameworkVersion(product) {
     if (!product.type.contains("frameworkbundle"))
         throw "Product type must be a frameworkbundle, was " + product.type;
 
@@ -122,19 +126,21 @@ function frameworkVersion(product)
     return isNaN(n) ? 'A' : n;
 }
 
-// FRAMEWORKS_FOLDER_PATH
-// Directory containing frameworks used by the bundle's executables
-// the version parameter is only used for framework bundles
-function frameworksFolderPath(product, version)
-{
+/**
+  * Returns the directory containing frameworks used by the bundle's executables.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: FRAMEWORKS_FOLDER_PATH
+  */
+function frameworksFolderPath(product, version) {
     return _contentsFolderSubDirPath(product, "Frameworks", version);
 }
 
-// INFOPLIST_PATH
-// Path to the bundle's main information property list
-// the version parameter is only used for framework bundles
-function infoPlistPath(product, version)
-{
+/**
+  * Returns the path to the bundle's main information property list.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: INFOPLIST_PATH
+  */
+function infoPlistPath(product, version) {
     var path;
     if (product.type.contains("application"))
         path = ".tmp/" + product.name;
@@ -148,130 +154,145 @@ function infoPlistPath(product, version)
     return path + "/" + _infoFileNames(product)[0];
 }
 
-// INFOSTRINGS_PATH
-// Path to the strings file corresponding to the bundle's main information property list
-// the version parameter is only used for framework bundles
-function infoStringsPath(product, localizationName, version)
-{
+/**
+  * Returns the path to the strings file corresponding to the bundle's main information property list.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: INFOSTRINGS_PATH
+  */
+function infoStringsPath(product, localizationName, version) {
     return localizedResourcesFolderPath(product, localizationName, version) + "/" + _infoFileNames(product)[1];
 }
 
-// LOCALIZED_RESOURCES_FOLDER_PATH
-// Path to the bundle's resources directory for the given localization
-// the version parameter is only used for framework bundles
-function localizedResourcesFolderPath(product, localizationName, version)
-{
+/**
+  * Returns the path to the bundle's resources directory for the given localization.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: LOCALIZED_RESOURCES_FOLDER_PATH
+  */
+function localizedResourcesFolderPath(product, localizationName, version) {
     if (typeof localizationName !== "string")
         throw("'" + localizationName + "' is not a valid localization name");
 
     return unlocalizedResourcesFolderPath(product, version) + "/" + localizationName + ".lproj";
 }
 
-// PKGINFO_PATH
-// Path to the bundle's PkgInfo file
-function pkgInfoPath(product)
-{
+/**
+  * Returns the path to the bundle's PkgInfo (package info) file.
+  * @note Xcode equivalent: PKGINFO_PATH
+  */
+function pkgInfoPath(product) {
     var path = (product.type.contains("frameworkbundle"))
         ? wrapperName(product)
         : contentsFolderPath(product);
     return path + "/PkgInfo";
 }
 
-// PLUGINS_FOLDER_PATH
-// Directory containing plugins used by the bundle's executables
-// the version parameter is only used for framework bundles
-function pluginsFolderPath(product, version)
-{
+/**
+  * Returns the directory containing plugins used by the bundle's executables.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: PLUGINS_FOLDER_PATH
+  */
+function pluginsFolderPath(product, version) {
     if (product.type.contains("frameworkbundle"))
         return unlocalizedResourcesFolderPath(product, version);
 
     return _contentsFolderSubDirPath(product, "PlugIns", version);
 }
 
-// PRIVATE_HEADERS_FOLDER_PATH
-// Directory containing private header files for the framework
-// the version parameter is only used for framework bundles
-function privateHeadersFolderPath(product, version)
-{
+/**
+  * Returns the directory containing private header files for the framework.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: PRIVATE_HEADERS_FOLDER_PATH
+  */
+function privateHeadersFolderPath(product, version) {
     return _contentsFolderSubDirPath(product, "PrivateHeaders", version);
 }
 
-// PRODUCT_NAME
-// The name of the product (in Xcode terms) which corresponds to the target name in QBS terms
-function productName(product)
-{
+/**
+  * Returns the name of the product (in Xcode terms) which corresponds to the target name in Qbs terms.
+  * @note Xcode equivalent: PRODUCT_NAME
+  */
+function productName(product) {
     return product.targetName;
 }
 
-// PUBLIC_HEADERS_FOLDER_PATH
-// Directory containing public header files for the framework
-// the version parameter is only used for framework bundles
-function publicHeadersFolderPath(product, version)
-{
+/**
+  * Returns the directory containing public header files for the framework.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: PUBLIC_HEADERS_FOLDER_PATH
+  */
+function publicHeadersFolderPath(product, version) {
     return _contentsFolderSubDirPath(product, "Headers", version);
 }
 
-// SCRIPTS_FOLDER_PATH
-// Directory containing script files associated with the bundle
-// the version parameter is only used for framework bundles
-function scriptsFolderPath(product, version)
-{
+/**
+  * Returns the directory containing script files associated with the bundle.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: SCRIPTS_FOLDER_PATH
+  */
+function scriptsFolderPath(product, version) {
     return unlocalizedResourcesFolderPath(product, version) + "/Scripts";
 }
 
-// SHALLOW_BUNDLE
-// Controls the presence or absence of the Contents, MacOS and Resources folders
-// iOS tends to store the majority of files in its bundles in the main directory
-function isShallowBundle(product)
-{
+/**
+  * Returns whether the bundle is a shallow bundle.
+  * This controls the presence or absence of the Contents, MacOS and Resources folders.
+  * iOS tends to store the majority of files in its bundles in the main directory.
+  * @note Xcode equivalent: SHALLOW_BUNDLE
+  */
+function isShallowBundle(product) {
     return product.moduleProperty("qbs", "targetOS").contains("ios")
         && product.type.contains("applicationbundle");
 }
 
-// SHARED_FRAMEWORKS_FOLDER_PATH
-// Directory containing sub-frameworks that may be shared with other applications
-// the version parameter is only used for framework bundles
-function sharedFrameworksFolderPath(product, version)
-{
+/**
+  * Returns the directory containing sub-frameworks that may be shared with other applications.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: SHARED_FRAMEWORKS_FOLDER_PATH
+  */
+function sharedFrameworksFolderPath(product, version) {
     return _contentsFolderSubDirPath(product, "SharedFrameworks", version);
 }
 
-// SHARED_SUPPORT_FOLDER_PATH
-// Directory containing supporting files that may be shared with other applications
-// the version parameter is only used for framework bundles
-function sharedSupportFolderPath(product, version)
-{
+/**
+  * Returns the directory containing supporting files that may be shared with other applications.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: SHARED_SUPPORT_FOLDER_PATH
+  */
+function sharedSupportFolderPath(product, version) {
     if (product.type.contains("frameworkbundle"))
         return unlocalizedResourcesFolderPath(product, version);
 
     return _contentsFolderSubDirPath(product, "SharedSupport", version);
 }
 
-// UNLOCALIZED_RESOURCES_FOLDER_PATH
-// Directory containing resource files that are not specific to any given localization
-function unlocalizedResourcesFolderPath(product, version)
-{
+/**
+  * Returns the directory containing resource files that are not specific to any given localization.
+  * @note Xcode equivalent: UNLOCALIZED_RESOURCES_FOLDER_PATH
+  */
+function unlocalizedResourcesFolderPath(product, version) {
     if (isShallowBundle(product))
         return contentsFolderPath(product, version);
 
     return _contentsFolderSubDirPath(product, "Resources", version);
 }
 
-// VERSIONPLIST_PATH
-// Directory containing the bundle's version.plist file
-// the version parameter is only used for framework bundles
-function versionPlistPath(product, version)
-{
+/**
+  * Returns the path to the bundle's version.plist file.
+  * @param version only used for framework bundles.
+  * @note Xcode equivalent: VERSIONPLIST_PATH
+  */
+function versionPlistPath(product, version) {
     var path = (product.type.contains("frameworkbundle"))
         ? unlocalizedResourcesFolderPath(product, version)
         : contentsFolderPath(product, version);
     return path + "/version.plist";
 }
 
-// WRAPPER_EXTENSION
-// The file extension of the bundle directory - app, framework, bundle, etc.
-function wrapperExtension(product)
-{
+/**
+  * Returns the file extension of the bundle directory - app, framework, bundle, etc.
+  * @note Xcode equivalent: WRAPPER_EXTENSION
+  */
+function wrapperExtension(product) {
     if (product.type.contains("applicationbundle")) {
         return "app";
     } else if (product.type.contains("frameworkbundle")) {
@@ -290,39 +311,43 @@ function wrapperExtension(product)
     }
 }
 
-// WRAPPER_NAME
-// The name of the bundle directory - the product name plus the bundle extension
-function wrapperName(product)
-{
+/**
+  * Returns the name of the bundle directory - the product name plus the bundle extension.
+  * @note Xcode equivalent: WRAPPER_NAME
+  */
+function wrapperName(product) {
     return productName(product) + wrapperSuffix(product);
 }
 
-// WRAPPER_SUFFIX
-// The suffix of the bundle directory, that is, its extension prefixed with a '.',
-// or an empty string if the extension is also an empty string
-function wrapperSuffix(product)
-{
+/**
+  * Returns the suffix of the bundle directory, that is, its extension prefixed with a '.',
+  * or an empty string if the extension is also an empty string.
+  * @note Xcode equivalent: WRAPPER_SUFFIX
+  */
+function wrapperSuffix(product) {
     var ext = wrapperExtension(product);
     return ext ? ("." + ext) : "";
 }
 
 // Private helper functions
 
-// In-App purchase content bundles use virtually no subfolders of Contents;
-// this is a convenience method to avoid repeating that logic everywhere
-// the version parameter is only used for framework bundles
-function _contentsFolderSubDirPath(product, subdirectoryName, version)
-{
+/**
+  * In-App purchase content bundles use virtually no subfolders of Contents;
+  * this is a convenience method to avoid repeating that logic everywhere.
+  * @param version only used for framework bundles.
+  */
+function _contentsFolderSubDirPath(product, subdirectoryName, version) {
     var path = contentsFolderPath(product, version);
     if (!product.type.contains("inapppurchase"))
         path += "/" + subdirectoryName;
     return path;
 }
 
-// Returns a list containing the filename of the bundle's main information
-// property list and filename of the corresponding strings file
-function _infoFileNames(product)
-{
+/**
+  * Returns a list containing the filename of the bundle's main information
+  * property list and filename of the corresponding strings file.
+  */
+function _infoFileNames(product) {
     if (product.type.contains("inapppurchase"))
         return ["ContentInfo.plist", "ContentInfo.strings"];
     else

@@ -1,8 +1,7 @@
 var PathTools = loadExtension("qbs.PathTools");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
-function linkerFlags(product, inputs)
-{
+function linkerFlags(product, inputs) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
@@ -131,8 +130,7 @@ function configFlags(config) {
 
 // ### what we actually need here is something like product.usedFileTags
 //     that contains all fileTags that have been used when applying the rules.
-function additionalCompilerFlags(product, input, output)
-{
+function additionalCompilerFlags(product, input, output) {
     var includePaths = ModUtils.moduleProperties(input, 'includePaths');
     var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
     var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
@@ -229,8 +227,7 @@ function additionalCompilerAndLinkerFlags(product) {
 }
 
 // Returns the GCC language name equivalent to fileTag, accepted by the -x argument
-function languageName(fileTag)
-{
+function languageName(fileTag) {
     if (fileTag === 'c')
         return 'c';
     else if (fileTag === 'cpp')
@@ -245,8 +242,7 @@ function languageName(fileTag)
         return 'assembler-with-cpp';
 }
 
-function prepareCompiler(project, product, inputs, outputs, input, output)
-{
+function prepareCompiler(project, product, inputs, outputs, input, output) {
     var i, c;
 
     // Determine which C-language we're compiling
@@ -313,13 +309,11 @@ function prepareCompiler(project, product, inputs, outputs, input, output)
 }
 
 // Concatenates two arrays of library names and preserves the dependency order that ld needs.
-function concatLibs(libs, deplibs)
-{
+function concatLibs(libs, deplibs) {
     var r = [];
     var s = {};
 
-    function addLibs(lst)
-    {
+    function addLibs(lst) {
         for (var i = lst.length; --i >= 0;) {
             var lib = lst[i];
             if (!s[lib]) {

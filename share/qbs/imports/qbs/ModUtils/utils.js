@@ -1,16 +1,11 @@
-//
-// utility functions for modules
-//
-
-/*!
- * Given a list of file tags, returns the file tag (one of [c, cpp, objc, objcpp])
- * corresponding to the C-family language the file should be compiled as.
- *
- * If no such tag is found, undefined is returned. If more than one match is
- * found, an exception is thrown.
- */
-function fileTagForTargetLanguage(fileTags)
-{
+/**
+  * Given a list of file tags, returns the file tag (one of [c, cpp, objc, objcpp])
+  * corresponding to the C-family language the file should be compiled as.
+  *
+  * If no such tag is found, undefined is returned. If more than one match is
+  * found, an exception is thrown.
+  */
+function fileTagForTargetLanguage(fileTags) {
     var srcTags = ["c", "cpp", "objc", "objcpp", "asm", "asm_cpp"];
     var pchTags = ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"];
 
@@ -34,45 +29,44 @@ function fileTagForTargetLanguage(fileTags)
     return foundTagCount == 1 ? canonicalTag : undefined;
 }
 
-/*
- * Returns the name of a language-specific property given the file tag
- * for that property, and the base property name.
- *
- * If \a fileTag is undefined, the language-agnostic property name is returned.
- *
- * \param propertyName flags, platformFlags, precompiledHeader
- * \param fileTag c, cpp, objc, objcpp
- */
-function languagePropertyName(propertyName, fileTag)
-{
+/**
+  * Returns the name of a language-specific property given the file tag
+  * for that property, and the base property name.
+  *
+  * If \a fileTag is undefined, the language-agnostic property name is returned.
+  *
+  * @param propertyName flags, platformFlags, precompiledHeader
+  * @param fileTag c, cpp, objc, objcpp
+  */
+function languagePropertyName(propertyName, fileTag) {
     if (!fileTag)
-        fileTag = 'common';
+        fileTag = "common";
 
     var map = {
-        'c': {
-            'flags': 'cFlags',
-            'platformFlags': 'platformCFlags',
-            'precompiledHeader': 'cPrecompiledHeader'
+        "c": {
+            "flags": "cFlags",
+            "platformFlags": "platformCFlags",
+            "precompiledHeader": "cPrecompiledHeader"
         },
-        'cpp': {
-            'flags': 'cxxFlags',
-            'platformFlags': 'platformCxxFlags',
-            'precompiledHeader': 'cxxPrecompiledHeader'
+        "cpp": {
+            "flags": "cxxFlags",
+            "platformFlags": "platformCxxFlags",
+            "precompiledHeader": "cxxPrecompiledHeader"
         },
-        'objc': {
-            'flags': 'objcFlags',
-            'platformFlags': 'platformObjcFlags',
-            'precompiledHeader': 'objcPrecompiledHeader'
+        "objc": {
+            "flags": "objcFlags",
+            "platformFlags": "platformObjcFlags",
+            "precompiledHeader": "objcPrecompiledHeader"
         },
-        'objcpp': {
-            'flags': 'objcxxFlags',
-            'platformFlags': 'platformObjcxxFlags',
-            'precompiledHeader': 'objcxxPrecompiledHeader'
+        "objcpp": {
+            "flags": "objcxxFlags",
+            "platformFlags": "platformObjcxxFlags",
+            "precompiledHeader": "objcxxPrecompiledHeader"
         },
-        'common': {
-            'flags': 'commonCompilerFlags',
-            'platformFlags': 'platformCommonCompilerFlags',
-            'precompiledHeader': 'precompiledHeader'
+        "common": {
+            "flags": "commonCompilerFlags",
+            "platformFlags": "platformCommonCompilerFlags",
+            "precompiledHeader": "precompiledHeader"
         }
     };
 
@@ -83,59 +77,52 @@ function languagePropertyName(propertyName, fileTag)
     return lang[propertyName] || propertyName;
 }
 
-function moduleProperties(config, key, langFilter)
-{
+function moduleProperties(config, key, langFilter) {
     return config.moduleProperties(config.moduleName, languagePropertyName(key, langFilter))
 }
 
-function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyName, langFilter)
-{
+function modulePropertiesFromArtifacts(product, artifacts, moduleName, propertyName, langFilter) {
     var result = product.moduleProperties(moduleName, languagePropertyName(propertyName, langFilter))
     for (var i in artifacts)
         result = result.concat(artifacts[i].moduleProperties(moduleName, languagePropertyName(propertyName, langFilter)))
     return result
 }
 
-function moduleProperty(product, propertyName, langFilter)
-{
+function moduleProperty(product, propertyName, langFilter) {
     return product.moduleProperty(product.moduleName, languagePropertyName(propertyName, langFilter))
 }
 
-function dumpProperty(key, value, level)
-{
-    var indent = ''
-    for (var k=0; k < level; ++k)
-        indent += '  '
-    print(indent + key + ': ' + value)
+function dumpProperty(key, value, level) {
+    var indent = "";
+    for (var k = 0; k < level; ++k)
+        indent += "  ";
+    print(indent + key + ": " + value);
 }
 
-function traverseObject(obj, func, level)
-{
+function traverseObject(obj, func, level) {
     if (!level)
-        level = 0
-    var i, children = {}
+        level = 0;
+    var i, children = {};
     for (i in obj) {
         if (typeof(obj[i]) === "object" && !(obj[i] instanceof Array))
-            children[i] = obj[i]
+            children[i] = obj[i];
         else
-            func.apply(this, [i, obj[i], level])
+            func.apply(this, [i, obj[i], level]);
     }
-    level++
+    level++;
     for (i in children) {
-        func.apply(this, [i, children[i], level - 1])
-        traverseObject(children[i], func, level)
+        func.apply(this, [i, children[i], level - 1]);
+        traverseObject(children[i], func, level);
     }
-    level--
+    level--;
 }
 
-function dumpObject(obj, description)
-{
+function dumpObject(obj, description) {
     if (!description)
-        description = 'object dump'
-    print('+++++++++ ' + description + ' +++++++++')
-    traverseObject(obj, dumpProperty)
+        description = "object dump";
+    print("+++++++++ " + description + " +++++++++");
+    traverseObject(obj, dumpProperty);
 }
-
 
 //////////////////////////////////////////////////////////
 // The EnvironmentVariable class
@@ -143,33 +130,32 @@ function dumpObject(obj, description)
 function EnvironmentVariable(name, separator, convertPathSeparators)
 {
     if (!name)
-        throw "EnvironmentVariable c'tor needs a name as first argument."
-    this.name = name
-    this.value = getEnv(name).toString()
-    this.separator = separator || ''
-    this.convertPathSeparators = convertPathSeparators || false
+        throw "EnvironmentVariable c'tor needs a name as first argument.";
+    this.name = name;
+    this.value = getEnv(name).toString();
+    this.separator = separator || "";
+    this.convertPathSeparators = convertPathSeparators || false;
 }
 
 EnvironmentVariable.prototype.prepend = function(v)
 {
     if (this.value.length > 0 && this.value.charAt(0) !== this.separator)
-        this.value = this.separator + this.value
+        this.value = this.separator + this.value;
     if (this.convertPathSeparators)
-        v = FileInfo.toWindowsSeparators(v)
-    this.value = v + this.value
+        v = FileInfo.toWindowsSeparators(v);
+    this.value = v + this.value;
 }
 
 EnvironmentVariable.prototype.append = function(v)
 {
     if (this.value.length > 0)
-        this.value += this.separator
+        this.value += this.separator;
     if (this.convertPathSeparators)
-        v = FileInfo.toWindowsSeparators(v)
-    this.value += v
+        v = FileInfo.toWindowsSeparators(v);
+    this.value += v;
 }
 
 EnvironmentVariable.prototype.set = function()
 {
-    putEnv(this.name, this.value)
+    putEnv(this.name, this.value);
 }
-

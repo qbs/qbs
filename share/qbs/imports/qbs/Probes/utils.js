@@ -2,8 +2,7 @@
 // utility functions for probes
 //
 
-function concatAll()
-{
+function concatAll() {
     var result = [];
     for (var i = 0; i < arguments.length; ++i) {
         var arg = arguments[i];
