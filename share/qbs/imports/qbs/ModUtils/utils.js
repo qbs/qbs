@@ -124,38 +124,33 @@ function dumpObject(obj, description) {
     traverseObject(obj, dumpProperty);
 }
 
-//////////////////////////////////////////////////////////
-// The EnvironmentVariable class
-//
-function EnvironmentVariable(name, separator, convertPathSeparators)
-{
-    if (!name)
-        throw "EnvironmentVariable c'tor needs a name as first argument.";
-    this.name = name;
-    this.value = getEnv(name).toString();
-    this.separator = separator || "";
-    this.convertPathSeparators = convertPathSeparators || false;
-}
+var EnvironmentVariable = (function () {
+    function EnvironmentVariable(name, separator, convertPathSeparators) {
+        if (!name)
+            throw "EnvironmentVariable c'tor needs a name as first argument.";
+        this.name = name;
+        this.value = getEnv(name).toString();
+        this.separator = separator || "";
+        this.convertPathSeparators = convertPathSeparators || false;
+    }
+    EnvironmentVariable.prototype.prepend = function (v) {
+        if (this.value.length > 0 && this.value.charAt(0) !== this.separator)
+            this.value = this.separator + this.value;
+        if (this.convertPathSeparators)
+            v = FileInfo.toWindowsSeparators(v);
+        this.value = v + this.value;
+    };
 
-EnvironmentVariable.prototype.prepend = function(v)
-{
-    if (this.value.length > 0 && this.value.charAt(0) !== this.separator)
-        this.value = this.separator + this.value;
-    if (this.convertPathSeparators)
-        v = FileInfo.toWindowsSeparators(v);
-    this.value = v + this.value;
-}
+    EnvironmentVariable.prototype.append = function (v) {
+        if (this.value.length > 0)
+            this.value += this.separator;
+        if (this.convertPathSeparators)
+            v = FileInfo.toWindowsSeparators(v);
+        this.value += v;
+    };
 
-EnvironmentVariable.prototype.append = function(v)
-{
-    if (this.value.length > 0)
-        this.value += this.separator;
-    if (this.convertPathSeparators)
-        v = FileInfo.toWindowsSeparators(v);
-    this.value += v;
-}
-
-EnvironmentVariable.prototype.set = function()
-{
-    putEnv(this.name, this.value);
-}
+    EnvironmentVariable.prototype.set = function () {
+        putEnv(this.name, this.value);
+    };
+    return EnvironmentVariable;
+})();
