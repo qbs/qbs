@@ -60,7 +60,7 @@ ExecutorJob::ExecutorJob(const Logger &logger, QObject *parent)
     connect(m_jsCommandExecutor, SIGNAL(error(qbs::ErrorInfo)),
             this, SLOT(onCommandError(qbs::ErrorInfo)));
     connect(m_jsCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
-    setInactive();
+    reset();
 }
 
 ExecutorJob::~ExecutorJob()
@@ -84,7 +84,7 @@ void ExecutorJob::run(Transformer *t)
     QBS_ASSERT(m_currentCommandIdx == -1, return);
 
     if (t->commands.isEmpty()) {
-        emit success();
+        setFinished();
         return;
     }
 
@@ -100,7 +100,10 @@ void ExecutorJob::cancel()
 {
     if (!m_transformer)
         return;
-    m_currentCommandIdx = m_transformer->commands.count();
+    if (m_currentCommandIdx < m_transformer->commands.count() - 1) {
+        m_error = ErrorInfo(tr("Transformer execution canceled."));
+        m_currentCommandIdx = m_transformer->commands.count();
+    }
 }
 
 void ExecutorJob::waitForFinished()
@@ -114,8 +117,7 @@ void ExecutorJob::runNextCommand()
     QBS_ASSERT(m_currentCommandIdx <= m_transformer->commands.count(), return);
     ++m_currentCommandIdx;
     if (m_currentCommandIdx >= m_transformer->commands.count()) {
-        setInactive();
-        emit success();
+        setFinished();
         return;
     }
 
@@ -136,8 +138,8 @@ void ExecutorJob::runNextCommand()
 
 void ExecutorJob::onCommandError(const ErrorInfo &err)
 {
-    setInactive();
-    emit error(err);
+    m_error = err;
+    setFinished();
 }
 
 void ExecutorJob::onCommandFinished()
@@ -147,11 +149,22 @@ void ExecutorJob::onCommandFinished()
     runNextCommand();
 }
 
-void ExecutorJob::setInactive()
+void ExecutorJob::setFinished()
+{
+    const ErrorInfo err = m_error;
+    reset();
+    if (err.hasError())
+        emit error(err);
+    else
+        emit success();
+}
+
+void ExecutorJob::reset()
 {
     m_transformer = 0;
     m_currentCommandExecutor = 0;
     m_currentCommandIdx = -1;
+    m_error.clear();
 }
 
 } // namespace Internal
