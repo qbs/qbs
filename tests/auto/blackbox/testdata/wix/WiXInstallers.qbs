@@ -20,5 +20,6 @@ Project {
         name: "RegressionBuster9000"
         files: ["QbsSetup.wxs", "Qt.wxs"]
         wix.defines: ["scriptName=ExampleScript.bat"]
+        wix.cultures: []
     }
 }

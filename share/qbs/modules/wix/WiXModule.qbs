@@ -361,7 +361,8 @@ Module {
 
             if (product.type.contains("msi")) {
                 var cultures = ModUtils.moduleProperty(product, "cultures");
-                args.push("-cultures:" + (cultures ? cultures.join(";") : "null"));
+                args.push("-cultures:"
+                    + (cultures && cultures.length > 0 ? cultures.join(";") : "null"));
             }
 
             // User-supplied flags
