@@ -255,10 +255,12 @@ void ProcessCommandExecutor::onProcessError()
 void ProcessCommandExecutor::onProcessFinished(int exitCode)
 {
     removeResponseFile();
-    const bool errorOccurred = quint32(exitCode) > quint32(processCommand()->maxExitCode());
+    const bool crashed = m_process.exitStatus() == QProcess::CrashExit;
+    const bool errorOccurred = crashed
+            || quint32(exitCode) > quint32(processCommand()->maxExitCode());
     sendProcessOutput(!errorOccurred);
 
-    if (Q_UNLIKELY(errorOccurred)) {
+    if (Q_UNLIKELY(errorOccurred && !crashed)) { // Crash is already reported in onProcessError().
         emit error(ErrorInfo(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
         return;
     }
