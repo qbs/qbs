@@ -260,7 +260,7 @@ static void createModules(Profile &profile, Settings *settings,
             QFile priFile(dit.filePath());
             if (!priFile.open(QIODevice::ReadOnly)) {
                 throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
-                        "file '%1' (%2).").arg(priFile.fileName(), priFile.errorString()));
+                        "file '%2' (%3).").arg(profile.name(), priFile.fileName(), priFile.errorString()));
             }
             const QByteArray priFileContents = priFile.readAll();
             foreach (const QByteArray &line, priFileContents.split('\n')) {
