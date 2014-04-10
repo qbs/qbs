@@ -133,7 +133,7 @@ void ProcessCommandExecutor::doStart()
             responseFile.setAutoRemove(false);
             responseFile.setFileTemplate(QDir::tempPath() + QLatin1String("/qbsresp"));
             if (!responseFile.open()) {
-                emit error(ErrorInfo(Tr::tr("Cannot create response file '%1'.")
+                emit finished(ErrorInfo(Tr::tr("Cannot create response file '%1'.")
                                  .arg(responseFile.fileName())));
                 return;
             }
@@ -175,7 +175,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
                                                            + filterFunctionSource
                                                            + QLatin1String("; f"));
     if (!filterFunction.isFunction()) {
-        emit error(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
+        logger().printWarning(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
                          .arg(filterFunctionSource, filterFunction.toString())));
         return output;
     }
@@ -184,7 +184,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     outputArg.setProperty(0, scriptEngine()->toScriptValue(output));
     QScriptValue filteredOutput = filterFunction.call(scriptEngine()->undefinedValue(), outputArg);
     if (scriptEngine()->hasErrorOrException(filteredOutput)) {
-        emit error(ErrorInfo(Tr::tr("Error when calling output filter function: %1")
+        logger().printWarning(ErrorInfo(Tr::tr("Error when calling output filter function: %1")
                          .arg(filteredOutput.toString())));
         return output;
     }
@@ -224,32 +224,19 @@ void ProcessCommandExecutor::sendProcessOutput(bool success)
 
 void ProcessCommandExecutor::onProcessError()
 {
-    sendProcessOutput(false);
-    removeResponseFile();
-    QString errorMessage;
-    const QString binary = QDir::toNativeSeparators(processCommand()->program());
     switch (m_process.error()) {
-    case QProcess::FailedToStart:
-        errorMessage = Tr::tr("The process '%1' could not be started: %2").
-                arg(binary, m_process.errorString());
-        break;
-    case QProcess::Crashed:
-        errorMessage = Tr::tr("The process '%1' crashed.").arg(binary);
-        break;
-    case QProcess::Timedout:
-        errorMessage = Tr::tr("The process '%1' timed out.").arg(binary);
-        break;
-    case QProcess::ReadError:
-        errorMessage = Tr::tr("Error reading process output from '%1'.").arg(binary);
-        break;
-    case QProcess::WriteError:
-        errorMessage = Tr::tr("Error writing to process '%1'.").arg(binary);
-        break;
-    default:
-        errorMessage = Tr::tr("Unknown process error running '%1'.").arg(binary);
+    case QProcess::FailedToStart: {
+        removeResponseFile();
+        const QString binary = QDir::toNativeSeparators(processCommand()->program());
+        emit finished(ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
+                                .arg(binary, m_process.errorString())));
         break;
     }
-    emit error(ErrorInfo(errorMessage));
+    case QProcess::Crashed:
+        break; // Ignore. Will be handled by onProcessFinished().
+    default:
+        logger().qbsWarning() << "QProcess error: " << m_process.errorString();
+    }
 }
 
 void ProcessCommandExecutor::onProcessFinished(int exitCode)
@@ -260,13 +247,12 @@ void ProcessCommandExecutor::onProcessFinished(int exitCode)
             || quint32(exitCode) > quint32(processCommand()->maxExitCode());
     sendProcessOutput(!errorOccurred);
 
-    if (Q_UNLIKELY(errorOccurred && !crashed)) { // Crash is already reported in onProcessError().
-        emit error(ErrorInfo(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
-        return;
-    }
-
-
-    emit finished();
+    if (Q_UNLIKELY(crashed))
+        emit finished(ErrorInfo(Tr::tr("Process crashed.")));
+    else if (Q_UNLIKELY(errorOccurred))
+        emit finished(ErrorInfo(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
+    else
+        emit finished();
 }
 
 void ProcessCommandExecutor::removeResponseFile()

@@ -174,7 +174,7 @@ void JsCommandExecutor::onJavaScriptCommandFinished()
         logger().qbsDebug() << "JS code:\n" << jsCommand()->sourceCode();
         QString msg = tr("Error while executing JavaScriptCommand:\n");
         msg += result.errorMessage;
-        emit error(ErrorInfo(msg, result.errorLocation));
+        emit finished(ErrorInfo(msg, result.errorLocation));
     }
     emit finished();
 }

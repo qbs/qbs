@@ -31,6 +31,7 @@
 #define QBS_ABSTRACTCOMMANDEXECUTOR_H
 
 #include <logging/logger.h>
+#include <tools/error.h>
 
 #include <QObject>
 
@@ -58,8 +59,7 @@ public slots:
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
-    void error(const qbs::ErrorInfo &err);
-    void finished();
+    void finished(const qbs::ErrorInfo &err = ErrorInfo()); // !hasError() <=> command successful
 
 protected:
     const AbstractCommand *command() const { return m_command; }

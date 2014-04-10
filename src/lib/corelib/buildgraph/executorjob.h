@@ -64,13 +64,11 @@ public:
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
     void reportProcessResult(const qbs::ProcessResult &result);
-    void error(const qbs::ErrorInfo &error);
-    void success();
+    void finished(const qbs::ErrorInfo &error = ErrorInfo()); // !hasError() <=> command successful
 
 private slots:
     void runNextCommand();
-    void onCommandError(const qbs::ErrorInfo &err);
-    void onCommandFinished();
+    void onCommandFinished(const qbs::ErrorInfo &err);
 
 private:
     void setFinished();

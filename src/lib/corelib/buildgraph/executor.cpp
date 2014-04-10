@@ -641,9 +641,8 @@ void Executor::addExecutorJobs()
                 this, SIGNAL(reportCommandDescription(QString,QString)), Qt::QueuedConnection);
         connect(job, SIGNAL(reportProcessResult(qbs::ProcessResult)),
                 this, SIGNAL(reportProcessResult(qbs::ProcessResult)), Qt::QueuedConnection);
-        connect(job, SIGNAL(error(qbs::ErrorInfo)),
-                this, SLOT(onProcessError(qbs::ErrorInfo)), Qt::QueuedConnection);
-        connect(job, SIGNAL(success()), this, SLOT(onProcessSuccess()), Qt::QueuedConnection);
+        connect(job, SIGNAL(finished(qbs::ErrorInfo)),
+                this, SLOT(onJobFinished(qbs::ErrorInfo)), Qt::QueuedConnection);
     }
 }
 
@@ -805,9 +804,9 @@ void Executor::finishTransformer(const TransformerPtr &transformer)
         finishArtifact(artifact);
 }
 
-void Executor::onProcessError(const qbs::ErrorInfo &err)
+void Executor::onJobFinished(const qbs::ErrorInfo &err)
 {
-    try {
+    if (err.hasError()) {
         if (m_buildOptions.keepGoing()) {
             ErrorInfo fullWarning(err);
             fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
@@ -815,19 +814,13 @@ void Executor::onProcessError(const qbs::ErrorInfo &err)
         } else {
             m_error = err;
         }
-        ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
-        finishJob(job, false);
-    } catch (const ErrorInfo &error) {
-        handleError(error);
     }
-}
 
-void Executor::onProcessSuccess()
-{
+    ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
+    QBS_CHECK(job);
+
     try {
-        ExecutorJob *job = qobject_cast<ExecutorJob *>(sender());
-        QBS_CHECK(job);
-        finishJob(job, true);
+        finishJob(job, !err.hasError());
     } catch (const ErrorInfo &error) {
         handleError(error);
     }

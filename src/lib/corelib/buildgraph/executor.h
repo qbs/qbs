@@ -78,8 +78,7 @@ signals:
     void finished();
 
 private slots:
-    void onProcessError(const qbs::ErrorInfo &err);
-    void onProcessSuccess();
+    void onJobFinished(const qbs::ErrorInfo &err);
     void finish();
 
 private:

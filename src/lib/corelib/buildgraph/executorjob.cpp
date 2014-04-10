@@ -52,14 +52,12 @@ ExecutorJob::ExecutorJob(const Logger &logger, QObject *parent)
             this, SIGNAL(reportCommandDescription(QString,QString)));
     connect(m_processCommandExecutor, SIGNAL(reportProcessResult(qbs::ProcessResult)),
             this, SIGNAL(reportProcessResult(qbs::ProcessResult)));
-    connect(m_processCommandExecutor, SIGNAL(error(qbs::ErrorInfo)),
-            this, SLOT(onCommandError(qbs::ErrorInfo)));
-    connect(m_processCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
+    connect(m_processCommandExecutor, SIGNAL(finished(qbs::ErrorInfo)),
+            this, SLOT(onCommandFinished(qbs::ErrorInfo)));
     connect(m_jsCommandExecutor, SIGNAL(reportCommandDescription(QString,QString)),
             this, SIGNAL(reportCommandDescription(QString,QString)));
-    connect(m_jsCommandExecutor, SIGNAL(error(qbs::ErrorInfo)),
-            this, SLOT(onCommandError(qbs::ErrorInfo)));
-    connect(m_jsCommandExecutor, SIGNAL(finished()), SLOT(onCommandFinished()));
+    connect(m_jsCommandExecutor, SIGNAL(finished(qbs::ErrorInfo)),
+            this, SLOT(onCommandFinished(qbs::ErrorInfo)));
     reset();
 }
 
@@ -136,27 +134,22 @@ void ExecutorJob::runNextCommand()
     m_currentCommandExecutor->start(m_transformer, command.data());
 }
 
-void ExecutorJob::onCommandError(const ErrorInfo &err)
+void ExecutorJob::onCommandFinished(const ErrorInfo &err)
 {
-    m_error = err;
-    setFinished();
-}
-
-void ExecutorJob::onCommandFinished()
-{
-    if (!m_transformer)
-        return;
-    runNextCommand();
+    QBS_ASSERT(m_transformer, return);
+    if (err.hasError()) {
+        m_error = err;
+        setFinished();
+    } else {
+        runNextCommand();
+    }
 }
 
 void ExecutorJob::setFinished()
 {
     const ErrorInfo err = m_error;
     reset();
-    if (err.hasError())
-        emit error(err);
-    else
-        emit success();
+    emit finished(err);
 }
 
 void ExecutorJob::reset()
