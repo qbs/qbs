@@ -62,6 +62,7 @@ public:
 
     ErrorInfo error() const;
 
+public slots:
     void cancel();
 
 protected:
