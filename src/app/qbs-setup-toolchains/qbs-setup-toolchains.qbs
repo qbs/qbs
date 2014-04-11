@@ -3,6 +3,7 @@ import "../apptemplate.qbs" as QbsApp
 
 QbsApp {
     name: "qbs-setup-toolchains"
+    cpp.dynamicLibraries: qbs.targetOS.contains("windows") ? base.concat("shell32") : base
     files: [
         "../shared/qbssettings.h",
         "commandlineparser.cpp",
