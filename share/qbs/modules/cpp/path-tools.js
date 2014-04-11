@@ -1,4 +1,3 @@
-if (!BundleTools)   // ### remove when QBS-549 is fixed
 var BundleTools = loadFile("bundle-tools.js");
 
 function applicationFileName()
