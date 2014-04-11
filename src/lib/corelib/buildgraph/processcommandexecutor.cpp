@@ -159,9 +159,11 @@ void ProcessCommandExecutor::doStart()
     m_arguments = arguments;
 }
 
-void ProcessCommandExecutor::waitForFinished()
+void ProcessCommandExecutor::cancel()
 {
-    m_process.waitForFinished(-1);
+    m_process.terminate();
+    if (!m_process.waitForFinished(1000))
+        m_process.kill();
 }
 
 QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,

@@ -59,7 +59,6 @@ public:
     void setDryRun(bool enabled);
     void run(Transformer *t);
     void cancel();
-    void waitForFinished();
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);

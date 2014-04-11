@@ -42,6 +42,7 @@
 #include <tools/error.h>
 
 #include <QEventLoop>
+#include <QMetaObject>
 #include <QThread>
 #include <QTimer>
 
@@ -68,6 +69,12 @@ public:
     const JavaScriptCommandResult &result() const
     {
         return m_result;
+    }
+
+    Q_INVOKABLE void cancel()
+    {
+        QBS_ASSERT(m_scriptEngine, return);
+        m_scriptEngine->abortEvaluation();
     }
 
 signals:
@@ -111,8 +118,10 @@ public slots:
 private:
     ScriptEngine *provideScriptEngine()
     {
-        if (!m_scriptEngine)
+        if (!m_scriptEngine) {
             m_scriptEngine = new ScriptEngine(m_logger, this);
+            m_scriptEngine->setProcessEventsInterval(1000); // So long-running code can be aborted.
+        }
         return m_scriptEngine;
     }
 
@@ -163,6 +172,11 @@ void JsCommandExecutor::doStart()
 
     m_running = true;
     emit startRequested(jsCommand(), transformer());
+}
+
+void JsCommandExecutor::cancel()
+{
+    QMetaObject::invokeMethod(m_objectInThread, "cancel", Qt::QueuedConnection);
 }
 
 void JsCommandExecutor::onJavaScriptCommandFinished()

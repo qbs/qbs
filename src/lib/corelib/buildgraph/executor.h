@@ -43,6 +43,10 @@
 #include <QObject>
 #include <queue>
 
+QT_BEGIN_NAMESPACE
+class QTimer;
+QT_END_NAMESPACE
+
 namespace qbs {
 class ProcessResult;
 
@@ -80,6 +84,7 @@ signals:
 private slots:
     void onJobFinished(const qbs::ErrorInfo &err);
     void finish();
+    void checkForCancellation();
 
 private:
     // BuildGraphVisitor implementation
@@ -150,6 +155,7 @@ private:
     ErrorInfo m_error;
     bool m_explicitlyCanceled;
     FileTags m_activeFileTags;
+    QTimer * const m_cancelationTimer;
     const bool m_doTrace;
     const bool m_doDebug;
 };

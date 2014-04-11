@@ -52,7 +52,7 @@ public:
     void setMainThreadScriptEngine(ScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
     void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
 
-    virtual void waitForFinished() = 0;
+    virtual void cancel() = 0;
 
 public slots:
     void start(Transformer *transformer, const AbstractCommand *cmd);

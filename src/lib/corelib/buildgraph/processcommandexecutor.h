@@ -61,8 +61,9 @@ private slots:
 
 private:
     void doStart();
-    void waitForFinished();
+    void cancel();
 
+    void waitForFinished();
     void startProcessCommand();
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
     void sendProcessOutput(bool success);

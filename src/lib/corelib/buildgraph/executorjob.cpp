@@ -96,18 +96,9 @@ void ExecutorJob::run(Transformer *t)
 
 void ExecutorJob::cancel()
 {
-    if (!m_transformer)
-        return;
-    if (m_currentCommandIdx < m_transformer->commands.count() - 1) {
-        m_error = ErrorInfo(tr("Transformer execution canceled."));
-        m_currentCommandIdx = m_transformer->commands.count();
-    }
-}
-
-void ExecutorJob::waitForFinished()
-{
-    if (m_currentCommandExecutor)
-        m_currentCommandExecutor->waitForFinished();
+    QBS_ASSERT(m_currentCommandExecutor, return);
+    m_error = ErrorInfo(tr("Transformer execution canceled."));
+    m_currentCommandExecutor->cancel();
 }
 
 void ExecutorJob::runNextCommand()
@@ -137,7 +128,9 @@ void ExecutorJob::runNextCommand()
 void ExecutorJob::onCommandFinished(const ErrorInfo &err)
 {
     QBS_ASSERT(m_transformer, return);
-    if (err.hasError()) {
+    if (m_error.hasError()) { // Canceled?
+        setFinished();
+    } else if (err.hasError()) {
         m_error = err;
         setFinished();
     } else {

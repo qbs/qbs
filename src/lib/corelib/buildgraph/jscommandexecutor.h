@@ -56,6 +56,8 @@ private slots:
 
 private:
     void doStart();
+    void cancel();
+
     void waitForFinished();
 
     const JavaScriptCommand *jsCommand() const;

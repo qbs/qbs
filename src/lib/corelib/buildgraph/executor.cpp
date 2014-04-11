@@ -69,10 +69,14 @@ Executor::Executor(const Logger &logger, QObject *parent)
     , m_logger(logger)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
+    , m_cancelationTimer(new QTimer(this))
     , m_doTrace(logger.traceEnabled())
     , m_doDebug(logger.debugEnabled())
 {
     m_inputArtifactScanContext = new InputArtifactScannerContext(&m_scanResultCache);
+    m_cancelationTimer->setSingleShot(false);
+    m_cancelationTimer->setInterval(1000);
+    connect(m_cancelationTimer, SIGNAL(timeout()), SLOT(checkForCancellation()));
 }
 
 Executor::~Executor()
@@ -218,6 +222,8 @@ void Executor::doBuild()
         m_logger.qbsTrace() << "Nothing to do at all, finishing.";
         QTimer::singleShot(0, this, SLOT(finish())); // Don't call back on the caller.
     }
+    if (m_progressObserver)
+        m_cancelationTimer->start();
 }
 
 void Executor::setBuildOptions(const BuildOptions &buildOptions)
@@ -861,9 +867,18 @@ void Executor::finish()
     if (m_explicitlyCanceled)
         m_error.append(Tr::tr("Build canceled%1.").arg(configString()));
     setState(ExecutorIdle);
-    if (m_progressObserver)
+    if (m_progressObserver) {
         m_progressObserver->setFinished();
+        m_cancelationTimer->stop();
+    }
     emit finished();
+}
+
+void Executor::checkForCancellation()
+{
+    QBS_ASSERT(m_progressObserver, return);
+    if (m_state == ExecutorRunning && m_progressObserver->canceled())
+        cancelJobs();
 }
 
 bool Executor::visit(Artifact *artifact)

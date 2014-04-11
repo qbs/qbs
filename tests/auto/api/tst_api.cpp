@@ -442,8 +442,7 @@ void TestApi::infiniteLoop()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
-    QTimer::singleShot(1000, setupJob.data(), SLOT(cancel()));
-    QEXPECT_FAIL(0, "QBS-552", Continue);
+    QTimer::singleShot(1000, buildJob.data(), SLOT(cancel()));
     QVERIFY(waitForFinished(buildJob.data(), 3000));
 }
 
