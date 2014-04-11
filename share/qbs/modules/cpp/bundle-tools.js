@@ -1,5 +1,7 @@
 // NOTE: QBS and Xcode's "target" and "product" names are reversed
 
+var PropertyList = loadExtension("qbs.PropertyList");
+
 function isBundleProduct(product)
 {
     return product.type.contains("applicationbundle")

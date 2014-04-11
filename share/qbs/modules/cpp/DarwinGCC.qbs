@@ -6,6 +6,7 @@ import qbs.TextFile
 import qbs.ModUtils
 import "bundle-tools.js" as BundleTools
 import "darwin-tools.js" as DarwinTools
+import 'path-tools.js' as PathTools
 
 UnixGCC {
     condition: false

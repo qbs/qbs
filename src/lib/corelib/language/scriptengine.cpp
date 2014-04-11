@@ -34,6 +34,7 @@
 #include "propertymapinternal.h"
 #include "scriptpropertyobserver.h"
 #include <buildgraph/artifact.h>
+#include <jsextensions/jsextensions.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
@@ -316,6 +317,18 @@ static QScriptValue mergeExtensionObjects(const QScriptValueList &lst)
     return result;
 }
 
+static QScriptValue loadInternalExtension(QScriptContext *context, ScriptEngine *engine,
+        const QString &uri)
+{
+    const QString name = uri.mid(4);  // remove the "qbs." part
+    QScriptValue extensionObj = JsExtensions::loadExtension(engine, name);
+    if (!extensionObj.isValid()) {
+        return context->throwError(ScriptEngine::tr("loadExtension: "
+                                                    "cannot load extension '%1'.").arg(uri));
+    }
+    return extensionObj;
+}
+
 QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngine *qtengine)
 {
     ScriptEngine *engine = static_cast<ScriptEngine *>(qtengine);
@@ -337,10 +350,17 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
 
     QString uriAsPath = uri;
     uriAsPath.replace(QLatin1Char('.'), QLatin1Char('/'));
-    const QString dirPath = findExtensionDir(engine->m_extensionSearchPathsStack.top(), uriAsPath);
-    if (dirPath.isEmpty())
+    const QStringList searchPaths = engine->m_extensionSearchPathsStack.top();
+    const QString dirPath = findExtensionDir(searchPaths, uriAsPath);
+    if (dirPath.isEmpty()) {
+        if (uri.startsWith(QLatin1String("qbs.")))
+            return loadInternalExtension(context, engine, uri);
+
         return context->throwError(
-                    ScriptEngine::tr("loadExtension: Cannot find extension '%1'.").arg(uri));
+                    ScriptEngine::tr("loadExtension: Cannot find extension '%1'. "
+                                     "Search paths: %2.").arg(uri, searchPaths.join(
+                                                                  QLatin1String(", "))));
+    }
 
     QDirIterator dit(dirPath, QDir::Files | QDir::Readable);
     QScriptValueList values;

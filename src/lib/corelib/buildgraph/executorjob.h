@@ -73,13 +73,15 @@ private slots:
     void onCommandFinished();
 
 private:
-    void setInactive();
+    void setFinished();
+    void reset();
 
     AbstractCommandExecutor *m_currentCommandExecutor;
     ProcessCommandExecutor *m_processCommandExecutor;
     JsCommandExecutor *m_jsCommandExecutor;
     Transformer *m_transformer;
     int m_currentCommandIdx;
+    ErrorInfo m_error;
 };
 
 } // namespace Internal

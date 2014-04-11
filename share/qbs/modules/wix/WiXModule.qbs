@@ -361,7 +361,8 @@ Module {
 
             if (product.type.contains("msi")) {
                 var cultures = ModUtils.moduleProperty(product, "cultures");
-                args.push("-cultures:" + (cultures ? cultures.join(";") : "null"));
+                args.push("-cultures:"
+                    + (cultures && cultures.length > 0 ? cultures.join(";") : "null"));
             }
 
             // User-supplied flags
@@ -375,7 +376,7 @@ Module {
             }
 
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-            cmd.description = "linking " + FileInfo.fileName(input.filePath);
+            cmd.description = "linking " + FileInfo.fileName(primaryOutput.filePath);
             cmd.highlight = "linker";
             cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
             return cmd;

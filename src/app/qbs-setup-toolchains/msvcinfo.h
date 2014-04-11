@@ -30,6 +30,8 @@
 #ifndef QBS_MSVCINFO_H
 #define QBS_MSVCINFO_H
 
+#include <QHash>
+#include <QProcessEnvironment>
 #include <QStringList>
 
 class MSVC
@@ -38,6 +40,9 @@ public:
     QString version;
     QString installPath;
     QStringList architectures;
+
+    typedef QHash<QString, QProcessEnvironment> EnvironmentPerArch;
+    EnvironmentPerArch environments;
 };
 
 class WinSDK : public MSVC

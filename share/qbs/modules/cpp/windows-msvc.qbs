@@ -20,7 +20,7 @@ CppModule {
 
     property bool generateManifestFiles: true
     property path toolchainInstallPath
-    property path windowsSDKPath
+    property path windowsSDKPath        // ### remove in 1.3
     architecture: qbs.architecture
     staticLibraryPrefix: ""
     dynamicLibraryPrefix: ""
@@ -29,45 +29,6 @@ CppModule {
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     property string dynamicLibraryImportSuffix: ".lib"
-
-    setupBuildEnvironment: {
-        var vcDir = toolchainInstallPath.replace(/[\\/]bin$/i, "");
-        var vcRootDir = vcDir.replace(/[\\/]VC$/i, "");
-
-        var v = new ModUtils.EnvironmentVariable("INCLUDE", ";", true)
-        v.prepend(vcDir + "/ATLMFC/INCLUDE")
-        v.prepend(vcDir + "/INCLUDE")
-        v.prepend(windowsSDKPath + "/include")
-        v.set()
-
-        if (architecture == 'x86') {
-            v = new ModUtils.EnvironmentVariable("PATH", ";", true)
-            v.prepend(windowsSDKPath + "/bin")
-            v.prepend(vcRootDir + "/Common7/IDE")
-            v.prepend(vcDir + "/bin")
-            v.prepend(vcRootDir + "/Common7/Tools")
-            v.set()
-
-            v = new ModUtils.EnvironmentVariable("LIB", ";", true)
-            v.prepend(vcDir + "/ATLMFC/LIB")
-            v.prepend(vcDir + "/LIB")
-            v.prepend(windowsSDKPath + "/lib")
-            v.set()
-        } else if (architecture == 'x86_64') {
-            v = new ModUtils.EnvironmentVariable("PATH", ";", true)
-            v.prepend(windowsSDKPath + "/bin/x64")
-            v.prepend(vcRootDir + "/Common7/IDE")
-            v.prepend(vcDir + "/bin/amd64")
-            v.prepend(vcRootDir + "/Common7/Tools")
-            v.set()
-
-            v = new ModUtils.EnvironmentVariable("LIB", ";", true)
-            v.prepend(vcDir + "/ATLMFC/LIB/amd64")
-            v.prepend(vcDir + "/LIB/amd64")
-            v.prepend(windowsSDKPath + "/lib/x64")
-            v.set()
-        }
-    }
 
     Transformer {
         condition: cPrecompiledHeader !== undefined

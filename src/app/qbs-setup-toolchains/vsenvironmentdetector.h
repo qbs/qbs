@@ -27,45 +27,32 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_TST_API_H
-#define QBS_TST_API_H
+#ifndef QBS_VSENVIRONMENTDETECTOR_H
+#define QBS_VSENVIRONMENTDETECTOR_H
 
-#include <QObject>
+#include <QStringList>
 
-namespace qbs { class SetupProjectParameters; }
+QT_BEGIN_NAMESPACE
+class QIODevice;
+QT_END_NAMESPACE
 
-class LogSink;
+class MSVC;
 
-class TestApi : public QObject
+class VsEnvironmentDetector
 {
-    Q_OBJECT
-
 public:
-    TestApi();
-    ~TestApi();
+    VsEnvironmentDetector(MSVC *msvc);
 
-private slots:
-    void initTestCase();
-
-    void buildSingleFile();
-    void changeContent();
-    void disabledInstallGroup();
-    void fileTagsFilterOverride();
-    void infiniteLoop();
-    void infiniteLoop_data();
-    void installableFiles();
-    void listBuildSystemFiles();
-    void nonexistingProjectPropertyFromProduct();
-    void nonexistingProjectPropertyFromCommandLine();
-    void references();
-    void sourceFileInBuildDir();
+    bool start();
+    QString errorString() const { return m_errorString; }
 
 private:
-    qbs::SetupProjectParameters defaultSetupParameters() const;
+    void writeBatchFile(QIODevice *device, const QString &vcvarsallbat) const;
+    void parseBatOutput(const QByteArray &output);
 
-    LogSink * const m_logSink;
-    const QString m_sourceDataDir;
-    const QString m_workingDataDir;
+    MSVC *m_msvc;
+    const QString m_windowsSystemDirPath;
+    QString m_errorString;
 };
 
-#endif // Include guard.
+#endif // QBS_VSENVIRONMENTDETECTOR_H

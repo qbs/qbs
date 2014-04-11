@@ -8,6 +8,7 @@ HEADERS += \
     msvcinfo.h \
     msvcprobe.h \
     probe.h \
+    vsenvironmentdetector.h \
     xcodeprobe.h
 
 SOURCES += \
@@ -15,6 +16,7 @@ SOURCES += \
     main.cpp \
     msvcprobe.cpp \
     probe.cpp \
+    vsenvironmentdetector.cpp \
     xcodeprobe.cpp
 
 mingw {

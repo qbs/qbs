@@ -168,6 +168,7 @@ private slots:
     void testAssembly();
     void testNsis();
     void testEmbedInfoPlist();
+    void testWiX();
 
 private:
     QByteArray m_qbsStderr;

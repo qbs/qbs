@@ -1921,4 +1921,63 @@ void TestBlackbox::testEmbedInfoPlist()
     QVERIFY(runQbs(params) != 0);
 }
 
+static bool haveWiX()
+{
+    QStringList regKeys;
+    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
+            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
+
+    const QStringList versions = QStringList() << "4.0" << "3.9" << "3.8" << "3.7"
+                                               << "3.6" << "3.5" << "3.0" << "2.0";
+
+    QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    foreach (const QString &version, versions) {
+        foreach (const QString &key, regKeys) {
+            QSettings settings(key + version, QSettings::NativeFormat);
+            QString str = settings.value(QLatin1String("InstallRoot")).toString();
+            if (!str.isEmpty())
+                paths.prepend(str);
+        }
+    }
+
+    foreach (const QString &path, paths) {
+        if (QFile::exists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QLatin1String("/candle"))) &&
+            QFile::exists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QLatin1String("/light")))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void TestBlackbox::testWiX()
+{
+    if (!HostOsInfo::isWindowsHost()) {
+        SKIP_TEST("only applies on Windows");
+        return;
+    }
+
+    if (!haveWiX()) {
+        SKIP_TEST("WiX is not installed");
+        return;
+    }
+
+    SettingsPtr settings = qbsSettings(QString());
+    Profile profile(buildProfileName, settings.data());
+    const QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+
+    QDir::setCurrent(testDataDir + "/wix");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling QbsSetup.wxs"));
+    QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
+    QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
+    QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
+    QVERIFY(QFile::exists(buildDir + "/qbs-" + arch + ".msi"));
+    QVERIFY(QFile::exists(buildDir + "/qbs-setup-" + arch + ".exe"));
+}
+
 QTEST_MAIN(TestBlackbox)

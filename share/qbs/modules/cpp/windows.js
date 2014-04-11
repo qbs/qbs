@@ -9,7 +9,7 @@ function characterSetDefines(charset) {
 
 function isValidWindowsVersion(systemVersion) {
     // Add new Windows versions to this list when they are released
-    var realVersions = [ '6.2', '6.1', '6.0', '5.2', '5.1', '5.0', '4.0' ];
+    var realVersions = [ '6.3', '6.2', '6.1', '6.0', '5.2', '5.1', '5.0', '4.0' ];
     for (i in realVersions)
         if (systemVersion === realVersions[i])
             return true;

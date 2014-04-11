@@ -31,6 +31,7 @@
 
 #include "msvcinfo.h"
 #include "probe.h"
+#include "vsenvironmentdetector.h"
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
@@ -52,9 +53,14 @@ Q_DECLARE_TYPEINFO(WinSDK, Q_MOVABLE_TYPE);
 Q_DECLARE_TYPEINFO(MSVC, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
+static void writeEnvironment(Profile &p, const QProcessEnvironment &env)
+{
+    foreach (const QString &name, env.keys())
+        p.setValue(QLatin1String("buildEnvironment.") + name, env.value(name));
+}
+
 static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile> &profiles,
-        QString name, const QString &installPath, const QString &winSDKPath,
-        const QString &architecture)
+        QString name, const QString &installPath, const QString &architecture)
 {
     name.append(QLatin1Char('_') + architecture);
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
@@ -63,7 +69,6 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
     p.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), installPath);
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
-    p.setValue(QLatin1String("cpp.windowsSDKPath"), winSDKPath);
     p.setValue(QLatin1String("qbs.architecture"),
                Internal::HostOsInfo::canonicalArchitecture(architecture));
     p.setValue(QLatin1String("qbs.endianness"),
@@ -73,6 +78,7 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
         p.setValue(QLatin1String("cpp.platformCFlags"), flags);
         p.setValue(QLatin1String("cpp.platformCxxFlags"), flags);
     }
+    writeEnvironment(p, msvc.environments.value(architecture));
     profiles << p;
 }
 
@@ -179,6 +185,14 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
         if (!QFileInfo(vcvars32bat).isFile())
             continue;
 
+        VsEnvironmentDetector envdetector(&msvc);
+        if (!envdetector.start()) {
+            qbsError() << "  "
+                       << Tr::tr("Detecting the build environment from '%1' failed.").arg(
+                              vcvars32bat);
+            continue;
+        }
+
         msvcs += msvc;
     }
 
@@ -197,14 +211,14 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     foreach (const WinSDK &sdk, winSDKs) {
         foreach (const QString &arch, sdk.architectures) {
             addMSVCPlatform(sdk, settings, profiles, QLatin1String("WinSDK") + sdk.version,
-                    sdk.installPath + QLatin1String("\\bin"), defaultWinSDK.installPath, arch);
+                    sdk.installPath + QLatin1String("\\bin"), arch);
         }
     }
 
     foreach (const MSVC &msvc, msvcs) {
         foreach (const QString &arch, msvc.architectures) {
             addMSVCPlatform(msvc, settings, profiles, QLatin1String("MSVC") + msvc.version,
-                    msvc.installPath, defaultWinSDK.installPath, arch);
+                    msvc.installPath, arch);
         }
     }
 }

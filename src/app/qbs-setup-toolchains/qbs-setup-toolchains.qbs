@@ -13,6 +13,8 @@ QbsApp {
         "msvcprobe.h",
         "probe.cpp",
         "probe.h",
+        "vsenvironmentdetector.cpp",
+        "vsenvironmentdetector.h",
         "xcodeprobe.cpp",
         "xcodeprobe.h"
     ]
