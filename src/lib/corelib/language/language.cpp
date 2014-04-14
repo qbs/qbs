@@ -575,11 +575,6 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
 
     const QScriptValue getEnvValue = engine->newFunction(js_getEnv, 1);
     const QScriptValue putEnvValue = engine->newFunction(js_putEnv, 1);
-
-    // TODO: Remove in 1.3
-    scope.setProperty(QLatin1String("getenv"), getEnvValue);
-    scope.setProperty(QLatin1String("putenv"), putEnvValue);
-
     scope.setProperty(QLatin1String("getEnv"), getEnvValue);
     scope.setProperty(QLatin1String("putEnv"), putEnvValue);
 
