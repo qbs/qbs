@@ -1,5 +1,6 @@
+#include <QThread>
+
 int main()
 {
-    while (true)
-        ;
+    QThread::sleep(60);
 }
