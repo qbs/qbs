@@ -71,7 +71,7 @@ static void invalidateArtifactTimestamp(Artifact *artifact)
 static void removeArtifactFromDisk(Artifact *artifact, bool dryRun, const Logger &logger)
 {
     QFileInfo fileInfo(artifact->filePath());
-    if (!fileInfo.exists()) {
+    if (!FileInfo::fileExists(fileInfo)) {
         if (!dryRun)
             invalidateArtifactTimestamp(artifact);
         return;

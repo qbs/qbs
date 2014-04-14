@@ -68,6 +68,9 @@ public:
     static bool globMatches(const QRegExp &pattern, const QString &subject);
     static bool isFileCaseCorrect(const QString &filePath);
 
+    // Symlink-correct check.
+    static bool fileExists(const QFileInfo &fi);
+
 private:
 #if defined(Q_OS_WIN)
     struct InternalStatType
