@@ -1,6 +1,12 @@
 #include <QThread>
 
+class MyThread : public QThread
+{
+public:
+    static void mySleep(unsigned long secs) { sleep(secs); } // sleep() is protected in Qt 4.
+};
+
 int main()
 {
-    QThread::sleep(60);
+    MyThread::mySleep(60);
 }
