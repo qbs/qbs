@@ -123,7 +123,7 @@
             \li stringList
             \li project.qbsSearchPaths
             \li See the documentation of the \l {Project Item} property of the same name.
-                Setting this property here will overwrite the default value inherited from
+                Setting this property here will override the default value inherited from
                 the project, so use the \c concat() function if you want to add something.
         \row
             \li version

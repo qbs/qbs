@@ -60,7 +60,7 @@
              name: "Files to install"
              qbs.install: true
              qbs.installDir: "share"
-             files "runtime_resource.txt"
+             files: "runtime_resource.txt"
          }
      }
      \endcode
@@ -129,10 +129,11 @@
         \li overrideTags
         \li bool
         \li true
-        \li If the same file appears in the files list of both the top level of a product and
-            a group and this property is true, then the file tags set via the group
-            replace the ones set via the product. If it is false, the "group tags" are added to
-            the "product tags".
+        \li Determines how tags on files that are listed both at the top level of
+            a product and a group are handled.
+            If this property is true, then the file tags set via the group
+            replace the ones set via the product.
+            If it is false, the "group tags" are added to the "product tags".
     \row
         \li excludeFiles
         \li list

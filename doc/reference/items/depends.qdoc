@@ -35,7 +35,7 @@
     \ingroup list-of-items
 
     \title Depends Item
-    \brief Represents dependencies between between products and modules.
+    \brief Represents dependencies between products and modules.
 
     A \c Depends item can appear inside a \l{Product Item} or \l{Module Item}.
 
