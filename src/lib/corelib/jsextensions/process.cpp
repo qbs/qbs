@@ -29,6 +29,7 @@
 
 #include "process.h"
 
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
@@ -63,9 +64,14 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
 
     // Get environment
     QVariant v = engine->property("_qbs_procenv");
-    if (!v.isNull())
+    if (v.isNull()) {
+        // The build environment is not initialized yet.
+        // This can happen if one uses Process on the RHS of a binding like Group.name.
+        t->m_environment = static_cast<ScriptEngine *>(engine)->environment();
+    } else {
         t->m_environment
             = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
+    }
 
     return obj;
 }
