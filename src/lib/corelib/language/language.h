@@ -208,6 +208,8 @@ class ScriptFunction : public PersistentObject
 public:
     static ScriptFunctionPtr create() { return ScriptFunctionPtr(new ScriptFunction); }
 
+    ~ScriptFunction();
+
     QString sourceCode;
     QStringList argumentNames;
     CodeLocation location;
@@ -217,7 +219,7 @@ public:
     bool isValid() const;
 
 private:
-    ScriptFunction() {}
+    ScriptFunction();
 
     void load(PersistentPool &);
     void store(PersistentPool &) const;

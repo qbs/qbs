@@ -239,6 +239,16 @@ void RuleArtifact::store(PersistentPool &pool) const
  * \sa ResolvedTransformer
  */
 
+ScriptFunction::ScriptFunction()
+{
+
+}
+
+ScriptFunction::~ScriptFunction()
+{
+
+}
+
  /*!
   * \variable ScriptFunction::script
   * \brief The actual Javascript code, taken verbatim from the qbs source file.

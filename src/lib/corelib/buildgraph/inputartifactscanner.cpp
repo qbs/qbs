@@ -364,5 +364,13 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     }
 }
 
+InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheItem() : valid(false)
+{
+}
+
+InputArtifactScannerContext::DependencyScannerCacheItem::~DependencyScannerCacheItem()
+{
+}
+
 } // namespace Internal
 } // namespace qbs
