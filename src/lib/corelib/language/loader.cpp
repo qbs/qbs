@@ -40,6 +40,7 @@
 #include <tools/setupprojectparameters.h>
 
 #include <QDir>
+#include <QTimer>
 
 namespace qbs {
 namespace Internal {
@@ -105,6 +106,8 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
                     .toMap()));
     m_engine->clearExceptions();
 
+    QTimer cancelationTimer;
+
     // At this point, we cannot set a sensible total effort, because we know nothing about
     // the project yet. That's why we use a placeholder here, so the user at least
     // sees that an operation is starting. The real total effort will be set later when
@@ -112,6 +115,9 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     if (m_progressObserver) {
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
                 .arg(TopLevelProject::deriveId(parameters.buildConfigurationTree())), 1);
+        cancelationTimer.setSingleShot(false);
+        QObject::connect(&cancelationTimer, SIGNAL(timeout()), SLOT(checkForCancelation()));
+        cancelationTimer.start(1000);
     }
 
     ModuleLoaderResult loadResult
@@ -126,6 +132,13 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
         m_progressObserver->setFinished();
 
     return project;
+}
+
+void Loader::checkForCancelation()
+{
+    QBS_ASSERT(m_progressObserver, return);
+    if (m_progressObserver->canceled())
+        m_engine->cancel();
 }
 
 } // namespace Internal

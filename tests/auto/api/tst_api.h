@@ -51,8 +51,9 @@ private slots:
     void changeContent();
     void disabledInstallGroup();
     void fileTagsFilterOverride();
-    void infiniteLoop();
-    void infiniteLoop_data();
+    void infiniteLoopBuilding();
+    void infiniteLoopBuilding_data();
+    void infiniteLoopResolving();
     void installableFiles();
     void listBuildSystemFiles();
     void nonexistingProjectPropertyFromProduct();

@@ -877,8 +877,10 @@ void Executor::finish()
 void Executor::checkForCancellation()
 {
     QBS_ASSERT(m_progressObserver, return);
-    if (m_state == ExecutorRunning && m_progressObserver->canceled())
+    if (m_state == ExecutorRunning && m_progressObserver->canceled()) {
         cancelJobs();
+        m_evalContext->engine()->cancel();
+    }
 }
 
 bool Executor::visit(Artifact *artifact)

@@ -118,10 +118,8 @@ public slots:
 private:
     ScriptEngine *provideScriptEngine()
     {
-        if (!m_scriptEngine) {
+        if (!m_scriptEngine)
             m_scriptEngine = new ScriptEngine(m_logger, this);
-            m_scriptEngine->setProcessEventsInterval(1000); // So long-running code can be aborted.
-        }
         return m_scriptEngine;
     }
 

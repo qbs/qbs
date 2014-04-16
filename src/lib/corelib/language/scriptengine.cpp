@@ -79,6 +79,8 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     : QScriptEngine(parent), m_logger(logger)
 {
+    setProcessEventsInterval(1000); // For the cancelation mechanism to work.
+    m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
     QScriptValue objectProto = globalObject().property(QLatin1String("Object"));
     m_definePropertyFunction = objectProto.property(QLatin1String("defineProperty"));
     QBS_ASSERT(m_definePropertyFunction.isFunction(), /* ignore */);
@@ -455,6 +457,16 @@ QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,
     for (int i = 0; i < argumentNames.count(); ++i)
         result += context.property(argumentNames.at(i));
     return result;
+}
+
+void ScriptEngine::cancel()
+{
+    QMetaObject::invokeMethod(this, "abort", Qt::QueuedConnection);
+}
+
+void ScriptEngine::abort()
+{
+    abortEvaluation(m_cancelationError);
 }
 
 class JSTypeExtender

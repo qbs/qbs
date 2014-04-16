@@ -116,7 +116,11 @@ public:
         return v.isError() || hasUncaughtException();
     }
 
+    void cancel();
+
 private:
+    Q_INVOKABLE void abort();
+
     void extendJavaScriptBuiltins();
     void installFunction(const QString &name, QScriptValue *functionValue, FunctionSignature f);
     void installImportFunctions();
@@ -161,6 +165,7 @@ private:
     QStack<QStringList> m_extensionSearchPathsStack;
     QScriptValue m_loadFileFunction;
     QScriptValue m_loadExtensionFunction;
+    QScriptValue m_cancelationError;
 };
 
 } // namespace Internal

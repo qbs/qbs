@@ -32,6 +32,7 @@
 #include "forward_decls.h"
 #include <logging/logger.h>
 
+#include <QObject>
 #include <QStringList>
 
 namespace qbs {
@@ -45,8 +46,9 @@ class ProgressObserver;
 class ScriptEngine;
 class ProjectResolver;
 
-class Loader
+class Loader : public QObject
 {
+    Q_OBJECT
 public:
     Loader(ScriptEngine *engine, const Logger &logger);
     ~Loader();
@@ -54,6 +56,9 @@ public:
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
+
+private slots:
+    void checkForCancelation();
 
 private:
     Logger m_logger;
