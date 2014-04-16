@@ -1,8 +1,9 @@
 #!/bin/sh
 
-test $# -eq 1 || { echo "Error: Tag required." >&2; exit 1; }
+test $# -eq 2 || { echo "Usage: $(basename $0) <archive format> <tag>" >&2; exit 1; }
 
-tag=${1}
+format=${1}
+tag=${2}
 version=${tag#v}
 
-git archive --format=tar.gz --prefix=qbs-${version}/ -o qbs-${version}.src.tar.gz ${tag}
+git archive --format=${format} --prefix=qbs-${version}/ -o qbs-${version}.src.${format} ${tag}
