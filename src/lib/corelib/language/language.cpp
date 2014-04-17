@@ -773,6 +773,17 @@ ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
     return result;
 }
 
+ArtifactSet ResolvedProduct::targetArtifacts() const
+{
+    QBS_CHECK(buildData);
+    ArtifactSet taSet;
+    foreach (Artifact * const a, buildData->rootArtifacts()) {
+        if (a->fileTags.matches(fileTags))
+            taSet << a;
+    }
+    return taSet;
+}
+
 TopLevelProject *ResolvedProduct::topLevelProject() const
 {
      return project->topLevelProject();

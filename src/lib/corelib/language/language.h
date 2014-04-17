@@ -392,6 +392,7 @@ public:
     const ArtifactSet removedArtifactsByFileTag(const FileTag &tag) const;
     bool isMarkedForReapplication(const RuleConstPtr &rule) const;
     ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
+    ArtifactSet targetArtifacts() const;
 
     TopLevelProject *topLevelProject() const;
 

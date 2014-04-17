@@ -49,7 +49,7 @@ class ProductBuildData : public PersistentObject
 public:
     ~ProductBuildData();
 
-    ArtifactSet targetArtifacts() const;
+    ArtifactSet rootArtifacts() const;
     NodeSet nodes;
     NodeSet roots;
 

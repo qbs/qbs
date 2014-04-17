@@ -600,7 +600,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             product.d->groups << createGroupDataFromGroup(resolvedGroup);
         if (resolvedProduct->enabled) {
             QBS_CHECK(resolvedProduct->buildData);
-            foreach (const Artifact * const a, resolvedProduct->buildData->targetArtifacts()) {
+            foreach (const Artifact * const a, resolvedProduct->targetArtifacts()) {
                 TargetArtifact ta;
                 ta.d->filePath = a->filePath();
                 ta.d->fileTags = a->fileTags.toStringList();

@@ -156,7 +156,7 @@ void RulesApplicator::doApply(ArtifactSet inputArtifacts, QScriptValue &prepareS
         foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
             QBS_CHECK(dep->buildData);
             ArtifactSet artifactsToCheck;
-            foreach (Artifact *targetArtifact, dep->buildData->targetArtifacts())
+            foreach (Artifact *targetArtifact, dep->targetArtifacts())
                 artifactsToCheck.unite(targetArtifact->transformer->outputs);
             foreach (Artifact *artifact, artifactsToCheck) {
                 if (artifact->fileTags.matches(usingsFileTags))

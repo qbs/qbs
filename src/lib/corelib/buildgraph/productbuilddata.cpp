@@ -45,7 +45,7 @@ ProductBuildData::~ProductBuildData()
     qDeleteAll(nodes);
 }
 
-ArtifactSet ProductBuildData::targetArtifacts() const
+ArtifactSet ProductBuildData::rootArtifacts() const
 {
     return ArtifactSet::fromNodeSet(roots);
 }
