@@ -63,7 +63,7 @@ private:
     void runGit(const QStringList &arguments, QString *output = 0);
     bool runQbs(const QString &buildDir, const QString &command, QString *errorOutput = 0);
     void removeDir(const QString &dir);
-    bool doCleanBuild();
+    bool doCleanBuild(QString *errorMessage = 0);
     void throwIncrementalBuildError(const QString &message, const QStringList &commitSequence);
 
     static QString defaultBuildDir();

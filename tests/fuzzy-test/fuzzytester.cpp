@@ -78,9 +78,10 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
             if (success)
                 success = runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError);
             if (success) {
-                if (!doCleanBuild()) {
+                if (!doCleanBuild(&qbsError)) {
                     const QString message = QString::fromLocal8Bit("An incremental build succeeded "
-                            "with a commit for which a clean build failed.");
+                            "with a commit for which a clean build failed.\n"
+                            "The qbs error message for the clean build was: '%1'").arg(qbsError);
                     throwIncrementalBuildError(message, buildSequence);
                 }
             } else {
@@ -88,7 +89,8 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit)
                 if (doCleanBuild()) {
                     const QString message = QString::fromLocal8Bit("An incremental build failed "
                             "with a commit for which a clean build succeeded.\n"
-                            "The qbs error message was: '%1'").arg(qbsError);
+                            "The qbs error message for the incremental build was: '%1'")
+                            .arg(qbsError);
                     throwIncrementalBuildError(message, buildSequence);
                 } else {
                     qDebug("Clean build also fails. Continuing.");
@@ -169,11 +171,11 @@ void FuzzyTester::removeDir(const QString &dirPath)
     }
 }
 
-bool FuzzyTester::doCleanBuild()
+bool FuzzyTester::doCleanBuild(QString *errorMessage)
 {
     const QString cleanBuildDir = "fuzzytest-verification-build";
     removeDir(cleanBuildDir);
-    return runQbs(cleanBuildDir, QLatin1String("build"));
+    return runQbs(cleanBuildDir, QLatin1String("build"), errorMessage);
 }
 
 void FuzzyTester::throwIncrementalBuildError(const QString &message,
