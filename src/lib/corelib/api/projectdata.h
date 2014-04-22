@@ -176,6 +176,7 @@ public:
     QList<TargetArtifact> targetArtifacts() const;
     QList<GroupData> groups() const;
     bool isEnabled() const;
+    bool isRunnable() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ProductDataPrivate> d;

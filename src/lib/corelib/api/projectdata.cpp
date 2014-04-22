@@ -414,6 +414,12 @@ bool ProductData::isEnabled() const
     return d->isEnabled;
 }
 
+bool ProductData::isRunnable() const
+{
+    QBS_ASSERT(isValid(), return false);
+    return d->isRunnable;
+}
+
 bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() == rhs.name()

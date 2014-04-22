@@ -84,6 +84,7 @@ public:
     QList<GroupData> groups;
     QList<TargetArtifact> targetArtifacts;
     bool isEnabled;
+    bool isRunnable;
     bool isValid;
 };
 

@@ -585,6 +585,14 @@ void ProjectPrivate::prepareChangeToProject()
         retrieveProjectData(m_projectData, internalProject);
 }
 
+static bool productIsRunnable(const ResolvedProductConstPtr &product)
+{
+    return product->fileTags.contains("application") ||
+            (product->fileTags.contains("application_bundle") &&
+             product->moduleProperties->qbsPropertyValue(QLatin1String("targetOS"))
+             .toStringList().contains(QLatin1String("darwin")));
+}
+
 void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                                          const ResolvedProjectConstPtr &internalProject)
 {
@@ -596,6 +604,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->name = resolvedProduct->name;
         product.d->location = resolvedProduct->location;
         product.d->isEnabled = resolvedProduct->enabled;
+        product.d->isRunnable = productIsRunnable(resolvedProduct);
         foreach (const GroupPtr &resolvedGroup, resolvedProduct->groups)
             product.d->groups << createGroupDataFromGroup(resolvedGroup);
         if (resolvedProduct->enabled) {

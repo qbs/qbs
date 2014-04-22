@@ -504,6 +504,27 @@ void TestApi::installableFiles()
     QCOMPARE(installableFiles.last().targetFilePath(), QLatin1String("/tmp/dir/file2.txt"));
 }
 
+void TestApi::isRunnable()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
+        "/is-runnable/project.qbs")));
+    QScopedPointer<qbs::SetupProjectJob> job(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::Project project = job->project();
+    const QList<qbs::ProductData> products = project.projectData().products();
+    QCOMPARE(products.count(), 2);
+    foreach (const qbs::ProductData &p, products) {
+        QVERIFY2(p.name() == "app" || p.name() == "lib", qPrintable(p.name()));
+        if (p.name() == "app")
+            QVERIFY(p.isRunnable());
+        else
+            QVERIFY(!p.isRunnable());
+    }
+}
+
 void TestApi::listBuildSystemFiles()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();

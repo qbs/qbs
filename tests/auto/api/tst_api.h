@@ -54,6 +54,7 @@ private slots:
     void infiniteLoop();
     void infiniteLoop_data();
     void installableFiles();
+    void isRunnable();
     void listBuildSystemFiles();
     void nonexistingProjectPropertyFromProduct();
     void nonexistingProjectPropertyFromCommandLine();
