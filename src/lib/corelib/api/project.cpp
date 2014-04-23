@@ -587,9 +587,9 @@ void ProjectPrivate::prepareChangeToProject()
 
 static bool productIsRunnable(const ResolvedProductConstPtr &product)
 {
-    return product->fileTags.contains("application") ||
-            (product->fileTags.contains("application_bundle") &&
-             product->moduleProperties->qbsPropertyValue(QLatin1String("targetOS"))
+    return product->fileTags.contains("application")
+        || (product->fileTags.contains("applicationbundle")
+            && product->moduleProperties->qbsPropertyValue(QLatin1String("targetOS"))
              .toStringList().contains(QLatin1String("darwin")));
 }
 
