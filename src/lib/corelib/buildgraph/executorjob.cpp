@@ -96,7 +96,8 @@ void ExecutorJob::run(Transformer *t)
 
 void ExecutorJob::cancel()
 {
-    QBS_ASSERT(m_currentCommandExecutor, return);
+    if (!m_currentCommandExecutor)
+        return;
     m_error = ErrorInfo(tr("Transformer execution canceled."));
     m_currentCommandExecutor->cancel();
 }
