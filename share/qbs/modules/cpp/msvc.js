@@ -1,3 +1,5 @@
+var Windows = loadFile("windows.js");
+
 function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
 {
     var i;
