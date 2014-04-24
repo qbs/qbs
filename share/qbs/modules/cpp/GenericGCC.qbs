@@ -5,6 +5,7 @@ import qbs.ModUtils
 import qbs.PathTools
 import qbs.Process
 import qbs.UnixUtils
+import qbs.WindowsUtils
 import 'gcc.js' as Gcc
 
 CppModule {
@@ -301,7 +302,7 @@ CppModule {
 
                 var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
                 if (minimumWindowsVersion) {
-                    var subsystemVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
+                    var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
                     if (subsystemVersion) {
                         var major = subsystemVersion.split('.')[0];
                         var minor = subsystemVersion.split('.')[1];

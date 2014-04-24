@@ -44,7 +44,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     if (minimumWindowsVersion) {
-        var hexVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
+        var hexVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
             for (i in versionDefs) {
@@ -143,7 +143,8 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
     }
 
     if (minimumWindowsVersion) {
-        var subsystemVersion = Windows.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
+        var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion,
+                                                                      'subsystem');
         if (subsystemVersion) {
             subsystemSwitch += ',' + subsystemVersion;
             args.push('/OSVERSION:' + subsystemVersion);
