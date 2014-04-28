@@ -31,6 +31,7 @@
 #define QBS_ABSTRACTCOMMANDEXECUTOR_H
 
 #include <logging/logger.h>
+#include <tools/error.h>
 
 #include <QObject>
 
@@ -51,15 +52,14 @@ public:
     void setMainThreadScriptEngine(ScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
     void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
 
-    virtual void waitForFinished() = 0;
+    virtual void cancel() = 0;
 
 public slots:
     void start(Transformer *transformer, const AbstractCommand *cmd);
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
-    void error(const qbs::ErrorInfo &err);
-    void finished();
+    void finished(const qbs::ErrorInfo &err = ErrorInfo()); // !hasError() <=> command successful
 
 protected:
     const AbstractCommand *command() const { return m_command; }

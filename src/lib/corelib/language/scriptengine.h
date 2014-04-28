@@ -37,7 +37,6 @@
 #include <tools/filetime.h>
 
 #include <QHash>
-#include <QPair>
 #include <QProcessEnvironment>
 #include <QScriptEngine>
 #include <QStack>
@@ -77,9 +76,9 @@ public:
     }
 
     void addToPropertyCache(const QString &moduleName, const QString &propertyName,
-        const PropertyMapConstPtr &propertyMap, const QVariant &value);
+            bool oneValue, const PropertyMapConstPtr &propertyMap, const QVariant &value);
     QVariant retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
-            const PropertyMapConstPtr &propertyMap);
+            bool oneValue, const PropertyMapConstPtr &propertyMap);
 
     void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
     void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value,
@@ -117,7 +116,11 @@ public:
         return v.isError() || hasUncaughtException();
     }
 
+    void cancel();
+
 private:
+    Q_INVOKABLE void abort();
+
     void extendJavaScriptBuiltins();
     void installFunction(const QString &name, QScriptValue *functionValue, FunctionSignature f);
     void installImportFunctions();
@@ -128,9 +131,27 @@ private:
     static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
     static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
 
+    class PropertyCacheKey
+    {
+    public:
+        PropertyCacheKey(const QString &moduleName, const QString &propertyName, bool oneValue,
+                         const PropertyMapConstPtr &propertyMap);
+    private:
+        const QString &m_moduleName;
+        const QString &m_propertyName;
+        const bool m_oneValue;
+        const PropertyMapConstPtr &m_propertyMap;
+
+        friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
+        friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
+    };
+
+    friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
+    friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
+
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
-    QHash<QPair<QString, PropertyMapConstPtr>, QVariant> m_propertyCache;
+    QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertyList m_propertiesRequestedInScript;
     QHash<QString, PropertyList> m_propertiesRequestedFromArtifact;
     Logger m_logger;
@@ -144,6 +165,7 @@ private:
     QStack<QStringList> m_extensionSearchPathsStack;
     QScriptValue m_loadFileFunction;
     QScriptValue m_loadExtensionFunction;
+    QScriptValue m_cancelationError;
 };
 
 } // namespace Internal

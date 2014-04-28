@@ -53,9 +53,34 @@ namespace Internal {
 
 const bool debugJSImports = false;
 
+bool operator==(const ScriptEngine::PropertyCacheKey &lhs,
+        const ScriptEngine::PropertyCacheKey &rhs)
+{
+    return lhs.m_oneValue == rhs.m_oneValue
+            && lhs.m_propertyMap == rhs.m_propertyMap
+            && lhs.m_moduleName == rhs.m_moduleName
+            && lhs.m_propertyName == rhs.m_propertyName;
+}
+
+static inline uint combineHash(uint h1, uint h2, uint seed)
+{
+    // stolen from qHash(QPair)
+    return ((h1 << 16) | (h1 >> 16)) ^ h2 ^ seed;
+}
+
+uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
+{
+    return combineHash(qHash(k.m_moduleName),
+                       combineHash(qHash(k.m_propertyName),
+                                   combineHash(qHash(k.m_oneValue), qHash(k.m_propertyMap),
+                                               seed), seed), seed);
+}
+
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     : QScriptEngine(parent), m_logger(logger)
 {
+    setProcessEventsInterval(1000); // For the cancelation mechanism to work.
+    m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
     QScriptValue objectProto = globalObject().property(QLatin1String("Object"));
     m_definePropertyFunction = objectProto.property(QLatin1String("defineProperty"));
     QBS_ASSERT(m_definePropertyFunction.isFunction(), /* ignore */);
@@ -125,17 +150,16 @@ void ScriptEngine::addPropertyRequestedFromArtifact(const Artifact *artifact,
 }
 
 void ScriptEngine::addToPropertyCache(const QString &moduleName, const QString &propertyName,
-        const PropertyMapConstPtr &propertyMap, const QVariant &value)
+        bool oneValue, const PropertyMapConstPtr &propertyMap, const QVariant &value)
 {
-    m_propertyCache.insert(qMakePair(moduleName + QLatin1Char('.') + propertyName, propertyMap),
+    m_propertyCache.insert(PropertyCacheKey(moduleName, propertyName, oneValue, propertyMap),
                            value);
 }
 
 QVariant ScriptEngine::retrieveFromPropertyCache(const QString &moduleName,
-        const QString &propertyName, const PropertyMapConstPtr &propertyMap)
+        const QString &propertyName, bool oneValue, const PropertyMapConstPtr &propertyMap)
 {
-    return m_propertyCache.value(qMakePair(moduleName + QLatin1Char('.') + propertyName,
-                                           propertyMap));
+    return m_propertyCache.value(PropertyCacheKey(moduleName, propertyName, oneValue, propertyMap));
 }
 
 void ScriptEngine::defineProperty(QScriptValue &object, const QString &name,
@@ -435,6 +459,16 @@ QScriptValueList ScriptEngine::argumentList(const QStringList &argumentNames,
     return result;
 }
 
+void ScriptEngine::cancel()
+{
+    QMetaObject::invokeMethod(this, "abort", Qt::QueuedConnection);
+}
+
+void ScriptEngine::abort()
+{
+    abortEvaluation(m_cancelationError);
+}
+
 class JSTypeExtender
 {
 public:
@@ -506,6 +540,13 @@ void ScriptEngine::uninstallImportFunctions()
 {
     globalObject().setProperty(QLatin1String("loadFile"), QScriptValue());
     globalObject().setProperty(QLatin1String("loadExtension"), QScriptValue());
+}
+
+ScriptEngine::PropertyCacheKey::PropertyCacheKey(const QString &moduleName,
+        const QString &propertyName, bool oneValue, const PropertyMapConstPtr &propertyMap)
+    : m_moduleName(moduleName), m_propertyName(propertyName), m_oneValue(oneValue),
+      m_propertyMap(propertyMap)
+{
 }
 
 } // namespace Internal

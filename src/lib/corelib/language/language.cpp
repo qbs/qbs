@@ -239,6 +239,16 @@ void RuleArtifact::store(PersistentPool &pool) const
  * \sa ResolvedTransformer
  */
 
+ScriptFunction::ScriptFunction()
+{
+
+}
+
+ScriptFunction::~ScriptFunction()
+{
+
+}
+
  /*!
   * \variable ScriptFunction::script
   * \brief The actual Javascript code, taken verbatim from the qbs source file.
@@ -756,6 +766,17 @@ ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
             result += a;
     }
     return result;
+}
+
+ArtifactSet ResolvedProduct::targetArtifacts() const
+{
+    QBS_CHECK(buildData);
+    ArtifactSet taSet;
+    foreach (Artifact * const a, buildData->rootArtifacts()) {
+        if (a->fileTags.matches(fileTags))
+            taSet << a;
+    }
+    return taSet;
 }
 
 TopLevelProject *ResolvedProduct::topLevelProject() const

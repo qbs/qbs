@@ -7,7 +7,7 @@ Project {
     property bool withExamples: true
     property string libDirName: "lib"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
-    property string libRPaths: {
+    property stringList libRPaths: {
         if (!project.enableRPath)
             return undefined;
         if (qbs.targetOS.contains("linux"))

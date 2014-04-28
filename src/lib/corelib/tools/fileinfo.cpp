@@ -225,6 +225,11 @@ bool FileInfo::isFileCaseCorrect(const QString &filePath)
 #endif
 }
 
+bool FileInfo::fileExists(const QFileInfo &fi)
+{
+    return fi.isSymLink() || fi.exists();
+}
+
 #if defined(Q_OS_WIN)
 
 #define z(x) reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA*>(const_cast<FileInfo::InternalStatType*>(&x))
@@ -315,7 +320,7 @@ bool FileInfo::isDir() const
 // adapted from qtc/plugins/vcsbase/cleandialog.cpp
 bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
 {
-    if (!f.exists())
+    if (!FileInfo::fileExists(f))
         return true;
     if (f.isDir()) {
         const QDir dir(f.absoluteFilePath());

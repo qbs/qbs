@@ -99,7 +99,7 @@ QString CommandLineParser::usageString() const
     s += Tr::tr("Usage:\n");
     s += Tr::tr("    %1 [%2 <settings directory>] %3\n")
             .arg(m_command, settingsDirOption(), detectOption());
-    s += Tr::tr("    %1 [%3 <settings directory>] <compiler path> <profile name>\n")
+    s += Tr::tr("    %1 [%2 <settings directory>] <path to qmake> <profile name>\n")
             .arg(m_command, settingsDirOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("The first form tries to auto-detect all known Qt versions, looking them up "

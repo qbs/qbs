@@ -42,6 +42,7 @@
 #include <tools/error.h>
 
 #include <QEventLoop>
+#include <QMetaObject>
 #include <QThread>
 #include <QTimer>
 
@@ -68,6 +69,12 @@ public:
     const JavaScriptCommandResult &result() const
     {
         return m_result;
+    }
+
+    Q_INVOKABLE void cancel()
+    {
+        QBS_ASSERT(m_scriptEngine, return);
+        m_scriptEngine->abortEvaluation();
     }
 
 signals:
@@ -165,6 +172,11 @@ void JsCommandExecutor::doStart()
     emit startRequested(jsCommand(), transformer());
 }
 
+void JsCommandExecutor::cancel()
+{
+    QMetaObject::invokeMethod(m_objectInThread, "cancel", Qt::QueuedConnection);
+}
+
 void JsCommandExecutor::onJavaScriptCommandFinished()
 {
     m_running = false;
@@ -174,7 +186,7 @@ void JsCommandExecutor::onJavaScriptCommandFinished()
         logger().qbsDebug() << "JS code:\n" << jsCommand()->sourceCode();
         QString msg = tr("Error while executing JavaScriptCommand:\n");
         msg += result.errorMessage;
-        emit error(ErrorInfo(msg, result.errorLocation));
+        emit finished(ErrorInfo(msg, result.errorLocation));
     }
     emit finished();
 }

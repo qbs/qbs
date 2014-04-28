@@ -96,9 +96,8 @@ private:
 
     struct DependencyScannerCacheItem
     {
-        DependencyScannerCacheItem()
-            : valid(false)
-        {}
+        DependencyScannerCacheItem();
+        ~DependencyScannerCacheItem();
 
         bool valid;
         QList<DependencyScannerPtr> scanners;

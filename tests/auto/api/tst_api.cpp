@@ -429,7 +429,7 @@ void TestApi::fileTagsFilterOverride()
     QVERIFY(installableFiles.first().targetDirectory().contains("habicht"));
 }
 
-void TestApi::infiniteLoop()
+void TestApi::infiniteLoopBuilding()
 {
     QFETCH(QString, projectDirName);
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -442,16 +442,29 @@ void TestApi::infiniteLoop()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     const QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
-    QTimer::singleShot(1000, setupJob.data(), SLOT(cancel()));
-    QEXPECT_FAIL(0, "QBS-552", Continue);
-    QVERIFY(waitForFinished(buildJob.data(), 3000));
+    QTimer::singleShot(1000, buildJob.data(), SLOT(cancel()));
+    QVERIFY(waitForFinished(buildJob.data(), 5000));
 }
 
-void TestApi::infiniteLoop_data()
+void TestApi::infiniteLoopBuilding_data()
 {
     QTest::addColumn<QString>("projectDirName");
     QTest::newRow("JS Command") << QString("infinite-loop-js");
     QTest::newRow("Process Command") << QString("infinite-loop-process");
+}
+
+void TestApi::infiniteLoopResolving()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/infinite-loop-resolving");
+    setupParams.setProjectFilePath(projectDir + "/project.qbs");
+    setupParams.setBuildRoot(projectDir);
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project::setupProject(setupParams,
+                                                                             m_logSink, 0));
+    QTimer::singleShot(1000, setupJob.data(), SLOT(cancel()));
+    QVERIFY(waitForFinished(setupJob.data(), 5000));
+    QVERIFY2(setupJob->error().toString().toLower().contains("cancel"),
+             qPrintable(setupJob->error().toString()));
 }
 
 void TestApi::installableFiles()

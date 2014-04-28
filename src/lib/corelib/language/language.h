@@ -208,6 +208,8 @@ class ScriptFunction : public PersistentObject
 public:
     static ScriptFunctionPtr create() { return ScriptFunctionPtr(new ScriptFunction); }
 
+    ~ScriptFunction();
+
     QString sourceCode;
     QStringList argumentNames;
     CodeLocation location;
@@ -217,7 +219,7 @@ public:
     bool isValid() const;
 
 private:
-    ScriptFunction() {}
+    ScriptFunction();
 
     void load(PersistentPool &);
     void store(PersistentPool &) const;
@@ -390,6 +392,7 @@ public:
     const ArtifactSet removedArtifactsByFileTag(const FileTag &tag) const;
     bool isMarkedForReapplication(const RuleConstPtr &rule) const;
     ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
+    ArtifactSet targetArtifacts() const;
 
     TopLevelProject *topLevelProject() const;
 
