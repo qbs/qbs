@@ -88,9 +88,11 @@ static void removeArtifactFromDisk(Artifact *artifact, bool dryRun, const Logger
 class CleanupVisitor : public ArtifactVisitor
 {
 public:
-    CleanupVisitor(const CleanOptions &options, const Logger &logger)
+    CleanupVisitor(const CleanOptions &options, const ProgressObserver *observer,
+                   const Logger &logger)
         : ArtifactVisitor(Artifact::Generated)
         , m_options(options)
+        , m_observer(observer)
         , m_logger(logger)
         , m_hasError(false)
     {
@@ -108,6 +110,9 @@ public:
 private:
     void doVisit(Artifact *artifact)
     {
+        if (m_observer->canceled())
+            throw ErrorInfo(Tr::tr("Cleaning up was canceled."));
+
         if (artifact->product != m_product)
             return;
         if (m_options.cleanType() == CleanOptions::CleanupTemporaries) {
@@ -129,6 +134,7 @@ private:
     }
 
     const CleanOptions m_options;
+    const ProgressObserver * const m_observer;
     Logger m_logger;
     bool m_hasError;
     ResolvedProductConstPtr m_product;
@@ -150,7 +156,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
 
     QSet<QString> directories;
     foreach (const ResolvedProductPtr &product, products) {
-        CleanupVisitor visitor(options, m_logger);
+        CleanupVisitor visitor(options, m_observer, m_logger);
         visitor.visitProduct(product);
         directories.unite(visitor.directories());
         if (visitor.hasError())
