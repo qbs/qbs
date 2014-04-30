@@ -255,7 +255,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
                     if (restoredProduct->enabled) {
                         QBS_CHECK(restoredProduct->buildData);
                         foreach (Artifact * const a,
-                                ArtifactSet::fromNodeSet(newlyResolvedProduct->buildData->nodes)) {
+                                ArtifactSet::fromNodeSet(restoredProduct->buildData->nodes)) {
                             const bool removeFromDisk = a->artifactType == Artifact::Generated;
                             newlyResolvedProduct->topLevelProject()->buildData->removeArtifact(a,
                                     m_logger, removeFromDisk, true);
