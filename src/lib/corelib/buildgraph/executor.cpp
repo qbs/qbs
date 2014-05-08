@@ -818,7 +818,8 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
             fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
             m_logger.printWarning(fullWarning);
         } else {
-            m_error = err;
+            if (!m_error.hasError())
+                m_error = err; // All but the first one could be due to canceling.
         }
     }
 

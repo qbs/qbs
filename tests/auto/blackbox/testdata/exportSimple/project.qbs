@@ -19,6 +19,10 @@ Project {
         }
         Export {
             Depends { name: 'dummy2' }
+            Properties {    // QBS-550
+                condition: false
+                qbs.optimization: "ludicrous speed"
+            }
         }
     }
 

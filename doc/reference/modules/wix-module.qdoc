@@ -63,7 +63,7 @@
     List of preprocessor macros that get passed to the compiler.
     To set macro values use the following syntax:
     \code
-    cpp.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
+    wix.defines: ["USE_COLORS=1", 'COLOR_STR="blanched almond"']
     \endcode
 
     \section2 enableQbsDefines

@@ -108,6 +108,7 @@ private slots:
     void dependenciesProperty();
     void disabledProduct();
     void disabledProject();
+    void disableProduct();
     void duplicateProductNames();
     void duplicateProductNames_data();
     void dynamicLibs();

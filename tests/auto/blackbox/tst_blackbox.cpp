@@ -1429,6 +1429,21 @@ void TestBlackbox::disabledProject()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::disableProduct()
+{
+    QDir::setCurrent(testDataDir + "/disable-product");
+    QCOMPARE(runQbs(), 0);
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("// condition: false", "condition: false");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::duplicateProductNames()
 {
     QDir::setCurrent(testDataDir + "/duplicateProductNames");

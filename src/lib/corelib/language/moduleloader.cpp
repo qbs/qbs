@@ -443,12 +443,15 @@ void ModuleLoader::mergeExportItems(ModuleLoader::ProductContext *productContext
 {
     Item *merged = Item::create(productContext->item->pool());
     merged->setTypeName(QLatin1String("Export"));
+    merged->setFile(productContext->item->file());
+    merged->setLocation(productContext->item->location());
     QSet<Item *> exportItems;
     foreach (Item *exportItem, productContext->exportItems) {
         checkCancelation();
         if (Q_UNLIKELY(productContext->filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
                         exportItem->location());
+        merged->setFile(exportItem->file());
         merged->setLocation(exportItem->location());
         productContext->filesWithExportItem += exportItem->file();
         exportItems.insert(exportItem);
@@ -860,6 +863,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
 
     // create module scope
     Item *moduleScope = Item::create(m_pool);
+    QBS_CHECK(instanceScope->file());
     moduleScope->setFile(instanceScope->file());
     moduleScope->setScope(instanceScope);
     copyProperty(QLatin1String("project"), productContext->project->scope, moduleScope);
