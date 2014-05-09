@@ -97,8 +97,9 @@
         \row
             \li destinationDirectory
             \li string
-            \li "."
-            \li The directory where the target artifacts will be located. Relative to the build directory.
+            \li product.buildDirectory
+            \li The directory where the target artifacts will be located. If a relative path is
+                given, the base directory will be \c project.buildDirectory.
         \row
             \li files
             \li stringList
@@ -132,7 +133,7 @@
                 Info.plist files in OS X and iOS application and framework bundles, for example.
     \endtable
 
-    The following properties are automatically set by \QBS and usually are not changed by the user:
+    The following properties are automatically set by \QBS and cannot be changed by the user:
 
     \table
         \header
@@ -141,12 +142,12 @@
             \li Description
         \row
             \li buildDirectory
-            \li string
+            \li path
             \li The build directory for this product. This is the directory where generated files
                 are placed.
         \row
             \li sourceDirectory
-            \li string
+            \li path
             \li The source directory for this product. This is the directory of the file where this
                 product is defined.
     \endtable

@@ -109,6 +109,11 @@ static PropertyDeclaration nameProperty()
     return PropertyDeclaration(QLatin1String("name"), PropertyDeclaration::String);
 }
 
+static PropertyDeclaration buildDirProperty()
+{
+    return PropertyDeclaration(QLatin1String("buildDirectory"), PropertyDeclaration::Path);
+}
+
 static PropertyDeclaration prepareScriptProperty()
 {
     PropertyDeclaration decl(QLatin1String("prepare"), PropertyDeclaration::Verbatim);
@@ -241,9 +246,9 @@ void BuiltinDeclarations::addProductItem()
     item << nameProperty();
     decl = PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String);
     decl.setInitialValueSource(QLatin1String("name"));
+    item << buildDirProperty();
     item << decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);
-    decl.setInitialValueSource(QLatin1String("'.'"));
     item << decl;
     item << PropertyDeclaration(QLatin1String("consoleApplication"),
                                 PropertyDeclaration::Boolean);
@@ -268,6 +273,7 @@ void BuiltinDeclarations::addProjectItem()
             << QLatin1String("Rule"));
     item << nameProperty();
     item << conditionProperty();
+    item << buildDirProperty();
     item << PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),

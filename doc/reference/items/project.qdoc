@@ -62,6 +62,11 @@
             \li Default
             \li Description
         \row
+            \li buildDirectory
+            \li path
+            \li n/a
+            \li The build directory of the top-level project. This property is read-only.
+        \row
             \li name
             \li string
             \li basename of the file the project is defined in

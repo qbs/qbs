@@ -259,52 +259,70 @@ void TestBlackbox::baseProperties()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::buildDirectories()
+{
+    const QString projectDir
+            = QDir::cleanPath(testDataDir + QLatin1String("/build-directories"));
+    const QString projectBuildDir = projectDir + '/' + buildDir;
+    QDir::setCurrent(projectDir);
+    QCOMPARE(runQbs(QStringList("-qq")), 0);
+    const QStringList outputLines
+            = QString::fromLocal8Bit(m_qbsStderr.trimmed()).split('\n', QString::SkipEmptyParts);
+    QCOMPARE(outputLines.count(), 3);
+    QCOMPARE(outputLines.at(0).trimmed(), projectBuildDir + "/p1");
+    QCOMPARE(outputLines.at(1).trimmed(), projectBuildDir + "/p2");
+    QCOMPARE(outputLines.at(2).trimmed(), projectBuildDir);
+}
+
 void TestBlackbox::build_project_data()
 {
     QTest::addColumn<QString>("projectSubDir");
     QTest::addColumn<QString>("productFileName");
     QTest::newRow("BPs in Sources")
             << QString("buildproperties_source")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorld/HelloWorld"));
     QTest::newRow("code generator")
             << QString("codegen")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/codegen"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/codegen/codegen"));
     QTest::newRow("link static libs")
             << QString("link_staticlib")
             << QString(buildDir + QLatin1String("/")
-                       + HostOsInfo::appendExecutableSuffix("HelloWorld"));
+                       + HostOsInfo::appendExecutableSuffix("HelloWorld/HelloWorld"));
     QTest::newRow("precompiled header")
             << QString("precompiledHeader")
             << QString(buildDir + QLatin1String("/")
-                       + HostOsInfo::appendExecutableSuffix("MyApp"));
+                       + HostOsInfo::appendExecutableSuffix("MyApp/MyApp"));
     QTest::newRow("lots of dots")
             << QString("lotsofdots")
             << QString(buildDir + QLatin1String("/")
-                       + HostOsInfo::appendExecutableSuffix("lots.of.dots"));
+                       + HostOsInfo::appendExecutableSuffix("lots.of.dots/lots.of.dots"));
     QTest::newRow("Qt5 plugin")
             << QString("qt5plugin")
-            << QString(buildDir + QLatin1String("/") + HostOsInfo::dynamicLibraryName("echoplugin"));
+            << QString(buildDir + QLatin1String("/echoplugin/")
+                       + HostOsInfo::dynamicLibraryName("echoplugin"));
     QTest::newRow("Q_OBJECT in source")
             << QString("moc_cpp")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_cpp"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_cpp/moc_cpp"));
     QTest::newRow("Q_OBJECT in header")
             << QString("moc_hpp")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp/moc_hpp"));
     QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
             << QString("moc_hpp_included")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/moc_hpp_included"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir
+                                                          + "/moc_hpp_included/moc_hpp_included"));
     QTest::newRow("app and lib with same source file")
             << QString("lib_samesource")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/HelloWorldApp"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir
+                                                          + "/HelloWorldApp/HelloWorldApp"));
     QTest::newRow("source files with the same base name but different extensions")
             << QString("sameBaseName")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/basename"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/basename/basename"));
     QTest::newRow("static library dependencies")
             << QString("staticLibDeps")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/staticLibDeps"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/staticLibDeps/staticLibDeps"));
     QTest::newRow("simple probes")
             << QString("simpleProbe")
-            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/MyApp"));
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/MyApp/MyApp"));
 }
 
 void TestBlackbox::build_project()
@@ -390,7 +408,7 @@ void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
     QCOMPARE(runQbs(), 0);
-    QFile depsFile(buildDir + QLatin1String("/product1.deps"));
+    QFile depsFile(buildDir + QLatin1String("/product1/product1.deps"));
     QVERIFY(depsFile.open(QFile::ReadOnly));
     QString deps = QString::fromLatin1(depsFile.readAll());
     QVERIFY(!deps.isEmpty());
@@ -478,10 +496,10 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = buildDir + "/.obj/app/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString appExeFilePath = buildDir + "/app" + QTC_HOST_EXE_SUFFIX;
-    const QString depObjectFilePath = buildDir + "/.obj/dep/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString depLibBase = buildDir + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
+    const QString appObjectFilePath = buildDir + "/app/.obj/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString appExeFilePath = buildDir + "/app/app" + QTC_HOST_EXE_SUFFIX;
+    const QString depObjectFilePath = buildDir + "/dep/.obj/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString depLibBase = buildDir + "/dep/" + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
     if (qbs::Internal::HostOsInfo::isOsxHost()) {
@@ -737,8 +755,8 @@ void TestBlackbox::track_qobject_change()
     const QString productFilePath = HostOsInfo::appendExecutableSuffix(buildDir + "/i");
     QVERIFY2(QFile(productFilePath).exists(), qPrintable(productFilePath));
     QString moc_bla_objectFileName
-            = buildDir + "/.obj/i/GeneratedFiles/i/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
-    QVERIFY(QFile(moc_bla_objectFileName).exists());
+            = buildDir + "/i/.obj/i/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QVERIFY2(QFile(moc_bla_objectFileName).exists(), qPrintable(moc_bla_objectFileName));
 
     QTest::qSleep(1000);
     QFile("bla.h").remove();
@@ -761,7 +779,7 @@ void TestBlackbox::trackAddFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -777,7 +795,7 @@ void TestBlackbox::trackAddFile()
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -866,7 +884,7 @@ void TestBlackbox::trackRemoveFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -890,7 +908,7 @@ void TestBlackbox::trackRemoveFile()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -918,7 +936,7 @@ void TestBlackbox::trackAddFileTag()
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -931,7 +949,7 @@ void TestBlackbox::trackAddFileTag()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -952,12 +970,11 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY2(QFile::exists(buildDir + "/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX),
-            qPrintable(buildDir + "/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
-    QVERIFY2(QFile::exists(buildDir + "/main_foo.cpp"), qPrintable(buildDir + "/main_foo.cpp"));
-    QVERIFY2(QFile::exists(buildDir + "/main.foo"), qPrintable(buildDir + "/main.foo"));
+    QVERIFY(QFile::exists(buildDir + "/someapp/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
+    QVERIFY(QFile::exists(buildDir + "/someapp/main_foo.cpp"));
+    QVERIFY(QFile::exists(buildDir + "/someapp/main.foo"));
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -970,7 +987,7 @@ void TestBlackbox::trackRemoveFileTag()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(buildDir + "/someapp");
+    process.start(buildDir + "/someapp/someapp");
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -978,7 +995,7 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(QFile::exists(buildDir + "/someapp/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
     QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo.cpp"), false);
     QCOMPARE(QFile::exists(buildDir + "/someapp/main.foo"), false);
 }
@@ -1111,10 +1128,12 @@ void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFileInfo(buildDir + HostOsInfo::appendExecutableSuffix("/zorted")).exists());
-    QVERIFY(QFileInfo(buildDir + HostOsInfo::appendExecutableSuffix("/unzorted")).exists());
-    QVERIFY(QFileInfo(buildDir + "/zorted.foo.narf.zort").exists());
-    QVERIFY(!QFileInfo(buildDir + "/unzorted.foo.narf.zort").exists());
+    QVERIFY(QFileInfo(buildDir + "/zorted/"
+                      + HostOsInfo::appendExecutableSuffix("zorted")).exists());
+    QVERIFY(QFileInfo(buildDir + "/unzorted/"
+                      + HostOsInfo::appendExecutableSuffix("unzorted")).exists());
+    QVERIFY(QFileInfo(buildDir + "/zorted/zorted.foo.narf.zort").exists());
+    QVERIFY(!QFileInfo(buildDir + "/unzorted/unzorted.foo.narf.zort").exists());
 }
 
 void TestBlackbox::ruleCycle()
@@ -1217,7 +1236,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(m_qbsStdout.contains("Making output from input"));
-    QFile generatedFile(buildDir + QLatin1String("/generated.txt"));
+    QFile generatedFile(buildDir + QLatin1String("/generated text file/generated.txt"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 1suffix 1"));
     generatedFile.close();
@@ -1484,9 +1503,9 @@ void TestBlackbox::dynamicRuleOutputs()
     QCOMPARE(runQbs(), 0);
 
     const QString appFile = buildDir + "/genlexer" + QTC_HOST_EXE_SUFFIX;
-    const QString headerFile1 = buildDir + "/GeneratedFiles/genlexer/numberscanner.h";
-    const QString sourceFile1 = buildDir + "/GeneratedFiles/genlexer/numberscanner.c";
-    const QString sourceFile2 = buildDir + "/GeneratedFiles/genlexer/lex.yy.c";
+    const QString headerFile1 = buildDir + "/genlexer/GeneratedFiles/numberscanner.h";
+    const QString sourceFile1 = buildDir + "/genlexer/GeneratedFiles/numberscanner.c";
+    const QString sourceFile2 = buildDir + "/genlexer/GeneratedFiles/lex.yy.c";
 
     // Check build #1: source and header file name are specified in numbers.l
     QVERIFY(QFile::exists(appFile));
@@ -1716,7 +1735,8 @@ void TestBlackbox::qmlDebugging()
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
     QProcess nm;
-    nm.start("nm", QStringList(HostOsInfo::appendExecutableSuffix(buildDir + "/debuggable-app")));
+    nm.start("nm", QStringList(HostOsInfo::appendExecutableSuffix(buildDir
+            + "/debuggable-app/debuggable-app")));
     if (nm.waitForStarted()) { // Let's ignore hosts without nm.
         QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
         QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());

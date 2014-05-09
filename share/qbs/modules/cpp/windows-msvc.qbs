@@ -38,12 +38,12 @@ CppModule {
             fileName: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cPrecompiledHeader"));
-                return ".obj/" + product.name + "/" + completeBaseName + '_c.obj'
+                return ".obj/" + completeBaseName + '_c.obj'
             }
         }
         Artifact {
             fileTags: ['c_pch']
-            fileName: ".obj/" + product.name + "/" + product.name + '_c.pch'
+            fileName: ".obj/" + product.name + '_c.pch'
         }
         prepare: {
             var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
@@ -65,12 +65,12 @@ CppModule {
             fileName: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cxxPrecompiledHeader"));
-                return ".obj/" + product.name + "/" + completeBaseName + '_cpp.obj'
+                return ".obj/" + completeBaseName + '_cpp.obj'
             }
         }
         Artifact {
             fileTags: ['cpp_pch']
-            fileName: ".obj/" + product.name + "/" + product.name + '_cpp.pch'
+            fileName: ".obj/" + product.name + '_cpp.pch'
         }
         prepare: {
             var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
@@ -91,7 +91,7 @@ CppModule {
 
         Artifact {
             fileTags: ['obj']
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
+            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
         }
 
         prepare: {
@@ -201,7 +201,7 @@ CppModule {
         inputs: ["rc"]
 
         Artifact {
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".res"
+            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".res"
             fileTags: ["obj"]
         }
 

@@ -36,6 +36,7 @@
 #include "item.h"
 #include "itemreader.h"
 #include "scriptengine.h"
+#include "value.h"
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
@@ -122,6 +123,10 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters,
     if (wrapWithProjectItem && root->typeName() != QLatin1String("Project"))
         root = wrapWithProject(root);
 
+    const QString buildDirectory
+            = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
+                  TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
+    root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
     handleProject(&result, root, QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();

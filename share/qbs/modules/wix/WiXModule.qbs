@@ -152,7 +152,7 @@ Module {
 
         Artifact {
             fileTags: ["wixobj"]
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + FileInfo.baseName(input.fileName) + ".wixobj"
+            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + FileInfo.baseName(input.fileName) + ".wixobj"
         }
 
         prepare: {

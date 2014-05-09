@@ -342,7 +342,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            fileName: ".obj/" + product.name + "/" + input.baseDir + "/" + input.fileName + ".o"
+            fileName: ".obj/" + input.baseDir + "/" + input.fileName + ".o"
         }
 
         prepare: {

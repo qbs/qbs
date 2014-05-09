@@ -307,7 +307,7 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
         throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName: ") + scriptValue.toString());
-    QString outputPath = scriptValue.toString();
+    QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
     return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
                                 inputArtifacts);
 }
@@ -428,7 +428,8 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
         const ArtifactSet &inputArtifacts)
 {
     QBS_CHECK(obj.isObject());
-    const QString filePath = obj.property(QLatin1String("filePath")).toVariant().toString();
+    const QString filePath = FileInfo::resolvePath(m_product->buildDirectory(),
+            obj.property(QLatin1String("filePath")).toVariant().toString());
     const FileTags fileTags = FileTags::fromStringList(
                 obj.property(QLatin1String("fileTags")).toVariant().toStringList());
     const QVariant alwaysUpdatedVar = obj.property(QLatin1String("alwaysUpdated")).toVariant();

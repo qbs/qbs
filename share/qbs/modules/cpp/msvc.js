@@ -82,7 +82,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
             // use PCH
             var pchHeaderName = FileInfo.toWindowsSeparators(pch);
             var pchName = FileInfo.toWindowsSeparators(ModUtils.moduleProperty(product, "precompiledHeaderDir")
-                + "\\.obj\\" + product.name + "\\" + product.name + "_" + tag + ".pch");
+                + "\\.obj\\" + product.name + "_" + tag + ".pch");
             args.push("/FI" + pchHeaderName);
             args.push("/Yu" + pchHeaderName);
             args.push("/Fp" + pchName);

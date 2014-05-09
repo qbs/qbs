@@ -37,7 +37,7 @@ Module {
 
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
-    property string generatedFilesDir: "GeneratedFiles/" + product.name
+    property string generatedFilesDir: product.buildDirectory + "/GeneratedFiles"
     property string qmFilesDir: product.destinationDirectory
 
     // private properties
@@ -62,7 +62,7 @@ Module {
             paths.push(libPath + '/QtCore' + libInfix + '.framework/Versions/' + versionMajor + '/Headers');
         paths.push(incPath + '/QtCore');
         paths.push(incPath);
-        paths.push(product.buildDirectory + '/' + generatedFilesDir);
+        paths.push(generatedFilesDir);
         return paths;
     }
     cpp.libraryPaths: {

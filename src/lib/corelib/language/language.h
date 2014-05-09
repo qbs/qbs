@@ -397,6 +397,7 @@ public:
     TopLevelProject *topLevelProject() const;
 
     QStringList generatedFiles(const QString &baseFile, const FileTags &tags) const;
+    QString buildDirectory() const;
 
 private:
     ResolvedProduct();

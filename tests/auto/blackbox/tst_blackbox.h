@@ -99,6 +99,7 @@ private slots:
     void addedFilePersistent();
     void addQObjectMacroToCppFile();
     void baseProperties();
+    void buildDirectories();
     void build_project_data();
     void build_project();
     void build_project_dry_run_data();

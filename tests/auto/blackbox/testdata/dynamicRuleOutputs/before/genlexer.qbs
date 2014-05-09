@@ -59,12 +59,12 @@ Project {
                 var sourceFileName = options["outfile"] || "lex.yy.c";
                 var headerFileName = options["header-file"];
                 var result = [{
-                    filePath: "GeneratedFiles/" + product.name + "/" + sourceFileName,
+                    filePath: "GeneratedFiles/" + sourceFileName,
                     fileTags: ["c"]
                 }];
                 if (headerFileName) {
                     result.push({
-                            filePath: "GeneratedFiles/" + product.name + "/" + headerFileName,
+                            filePath: "GeneratedFiles/" + headerFileName,
                             fileTags: ["hpp"]
                         });
                 }
@@ -75,7 +75,7 @@ Project {
                 if (product.isFlexAvailable) {
                     // flex is available. Let's call it.
                     cmd = new Command("flex", [input.filePath]);
-                    cmd.workingDirectory = product.buildDirectory + "/GeneratedFiles/" + product.name;
+                    cmd.workingDirectory = product.buildDirectory + "/GeneratedFiles";
                 } else {
                     // No flex available here, generate some C source and header.
                     cmd = new JavaScriptCommand();

@@ -287,6 +287,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         item->setProperty(QLatin1String("name"), VariantValue::create(product->name));
     }
     m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
+    item->setProperty(QLatin1String("buildDirectory"),
+                      VariantValue::create(product->buildDirectory()));
 
     if (std::find_if(item->modules().begin(), item->modules().end(),
             ModuleNameEquals(product->name)) != item->modules().end()) {
@@ -312,10 +314,18 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = m_evaluator->stringValue(item, QLatin1String("sourceDirectory"));
-    product->destinationDirectory
-            = m_evaluator->stringValue(item, QLatin1String("destinationDirectory"));
+    const QString destDirKey = QLatin1String("destinationDirectory");
+    product->destinationDirectory = m_evaluator->stringValue(item, destDirKey);
+    if (product->destinationDirectory.isEmpty()) {
+        product->destinationDirectory = product->buildDirectory();
+    } else {
+        product->destinationDirectory = FileInfo::resolvePath(
+                    product->topLevelProject()->buildDirectory,
+                    product->destinationDirectory);
+    }
     product->location = item->location();
     product->productProperties = createProductConfig();
+    product->productProperties.insert(destDirKey, product->destinationDirectory);
     QVariantMap moduleProperties;
     moduleProperties.insert(QLatin1String("modules"),
                             product->productProperties.take(QLatin1String("modules")));
@@ -738,8 +748,8 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
         QString fileName = m_evaluator->stringValue(child, QLatin1String("fileName"));
         if (Q_UNLIKELY(fileName.isEmpty()))
             throw ErrorInfo(Tr::tr("Artifact fileName must not be empty."));
-        artifact->absoluteFilePath = FileInfo::resolvePath(m_productContext->product->topLevelProject()->buildDirectory,
-                                                           fileName);
+        artifact->absoluteFilePath
+                = FileInfo::resolvePath(m_productContext->product->buildDirectory(), fileName);
         artifact->fileTags = m_evaluator->fileTagsValue(child, QLatin1String("fileTags"));
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());

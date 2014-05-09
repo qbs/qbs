@@ -812,6 +812,11 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, const FileT
     return QStringList();
 }
 
+QString ResolvedProduct::buildDirectory() const
+{
+    return topLevelProject()->buildDirectory + QLatin1Char('/') + name;
+}
+
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {
 }

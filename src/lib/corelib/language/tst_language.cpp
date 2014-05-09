@@ -1113,7 +1113,7 @@ void TestLanguage::productDirectories()
         QVERIFY(product);
         const QVariantMap config = product->productProperties;
         QCOMPARE(config.value(QLatin1String("buildDirectory")).toString(),
-                 buildDir(defaultParameters));
+                 buildDir(defaultParameters) + QLatin1Char('/') + product->name);
         QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
     }
     catch (const ErrorInfo &e) {

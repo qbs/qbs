@@ -40,7 +40,7 @@ GenericGCC {
         inputs: ["rc"]
 
         Artifact {
-            fileName: ".obj/" + product.name + "/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + "_res.o"
+            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + "_res.o"
             fileTags: ["obj"]
         }
 
