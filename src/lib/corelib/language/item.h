@@ -102,6 +102,7 @@ public:
     ValuePtr property(const QString &name) const;
     ItemValuePtr itemProperty(const QString &name, bool create = false);
     JSSourceValuePtr sourceProperty(const QString &name) const;
+    VariantValuePtr variantProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);

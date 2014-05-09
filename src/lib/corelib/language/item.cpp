@@ -122,6 +122,14 @@ JSSourceValuePtr Item::sourceProperty(const QString &name) const
     return v.staticCast<JSSourceValue>();
 }
 
+VariantValuePtr Item::variantProperty(const QString &name) const
+{
+    ValuePtr v = property(name);
+    if (!v || v->type() != Value::VariantValueType)
+        return VariantValuePtr();
+    return v.staticCast<VariantValue>();
+}
+
 const PropertyDeclaration Item::propertyDeclaration(const QString &name) const
 {
     const PropertyDeclaration decl = m_propertyDeclarations.value(name);

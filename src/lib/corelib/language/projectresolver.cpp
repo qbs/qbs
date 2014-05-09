@@ -274,9 +274,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     ProductContext productContext;
     m_productContext = &productContext;
     productContext.item = item;
-    const QString productSourceDirectory = QFileInfo(item->file()->filePath()).absolutePath();
-    item->setProperty(QLatin1String("sourceDirectory"),
-                      VariantValue::create(productSourceDirectory));
     item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(projectContext
             ->project->topLevelProject()->buildDirectory));
     ResolvedProductPtr product = ResolvedProduct::create();
@@ -314,7 +311,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
-    product->sourceDirectory = productSourceDirectory;
+    product->sourceDirectory = m_evaluator->stringValue(item, QLatin1String("sourceDirectory"));
     product->destinationDirectory
             = m_evaluator->stringValue(item, QLatin1String("destinationDirectory"));
     product->location = item->location();

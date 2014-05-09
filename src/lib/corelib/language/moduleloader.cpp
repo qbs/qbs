@@ -288,6 +288,9 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleProduct " << item->file()->filePath();
 
+    item->setProperty(QLatin1String("sourceDirectory"),
+                      VariantValue::create(QFileInfo(item->file()->filePath()).absolutePath()));
+
     ProductContext productContext;
     productContext.project = projectContext;
     bool extraSearchPathsSet = false;
