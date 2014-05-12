@@ -101,15 +101,13 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     }
 }
 
-ModuleLoaderResult ModuleLoader::load(const QString &filePath,
-        const QVariantMap &overriddenProperties, const QVariantMap &buildConfigProperties,
+ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters,
         bool wrapWithProjectItem)
 {
     if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[MODLDR] load" << filePath;
+        m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
+    m_parameters = parameters;
     m_reader->clearItemCache();
-    m_overriddenProperties = overriddenProperties;
-    m_buildConfigProperties = buildConfigProperties;
     m_validItemPropertyNamesPerItem.clear();
     m_disabledItems.clear();
 
@@ -117,7 +115,7 @@ ModuleLoaderResult ModuleLoader::load(const QString &filePath,
     m_pool = result.itemPool.data();
     m_reader->setPool(m_pool);
 
-    Item *root = m_reader->readFile(filePath);
+    Item *root = m_reader->readFile(parameters.projectFilePath());
     if (!root)
         return ModuleLoaderResult();
 
@@ -210,7 +208,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
     loadBaseModule(&dummyProductContext, item);
-    overrideItemProperties(item, QLatin1String("project"), m_overriddenProperties);
+    overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
 
     projectContext.extraSearchPaths = readExtraSearchPaths(item);
     m_reader->pushExtraSearchPaths(projectContext.extraSearchPaths);
@@ -792,7 +790,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     // Module properties that are defined in the profile are used as default values.
     const QVariantMap profileModuleProperties
-            = m_buildConfigProperties.value(fullModuleName).toMap();
+            = m_parameters.buildConfigurationTree().value(fullModuleName).toMap();
     for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
             vmit != profileModuleProperties.end(); ++vmit)
     {
@@ -912,7 +910,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
     }
 
     // override module properties given on the command line
-    const QVariantMap userModuleProperties = m_overriddenProperties.value(fullName).toMap();
+    const QVariantMap userModuleProperties
+            = m_parameters.overriddenValuesTree().value(fullName).toMap();
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
          vmit != userModuleProperties.end(); ++vmit) {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
@@ -992,7 +991,7 @@ void ModuleLoader::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_buildConfigProperties)));
+                    .arg(TopLevelProject::deriveId(m_parameters.buildConfigurationTree())));
     }
 }
 

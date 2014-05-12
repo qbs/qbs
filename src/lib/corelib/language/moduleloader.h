@@ -33,6 +33,7 @@
 #include "forward_decls.h"
 #include "itempool.h"
 #include <logging/logger.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QMap>
 #include <QSet>
@@ -98,9 +99,8 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     Evaluator *evaluator() const { return m_evaluator; }
 
-    ModuleLoaderResult load(const QString &filePath,
-            const QVariantMap &overriddenProperties, const QVariantMap &buildConfigProperties,
-            bool wrapWithProjectItem = false);
+    ModuleLoaderResult load(const SetupProjectParameters &parameters,
+                            bool wrapWithProjectItem = false);
 
     static QString fullModuleName(const QStringList &moduleName);
     static void overrideItemProperties(Item *item, const QString &buildConfigKey,
@@ -198,8 +198,7 @@ private:
     QMap<QString, QStringList> m_moduleDirListCache;
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
-    QVariantMap m_overriddenProperties;
-    QVariantMap m_buildConfigProperties;
+    SetupProjectParameters m_parameters;
 };
 
 } // namespace Internal

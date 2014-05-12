@@ -120,11 +120,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
         cancelationTimer.start(1000);
     }
 
-    ModuleLoaderResult loadResult
-            = m_moduleLoader->load(parameters.projectFilePath(),
-                                   parameters.overriddenValuesTree(),
-                                   parameters.buildConfigurationTree(),
-                                   true);
+    ModuleLoaderResult loadResult = m_moduleLoader->load(parameters, true);
     const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult, parameters);
 
     // E.g. if the top-level project is disabled.
