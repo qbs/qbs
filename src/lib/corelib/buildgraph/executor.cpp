@@ -791,8 +791,10 @@ void Executor::runTransformer(const TransformerPtr &transformer)
         for (; it != transformer->outputs.end(); ++it) {
             Artifact *output = *it;
             QDir outDir = QFileInfo(output->filePath()).absoluteDir();
-            if (!outDir.exists())
-                outDir.mkpath(QLatin1String("."));
+            if (!outDir.exists() && !outDir.mkpath(QLatin1String("."))) {
+                    throw ErrorInfo(tr("Failed to create directory '%1'.")
+                                    .arg(QDir::toNativeSeparators(outDir.absolutePath())));
+            }
         }
     }
 
