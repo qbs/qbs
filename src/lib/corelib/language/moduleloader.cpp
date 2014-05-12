@@ -122,7 +122,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters,
     if (wrapWithProjectItem && root->typeName() != QLatin1String("Project"))
         root = wrapWithProject(root);
 
-    handleProject(&result, root, QSet<QString>() << QDir::cleanPath(filePath));
+    handleProject(&result, root, QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
     return result;
