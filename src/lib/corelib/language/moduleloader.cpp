@@ -126,6 +126,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters,
     const QString buildDirectory
             = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
                   TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
+    root->setProperty(QLatin1String("sourceDirectory"),
+                      VariantValue::create(QFileInfo(root->file()->filePath()).absolutePath()));
     root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
     handleProject(&result, root, QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;

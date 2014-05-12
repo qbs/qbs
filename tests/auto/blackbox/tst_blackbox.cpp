@@ -274,10 +274,11 @@ void TestBlackbox::buildDirectories()
     QCOMPARE(runQbs(QStringList("-qq")), 0);
     const QStringList outputLines
             = QString::fromLocal8Bit(m_qbsStderr.trimmed()).split('\n', QString::SkipEmptyParts);
-    QCOMPARE(outputLines.count(), 3);
+    QCOMPARE(outputLines.count(), 4);
     QCOMPARE(outputLines.at(0).trimmed(), projectBuildDir + "/p1");
     QCOMPARE(outputLines.at(1).trimmed(), projectBuildDir + "/p2");
     QCOMPARE(outputLines.at(2).trimmed(), projectBuildDir);
+    QCOMPARE(outputLines.at(3).trimmed(), projectDir);
 }
 
 void TestBlackbox::build_project_data()

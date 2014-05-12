@@ -34,6 +34,7 @@ Project {
                 cmd.sourceCode = function() {
                     print(product.buildDirectory);
                     print(project.buildDirectory);
+                    print(project.sourceDirectory);
                 }
                 return cmd;
             }
