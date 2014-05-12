@@ -302,6 +302,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("static library dependencies")
             << QString("staticLibDeps")
             << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/staticLibDeps"));
+    QTest::newRow("simple probes")
+            << QString("simpleProbe")
+            << QString(HostOsInfo::appendExecutableSuffix(buildDir + "/MyApp"));
 }
 
 void TestBlackbox::build_project()
