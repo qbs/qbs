@@ -47,6 +47,12 @@ using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 
+static bool regularFileExists(const QString &filePath)
+{
+    const QFileInfo fi(filePath);
+    return fi.exists() && fi.isFile();
+}
+
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
@@ -173,7 +179,7 @@ QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
 
 void TestBlackbox::initTestCase()
 {
-    QVERIFY(QFile::exists(qbsExecutableFilePath));
+    QVERIFY(regularFileExists(qbsExecutableFilePath));
 
     SettingsPtr settings = qbsSettings(QString());
     if (!settings->profiles().contains(buildProfileName))
@@ -336,13 +342,13 @@ void TestBlackbox::build_project()
     rmDirR(buildDir);
 
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
-    QVERIFY(QFile::exists(buildGraphPath));
+    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    QVERIFY(regularFileExists(buildGraphPath));
     QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
     waitForNewTimestamp();
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--check-timestamps"))), 0);
-    QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
-    QVERIFY(QFile::exists(buildGraphPath));
+    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    QVERIFY(regularFileExists(buildGraphPath));
 }
 
 void TestBlackbox::build_project_dry_run_data()
@@ -466,7 +472,7 @@ void TestBlackbox::resolve_project()
 
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
-    QVERIFY(QFile::exists(buildGraphPath));
+    QVERIFY(regularFileExists(buildGraphPath));
 }
 
 void TestBlackbox::resolve_project_dry_run_data()
@@ -520,24 +526,24 @@ void TestBlackbox::clean()
 
     // Default behavior: Remove only temporaries.
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
-    QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depLibFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QVERIFY(regularFileExists(depObjectFilePath));
+    QVERIFY(regularFileExists(depLibFilePath));
     foreach (const QString &symLink, symlinks)
-        QVERIFY2(QFile(symLink).exists(), qPrintable(symLink));
+        QVERIFY2(regularFileExists(symLink), qPrintable(symLink));
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(!QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depLibFilePath).exists());
+    QVERIFY(regularFileExists(depLibFilePath));
     foreach (const QString &symLink, symlinks)
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 
     // Remove all.
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("--all-artifacts"))), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
@@ -548,28 +554,28 @@ void TestBlackbox::clean()
 
     // Dry run.
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
                                      QStringList("--all-artifacts") << "-n")), 0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
-    QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depLibFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QVERIFY(regularFileExists(depObjectFilePath));
+    QVERIFY(regularFileExists(depLibFilePath));
     foreach (const QString &symLink, symlinks)
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 
     // Product-wise, dependency only.
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
-    QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depLibFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QVERIFY(regularFileExists(depObjectFilePath));
+    QVERIFY(regularFileExists(depLibFilePath));
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
                                      QStringList("--all-artifacts") << "-p" << "dep")),
              0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
     foreach (const QString &symLink, symlinks)
@@ -577,17 +583,17 @@ void TestBlackbox::clean()
 
     // Product-wise, dependent product only.
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(appObjectFilePath).exists());
-    QVERIFY(QFile(appExeFilePath).exists());
-    QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depLibFilePath).exists());
+    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY(regularFileExists(appExeFilePath));
+    QVERIFY(regularFileExists(depObjectFilePath));
+    QVERIFY(regularFileExists(depLibFilePath));
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"),
                                      QStringList("--all-artifacts") << "-p" << "app")),
              0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
-    QVERIFY(QFile(depObjectFilePath).exists());
-    QVERIFY(QFile(depLibFilePath).exists());
+    QVERIFY(regularFileExists(depObjectFilePath));
+    QVERIFY(regularFileExists(depLibFilePath));
     foreach (const QString &symLink, symlinks)
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
@@ -729,8 +735,8 @@ void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
-    const QString fileName = HostOsInfo::appendExecutableSuffix(buildDir + "/i");
-    QVERIFY2(QFile(fileName).exists(), qPrintable(fileName));
+    const QString fileName = buildDir + "/i/" + HostOsInfo::appendExecutableSuffix("i");
+    QVERIFY2(regularFileExists(fileName), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);
     {
@@ -741,7 +747,7 @@ void TestBlackbox::track_qrc()
         f.close();
     }
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(fileName).exists());
+    QVERIFY(regularFileExists(fileName));
     QVERIFY(dt < QFileInfo(fileName).lastModified());
 }
 
@@ -752,18 +758,18 @@ void TestBlackbox::track_qobject_change()
     QVERIFY(QFile("bla_qobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    const QString productFilePath = HostOsInfo::appendExecutableSuffix(buildDir + "/i");
-    QVERIFY2(QFile(productFilePath).exists(), qPrintable(productFilePath));
+    const QString productFilePath = buildDir + "/i/" + HostOsInfo::appendExecutableSuffix("i");
+    QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
     QString moc_bla_objectFileName
             = buildDir + "/i/.obj/i/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
-    QVERIFY2(QFile(moc_bla_objectFileName).exists(), qPrintable(moc_bla_objectFileName));
+    QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     QTest::qSleep(1000);
     QFile("bla.h").remove();
     QVERIFY(QFile("bla_noqobject.h").copy("bla.h"));
     touch("bla.h");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFile(productFilePath).exists());
+    QVERIFY(regularFileExists(productFilePath));
     QVERIFY(!QFile(moc_bla_objectFileName).exists());
 }
 
@@ -921,7 +927,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QCOMPARE(QFile::exists(buildDir + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(regularFileExists(buildDir + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -970,9 +976,9 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(QFile::exists(buildDir + "/someapp/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
-    QVERIFY(QFile::exists(buildDir + "/someapp/main_foo.cpp"));
-    QVERIFY(QFile::exists(buildDir + "/someapp/main.foo"));
+    QVERIFY(regularFileExists(buildDir + "/someapp/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
+    QVERIFY(regularFileExists(buildDir + "/someapp/main_foo.cpp"));
+    QVERIFY(regularFileExists(buildDir + "/someapp/main.foo"));
 
     process.start(buildDir + "/someapp/someapp");
     QVERIFY(process.waitForStarted());
@@ -995,9 +1001,9 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(QFile::exists(buildDir + "/someapp/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
-    QCOMPARE(QFile::exists(buildDir + "/someapp/main_foo.cpp"), false);
-    QCOMPARE(QFile::exists(buildDir + "/someapp/main.foo"), false);
+    QCOMPARE(regularFileExists(buildDir + "/someapp/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(regularFileExists(buildDir + "/someapp/main_foo.cpp"), false);
+    QCOMPARE(regularFileExists(buildDir + "/someapp/main.foo"), false);
 }
 
 void TestBlackbox::trackAddMocInclude()
@@ -1197,7 +1203,8 @@ void TestBlackbox::overrideProjectProperties()
                                      << QLatin1String("project.someInt:156")
                                      << QLatin1String("project.someStringList:one")
                                      << QLatin1String("MyAppForYou.mainFile:main.cpp"))), 0);
-    QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/MyAppForYou")));
+    QVERIFY(regularFileExists(buildDir + "/MyAppForYou/"
+                              + HostOsInfo::appendExecutableSuffix("MyAppForYou")));
 
     QVERIFY(QFile::remove(buildGraphPath));
     QbsRunParameters params;
@@ -1218,7 +1225,8 @@ void TestBlackbox::productProperties()
     QDir::setCurrent(testDataDir + "/productproperties");
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
                                      << QLatin1String("project.qbs"))), 0);
-    QVERIFY(QFile::exists(buildDir + HostOsInfo::appendExecutableSuffix("/blubb_user")));
+    QVERIFY(regularFileExists(buildDir + "/blubb_user/"
+                              + HostOsInfo::appendExecutableSuffix("blubb_user")));
 }
 
 void TestBlackbox::propertyChanges()
@@ -1502,15 +1510,15 @@ void TestBlackbox::dynamicRuleOutputs()
     QDir::setCurrent(testDir + "/work");
     QCOMPARE(runQbs(), 0);
 
-    const QString appFile = buildDir + "/genlexer" + QTC_HOST_EXE_SUFFIX;
+    const QString appFile = buildDir + "/genlexer/genlexer" + QTC_HOST_EXE_SUFFIX;
     const QString headerFile1 = buildDir + "/genlexer/GeneratedFiles/numberscanner.h";
     const QString sourceFile1 = buildDir + "/genlexer/GeneratedFiles/numberscanner.c";
     const QString sourceFile2 = buildDir + "/genlexer/GeneratedFiles/lex.yy.c";
 
     // Check build #1: source and header file name are specified in numbers.l
-    QVERIFY(QFile::exists(appFile));
-    QVERIFY(QFile::exists(headerFile1));
-    QVERIFY(QFile::exists(sourceFile1));
+    QVERIFY(regularFileExists(appFile));
+    QVERIFY(regularFileExists(headerFile1));
+    QVERIFY(regularFileExists(sourceFile1));
     QVERIFY(!QFile::exists(sourceFile2));
 
     QDateTime appFileTimeStamp1 = QFileInfo(appFile).lastModified();
@@ -1526,7 +1534,7 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(appFileTimeStamp1 < appFileTimeStamp2);
     QVERIFY(!QFile::exists(headerFile1));
     QVERIFY(!QFile::exists(sourceFile1));
-    QVERIFY(QFile::exists(sourceFile2));
+    QVERIFY(regularFileExists(sourceFile2));
 
     waitForNewTimestamp();
     QFile::remove("numbers.l");
@@ -1537,9 +1545,9 @@ void TestBlackbox::dynamicRuleOutputs()
     // Check build #3: source and header file name are specified in numbers.l
     QDateTime appFileTimeStamp3 = QFileInfo(appFile).lastModified();
     QVERIFY(appFileTimeStamp2 < appFileTimeStamp3);
-    QVERIFY(QFile::exists(appFile));
-    QVERIFY(QFile::exists(headerFile1));
-    QVERIFY(QFile::exists(sourceFile1));
+    QVERIFY(regularFileExists(appFile));
+    QVERIFY(regularFileExists(headerFile1));
+    QVERIFY(regularFileExists(sourceFile1));
     QVERIFY(!QFile::exists(sourceFile2));
 }
 
@@ -1563,8 +1571,9 @@ void TestBlackbox::fileDependencies()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling zort.cpp"));
-    const QString productFileName = HostOsInfo::appendExecutableSuffix(buildDir + "/myapp");
-    QVERIFY2(QFile::exists(productFileName), qPrintable(productFileName));
+    const QString productFileName = buildDir + "/myapp/"
+            + HostOsInfo::appendExecutableSuffix("myapp");
+    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
 
     // Incremental build without changes.
     QCOMPARE(runQbs(), 0);
@@ -1774,12 +1783,12 @@ void TestBlackbox::installedApp()
     QDir::setCurrent(testDataDir + "/installed_artifact");
 
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
-    QVERIFY(QFile::exists(defaultInstallRoot
+    QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
 
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--install-root")
                                      << (testDataDir + "/installed-app"))), 0);
-    QVERIFY(QFile::exists(testDataDir
+    QVERIFY(regularFileExists(testDataDir
             + HostOsInfo::appendExecutableSuffix("/installed-app/usr/bin/installedApp")));
 
     QFile addedFile(defaultInstallRoot + QLatin1String("/blubb.txt"));
@@ -1787,9 +1796,9 @@ void TestBlackbox::installedApp()
     addedFile.close();
     QVERIFY(addedFile.exists());
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
-    QVERIFY(QFile::exists(defaultInstallRoot
+    QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
-    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
+    QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
     QVERIFY(!addedFile.exists());
 
     // Check whether changing install parameters on the product causes re-installation.
@@ -1802,9 +1811,9 @@ void TestBlackbox::installedApp()
     projectFile.write(content);
     QVERIFY(projectFile.flush());
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
-    QVERIFY(QFile::exists(defaultInstallRoot
+    QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
-    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
+    QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
     content.replace("qbs.installDir: \"bin\"", "qbs.installDir: 'custom'");
@@ -1813,7 +1822,7 @@ void TestBlackbox::installedApp()
     projectFile.write(content);
     QVERIFY(projectFile.flush());
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
-    QVERIFY(QFile::exists(defaultInstallRoot
+    QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
 
     // Check whether changing install parameters on a source file causes re-installation.
@@ -1823,7 +1832,7 @@ void TestBlackbox::installedApp()
     projectFile.write(content);
     projectFile.close();
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
-    QVERIFY(QFile::exists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
+    QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
     rmDirR(buildDir);
     QbsRunParameters params;
@@ -1926,7 +1935,7 @@ void TestBlackbox::testNsis()
 
     bool haveMakeNsis = false;
     foreach (const QString &path, paths) {
-        if (QFile::exists(QDir::fromNativeSeparators(path) +
+        if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QLatin1String("/makensis")))) {
             haveMakeNsis = true;
             break;
@@ -1986,9 +1995,9 @@ static bool haveWiX()
     }
 
     foreach (const QString &path, paths) {
-        if (QFile::exists(QDir::fromNativeSeparators(path) +
+        if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QLatin1String("/candle"))) &&
-            QFile::exists(QDir::fromNativeSeparators(path) +
+            regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QLatin1String("/light")))) {
             return true;
         }
@@ -2019,8 +2028,8 @@ void TestBlackbox::testWiX()
     QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
     QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
     QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
-    QVERIFY(QFile::exists(buildDir + "/qbs-" + arch + ".msi"));
-    QVERIFY(QFile::exists(buildDir + "/qbs-setup-" + arch + ".exe"));
+    QVERIFY(regularFileExists(buildDir + "/qbs-" + arch + ".msi"));
+    QVERIFY(regularFileExists(buildDir + "/qbs-setup-" + arch + ".exe"));
 }
 
 static QString findExecutable(const QStringList &fileNames)
@@ -2060,7 +2069,7 @@ void TestBlackbox::testNodeJs()
     params.command = QLatin1String("run");
     QCOMPARE(runQbs(params), 0);
     QVERIFY((bool)m_qbsStdout.contains("hello world"));
-    QVERIFY(QFile::exists(buildDir + "/hello.js"));
+    QVERIFY(regularFileExists(buildDir + "/hello.js"));
 }
 
 void TestBlackbox::testTypeScript()
@@ -2077,9 +2086,9 @@ void TestBlackbox::testTypeScript()
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY(QFile::exists(buildDir + "/animals.js"));
-    QVERIFY(QFile::exists(buildDir + "/extra.js"));
-    QVERIFY(QFile::exists(buildDir + "/main.js"));
+    QVERIFY(regularFileExists(buildDir + "/animals.js"));
+    QVERIFY(regularFileExists(buildDir + "/extra.js"));
+    QVERIFY(regularFileExists(buildDir + "/main.js"));
 }
 
 QTEST_MAIN(TestBlackbox)
