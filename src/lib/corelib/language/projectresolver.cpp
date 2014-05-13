@@ -274,8 +274,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     ProductContext productContext;
     m_productContext = &productContext;
     productContext.item = item;
-    item->setProperty(QLatin1String("buildDirectory"), VariantValue::create(projectContext
-            ->project->topLevelProject()->buildDirectory));
     ResolvedProductPtr product = ResolvedProduct::create();
     product->project = projectContext->project;
     m_productItemMap.insert(product, item);
