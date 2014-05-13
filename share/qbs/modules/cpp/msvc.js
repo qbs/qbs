@@ -106,7 +106,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";
-    cmd.workingDirectory = product.buildDirectory + "/.obj/" + product.name;
+    cmd.workingDirectory = product.buildDirectory + "/.obj";
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.stdoutFilterFunction = "function(output) {";
