@@ -99,8 +99,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     Evaluator *evaluator() const { return m_evaluator; }
 
-    ModuleLoaderResult load(const SetupProjectParameters &parameters,
-                            bool wrapWithProjectItem = false);
+    ModuleLoaderResult load(const SetupProjectParameters &parameters);
 
     static QString fullModuleName(const QStringList &moduleName);
     static void overrideItemProperties(Item *item, const QString &buildConfigKey,

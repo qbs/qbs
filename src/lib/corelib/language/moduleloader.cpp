@@ -102,8 +102,7 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     }
 }
 
-ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters,
-        bool wrapWithProjectItem)
+ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 {
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
@@ -120,7 +119,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters,
     if (!root)
         return ModuleLoaderResult();
 
-    if (wrapWithProjectItem && root->typeName() != QLatin1String("Project"))
+    if (root->typeName() != QLatin1String("Project"))
         root = wrapWithProject(root);
 
     const QString buildDirectory
