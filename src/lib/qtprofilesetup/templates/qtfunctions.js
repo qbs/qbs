@@ -18,9 +18,9 @@ function getPlatformLibraryName(name, qtcore, qbs)
     return libName;
 }
 
-function getQtLibraryName(qtModule, qtcore, qbs)
+function getQtLibraryName(qtModule, qtcore, qbs, prefix)
 {
-    var libName = "Qt";
+    var libName = (prefix === undefined) ? "Qt" : prefix;
     if (qtcore.versionMajor >= 5 && !qtcore.frameworkBuild)
         libName += qtcore.versionMajor;
     libName += qtModule;

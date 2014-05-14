@@ -293,6 +293,8 @@ static void createModules(Profile &profile, Settings *settings,
             copyTemplateFile(QLatin1String("moc.js"), qbsQtModuleDir, profile.name());
         } else if (module.qbsName == QLatin1String("gui")) {
             copyTemplateFile(QLatin1String("gui.qbs"), qbsQtModuleDir, profile.name());
+        } else if (module.qbsName == QLatin1String("phonon")) {
+            copyTemplateFile(QLatin1String("phonon.qbs"), qbsQtModuleDir, profile.name());
         } else {
             copyTemplateFile(QLatin1String("module.qbs"), qbsQtModuleDir, profile.name());
             QFile moduleFile(qbsQtModuleDir + QLatin1String("/module.qbs"));
