@@ -128,7 +128,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     root->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(QFileInfo(root->file()->filePath()).absolutePath()));
     root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
-    handleProject(&result, root, QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
+    handleProject(&result, root, buildDirectory,
+                  QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
     result.qbsFiles = m_reader->filesRead();
     return result;
@@ -202,12 +203,13 @@ private:
 };
 
 void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
-        const QSet<QString> &referencedFilePaths)
+        const QString &buildDirectory, const QSet<QString> &referencedFilePaths)
 {
     if (!checkItemCondition(item))
         return;
     ProjectContext projectContext;
     projectContext.result = loadResult;
+    projectContext.buildDirectory = buildDirectory;
     projectContext.localModuleSearchPath = FileInfo::resolvePath(item->file()->dirPath(),
                                                                  moduleSearchSubDir);
 
@@ -232,7 +234,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
             handleSubProject(&projectContext, child, referencedFilePaths);
         } else if (child->typeName() == QLatin1String("Project")) {
             copyProperties(item, child);
-            handleProject(loadResult, child, referencedFilePaths);
+            handleProject(loadResult, child, buildDirectory, referencedFilePaths);
         }
     }
 
@@ -271,7 +273,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
             handleProduct(&projectContext, subItem);
         } else if (subItem->typeName() == QLatin1String("Project")) {
             copyProperties(item, subItem);
-            handleProject(loadResult, subItem,
+            handleProject(loadResult, subItem, buildDirectory,
                           QSet<QString>(referencedFilePaths) << absReferencePath);
         } else {
             throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
@@ -294,9 +296,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] handleProduct " << item->file()->filePath();
 
-    item->setProperty(QLatin1String("sourceDirectory"),
-                      VariantValue::create(QFileInfo(item->file()->filePath()).absolutePath()));
-
+    initProductProperties(projectContext, item);
     ProductContext productContext;
     productContext.project = projectContext;
     bool extraSearchPathsSet = false;
@@ -337,6 +337,23 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     projectContext->result->productInfos.insert(item, productContext.info);
     if (extraSearchPathsSet)
         m_reader->popExtraSearchPaths();
+}
+
+void ModuleLoader::initProductProperties(const ProjectContext *project, Item *item)
+{
+    QString productName = m_evaluator->stringValue(item, QLatin1String("name"));
+    if (productName.isEmpty()) {
+        productName = FileInfo::completeBaseName(item->file()->filePath());
+        item->setProperty(QLatin1String("name"), VariantValue::create(productName));
+    }
+
+    item->setProperty(QLatin1String("buildDirectory"),
+                      VariantValue::create(
+                          FileInfo::resolvePath(project->buildDirectory, productName)));
+
+    item->setProperty(QLatin1String("sourceDirectory"),
+                      VariantValue::create(
+                          QFileInfo(item->file()->filePath()).absolutePath()));
 }
 
 void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext, Item *item,
@@ -387,7 +404,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
 
     Item::addChild(item, loadedItem);
     item->setScope(projectContext->scope);
-    handleProject(projectContext->result, loadedItem,
+    handleProject(projectContext->result, loadedItem, projectContext->buildDirectory,
                   QSet<QString>(referencedFilePaths) << subProjectFilePath);
 }
 

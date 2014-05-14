@@ -77,6 +77,7 @@ private:
     struct ProductContext
     {
         ResolvedProductPtr product;
+        QString buildDirectory;
         FileTags additionalFileTags;
         Item *item;
     };

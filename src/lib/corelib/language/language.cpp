@@ -814,8 +814,11 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, const FileT
 
 QString ResolvedProduct::buildDirectory() const
 {
-    return topLevelProject()->buildDirectory + QLatin1Char('/') + name;
+    const QString result = productProperties.value(QLatin1String("buildDirectory")).toString();
+    QBS_CHECK(!result.isEmpty());
+    return result;
 }
+
 
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {

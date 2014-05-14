@@ -123,6 +123,7 @@ private:
     {
     public:
         ModuleLoaderResult *result;
+        QString buildDirectory;
         QString localModuleSearchPath;
     };
 
@@ -145,9 +146,10 @@ private:
     typedef QPair<Item *, ModuleLoaderResult::ProductInfo::Dependency> ProductDependencyResult;
     typedef QList<ProductDependencyResult> ProductDependencyResults;
 
-    void handleProject(ModuleLoaderResult *loadResult, Item *item,
+    void handleProject(ModuleLoaderResult *loadResult, Item *item, const QString &buildDirectory,
             const QSet<QString> &referencedFilePaths);
     void handleProduct(ProjectContext *projectContext, Item *item);
+    void initProductProperties(const ProjectContext *project, Item *item);
     void handleSubProject(ProjectContext *projectContext, Item *item,
             const QSet<QString> &referencedFilePaths);
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);

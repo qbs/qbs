@@ -2,14 +2,15 @@ import qbs 1.0
 
 Project {
     Application {
-        name: {
+        name: "product1"
+        type: {
             if (!(dummy.cFlags instanceof Array))
                 throw new Error("dummy.cFlags: Array type expected.");
             if (!(dummy.cxxFlags instanceof Array))
                 throw new Error("dummy.cxxFlags: Array type expected.");
             if (!(dummy.defines instanceof Array))
                 throw new Error("dummy.defines: Array type expected.");
-            return "product1";
+            return "application";
         }
         Depends { name: "dummy" }
         // dummy.cxxFlags is set via profile and is not overridden

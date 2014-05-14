@@ -16,14 +16,15 @@ CppApplication {
             found = false;
         }
     }
-    name: {
+    name: "MyApp"
+    type: {
         if (!probe1.found)
             throw "probe1 not found";
         if (probe2.found)
             throw "probe2 unexpectedly found";
         if (probe1.someString !== "one")
             throw "probe1.someString expected to be \"one\"."
-        return "MyApp";
+        return "application"
     }
     files: ["main.cpp"]
 }
