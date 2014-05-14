@@ -23,7 +23,13 @@ Project {
         name: "p2"
         type: "blubb2"
         Depends { name: "p1" }
-        Transformer {
+        Group {
+            files: "input.txt"
+            fileTags: "input"
+        }
+        Rule {
+            inputs: "input"
+            usings: "blubb1"
             Artifact {
                 fileName: "dummy2.txt"
                 fileTags: product.type
