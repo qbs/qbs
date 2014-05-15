@@ -119,6 +119,13 @@ static void addDesignerComponentsModule(QList<QtModuleInfo> &modules)
     modules << module;
 }
 
+static QString quotedPath(const QString &str)
+{
+    return QLatin1Char('"')
+            + QDir::fromNativeSeparators(str).replace(QLatin1Char('"'), QLatin1String("\\\""))
+            + QLatin1Char('"');
+}
+
 static void createModules(Profile &profile, Settings *settings,
                                const QtEnvironment &qtEnvironment)
 {
@@ -318,6 +325,9 @@ static void createModules(Profile &profile, Settings *settings,
                 s << "property bool qmlDebugging: false" << endl
                   << indent << "cpp.defines: "
                         << "qmlDebugging ? base.concat('" + debugMacro + "') : base" << endl;
+
+                s << indent << "property string qmlImportsPath: "
+                        << quotedPath(qtEnvironment.qmlImportPath);
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);

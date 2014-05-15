@@ -408,6 +408,15 @@
 
     Specifies whether QML debugging support should be compiled into your binaries.
 
+    \section3 qmlImportsPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
+    \endtable
+
+    The absolute path to the directory where Qt's QML imports are installed.
+
     \section2 gui Properties
 
     \section3 uicName
@@ -429,5 +438,14 @@
     \endtable
 
     Specifies whether QML debugging support should be compiled into your binaries.
+
+    \section3 qmlImportsPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
+    \endtable
+
+    The absolute path to the directory where Qt's QML imports are installed.
 
 */
