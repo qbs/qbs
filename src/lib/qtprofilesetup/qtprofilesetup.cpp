@@ -312,9 +312,12 @@ static void createModules(Profile &profile, Settings *settings,
                 const QByteArray debugMacro = module.qbsName == QLatin1String("declarative")
                             || qtEnvironment.qtMajorVersion < 5
                         ? "QT_DECLARATIVE_DEBUG" : "QT_QML_DEBUG";
-                propertiesString = "property bool qmlDebugging: false\n"
-                        "    cpp.defines: "
-                        "qmlDebugging ? base.concat('" + debugMacro + "') : base";
+
+                const QString indent = QLatin1String("    ");
+                QTextStream s(&propertiesString);
+                s << "property bool qmlDebugging: false" << endl
+                  << indent << "cpp.defines: "
+                        << "qmlDebugging ? base.concat('" + debugMacro + "') : base" << endl;
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);
