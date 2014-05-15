@@ -36,8 +36,8 @@
 ****************************************************************************/
 
 import qbs 1.0
-import qbs.File
 import qbs.FileInfo
+import qbs.Probes
 import qbs.TextFile
 import "flexoptionsreader.js" as FlexOptionsReader
 
@@ -50,7 +50,12 @@ Project {
             files: ["numbers.l"]
             fileTags: ["flex"]
         }
-        property bool isFlexAvailable: File.exists("/usr/bin/flex") // ### replace with PathProbe
+        Probes.PathProbe {
+            id: flexProbe
+            names: ["flex"]
+            platformPaths: ["/usr/local/bin", "/usr/bin", "/bin"]
+        }
+        property bool isFlexAvailable: flexProbe.found
         Rule {
             inputs: ["flex"]
             outputFileTags: ["c", "hpp"]

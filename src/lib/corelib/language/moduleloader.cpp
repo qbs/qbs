@@ -996,8 +996,8 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
     }
     QScriptValue scope = m_engine->newObject();
     m_engine->currentContext()->pushScope(m_evaluator->scriptValue(parent));
-    m_engine->currentContext()->pushScope(scope);
     m_engine->currentContext()->pushScope(m_evaluator->fileScope(configureScript->file()));
+    m_engine->currentContext()->pushScope(scope);
     foreach (const ProbeProperty &b, probeBindings)
         scope.setProperty(b.first, b.second);
     QScriptValue sv = m_engine->evaluate(configureScript->sourceCodeForEvaluation());
