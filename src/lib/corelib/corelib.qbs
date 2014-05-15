@@ -359,6 +359,8 @@ QbsLibrary {
             "scripttools.cpp",
             "scripttools.h",
             "settings.cpp",
+            "settingscreator.cpp",
+            "settingscreator.h",
             "settingsmodel.cpp",
             "setupprojectparameters.cpp",
             "shellutils.cpp",

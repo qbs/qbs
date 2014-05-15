@@ -29,7 +29,12 @@
 ****************************************************************************/
 #include "qbs_export.h"
 
+#include <QList>
 #include <QObject>
+
+QT_BEGIN_NAMESPACE
+class QTemporaryDir;
+QT_END_NAMESPACE
 
 namespace qbs {
 class Settings;
@@ -42,6 +47,7 @@ class QBS_EXPORT TestTools : public QObject
 
 public:
     TestTools(Settings *settings);
+    ~TestTools();
 
 private slots:
     void fileCaseCheck();
@@ -49,9 +55,15 @@ private slots:
     void testFileInfo();
     void testProcessNameByPid();
     void testProfiles();
+    void testSettingsMigration();
+    void testSettingsMigration_data();
 
 private:
+    QString setupSettingsDir1();
+    QString setupSettingsDir2();
+
     Settings * const m_settings;
+    QList<QTemporaryDir *> m_tmpDirs;
 };
 
 } // namespace Internal

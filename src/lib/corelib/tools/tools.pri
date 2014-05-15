@@ -37,6 +37,7 @@ HEADERS += \
     $$PWD/qbs_export.h \
     $$PWD/qbsassert.h \
     $$PWD/qttools.h \
+    $$PWD/settingscreator.h \
     $$PWD/version.h
 
 SOURCES += \
@@ -68,6 +69,7 @@ SOURCES += \
     $$PWD/setupprojectparameters.cpp \
     $$PWD/qbsassert.cpp \
     $$PWD/qttools.cpp \
+    $$PWD/settingscreator.cpp \
     $$PWD/version.cpp
 
 win32 {

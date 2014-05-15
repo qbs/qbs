@@ -40,8 +40,13 @@
 #include "profile.h"
 #include "settings.h"
 #include "setupprojectparameters.h"
+#include "version.h"
 
+#include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QSettings>
+#include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QTest>
 
@@ -50,6 +55,11 @@ namespace Internal {
 
 TestTools::TestTools(Settings *settings) : m_settings(settings)
 {
+}
+
+TestTools::~TestTools()
+{
+    qDeleteAll(m_tmpDirs);
 }
 
 void TestTools::testFileInfo()
@@ -130,6 +140,82 @@ void TestTools::testProfiles()
     errorInfo.clear();
     QVERIFY(childProfile.allKeys(Profile::KeySelectionRecursive, &errorInfo).isEmpty());
     QVERIFY(errorInfo.hasError());
+}
+
+void TestTools::testSettingsMigration()
+{
+    QFETCH(QString, baseDir);
+    Settings settings(baseDir);
+    QVERIFY(QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles/right.txt")
+            .exists());
+    QCOMPARE(settings.value("key").toString(),
+             settings.baseDirectory() + "/qbs/" QBS_VERSION "/profilesright");
+}
+
+void TestTools::testSettingsMigration_data()
+{
+    QTest::addColumn<QString>("baseDir");
+    QTest::newRow("settings dir with lots of versions") << setupSettingsDir1();
+    QTest::newRow("settings dir with only a fallback") << setupSettingsDir2();
+}
+
+QString TestTools::setupSettingsDir1()
+{
+    QTemporaryDir * const baseDir = new QTemporaryDir;
+    m_tmpDirs << baseDir;
+
+    const Version thisVersion = Version::fromString(QBS_VERSION);
+    Version predecessor;
+    if (thisVersion.patchLevel() > 0) {
+        predecessor.setMajorVersion(thisVersion.majorVersion());
+        predecessor.setMinorVersion(thisVersion.minorVersion());
+        predecessor.setPatchLevel(thisVersion.patchLevel() - 1);
+    } else if (thisVersion.minorVersion() > 0) {
+        predecessor.setMajorVersion(thisVersion.majorVersion());
+        predecessor.setMinorVersion(thisVersion.minorVersion() - 1);
+        predecessor.setPatchLevel(99);
+    } else {
+        predecessor.setMajorVersion(thisVersion.majorVersion() - 1);
+        predecessor.setMajorVersion(99);
+        predecessor.setPatchLevel(99);
+    }
+    const auto versions = QList<Version>() << Version(0, 1, 0) << Version(1, 0, 5) << predecessor
+            << Version(thisVersion.majorVersion() + 1, thisVersion.minorVersion(),
+                       thisVersion.patchLevel())
+            << Version(thisVersion.majorVersion(), thisVersion.minorVersion() + 1,
+                       thisVersion.patchLevel())
+            << Version(thisVersion.majorVersion(), thisVersion.minorVersion(),
+                       thisVersion.patchLevel() + 1)
+            << Version(99, 99, 99);
+    foreach (const Version &v, versions) {
+        const QString settingsDir = baseDir->path() + "/qbs/" + v.toString();
+        QSettings s(settingsDir + "/qbs.conf",
+                    HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat);
+        const QString profilesDir = settingsDir + "/profiles";
+        QDir::root().mkpath(profilesDir);
+        const QString magicString = v == predecessor ? "right" : "wrong";
+        QFile f(profilesDir + '/' + magicString + ".txt");
+        f.open(QIODevice::WriteOnly);
+        s.setValue("org/qt-project/qbs/key", profilesDir + magicString);
+    }
+
+    return baseDir->path();
+}
+
+QString TestTools::setupSettingsDir2()
+{
+    QTemporaryDir * const baseDir = new QTemporaryDir;
+    m_tmpDirs << baseDir;
+    const QString settingsDir = baseDir->path();
+    QSettings s(settingsDir + QLatin1String("/qbs.conf"),
+                HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat);
+    const QString profilesDir = settingsDir + QLatin1String("/qbs/profiles");
+    QDir::root().mkpath(profilesDir);
+    QFile f(profilesDir + "/right.txt");
+    f.open(QIODevice::WriteOnly);
+    s.setValue("org/qt-project/qbs/key", profilesDir + "right");
+
+    return baseDir->path();
 }
 
 void TestTools::testBuildConfigMerging()

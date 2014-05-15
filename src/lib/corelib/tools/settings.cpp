@@ -31,8 +31,9 @@
 #include "settings.h"
 
 #include "error.h"
+#include "settingscreator.h"
+
 #include <logging/translator.h>
-#include <tools/hostosinfo.h>
 
 #include <QSettings>
 
@@ -41,21 +42,8 @@
 namespace qbs {
 using namespace Internal;
 
-static QSettings::Format format()
-{
-    return HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat;
-}
-
-static QSettings *createQSettings(const QString &baseDir)
-{
-    return baseDir.isEmpty()
-            ? new QSettings(format(), QSettings::UserScope, QLatin1String("QtProject"),
-                            QLatin1String("qbs"))
-            : new QSettings(baseDir + QLatin1String("/qbs.conf"), format());
-}
-
 Settings::Settings(const QString &baseDir)
-    : m_settings(createQSettings(baseDir)), m_baseDir(baseDir)
+    : m_settings(SettingsCreator(baseDir).getQSettings()), m_baseDir(baseDir)
 {
     // Actual qbs settings are stored transparently within a group, because QSettings
     // can see non-qbs fallback settings e.g. from QtProject that we're not interested in.

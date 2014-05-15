@@ -28,52 +28,44 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SETTINGS_H
-#define QBS_SETTINGS_H
+#ifndef QBS_SETTINGSCREATOR_H
+#define QBS_SETTINGSCREATOR_H
 
-#include "qbs_export.h"
+#include "version.h"
 
-#include <QStringList>
-#include <QVariant>
+#include <QString>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal {
 
-class QBS_EXPORT Settings
+class SettingsCreator
 {
 public:
-    // The "pure" base directory without any version scope. Empty string means "system default".
-    Settings(const QString &baseDir);
+    SettingsCreator(const QString &baseDir);
 
-    ~Settings();
-
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group) const;
-    void setValue(const QString &key, const QVariant &value);
-    void remove(const QString &key);
-    void clear();
-    void sync();
-
-    QString defaultProfile() const;
-    QStringList profiles() const;
-
-    QString fileName() const;
-    QString baseDirectory() const { return m_baseDir; } // As passed into the constructor.
+    QSettings *getQSettings();
 
 private:
-    QString internalRepresentation(const QString &externalKey) const;
-    QString externalRepresentation(const QString &internalKey) const;
-    void fixupKeys(QStringList &keys) const;
+    void migrate();
+    void createQSettings();
+    Version predecessor() const;
 
-    QSettings * const m_settings;
-    const QString m_baseDir;
+    QString m_settingsBaseDir;
+    QString m_newSettingsDir;
+    QString m_settingsFileName;
+    QString m_newSettingsFilePath;
+    std::unique_ptr<QSettings> m_settings;
+    const Version m_qbsVersion;
 };
 
+
+} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_SETTINGS_H
+#endif // Include guard.
