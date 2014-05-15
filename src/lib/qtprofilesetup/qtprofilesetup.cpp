@@ -326,6 +326,12 @@ static void createModules(Profile &profile, Settings *settings,
                   << indent << "cpp.defines: "
                         << "qmlDebugging ? base.concat('" + debugMacro + "') : base" << endl;
 
+                s << indent << "property string qmlPath";
+                if (qtEnvironment.qmlPath.isEmpty())
+                    s << endl;
+                else
+                    s << ": " << quotedPath(qtEnvironment.qmlPath) << endl;
+
                 s << indent << "property string qmlImportsPath: "
                         << quotedPath(qtEnvironment.qmlImportPath);
             }

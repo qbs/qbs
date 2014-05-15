@@ -417,6 +417,16 @@
 
     The absolute path to the directory where Qt's QML imports are installed.
 
+    \section3 qmlPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
+    \endtable
+
+    The absolute path to the directory where Qt's QML files are installed.
+    This property is undefined for Qt4.
+
     \section2 gui Properties
 
     \section3 uicName
@@ -447,5 +457,15 @@
     \endtable
 
     The absolute path to the directory where Qt's QML imports are installed.
+
+    \section3 qmlPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
+    \endtable
+
+    The absolute path to the directory where Qt's QML files are installed.
+    This property is undefined for Qt4.
 
 */

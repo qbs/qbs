@@ -180,6 +180,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_INSTALL_BINS");
     qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
     qtEnvironment.pluginPath = pathQueryValue(queryOutput, "QT_INSTALL_PLUGINS");
+    qtEnvironment.qmlPath = pathQueryValue(queryOutput, "QT_INSTALL_QML");
     qtEnvironment.qmlImportPath = pathQueryValue(queryOutput, "QT_INSTALL_IMPORTS");
     qtEnvironment.qtVersion = QString::fromLocal8Bit(queryOutput.value("QT_VERSION"));
 

@@ -43,6 +43,7 @@ public:
     QString libraryPath;
     QString includePath;
     QString binaryPath;
+    QString qmlPath;
     QString qmlImportPath;
     QString documentationPath;
     QString dataPath;
