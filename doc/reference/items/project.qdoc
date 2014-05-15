@@ -90,5 +90,11 @@
             \li empty
             \li A list of files from which to import products. This is equivalent to defining
                 the respective \c Product items directly under this \c Project item.
+        \row
+            \li sourceDirectory
+            \li path
+            \li n/a
+            \li The directory where the file containing the top-level \c Project item is located.
+                This property is read-only.
     \endtable
 */
