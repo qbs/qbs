@@ -425,7 +425,6 @@ void TestApi::fileTagsFilterOverride()
     QList<qbs::InstallableFile> installableFiles
             = project.installableFilesForProduct(product, qbs::InstallOptions());
     QCOMPARE(installableFiles.count(), 1);
-    QEXPECT_FAIL(0, "QBS-424", Continue);
     QVERIFY(installableFiles.first().targetDirectory().contains("habicht"));
 }
 

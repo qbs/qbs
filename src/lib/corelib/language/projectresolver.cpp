@@ -467,6 +467,9 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                 error.append(Tr::tr("Second item"), item->location());
                 throw error;
             }
+
+            // Discard any Group with the same fileTagsFilter that was defined in a base file.
+            m_productContext->product->artifactProperties.removeAll(apinfo.first);
         }
         if (!isEnabled)
             return;
