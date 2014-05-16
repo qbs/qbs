@@ -79,7 +79,7 @@
             args.push(output.filePath);
             var compilerPath = ModUtils.moduleProperty(product, 'compilerPath');
             var cmd = new Command(compilerPath, args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'compiling ' + input.fileName;
             cmd.highlight = 'compiler';
             return cmd;
         }
