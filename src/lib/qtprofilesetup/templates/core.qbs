@@ -203,7 +203,7 @@ Module {
         prepare: {
             var cmd = new Command(Moc.fullPath(product),
                                   Moc.args(product, input, output.filePath));
-            cmd.description = 'moc ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'moc ' + input.fileName;
             cmd.highlight = 'codegen';
             return cmd;
         }
@@ -222,7 +222,7 @@ Module {
                                   [input.filePath, '-name',
                                    FileInfo.completeBaseName(input.filePath),
                                    '-o', output.filePath]);
-            cmd.description = 'rcc ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'rcc ' + input.fileName;
             cmd.highlight = 'codegen';
             return cmd;
         }
@@ -241,7 +241,7 @@ Module {
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
                                   + ModUtils.moduleProperty(product, "lreleaseName"),
                                   ['-silent', input.filePath, '-qm', output.filePath]);
-            cmd.description = 'lrelease ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'lrelease ' + input.fileName;
             cmd.highlight = 'filegen';
             return cmd;
         }
@@ -272,7 +272,7 @@ Module {
             }
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
                                   + ModUtils.moduleProperty(product, "qdocName"), args);
-            cmd.description = 'qdoc ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'qdoc ' + input.fileName;
             cmd.highlight = 'filegen';
             cmd.environment = ModUtils.moduleProperty(product, "qdocEnvironment");
             cmd.environment.push("OUTDIR=" + outputDir); // Qt 4 replacement for -outputdir
@@ -296,7 +296,7 @@ Module {
             args.push(output.filePath);
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + "/qhelpgenerator",
                                   args);
-            cmd.description = 'qhelpgenerator ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'qhelpgenerator ' + input.fileName;
             cmd.highlight = 'filegen';
             return cmd;
         }

@@ -1,5 +1,4 @@
 import qbs 1.0
-import qbs.FileInfo
 import qbs.ModUtils
 import qbs.WindowsUtils
 
@@ -70,7 +69,7 @@ GenericGCC {
 
             args = args.concat(['-i', input.filePath, '-o', output.filePath]);
             var cmd = new Command(ModUtils.moduleProperty(product, "windresPath"), args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'compiling ' + input.fileName;
             cmd.highlight = 'compiler';
             return cmd;
         }

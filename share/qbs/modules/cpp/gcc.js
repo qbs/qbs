@@ -300,7 +300,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     }
 
     var cmd = new Command(compilerPath, args);
-    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.filePath);
+    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + input.fileName;
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";

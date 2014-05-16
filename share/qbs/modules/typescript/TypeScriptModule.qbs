@@ -240,8 +240,9 @@ Module {
 
             cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.description = "compiling " + (ModUtils.moduleProperty(product, "singleFile")
-                                                ? FileInfo.fileName(primaryOutput.filePath)
-                                                : inputs.typescript.map(function(obj) { return FileInfo.fileName(obj.filePath) }).join(", "));
+                                                ? primaryOutput.fileName
+                                                : inputs.typescript.map(function(obj) {
+                                                                return obj.fileName; }).join(", "));
             cmd.highlight = "compiler";
             cmds.push(cmd);
 

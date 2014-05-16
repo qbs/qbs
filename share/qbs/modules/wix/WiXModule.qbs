@@ -280,7 +280,7 @@ Module {
             args.push(FileInfo.toWindowsSeparators(inputs.wxs[0].filePath));
 
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
-            cmd.description = "compiling " + FileInfo.fileName(inputs.wxs[0].filePath);
+            cmd.description = "compiling " + inputs.wxs[0].fileName;
             cmd.highlight = "compiler";
             cmd.workingDirectory = FileInfo.path(output.filePath);
             return cmd;
@@ -377,7 +377,7 @@ Module {
             }
 
             var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-            cmd.description = "linking " + FileInfo.fileName(primaryOutput.filePath);
+            cmd.description = "linking " + primaryOutput.fileName;
             cmd.highlight = "linker";
             cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
             return cmd;

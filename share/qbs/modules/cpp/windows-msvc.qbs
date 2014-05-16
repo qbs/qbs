@@ -183,7 +183,7 @@ CppModule {
                 args.push(fileName)
             }
             var cmd = new Command("lib.exe", args);
-            cmd.description = 'creating ' + FileInfo.fileName(output.filePath)
+            cmd.description = 'creating ' + output.fileName;
             cmd.highlight = 'linker';
             cmd.workingDirectory = FileInfo.path(output.filePath)
             cmd.responseFileUsagePrefix = '@';
@@ -230,7 +230,7 @@ CppModule {
 
             args = args.concat(['/fo', output.filePath, input.filePath]);
             var cmd = new Command('rc', args);
-            cmd.description = 'compiling ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'compiling ' + input.fileName;
             cmd.highlight = 'compiler';
 
             // Remove the first two lines of stdout. That's the logo.

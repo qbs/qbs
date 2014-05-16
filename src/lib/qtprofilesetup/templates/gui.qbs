@@ -26,7 +26,7 @@ QtModule {
             var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
                                   + ModUtils.moduleProperty(product, "uicName"),
                                   [input.filePath, '-o', output.filePath])
-            cmd.description = 'uic ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'uic ' + input.fileName;
             cmd.highlight = 'codegen';
             return cmd;
         }

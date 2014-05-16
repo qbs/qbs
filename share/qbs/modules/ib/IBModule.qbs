@@ -126,7 +126,7 @@ Module {
             args.push(input.filePath);
 
             var cmd = new Command("ibtool", args);
-            cmd.description = 'ibtool ' + FileInfo.fileName(input.filePath);
+            cmd.description = 'ibtool ' + input.fileName;
 
             // Also display the language name of the XIB being compiled if it has one
             var localizationKey = DarwinTools.localizationKey(input.filePath);

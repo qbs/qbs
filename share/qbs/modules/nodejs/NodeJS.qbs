@@ -46,7 +46,7 @@ Module {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "copying " + FileInfo.fileName(input.filePath);
+            cmd.description = "copying " + input.fileName;
             cmd.sourceCode = function() {
                 File.copy(input.filePath, output.filePath);
             };

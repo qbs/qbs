@@ -102,7 +102,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args = wrapperArgs.concat(args);
     }
     var cmd = new Command(compilerPath, args)
-    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + FileInfo.fileName(input.filePath);
+    cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + input.fileName;
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";
@@ -111,7 +111,7 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
     // cl.exe outputs the cpp file name. We filter that out.
     cmd.stdoutFilterFunction = "function(output) {";
     cmd.stdoutFilterFunction += "return output.replace(/"
-            + FileInfo.fileName(input.filePath) + "\\r\\n/g, '');";
+            + input.fileName + "\\r\\n/g, '');";
     cmd.stdoutFilterFunction += "}";
     return cmd;
 }
@@ -162,7 +162,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         linkerOutputNativeFilePath
                 = FileInfo.toWindowsSeparators(
                     FileInfo.path(primaryOutput.filePath) + "/intermediate."
-                        + FileInfo.fileName(primaryOutput.filePath));
+                        + primaryOutput.fileName);
         manifestFileName = linkerOutputNativeFilePath + ".manifest";
         args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName)
     } else {
@@ -199,7 +199,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
 
     var commands = [];
     var cmd = new Command(product.moduleProperty("cpp", "linkerPath"), args)
-    cmd.description = 'linking ' + FileInfo.fileName(primaryOutput.filePath)
+    cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';
@@ -223,7 +223,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
             "/outputresource:" + outputNativeFilePath + ";#" + (linkDLL ? "2" : "1")
         ]
         cmd = new Command("mt.exe", args)
-        cmd.description = 'embedding manifest into ' + FileInfo.fileName(primaryOutput.filePath)
+        cmd.description = 'embedding manifest into ' + primaryOutput.fileName;
         cmd.highlight = 'linker';
         cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
         commands.push(cmd);

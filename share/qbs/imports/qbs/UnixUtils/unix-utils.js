@@ -1,12 +1,9 @@
-var FileInfo = loadExtension("qbs.FileInfo");
-
-function soname(product, outputFilePath) {
+function soname(product, outputFileName) {
     function majorVersion(version, defaultValue) {
         var n = parseInt(version, 10);
         return isNaN(n) ? defaultValue : n;
     }
 
-    var outputFileName = FileInfo.fileName(outputFilePath);
     if (product.version) {
         var major = majorVersion(product.version);
         if (major) {
