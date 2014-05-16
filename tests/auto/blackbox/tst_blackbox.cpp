@@ -2070,7 +2070,7 @@ void TestBlackbox::testNodeJs()
     params.command = QLatin1String("run");
     QCOMPARE(runQbs(params), 0);
     QVERIFY((bool)m_qbsStdout.contains("hello world"));
-    QVERIFY(regularFileExists(buildDir + "/hello.js"));
+    QVERIFY(regularFileExists(buildDir + "/hello/hello.js"));
 }
 
 void TestBlackbox::testTypeScript()
