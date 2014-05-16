@@ -7,13 +7,14 @@ Module {
     Depends { name: "Qt.core" }
 
     property string qtModuleName
+    property string qtModulePrefix: 'Qt'
     property path binPath: Qt.core.binPath
     property path incPath: Qt.core.incPath
     property path libPath: Qt.core.libPath
     property string qtLibInfix: Qt.core.libInfix
     property string repository: Qt.core.versionMajor === 5 ? 'qtbase' : undefined
-    property string includeDirName: 'Qt' + qtModuleName
-    property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix, Qt.core, qbs)
+    property string includeDirName: qtModulePrefix + qtModuleName
+    property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix, Qt.core, qbs, qtModulePrefix)
     property string qtVersion: Qt.core.version
     property bool hasLibrary: true
 
