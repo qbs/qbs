@@ -167,7 +167,7 @@ CppModule {
                 var result = []
                 for (var i in inputs.staticlibrary) {
                     var lib = inputs.staticlibrary[i]
-                    result.push(lib.fileName)
+                    result.push(lib.filePath)
                     var impliedLibs = ModUtils.moduleProperties(lib, 'staticLibraries')
                     result = result.uniqueConcat(impliedLibs);
                 }
