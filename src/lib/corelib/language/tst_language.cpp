@@ -370,6 +370,8 @@ void TestLanguage::erroneousFiles_data()
             << "Unexpected item type 'Narf'";
     QTest::newRow("invalid_child_item_type")
             << "Items of type 'Project' cannot contain items of type 'Depends'.";
+    QTest::newRow("conflicting_fileTagsFilter")
+            << "Conflicting fileTagsFilter in Group items";
 }
 
 void TestLanguage::erroneousFiles()

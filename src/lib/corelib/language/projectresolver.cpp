@@ -457,6 +457,17 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         if (Q_UNLIKELY(!files.isEmpty()))
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
+
+        ProductContext::ArtifactPropertiesInfo apinfo
+                = m_productContext->artifactPropertiesPerFilter.value(fileTagsFilter);
+        if (apinfo.first) {
+            if (apinfo.second.fileName() == item->location().fileName()) {
+                ErrorInfo error(Tr::tr("Conflicting fileTagsFilter in Group items."));
+                error.append(Tr::tr("First item"), apinfo.second);
+                error.append(Tr::tr("Second item"), item->location());
+                throw error;
+            }
+        }
         if (!isEnabled)
             return;
         ArtifactPropertiesPtr aprops = ArtifactProperties::create();
@@ -465,6 +476,8 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         cfg->setValue(evaluateModuleValues(item));
         aprops->setPropertyMapInternal(cfg);
         m_productContext->product->artifactProperties += aprops;
+        m_productContext->artifactPropertiesPerFilter.insert(fileTagsFilter,
+                                ProductContext::ArtifactPropertiesInfo(aprops, item->location()));
         return;
     }
     if (Q_UNLIKELY(files.isEmpty() && !item->hasProperty(QLatin1String("files")))) {

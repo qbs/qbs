@@ -80,6 +80,8 @@ private:
         QString buildDirectory;
         FileTags additionalFileTags;
         Item *item;
+        typedef QPair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
+        QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     };
 
     struct ModuleContext
