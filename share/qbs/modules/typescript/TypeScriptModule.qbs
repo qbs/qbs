@@ -179,7 +179,6 @@ Module {
             var args = [];
 
             var primaryOutput = outputs.compiled_typescript[0];
-            var outDir = FileInfo.joinPaths(product.buildDirectory, product.destinationDirectory);
 
             if (ModUtils.moduleProperty(product, "warningLevel") === "pedantic") {
                 args.push("--noImplicitAny");
@@ -220,7 +219,7 @@ Module {
             }
 
             args.push("--outDir");
-            args.push(outDir);
+            args.push(product.buildDirectory);
 
             if (ModUtils.moduleProperty(product, "singleFile")) {
                 args.push("--out");
@@ -244,13 +243,12 @@ Module {
                                                 ? FileInfo.fileName(primaryOutput.filePath)
                                                 : inputs.typescript.map(function(obj) { return FileInfo.fileName(obj.filePath) }).join(", "));
             cmd.highlight = "compiler";
-            cmd.workingDirectory = outDir;
             cmds.push(cmd);
 
             // Move all the compiled TypeScript files to the proper intermediate directory
             cmd = new JavaScriptCommand();
             cmd.silent = true;
-            cmd.outDir = outDir;
+            cmd.outDir = product.buildDirectory;
             cmd.sourceCode = function() {
                 for (i = 0; i < outputs.compiled_typescript.length; ++i) {
                     var fp = outputs.compiled_typescript[i].filePath;
