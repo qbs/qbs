@@ -1,7 +1,8 @@
 #include <cstdio>
+#include "magnificent.h"
 
 void doAwesomeStuff()
 {
-    printf("Just. Wow.\n");
+    printf(magnificentMessage);
 }
 
