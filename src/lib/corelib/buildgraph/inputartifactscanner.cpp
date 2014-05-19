@@ -311,14 +311,18 @@ unresolved:
         continue;
 
 resolved:
-        // Do not scan artifacts that are being built. Otherwise we might read an incomplete
-        // file or conflict with the writing process.
-        if (artifactsToScan) {
-            Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency->file);
-            if (artifactDependency && artifactDependency->buildState != BuildGraphNode::Building)
-                artifactsToScan->append(artifactDependency);
-        }
         handleDependency(*resolvedDependency);
+        if (artifactsToScan && resolvedDependency->file) {
+            if (Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency->file)) {
+                // Do not scan artifacts that are being built. Otherwise we might read an incomplete
+                // file or conflict with the writing process.
+                if (artifactDependency->buildState != BuildGraphNode::Building)
+                    artifactsToScan->append(artifactDependency);
+            } else {
+                // Add file dependency to the next round of scanning.
+                artifactsToScan->append(resolvedDependency->file);
+            }
+        }
     }
 }
 

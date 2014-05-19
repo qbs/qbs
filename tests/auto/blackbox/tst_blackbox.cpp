@@ -1560,7 +1560,6 @@ void TestBlackbox::fileDependencies()
     waitForNewTimestamp();
     touch("awesomelib/magnificent.h");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL("", "QBS-566", Abort);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 }
