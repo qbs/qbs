@@ -132,10 +132,10 @@ static void resolveAbsolutePath(const ScanResultCache::Dependency &dependency,
 }
 
 static void scanWithScannerPlugin(DependencyScanner *scanner,
-                                  Artifact *artifactToBeScanned,
+                                  FileResourceBase *fileToBeScanned,
                                   ScanResultCache::Result *scanResult)
 {
-    QStringList dependencies = scanner->collectDependencies(artifactToBeScanned);
+    QStringList dependencies = scanner->collectDependencies(fileToBeScanned);
     foreach (const QString &s, dependencies)
         scanResult->deps += ScanResultCache::Dependency(s);
     scanResult->valid = true;
@@ -188,19 +188,19 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
 
     InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
     QSet<QString> visitedFilePaths;
-    QList<Artifact*> artifactsToScan;
-    artifactsToScan.append(inputArtifact);
+    QList<FileResourceBase *> filesToScan;
+    filesToScan.append(inputArtifact);
     const QSet<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
-    while (!artifactsToScan.isEmpty()) {
-        Artifact* artifactToBeScanned = artifactsToScan.takeFirst();
-        const QString &filePathToBeScanned = artifactToBeScanned->filePath();
+    while (!filesToScan.isEmpty()) {
+        FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
+        const QString &filePathToBeScanned = fileToBeScanned->filePath();
         if (visitedFilePaths.contains(filePathToBeScanned))
             continue;
         visitedFilePaths.insert(filePathToBeScanned);
 
         foreach (DependencyScanner *scanner, scanners) {
-            scanForScannerFileDependencies(scanner, inputArtifact, artifactToBeScanned,
-                scanner->recursive() ? &artifactsToScan : 0, cacheItem[scanner->key()]);
+            scanForScannerFileDependencies(scanner, inputArtifact, fileToBeScanned,
+                scanner->recursive() ? &filesToScan : 0, cacheItem[scanner->key()]);
         }
     }
 }
@@ -236,11 +236,14 @@ QSet<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifa
 }
 
 void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *scanner,
-        Artifact *inputArtifact, Artifact* artifactToBeScanned, QList<Artifact *> *artifactsToScan,
+        Artifact *inputArtifact, FileResourceBase *fileToBeScanned,
+        QList<FileResourceBase *> *filesToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
-    if (m_logger.traceEnabled())
-        m_logger.qbsTrace() << "[DEPSCAN] file " << artifactToBeScanned->filePath();
+    if (m_logger.traceEnabled()) {
+        m_logger.qbsTrace() << QString::fromLocal8Bit("[DEPSCAN] file %1")
+                .arg(fileToBeScanned->filePath());
+    }
 
     const bool cacheHit = cache.valid;
     if (!cacheHit) {
@@ -254,11 +257,11 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
             m_logger.qbsTrace() << "    " << s;
     }
 
-    const QString &filePathToBeScanned = artifactToBeScanned->filePath();
+    const QString &filePathToBeScanned = fileToBeScanned->filePath();
     ScanResultCache::Result scanResult = m_context->scanResultCache->value(scanner->key(), filePathToBeScanned);
     if (!scanResult.valid) {
         try {
-            scanWithScannerPlugin(scanner, artifactToBeScanned, &scanResult);
+            scanWithScannerPlugin(scanner, fileToBeScanned, &scanResult);
         } catch (const ErrorInfo &error) {
             m_logger.printWarning(error);
             return;
@@ -266,11 +269,11 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
         m_context->scanResultCache->insert(scanner->key(), filePathToBeScanned, scanResult);
     }
 
-    resolveScanResultDependencies(inputArtifact, scanResult, artifactsToScan, cache);
+    resolveScanResultDependencies(inputArtifact, scanResult, filesToScan, cache);
 }
 
 void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputArtifact,
-        const ScanResultCache::Result &scanResult, QList<Artifact*> *artifactsToScan,
+        const ScanResultCache::Result &scanResult, QList<FileResourceBase *> *artifactsToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
     foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
