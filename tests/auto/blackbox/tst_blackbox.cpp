@@ -2087,9 +2087,9 @@ void TestBlackbox::testTypeScript()
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY(regularFileExists(buildDir + "/animals.js"));
-    QVERIFY(regularFileExists(buildDir + "/extra.js"));
-    QVERIFY(regularFileExists(buildDir + "/main.js"));
+    QVERIFY(regularFileExists(buildDir + "/animals/animals.js"));
+    QVERIFY(regularFileExists(buildDir + "/animals/extra.js"));
+    QVERIFY(regularFileExists(buildDir + "/animals/main.js"));
 }
 
 QTEST_MAIN(TestBlackbox)
