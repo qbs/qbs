@@ -121,6 +121,7 @@ public:
 
 private:
     void scanForFileDependencies(Artifact *inputArtifact);
+    QSet<DependencyScanner *> scannersForArtifact(const Artifact *artifact) const;
     void scanForScannerFileDependencies(DependencyScanner *scanner,
             Artifact *inputArtifact, Artifact* artifactToBeScanned,
             QList<Artifact*> *artifactsToScan,

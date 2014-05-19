@@ -190,9 +190,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     QSet<QString> visitedFilePaths;
     QList<Artifact*> artifactsToScan;
     artifactsToScan.append(inputArtifact);
-    QSet<DependencyScanner*> scanners;
-    TopLevelProject *project = inputArtifact->product->topLevelProject();
-    ScriptEngine* engine = project->buildData->evaluationContext->engine();
+    const QSet<DependencyScanner *> scanners = scannersForArtifact(inputArtifact);
     while (!artifactsToScan.isEmpty()) {
         Artifact* artifactToBeScanned = artifactsToScan.takeFirst();
         const QString &filePathToBeScanned = artifactToBeScanned->filePath();
@@ -200,34 +198,41 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
             continue;
         visitedFilePaths.insert(filePathToBeScanned);
 
-        scanners.clear();
-        ResolvedProduct* product = artifactToBeScanned->product.data();
-        QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache = m_context->scannersCache[product];
-        foreach (const FileTag &fileTag, artifactToBeScanned->fileTags) {
-            InputArtifactScannerContext::DependencyScannerCacheItem &cache = scannerCache[fileTag];
-            if (!cache.valid) {
-                cache.valid = true;
-                foreach (ScannerPlugin *scanner, ScannerPluginManager::scannersForFileTag(fileTag)) {
-                    PluginDependencyScanner *pluginScanner = new PluginDependencyScanner(scanner);
-                    cache.scanners += DependencyScannerPtr(pluginScanner);
-                }
-                foreach (const ResolvedScannerConstPtr &scanner, product->scanners) {
-                    if (scanner->inputs.contains(fileTag)) {
-                        UserDependencyScanner *userScanner = new UserDependencyScanner(scanner, m_logger, engine);
-                        cache.scanners += DependencyScannerPtr(userScanner);
-                        break;
-                    }
-                }
-            }
-            foreach (const DependencyScannerPtr &scanner, cache.scanners) {
-                scanners += scanner.data();
-            }
-        }
         foreach (DependencyScanner *scanner, scanners) {
             scanForScannerFileDependencies(scanner, inputArtifact, artifactToBeScanned,
                 scanner->recursive() ? &artifactsToScan : 0, cacheItem[scanner->key()]);
         }
     }
+}
+
+QSet<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifact *artifact) const
+{
+    QSet<DependencyScanner *> scanners;
+    ResolvedProduct *product = artifact->product.data();
+    ScriptEngine *engine = product->topLevelProject()->buildData->evaluationContext->engine();
+    QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache
+            = m_context->scannersCache[product];
+    foreach (const FileTag &fileTag, artifact->fileTags) {
+        InputArtifactScannerContext::DependencyScannerCacheItem &cache = scannerCache[fileTag];
+        if (!cache.valid) {
+            cache.valid = true;
+            foreach (ScannerPlugin *scanner, ScannerPluginManager::scannersForFileTag(fileTag)) {
+                PluginDependencyScanner *pluginScanner = new PluginDependencyScanner(scanner);
+                cache.scanners += DependencyScannerPtr(pluginScanner);
+            }
+            foreach (const ResolvedScannerConstPtr &scanner, product->scanners) {
+                if (scanner->inputs.contains(fileTag)) {
+                    cache.scanners += DependencyScannerPtr(
+                                new UserDependencyScanner(scanner, m_logger, engine));
+                    break;
+                }
+            }
+        }
+        foreach (const DependencyScannerPtr &scanner, cache.scanners) {
+            scanners += scanner.data();
+        }
+    }
+    return scanners;
 }
 
 void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *scanner,
