@@ -143,7 +143,7 @@ function frameworksFolderPath(product, version) {
 function infoPlistPath(product, version) {
     var path;
     if (product.type.contains("application"))
-        path = ".tmp";
+        path = ".tmp/" + product.name;
     else if (product.type.contains("frameworkbundle"))
         path = unlocalizedResourcesFolderPath(product, version);
     else if (product.type.contains("inapppurchase"))
