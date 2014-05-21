@@ -38,7 +38,7 @@ namespace qbs {
 namespace Internal {
 
 QStringList toStringList(QbsQmlJS::AST::UiQualifiedId *qid);
-CodeLocation toCodeLocation(const QString &filePath, QbsQmlJS::AST::SourceLocation location);
+CodeLocation toCodeLocation(const QString &filePath, const QbsQmlJS::AST::SourceLocation &location);
 QString textOf(const QString &source, QbsQmlJS::AST::Node *node);
 QStringRef textRefOf(const QString &source, QbsQmlJS::AST::Node *node);
 

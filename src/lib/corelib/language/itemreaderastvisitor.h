@@ -60,7 +60,7 @@ public:
 
 private:
     bool visitStatement(QbsQmlJS::AST::Statement *statement);
-    CodeLocation toCodeLocation(QbsQmlJS::AST::SourceLocation location) const;
+    CodeLocation toCodeLocation(const QbsQmlJS::AST::SourceLocation &location) const;
     void checkDuplicateBinding(Item *item, const QStringList &bindingName,
             const QbsQmlJS::AST::SourceLocation &sourceLocation);
     Item *targetItemForBinding(Item *item, const QStringList &binding,

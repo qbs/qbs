@@ -41,7 +41,7 @@ QStringList toStringList(QbsQmlJS::AST::UiQualifiedId *qid)
     return result;
 }
 
-CodeLocation toCodeLocation(const QString &filePath, QbsQmlJS::AST::SourceLocation location)
+CodeLocation toCodeLocation(const QString &filePath, const QbsQmlJS::AST::SourceLocation &location)
 {
     return CodeLocation(filePath, location.startLine, location.startColumn);
 }

@@ -449,7 +449,7 @@ bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
     return false;
 }
 
-CodeLocation ItemReaderASTVisitor::toCodeLocation(AST::SourceLocation location) const
+CodeLocation ItemReaderASTVisitor::toCodeLocation(const AST::SourceLocation &location) const
 {
     return CodeLocation(m_file->filePath(), location.startLine, location.startColumn);
 }
