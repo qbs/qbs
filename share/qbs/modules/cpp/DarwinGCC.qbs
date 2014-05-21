@@ -132,7 +132,7 @@ UnixGCC {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "generating PkgInfo";
+            cmd.description = "generating PkgInfo for " + product.name;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var infoPlist = BundleTools.infoPlistContents(inputs.infoplist[0].filePath);
@@ -164,7 +164,7 @@ UnixGCC {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "generating Info.plist";
+            cmd.description = "generating Info.plist for " + product.name;
             cmd.highlight = "codegen";
             cmd.infoPlistFile = ModUtils.moduleProperty(product, "infoPlistFile");
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
@@ -327,7 +327,7 @@ UnixGCC {
                                       "--out=" + outputs.application_dsym[0].filePath,
                                       input.filePath
                                   ]);
-            cmd.description = "generating dsym";
+            cmd.description = "generating dsym for " + product.name;
             cmd.highlight = "codegen";
             return cmd;
         }
