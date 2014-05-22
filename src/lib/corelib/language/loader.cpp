@@ -114,7 +114,8 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
     // we have enough information.
     if (m_progressObserver) {
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
-                .arg(TopLevelProject::deriveId(parameters.buildConfigurationTree())), 1);
+                .arg(TopLevelProject::deriveId(parameters.topLevelProfile(),
+                                               parameters.finalBuildConfigurationTree())), 1);
         cancelationTimer.setSingleShot(false);
         QObject::connect(&cancelationTimer, SIGNAL(timeout()), SLOT(checkForCancelation()));
         cancelationTimer.start(1000);

@@ -275,6 +275,7 @@ void BuiltinDeclarations::addProjectItem()
     item << conditionProperty();
     item << buildDirProperty();
     item << PropertyDeclaration(QLatin1String("sourceDirectory"), PropertyDeclaration::Path);
+    item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
                                       PropertyDeclaration::PropertyNotAvailableInConfig);
     item << PropertyDeclaration(QLatin1String("qbsSearchPaths"),

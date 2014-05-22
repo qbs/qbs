@@ -40,6 +40,7 @@
 #include <tools/scripttools.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
+#include <tools/profile.h>
 #include <tools/propertyfinder.h>
 
 #include <QProcessEnvironment>
@@ -121,11 +122,8 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
 
 QString TestLanguage::buildDir(const SetupProjectParameters &params) const
 {
-    return FileInfo::resolvePath(params.buildRoot(),
-        getConfigProperty(params.buildConfigurationTree(),
-                          QStringList() << "qbs" << "profile").toString() + QLatin1Char('-')
-            + getConfigProperty(params.buildConfigurationTree(),
-                            QStringList() << "qbs" << "buildVariant").toString());
+    return FileInfo::resolvePath(params.buildRoot(), params.topLevelProfile()
+                                 + QLatin1Char('-') + params.buildVariant());
 }
 
 #define HANDLE_INIT_CLEANUP_DATATAGS(fn) {\
@@ -143,11 +141,10 @@ void TestLanguage::initTestCase()
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../../share/qbs"));
-    QVariantMap buildConfig = defaultParameters.buildConfigurationTree();
-    buildConfig.insert("qbs.targetOS", "linux");
-    buildConfig.insert("qbs.architecture", "x86_64");
-    buildConfig.insert("qbs.profile", "qbs_autotests");
-    defaultParameters.setBuildConfiguration(buildConfig);
+    defaultParameters.setTopLevelProfile("qbs_autotests");
+    defaultParameters.setBuildVariant("debug");
+    Settings settings((QString()));
+    defaultParameters.expandBuildConfiguration(&settings);
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
 
@@ -821,11 +818,11 @@ void TestLanguage::jsImportUsedInMultipleScopes()
 
     bool exceptionCaught = false;
     try {
-        QVariantMap customBuildConfig = defaultParameters.buildConfiguration();
-        customBuildConfig.insert(QLatin1String("qbs.buildVariant"), buildVariant);
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
-        params.setBuildConfiguration(customBuildConfig);
+        params.setBuildVariant(buildVariant);
+        Settings settings((QString()));
+        params.expandBuildConfiguration(&settings);
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -1032,16 +1029,19 @@ void TestLanguage::profileValuesAndOverriddenValues()
 {
     bool exceptionCaught = false;
     try {
+        Settings settings((QString()));
+        Profile profile(QLatin1String("tst_lang_profile"), &settings); // TODO: Make sure it's removed afterwards.
+        profile.setValue("dummy.defines", "IN_PROFILE");
+        profile.setValue("dummy.cFlags", "IN_PROFILE");
+        profile.setValue("dummy.cxxFlags", "IN_PROFILE");
+        profile.setValue("qbs.architecture", "x86");
         SetupProjectParameters parameters = defaultParameters;
-        QVariantMap buildConfig = parameters.buildConfiguration();
-        buildConfig.insert("dummy.defines", "IN_PROFILE");
-        buildConfig.insert("dummy.cFlags", "IN_PROFILE");
-        buildConfig.insert("dummy.cxxFlags", "IN_PROFILE");
-        parameters.setBuildConfiguration(buildConfig);
+        parameters.setTopLevelProfile(profile.name());
         QVariantMap overriddenValues;
         overriddenValues.insert("dummy.cFlags", "OVERRIDDEN");
         parameters.setOverriddenValues(overriddenValues);
         parameters.setProjectFilePath(testProject("profilevaluesandoverriddenvalues.qbs"));
+        parameters.expandBuildConfiguration(&settings);
         project = loader->loadProject(parameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);

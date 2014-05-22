@@ -104,7 +104,8 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     m_result = BuildGraphLoadResult();
     m_evalContext = evalContext;
 
-    const QString projectId = TopLevelProject::deriveId(parameters.buildConfigurationTree());
+    const QString projectId = TopLevelProject::deriveId(parameters.topLevelProfile(),
+                                                        parameters.finalBuildConfigurationTree());
     const QString buildDir
             = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(), projectId);
     const QString buildGraphFilePath

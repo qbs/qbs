@@ -122,12 +122,14 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     if (root->typeName() != QLatin1String("Project"))
         root = wrapWithProject(root);
 
-    const QString buildDirectory
-            = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
-                  TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
+    const QString buildDirectory = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(),
+            TopLevelProject::deriveId(parameters.topLevelProfile(),
+                                      parameters.finalBuildConfigurationTree()));
     root->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(QFileInfo(root->file()->filePath()).absolutePath()));
     root->setProperty(QLatin1String("buildDirectory"), VariantValue::create(buildDirectory));
+    root->setProperty(QLatin1String("profile"),
+                      VariantValue::create(m_parameters.topLevelProfile()));
     handleProject(&result, root, buildDirectory,
                   QSet<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
@@ -1017,7 +1019,8 @@ void ModuleLoader::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_parameters.buildConfigurationTree())));
+                    .arg(TopLevelProject::deriveId(m_parameters.topLevelProfile(),
+                                                   m_parameters.finalBuildConfigurationTree())));
     }
 }
 
@@ -1082,8 +1085,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
          it != sourceProject->propertyDeclarations().constEnd(); ++it) {
 
         // We must not inherit built-in properties such as "name",
-        // but "qbsSearchPaths" is an exception.
-        if (it.key() == QLatin1String("qbsSearchPaths")) {
+        // but there are exceptions.
+        if (it.key() == QLatin1String("qbsSearchPaths") || it.key() == QLatin1String("profile")) {
             const JSSourceValueConstPtr &v
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);

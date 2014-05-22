@@ -445,7 +445,7 @@ public:
 
     static TopLevelProjectPtr create() { return TopLevelProjectPtr(new TopLevelProject); }
 
-    static QString deriveId(const QVariantMap &config);
+    static QString deriveId(const QString &profile, const QVariantMap &config);
     static QString deriveBuildDirectory(const QString &buildRoot, const QString &id);
 
     QString buildDirectory; // Not saved
@@ -461,6 +461,7 @@ public:
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
     QString id() const { return m_id; }
+    QString profile() const;
 
     QString buildGraphFilePath() const;
     void store(const Logger &logger) const;

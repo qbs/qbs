@@ -81,6 +81,7 @@ public:
     ~Project();
 
     bool isValid() const;
+    QString profile() const;
     ProjectData projectData() const;
     QString targetExecutable(const ProductData &product,
                              const InstallOptions &installoptions) const;

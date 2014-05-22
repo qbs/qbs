@@ -55,14 +55,16 @@ public:
     }
 
     QString projectFilePath;
+    QString topLevelProfile;
+    QString buildVariant;
     QString buildRoot;
     QStringList searchPaths;
     QStringList pluginPaths;
     QVariantMap overriddenValues;
     QVariantMap buildConfiguration;
-    mutable QVariantMap overriddenValuesTree;
     mutable QVariantMap buildConfigurationTree;
-    mutable QVariantMap finalBuildConfigtree;
+    mutable QVariantMap overriddenValuesTree;
+    mutable QVariantMap finalBuildConfigTree;
     bool ignoreDifferentProjectFilePath;
     bool dryRun;
     bool logElapsedTime;
@@ -88,6 +90,43 @@ SetupProjectParameters &SetupProjectParameters::operator=(const SetupProjectPara
 {
     d = other.d;
     return *this;
+}
+
+/*!
+ * \brief Returns the name of the top-level profile for building the project.
+ */
+QString SetupProjectParameters::topLevelProfile() const
+{
+    return d->topLevelProfile;
+}
+
+/*!
+ * \brief Sets the top-level profile for building the project.
+ */
+void SetupProjectParameters::setTopLevelProfile(const QString &profile)
+{
+    d->buildConfigurationTree.clear();
+    d->finalBuildConfigTree.clear();
+    d->topLevelProfile = profile;
+}
+
+/*!
+ * \brief Returns the build variant for building the project.
+ */
+QString SetupProjectParameters::buildVariant() const
+{
+    return d->buildVariant;
+}
+
+/*!
+ * \brief Sets the build variant for building the project.
+ * \param buildVariant "debug" or "release"
+ */
+void SetupProjectParameters::setBuildVariant(const QString &buildVariant)
+{
+    d->buildConfigurationTree.clear();
+    d->finalBuildConfigTree.clear();
+    d->buildVariant = buildVariant;
 }
 
 /*!
@@ -184,7 +223,7 @@ void SetupProjectParameters::setOverriddenValues(const QVariantMap &values)
     }
     d->overriddenValues = values;
     d->overriddenValuesTree.clear();
-    d->finalBuildConfigtree.clear();
+    d->finalBuildConfigTree.clear();
 }
 
 static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
@@ -211,7 +250,8 @@ QVariantMap SetupProjectParameters::overriddenValuesTree() const
 }
 
 /*!
- * \brief The collection of properties to use for resolving the project.
+ * \brief Returns the build configuration.
+ * Overridden values are not taken into account.
  */
 QVariantMap SetupProjectParameters::buildConfiguration() const
 {
@@ -219,32 +259,61 @@ QVariantMap SetupProjectParameters::buildConfiguration() const
 }
 
 /*!
- * Sets the collection of properties to use for resolving the project.
- *
- * Keys are expected to be in dotted syntax (e.g. Qt.declarative.qmlDebugging) that is
- * used by "qbs config".
- */
-void SetupProjectParameters::setBuildConfiguration(const QVariantMap &buildConfiguration)
-{
-    // warn if somebody tries to set a build configuration tree:
-    for (QVariantMap::const_iterator i = buildConfiguration.constBegin();
-         i != buildConfiguration.constEnd(); ++i) {
-        QBS_ASSERT(i.value().type() != QVariant::Map, return);
-    }
-    d->buildConfiguration = buildConfiguration;
-    d->buildConfigurationTree.clear();
-    d->finalBuildConfigtree.clear();
-}
-
-/*!
  * \brief Returns the build configuration in tree form.
- * \return the tree form of the build configuration.
+ * Overridden values are not taken into account.
  */
 QVariantMap SetupProjectParameters::buildConfigurationTree() const
 {
     provideValuesTree(d->buildConfiguration, &d->buildConfigurationTree);
     return d->buildConfigurationTree;
 }
+
+
+static QVariantMap expandedBuildConfigurationInternal(Settings *settings,
+        const QString &profileName, const QString &buildVariant)
+{
+    QVariantMap buildConfig;
+
+    // (1) Values from profile, if given.
+    if (!profileName.isEmpty()) {
+        ErrorInfo err;
+        const Profile profile(profileName, settings);
+        const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);
+        if (err.hasError())
+            throw err;
+        if (profileKeys.isEmpty())
+            throw ErrorInfo(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
+        foreach (const QString &profileKey, profileKeys) {
+            buildConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
+                if (err.hasError())
+                    throw err;
+        }
+    }
+
+    // (2) Build Variant.
+    if (buildVariant.isEmpty())
+        throw ErrorInfo(Internal::Tr::tr("No build variant set."));
+    if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
+        throw ErrorInfo(Internal::Tr::tr("Invalid build variant '%1'. Must be 'debug' or "
+                                         "'release'.").arg(buildVariant));
+    }
+    buildConfig.insert(QLatin1String("qbs.buildVariant"), buildVariant);
+
+    return buildConfig;
+}
+
+QVariantMap SetupProjectParameters::expandedBuildConfiguration(Settings *settings,
+        const QString &profileName, const QString &buildVariant, ErrorInfo *errorInfo)
+{
+    try {
+        return expandedBuildConfigurationInternal(settings, profileName, buildVariant);
+    } catch (const ErrorInfo &err) {
+        if (errorInfo)
+            *errorInfo = err;
+        return QVariantMap();
+    }
+}
+
 
 /*!
  * \brief Expands the build configuration based on the given settings.
@@ -259,56 +328,10 @@ QVariantMap SetupProjectParameters::buildConfigurationTree() const
 ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
 {
     ErrorInfo err;
-
-    // Generates a full build configuration from user input, using the settings.
-    QVariantMap expandedConfig = d->buildConfiguration;
-
-    const QString buildVariant = expandedConfig.value(QLatin1String("qbs.buildVariant")).toString();
-    if (buildVariant.isEmpty())
-        return ErrorInfo(Internal::Tr::tr("No build variant set."));
-    if (buildVariant != QLatin1String("debug") && buildVariant != QLatin1String("release")) {
-        err.append(Internal::Tr::tr("Invalid build variant '%1'. Must be 'debug' or 'release'.")
-                   .arg(buildVariant));
-        return err;
-    }
-
-    // Fill in buildCfg in this order (making sure not to overwrite a key already set by a previous stage)
-    // 1) Things specified on command line (already in buildCfg at this point)
-    // 2) Everything from the profile key
-    QString profileName = expandedConfig.value(QLatin1String("qbs.profile")).toString();
-    if (profileName.isNull()) {
-        profileName = settings->defaultProfile();
-        if (profileName.isNull()) {
-            const QString profileNames = settings->profiles().join(QLatin1String(", "));
-            err.append(Internal::Tr::tr("No profile given and no default profile set.\n"
-                                        "Either set the configuration value 'defaultProfile' to a "
-                                        "valid profile name\n"
-                                        "or specify the profile with the command line parameter "
-                                        "'profile:name'.\n"
-                                        "The following profiles are available:\n%1")
-                       .arg(profileNames));
-            return err;
-        }
-        expandedConfig.insert(QLatin1String("qbs.profile"), profileName);
-    }
-
-    // (2)
-    const Profile profile(profileName, settings);
-    const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);
+    QVariantMap expandedConfig
+            = expandedBuildConfiguration(settings, topLevelProfile(), buildVariant(), &err);
     if (err.hasError())
         return err;
-    if (profileKeys.isEmpty()) {
-        err.append(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profileName));
-        return err;
-    }
-    foreach (const QString &profileKey, profileKeys) {
-        if (!expandedConfig.contains(profileKey)) {
-            expandedConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
-            if (err.hasError())
-                return err;
-        }
-    }
-
     if (d->buildConfiguration != expandedConfig) {
         d->buildConfigurationTree.clear();
         d->buildConfiguration = expandedConfig;
@@ -316,20 +339,29 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
     return err;
 }
 
+QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMap &buildConfig,
+                                                                const QVariantMap &overriddenValues)
+{
+    QVariantMap flatBuildConfig = buildConfig;
+    for (QVariantMap::ConstIterator it = overriddenValues.constBegin();
+         it != overriddenValues.constEnd(); ++it) {
+        flatBuildConfig.insert(it.key(), it.value());
+    }
+    QVariantMap buildConfigTree;
+    provideValuesTree(flatBuildConfig, &buildConfigTree);
+    return buildConfigTree;
+}
+
 /*!
  * \brief Returns the build configuration in tree form, with overridden values taken into account.
  */
 QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
 {
-    if (d->finalBuildConfigtree.isEmpty()) {
-        QVariantMap finalMap = d->buildConfiguration;
-        for (QVariantMap::ConstIterator it = d->overriddenValues.constBegin();
-             it != d->overriddenValues.constEnd(); ++it) {
-            finalMap.insert(it.key(), it.value());
-        }
-        provideValuesTree(finalMap, &d->finalBuildConfigtree);
+    if (d->finalBuildConfigTree.isEmpty()) {
+        d->finalBuildConfigTree
+                = finalBuildConfigurationTree(buildConfiguration(), overriddenValues());
     }
-    return d->finalBuildConfigtree;
+    return d->finalBuildConfigTree;
 }
 
 /*!

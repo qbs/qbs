@@ -123,25 +123,31 @@ void TestTools::testProfiles()
 
 void TestTools::testBuildConfigMerging()
 {
-    QVariantMap buildConfigMap;
-    buildConfigMap.insert(QLatin1String("topLevelKey"), QLatin1String("topLevelValue"));
-    buildConfigMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
-    buildConfigMap.insert(QLatin1String("qbs.architecture"),
-                          QLatin1String("Jean-Claude Pillemann"));
-    buildConfigMap.insert(QLatin1String("cpp.treatWarningsAsErrors"), true);
+    Settings settings((QString()));
+    Profile profile(QLatin1String("tst_tools_profile"), &settings); // TODO: Make sure it's removed afterwards.
+    profile.setValue(QLatin1String("topLevelKey"), QLatin1String("topLevelValue"));
+    profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
+    profile.setValue(QLatin1String("qbs.architecture"),
+                     QLatin1String("Jean-Claude Pillemann"));
+    profile.setValue(QLatin1String("cpp.treatWarningsAsErrors"), true);
     QVariantMap overrideMap;
     overrideMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("clang"));
     SetupProjectParameters params;
-    params.setBuildConfiguration(buildConfigMap);
+    params.setTopLevelProfile(profile.name());
+    params.setBuildVariant(QLatin1String("debug"));
     params.setOverriddenValues(overrideMap);
+    const ErrorInfo error = params.expandBuildConfiguration(&settings);
+    QVERIFY2(!error.hasError(), qPrintable(error.toString()));
     const QVariantMap finalMap = params.finalBuildConfigurationTree();
     QCOMPARE(finalMap.count(), 3);
     QCOMPARE(finalMap.value(QLatin1String("topLevelKey")).toString(),
              QString::fromLatin1("topLevelValue"));
     const QVariantMap finalQbsMap = finalMap.value(QLatin1String("qbs")).toMap();
-    QCOMPARE(finalQbsMap.count(), 2);
+    QCOMPARE(finalQbsMap.count(), 3);
     QCOMPARE(finalQbsMap.value(QLatin1String("toolchain")).toString(),
              QString::fromLatin1("clang"));
+    QCOMPARE(finalQbsMap.value(QLatin1String("buildVariant")).toString(),
+             QString::fromLatin1("debug"));
     QCOMPARE(finalQbsMap.value(QLatin1String("architecture")).toString(),
              QString::fromLatin1("Jean-Claude Pillemann"));
     const QVariantMap finalCppMap = finalMap.value(QLatin1String("cpp")).toMap();

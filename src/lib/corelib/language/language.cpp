@@ -921,12 +921,14 @@ TopLevelProject::~TopLevelProject()
 {
 }
 
-QString TopLevelProject::deriveId(const QVariantMap &config)
+QString TopLevelProject::deriveId(const QString &profile, const QVariantMap &config)
 {
     const QVariantMap qbsProperties = config.value(QLatin1String("qbs")).toMap();
     const QString buildVariant = qbsProperties.value(QLatin1String("buildVariant")).toString();
-    const QString profile = qbsProperties.value(QLatin1String("profile")).toString();
-    return profile + QLatin1Char('-') + buildVariant;
+    QString prefix = profile;
+    if (prefix.isEmpty())
+        prefix = QLatin1String("no-profile");
+    return prefix + QLatin1Char('-') + buildVariant;
 }
 
 QString TopLevelProject::deriveBuildDirectory(const QString &buildRoot, const QString &id)
@@ -937,7 +939,12 @@ QString TopLevelProject::deriveBuildDirectory(const QString &buildRoot, const QS
 void TopLevelProject::setBuildConfiguration(const QVariantMap &config)
 {
     m_buildConfiguration = config;
-    m_id = deriveId(config);
+    m_id = deriveId(profile(), config);
+}
+
+QString TopLevelProject::profile() const
+{
+    return projectProperties().value(QLatin1String("profile")).toString();
 }
 
 QString TopLevelProject::buildGraphFilePath() const

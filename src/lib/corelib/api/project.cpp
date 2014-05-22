@@ -664,6 +664,15 @@ bool Project::isValid() const
     return d && d->internalProject;
 }
 
+/*!
+ * \brief The top-level profile for building this project.
+ */
+QString Project::profile() const
+{
+    QBS_ASSERT(isValid(), return QString());
+    return d->internalProject->profile();
+}
+
 Project &Project::operator=(const Project &other)
 {
     d = other.d;

@@ -124,7 +124,8 @@ void ProjectResolver::checkCancelation() const
 {
     if (m_progressObserver && m_progressObserver->canceled()) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                    .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
+                    .arg(TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
+                                                   m_setupParams.finalBuildConfigurationTree())));
     }
 }
 
@@ -180,11 +181,12 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     if (m_progressObserver)
         m_progressObserver->setMaximum(projectContext->loadResult->productInfos.count());
     const TopLevelProjectPtr project = TopLevelProject::create();
-    project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
-    project->buildDirectory
-            = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(), project->id());
+    project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
+            TopLevelProject::deriveId(m_setupParams.topLevelProfile(),
+                                      m_setupParams.finalBuildConfigurationTree()));
     projectContext->project = project;
     resolveProject(item, projectContext);
+    project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->usedEnvironment = m_engine->usedEnvironment();
     project->fileExistsResults = m_engine->fileExistsResults();
     project->fileLastModifiedResults = m_engine->fileLastModifiedResults();
@@ -204,12 +206,16 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
         projectContext->project->name = FileInfo::baseName(item->location().fileName()); // FIXME: Must also be changed in item?
     projectContext->project->enabled
             = m_evaluator->boolValue(item, QLatin1String("condition"));
-    if (!projectContext->project->enabled)
+    QVariantMap projectProperties;
+    if (!projectContext->project->enabled) {
+        projectProperties.insert(QLatin1String("profile"),
+                                 m_evaluator->stringValue(item, QLatin1String("profile")));
+        projectContext->project->setProjectProperties(projectProperties);
         return;
+    }
 
     projectContext->dummyModule = ResolvedModule::create();
 
-    QVariantMap projectProperties;
     for (Item::PropertyDeclarationMap::const_iterator it
                 = item->propertyDeclarations().constBegin();
             it != item->propertyDeclarations().constEnd(); ++it) {

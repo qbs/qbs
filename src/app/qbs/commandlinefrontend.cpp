@@ -128,25 +128,22 @@ void CommandLineFrontend::start()
         if (!m_parser.buildBeforeInstalling())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
-            QVariantMap baseConfig;
             QVariantMap userConfig = buildConfig;
-            QString buildVariantKey = QLatin1String("qbs.buildVariant");
-            baseConfig.insert(buildVariantKey, userConfig.take(buildVariantKey));
-            QString profileName;
-            const QVariantMap::Iterator it = userConfig.find(QLatin1String("qbs.profile"));
-            if (it != userConfig.end()) {
-                profileName = it.value().toString();
-                baseConfig.insert(it.key(), it.value());
-                userConfig.erase(it);
-            }
+            const QString buildVariantKey = QLatin1String("qbs.buildVariant");
+            const QString profileKey = QLatin1String("qbs.profile");
+            const QString buildVariant = userConfig.take(buildVariantKey).toString();
+            QString profileName = userConfig.take(profileKey).toString();
             if (profileName.isEmpty())
                 profileName = m_settings->defaultProfile();
+            if (profileName.isEmpty())
+                throw ErrorInfo(Tr::tr("No profile specified and no default profile exists."));
             const Preferences prefs(m_settings, profileName);
             params.setSearchPaths(prefs.searchPaths(qbsRootPath));
             params.setPluginPaths(prefs.pluginPaths(qbsRootPath
                                                     + QLatin1String("/" QBS_LIBRARY_DIRNAME)));
+            params.setTopLevelProfile(profileName);
+            params.setBuildVariant(buildVariant);
             params.setBuildRoot(buildDirectory(profileName));
-            params.setBuildConfiguration(baseConfig);
             params.setOverriddenValues(userConfig);
             const ErrorInfo err = params.expandBuildConfiguration(m_settings);
             if (err.hasError())
@@ -400,9 +397,7 @@ BuildOptions CommandLineFrontend::buildOptions(const Project &project) const
 {
     BuildOptions options = m_parser.buildOptions();
     if (options.maxJobCount() <= 0) {
-        const QVariantMap qbsProperties
-                = project.projectConfiguration().value(QLatin1String("qbs")).toMap();
-        const QString profileName = qbsProperties.value(QLatin1String("profile")).toString();
+        const QString profileName = project.profile();
         QBS_CHECK(!profileName.isEmpty());
         options.setMaxJobCount(Preferences(m_settings, profileName).jobs());
     }
