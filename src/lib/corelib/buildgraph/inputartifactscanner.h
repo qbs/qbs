@@ -121,12 +121,13 @@ public:
 
 private:
     void scanForFileDependencies(Artifact *inputArtifact);
+    QSet<DependencyScanner *> scannersForArtifact(const Artifact *artifact) const;
     void scanForScannerFileDependencies(DependencyScanner *scanner,
-            Artifact *inputArtifact, Artifact* artifactToBeScanned,
-            QList<Artifact*> *artifactsToScan,
+            Artifact *inputArtifact, FileResourceBase *fileToBeScanned,
+            QList<FileResourceBase *> *filesToScan,
             InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
     void resolveScanResultDependencies(const Artifact *inputArtifact,
-            const ScanResultCache::Result &scanResult, QList<Artifact*> *artifactsToScan,
+            const ScanResultCache::Result &scanResult, QList<FileResourceBase *> *artifactsToScan,
             InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
     void handleDependency(ResolvedDependency &dependency);
 

@@ -81,11 +81,11 @@ QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
     }
 }
 
-QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact)
+QStringList PluginDependencyScanner::collectDependencies(FileResourceBase *file)
 {
     QSet<QString> result;
-    QString baseDirOfInFilePath = artifact->dirPath();
-    const QString &filepath = artifact->filePath();
+    QString baseDirOfInFilePath = file->dirPath();
+    const QString &filepath = file->filePath();
     void *scannerHandle = m_plugin->open(filepath.utf16(), ScanForDependenciesFlag);
     if (!scannerHandle)
         return QStringList();
@@ -142,8 +142,12 @@ QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)
     return evaluate(artifact, m_scanner->searchPathsScript);
 }
 
-QStringList UserDependencyScanner::collectDependencies(Artifact *artifact)
+QStringList UserDependencyScanner::collectDependencies(FileResourceBase *file)
 {
+    // ### support user dependency scanners for file deps
+    Artifact *artifact = dynamic_cast<Artifact *>(file);
+    if (!artifact)
+        return QStringList();
     return evaluate(artifact, m_scanner->scanScript);
 }
 
