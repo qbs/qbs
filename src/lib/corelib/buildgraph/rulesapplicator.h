@@ -59,7 +59,7 @@ public:
     static void handleRemovedRuleOutputs(ArtifactSet artifactsToRemove, const Logger &logger);
 
 private:
-    void doApply(ArtifactSet inputArtifacts, QScriptValue &prepareScriptContext);
+    void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     void setupScriptEngineForArtifact(Artifact *artifact);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
     Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,

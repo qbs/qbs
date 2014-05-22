@@ -80,6 +80,20 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     foreach (const FileTag &fileTag, m_rule->inputs)
         inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
 
+    ArtifactSet usingsArtifacts;
+    if (!m_rule->usings.isEmpty()) {
+        foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
+            QBS_CHECK(dep->buildData);
+            ArtifactSet artifactsToCheck;
+            foreach (Artifact *targetArtifact, dep->targetArtifacts())
+                artifactsToCheck.unite(targetArtifact->transformer->outputs);
+            foreach (Artifact *artifact, artifactsToCheck) {
+                if (artifact->fileTags.matches(m_rule->usings))
+                    usingsArtifacts.insert(artifact);
+            }
+        }
+    }
+
     if (inputArtifacts.isEmpty())
         return;
 
@@ -93,14 +107,15 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     setupScriptEngineForProduct(engine(), m_product, m_rule->module, prepareScriptContext, &observer);
 
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
+        inputArtifacts.unite(usingsArtifacts);
         doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
-        ArtifactSet lst;
+        ArtifactSet lst = usingsArtifacts;
         foreach (Artifact * const inputArtifact, inputArtifacts) {
             setupScriptEngineForArtifact(inputArtifact);
             lst += inputArtifact;
             doApply(lst, prepareScriptContext);
-            lst.clear();
+            lst -= inputArtifact;
         }
     }
 }
@@ -142,7 +157,7 @@ static QStringList toStringList(const ArtifactSet &artifacts)
     return lst;
 }
 
-void RulesApplicator::doApply(ArtifactSet inputArtifacts, QScriptValue &prepareScriptContext)
+void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext)
 {
     evalContext()->checkForCancelation();
 
@@ -154,20 +169,6 @@ void RulesApplicator::doApply(ArtifactSet inputArtifacts, QScriptValue &prepareS
 
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
-
-    if (!m_rule->usings.isEmpty()) {
-        const FileTags usingsFileTags = m_rule->usings;
-        foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
-            QBS_CHECK(dep->buildData);
-            ArtifactSet artifactsToCheck;
-            foreach (Artifact *targetArtifact, dep->targetArtifacts())
-                artifactsToCheck.unite(targetArtifact->transformer->outputs);
-            foreach (Artifact *artifact, artifactsToCheck) {
-                if (artifact->fileTags.matches(usingsFileTags))
-                    inputArtifacts.insert(artifact);
-            }
-        }
-    }
 
     m_transformer.clear();
     // create the output artifacts from the set of input artifacts
