@@ -43,6 +43,7 @@ namespace qbs {
 namespace Internal {
 
 class Artifact;
+class FileResourceBase;
 class Logger;
 class ScriptEngine;
 
@@ -51,7 +52,7 @@ class DependencyScanner
 public:
     virtual ~DependencyScanner() {}
     virtual QStringList collectSearchPaths(Artifact *artifact) = 0;
-    virtual QStringList collectDependencies(Artifact *artifact) = 0;
+    virtual QStringList collectDependencies(FileResourceBase *file) = 0;
     virtual const FileTags &fileTags() = 0;
     virtual bool recursive() = 0;
     virtual void *key() = 0;
@@ -62,7 +63,7 @@ class PluginDependencyScanner : public DependencyScanner
 public:
     PluginDependencyScanner(ScannerPlugin *plugin);
     virtual QStringList collectSearchPaths(Artifact *artifact);
-    virtual QStringList collectDependencies(Artifact *artifact);
+    virtual QStringList collectDependencies(FileResourceBase *file);
     virtual const FileTags &fileTags();
     virtual bool recursive();
     virtual void *key();
@@ -77,7 +78,7 @@ public:
     UserDependencyScanner(const ResolvedScannerConstPtr &scanner, const Logger &logger,
                           ScriptEngine *engine);
     virtual QStringList collectSearchPaths(Artifact *artifact);
-    virtual QStringList collectDependencies(Artifact *artifact);
+    virtual QStringList collectDependencies(FileResourceBase *file);
     virtual const FileTags &fileTags();
     virtual bool recursive();
     virtual void *key();

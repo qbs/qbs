@@ -1587,6 +1587,13 @@ void TestBlackbox::fileDependencies()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
+
+    // Incremental build with changed 2nd level file dependency.
+    waitForNewTimestamp();
+    touch("awesomelib/magnificent.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 }
 
 void TestBlackbox::jsExtensionsFile()
