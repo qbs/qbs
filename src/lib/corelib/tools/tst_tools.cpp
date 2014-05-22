@@ -83,8 +83,10 @@ void TestTools::fileCaseCheck()
 
 void TestTools::testProfiles()
 {
-    Profile parentProfile("parent", m_settings);
-    Profile childProfile("child", m_settings);
+    TemporaryProfile tpp("parent", m_settings);
+    Profile parentProfile = tpp.p;
+    TemporaryProfile tpc("child", m_settings);
+    Profile childProfile = tpc.p;
     parentProfile.removeBaseProfile();
     parentProfile.remove("testKey");
     QCOMPARE(parentProfile.value("testKey", "none").toString(), QLatin1String("none"));
@@ -98,7 +100,8 @@ void TestTools::testProfiles()
     QCOMPARE(childProfile.value("testKey").toString(), QLatin1String("testValue"));
 
     // Change base profile and check if the inherited value also changes.
-    Profile fooProfile("foo", m_settings);
+    TemporaryProfile tpf("foo", m_settings);
+    Profile fooProfile = tpf.p;
     fooProfile.setValue("testKey", "gnampf");
     childProfile.setBaseProfile("foo");
     QCOMPARE(childProfile.value("testKey", "none").toString(), QLatin1String("gnampf"));
@@ -124,7 +127,8 @@ void TestTools::testProfiles()
 void TestTools::testBuildConfigMerging()
 {
     Settings settings((QString()));
-    Profile profile(QLatin1String("tst_tools_profile"), &settings); // TODO: Make sure it's removed afterwards.
+    TemporaryProfile tp(QLatin1String("tst_tools_profile"), &settings);
+    Profile profile = tp.p;
     profile.setValue(QLatin1String("topLevelKey"), QLatin1String("topLevelValue"));
     profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
     profile.setValue(QLatin1String("qbs.architecture"),

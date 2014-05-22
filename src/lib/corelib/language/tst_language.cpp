@@ -1030,7 +1030,8 @@ void TestLanguage::profileValuesAndOverriddenValues()
     bool exceptionCaught = false;
     try {
         Settings settings((QString()));
-        Profile profile(QLatin1String("tst_lang_profile"), &settings); // TODO: Make sure it's removed afterwards.
+        TemporaryProfile tp(QLatin1String("tst_lang_profile"), &settings);
+        Profile profile = tp.p;
         profile.setValue("dummy.defines", "IN_PROFILE");
         profile.setValue("dummy.cFlags", "IN_PROFILE");
         profile.setValue("dummy.cxxFlags", "IN_PROFILE");

@@ -78,6 +78,16 @@ private:
     Settings *m_settings;
 };
 
+namespace Internal {
+class TemporaryProfile {
+public:
+    TemporaryProfile(const QString &name, Settings *settings) : p(name, settings) {}
+    ~TemporaryProfile() { p.removeProfile(); }
+
+    Profile p;
+};
+} // namespace Internal
+
 } // namespace qbs
 
 #endif // Header guard
