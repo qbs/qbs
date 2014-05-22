@@ -175,6 +175,9 @@ private slots:
     void testTypeScript();
 
 private:
+    QString productBuildDir(const QString &productName) const;
+    QString executableFilePath(const QString &productName) const;
+
     QByteArray m_qbsStderr;
     QByteArray m_qbsStdout;
 };
