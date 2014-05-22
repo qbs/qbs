@@ -75,6 +75,14 @@ NodeSet RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule)
 void RulesApplicator::applyRule(const RuleConstPtr &rule)
 {
     m_rule = rule;
+
+    ArtifactSet inputArtifacts;
+    foreach (const FileTag &fileTag, m_rule->inputs)
+        inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
+
+    if (inputArtifacts.isEmpty())
+        return;
+
     if (rule->name == QLatin1String("QtCoreMocRule")) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, scope(), m_logger);
@@ -84,12 +92,8 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     setupScriptEngineForFile(engine(), m_rule->prepareScript->fileContext, scope());
     setupScriptEngineForProduct(engine(), m_product, m_rule->module, prepareScriptContext, &observer);
 
-    ArtifactSet inputArtifacts;
-    foreach (const FileTag &fileTag, m_rule->inputs)
-        inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
-        if (!inputArtifacts.isEmpty())
-            doApply(inputArtifacts, prepareScriptContext);
+        doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
         ArtifactSet lst;
         foreach (Artifact * const inputArtifact, inputArtifacts) {
