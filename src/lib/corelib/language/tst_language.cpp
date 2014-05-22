@@ -400,7 +400,7 @@ void TestLanguage::exports()
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
-        QStringList propertyName = QStringList() << "modules" << "mylib"
+        QStringList propertyName = QStringList() << "modules" << "mylib.qbs_autotests"
                                                  << "modules" << "dummy" << "defines";
         QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
@@ -428,11 +428,11 @@ void TestLanguage::exports()
 
         product = products.value("myapp2");
         QVERIFY(product);
-        propertyName = QStringList() << "modules" << "productWithInheritedExportItem"
+        propertyName = QStringList() << "modules" << "productWithInheritedExportItem.qbs_autotests"
                                      << "modules" << "dummy" << "cxxFlags";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "-bar");
-        propertyName = QStringList() << "modules" << "productWithInheritedExportItem"
+        propertyName = QStringList() << "modules" << "productWithInheritedExportItem.qbs_autotests"
                                      << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
@@ -1114,7 +1114,7 @@ void TestLanguage::productDirectories()
         QVERIFY(product);
         const QVariantMap config = product->productProperties;
         QCOMPARE(config.value(QLatin1String("buildDirectory")).toString(),
-                 buildDir(defaultParameters) + QLatin1Char('/') + product->name);
+                 buildDir(defaultParameters) + QLatin1Char('/') + product->uniqueName());
         QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
     }
     catch (const ErrorInfo &e) {

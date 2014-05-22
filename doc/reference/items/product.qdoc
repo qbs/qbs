@@ -85,6 +85,15 @@
             \li empty string
             \li The name of the product. Used to identify the product in a \c Depends item, for example.
         \row
+            \li profiles
+            \li stringList
+            \li \c{[project.profile]}
+            \li The profiles for which the product should be built. For each profile listed here,
+                one instance of the product will be built according to the properties set in
+                the respective profile.
+                This property is only relevant for projects that require products being built for
+                different architectures. Otherwise it can be left at its default value.
+        \row
             \li type
             \li stringList
             \li empty list
@@ -145,6 +154,11 @@
             \li path
             \li The build directory for this product. This is the directory where generated files
                 are placed.
+        \row
+            \li profile
+            \li string
+            \li The profile for building this particular instance of the product. Derived
+                automatically from the \c profiles property.
         \row
             \li sourceDirectory
             \li path

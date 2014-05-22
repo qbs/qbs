@@ -462,6 +462,7 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> enabled
         >> fileTags
         >> name
+        >> profile
         >> targetName
         >> sourceDirectory
         >> destinationDirectory
@@ -485,6 +486,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
         << enabled
         << fileTags
         << name
+        << profile
         << targetName
         << sourceDirectory
         << destinationDirectory
@@ -792,7 +794,18 @@ ArtifactSet ResolvedProduct::targetArtifacts() const
 
 TopLevelProject *ResolvedProduct::topLevelProject() const
 {
-     return project->topLevelProject();
+    return project->topLevelProject();
+}
+
+QString ResolvedProduct::uniqueName(const QString &name, const QString &profile)
+{
+    QBS_CHECK(!profile.isEmpty());
+    return name + QLatin1Char('.') + profile;
+}
+
+QString ResolvedProduct::uniqueName() const
+{
+    return uniqueName(name, profile);
 }
 
 static QStringList findGeneratedFiles(const Artifact *base, const FileTags &tags)

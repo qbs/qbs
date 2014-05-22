@@ -72,6 +72,12 @@
             \li basename of the file the project is defined in
             \li The project name. Only relevant for e.g. displaying a project tree in an IDE.
         \row
+            \li profile
+            \li string
+            \li n/a
+            \li The top-level profile for building the project. This property is read-only and
+                is set by \QBS when the project is being set up.
+        \row
             \li condition
             \li bool
             \li true

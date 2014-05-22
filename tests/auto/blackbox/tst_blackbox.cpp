@@ -776,8 +776,8 @@ void TestBlackbox::track_qobject_change()
     QCOMPARE(runQbs(), 0);
     const QString productFilePath = executableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
-    QString moc_bla_objectFileName
-            = buildDir + "/i/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString moc_bla_objectFileName = productBuildDir("i")
+            + "/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     QTest::qSleep(1000);
@@ -992,7 +992,8 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(regularFileExists(buildDir + "/someapp/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
+    QVERIFY(regularFileExists(productBuildDir("someapp")
+                              + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
     QVERIFY(regularFileExists(productBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(productBuildDir("someapp") + "/main.foo"));
 
@@ -2147,8 +2148,8 @@ void TestBlackbox::testWiX()
     QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
     QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
     QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
-    QVERIFY(regularFileExists(buildDir + "/QbsSetup/qbs-" + arch + ".msi"));
-    QVERIFY(regularFileExists(buildDir + "/QbsBootstrapper/qbs-setup-" + arch + ".exe"));
+    QVERIFY(regularFileExists(productBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
+    QVERIFY(regularFileExists(productBuildDir("QbsBootstrapper") + "/qbs-setup-" + arch + ".exe"));
 }
 
 static QString findExecutable(const QStringList &fileNames)
@@ -2188,7 +2189,7 @@ void TestBlackbox::testNodeJs()
     params.command = QLatin1String("run");
     QCOMPARE(runQbs(params), 0);
     QVERIFY((bool)m_qbsStdout.contains("hello world"));
-    QVERIFY(regularFileExists(buildDir + "/hello/hello.js"));
+    QVERIFY(regularFileExists(productBuildDir("hello") + "/hello.js"));
 }
 
 void TestBlackbox::testTypeScript()
@@ -2205,14 +2206,19 @@ void TestBlackbox::testTypeScript()
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY(regularFileExists(buildDir + "/animals/animals.js"));
-    QVERIFY(regularFileExists(buildDir + "/animals/extra.js"));
-    QVERIFY(regularFileExists(buildDir + "/animals/main.js"));
+    QVERIFY(regularFileExists(productBuildDir("animals") + "/animals.js"));
+    QVERIFY(regularFileExists(productBuildDir("animals") + "/extra.js"));
+    QVERIFY(regularFileExists(productBuildDir("animals") + "/main.js"));
+}
+
+QString TestBlackbox::uniqueProductName(const QString &productName) const
+{
+    return productName + '.' + buildProfileName;
 }
 
 QString TestBlackbox::productBuildDir(const QString &productName) const
 {
-    return buildDir + '/' + productName;
+    return buildDir + '/' + uniqueProductName(productName);
 }
 
 QString TestBlackbox::executableFilePath(const QString &productName) const

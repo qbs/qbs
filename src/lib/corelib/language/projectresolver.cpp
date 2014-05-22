@@ -87,12 +87,12 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
     const QList<ResolvedProductPtr> allProducts = project->allProducts();
     for (int i = 0; i < allProducts.count(); ++i) {
         const ResolvedProductConstPtr product1 = allProducts.at(i);
-        const QString productName = product1->name;
+        const QString productName = product1->uniqueName();
         for (int j = i + 1; j < allProducts.count(); ++j) {
             const ResolvedProductConstPtr product2 = allProducts.at(j);
-            if (product2->name == productName) {
+            if (product2->uniqueName() == productName) {
                 ErrorInfo error;
-                error.append(Tr::tr("Duplicate product name '%1'.").arg(productName));
+                error.append(Tr::tr("Duplicate product name '%1'.").arg(product1->name));
                 error.append(Tr::tr("First product defined here."), product1->location);
                 error.append(Tr::tr("Second product defined here."), product2->location);
                 throw error;
@@ -286,10 +286,12 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     projectContext->project->products += product;
     productContext.product = product;
     product->name = m_evaluator->stringValue(item, QLatin1String("name"));
-    m_logger.qbsTrace() << "[PR] resolveProduct " << product->name;
 
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
     productContext.buildDirectory = m_evaluator->stringValue(item, QLatin1String("buildDirectory"));
+    product->profile = m_evaluator->stringValue(item, QLatin1String("profile"));
+    QBS_CHECK(!product->profile.isEmpty());
+    m_logger.qbsTrace() << "[PR] resolveProduct " << product->uniqueName();
 
     if (std::find_if(item->modules().begin(), item->modules().end(),
             ModuleNameEquals(product->name)) != item->modules().end()) {
@@ -298,8 +300,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
                     item->location());
     }
 
-    ModuleLoader::overrideItemProperties(item, product->name, m_setupParams.overriddenValuesTree());
-    m_productsByName.insert(product->name, product);
+    m_productsByName.insert(product->uniqueName(), product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
 
     // TODO: Remove in 1.3.
@@ -802,7 +803,7 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
 {
     Q_UNUSED(projectContext);
     checkCancelation();
-    const QString &productName = m_productContext->product->name;
+    const QString &productName = m_productContext->product->uniqueName();
     m_exports[productName] = evaluateModuleValues(item);
 }
 
@@ -826,10 +827,10 @@ static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
     QSet<QString> usedProductNames;
     foreach (const ModuleLoaderResult::ProductInfo::Dependency &usedProduct,
             productInfo->usedProducts)
-        usedProductNames += usedProduct.name;
+        usedProductNames += usedProduct.uniqueName();
     foreach (const ModuleLoaderResult::ProductInfo::Dependency &usedProduct,
              usedProductInfo.usedProductsFromExportItem) {
-        if (!usedProductNames.contains(usedProduct.name))
+        if (!usedProductNames.contains(usedProduct.uniqueName()))
             productInfo->usedProducts  += usedProduct;
     }
     *productsAdded = (oldCount != productInfo->usedProducts.count());
@@ -850,11 +851,11 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
                     = projectContext->loadResult->productInfos[productItem];
             foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
                         productInfo.usedProducts) {
-                ResolvedProductPtr usedProduct
-                        = m_productsByName.value(dependency.name);
-                if (Q_UNLIKELY(!usedProduct))
-                    throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(dependency.name),
-                                productItem->location());
+                ResolvedProductPtr usedProduct = m_productsByName.value(dependency.uniqueName());
+                if (Q_UNLIKELY(!usedProduct)) {
+                    throw ErrorInfo(Tr::tr("Product dependency '%1' not found for profile '%2'.")
+                            .arg(dependency.name, dependency.profile), productItem->location());
+                }
                 Item *usedProductItem = m_productItemMap.value(usedProduct);
                 const ModuleLoaderResult::ProductInfo usedProductInfo
                         = projectContext->loadResult->productInfos.value(usedProductItem);
@@ -873,7 +874,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
         Item *productItem = m_productItemMap.value(rproduct);
         foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
                  projectContext->loadResult->productInfos.value(productItem).usedProducts) {
-            const QString &usedProductName = dependency.name;
+            const QString &usedProductName = dependency.uniqueName();
             ResolvedProductPtr usedProduct = m_productsByName.value(usedProductName);
             if (Q_UNLIKELY(!usedProduct))
                 throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),

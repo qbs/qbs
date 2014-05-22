@@ -364,7 +364,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
         ResolvedProduct * const otherProduct = artifactDependency->product;
         if (m_logger.traceEnabled()) {
             m_logger.qbsTrace() << "[DEPSCAN] add artifact dependency " << dependency.filePath
-                                << " (from product " << otherProduct->name << ')';
+                                << " (from product " << otherProduct->uniqueName() << ')';
         }
         insertIntoProduct = false;
     }

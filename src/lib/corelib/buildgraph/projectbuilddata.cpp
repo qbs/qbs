@@ -397,7 +397,7 @@ private:
             m_product->buildData->nodes += node;
             if (m_logger.debugEnabled()) {
                 m_logger.qbsDebug() << "[BG] create " << node->toString()
-                                    << " for product " << m_product->name;
+                                    << " for product " << m_product->uniqueName();
             }
         }
         if (parentRule) {

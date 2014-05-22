@@ -146,6 +146,9 @@ void BuiltinDeclarations::addDependsItem()
     PropertyDeclaration requiredDecl(QLatin1String("required"), PropertyDeclaration::Boolean);
     requiredDecl.setInitialValueSource(QLatin1String("true"));
     item << requiredDecl;
+    PropertyDeclaration profileDecl(QLatin1String("profiles"), PropertyDeclaration::StringList);
+    profileDecl.setInitialValueSource(QLatin1String("[product.profile]"));
+    item << profileDecl;
     insert(item);
 }
 
@@ -245,6 +248,10 @@ void BuiltinDeclarations::addProductItem()
     decl.setInitialValueSource(QLatin1String("[]"));
     item << decl;
     item << nameProperty();
+    decl = PropertyDeclaration(QLatin1String("profiles"), PropertyDeclaration::StringList);
+    decl.setInitialValueSource(QLatin1String("[project.profile]"));
+    item << decl;
+    item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String); // Internal
     decl = PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String);
     decl.setInitialValueSource(QLatin1String("name"));
     item << buildDirProperty();

@@ -35,16 +35,18 @@
 #include <api/project.h>
 #include <api/projectdata.h>
 #include <logging/ilogsink.h>
+#include <tools/buildoptions.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
-#include <tools/buildoptions.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
+#include <tools/profile.h>
 #include <tools/setupprojectparameters.h>
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
+#include <QFile>
 #include <QFileInfo>
 #include <QScopedPointer>
 #include <QStringList>
@@ -585,6 +587,94 @@ void TestApi::listBuildSystemFiles()
                                       + QLatin1String("/subproject2/subproject3/subproject3.qbs")));
 }
 
+void TestApi::multiArch()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setDryRun(false);
+    const QString projectDir
+            = QDir::cleanPath(m_workingDataDir + "/multi-arch");
+    const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
+    setupParams.setBuildRoot(projectDir);
+    setupParams.setProjectFilePath(topLevelProjectFile);
+    SettingsPtr settings = qbsSettings(QString());
+    qbs::Internal::TemporaryProfile tph("host", settings.data());
+    qbs::Profile hostProfile = tph.p;
+    hostProfile.setValue("qbs.architecture", "host-arch");
+    qbs::Internal::TemporaryProfile tpt("target", settings.data());
+    qbs::Profile targetProfile = tpt.p;
+    targetProfile.setValue("qbs.architecture", "target-arch");
+    QVariantMap overriddenValues;
+    overriddenValues.insert("project.hostProfile", hostProfile.name());
+    overriddenValues.insert("project.targetProfile", targetProfile.name());
+    overriddenValues.insert("qbs.endianness", "little"); // TODO: Why does the qbs module require this?
+    setupParams.setOverriddenValues(overriddenValues);
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const qbs::Project &project = setupJob->project();
+    QCOMPARE(project.profile(), QLatin1String("qbs_autotests"));
+    const QList<qbs::ProductData> &products = project.projectData().products();
+    QCOMPARE(products.count(), 3);
+    QList<qbs::ProductData> hostProducts;
+    QList<qbs::ProductData> targetProducts;
+    foreach (const qbs::ProductData &p, products) {
+        QVERIFY2(p.profile() == hostProfile.name() || p.profile() == targetProfile.name(),
+                 qPrintable(p.profile()));
+        if (p.profile() == hostProfile.name())
+            hostProducts << p;
+        else
+            targetProducts << p;
+    }
+    QCOMPARE(hostProducts.count(), 2);
+    QCOMPARE(targetProducts.count(), 1);
+    QCOMPARE(targetProducts.first().name(), QLatin1String("p1"));
+    QStringList hostProductNames
+            = QStringList() << hostProducts.first().name() << hostProducts.last().name();
+    QCOMPARE(hostProductNames.count("p1"), 1);
+    QCOMPARE(hostProductNames.count("p2"), 1);
+
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    const QString outputBaseDir(setupParams.buildRoot() + "/qbs_autotests-debug");
+    QFile p1HostArtifact(outputBaseDir + "/p1.host/host+target.output");
+    QVERIFY2(p1HostArtifact.exists(), qPrintable(p1HostArtifact.fileName()));
+    QVERIFY2(p1HostArtifact.open(QIODevice::ReadOnly), qPrintable(p1HostArtifact.errorString()));
+    QCOMPARE(p1HostArtifact.readAll().constData(), "host-arch");
+    QFile p1TargetArtifact(outputBaseDir + "/p1.target/host+target.output");
+    QVERIFY2(p1TargetArtifact.exists(), qPrintable(p1TargetArtifact.fileName()));
+    QVERIFY2(p1TargetArtifact.open(QIODevice::ReadOnly), qPrintable(p1TargetArtifact.errorString()));
+    QCOMPARE(p1TargetArtifact.readAll().constData(), "target-arch");
+    QFile p2Artifact(outputBaseDir + "/p2.host/host-tool.output");
+    QVERIFY2(p2Artifact.exists(), qPrintable(p2Artifact.fileName()));
+    QVERIFY2(p2Artifact.open(QIODevice::ReadOnly), qPrintable(p2Artifact.errorString()));
+    QCOMPARE(p2Artifact.readAll().constData(), "host-arch");
+
+    // Error check: Try to build for the same profile twice.
+    overriddenValues.insert("project.targetProfile", hostProfile.name());
+    setupParams.setOverriddenValues(overriddenValues);
+    setupJob.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY2(setupJob->error().toString().contains(hostProfile.name())
+             && setupJob->error().toString().contains("not allowed"),
+             qPrintable(setupJob->error().toString()));
+
+    // Error check: Try to build for the same profile twice, this time attaching
+    // the properties via the product name.
+    overriddenValues.clear();
+    overriddenValues.insert("p1.profiles", targetProfile.name() + ',' + targetProfile.name());
+    overriddenValues.insert("qbs.endianness", "little"); // TODO: Meh.
+    setupParams.setOverriddenValues(overriddenValues);
+    setupJob.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY2(setupJob->error().toString().contains(targetProfile.name())
+             && setupJob->error().toString().contains("not allowed"),
+             qPrintable(setupJob->error().toString()));
+}
+
 void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -622,7 +712,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 {
     qbs::SetupProjectParameters setupParams;
     setupParams.setDryRun(true); // So no build graph gets created.
-    setupParams.setBuildRoot(QLatin1String("/blubb")); // Must be set and be absolute.
+    setupParams.setBuildRoot(m_workingDataDir);
     setupParams.setRestoreBehavior(qbs::SetupProjectParameters::ResolveOnly); // No restoring.
 
     const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
@@ -679,6 +769,7 @@ void TestApi::sourceFileInBuildDir()
     const qbs::ProjectData projectData = job->project().projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     const qbs::ProductData product = projectData.allProducts().first();
+    QCOMPARE(product.profile(), QLatin1String("qbs_autotests"));
     QCOMPARE(product.groups().count(), 1);
     const qbs::GroupData group = product.groups().first();
     QCOMPARE(group.allFilePaths().count(), 1);

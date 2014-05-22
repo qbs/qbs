@@ -66,6 +66,13 @@
         \li undefined
         \li The name of the dependent product or module.
     \row
+        \li profiles
+        \li stringList
+        \li \c{[product.profile]}
+        \li If the dependency is on a product and that product is going to be built for more than
+            one profile, then you can specify here which instance of the product the dependency is on.
+            See the \c profiles property of the \c Product item for more information.
+    \row
         \li submodules
         \li stringList
         \li undefined

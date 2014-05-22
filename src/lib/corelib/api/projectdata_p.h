@@ -80,6 +80,7 @@ public:
     { }
 
     QString name;
+    QString profile;
     CodeLocation location;
     QList<GroupData> groups;
     QList<TargetArtifact> targetArtifacts;

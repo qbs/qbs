@@ -79,7 +79,8 @@ private:
 };
 
 namespace Internal {
-class TemporaryProfile {
+// Exported for autotests.
+class QBS_EXPORT TemporaryProfile {
 public:
     TemporaryProfile(const QString &name, Settings *settings) : p(name, settings) {}
     ~TemporaryProfile() { p.removeProfile(); }

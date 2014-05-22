@@ -367,7 +367,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
             it != lookupResults.constEnd(); ++it) {
         Artifact *artifact = dynamic_cast<Artifact *>(*it);
         if (artifact && (compareByName
-                         ? artifact->product->name == product->name
+                         ? artifact->product->uniqueName() == product->uniqueName()
                          : artifact->product == product))
             return artifact;
     }
@@ -425,10 +425,10 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
         if (lookupArtifact(otherProduct, artifact->filePath())) {
             if (artifact->artifactType == Artifact::Generated) {
                 QString pl;
-                pl.append(QString::fromLatin1("  - %1 \n").arg(product->name));
+                pl.append(QString::fromLatin1("  - %1 \n").arg(product->uniqueName()));
                 foreach (const ResolvedProductConstPtr &p, product->project->products) {
                     if (lookupArtifact(p, artifact->filePath()))
-                        pl.append(QString::fromLatin1("  - %1 \n").arg(p->name));
+                        pl.append(QString::fromLatin1("  - %1 \n").arg(p->uniqueName()));
                 }
                 throw ErrorInfo(QString::fromLatin1("BUG: already inserted in this project: %1\n%2")
                             .arg(artifact->filePath()).arg(pl), CodeLocation(), true);
@@ -449,7 +449,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
 
 static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, const Logger &logger)
 {
-    logger.qbsDebug() << "Sanity checking product '" << product->name << "'";
+    logger.qbsDebug() << "Sanity checking product '" << product->uniqueName() << "'";
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
     const ProductBuildData * const buildData = product->buildData.data();
@@ -532,8 +532,8 @@ static void doSanityChecks(const ResolvedProjectPtr &project, QSet<QString> &pro
         QBS_CHECK(product->project == project);
         QBS_CHECK(product->topLevelProject() == project->topLevelProject());
         doSanityChecksForProduct(product, logger);
-        QBS_CHECK(!productNames.contains(product->name));
-        productNames << product->name;
+        QBS_CHECK(!productNames.contains(product->uniqueName()));
+        productNames << product->uniqueName();
     }
 }
 

@@ -51,11 +51,12 @@ public:
 
     struct ChildData
     {
-        ChildData(const QString &p = QString(), const QString &c = QString(),
-                  bool byScanner = false)
-            : productName(p), childFilePath(c), addedByScanner(byScanner)
+        ChildData(const QString &n = QString(), const QString &p = QString(),
+                  const QString &c = QString(), bool byScanner = false)
+            : productName(n), productProfile(p), childFilePath(c), addedByScanner(byScanner)
         {}
         QString productName;
+        QString productProfile;
         QString childFilePath;
         bool addedByScanner;
     };

@@ -183,6 +183,7 @@ private slots:
     void testTypeScript();
 
 private:
+    QString uniqueProductName(const QString &productName) const;
     QString productBuildDir(const QString &productName) const;
     QString executableFilePath(const QString &productName) const;
 

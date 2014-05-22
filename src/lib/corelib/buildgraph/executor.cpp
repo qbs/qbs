@@ -680,6 +680,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
         foreach (const RescuableArtifactData::ChildData &cd, rad.children) {
             pseudoProduct->name = cd.productName;
+            pseudoProduct->profile = cd.productProfile;
             Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.data(),
                                                     cd.childFilePath, true);
             if (!child || artifact->children.contains(child))
@@ -842,15 +843,17 @@ void Executor::finish()
 {
     QBS_ASSERT(m_state != ExecutorIdle, /* ignore */);
 
-    QStringList unbuiltProductNames;
+    QList<ResolvedProductPtr> unbuiltProducts;
     foreach (const ResolvedProductPtr &product, m_productsToBuild) {
+        bool productBuilt = true;
         foreach (BuildGraphNode *rootNode, product->buildData->roots) {
             if (rootNode->buildState != BuildGraphNode::Built) {
-                unbuiltProductNames += product->name;
+                productBuilt = false;
+                unbuiltProducts += product;
                 break;
             }
         }
-        if (!unbuiltProductNames.contains(product->name)) {
+        if (productBuilt) {
             // Any element still left after a successful build has not been re-created
             // by any rule and therefore does not exist anymore as an artifact.
             foreach (const QString &filePath, product->buildData->rescuableArtifactData.keys()) {
@@ -865,11 +868,16 @@ void Executor::finish()
         }
     }
 
-    if (unbuiltProductNames.isEmpty()) {
+    if (unbuiltProducts.isEmpty()) {
         m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
     } else {
-        m_error.append(Tr::tr("The following products could not be built%1: %2.")
-                 .arg(configString(), unbuiltProductNames.join(QLatin1String(", "))));
+        m_error.append(Tr::tr("The following products could not be built%1:").arg(configString()));
+        foreach (const ResolvedProductConstPtr &p, unbuiltProducts) {
+            QString errorMessage = Tr::tr("\t%1").arg(p->name);
+            if (p->profile != m_project->profile())
+                errorMessage += Tr::tr(" (for profile '%1')").arg(p->profile);
+            m_error.append(errorMessage);
+        }
     }
 
     if (m_explicitlyCanceled)

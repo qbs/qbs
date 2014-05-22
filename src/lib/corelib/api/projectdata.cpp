@@ -379,6 +379,14 @@ QString ProductData::name() const
 }
 
 /*!
+ * \brief The profile this product will be built for.
+ */
+QString ProductData::profile() const
+{
+    return d->profile;
+}
+
+/*!
  * \brief The location at which the product is defined in the source file.
  */
 CodeLocation ProductData::location() const
@@ -423,6 +431,7 @@ bool ProductData::isRunnable() const
 bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() == rhs.name()
+            && lhs.profile() == rhs.profile()
             && lhs.location() == rhs.location()
             && lhs.groups() == rhs.groups()
             && lhs.targetArtifacts() == rhs.targetArtifacts()
@@ -436,7 +445,12 @@ bool operator!=(const ProductData &lhs, const ProductData &rhs)
 
 bool operator<(const ProductData &lhs, const ProductData &rhs)
 {
-    return lhs.name() < rhs.name();
+    const int nameCmp = lhs.name().compare(rhs.name());
+    if (nameCmp < 0)
+        return true;
+    if (nameCmp > 0)
+        return false;
+    return lhs.profile() < rhs.profile();
 }
 
 /*!

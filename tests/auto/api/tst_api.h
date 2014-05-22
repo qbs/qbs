@@ -57,6 +57,7 @@ private slots:
     void installableFiles();
     void isRunnable();
     void listBuildSystemFiles();
+    void multiArch();
     void nonexistingProjectPropertyFromProduct();
     void nonexistingProjectPropertyFromCommandLine();
     void references();

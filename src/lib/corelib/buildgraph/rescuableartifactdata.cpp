@@ -49,6 +49,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
     for (int i = 0; i < c; ++i) {
         ChildData cd;
         cd.productName = pool.idLoadString();
+        cd.productProfile = pool.idLoadString();
         cd.childFilePath = pool.idLoadString();
         pool.stream() >> cd.addedByScanner;
         children << cd;
@@ -64,6 +65,7 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     pool.stream() << children.count();
     foreach (const ChildData &cd, children) {
         pool.storeString(cd.productName);
+        pool.storeString(cd.productProfile);
         pool.storeString(cd.childFilePath);
         pool.stream() << cd.addedByScanner;
     }

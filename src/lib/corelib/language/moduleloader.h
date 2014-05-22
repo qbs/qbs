@@ -69,8 +69,10 @@ struct ModuleLoaderResult
         struct Dependency
         {
             QString name;
+            QString profile;
             bool required;
-            QString failureMessage;
+
+            QString uniqueName() const;
         };
 
         QList<Dependency> usedProducts;
@@ -102,8 +104,6 @@ public:
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
 
     static QString fullModuleName(const QStringList &moduleName);
-    static void overrideItemProperties(Item *item, const QString &buildConfigKey,
-            const QVariantMap &buildConfig);
 
 private:
     class ContextBase
@@ -116,7 +116,8 @@ private:
         Item *item;
         Item *scope;
         QStringList extraSearchPaths;
-        QMap<QString, Item *> moduleItemCache;
+        typedef QMap<QPair<QString, QString>, Item *> ModuleItemCache;
+        ModuleItemCache moduleItemCache;
     };
 
     class ProjectContext : public ContextBase
@@ -132,8 +133,10 @@ private:
     public:
         ProjectContext *project;
         ModuleLoaderResult::ProductInfo info;
+        QString profileName;
         QSet<FileContextConstPtr> filesWithExportItem;
         QList<Item *> exportItems;
+        QVariantMap moduleProperties;
     };
 
     class DependsContext
@@ -148,6 +151,7 @@ private:
 
     void handleProject(ModuleLoaderResult *loadResult, Item *item, const QString &buildDirectory,
             const QSet<QString> &referencedFilePaths);
+    QList<Item *> multiplexProductItem(Item *productItem);
     void handleProduct(ProjectContext *projectContext, Item *item);
     void initProductProperties(const ProjectContext *project, Item *item);
     void handleSubProject(ProjectContext *projectContext, Item *item,
@@ -188,6 +192,10 @@ private:
             const QStringList &moduleName);
     static void copyProperty(const QString &propertyName, const Item *source, Item *destination);
     static void setScopeForDescendants(Item *item, Item *scope);
+    static void overrideItemProperties(Item *item, const QString &buildConfigKey,
+                                       const QVariantMap &buildConfig);
+
+
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

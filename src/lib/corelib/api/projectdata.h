@@ -172,6 +172,7 @@ public:
     bool isValid() const;
 
     QString name() const;
+    QString profile() const;
     CodeLocation location() const;
     QList<TargetArtifact> targetArtifacts() const;
     QList<GroupData> groups() const;

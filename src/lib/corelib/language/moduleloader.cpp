@@ -44,13 +44,17 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/profile.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/scripttools.h>
+#include <tools/settings.h>
 
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QPair>
 
 namespace qbs {
 namespace Internal {
@@ -216,6 +220,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
 
     ProductContext dummyProductContext;
     dummyProductContext.project = &projectContext;
+    dummyProductContext.moduleProperties = m_parameters.finalBuildConfigurationTree();
     loadBaseModule(&dummyProductContext, item);
     overrideItemProperties(item, QLatin1String("project"), m_parameters.overriddenValuesTree());
 
@@ -230,6 +235,13 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
         if (child->typeName() == QLatin1String("Product")) {
+            foreach (Item * const additionalProductItem, multiplexProductItem(child))
+                Item::addChild(item, additionalProductItem);
+        }
+    }
+
+    foreach (Item *child, item->children()) {
+        if (child->typeName() == QLatin1String("Product")) {
             handleProduct(&projectContext, child);
         } else if (child->typeName() == QLatin1String("SubProject")) {
             handleSubProject(&projectContext, child, referencedFilePaths);
@@ -241,6 +253,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
 
     const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
     const QStringList refs = m_evaluator->stringListValue(item, QLatin1String("references"));
+    typedef QPair<Item *, QString> ItemAndRefPath;
+    QList<ItemAndRefPath> additionalProjectChildren;
     foreach (const QString &filePath, refs) {
         QString absReferencePath = FileInfo::resolvePath(projectFileDirPath, filePath);
         if (FileInfo(absReferencePath).isDir()) {
@@ -267,15 +281,21 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         Item *subItem = m_reader->readFile(absReferencePath);
         subItem->setScope(projectContext.scope);
         subItem->setParent(projectContext.item);
-        QList<Item *> projectChildren = projectContext.item->children();
-        projectChildren += subItem;
-        projectContext.item->setChildren(projectChildren);
+        additionalProjectChildren << qMakePair(subItem, absReferencePath);
+        if (subItem->typeName() == QLatin1String("Product")) {
+            foreach (Item * const additionalProductItem, multiplexProductItem(subItem))
+                additionalProjectChildren << qMakePair(additionalProductItem, absReferencePath);
+        }
+    }
+    foreach (const ItemAndRefPath &irp, additionalProjectChildren) {
+        Item * const subItem = irp.first;
+        Item::addChild(projectContext.item, subItem);
         if (subItem->typeName() == QLatin1String("Product")) {
             handleProduct(&projectContext, subItem);
         } else if (subItem->typeName() == QLatin1String("Project")) {
             copyProperties(item, subItem);
             handleProject(loadResult, subItem, buildDirectory,
-                          QSet<QString>(referencedFilePaths) << absReferencePath);
+                          QSet<QString>(referencedFilePaths) << irp.second);
         } else {
             throw ErrorInfo(Tr::tr("The top-level item of a file in a \"references\" list must be "
                                "a Product or a Project, but it is \"%1\".").arg(subItem->typeName()),
@@ -291,6 +311,43 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     m_reader->popExtraSearchPaths();
 }
 
+QList<Item *> ModuleLoader::multiplexProductItem(Item *productItem)
+{
+    // Overriding the product item properties must be done here already, because otherwise
+    // the "profiles" property would not be overridable.
+    QString productName = m_evaluator->stringValue(productItem, QLatin1String("name"));
+    if (productName.isEmpty()) {
+        productName = FileInfo::completeBaseName(productItem->file()->filePath());
+        productItem->setProperty(QLatin1String("name"), VariantValue::create(productName));
+    }
+    overrideItemProperties(productItem, productName, m_parameters.overriddenValuesTree());
+
+    const QString profilesKey = QLatin1String("profiles");
+    const ValueConstPtr profilesValue = productItem->property(profilesKey);
+    QBS_CHECK(profilesValue); // Default value set in BuiltinDeclarations.
+    const QStringList profileNames = m_evaluator->stringListValue(productItem, profilesKey);
+    if (profileNames.isEmpty()) {
+        throw ErrorInfo(Tr::tr("The 'profiles' property cannot be an empty list."),
+                        profilesValue->location());
+    }
+    foreach (const QString &profileName, profileNames) {
+        if (profileNames.count(profileName) > 1) {
+            throw ErrorInfo(Tr::tr("The profile '%1' appears in the 'profiles' list twice, "
+                    "which is not allowed.").arg(profileName), profilesValue->location());
+        }
+    }
+
+    QList<Item *> additionalProductItems;
+    const QString profileKey = QLatin1String("profile");
+    productItem->setProperty(profileKey, VariantValue::create(profileNames.first()));
+    for (int i = 1; i < profileNames.count(); ++i) {
+        Item * const cloned = productItem->clone(productItem->pool());
+        cloned->setProperty(profileKey, VariantValue::create(profileNames.at(i)));
+        additionalProductItems << cloned;
+    }
+    return additionalProductItems;
+}
+
 void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 {
     checkCancelation();
@@ -299,6 +356,15 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
     initProductProperties(projectContext, item);
     ProductContext productContext;
+    bool profilePropertySet;
+    productContext.profileName = m_evaluator->stringValue(item, QLatin1String("profile"),
+                                                         QString(), &profilePropertySet);
+    QBS_CHECK(profilePropertySet);
+    const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
+                m_parameters.settingsDirectory(), productContext.profileName,
+                m_parameters.buildVariant());
+    productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
+                buildConfig, m_parameters.overriddenValues());
     productContext.project = projectContext;
     bool extraSearchPathsSet = false;
     const QStringList extraSearchPaths = readExtraSearchPaths(item, &extraSearchPathsSet);
@@ -308,6 +374,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     } else {
         productContext.extraSearchPaths = projectContext->extraSearchPaths;
     }
+
     productContext.item = item;
     ItemValuePtr itemValue = ItemValue::create(item);
     productContext.scope = Item::create(m_pool);
@@ -342,15 +409,13 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
 
 void ModuleLoader::initProductProperties(const ProjectContext *project, Item *item)
 {
-    QString productName = m_evaluator->stringValue(item, QLatin1String("name"));
-    if (productName.isEmpty()) {
-        productName = FileInfo::completeBaseName(item->file()->filePath());
-        item->setProperty(QLatin1String("name"), VariantValue::create(productName));
-    }
-
+    const QString productName = m_evaluator->stringValue(item, QLatin1String("name"));
+    const QString profile = m_evaluator->stringValue(item, QLatin1String("profile"));
+    QBS_CHECK(!profile.isEmpty());
+    const QString uniqueName = ResolvedProduct::uniqueName(productName, profile);
     item->setProperty(QLatin1String("buildDirectory"),
                       VariantValue::create(
-                          FileInfo::resolvePath(project->buildDirectory, productName)));
+                          FileInfo::resolvePath(project->buildDirectory, uniqueName)));
 
     item->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(
@@ -613,12 +678,20 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             result.item = moduleItem;
             moduleResults->append(result);
         } else {
-            ModuleLoaderResult::ProductInfo::Dependency dependency;
-            dependency.name = moduleName;
-            dependency.required = m_evaluator->property(item, QLatin1String("required")).toBool();
-            dependency.failureMessage
-                    = m_evaluator->property(item, QLatin1String("failureMessage")).toString();
-            productResults->append(ProductDependencyResult(dependsItem, dependency));
+            const QString profilesKey = QLatin1String("profiles");
+            const QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
+            if (profiles.isEmpty()) {
+                throw ErrorInfo(Tr::tr("Empty 'profiles' list not allowed in 'Depends' item."),
+                                dependsItem->property(profilesKey)->location());
+            }
+            const bool required = m_evaluator->property(item, QLatin1String("required")).toBool();
+            foreach (const QString &profile, profiles) {
+                ModuleLoaderResult::ProductInfo::Dependency dependency;
+                dependency.name = moduleName;
+                dependency.profile = profile;
+                dependency.required = required;
+                productResults->append(ProductDependencyResult(dependsItem, dependency));
+            }
         }
     }
 }
@@ -787,14 +860,15 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] trying to load " << fullModuleName << " from " << filePath;
 
-    Item *module = productContext->moduleItemCache.value(filePath);
+    const ContextBase::ModuleItemCache::key_type cacheKey(filePath, productContext->profileName);
+    Item *module = productContext->moduleItemCache.value(cacheKey);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
         *cacheHit = true;
         return module;
     }
 
-    module = productContext->project->moduleItemCache.value(filePath);
+    module = productContext->project->moduleItemCache.value(cacheKey);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile returns clone for " << filePath;
         *cacheHit = true;
@@ -817,20 +891,21 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     // Module properties that are defined in the profile are used as default values.
     const QVariantMap profileModuleProperties
-            = m_parameters.buildConfigurationTree().value(fullModuleName).toMap();
+            = productContext->moduleProperties.value(fullModuleName).toMap();
     for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
             vmit != profileModuleProperties.end(); ++vmit)
     {
         if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
             throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
         const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
-        module->setProperty(vmit.key(),
-                VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
-                        QStringList(fullModuleName), vmit.key())));
+        VariantValuePtr v = VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
+                QStringList(fullModuleName), vmit.key()));
+        module->setProperty(vmit.key(), v);
     }
 
-    productContext->moduleItemCache.insert(filePath, module);
-    productContext->project->moduleItemCache.insert(filePath, module);
+    productContext->moduleItemCache.insert(cacheKey, module);
+    productContext->project->moduleItemCache.insert(cacheKey, module);
+
     return module;
 }
 
@@ -1173,6 +1248,11 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
                 VariantValue::create(convertToPropertyType(it.value(), decl.type(),
                         QStringList(buildConfigKey), it.key())));
     }
+}
+
+QString ModuleLoaderResult::ProductInfo::Dependency::uniqueName() const
+{
+    return ResolvedProduct::uniqueName(name, profile);
 }
 
 } // namespace Internal
