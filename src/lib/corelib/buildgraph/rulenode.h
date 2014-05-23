@@ -65,6 +65,8 @@ protected:
     void store(PersistentPool &pool) const;
 
 private:
+    bool usedDependenciesAdded() const;
+
     RuleConstPtr m_rule;
 };
 

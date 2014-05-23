@@ -324,6 +324,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("simple probes")
             << QString("simpleProbe")
             << executableFilePath("MyApp");
+    QTest::newRow("application without sources")
+            << QString("appWithoutSources")
+            << executableFilePath("appWithoutSources");
 }
 
 void TestBlackbox::build_project()

@@ -94,7 +94,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
         }
     }
 
-    if (inputArtifacts.isEmpty())
+    if (inputArtifacts.isEmpty() && usingsArtifacts.isEmpty())
         return;
 
     if (rule->name == QLatin1String("QtCoreMocRule")) {

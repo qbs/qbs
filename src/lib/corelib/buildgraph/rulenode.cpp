@@ -67,7 +67,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
 {
     bool hasAddedTags = false;
     bool hasRemovedTags = false;
-    result->upToDate = changedInputs.isEmpty();
+    result->upToDate = changedInputs.isEmpty() && !usedDependenciesAdded();
 
     ProductBuildData::ArtifactSetByFileTag relevantArtifacts;
     if (product->isMarkedForReapplication(m_rule)) {
@@ -139,6 +139,19 @@ void RuleNode::store(PersistentPool &pool) const
 {
     BuildGraphNode::store(pool);
     pool.store(m_rule);
+}
+
+bool RuleNode::usedDependenciesAdded() const
+{
+    foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
+        if (!dep->buildData || !dep->fileTags.matches(rule()->usings))
+            continue;
+        foreach (Artifact *a, dep->targetArtifacts()) {
+            if (a->fileTags.matches(rule()->usings) && a->product->isAdded(a))
+                return true;
+        }
+    }
+    return false;
 }
 
 } // namespace Internal

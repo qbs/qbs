@@ -746,6 +746,15 @@ const ArtifactSet ResolvedProduct::addedArtifactsByFileTag(const FileTag &tag) c
     return buildData->addedArtifactsByFileTag.value(tag);
 }
 
+bool ResolvedProduct::isAdded(Artifact *a) const
+{
+    foreach (const ArtifactSet &artifacts, buildData->addedArtifactsByFileTag) {
+        if (artifacts.contains(a))
+            return true;
+    }
+    return false;
+}
+
 const ArtifactSet ResolvedProduct::removedArtifactsByFileTag(const FileTag &tag) const
 {
     return buildData->removedArtifactsByFileTag.value(tag);

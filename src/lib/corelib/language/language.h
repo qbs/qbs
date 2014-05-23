@@ -389,6 +389,7 @@ public:
     void unregisterArtifactWithChangedInputs(Artifact *artifact);
     void unmarkForReapplication(const RuleConstPtr &rule);
     const ArtifactSet addedArtifactsByFileTag(const FileTag &tag) const;
+    bool isAdded(Artifact *a) const;
     const ArtifactSet removedArtifactsByFileTag(const FileTag &tag) const;
     bool isMarkedForReapplication(const RuleConstPtr &rule) const;
     ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
