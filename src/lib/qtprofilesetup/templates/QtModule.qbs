@@ -14,9 +14,12 @@ Module {
     property string qtLibInfix: Qt.core.libInfix
     property string repository: Qt.core.versionMajor === 5 ? 'qtbase' : undefined
     property string includeDirName: qtModulePrefix + qtModuleName
-    property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix, Qt.core, qbs, qtModulePrefix)
+    property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix,
+                                                                      Qt.core, qbs, isStaticLibrary,
+                                                                      qtModulePrefix)
     property string qtVersion: Qt.core.version
     property bool hasLibrary: true
+    property bool isStaticLibrary: false
 
     Properties {
         condition: qtModuleName != undefined
