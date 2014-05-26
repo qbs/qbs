@@ -59,6 +59,7 @@ public:
     QStringList profiles() const;
 
     QString fileName() const;
+    QString baseDirectoy() const { return m_baseDir; }
 
 private:
     QString internalRepresentation(const QString &externalKey) const;
@@ -67,6 +68,7 @@ private:
     void checkStatus();
 
     QSettings * const m_settings;
+    const QString m_baseDir;
 };
 
 } // namespace qbs

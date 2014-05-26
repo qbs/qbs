@@ -604,7 +604,6 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
     setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath + QLatin1String("/lib")));
     setupParams.setTopLevelProfile(profileName);
     setupParams.setBuildVariant(QLatin1String("debug"));
-    setupParams.expandBuildConfiguration(settings.data());
     return setupParams;
 }
 

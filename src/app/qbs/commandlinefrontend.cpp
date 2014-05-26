@@ -125,6 +125,7 @@ void CommandLineFrontend::start()
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
         params.setDryRun(m_parser.dryRun());
         params.setLogElapsedTime(m_parser.logTime());
+        params.setSettingsDirectory(m_settings->baseDirectoy());
         if (!m_parser.buildBeforeInstalling())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
@@ -145,10 +146,6 @@ void CommandLineFrontend::start()
             params.setBuildVariant(buildVariant);
             params.setBuildRoot(buildDirectory(profileName));
             params.setOverriddenValues(userConfig);
-            const ErrorInfo err = params.expandBuildConfiguration(m_settings);
-            if (err.hasError())
-                throw err;
-
             SetupProjectJob * const job = Project::setupProject(params,
                     ConsoleLogger::instance().logSink(), this);
             connectJob(job);

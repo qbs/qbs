@@ -60,6 +60,7 @@ public:
     QString buildRoot;
     QStringList searchPaths;
     QStringList pluginPaths;
+    QString settingsBaseDir;
     QVariantMap overriddenValues;
     QVariantMap buildConfiguration;
     mutable QVariantMap buildConfigurationTree;
@@ -204,6 +205,24 @@ void SetupProjectParameters::setPluginPaths(const QStringList &pluginPaths)
 }
 
 /*!
+ * \brief The base directory for qbs settings.
+ * This value is used to locate profiles and preferences.
+ */
+QString SetupProjectParameters::settingsDirectory() const
+{
+    return d->settingsBaseDir;
+}
+
+/*!
+ * \brief Sets the base directory for qbs settings.
+ * \param settingsBaseDir Will be used to locate profiles and preferences.
+ */
+void SetupProjectParameters::setSettingsDirectory(const QString &settingsBaseDir)
+{
+    d->settingsBaseDir = settingsBaseDir;
+}
+
+/*!
  * Returns the overridden values of the build configuration.
  */
 QVariantMap SetupProjectParameters::overriddenValues() const
@@ -269,15 +288,16 @@ QVariantMap SetupProjectParameters::buildConfigurationTree() const
 }
 
 
-static QVariantMap expandedBuildConfigurationInternal(Settings *settings,
+static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBaseDir,
         const QString &profileName, const QString &buildVariant)
 {
+    Settings settings(settingsBaseDir);
     QVariantMap buildConfig;
 
     // (1) Values from profile, if given.
     if (!profileName.isEmpty()) {
         ErrorInfo err;
-        const Profile profile(profileName, settings);
+        const Profile profile(profileName, &settings);
         const QStringList profileKeys = profile.allKeys(Profile::KeySelectionRecursive, &err);
         if (err.hasError())
             throw err;
@@ -302,11 +322,11 @@ static QVariantMap expandedBuildConfigurationInternal(Settings *settings,
     return buildConfig;
 }
 
-QVariantMap SetupProjectParameters::expandedBuildConfiguration(Settings *settings,
+QVariantMap SetupProjectParameters::expandedBuildConfiguration(const QString &settingsBaseDir,
         const QString &profileName, const QString &buildVariant, ErrorInfo *errorInfo)
 {
     try {
-        return expandedBuildConfigurationInternal(settings, profileName, buildVariant);
+        return expandedBuildConfigurationInternal(settingsBaseDir, profileName, buildVariant);
     } catch (const ErrorInfo &err) {
         if (errorInfo)
             *errorInfo = err;
@@ -316,20 +336,20 @@ QVariantMap SetupProjectParameters::expandedBuildConfiguration(Settings *setting
 
 
 /*!
- * \brief Expands the build configuration based on the given settings.
+ * \brief Expands the build configuration.
  *
- * Expansion is the process by which the build configuration is completed based on the given
- * settings. E.g. the information configured in a profile is filled into the build
+ * Expansion is the process by which the build configuration is completed based on the settings
+ * in \c settingsDirectory(). E.g. the information configured in a profile is filled into the build
  * configuration by this step.
  *
  * This method returns an Error. The list of entries in this error will be empty is the
  * expansion was successful.
  */
-ErrorInfo SetupProjectParameters::expandBuildConfiguration(Settings *settings)
+ErrorInfo SetupProjectParameters::expandBuildConfiguration()
 {
     ErrorInfo err;
-    QVariantMap expandedConfig
-            = expandedBuildConfiguration(settings, topLevelProfile(), buildVariant(), &err);
+    QVariantMap expandedConfig = expandedBuildConfiguration(d->settingsBaseDir, topLevelProfile(),
+                                                            buildVariant(), &err);
     if (err.hasError())
         return err;
     if (d->buildConfiguration != expandedConfig) {

@@ -53,7 +53,8 @@ static QSettings *createQSettings(const QString &baseDir)
             : new QSettings(baseDir + QLatin1String("/qbs.conf"), format());
 }
 
-Settings::Settings(const QString &baseDir) : m_settings(createQSettings(baseDir))
+Settings::Settings(const QString &baseDir)
+    : m_settings(createQSettings(baseDir)), m_baseDir(baseDir)
 {
     // Actual qbs settings are stored transparently within a group, because QSettings
     // can see non-qbs fallback settings e.g. from QtProject that we're not interested in.

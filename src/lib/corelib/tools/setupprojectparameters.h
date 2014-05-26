@@ -72,13 +72,16 @@ public:
     QStringList pluginPaths() const;
     void setPluginPaths(const QStringList &pluginPaths);
 
+    QString settingsDirectory() const;
+    void setSettingsDirectory(const QString &settingsBaseDir);
+
     QVariantMap overriddenValues() const;
     void setOverriddenValues(const QVariantMap &values);
     QVariantMap overriddenValuesTree() const;
 
-    static QVariantMap expandedBuildConfiguration(Settings *settings, const QString &profileName,
-            const QString &buildVariant, ErrorInfo *errorInfo = 0);
-    ErrorInfo expandBuildConfiguration(Settings *settings);
+    static QVariantMap expandedBuildConfiguration(const QString &settingsBaseDir,
+            const QString &profileName, const QString &buildVariant, ErrorInfo *errorInfo = 0);
+    ErrorInfo expandBuildConfiguration();
     QVariantMap buildConfiguration() const;
     QVariantMap buildConfigurationTree() const;
 

@@ -143,8 +143,7 @@ void TestLanguage::initTestCase()
                            << QLatin1String(SRCDIR "/../../../share/qbs"));
     defaultParameters.setTopLevelProfile("qbs_autotests");
     defaultParameters.setBuildVariant("debug");
-    Settings settings((QString()));
-    defaultParameters.expandBuildConfiguration(&settings);
+    defaultParameters.expandBuildConfiguration();
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
 
@@ -821,8 +820,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
         params.setBuildVariant(buildVariant);
-        Settings settings((QString()));
-        params.expandBuildConfiguration(&settings);
+        params.expandBuildConfiguration();
         TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
@@ -1042,7 +1040,7 @@ void TestLanguage::profileValuesAndOverriddenValues()
         overriddenValues.insert("dummy.cFlags", "OVERRIDDEN");
         parameters.setOverriddenValues(overriddenValues);
         parameters.setProjectFilePath(testProject("profilevaluesandoverriddenvalues.qbs"));
-        parameters.expandBuildConfiguration(&settings);
+        parameters.expandBuildConfiguration();
         project = loader->loadProject(parameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);

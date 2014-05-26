@@ -229,6 +229,9 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 void InternalSetupProjectJob::start()
 {
     try {
+        const ErrorInfo err = m_parameters.expandBuildConfiguration();
+        if (err.hasError())
+            throw err;
         execute();
     } catch (const ErrorInfo &error) {
         m_project.clear();

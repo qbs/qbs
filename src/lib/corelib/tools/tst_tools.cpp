@@ -140,7 +140,7 @@ void TestTools::testBuildConfigMerging()
     params.setTopLevelProfile(profile.name());
     params.setBuildVariant(QLatin1String("debug"));
     params.setOverriddenValues(overrideMap);
-    const ErrorInfo error = params.expandBuildConfiguration(&settings);
+    const ErrorInfo error = params.expandBuildConfiguration();
     QVERIFY2(!error.hasError(), qPrintable(error.toString()));
     const QVariantMap finalMap = params.finalBuildConfigurationTree();
     QCOMPARE(finalMap.count(), 3);
