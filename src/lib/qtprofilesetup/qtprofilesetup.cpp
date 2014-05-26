@@ -66,6 +66,16 @@ struct QtModuleInfo
     bool hasLibrary;
 };
 
+static QString qtModuleName(const QtModuleInfo &module)
+{
+    if (module.name.startsWith(QLatin1String("Qt")))
+        return module.name.mid(2); // Strip off "Qt".
+    else if (module.name.startsWith(QLatin1String("QAx")))
+        return module.name.mid(1); // Strip off "Q".
+    else
+        return module.name;
+}
+
 static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
                              const QString &profileName)
 {
@@ -304,7 +314,7 @@ static void createModules(Profile &profile, Settings *settings,
                         .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
             }
             QByteArray content = moduleFile.readAll();
-            content.replace("### name", '"' + module.name.mid(2).toUtf8() + '"'); // Strip off "Qt".
+            content.replace("### name", '"' + qtModuleName(module).toUtf8() + '"');
             content.replace("### has library", module.hasLibrary ? "true" : "false");
             replaceListPlaceholder(content, "### dependencies", module.dependencies);
             replaceListPlaceholder(content, "### includes", module.includePaths);
