@@ -493,6 +493,15 @@ void TestBlackbox::resolve_project_dry_run()
     QVERIFY2(!QFile::exists(buildGraphPath), qPrintable(buildGraphPath));
 }
 
+void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/usings-as-sole-inputs-non-multiplexed"));
+    QCOMPARE(runQbs(), 0);
+    const QString p3BuildDir = productBuildDir("p3");
+    QVERIFY(regularFileExists(p3BuildDir) + "/custom1.out.plus");
+    QVERIFY(regularFileExists(p3BuildDir) + "/custom2.out.plus");
+}
+
 static bool symlinkExists(const QString &linkFilePath)
 {
     return QFileInfo(linkFilePath).isSymLink();

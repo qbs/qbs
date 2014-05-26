@@ -12,12 +12,7 @@ Project {
         type: "mytype"
         name: "caller"
         Depends { name: "infinite-loop" }
-        Group {
-            files: "dummy-input.txt" // Needed because of QBS-277
-            fileTags: "schnurz"
-        }
         Rule {
-            inputs: "schnurz"
             usings: "application"
             Artifact {
                 fileName: "dummy"

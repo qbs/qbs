@@ -132,6 +132,7 @@ private slots:
     void resolve_project();
     void resolve_project_dry_run_data();
     void resolve_project_dry_run();
+    void usingsAsSoleInputsNonMultiplexed();
     void clean();
     void exportSimple();
     void exportWithRecursiveDepends();

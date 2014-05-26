@@ -110,12 +110,11 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
         inputArtifacts.unite(usingsArtifacts);
         doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
-        ArtifactSet lst = usingsArtifacts;
-        foreach (Artifact * const inputArtifact, inputArtifacts) {
+        foreach (Artifact * const inputArtifact, inputArtifacts + usingsArtifacts) {
             setupScriptEngineForArtifact(inputArtifact);
+            ArtifactSet lst;
             lst += inputArtifact;
             doApply(lst, prepareScriptContext);
-            lst -= inputArtifact;
         }
     }
 }
@@ -404,6 +403,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         m_transformer->inputs = inputArtifacts;
     }
     outputArtifact->transformer = m_transformer;
+    QBS_CHECK(m_rule->multiplex || m_transformer->inputs.count() == 1);
 
     return outputArtifact;
 }
