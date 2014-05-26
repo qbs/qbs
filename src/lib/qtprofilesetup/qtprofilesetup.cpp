@@ -59,6 +59,7 @@ struct QtModuleInfo
 
     QtModuleInfo() : hasLibrary(true) {}
 
+    QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
     QString qbsName; // Lower-case version without "qt" prefix.
     QStringList dependencies; // qbs names.
@@ -200,11 +201,18 @@ static void createModules(Profile &profile, Settings *settings,
                 << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib"))
                 << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib-private"),
                                 QStringList() << QLatin1String("testlib"))
-                << QtModuleInfo(QLatin1String("QAxContainer"), QLatin1String("axcontainer"))
-                << QtModuleInfo(QLatin1String("QAxServer"), QLatin1String("axserver"))
                 << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"))
                 << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
                                 QStringList() << QLatin1String("dbus"));
+
+        QtModuleInfo axcontainer(QLatin1String("QAxContainer"), QLatin1String("axcontainer"));
+        axcontainer.modulePrefix = QLatin1String("Q");
+        modules << axcontainer;
+
+        QtModuleInfo axserver = axcontainer;
+        axserver.name = QLatin1String("QAxServer");
+        axserver.qbsName = QLatin1String("axserver");
+        modules << axserver;
 
         QtModuleInfo designerComponentsPrivate(QLatin1String("QtDesignerComponents"),
                 QLatin1String("designercomponents-private"),
@@ -327,6 +335,11 @@ static void createModules(Profile &profile, Settings *settings,
                 propertiesString = "property bool qmlDebugging: false\n"
                         "    cpp.defines: "
                         "qmlDebugging ? base.concat('" + debugMacro + "') : base";
+            }
+            if (!module.modulePrefix.isEmpty()) {
+                if (!propertiesString.isEmpty())
+                    propertiesString += "\n    ";
+                propertiesString += "qtModulePrefix: \"" + module.modulePrefix.toUtf8() + '"';
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);
