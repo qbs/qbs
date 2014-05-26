@@ -10,7 +10,8 @@ function linkerFlags(product, inputs) {
     var linkerScripts = ModUtils.moduleProperties(product, 'linkerScripts');
     var frameworks = ModUtils.moduleProperties(product, 'frameworks');
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
-    var rpaths = ModUtils.moduleProperties(product, 'rpaths');
+    var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
+            ? ModUtils.moduleProperties(product, 'rpaths') : undefined;
     var args = [], i, prefix, suffix, suffixes;
 
     if (rpaths && rpaths.length)

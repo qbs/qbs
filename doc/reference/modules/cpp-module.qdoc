@@ -562,6 +562,15 @@
 
     List of rpaths that are passed to the linker.
 
+    \section2 useRPaths
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Set this property to \c{false} to prevent the linker from writing rpaths to the binary.
+
     \section2 visibility
 
     \table
