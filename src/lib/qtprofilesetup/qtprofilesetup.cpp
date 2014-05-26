@@ -50,7 +50,8 @@ struct QtModuleInfo
     QtModuleInfo(const QString &name, const QString &qbsName,
                  const QStringList &deps = QStringList())
         : name(name), qbsName(qbsName), dependencies(deps),
-          hasLibrary(!qbsName.endsWith(QLatin1String("-private")))
+          hasLibrary(!qbsName.endsWith(QLatin1String("-private"))),
+          isStaticLibrary(false)
     {
         const QString coreModule = QLatin1String("core");
         if (qbsName != coreModule && !dependencies.contains(coreModule))
@@ -65,6 +66,7 @@ struct QtModuleInfo
     QStringList dependencies; // qbs names.
     QStringList includePaths;
     bool hasLibrary;
+    bool isStaticLibrary;
 };
 
 static QString qtModuleName(const QtModuleInfo &module)
@@ -207,6 +209,7 @@ static void createModules(Profile &profile, Settings *settings,
 
         QtModuleInfo axcontainer(QLatin1String("QAxContainer"), QLatin1String("axcontainer"));
         axcontainer.modulePrefix = QLatin1String("Q");
+        axcontainer.isStaticLibrary = true;
         modules << axcontainer;
 
         QtModuleInfo axserver = axcontainer;
@@ -340,6 +343,11 @@ static void createModules(Profile &profile, Settings *settings,
                 if (!propertiesString.isEmpty())
                     propertiesString += "\n    ";
                 propertiesString += "qtModulePrefix: \"" + module.modulePrefix.toUtf8() + '"';
+            }
+            if (module.isStaticLibrary) {
+                if (!propertiesString.isEmpty())
+                    propertiesString += "\n    ";
+                propertiesString += "isStaticLibrary: true";
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);
