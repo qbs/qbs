@@ -181,14 +181,14 @@ void JsCommandExecutor::onJavaScriptCommandFinished()
 {
     m_running = false;
     const JavaScriptCommandResult &result = m_objectInThread->result();
+    ErrorInfo err;
     if (!result.success) {
         logger().qbsDebug() << "JS context:\n" << jsCommand()->properties();
         logger().qbsDebug() << "JS code:\n" << jsCommand()->sourceCode();
-        QString msg = tr("Error while executing JavaScriptCommand:\n");
-        msg += result.errorMessage;
-        emit finished(ErrorInfo(msg, result.errorLocation));
+        err.append(tr("Error while executing JavaScriptCommand:"), result.errorLocation);
+        err.append(result.errorMessage);
     }
-    emit finished();
+    emit finished(err);
 }
 
 const JavaScriptCommand *JsCommandExecutor::jsCommand() const
