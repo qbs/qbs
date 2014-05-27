@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <stdio.h>
 
 int foo();  // defined in a.cpp
 

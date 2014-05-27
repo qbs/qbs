@@ -7,7 +7,7 @@ Project {
         Depends { name: "cpp" }
 
         files: [
-            "a.cpp",
+            "a.c",
         ]
     }
 
@@ -18,12 +18,17 @@ Project {
         Depends { name: "cpp" }
 
         files: [
-            "b.cpp",
+            "b.c",
         ]
     }
 
     CppApplication {
         name: "appWithoutSources"
+        Properties {
+            condition: qbs.toolchain.contains("msvc")
+            cpp.linkerFlags: "/ENTRY:main"
+        }
+
         Depends { name: "a" }
         Depends { name: "b" }
     }
