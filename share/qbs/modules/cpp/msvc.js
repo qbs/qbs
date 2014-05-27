@@ -169,7 +169,7 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
     }
 
-    var allInputs = inputs.obj.concat(inputs.staticlibrary || [])
+    var allInputs = (inputs.obj || []).concat(inputs.staticlibrary || [])
     if (inputs.dynamiclibrary_import)
         allInputs = allInputs.concat(inputs.dynamiclibrary_import);
     for (i in allInputs) {
