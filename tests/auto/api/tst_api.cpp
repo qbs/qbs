@@ -368,6 +368,36 @@ void TestApi::changeContent()
     waitForFinished(buildJob.data());
     errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+
+    // Add a file to the top level of a product that does not have a "files" binding yet.
+    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
+        "/project-editing/project-with-no-files.qbs"));
+    job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    project = job->project();
+    projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    product = projectData.allProducts().first();
+    errorInfo = project.addFiles(product, qbs::GroupData(), QStringList("main.cpp"));
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    projectData = project.projectData();
+    rcvr.descriptions.clear();
+    buildJob.reset(project.buildAllProducts(buildOptions, this));
+    connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
+            SLOT(handleDescription(QString,QString)));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QVERIFY(rcvr.descriptions.contains("compiling main.cpp"));
+    job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(job.data());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    if (job->project().projectData() != projectData) {
+        printProjectData(projectData);
+        qDebug("\n====\n");
+        printProjectData(job->project().projectData());
+    }
+    QVERIFY(job->project().projectData() == projectData);
 }
 
 static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)

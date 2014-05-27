@@ -323,9 +323,10 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
                             Rewriter::ScriptBinding);
     }
 
-    setLineOffset(getLineOffsetForChangedBinding(changeSet, getNodeRepresentation(fileContent,
-            filesBinding->statement)));
-    const int insertionLine = getBindingLine(changeSet, fileContent) + 1;
+    setLineOffset(getLineOffsetForChangedBinding(changeSet,
+            filesBinding ? getNodeRepresentation(fileContent, filesBinding->statement)
+                         : QString()));
+    const int insertionLine = getBindingLine(changeSet, fileContent);
     const int insertionColumn = (filesBinding ? arrayElemIndentation : bindingIndentation) + 1;
     setItemPosition(CodeLocation(projectFile(), insertionLine, insertionColumn));
     changeSet.apply(&fileContent);
