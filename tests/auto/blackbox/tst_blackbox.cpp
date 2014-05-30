@@ -2026,8 +2026,8 @@ void TestBlackbox::testWiX()
     QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
     QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
     QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
-    QVERIFY(regularFileExists(buildDir + "/qbs-" + arch + ".msi"));
-    QVERIFY(regularFileExists(buildDir + "/qbs-setup-" + arch + ".exe"));
+    QVERIFY(regularFileExists(buildDir + "/QbsSetup/qbs-" + arch + ".msi"));
+    QVERIFY(regularFileExists(buildDir + "/QbsBootstrapper/qbs-setup-" + arch + ".exe"));
 }
 
 static QString findExecutable(const QStringList &fileNames)

@@ -13,7 +13,7 @@ Project {
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]
-        wix.defines: ["msiName=qbs-" + qbs.architecture + ".msi"]
+        wix.defines: ["msiName=" + project.buildDirectory + "/QbsSetup/qbs-" + qbs.architecture + ".msi"]
     }
 
     WindowsInstallerPackage {
