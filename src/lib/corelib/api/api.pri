@@ -23,7 +23,12 @@ SOURCES += \
     $$PWD/qmljsrewriter.cpp
 
 !qbs_no_dev_install {
-    api_headers.files = $$PWD/projectdata.h $$PWD/runenvironment.h $$PWD/jobs.h $$PWD/project.h
+    api_headers.files = \
+        $$PWD/jobs.h \
+        $$PWD/languageinfo.h \
+        $$PWD/project.h \
+        $$PWD/projectdata.h \
+        $$PWD/runenvironment.h
     api_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/api
     INSTALLS += api_headers
 }

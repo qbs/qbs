@@ -78,22 +78,22 @@ Module {
     cpp.dynamicLibraries: {
         var libs = [];
         if (!frameworkBuild)
-            libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)];
+            libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, staticBuild)];
         if (qbs.targetOS.contains('ios') && staticBuild)
             libs = libs.concat(["z", "m",
-                                QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs)]);
+                                QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs, true)]);
         if (libs.length === 0)
             return undefined;
         return libs;
     }
     cpp.linkerFlags: ((qbs.targetOS.contains('ios') && staticBuild) ?
                           ["-force_load", pluginPath + "/platforms/" +
-                           QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs) + ".a"] : undefined)
+                           QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs, true) + ".a"] : undefined)
     cpp.frameworkPaths: frameworkBuild ? [libPath] : undefined
     cpp.frameworks: {
         var frameworks = [];
         if (frameworkBuild)
-            frameworks = [QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs)]
+            frameworks = [QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, false)]
         if (qbs.targetOS.contains('ios') && staticBuild)
             frameworks = frameworks.concat(["Foundation", "CoreFoundation"]);
         if (frameworks.length === 0)

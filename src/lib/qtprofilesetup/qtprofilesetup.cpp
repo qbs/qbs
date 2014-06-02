@@ -50,7 +50,8 @@ struct QtModuleInfo
     QtModuleInfo(const QString &name, const QString &qbsName,
                  const QStringList &deps = QStringList())
         : name(name), qbsName(qbsName), dependencies(deps),
-          hasLibrary(!qbsName.endsWith(QLatin1String("-private")))
+          hasLibrary(!qbsName.endsWith(QLatin1String("-private"))),
+          isStaticLibrary(false)
     {
         const QString coreModule = QLatin1String("core");
         if (qbsName != coreModule && !dependencies.contains(coreModule))
@@ -59,12 +60,24 @@ struct QtModuleInfo
 
     QtModuleInfo() : hasLibrary(true) {}
 
+    QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
     QString qbsName; // Lower-case version without "qt" prefix.
     QStringList dependencies; // qbs names.
     QStringList includePaths;
     bool hasLibrary;
+    bool isStaticLibrary;
 };
+
+static QString qtModuleName(const QtModuleInfo &module)
+{
+    if (module.name.startsWith(QLatin1String("Qt")))
+        return module.name.mid(2); // Strip off "Qt".
+    else if (module.name.startsWith(QLatin1String("QAx")))
+        return module.name.mid(1); // Strip off "Q".
+    else
+        return module.name;
+}
 
 static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
                              const QString &profileName)
@@ -197,11 +210,19 @@ static void createModules(Profile &profile, Settings *settings,
                 << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib"))
                 << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib-private"),
                                 QStringList() << QLatin1String("testlib"))
-                << QtModuleInfo(QLatin1String("QAxContainer"), QLatin1String("axcontainer"))
-                << QtModuleInfo(QLatin1String("QAxServer"), QLatin1String("axserver"))
                 << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"))
                 << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
                                 QStringList() << QLatin1String("dbus"));
+
+        QtModuleInfo axcontainer(QLatin1String("QAxContainer"), QLatin1String("axcontainer"));
+        axcontainer.modulePrefix = QLatin1String("Q");
+        axcontainer.isStaticLibrary = true;
+        modules << axcontainer;
+
+        QtModuleInfo axserver = axcontainer;
+        axserver.name = QLatin1String("QAxServer");
+        axserver.qbsName = QLatin1String("axserver");
+        modules << axserver;
 
         QtModuleInfo designerComponentsPrivate(QLatin1String("QtDesignerComponents"),
                 QLatin1String("designercomponents-private"),
@@ -311,7 +332,7 @@ static void createModules(Profile &profile, Settings *settings,
                         .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
             }
             QByteArray content = moduleFile.readAll();
-            content.replace("### name", '"' + module.name.mid(2).toUtf8() + '"'); // Strip off "Qt".
+            content.replace("### name", '"' + qtModuleName(module).toUtf8() + '"');
             content.replace("### has library", module.hasLibrary ? "true" : "false");
             replaceListPlaceholder(content, "### dependencies", module.dependencies);
             replaceListPlaceholder(content, "### includes", module.includePaths);
@@ -336,6 +357,16 @@ static void createModules(Profile &profile, Settings *settings,
 
                 s << indent << "property string qmlImportsPath: "
                         << quotedPath(qtEnvironment.qmlImportPath);
+            }
+            if (!module.modulePrefix.isEmpty()) {
+                if (!propertiesString.isEmpty())
+                    propertiesString += "\n    ";
+                propertiesString += "qtModulePrefix: \"" + module.modulePrefix.toUtf8() + '"';
+            }
+            if (module.isStaticLibrary) {
+                if (!propertiesString.isEmpty())
+                    propertiesString += "\n    ";
+                propertiesString += "isStaticLibrary: true";
             }
             content.replace("### special properties", propertiesString);
             moduleFile.resize(0);
