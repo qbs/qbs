@@ -357,7 +357,7 @@ Module {
 
             for (i in inputs.wxl) {
                 args.push("-loc");
-                args.push(outputs.wxl[i].filePath);
+                args.push(inputs.wxl[i].filePath);
             }
 
             if (product.type.contains("msi")) {

@@ -18,7 +18,7 @@ Project {
 
     WindowsInstallerPackage {
         name: "RegressionBuster9000"
-        files: ["QbsSetup.wxs", "Qt.wxs"]
+        files: ["QbsSetup.wxs", "Qt.wxs", "de.wxl"]
         wix.defines: ["scriptName=ExampleScript.bat"]
         wix.cultures: []
     }
