@@ -1,11 +1,11 @@
 // helper functions for the Qt modules
 
-function getPlatformLibraryName(name, qtcore, qbs)
+function getPlatformLibraryName(name, qtcore, qbs, isStaticLibrary)
 {
     var libName = name;
     if (qbs.targetOS.contains('windows')) {
         libName += (qbs.enableDebugCode ? 'd' : '');
-        if (qtcore.versionMajor < 5)
+        if (!isStaticLibrary && qtcore.versionMajor < 5)
             libName += qtcore.versionMajor;
         if (!qbs.toolchain.contains("mingw"))
             libName += '.lib';
@@ -18,11 +18,11 @@ function getPlatformLibraryName(name, qtcore, qbs)
     return libName;
 }
 
-function getQtLibraryName(qtModule, qtcore, qbs, prefix)
+function getQtLibraryName(qtModule, qtcore, qbs, isStaticLibrary, prefix)
 {
     var libName = (prefix === undefined) ? "Qt" : prefix;
     if (qtcore.versionMajor >= 5 && !qtcore.frameworkBuild)
         libName += qtcore.versionMajor;
     libName += qtModule;
-    return getPlatformLibraryName(libName, qtcore, qbs);
+    return getPlatformLibraryName(libName, qtcore, qbs, isStaticLibrary);
 }

@@ -37,7 +37,6 @@ QbsLibrary {
             "internaljobs.h",
             "jobs.cpp",
             "languageinfo.cpp",
-            "languageinfo.h",
             "project.cpp",
             "projectdata.cpp",
             "projectdata_p.h",
@@ -56,6 +55,7 @@ QbsLibrary {
         prefix: "api/"
         files: [
             "jobs.h",
+            "languageinfo.h",
             "project.h",
             "projectdata.h",
             "runenvironment.h"
