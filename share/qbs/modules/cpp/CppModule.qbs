@@ -150,6 +150,12 @@ Module {
         description: "generate position independent code"
     }
 
+    property string entryPoint
+    PropertyOptions {
+        name: "entryPoint"
+        description: "entry point symbol for an executable or dynamic library"
+    }
+
     property string visibility: 'default' // 'default', 'hidden', 'hiddenInlines'
     PropertyOptions {
         name: "visibility"

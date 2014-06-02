@@ -24,10 +24,7 @@ Project {
 
     CppApplication {
         name: "appWithoutSources"
-        Properties {
-            condition: qbs.toolchain.contains("msvc")
-            cpp.linkerFlags: "/ENTRY:main"
-        }
+        cpp.entryPoint: "main"
 
         Depends { name: "a" }
         Depends { name: "b" }

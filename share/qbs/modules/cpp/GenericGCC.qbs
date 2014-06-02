@@ -144,6 +144,8 @@ CppModule {
                 else
                     args.push('--sysroot=' + sysroot);
             }
+            if (product.moduleProperty("cpp", "entryPoint"))
+                args.push("-Wl,-e", product.moduleProperty("cpp", "entryPoint"));
 
             args.push('-o');
             args.push(lib.filePath);

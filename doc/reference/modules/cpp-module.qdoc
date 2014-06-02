@@ -382,6 +382,15 @@
     List of file suffixes this toolchain's linker accepts as input. For example, for MinGW this list
     should be \c{[".a", ".lib"]}.
 
+    \section2 entryPoint
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Name of the entry point of an executable or dynamic library. If this property is undefined, the
+    toolchain's default is used.
 
 
     \section1 Properties Specific to iOS and OS X

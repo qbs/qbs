@@ -189,6 +189,9 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         args.push(dynamicLibrary)
     }
 
+    if (product.moduleProperty("cpp", "entryPoint"))
+        args.push("/ENTRY:" + product.moduleProperty("cpp", "entryPoint"));
+
     args.push('/OUT:' + linkerOutputNativeFilePath)
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
