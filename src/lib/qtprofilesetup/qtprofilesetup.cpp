@@ -58,7 +58,9 @@ struct QtModuleInfo
             dependencies.prepend(coreModule);
     }
 
-    QtModuleInfo() : hasLibrary(true) {}
+    QtModuleInfo()
+        : hasLibrary(true), isStaticLibrary(false)
+    {}
 
     QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
