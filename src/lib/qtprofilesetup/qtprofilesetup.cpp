@@ -281,7 +281,12 @@ static void createModules(Profile &profile, Settings *settings,
                                                            QLatin1String("-private"));
                     }
                 } else if (key.endsWith(".module_config")) {
-                    moduleInfo.hasLibrary = !value.contains("no_link");
+                    foreach (const QByteArray &elem, value.split(' ')) {
+                        if (elem == "no_link")
+                            moduleInfo.hasLibrary = false;
+                        else if (elem == "staticlib")
+                            moduleInfo.isStaticLibrary = true;
+                    }
                 } else if (key.endsWith(".includes")) {
                     moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
                     for (int i = 0; i < moduleInfo.includePaths.count(); ++i) {
