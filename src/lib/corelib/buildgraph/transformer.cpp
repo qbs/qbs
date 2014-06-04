@@ -39,6 +39,8 @@
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
+#include <QDir>
+
 namespace qbs {
 namespace Internal {
 
@@ -50,12 +52,54 @@ Transformer::~Transformer()
 {
 }
 
+static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine, void *arg)
+{
+    Q_UNUSED(ctx);
+    Q_UNUSED(engine);
+    Artifact *artifact = reinterpret_cast<Artifact *>(arg);
+    return QScriptValue(FileInfo::baseName(artifact->filePath()));
+}
+
+static QScriptValue js_completeBaseName(QScriptContext *ctx, QScriptEngine *engine, void *arg)
+{
+    Q_UNUSED(ctx);
+    Q_UNUSED(engine);
+    Artifact *artifact = reinterpret_cast<Artifact *>(arg);
+    return QScriptValue(FileInfo::completeBaseName(artifact->filePath()));
+}
+
+static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine, void *arg)
+{
+    Q_UNUSED(ctx);
+    Q_UNUSED(engine);
+    Artifact *artifact = reinterpret_cast<Artifact *>(arg);
+    QString basedir;
+    if (artifact->artifactType == Artifact::SourceFile) {
+        QDir sourceDir(artifact->product->sourceDirectory);
+        basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
+    } else {
+        QDir buildDir(artifact->product->buildDirectory());
+        basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
+    }
+    return basedir;
+}
+
+static void setArtifactProperty(QScriptValue &obj, const QString &name,
+        QScriptEngine::FunctionWithArgSignature func, Artifact *artifact)
+{
+    obj.setProperty(name, obj.engine()->newFunction(func, (void *)artifact),
+                    QScriptValue::PropertyGetter);
+}
+
 QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
 {
     QScriptValue obj = scriptEngine->newObject();
     ModuleProperties::init(obj, artifact);
     obj.setProperty(QLatin1String("fileName"), artifact->fileName());
     obj.setProperty(QLatin1String("filePath"), artifact->filePath());
+    setArtifactProperty(obj, QLatin1String("baseName"), js_baseName, artifact);
+    setArtifactProperty(obj, QLatin1String("completeBaseName"), js_completeBaseName, artifact);
+    setArtifactProperty(obj, QLatin1String("baseDir"), js_baseDir, artifact);
     const QStringList fileTags = artifact->fileTags.toStringList();
     obj.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
