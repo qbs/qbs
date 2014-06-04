@@ -96,6 +96,7 @@ public:
     QString fileName;
     FileTags fileTags;
     bool alwaysUpdated;
+    CodeLocation location;
 
     class Binding
     {

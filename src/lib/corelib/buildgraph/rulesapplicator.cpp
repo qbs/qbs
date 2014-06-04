@@ -309,8 +309,10 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
         const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
-    if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
-        throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName: ") + scriptValue.toString());
+    if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
+        throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName at %1: %2")
+                        .arg(ruleArtifact->location.toString(), scriptValue.toString()));
+    }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
     return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
                                 inputArtifacts);

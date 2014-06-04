@@ -673,6 +673,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
         return;
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
+    artifact->location = item->location();
     artifact->fileName = verbatimValue(item, QLatin1String("fileName"));
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
