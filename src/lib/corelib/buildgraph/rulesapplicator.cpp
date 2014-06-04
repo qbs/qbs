@@ -111,7 +111,6 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
         doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
         foreach (Artifact * const inputArtifact, inputArtifacts + usingsArtifacts) {
-            setupScriptEngineForArtifact(inputArtifact);
             ArtifactSet lst;
             lst += inputArtifact;
             doApply(lst, prepareScriptContext);
@@ -173,10 +172,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     // create the output artifacts from the set of input artifacts
     Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);
     copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
-    if (m_rule->multiplex) {
-        // ### awful! Revisit how the "input" property is set up!
-        copyProperty(QLatin1String("input"), prepareScriptContext, scope());
-    }
+    copyProperty(QLatin1String("input"), prepareScriptContext, scope());
     copyProperty(QLatin1String("product"), prepareScriptContext, scope());
     copyProperty(QLatin1String("project"), prepareScriptContext, scope());
     if (m_rule->isDynamic()) {
@@ -258,38 +254,6 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
         throw ErrorInfo(Tr::tr("There's a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript->location);
-}
-
-void RulesApplicator::setupScriptEngineForArtifact(Artifact *artifact)
-{
-    QString inFileName = artifact->fileName();
-    QString inBaseName = FileInfo::baseName(artifact->filePath());
-    QString inCompleteBaseName = FileInfo::completeBaseName(artifact->filePath());
-
-    QString basedir;
-    if (artifact->artifactType == Artifact::SourceFile) {
-        QDir sourceDir(m_product->sourceDirectory);
-        basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
-    } else {
-        QDir buildDir(m_product->topLevelProject()->buildDirectory);
-        basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
-    }
-
-    // expose per file properties we want to use in an Artifact within a Rule
-    QScriptValue scriptValue = engine()->newObject();
-    ModuleProperties::init(scriptValue, artifact);
-    scriptValue.setProperty(QLatin1String("fileName"), inFileName);
-    scriptValue.setProperty(QLatin1String("filePath"), artifact->filePath());
-    scriptValue.setProperty(QLatin1String("baseName"), inBaseName);
-    scriptValue.setProperty(QLatin1String("completeBaseName"), inCompleteBaseName);
-    scriptValue.setProperty(QLatin1String("baseDir"), basedir);
-    scriptValue.setProperty(QLatin1String("fileTags"),
-            engine()->toScriptValue(artifact->fileTags.toStringList()));
-    attachPointerTo(scriptValue, artifact);
-
-    scope().setProperty(QLatin1String("input"), scriptValue);
-    Q_ASSERT_X(scriptValue.strictlyEquals(engine()->evaluate(QLatin1String("input"))),
-               "BG", "The input object is not in current scope.");
 }
 
 ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const

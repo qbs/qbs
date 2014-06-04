@@ -37,6 +37,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/persistence.h>
+#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
 #include <QDir>
@@ -94,6 +95,7 @@ static void setArtifactProperty(QScriptValue &obj, const QString &name,
 QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artifact *artifact, const QString &defaultModuleName)
 {
     QScriptValue obj = scriptEngine->newObject();
+    attachPointerTo(obj, artifact);
     ModuleProperties::init(obj, artifact);
     obj.setProperty(QLatin1String("fileName"), artifact->fileName());
     obj.setProperty(QLatin1String("filePath"), artifact->filePath());
