@@ -98,16 +98,15 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     QScriptEngine *const scriptEngine = targetScriptValue.engine();
     QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("inputs"), scriptValue);
+    QScriptValue inputScriptValue;
     if (inputs.count() == 1) {
         Artifact *input = *inputs.begin();
         const FileTags &fileTags = input->fileTags;
         QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue inputsForFileTag = scriptValue.property(fileTags.begin()->toString());
-        QScriptValue inputScriptValue = inputsForFileTag.property(0);
-        targetScriptValue.setProperty(QLatin1String("input"), inputScriptValue);
-    } else {
-        targetScriptValue.setProperty(QLatin1String("input"), scriptEngine->undefinedValue());
+        inputScriptValue = inputsForFileTag.property(0);
     }
+    targetScriptValue.setProperty(QLatin1String("input"), inputScriptValue);
 }
 
 void Transformer::setupInputs(QScriptValue targetScriptValue)
@@ -120,16 +119,15 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     const QString &defaultModuleName = rule->module->name;
     QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
     targetScriptValue.setProperty(QLatin1String("outputs"), scriptValue);
+    QScriptValue outputScriptValue;
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
         const FileTags &fileTags = output->fileTags;
         QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue outputsForFileTag = scriptValue.property(fileTags.begin()->toString());
-        QScriptValue outputScriptValue = outputsForFileTag.property(0);
-        targetScriptValue.setProperty(QLatin1String("output"), outputScriptValue);
-    } else {
-        targetScriptValue.setProperty(QLatin1String("output"), scriptEngine->undefinedValue());
+        outputScriptValue = outputsForFileTag.property(0);
     }
+    targetScriptValue.setProperty(QLatin1String("output"), outputScriptValue);
 }
 
 static AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
