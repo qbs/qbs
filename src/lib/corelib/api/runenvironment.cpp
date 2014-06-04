@@ -198,4 +198,16 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
     return process.exitCode();
 }
 
+const QProcessEnvironment RunEnvironment::runEnvironment() const
+{
+    d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
+    return d->resolvedProduct->runEnvironment;
+}
+
+const QProcessEnvironment RunEnvironment::buildEnvironment() const
+{
+    d->resolvedProduct->setupBuildEnvironment(&d->engine, d->environment);
+    return d->resolvedProduct->buildEnvironment;
+}
+
 } // namespace qbs

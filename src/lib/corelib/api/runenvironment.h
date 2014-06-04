@@ -57,6 +57,9 @@ public:
     int runShell();
     int runTarget(const QString &targetBin, const QStringList &arguments);
 
+    const QProcessEnvironment runEnvironment() const;
+    const QProcessEnvironment buildEnvironment() const;
+
 private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
                    const QProcessEnvironment &environment, Settings *settings,
