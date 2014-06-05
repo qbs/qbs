@@ -56,12 +56,8 @@ Module {
         return defines;
     }
     cpp.includePaths: {
-        var paths = [mkspecPath];
-        if (frameworkBuild)
-            paths.push(libPath + '/QtCore' + libInfix + '.framework/Versions/' + versionMajor + '/Headers');
-        paths.push(incPath + '/QtCore');
-        paths.push(incPath);
-        paths.push(generatedFilesDir);
+        var paths = ### includes;
+        paths.push(mkspecPath, generatedFilesDir);
         return paths;
     }
     cpp.libraryPaths: {

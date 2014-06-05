@@ -5,6 +5,6 @@ QtModule {
     qtModuleName: ### name
     Depends { name: "Qt"; submodules: ### dependencies }
     hasLibrary: ### has library
-    cpp.includePaths: base.concat(### includes)
+    cpp.includePaths: ### includes
     ### special properties
 }

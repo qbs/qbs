@@ -22,17 +22,6 @@ Module {
 
     Properties {
         condition: qtModuleName != undefined
-
-        cpp.includePaths: {
-            var modulePath = FileInfo.joinPaths(incPath, includeDirName);
-            var paths = [incPath, modulePath];
-            if (Qt.core.versionMajor >= 5)
-                paths.unshift(FileInfo.joinPaths(modulePath, qtVersion, includeDirName));
-            if (Qt.core.frameworkBuild)
-                paths.unshift(libPath + '/' + includeDirName + qtLibInfix + '.framework/Versions/' + Qt.core.versionMajor + '/Headers');
-            return paths;
-        }
-
         cpp.defines: qtModuleName.contains("private")
                      ? [] : [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
     }

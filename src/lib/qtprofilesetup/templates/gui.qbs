@@ -32,6 +32,8 @@ QtModule {
         }
     }
 
+    cpp.includePaths: ### includes
+
     Properties {
         condition: Qt.core.staticBuild && qbs.targetOS.contains("ios")
         cpp.frameworks: base.concat(["UIKit", "QuartzCore", "CoreText", "CoreGraphics",

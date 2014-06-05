@@ -57,7 +57,8 @@ struct QtModuleInfo
     QtModuleInfo(const QString &name, const QString &qbsName,
                  const QStringList &deps = QStringList())
         : name(name), qbsName(qbsName), dependencies(deps),
-          hasLibrary(!qbsName.endsWith(QLatin1String("-private"))),
+          isPrivate(qbsName.endsWith(QLatin1String("-private"))),
+          hasLibrary(!isPrivate),
           isStaticLibrary(false)
     {
         const QString coreModule = QLatin1String("core");
@@ -66,14 +67,16 @@ struct QtModuleInfo
     }
 
     QtModuleInfo()
-        : hasLibrary(true), isStaticLibrary(false)
+        : isPrivate(false), hasLibrary(true), isStaticLibrary(false)
     {}
 
     QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
     QString qbsName; // Lower-case version without "qt" prefix.
+    QString version;
     QStringList dependencies; // qbs names.
     QStringList includePaths;
+    bool isPrivate;
     bool hasLibrary;
     bool isStaticLibrary;
 };
@@ -137,6 +140,72 @@ static QString pathToJSLiteral(const QString &path)
     return toJSLiteral(QDir::fromNativeSeparators(path));
 }
 
+static void replaceSpecialValues(const QString &filePath, const Profile &profile,
+        const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
+{
+    QFile moduleFile(filePath);
+    if (!moduleFile.open(QIODevice::ReadWrite)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot adapt "
+                "module file '%2' (%3).")
+                .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
+    }
+    QByteArray content = moduleFile.readAll();
+    content.replace("### name", utf8JSLiteral(qtModuleName(module)));
+    content.replace("### has library", utf8JSLiteral(module.hasLibrary));
+    content.replace("### dependencies", utf8JSLiteral(module.dependencies));
+    content.replace("### includes", utf8JSLiteral(module.includePaths));
+    QByteArray propertiesString;
+    if (module.qbsName == QLatin1String("declarative")
+            || module.qbsName == QLatin1String("quick")) {
+        const QByteArray debugMacro = module.qbsName == QLatin1String("declarative")
+                    || qtEnvironment.qtMajorVersion < 5
+                ? "QT_DECLARATIVE_DEBUG" : "QT_QML_DEBUG";
+
+        const QString indent = QLatin1String("    ");
+        QTextStream s(&propertiesString);
+        s << "property bool qmlDebugging: false" << endl
+          << indent << "cpp.defines: "
+                << "qmlDebugging ? base.concat('" + debugMacro + "') : base" << endl;
+
+        s << indent << "property string qmlPath";
+        if (qtEnvironment.qmlPath.isEmpty())
+            s << endl;
+        else
+            s << ": " << pathToJSLiteral(qtEnvironment.qmlPath) << endl;
+
+        s << indent << "property string qmlImportsPath: "
+                << pathToJSLiteral(qtEnvironment.qmlImportPath);
+    }
+    if (!module.modulePrefix.isEmpty()) {
+        if (!propertiesString.isEmpty())
+            propertiesString += "\n    ";
+        propertiesString += "qtModulePrefix: " + utf8JSLiteral(module.modulePrefix);
+    }
+    if (module.isStaticLibrary) {
+        if (!propertiesString.isEmpty())
+            propertiesString += "\n    ";
+        propertiesString += "isStaticLibrary: true";
+    }
+    content.replace("### special properties", propertiesString);
+    moduleFile.resize(0);
+    moduleFile.write(content);
+}
+
+static QString frameworkHeadersPath(const QtEnvironment &qtEnvironment, const QtModuleInfo &module)
+{
+    return qtEnvironment.libraryPath + QLatin1Char('/') + module.name
+            + QLatin1String(".framework/Headers");
+}
+
+static QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment,
+        const QtModuleInfo &module)
+{
+    if (qtEnvironment.frameworkBuild && !module.isStaticLibrary)
+        return QStringList() << frameworkHeadersPath(qtEnvironment, module);
+    else
+        return QStringList() << qtEnvironment.includePath + QLatin1Char('/') + module.name;
+}
+
 static void createModules(Profile &profile, Settings *settings,
                                const QtEnvironment &qtEnvironment)
 {
@@ -193,7 +262,6 @@ static void createModules(Profile &profile, Settings *settings,
                 << QtModuleInfo(QLatin1String("QtDeclarative"),
                                 QLatin1String("declarative-private"),
                                 QStringList() << QLatin1String("declarative"))
-                << QtModuleInfo(QLatin1String("Phonon"), QLatin1String("phonon"))
                 << QtModuleInfo(QLatin1String("QtDesigner"), QLatin1String("designer"),
                                 QStringList() << QLatin1String("gui") << QLatin1String("xml"))
                 << QtModuleInfo(QLatin1String("QtDesigner"), QLatin1String("designer-private"),
@@ -215,6 +283,7 @@ static void createModules(Profile &profile, Settings *settings,
         QtModuleInfo axcontainer(QLatin1String("QAxContainer"), QLatin1String("axcontainer"));
         axcontainer.modulePrefix = QLatin1String("Q");
         axcontainer.isStaticLibrary = true;
+        axcontainer.includePaths << qtEnvironment.includePath + QLatin1String("/ActiveQt");
         modules << axcontainer;
 
         QtModuleInfo axserver = axcontainer;
@@ -227,6 +296,18 @@ static void createModules(Profile &profile, Settings *settings,
                 QStringList() << QLatin1String("gui-private") << QLatin1String("designer-private"));
         designerComponentsPrivate.hasLibrary = true;
         modules << designerComponentsPrivate;
+
+        QtModuleInfo phonon(QLatin1String("Phonon"), QLatin1String("phonon"));
+        phonon.includePaths = qt4ModuleIncludePaths(qtEnvironment, phonon);
+        modules << phonon;
+
+        // Set up include paths that haven't been set up before this point.
+        for (QList<QtModuleInfo>::iterator it = modules.begin(); it != modules.end(); ++it) {
+            QtModuleInfo &module = *it;
+            if (!module.includePaths.isEmpty())
+                continue;
+            module.includePaths = qt4ModuleIncludePaths(qtEnvironment, module);
+        }
 
         // These are for the convenience of project file authors. It allows them
         // to add a dependency to e.g. "Qt.widgets" without a version check.
@@ -289,6 +370,8 @@ static void createModules(Profile &profile, Settings *settings,
                             moduleInfo.hasLibrary = false;
                         else if (elem == "staticlib")
                             moduleInfo.isStaticLibrary = true;
+                        else if (elem == "internal_module")
+                            moduleInfo.isPrivate = true;
                     }
                 } else if (key.endsWith(".includes")) {
                     moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
@@ -297,8 +380,25 @@ static void createModules(Profile &profile, Settings *settings,
                                     QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
                                     qtEnvironment.includePath);
                     }
+                } else if (key.endsWith(".VERSION")) {
+                    moduleInfo.version = QString::fromLocal8Bit(value);
                 }
             }
+
+            // Fix include paths for OS X frameworks. The qt_lib_XXX.pri files contain wrong values.
+            if (qtEnvironment.frameworkBuild && !moduleInfo.isStaticLibrary) {
+                moduleInfo.includePaths.clear();
+                QString baseIncDir = frameworkHeadersPath(qtEnvironment, moduleInfo);
+                if (moduleInfo.isPrivate) {
+                    baseIncDir += QLatin1Char('/') + moduleInfo.version;
+                    moduleInfo.includePaths
+                            << baseIncDir
+                            << baseIncDir + QLatin1Char('/') + moduleInfo.name;
+                } else {
+                    moduleInfo.includePaths << baseIncDir;
+                }
+            }
+
             modules << moduleInfo;
             if (moduleInfo.qbsName == QLatin1String("testlib"))
                 addTestModule(modules);
@@ -319,62 +419,20 @@ static void createModules(Profile &profile, Settings *settings,
     copyTemplateFile(QLatin1String("qtfunctions.js"), qbsQtModuleBaseDir, profile.name());
     foreach (const QtModuleInfo &module, modules) {
         const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
+        QString moduleTemplateFileName;
         if (module.qbsName == QLatin1String("core")) {
-            copyTemplateFile(QLatin1String("core.qbs"), qbsQtModuleDir, profile.name());
+            moduleTemplateFileName = QLatin1String("core.qbs");
             copyTemplateFile(QLatin1String("moc.js"), qbsQtModuleDir, profile.name());
         } else if (module.qbsName == QLatin1String("gui")) {
-            copyTemplateFile(QLatin1String("gui.qbs"), qbsQtModuleDir, profile.name());
+            moduleTemplateFileName = QLatin1String("gui.qbs");
         } else if (module.qbsName == QLatin1String("phonon")) {
-            copyTemplateFile(QLatin1String("phonon.qbs"), qbsQtModuleDir, profile.name());
+            moduleTemplateFileName = QLatin1String("phonon.qbs");
         } else {
-            copyTemplateFile(QLatin1String("module.qbs"), qbsQtModuleDir, profile.name());
-            QFile moduleFile(qbsQtModuleDir + QLatin1String("/module.qbs"));
-            if (!moduleFile.open(QIODevice::ReadWrite)) {
-                throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot adapt "
-                        "module file '%2' (%3).")
-                        .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
-            }
-            QByteArray content = moduleFile.readAll();
-            content.replace("### name", utf8JSLiteral(qtModuleName(module)));
-            content.replace("### has library", utf8JSLiteral(module.hasLibrary));
-            content.replace("### dependencies", utf8JSLiteral(module.dependencies));
-            content.replace("### includes", utf8JSLiteral(module.includePaths));
-            QByteArray propertiesString;
-            if (module.qbsName == QLatin1String("declarative")
-                    || module.qbsName == QLatin1String("quick")) {
-                const QByteArray debugMacro = module.qbsName == QLatin1String("declarative")
-                            || qtEnvironment.qtMajorVersion < 5
-                        ? "QT_DECLARATIVE_DEBUG" : "QT_QML_DEBUG";
-
-                const QString indent = QLatin1String("    ");
-                QTextStream s(&propertiesString);
-                s << "property bool qmlDebugging: false" << endl
-                  << indent << "cpp.defines: "
-                        << "qmlDebugging ? base.concat('" + debugMacro + "') : base" << endl;
-
-                s << indent << "property string qmlPath";
-                if (qtEnvironment.qmlPath.isEmpty())
-                    s << endl;
-                else
-                    s << ": " << pathToJSLiteral(qtEnvironment.qmlPath) << endl;
-
-                s << indent << "property string qmlImportsPath: "
-                        << pathToJSLiteral(qtEnvironment.qmlImportPath);
-            }
-            if (!module.modulePrefix.isEmpty()) {
-                if (!propertiesString.isEmpty())
-                    propertiesString += "\n    ";
-                propertiesString += "qtModulePrefix: " + utf8JSLiteral(module.modulePrefix);
-            }
-            if (module.isStaticLibrary) {
-                if (!propertiesString.isEmpty())
-                    propertiesString += "\n    ";
-                propertiesString += "isStaticLibrary: true";
-            }
-            content.replace("### special properties", propertiesString);
-            moduleFile.resize(0);
-            moduleFile.write(content);
+            moduleTemplateFileName = QLatin1String("module.qbs");
         }
+        copyTemplateFile(moduleTemplateFileName, qbsQtModuleDir, profile.name());
+        replaceSpecialValues(qbsQtModuleDir + QLatin1Char('/') + moduleTemplateFileName,
+                             profile, module, qtEnvironment);
     }
     profile.setValue(QLatin1String("preferences.qbsSearchPaths"), profileBaseDir);
 }

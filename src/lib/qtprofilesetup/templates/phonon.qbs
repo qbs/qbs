@@ -5,4 +5,5 @@ QtModule {
     qtModuleName: "phonon"
     Depends { name: "Qt"; submodules: ['core'] }
     qtModulePrefix: ''
+    cpp.includePaths: ### includes
 }
