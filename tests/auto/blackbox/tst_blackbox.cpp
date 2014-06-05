@@ -1521,6 +1521,28 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(!QFile::exists(sourceFile2));
 }
 
+void TestBlackbox::erroneousFiles_data()
+{
+    QTest::addColumn<QString>("errorMessage");
+    QTest::newRow("nonexistentWorkingDir")
+            << "The working directory '/does/not/exist' for process 'ls' is invalid.";
+}
+
+void TestBlackbox::erroneousFiles()
+{
+    QFETCH(QString, errorMessage);
+    QDir::setCurrent(testDataDir + "/erroneous/" + QTest::currentDataTag());
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QString err = QString::fromLocal8Bit(m_qbsStderr);
+    if (!err.contains(errorMessage)) {
+        qDebug() << "Output:  " << err;
+        qDebug() << "Expected: " << errorMessage;
+        QFAIL("Unexpected error message.");
+    }
+}
+
 void TestBlackbox::explicitlyDependsOn()
 {
     QDir::setCurrent(testDataDir + "/explicitlyDependsOn");

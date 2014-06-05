@@ -116,6 +116,16 @@ void ProcessCommandExecutor::doStart()
         return;
     }
 
+    if (!cmd->workingDir().isEmpty()) {
+        FileInfo fi(cmd->workingDir());
+        if (!fi.exists() || !fi.isDir()) {
+            emit finished(ErrorInfo(Tr::tr("The working directory '%1' for process '%2' "
+                                           "is invalid.").arg(cmd->workingDir(), program),
+                                    cmd->codeLocation()));
+            return;
+        }
+    }
+
     // Automatically use response files, if the command line gets to long.
     if (!cmd->responseFileUsagePrefix().isEmpty()) {
         const int commandLineLength = program.length() + argString.length();

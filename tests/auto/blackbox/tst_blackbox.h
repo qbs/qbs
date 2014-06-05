@@ -113,6 +113,8 @@ private slots:
     void duplicateProductNames_data();
     void dynamicLibs();
     void dynamicRuleOutputs();
+    void erroneousFiles_data();
+    void erroneousFiles();
     void explicitlyDependsOn();
     void fileDependencies();
     void jsExtensionsFile();
