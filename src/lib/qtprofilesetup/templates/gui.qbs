@@ -32,9 +32,6 @@ QtModule {
         }
     }
 
-    cpp.includePaths: Qt.core.qtConfig.contains("angle")
-                      ? base.concat([FileInfo.joinPaths(incPath, "QtANGLE")]) : base
-
     Properties {
         condition: Qt.core.staticBuild && qbs.targetOS.contains("ios")
         cpp.frameworks: base.concat(["UIKit", "QuartzCore", "CoreText", "CoreGraphics",
