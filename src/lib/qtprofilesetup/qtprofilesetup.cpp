@@ -33,6 +33,7 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/profile.h>
+#include <tools/scripttools.h>
 #include <tools/settings.h>
 
 #include <QDir>
@@ -44,6 +45,12 @@
 #include <QTextStream>
 
 namespace qbs {
+
+template <class T>
+QByteArray utf8JSLiteral(T t)
+{
+    return toJSLiteral(t).toUtf8();
+}
 
 struct QtModuleInfo
 {
@@ -105,15 +112,6 @@ static void copyTemplateFile(const QString &fileName, const QString &targetDirec
     }
 }
 
-static void replaceListPlaceholder(QByteArray &content, const QByteArray &placeHolder,
-                                   const QStringList &list)
-{
-    QByteArray listString;
-    foreach (const QString &elem, list)
-        listString += "'" + elem.toUtf8() + "', ";
-    content.replace(placeHolder, listString);
-}
-
 // We erroneously called the "testlib" module "test" for quite a while. Let's not punish users
 // for that.
 static void addTestModule(QList<QtModuleInfo> &modules)
@@ -134,11 +132,9 @@ static void addDesignerComponentsModule(QList<QtModuleInfo> &modules)
     modules << module;
 }
 
-static QString quotedPath(const QString &str)
+static QString pathToJSLiteral(const QString &path)
 {
-    return QLatin1Char('"')
-            + QDir::fromNativeSeparators(str).replace(QLatin1Char('"'), QLatin1String("\\\""))
-            + QLatin1Char('"');
+    return toJSLiteral(QDir::fromNativeSeparators(path));
 }
 
 static void createModules(Profile &profile, Settings *settings,
@@ -339,10 +335,10 @@ static void createModules(Profile &profile, Settings *settings,
                         .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
             }
             QByteArray content = moduleFile.readAll();
-            content.replace("### name", '"' + qtModuleName(module).toUtf8() + '"');
-            content.replace("### has library", module.hasLibrary ? "true" : "false");
-            replaceListPlaceholder(content, "### dependencies", module.dependencies);
-            replaceListPlaceholder(content, "### includes", module.includePaths);
+            content.replace("### name", utf8JSLiteral(qtModuleName(module)));
+            content.replace("### has library", utf8JSLiteral(module.hasLibrary));
+            content.replace("### dependencies", utf8JSLiteral(module.dependencies));
+            content.replace("### includes", utf8JSLiteral(module.includePaths));
             QByteArray propertiesString;
             if (module.qbsName == QLatin1String("declarative")
                     || module.qbsName == QLatin1String("quick")) {
@@ -360,15 +356,15 @@ static void createModules(Profile &profile, Settings *settings,
                 if (qtEnvironment.qmlPath.isEmpty())
                     s << endl;
                 else
-                    s << ": " << quotedPath(qtEnvironment.qmlPath) << endl;
+                    s << ": " << pathToJSLiteral(qtEnvironment.qmlPath) << endl;
 
                 s << indent << "property string qmlImportsPath: "
-                        << quotedPath(qtEnvironment.qmlImportPath);
+                        << pathToJSLiteral(qtEnvironment.qmlImportPath);
             }
             if (!module.modulePrefix.isEmpty()) {
                 if (!propertiesString.isEmpty())
                     propertiesString += "\n    ";
-                propertiesString += "qtModulePrefix: \"" + module.modulePrefix.toUtf8() + '"';
+                propertiesString += "qtModulePrefix: " + utf8JSLiteral(module.modulePrefix);
             }
             if (module.isStaticLibrary) {
                 if (!propertiesString.isEmpty())
