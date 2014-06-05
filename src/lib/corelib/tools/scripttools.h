@@ -35,7 +35,6 @@
 #include <QScriptEngine>
 #include <QScriptProgram>
 #include <QScriptValue>
-#include <QSet>
 #include <QStringList>
 #include <QVariantMap>
 
