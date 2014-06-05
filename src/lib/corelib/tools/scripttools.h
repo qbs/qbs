@@ -46,6 +46,12 @@ QDataStream &operator>> (QDataStream &s, QScriptProgram &script);
 QT_END_NAMESPACE
 
 namespace qbs {
+
+QBS_EXPORT QString toJSLiteral(const bool b);
+QBS_EXPORT QString toJSLiteral(const QString &str);
+QBS_EXPORT QString toJSLiteral(const QStringList &strs);
+QBS_EXPORT QString toJSLiteral(const QVariant &val);
+
 namespace Internal {
 
 template <typename C>
@@ -60,11 +66,6 @@ QScriptValue toScriptValue(QScriptEngine *scriptEngine, const C &container)
 
 void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value);
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
-
-QString toJSLiteral(const bool b);
-QString toJSLiteral(const QString &str);
-QString toJSLiteral(const QStringList &strs);
-QString toJSLiteral(const QVariant &val);
 
 /**
  * @brief push/pop a QScriptEngine's context the RAII way.

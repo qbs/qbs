@@ -56,27 +56,6 @@ QDataStream &operator>> (QDataStream &s, QScriptProgram &script)
 QT_END_NAMESPACE
 
 namespace qbs {
-namespace Internal {
-
-void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value)
-{
-    if (name.length() == 1) {
-        cfg.insert(name.first(), value);
-    } else {
-        QVariant &subCfg = cfg[name.first()];
-        QVariantMap subCfgMap = subCfg.toMap();
-        setConfigProperty(subCfgMap, name.mid(1), value);
-        subCfg = subCfgMap;
-    }
-}
-
-QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
-{
-    if (name.length() == 1)
-        return cfg.value(name.first());
-    else
-        return getConfigProperty(cfg.value(name.first()).toMap(), name.mid(1));
-}
 
 QString toJSLiteral(const bool b)
 {
@@ -124,6 +103,28 @@ QString toJSLiteral(const QVariant &val)
     } else {
         return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
     }
+}
+
+namespace Internal {
+
+void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant &value)
+{
+    if (name.length() == 1) {
+        cfg.insert(name.first(), value);
+    } else {
+        QVariant &subCfg = cfg[name.first()];
+        QVariantMap subCfgMap = subCfg.toMap();
+        setConfigProperty(subCfgMap, name.mid(1), value);
+        subCfg = subCfgMap;
+    }
+}
+
+QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
+{
+    if (name.length() == 1)
+        return cfg.value(name.first());
+    else
+        return getConfigProperty(cfg.value(name.first()).toMap(), name.mid(1));
 }
 
 } // namespace Internal

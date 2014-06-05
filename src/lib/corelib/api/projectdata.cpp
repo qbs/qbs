@@ -656,7 +656,7 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));
         } else {
             stringRep += QString::fromLocal8Bit("%1%2: %3\n")
-                    .arg(prefix, key, Internal::toJSLiteral(val));
+                    .arg(prefix, key, toJSLiteral(val));
         }
     }
     return stringRep;

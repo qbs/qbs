@@ -67,7 +67,7 @@ void PropertyMapInternal::setValue(const QVariantMap &map)
     m_value = map;
 }
 
-static QString toJSLiteral(const QVariantMap &vm, int level = 0)
+static QString toJSLiteral_impl(const QVariantMap &vm, int level = 0)
 {
     QString indent;
     for (int i = 0; i < level; ++i)
@@ -76,10 +76,10 @@ static QString toJSLiteral(const QVariantMap &vm, int level = 0)
     for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
         if (it.value().type() == QVariant::Map) {
             str += indent + it.key() + QLatin1String(": {\n");
-            str += toJSLiteral(it.value().toMap(), level + 1);
+            str += toJSLiteral_impl(it.value().toMap(), level + 1);
             str += indent + QLatin1String("}\n");
         } else {
-            str += indent + it.key() + QLatin1String(": ") + toJSLiteral(it.value())
+            str += indent + it.key() + QLatin1String(": ") + qbs::toJSLiteral(it.value())
                     + QLatin1Char('\n');
         }
     }
@@ -88,7 +88,7 @@ static QString toJSLiteral(const QVariantMap &vm, int level = 0)
 
 QString PropertyMapInternal::toJSLiteral() const
 {
-    return qbs::Internal::toJSLiteral(m_value);
+    return toJSLiteral_impl(m_value);
 }
 
 void PropertyMapInternal::load(PersistentPool &pool)
