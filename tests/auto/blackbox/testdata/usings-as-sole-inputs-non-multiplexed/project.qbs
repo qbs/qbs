@@ -45,7 +45,7 @@ Project {
         Rule {
             usings: "custom"
             Artifact {
-                fileName: FileInfo.baseName(input.filePath) + ".plus"
+                fileName: FileInfo.fileName(input.filePath) + ".plus"
                 fileTags: "custom-plus"
             }
             prepare: {
