@@ -163,8 +163,8 @@ static Profile createGccProfile(const QString &_compilerFilePath, Settings *sett
         throw qbs::ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
                 .arg(machineName));
     } else if (compilerTriplet.count() < 2) {
-        throw qbs::ErrorInfo(Tr::tr("Architecture '%1' of compiler at '%1' not understood.")
-                             .arg(compilerFilePath, machineName));
+        throw qbs::ErrorInfo(Tr::tr("Architecture of compiler for platform '%1' at '%2' not understood.")
+                             .arg(machineName, compilerFilePath));
     }
 
     Profile profile(!profileName.isEmpty() ? profileName : machineName, settings);

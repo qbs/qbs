@@ -58,7 +58,9 @@ struct QtModuleInfo
             dependencies.prepend(coreModule);
     }
 
-    QtModuleInfo() : hasLibrary(true) {}
+    QtModuleInfo()
+        : hasLibrary(true), isStaticLibrary(false)
+    {}
 
     QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
@@ -267,7 +269,7 @@ static void createModules(Profile &profile, Settings *settings,
             QFile priFile(dit.filePath());
             if (!priFile.open(QIODevice::ReadOnly)) {
                 throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
-                        "file '%1' (%2).").arg(priFile.fileName(), priFile.errorString()));
+                        "file '%2' (%3).").arg(profile.name(), priFile.fileName(), priFile.errorString()));
             }
             const QByteArray priFileContents = priFile.readAll();
             foreach (const QByteArray &line, priFileContents.split('\n')) {
@@ -286,7 +288,12 @@ static void createModules(Profile &profile, Settings *settings,
                                                            QLatin1String("-private"));
                     }
                 } else if (key.endsWith(".module_config")) {
-                    moduleInfo.hasLibrary = !value.contains("no_link");
+                    foreach (const QByteArray &elem, value.split(' ')) {
+                        if (elem == "no_link")
+                            moduleInfo.hasLibrary = false;
+                        else if (elem == "staticlib")
+                            moduleInfo.isStaticLibrary = true;
+                    }
                 } else if (key.endsWith(".includes")) {
                     moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
                     for (int i = 0; i < moduleInfo.includePaths.count(); ++i) {

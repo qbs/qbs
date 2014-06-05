@@ -34,10 +34,17 @@ Module {
             return paths;
         }
 
-        cpp.dynamicLibraries: Qt.core.frameworkBuild || !hasLibrary
-                              ? undefined : [internalLibraryName]
-        cpp.frameworks: Qt.core.frameworkBuild && hasLibrary ? [internalLibraryName] : undefined
         cpp.defines: qtModuleName.contains("private")
                      ? [] : [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
+    }
+
+    Properties {
+        condition: qtModuleName != undefined && hasLibrary
+        cpp.staticLibraries: isStaticLibrary
+                             ? [internalLibraryName] : undefined
+        cpp.dynamicLibraries: !isStaticLibrary && !Qt.core.frameworkBuild
+                              ? [internalLibraryName] : undefined
+        cpp.frameworks: !isStaticLibrary && Qt.core.frameworkBuild
+                        ? [internalLibraryName] : undefined
     }
 }
