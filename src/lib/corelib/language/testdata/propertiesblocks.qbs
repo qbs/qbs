@@ -86,19 +86,23 @@ Project {
     Product {
         name: "condition_refers_to_product_property"
         property string narf: true
+        property string someString: "SOMETHING"
         Depends { name: "dummy" }
         Properties {
             condition: narf
             dummy.defines: ["OVERWRITTEN"]
+            someString: "OVERWRITTEN"
         }
     }
     property string zort: true
     Product {
         name: "condition_refers_to_project_property"
+        property string someString: "SOMETHING"
         Depends { name: "dummy" }
         Properties {
             condition: project.zort
             dummy.defines: ["OVERWRITTEN"]
+            someString: "OVERWRITTEN"
         }
     }
     ProductBase {
