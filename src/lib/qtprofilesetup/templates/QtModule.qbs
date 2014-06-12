@@ -21,12 +21,6 @@ Module {
     property bool isStaticLibrary: false
 
     Properties {
-        condition: qtModuleName != undefined
-        cpp.defines: qtModuleName.contains("private")
-                     ? [] : [ "QT_" + qtModuleName.toUpperCase() + "_LIB" ]
-    }
-
-    Properties {
         condition: qtModuleName != undefined && hasLibrary
         cpp.staticLibraries: isStaticLibrary
                              ? [internalLibraryName] : undefined

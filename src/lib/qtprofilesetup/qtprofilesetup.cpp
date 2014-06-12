@@ -76,6 +76,7 @@ struct QtModuleInfo
     QString version;
     QStringList dependencies; // qbs names.
     QStringList includePaths;
+    QStringList compilerDefines;
     bool isPrivate;
     bool hasLibrary;
     bool isStaticLibrary;
@@ -155,6 +156,7 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
     content.replace("@dependencies@", utf8JSLiteral(module.dependencies));
     content.replace("@includes@", utf8JSLiteral(module.includePaths));
     QByteArray propertiesString;
+    QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
     if (module.qbsName == QLatin1String("declarative")
             || module.qbsName == QLatin1String("quick")) {
         const QByteArray debugMacro = module.qbsName == QLatin1String("declarative")
@@ -163,10 +165,7 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
 
         const QString indent = QLatin1String("    ");
         QTextStream s(&propertiesString);
-        s << "property bool qmlDebugging: false" << endl
-          << indent << "cpp.defines: "
-                << "qmlDebugging ? base.concat('" + debugMacro + "') : base" << endl;
-
+        s << "property bool qmlDebugging: false" << endl;
         s << indent << "property string qmlPath";
         if (qtEnvironment.qmlPath.isEmpty())
             s << endl;
@@ -175,7 +174,16 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
 
         s << indent << "property string qmlImportsPath: "
                 << pathToJSLiteral(qtEnvironment.qmlImportPath);
+
+        const QByteArray baIndent(4, ' ');
+        compilerDefines = "{\n"
+                + baIndent + baIndent + "var result = " + compilerDefines + ";\n"
+                + baIndent + baIndent + "if (qmlDebugging)\n"
+                + baIndent + baIndent + baIndent + "result.push(\"" + debugMacro + "\");\n"
+                + baIndent + baIndent + "return result;\n"
+                + baIndent + "}";
     }
+    content.replace("@defines@", compilerDefines);
     if (!module.modulePrefix.isEmpty()) {
         if (!propertiesString.isEmpty())
             propertiesString += "\n    ";
@@ -293,6 +301,7 @@ static void createModules(Profile &profile, Settings *settings,
         QtModuleInfo axserver = axcontainer;
         axserver.name = QLatin1String("QAxServer");
         axserver.qbsName = QLatin1String("axserver");
+        axserver.compilerDefines = QStringList() << QLatin1String("QAXSERVER");
         modules << axserver;
 
         QtModuleInfo designerComponentsPrivate(QLatin1String("QtDesignerComponents"),
@@ -311,6 +320,15 @@ static void createModules(Profile &profile, Settings *settings,
             if (!module.includePaths.isEmpty())
                 continue;
             module.includePaths = qt4ModuleIncludePaths(qtEnvironment, module);
+        }
+
+        // Set up compiler defines haven't been set up before this point.
+        for (QList<QtModuleInfo>::iterator it = modules.begin(); it != modules.end(); ++it) {
+            QtModuleInfo &module = *it;
+            if (!module.compilerDefines.isEmpty())
+                continue;
+            module.compilerDefines
+                    << QLatin1String("QT_") + module.name.toUpper() + QLatin1String("_LIB");
         }
 
         // These are for the convenience of project file authors. It allows them
@@ -384,6 +402,9 @@ static void createModules(Profile &profile, Settings *settings,
                                     QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
                                     qtEnvironment.includePath);
                     }
+                } else if (key.endsWith(".DEFINES")) {
+                    moduleInfo.compilerDefines = QString::fromLocal8Bit(value)
+                            .split(QLatin1Char(' '), QString::SkipEmptyParts);
                 } else if (key.endsWith(".VERSION")) {
                     moduleInfo.version = QString::fromLocal8Bit(value);
                 }

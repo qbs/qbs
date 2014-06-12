@@ -5,6 +5,7 @@ QtModule {
     qtModuleName: @name@
     Depends { name: "Qt"; submodules: @dependencies@}
     hasLibrary: @has_library@
+    cpp.defines: @defines@
     cpp.includePaths: @includes@
     @special_properties@
 }

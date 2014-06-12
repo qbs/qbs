@@ -32,6 +32,7 @@ QtModule {
         }
     }
 
+    cpp.defines: @defines@
     cpp.includePaths: @includes@
 
     Properties {
