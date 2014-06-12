@@ -38,6 +38,7 @@
 #include <tools/profile.h>
 
 #include <QLocale>
+#include <QRegExp>
 #include <QTemporaryFile>
 #include <QScriptEngine>
 #include <QScriptValue>
@@ -1525,7 +1526,7 @@ void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("nonexistentWorkingDir")
-            << "The working directory '/does/not/exist' for process 'ls' is invalid.";
+            << "The working directory '/does/not/exist' for process '.*ls' is invalid.";
 }
 
 void TestBlackbox::erroneousFiles()
@@ -1536,7 +1537,7 @@ void TestBlackbox::erroneousFiles()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QString err = QString::fromLocal8Bit(m_qbsStderr);
-    if (!err.contains(errorMessage)) {
+    if (!err.contains(QRegExp(errorMessage))) {
         qDebug() << "Output:  " << err;
         qDebug() << "Expected: " << errorMessage;
         QFAIL("Unexpected error message.");
