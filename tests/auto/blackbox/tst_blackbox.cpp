@@ -97,6 +97,8 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
 
     m_qbsStderr = process.readAllStandardError();
     m_qbsStdout = process.readAllStandardOutput();
+    sanitizeOutput(&m_qbsStderr);
+    sanitizeOutput(&m_qbsStdout);
     if ((process.exitStatus() != QProcess::NormalExit
              || process.exitCode() != 0) && !params.expectFailure) {
         if (!m_qbsStderr.isEmpty())
@@ -170,6 +172,12 @@ QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
     } else {
         return ba;
     }
+}
+
+void TestBlackbox::sanitizeOutput(QByteArray *ba)
+{
+    if (HostOsInfo::isWindowsHost())
+        ba->replace('\r', "");
 }
 
 void TestBlackbox::initTestCase()
