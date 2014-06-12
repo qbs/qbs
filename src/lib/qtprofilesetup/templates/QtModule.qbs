@@ -12,8 +12,6 @@ Module {
     property path incPath: Qt.core.incPath
     property path libPath: Qt.core.libPath
     property string qtLibInfix: Qt.core.libInfix
-    property string repository: Qt.core.versionMajor === 5 ? 'qtbase' : undefined
-    property string includeDirName: qtModulePrefix + qtModuleName
     property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix,
                                                                       Qt.core, qbs, isStaticLibrary,
                                                                       qtModulePrefix)
