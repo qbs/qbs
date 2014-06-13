@@ -91,6 +91,7 @@ protected:
     void touch(const QString &fn);
     static void waitForNewTimestamp();
     static QByteArray unifiedLineEndings(const QByteArray &ba);
+    static void sanitizeOutput(QByteArray *ba);
 
 public slots:
     void initTestCase();

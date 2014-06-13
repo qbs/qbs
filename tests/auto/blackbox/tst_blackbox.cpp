@@ -38,6 +38,7 @@
 #include <tools/profile.h>
 
 #include <QLocale>
+#include <QRegExp>
 #include <QTemporaryFile>
 #include <QScriptEngine>
 #include <QScriptValue>
@@ -102,6 +103,8 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
 
     m_qbsStderr = process.readAllStandardError();
     m_qbsStdout = process.readAllStandardOutput();
+    sanitizeOutput(&m_qbsStderr);
+    sanitizeOutput(&m_qbsStdout);
     if ((process.exitStatus() != QProcess::NormalExit
              || process.exitCode() != 0) && !params.expectFailure) {
         if (!m_qbsStderr.isEmpty())
@@ -175,6 +178,12 @@ QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
     } else {
         return ba;
     }
+}
+
+void TestBlackbox::sanitizeOutput(QByteArray *ba)
+{
+    if (HostOsInfo::isWindowsHost())
+        ba->replace('\r', "");
 }
 
 void TestBlackbox::initTestCase()
@@ -1557,7 +1566,7 @@ void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("nonexistentWorkingDir")
-            << "The working directory '/does/not/exist' for process 'ls' is invalid.";
+            << "The working directory '/does/not/exist' for process '.*ls' is invalid.";
 }
 
 void TestBlackbox::erroneousFiles()
@@ -1568,7 +1577,7 @@ void TestBlackbox::erroneousFiles()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QString err = QString::fromLocal8Bit(m_qbsStderr);
-    if (!err.contains(errorMessage)) {
+    if (!err.contains(QRegExp(errorMessage))) {
         qDebug() << "Output:  " << err;
         qDebug() << "Expected: " << errorMessage;
         QFAIL("Unexpected error message.");

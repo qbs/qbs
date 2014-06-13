@@ -197,6 +197,7 @@ void BuiltinDeclarations::addModuleItem()
             << QLatin1String("Depends")
             << QLatin1String("FileTagger")
             << QLatin1String("Rule")
+            << QLatin1String("Probe")
             << QLatin1String("PropertyOptions")
             << QLatin1String("Transformer")
             << QLatin1String("Scanner"));
