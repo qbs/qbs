@@ -54,6 +54,12 @@ void ArtifactVisitor::visitProject(const ResolvedProjectConstPtr &project)
         visitProduct(product);
 }
 
+bool ArtifactVisitor::visit(RuleNode *ruleNode)
+{
+    Q_UNUSED(ruleNode);
+    return false;
+}
+
 bool ArtifactVisitor::visit(Artifact *artifact)
 {
     QBS_CHECK(artifact);
