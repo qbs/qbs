@@ -777,7 +777,7 @@ void TestBlackbox::track_qobject_change()
     const QString productFilePath = executableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
     QString moc_bla_objectFileName
-            = buildDir + "/i/.obj/i/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
+            = buildDir + "/i/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     QTest::qSleep(1000);
@@ -992,7 +992,7 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(regularFileExists(buildDir + "/someapp/.obj/someapp/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
+    QVERIFY(regularFileExists(buildDir + "/someapp/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
     QVERIFY(regularFileExists(productBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(productBuildDir("someapp") + "/main.foo"));
 
