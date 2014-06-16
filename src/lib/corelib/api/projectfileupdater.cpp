@@ -39,6 +39,7 @@
 #include <parser/qmljsengine_p.h>
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
+#include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 
 #include <QFile>
@@ -105,6 +106,45 @@ ProjectFileUpdater::ProjectFileUpdater(const QString &projectFile) : m_projectFi
 {
 }
 
+ProjectFileUpdater::LineEndingType ProjectFileUpdater::guessLineEndingType(const QByteArray &text)
+{
+    char before = 0;
+    int lfCount = 0;
+    int crlfCount = 0;
+    int i = text.indexOf('\n');
+    while (i != -1) {
+        if (i > 0)
+            before = text.at(i - 1);
+        if (before == '\r')
+            ++crlfCount;
+        else
+            ++lfCount;
+        i = text.indexOf('\n', i + 1);
+    }
+    if (lfCount == 0 && crlfCount == 0)
+        return UnknownLineEndings;
+    if (crlfCount == 0)
+        return UnixLineEndings;
+    if (lfCount == 0)
+        return WindowsLineEndings;
+    return MixedLineEndings;
+}
+
+void ProjectFileUpdater::convertToUnixLineEndings(QByteArray *text, LineEndingType oldLineEndings)
+{
+    if (oldLineEndings == UnixLineEndings)
+        return;
+    text->replace("\r\n", "\n");
+}
+
+void ProjectFileUpdater::convertFromUnixLineEndings(QByteArray *text, LineEndingType newLineEndings)
+{
+    if (newLineEndings == WindowsLineEndings
+            || (newLineEndings != UnixLineEndings && HostOsInfo::isWindowsHost())) {
+        text->replace('\n', "\r\n");
+    }
+}
+
 void ProjectFileUpdater::apply()
 {
     QFile file(m_projectFile);
@@ -112,7 +152,11 @@ void ProjectFileUpdater::apply()
         throw ErrorInfo(Tr::tr("File '%1' cannot be opened for reading: %2")
                         .arg(m_projectFile, file.errorString()));
     }
-    QString content = QString::fromLocal8Bit(file.readAll());
+    QByteArray rawContent = file.readAll();
+    const LineEndingType origLineEndingType = guessLineEndingType(rawContent);
+    convertToUnixLineEndings(&rawContent, origLineEndingType);
+    QString content = QString::fromLocal8Bit(rawContent);
+
     file.close();
     Engine engine;
     Lexer lexer(&engine);
@@ -136,7 +180,9 @@ void ProjectFileUpdater::apply()
                         .arg(m_projectFile, file.errorString()));
     }
     file.resize(0);
-    file.write(content.toLocal8Bit());
+    rawContent = content.toLocal8Bit();
+    convertFromUnixLineEndings(&rawContent, origLineEndingType);
+    file.write(rawContent);
 }
 
 

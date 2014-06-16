@@ -60,6 +60,18 @@ protected:
 private:
     virtual void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) = 0;
 
+    enum LineEndingType
+    {
+        UnknownLineEndings,
+        UnixLineEndings,
+        WindowsLineEndings,
+        MixedLineEndings
+    };
+
+    static LineEndingType guessLineEndingType(const QByteArray &text);
+    static void convertToUnixLineEndings(QByteArray *text, LineEndingType oldLineEndings);
+    static void convertFromUnixLineEndings(QByteArray *text, LineEndingType newLineEndings);
+
     const QString m_projectFile;
     CodeLocation m_itemPosition;
     int m_lineOffset;
