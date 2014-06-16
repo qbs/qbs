@@ -56,7 +56,7 @@ Module {
         return defines;
     }
     cpp.includePaths: {
-        var paths = ### includes;
+        var paths = @includes@;
         paths.push(mkspecPath, generatedFilesDir);
         return paths;
     }

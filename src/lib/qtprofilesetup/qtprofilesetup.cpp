@@ -150,10 +150,10 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
                 .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
     }
     QByteArray content = moduleFile.readAll();
-    content.replace("### name", utf8JSLiteral(qtModuleName(module)));
-    content.replace("### has library", utf8JSLiteral(module.hasLibrary));
-    content.replace("### dependencies", utf8JSLiteral(module.dependencies));
-    content.replace("### includes", utf8JSLiteral(module.includePaths));
+    content.replace("@name@", utf8JSLiteral(qtModuleName(module)));
+    content.replace("@has_library@", utf8JSLiteral(module.hasLibrary));
+    content.replace("@dependencies@", utf8JSLiteral(module.dependencies));
+    content.replace("@includes@", utf8JSLiteral(module.includePaths));
     QByteArray propertiesString;
     if (module.qbsName == QLatin1String("declarative")
             || module.qbsName == QLatin1String("quick")) {
@@ -186,7 +186,7 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
             propertiesString += "\n    ";
         propertiesString += "isStaticLibrary: true";
     }
-    content.replace("### special properties", propertiesString);
+    content.replace("@special_properties@", propertiesString);
     moduleFile.resize(0);
     moduleFile.write(content);
 }

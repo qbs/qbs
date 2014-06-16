@@ -32,7 +32,7 @@ QtModule {
         }
     }
 
-    cpp.includePaths: ### includes
+    cpp.includePaths: @includes@
 
     Properties {
         condition: Qt.core.staticBuild && qbs.targetOS.contains("ios")
