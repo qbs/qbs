@@ -24,6 +24,7 @@ Project {
 
     CppApplication {
         name: "appWithoutSources"
+        type: ["application"]
         cpp.entryPoint: "main"
 
         Depends { name: "a" }
