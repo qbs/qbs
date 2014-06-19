@@ -200,10 +200,14 @@ static QString frameworkHeadersPath(const QtEnvironment &qtEnvironment, const Qt
 static QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment,
         const QtModuleInfo &module)
 {
-    if (qtEnvironment.frameworkBuild && !module.isStaticLibrary)
-        return QStringList() << frameworkHeadersPath(qtEnvironment, module);
-    else
-        return QStringList() << qtEnvironment.includePath + QLatin1Char('/') + module.name;
+    QStringList paths;
+    if (qtEnvironment.frameworkBuild && !module.isStaticLibrary) {
+        paths << frameworkHeadersPath(qtEnvironment, module);
+    } else {
+        paths << qtEnvironment.includePath
+              << qtEnvironment.includePath + QLatin1Char('/') + module.name;
+    }
+    return paths;
 }
 
 static void createModules(Profile &profile, Settings *settings,
