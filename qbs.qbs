@@ -7,6 +7,8 @@ Project {
     property bool withExamples: true
     property string libDirName: "lib"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
+    property string relativePluginsPath: "../" + libDirName
+    property string relativeSearchPath: ".."
     property stringList libRPaths: {
         if (!project.enableRPath)
             return undefined;

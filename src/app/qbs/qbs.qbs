@@ -7,7 +7,8 @@ QbsApp {
     targetName: "qbs"
     cpp.defines: base.concat([
         'QBS_VERSION="' + Version.qbsVersion() + '"',
-        'QBS_LIBRARY_DIRNAME="' + project.libDirName + '"'
+        'QBS_RELATIVE_SEARCH_PATH="' + project.relativeSearchPath + '"',
+        'QBS_RELATIVE_PLUGINS_PATH="' + project.relativePluginsPath + '"'
     ])
     files: [
         "../shared/qbssettings.h",

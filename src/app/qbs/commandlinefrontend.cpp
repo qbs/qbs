@@ -118,8 +118,6 @@ void CommandLineFrontend::start()
 
         if (m_parser.showProgress())
             m_observer = new ConsoleProgressObserver;
-        const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
-                                                   + QLatin1String("/../"));
         SetupProjectParameters params;
         params.setProjectFilePath(m_parser.projectFilePath());
         params.setIgnoreDifferentProjectFilePath(m_parser.force());
@@ -139,9 +137,10 @@ void CommandLineFrontend::start()
             if (profileName.isEmpty())
                 throw ErrorInfo(Tr::tr("No profile specified and no default profile exists."));
             const Preferences prefs(m_settings, profileName);
-            params.setSearchPaths(prefs.searchPaths(qbsRootPath));
-            params.setPluginPaths(prefs.pluginPaths(qbsRootPath
-                                                    + QLatin1String("/" QBS_LIBRARY_DIRNAME)));
+            params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
+                    + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
+            params.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
+                    + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
             params.setTopLevelProfile(profileName);
             params.setBuildVariant(buildVariant);
             params.setBuildRoot(buildDirectory(profileName));
