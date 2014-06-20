@@ -232,11 +232,14 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     // For products with "serious" changes such as different prepare scripts, we set up the
     // build data from scratch to be on the safe side. This can be made more fine-grained
     // if needed.
+    QHash<QString, AllRescuableArtifactData> rescuableArtifactData;
     foreach (const ResolvedProductPtr &product, changedProducts) {
         ResolvedProductPtr freshProduct = freshProductsByName.value(product->name);
         if (!freshProduct)
             continue;
         onProductRemoved(product, product->topLevelProject()->buildData.data(), false);
+        if (product->buildData)
+            rescuableArtifactData.insert(product->name, product->buildData->rescuableArtifactData);
         allRestoredProducts.removeOne(product);
         productsWithChangedFiles.removeOne(product);
     }
@@ -305,7 +308,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 
     foreach (const ResolvedProductConstPtr &changedProduct, changedProducts) {
         rescueOldBuildData(changedProduct, freshProductsByName.value(changedProduct->name),
-                           oldBuildData.data(), childLists);
+                           oldBuildData.data(), childLists,
+                           rescuableArtifactData.value(changedProduct->name));
     }
 
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
@@ -762,7 +766,7 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
 
 void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
         const ResolvedProductPtr &newlyResolvedProduct, ProjectBuildData *oldBuildData,
-        const ChildListHash &childLists)
+        const ChildListHash &childLists, const AllRescuableArtifactData &existingRad)
 {
     if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
         return;
@@ -771,6 +775,9 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] rescue data of "
                                                       "product '%1'").arg(restoredProduct->name);
     }
+    QBS_CHECK(newlyResolvedProduct->buildData);
+    QBS_CHECK(newlyResolvedProduct->buildData->rescuableArtifactData.isEmpty());
+    newlyResolvedProduct->buildData->rescuableArtifactData = existingRad;
 
     // This is needed for artifacts created by manually added transformers, which are
     // already present in the build graph.

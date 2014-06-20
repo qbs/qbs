@@ -31,6 +31,8 @@
 
 #include "forward_decls.h"
 
+#include "rescuableartifactdata.h"
+
 #include <buildgraph/artifactset.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
@@ -113,7 +115,8 @@ private:
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
                             const ResolvedProductPtr &newlyResolvedProduct,
                             ProjectBuildData *oldBuildData,
-                            const ChildListHash &childLists);
+                            const ChildListHash &childLists,
+                            const AllRescuableArtifactData &existingRad);
 
     RulesEvaluationContextPtr m_evalContext;
     BuildGraphLoadResult m_result;

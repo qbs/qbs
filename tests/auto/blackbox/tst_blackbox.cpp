@@ -1828,6 +1828,70 @@ void TestBlackbox::propertiesBlocks()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::radAfterIncompleteBuild_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::newRow("Project with Rule") << "project_with_rule.qbs";
+    QTest::newRow("Project with Transformer") << "project_with_transformer.qbs";
+}
+
+void TestBlackbox::radAfterIncompleteBuild()
+{
+    QDir::setCurrent(testDataDir + "/rad-after-incomplete-build");
+    rmDirR(buildDir);
+    QFETCH(QString, projectFileName);
+
+    // Step 1: Have a directory where a file used to be.
+    QbsRunParameters params(QStringList() << "-f" << projectFileName);
+    QCOMPARE(runQbs(params), 0);
+    waitForNewTimestamp();
+    QFile projectFile(projectFileName);
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("oldfile", "oldfile/newfile");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    waitForNewTimestamp();
+    content.replace("oldfile/newfile", "newfile");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
+    waitForNewTimestamp();
+    content.replace("newfile", "oldfile/newfile");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    QCOMPARE(runQbs(params), 0);
+
+    // Step 2: Have a file where a directory used to be.
+    waitForNewTimestamp();
+    content.replace("oldfile/newfile", "oldfile");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    waitForNewTimestamp();
+    content.replace("oldfile", "newfile");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    params.expectFailure = false;
+    QCOMPARE(runQbs(params), 0);
+    waitForNewTimestamp();
+    content.replace("newfile", "oldfile");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.flush();
+    QEXPECT_FAIL("", "QBS-630", Abort);
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");
