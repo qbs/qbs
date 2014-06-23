@@ -46,7 +46,9 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 
 namespace qbs {
 namespace Internal {

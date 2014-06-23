@@ -30,6 +30,7 @@
 
 #include "artifact.h"
 #include "buildgraph.h"
+#include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
@@ -122,20 +123,23 @@ void RulesApplicator::handleRemovedRuleOutputs(ArtifactSet outputArtifactsToRemo
         const Logger &logger)
 {
     ArtifactSet artifactsToRemove;
+    const TopLevelProject *project = 0;
     foreach (Artifact *removedArtifact, outputArtifactsToRemove) {
         if (logger.traceEnabled()) {
             logger.qbsTrace() << "[BG] dynamic rule removed output artifact "
                                 << removedArtifact->toString();
         }
-        removedArtifact->product->topLevelProject()
-                ->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
-                                                                  &artifactsToRemove);
+        if (!project)
+            project = removedArtifact->product->topLevelProject();
+        project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
+                                                                 &artifactsToRemove);
     }
     // parents of removed artifacts must update their transformers
     foreach (Artifact *removedArtifact, artifactsToRemove) {
         foreach (Artifact *parent, removedArtifact->parentArtifacts())
             parent->product->registerArtifactWithChangedInputs(parent);
     }
+    EmptyDirectoriesRemover(project, logger).removeEmptyParentDirectories(artifactsToRemove);
     qDeleteAll(artifactsToRemove);
 }
 

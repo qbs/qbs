@@ -1894,7 +1894,6 @@ void TestBlackbox::radAfterIncompleteBuild()
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.flush();
-    QEXPECT_FAIL("", "QBS-630", Abort);
     QCOMPARE(runQbs(params), 0);
 }
 

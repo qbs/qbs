@@ -33,6 +33,7 @@
 #include "buildgraph.h"
 #include "command.h"
 #include "cycledetector.h"
+#include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "rulesevaluationcontext.h"
@@ -263,6 +264,8 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
                             const bool removeFromDisk = a->artifactType == Artifact::Generated;
                             newlyResolvedProduct->topLevelProject()->buildData->removeArtifact(a,
                                     m_logger, removeFromDisk, true);
+                            if (removeFromDisk)
+                                m_artifactsRemovedFromDisk << a->filePath();
                             m_objectsToDelete << a;
                         }
                     }
@@ -311,6 +314,9 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
                            oldBuildData.data(), childLists,
                            rescuableArtifactData.value(changedProduct->name));
     }
+
+    EmptyDirectoriesRemover(m_result.newlyResolvedProject.data(), m_logger)
+            .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }
@@ -532,8 +538,11 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
 
     product->project->products.removeOne(product);
     if (product->buildData) {
-        foreach (Artifact *artifact, ArtifactSet::fromNodeSet(product->buildData->nodes))
+        foreach (Artifact *artifact, ArtifactSet::fromNodeSet(product->buildData->nodes)) {
             projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk, false);
+            if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)
+                m_artifactsRemovedFromDisk << artifact->filePath();
+        }
     }
 }
 
@@ -639,8 +648,11 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
     }
 
     // defer destruction of removed artifacts
-    foreach (Artifact *artifact, artifactsToRemove)
+    foreach (Artifact *artifact, artifactsToRemove) {
+        if (artifact->artifactType == Artifact::Generated)
+            m_artifactsRemovedFromDisk << artifact->filePath();
         m_objectsToDelete << artifact;
+    }
     foreach (Artifact * const artifact, addedArtifacts)
         newlyResolvedProduct->registerAddedArtifact(artifact);
 }
@@ -807,6 +819,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             if (m_logger.traceEnabled())
                 m_logger.qbsTrace() << QString::fromLocal8Bit("[BG]    artifact invalidated");
             removeGeneratedArtifactFromDisk(oldArtifact, m_logger);
+            m_artifactsRemovedFromDisk << oldArtifact->filePath();
             continue;
         }
         artifact->setTimestamp(oldArtifact->timestamp());

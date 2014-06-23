@@ -88,6 +88,8 @@ QbsLibrary {
             "cycledetector.h",
             "depscanner.cpp",
             "depscanner.h",
+            "emptydirectoriesremover.cpp",
+            "emptydirectoriesremover.h",
             "executor.cpp",
             "executor.h",
             "executorjob.cpp",

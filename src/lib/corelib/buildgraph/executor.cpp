@@ -30,6 +30,7 @@
 
 #include "buildgraph.h"
 #include "command.h"
+#include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "cycledetector.h"
@@ -195,6 +196,7 @@ void Executor::doBuild()
     m_error.clear();
     m_explicitlyCanceled = false;
     m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
+    m_artifactsRemovedFromDisk.clear();
     setState(ExecutorRunning);
 
     if (m_productsToBuild.isEmpty()) {
@@ -691,7 +693,8 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "Data was rescued.";
     } else {
-        removeGeneratedArtifactFromDisk(artifact->filePath(), m_logger);
+        removeGeneratedArtifactFromDisk(artifact, m_logger);
+        m_artifactsRemovedFromDisk << artifact->filePath();
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "Transformer commands changed, data not rescued.";
     }
@@ -850,8 +853,10 @@ void Executor::finish()
         if (!unbuiltProductNames.contains(product->name)) {
             // Any element still left after a successful build has not been re-created
             // by any rule and therefore does not exist anymore as an artifact.
-            foreach (const QString &filePath, product->buildData->rescuableArtifactData.keys())
+            foreach (const QString &filePath, product->buildData->rescuableArtifactData.keys()) {
                 removeGeneratedArtifactFromDisk(filePath, m_logger);
+                m_artifactsRemovedFromDisk << filePath;
+            }
             product->buildData->rescuableArtifactData.clear();
 
             // Similar logic applies for the artifacts scheduled for potential rule application.
@@ -874,6 +879,10 @@ void Executor::finish()
         m_progressObserver->setFinished();
         m_cancelationTimer->stop();
     }
+
+    EmptyDirectoriesRemover(m_project.data(), m_logger)
+            .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
+
     emit finished();
 }
 

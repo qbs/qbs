@@ -67,6 +67,7 @@ void loggedConnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
 bool safeConnect(Artifact *u, Artifact *v, const Logger &logger);
 void removeGeneratedArtifactFromDisk(Artifact *artifact, const Logger &logger);
 void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logger);
+
 void disconnect(BuildGraphNode *u, BuildGraphNode *v, const Logger &logger);
 
 void setupScriptEngineForFile(ScriptEngine *engine, const ResolvedFileContextConstPtr &fileContext,

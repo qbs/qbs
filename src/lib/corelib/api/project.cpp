@@ -37,6 +37,7 @@
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
+#include <buildgraph/emptydirectoriesremover.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/productinstaller.h>
 #include <buildgraph/projectbuilddata.h>
@@ -508,12 +509,19 @@ void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &pr
     if (!product->enabled)
         return;
     QBS_CHECK(internalProject->buildData);
+    ArtifactSet allRemovedArtifacts;
     foreach (const SourceArtifactPtr &sa, files) {
+        ArtifactSet removedArtifacts;
         Artifact * const artifact = lookupArtifact(product, sa->absoluteFilePath);
-        if (artifact) // Can be null if the executor has not yet applied the respective rule.
-            internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger);
-        delete artifact;
+        if (artifact) { // Can be null if the executor has not yet applied the respective rule.
+            internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger,
+                    true, &removedArtifacts);
+        }
+        allRemovedArtifacts.unite(removedArtifacts);
     }
+    EmptyDirectoriesRemover(product->topLevelProject(), logger)
+            .removeEmptyParentDirectories(allRemovedArtifacts);
+    qDeleteAll(allRemovedArtifacts);
 }
 
 static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,

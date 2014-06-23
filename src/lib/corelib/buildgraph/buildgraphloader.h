@@ -122,6 +122,7 @@ private:
     BuildGraphLoadResult m_result;
     Logger m_logger;
     QProcessEnvironment m_environment;
+    QStringList m_artifactsRemovedFromDisk;
 
     // These must only be deleted at the end so we can still peek into the old look-up table.
     QList<FileResourceBase *> m_objectsToDelete;

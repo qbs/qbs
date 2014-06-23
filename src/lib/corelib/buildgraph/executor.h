@@ -156,6 +156,7 @@ private:
     bool m_explicitlyCanceled;
     FileTags m_activeFileTags;
     QTimer * const m_cancelationTimer;
+    QStringList m_artifactsRemovedFromDisk;
     const bool m_doTrace;
     const bool m_doDebug;
 };
