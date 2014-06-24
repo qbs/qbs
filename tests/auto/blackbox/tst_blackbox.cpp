@@ -1562,6 +1562,12 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(!QFile::exists(sourceFile2));
 }
 
+void TestBlackbox::emptyFileTagList()
+{
+    QDir::setCurrent(testDataDir + "/empty-filetag-list");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");

@@ -57,7 +57,7 @@ public:
 
     bool boolValue(const Item *item, const QString &name, bool defaultValue = false,
                    bool *propertyWasSet = 0);
-    FileTags fileTagsValue(const Item *item, const QString &name);
+    FileTags fileTagsValue(const Item *item, const QString &name, bool *propertySet = 0);
     QString stringValue(const Item *item, const QString &name,
                         const QString &defaultValue = QString(), bool *propertyWasSet = 0);
     QStringList stringListValue(const Item *item, const QString &name, bool *propertyWasSet = 0);

@@ -100,9 +100,9 @@ bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultVal
     return v.toBool();
 }
 
-FileTags Evaluator::fileTagsValue(const Item *item, const QString &name)
+FileTags Evaluator::fileTagsValue(const Item *item, const QString &name, bool *propertySet)
 {
-    return FileTags::fromStringList(stringListValue(item, name));
+    return FileTags::fromStringList(stringListValue(item, name, propertySet));
 }
 
 QString Evaluator::stringValue(const Item *item, const QString &name,

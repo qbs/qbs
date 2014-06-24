@@ -508,8 +508,11 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
     }
     group->location = item->location();
     group->enabled = isEnabled;
-    group->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
+    bool fileTagsSet;
+    group->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"), &fileTagsSet);
     group->overrideTags = m_evaluator->boolValue(item, QLatin1String("overrideTags"));
+    if (group->overrideTags && group->fileTags.isEmpty() && fileTagsSet)
+        group->fileTags.insert(unknownFileTag());
 
     if (!patterns.isEmpty()) {
         SourceWildCards::Ptr wildcards = SourceWildCards::create();

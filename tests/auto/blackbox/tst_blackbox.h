@@ -115,6 +115,7 @@ private slots:
     void duplicateProductNames_data();
     void dynamicLibs();
     void dynamicRuleOutputs();
+    void emptyFileTagList();
     void erroneousFiles_data();
     void erroneousFiles();
     void explicitlyDependsOn();
