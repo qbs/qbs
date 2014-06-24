@@ -315,9 +315,12 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
 {
     for (QHash<QString, QString>::ConstIterator it = restoredProject->usedEnvironment.constBegin();
          it != restoredProject->usedEnvironment.constEnd(); ++it) {
-        if (m_environment.value(it.key()) != it.value()) {
-            m_logger.qbsDebug() << "A relevant environment variable changed, "
-                                   "must re-resolve project.";
+        const QString var = it.key();
+        const QString oldValue = it.value();
+        const QString newValue = m_environment.value(var);
+        if (newValue != oldValue) {
+            m_logger.qbsDebug() << QString::fromLatin1("Environment variable '%1' changed "
+                "from '%2' to '%3'. Must re-resolve project.").arg(var, oldValue, newValue);
             return true;
         }
     }
