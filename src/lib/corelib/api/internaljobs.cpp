@@ -292,7 +292,7 @@ void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationC
 
 BuildGraphLoadResult InternalSetupProjectJob::restoreProject(const RulesEvaluationContextPtr &evalContext)
 {
-    BuildGraphLoader bgLoader(m_parameters.environment(), logger());
+    BuildGraphLoader bgLoader(m_parameters.adjustedEnvironment(), logger());
     const BuildGraphLoadResult loadResult = bgLoader.load(m_parameters, evalContext);
     return loadResult;
 }

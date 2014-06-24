@@ -84,26 +84,11 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
     m_moduleLoader->setSearchPaths(searchPaths);
 }
 
-static QProcessEnvironment adjustedEnvironment(const QProcessEnvironment &environment,
-        const QVariantMap &environmentFromProfile)
-{
-    QProcessEnvironment result = environment;
-    for (QVariantMap::const_iterator it = environmentFromProfile.begin();
-         it != environmentFromProfile.end(); ++it) {
-        result.insert(it.key(), it.value().toString());
-    }
-    return result;
-}
-
 TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
 {
     QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
 
-    m_engine->setEnvironment(
-                adjustedEnvironment(
-                    parameters.environment(),
-                    parameters.buildConfigurationTree().value(QLatin1String("buildEnvironment"))
-                    .toMap()));
+    m_engine->setEnvironment(parameters.adjustedEnvironment());
     m_engine->clearExceptions();
 
     QTimer cancelationTimer;
