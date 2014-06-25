@@ -1,7 +1,6 @@
 import qbs
 
 Project {
-    property string appInstallDir: "bin"
     references: [
         "config/config.qbs",
         "config-ui/config-ui.qbs",

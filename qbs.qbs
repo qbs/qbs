@@ -6,6 +6,7 @@ Project {
     property bool installApiHeaders: true
     property bool withExamples: true
     property string libDirName: "lib"
+    property string appInstallDir: "bin"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
