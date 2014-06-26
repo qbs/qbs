@@ -1772,6 +1772,18 @@ void TestBlackbox::mocCppIncluded()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::nonBrokenFilesInBrokenProduct()
+{
+    QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");
+    QbsRunParameters params("-k");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStdout.contains("fine.cpp"));
+    QVERIFY(runQbs(params) != 0);
+    QEXPECT_FAIL("", "QBS-635", Continue);
+    QVERIFY(!m_qbsStdout.contains("fine.cpp")); // The non-broken file must not be recompiled.
+}
+
 void TestBlackbox::objC()
 {
     QDir::setCurrent(testDataDir + "/objc");

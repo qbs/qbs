@@ -126,6 +126,7 @@ private slots:
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
     void mocCppIncluded();
+    void nonBrokenFilesInBrokenProduct();
     void objC();
     void qmlDebugging();
     void projectWithPropertiesItem();
