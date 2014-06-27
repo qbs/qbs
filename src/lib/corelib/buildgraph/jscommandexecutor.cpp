@@ -83,6 +83,18 @@ signals:
 public slots:
     void start(const JavaScriptCommand *cmd, Transformer *transformer)
     {
+        try {
+            doStart(cmd, transformer);
+        } catch (const qbs::ErrorInfo &error) {
+            setError(error.toString(), cmd->codeLocation());
+        }
+
+        emit finished();
+    }
+
+private:
+    void doStart(const JavaScriptCommand *cmd, Transformer *transformer)
+    {
         m_result.success = true;
         m_result.errorMessage.clear();
         ScriptEngine * const scriptEngine = provideScriptEngine();
@@ -107,15 +119,18 @@ public slots:
                 += scriptEngine->propertiesRequestedInScript();
         scriptEngine->clearRequestedProperties();
         if (scriptEngine->hasUncaughtException()) {
-            m_result.success = false;
-            m_result.errorMessage = scriptEngine->uncaughtException().toString();
             // ### We don't know the line number of the command's sourceCode property assignment.
-            m_result.errorLocation = cmd->codeLocation();
+            setError(scriptEngine->uncaughtException().toString(), cmd->codeLocation());
         }
-        emit finished();
     }
 
-private:
+    void setError(const QString &errorMessage, const CodeLocation &codeLocation)
+    {
+        m_result.success = false;
+        m_result.errorMessage = errorMessage;
+        m_result.errorLocation = codeLocation;
+    }
+
     ScriptEngine *provideScriptEngine()
     {
         if (!m_scriptEngine)
