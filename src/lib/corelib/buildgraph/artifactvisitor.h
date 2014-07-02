@@ -47,6 +47,7 @@ public:
 
     void visitProduct(const ResolvedProductConstPtr &product);
     void visitProject(const ResolvedProjectConstPtr &project);
+    bool visit(RuleNode *ruleNode);
     bool visit(Artifact *artifact);
 
 private:

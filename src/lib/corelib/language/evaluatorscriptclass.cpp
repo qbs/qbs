@@ -128,9 +128,35 @@ private:
             const JSSourceValue::Alternative *alternative = 0;
             alternative = &value->alternatives().at(i);
             if (!conditionScopeItem) {
-                conditionScopeItem = data->item->scope();
-                if (!conditionScopeItem)
-                    conditionScopeItem = data->item;
+                // We have to differentiate between module instances and normal items here.
+                //
+                // The module instance case:
+                // Product {
+                //     property bool something: true
+                //     Properties {
+                //         condition: something
+                //         cpp.defines: ["ABC"]
+                //     }
+                // }
+                //
+                // data->item points to cpp and the condition's scope chain must contain cpp's
+                // scope, which is the item where cpp is instantiated. The scope chain must not
+                // contain data->item itself.
+                //
+                // The normal item case:
+                // Product {
+                //     property bool something: true
+                //     property string value: "ABC"
+                //     Properties {
+                //         condition: something
+                //         value: "DEF"
+                //     }
+                // }
+                //
+                // data->item points to the product and the condition's scope chain must contain
+                // the product item.
+                conditionScopeItem = data->item->isModuleInstance()
+                        ? data->item->scope() : data->item;
                 conditionScope = data->evaluator->scriptValue(conditionScopeItem);
                 QBS_ASSERT(conditionScope.isObject(), return);
                 conditionFileScope = data->evaluator->fileScope(conditionScopeItem->file());
