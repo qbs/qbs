@@ -227,10 +227,18 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
             qtEnvironment.mkspecPath = mkspecsBaseSrcPath + QLatin1Char('/') + mkspecName;
     } else {
         if (HostOsInfo::isWindowsHost()) {
-            const QByteArray fileContent = readFileContent(qtEnvironment.mkspecBasePath
-                                                           + QLatin1String("/default/qmake.conf"));
+            const QString baseDirPath = qtEnvironment.mkspecBasePath + QLatin1String("/default/");
+            const QByteArray fileContent = readFileContent(baseDirPath
+                                                           + QLatin1String("qmake.conf"));
             qtEnvironment.mkspecPath = configVariable(fileContent,
                                                       QLatin1String("QMAKESPEC_ORIGINAL"));
+            if (!QFile::exists(qtEnvironment.mkspecPath)) {
+                // Work around QTBUG-28792.
+                // The value of QMAKESPEC_ORIGINAL is wrong for MinGW packages. Y u h8 me?
+                const QRegExp rex(QLatin1String("\\binclude\\(([^)]+qmake\\.conf)\\)"));
+                if (rex.indexIn(fileContent) != -1)
+                    qtEnvironment.mkspecPath = QDir::cleanPath(baseDirPath + rex.cap(1));
+            }
         } else {
             qtEnvironment.mkspecPath
                     = QFileInfo(qtEnvironment.mkspecBasePath + "/default").symLinkTarget();
