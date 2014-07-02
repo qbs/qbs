@@ -221,8 +221,15 @@ static QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment,
 static QList<QtModuleInfo> qt4Modules(const QtEnvironment &qtEnvironment)
 {
     // as per http://qt-project.org/doc/qt-4.8/modules.html + private stuff.
-    QList<QtModuleInfo> modules = QList<QtModuleInfo>()
-            << QtModuleInfo(QLatin1String("QtCore"), QLatin1String("core"))
+    QList<QtModuleInfo> modules;
+
+    QtModuleInfo core(QLatin1String("QtCore"), QLatin1String("core"));
+    core.compilerDefines << QLatin1String("QT_CORE_LIB");
+    if (!qtEnvironment.qtNameSpace.isEmpty())
+        core.compilerDefines << QLatin1String("QT_NAMESPACE=") + qtEnvironment.qtNameSpace;
+
+    modules = QList<QtModuleInfo>()
+            << core
             << QtModuleInfo(QLatin1String("QtCore"), QLatin1String("core-private"),
                             QStringList() << QLatin1String("core"))
             << QtModuleInfo(QLatin1String("QtGui"), QLatin1String("gui"))
@@ -540,7 +547,6 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     profile.setValue(settingsTemplate.arg("mkspecPath"), qtEnvironment.mkspecPath);
     profile.setValue(settingsTemplate.arg("docPath"), qtEnvironment.documentationPath);
     profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
-    profile.setValue(settingsTemplate.arg("namespace"), qtEnvironment.qtNameSpace);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
     profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant);
     profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), staticBuild);

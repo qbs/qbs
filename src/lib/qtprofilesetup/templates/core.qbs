@@ -9,7 +9,6 @@ Module {
 
     Depends { name: "cpp" }
 
-    property string namespace
     property string libInfix: ""
     property stringList config
     property stringList qtConfig
@@ -43,13 +42,11 @@ Module {
     property string libraryInfix: cpp.debugInformation ? 'd' : ''
 
     cpp.defines: {
-        var defines = ["QT_CORE_LIB"];
+        var defines = @defines@;
         // ### QT_NO_DEBUG must be added if the current build variant is derived
         //     from the build variant "release"
         if (!qbs.debugInformation)
             defines.push("QT_NO_DEBUG");
-        if (namespace)
-            defines.push("QT_NAMESPACE=" + namespace);
         if (qbs.targetOS.contains("ios"))
             defines = defines.concat(["DARWIN_NO_CARBON", "QT_NO_CORESERVICES", "QT_NO_PRINTER",
                             "QT_NO_PRINTDIALOG", "main=qt_main"]);
