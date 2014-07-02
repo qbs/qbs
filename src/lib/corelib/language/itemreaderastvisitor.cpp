@@ -312,7 +312,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     const QStringList fullTypeName = toStringList(ast->qualifiedTypeNameId);
     const QString baseTypeFileName = m_typeNameToFile.value(fullTypeName);
     if (!baseTypeFileName.isEmpty()) {
-        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName, false);
+        const ItemReaderResult baseFile = m_reader->internalReadFile(baseTypeFileName);
 
         inheritItem(item, baseFile.rootItem);
         if (baseFile.rootItem->m_file->m_idScope) {

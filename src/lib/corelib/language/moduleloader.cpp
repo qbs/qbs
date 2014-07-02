@@ -107,7 +107,6 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
     m_parameters = parameters;
-    m_reader->clearItemCache();
     m_validItemPropertyNamesPerItem.clear();
     m_disabledItems.clear();
 
@@ -804,7 +803,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
     *cacheHit = false;
-    module = m_reader->readFile(filePath, true);
+    module = m_reader->readFile(filePath);
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;
