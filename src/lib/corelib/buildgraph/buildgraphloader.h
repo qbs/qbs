@@ -69,9 +69,7 @@ public:
 
 private:
     void trackProjectChanges(const SetupProjectParameters &parameters,
-                             const QString &buildGraphFilePath,
-                             const TopLevelProjectPtr &restoredProject,
-                             const QVariantMap &oldProjectConfig);
+            const TopLevelProjectPtr &restoredProject, const QVariantMap &oldProjectConfig);
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;

@@ -937,7 +937,7 @@ void ResolvedProject::store(PersistentPool &pool) const
 }
 
 
-TopLevelProject::TopLevelProject() : locked(false)
+TopLevelProject::TopLevelProject() : locked(false), lastResolveTime(FileTime::oldestTime())
 {
 }
 
@@ -1010,6 +1010,7 @@ void TopLevelProject::load(PersistentPool &pool)
     for (QHash<QString, QString>::const_iterator i = envHash.begin(); i != envHash.end(); ++i)
         environment.insert(i.key(), i.value());
     pool.stream() >> buildSystemFiles;
+    pool.stream() >> lastResolveTime;
     buildData.reset(pool.idLoad<ProjectBuildData>());
     QBS_CHECK(buildData);
     buildData->isDirty = false;
@@ -1026,6 +1027,7 @@ void TopLevelProject::store(PersistentPool &pool) const
         envHash.insert(key, environment.value(key));
     pool.stream() << envHash;
     pool.stream() << buildSystemFiles;
+    pool.stream() << lastResolveTime;
     pool.store(buildData.data());
 }
 

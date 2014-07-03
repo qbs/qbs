@@ -161,15 +161,13 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
         return m_result;
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
-    trackProjectChanges(parameters, buildGraphFilePath, project, pool.headData().projectConfig);
+    trackProjectChanges(parameters, project, pool.headData().projectConfig);
     return m_result;
 }
 
 void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &parameters,
-        const QString &buildGraphFilePath, const TopLevelProjectPtr &restoredProject,
-        const QVariantMap &oldProjectConfig)
+        const TopLevelProjectPtr &restoredProject, const QVariantMap &oldProjectConfig)
 {
-    const FileTime buildGraphTimeStamp = FileInfo(buildGraphFilePath).lastModified();
     QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
@@ -177,7 +175,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     bool reResolvingNecessary = false;
     if (!isConfigCompatible(parameters.finalBuildConfigurationTree(), oldProjectConfig))
         reResolvingNecessary = true;
-    if (hasProductFileChanged(allRestoredProducts, buildGraphTimeStamp,
+    if (hasProductFileChanged(allRestoredProducts, restoredProject->lastResolveTime,
                               buildSystemFiles, productsWithChangedFiles)) {
         reResolvingNecessary = true;
     }
@@ -186,7 +184,7 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
     // can make the list of source files in a product change without the respective file
     // having been touched. In such a case, the build data for that product will have to be set up
     // anew.
-    if (hasBuildSystemFileChanged(buildSystemFiles, buildGraphTimeStamp)
+    if (hasBuildSystemFileChanged(buildSystemFiles, restoredProject->lastResolveTime)
             || hasEnvironmentChanged(restoredProject)
             || hasFileExistsResultChanged(restoredProject)
             || hasFileLastModifiedResultChanged(restoredProject)) {

@@ -106,8 +106,10 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &parameters)
         cancelationTimer.start(1000);
     }
 
+    const FileTime resolveTime = FileTime::currentTime();
     ModuleLoaderResult loadResult = m_moduleLoader->load(parameters);
     const TopLevelProjectPtr project = m_projectResolver->resolve(loadResult, parameters);
+    project->lastResolveTime = resolveTime;
 
     // E.g. if the top-level project is disabled.
     if (m_progressObserver)

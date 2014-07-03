@@ -463,6 +463,7 @@ public:
     bool locked;
 
     QSet<QString> buildSystemFiles;
+    FileTime lastResolveTime;
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
