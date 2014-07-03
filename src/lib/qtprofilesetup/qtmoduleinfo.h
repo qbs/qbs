@@ -26,22 +26,44 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_SETUPQTPROFILE_H
-#define QBS_SETUPQTPROFILE_H
-
-#include "qtenvironment.h"
-
-#include <tools/qbs_export.h>
+#ifndef QBS_QTMODULEINFO_H
+#define QBS_QTMODULEINFO_H
 
 #include <QStringList>
 
 namespace qbs {
-class ErrorInfo;
-class Settings;
+class QtEnvironment;
+class Profile;
 
-QBS_EXPORT ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
-                                    const QtEnvironment &qtEnvironment);
+namespace Internal {
 
+class QtModuleInfo
+{
+public:
+    QtModuleInfo();
+    QtModuleInfo(const QString &name, const QString &qbsName,
+                 const QStringList &deps = QStringList());
+
+    QString moduleName() const;
+    QString frameworkHeadersPath(const QtEnvironment &qtEnvironment) const;
+    QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const;
+
+    QString modulePrefix; // default is empty and means "Qt".
+    QString name; // As in the path to the headers and ".name" in the pri files.
+    QString qbsName; // Lower-case version without "qt" prefix.
+    QString version;
+    QStringList dependencies; // qbs names.
+    QStringList includePaths;
+    QStringList compilerDefines;
+    bool isPrivate;
+    bool hasLibrary;
+    bool isStaticLibrary;
+};
+
+QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment);
+QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment);
+
+} // namespace Internal
 } // namespace qbs
 
 #endif // Include guard.

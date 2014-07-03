@@ -8,6 +8,7 @@ QbsLibrary {
     Group {
         name: "Public API headers"
         files: [
+            "qtenvironment.h",
             "qtprofilesetup.h",
             "use_installed_qtprofilesetup.pri",
         ]
@@ -17,6 +18,8 @@ QbsLibrary {
 
     files: [
         "qtprofilesetup.cpp",
+        "qtmoduleinfo.cpp",
+        "qtmoduleinfo.h",
         "templates.qrc",
         "templates/*"
     ]

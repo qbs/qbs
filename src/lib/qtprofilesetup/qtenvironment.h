@@ -26,21 +26,41 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_SETUPQTPROFILE_H
-#define QBS_SETUPQTPROFILE_H
-
-#include "qtenvironment.h"
+#ifndef QBS_QTENVIRONMENT_H
+#define QBS_QTENVIRONMENT_H
 
 #include <tools/qbs_export.h>
 
 #include <QStringList>
 
 namespace qbs {
-class ErrorInfo;
-class Settings;
 
-QBS_EXPORT ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
-                                    const QtEnvironment &qtEnvironment);
+class QBS_EXPORT QtEnvironment {
+public:
+    QString installPrefixPath;
+    QString libraryPath;
+    QString includePath;
+    QString binaryPath;
+    QString qmlPath;
+    QString qmlImportPath;
+    QString documentationPath;
+    QString dataPath;
+    QString pluginPath;
+    QString qtLibInfix;
+    QString qtNameSpace;
+    QString mkspecPath;
+    QString mkspecName;
+    QString mkspecBasePath;
+    QStringList buildVariant;
+    QStringList configItems;
+    QStringList qtConfigItems;
+    QString architecture;
+    QString qtVersion;
+    int qtMajorVersion;
+    int qtMinorVersion;
+    int qtPatchVersion;
+    bool frameworkBuild;
+};
 
 } // namespace qbs
 
