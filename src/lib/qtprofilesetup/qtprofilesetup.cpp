@@ -377,11 +377,13 @@ static QList<QtModuleInfo> qt5Modules(const Profile &profile, const QtEnvironmen
         const QByteArray priFileContents = priFile.readAll();
         foreach (const QByteArray &line, priFileContents.split('\n')) {
             const QByteArray simplifiedLine = line.simplified();
-            const QList<QByteArray> parts = simplifiedLine.split('=');
-            if (parts.count() != 2 || parts.at(1).isEmpty())
+            const int firstEqualsOffset = simplifiedLine.indexOf('=');
+            if (firstEqualsOffset == -1)
                 continue;
-            const QByteArray key = parts.first().simplified();
-            const QByteArray value = parts.last().simplified();
+            const QByteArray key = simplifiedLine.left(firstEqualsOffset).trimmed();
+            const QByteArray value = simplifiedLine.mid(firstEqualsOffset + 1).trimmed();
+            if (key.isEmpty() || value.isEmpty())
+                continue;
             if (key.endsWith(".name")) {
                 moduleInfo.name = QString::fromLocal8Bit(value);
             } else if (key.endsWith(".depends")) {
