@@ -32,6 +32,28 @@ Module {
     property bool frameworkBuild
     property bool staticBuild
     property stringList buildVariant
+    property stringList staticLibsDebug: @staticLibsDebug@
+    property stringList staticLibsRelease: @staticLibsRelease@
+    property stringList dynamicLibsDebug: @dynamicLibsDebug@
+    property stringList dynamicLibsRelease: @dynamicLibsRelease@
+    property stringList staticLibs: qbs.buildVariant === "debug"
+                                    ? staticLibsDebug : staticLibsRelease
+    property stringList dynamicLibs: qbs.buildVariant === "debug"
+                                    ? dynamicLibsDebug : dynamicLibsRelease
+    property stringList linkerFlagsDebug: @linkerFlagsDebug@
+    property stringList linkerFlagsRelease: @linkerFlagsRelease@
+    property stringList coreLinkerFlags: qbs.buildVariant === "debug"
+                                    ? linkerFlagsDebug : linkerFlagsRelease
+    property stringList frameworksDebug: @frameworksDebug@
+    property stringList frameworksRelease: @frameworksRelease@
+    property stringList coreFrameworks: qbs.buildVariant === "debug"
+            ? frameworksDebug : frameworksRelease
+    property stringList frameworkPathsDebug: @frameworkPathsDebug@
+    property stringList frameworkPathsRelease: @frameworkPathsRelease@
+    property stringList coreFrameworkPaths: qbs.buildVariant === "debug"
+            ? frameworkPathsDebug : frameworkPathsRelease
+
+    coreLibPaths: @libraryPaths@
 
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
@@ -61,31 +83,36 @@ Module {
         var libPaths = [libPath];
         if (staticBuild && pluginPath)
             libPaths.push(pluginPath + "/platforms");
+        libPaths = libPaths.concat(coreLibPaths);
         return libPaths;
     }
     cpp.staticLibraries: {
+        var libs = [];
+        if (staticBuild)
+            libs.push(QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, staticBuild));
         if (qbs.targetOS.contains('windows') && !product.consoleApplication)
-            return ["qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : "")];
+            libs.push("qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : ""));
+        libs = libs.concat(staticLibs);
+        return libs;
     }
     cpp.dynamicLibraries: {
         var libs = [];
-        if (!frameworkBuild)
+        if (!staticBuild && !frameworkBuild)
             libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, staticBuild)];
         if (qbs.targetOS.contains('ios') && staticBuild)
             libs = libs.concat(["z", "m",
                                 QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs, true)]);
-        if (libs.length === 0)
-            return undefined;
+        libs = libs.concat(dynamicLibs);
         return libs;
     }
-    cpp.linkerFlags: ((qbs.targetOS.contains('ios') && staticBuild) ?
+    cpp.linkerFlags: coreLinkerFlags.concat((qbs.targetOS.contains('ios') && staticBuild) ?
                           ["-force_load", pluginPath + "/platforms/" +
-                           QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs, true) + ".a"] : undefined)
-    cpp.frameworkPaths: frameworkBuild ? [libPath] : undefined
+                           QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs, true) + ".a"] : [])
+    cpp.frameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
     cpp.frameworks: {
-        var frameworks = [];
+        var frameworks = coreFrameworks
         if (frameworkBuild)
-            frameworks = [QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, false)]
+            frameworks.push(QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, false))
         if (qbs.targetOS.contains('ios') && staticBuild)
             frameworks = frameworks.concat(["Foundation", "CoreFoundation"]);
         if (frameworks.length === 0)

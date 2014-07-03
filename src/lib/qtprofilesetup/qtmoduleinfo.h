@@ -47,6 +47,8 @@ public:
     QString moduleName() const;
     QString frameworkHeadersPath(const QtEnvironment &qtEnvironment) const;
     QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const;
+    QString libraryBaseName(const QtEnvironment &qtEnvironment, bool debugBuild) const;
+    void setupLibraries(const QtEnvironment &qtEnv);
 
     QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
@@ -55,10 +57,27 @@ public:
     QStringList dependencies; // qbs names.
     QStringList includePaths;
     QStringList compilerDefines;
+    QStringList staticLibrariesDebug;
+    QStringList staticLibrariesRelease;
+    QStringList dynamicLibrariesDebug;
+    QStringList dynamicLibrariesRelease;
+    QStringList linkerFlagsDebug;
+    QStringList linkerFlagsRelease;
+    QStringList frameworksDebug;
+    QStringList frameworksRelease;
+    QStringList frameworkPathsDebug;
+    QStringList frameworkPathsRelease;
+    QStringList libraryPaths;
     bool isPrivate;
     bool hasLibrary;
     bool isStaticLibrary;
+
+private:
+    void setupLibraries(const QtEnvironment &qtEnv, bool debugBuild);
 };
+
+QString libBaseName(const QString &libName, bool staticLib, bool debugBuild,
+                             const QtEnvironment &qtEnvironment);
 
 QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment);
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment);

@@ -32,8 +32,20 @@ QtModule {
         }
     }
 
+    staticLibsDebug: @staticLibsDebug@
+    staticLibsRelease: @staticLibsRelease@
+    dynamicLibsDebug: @dynamicLibsDebug@
+    dynamicLibsRelease: @dynamicLibsRelease@
+    linkerFlagsDebug: @linkerFlagsDebug@
+    linkerFlagsRelease: @linkerFlagsRelease@
+    frameworksDebug: @frameworksDebug@
+    frameworksRelease: @frameworksRelease@
+    frameworkPathsDebug: @frameworkPathsDebug@
+    frameworkPathsRelease: @frameworkPathsRelease@
+
     cpp.defines: @defines@
     cpp.includePaths: @includes@
+    cpp.libraryPaths: @libraryPaths@
 
     Properties {
         condition: Qt.core.staticBuild && qbs.targetOS.contains("ios")

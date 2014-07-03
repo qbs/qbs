@@ -82,6 +82,86 @@ QStringList QtModuleInfo::qt4ModuleIncludePaths(const QtEnvironment &qtEnvironme
     return paths;
 }
 
+QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
+                                           bool debugBuild) const
+{
+    // Enginio has a different naming scheme, so it doesn't get boring.
+    const bool isEnginio = name == QLatin1String("Enginio");
+
+    QString libName = modulePrefix.isEmpty() && !isEnginio ? QLatin1String("Qt") : modulePrefix;
+    if (qtEnvironment.qtMajorVersion >= 5 && (!qtEnvironment.frameworkBuild || isStaticLibrary)
+            && !isEnginio) {
+        libName += QString::number(qtEnvironment.qtMajorVersion);
+    }
+    libName += name.startsWith(QLatin1String("Qt")) ? name.mid(2) : name;
+    libName += qtEnvironment.qtLibInfix;
+    return libBaseName(libName, isStaticLibrary, debugBuild, qtEnvironment);
+}
+
+void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv)
+{
+    setupLibraries(qtEnv, true);
+    setupLibraries(qtEnv, false);
+}
+
+void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
+{
+    QString prlFilePath = qtEnv.libraryPath + QLatin1Char('/');
+    if (qtEnv.frameworkBuild)
+        prlFilePath.append(libraryBaseName(qtEnv, false)).append(QLatin1String(".framework/"));
+    if (!qtEnv.mkspecName.contains(QLatin1String("win")) && !qtEnv.frameworkBuild)
+        prlFilePath += QLatin1String("lib");
+    prlFilePath.append(libraryBaseName(qtEnv, debugBuild)).append(QLatin1String(".prl"));
+    QFile prlFile(prlFilePath);
+    if (!prlFile.open(QIODevice::ReadOnly)) {
+        // We can't error out here, as some modules in a self-built Qt don't have the expected
+        // file names. Real-life example: "libQt0Feedback.prl". This is just too stupid
+        // to work around, so let's ignore it.
+        qDebug("Skipping prl file '%s', because it cannot be opened (%s).", qPrintable(prlFilePath),
+               qPrintable(prlFile.errorString()));
+        return;
+    }
+    const QList<QByteArray> prlLines = prlFile.readAll().split('\n');
+    foreach (const QByteArray &line, prlLines) {
+        const QByteArray simplifiedLine = line.simplified();
+        if (!simplifiedLine.startsWith("QMAKE_PRL_LIBS"))
+            continue;
+        const int equalsOffset = simplifiedLine.indexOf('=');
+        if (equalsOffset == -1)
+            continue;
+
+        QStringList &libs = isStaticLibrary
+                ? debugBuild ? staticLibrariesDebug : staticLibrariesRelease
+                : debugBuild ? dynamicLibrariesDebug : dynamicLibrariesRelease;
+        QStringList &frameworks = debugBuild ? frameworksDebug : frameworksRelease;
+        QStringList &frameworkPaths = debugBuild ? frameworkPathsDebug : frameworkPathsRelease;
+        QStringList &flags = debugBuild ? linkerFlagsDebug : linkerFlagsRelease;
+        // Assuming lib names and directories without spaces here.
+        QStringList parts = QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed())
+                .split(QLatin1Char(' '), QString::SkipEmptyParts);
+        for (int i = 0; i < parts.count(); ++i) {
+            QString part = parts.at(i);
+            if (part.startsWith(QLatin1String("-l"))) {
+                libs << part.mid(2);
+            } else if (part.startsWith(QLatin1String("-L"))) {
+                libraryPaths << part.mid(2);
+            } else if (part.startsWith(QLatin1String("-F"))) {
+                frameworkPaths << part.mid(2);
+            } else if (part == QLatin1String("-framework")) {
+                if (++i < parts.count())
+                    frameworks << parts.at(i);
+            } else if (part.startsWith(QLatin1Char('-'))) { // Some other option, e.g. "-pthread".
+                flags << part;
+            } else if (part.startsWith(QLatin1String("/LIBPATH:"))) {
+                libraryPaths << part.mid(9).replace(QLatin1String("\\\\"), QLatin1String("/"));
+            } else { // Assume it's a file path/name.
+                libs << part.replace(QLatin1String("\\\\"), QLatin1String("/"));
+            }
+        }
+
+        return;
+    }
+}
 
 // We erroneously called the "testlib" module "test" for quite a while. Let's not punish users
 // for that.
@@ -323,6 +403,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             }
         }
 
+        moduleInfo.setupLibraries(qtEnvironment);
+
         modules << moduleInfo;
         if (moduleInfo.qbsName == QLatin1String("testlib"))
             addTestModule(modules);
@@ -330,6 +412,27 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             addDesignerComponentsModule(modules);
     }
     return modules;
+}
+
+QString libBaseName(const QString &libName, bool staticLib, bool debugBuild,
+                             const QtEnvironment &qtEnvironment)
+{
+    QString name = libName;
+    if (qtEnvironment.mkspecName.contains(QLatin1String("win"))) {
+        if (debugBuild)
+            name += QLatin1Char('d');
+        if (!staticLib && qtEnvironment.qtMajorVersion < 5)
+            name += QString::number(qtEnvironment.qtMajorVersion);
+    }
+    if (qtEnvironment.mkspecName.contains(QLatin1String("macx"))
+            || qtEnvironment.mkspecName.contains(QLatin1String("darwin"))) {
+        if (!qtEnvironment.frameworkBuild
+                && qtEnvironment.buildVariant.contains(QLatin1String("debug"))
+                && (!qtEnvironment.buildVariant.contains(QLatin1String("release")) || debugBuild)) {
+            name += QLatin1String("_debug");
+        }
+    }
+    return name;
 }
 
 } // namespace Internal

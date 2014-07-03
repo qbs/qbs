@@ -20,13 +20,34 @@ Module {
     property bool hasLibrary: true
     property bool isStaticLibrary: false
 
+    property stringList staticLibsDebug
+    property stringList staticLibsRelease
+    property stringList dynamicLibsDebug
+    property stringList dynamicLibsRelease
+    property stringList linkerFlagsDebug
+    property stringList linkerFlagsRelease
+    property stringList staticLibs: qbs.buildVariant === "debug"
+                                    ? staticLibsDebug : staticLibsRelease
+    property stringList dynamicLibs: qbs.buildVariant === "debug"
+                                    ? dynamicLibsDebug : dynamicLibsRelease
+    property stringList frameworksDebug
+    property stringList frameworksRelease
+    property stringList frameworkPathsDebug
+    property stringList frameworkPathsRelease
+    property stringList mFrameworks: qbs.buildVariant === "debug"
+            ? frameworksDebug : frameworksRelease
+    property stringList mFrameworkPaths: qbs.buildVariant === "debug"
+            ? frameworkPathsDebug: frameworkPathsRelease
+    cpp.linkerFlags: qbs.buildVariant === "debug"
+            ? linkerFlagsDebug : linkerFlagsRelease
+
     Properties {
         condition: qtModuleName != undefined && hasLibrary
-        cpp.staticLibraries: isStaticLibrary
-                             ? [internalLibraryName] : undefined
-        cpp.dynamicLibraries: !isStaticLibrary && !Qt.core.frameworkBuild
-                              ? [internalLibraryName] : undefined
-        cpp.frameworks: !isStaticLibrary && Qt.core.frameworkBuild
-                        ? [internalLibraryName] : undefined
+        cpp.staticLibraries: staticLibs.concat(isStaticLibrary ? [internalLibraryName] : [])
+        cpp.dynamicLibraries: dynamicLibs.concat(!isStaticLibrary && !Qt.core.frameworkBuild
+                              ? [internalLibraryName] : [])
+        cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
+                        ? [internalLibraryName] : [])
+        cpp.frameworkPaths: mFrameworkPaths
     }
 }

@@ -97,6 +97,17 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
     content.replace("@has_library@", utf8JSLiteral(module.hasLibrary));
     content.replace("@dependencies@", utf8JSLiteral(module.dependencies));
     content.replace("@includes@", utf8JSLiteral(module.includePaths));
+    content.replace("@staticLibsDebug@", utf8JSLiteral(module.staticLibrariesDebug));
+    content.replace("@staticLibsRelease@", utf8JSLiteral(module.staticLibrariesRelease));
+    content.replace("@dynamicLibsDebug@", utf8JSLiteral(module.dynamicLibrariesDebug));
+    content.replace("@dynamicLibsRelease@", utf8JSLiteral(module.dynamicLibrariesRelease));
+    content.replace("@linkerFlagsDebug@", utf8JSLiteral(module.linkerFlagsDebug));
+    content.replace("@linkerFlagsRelease@", utf8JSLiteral(module.linkerFlagsRelease));
+    content.replace("@libraryPaths@", utf8JSLiteral(module.libraryPaths));
+    content.replace("@frameworkPathsDebug@", utf8JSLiteral(module.frameworkPathsDebug));
+    content.replace("@frameworkPathsRelease@", utf8JSLiteral(module.frameworkPathsRelease));
+    content.replace("@frameworksDebug@", utf8JSLiteral(module.frameworksDebug));
+    content.replace("@frameworksRelease@", utf8JSLiteral(module.frameworksRelease));
     QByteArray propertiesString;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
     if (module.qbsName == QLatin1String("declarative")
