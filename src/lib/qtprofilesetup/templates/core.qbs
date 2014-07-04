@@ -52,6 +52,10 @@ Module {
     property stringList frameworkPathsRelease: @frameworkPathsRelease@
     property stringList coreFrameworkPaths: qbs.buildVariant === "debug"
             ? frameworkPathsDebug : frameworkPathsRelease
+    property string libNameForLinkerDebug: @libNameForLinkerDebug@
+    property string libNameForLinkerRelease: @libNameForLinkerRelease@
+    property string libNameForLinker: qbs.buildVariant === "debug"
+                                      ? libNameForLinkerDebug : libNameForLinkerRelease
 
     coreLibPaths: @libraryPaths@
 
@@ -89,7 +93,7 @@ Module {
     cpp.staticLibraries: {
         var libs = [];
         if (staticBuild)
-            libs.push(QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, staticBuild));
+            libs.push(libNameForLinker);
         if (qbs.targetOS.contains('windows') && !product.consoleApplication)
             libs.push("qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : ""));
         libs = libs.concat(staticLibs);
@@ -98,7 +102,7 @@ Module {
     cpp.dynamicLibraries: {
         var libs = [];
         if (!staticBuild && !frameworkBuild)
-            libs=[QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, staticBuild)];
+            libs.push(libNameForLinker);
         if (qbs.targetOS.contains('ios') && staticBuild)
             libs = libs.concat(["z", "m",
                                 QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs, true)]);
@@ -112,7 +116,7 @@ Module {
     cpp.frameworks: {
         var frameworks = coreFrameworks
         if (frameworkBuild)
-            frameworks.push(QtFunctions.getQtLibraryName('Core' + libInfix, qtcore, qbs, false))
+            frameworks.push(libNameForLinker);
         if (qbs.targetOS.contains('ios') && staticBuild)
             frameworks = frameworks.concat(["Foundation", "CoreFoundation"]);
         if (frameworks.length === 0)

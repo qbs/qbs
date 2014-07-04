@@ -1,6 +1,5 @@
 import qbs 1.0
 import qbs.FileInfo
-import 'qtfunctions.js' as QtFunctions
 
 Module {
     Depends { name: "cpp" }
@@ -13,9 +12,10 @@ Module {
     property path libPath: Qt.core.libPath
     property string qtLibInfix: Qt.core.libInfix
     property string includeDirName: qtModulePrefix + qtModuleName
-    property string internalLibraryName: QtFunctions.getQtLibraryName(qtModuleName + qtLibInfix,
-                                                                      Qt.core, qbs, isStaticLibrary,
-                                                                      qtModulePrefix)
+    property string libNameForLinkerDebug
+    property string libNameForLinkerRelease
+    property string libNameForLinker: qbs.buildVariant === "debug"
+                                      ? libNameForLinkerDebug : libNameForLinkerRelease
     property string qtVersion: Qt.core.version
     property bool hasLibrary: true
     property bool isStaticLibrary: false
@@ -43,11 +43,11 @@ Module {
 
     Properties {
         condition: qtModuleName != undefined && hasLibrary
-        cpp.staticLibraries: staticLibs.concat(isStaticLibrary ? [internalLibraryName] : [])
+        cpp.staticLibraries: staticLibs.concat(isStaticLibrary ? [libNameForLinker] : [])
         cpp.dynamicLibraries: dynamicLibs.concat(!isStaticLibrary && !Qt.core.frameworkBuild
-                              ? [internalLibraryName] : [])
+                              ? [libNameForLinker] : [])
         cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
-                        ? [internalLibraryName] : [])
+                        ? [libNameForLinker] : [])
         cpp.frameworkPaths: mFrameworkPaths
     }
 }

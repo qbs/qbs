@@ -108,6 +108,10 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
     content.replace("@frameworkPathsRelease@", utf8JSLiteral(module.frameworkPathsRelease));
     content.replace("@frameworksDebug@", utf8JSLiteral(module.frameworksDebug));
     content.replace("@frameworksRelease@", utf8JSLiteral(module.frameworksRelease));
+    content.replace("@libNameForLinkerDebug@",
+                    utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
+    content.replace("@libNameForLinkerRelease@",
+                    utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
     QByteArray propertiesString;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
     if (module.qbsName == QLatin1String("declarative")

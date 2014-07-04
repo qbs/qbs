@@ -48,6 +48,7 @@ public:
     QString frameworkHeadersPath(const QtEnvironment &qtEnvironment) const;
     QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const;
     QString libraryBaseName(const QtEnvironment &qtEnvironment, bool debugBuild) const;
+    QString libNameForLinker(const QtEnvironment &qtEnvironment, bool debugBuild) const;
     void setupLibraries(const QtEnvironment &qtEnv);
 
     QString modulePrefix; // default is empty and means "Qt".
