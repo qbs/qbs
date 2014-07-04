@@ -280,8 +280,10 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
     artifact->product->unregisterAddedArtifact(artifact);
 
     disconnectArtifact(artifact, logger);
-    if (artifact->transformer)
+    if (artifact->transformer) {
         artifact->product->unregisterArtifactWithChangedInputs(artifact);
+        artifact->transformer->outputs.remove(artifact);
+    }
     isDirty = true;
 }
 
