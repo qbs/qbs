@@ -459,8 +459,8 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
         const QString existingFile
                 = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
         if (existingFile != m_files.first()) {
-            throw ErrorInfo(Tr::tr("File '1' could not be found in the 'files' list."),
-                            bindingLocation);
+            throw ErrorInfo(Tr::tr("File '%1' could not be found in the 'files' list.")
+                            .arg(m_files.first()), bindingLocation);
         }
         rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
                                QLatin1String("[]"), Rewriter::ScriptBinding);
