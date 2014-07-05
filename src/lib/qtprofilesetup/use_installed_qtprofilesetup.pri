@@ -6,7 +6,7 @@ unix:LIBS += -l$${LIBNAME}
 
 win32 {
     CONFIG(debug, debug|release) {
-        QBSQTPROFILELIB = $${LIBNAME}$$d{QBSCORELIBSUFFIX}
+        QBSQTPROFILELIB = $${LIBNAME}d$${QBSCORELIBSUFFIX}
     }
     CONFIG(release, debug|release) {
         QBSQTPROFILELIB = $${LIBNAME}$${QBSCORELIBSUFFIX}
