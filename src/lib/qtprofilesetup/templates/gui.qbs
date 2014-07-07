@@ -55,5 +55,6 @@ QtModule {
                                      "Foundation", "CoreFoundation"])
     }
     cpp.frameworks: base
+    @special_properties@
 }
 
