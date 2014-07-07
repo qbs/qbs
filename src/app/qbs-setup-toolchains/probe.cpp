@@ -131,18 +131,7 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
 {
     QFileInfo cfi(compilerFilePath);
     profile.setValue(QLatin1String("cpp.toolchainInstallPath"), cfi.absolutePath());
-
-    // Correctly set toolchain prefix for GCC cross compilers
-    QString compilerName = cfi.fileName();
-    QString installPrefix = compilerName;
-    if (installPrefix.endsWith(QLatin1String("-gcc")) ||
-        installPrefix.endsWith(QLatin1String("-g++"))) {
-        compilerName = installPrefix.right(3);
-        installPrefix.chop(3);
-        profile.setValue(QLatin1String("cpp.toolchainPrefix"), installPrefix);
-    }
-
-    profile.setValue(QLatin1String("cpp.compilerName"), compilerName);
+    profile.setValue(QLatin1String("cpp.compilerName"), cfi.fileName());
     profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
     profile.setValue(QLatin1String("qbs.architecture"),
                      HostOsInfo::canonicalArchitecture(architecture));
