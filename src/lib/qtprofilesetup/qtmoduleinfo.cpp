@@ -114,6 +114,24 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv)
 
 void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
 {
+    QStringList &libs = isStaticLibrary
+            ? (debugBuild ? staticLibrariesDebug : staticLibrariesRelease)
+            : (debugBuild ? dynamicLibrariesDebug : dynamicLibrariesRelease);
+    QStringList &frameworks = debugBuild ? frameworksDebug : frameworksRelease;
+    QStringList &frameworkPaths = debugBuild ? frameworkPathsDebug : frameworkPathsRelease;
+    QStringList &flags = debugBuild ? linkerFlagsDebug : linkerFlagsRelease;
+
+    if (qtEnv.mkspecName.contains(QLatin1String("ios")) && isStaticLibrary) {
+        QtModuleInfo platformSupportModule = *this;
+        platformSupportModule.name = QLatin1String("QtPlatformSupport");
+        libs << QLatin1String("z") << QLatin1String("m")
+             << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
+        flags << QLatin1String("-force_load")
+              << qtEnv.pluginPath + QLatin1String("/platforms/")
+                 + libBaseName(QLatin1String("libqios"), true, debugBuild, qtEnv)
+                 + QLatin1String(".a");
+    }
+
     QString prlFilePath = qtEnv.libraryPath + QLatin1Char('/');
     if (qtEnv.frameworkBuild)
         prlFilePath.append(libraryBaseName(qtEnv, false)).append(QLatin1String(".framework/"));
@@ -138,12 +156,6 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
         if (equalsOffset == -1)
             continue;
 
-        QStringList &libs = isStaticLibrary
-                ? debugBuild ? staticLibrariesDebug : staticLibrariesRelease
-                : debugBuild ? dynamicLibrariesDebug : dynamicLibrariesRelease;
-        QStringList &frameworks = debugBuild ? frameworksDebug : frameworksRelease;
-        QStringList &frameworkPaths = debugBuild ? frameworkPathsDebug : frameworkPathsRelease;
-        QStringList &flags = debugBuild ? linkerFlagsDebug : linkerFlagsRelease;
         // Assuming lib names and directories without spaces here.
         QStringList parts = QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed())
                 .split(QLatin1Char(' '), QString::SkipEmptyParts);

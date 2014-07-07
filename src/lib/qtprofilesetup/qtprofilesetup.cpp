@@ -171,7 +171,6 @@ static void createModules(Profile &profile, Settings *settings,
                 "the existing profile of the same name (%2).").arg(profile.name(), removeError));
     }
     copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile.name());
-    copyTemplateFile(QLatin1String("qtfunctions.js"), qbsQtModuleBaseDir, profile.name());
     foreach (const QtModuleInfo &module, modules) {
         const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
         QString moduleTemplateFileName;

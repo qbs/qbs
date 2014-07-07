@@ -2,7 +2,6 @@ import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
 import "moc.js" as Moc
-import '../qtfunctions.js' as QtFunctions
 
 Module {
     id: qtcore
@@ -103,15 +102,10 @@ Module {
         var libs = [];
         if (!staticBuild && !frameworkBuild)
             libs.push(libNameForLinker);
-        if (qbs.targetOS.contains('ios') && staticBuild)
-            libs = libs.concat(["z", "m",
-                                QtFunctions.getQtLibraryName("PlatformSupport", qtcore, qbs, true)]);
         libs = libs.concat(dynamicLibs);
         return libs;
     }
-    cpp.linkerFlags: coreLinkerFlags.concat((qbs.targetOS.contains('ios') && staticBuild) ?
-                          ["-force_load", pluginPath + "/platforms/" +
-                           QtFunctions.getPlatformLibraryName("libqios", qtcore, qbs, true) + ".a"] : [])
+    cpp.linkerFlags: coreLinkerFlags
     cpp.frameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
     cpp.frameworks: {
         var frameworks = coreFrameworks
