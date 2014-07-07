@@ -126,9 +126,9 @@ Module {
     cpp.rpaths: qbs.targetOS.contains('linux') ? [libPath] : undefined
     cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
     cpp.cxxFlags: {
-        var flags;
+        var flags = [];
         if (qbs.toolchain.contains('msvc')) {
-            flags = ['/Zm200'];
+            flags.push('/Zm200');
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');
         }
