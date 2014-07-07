@@ -43,9 +43,9 @@ Module {
 
     Properties {
         condition: qtModuleName != undefined && hasLibrary
-        cpp.staticLibraries: staticLibs.concat(isStaticLibrary ? [libNameForLinker] : [])
-        cpp.dynamicLibraries: dynamicLibs.concat(!isStaticLibrary && !Qt.core.frameworkBuild
-                              ? [libNameForLinker] : [])
+        cpp.staticLibraries: (isStaticLibrary ? [libNameForLinker] : []).concat(staticLibs)
+        cpp.dynamicLibraries: (!isStaticLibrary && !Qt.core.frameworkBuild
+                               ? [libNameForLinker] : []).concat(dynamicLibs)
         cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
                         ? [libNameForLinker] : [])
         cpp.frameworkPaths: mFrameworkPaths
