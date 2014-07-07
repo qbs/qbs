@@ -139,6 +139,34 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
                      HostOsInfo::defaultEndianness(architecture));
 }
 
+class ToolPathSetup
+{
+public:
+    ToolPathSetup(Profile *profile, const QString &path, const QString &toolchainPrefix)
+        : m_profile(profile), m_compilerDirPath(path), m_toolchainPrefix(toolchainPrefix)
+    {
+    }
+
+    void apply(const QString &toolName, const QString &propertyName) const
+    {
+        QString toolFileName = m_toolchainPrefix + HostOsInfo::appendExecutableSuffix(toolName);
+        if (QFile::exists(m_compilerDirPath + QLatin1Char('/') + toolFileName))
+            return;
+        const QString toolFilePath = findExecutable(toolFileName);
+        if (toolFilePath.isEmpty()) {
+            qWarning("%s", qPrintable(
+                         QString(QLatin1String("'%1' exists neither in '%2' nor in PATH."))
+                            .arg(toolFileName, m_compilerDirPath)));
+        }
+        m_profile->setValue(propertyName, toolFilePath);
+    }
+
+private:
+    Profile * const m_profile;
+    const QString &m_compilerDirPath;
+    const QString &m_toolchainPrefix;
+};
+
 static Profile createGccProfile(const QString &_compilerFilePath, Settings *settings,
                                 const QStringList &toolchainTypes,
                                 const QString &profileName = QString())
@@ -164,12 +192,21 @@ static Profile createGccProfile(const QString &_compilerFilePath, Settings *sett
 
     setCommonProperties(profile, compilerFilePath, toolchainTypes, compilerTriplet.first());
     const QString compilerName = QFileInfo(compilerFilePath).fileName();
+    QString toolchainPrefix;
     if (compilerName.contains(QLatin1Char('-'))) {
         QStringList nameParts = compilerName.split(QLatin1Char('-'));
         profile.setValue(QLatin1String("cpp.compilerName"), nameParts.takeLast());
-        profile.setValue(QLatin1String("cpp.toolchainPrefix"),
-                         nameParts.join(QLatin1String("-")) + QLatin1Char('-'));
+        toolchainPrefix = nameParts.join(QLatin1String("-")) + QLatin1Char('-');
+        profile.setValue(QLatin1String("cpp.toolchainPrefix"), toolchainPrefix);
     }
+
+    // Check whether auxiliary tools reside within the toolchain's install path.
+    // This might not be the case when using icecc or another compiler wrapper.
+    const QString compilerDirPath = QFileInfo(compilerFilePath).absolutePath();
+    const ToolPathSetup toolPathSetup(&profile, compilerDirPath, toolchainPrefix);
+    toolPathSetup.apply(QLatin1String("ar"), QLatin1String("cpp.archiverPath"));
+    toolPathSetup.apply(QLatin1String("nm"), QLatin1String("cpp.nmPath"));
+
     qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(profile.name(), compilerFilePath)
             << endl;
     return profile;
