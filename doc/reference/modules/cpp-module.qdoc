@@ -333,7 +333,7 @@
     \row    \li \b{Default:}         \li determined by qbs-setup-toolchains
     \endtable
 
-    Name of the compiler binary. This is set in the build profile.
+    Name of the main compiler binary. This is set in the build profile.
 
     \section2 compilerPath
 
@@ -342,7 +342,18 @@
     \row    \li \b{Default:}         \li determined by qbs-setup-toolchains
     \endtable
 
-    Full path of the compiler binary. This is set in the build profile.
+    Full path of the main compiler binary. This is set in the build profile.
+    If the toolchain provides different compilers for different languages, then
+    \c{compilerPathByLanguage} is used.
+
+    \section2 compilerPathByLanguage
+
+    \table
+    \row    \li \b{Type:}            \li \c{string} to \c{string} map
+    \row    \li \b{Default:}         \li determined by qbs-setup-toolchains
+    \endtable
+
+    Maps file tags to full paths of compiler binaries. This is set in the build profile.
 
     \section2 compilerWrapper
 

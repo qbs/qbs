@@ -292,7 +292,15 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     args = args.concat(additionalCompilerFlags(product, input, output));
     args = args.concat(additionalCompilerAndLinkerFlags(product));
 
-    var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
+    var compilerPath;
+    var compilerPathByLanguage = ModUtils.moduleProperty(product, "compilerPathByLanguage");
+    if (compilerPathByLanguage)
+        compilerPath = compilerPathByLanguage[tag];
+    if (!compilerPath) {
+        // fall back to main compiler
+        compilerPath = ModUtils.moduleProperty(product, "compilerPath");
+    }
+
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
     if (wrapperArgs && wrapperArgs.length > 0) {
         args.unshift(compilerPath);

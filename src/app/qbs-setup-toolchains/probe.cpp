@@ -35,6 +35,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/scripttools.h>
 #include <tools/settings.h>
 
 #include <QDir>
@@ -109,34 +110,55 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
     return QStringList();
 }
 
-static QString actualCompilerFilePath(const QString &compilerFilePath)
-{
-    const QFileInfo cfi(compilerFilePath);
-    QString compilerFileName = cfi.fileName();
-
-    // People usually want to compile C++. Since we currently link via
-    // the compiler executable, using the plain C compiler will likely lead to linking problems.
-    compilerFileName.replace(QLatin1String("gcc"), QLatin1String("g++"));
-    compilerFileName.replace(QLatin1String("clang"), QLatin1String("clang++"));
-    return cfi.absolutePath() + QLatin1Char('/') + compilerFileName;
-}
-
 static QString gccMachineName(const QString &compilerFilePath)
 {
     return qsystem(compilerFilePath, QStringList() << QLatin1String("-dumpmachine")).trimmed();
 }
 
+static void setupCompilerPathByLanguage(Profile &profile, const QStringList &toolchainTypes,
+        const QString &toolchainInstallPath, const QString &toolchainPrefix)
+{
+    QVariantMap m;
+    if (toolchainTypes.contains("clang")) {
+        m["c"] = m["objc"] = QLatin1String("clang");
+        m["cpp"] = m["objcpp"] = QLatin1String("clang++");
+    } else if (toolchainTypes.contains("gcc")) {
+        m["c"] = m["objc"] = QLatin1String("gcc");
+        m["cpp"] = m["objcpp"] = QLatin1String("g++");
+    } else {
+        qDebug("WARNING: unexpected toolchain %s", qPrintable(toJSLiteral(toolchainTypes)));
+        return;
+    }
+
+    const QString toolchainPathPrefix = toolchainInstallPath + QLatin1Char('/') + toolchainPrefix;
+    for (QVariantMap::iterator it = m.begin(); it != m.end();) {
+        const QString filePath = toolchainPathPrefix + it.value().toString();
+        if (QFile::exists(filePath)) {
+            ++it;
+            continue;
+        }
+        qDebug("WARNING: Compiler %s for file tag %s not found.",
+               qPrintable(QDir::toNativeSeparators(filePath)), qPrintable(it.key()));
+        it = m.erase(it);
+    }
+    if (!m.isEmpty())
+        profile.setValue(QLatin1String("cpp.compilerPathByLanguage"), m);
+}
+
 static void setCommonProperties(Profile &profile, const QString &compilerFilePath,
-                                const QStringList &toolchainTypes, const QString &architecture)
+        const QString &toolchainPrefix, const QStringList &toolchainTypes,
+        const QString &architecture)
 {
     QFileInfo cfi(compilerFilePath);
-    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), cfi.absolutePath());
+    const QString toolchainInstallPath = cfi.absolutePath();
+    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), toolchainInstallPath);
     profile.setValue(QLatin1String("cpp.compilerName"), cfi.fileName());
     profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
     profile.setValue(QLatin1String("qbs.architecture"),
                      HostOsInfo::canonicalArchitecture(architecture));
     profile.setValue(QLatin1String("qbs.endianness"),
                      HostOsInfo::defaultEndianness(architecture));
+    setupCompilerPathByLanguage(profile, toolchainTypes, toolchainInstallPath, toolchainPrefix);
 }
 
 class ToolPathSetup
@@ -167,11 +189,10 @@ private:
     const QString &m_toolchainPrefix;
 };
 
-static Profile createGccProfile(const QString &_compilerFilePath, Settings *settings,
+static Profile createGccProfile(const QString &compilerFilePath, Settings *settings,
                                 const QStringList &toolchainTypes,
                                 const QString &profileName = QString())
 {
-    const QString compilerFilePath = actualCompilerFilePath(_compilerFilePath);
     const QString machineName = gccMachineName(compilerFilePath);
     const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
     const bool isMingw = toolchainTypes.contains(QLatin1String("mingw"));
@@ -191,7 +212,6 @@ static Profile createGccProfile(const QString &_compilerFilePath, Settings *sett
         profile.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
     }
 
-    setCommonProperties(profile, compilerFilePath, toolchainTypes, compilerTriplet.first());
     const QString compilerName = QFileInfo(compilerFilePath).fileName();
     QString toolchainPrefix;
     if (compilerName.contains(QLatin1Char('-'))) {
@@ -202,6 +222,8 @@ static Profile createGccProfile(const QString &_compilerFilePath, Settings *sett
     }
     profile.setValue(QLatin1String("cpp.linkerName"),
                      isClang ? QLatin1String("clang++") : QLatin1String("g++"));
+    setCommonProperties(profile, compilerFilePath, toolchainPrefix, toolchainTypes,
+                        compilerTriplet.first());
 
     // Check whether auxiliary tools reside within the toolchain's install path.
     // This might not be the case when using icecc or another compiler wrapper.

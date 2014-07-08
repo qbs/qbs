@@ -85,6 +85,7 @@ Module {
     property pathList linkerScripts
     property string compilerName
     property string compilerPath: compilerName
+    property var compilerPathByLanguage
     property stringList compilerWrapper
     property string linkerName
     property string linkerPath: linkerName
