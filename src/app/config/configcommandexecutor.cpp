@@ -33,7 +33,6 @@
 #include "../shared/qbssettings.h"
 
 #include <tools/error.h>
-#include <tools/settings.h>
 
 #include <QDir>
 #include <QFile>
