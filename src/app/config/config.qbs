@@ -4,6 +4,7 @@ import "../apptemplate.qbs" as QbsApp
 QbsApp {
     name: "qbs-config"
     files: [
+        "../shared/qbssettings.cpp",
         "../shared/qbssettings.h",
         "configcommand.h",
         "configcommandexecutor.cpp",

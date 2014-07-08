@@ -6,6 +6,17 @@ greaterThan(QT_MAJOR_VERSION, 4):QT += widgets
 
 TARGET = qbs-config-ui
 
-HEADERS += commandlineparser.h settingsmodel.h mainwindow.h
-SOURCES += commandlineparser.cpp settingsmodel.cpp mainwindow.cpp main.cpp
+HEADERS += \
+    ../shared/qbssettings.h \
+    commandlineparser.h \
+    mainwindow.h \
+    settingsmodel.h
+
+SOURCES += \
+    ../shared/qbssettings.cpp \
+    commandlineparser.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    settingsmodel.cpp
+
 FORMS += mainwindow.ui

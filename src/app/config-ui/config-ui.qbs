@@ -6,6 +6,8 @@ QbsApp {
     name: "qbs-config-ui"
     consoleApplication: false
     files: [
+        "../shared/qbssettings.cpp",
+        "../shared/qbssettings.h",
         "commandlineparser.cpp",
         "commandlineparser.h",
         "main.cpp",

@@ -26,15 +26,24 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_QBS_SETTINGS
-#define QBS_QBS_SETTINGS
 
-#include <tools/settings.h>
+#include "qbssettings.h"
 
-#include <QStringList>
-#include <QVariant>
+QString settingsValueToRepresentation(const QVariant &value)
+{
+    if (value.type() == QVariant::Bool)
+        return QLatin1String(value.toBool() ? "true" : "false");
+    return value.toStringList().join(QLatin1String(","));
+}
 
-QString settingsValueToRepresentation(const QVariant &value);
-QVariant representationToSettingsValue(const QString &representation);
-
-#endif // Include guard
+QVariant representationToSettingsValue(const QString &representation)
+{
+    if (representation == QLatin1String("true"))
+        return QVariant(true);
+    if (representation == QLatin1String("false"))
+        return QVariant(false);
+    const QStringList list = representation.split(QLatin1Char(','), QString::SkipEmptyParts);
+    if (list.count() > 1)
+        return list;
+    return representation;
+}
