@@ -244,6 +244,27 @@ function languageName(fileTag) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output) {
+
+    function languageTagFromFileExtension(fileName) {
+        var i = fileName.lastIndexOf('.');
+        if (i === -1)
+            return;
+        var m = {
+            "c"     : "c",
+            "C"     : "cpp",
+            "cpp"   : "cpp",
+            "cxx"   : "cpp",
+            "c++"   : "cpp",
+            "cc"    : "cpp",
+            "m"     : "objc",
+            "mm"    : "objcpp",
+            "s"     : "asm",
+            "S"     : "asm_cpp",
+            "sx"    : "asm_cpp"
+        };
+        return m[fileName.substring(i + 1)];
+    }
+
     var i, c;
 
     // Determine which C-language we're compiling
@@ -276,8 +297,20 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
 
     args = args.concat(ModUtils.moduleProperties(input, 'platformCommonCompilerFlags'));
 
-    args.push('-x');
-    args.push(Gcc.languageName(tag) + (pchOutput ? '-header' : ''));
+    var compilerPath;
+    var compilerPathByLanguage = ModUtils.moduleProperty(product, "compilerPathByLanguage");
+    if (compilerPathByLanguage)
+        compilerPath = compilerPathByLanguage[tag];
+    if (!compilerPath || tag !== languageTagFromFileExtension(input.fileName)) {
+        // Only push '-x language' if we have to.
+        args.push('-x');
+        args.push(languageName(tag) + (pchOutput ? '-header' : ''));
+    }
+    if (!compilerPath) {
+        // fall back to main compiler
+        compilerPath = ModUtils.moduleProperty(product, "compilerPath");
+    }
+
     args = args.concat(ModUtils.moduleProperties(input, 'platformFlags', tag),
                        ModUtils.moduleProperties(input, 'flags', tag));
 
@@ -291,15 +324,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     args = args.concat(ModUtils.moduleProperties(input, 'commonCompilerFlags'));
     args = args.concat(additionalCompilerFlags(product, input, output));
     args = args.concat(additionalCompilerAndLinkerFlags(product));
-
-    var compilerPath;
-    var compilerPathByLanguage = ModUtils.moduleProperty(product, "compilerPathByLanguage");
-    if (compilerPathByLanguage)
-        compilerPath = compilerPathByLanguage[tag];
-    if (!compilerPath) {
-        // fall back to main compiler
-        compilerPath = ModUtils.moduleProperty(product, "compilerPath");
-    }
 
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");
     if (wrapperArgs && wrapperArgs.length > 0) {
