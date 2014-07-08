@@ -28,11 +28,11 @@
 ****************************************************************************/
 #include "setupqt.h"
 
-#include "../shared/qbssettings.h"
 #include "commandlineparser.h"
 
 #include <qtprofilesetup.h>
 #include <logging/translator.h>
+#include <tools/settings.h>
 
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
 
-        SettingsPtr settings = qbsSettings(clParser.settingsDir());
+        Settings settings(clParser.settingsDir());
 
         if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
                     if (!prefixPathParts.isEmpty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
                 }
-                SetupQt::saveToQbsSettings(profileName, qtEnvironment, settings.data());
+                SetupQt::saveToQbsSettings(profileName, qtEnvironment, &settings);
             }
             return EXIT_SUCCESS;
         }
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
         QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(clParser.qmakePath());
         QString profileName = clParser.profileName();
         profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
-        SetupQt::saveToQbsSettings(profileName, qtEnvironment, settings.data());
+        SetupQt::saveToQbsSettings(profileName, qtEnvironment, &settings);
         return EXIT_SUCCESS;
     } catch (const ErrorInfo &e) {
         std::cerr << qPrintable(e.toString()) << std::endl;

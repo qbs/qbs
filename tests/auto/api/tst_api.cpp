@@ -29,8 +29,6 @@
 
 #include "tst_api.h"
 
-#include "../../../src/app/shared/qbssettings.h"
-
 #include <api/jobs.h>
 #include <api/project.h>
 #include <api/projectdata.h>
@@ -41,6 +39,7 @@
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/profile.h>
+#include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
 
 #include <QCoreApplication>
@@ -596,11 +595,11 @@ void TestApi::multiArch()
     const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
     setupParams.setBuildRoot(projectDir);
     setupParams.setProjectFilePath(topLevelProjectFile);
-    SettingsPtr settings = qbsSettings(QString());
-    qbs::Internal::TemporaryProfile tph("host", settings.data());
+    qbs::Settings settings((QString()));
+    qbs::Internal::TemporaryProfile tph("host", &settings);
     qbs::Profile hostProfile = tph.p;
     hostProfile.setValue("qbs.architecture", "host-arch");
-    qbs::Internal::TemporaryProfile tpt("target", settings.data());
+    qbs::Internal::TemporaryProfile tpt("target", &settings);
     qbs::Profile targetProfile = tpt.p;
     targetProfile.setValue("qbs.architecture", "target-arch");
     QVariantMap overriddenValues;
@@ -717,9 +716,9 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 
     const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
                                                 + QLatin1String("/../"));
-    SettingsPtr settings = qbsSettings(QString());
+    qbs::Settings settings((QString()));
     const QString profileName = QLatin1String("qbs_autotests");
-    const qbs::Preferences prefs(settings.data(), profileName);
+    const qbs::Preferences prefs(&settings, profileName);
     setupParams.setSearchPaths(prefs.searchPaths(qbsRootPath));
     setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath + QLatin1String("/lib")));
     setupParams.setTopLevelProfile(profileName);

@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include <app/shared/qbssettings.h>
+#include <tools/settings.h>
 #include <tools/tst_tools.h>
 
 #include <QCoreApplication>
@@ -36,7 +36,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    SettingsPtr settings = qbsSettings(QString());
-    qbs::Internal::TestTools tt(settings.data());
+    qbs::Settings settings((QString()));
+    qbs::Internal::TestTools tt(&settings);
     return QTest::qExec(&tt, argc, argv);
 }

@@ -3,7 +3,6 @@ include(../app.pri)
 TARGET = qbs-setup-toolchains
 
 HEADERS += \
-    ../shared/qbssettings.h \
     commandlineparser.h \
     msvcinfo.h \
     msvcprobe.h \

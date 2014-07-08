@@ -10,8 +10,7 @@ SOURCES += \
 
 HEADERS += \
     commandlineparser.h \
-    setupqt.h \
-    ../shared/qbssettings.h
+    setupqt.h
 
 mingw {
     RC_FILE = qbs-setup-qt.rc

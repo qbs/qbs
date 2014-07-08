@@ -31,7 +31,10 @@
 #include "../shared/qbssettings.h"
 
 #include <QList>
+#include <QScopedPointer>
 #include <QString>
+
+using qbs::Settings;
 
 struct Node
 {
@@ -56,14 +59,14 @@ public:
     Node *indexToNode(const QModelIndex &index);
 
     Node rootNode;
-    SettingsPtr settings;
+    QScopedPointer<Settings> settings;
     bool dirty;
 };
 
 SettingsModel::SettingsModel(const QString &settingsDir, QObject *parent)
     : QAbstractItemModel(parent), d(new SettingsModelPrivate)
 {
-    d->settings = qbsSettings(settingsDir);
+    d->settings.reset(new Settings(settingsDir));
     d->readSettings();
 }
 

@@ -11,7 +11,6 @@ QbsApp {
         'QBS_RELATIVE_PLUGINS_PATH="' + project.relativePluginsPath + '"'
     ])
     files: [
-        "../shared/qbssettings.h",
         "application.cpp",
         "application.h",
         "commandlinefrontend.cpp",

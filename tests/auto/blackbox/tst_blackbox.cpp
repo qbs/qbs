@@ -31,11 +31,11 @@
 
 #include "../skip.h"
 
-#include <app/shared/qbssettings.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/profile.h>
+#include <tools/settings.h>
 
 #include <QLocale>
 #include <QRegExp>
@@ -47,6 +47,7 @@ using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
+using qbs::Settings;
 
 static bool regularFileExists(const QString &filePath)
 {
@@ -190,12 +191,12 @@ void TestBlackbox::initTestCase()
 {
     QVERIFY(regularFileExists(qbsExecutableFilePath));
 
-    SettingsPtr settings = qbsSettings(QString());
-    if (!settings->profiles().contains(buildProfileName))
+    Settings settings((QString()));
+    if (!settings.profiles().contains(buildProfileName))
         QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
 
-    Profile buildProfile(buildProfileName, settings.data());
+    Profile buildProfile(buildProfileName, &settings);
     QVariant qtBinPath = buildProfile.value(QLatin1String("Qt.core.binPath"));
     if (!qtBinPath.isValid())
         QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
@@ -1997,7 +1998,7 @@ void TestBlackbox::checkProjectFilePath()
 class TemporaryDefaultProfileRemover
 {
 public:
-    TemporaryDefaultProfileRemover(const SettingsPtr &settings)
+    TemporaryDefaultProfileRemover(Settings *settings)
         : m_settings(settings), m_defaultProfile(settings->defaultProfile())
     {
         m_settings->remove(QLatin1String("defaultProfile"));
@@ -2010,15 +2011,15 @@ public:
     }
 
 private:
-    SettingsPtr m_settings;
+    Settings *m_settings;
     const QString m_defaultProfile;
 };
 
 void TestBlackbox::missingProfile()
 {
-    SettingsPtr settings = qbsSettings(QString());
-    TemporaryDefaultProfileRemover dpr(settings);
-    QVERIFY(settings->defaultProfile().isEmpty());
+    Settings settings((QString()));
+    TemporaryDefaultProfileRemover dpr(&settings);
+    QVERIFY(settings.defaultProfile().isEmpty());
     QDir::setCurrent(testDataDir + "/project_filepath_check");
     QbsRunParameters params;
     params.arguments = QStringList("-f") << "project1.qbs";
@@ -2030,8 +2031,8 @@ void TestBlackbox::missingProfile()
 
 void TestBlackbox::testAssembly()
 {
-    SettingsPtr settings = qbsSettings(QString());
-    Profile profile(buildProfileName, settings.data());
+    Settings settings((QString()));
+    Profile profile(buildProfileName, &settings);
     bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
@@ -2073,8 +2074,8 @@ void TestBlackbox::testNsis()
         return;
     }
 
-    SettingsPtr settings = qbsSettings(QString());
-    Profile profile(buildProfileName, settings.data());
+    Settings settings((QString()));
+    Profile profile(buildProfileName, &settings);
     bool targetIsWindows = profile.value("qbs.targetOS").toStringList().contains("windows");
     QDir::setCurrent(testDataDir + "/nsis");
     QVERIFY(runQbs() == 0);
@@ -2144,8 +2145,8 @@ void TestBlackbox::testWiX()
         return;
     }
 
-    SettingsPtr settings = qbsSettings(QString());
-    Profile profile(buildProfileName, settings.data());
+    Settings settings((QString()));
+    Profile profile(buildProfileName, &settings);
     const QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
 
     QDir::setCurrent(testDataDir + "/wix");

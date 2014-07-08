@@ -17,8 +17,7 @@ HEADERS += \
     status.h \
     consoleprogressobserver.h \
     commandlinefrontend.h \
-    qbstool.h \
-    ../shared/qbssettings.h
+    qbstool.h
 
 include(../../library_dirname.pri)
 isEmpty(QBS_RELATIVE_PLUGINS_PATH):QBS_RELATIVE_PLUGINS_PATH=../$${QBS_LIBRARY_DIRNAME}

@@ -29,10 +29,10 @@
 
 #include "commandlineparser.h"
 #include "probe.h"
-#include "../shared/qbssettings.h"
 
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/settings.h>
 
 #include <QCoreApplication>
 
@@ -40,6 +40,7 @@
 #include <iostream>
 
 using qbs::Internal::Tr;
+using qbs::Settings;
 
 static void printUsage(const QString &usageString)
 {
@@ -57,13 +58,13 @@ int main(int argc, char **argv)
             printUsage(clParser.usageString());
             return EXIT_SUCCESS;
         }
-        SettingsPtr settings = qbsSettings(clParser.settingsDir());
+        Settings settings(clParser.settingsDir());
         if (clParser.autoDetectionMode()) {
-            probe(settings.data());
+            probe(&settings);
             return EXIT_SUCCESS;
         }
         createProfile(clParser.profileName(), clParser.toolchainType(), clParser.compilerPath(),
-                      settings.data());
+                      &settings);
     } catch (const qbs::ErrorInfo &e) {
         std::cerr << qPrintable(e.toString()) << std::endl;
         return EXIT_FAILURE;

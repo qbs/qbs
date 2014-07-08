@@ -5,7 +5,6 @@ QbsApp {
     name: "qbs-setup-qt"
     Depends { name: "qbsqtprofilesetup" }
     files: [
-        "../shared/qbssettings.h",
         "commandlineparser.cpp",
         "commandlineparser.h",
         "main.cpp",

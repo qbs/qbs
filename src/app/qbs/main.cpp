@@ -32,7 +32,6 @@
 #include "qbstool.h"
 #include "parser/commandlineparser.h"
 #include "../shared/logging/consolelogger.h"
-#include "../shared/qbssettings.h"
 
 #include <qbs.h>
 
@@ -73,9 +72,9 @@ int main(int argc, char *argv[])
             return 0;
         }
 
-        SettingsPtr settings = qbsSettings(parser.settingsDir());
-        ConsoleLogger::instance().setSettings(settings.data());
-        CommandLineFrontend clFrontend(parser, settings.data());
+        Settings settings(parser.settingsDir());
+        ConsoleLogger::instance().setSettings(&settings);
+        CommandLineFrontend clFrontend(parser, &settings);
         app.setCommandLineFrontend(&clFrontend);
         QTimer::singleShot(0, &clFrontend, SLOT(start()));
         return app.exec();

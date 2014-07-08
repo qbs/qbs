@@ -31,16 +31,8 @@
 
 #include <tools/settings.h>
 
-#include <QSharedPointer>
 #include <QStringList>
 #include <QVariant>
-
-typedef QSharedPointer<qbs::Settings> SettingsPtr;
-
-inline SettingsPtr qbsSettings(const QString &baseDir)
-{
-    return SettingsPtr(new qbs::Settings(baseDir));
-}
 
 inline QString settingsValueToRepresentation(const QVariant &value)
 {
