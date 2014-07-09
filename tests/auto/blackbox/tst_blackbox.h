@@ -116,6 +116,7 @@ private slots:
     void dynamicLibs();
     void dynamicRuleOutputs();
     void emptyFileTagList();
+    void emptySubmodulesList();
     void erroneousFiles_data();
     void erroneousFiles();
     void explicitlyDependsOn();

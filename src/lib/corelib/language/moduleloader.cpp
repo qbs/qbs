@@ -639,7 +639,13 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
     }
 
     QString superModuleName;
-    QStringList submodules = m_evaluator->stringListValue(dependsItem, QLatin1String("submodules"));
+    bool submodulesPropertySet;
+    QStringList submodules = m_evaluator->stringListValue(dependsItem, QLatin1String("submodules"),
+                                                          &submodulesPropertySet);
+    if (submodules.isEmpty() && submodulesPropertySet) {
+        m_logger.qbsTrace() << "Ignoring Depends item with empty submodules list.";
+        return;
+    }
     if (nameParts.count() == 2) {
         if (Q_UNLIKELY(!submodules.isEmpty()))
             throw ErrorInfo(Tr::tr("Depends.submodules cannot be used if name contains a dot."),

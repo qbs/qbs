@@ -1569,6 +1569,12 @@ void TestBlackbox::emptyFileTagList()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::emptySubmodulesList()
+{
+    QDir::setCurrent(testDataDir + "/empty-submodules-list");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
