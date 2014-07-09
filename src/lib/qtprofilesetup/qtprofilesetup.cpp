@@ -83,6 +83,29 @@ static QString pathToJSLiteral(const QString &path)
     return toJSLiteral(QDir::fromNativeSeparators(path));
 }
 
+static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &module,
+                                const QtEnvironment &qtEnv)
+{
+    if (qtEnv.qtMajorVersion < 5)
+        return QString();
+    QFile qConfigPri(qtEnv.mkspecBasePath + QLatin1String("/qconfig.pri"));
+    if (!qConfigPri.open(QIODevice::ReadOnly)) {
+        throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
+                "file '%2' (%3).")
+                .arg(profile.name(), qConfigPri.fileName(), qConfigPri.errorString()));
+    }
+    const QList<QByteArray> lines = qConfigPri.readAll().split('\n');
+    const QByteArray magicString = "QT_DEFAULT_QPA_PLUGIN =";
+    foreach (const QByteArray &line, lines) {
+        const QByteArray simplifiedLine = line.simplified();
+        if (simplifiedLine.startsWith(magicString))
+            return QString::fromLatin1(simplifiedLine.mid(magicString.count()).trimmed());
+    }
+    if (module.isStaticLibrary)
+        qDebug("Warning: Could not determine default QPA plugin for static Qt.");
+    return QString();
+}
+
 static void replaceSpecialValues(const QString &filePath, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
@@ -141,6 +164,10 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
                 + baIndent + "}";
     }
     content.replace("@defines@", compilerDefines);
+    if (module.qbsName == QLatin1String("gui")) {
+        content.replace("@defaultQpaPlugin@",
+                        utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
+    }
     if (!module.modulePrefix.isEmpty()) {
         if (!propertiesString.isEmpty())
             propertiesString += "\n    ";
@@ -151,6 +178,8 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
             propertiesString += "\n    ";
         propertiesString += "isStaticLibrary: true";
     }
+    if (module.isPlugin)
+        content.replace("@className@", utf8JSLiteral(module.pluginData.className));
     content.replace("@special_properties@", propertiesString);
     moduleFile.resize(0);
     moduleFile.write(content);
@@ -171,6 +200,7 @@ static void createModules(Profile &profile, Settings *settings,
                 "the existing profile of the same name (%2).").arg(profile.name(), removeError));
     }
     copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile.name());
+    copyTemplateFile(QLatin1String("QtPlugin.qbs"), qbsQtModuleBaseDir, profile.name());
     foreach (const QtModuleInfo &module, modules) {
         const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
         QString moduleTemplateFileName;
@@ -181,6 +211,8 @@ static void createModules(Profile &profile, Settings *settings,
             moduleTemplateFileName = QLatin1String("gui.qbs");
         } else if (module.qbsName == QLatin1String("phonon")) {
             moduleTemplateFileName = QLatin1String("phonon.qbs");
+        } else if (module.isPlugin) {
+            moduleTemplateFileName = QLatin1String("plugin.qbs");
         } else {
             moduleTemplateFileName = QLatin1String("module.qbs");
         }

@@ -72,6 +72,14 @@ public:
     bool isPrivate;
     bool hasLibrary;
     bool isStaticLibrary;
+    bool isPlugin;
+    QStringList supportedPluginTypes;
+
+    struct PluginData {
+        QString type;
+        QString extends;
+        QString className;
+    } pluginData;
 
 private:
     void setupLibraries(const QtEnvironment &qtEnv, bool debugBuild);

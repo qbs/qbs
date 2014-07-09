@@ -40,7 +40,8 @@
 namespace qbs {
 namespace Internal {
 
-QtModuleInfo::QtModuleInfo() : isPrivate(false), hasLibrary(true), isStaticLibrary(false)
+QtModuleInfo::QtModuleInfo()
+    : isPrivate(false), hasLibrary(true), isStaticLibrary(false), isPlugin(false)
 {
 }
 
@@ -85,6 +86,9 @@ QStringList QtModuleInfo::qt4ModuleIncludePaths(const QtEnvironment &qtEnvironme
 QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
                                            bool debugBuild) const
 {
+    if (isPlugin)
+        return libBaseName(name, isStaticLibrary, debugBuild, qtEnvironment);
+
     // Enginio has a different naming scheme, so it doesn't get boring.
     const bool isEnginio = name == QLatin1String("Enginio");
 
@@ -112,6 +116,11 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv)
     setupLibraries(qtEnv, false);
 }
 
+static QStringList makeList(const QByteArray &s)
+{
+    return QString::fromLatin1(s).split(QLatin1Char(' '), QString::SkipEmptyParts);
+}
+
 void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
 {
     QStringList &libs = isStaticLibrary
@@ -132,7 +141,10 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
                  + QLatin1String(".a");
     }
 
-    QString prlFilePath = qtEnv.libraryPath + QLatin1Char('/');
+    QString prlFilePath = isPlugin
+            ? qtEnv.pluginPath + QLatin1Char('/') + pluginData.type
+            : qtEnv.libraryPath;
+    prlFilePath += QLatin1Char('/');
     if (qtEnv.frameworkBuild)
         prlFilePath.append(libraryBaseName(qtEnv, false)).append(QLatin1String(".framework/"));
     if (!qtEnv.mkspecName.contains(QLatin1String("win")) && !qtEnv.frameworkBuild)
@@ -351,16 +363,25 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
     QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
     while (dit.hasNext()) {
         const QString moduleFileNamePrefix = QLatin1String("qt_lib_");
+        const QString pluginFileNamePrefix = QLatin1String("qt_plugin_");
         const QString moduleFileNameSuffix = QLatin1String(".pri");
         dit.next();
-        if (!dit.fileName().startsWith(moduleFileNamePrefix)
+        const bool fileHasPluginPrefix = dit.fileName().startsWith(pluginFileNamePrefix);
+        if ((!fileHasPluginPrefix && !dit.fileName().startsWith(moduleFileNamePrefix))
                 || !dit.fileName().endsWith(moduleFileNameSuffix)) {
             continue;
         }
         QtModuleInfo moduleInfo;
-        moduleInfo.qbsName = dit.fileName().mid(moduleFileNamePrefix.count(),
-                dit.fileName().count() - moduleFileNamePrefix.count()
+        moduleInfo.isPlugin = fileHasPluginPrefix;
+        const QString fileNamePrefix
+                = moduleInfo.isPlugin ? pluginFileNamePrefix : moduleFileNamePrefix;
+        moduleInfo.qbsName = dit.fileName().mid(fileNamePrefix.count(),
+                dit.fileName().count() - fileNamePrefix.count()
                 - moduleFileNameSuffix.count());
+        if (moduleInfo.isPlugin) {
+            moduleInfo.name = moduleInfo.qbsName;
+            moduleInfo.isStaticLibrary = true;
+        }
         moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
         QFile priFile(dit.filePath());
         if (!priFile.open(QIODevice::ReadOnly)) {
@@ -406,6 +427,14 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                         .split(QLatin1Char(' '), QString::SkipEmptyParts);
             } else if (key.endsWith(".VERSION")) {
                 moduleInfo.version = QString::fromLocal8Bit(value);
+            } else if (key.endsWith(".plugin_types")) {
+                moduleInfo.supportedPluginTypes = makeList(value);
+            } else if (key.endsWith(".TYPE")) {
+                moduleInfo.pluginData.type = QString::fromLatin1(value);
+            } else if (key.endsWith(".EXTENDS")) {
+                moduleInfo.pluginData.extends = QString::fromLatin1(value);
+            } else if (key.endsWith(".CLASS_NAME")) {
+                moduleInfo.pluginData.className = QString::fromLatin1(value);
             }
         }
 
@@ -431,6 +460,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
         if (moduleInfo.qbsName == QLatin1String("designercomponents-private"))
             addDesignerComponentsModule(modules);
     }
+
     return modules;
 }
 

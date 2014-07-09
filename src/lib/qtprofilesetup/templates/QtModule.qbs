@@ -19,6 +19,7 @@ Module {
     property string qtVersion: Qt.core.version
     property bool hasLibrary: true
     property bool isStaticLibrary: false
+    property bool isPlugin: false
 
     property stringList staticLibsDebug
     property stringList staticLibsRelease

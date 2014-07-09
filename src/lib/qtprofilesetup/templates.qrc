@@ -6,5 +6,7 @@
         <file>templates/module.qbs</file>
         <file>templates/QtModule.qbs</file>
         <file>templates/moc.js</file>
+        <file>templates/plugin.qbs</file>
+        <file>templates/QtPlugin.qbs</file>
     </qresource>
 </RCC>
