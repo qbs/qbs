@@ -368,6 +368,13 @@ void TestLanguage::erroneousFiles_data()
             << "Items of type 'Project' cannot contain items of type 'Depends'.";
     QTest::newRow("conflicting_fileTagsFilter")
             << "Conflicting fileTagsFilter in Group items";
+    QTest::newRow("duplicate_sources")
+            << "Duplicate source file '.*main.cpp' "
+               "at .*duplicate_sources.qbs:4:12 and .*duplicate_sources.qbs:6:16.";
+    QTest::newRow("duplicate_sources_wildcards")
+            << "Duplicate source file '.*duplicate_sources_wildcards.qbs' "
+               "at .*duplicate_sources_wildcards.qbs:4:12 "
+               "and .*duplicate_sources_wildcards.qbs:6:16.";
 }
 
 void TestLanguage::erroneousFiles()
@@ -378,7 +385,7 @@ void TestLanguage::erroneousFiles()
         defaultParameters.setProjectFilePath(testProject("/erroneous/") + fileName);
         loader->loadProject(defaultParameters);
     } catch (const ErrorInfo &e) {
-        if (!e.toString().contains(errorMessage)) {
+        if (!e.toString().contains(QRegExp(errorMessage))) {
             qDebug() << "Message:  " << e.toString();
             qDebug() << "Expected: " << errorMessage;
             QFAIL("Unexpected error message.");
@@ -1234,7 +1241,6 @@ void TestLanguage::fileTags_data()
     QTest::newRow("set_file_tag_via_group") << 2 << (QStringList() << "c++");
     QTest::newRow("override_file_tag_via_group") << 2 << (QStringList() << "c++");
     QTest::newRow("add_file_tag_via_group") << 2 << (QStringList() << "cpp" << "zzz");
-    QTest::newRow("add_file_tag_via_group_and_file_ref") << 2 << (QStringList() << "cpp" << "zzz");
     QTest::newRow("cleanup") << 0 << QStringList();
 }
 

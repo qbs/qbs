@@ -635,11 +635,11 @@
     \code
         Product {
             Depends: "cpp"
-            files: ["main.cpp"]         // Gets the file tag "cpp" through a FileTagger item.
             Group {
                 overrideTags: false     // The overrideTags property defaults to true.
-                files: ["main.cpp"]
-                fileTags: ["foobar"]    // Gets the file tag "foobar" in addition to "cpp".
+                fileTags: ["foobar"]
+                files: ["main.cpp"]     // Gets the file tag "cpp" through a FileTagger item and
+                                        // "foobar" from this group's fileTags property.
             }
             // ...
         }

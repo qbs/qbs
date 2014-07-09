@@ -82,6 +82,7 @@ private:
         Item *item;
         typedef QPair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
         QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
+        QHash<QString, CodeLocation> sourceArtifactLocations;
     };
 
     struct ModuleContext

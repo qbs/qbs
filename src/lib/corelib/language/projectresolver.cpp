@@ -533,12 +533,20 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                              group->fileTags, group->overrideTags, group->files);
     ErrorInfo fileError;
     if (group->enabled) {
-        foreach (const SourceArtifactConstPtr &a, group->files) {
+        const ValuePtr filesValue = item->property(QLatin1String("files"));
+        foreach (const SourceArtifactConstPtr &a, group->allFiles()) {
             if (!FileInfo(a->absoluteFilePath).exists()) {
                 fileError.append(Tr::tr("File '%1' does not exist.")
                                  .arg(a->absoluteFilePath),
                                  item->property(QLatin1String("files"))->location());
             }
+            CodeLocation &loc = m_productContext->sourceArtifactLocations[a->absoluteFilePath];
+            if (loc.isValid()) {
+                fileError.append(Tr::tr("Duplicate source file '%1' at %2 and %3.")
+                                 .arg(a->absoluteFilePath, loc.toString(),
+                                      filesValue->location().toString()));
+            }
+            loc = filesValue->location();
         }
         if (fileError.hasError())
             throw ErrorInfo(fileError);
