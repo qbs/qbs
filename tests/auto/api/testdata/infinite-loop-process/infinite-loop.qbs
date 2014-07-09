@@ -1,9 +1,8 @@
 import qbs
 
 Project {
-    CppApplication {
+    QtApplication {
         type: "application" // suppress bundle generation
-        Depends { name: "Qt.core" }
         files: "main.cpp"
         name: "infinite-loop"
     }

@@ -1,6 +1,6 @@
 import qbs
 
-CppApplication {
+QtApplication {
     name: "debuggable-app"
     type: "application"
     Depends { name: "Qt.quick" }

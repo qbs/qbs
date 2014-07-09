@@ -1,7 +1,6 @@
 import qbs
 
-CppApplication {
-    Depends { name: "Qt.core" }
+QtApplication {
     files: ["main.cpp", "object.h", "object.cpp"]
 }
 

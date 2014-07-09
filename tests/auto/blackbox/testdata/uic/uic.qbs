@@ -1,11 +1,9 @@
 import qbs 1.0
 
 Project {
-    Product {
+    QtGuiApplication {
         type: "application"
         name: "ui"
-
-        Depends { name: "Qt.gui"}
 
         files: [
             "bla.cpp",

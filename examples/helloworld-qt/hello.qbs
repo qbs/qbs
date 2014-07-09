@@ -37,8 +37,7 @@
 
 import qbs
 
-CppApplication {
+QtApplication {
     name: "HelloWorld-Qt"
-    Depends { name: "Qt.core" }
     files: "main.cpp"
 }

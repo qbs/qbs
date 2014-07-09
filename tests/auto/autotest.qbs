@@ -1,6 +1,6 @@
 import qbs
 
-CppApplication {
+QtApplication {
     type: "application"
     property string testName
     name: "tst_" + testName
