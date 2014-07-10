@@ -75,7 +75,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             throw ErrorInfo(Tr::tr("Too many arguments."));
         m_command.varNames << m_commandLine.first();
         if (m_commandLine.count() == 1) {
-            setCommand(ConfigCommand::CfgGet);
+            setCommand(ConfigCommand::CfgList);
         } else {
             m_command.varValue = m_commandLine.at(1);
             setCommand(ConfigCommand::CfgSet);

@@ -52,9 +52,6 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
     case ConfigCommand::CfgList:
         printSettings(command);
         break;
-    case ConfigCommand::CfgGet:
-        puts(qPrintable(m_settings->value(command.varNames.first()).toString()));
-        break;
     case ConfigCommand::CfgSet:
         setValue(command.varNames.first(), command.varValue);
         break;
