@@ -15,7 +15,7 @@ CppModule {
     property string toolchainPrefix
     property path toolchainInstallPath
     compilerName: 'g++'
-    linkerName: compilerName
+    linkerName: 'g++'
     property string archiverName: 'ar'
     property string nmName: 'nm'
     property path sysroot: qbs.sysroot

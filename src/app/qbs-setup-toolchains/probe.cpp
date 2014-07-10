@@ -175,6 +175,7 @@ static Profile createGccProfile(const QString &_compilerFilePath, Settings *sett
     const QString machineName = gccMachineName(compilerFilePath);
     const QStringList compilerTriplet = machineName.split(QLatin1Char('-'));
     const bool isMingw = toolchainTypes.contains(QLatin1String("mingw"));
+    const bool isClang = toolchainTypes.contains(QLatin1String("clang"));
 
     if (isMingw && !validMinGWMachines().contains(machineName)) {
         throw qbs::ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
@@ -199,6 +200,8 @@ static Profile createGccProfile(const QString &_compilerFilePath, Settings *sett
         toolchainPrefix = nameParts.join(QLatin1String("-")) + QLatin1Char('-');
         profile.setValue(QLatin1String("cpp.toolchainPrefix"), toolchainPrefix);
     }
+    profile.setValue(QLatin1String("cpp.linkerName"),
+                     isClang ? QLatin1String("clang++") : QLatin1String("g++"));
 
     // Check whether auxiliary tools reside within the toolchain's install path.
     // This might not be the case when using icecc or another compiler wrapper.

@@ -312,6 +312,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                     clangProfile.setValue(QLatin1String("qbs.sysroot"), sysRoot);
                 clangProfile.setValue(QLatin1String("cpp.platformPath"), fInfo.canonicalFilePath());
                 clangProfile.setValue(QLatin1String("cpp.compilerName"), clangFileInfo.fileName());
+                clangProfile.setValue(QLatin1String("cpp.linkerName"), QLatin1String("clang++"));
                 clangProfile.setValue(QLatin1String("cpp.toolchainInstallPath"),
                                       clangFileInfo.canonicalPath());
                 setArch(&clangProfile, clangFileInfo.canonicalFilePath(), extraFlags);
@@ -332,6 +333,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
                     gccProfile.setValue(QLatin1String("qbs.sysroot"), sysRoot);
                 gccProfile.setValue(QLatin1String("cpp.platformPath"),fInfo.canonicalFilePath());
                 gccProfile.setValue(QLatin1String("cpp.compilerName"), gccFileInfo.fileName());
+                gccProfile.setValue(QLatin1String("cpp.linkerName"), QLatin1String("g++"));
                 gccProfile.setValue(QLatin1String("cpp.toolchainInstallPath"),
                                     gccFileInfo.canonicalPath());
                 setArch(&gccProfile, gccFileInfo.canonicalFilePath(), QStringList());
