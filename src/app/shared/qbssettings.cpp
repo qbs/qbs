@@ -36,53 +36,28 @@
 
 using qbs::toJSLiteral;
 
-static QString mapToString(const QVariantMap &vm)
-{
-    QString str = QLatin1String("{");
-    for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
-        if (it != vm.begin())
-            str += QLatin1Char(',');
-        if (it.value().type() == QVariant::Map) {
-            str += toJSLiteral(it.key()) + QLatin1Char(':');
-            str += mapToString(it.value().toMap());
-        } else {
-            str += toJSLiteral(it.key()) + QLatin1Char(':') + toJSLiteral(it.value());
-        }
-    }
-    str += QLatin1Char('}');
-    return str;
-}
-
 QString settingsValueToRepresentation(const QVariant &value)
 {
-    if (value.type() == QVariant::Bool)
-        return QLatin1String(value.toBool() ? "true" : "false");
-    if (value.type() == QVariant::Map)
-        return mapToString(value.toMap());
-    return value.toStringList().join(QLatin1String(","));
+    return toJSLiteral(value);
 }
 
-static QVariantMap mapFromString(const QString &str)
+static QVariant variantFromString(const QString &str)
 {
     // ### use Qt5's JSON reader at some point.
     QScriptEngine engine;
     QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
                                       + str + QLatin1String(";})()"));
     if (sv.isError())
-        return QVariantMap();
-    return sv.toVariant().toMap();
+        return QVariant();
+    return sv.toVariant();
 }
 
 QVariant representationToSettingsValue(const QString &representation)
 {
-    if (representation == QLatin1String("true"))
-        return QVariant(true);
-    if (representation == QLatin1String("false"))
-        return QVariant(false);
-    if (representation.startsWith(QLatin1Char('{')))
-        return mapFromString(representation);
-    const QStringList list = representation.split(QLatin1Char(','), QString::SkipEmptyParts);
-    if (list.count() > 1)
-        return list;
+    const QVariant variant = variantFromString(representation);
+    if (variant.isValid())
+        return variant;
+
+    // If it's not valid JavaScript, interpret the value as a string.
     return representation;
 }

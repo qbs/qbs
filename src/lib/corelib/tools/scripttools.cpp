@@ -85,9 +85,9 @@ QString toJSLiteral(const QStringList &strs)
 
 QString toJSLiteral(const QVariant &val)
 {
-    if (!val.isValid()) {
+    if (!val.isValid())
         return QLatin1String("undefined");
-    } else if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
+    if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
         QString res;
         foreach (const QVariant &child, val.toList()) {
             if (res.length()) res.append(QLatin1String(", "));
@@ -96,13 +96,23 @@ QString toJSLiteral(const QVariant &val)
         res.prepend(QLatin1Char('['));
         res.append(QLatin1Char(']'));
         return res;
-    } else if (val.type() == QVariant::Bool) {
-        return val.toBool() ? QLatin1String("true") : QLatin1String("false");
-    } else if (val.canConvert(QVariant::String)) {
-        return QLatin1Char('"') + val.toString() + QLatin1Char('"');
-    } else {
-        return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
     }
+    if (val.type() == QVariant::Map) {
+        const QVariantMap &vm = val.toMap();
+        QString str = QLatin1String("{");
+        for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
+            if (it != vm.begin())
+                str += QLatin1Char(',');
+            str += toJSLiteral(it.key()) + QLatin1Char(':') + toJSLiteral(it.value());
+        }
+        str += QLatin1Char('}');
+        return str;
+    }
+    if (val.type() == QVariant::Bool)
+        return val.toBool() ? QLatin1String("true") : QLatin1String("false");
+    if (val.canConvert(QVariant::String))
+        return QLatin1Char('"') + val.toString() + QLatin1Char('"');
+    return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
 }
 
 namespace Internal {
