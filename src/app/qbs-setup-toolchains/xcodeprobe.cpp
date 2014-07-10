@@ -80,8 +80,8 @@ private:
 
 int XcodeProbe::compareVersions(const QString &v1, const QString &v2)
 {
-    QStringList v1L = v1.split(QLatin1Char('.'));
-    QStringList v2L = v2.split(QLatin1Char('.'));
+    QStringList v1L = v1.split(QLatin1Char('.'), QString::SkipEmptyParts);
+    QStringList v2L = v2.split(QLatin1Char('.'), QString::SkipEmptyParts);
     int i = 0;
     while (v1L.length() > i && v2L.length() > i) {
         bool n1Ok, n2Ok;
