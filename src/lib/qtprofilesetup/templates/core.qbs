@@ -74,7 +74,7 @@ Module {
             defines.push("QT_NO_DEBUG");
         if (qbs.targetOS.contains("ios"))
             defines = defines.concat(["DARWIN_NO_CARBON", "QT_NO_CORESERVICES", "QT_NO_PRINTER",
-                            "QT_NO_PRINTDIALOG", "main=qt_main"]);
+                            "QT_NO_PRINTDIALOG", "main=qtmn"]);
         return defines;
     }
     cpp.includePaths: {
