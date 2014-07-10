@@ -105,7 +105,13 @@ Module {
         libs = libs.concat(dynamicLibs);
         return libs;
     }
-    cpp.linkerFlags: coreLinkerFlags
+    cpp.linkerFlags: {
+        var flags = coreLinkerFlags;
+        if (qbs.targetOS.contains('darwin') && qbs.toolchain.contains('clang')
+                && config.contains('c++11'))
+            flags.push('-stdlib=libc++');
+        return flags;
+    }
     cpp.frameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
     cpp.frameworks: {
         var frameworks = coreFrameworks
@@ -126,7 +132,8 @@ Module {
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');
         }
-        if (qbs.toolchain.contains('clang') && config.contains('c++11'))
+        if (qbs.targetOS.contains('darwin') && qbs.toolchain.contains('clang')
+                && config.contains('c++11'))
             flags.push('-stdlib=libc++');
         return flags;
     }
