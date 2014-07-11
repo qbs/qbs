@@ -56,10 +56,10 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
     QMenu * const viewMenu = menuBar()->addMenu(tr("&View"));
 
     QAction * const reloadAction = new QAction(tr("&Reload"), this);
-    reloadAction->setShortcut(Qt::CTRL | Qt::Key_R);
+    reloadAction->setShortcut(QKeySequence::Refresh);
     connect(reloadAction, SIGNAL(triggered()), SLOT(reloadSettings()));
     QAction * const saveAction = new QAction(tr("&Save"), this);
-    saveAction->setShortcut(Qt::CTRL | Qt::Key_S);
+    saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, SIGNAL(triggered()), SLOT(saveSettings()));
     QAction * const expandAllAction = new QAction(tr("&Expand All"), this);
     expandAllAction->setShortcut(Qt::CTRL | Qt::Key_E);
@@ -68,7 +68,8 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
     collapseAllAction->setShortcut(Qt::CTRL | Qt::Key_O);
     connect(collapseAllAction, SIGNAL(triggered()), SLOT(collapseAll()));
     QAction * const exitAction = new QAction(tr("E&xit"), this);
-    exitAction->setShortcut(Qt::CTRL | Qt::Key_Q);
+    exitAction->setShortcut(QKeySequence::Quit);
+    exitAction->setMenuRole(QAction::QuitRole);
     connect(exitAction, SIGNAL(triggered()), SLOT(exit()));
 
     fileMenu->addAction(reloadAction);
