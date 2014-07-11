@@ -24,6 +24,8 @@ Module {
     property string ibtoolName: "ibtool"
     property string ibtoolPath: ibtoolName
     property bool flatten: true
+    property string module
+    property bool autoActivateCustomFonts: true
 
     // Asset catalog specific
     property string actoolName: "actool"
@@ -37,6 +39,7 @@ Module {
     property string appleIconSuffix: ".icns"
     property string compiledAssetCatalogSuffix: ".car"
     property string compiledNibSuffix: ".nib"
+    property string compiledStoryboardSuffix: ".storyboardc"
 
     property string ibtoolVersion: { return Ib.ibtoolVersion(ibtoolPath); }
     property var ibtoolVersionParts: ibtoolVersion ? ibtoolVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
@@ -68,6 +71,11 @@ Module {
     }
 
     FileTagger {
+        patterns: ["*.storyboard"]
+        fileTags: ["storyboard"]
+    }
+
+    FileTagger {
         patterns: ["*.xcassets"] // bundle
         fileTags: ["assetcatalog"]
     }
@@ -94,18 +102,18 @@ Module {
     }
 
     Rule {
-        inputs: ["nib"]
-        explicitlyDependsOn: ["infoplist"]
+        inputs: ["nib", "storyboard"]
 
+        // When the flatten property is true, this artifact will be a FILE, otherwise it will be a DIRECTORY
         Artifact {
             filePath: {
                 var path = product.destinationDirectory;
 
-                var xibFilePath = input.baseDir + '/' + input.fileName;
-                var key = DarwinTools.localizationKey(xibFilePath);
+                var inputFilePath = input.baseDir + '/' + input.fileName;
+                var key = DarwinTools.localizationKey(inputFilePath);
                 if (key) {
                     path += '/' + BundleTools.localizedResourcesFolderPath(product, key);
-                    var subPath = DarwinTools.relativeResourcePath(xibFilePath);
+                    var subPath = DarwinTools.relativeResourcePath(inputFilePath);
                     if (subPath && subPath !== '.')
                         path += '/' + subPath;
                 } else {
@@ -113,10 +121,34 @@ Module {
                     path += '/' + input.baseDir;
                 }
 
-                return path + '/' + input.completeBaseName + ModUtils.moduleProperty(product, "compiledNibSuffix");
+                var suffix = "";
+                if (input.fileTags.contains("nib"))
+                    suffix = ModUtils.moduleProperty(product, "compiledNibSuffix");
+                else if (input.fileTags.contains("storyboard"))
+                    suffix = ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
+
+                return path + '/' + input.completeBaseName + suffix;
             }
 
-            fileTags: ["compiled_nib"]
+            fileTags: {
+                var tags = ["compiled_ibdoc"];
+                if (inputs.contains("nib"))
+                    tags.push("compiled_nib");
+                if (inputs.contains("storyboard"))
+                    tags.push("compiled_storyboard");
+                return tags;
+            }
+        }
+
+        Artifact {
+            condition: product.moduleProperty("ib", "ibtoolVersionMajor") >= 6
+
+            filePath: {
+                var prefix = input.fileTags.contains("storyboard") ? "SB" : "";
+                return FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName + "-" + prefix + "PartialInfo.plist");
+            }
+
+            fileTags: ["partial_infoplist"]
         }
 
         prepare: {
@@ -126,18 +158,28 @@ Module {
             if (flags)
                 args = args.concat(flags);
 
-            args.push("--compile", output.filePath);
+            args.push("--compile", outputs.compiled_ibdoc[0].filePath);
             args.push(input.filePath);
 
             var cmd = new Command(ModUtils.moduleProperty(input, "ibtoolPath"), args);
             cmd.description = ModUtils.moduleProperty(input, "ibtoolName") + ' ' + input.fileName;
 
-            // Also display the language name of the nib being compiled if it has one
+            // Also display the language name of the nib/storyboard being compiled if it has one
             var localizationKey = DarwinTools.localizationKey(input.filePath);
             if (localizationKey)
                 cmd.description += ' (' + localizationKey + ')';
 
             cmd.highlight = 'compiler';
+
+            // May not be strictly needed, but is set by some versions of Xcode
+            if (input.fileTags.contains("storyboard")) {
+                var targetOS = product.moduleProperty("qbs", "targetOS");
+                if (targetOS.contains("ios"))
+                    cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumIosVersion"));
+                if (targetOS.contains("osx"))
+                    cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" + product.moduleProperty("cpp", "minimumOsxVersion"));
+            }
+
             return cmd;
         }
     }

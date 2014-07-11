@@ -42,6 +42,16 @@ function prepareIbtoold(product, input, outputs) {
             args.push("--sdk", sysroot);
 
         args.push("--flatten", ModUtils.moduleProperty(input, "flatten") ? 'YES' : 'NO');
+
+        // --module and --auto-activate-custom-fonts were introduced in Xcode 6.0
+        if (ModUtils.moduleProperty(input, "ibtoolVersionMajor") >= 6) {
+            var module = ModUtils.moduleProperty(input, "module");
+            if (module)
+                args.push("--module", module);
+
+            if (ModUtils.moduleProperty(input, "autoActivateCustomFonts"))
+                args.push("--auto-activate-custom-fonts");
+        }
     }
 
     // --minimum-deployment-target was introduced in Xcode 5.0

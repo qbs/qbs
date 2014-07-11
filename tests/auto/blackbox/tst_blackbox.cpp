@@ -43,6 +43,11 @@
 #include <QScriptEngine>
 #include <QScriptValue>
 
+// from qsysinfo.h
+#ifndef Q_MV_OSX
+#define Q_MV_OSX(major, minor) (major == 10 ? minor + 2 : (major == 9 ? 1 : 0))
+#endif
+
 using qbs::InstallOptions;
 using qbs::Internal::HostOsInfo;
 using qbs::Internal::removeDirectoryWithContents;
@@ -2330,6 +2335,11 @@ void TestBlackbox::testAssetCatalog()
     QCOMPARE(runQbs(params), 0);
     QVERIFY((bool)m_qbsStdout.contains("actool"));
     QVERIFY((bool)m_qbsStdout.contains("iconutil"));
+
+    // make sure the nibs/storyboards are in there
+    QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
+    if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
+        QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
 QString TestBlackbox::uniqueProductName(const QString &productName) const

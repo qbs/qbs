@@ -343,7 +343,7 @@ UnixGCC {
     Rule {
         multiplex: true
         inputs: ["application", "infoplist", "pkginfo", "icns", "application_dsym",
-                 "compiled_nib", "compiled_assetcatalog",
+                 "compiled_nib", "compiled_storyboard", "compiled_assetcatalog",
                  "resourcerules", "ipa"]
 
         Artifact {
@@ -363,7 +363,7 @@ UnixGCC {
     Rule {
         multiplex: true
         inputs: ["dynamiclibrary", "infoplist", "pkginfo", "icns", "dynamiclibrary_dsym",
-                 "compiled_nib", "compiled_assetcatalog"]
+                 "compiled_nib", "compiled_storyboard", "compiled_assetcatalog"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
