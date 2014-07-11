@@ -1,6 +1,7 @@
 INCLUDEPATH += $$PWD/../.. # for plugins
 
 HEADERS += \
+    $$PWD/buildgraphlocker.h \
     $$PWD/codelocation.h \
     $$PWD/error.h \
     $$PWD/fileinfo.h \
@@ -28,6 +29,7 @@ HEADERS += \
     $$PWD/qttools.h
 
 SOURCES += \
+    $$PWD/buildgraphlocker.cpp \
     $$PWD/codelocation.cpp \
     $$PWD/error.cpp \
     $$PWD/fileinfo.cpp \

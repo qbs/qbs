@@ -278,6 +278,8 @@ QbsLibrary {
         name: "tools"
         prefix: name + '/'
         files: [
+            "buildgraphlocker.cpp",
+            "buildgraphlocker.h",
             "buildoptions.cpp",
             "cleanoptions.cpp",
             "codelocation.cpp",

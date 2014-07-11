@@ -120,6 +120,25 @@ void printProjectData(const qbs::ProjectData &project)
     }
 }
 
+
+void TestApi::buildGraphLocking()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/buildgraph-locking");
+    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project::setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const qbs::Project project = setupJob->project();
+    Q_UNUSED(project);
+    setupJob.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY2(setupJob->error().toString().contains("lock"),
+             qPrintable(setupJob->error().toString()));
+}
+
 void TestApi::buildSingleFile()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -330,6 +349,8 @@ void TestApi::changeContent()
 
     // Now check whether the data updates were done correctly.
     projectData = project.projectData();
+    buildJob.reset(0);
+    project = qbs::Project();
     job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
@@ -373,6 +394,9 @@ void TestApi::changeContent()
     // Add a file to the top level of a product that does not have a "files" binding yet.
     setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
         "/project-editing/project-with-no-files.qbs"));
+
+    buildJob.reset(0);
+    project = qbs::Project();
     job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
@@ -390,6 +414,8 @@ void TestApi::changeContent()
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
     QVERIFY(rcvr.descriptions.contains("compiling main.cpp"));
+    buildJob.reset(0);
+    project = qbs::Project();
     job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
@@ -532,6 +558,7 @@ void TestApi::installableFiles()
 
     setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata"
         "/recursive_wildcards/recursive_wildcards.qbs")));
+    project = qbs::Project();
     job.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
@@ -611,7 +638,7 @@ void TestApi::multiArch()
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
-    const qbs::Project &project = setupJob->project();
+    qbs::Project project = setupJob->project();
     QCOMPARE(project.profile(), QLatin1String("qbs_autotests"));
     const QList<qbs::ProductData> &products = project.projectData().products();
     QCOMPARE(products.count(), 3);
@@ -653,6 +680,8 @@ void TestApi::multiArch()
     // Error check: Try to build for the same profile twice.
     overriddenValues.insert("project.targetProfile", hostProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
+    project = qbs::Project();
+    buildJob.reset(0);
     setupJob.reset(qbs::Project::setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());

@@ -39,6 +39,7 @@
 #include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
+#include <tools/buildgraphlocker.h>
 #include <tools/hostosinfo.h>
 #include <tools/error.h>
 #include <tools/propertyfinder.h>
@@ -937,12 +938,14 @@ void ResolvedProject::store(PersistentPool &pool) const
 }
 
 
-TopLevelProject::TopLevelProject() : locked(false), lastResolveTime(FileTime::oldestTime())
+TopLevelProject::TopLevelProject()
+    : bgLocker(0), locked(false), lastResolveTime(FileTime::oldestTime())
 {
 }
 
 TopLevelProject::~TopLevelProject()
 {
+    delete bgLocker;
 }
 
 QString TopLevelProject::deriveId(const QString &profile, const QVariantMap &config)

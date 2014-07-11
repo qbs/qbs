@@ -27,49 +27,37 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_TST_API_H
-#define QBS_TST_API_H
+#ifndef QBS_BUILDGRAPHLOCKER_H
+#define QBS_BUILDGRAPHLOCKER_H
 
-#include <QObject>
+#include <QtGlobal>
 
-namespace qbs { class SetupProjectParameters; }
+#define HAS_QLOCKFILE (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
 
-class LogSink;
+#if HAS_QLOCKFILE
+#include <QLockFile>
+#endif
 
-class TestApi : public QObject
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
+
+namespace qbs {
+namespace Internal {
+
+class BuildGraphLocker
 {
-    Q_OBJECT
-
 public:
-    TestApi();
-    ~TestApi();
-
-private slots:
-    void initTestCase();
-
-    void buildGraphLocking();
-    void buildSingleFile();
-    void changeContent();
-    void disabledInstallGroup();
-    void fileTagsFilterOverride();
-    void infiniteLoopBuilding();
-    void infiniteLoopBuilding_data();
-    void infiniteLoopResolving();
-    void installableFiles();
-    void isRunnable();
-    void listBuildSystemFiles();
-    void multiArch();
-    void nonexistingProjectPropertyFromProduct();
-    void nonexistingProjectPropertyFromCommandLine();
-    void references();
-    void sourceFileInBuildDir();
+    explicit BuildGraphLocker(const QString &buildGraphFilePath);
+    ~BuildGraphLocker();
 
 private:
-    qbs::SetupProjectParameters defaultSetupParameters() const;
-
-    LogSink * const m_logSink;
-    const QString m_sourceDataDir;
-    const QString m_workingDataDir;
+#if HAS_QLOCKFILE
+    QLockFile m_lockFile;
+#endif
 };
+
+} // namespace Internal
+} // namespace qbs
 
 #endif // Include guard.

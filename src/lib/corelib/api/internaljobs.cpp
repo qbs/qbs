@@ -42,6 +42,7 @@
 #include <language/loader.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
+#include <tools/buildgraphlocker.h>
 #include <tools/error.h>
 #include <tools/progressobserver.h>
 #include <tools/preferences.h>
@@ -228,14 +229,23 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 
 void InternalSetupProjectJob::start()
 {
+    BuildGraphLocker *bgLocker = 0;
     try {
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
         if (err.hasError())
             throw err;
+        const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
+                m_parameters.finalBuildConfigurationTree());
+        const QString buildDir
+                = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
+        bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
+                                                                                   projectId));
         execute();
+        m_project->bgLocker = bgLocker;
     } catch (const ErrorInfo &error) {
         m_project.clear();
         setError(error);
+        delete bgLocker;
     }
     emit finished(this);
 }

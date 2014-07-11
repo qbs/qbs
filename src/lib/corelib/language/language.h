@@ -61,6 +61,7 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class BuildGraphLocker;
 class BuildGraphLoader;
 class BuildGraphVisitor;
 
@@ -460,7 +461,8 @@ public:
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".
     QScopedPointer<ProjectBuildData> buildData;
-    bool locked;
+    BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.
+    bool locked; // This is the API-level lock for the project instance.
 
     QSet<QString> buildSystemFiles;
     FileTime lastResolveTime;
