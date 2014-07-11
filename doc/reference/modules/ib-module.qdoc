@@ -1,0 +1,212 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Petroules Corporation.
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page ib-module.html
+    \ingroup list-of-modules
+
+    \title Module ib
+    \brief Provides support for Apple Interface Builder and related tools and file types.
+
+    The \c ib module contains properties and rules for building Interface Builder documents,
+    storyboards, asset catalogs, and icon sets.
+
+    This module is only available on OS X and iOS.
+
+    \section1 General Properties
+
+    \section2 warnings
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to print warnings when compiling. Does not apply to icon sets.
+
+    \section2 errors
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to print warnings when compiling. Does not apply to icon sets.
+
+    \section2 notices
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to print warnings when compiling. Does not apply to icon sets.
+
+    \section2 flags
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    Additional flags to pass to the underlying tool (ibtool, actool, iconutil).
+
+    \section1 Properties Specific to NIBs and Storyboards
+
+    \section2 ibtoolName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"ibtool"}
+    \endtable
+
+    Name of the ibtool binary used to compile NIBs and storyboards.
+    This should not normally need to be changed.
+
+    \section2 ibtoolPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{ibtoolName}
+    \endtable
+
+    Directory where the ibtool binary is located.
+    This should not normally need to be changed.
+
+    \section2 flatten
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Compiles XIBs and storyboards into flattened (non-wrapper) files.
+    Set to \c{false} to preserve editability of the resulting nib and storyboard
+    bundles in Interface Builder. This property should not normally need to be changed.
+
+    \section2 module
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Sets the name of the module that the nib or storyboard is a part of.
+    Requires Xcode 6 or newer.
+
+    \section2 autoActivateCustomFonts
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Instructs the ibtool compiler to add custom fonts to the
+    application's Info.plist when compiling XIBs and storyboards,
+    which will cause the fonts to activate upon application launch.
+    Requires Xcode 6 or newer.
+
+    \section1 Properties Specific to Asset Catalogs
+
+    \section2 actoolName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"actool"}
+    \endtable
+
+    Name of the actool binary used to compile asset catalogs.
+    This should not normally need to be changed.
+
+    \section2 actoolPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{actoolName}
+    \endtable
+
+    Directory where the actool binary is located.
+    This should not normally need to be changed.
+
+    \section2 appIconName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Name of the resource in the asset catalog that will be used as the application's icon.
+    Used to generate the partial Info.plist which will be merged into the resulting app.
+    If this property is \c{undefined}, no application icon will be specified.
+
+    \section2 launchImageName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Name of the resource in the asset catalog that will be used as the application's launch image.
+    Used to generate the partial Info.plist which will be merged into the resulting app.
+    If this property is \c{undefined}, no launch image will be specified.
+    Only applies to iOS applications.
+
+    \section2 compressPngs
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{true}
+    \endtable
+
+    Whether to compress PNG image files when building asset catalogs.
+
+    \section1 Properties Specific to Icon Sets
+
+    \section2 iconutilName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"iconutil"}
+    \endtable
+
+    Name of the iconutil binary used to compile icon sets.
+    This should not normally need to be changed.
+
+    \section2 iconutilPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{iconutilName}
+    \endtable
+
+    Directory where the iconutil binary is located.
+    This should not normally need to be changed.
+*/
