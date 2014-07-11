@@ -14,6 +14,10 @@ Module {
 
     property stringList flags
 
+    // iconutil specific
+    property string iconutilName: "iconutil"
+    property string iconutilPath: iconutilName
+
     // XIB/NIB specific
     property string ibtoolName: "ibtool"
     property string ibtoolPath: ibtoolName
@@ -21,6 +25,7 @@ Module {
 
     // private properties
     property string outputFormat: "human-readable-text"
+    property string appleIconSuffix: ".icns"
     property string compiledNibSuffix: ".nib"
 
     property string ibtoolVersion: { return Ib.ibtoolVersion(ibtoolPath); }
@@ -43,8 +48,34 @@ Module {
     }
 
     FileTagger {
+        patterns: ["*.iconset"] // bundle
+        fileTags: ["iconset"]
+    }
+
+    FileTagger {
         patterns: ["*.nib", "*.xib"]
         fileTags: ["nib"]
+    }
+
+    Rule {
+        inputs: ["iconset"]
+
+        Artifact {
+            filePath: {
+                var outputDirectory = BundleTools.isBundleProduct(product)
+                        ? BundleTools.unlocalizedResourcesFolderPath(product)
+                        : product.destinationDirectory;
+                return FileInfo.joinPaths(outputDirectory, input.completeBaseName + ModUtils.moduleProperty(product, "appleIconSuffix"))
+            }
+            fileTags: ["icns"]
+        }
+
+        prepare: {
+            var args = ["--convert", "icns", "--output", output.filePath, input.filePath];
+            var cmd = new Command(ModUtils.moduleProperty(product, "iconutilPath"), args);
+            cmd.description = ModUtils.moduleProperty(product, "iconutilName") + ' ' + input.fileName;
+            return cmd;
+        }
     }
 
     Rule {

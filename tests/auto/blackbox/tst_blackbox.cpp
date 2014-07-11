@@ -2265,6 +2265,36 @@ void TestBlackbox::testTypeScript()
     QVERIFY(regularFileExists(productBuildDir("animals") + "/main.js"));
 }
 
+void TestBlackbox::testIconset()
+{
+    if (!HostOsInfo::isOsxHost())
+        SKIP_TEST("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/iconset"));
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "iconset.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
+    QVERIFY(regularFileExists(productBuildDir("iconset") + "/white.icns"));
+}
+
+void TestBlackbox::testIconsetApp()
+{
+    if (!HostOsInfo::isOsxHost())
+        SKIP_TEST("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/iconsetapp"));
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "iconsetapp.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
+    QVERIFY(regularFileExists(productBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
+}
+
 QString TestBlackbox::uniqueProductName(const QString &productName) const
 {
     return productName + '.' + buildProfileName;

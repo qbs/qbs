@@ -185,6 +185,8 @@ private slots:
     void testWiX();
     void testNodeJs();
     void testTypeScript();
+    void testIconset();
+    void testIconsetApp();
 
 private:
     QString uniqueProductName(const QString &productName) const;
