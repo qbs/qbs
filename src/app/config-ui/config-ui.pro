@@ -19,4 +19,9 @@ SOURCES += \
     mainwindow.cpp \
     settingsmodel.cpp
 
+OTHER_FILES += \
+    Info.plist
+
+mac: QMAKE_LFLAGS += -sectcreate __TEXT __info_plist $$shell_quote($$PWD/Info.plist)
+
 FORMS += mainwindow.ui

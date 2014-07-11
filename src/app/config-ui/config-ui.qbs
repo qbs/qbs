@@ -17,5 +17,6 @@ QbsApp {
         "settingsmodel.cpp",
         "settingsmodel.h"
     ]
-}
 
+    cpp.infoPlistFile: "Info.plist"
+}
