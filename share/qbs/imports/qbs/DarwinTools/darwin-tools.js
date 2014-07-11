@@ -1,6 +1,20 @@
 var FileInfo = loadExtension("qbs.FileInfo");
 
 /**
+  * Returns the most appropriate Apple platform name given a targetOS list.
+  * Possible platform names include macosx, iphoneos, and iphonesimulator.
+  */
+function applePlatformName(targetOSList) {
+    if (targetOSList.contains("ios-simulator"))
+        return "iphonesimulator";
+    else if (targetOSList.contains("ios"))
+        return "iphoneos";
+    else if (targetOSList.contains("osx"))
+        return "macosx";
+    throw("No Apple platform corresponds to target OS list: " + targetOSList);
+}
+
+/**
   * Replace characters unsafe for use in a domain name with a '-' character (RFC 1034).
   */
 function rfc1034(inStr) {

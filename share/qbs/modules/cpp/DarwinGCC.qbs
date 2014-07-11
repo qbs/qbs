@@ -152,7 +152,7 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["qbs"]
+        inputs: ["qbs", "partial_infoplist"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + BundleTools.infoPlistPath(product)
@@ -163,6 +163,7 @@ UnixGCC {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist for " + product.name;
             cmd.highlight = "codegen";
+            cmd.partialInfoPlistFiles = inputs.partial_infoplist;
             cmd.infoPlistFile = ModUtils.moduleProperty(product, "infoPlistFile");
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
@@ -287,6 +288,15 @@ UnixGCC {
                         env[key] = qmakeEnv[key];
 
                     DarwinTools.expandPlistEnvironmentVariables(aggregatePlist, env, true);
+
+                    // Add keys from partial Info.plists from asset catalogs, XIBs, and storyboards
+                    for (i in partialInfoPlistFiles) {
+                        var partialInfoPlist = BundleTools.infoPlistContents(partialInfoPlistFiles[i].filePath) || {};
+                        for (key in partialInfoPlist) {
+                            if (partialInfoPlist.hasOwnProperty(key))
+                                aggregatePlist[key] = partialInfoPlist[key];
+                        }
+                    }
                 }
 
                 if (infoPlistFormat === "same-as-input" && infoPlistFile)
@@ -332,8 +342,9 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["application", "infoplist", "pkginfo", "icns", "application_dsym", "compiled_nib",
-            "resourcerules", "ipa"]
+        inputs: ["application", "infoplist", "pkginfo", "icns", "application_dsym",
+                 "compiled_nib", "compiled_assetcatalog",
+                 "resourcerules", "ipa"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
@@ -351,7 +362,8 @@ UnixGCC {
 
     Rule {
         multiplex: true
-        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "icns", "dynamiclibrary_dsym", "compiled_nib"]
+        inputs: ["dynamiclibrary", "infoplist", "pkginfo", "icns", "dynamiclibrary_dsym",
+                 "compiled_nib", "compiled_assetcatalog"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + BundleTools.wrapperName(product)

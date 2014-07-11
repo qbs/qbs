@@ -187,6 +187,7 @@ private slots:
     void testTypeScript();
     void testIconset();
     void testIconsetApp();
+    void testAssetCatalog();
 
 private:
     QString uniqueProductName(const QString &productName) const;

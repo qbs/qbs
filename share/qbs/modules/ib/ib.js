@@ -1,3 +1,4 @@
+var DarwinTools = loadExtension("qbs.DarwinTools");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
 var PropertyList = loadExtension("qbs.PropertyList");
@@ -22,6 +23,19 @@ function prepareIbtoold(product, input, outputs) {
         args.push("--notices");
 
     if (input.fileTags.contains("assetcatalog")) {
+        args.push("--platform", DarwinTools.applePlatformName(product.moduleProperty("qbs", "targetOS")));
+
+        var appIconName = ModUtils.moduleProperty(input, "appIcon");
+        if (appIconName)
+            args.push("--app-icon", appIconName);
+
+        var launchImageName = ModUtils.moduleProperty(input, "launchImage");
+        if (launchImageName)
+            args.push("--launch-image", launchImageName);
+
+        // Undocumented but used by Xcode (only for iOS?), probably runs pngcrush or equivalent
+        if (ModUtils.moduleProperty(input, "compressPngs"))
+            args.push("--compress-pngs");
     } else {
         var sysroot = product.moduleProperty("qbs", "sysroot");
         if (sysroot)
@@ -40,6 +54,21 @@ function prepareIbtoold(product, input, outputs) {
         if (product.moduleProperty("cpp", "minimumIosVersion")) {
             args.push("--minimum-deployment-target");
             args.push(product.moduleProperty("cpp", "minimumIosVersion"));
+        }
+    }
+
+    // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
+    if (ModUtils.moduleProperty(input, "ibtoolVersionMajor") >= 6 || input.fileTags.contains("assetcatalog")) {
+        args.push("--output-partial-info-plist", outputs.partial_infoplist[0].filePath);
+
+        if (product.moduleProperty("qbs", "targetOS").contains("osx"))
+            args.push("--target-device", "mac");
+
+        if (product.moduleProperty("qbs", "targetOS").contains("ios")) {
+            // TODO: Only output the devices specified in TARGET_DEVICE_FAMILY
+            // We can't get this info from Info.plist keys due to dependency order
+            args.push("--target-device", "iphone");
+            args.push("--target-device", "ipad");
         }
     }
 

@@ -2295,6 +2295,43 @@ void TestBlackbox::testIconsetApp()
     QVERIFY(regularFileExists(productBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
+void TestBlackbox::testAssetCatalog()
+{
+    if (!HostOsInfo::isOsxHost())
+        SKIP_TEST("only applies on OS X");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    // empty asset catalogs must still produce output
+    QVERIFY((bool)m_qbsStdout.contains("actool"));
+
+    // should not produce a CAR since minimumOsxVersion will be < 10.9
+    QVERIFY(!regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+
+    rmDirR(buildDir);
+    params.arguments.append("cpp.minimumOsxVersion:10.9"); // force CAR generation
+    QCOMPARE(runQbs(params), 0);
+
+    // empty asset catalogs must still produce output
+    QVERIFY((bool)m_qbsStdout.contains("actool"));
+    QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+
+    // this asset catalog happens to have an embedded icon set,
+    // but this should NOT be built since it is not in the files list
+    QVERIFY(!(bool)m_qbsStdout.contains("iconutil"));
+
+    // now we'll add the iconset
+    rmDirR(buildDir);
+    params.arguments.append("project.includeIconset:true");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY((bool)m_qbsStdout.contains("actool"));
+    QVERIFY((bool)m_qbsStdout.contains("iconutil"));
+}
+
 QString TestBlackbox::uniqueProductName(const QString &productName) const
 {
     return productName + '.' + buildProfileName;
