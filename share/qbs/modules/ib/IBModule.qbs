@@ -1,23 +1,46 @@
-import qbs 1.0
+import qbs
 import qbs.BundleTools
 import qbs.DarwinTools
 import qbs.FileInfo
 import qbs.ModUtils
-import qbs.Process
-import qbs.PropertyList
+import 'ib.js' as Ib
 
 Module {
     condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
-
-    property string outputFormat: "human-readable-text"
-    property bool flatten: true // false to preserve editability of the resulting nib file
-    property bool autoUpgrade: false
 
     property bool warnings: true
     property bool errors: true
     property bool notices: true
 
     property stringList flags
+
+    // XIB/NIB specific
+    property string ibtoolName: "ibtool"
+    property string ibtoolPath: ibtoolName
+    property bool flatten: true
+
+    // private properties
+    property string outputFormat: "human-readable-text"
+    property string compiledNibSuffix: ".nib"
+
+    property string ibtoolVersion: { return Ib.ibtoolVersion(ibtoolPath); }
+    property var ibtoolVersionParts: ibtoolVersion ? ibtoolVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
+    property int ibtoolVersionMajor: ibtoolVersionParts[0]
+    property int ibtoolVersionMinor: ibtoolVersionParts[1]
+    property int ibtoolVersionPatch: ibtoolVersionParts[2]
+
+    validate: {
+        var validator = new ModUtils.PropertyValidator("ib");
+        validator.setRequiredProperty("ibtoolVersion", ibtoolVersion);
+        validator.setRequiredProperty("ibtoolVersionMajor", ibtoolVersionMajor);
+        validator.setRequiredProperty("ibtoolVersionMinor", ibtoolVersionMinor);
+        validator.setRequiredProperty("ibtoolVersionPatch", ibtoolVersionPatch);
+        validator.addVersionValidator("ibtoolVersion", ibtoolVersion, 3, 3);
+        validator.addRangeValidator("ibtoolVersionMajor", ibtoolVersionMajor, 1);
+        validator.addRangeValidator("ibtoolVersionMinor", ibtoolVersionMinor, 0);
+        validator.addRangeValidator("ibtoolVersionPatch", ibtoolVersionPatch, 0);
+        validator.validate();
+    }
 
     FileTagger {
         patterns: ["*.nib", "*.xib"]
@@ -44,91 +67,26 @@ Module {
                     path += '/' + input.baseDir;
                 }
 
-                return path + '/' + input.completeBaseName + ".nib";
+                return path + '/' + input.completeBaseName + ModUtils.moduleProperty(product, "compiledNibSuffix");
             }
 
             fileTags: ["compiled_nib"]
         }
 
         prepare: {
-            var args = [];
+            var args = Ib.prepareIbtoold(product, input, outputs);
 
-            var flags = ModUtils.moduleProperty(product, "flags");
+            var flags = ModUtils.moduleProperty(input, "flags");
             if (flags)
                 args = args.concat(flags);
 
-            var outputFormat = ModUtils.moduleProperty(product, "outputFormat");
-            if (!["binary1", "xml1", "human-readable-text"].contains(outputFormat))
-                throw("Invalid ibtool output format: " + outputFormat + ". " +
-                      "Must be in [binary1, xml1, human-readable-text].");
-
-            args.push("--output-format");
-            args.push(outputFormat);
-
-            args.push("--flatten");
-            args.push(ModUtils.moduleProperty(product, "flatten") ? 'YES' : 'NO');
-
-            if (ModUtils.moduleProperty(product, "autoUpgrade"))
-                args.push("--upgrade");
-
-            if (ModUtils.moduleProperty(product, "warnings"))
-                args.push("--warnings");
-
-            if (ModUtils.moduleProperty(product, "errors"))
-                args.push("--errors");
-
-            if (ModUtils.moduleProperty(product, "notices"))
-                args.push("--notices");
-
-            var process;
-            var version;
-            try {
-                process = new Process();
-                if (process.exec("ibtool", ["--version"], true) !== 0)
-                    print(process.readStdErr());
-
-                var propertyList = new PropertyList();
-                try {
-                    propertyList.readFromString(process.readStdOut());
-
-                    var plist = JSON.parse(propertyList.toJSONString());
-                    if (plist)
-                        plist = plist["com.apple.ibtool.version"];
-                    if (plist)
-                        version = plist["short-bundle-version"];
-                } finally {
-                    propertyList.clear();
-                }
-            } finally {
-                process.close();
-            }
-
-            // --minimum-deployment-target was introduced in Xcode 5.0
-            if (version && parseInt(version.split('.')[0], 10) >= 5) {
-                if (product.moduleProperty("cpp", "minimumOsxVersion")) {
-                    args.push("--minimum-deployment-target");
-                    args.push(product.moduleProperty("cpp", "minimumOsxVersion"));
-                }
-
-                if (product.moduleProperty("cpp", "minimumIosVersion")) {
-                    args.push("--minimum-deployment-target");
-                    args.push(product.moduleProperty("cpp", "minimumIosVersion"));
-                }
-            }
-
-            if (product.moduleProperty("qbs", "sysroot")) {
-                args.push("--sdk");
-                args.push(product.moduleProperty("qbs", "sysroot"));
-            }
-
-            args.push("--compile");
-            args.push(output.filePath);
+            args.push("--compile", output.filePath);
             args.push(input.filePath);
 
-            var cmd = new Command("ibtool", args);
-            cmd.description = 'ibtool ' + input.fileName;
+            var cmd = new Command(ModUtils.moduleProperty(input, "ibtoolPath"), args);
+            cmd.description = ModUtils.moduleProperty(input, "ibtoolName") + ' ' + input.fileName;
 
-            // Also display the language name of the XIB being compiled if it has one
+            // Also display the language name of the nib being compiled if it has one
             var localizationKey = DarwinTools.localizationKey(input.filePath);
             if (localizationKey)
                 cmd.description += ' (' + localizationKey + ')';
