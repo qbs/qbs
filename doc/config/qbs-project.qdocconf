@@ -1,7 +1,7 @@
 project     = "Qt Build Suite"
 description = "QBS Manual"
 
-headerdirs = 
+headerdirs =
 sourcedirs = $SRCDIR
 imagedirs = $SRCDIR/images $SRCDIR/templates/images
 outputdir = $OUTDIR
@@ -31,3 +31,6 @@ qhp.Qbs.subprojects.manual.type = manual
 # Doxygen compatibility commands
 macro.see                       = "\\sa"
 macro.function                  = "\\fn"
+
+navigation.homepage = "Qbs Manual"
+buildversion        = "Qt Build Suite $QBS_VERSION"
