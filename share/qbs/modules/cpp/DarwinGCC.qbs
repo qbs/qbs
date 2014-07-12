@@ -85,9 +85,6 @@ UnixGCC {
             CFBundleVersion: product.version || "1.0.0" // build version number, must be 3 octets
         };
 
-        if (product.type.contains("applicationbundle"))
-            dict["CFBundleIconFile"] = product.targetName; // ### QBS-73
-
         if (qbs.targetOS.contains("osx")) {
             dict["NSPrincipalClass"] = "NSApplication"; // needed for Retina display support
 
