@@ -105,6 +105,8 @@ QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
 
 QString QtModuleInfo::libNameForLinker(const QtEnvironment &qtEnvironment, bool debugBuild) const
 {
+    if (!hasLibrary)
+        return QString();
     QString libName = libraryBaseName(qtEnvironment, debugBuild);
     if (qtEnvironment.mkspecName.contains(QLatin1String("msvc")))
         libName += QLatin1String(".lib");
