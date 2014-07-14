@@ -49,7 +49,8 @@ QtModuleInfo::QtModuleInfo(const QString &name, const QString &qbsName, const QS
     : name(name), qbsName(qbsName), dependencies(deps),
       isPrivate(qbsName.endsWith(QLatin1String("-private"))),
       hasLibrary(!isPrivate),
-      isStaticLibrary(false)
+      isStaticLibrary(false),
+      isPlugin(false)
 {
     const QString coreModule = QLatin1String("core");
     if (qbsName != coreModule && !dependencies.contains(coreModule))
