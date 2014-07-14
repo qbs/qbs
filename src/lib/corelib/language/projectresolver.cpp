@@ -302,17 +302,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     m_productsByName.insert(product->uniqueName(), product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
-
-    // TODO: Remove in 1.3.
-    bool additionalFileTagsWasSet;
-    const QStringList additionalFileTags = m_evaluator->stringListValue(item, QLatin1String("additionalFileTags"),
-                                                                 &additionalFileTagsWasSet);
-    if (additionalFileTagsWasSet) {
-        m_logger.printWarning(ErrorInfo(Tr::tr("The 'additionalFileTags' property is deprecated. Please "
-                                               "use 'type' instead."), item->location()));
-        productContext.additionalFileTags += FileTags::fromStringList(additionalFileTags);
-    }
-
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
     product->sourceDirectory = m_evaluator->stringValue(item, QLatin1String("sourceDirectory"));
