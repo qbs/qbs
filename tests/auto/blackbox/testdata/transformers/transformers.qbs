@@ -15,7 +15,7 @@ Project {
         Transformer {
             // no inputs -> just a generator
             Artifact {
-                fileName: "foo.txt"
+                filePath: "foo.txt"
                 fileTags: "text"
             }
             prepare: {
@@ -37,7 +37,7 @@ Project {
         Transformer {
             // no inputs -> just a generator
             Artifact {
-                fileName: "foo.xml"
+                filePath: "foo.xml"
                 fileTags: "xml"
             }
             prepare: {
@@ -62,7 +62,7 @@ Project {
         Transformer {
             inputs: ["main.cpp"]    // will be taken from the source dir
             Artifact {
-                fileName: "bar.txt"
+                filePath: "bar.txt"
                 fileTags: "text"
             }
             prepare: {

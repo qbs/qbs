@@ -6,7 +6,7 @@ Product {
     Transformer {
         Artifact {
             fileTags: "custom"
-            fileName: "oldfile"
+            filePath: "oldfile"
         }
         prepare: {
             var cmd = new JavaScriptCommand();

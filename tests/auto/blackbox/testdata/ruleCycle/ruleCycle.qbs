@@ -20,7 +20,7 @@ Project {
         Rule {
             inputs: ["cow"]
             Artifact {
-                fileName: input.completeBaseName + ".cow_pat"
+                filePath: input.completeBaseName + ".cow_pat"
                 fileTags: ["cow_pat"]
             }
             prepare: { print("The cow pat falls out of the cow."); }
@@ -28,7 +28,7 @@ Project {
         Rule {
             inputs: ["cow_pat"]
             Artifact {
-                fileName: input.completeBaseName + ".fertilizer"
+                filePath: input.completeBaseName + ".fertilizer"
                 fileTags: ["fertilizer"]
             }
             prepare: { print("The cow pat is used as fertilizer."); }

@@ -4,7 +4,7 @@ Product {
     type: "mytype"
     Transformer {
         Artifact {
-            fileName: "output.txt"
+            filePath: "output.txt"
             fileTags: "mytype"
         }
         prepare: {

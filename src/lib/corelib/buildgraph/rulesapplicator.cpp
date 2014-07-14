@@ -276,7 +276,7 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
         const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts)
 {
-    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->fileName);
+    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
         throw ErrorInfo(Tr::tr("Error in Rule.Artifact fileName at %1: %2")
                         .arg(ruleArtifact->location.toString(), scriptValue.toString()));

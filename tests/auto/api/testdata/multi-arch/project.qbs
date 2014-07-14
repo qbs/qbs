@@ -27,7 +27,7 @@ Project {
     Rule {
         inputs: "input"
         Artifact {
-            fileName: FileInfo.baseName(input.fileName) + ".output"
+            filePath: FileInfo.baseName(input.fileName) + ".output"
             fileTags: "output"
         }
         prepare: {

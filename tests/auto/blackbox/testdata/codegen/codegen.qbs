@@ -25,7 +25,7 @@ Project {
         inputs: ['text']
         Artifact {
             fileTags: ['cpp']
-            fileName: input.baseName + '.cpp'
+            filePath: input.baseName + '.cpp'
         }
         prepare: {
             function expandMacros(str, table)

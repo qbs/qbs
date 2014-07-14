@@ -123,7 +123,7 @@ UnixGCC {
         inputs: ["infoplist"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + BundleTools.pkgInfoPath(product)
+            filePath: product.destinationDirectory + "/" + BundleTools.pkgInfoPath(product)
             fileTags: ["pkginfo"]
         }
 
@@ -155,7 +155,7 @@ UnixGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + BundleTools.infoPlistPath(product)
+            filePath: product.destinationDirectory + "/" + BundleTools.infoPlistPath(product)
             fileTags: ["infoplist"]
         }
 
@@ -315,7 +315,7 @@ UnixGCC {
         inputs: ["application"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName(product)
+            filePath: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName(product)
             fileTags: ["application_dsym"]
         }
 
@@ -336,7 +336,7 @@ UnixGCC {
             "resourcerules", "ipa"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
+            filePath: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
             fileTags: ["applicationbundle"]
         }
 
@@ -354,7 +354,7 @@ UnixGCC {
         inputs: ["dynamiclibrary", "infoplist", "pkginfo", "dynamiclibrary_dsym", "compiled_nib"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
+            filePath: product.destinationDirectory + "/" + BundleTools.wrapperName(product)
             fileTags: ["frameworkbundle"]
         }
 

@@ -69,31 +69,31 @@ CppModule {
         usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
             fileTags: ["dynamiclibrary"]
         }
 
         // libfoo
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 0)
+            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 0)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // libfoo.1
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 1)
+            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 1)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // libfoo.1.0
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 2)
+            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 2)
             fileTags: ["dynamiclibrary_symlink"]
         }
 
         // Copy of dynamic lib for smart re-linking.
         Artifact {
-            fileName: product.destinationDirectory + "/.socopy/"
+            filePath: product.destinationDirectory + "/.socopy/"
                       + PathTools.dynamicLibraryFilePath(product)
             fileTags: ["dynamiclibrary_copy"]
             alwaysUpdated: false
@@ -229,7 +229,7 @@ CppModule {
         usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             fileTags: ["staticlibrary"]
             cpp.staticLibraries: {
                 var result = []
@@ -275,7 +275,7 @@ CppModule {
         usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
             fileTags: ["application"]
         }
 
@@ -344,7 +344,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            fileName: ".obj/" + input.baseDir + "/" + input.fileName + ".o"
+            filePath: ".obj/" + input.baseDir + "/" + input.fileName + ".o"
         }
 
         prepare: {
@@ -356,7 +356,7 @@ CppModule {
         condition: cPrecompiledHeader !== undefined
         inputs: cPrecompiledHeader
         Artifact {
-            fileName: product.name + "_c.gch"
+            filePath: product.name + "_c.gch"
             fileTags: "c_pch"
         }
         prepare: {
@@ -368,7 +368,7 @@ CppModule {
         condition: cxxPrecompiledHeader !== undefined
         inputs: cxxPrecompiledHeader
         Artifact {
-            fileName: product.name + "_cpp.gch"
+            filePath: product.name + "_cpp.gch"
             fileTags: "cpp_pch"
         }
         prepare: {
@@ -380,7 +380,7 @@ CppModule {
         condition: objcPrecompiledHeader !== undefined
         inputs: objcPrecompiledHeader
         Artifact {
-            fileName: product.name + "_objc.gch"
+            filePath: product.name + "_objc.gch"
             fileTags: "objc_pch"
         }
         prepare: {
@@ -392,7 +392,7 @@ CppModule {
         condition: objcxxPrecompiledHeader !== undefined
         inputs: objcxxPrecompiledHeader
         Artifact {
-            fileName: product.name + "_objcpp.gch"
+            filePath: product.name + "_objcpp.gch"
             fileTags: "objcpp_pch"
         }
         prepare: {

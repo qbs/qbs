@@ -31,7 +31,7 @@ Project {
         property string fileContentPrefix: "prefix 1"
 
         Transformer {
-            Artifact { fileName: "nothing" }
+            Artifact { filePath: "nothing" }
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
@@ -41,7 +41,7 @@ Project {
         }
 
         Transformer {
-            Artifact { fileName: "generated.txt" }
+            Artifact { filePath: "generated.txt" }
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "generating " + output.filePath;

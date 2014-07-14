@@ -94,7 +94,7 @@ class RuleArtifact : public PersistentObject
 public:
     static RuleArtifactPtr create() { return RuleArtifactPtr(new RuleArtifact); }
 
-    QString fileName;
+    QString filePath;
     FileTags fileTags;
     bool alwaysUpdated;
     CodeLocation location;

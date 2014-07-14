@@ -10,7 +10,7 @@ QtModule {
     Transformer {
         condition: isStaticLibrary
         Artifact {
-            fileName: product.targetName + "_qt_plugin_import_"
+            filePath: product.targetName + "_qt_plugin_import_"
                       + parent.parent.qtModuleName + ".cpp"
             fileTags: "cpp"
         }

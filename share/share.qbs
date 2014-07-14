@@ -18,7 +18,7 @@ Product {
     Transformer {
         inputs: "qbs"
         Artifact {
-            fileName: "share/qbs"
+            filePath: "share/qbs"
         }
         prepare: {
             var cmd = new JavaScriptCommand();

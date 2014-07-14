@@ -91,8 +91,8 @@ private:
     };
 
     void checkCancelation() const;
-    QString verbatimValue(const ValueConstPtr &value) const;
-    QString verbatimValue(Item *item, const QString &name) const;
+    QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = 0) const;
+    QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = 0) const;
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
     ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
     void ignoreItem(Item *item, ProjectContext *projectContext);

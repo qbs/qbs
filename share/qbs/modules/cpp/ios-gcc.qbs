@@ -24,7 +24,7 @@ DarwinGCC {
         inputs: ["qbs"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/"
+            filePath: product.destinationDirectory + "/"
                     + BundleTools.contentsFolderPath(product)
                     + "/ResourceRules.plist"
             fileTags: ["resourcerules"]
@@ -48,7 +48,7 @@ DarwinGCC {
         inputs: ["application", "infoplist", "pkginfo", "resourcerules", "compiled_nib"]
 
         Artifact {
-            fileName: product.destinationDirectory + "/" + product.targetName + ".ipa"
+            filePath: product.destinationDirectory + "/" + product.targetName + ".ipa"
             fileTags: ["ipa"]
         }
 

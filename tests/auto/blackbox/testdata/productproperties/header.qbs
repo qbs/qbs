@@ -9,7 +9,7 @@ Product {
 
     Transformer {
         Artifact {
-            fileName: "blubb_header.h"
+            filePath: "blubb_header.h"
             fileTags: "hpp"
         }
         prepare: {

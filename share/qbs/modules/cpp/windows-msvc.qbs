@@ -34,7 +34,7 @@ CppModule {
         inputs: cPrecompiledHeader
         Artifact {
             fileTags: ['obj']
-            fileName: {
+            filePath: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cPrecompiledHeader"));
                 return ".obj/" + completeBaseName + '_c.obj'
@@ -42,7 +42,7 @@ CppModule {
         }
         Artifact {
             fileTags: ['c_pch']
-            fileName: ".obj/" + product.name + '_c.pch'
+            filePath: ".obj/" + product.name + '_c.pch'
         }
         prepare: {
             var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
@@ -61,7 +61,7 @@ CppModule {
         explicitlyDependsOn: ["c_pch"]  // to prevent vc--0.pdb conflict
         Artifact {
             fileTags: ['obj']
-            fileName: {
+            filePath: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cxxPrecompiledHeader"));
                 return ".obj/" + completeBaseName + '_cpp.obj'
@@ -69,7 +69,7 @@ CppModule {
         }
         Artifact {
             fileTags: ['cpp_pch']
-            fileName: ".obj/" + product.name + '_cpp.pch'
+            filePath: ".obj/" + product.name + '_cpp.pch'
         }
         prepare: {
             var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
@@ -90,7 +90,7 @@ CppModule {
 
         Artifact {
             fileTags: ['obj']
-            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
+            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
         }
 
         prepare: {
@@ -113,7 +113,7 @@ CppModule {
         usings: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
-            fileName: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
         }
 
         prepare: {
@@ -134,12 +134,12 @@ CppModule {
 
         Artifact {
             fileTags: ["dynamiclibrary"]
-            fileName: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
         }
 
         Artifact {
             fileTags: ["dynamiclibrary_import"]
-            fileName: product.destinationDirectory + "/" + PathTools.importLibraryFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.importLibraryFilePath(product)
             alwaysUpdated: false
         }
 
@@ -161,7 +161,7 @@ CppModule {
 
         Artifact {
             fileTags: ["staticlibrary"]
-            fileName: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
+            filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
             cpp.staticLibraries: {
                 var result = []
                 for (var i in inputs.staticlibrary) {
@@ -200,7 +200,7 @@ CppModule {
         inputs: ["rc"]
 
         Artifact {
-            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".res"
+            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".res"
             fileTags: ["obj"]
         }
 

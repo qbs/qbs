@@ -4,7 +4,7 @@ Application {
     name: "kaputt"
     Transformer {
         Artifact {
-            fileName: "Stulle"
+            filePath: "Stulle"
             fileTags: ["nutritious"]
         }
         prepare: {

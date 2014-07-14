@@ -14,7 +14,7 @@ Project {
         Rule {
             usings: "application"
             Artifact {
-                fileName: "dummy"
+                filePath: "dummy"
                 fileTags: "mytype"
             }
             prepare: {

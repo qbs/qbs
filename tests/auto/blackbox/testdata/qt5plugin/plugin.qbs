@@ -27,7 +27,7 @@ DynamicLibrary {
         condition: Qt.core.versionMajor >= 5
         inputs: ["echoplugin.json.source"]
         Artifact {
-            fileName: "echoplugin.json"
+            filePath: "echoplugin.json"
             fileTags: ["qt_plugin_metadata"]
         }
         prepare: {

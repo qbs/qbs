@@ -495,7 +495,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             product->registerAddedArtifact(outputArtifact);
 
             RuleArtifactPtr ruleArtifact = RuleArtifact::create();
-            ruleArtifact->fileName = outputArtifact->filePath();
+            ruleArtifact->filePath = outputArtifact->filePath();
             ruleArtifact->fileTags = outputArtifact->fileTags;
             rule->artifacts += ruleArtifact;
         }

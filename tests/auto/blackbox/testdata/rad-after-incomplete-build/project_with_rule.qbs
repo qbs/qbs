@@ -11,7 +11,7 @@ Product {
         inputs: "input"
         Artifact {
             fileTags: "custom"
-            fileName: "oldfile"
+            filePath: "oldfile"
         }
         prepare: {
             var cmd = new JavaScriptCommand();

@@ -129,19 +129,24 @@ void ProjectResolver::checkCancelation() const
     }
 }
 
-QString ProjectResolver::verbatimValue(const ValueConstPtr &value) const
+QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propertyWasSet) const
 {
     QString result;
     if (value && value->type() == Value::JSSourceValueType) {
         const JSSourceValueConstPtr sourceValue = value.staticCast<const JSSourceValue>();
         result = sourceValue->sourceCodeForEvaluation();
+        if (propertyWasSet)
+            *propertyWasSet = (result != QLatin1String("undefined"));
+    } else {
+        if (propertyWasSet)
+            *propertyWasSet = false;
     }
     return result;
 }
 
-QString ProjectResolver::verbatimValue(Item *item, const QString &name) const
+QString ProjectResolver::verbatimValue(Item *item, const QString &name, bool *propertyWasSet) const
 {
-    return verbatimValue(item->property(name));
+    return verbatimValue(item->property(name), propertyWasSet);
 }
 
 void ProjectResolver::ignoreItem(Item *item, ProjectContext *projectContext)
@@ -675,7 +680,24 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
     artifact->location = item->location();
-    artifact->fileName = verbatimValue(item, QLatin1String("fileName"));
+
+    bool filePathSet;
+    artifact->filePath = verbatimValue(item, QLatin1String("filePath"), &filePathSet);
+
+    // ### remove Artifact.fileName in qbs 1.4
+    bool fileNameSet;
+    const QString deprecatedFileName = verbatimValue(item, QLatin1String("fileName"), &fileNameSet);
+    if (fileNameSet) {
+        if (filePathSet) {
+            throw ErrorInfo(Tr::tr("Artifact.fileName and Artifact.filePath cannot both be set."),
+                            item->location());
+        }
+        artifact->filePath = deprecatedFileName;
+        m_logger.printWarning(ErrorInfo(Tr::tr("The property Artifact.fileName is deprecated. "
+                                               "Please use Artifact.filePath instead."),
+                                        item->location()));
+    }
+
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
     if (artifact->alwaysUpdated)
@@ -765,9 +787,26 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
             throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = m_productContext->product->moduleProperties;
-        QString fileName = m_evaluator->stringValue(child, QLatin1String("fileName"));
+        // ### remove Artifact.fileName in qbs 1.4
+        bool fileNameSet;
+        QString fileName = m_evaluator->stringValue(child, QLatin1String("fileName"), QString(),
+                                                    &fileNameSet);
+        bool filePathSet;
+        QString filePath = m_evaluator->stringValue(child, QLatin1String("filePath"), QString(),
+                                                    &filePathSet);
+        if (fileNameSet && filePathSet) {
+            throw ErrorInfo(Tr::tr("Artifact.fileName and Artifact.filePath cannot both be set."),
+                            child->location());
+        }
+        if (fileNameSet) {
+            m_logger.printWarning(ErrorInfo(Tr::tr("The property Artifact.fileName is deprecated. "
+                                                   "Please use Artifact.filePath instead."),
+                                            child->location()));
+        } else {
+            fileName = filePath;
+        }
         if (Q_UNLIKELY(fileName.isEmpty()))
-            throw ErrorInfo(Tr::tr("Artifact fileName must not be empty."));
+            throw ErrorInfo(Tr::tr("Artifact.filePath must not be empty."));
         artifact->absoluteFilePath
                 = FileInfo::resolvePath(m_productContext->buildDirectory, fileName);
         artifact->fileTags = m_evaluator->fileTagsValue(child, QLatin1String("fileTags"));

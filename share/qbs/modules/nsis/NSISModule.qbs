@@ -117,7 +117,7 @@ Module {
 
         Artifact {
             fileTags: ["nsissetup", "application"]
-            fileName: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
+            filePath: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
         }
 
         prepare: {

@@ -10,7 +10,7 @@ Project {
         Transformer {
             Artifact {
                 fileTags: ["deps"]
-                fileName: product.name + '.deps'
+                filePath: product.name + '.deps'
             }
             prepare: {
                 var cmd = new JavaScriptCommand();

@@ -11,7 +11,7 @@ Product {
     Transformer {
         explicitlyDependsOn: "txt"
         Artifact {
-            fileName: "test.mytype"
+            filePath: "test.mytype"
             fileTags: product.type
         }
         prepare: {

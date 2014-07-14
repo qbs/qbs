@@ -11,7 +11,7 @@ Module {
         inputs: ['test-input']
         Artifact {
             fileTags: "test-output"
-            fileName: input.fileName + ".out"
+            filePath: input.fileName + ".out"
         }
 
         prepare: {

@@ -51,7 +51,7 @@
 
         Artifact {
             fileTags: ['obj']
-            fileName: '.obj/' + input.baseDir + '/' + input.fileName + '.o'
+            filePath: '.obj/' + input.baseDir + '/' + input.fileName + '.o'
         }
 
         prepare: {

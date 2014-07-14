@@ -230,7 +230,7 @@ Module {
         inputs: ["qrc"]
 
         Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+            filePath: ModUtils.moduleProperty(product, "generatedFilesDir")
                       + "/qrc_" + input.completeBaseName + ".cpp";
             fileTags: ["cpp"]
         }
@@ -249,7 +249,7 @@ Module {
         inputs: ["ts"]
 
         Artifact {
-            fileName: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmFilesDir"),
+            filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "qmFilesDir"),
                                          input.completeBaseName + ".qm")
             fileTags: ["qm"]
         }
@@ -269,12 +269,12 @@ Module {
         explicitlyDependsOn: ["qdoc", "qdocconf"]
 
         Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html"
+            filePath: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html"
             fileTags: ["qdoc-html"]
         }
 
         Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html/"
+            filePath: ModUtils.moduleProperty(product, "generatedFilesDir") + "/html/"
                       + ModUtils.moduleProperty(product, "qdocQhpFileName")
             fileTags: ["qhp"]
         }
@@ -301,7 +301,7 @@ Module {
         inputs: "qhp"
 
         Artifact {
-            fileName: ModUtils.moduleProperty(product, "generatedFilesDir")
+            filePath: ModUtils.moduleProperty(product, "generatedFilesDir")
                       + '/' + input.completeBaseName + ".qch"
             fileTags: ["qch"]
         }

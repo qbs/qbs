@@ -6,7 +6,7 @@ Project {
         type: "blubb1"
         Transformer {
             Artifact {
-                fileName: "dummy1.txt"
+                filePath: "dummy1.txt"
                 fileTags: product.type
             }
             prepare: {
@@ -26,7 +26,7 @@ Project {
         Rule {
             usings: "blubb1"
             Artifact {
-                fileName: "dummy2.txt"
+                filePath: "dummy2.txt"
                 fileTags: product.type
             }
             prepare: {

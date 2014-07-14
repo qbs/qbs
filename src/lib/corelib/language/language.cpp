@@ -202,7 +202,7 @@ void ResolvedGroup::store(PersistentPool &pool) const
 void RuleArtifact::load(PersistentPool &pool)
 {
     pool.stream()
-            >> fileName
+            >> filePath
             >> fileTags
             >> alwaysUpdated
             >> location;
@@ -221,7 +221,7 @@ void RuleArtifact::load(PersistentPool &pool)
 void RuleArtifact::store(PersistentPool &pool) const
 {
     pool.stream()
-            << fileName
+            << filePath
             << fileTags
             << alwaysUpdated
             << location;
@@ -1281,7 +1281,7 @@ bool operator==(const RuleArtifact &a1, const RuleArtifact &a2)
         return true;
     if (!&a1 != !&a2)
         return false;
-    return a1.fileName == a2.fileName
+    return a1.filePath == a2.filePath
             && a1.fileTags == a2.fileTags
             && a1.alwaysUpdated == a2.alwaysUpdated
             && a1.bindings.toList().toSet() == a2.bindings.toList().toSet();

@@ -152,7 +152,7 @@ Module {
 
         Artifact {
             fileTags: ["wixobj"]
-            fileName: ".obj/" + input.baseDir.replace(':', '') + "/" + FileInfo.baseName(input.fileName) + ".wixobj"
+            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + FileInfo.baseName(input.fileName) + ".wixobj"
         }
 
         prepare: {
@@ -295,19 +295,19 @@ Module {
         Artifact {
             condition: product.type.contains("wixsetup")
             fileTags: ["wixsetup", "application"]
-            fileName: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
+            filePath: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
         }
 
         Artifact {
             condition: product.type.contains("msi")
             fileTags: ["msi"]
-            fileName: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "windowsInstallerSuffix")
+            filePath: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "windowsInstallerSuffix")
         }
 
         Artifact {
             condition: product.moduleProperty("qbs", "debugInformation") // ### QBS-412
             fileTags: ["wixpdb"]
-            fileName: product.destinationDirectory + "/" + product.targetName + ".wixpdb"
+            filePath: product.destinationDirectory + "/" + product.targetName + ".wixpdb"
         }
 
         prepare: {

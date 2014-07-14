@@ -41,7 +41,7 @@
     Transformer {
         inputs: "raw_input.txt"
         Artifact {
-            fileName: "processed_input.txt"
+            filePath: "processed_input.txt"
             fileTags: "processed_file"
         }
         prepare: {

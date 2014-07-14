@@ -29,7 +29,7 @@ Module {
         explicitlyDependsOn: ["infoplist"]
 
         Artifact {
-            fileName: {
+            filePath: {
                 var path = product.destinationDirectory;
 
                 var xibFilePath = input.baseDir + '/' + input.fileName;

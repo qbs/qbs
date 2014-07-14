@@ -15,7 +15,7 @@ Project {
     Rule {
         inputs: ["foosource"]
         Artifact {
-            fileName: input.baseName + ".foo"
+            filePath: input.baseName + ".foo"
             fileTags: ["foo"]
         }
 
@@ -33,7 +33,7 @@ Project {
     Rule {
         inputs: ["foo"]
         Artifact {
-            fileName: input.baseName + "_foo.cpp"
+            filePath: input.baseName + "_foo.cpp"
             fileTags: ["cpp"]
         }
 
