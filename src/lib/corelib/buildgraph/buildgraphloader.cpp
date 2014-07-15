@@ -45,7 +45,6 @@
 #include <tools/persistence.h>
 #include <tools/propertyfinder.h>
 #include <tools/qbsassert.h>
-#include <tools/setupprojectparameters.h>
 
 #include <QDir>
 #include <QFileInfo>
@@ -102,13 +101,26 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
 BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parameters,
         const RulesEvaluationContextPtr &evalContext)
 {
+    m_parameters = parameters;
     m_result = BuildGraphLoadResult();
     m_evalContext = evalContext;
+    loadBuildGraphFromDisk();
+    if (!m_result.loadedProject)
+        return m_result;
+    if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+        return m_result;
+    QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
-    const QString projectId = TopLevelProject::deriveId(parameters.topLevelProfile(),
-                                                        parameters.finalBuildConfigurationTree());
+    trackProjectChanges(m_result.loadedProject);
+    return m_result;
+}
+
+void BuildGraphLoader::loadBuildGraphFromDisk()
+{
+    const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
+                                                        m_parameters.finalBuildConfigurationTree());
     const QString buildDir
-            = TopLevelProject::deriveBuildDirectory(parameters.buildRoot(), projectId);
+            = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
     const QString buildGraphFilePath
             = ProjectBuildData::deriveBuildGraphFilePath(buildDir, projectId);
 
@@ -117,27 +129,27 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
     try {
         pool.load(buildGraphFilePath);
     } catch (const ErrorInfo &loadError) {
-        if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
+        if (m_parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
             throw;
         m_logger.qbsInfo() << loadError.toString();
-        return m_result;
+        return;
     }
 
     const TopLevelProjectPtr project = TopLevelProject::create();
 
     // TODO: Store some meta data that will enable us to show actual progress (e.g. number of products).
-    evalContext->initializeObserver(Tr::tr("Restoring build graph from disk"), 1);
+    m_evalContext->initializeObserver(Tr::tr("Restoring build graph from disk"), 1);
 
     project->load(pool);
-    project->buildData->evaluationContext = evalContext;
+    project->buildData->evaluationContext = m_evalContext;
 
-    if (QFileInfo(project->location.fileName()) != QFileInfo(parameters.projectFilePath())) {
+    if (QFileInfo(project->location.fileName()) != QFileInfo(m_parameters.projectFilePath())) {
         QString errorMessage = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
                                       "input file is '%3'. ")
                 .arg(QDir::toNativeSeparators(buildGraphFilePath),
                      QDir::toNativeSeparators(project->location.fileName()),
-                     QDir::toNativeSeparators(parameters.projectFilePath()));
-        if (!parameters.ignoreDifferentProjectFilePath()) {
+                     QDir::toNativeSeparators(m_parameters.projectFilePath()));
+        if (!m_parameters.ignoreDifferentProjectFilePath()) {
             errorMessage += Tr::tr("Aborting.");
             throw ErrorInfo(errorMessage);
         }
@@ -149,32 +161,26 @@ BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parame
 
     restoreBackPointers(project);
 
-    project->location = CodeLocation(parameters.projectFilePath(), project->location.line(),
+    project->location = CodeLocation(m_parameters.projectFilePath(), project->location.line(),
                                      project->location.column());
     project->setBuildConfiguration(pool.headData().projectConfig);
     project->buildDirectory = buildDir;
     m_result.loadedProject = project;
-    evalContext->incrementProgressValue();
+    m_evalContext->incrementProgressValue();
     doSanityChecks(project, m_logger);
-
-    if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
-        return m_result;
-    QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
-
-    trackProjectChanges(parameters, project, pool.headData().projectConfig);
-    return m_result;
 }
 
-void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &parameters,
-        const TopLevelProjectPtr &restoredProject, const QVariantMap &oldProjectConfig)
+void BuildGraphLoader::trackProjectChanges(const TopLevelProjectPtr &restoredProject)
 {
     QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;
     QList<ResolvedProductPtr> productsWithChangedFiles;
     bool reResolvingNecessary = false;
-    if (!isConfigCompatible(parameters.finalBuildConfigurationTree(), oldProjectConfig))
+    if (!isConfigCompatible(m_parameters.finalBuildConfigurationTree(),
+                            restoredProject->buildConfiguration())) {
         reResolvingNecessary = true;
+    }
     if (hasProductFileChanged(allRestoredProducts, restoredProject->lastResolveTime,
                               buildSystemFiles, productsWithChangedFiles)) {
         reResolvingNecessary = true;
@@ -196,9 +202,9 @@ void BuildGraphLoader::trackProjectChanges(const SetupProjectParameters &paramet
 
     restoredProject->buildData->isDirty = true;
     Loader ldr(m_evalContext->engine(), m_logger);
-    ldr.setSearchPaths(parameters.searchPaths());
+    ldr.setSearchPaths(m_parameters.searchPaths());
     ldr.setProgressObserver(m_evalContext->observer());
-    m_result.newlyResolvedProject = ldr.loadProject(parameters);
+    m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 
     QMap<QString, ResolvedProductPtr> freshProductsByName;
     QList<ResolvedProductPtr> allNewlyResolvedProducts

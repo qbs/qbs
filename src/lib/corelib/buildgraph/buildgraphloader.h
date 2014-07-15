@@ -36,12 +36,12 @@
 #include <buildgraph/artifactset.h>
 #include <language/forward_decls.h>
 #include <logging/logger.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QProcessEnvironment>
 #include <QVariantMap>
 
 namespace qbs {
-class SetupProjectParameters;
 
 namespace Internal {
 class FileDependency;
@@ -68,8 +68,8 @@ public:
                               const RulesEvaluationContextPtr &evalContext);
 
 private:
-    void trackProjectChanges(const SetupProjectParameters &parameters,
-            const TopLevelProjectPtr &restoredProject, const QVariantMap &oldProjectConfig);
+    void loadBuildGraphFromDisk();
+    void trackProjectChanges(const TopLevelProjectPtr &restoredProject);
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
@@ -117,6 +117,7 @@ private:
                             const AllRescuableArtifactData &existingRad);
 
     RulesEvaluationContextPtr m_evalContext;
+    SetupProjectParameters m_parameters;
     BuildGraphLoadResult m_result;
     Logger m_logger;
     QProcessEnvironment m_environment;
