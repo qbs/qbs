@@ -27,10 +27,10 @@
 **
 ****************************************************************************/
 #include "project.h"
+#include "project_p.h"
 
 #include "internaljobs.h"
 #include "jobs.h"
-#include "projectdata.h"
 #include "projectdata_p.h"
 #include "projectfileupdater.h"
 #include "propertymap_p.h"
@@ -93,73 +93,6 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
     qRegisterMetaType<InternalJob *>("Internal::InternalJob *");
     pluginsLoaded = true;
 }
-
-
-class ProjectPrivate : public QSharedData
-{
-public:
-    ProjectPrivate(const TopLevelProjectPtr &internalProject, const Logger &logger)
-        : internalProject(internalProject), logger(logger)
-    {
-    }
-
-    ProjectData projectData();
-    BuildJob *buildProducts(const QList<ResolvedProductPtr> &products, const BuildOptions &options,
-                            bool needsDepencencyResolving,
-                            QObject *jobOwner);
-    CleanJob *cleanProducts(const QList<ResolvedProductPtr> &products, const CleanOptions &options,
-                            QObject *jobOwner);
-    InstallJob *installProducts(const QList<ResolvedProductPtr> &products,
-                                const InstallOptions &options, bool needsDepencencyResolving,
-                                QObject *jobOwner);
-    QList<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
-    QList<ResolvedProductPtr> allEnabledInternalProducts() const;
-    ResolvedProductPtr internalProduct(const ProductData &product) const;
-    ProductData findProductData(const ProductData &product) const;
-    QList<ProductData> findProductsByName(const QString &name) const;
-    GroupData findGroupData(const ProductData &product, const QString &groupName) const;
-
-    GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup);
-
-    struct GroupUpdateContext {
-        QList<ResolvedProductPtr> resolvedProducts;
-        QList<GroupPtr> resolvedGroups;
-        QList<ProductData> products;
-        QList<GroupData> groups;
-    };
-
-    struct FileListUpdateContext {
-        GroupUpdateContext groupContext;
-        QStringList absoluteFilePaths;
-        QStringList relativeFilePaths;
-    };
-
-    GroupUpdateContext getGroupContext(const ProductData &product, const GroupData &group);
-    FileListUpdateContext getFileListContext(const ProductData &product, const GroupData &group,
-                                             const QStringList &filePaths);
-
-    void addGroup(const ProductData &product, const QString &groupName);
-    void addFiles(const ProductData &product, const GroupData &group, const QStringList &filePaths);
-    void removeFiles(const ProductData &product, const GroupData &group,
-                     const QStringList &filePaths);
-    void removeGroup(const ProductData &product, const GroupData &group);
-    void removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
-                                   const QList<SourceArtifactPtr> &files);
-    void updateInternalCodeLocations(const ResolvedProjectPtr &project,
-                                     const CodeLocation &changeLocation, int lineOffset);
-    void updateExternalCodeLocations(const ProjectData &project,
-                                     const CodeLocation &changeLocation, int lineOffset);
-    void prepareChangeToProject();
-
-    const TopLevelProjectPtr internalProject;
-    Logger logger;
-
-private:
-    void retrieveProjectData(ProjectData &projectData,
-                             const ResolvedProjectConstPtr &internalProject);
-
-    ProjectData m_projectData;
-};
 
 ProjectData ProjectPrivate::projectData()
 {

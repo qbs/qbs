@@ -38,6 +38,7 @@ QbsLibrary {
             "jobs.cpp",
             "languageinfo.cpp",
             "project.cpp",
+            "project_p.h",
             "projectdata.cpp",
             "projectdata_p.h",
             "projectfileupdater.cpp",

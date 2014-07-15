@@ -7,6 +7,7 @@ HEADERS += \
     $$PWD/jobs.h \
     $$PWD/languageinfo.h \
     $$PWD/project.h \
+    $$PWD/project_p.h \
     $$PWD/propertymap_p.h \
     $$PWD/projectdata_p.h \
     $$PWD/qmljsrewriter.h
