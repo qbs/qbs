@@ -29,6 +29,7 @@
 #ifndef QBS_JOBS_H
 #define QBS_JOBS_H
 
+#include "project.h"
 #include "../language/forward_decls.h"
 #include "../tools/error.h"
 #include "../tools/qbs_export.h"
@@ -85,6 +86,7 @@ private slots:
 
 private:
     void unlockProject();
+    virtual void finish() { }
 
     Internal::InternalJob * const m_internalJob;
     Internal::TopLevelProjectPtr m_project;
@@ -102,8 +104,12 @@ public:
 private:
     SetupProjectJob(const Internal::Logger &logger, QObject *parent);
 
-    void resolve(const SetupProjectParameters &parameters);
+    void resolve(const Project &existingProject, const SetupProjectParameters &parameters);
     void reportError(const ErrorInfo &error);
+
+    void finish();
+
+    Project m_existingProject;
 };
 
 class QBS_EXPORT BuildJob : public AbstractJob

@@ -663,6 +663,10 @@ Project &Project::operator=(const Project &other)
  * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
  * The function will finish immediately, returning a \c SetupProjectJob which can be used to
  * track the results of the operation.
+ * If the function is called on a valid \c Project object, the build graph will not be loaded
+ * from a file, but will be taken from the existing project. In that case, if resolving
+ * finishes successfully, the existing project will be invalidated. If resolving fails, the
+ * existing \c Project object stays as it is.
  * \note The qbs plugins will only be loaded once. As a result, the value of
  *       \c parameters.pluginPaths will only have an effect the first time this function is called.
  *       Similarly, the value of \c parameters.searchPaths will not have an effect if
@@ -675,7 +679,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
     SetupProjectJob * const job = new SetupProjectJob(logger, jobOwner);
     try {
         loadPlugins(parameters.pluginPaths(), logger);
-        job->resolve(parameters);
+        job->resolve(*this, parameters);
     } catch (const ErrorInfo &error) {
         // Throwing from here would complicate the API, so let's report the error the same way
         // as all others, via AbstractJob::error().

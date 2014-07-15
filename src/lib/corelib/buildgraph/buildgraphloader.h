@@ -64,12 +64,14 @@ public:
     BuildGraphLoader(const QProcessEnvironment &env, const Logger &logger);
     ~BuildGraphLoader();
 
-    BuildGraphLoadResult load(const SetupProjectParameters &parameters,
+    BuildGraphLoadResult load(const TopLevelProjectPtr &existingProject,
+                              const SetupProjectParameters &parameters,
                               const RulesEvaluationContextPtr &evalContext);
 
 private:
     void loadBuildGraphFromDisk();
-    void trackProjectChanges(const TopLevelProjectPtr &restoredProject);
+    void checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
+    void trackProjectChanges();
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;

@@ -29,7 +29,7 @@
 #include "jobs.h"
 
 #include "internaljobs.h"
-#include "project.h"
+#include "project_p.h"
 #include <language/language.h>
 #include <tools/qbsassert.h>
 
@@ -187,6 +187,7 @@ void AbstractJob::handleTaskProgress(int newProgressValue)
 void AbstractJob::handleFinished()
 {
     QBS_ASSERT(m_state != StateFinished, return);
+    finish();
     m_state = StateFinished;
     unlockProject();
     emit finished(!error().hasError(), this);
@@ -220,13 +221,19 @@ Project SetupProjectJob::project() const
     return Project(job->project(), job->logger());
 }
 
-void SetupProjectJob::resolve(const SetupProjectParameters &parameters)
+void SetupProjectJob::resolve(const Project &existingProject,
+                              const SetupProjectParameters &parameters)
 {
+    m_existingProject = existingProject;
+    const TopLevelProjectPtr &existingInternalProject
+            = existingProject.d ? existingProject.d->internalProject : TopLevelProjectPtr();
+    if (existingInternalProject && !lockProject(existingInternalProject))
+        return;
     InternalJobThreadWrapper * const wrapper
             = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     InternalSetupProjectJob * const job
             = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
-    job->init(parameters);
+    job->init(existingInternalProject, parameters);
     wrapper->start();
 }
 
@@ -237,6 +244,16 @@ void SetupProjectJob::reportError(const ErrorInfo &error)
     InternalSetupProjectJob * const job
             = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
     job->reportError(error);
+}
+
+void SetupProjectJob::finish()
+{
+    // If the new project was successfully created, invalidate the existing one.
+    // The invariant is that there must always be at most one valid Project object
+    // for the same build directory, so that exclusive ownership of the build graph lock
+    // is ensured.
+    if (m_existingProject.isValid() && !error().hasError())
+        m_existingProject.d->internalProject.clear();
 }
 
 /*!

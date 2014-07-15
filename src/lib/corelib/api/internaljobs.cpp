@@ -204,8 +204,10 @@ InternalSetupProjectJob::~InternalSetupProjectJob()
 {
 }
 
-void InternalSetupProjectJob::init(const SetupProjectParameters &parameters)
+void InternalSetupProjectJob::init(const TopLevelProjectPtr &existingProject,
+                                   const SetupProjectParameters &parameters)
 {
+    m_existingProject = existingProject;
     m_parameters = parameters;
     setTimed(parameters.logElapsedTime());
 }
@@ -218,28 +220,33 @@ void InternalSetupProjectJob::reportError(const ErrorInfo &error)
 
 TopLevelProjectPtr InternalSetupProjectJob::project() const
 {
-    return m_project;
+    return m_newProject;
 }
 
 void InternalSetupProjectJob::start()
 {
-    BuildGraphLocker *bgLocker = 0;
+    BuildGraphLocker *bgLocker = m_existingProject ? m_existingProject->bgLocker : 0;
     try {
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
         if (err.hasError())
             throw err;
-        const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
-                m_parameters.finalBuildConfigurationTree());
-        const QString buildDir
-                = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
-        bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
-                                                                                   projectId));
+        if (!bgLocker) {
+            const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
+                    m_parameters.finalBuildConfigurationTree());
+            const QString buildDir
+                    = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
+            bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
+                                                                                       projectId));
+        }
         execute();
-        m_project->bgLocker = bgLocker;
+        if (m_existingProject)
+            m_existingProject->bgLocker = 0;
+        m_newProject->bgLocker = bgLocker;
     } catch (const ErrorInfo &error) {
-        m_project.clear();
+        m_newProject.clear();
         setError(error);
-        delete bgLocker;
+        if (!m_existingProject)
+            delete bgLocker;
     }
     emit finished(this);
 }
@@ -255,28 +262,28 @@ void InternalSetupProjectJob::execute()
         resolveBuildDataFromScratch(evalContext);
         break;
     case SetupProjectParameters::RestoreOnly:
-        m_project = restoreProject(evalContext).loadedProject;
+        m_newProject = restoreProject(evalContext).loadedProject;
         break;
     case SetupProjectParameters::RestoreAndTrackChanges: {
         const BuildGraphLoadResult loadResult = restoreProject(evalContext);
-        m_project = loadResult.newlyResolvedProject;
-        if (!m_project)
-            m_project = loadResult.loadedProject;
-        if (!m_project) {
+        m_newProject = loadResult.newlyResolvedProject;
+        if (!m_newProject)
+            m_newProject = loadResult.loadedProject;
+        if (!m_newProject) {
             resolveProjectFromScratch(evalContext->engine());
             resolveBuildDataFromScratch(evalContext);
         } else {
-            QBS_CHECK(m_project->buildData);
+            QBS_CHECK(m_newProject->buildData);
         }
         break;
     }
     }
 
     if (!m_parameters.dryRun())
-        storeBuildGraph(m_project);
+        storeBuildGraph(m_newProject);
 
     // The evalutation context cannot be re-used for building, which runs in a different thread.
-    m_project->buildData->evaluationContext.clear();
+    m_newProject->buildData->evaluationContext.clear();
 }
 
 void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
@@ -284,20 +291,21 @@ void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
     Loader loader(engine, logger());
     loader.setSearchPaths(m_parameters.searchPaths());
     loader.setProgressObserver(observer());
-    m_project = loader.loadProject(m_parameters);
-    QBS_CHECK(m_project);
+    m_newProject = loader.loadProject(m_parameters);
+    QBS_CHECK(m_newProject);
 }
 
 void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext)
 {
     TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"));
-    BuildDataResolver(logger()).resolveBuildData(m_project, evalContext);
+    BuildDataResolver(logger()).resolveBuildData(m_newProject, evalContext);
 }
 
 BuildGraphLoadResult InternalSetupProjectJob::restoreProject(const RulesEvaluationContextPtr &evalContext)
 {
     BuildGraphLoader bgLoader(m_parameters.adjustedEnvironment(), logger());
-    const BuildGraphLoadResult loadResult = bgLoader.load(m_parameters, evalContext);
+    const BuildGraphLoadResult loadResult
+            = bgLoader.load(m_existingProject, m_parameters, evalContext);
     return loadResult;
 }
 

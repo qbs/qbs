@@ -98,20 +98,29 @@ static void restoreBackPointers(const ResolvedProjectPtr &project)
     }
 }
 
-BuildGraphLoadResult BuildGraphLoader::load(const SetupProjectParameters &parameters,
-        const RulesEvaluationContextPtr &evalContext)
+BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingProject,
+                                            const SetupProjectParameters &parameters,
+                                            const RulesEvaluationContextPtr &evalContext)
 {
     m_parameters = parameters;
     m_result = BuildGraphLoadResult();
     m_evalContext = evalContext;
-    loadBuildGraphFromDisk();
+
+    if (existingProject) {
+        QBS_CHECK(existingProject->buildData);
+        existingProject->buildData->evaluationContext = evalContext;
+        checkBuildGraphCompatibility(existingProject);
+        m_result.loadedProject = existingProject;
+    } else {
+        loadBuildGraphFromDisk();
+    }
     if (!m_result.loadedProject)
         return m_result;
     if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly)
         return m_result;
     QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
 
-    trackProjectChanges(m_result.loadedProject);
+    trackProjectChanges();
     return m_result;
 }
 
@@ -142,11 +151,23 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
 
     project->load(pool);
     project->buildData->evaluationContext = m_evalContext;
+    project->setBuildConfiguration(pool.headData().projectConfig);
+    project->buildDirectory = buildDir;
+    checkBuildGraphCompatibility(project);
+    restoreBackPointers(project);
+    project->location = CodeLocation(m_parameters.projectFilePath(), project->location.line(),
+                                     project->location.column());
+    m_result.loadedProject = project;
+    m_evalContext->incrementProgressValue();
+    doSanityChecks(project, m_logger);
+}
 
+void BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project)
+{
     if (QFileInfo(project->location.fileName()) != QFileInfo(m_parameters.projectFilePath())) {
         QString errorMessage = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
                                       "input file is '%3'. ")
-                .arg(QDir::toNativeSeparators(buildGraphFilePath),
+                .arg(QDir::toNativeSeparators(project->buildGraphFilePath()),
                      QDir::toNativeSeparators(project->location.fileName()),
                      QDir::toNativeSeparators(m_parameters.projectFilePath()));
         if (!m_parameters.ignoreDifferentProjectFilePath()) {
@@ -158,20 +179,11 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
         errorMessage += Tr::tr("Ignoring.");
         m_logger.qbsWarning() << errorMessage;
     }
-
-    restoreBackPointers(project);
-
-    project->location = CodeLocation(m_parameters.projectFilePath(), project->location.line(),
-                                     project->location.column());
-    project->setBuildConfiguration(pool.headData().projectConfig);
-    project->buildDirectory = buildDir;
-    m_result.loadedProject = project;
-    m_evalContext->incrementProgressValue();
-    doSanityChecks(project, m_logger);
 }
 
-void BuildGraphLoader::trackProjectChanges(const TopLevelProjectPtr &restoredProject)
+void BuildGraphLoader::trackProjectChanges()
 {
+    const TopLevelProjectPtr &restoredProject = m_result.loadedProject;
     QSet<QString> buildSystemFiles = restoredProject->buildSystemFiles;
     QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     QList<ResolvedProductPtr> changedProducts;

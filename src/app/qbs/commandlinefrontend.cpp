@@ -145,7 +145,7 @@ void CommandLineFrontend::start()
             params.setBuildVariant(buildVariant);
             params.setBuildRoot(buildDirectory(profileName));
             params.setOverriddenValues(userConfig);
-            SetupProjectJob * const job = Project::setupProject(params,
+            SetupProjectJob * const job = Project().setupProject(params,
                     ConsoleLogger::instance().logSink(), this);
             connectJob(job);
             m_resolveJobs << job;

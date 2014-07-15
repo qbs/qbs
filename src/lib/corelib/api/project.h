@@ -72,8 +72,8 @@ class QBS_EXPORT Project
     friend class SetupProjectJob;
     friend uint qHash(const Project &p);
 public:
-    static SetupProjectJob *setupProject(const SetupProjectParameters &parameters,
-                                         ILogSink *logSink, QObject *jobOwner);
+    SetupProjectJob *setupProject(const SetupProjectParameters &parameters,
+                                  ILogSink *logSink, QObject *jobOwner);
 
     Project();
     Project(const Project &other);

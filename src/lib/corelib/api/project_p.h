@@ -103,7 +103,7 @@ public:
                                      const CodeLocation &changeLocation, int lineOffset);
     void prepareChangeToProject();
 
-    const TopLevelProjectPtr internalProject;
+    TopLevelProjectPtr internalProject;
     Logger logger;
 
 private:

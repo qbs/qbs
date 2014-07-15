@@ -48,6 +48,7 @@ class Settings;
 
 namespace Internal {
 class BuildGraphLoadResult;
+class BuildGraphLocker;
 class Executor;
 class JobObserver;
 class ScriptEngine;
@@ -118,7 +119,7 @@ public:
     InternalSetupProjectJob(const Logger &logger);
     ~InternalSetupProjectJob();
 
-    void init(const SetupProjectParameters &parameters);
+    void init(const TopLevelProjectPtr &existingProject, const SetupProjectParameters &parameters);
     void reportError(const ErrorInfo &error);
 
     TopLevelProjectPtr project() const;
@@ -132,7 +133,8 @@ private:
     BuildGraphLoadResult restoreProject(const RulesEvaluationContextPtr &evalContext);
     void execute();
 
-    TopLevelProjectPtr m_project;
+    TopLevelProjectPtr m_existingProject;
+    TopLevelProjectPtr m_newProject;
     SetupProjectParameters m_parameters;
 };
 
