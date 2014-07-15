@@ -115,7 +115,7 @@ AbstractJob::AbstractJob(InternalJob *internalJob, QObject *parent)
     m_state = StateRunning;
 }
 
-bool AbstractJob::lockBuildGraph(const TopLevelProjectPtr &project)
+bool AbstractJob::lockProject(const TopLevelProjectPtr &project)
 {
     // The API is not thread-safe, so we don't need a mutex here, as the API requests come in
     // synchronously.
@@ -130,7 +130,7 @@ bool AbstractJob::lockBuildGraph(const TopLevelProjectPtr &project)
     return true;
 }
 
-void AbstractJob::unlockBuildGraph()
+void AbstractJob::unlockProject()
 {
     if (!m_project)
         return;
@@ -188,7 +188,7 @@ void AbstractJob::handleFinished()
 {
     QBS_ASSERT(m_state != StateFinished, return);
     m_state = StateFinished;
-    unlockBuildGraph();
+    unlockProject();
     emit finished(!error().hasError(), this);
 }
 
@@ -280,7 +280,7 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
 void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const BuildOptions &options)
 {
-    if (!lockBuildGraph(project))
+    if (!lockProject(project))
         return;
     qobject_cast<InternalBuildJob *>(internalJob())->build(project, products, options);
 }
@@ -299,7 +299,7 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                      const qbs::CleanOptions &options)
 {
-    if (!lockBuildGraph(project))
+    if (!lockProject(project))
         return;
     InternalJobThreadWrapper * wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     qobject_cast<InternalCleanJob *>(wrapper->synchronousJob())->init(project, products, options);
@@ -319,7 +319,7 @@ InstallJob::InstallJob(const Logger &logger, QObject *parent)
 void InstallJob::install(const TopLevelProjectPtr &project,
                          const QList<ResolvedProductPtr> &products, const InstallOptions &options)
 {
-    if (!lockBuildGraph(project))
+    if (!lockProject(project))
         return;
     InternalJobThreadWrapper *wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     InternalInstallJob *installJob = qobject_cast<InternalInstallJob *>(wrapper->synchronousJob());

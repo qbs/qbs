@@ -69,7 +69,7 @@ protected:
     AbstractJob(Internal::InternalJob *internalJob, QObject *parent);
     Internal::InternalJob *internalJob() const { return m_internalJob; }
 
-    bool lockBuildGraph(const Internal::TopLevelProjectPtr &project);
+    bool lockProject(const Internal::TopLevelProjectPtr &project);
 
 signals:
     void taskStarted(const QString &description, int maximumProgressValue, qbs::AbstractJob *job);
@@ -84,7 +84,7 @@ private slots:
     void handleFinished();
 
 private:
-    void unlockBuildGraph();
+    void unlockProject();
 
     Internal::InternalJob * const m_internalJob;
     Internal::TopLevelProjectPtr m_project;
