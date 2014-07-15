@@ -84,7 +84,10 @@ private slots:
     void handleFinished();
 
 private:
+    void unlockBuildGraph();
+
     Internal::InternalJob * const m_internalJob;
+    Internal::TopLevelProjectPtr m_project;
     State m_state;
 };
 

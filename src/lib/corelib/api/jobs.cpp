@@ -126,7 +126,16 @@ bool AbstractJob::lockBuildGraph(const TopLevelProjectPtr &project)
         return false;
     }
     project->locked = true;
+    m_project = project;
     return true;
+}
+
+void AbstractJob::unlockBuildGraph()
+{
+    if (!m_project)
+        return;
+    QBS_ASSERT(m_project->locked, return);
+    m_project->locked = false;
 }
 
 /*!
@@ -179,6 +188,7 @@ void AbstractJob::handleFinished()
 {
     QBS_ASSERT(m_state != StateFinished, return);
     m_state = StateFinished;
+    unlockBuildGraph();
     emit finished(!error().hasError(), this);
 }
 
