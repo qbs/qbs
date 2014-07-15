@@ -120,7 +120,7 @@ bool AbstractJob::lockProject(const TopLevelProjectPtr &project)
     // The API is not thread-safe, so we don't need a mutex here, as the API requests come in
     // synchronously.
     if (project->locked) {
-        internalJob()->setError(tr("Cannot start a job while another one is in process."));
+        internalJob()->setError(tr("Cannot start a job while another one is in progress."));
         QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection, Q_ARG(bool, false),
                                   Q_ARG(qbs::AbstractJob *, this));
         return false;

@@ -91,6 +91,7 @@ static void loadPlugins(const QStringList &_pluginPaths, const Logger &logger)
     qRegisterMetaType<ErrorInfo>("qbs::ErrorInfo");
     qRegisterMetaType<ProcessResult>("qbs::ProcessResult");
     qRegisterMetaType<InternalJob *>("Internal::InternalJob *");
+    qRegisterMetaType<AbstractJob *>("qbs::AbstractJob *");
     pluginsLoaded = true;
 }
 

@@ -730,6 +730,28 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
              qPrintable(job->error().toString()));
 }
 
+void TestApi::projectLocking()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/project-locking");
+    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
+    QScopedPointer<qbs::SetupProjectJob> setupJob2(project.setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob2.data());
+    QVERIFY(setupJob2->error().hasError());
+    QVERIFY2(setupJob2->error().toString()
+             .contains("Cannot start a job while another one is in progress."),
+             qPrintable(setupJob2->error().toString()));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+}
+
 qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 {
     qbs::SetupProjectParameters setupParams;

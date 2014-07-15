@@ -61,6 +61,7 @@ private slots:
     void multiArch();
     void nonexistingProjectPropertyFromProduct();
     void nonexistingProjectPropertyFromCommandLine();
+    void projectLocking();
     void references();
     void sourceFileInBuildDir();
 
