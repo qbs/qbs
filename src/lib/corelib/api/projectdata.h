@@ -171,7 +171,11 @@ public:
 
     bool isValid() const;
 
+    QStringList type() const;
+    QStringList dependencies() const;
     QString name() const;
+    QString targetName() const;
+    QString version() const;
     QString profile() const;
     CodeLocation location() const;
     QList<TargetArtifact> targetArtifacts() const;

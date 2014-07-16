@@ -579,7 +579,11 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
     projectData.d->enabled = internalProject->enabled;
     foreach (const ResolvedProductConstPtr &resolvedProduct, internalProject->products) {
         ProductData product;
+        product.d->type = resolvedProduct->fileTags.toStringList();
         product.d->name = resolvedProduct->name;
+        product.d->targetName = resolvedProduct->targetName;
+        product.d->version = resolvedProduct->productProperties
+                                                        .value(QLatin1String("version")).toString();
         product.d->profile = resolvedProduct->profile;
         product.d->location = resolvedProduct->location;
         product.d->isEnabled = resolvedProduct->enabled;
@@ -597,8 +601,12 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 product.d->targetArtifacts << ta;
             }
         }
+        foreach (const ResolvedProductPtr &resolvedDependentProduct, resolvedProduct->dependencies)
+            product.d->dependencies << resolvedDependentProduct->name;
+        qSort(product.d->type);
         qSort(product.d->groups);
         qSort(product.d->targetArtifacts);
+        qSort(product.d->dependencies);
         product.d->isValid = true;
         projectData.d->products << product;
     }

@@ -79,7 +79,11 @@ public:
     ProductDataPrivate() : isValid(false)
     { }
 
+    QStringList type;
+    QStringList dependencies;
     QString name;
+    QString targetName;
+    QString version;
     QString profile;
     CodeLocation location;
     QList<GroupData> groups;

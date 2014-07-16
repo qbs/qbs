@@ -371,11 +371,43 @@ bool ProductData::isValid() const
 }
 
 /*!
+ * \brief The product type, which is the list of file tags matching the product's target artifacts.
+ */
+QStringList ProductData::type() const
+{
+    return d->type;
+}
+
+/*!
+ * \brief The names of dependent products.
+ */
+QStringList ProductData::dependencies() const
+{
+    return d->dependencies;
+}
+
+/*!
  * \brief The name of the product as given in the qbs source file.
  */
 QString ProductData::name() const
 {
     return d->name;
+}
+
+/*!
+ * \brief The base name of the product's target file as given in the qbs source file.
+ */
+QString ProductData::targetName() const
+{
+    return d->targetName;
+}
+
+/*!
+ * \brief The version number of the product.
+ */
+QString ProductData::version() const
+{
+    return d->version;
 }
 
 /*!
@@ -431,6 +463,10 @@ bool ProductData::isRunnable() const
 bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
     return lhs.name() == rhs.name()
+            && lhs.targetName() == rhs.targetName()
+            && lhs.type() == rhs.type()
+            && lhs.version() == rhs.version()
+            && lhs.dependencies() == rhs.dependencies()
             && lhs.profile() == rhs.profile()
             && lhs.location() == rhs.location()
             && lhs.groups() == rhs.groups()
