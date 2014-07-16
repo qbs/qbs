@@ -17,6 +17,7 @@ HEADERS += \
     $$PWD/processresult_p.h \
     $$PWD/progressobserver.h \
     $$PWD/propertyfinder.h \
+    $$PWD/shellutils.h \
     $$PWD/hostosinfo.h \
     $$PWD/buildoptions.h \
     $$PWD/installoptions.h \
@@ -43,6 +44,7 @@ SOURCES += \
     $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
     $$PWD/propertyfinder.cpp \
+    $$PWD/shellutils.cpp \
     $$PWD/buildoptions.cpp \
     $$PWD/installoptions.cpp \
     $$PWD/cleanoptions.cpp \

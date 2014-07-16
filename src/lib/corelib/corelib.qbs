@@ -321,6 +321,8 @@ QbsLibrary {
             "scripttools.h",
             "settings.cpp",
             "setupprojectparameters.cpp",
+            "shellutils.cpp",
+            "shellutils.h",
             "weakpointer.h"
         ]
     }
