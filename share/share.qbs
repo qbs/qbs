@@ -18,7 +18,7 @@ Product {
     Transformer {
         inputs: "qbs"
         Artifact {
-            filePath: project.buildDirectory + project.resourcesInstallDir + "/share/qbs"
+            filePath: project.buildDirectory + '/' + project.resourcesInstallDir + "/share/qbs"
         }
         prepare: {
             var cmd = new JavaScriptCommand();
