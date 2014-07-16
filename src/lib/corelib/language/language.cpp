@@ -664,63 +664,6 @@ void ResolvedProduct::setupRunEnvironment(ScriptEngine *engine, const QProcessEn
     runEnvironment = getProcessEnvironment(engine, RunEnv, modules, moduleProperties, env);
 }
 
-static bool removeFromHash(ProductBuildData::ArtifactSetByFileTag &tagHash, const FileTag &tag,
-                           Artifact *artifact)
-{
-    const ProductBuildData::ArtifactSetByFileTag::Iterator it = tagHash.find(tag);
-    if (it == tagHash.end())
-        return false;
-
-    ArtifactSet &artifacts = it.value();
-    const bool wasInSet = artifacts.remove(artifact);
-    if (wasInSet) {
-        if (artifacts.isEmpty())
-            tagHash.erase(it); // Do not keep empty artifact set in hash.
-        return true;
-    }
-    return false;
-}
-
-void ResolvedProduct::registerAddedFileTag(const FileTag &fileTag, Artifact *artifact)
-{
-    QBS_CHECK(buildData);
-    QBS_CHECK(artifact->product == this);
-    if (removeFromHash(buildData->removedArtifactsByFileTag, fileTag, artifact))
-        return;
-    buildData->addedArtifactsByFileTag[fileTag].insert(artifact);
-}
-
-void ResolvedProduct::registerAddedArtifact(Artifact *artifact)
-{
-    QBS_CHECK(buildData);
-    QBS_CHECK(artifact->product == this);
-    foreach (const FileTag &tag, artifact->fileTags)
-        registerAddedFileTag(tag, artifact);
-}
-
-void ResolvedProduct::unregisterAddedArtifact(Artifact *artifact)
-{
-    ProductBuildData::ArtifactSetByFileTag::Iterator it
-            = buildData->addedArtifactsByFileTag.begin();
-    while (it != buildData->addedArtifactsByFileTag.end()) {
-        ArtifactSet &artifacts = it.value();
-        artifacts.remove(artifact);
-        if (artifacts.isEmpty())
-            it = buildData->addedArtifactsByFileTag.erase(it);
-        else
-            ++it;
-    }
-}
-
-void ResolvedProduct::registerRemovedFileTag(const FileTag &fileTag, Artifact *artifact)
-{
-    QBS_CHECK(buildData);
-    QBS_CHECK(artifact->product == this);
-    if (removeFromHash(buildData->addedArtifactsByFileTag, fileTag, artifact))
-        return;
-    buildData->removedArtifactsByFileTag[fileTag].insert(artifact);
-}
-
 void ResolvedProduct::registerArtifactWithChangedInputs(Artifact *artifact)
 {
     QBS_CHECK(buildData);
@@ -744,25 +687,6 @@ void ResolvedProduct::unmarkForReapplication(const RuleConstPtr &rule)
 {
     QBS_CHECK(buildData);
     buildData->artifactsWithChangedInputsPerRule.remove(rule);
-}
-
-const ArtifactSet ResolvedProduct::addedArtifactsByFileTag(const FileTag &tag) const
-{
-    return buildData->addedArtifactsByFileTag.value(tag);
-}
-
-bool ResolvedProduct::isAdded(Artifact *a) const
-{
-    foreach (const ArtifactSet &artifacts, buildData->addedArtifactsByFileTag) {
-        if (artifacts.contains(a))
-            return true;
-    }
-    return false;
-}
-
-const ArtifactSet ResolvedProduct::removedArtifactsByFileTag(const FileTag &tag) const
-{
-    return buildData->removedArtifactsByFileTag.value(tag);
 }
 
 bool ResolvedProduct::isMarkedForReapplication(const RuleConstPtr &rule) const

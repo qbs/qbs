@@ -65,67 +65,49 @@ QString RuleNode::toString() const
 void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         ApplicationResult *result)
 {
-    bool hasAddedTags = false;
-    bool hasRemovedTags = false;
-    result->upToDate = changedInputs.isEmpty() && !usedDependenciesAdded();
+    const ArtifactSet oldInputs = oldInputArtifacts();
+    ArtifactSet allCompatibleInputs = currentInputArtifacts();
+    const ArtifactSet addedInputs = allCompatibleInputs - oldInputs;
+    const ArtifactSet removedInputs = oldInputs - allCompatibleInputs;
+    result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty();
 
-    ProductBuildData::ArtifactSetByFileTag relevantArtifacts;
+    ArtifactSet inputs = changedInputs;
     if (product->isMarkedForReapplication(m_rule)) {
         QBS_CHECK(m_rule->multiplex);
         result->upToDate = false;
         product->unmarkForReapplication(m_rule);
         if (logger.traceEnabled())
             logger.qbsTrace() << "[BG] rule is marked for reapplication " << m_rule->toString();
-
-        foreach (Artifact *artifact, ArtifactSet::fromNodeSet(product->buildData->nodes)) {
-            if (m_rule->acceptsAsInput(artifact))
-                addArtifactToSet(artifact, relevantArtifacts);
-        }
+        inputs += allCompatibleInputs;
     } else {
-        foreach (const FileTag &tag, m_rule->inputs) {
-            if (product->addedArtifactsByFileTag(tag).count()) {
-                hasAddedTags = true;
-                result->upToDate = false;
-            }
-            if (product->removedArtifactsByFileTag(tag).count()) {
-                hasRemovedTags = true;
-                result->upToDate = false;
-            }
-            if (hasAddedTags && hasRemovedTags)
-                break;
-        }
-
-        relevantArtifacts = product->buildData->addedArtifactsByFileTag;
-        if (!changedInputs.isEmpty()) {
-            foreach (Artifact *artifact, changedInputs)
-                addArtifactToSet(artifact, relevantArtifacts);
-        }
+        inputs += addedInputs;
     }
     if (result->upToDate)
         return;
-    if (hasRemovedTags) {
+    if (!removedInputs.isEmpty()) {
         ArtifactSet outputArtifactsToRemove;
-        foreach (const FileTag &tag, m_rule->inputs) {
-            foreach (Artifact *artifact, product->removedArtifactsByFileTag(tag)) {
-                foreach (Artifact *parent, ArtifactSet::fromNodeSet(artifact->parents)) {
-                    if (!parent->transformer || parent->transformer->rule != m_rule
-                            || !parent->transformer->inputs.contains(artifact)) {
-                        // parent was not created by our rule.
-                        continue;
-                    }
-                    outputArtifactsToRemove += parent;
+        foreach (Artifact *artifact, removedInputs) {
+            foreach (Artifact *parent, ArtifactSet::fromNodeSet(artifact->parents)) {
+                if (!parent->transformer || parent->transformer->rule != m_rule
+                        || !parent->transformer->inputs.contains(artifact)) {
+                    // TODO: turn two of the three conditions above into QBS_CHECKs
+                    // parent must always have a transformer, because it's generated.
+                    //     QBS_CHECK(parent->transformer)
+                    // artifact is a former input of m_rule and parent was created by m_rule
+                    // the inputs of the transformer must contain artifact
+                    //     QBS_CHECK(parent->transformer->inputs.contains(artifact))
+
+                    // parent was not created by our rule.
+                    continue;
                 }
+                outputArtifactsToRemove += parent;
             }
         }
         RulesApplicator::handleRemovedRuleOutputs(outputArtifactsToRemove, logger);
     }
-    if (!relevantArtifacts.isEmpty()) {
-        RulesApplicator applicator(product, relevantArtifacts, logger);
-        result->createdNodes = applicator.applyRuleInEvaluationContext(m_rule);
-        foreach (BuildGraphNode *node, result->createdNodes) {
-            if (Artifact *artifact = dynamic_cast<Artifact *>(node))
-                product->registerAddedArtifact(artifact);
-        }
+    if (!inputs.isEmpty()) {
+        RulesApplicator applicator(product, logger);
+        result->createdNodes = applicator.applyRuleInEvaluationContext(m_rule, inputs);
     }
 }
 
@@ -141,17 +123,47 @@ void RuleNode::store(PersistentPool &pool) const
     pool.store(m_rule);
 }
 
-bool RuleNode::usedDependenciesAdded() const
+QList<TransformerPtr> RuleNode::createdTransformers() const
 {
-    foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
-        if (!dep->buildData || !dep->fileTags.matches(rule()->usings))
+    QList<TransformerPtr> lst;
+    foreach (BuildGraphNode *parent, parents) {
+        if (parent->type() != ArtifactNodeType)
             continue;
-        foreach (Artifact *a, dep->targetArtifacts()) {
-            if (a->fileTags.matches(rule()->usings) && a->product->isAdded(a))
-                return true;
+        Artifact *artifact = static_cast<Artifact *>(parent);
+        if (!artifact->transformer || artifact->transformer->rule != m_rule)
+            continue;
+        lst.append(artifact->transformer);
+    }
+    return lst;
+}
+
+ArtifactSet RuleNode::oldInputArtifacts() const
+{
+    ArtifactSet s;
+    foreach (const TransformerPtr &t, createdTransformers())
+        s += t->inputs;
+    return s;
+}
+
+ArtifactSet RuleNode::currentInputArtifacts() const
+{
+    ArtifactSet s;
+    foreach (const FileTag &t, m_rule->inputs)
+        s += product->lookupArtifactsByFileTag(t);
+
+    foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
+        if (!dep->buildData)
+            continue;
+        ArtifactSet artifactsToCheck;
+        foreach (Artifact *targetArtifact, dep->targetArtifacts())
+            artifactsToCheck += targetArtifact->transformer->outputs;
+        foreach (Artifact *artifact, artifactsToCheck) {
+            if (artifact->fileTags.matches(m_rule->usings))
+                s += artifact;
         }
     }
-    return false;
+
+    return s;
 }
 
 } // namespace Internal

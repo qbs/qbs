@@ -46,16 +46,14 @@ class BuildGraphNode;
 class QtMocScanner;
 class ScriptEngine;
 
-typedef QHash<FileTag, ArtifactSet> ArtifactsPerFileTagMap;
-
 class RulesApplicator
 {
 public:
-    RulesApplicator(const ResolvedProductPtr &product, ArtifactsPerFileTagMap &artifactsPerFileTag,
-                    const Logger &logger);
+    RulesApplicator(const ResolvedProductPtr &product, const Logger &logger);
     ~RulesApplicator();
-    NodeSet applyRuleInEvaluationContext(const RuleConstPtr &rule);
-    void applyRule(const RuleConstPtr &rule);
+    NodeSet applyRuleInEvaluationContext(const RuleConstPtr &rule,
+            const ArtifactSet &inputArtifacts);
+    void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(ArtifactSet artifactsToRemove, const Logger &logger);
 
 private:
@@ -75,9 +73,7 @@ private:
     QScriptValue scope() const;
 
     const ResolvedProductPtr m_product;
-    ArtifactsPerFileTagMap &m_artifactsPerFileTag;
     NodeSet m_createdArtifacts;
-
     RuleConstPtr m_rule;
     TransformerPtr m_transformer;
     QtMocScanner *m_mocScanner;

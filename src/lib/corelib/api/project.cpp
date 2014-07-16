@@ -398,10 +398,8 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
             resolvedGroup->files << artifact;
         }
         if (resolvedProduct->enabled) {
-            foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts) {
-                Artifact * const artifact = createArtifact(resolvedProduct, sa, logger);
-                resolvedProduct->registerAddedArtifact(artifact);
-            }
+            foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts)
+                createArtifact(resolvedProduct, sa, logger);
         }
     }
     doSanityChecks(internalProject, logger);

@@ -35,7 +35,6 @@
 #include "command.h"
 #include "rulegraph.h"
 #include "rulenode.h"
-#include "rulesapplicator.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 #include <language/language.h>
@@ -276,10 +275,6 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
         removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
     }
 
-    // If removal is requested and the executor has not run since the time the artifact was last
-    // added, we must undo the "register" operation.
-    artifact->product->unregisterAddedArtifact(artifact);
-
     disconnectArtifact(artifact, logger);
     if (artifact->transformer) {
         artifact->product->unregisterArtifactWithChangedInputs(artifact);
@@ -428,7 +423,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     evalContext()->checkForCancelation();
 
     product->buildData.reset(new ProductBuildData);
-    ArtifactsPerFileTagMap artifactsPerFileTag;
+    ProductBuildData::ArtifactSetByFileTag artifactsPerFileTag;
 
     foreach (ResolvedProductPtr dependency, product->dependencies) {
         if (Q_UNLIKELY(!dependency->enabled)) {
@@ -449,7 +444,6 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     }
     qbsFileArtifact->fileTags.insert("qbs");
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
-    product->registerAddedArtifact(qbsFileArtifact);
 
     // read sources
     foreach (const SourceArtifactConstPtr &sourceArtifact, product->allEnabledFiles()) {
@@ -458,7 +452,6 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             continue; // ignore duplicate artifacts
 
         Artifact *artifact = createArtifact(product, sourceArtifact, m_logger);
-        product->registerAddedArtifact(artifact);
         foreach (const FileTag &fileTag, artifact->fileTags)
             artifactsPerFileTag[fileTag].insert(artifact);
     }
@@ -493,7 +486,6 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
                 safeConnect(outputArtifact, inputArtifact, m_logger);
             foreach (const FileTag &fileTag, outputArtifact->fileTags)
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
-            product->registerAddedArtifact(outputArtifact);
 
             RuleArtifactPtr ruleArtifact = RuleArtifact::create();
             ruleArtifact->filePath = outputArtifact->filePath();

@@ -577,7 +577,6 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
 
     QBS_CHECK(newlyResolvedProduct->enabled);
 
-    QList<Artifact *> addedArtifacts;
     ArtifactSet artifactsToRemove;
     QHash<QString, SourceArtifactConstPtr> oldArtifacts, newArtifacts;
 
@@ -616,7 +615,6 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
                                                       newArtifact);
                 }
             }
-            addedArtifacts += newArtifact;
         }
     }
 
@@ -648,13 +646,14 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             // handle added filetags
             foreach (const FileTag &addedFileTag, changedArtifact->fileTags - a->fileTags) {
                 artifact->fileTags += addedFileTag;
-                newlyResolvedProduct->registerAddedFileTag(addedFileTag, artifact);
+                artifact->product->buildData->artifactsByFileTag[addedFileTag].insert(artifact);
             }
 
             // handle removed filetags
             foreach (const FileTag &removedFileTag, a->fileTags - changedArtifact->fileTags) {
                 artifact->fileTags -= removedFileTag;
-                newlyResolvedProduct->registerRemovedFileTag(removedFileTag, artifact);
+                removeArtifactFromSetByFileTag(artifact, removedFileTag,
+                                               artifact->product->buildData->artifactsByFileTag);
             }
         }
 
@@ -667,7 +666,7 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             newlyResolvedProduct->topLevelProject()->buildData
                 ->removeArtifactAndExclusiveDependents(oldArtifact, m_logger, true,
                                                        &artifactsToRemove);
-            addedArtifacts += createArtifact(newlyResolvedProduct, changedArtifact, m_logger);
+            createArtifact(newlyResolvedProduct, changedArtifact, m_logger);
         }
     }
 
@@ -677,8 +676,6 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             m_artifactsRemovedFromDisk << artifact->filePath();
         m_objectsToDelete << artifact;
     }
-    foreach (Artifact * const artifact, addedArtifacts)
-        newlyResolvedProduct->registerAddedArtifact(artifact);
 }
 
 static SourceArtifactConstPtr findSourceArtifact(const ResolvedProductConstPtr &product,

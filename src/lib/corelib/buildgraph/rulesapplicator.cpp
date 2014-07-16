@@ -51,10 +51,8 @@
 namespace qbs {
 namespace Internal {
 
-RulesApplicator::RulesApplicator(const ResolvedProductPtr &product,
-                                 ArtifactsPerFileTagMap &artifactsPerFileTag, const Logger &logger)
+RulesApplicator::RulesApplicator(const ResolvedProductPtr &product, const Logger &logger)
     : m_product(product)
-    , m_artifactsPerFileTag(artifactsPerFileTag)
     , m_mocScanner(0)
     , m_logger(logger)
 {
@@ -65,39 +63,21 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-NodeSet RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule)
+NodeSet RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule,
+        const ArtifactSet &inputArtifacts)
 {
     m_createdArtifacts.clear();
     RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());
-    applyRule(rule);
+    applyRule(rule, inputArtifacts);
     return m_createdArtifacts;
 }
 
-void RulesApplicator::applyRule(const RuleConstPtr &rule)
+void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
 {
-    m_rule = rule;
-
-    ArtifactSet inputArtifacts;
-    foreach (const FileTag &fileTag, m_rule->inputs)
-        inputArtifacts.unite(m_artifactsPerFileTag.value(fileTag));
-
-    ArtifactSet usingsArtifacts;
-    if (!m_rule->usings.isEmpty()) {
-        foreach (const ResolvedProductPtr &dep, m_product->dependencies) {
-            QBS_CHECK(dep->buildData);
-            ArtifactSet artifactsToCheck;
-            foreach (Artifact *targetArtifact, dep->targetArtifacts())
-                artifactsToCheck.unite(targetArtifact->transformer->outputs);
-            foreach (Artifact *artifact, artifactsToCheck) {
-                if (artifact->fileTags.matches(m_rule->usings))
-                    usingsArtifacts.insert(artifact);
-            }
-        }
-    }
-
-    if (inputArtifacts.isEmpty() && usingsArtifacts.isEmpty())
+    if (inputArtifacts.isEmpty())
         return;
 
+    m_rule = rule;
     if (rule->name == QLatin1String("QtCoreMocRule")) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, scope(), m_logger);
@@ -108,10 +88,9 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule)
     setupScriptEngineForProduct(engine(), m_product, m_rule->module, prepareScriptContext, &observer);
 
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
-        inputArtifacts.unite(usingsArtifacts);
         doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
-        foreach (Artifact * const inputArtifact, inputArtifacts + usingsArtifacts) {
+        foreach (Artifact * const inputArtifact, inputArtifacts) {
             ArtifactSet lst;
             lst += inputArtifact;
             doApply(lst, prepareScriptContext);
@@ -199,13 +178,9 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         return;
 
     foreach (Artifact *outputArtifact, outputArtifacts) {
-        // insert the output artifacts into the pool of artifacts
-        foreach (const FileTag &fileTag, outputArtifact->fileTags)
-            m_artifactsPerFileTag[fileTag].insert(outputArtifact);
-
         // connect artifacts that match the file tags in explicitlyDependsOn
         foreach (const FileTag &fileTag, m_rule->explicitlyDependsOn)
-            foreach (Artifact *dependency, m_artifactsPerFileTag.value(fileTag))
+            foreach (Artifact *dependency, m_product->lookupArtifactsByFileTag(fileTag))
                 loggedConnect(outputArtifact, dependency, m_logger);
 
         m_transformer->outputs.insert(outputArtifact);

@@ -64,8 +64,6 @@ public:
 
     typedef QHash<FileTag, ArtifactSet> ArtifactSetByFileTag;
     ArtifactSetByFileTag artifactsByFileTag;
-    ArtifactSetByFileTag addedArtifactsByFileTag;
-    ArtifactSetByFileTag removedArtifactsByFileTag;
 
     typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
     ArtifactSetByRule artifactsWithChangedInputsPerRule;
@@ -76,6 +74,8 @@ private:
 };
 
 void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
+void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag,
+        ProductBuildData::ArtifactSetByFileTag &container);
 void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
 
 } // namespace Internal

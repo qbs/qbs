@@ -861,10 +861,6 @@ void Executor::finish()
                 m_artifactsRemovedFromDisk << filePath;
             }
             product->buildData->rescuableArtifactData.clear();
-
-            // Similar logic applies for the artifacts scheduled for potential rule application.
-            product->buildData->addedArtifactsByFileTag.clear();
-            product->buildData->removedArtifactsByFileTag.clear();
         }
     }
 

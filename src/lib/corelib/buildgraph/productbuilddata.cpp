@@ -78,8 +78,6 @@ void ProductBuildData::load(PersistentPool &pool)
         rescuableArtifactData.insert(filePath, elem);
     }
     loadArtifactSetByFileTag(pool, artifactsByFileTag);
-    loadArtifactSetByFileTag(pool, addedArtifactsByFileTag);
-    loadArtifactSetByFileTag(pool, removedArtifactsByFileTag);
 
     pool.stream() >> count;
     for (int i = 0; i < count; ++i) {
@@ -112,8 +110,6 @@ void ProductBuildData::store(PersistentPool &pool) const
         it.value().store(pool);
     }
     storeArtifactSetByFileTag(pool, artifactsByFileTag);
-    storeArtifactSetByFileTag(pool, addedArtifactsByFileTag);
-    storeArtifactSetByFileTag(pool, removedArtifactsByFileTag);
 
     pool.stream() << artifactsWithChangedInputsPerRule.count();
     for (ArtifactSetByRule::ConstIterator it = artifactsWithChangedInputsPerRule.constBegin();
@@ -129,14 +125,21 @@ void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag
         container[tag] += artifact;
 }
 
+void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag,
+        ProductBuildData::ArtifactSetByFileTag &container)
+{
+    ProductBuildData::ArtifactSetByFileTag::iterator it = container.find(fileTag);
+    if (it == container.end())
+        return;
+    it->remove(artifact);
+    if (it->isEmpty())
+        container.erase(it);
+}
+
 void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
 {
-    foreach (const FileTag &t, artifact->fileTags) {
-        ArtifactSet &s = container[t];
-        s.remove(artifact);
-        if (s.isEmpty())
-            container.remove(t);
-    }
+    foreach (const FileTag &t, artifact->fileTags)
+        removeArtifactFromSetByFileTag(artifact, t, container);
 }
 
 } // namespace Internal

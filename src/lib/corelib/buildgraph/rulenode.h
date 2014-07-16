@@ -32,6 +32,7 @@
 
 #include "artifactset.h"
 #include "buildgraphnode.h"
+#include "forward_decls.h"
 #include <language/forward_decls.h>
 
 namespace qbs {
@@ -65,7 +66,9 @@ protected:
     void store(PersistentPool &pool) const;
 
 private:
-    bool usedDependenciesAdded() const;
+    QList<TransformerPtr> createdTransformers() const;
+    ArtifactSet oldInputArtifacts() const;
+    ArtifactSet currentInputArtifacts() const;
 
     RuleConstPtr m_rule;
 };

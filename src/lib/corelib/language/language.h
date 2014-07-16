@@ -384,16 +384,9 @@ public:
     void setupBuildEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
     void setupRunEnvironment(ScriptEngine *scriptEngine, const QProcessEnvironment &env) const;
 
-    void registerAddedFileTag(const FileTag &fileTag, Artifact *artifact);
-    void registerAddedArtifact(Artifact *artifact);
-    void unregisterAddedArtifact(Artifact *artifact);
-    void registerRemovedFileTag(const FileTag &fileTag, Artifact *artifact);
     void registerArtifactWithChangedInputs(Artifact *artifact);
     void unregisterArtifactWithChangedInputs(Artifact *artifact);
     void unmarkForReapplication(const RuleConstPtr &rule);
-    const ArtifactSet addedArtifactsByFileTag(const FileTag &tag) const;
-    bool isAdded(Artifact *a) const;
-    const ArtifactSet removedArtifactsByFileTag(const FileTag &tag) const;
     bool isMarkedForReapplication(const RuleConstPtr &rule) const;
     ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
     ArtifactSet targetArtifacts() const;
