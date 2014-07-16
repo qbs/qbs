@@ -39,6 +39,7 @@
 #include <tools/settings.h>
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QLibrary>
@@ -52,30 +53,6 @@ template <class T>
 QByteArray utf8JSLiteral(T t)
 {
     return toJSLiteral(t).toUtf8();
-}
-
-static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
-                             const QString &profileName)
-{
-    if (!QDir::root().mkpath(targetDirectory)) {
-        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
-                                         "Cannot create directory '%2'.")
-                        .arg(profileName, targetDirectory));
-    }
-    QFile sourceFile(QLatin1String(":/templates/") + fileName);
-    const QString targetPath = targetDirectory + QLatin1Char('/') + fileName;
-    QFile::remove(targetPath); // QFile::copy() cannot overwrite.
-    if (!sourceFile.copy(targetPath)) {
-        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
-            "Cannot copy file '%2' into directory '%3' (%4).")
-                        .arg(profileName, fileName, targetDirectory, sourceFile.errorString()));
-    }
-    QFile targetFile(targetPath);
-    if (!targetFile.setPermissions(targetFile.permissions() | QFile::WriteUser)) {
-        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot set write "
-                "permission on file '%2' (%3).")
-                .arg(profileName, targetPath, targetFile.errorString()));
-    }
 }
 
 static QString pathToJSLiteral(const QString &path)
@@ -106,34 +83,27 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
     return QString();
 }
 
-static void replaceSpecialValues(const QString &filePath, const Profile &profile,
+static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
-    QFile moduleFile(filePath);
-    if (!moduleFile.open(QIODevice::ReadWrite)) {
-        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Cannot adapt "
-                "module file '%2' (%3).")
-                .arg(profile.name(), moduleFile.fileName(), moduleFile.errorString()));
-    }
-    QByteArray content = moduleFile.readAll();
-    content.replace("@name@", utf8JSLiteral(module.moduleName()));
-    content.replace("@has_library@", utf8JSLiteral(module.hasLibrary));
-    content.replace("@dependencies@", utf8JSLiteral(module.dependencies));
-    content.replace("@includes@", utf8JSLiteral(module.includePaths));
-    content.replace("@staticLibsDebug@", utf8JSLiteral(module.staticLibrariesDebug));
-    content.replace("@staticLibsRelease@", utf8JSLiteral(module.staticLibrariesRelease));
-    content.replace("@dynamicLibsDebug@", utf8JSLiteral(module.dynamicLibrariesDebug));
-    content.replace("@dynamicLibsRelease@", utf8JSLiteral(module.dynamicLibrariesRelease));
-    content.replace("@linkerFlagsDebug@", utf8JSLiteral(module.linkerFlagsDebug));
-    content.replace("@linkerFlagsRelease@", utf8JSLiteral(module.linkerFlagsRelease));
-    content.replace("@libraryPaths@", utf8JSLiteral(module.libraryPaths));
-    content.replace("@frameworkPathsDebug@", utf8JSLiteral(module.frameworkPathsDebug));
-    content.replace("@frameworkPathsRelease@", utf8JSLiteral(module.frameworkPathsRelease));
-    content.replace("@frameworksDebug@", utf8JSLiteral(module.frameworksDebug));
-    content.replace("@frameworksRelease@", utf8JSLiteral(module.frameworksRelease));
-    content.replace("@libNameForLinkerDebug@",
+    content->replace("@name@", utf8JSLiteral(module.moduleName()));
+    content->replace("@has_library@", utf8JSLiteral(module.hasLibrary));
+    content->replace("@dependencies@", utf8JSLiteral(module.dependencies));
+    content->replace("@includes@", utf8JSLiteral(module.includePaths));
+    content->replace("@staticLibsDebug@", utf8JSLiteral(module.staticLibrariesDebug));
+    content->replace("@staticLibsRelease@", utf8JSLiteral(module.staticLibrariesRelease));
+    content->replace("@dynamicLibsDebug@", utf8JSLiteral(module.dynamicLibrariesDebug));
+    content->replace("@dynamicLibsRelease@", utf8JSLiteral(module.dynamicLibrariesRelease));
+    content->replace("@linkerFlagsDebug@", utf8JSLiteral(module.linkerFlagsDebug));
+    content->replace("@linkerFlagsRelease@", utf8JSLiteral(module.linkerFlagsRelease));
+    content->replace("@libraryPaths@", utf8JSLiteral(module.libraryPaths));
+    content->replace("@frameworkPathsDebug@", utf8JSLiteral(module.frameworkPathsDebug));
+    content->replace("@frameworkPathsRelease@", utf8JSLiteral(module.frameworkPathsRelease));
+    content->replace("@frameworksDebug@", utf8JSLiteral(module.frameworksDebug));
+    content->replace("@frameworksRelease@", utf8JSLiteral(module.frameworksRelease));
+    content->replace("@libNameForLinkerDebug@",
                     utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
-    content.replace("@libNameForLinkerRelease@",
+    content->replace("@libNameForLinkerRelease@",
                     utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
     QByteArray propertiesString;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
@@ -163,9 +133,9 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
                 + baIndent + baIndent + "return result;\n"
                 + baIndent + "}";
     }
-    content.replace("@defines@", compilerDefines);
+    content->replace("@defines@", compilerDefines);
     if (module.qbsName == QLatin1String("gui")) {
-        content.replace("@defaultQpaPlugin@",
+        content->replace("@defaultQpaPlugin@",
                         utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
     }
     if (!module.modulePrefix.isEmpty()) {
@@ -179,10 +149,42 @@ static void replaceSpecialValues(const QString &filePath, const Profile &profile
         propertiesString += "isStaticLibrary: true";
     }
     if (module.isPlugin)
-        content.replace("@className@", utf8JSLiteral(module.pluginData.className));
-    content.replace("@special_properties@", propertiesString);
-    moduleFile.resize(0);
-    moduleFile.write(content);
+        content->replace("@className@", utf8JSLiteral(module.pluginData.className));
+    content->replace("@special_properties@", propertiesString);
+}
+
+static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
+        const Profile &profile, const QtEnvironment &qtEnv, QStringList *allFiles,
+        const QtModuleInfo *module = 0)
+{
+    if (!QDir::root().mkpath(targetDirectory)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
+                                         "Cannot create directory '%2'.")
+                        .arg(profile.name(), targetDirectory));
+    }
+    QFile sourceFile(QLatin1String(":/templates/") + fileName);
+    if (!sourceFile.open(QIODevice::ReadOnly)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
+                "Cannot open '%1' (%2).").arg(sourceFile.fileName(), sourceFile.errorString()));
+    }
+    QByteArray newContent = sourceFile.readAll();
+    if (module)
+        replaceSpecialValues(&newContent, profile, *module, qtEnv);
+    sourceFile.close();
+    const QString targetPath = targetDirectory + QLatin1Char('/') + fileName;
+    allFiles->append(QFileInfo(targetPath).absoluteFilePath());
+    QFile targetFile(targetPath);
+    if (targetFile.open(QIODevice::ReadOnly)) {
+        if (newContent == targetFile.readAll()) // No need to overwrite anything in this case.
+            return;
+        targetFile.close();
+    }
+    if (!targetFile.open(QIODevice::WriteOnly)) {
+        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
+                "Cannot open '%1' (%2).").arg(targetFile.fileName(), targetFile.errorString()));
+    }
+    targetFile.resize(0);
+    targetFile.write(newContent);
 }
 
 static void createModules(Profile &profile, Settings *settings,
@@ -194,19 +196,18 @@ static void createModules(Profile &profile, Settings *settings,
     const QString profileBaseDir = QString::fromLocal8Bit("%1/qbs/profiles/%2")
             .arg(QFileInfo(settings->fileName()).dir().absolutePath(), profile.name());
     const QString qbsQtModuleBaseDir = profileBaseDir + QLatin1String("/modules/Qt");
-    QString removeError;
-    if (!qbs::Internal::removeDirectoryWithContents(qbsQtModuleBaseDir, &removeError)) {
-        throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: Could not remove "
-                "the existing profile of the same name (%2).").arg(profile.name(), removeError));
-    }
-    copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile.name());
-    copyTemplateFile(QLatin1String("QtPlugin.qbs"), qbsQtModuleBaseDir, profile.name());
+    QStringList allFiles;
+    copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile, qtEnvironment,
+                     &allFiles);
+    copyTemplateFile(QLatin1String("QtPlugin.qbs"), qbsQtModuleBaseDir, profile, qtEnvironment,
+                     &allFiles);
     foreach (const QtModuleInfo &module, modules) {
         const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
         QString moduleTemplateFileName;
         if (module.qbsName == QLatin1String("core")) {
             moduleTemplateFileName = QLatin1String("core.qbs");
-            copyTemplateFile(QLatin1String("moc.js"), qbsQtModuleDir, profile.name());
+            copyTemplateFile(QLatin1String("moc.js"), qbsQtModuleDir, profile, qtEnvironment,
+                             &allFiles);
         } else if (module.qbsName == QLatin1String("gui")) {
             moduleTemplateFileName = QLatin1String("gui.qbs");
         } else if (module.qbsName == QLatin1String("phonon")) {
@@ -216,9 +217,18 @@ static void createModules(Profile &profile, Settings *settings,
         } else {
             moduleTemplateFileName = QLatin1String("module.qbs");
         }
-        copyTemplateFile(moduleTemplateFileName, qbsQtModuleDir, profile.name());
-        replaceSpecialValues(qbsQtModuleDir + QLatin1Char('/') + moduleTemplateFileName,
-                             profile, module, qtEnvironment);
+        copyTemplateFile(moduleTemplateFileName, qbsQtModuleDir, profile, qtEnvironment, &allFiles,
+                         &module);
+    }
+    QDirIterator dit(qbsQtModuleBaseDir, QDirIterator::Subdirectories);
+    while (dit.hasNext()) {
+        dit.next();
+        const QFileInfo &fi = dit.fileInfo();
+        if (!fi.isFile())
+            continue;
+        const QString filePath = fi.absoluteFilePath();
+        if (!allFiles.contains(filePath) && !QFile::remove(filePath))
+                qDebug("Warning: Failed to remove outdated file '%s'.", qPrintable(filePath));
     }
     profile.setValue(QLatin1String("preferences.qbsSearchPaths"), profileBaseDir);
 }
