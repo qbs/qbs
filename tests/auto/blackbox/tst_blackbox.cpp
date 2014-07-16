@@ -662,6 +662,26 @@ void TestBlackbox::rc()
     QCOMPARE(rcFileWasCompiled, HostOsInfo::isWindowsHost());
 }
 
+void TestBlackbox::renameDependency()
+{
+    QDir::setCurrent(testDataDir + "/renameDependency");
+    if (QFile::exists("work"))
+        rmDirR("work");
+    QDir().mkdir("work");
+    ccp("before", "work");
+    QDir::setCurrent(testDataDir + "/renameDependency/work");
+    QCOMPARE(runQbs(), 0);
+
+    waitForNewTimestamp();
+    QFile::remove("lib.h");
+    QFile::remove("lib.cpp");
+    ccp("../after", ".");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+}
+
 void TestBlackbox::renameProduct()
 {
     QDir::setCurrent(testDataDir + "/renameProduct");

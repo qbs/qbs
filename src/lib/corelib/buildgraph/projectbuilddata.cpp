@@ -253,11 +253,12 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
         if (removeParent) {
             removeArtifactAndExclusiveDependents(parent, logger, removeFromProduct,
                                                  removedArtifacts);
+        } else {
+            parent->clearTimestamp();
         }
     }
     const bool removeFromDisk = artifact->artifactType == Artifact::Generated;
     removeArtifact(artifact, logger, removeFromDisk, removeFromProduct);
-
 }
 
 void ProjectBuildData::removeArtifact(Artifact *artifact,
