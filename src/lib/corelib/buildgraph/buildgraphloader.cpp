@@ -520,6 +520,12 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
     if (checkTransformersForPropertyChanges(restoredProduct, newlyResolvedProduct))
         return true;
 
+    if (restoredProduct->fileTags != newlyResolvedProduct->fileTags) {
+        m_logger.qbsTrace() << "Product type changed from " << restoredProduct->fileTags
+                            << "to " << newlyResolvedProduct->fileTags;
+        return true;
+    }
+
     if (checkProductForInstallInfoChanges(restoredProduct, newlyResolvedProduct))
         return true;
     if (!artifactPropertyListsAreEqual(restoredProduct->artifactProperties,

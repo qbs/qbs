@@ -503,6 +503,23 @@ void TestBlackbox::resolve_project_dry_run()
     QVERIFY2(!QFile::exists(buildGraphPath), qPrintable(buildGraphPath));
 }
 
+void TestBlackbox::typeChange()
+{
+    QDir::setCurrent(testDataDir + "/type-change");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("//", "");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/usings-as-sole-inputs-non-multiplexed"));
