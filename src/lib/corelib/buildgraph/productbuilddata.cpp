@@ -77,6 +77,7 @@ void ProductBuildData::load(PersistentPool &pool)
         elem.load(pool);
         rescuableArtifactData.insert(filePath, elem);
     }
+    loadArtifactSetByFileTag(pool, artifactsByFileTag);
     loadArtifactSetByFileTag(pool, addedArtifactsByFileTag);
     loadArtifactSetByFileTag(pool, removedArtifactsByFileTag);
 
@@ -110,6 +111,7 @@ void ProductBuildData::store(PersistentPool &pool) const
         pool.storeString(it.key());
         it.value().store(pool);
     }
+    storeArtifactSetByFileTag(pool, artifactsByFileTag);
     storeArtifactSetByFileTag(pool, addedArtifactsByFileTag);
     storeArtifactSetByFileTag(pool, removedArtifactsByFileTag);
 
@@ -125,6 +127,16 @@ void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag
 {
     foreach (const FileTag &tag, artifact->fileTags)
         container[tag] += artifact;
+}
+
+void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container)
+{
+    foreach (const FileTag &t, artifact->fileTags) {
+        ArtifactSet &s = container[t];
+        s.remove(artifact);
+        if (s.isEmpty())
+            container.remove(t);
+    }
 }
 
 } // namespace Internal

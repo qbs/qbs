@@ -273,6 +273,7 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
     if (removeFromProduct) {
         artifact->product->buildData->nodes.remove(artifact);
         artifact->product->buildData->roots.remove(artifact);
+        removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
     }
 
     // If removal is requested and the executor has not run since the time the artifact was last

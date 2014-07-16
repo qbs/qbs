@@ -773,13 +773,7 @@ bool ResolvedProduct::isMarkedForReapplication(const RuleConstPtr &rule) const
 ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
 {
     QBS_CHECK(buildData);
-    // ### slow. improve.
-    ArtifactSet result;
-    foreach (Artifact * const a, ArtifactSet::fromNodeSet(buildData->nodes)) {
-        if (a->fileTags.contains(tag))
-            result += a;
-    }
-    return result;
+    return buildData->artifactsByFileTag.value(tag);
 }
 
 ArtifactSet ResolvedProduct::targetArtifacts() const

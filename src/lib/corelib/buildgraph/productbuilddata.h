@@ -63,6 +63,7 @@ public:
     unsigned int buildPriority;
 
     typedef QHash<FileTag, ArtifactSet> ArtifactSetByFileTag;
+    ArtifactSetByFileTag artifactsByFileTag;
     ArtifactSetByFileTag addedArtifactsByFileTag;
     ArtifactSetByFileTag removedArtifactsByFileTag;
 
@@ -75,6 +76,7 @@ private:
 };
 
 void addArtifactToSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
+void removeArtifactFromSet(Artifact *artifact, ProductBuildData::ArtifactSetByFileTag &container);
 
 } // namespace Internal
 } // namespace qbs

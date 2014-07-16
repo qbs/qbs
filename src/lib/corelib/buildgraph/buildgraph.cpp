@@ -437,6 +437,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
     }
 #endif
     product->buildData->nodes.insert(artifact);
+    addArtifactToSet(artifact, product->buildData->artifactsByFileTag);
     artifact->product = product;
     product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
     product->topLevelProject()->buildData->isDirty = true;
