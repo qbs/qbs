@@ -57,7 +57,8 @@ public:
         BuildNonDefaultOptionType,
         LogTimeOptionType,
         ShowCommandLinesOptionType,
-        SettingsDirOptionType
+        SettingsDirOptionType,
+        GeneratorOptionType
     };
 
     virtual ~CommandLineOption();
@@ -107,6 +108,21 @@ private:
 
 private:
     QString m_projectBuildDirectory;
+};
+
+class GeneratorOption : public CommandLineOption
+{
+public:
+    QString generatorName() const { return m_generatorName; }
+
+private:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const;
+    QString longRepresentation() const;
+    void doParse(const QString &representation, QStringList &input);
+
+private:
+    QString m_generatorName;
 };
 
 class CountingOption : public CommandLineOption

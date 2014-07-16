@@ -188,6 +188,36 @@ QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const
     return resolveOptions();
 }
 
+QString GenerateCommand::shortDescription() const
+{
+    return Tr::tr("Generate files for another build tool.");
+}
+
+QString GenerateCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+            .arg(representation());
+    description += Tr::tr("Generates project files to build the project using another build tool.");
+    return description += supportedOptionsDescription();
+}
+
+QString GenerateCommand::representation() const
+{
+    return QLatin1String("generate");
+}
+
+QList<CommandLineOption::Type> GenerateCommand::supportedOptions() const
+{
+    return QList<CommandLineOption::Type>()
+            << CommandLineOption::FileOptionType
+            << CommandLineOption::LogLevelOptionType
+            << CommandLineOption::VerboseOptionType
+            << CommandLineOption::QuietOptionType
+            << CommandLineOption::ShowProgressOptionType
+            << CommandLineOption::LogTimeOptionType
+            << CommandLineOption::GeneratorOptionType;
+}
+
 QString BuildCommand::shortDescription() const
 {
     return Tr::tr("Build (parts of) a project. This is the default command.");

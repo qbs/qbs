@@ -342,6 +342,10 @@ void CommandLineFrontend::handleProjectsResolved()
         if (m_cancelStatus != CancelStatusNone)
             throw ErrorInfo(Tr::tr("Execution canceled."));
         switch (m_parser.command()) {
+        case GenerateCommandType:
+            generate();
+            qApp->quit();
+            break;
         case ResolveCommandType:
             qApp->quit();
             break;
@@ -461,6 +465,28 @@ void CommandLineFrontend::build()
     m_buildEffortsRetrieved = 0;
     m_totalBuildEffort = 0;
     m_currentBuildEffort = 0;
+}
+
+void CommandLineFrontend::generate()
+{
+    const QString generatorName = m_parser.generateOptions().generatorName();
+    QSharedPointer<ProjectGenerator> generator(ProjectGeneratorManager::findGenerator(generatorName));
+    if (!generator) {
+        const QString generatorNames = ProjectGeneratorManager::loadedGeneratorNames()
+                .join(QLatin1String("\n\t"));
+        if (generatorName.isEmpty()) {
+            throw ErrorInfo(Tr::tr("No generator specified. Available generators:\n\t%1")
+                            .arg(generatorNames));
+        }
+
+        throw ErrorInfo(Tr::tr("No generator named '%1'. Available generators:\n\t%2")
+                        .arg(generatorName)
+                        .arg(generatorNames));
+    }
+
+    generator->clearProjects();
+    generator->addProjects(m_projects);
+    generator->generate(m_parser.installOptions());
 }
 
 int CommandLineFrontend::runTarget()

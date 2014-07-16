@@ -38,6 +38,7 @@
 namespace qbs {
 class BuildOptions;
 class CleanOptions;
+class GenerateOptions;
 class InstallOptions;
 class Settings;
 
@@ -58,6 +59,7 @@ public:
     QString projectBuildDirectory() const;
     BuildOptions buildOptions() const;
     CleanOptions cleanOptions() const;
+    GenerateOptions generateOptions() const;
     InstallOptions installOptions() const;
     bool force() const;
     bool forceTimestampCheck() const;

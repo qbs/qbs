@@ -40,6 +40,8 @@
 #include "tools/buildoptions.h"
 #include "tools/cleanoptions.h"
 #include "tools/error.h"
+#include "tools/generateoptions.h"
+#include "tools/projectgeneratormanager.h"
 #include "tools/installoptions.h"
 #include "tools/preferences.h"
 #include "tools/profile.h"

@@ -115,6 +115,33 @@ void BuildDirectoryOption::doParse(const QString &representation, QStringList &i
     m_projectBuildDirectory = getArgument(representation, input);
 }
 
+QString GeneratorOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1|%2 <generator>\n"
+                  "\tUse the given build system generator.\n")
+            .arg(longRepresentation(), shortRepresentation());
+}
+
+QString GeneratorOption::shortRepresentation() const
+{
+    return QLatin1String("-g");
+}
+
+QString GeneratorOption::longRepresentation() const
+{
+    return QLatin1String("--generator");
+}
+
+void GeneratorOption::doParse(const QString &representation, QStringList &input)
+{
+    m_generatorName = getArgument(representation, input);
+    if (m_generatorName.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': No generator given.\nUsage: %2")
+                    .arg(representation, description(command())));
+    }
+}
+
 static QString loglevelLongRepresentation() { return QLatin1String("--log-level"); }
 
 QString VerboseOption::description(CommandType command) const

@@ -8,6 +8,7 @@ HEADERS += \
     $$PWD/executablefinder.h \
     $$PWD/fileinfo.h \
     $$PWD/filetime.h \
+    $$PWD/generateoptions.h \
     $$PWD/id.h \
     $$PWD/persistence.h \
     $$PWD/scannerpluginmanager.h \
@@ -19,6 +20,7 @@ HEADERS += \
     $$PWD/processresult.h \
     $$PWD/processresult_p.h \
     $$PWD/progressobserver.h \
+    $$PWD/projectgeneratormanager.h \
     $$PWD/propertyfinder.h \
     $$PWD/shellutils.h \
     $$PWD/hostosinfo.h \
@@ -40,6 +42,7 @@ SOURCES += \
     $$PWD/error.cpp \
     $$PWD/executablefinder.cpp \
     $$PWD/fileinfo.cpp \
+    $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
     $$PWD/persistence.cpp \
     $$PWD/scannerpluginmanager.cpp \
@@ -50,6 +53,7 @@ SOURCES += \
     $$PWD/processresult.cpp \
     $$PWD/profile.cpp \
     $$PWD/progressobserver.cpp \
+    $$PWD/projectgeneratormanager.cpp \
     $$PWD/propertyfinder.cpp \
     $$PWD/shellutils.cpp \
     $$PWD/buildoptions.cpp \
@@ -86,6 +90,8 @@ qbs_enable_unit_tests {
         $$PWD/processresult.h \
         $$PWD/qbs_export.h \
         $$PWD/buildoptions.h \
+        $$PWD/generateoptions.h \
+        $$PWD/generatorpluginmanager.h \
         $$PWD/installoptions.h \
         $$PWD/setupprojectparameters.h
     tools_headers.path = $${QBS_INSTALL_PREFIX}/include/qbs/tools

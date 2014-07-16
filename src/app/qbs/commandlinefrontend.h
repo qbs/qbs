@@ -80,6 +80,7 @@ private:
     void makeClean();
     int runShell();
     void build();
+    void generate();
     int runTarget();
     void updateTimestamps();
     void dumpNodesTree();

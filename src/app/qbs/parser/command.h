@@ -81,6 +81,19 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const;
 };
 
+class GenerateCommand : public Command
+{
+public:
+    GenerateCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const { return GenerateCommandType; }
+    QString shortDescription() const;
+    QString longDescription() const;
+    QString representation() const;
+    QList<CommandLineOption::Type> supportedOptions() const;
+};
+
 class BuildCommand : public Command
 {
 public:

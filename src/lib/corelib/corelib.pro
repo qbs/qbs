@@ -14,6 +14,7 @@ DEFINES += SRCDIR=\\\"$$PWD\\\"
 
 include(api/api.pri)
 include(buildgraph/buildgraph.pri)
+include(generators/generators.pri)
 include(jsextensions/jsextensions.pri)
 include(language/language.pri)
 include(logging/logging.pri)

@@ -64,6 +64,7 @@ public:
     LogTimeOption *logTimeOption() const;
     ShowCommandLinesOption *showCommandLinesOption() const;
     SettingsDirOption *settingsDirOption() const;
+    GeneratorOption *generatorOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

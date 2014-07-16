@@ -41,6 +41,7 @@
 #include <tools/buildoptions.h>
 #include <tools/cleanoptions.h>
 #include <tools/error.h>
+#include <tools/generateoptions.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/preferences.h>
@@ -154,6 +155,14 @@ CleanOptions CommandLineParser::cleanOptions() const
     options.setDryRun(buildOptions().dryRun());
     options.setKeepGoing(buildOptions().keepGoing());
     options.setLogElapsedTime(logTime());
+    return options;
+}
+
+GenerateOptions CommandLineParser::generateOptions() const
+{
+    Q_ASSERT(command() == GenerateCommandType);
+    GenerateOptions options;
+    options.setGeneratorName(d->optionPool.generatorOption()->generatorName());
     return options;
 }
 
@@ -365,6 +374,7 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const
 {
     return QList<Command *>()
+            << commandPool.getCommand(GenerateCommandType)
             << commandPool.getCommand(ResolveCommandType)
             << commandPool.getCommand(BuildCommandType)
             << commandPool.getCommand(CleanCommandType)

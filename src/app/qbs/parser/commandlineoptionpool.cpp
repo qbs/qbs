@@ -107,6 +107,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::SettingsDirOptionType:
             option = new SettingsDirOption;
             break;
+        case CommandLineOption::GeneratorOptionType:
+            option = new GeneratorOption;
+            break;
         default:
             qFatal("Unknown option type %d", type);
         }
@@ -225,6 +228,11 @@ ShowCommandLinesOption *CommandLineOptionPool::showCommandLinesOption() const
 SettingsDirOption *CommandLineOptionPool::settingsDirOption() const
 {
     return static_cast<SettingsDirOption *>(getOption(CommandLineOption::SettingsDirOptionType));
+}
+
+GeneratorOption *CommandLineOptionPool::generatorOption() const
+{
+    return static_cast<GeneratorOption *>(getOption(CommandLineOption::GeneratorOptionType));
 }
 
 } // namespace qbs
