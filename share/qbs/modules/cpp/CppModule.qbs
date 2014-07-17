@@ -157,11 +157,11 @@ Module {
         description: "entry point symbol for an executable or dynamic library"
     }
 
-    property string visibility: 'default' // 'default', 'hidden', 'hiddenInlines'
+    property string visibility: 'default'
     PropertyOptions {
         name: "visibility"
         description: "export symbols visibility level"
-        allowedValues: ['default', 'hidden', 'hiddenInlines']
+        allowedValues: ['default', 'hidden', 'hiddenInlines', 'minimal']
     }
 
     // Platform properties. Those are intended to be set by the toolchain setup

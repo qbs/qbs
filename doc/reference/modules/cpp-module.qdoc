@@ -595,11 +595,13 @@
 
     \table
     \row    \li \b{Type:}            \li \c{string}
-    \row    \li \b{Allowed Values:}  \li \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"}
+    \row    \li \b{Allowed Values:}  \li \c{"default"}, \c{"hidden"}, \c{"hiddenInlines"},
+                                         \c{"minimal"}
     \row    \li \b{Default:}         \li \c{"default"}
     \endtable
 
     Visibility level for exported symbols.
+    The \c{"minimal"} value combines \c{"hidden"} and \c{"hiddenInlines"}.
 
 
     \section1 Properties Specific to Windows

@@ -281,9 +281,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     var visibility = ModUtils.moduleProperty(product, 'visibility');
     if (!product.type.contains('staticlibrary')
             && !product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-        if (visibility === 'hidden')
+        if (visibility === 'hidden' || visibility === 'minimal')
             args.push('-fvisibility=hidden');
-        if (visibility === 'hiddenInlines')
+        if (visibility === 'hiddenInlines' || visibility === 'minimal')
             args.push('-fvisibility-inlines-hidden');
         if (visibility === 'default')
             args.push('-fvisibility=default')
