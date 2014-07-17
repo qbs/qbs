@@ -335,9 +335,11 @@ bool Executor::isUpToDate(Artifact *artifact) const
 
     foreach (Artifact *childArtifact, ArtifactSet::fromNodeSet(artifact->children)) {
         QBS_CHECK(childArtifact->timestamp().isValid());
-        if (m_doDebug)
+        if (m_doDebug) {
             m_logger.qbsDebug() << "[UTD] child timestamp "
-                                << childArtifact->timestamp().toString();
+                                << childArtifact->timestamp().toString() << " "
+                                << childArtifact->filePath();
+        }
         if (artifact->timestamp() < childArtifact->timestamp())
             return false;
     }
@@ -347,9 +349,11 @@ bool Executor::isUpToDate(Artifact *artifact) const
             FileInfo fi(fileDependency->filePath());
             fileDependency->setTimestamp(fi.lastModified());
         }
-        if (m_doDebug)
+        if (m_doDebug) {
             m_logger.qbsDebug() << "[UTD] file dependency timestamp "
-                                << fileDependency->timestamp().toString();
+                                << fileDependency->timestamp().toString() << " "
+                                << fileDependency->filePath();
+        }
         if (artifact->timestamp() < fileDependency->timestamp())
             return false;
     }
