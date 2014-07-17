@@ -138,11 +138,6 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         content->replace("@defaultQpaPlugin@",
                         utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
     }
-    if (!module.modulePrefix.isEmpty()) {
-        if (!propertiesString.isEmpty())
-            propertiesString += "\n    ";
-        propertiesString += "qtModulePrefix: " + utf8JSLiteral(module.modulePrefix);
-    }
     if (module.isStaticLibrary) {
         if (!propertiesString.isEmpty())
             propertiesString += "\n    ";

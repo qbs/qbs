@@ -6,7 +6,6 @@ Module {
     Depends { name: "Qt.core" }
 
     property string qtModuleName
-    property string qtModulePrefix: 'Qt'
     property path binPath: Qt.core.binPath
     property path incPath: Qt.core.incPath
     property path libPath: Qt.core.libPath
