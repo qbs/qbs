@@ -44,7 +44,7 @@ public:
     QtModuleInfo(const QString &name, const QString &qbsName,
                  const QStringList &deps = QStringList());
 
-    QString moduleName() const;
+    QString moduleNameWithoutPrefix() const;
     QString frameworkHeadersPath(const QtEnvironment &qtEnvironment) const;
     QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const;
     QString libraryBaseName(const QtEnvironment &qtEnvironment, bool debugBuild) const;

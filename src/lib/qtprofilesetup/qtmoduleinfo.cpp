@@ -57,7 +57,7 @@ QtModuleInfo::QtModuleInfo(const QString &name, const QString &qbsName, const QS
         dependencies.prepend(coreModule);
 }
 
-QString QtModuleInfo::moduleName() const
+QString QtModuleInfo::moduleNameWithoutPrefix() const
 {
     if (name.startsWith(QLatin1String("Qt")))
         return name.mid(2); // Strip off "Qt".

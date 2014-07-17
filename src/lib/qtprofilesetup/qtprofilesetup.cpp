@@ -86,7 +86,7 @@ static QString defaultQpaPlugin(const Profile &profile, const QtModuleInfo &modu
 static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
-    content->replace("@name@", utf8JSLiteral(module.moduleName()));
+    content->replace("@name@", utf8JSLiteral(module.moduleNameWithoutPrefix()));
     content->replace("@has_library@", utf8JSLiteral(module.hasLibrary));
     content->replace("@dependencies@", utf8JSLiteral(module.dependencies));
     content->replace("@includes@", utf8JSLiteral(module.includePaths));
