@@ -59,10 +59,10 @@ QtModuleInfo::QtModuleInfo(const QString &name, const QString &qbsName, const QS
 
 QString QtModuleInfo::moduleNameWithoutPrefix() const
 {
-    if (name.startsWith(QLatin1String("Qt")))
+    if (modulePrefix.isEmpty() && name.startsWith(QLatin1String("Qt")))
         return name.mid(2); // Strip off "Qt".
-    if (name.startsWith(QLatin1String("QAx")))
-        return name.mid(1); // Strip off "Q".
+    if (name.startsWith(modulePrefix))
+        return name.mid(modulePrefix.length());
     return name;
 }
 
