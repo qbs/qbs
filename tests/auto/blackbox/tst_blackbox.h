@@ -147,6 +147,7 @@ private slots:
     void exportWithRecursiveDepends();
     void fileTagger();
     void rc();
+    void removeFileDependency();
     void renameDependency();
     void renameProduct();
     void renameTargetArtifact();

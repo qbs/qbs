@@ -662,6 +662,17 @@ void TestBlackbox::rc()
     QCOMPARE(rcFileWasCompiled, HostOsInfo::isWindowsHost());
 }
 
+void TestBlackbox::removeFileDependency()
+{
+    QDir::setCurrent(testDataDir + "/removeFileDependency");
+    QCOMPARE(runQbs(), 0);
+    QFile::remove("someheader.h");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");

@@ -348,6 +348,13 @@ bool Executor::isUpToDate(Artifact *artifact) const
         if (!fileDependency->timestamp().isValid()) {
             FileInfo fi(fileDependency->filePath());
             fileDependency->setTimestamp(fi.lastModified());
+            if (!fileDependency->timestamp().isValid()) {
+                if (m_doDebug) {
+                    m_logger.qbsDebug() << "[UTD] file dependency doesn't exist "
+                                        << fileDependency->filePath();
+                }
+                return false;
+            }
         }
         if (m_doDebug) {
             m_logger.qbsDebug() << "[UTD] file dependency timestamp "
