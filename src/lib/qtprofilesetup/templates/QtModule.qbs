@@ -11,7 +11,6 @@ Module {
     property path incPath: Qt.core.incPath
     property path libPath: Qt.core.libPath
     property string qtLibInfix: Qt.core.libInfix
-    property string includeDirName: qtModulePrefix + qtModuleName
     property string libNameForLinkerDebug
     property string libNameForLinkerRelease
     property string libNameForLinker: qbs.buildVariant === "debug"
