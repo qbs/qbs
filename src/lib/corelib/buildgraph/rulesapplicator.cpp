@@ -78,6 +78,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
         return;
 
     m_rule = rule;
+    m_completeInputSet = inputArtifacts;
     if (rule->name == QLatin1String("QtCoreMocRule")) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, scope(), m_logger);
@@ -98,8 +99,8 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     }
 }
 
-void RulesApplicator::handleRemovedRuleOutputs(ArtifactSet outputArtifactsToRemove,
-        const Logger &logger)
+void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
+        ArtifactSet outputArtifactsToRemove, const Logger &logger)
 {
     ArtifactSet artifactsToRemove;
     const TopLevelProject *project = 0;
@@ -119,7 +120,10 @@ void RulesApplicator::handleRemovedRuleOutputs(ArtifactSet outputArtifactsToRemo
             parent->product->registerArtifactWithChangedInputs(parent);
     }
     EmptyDirectoriesRemover(project, logger).removeEmptyParentDirectories(artifactsToRemove);
-    qDeleteAll(artifactsToRemove);
+    foreach (Artifact *artifact, artifactsToRemove) {
+        QBS_CHECK(!inputArtifacts.contains(artifact));
+        delete artifact;
+    }
 }
 
 static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
@@ -164,7 +168,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                                                scope()));
         ArtifactSet newOutputs = ArtifactSet::fromNodeList(outputArtifacts);
         const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
-        handleRemovedRuleOutputs(oldOutputs - newOutputs, m_logger);
+        handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
         foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
             Artifact * const outputArtifact

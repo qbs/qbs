@@ -103,7 +103,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
                 outputArtifactsToRemove += parent;
             }
         }
-        RulesApplicator::handleRemovedRuleOutputs(outputArtifactsToRemove, logger);
+        RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
     }
     if (!inputs.isEmpty()) {
         RulesApplicator applicator(product, logger);

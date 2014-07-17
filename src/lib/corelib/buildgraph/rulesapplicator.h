@@ -54,7 +54,8 @@ public:
     NodeSet applyRuleInEvaluationContext(const RuleConstPtr &rule,
             const ArtifactSet &inputArtifacts);
     void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
-    static void handleRemovedRuleOutputs(ArtifactSet artifactsToRemove, const Logger &logger);
+    static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
+            ArtifactSet artifactsToRemove, const Logger &logger);
 
 private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
@@ -75,6 +76,7 @@ private:
     const ResolvedProductPtr m_product;
     NodeSet m_createdArtifacts;
     RuleConstPtr m_rule;
+    ArtifactSet m_completeInputSet;
     TransformerPtr m_transformer;
     QtMocScanner *m_mocScanner;
     Logger m_logger;
