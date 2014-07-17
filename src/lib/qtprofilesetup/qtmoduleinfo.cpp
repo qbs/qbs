@@ -98,7 +98,7 @@ QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
             && !isEnginio) {
         libName += QString::number(qtEnvironment.qtMajorVersion);
     }
-    libName += name.startsWith(QLatin1String("Qt")) ? name.mid(2) : name;
+    libName += moduleNameWithoutPrefix();
     libName += qtEnvironment.qtLibInfix;
     return libBaseName(libName, isStaticLibrary, debugBuild, qtEnvironment);
 }
