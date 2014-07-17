@@ -17,7 +17,7 @@ QtModule {
         inputs: ["ui"]
 
         Artifact {
-            fileName: 'GeneratedFiles/ui_' + input.completeBaseName + '.h'
+            filePath: 'GeneratedFiles/ui_' + input.completeBaseName + '.h'
             fileTags: ["hpp"]
         }
 
