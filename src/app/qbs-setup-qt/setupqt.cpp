@@ -35,6 +35,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/version.h>
 
 #include <QByteArrayMatcher>
 #include <QCoreApplication>
@@ -48,19 +49,9 @@
 namespace qbs {
 using Internal::HostOsInfo;
 using Internal::Tr;
+using Internal::Version;
 
 const QString qmakeExecutableName = QLatin1String("qmake" QTC_HOST_EXE_SUFFIX);
-
-struct Version
-{
-    Version()
-        : majorVersion(0), minorVersion(0), patchLevel(0)
-    {}
-
-    int majorVersion;
-    int minorVersion;
-    int patchLevel;
-};
 
 static QStringList collectQmakePaths()
 {
@@ -154,7 +145,8 @@ static Version extractVersion(const QString &versionString)
 {
     Version v;
     const QStringList parts = versionString.split(QLatin1Char('.'), QString::SkipEmptyParts);
-    const QList<int *> vparts = QList<int *>() << &v.majorVersion << &v.minorVersion << &v.patchLevel;
+    const QList<int *> vparts
+            = QList<int *>() << &v.majorVersionRef() << &v.minorVersionRef() << &v.patchLevelRef();
     const int c = qMin(parts.count(), vparts.count());
     for (int i = 0; i < c; ++i)
         *vparts[i] = parts.at(i).toInt();
@@ -187,7 +179,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     const Version qtVersion = extractVersion(qtEnvironment.qtVersion);
 
     QString mkspecsBaseSrcPath;
-    if (qtVersion.majorVersion >= 5) {
+    if (qtVersion.majorVersion() >= 5) {
         qtEnvironment.mkspecBasePath
                 = pathQueryValue(queryOutput, "QT_HOST_DATA") + QLatin1String("/mkspecs");
         mkspecsBaseSrcPath
@@ -219,7 +211,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.qtConfigItems = configVariableItems(qconfigContent, QLatin1String("QT_CONFIG"));
 
     // retrieve the mkspec
-    if (qtVersion.majorVersion >= 5) {
+    if (qtVersion.majorVersion() >= 5) {
         const QString mkspecName = QString::fromLocal8Bit(queryOutput.value("QMAKE_XSPEC"));
         qtEnvironment.mkspecName = mkspecName;
         qtEnvironment.mkspecPath = qtEnvironment.mkspecBasePath + QLatin1Char('/') + mkspecName;

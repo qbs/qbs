@@ -52,7 +52,7 @@ namespace Internal {
 ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReader *reader, ItemReaderResult *result)
     : m_reader(reader)
     , m_readerResult(result)
-    , m_languageVersion(ImportVersion::fromString(reader->builtins()->languageVersion()))
+    , m_languageVersion(readImportVersion(reader->builtins()->languageVersion()))
     , m_file(FileContext::create())
     , m_item(0)
     , m_sourceValue(0)
@@ -424,6 +424,22 @@ bool ItemReaderASTVisitor::visit(AST::FunctionDeclaration *ast)
     return false;
 }
 
+Version ItemReaderASTVisitor::readImportVersion(const QString &str, const CodeLocation &location)
+{
+    QStringList lst = str.split(QLatin1Char('.'));
+    if (Q_UNLIKELY(lst.count() < 1 || lst.count() > 2))
+        throw ErrorInfo(Tr::tr("Wrong number of components in import version."), location);
+    Version v;
+    int *parts[] = {&v.majorVersionRef(), &v.minorVersionRef(), 0};
+    for (int i = 0; i < lst.count(); ++i) {
+        bool ok;
+        *parts[i] = lst.at(i).toInt(&ok);
+        if (Q_UNLIKELY(!ok))
+            throw ErrorInfo(Tr::tr("Cannot parse import version."), location);
+    }
+    return v;
+}
+
 bool ItemReaderASTVisitor::visitStatement(AST::Statement *statement)
 {
     QBS_CHECK(statement);
@@ -482,8 +498,8 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
     if (!versionToken.length)
         return;
     const QString importVersionString = m_file->content().mid(versionToken.offset, versionToken.length);
-    const ImportVersion importVersion
-            = ImportVersion::fromString(importVersionString, toCodeLocation(versionToken));
+    const Version importVersion = readImportVersion(importVersionString,
+                                                    toCodeLocation(versionToken));
     if (Q_UNLIKELY(importVersion != m_languageVersion))
         throw ErrorInfo(Tr::tr("Incompatible qbs version %1. This is qbs %2.").arg(
                         importVersionString, m_reader->builtins()->languageVersion()),

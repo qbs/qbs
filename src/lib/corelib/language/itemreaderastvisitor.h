@@ -30,10 +30,12 @@
 #ifndef QBS_ITEMREADERASTVISITOR_H
 #define QBS_ITEMREADERASTVISITOR_H
 
-#include "importversion.h"
 #include "item.h"
 #include "filecontext.h"
+
 #include <parser/qmljsastvisitor_p.h>
+#include <tools/version.h>
+
 #include <QHash>
 
 namespace qbs {
@@ -59,6 +61,8 @@ public:
     bool visit(QbsQmlJS::AST::FunctionDeclaration *ast);
 
 private:
+    static Version readImportVersion(const QString &str,
+            const CodeLocation &location = CodeLocation());
     bool visitStatement(QbsQmlJS::AST::Statement *statement);
     CodeLocation toCodeLocation(const QbsQmlJS::AST::SourceLocation &location) const;
     void checkDuplicateBinding(Item *item, const QStringList &bindingName,
@@ -77,7 +81,7 @@ private:
 
     ItemReader *m_reader;
     ItemReaderResult *m_readerResult;
-    const ImportVersion m_languageVersion;
+    const Version m_languageVersion;
     FileContextPtr m_file;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item;

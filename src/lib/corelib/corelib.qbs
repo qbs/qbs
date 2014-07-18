@@ -199,8 +199,6 @@ QbsLibrary {
             "functiondeclaration.h",
             "identifiersearch.cpp",
             "identifiersearch.h",
-            "importversion.cpp",
-            "importversion.h",
             "item.cpp",
             "item.h",
             "itemdeclaration.cpp",
@@ -324,6 +322,8 @@ QbsLibrary {
             "shellutils.cpp",
             "shellutils.h",
             "weakpointer.h"
+            "version.cpp",
+            "version.h"
         ]
     }
     Group {

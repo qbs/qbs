@@ -27,50 +27,84 @@
 **
 ****************************************************************************/
 
-#include "importversion.h"
-#include <logging/translator.h>
-#include <tools/error.h>
-#include <QStringList>
+#include "version.h"
 
 namespace qbs {
 namespace Internal {
 
-ImportVersion::ImportVersion()
-    : m_major(0), m_minor(0)
+Version::Version(int major, int minor, int patch, int buildNr)
+    : m_major(major), m_minor(minor), m_patch(patch), m_build(buildNr)
 {
 }
 
-ImportVersion ImportVersion::fromString(const QString &str, const CodeLocation &location)
+int Version::majorVersion() const
 {
-    QStringList lst = str.split(QLatin1Char('.'));
-    if (Q_UNLIKELY(lst.count() < 1 || lst.count() > 2))
-        throw ErrorInfo(Tr::tr("Wrong number of components in import version."), location);
-    ImportVersion v;
-    int *parts[] = {&v.m_major, &v.m_minor, 0};
-    for (int i = 0; i < lst.count(); ++i) {
-        if (!parts[i])
-            break;
-        bool ok;
-        *parts[i] = lst.at(i).toInt(&ok);
-        if (Q_UNLIKELY(!ok))
-            throw ErrorInfo(Tr::tr("Cannot parse import version."), location);
-    }
-    return v;
+    return m_major;
 }
 
-bool ImportVersion::operator <(const ImportVersion &rhs) const
+void Version::setMajorVersion(int major)
 {
-    return m_major < rhs.m_major || (m_major == rhs.m_major && m_minor < rhs.m_minor);
+    m_major = major;
 }
 
-bool ImportVersion::operator ==(const ImportVersion &rhs) const
+int Version::minorVersion() const
 {
-    return m_major == rhs.m_major && m_minor == rhs.m_minor;
+    return m_minor;
 }
 
-bool ImportVersion::operator !=(const ImportVersion &rhs) const
+void Version::setMinorVersion(int minor)
 {
-    return !operator ==(rhs);
+    m_minor = minor;
+}
+int Version::patchLevel() const
+{
+    return m_patch;
+}
+
+void Version::setPatchLevel(int patch)
+{
+    m_patch = patch;
+}
+
+int Version::buildNumber() const
+{
+    return m_build;
+}
+
+void Version::setBuildNumber(int nr)
+{
+    m_build = nr;
+}
+
+QString Version::toString() const
+{
+    QString s;
+    if (m_build)
+        s.sprintf("%d.%d.%d-d", m_major, m_minor, m_patch, m_build);
+    else
+        s.sprintf("%d.%d.%d", m_major, m_minor, m_patch);
+    return s;
+}
+
+int compare(const Version &lhs, const Version &rhs)
+{
+    if (lhs.m_major < rhs.m_major)
+        return -1;
+    if (lhs.m_major > rhs.m_major)
+        return 1;
+    if (lhs.m_minor < rhs.m_minor)
+        return -1;
+    if (lhs.m_minor > rhs.m_minor)
+        return 1;
+    if (lhs.m_patch < rhs.m_patch)
+        return -1;
+    if (lhs.m_patch > rhs.m_patch)
+        return 1;
+    if (lhs.m_build < rhs.m_build)
+        return -1;
+    if (lhs.m_build > rhs.m_build)
+        return 1;
+    return 0;
 }
 
 } // namespace Internal

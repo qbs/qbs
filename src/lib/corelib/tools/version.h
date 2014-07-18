@@ -27,32 +27,58 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IMPORTVERSION_H
-#define QBS_IMPORTVERSION_H
+#ifndef QBS_VERSION_H
+#define QBS_VERSION_H
 
-#include <tools/codelocation.h>
+#include "qbs_export.h"
+#include <QString>
 
 namespace qbs {
 namespace Internal {
 
-class ImportVersion
+class QBS_EXPORT Version
 {
+    friend int compare(const Version &lhs, const Version &rhs);
 public:
-    ImportVersion();
+    explicit Version(int majorVersion = 0, int minorVersion = 0, int patchLevel = 0,
+            int buildNr = 0);
 
-    static ImportVersion fromString(const QString &str,
-                                    const CodeLocation &location = CodeLocation());
+    bool isValid() const { return m_major || m_minor || m_patch || m_build; }
 
-    bool operator <(const ImportVersion &rhs) const;
-    bool operator ==(const ImportVersion &rhs) const;
-    bool operator !=(const ImportVersion &rhs) const;
+    int &majorVersionRef() { return m_major; }
+    int majorVersion() const;
+    void setMajorVersion(int majorVersion);
+
+    int &minorVersionRef() { return m_minor; }
+    int minorVersion() const;
+    void setMinorVersion(int minorVersion);
+
+    int &patchLevelRef() { return m_patch; }
+    int patchLevel() const;
+    void setPatchLevel(int patchLevel);
+
+    int &buildNumberRef() { return m_build; }
+    int buildNumber() const;
+    void setBuildNumber(int nr);
+
+    QString toString() const;
 
 private:
     int m_major;
     int m_minor;
+    int m_patch;
+    int m_build;
 };
+
+int compare(const Version &lhs, const Version &rhs);
+inline bool operator==(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) == 0; }
+inline bool operator!=(const Version &lhs, const Version &rhs) { return !operator==(lhs, rhs); }
+inline bool operator<(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) < 0; }
+inline bool operator>(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) > 0; }
+inline bool operator<=(const Version &lhs, const Version &rhs) { return !operator>(lhs, rhs); }
+inline bool operator>=(const Version &lhs, const Version &rhs) { return !operator<(lhs, rhs); }
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_IMPORTVERSION_H
+#endif // QBS_VERSION_H

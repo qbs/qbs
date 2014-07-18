@@ -27,7 +27,8 @@ HEADERS += \
     $$PWD/weakpointer.h \
     $$PWD/qbs_export.h \
     $$PWD/qbsassert.h \
-    $$PWD/qttools.h
+    $$PWD/qttools.h \
+    $$PWD/version.h
 
 SOURCES += \
     $$PWD/buildgraphlocker.cpp \
@@ -50,7 +51,8 @@ SOURCES += \
     $$PWD/cleanoptions.cpp \
     $$PWD/setupprojectparameters.cpp \
     $$PWD/qbsassert.cpp \
-    $$PWD/qttools.cpp
+    $$PWD/qttools.cpp \
+    $$PWD/version.cpp
 
 win32 {
     SOURCES += $$PWD/filetime_win.cpp
