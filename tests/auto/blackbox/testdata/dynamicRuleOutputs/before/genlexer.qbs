@@ -65,7 +65,10 @@ Project {
                 var headerFileName = options["header-file"];
                 var result = [{
                     filePath: "GeneratedFiles/" + sourceFileName,
-                    fileTags: ["c"]
+                    fileTags: ["c"],
+                    cpp: {
+                        defines: ["CRUCIAL_DEFINE"]
+                    }
                 }];
                 if (headerFileName) {
                     result.push({
@@ -95,6 +98,9 @@ Project {
                             fhdr.write("// a rather empty header file\n");
                             fhdr.close();
                         }
+                        fsrc.write("\n#ifndef CRUCIAL_DEFINE\n");
+                        fsrc.write("#   error CRUCIAL_DEFINE is missing!\n");
+                        fsrc.write("#endif\n\n");
                         fsrc.write("int main() { return 0; }\n");
                         fsrc.close();
                     };

@@ -38,6 +38,7 @@
 #include "transformer.h"
 #include <jsextensions/moduleproperties.h>
 #include <language/artifactproperties.h>
+#include <language/builtindeclarations.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
@@ -47,6 +48,7 @@
 #include <tools/qbsassert.h>
 
 #include <QDir>
+#include <QScriptValueIterator>
 
 namespace qbs {
 namespace Internal {
@@ -378,6 +380,76 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
     return lst;
 }
 
+class ArtifactBindingsExtractor
+{
+    typedef QPair<QStringList, QVariant> NameValuePair;
+    QList<NameValuePair> m_propertyValues;
+
+    static QSet<QString> getArtifactItemPropertyNames()
+    {
+        QSet<QString> s;
+        foreach (const PropertyDeclaration &pd,
+                 BuiltinDeclarations().declarationsForType(
+                     QLatin1String("Artifact")).properties()) {
+            s.insert(pd.name());
+        }
+        s.insert(QLatin1String("explicitlyDependsOn"));
+        return s;
+    }
+
+    void extractPropertyValues(const QScriptValue &obj, QStringList fullName = QStringList())
+    {
+        QScriptValueIterator svit(obj);
+        while (svit.hasNext()) {
+            svit.next();
+            const QString name = svit.name();
+            if (fullName.isEmpty()) {
+                // Ignore property names that are part of the Artifact item.
+                static const QSet<QString> artifactItemPropertyNames
+                        = getArtifactItemPropertyNames();
+                if (artifactItemPropertyNames.contains(name))
+                    continue;
+            }
+
+            const QScriptValue value = svit.value();
+            fullName.append(name);
+            if (value.isObject() && !value.isArray() && !value.isError() && !value.isRegExp())
+                extractPropertyValues(value, fullName);
+            else
+                m_propertyValues.append(NameValuePair(fullName, value.toVariant()));
+            fullName.removeLast();
+        }
+    }
+public:
+    ArtifactBindingsExtractor()
+    {
+    }
+
+    void apply(Artifact *outputArtifact, const QScriptValue &obj)
+    {
+        extractPropertyValues(obj);
+        if (m_propertyValues.isEmpty())
+            return;
+
+        outputArtifact->properties = outputArtifact->properties->clone();
+        QVariantMap artifactModulesCfg = outputArtifact->properties->value()
+                .value(QLatin1String("modules")).toMap();
+        foreach (const NameValuePair &nvp, m_propertyValues) {
+            const QStringList &nameParts = nvp.first;
+            const QVariant &value = nvp.second;
+            if (!artifactModulesCfg.contains(nameParts.first())) {
+                throw ErrorInfo(Tr::tr("Can't set module property %1 on artifact %2.")
+                                .arg(nameParts.join(QLatin1Char('.')),
+                                     outputArtifact->filePath()));
+            }
+            setConfigProperty(artifactModulesCfg, nameParts, value);
+        }
+        QVariantMap outputArtifactConfig = outputArtifact->properties->value();
+        outputArtifactConfig.insert(QLatin1String("modules"), artifactModulesCfg);
+        outputArtifact->properties->setValue(outputArtifactConfig);
+    }
+};
+
 Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValue &obj,
         const ArtifactSet &inputArtifacts)
 {
@@ -396,6 +468,7 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
             loggedConnect(output, dependency, m_logger);
         }
     }
+    ArtifactBindingsExtractor().apply(output, obj);
     return output;
 }
 

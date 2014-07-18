@@ -41,6 +41,10 @@
 %option outfile="numberscanner.c" header-file="numberscanner.h"
 
 %{
+#ifndef CRUCIAL_DEFINE
+#   error CRUCIAL_DEFINE is missing!
+#endif
+
 /* need this for the call to atof() below */
 #include <math.h>
 %}
