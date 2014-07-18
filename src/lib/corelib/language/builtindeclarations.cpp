@@ -284,6 +284,7 @@ void BuiltinDeclarations::addProjectItem()
     item << nameProperty();
     item << conditionProperty();
     item << buildDirProperty();
+    item << PropertyDeclaration(QLatin1String("minimumQbsVersion"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("sourceDirectory"), PropertyDeclaration::Path);
     item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String);
     item << PropertyDeclaration(QLatin1String("references"), PropertyDeclaration::Variant,
