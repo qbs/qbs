@@ -3,7 +3,8 @@ import "../Library.qbs" as QbsLibrary
 
 QbsLibrary {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["gui", "script", "xml"] }
+    Depends { name: "Qt"; submodules: ["script", "xml"] }
+    Depends { condition: project.enableProjectFileUpdates; name: "Qt.gui" }
     Depends { condition: project.enableUnitTests; name: "Qt.test" }
     name: "qbscore"
     cpp.includePaths: base.concat([
@@ -14,7 +15,7 @@ QbsLibrary {
         "QBS_VERSION=\"" + version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
-    ])
+    ].concat(project.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []))
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
@@ -28,11 +29,23 @@ QbsLibrary {
         qbs.installDir: headerInstallPrefix
     }
     Group {
-        name: "api"
-        prefix: name + '/'
+        name: "project file updating"
+        condition: project.enableProjectFileUpdates
+        prefix: "api/"
         files: [
             "changeset.cpp",
             "changeset.h",
+            "projectfileupdater.cpp",
+            "projectfileupdater.h",
+            "qmljsrewriter.cpp",
+            "qmljsrewriter.h",
+        ]
+    }
+
+    Group {
+        name: "api"
+        prefix: name + '/'
+        files: [
             "internaljobs.cpp",
             "internaljobs.h",
             "jobs.cpp",
@@ -41,10 +54,6 @@ QbsLibrary {
             "project_p.h",
             "projectdata.cpp",
             "projectdata_p.h",
-            "projectfileupdater.cpp",
-            "projectfileupdater.h",
-            "qmljsrewriter.cpp",
-            "qmljsrewriter.h",
             "propertymap_p.h",
             "runenvironment.cpp",
         ]

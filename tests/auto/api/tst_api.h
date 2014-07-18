@@ -49,7 +49,9 @@ private slots:
 
     void buildGraphLocking();
     void buildSingleFile();
+#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     void changeContent();
+#endif
     void disabledInstallGroup();
     void fileTagsFilterOverride();
     void infiniteLoopBuilding();

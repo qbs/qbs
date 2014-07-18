@@ -2,6 +2,7 @@ import qbs 1.0
 
 Project {
     property bool enableUnitTests: false
+    property bool enableProjectFileUpdates: false
     property bool enableRPath: true
     property bool installApiHeaders: true
     property bool withExamples: true

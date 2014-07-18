@@ -177,6 +177,7 @@ qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
     return qbs::GroupData();
 }
 
+#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
 void TestApi::changeContent()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
@@ -423,6 +424,7 @@ void TestApi::changeContent()
     }
     QVERIFY(job->project().projectData() == projectData);
 }
+#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 {

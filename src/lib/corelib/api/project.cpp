@@ -29,10 +29,13 @@
 #include "project.h"
 #include "project_p.h"
 
+#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
+#include "projectfileupdater.h"
+#endif
+
 #include "internaljobs.h"
 #include "jobs.h"
 #include "projectdata_p.h"
-#include "projectfileupdater.h"
 #include "propertymap_p.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
@@ -242,6 +245,7 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     return group;
 }
 
+#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
 void ProjectPrivate::addGroup(const ProductData &product, const QString &groupName)
 {
     if (groupName.isEmpty())
@@ -472,6 +476,7 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
         QBS_CHECK(removed);
     }
 }
+#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
                                                const QList<SourceArtifactPtr> &files)
@@ -936,6 +941,7 @@ QSet<QString> Project::buildSystemFiles() const
     return d->internalProject->buildSystemFiles;
 }
 
+#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
 /*!
  * \brief Adds a new empty group to the given product.
  * Returns an \c ErrorInfo object for which \c hasError() is false in case of a success
@@ -1021,5 +1027,6 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         return errorInfo;
     }
 }
+#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 } // namespace qbs
