@@ -639,7 +639,7 @@ void Executor::doSanityChecks()
 
 void Executor::handleError(const ErrorInfo &error)
 {
-    m_error = error;
+    m_error.append(error.toString());
     if (m_processingJobs.isEmpty())
         finish();
     else

@@ -171,6 +171,9 @@ void ProcessCommandExecutor::doStart()
 
 void ProcessCommandExecutor::cancel()
 {
+    // We don't want this command to be reported as failing, since we explicitly terminated it.
+    disconnect(this, SIGNAL(reportProcessResult(qbs::ProcessResult)), 0, 0);
+
     m_process.terminate();
     if (!m_process.waitForFinished(1000))
         m_process.kill();
