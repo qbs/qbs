@@ -97,12 +97,7 @@ CppModule {
         }
 
         prepare: {
-            var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
-            var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
-            var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
-            var linkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags').concat(
-                        ModUtils.moduleProperties(product, 'linkerFlags'));
-            return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
+            return MSVC.prepareLinker(product, inputs, outputs);
         }
     }
 
@@ -124,12 +119,7 @@ CppModule {
         }
 
         prepare: {
-            var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
-            var dynamicLibraries = ModUtils.moduleProperties(product, 'dynamicLibraries');
-            var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
-            var linkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags').concat(
-                        ModUtils.moduleProperties(product, 'linkerFlags'));
-            return MSVC.prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags)
+            return MSVC.prepareLinker(product, inputs, outputs);
         }
     }
 

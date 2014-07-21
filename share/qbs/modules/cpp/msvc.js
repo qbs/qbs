@@ -125,7 +125,7 @@ function prepareCompiler(product, input, outputs) {
     return cmd;
 }
 
-function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries, staticLibraries, linkerFlags) {
+function prepareLinker(product, inputs, outputs) {
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
@@ -185,12 +185,16 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         var fileName = FileInfo.toWindowsSeparators(allInputs[i].filePath)
         args.push(fileName)
     }
+
+    var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary,
+                                                                 "cpp", "staticLibraries");
     for (i in staticLibraries) {
         var staticLibrary = staticLibraries[i];
         if (!staticLibrary.match(/\.lib$/i))
             staticLibrary += ".lib";
         args.push(staticLibrary)
     }
+    var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     for (i in dynamicLibraries) {
         var dynamicLibrary = dynamicLibraries[i];
         if (!dynamicLibrary.match(/\.lib$/i))
@@ -202,9 +206,12 @@ function prepareLinker(product, inputs, outputs, libraryPaths, dynamicLibraries,
         args.push("/ENTRY:" + product.moduleProperty("cpp", "entryPoint"));
 
     args.push('/OUT:' + linkerOutputNativeFilePath)
+    var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     for (i in libraryPaths) {
         args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
+    var linkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags').concat(
+                ModUtils.moduleProperties(product, 'linkerFlags'));
     args = args.concat(linkerFlags);
     if (ModUtils.moduleProperty(product, "allowUnresolvedSymbols"))
         args.push("/FORCE:UNRESOLVED");
