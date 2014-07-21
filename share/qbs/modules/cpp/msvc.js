@@ -1,4 +1,4 @@
-function prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags) {
+function prepareCompiler(product, input, outputs) {
     var i;
     var optimization = ModUtils.moduleProperty(input, "optimization")
     var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
@@ -33,12 +33,16 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         args.push('/Wall')
     if (ModUtils.moduleProperty(input, "treatWarningsAsErrors"))
         args.push('/WX')
+    var includePaths = ModUtils.moduleProperties(input, 'includePaths');
     for (i in includePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(includePaths[i]))
+    var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
     for (i in systemIncludePaths)
         args.push('/I' + FileInfo.toWindowsSeparators(systemIncludePaths[i]))
+    var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
     for (i in platformDefines)
         args.push('/D' + platformDefines[i])
+    var defines = ModUtils.moduleProperties(input, 'defines');
     for (i in defines)
         args.push('/D' + defines[i])
 
@@ -89,10 +93,15 @@ function prepareCompiler(product, input, outputs, platformDefines, defines, incl
         }
     }
 
-    if (cxxFlags && tag === "cpp")
-        args = args.concat(cxxFlags);
-    else if (cFlags && tag === "c")
-        args = args.concat(cFlags);
+    if (tag === "cpp") {
+        args = args.concat(
+                    ModUtils.moduleProperties(input, 'platformCxxFlags'),
+                    ModUtils.moduleProperties(input, 'cxxFlags'));
+    } else if (tag === "c") {
+        args = args.concat(
+                    ModUtils.moduleProperties(input, 'platformCFlags'),
+                    ModUtils.moduleProperties(input, 'cFlags'));
+    }
 
     var compilerPath = ModUtils.moduleProperty(product, "compilerPath");
     var wrapperArgs = ModUtils.moduleProperty(product, "compilerWrapper");

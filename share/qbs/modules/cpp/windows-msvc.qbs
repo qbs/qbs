@@ -45,13 +45,7 @@ CppModule {
             filePath: ".obj/" + product.name + '_c.pch'
         }
         prepare: {
-            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperties(input, 'defines');
-            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-            var cFlags = ModUtils.moduleProperties(input, 'platformCFlags').concat(
-                        ModUtils.moduleProperties(input, 'cFlags'));
-            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, undefined)
+            return MSVC.prepareCompiler(product, input, outputs);
         }
     }
 
@@ -72,13 +66,7 @@ CppModule {
             filePath: ".obj/" + product.name + '_cpp.pch'
         }
         prepare: {
-            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperties(input, 'defines');
-            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-            var cxxFlags = ModUtils.moduleProperties(input, 'platformCxxFlags').concat(
-                        ModUtils.moduleProperties(input, 'cxxFlags'));
-            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, undefined, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs);
         }
     }
 
@@ -94,15 +82,7 @@ CppModule {
         }
 
         prepare: {
-            var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-            var defines = ModUtils.moduleProperties(input, 'defines');
-            var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-            var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-            var cFlags = ModUtils.moduleProperties(input, 'platformCFlags').concat(
-                        ModUtils.moduleProperties(input, 'cFlags'));
-            var cxxFlags = ModUtils.moduleProperties(input, 'platformCxxFlags').concat(
-                        ModUtils.moduleProperties(input, 'cxxFlags'));
-            return MSVC.prepareCompiler(product, input, outputs, platformDefines, defines, includePaths, systemIncludePaths, cFlags, cxxFlags)
+            return MSVC.prepareCompiler(product, input, outputs);
         }
     }
 
