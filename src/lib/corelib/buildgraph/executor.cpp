@@ -130,8 +130,7 @@ void Executor::build()
     try {
         doBuild();
     } catch (const ErrorInfo &e) {
-        m_error = e;
-        QTimer::singleShot(0, this, SLOT(finish()));
+        handleError(e);
     }
 }
 
