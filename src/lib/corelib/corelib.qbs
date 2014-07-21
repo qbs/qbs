@@ -321,9 +321,9 @@ QbsLibrary {
             "setupprojectparameters.cpp",
             "shellutils.cpp",
             "shellutils.h",
-            "weakpointer.h"
             "version.cpp",
-            "version.h"
+            "version.h",
+            "weakpointer.h"
         ]
     }
     Group {

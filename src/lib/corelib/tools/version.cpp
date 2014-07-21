@@ -80,7 +80,7 @@ QString Version::toString() const
 {
     QString s;
     if (m_build)
-        s.sprintf("%d.%d.%d-d", m_major, m_minor, m_patch, m_build);
+        s.sprintf("%d.%d.%d-%d", m_major, m_minor, m_patch, m_build);
     else
         s.sprintf("%d.%d.%d", m_major, m_minor, m_patch);
     return s;
