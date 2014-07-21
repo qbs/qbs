@@ -189,7 +189,8 @@ void JsCommandExecutor::doStart()
 
 void JsCommandExecutor::cancel()
 {
-    QMetaObject::invokeMethod(m_objectInThread, "cancel", Qt::QueuedConnection);
+    if (!dryRun())
+        QMetaObject::invokeMethod(m_objectInThread, "cancel", Qt::QueuedConnection);
 }
 
 void JsCommandExecutor::onJavaScriptCommandFinished()
