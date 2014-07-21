@@ -187,7 +187,6 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             foreach (Artifact *dependency, m_product->lookupArtifactsByFileTag(fileTag))
                 loggedConnect(outputArtifact, dependency, m_logger);
 
-        m_transformer->outputs.insert(outputArtifact);
         outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
     }
 
@@ -352,6 +351,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         m_transformer->inputs = inputArtifacts;
     }
     outputArtifact->transformer = m_transformer;
+    m_transformer->outputs.insert(outputArtifact);
     QBS_CHECK(m_rule->multiplex || m_transformer->inputs.count() == 1);
 
     return outputArtifact;
