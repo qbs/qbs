@@ -434,12 +434,10 @@ void CommandLineParser::CommandLineParserPrivate::setupProjectFile()
             = QDir(projectFilePath).entryList(namePatterns, QDir::Files);
     if (actualFileNames.isEmpty()) {
         QString error;
-        if (optionPool.fileOption()->projectFilePath().isEmpty()) {
+        if (optionPool.fileOption()->projectFilePath().isEmpty())
             error = Tr::tr("No project file given and none found in current directory.\n");
-            error += Tr::tr("Usage: %1").arg(command->longDescription());
-        } else {
+        else
             error = Tr::tr("No project file found in directory '%1'.").arg(projectFilePath);
-        }
         throw ErrorInfo(error);
     }
     if (actualFileNames.count() > 1) {
