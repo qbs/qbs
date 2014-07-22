@@ -439,7 +439,7 @@ public:
             const QVariant &value = nvp.second;
             if (!artifactModulesCfg.contains(nameParts.first())) {
                 throw ErrorInfo(Tr::tr("Can't set module property %1 on artifact %2.")
-                                .arg(nameParts.join(QLatin1Char('.')),
+                                .arg(nameParts.join(QLatin1String(".")),
                                      outputArtifact->filePath()));
             }
             setConfigProperty(artifactModulesCfg, nameParts, value);
