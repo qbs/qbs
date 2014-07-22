@@ -2338,7 +2338,9 @@ void TestBlackbox::testAssetCatalog()
 
     // make sure the nibs/storyboards are in there
     QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
+#ifdef Q_OS_MAC
     if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
+#endif
         QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
