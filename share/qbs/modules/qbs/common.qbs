@@ -93,6 +93,8 @@ Module {
         canonicalArchitecture(architecture) + "'");
 
         validator.addCustomValidator("endianness", endianness, function (value) {
+            if (value === undefined)
+                return true;
             return ["big", "little", "mixed"].indexOf(value) !== -1;
         }, "must be in [big, little, mixed]");
 

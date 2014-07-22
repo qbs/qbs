@@ -630,7 +630,6 @@ void TestApi::multiArch()
     QVariantMap overriddenValues;
     overriddenValues.insert("project.hostProfile", hostProfile.name());
     overriddenValues.insert("project.targetProfile", targetProfile.name());
-    overriddenValues.insert("qbs.endianness", "little"); // TODO: Why does the qbs module require this?
     setupParams.setOverriddenValues(overriddenValues);
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
@@ -689,7 +688,6 @@ void TestApi::multiArch()
     // the properties via the product name.
     overriddenValues.clear();
     overriddenValues.insert("p1.profiles", targetProfile.name() + ',' + targetProfile.name());
-    overriddenValues.insert("qbs.endianness", "little"); // TODO: Meh.
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
