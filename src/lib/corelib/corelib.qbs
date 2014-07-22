@@ -11,11 +11,13 @@ QbsLibrary {
         ".",
         "../.." // for the plugin headers
     ])
+    property stringList projectFileUpdateDefines:
+        project.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
     cpp.defines: base.concat([
         "QBS_VERSION=\"" + version + "\"",
         "QT_CREATOR", "QML_BUILD_STATIC_LIB",   // needed for QmlJS
         "SRCDIR=\"" + path + "\""
-    ].concat(project.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []))
+    ]).concat(projectFileUpdateDefines)
 
     Properties {
         condition: qbs.targetOS.contains("darwin")
@@ -384,5 +386,6 @@ QbsLibrary {
     }
     Export {
         Depends { name: "Qt"; submodules: ["script", "xml"] }
+        cpp.defines: projectFileUpdateDefines
     }
 }

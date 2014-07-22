@@ -36,3 +36,4 @@ INCLUDEPATH += $${PWD} $${PWD}/..
 CONFIG(static, static|shared) {
     DEFINES += QBS_STATIC_LIB
 }
+qbs_enable_project_file_updates:DEFINES += QBS_ENABLE_PROJECT_FILE_UPDATES
