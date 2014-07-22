@@ -444,6 +444,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         insertArtifact(product, qbsFileArtifact, m_logger);
     }
     qbsFileArtifact->fileTags.insert("qbs");
+    product->buildData->artifactsByFileTag["qbs"] += qbsFileArtifact;
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
