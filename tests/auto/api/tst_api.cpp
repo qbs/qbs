@@ -181,8 +181,9 @@ qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 void TestApi::changeContent()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
-        "/project-editing/project.qbs"));
+    const QString workingDir = m_workingDataDir + "/project-editing";
+    QDir::setCurrent(workingDir);
+    setupParams.setProjectFilePath(QDir::cleanPath(workingDir + "/project.qbs"));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -191,7 +192,7 @@ void TestApi::changeContent()
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     qbs::ProductData product = projectData.allProducts().first();
-    QCOMPARE(product.groups().count(), 6);
+    QCOMPARE(product.groups().count(), 8);
 
     // Error handling: Invalid product.
     qbs::ErrorInfo errorInfo = project.addGroup(qbs::ProductData(), "blubb");
@@ -224,7 +225,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 8);
+    QCOMPARE(product.groups().count(), 10);
     qbs::GroupData group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
@@ -234,7 +235,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 8);
+    QCOMPARE(product.groups().count(), 10);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.cpp");
@@ -249,7 +250,7 @@ void TestApi::changeContent()
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
-    QCOMPARE(product.groups().count(), 8);
+    QCOMPARE(product.groups().count(), 10);
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.removeFiles(product, group, QStringList() << "file.h");
@@ -331,12 +332,41 @@ void TestApi::changeContent()
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
-    QCOMPARE(projectData.products().first().groups().count(), 7);
+    QCOMPARE(projectData.products().first().groups().count(), 9);
 
     // Error handling: Try to remove the same group again.
     errorInfo = project.removeGroup(product, group);
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("does not exist"), qPrintable(errorInfo.toString()));
+
+    // Add a file to a group where the file name is already matched by a wildcard.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Group with wildcards");
+    QVERIFY(group.isValid());
+    QFile newFile("koerper.klaus");
+    QVERIFY2(newFile.open(QIODevice::WriteOnly), qPrintable(newFile.errorString()));
+    newFile.close();
+    errorInfo = project.addFiles(product, group, QStringList() << newFile.fileName());
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Group with wildcards");
+    QVERIFY(group.isValid());
+    QCOMPARE(group.expandedWildcards().count(), 1);
+    QCOMPARE(group.expandedWildcards().first(), QFileInfo(newFile).absoluteFilePath());
+
+    // Error checking: Try to remove a file that originates from a wildcard pattern.
+    projectData = project.projectData();
+    QVERIFY(projectData.products().count() == 1);
+    product = projectData.products().first();
+    group = findGroup(product, "Other group with wildcards");
+    QVERIFY(group.isValid());
+    errorInfo = project.removeFiles(product, group, QStringList() << "test.wildcard");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("pattern"), qPrintable(errorInfo.toString()));
 
     // Check whether building will take the added and removed cpp files into account.
     // This must not be moved below the re-resolving test!!!

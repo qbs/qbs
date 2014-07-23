@@ -27,5 +27,13 @@ CppApplication {
         prefix: "blubb"
         files: []
     }
+    Group {
+        name: "Group with wildcards"
+        files: "*.klaus"
+    }
+    Group {
+        name: "Other group with wildcards"
+        files: "*.wildcard"
+    }
     files: "main.cpp"
 }

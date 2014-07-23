@@ -64,6 +64,9 @@ public:
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
             const ResolvedProductConstPtr &product, const Logger &logger);
+    static SourceArtifactPtr createSourceArtifact(const ResolvedProductConstPtr &rproduct,
+            const PropertyMapPtr &properties, const QString &fileName,
+            const FileTags &fileTags, bool overrideTags, QList<SourceArtifactPtr> &artifactList);
 
 private:
     struct ProjectContext

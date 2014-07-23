@@ -66,6 +66,7 @@
 #include <QDir>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QRegExp>
 #include <QSharedData>
 
 namespace qbs {
@@ -323,6 +324,26 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
     return context;
 }
 
+static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
+{
+    if (!group->wildcards)
+        return false;
+    foreach (const QString &pattern, group->wildcards->patterns) {
+        QString fullPattern;
+        if (QFileInfo(group->prefix).isAbsolute()) {
+            fullPattern = group->prefix;
+        } else {
+            fullPattern = QFileInfo(group->location.fileName()).absolutePath()
+                    + QLatin1Char('/') + group->prefix;
+        }
+        fullPattern.append(QLatin1Char('/')).append(pattern);
+        fullPattern = QDir::cleanPath(fullPattern);
+        if (QRegExp(fullPattern, Qt::CaseSensitive, QRegExp::Wildcard).exactMatch(filePath))
+            return true;
+    }
+    return false;
+}
+
 ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const ProductData &product,
         const GroupData &group, const QStringList &filePaths)
 {
@@ -352,11 +373,25 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
         if (!FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
-        filesContext.absoluteFilePaths << absPath;
-        filesContext.relativeFilePaths << baseDir.relativeFilePath(absPath);
+        if (matchesWildcard(absPath, groupContext.resolvedGroups.first())) {
+            filesContext.absoluteFilePathsFromWildcards << absPath;
+        } else {
+            filesContext.absoluteFilePaths << absPath;
+            filesContext.relativeFilePaths << baseDir.relativeFilePath(absPath);
+        }
     }
 
     return filesContext;
+}
+
+static SourceArtifactPtr createSourceArtifact(const QString &filePath,
+        const ResolvedProductPtr &product, const GroupConstPtr &group,
+        QList<SourceArtifactPtr> &artifactList, Logger &logger)
+{
+    const SourceArtifactPtr artifact = ProjectResolver::createSourceArtifact(product,
+            group->properties, filePath, group->fileTags,  group->overrideTags, artifactList);
+    ProjectResolver::applyFileTaggers(artifact, product, logger);
+    return artifact;
 }
 
 void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
@@ -392,14 +427,13 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
         const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
         const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
         foreach (const QString &file, filesContext.absoluteFilePaths) {
-            const SourceArtifactPtr artifact = SourceArtifact::create();
-            artifact->absoluteFilePath = file;
-            artifact->properties = resolvedGroup->properties;
-            artifact->fileTags = resolvedGroup->fileTags;
-            artifact->overrideFileTags = resolvedGroup->overrideTags;
-            ProjectResolver::applyFileTaggers(artifact, resolvedProduct, logger);
-            addedSourceArtifacts << artifact;
-            resolvedGroup->files << artifact;
+             addedSourceArtifacts << createSourceArtifact(file, resolvedProduct,
+                    resolvedGroup, resolvedGroup->files, logger);
+        }
+        foreach (const QString &file, filesContext.absoluteFilePathsFromWildcards) {
+            QBS_CHECK(resolvedGroup->wildcards);
+             addedSourceArtifacts << createSourceArtifact(file, resolvedProduct,
+                    resolvedGroup, resolvedGroup->wildcards->files, logger);
         }
         if (resolvedProduct->enabled) {
             foreach (const SourceArtifactConstPtr &sa, addedSourceArtifacts)
@@ -409,6 +443,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     doSanityChecks(internalProject, logger);
     foreach (const GroupData &g, groupContext.groups) {
         g.d->filePaths << filesContext.absoluteFilePaths;
+        g.d->expandedWildcards << filesContext.absoluteFilePathsFromWildcards;
         qSort(g.d->filePaths);
     }
 }
@@ -419,6 +454,11 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
     FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
     GroupUpdateContext &groupContext = filesContext.groupContext;
 
+    if (!filesContext.absoluteFilePathsFromWildcards.isEmpty()) {
+        throw ErrorInfo(Tr::tr("The following files cannot be removed from the project file, "
+                               "because they match wildcard patterns: %1")
+                .arg(filesContext.absoluteFilePathsFromWildcards.join(QLatin1String(", "))));
+    }
     QStringList filesNotFound = filesContext.absoluteFilePaths;
     QList<SourceArtifactPtr> sourceArtifacts;
     foreach (const SourceArtifactPtr &sa, groupContext.resolvedGroups.first()->files) {

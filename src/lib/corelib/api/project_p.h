@@ -84,6 +84,7 @@ public:
         GroupUpdateContext groupContext;
         QStringList absoluteFilePaths;
         QStringList relativeFilePaths;
+        QStringList absoluteFilePathsFromWildcards; // Not included in the other two lists.
     };
 
     GroupUpdateContext getGroupContext(const ProductData &product, const GroupData &group);

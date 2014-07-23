@@ -269,6 +269,9 @@ ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const G
 
 void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 {
+    if (m_files.isEmpty())
+        return;
+
     // Find the item containing the "files" binding.
     ItemFinder itemFinder(m_group.isValid() ? m_group.location() : m_product.location());
     ast->accept(&itemFinder);
@@ -389,6 +392,9 @@ ProjectFileFilesRemover::ProjectFileFilesRemover(const ProductData &product, con
 
 void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
 {
+    if (m_files.isEmpty())
+        return;
+
     // Find the item containing the "files" binding.
     ItemFinder itemFinder(m_group.isValid() ? m_group.location() : m_product.location());
     ast->accept(&itemFinder);

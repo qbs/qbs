@@ -425,12 +425,9 @@ void ProjectResolver::resolveModule(const QStringList &moduleName, Item *item,
     m_moduleContext = 0;
 }
 
-static void createSourceArtifact(const ResolvedProductConstPtr &rproduct,
-                                 const PropertyMapPtr &properties,
-                                 const QString &fileName,
-                                 const FileTags &fileTags,
-                                 bool overrideTags,
-                                 QList<SourceArtifactPtr> &artifactList)
+SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductConstPtr &rproduct,
+        const PropertyMapPtr &properties, const QString &fileName, const FileTags &fileTags,
+        bool overrideTags, QList<SourceArtifactPtr> &artifactList)
 {
     SourceArtifactPtr artifact = SourceArtifact::create();
     artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
@@ -438,6 +435,7 @@ static void createSourceArtifact(const ResolvedProductConstPtr &rproduct,
     artifact->overrideFileTags = overrideTags;
     artifact->properties = properties;
     artifactList += artifact;
+    return artifact;
 }
 
 static bool isSomeModulePropertySet(Item *group)
