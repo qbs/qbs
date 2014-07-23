@@ -128,6 +128,7 @@ private slots:
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
     void mocCppIncluded();
+    void newPatternMatch();
     void nonBrokenFilesInBrokenProduct();
     void objC();
     void qmlDebugging();
