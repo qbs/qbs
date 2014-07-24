@@ -83,7 +83,19 @@
             \li name
             \li string
             \li empty string
-            \li The name of the product. Used to identify the product in a \c Depends item, for example.
+            \li The name of the product. Used to identify the product in a \c Depends item, for
+                example. The value of this property must be a simple JavaScript expression that
+                does not depend on module properties or values that are non-local to this product.
+                \code
+                CppApplication {
+                    name: "hello" + "world"                     // valid
+                }
+                CppApplication {
+                    name: "app_for_" + qbs.targetOS.join("_")   // invalid
+                }
+                \endcode
+                To change the name of your product's target artifact, modify \c{Product.targetName}
+                instead.
         \row
             \li profiles
             \li stringList
