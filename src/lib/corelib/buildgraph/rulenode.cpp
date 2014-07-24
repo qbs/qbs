@@ -65,10 +65,9 @@ QString RuleNode::toString() const
 void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         ApplicationResult *result)
 {
-    const ArtifactSet oldInputs = oldInputArtifacts();
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
-    const ArtifactSet addedInputs = allCompatibleInputs - oldInputs;
-    const ArtifactSet removedInputs = oldInputs - allCompatibleInputs;
+    const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
+    const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
     result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty();
 
     ArtifactSet inputs = changedInputs;
@@ -108,6 +107,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     if (!inputs.isEmpty()) {
         RulesApplicator applicator(product, logger);
         result->createdNodes = applicator.applyRuleInEvaluationContext(m_rule, inputs);
+        m_oldInputArtifacts.unite(inputs);
     }
 }
 
@@ -115,34 +115,14 @@ void RuleNode::load(PersistentPool &pool)
 {
     BuildGraphNode::load(pool);
     m_rule = pool.idLoadS<Rule>();
+    pool.loadContainer(m_oldInputArtifacts);
 }
 
 void RuleNode::store(PersistentPool &pool) const
 {
     BuildGraphNode::store(pool);
     pool.store(m_rule);
-}
-
-QList<TransformerPtr> RuleNode::createdTransformers() const
-{
-    QList<TransformerPtr> lst;
-    foreach (BuildGraphNode *parent, parents) {
-        if (parent->type() != ArtifactNodeType)
-            continue;
-        Artifact *artifact = static_cast<Artifact *>(parent);
-        if (!artifact->transformer || artifact->transformer->rule != m_rule)
-            continue;
-        lst.append(artifact->transformer);
-    }
-    return lst;
-}
-
-ArtifactSet RuleNode::oldInputArtifacts() const
-{
-    ArtifactSet s;
-    foreach (const TransformerPtr &t, createdTransformers())
-        s += t->inputs;
-    return s;
+    pool.storeContainer(m_oldInputArtifacts);
 }
 
 ArtifactSet RuleNode::currentInputArtifacts() const

@@ -44,6 +44,9 @@ public:
     ArtifactSet();
     ArtifactSet(const ArtifactSet &other);
     ArtifactSet(const QSet<Artifact *> &other);
+
+    ArtifactSet &unite(const ArtifactSet &other);
+
     static ArtifactSet fromNodeSet(const NodeSet &nodes);
     static ArtifactSet fromNodeList(const QList<Artifact *> &lst);
 };

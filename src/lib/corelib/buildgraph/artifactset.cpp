@@ -47,6 +47,12 @@ ArtifactSet::ArtifactSet(const QSet<Artifact *> &other)
 {
 }
 
+ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
+{
+    QSet::unite(other);
+    return *this;
+}
+
 ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
 {
     ArtifactSet result;
