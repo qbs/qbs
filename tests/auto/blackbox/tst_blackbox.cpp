@@ -2327,6 +2327,10 @@ void TestBlackbox::testAssetCatalog()
 {
     if (!HostOsInfo::isOsxHost())
         SKIP_TEST("only applies on OS X");
+#ifdef Q_OS_MAC
+    if (QSysInfo::macVersion() < Q_MV_OSX(10, 9))
+        SKIP_TEST("This test needs at least OS X 10.9.");
+#endif
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
