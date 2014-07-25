@@ -230,11 +230,13 @@ void InternalSetupProjectJob::start()
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
         if (err.hasError())
             throw err;
-        if (!bgLocker) {
-            const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
-                    m_parameters.finalBuildConfigurationTree());
-            const QString buildDir
-                    = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
+        const QString projectId = TopLevelProject::deriveId(m_parameters.topLevelProfile(),
+                m_parameters.finalBuildConfigurationTree());
+        const QString buildDir
+                = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
+        if (m_existingProject && m_existingProject->buildDirectory != buildDir)
+            m_existingProject.clear();
+        if (!m_existingProject) {
             bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
                                                                                        projectId));
         }
