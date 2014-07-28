@@ -144,8 +144,7 @@ bool ItemReader::findDirectoryEntries(const QString &dirPath, QStringList *entri
 
 Item *ItemReader::readFile(const QString &filePath)
 {
-    Item * const item = internalReadFile(filePath).rootItem;
-    return item;
+    return internalReadFile(filePath).rootItem;
 }
 
 QSet<QString> ItemReader::filesRead() const
