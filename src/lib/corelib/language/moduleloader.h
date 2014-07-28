@@ -106,6 +106,8 @@ public:
     static QString fullModuleName(const QStringList &moduleName);
 
 private:
+    typedef QMap<QPair<QString, QString>, Item *> ModuleItemCache;
+
     class ContextBase
     {
     public:
@@ -116,7 +118,6 @@ private:
         Item *item;
         Item *scope;
         QStringList extraSearchPaths;
-        typedef QMap<QPair<QString, QString>, Item *> ModuleItemCache;
         ModuleItemCache moduleItemCache;
     };
 
@@ -195,8 +196,6 @@ private:
     static void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                        const QVariantMap &buildConfig);
 
-
-
     ScriptEngine *m_engine;
     ItemPool *m_pool;
     Logger m_logger;
@@ -205,6 +204,7 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
+    ModuleItemCache m_globalModuleItemCache;
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
     SetupProjectParameters m_parameters;

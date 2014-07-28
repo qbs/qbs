@@ -112,6 +112,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
         m_logger.qbsTrace() << "[MODLDR] load" << parameters.projectFilePath();
     m_parameters = parameters;
     m_validItemPropertyNamesPerItem.clear();
+    m_globalModuleItemCache.clear();
     m_disabledItems.clear();
 
     ModuleLoaderResult result;
@@ -866,7 +867,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[MODLDR] trying to load " << fullModuleName << " from " << filePath;
 
-    const ContextBase::ModuleItemCache::key_type cacheKey(filePath, productContext->profileName);
+    const ModuleItemCache::key_type cacheKey(filePath, productContext->profileName);
     Item *module = productContext->moduleItemCache.value(cacheKey);
     if (module) {
         m_logger.qbsTrace() << "[LDR] loadModuleFile cache hit for " << filePath;
@@ -883,7 +884,11 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     m_logger.qbsTrace() << "[LDR] loadModuleFile " << filePath;
     *cacheHit = false;
-    module = m_reader->readFile(filePath);
+    module = m_globalModuleItemCache.value(cacheKey);
+    if (!module) {
+        module = m_reader->readFile(filePath);
+        m_globalModuleItemCache.insert(cacheKey, module);
+    }
     if (!isBaseModule) {
         DependsContext dependsContext;
         dependsContext.product = productContext;
