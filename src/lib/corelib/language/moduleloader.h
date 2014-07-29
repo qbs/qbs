@@ -106,7 +106,14 @@ public:
     static QString fullModuleName(const QStringList &moduleName);
 
 private:
-    typedef QMap<QPair<QString, QString>, Item *> ModuleItemCache;
+    struct ItemCacheValue {
+        explicit ItemCacheValue(Item *module = 0, bool enabled = false)
+            : module(module), enabled(enabled) {}
+        Item *module;
+        bool enabled;
+    };
+
+    typedef QMap<QPair<QString, QString>, ItemCacheValue> ModuleItemCache;
 
     class ContextBase
     {
@@ -118,7 +125,6 @@ private:
         Item *item;
         Item *scope;
         QStringList extraSearchPaths;
-        ModuleItemCache moduleItemCache;
     };
 
     class ProjectContext : public ContextBase
@@ -204,7 +210,7 @@ private:
     Evaluator *m_evaluator;
     QStringList m_moduleSearchPaths;
     QMap<QString, QStringList> m_moduleDirListCache;
-    ModuleItemCache m_globalModuleItemCache;
+    ModuleItemCache m_modulePrototypeItemCache;
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
     SetupProjectParameters m_parameters;
