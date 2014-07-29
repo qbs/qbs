@@ -68,46 +68,35 @@ CppModule {
         inputs: ["obj"]
         usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
-            fileTags: ["dynamiclibrary"]
-        }
-
-        // libfoo
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 0)
-            fileTags: ["dynamiclibrary_symlink"]
-        }
-
-        // libfoo.1
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 1)
-            fileTags: ["dynamiclibrary_symlink"]
-        }
-
-        // libfoo.1.0
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFileName(product, undefined, 2)
-            fileTags: ["dynamiclibrary_symlink"]
-        }
-
-        // Copy of dynamic lib for smart re-linking.
-        Artifact {
-            filePath: product.destinationDirectory + "/.socopy/"
-                      + PathTools.dynamicLibraryFilePath(product)
-            fileTags: ["dynamiclibrary_copy"]
-            alwaysUpdated: false
-            cpp.transitiveSOs: {
-                var result = []
-                for (var i in inputs.dynamiclibrary_copy) {
-                    var lib = inputs.dynamiclibrary_copy[i]
-                    var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs')
-                    var libsToAdd = [lib.filePath].concat(impliedLibs);
-                    result = result.concat(libsToAdd);
+        outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy"]
+        outputArtifacts: {
+            var lib = {
+                filePath: product.destinationDirectory + "/"
+                          + PathTools.dynamicLibraryFilePath(product),
+                fileTags: ["dynamiclibrary"]
+            };
+            var libCopy = {
+                // Copy of libfoo for smart re-linking.
+                filePath: product.destinationDirectory + "/.socopy/"
+                          + PathTools.dynamicLibraryFilePath(product),
+                fileTags: ["dynamiclibrary_copy"],
+                alwaysUpdated: false,
+                cpp: { transitiveSOs: Gcc.collectTransitiveSos(inputs) }
+            };
+            var artifacts = [lib, libCopy];
+            if (ModUtils.moduleProperty(product, "shouldCreateSymlinks")) {
+                for (var i = 0; i < 3; ++i) {
+                    var symlink = {
+                        filePath: product.destinationDirectory + "/"
+                                  + PathTools.dynamicLibraryFileName(product, undefined, i),
+                        fileTags: ["dynamiclibrary_symlink"]
+                    };
+                    if (i > 0 && artifacts[i-1].filePath == symlink.filePath)
+                        break; // Version number has less than three components.
+                    artifacts.push(symlink);
                 }
-                result = Gcc.concatLibs([], result);
-                return result;
             }
+            return artifacts;
         }
 
         prepare: {
@@ -205,18 +194,16 @@ CppModule {
             commands.push(cmd);
 
             // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
-            if (ModUtils.moduleProperty(product, "shouldCreateSymlinks")) {
-                var links = outputs["dynamiclibrary_symlink"];
-                var symlinkCount = links.length;
-                for (var i = 0; i < symlinkCount; ++i) {
-                    cmd = new Command("ln", ["-sf", lib.fileName,
-                                                    links[i].filePath]);
-                    cmd.highlight = "filegen";
-                    cmd.description = "creating symbolic link '"
-                            + links[i].fileName + "'";
-                    cmd.workingDirectory = FileInfo.path(lib.filePath);
-                    commands.push(cmd);
-                }
+            var links = outputs["dynamiclibrary_symlink"];
+            var symlinkCount = links ? links.length : 0;
+            for (var i = 0; i < symlinkCount; ++i) {
+                cmd = new Command("ln", ["-sf", lib.fileName,
+                                         links[i].filePath]);
+                cmd.highlight = "filegen";
+                cmd.description = "creating symbolic link '"
+                        + links[i].fileName + "'";
+                cmd.workingDirectory = FileInfo.path(lib.filePath);
+                commands.push(cmd);
             }
             return commands;
         }

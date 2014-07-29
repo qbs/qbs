@@ -360,3 +360,16 @@ function concatLibs(libs, deplibs) {
     addLibs(libs);
     return r;
 }
+
+function collectTransitiveSos(inputs)
+{
+    var result = [];
+    for (var i in inputs.dynamiclibrary_copy) {
+        var lib = inputs.dynamiclibrary_copy[i];
+        var impliedLibs = ModUtils.moduleProperties(lib, 'transitiveSOs');
+        var libsToAdd = [lib.filePath].concat(impliedLibs);
+        result = result.concat(libsToAdd);
+    }
+    result = Gcc.concatLibs([], result);
+    return result;
+}
