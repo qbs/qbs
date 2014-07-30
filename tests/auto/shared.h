@@ -26,13 +26,26 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_TEST_SKIP_H
-#define QBS_TEST_SKIP_H
+#ifndef QBS_TEST_SHARED_H
+#define QBS_TEST_SHARED_H
+
+#include <tools/hostosinfo.h>
+
+#include <QtTest>
 
 #if QT_VERSION >= 0x050000
 #define SKIP_TEST(message) QSKIP(message)
 #else
 #define SKIP_TEST(message) QSKIP(message, SkipAll)
 #endif
+
+inline void waitForNewTimestamp()
+{
+    // Waits for the time that corresponds to the host file system's time stamp granularity.
+    if (qbs::Internal::HostOsInfo::isWindowsHost())
+        QTest::qWait(1);        // NTFS has 100 ns precision. Let's ignore exFAT.
+    else
+        QTest::qWait(1000);
+}
 
 #endif // Include guard.
