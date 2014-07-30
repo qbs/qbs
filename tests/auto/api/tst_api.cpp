@@ -29,6 +29,8 @@
 
 #include "tst_api.h"
 
+#include "../shared.h"
+
 #include <api/jobs.h>
 #include <api/project.h>
 #include <api/projectdata.h>
@@ -758,6 +760,36 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
     QVERIFY(job->error().hasError());
     QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
              qPrintable(job->error().toString()));
+}
+
+void TestApi::projectInvalidation()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    setupParams.setRestoreBehavior(qbs::SetupProjectParameters::RestoreAndTrackChanges);
+    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/project-invalidation");
+    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    QDir::setCurrent(projectDirPath);
+    QVERIFY(QFile::copy("project.no-error.qbs", "project.qbs"));
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    QVERIFY(project.isValid());
+    waitForNewTimestamp();
+    QVERIFY(QFile::remove("project.qbs"));
+    QVERIFY(QFile::copy("project.early-error.qbs", "project.qbs"));
+    setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY(project.isValid()); // Error in Loader, old project still valid.
+    waitForNewTimestamp();
+    QVERIFY(QFile::remove("project.qbs"));
+    QVERIFY(QFile::copy("project.late-error.qbs", "project.qbs"));
+    setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY(setupJob->error().hasError());
+    QVERIFY(!project.isValid()); // Error in build data re-resolving, old project not valid anymore.
 }
 
 void TestApi::projectLocking()
