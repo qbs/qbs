@@ -261,48 +261,24 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
     removeArtifact(artifact, logger, removeFromDisk, removeFromProduct);
 }
 
-template <class Func>
-void forEachRuleNode(BuildGraphNode *n, const Func &f)
+static void removeFromRuleNodes(Artifact *artifact, const Logger &logger)
 {
-    if (n->type() != BuildGraphNode::RuleNodeType)
-        return;
-    f(static_cast<RuleNode *>(n));
-    foreach (BuildGraphNode *c, n->children)
-        forEachRuleNode(c, f);
-}
-
-template <class Func>
-void forEachRuleNode(const TopLevelProject *project, const Func &f)
-{
-    foreach (const ResolvedProductPtr &product, project->allProducts()) {
+    foreach (const ResolvedProductPtr &product,
+             artifact->product->topLevelProject()->allProducts()) {
         if (!product->buildData)
             continue;
-        foreach (BuildGraphNode *n, product->buildData->roots)
-            forEachRuleNode(n, f);
+        foreach (BuildGraphNode *n, product->buildData->nodes) {
+            if (n->type() != BuildGraphNode::RuleNodeType)
+                continue;
+            RuleNode * const ruleNode = static_cast<RuleNode *>(n);
+            if (logger.traceEnabled()) {
+                logger.qbsTrace() << "[BG] remove old input " << artifact->filePath()
+                                  << " from rule " << ruleNode->rule()->toString();
+            }
+            ruleNode->removeOldInputArtifact(artifact);
+        }
     }
 }
-
-class RemoveOldInputArtifactFromRuleNode
-{
-public:
-    RemoveOldInputArtifactFromRuleNode(Artifact *artifact, const Logger &logger)
-        : m_artifact(artifact), m_logger(logger)
-    {
-    }
-
-    void operator()(RuleNode *ruleNode) const
-    {
-        if (m_logger.traceEnabled()) {
-            m_logger.qbsTrace() << "[BG] remove old input " << m_artifact->filePath()
-                                << " from rule " << ruleNode->rule()->toString();
-        }
-        ruleNode->removeOldInputArtifact(m_artifact);
-    }
-
-private:
-    Artifact * const m_artifact;
-    const Logger &m_logger;
-};
 
 void ProjectBuildData::removeArtifact(Artifact *artifact,
         const Logger &logger, bool removeFromDisk, bool removeFromProduct)
@@ -318,9 +294,7 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
         artifact->product->buildData->roots.remove(artifact);
         removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
     }
-    forEachRuleNode(artifact->product->topLevelProject(),
-                    RemoveOldInputArtifactFromRuleNode(artifact, logger));
-
+    removeFromRuleNodes(artifact, logger);
     disconnectArtifact(artifact, logger);
     if (artifact->transformer) {
         artifact->product->unregisterArtifactWithChangedInputs(artifact);
