@@ -376,7 +376,7 @@ void TestLanguage::erroneousFiles_data()
                "at .*duplicate_sources_wildcards.qbs:4:12 "
                "and .*duplicate_sources_wildcards.qbs:6:16.";
     QTest::newRow("oldQbsVersion")
-            << "The project requires at least qbs version \\d+\\.\\d+.\\d+ "
+            << "The project requires at least qbs version \\d+\\.\\d+.\\d+, "
                "but this is qbs version " QBS_VERSION ".";
     QTest::newRow("wrongQbsVersionFormat")
             << "The value of Project.minimumQbsVersion is not a valid version string.";
