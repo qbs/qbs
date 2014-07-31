@@ -157,7 +157,10 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
-    m_transformer.clear();
+    m_transformer = Transformer::create();
+    m_transformer->rule = m_rule;
+    m_transformer->inputs = inputArtifacts;
+
     // create the output artifacts from the set of input artifacts
     Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);
     copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
@@ -343,12 +346,6 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         loggedConnect(outputArtifact, inputArtifact, m_logger);
     }
 
-    // create transformer if not already done so
-    if (!m_transformer) {
-        m_transformer = Transformer::create();
-        m_transformer->rule = m_rule;
-        m_transformer->inputs = inputArtifacts;
-    }
     outputArtifact->transformer = m_transformer;
     m_transformer->outputs.insert(outputArtifact);
     QBS_CHECK(m_rule->multiplex || m_transformer->inputs.count() == 1);
