@@ -236,7 +236,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer->createCommands(m_rule->prepareScript, evalContext(),
             ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
-        throw ErrorInfo(Tr::tr("There's a rule without commands: %1.")
+        throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript->location);
 }
 
@@ -438,7 +438,7 @@ public:
             const QStringList &nameParts = nvp.first;
             const QVariant &value = nvp.second;
             if (!artifactModulesCfg.contains(nameParts.first())) {
-                throw ErrorInfo(Tr::tr("Can't set module property %1 on artifact %2.")
+                throw ErrorInfo(Tr::tr("Cannot set module property %1 on artifact %2.")
                                 .arg(nameParts.join(QLatin1String(".")),
                                      outputArtifact->filePath()));
             }

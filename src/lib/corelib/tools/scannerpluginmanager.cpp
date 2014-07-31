@@ -82,14 +82,14 @@ void ScannerPluginManager::loadPlugins(const QStringList &pluginPaths, const Log
             const QString fileName = it.next();
             QScopedPointer<QLibrary> lib(new QLibrary(fileName));
             if (!lib->load()) {
-                logger.qbsWarning() << Tr::tr("pluginmanager: couldn't load plugin '%1': %2")
+                logger.qbsWarning() << Tr::tr("Pluginmanager: Cannot load plugin '%1': %2")
                                        .arg(QDir::toNativeSeparators(fileName), lib->errorString());
                 continue;
             }
 
             getScanners_f getScanners = reinterpret_cast<getScanners_f>(lib->resolve("getScanners"));
             if (!getScanners) {
-                logger.qbsWarning() << Tr::tr("pluginmanager: couldn't resolve "
+                logger.qbsWarning() << Tr::tr("Pluginmanager: Cannot resolve "
                         "symbol in '%1'.").arg(QDir::toNativeSeparators(fileName));
                 continue;
             }
