@@ -276,6 +276,30 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
+        if (outputArtifact->transformer && outputArtifact->transformer->rule != m_rule) {
+            QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
+                    .arg(outputArtifact->filePath(),
+                         QLatin1Char('[') +
+                         outputArtifact->fileTags.toStringList().join(QLatin1String(", "))
+                         + QLatin1Char(']'));
+            QString str = QLatin1Char('[') + m_rule->inputs.toStringList().join(QLatin1String(", "))
+               + QLatin1String("] -> [") + outputArtifact->fileTags.toStringList()
+                    .join(QLatin1String(", ")) + QLatin1Char(']');
+
+            e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
+                .arg(m_rule->prepareScript->location.fileName())
+                .arg(m_rule->prepareScript->location.line())
+                .arg(m_rule->prepareScript->location.column())
+                .arg(str);
+
+            e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
+                .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
+                .arg(outputArtifact->transformer->rule->prepareScript->location.line())
+                .arg(outputArtifact->transformer->rule->prepareScript->location.column())
+                .arg(str);
+
+            throw ErrorInfo(e);
+        }
         if (outputArtifact->transformer && outputArtifact->transformer != m_transformer) {
             QBS_CHECK(!m_transformer);
 
@@ -287,35 +311,6 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             }
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs.unite(inputArtifacts);
-
-            if (Q_UNLIKELY(m_transformer->inputs.count() > 1 && !m_rule->multiplex)) {
-                QString th = QLatin1Char('[') + outputArtifact->fileTags.toStringList()
-                        .join(QLatin1String(", ")) + QLatin1Char(']');
-                QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
-                        .arg(outputArtifact->filePath(), th);
-                th = QLatin1Char('[') + m_rule->inputs.toStringList().join(QLatin1String(", "))
-                   + QLatin1String("] -> [") + outputArtifact->fileTags.toStringList()
-                        .join(QLatin1String(", ")) + QLatin1Char(']');
-
-                e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
-                    .arg(m_rule->prepareScript->location.fileName())
-                    .arg(m_rule->prepareScript->location.line())
-                    .arg(m_rule->prepareScript->location.column())
-                    .arg(th);
-
-                e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
-                    .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
-                    .arg(outputArtifact->transformer->rule->prepareScript->location.line())
-                    .arg(outputArtifact->transformer->rule->prepareScript->location.column())
-                    .arg(th);
-
-                QStringList inputFilePaths;
-                foreach (const Artifact * const a, m_transformer->inputs)
-                    inputFilePaths << a->filePath();
-                e.append(Tr::tr("The input artifacts are: %1")
-                         .arg(inputFilePaths.join(QLatin1String(", "))));
-                throw ErrorInfo(e);
-            }
         }
         outputArtifact->fileTags += fileTags;
         outputArtifact->clearTimestamp();
