@@ -172,9 +172,13 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
         handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
+        QSet<QString> outputFilePaths;
         foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
             Artifact * const outputArtifact
-                    = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts);
+                    = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts,
+                                                           &outputFilePaths);
+            if (!outputArtifact)
+                continue;
             outputArtifacts << outputArtifact;
             ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
         }
@@ -254,7 +258,8 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
 }
 
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
-        const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts)
+        const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
+        QSet<QString> *outputFilePaths)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
@@ -262,6 +267,16 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
                         .arg(ruleArtifact->location.toString(), scriptValue.toString()));
     }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
+    if (outputFilePaths->contains(outputPath)) {
+        // The same output artifact was already created. Let the first one win.
+        // The GCC dynamicLibraryLinker linker rule relies on this for products that have no version
+        // set.
+        // ### This situation should result in an error in qbs 1.4!
+        if (m_logger.traceEnabled())
+            m_logger.qbsTrace() << "[BG] WARNING: this rule has already created " << outputPath;
+        return 0;
+    }
+    outputFilePaths->insert(outputPath);
     return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
                                 inputArtifacts);
 }

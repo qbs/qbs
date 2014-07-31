@@ -61,7 +61,7 @@ private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
     Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,
-            const ArtifactSet &inputArtifacts);
+            const ArtifactSet &inputArtifacts, QSet<QString> *outputFilePaths);
     Artifact *createOutputArtifact(const QString &filePath, const FileTags &fileTags,
             bool alwaysUpdated, const ArtifactSet &inputArtifacts);
     QList<Artifact *> runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
