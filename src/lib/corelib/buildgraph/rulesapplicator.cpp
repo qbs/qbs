@@ -327,23 +327,20 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs.unite(inputArtifacts);
         }
-        FileTags tags = fileTags;
-        tags += outputArtifact->fileTags();
-        outputArtifact->setFileTags(tags);
         outputArtifact->clearTimestamp();
     } else {
         outputArtifact = new Artifact;
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
-        outputArtifact->setFileTags(fileTags);
         outputArtifact->alwaysUpdated = alwaysUpdated;
         outputArtifact->properties = m_product->moduleProperties;
         insertArtifact(m_product, outputArtifact, m_logger);
         m_createdArtifacts += outputArtifact;
     }
 
-    if (outputArtifact->fileTags().isEmpty())
-        outputArtifact->setFileTags(m_product->fileTagsForFileName(outputArtifact->fileName()));
+    outputArtifact->setFileTags(
+                fileTags.isEmpty() ? m_product->fileTagsForFileName(outputArtifact->fileName())
+                                   : fileTags);
 
     for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
