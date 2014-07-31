@@ -315,18 +315,6 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
             throw ErrorInfo(e);
         }
-        if (outputArtifact->transformer && outputArtifact->transformer != m_transformer) {
-            QBS_CHECK(!m_transformer);
-
-            // This can happen when applying rules after scanning for additional file tags.
-            // We just regenerate the transformer.
-            if (m_logger.traceEnabled()) {
-                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] regenerating transformer "
-                        "for '%1'").arg(relativeArtifactFileName(outputArtifact));
-            }
-            m_transformer = outputArtifact->transformer;
-            m_transformer->inputs.unite(inputArtifacts);
-        }
         outputArtifact->clearTimestamp();
     } else {
         outputArtifact = new Artifact;

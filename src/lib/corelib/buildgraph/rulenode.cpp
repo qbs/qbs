@@ -88,10 +88,13 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         product->unmarkForReapplication(m_rule);
         if (logger.traceEnabled())
             logger.qbsTrace() << "[BG] rule is marked for reapplication " << m_rule->toString();
-        inputs += allCompatibleInputs;
-    } else {
-        inputs += addedInputs;
     }
+
+    if (m_rule->multiplex)
+        inputs = allCompatibleInputs;
+    else
+        inputs += addedInputs;
+
     if (result->upToDate)
         return;
     if (!removedInputs.isEmpty()) {

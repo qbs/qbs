@@ -1550,7 +1550,6 @@ void TestBlackbox::dynamicMultiplexRule()
     waitForNewTimestamp();
     touch("two.txt");
     QCOMPARE(runQbs(), 0);
-    QEXPECT_FAIL("", "QBS-645", Abort);
     QVERIFY(regularFileExists(outputFilePath));
 }
 
