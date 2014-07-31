@@ -1540,6 +1540,20 @@ void TestBlackbox::dynamicLibs()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::dynamicMultiplexRule()
+{
+    const QString testDir = testDataDir + "/dynamicMultiplexRule";
+    QDir::setCurrent(testDir);
+    QCOMPARE(runQbs(), 0);
+    const QString outputFilePath = productBuildDir("dynamicMultiplexRule") + "/stuff-from-3-inputs";
+    QVERIFY(regularFileExists(outputFilePath));
+    waitForNewTimestamp();
+    touch("two.txt");
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL("", "QBS-645", Abort);
+    QVERIFY(regularFileExists(outputFilePath));
+}
+
 void TestBlackbox::dynamicRuleOutputs()
 {
     const QString testDir = testDataDir + "/dynamicRuleOutputs";

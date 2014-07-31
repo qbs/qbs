@@ -112,6 +112,7 @@ private slots:
     void duplicateProductNames();
     void duplicateProductNames_data();
     void dynamicLibs();
+    void dynamicMultiplexRule();
     void dynamicRuleOutputs();
     void emptyFileTagList();
     void emptySubmodulesList();
