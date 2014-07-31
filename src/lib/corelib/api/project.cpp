@@ -640,7 +640,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             foreach (const Artifact * const a, resolvedProduct->targetArtifacts()) {
                 TargetArtifact ta;
                 ta.d->filePath = a->filePath();
-                ta.d->fileTags = a->fileTags.toStringList();
+                ta.d->fileTags = a->fileTags().toStringList();
                 ta.d->properties.d->m_map = a->properties;
                 ta.d->isValid = true;
                 product.d->targetArtifacts << ta;
@@ -920,7 +920,7 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
             if (targetFilePath.isEmpty())
                 continue;
             f.d->sourceFilePath = artifact->filePath();
-            f.d->fileTags = artifact->fileTags.toStringList();
+            f.d->fileTags = artifact->fileTags().toStringList();
             f.d->isValid = true;
             installableFiles << f;
         }

@@ -138,7 +138,7 @@ static QStringList toStringList(const ArtifactSet &artifacts)
     QStringList lst;
     foreach (const Artifact *artifact, artifacts) {
         const QString str = artifact->filePath() + QLatin1String(" [")
-                + artifact->fileTags.toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
+                + artifact->fileTags().toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
         lst << str;
     }
     return lst;
@@ -211,7 +211,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         scope().setProperty(QLatin1String("fileName"),
                             engine()->toScriptValue(outputArtifact->filePath()));
         scope().setProperty(QLatin1String("fileTags"),
-                            toScriptValue(engine(), outputArtifact->fileTags.toStringList()));
+                            toScriptValue(engine(), outputArtifact->fileTags().toStringList()));
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value()
                 .value(QLatin1String("modules")).toMap();
@@ -280,10 +280,10 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
                     .arg(outputArtifact->filePath(),
                          QLatin1Char('[') +
-                         outputArtifact->fileTags.toStringList().join(QLatin1String(", "))
+                         outputArtifact->fileTags().toStringList().join(QLatin1String(", "))
                          + QLatin1Char(']'));
             QString str = QLatin1Char('[') + m_rule->inputs.toStringList().join(QLatin1String(", "))
-               + QLatin1String("] -> [") + outputArtifact->fileTags.toStringList()
+               + QLatin1String("] -> [") + outputArtifact->fileTags().toStringList()
                     .join(QLatin1String(", ")) + QLatin1Char(']');
 
             e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
@@ -312,25 +312,27 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             m_transformer = outputArtifact->transformer;
             m_transformer->inputs.unite(inputArtifacts);
         }
-        outputArtifact->fileTags += fileTags;
+        FileTags tags = fileTags;
+        tags += outputArtifact->fileTags();
+        outputArtifact->setFileTags(tags);
         outputArtifact->clearTimestamp();
     } else {
         outputArtifact = new Artifact;
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
-        outputArtifact->fileTags = fileTags;
+        outputArtifact->setFileTags(fileTags);
         outputArtifact->alwaysUpdated = alwaysUpdated;
         outputArtifact->properties = m_product->moduleProperties;
         insertArtifact(m_product, outputArtifact, m_logger);
         m_createdArtifacts += outputArtifact;
     }
 
-    if (outputArtifact->fileTags.isEmpty())
-        outputArtifact->fileTags = m_product->fileTagsForFileName(outputArtifact->fileName());
+    if (outputArtifact->fileTags().isEmpty())
+        outputArtifact->setFileTags(m_product->fileTagsForFileName(outputArtifact->fileName()));
 
     for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
-        if (outputArtifact->fileTags.matches(props->fileTagsFilter())) {
+        if (outputArtifact->fileTags().matches(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
             break;
         }

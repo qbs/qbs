@@ -62,9 +62,13 @@ public:
     void accept(BuildGraphVisitor *visitor);
     QString toString() const;
 
+    void addFileTag(const FileTag &t);
+    void removeFileTag(const FileTag &t);
+    void setFileTags(const FileTags &newFileTags);
+    const FileTags &fileTags() const { return m_fileTags; }
+
     ArtifactSet childrenAddedByScanner;
     QSet<FileDependency *> fileDependencies;
-    FileTags fileTags;
     TransformerPtr transformer;
     PropertyMapPtr properties;
 
@@ -89,6 +93,8 @@ public:
 private:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+    FileTags m_fileTags;
 };
 
 // debugging helper

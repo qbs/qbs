@@ -157,7 +157,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         foreach (Artifact *targetArtifact, dep->targetArtifacts())
             artifactsToCheck += targetArtifact->transformer->outputs;
         foreach (Artifact *artifact, artifactsToCheck) {
-            if (artifact->fileTags.matches(m_rule->usings))
+            if (artifact->fileTags().matches(m_rule->usings))
                 s += artifact;
         }
     }

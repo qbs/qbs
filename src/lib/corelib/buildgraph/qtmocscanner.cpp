@@ -169,7 +169,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
     bool hasQObjectMacro = false;
     bool mustCompile = false;
     bool hasPluginMetaDataMacro = false;
-    const bool isHeaderFile = artifact->fileTags.contains("hpp");
+    const bool isHeaderFile = artifact->fileTags().contains("hpp");
 
     ScannerPlugin * const scanner = isHeaderFile ? m_hppScanner : m_cppScanner;
     const ScanResultCache::Result scanResult = runScanner(scanner, artifact, m_scanResultCache);

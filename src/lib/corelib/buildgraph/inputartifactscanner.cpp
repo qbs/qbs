@@ -156,7 +156,7 @@ void InputArtifactScanner::scan()
         m_logger.qbsTrace()
                 << QString::fromLocal8Bit("[DEPSCAN] inputs for %1 [%2] in product '%3'")
                    .arg(m_artifact->filePath(),
-                        m_artifact->fileTags.toStringList().join(QLatin1String(", ")),
+                        m_artifact->fileTags().toStringList().join(QLatin1String(", ")),
                         m_artifact->product->name);
     }
 
@@ -183,7 +183,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
         m_logger.qbsTrace()
                 << QString::fromLocal8Bit("[DEPSCAN] input artifact %1 [%2]")
                    .arg(inputArtifact->filePath(),
-                        inputArtifact->fileTags.toStringList().join(QLatin1String(", ")));
+                        inputArtifact->fileTags().toStringList().join(QLatin1String(", ")));
     }
 
     InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
@@ -212,7 +212,7 @@ QSet<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifa
     ScriptEngine *engine = product->topLevelProject()->buildData->evaluationContext->engine();
     QHash<FileTag, InputArtifactScannerContext::DependencyScannerCacheItem> &scannerCache
             = m_context->scannersCache[product];
-    foreach (const FileTag &fileTag, artifact->fileTags) {
+    foreach (const FileTag &fileTag, artifact->fileTags()) {
         InputArtifactScannerContext::DependencyScannerCacheItem &cache = scannerCache[fileTag];
         if (!cache.valid) {
             cache.valid = true;

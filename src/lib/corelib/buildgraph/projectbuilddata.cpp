@@ -462,8 +462,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
         qbsFileArtifact->properties = product->moduleProperties;
         insertArtifact(product, qbsFileArtifact, m_logger);
     }
-    qbsFileArtifact->fileTags.insert("qbs");
-    product->buildData->artifactsByFileTag["qbs"] += qbsFileArtifact;
+    qbsFileArtifact->addFileTag("qbs");
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
@@ -473,7 +472,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             continue; // ignore duplicate artifacts
 
         Artifact *artifact = createArtifact(product, sourceArtifact, m_logger);
-        foreach (const FileTag &fileTag, artifact->fileTags)
+        foreach (const FileTag &fileTag, artifact->fileTags())
             artifactsPerFileTag[fileTag].insert(artifact);
     }
 
@@ -505,12 +504,12 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
             product->buildData->roots += outputArtifact;
             foreach (Artifact *inputArtifact, inputArtifacts)
                 safeConnect(outputArtifact, inputArtifact, m_logger);
-            foreach (const FileTag &fileTag, outputArtifact->fileTags)
+            foreach (const FileTag &fileTag, outputArtifact->fileTags())
                 artifactsPerFileTag[fileTag].insert(outputArtifact);
 
             RuleArtifactPtr ruleArtifact = RuleArtifact::create();
             ruleArtifact->filePath = outputArtifact->filePath();
-            ruleArtifact->fileTags = outputArtifact->fileTags;
+            ruleArtifact->fileTags = outputArtifact->fileTags();
             rule->artifacts += ruleArtifact;
         }
         transformer->rule = rule;

@@ -409,7 +409,7 @@ Artifact *createArtifact(const ResolvedProductPtr &product,
     Artifact *artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
-    artifact->fileTags = sourceArtifact->fileTags;
+    artifact->setFileTags(sourceArtifact->fileTags);
     artifact->properties = sourceArtifact->properties;
     insertArtifact(product, artifact, logger);
     return artifact;

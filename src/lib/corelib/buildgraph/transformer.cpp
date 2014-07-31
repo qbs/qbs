@@ -102,7 +102,7 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
     setArtifactProperty(obj, QLatin1String("baseName"), js_baseName, artifact);
     setArtifactProperty(obj, QLatin1String("completeBaseName"), js_completeBaseName, artifact);
     setArtifactProperty(obj, QLatin1String("baseDir"), js_baseDir, artifact);
-    const QStringList fileTags = artifact->fileTags.toStringList();
+    const QStringList fileTags = artifact->fileTags().toStringList();
     obj.setProperty(QLatin1String("fileTags"), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
         obj.setProperty(QLatin1String("moduleName"), defaultModuleName);
@@ -114,7 +114,7 @@ QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const 
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
     TagArtifactsMap tagArtifactsMap;
     foreach (Artifact *artifact, artifacts)
-        foreach (const FileTag &fileTag, artifact->fileTags)
+        foreach (const FileTag &fileTag, artifact->fileTags())
             tagArtifactsMap[fileTag.toString()].append(artifact);
 
     QScriptValue jsTagFiles = scriptEngine->newObject();
@@ -147,7 +147,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     QScriptValue inputScriptValue;
     if (inputs.count() == 1) {
         Artifact *input = *inputs.begin();
-        const FileTags &fileTags = input->fileTags;
+        const FileTags &fileTags = input->fileTags();
         QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue inputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         inputScriptValue = inputsForFileTag.property(0);
@@ -168,7 +168,7 @@ void Transformer::setupOutputs(QScriptEngine *scriptEngine, QScriptValue targetS
     QScriptValue outputScriptValue;
     if (outputs.count() == 1) {
         Artifact *output = *outputs.begin();
-        const FileTags &fileTags = output->fileTags;
+        const FileTags &fileTags = output->fileTags();
         QBS_ASSERT(!fileTags.isEmpty(), return);
         QScriptValue outputsForFileTag = scriptValue.property(fileTags.begin()->toString());
         outputScriptValue = outputsForFileTag.property(0);
