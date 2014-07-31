@@ -29,7 +29,7 @@
 
 #include "tst_blackbox.h"
 
-#include "../skip.h"
+#include "../shared.h"
 
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -159,15 +159,6 @@ void TestBlackbox::touch(const QString &fn)
         qFatal("cannot open file %s", qPrintable(fn));
     f.resize(s+1);
     f.resize(s);
-}
-
-// Waits for the time that corresponds to the host file system's time stamp granularity.
-void TestBlackbox::waitForNewTimestamp()
-{
-    if (qbs::Internal::HostOsInfo::isWindowsHost())
-        QTest::qWait(1);        // NTFS has 100 ns precision. Let's ignore exFAT.
-    else
-        QTest::qWait(1000);
 }
 
 QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)

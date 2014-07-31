@@ -60,17 +60,17 @@ public:
     };
 
     void apply(const Logger &logger, const ArtifactSet &changedInputs, ApplicationResult *result);
+    void removeOldInputArtifact(Artifact *artifact) { m_oldInputArtifacts.remove(artifact); }
 
 protected:
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
 
 private:
-    QList<TransformerPtr> createdTransformers() const;
-    ArtifactSet oldInputArtifacts() const;
     ArtifactSet currentInputArtifacts() const;
 
     RuleConstPtr m_rule;
+    ArtifactSet m_oldInputArtifacts;
 };
 
 } // namespace Internal

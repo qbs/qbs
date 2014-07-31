@@ -135,6 +135,7 @@ static void setupCompilerPathByLanguage(Profile &profile, const QStringList &too
         const QString filePath = HostOsInfo::appendExecutableSuffix(toolchainPathPrefix
                                                                     + it.value().toString());
         if (QFile::exists(filePath)) {
+            it.value() = filePath;
             ++it;
             continue;
         }

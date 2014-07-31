@@ -252,8 +252,12 @@ void SetupProjectJob::finish()
     // The invariant is that there must always be at most one valid Project object
     // for the same build directory, so that exclusive ownership of the build graph lock
     // is ensured.
-    if (m_existingProject.isValid() && !error().hasError())
+    // We also need to invalidate the project if an error has occurred after the build data was
+    // already transferred.
+    if (m_existingProject.isValid()
+            && (!error().hasError() || !m_existingProject.d->internalProject->buildData)) {
         m_existingProject.d->internalProject.clear();
+    }
 }
 
 /*!

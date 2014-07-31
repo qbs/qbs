@@ -717,8 +717,11 @@ Project &Project::operator=(const Project &other)
  * track the results of the operation.
  * If the function is called on a valid \c Project object, the build graph will not be loaded
  * from a file, but will be taken from the existing project. In that case, if resolving
- * finishes successfully, the existing project will be invalidated. If resolving fails, the
- * existing \c Project object stays as it is.
+ * finishes successfully, the existing project will be invalidated. If resolving fails, qbs will
+ * try to keep the existing project valid. However, under certain circumstances, resolving the new
+ * project will fail at a time where existing project data has already been touched, in which case
+ * the existing project has to be invalidated (this could be avoided, but it would hurt performance).
+ * So after an unsuccessful re-resolve job, the existing project may or may not be valid anymore.
  * \note The qbs plugins will only be loaded once. As a result, the value of
  *       \c parameters.pluginPaths will only have an effect the first time this function is called.
  *       Similarly, the value of \c parameters.searchPaths will not have an effect if
