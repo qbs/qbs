@@ -70,6 +70,17 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
     result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty();
 
+    if (logger.traceEnabled()) {
+        logger.qbsTrace()
+                << "[BG] consider " << (m_rule->isDynamic() ? "dynamic " : "")
+                << (m_rule->multiplex ? "multiplex " : "")
+                << "rule node " << m_rule->toString()
+                << "\n\tchanged: " << changedInputs.toString()
+                << "\n\tcompatible: " << allCompatibleInputs.toString()
+                << "\n\tadded: " << addedInputs.toString()
+                << "\n\tremoved: " << removedInputs.toString();
+    }
+
     ArtifactSet inputs = changedInputs;
     if (product->isMarkedForReapplication(m_rule)) {
         QBS_CHECK(m_rule->multiplex);
