@@ -208,7 +208,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     projectContext->project->name = m_evaluator->stringValue(item, QLatin1String("name"));
     projectContext->project->location = item->location();
     if (projectContext->project->name.isEmpty())
-        projectContext->project->name = FileInfo::baseName(item->location().fileName()); // FIXME: Must also be changed in item?
+        projectContext->project->name = FileInfo::baseName(item->location().filePath()); // FIXME: Must also be changed in item?
     projectContext->project->enabled
             = m_evaluator->boolValue(item, QLatin1String("condition"));
     QVariantMap projectProperties;
@@ -477,7 +477,7 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
         ProductContext::ArtifactPropertiesInfo apinfo
                 = m_productContext->artifactPropertiesPerFilter.value(fileTagsFilter);
         if (apinfo.first) {
-            if (apinfo.second.fileName() == item->location().fileName()) {
+            if (apinfo.second.filePath() == item->location().filePath()) {
                 ErrorInfo error(Tr::tr("Conflicting fileTagsFilter in Group items."));
                 error.append(Tr::tr("First item"), apinfo.second);
                 error.append(Tr::tr("Second item"), item->location());

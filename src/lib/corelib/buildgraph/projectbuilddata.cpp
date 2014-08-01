@@ -454,11 +454,11 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     }
 
     //add qbsFile artifact
-    Artifact *qbsFileArtifact = lookupArtifact(product, product->location.fileName());
+    Artifact *qbsFileArtifact = lookupArtifact(product, product->location.filePath());
     if (!qbsFileArtifact) {
         qbsFileArtifact = new Artifact;
         qbsFileArtifact->artifactType = Artifact::SourceFile;
-        qbsFileArtifact->setFilePath(product->location.fileName());
+        qbsFileArtifact->setFilePath(product->location.filePath());
         qbsFileArtifact->properties = product->moduleProperties;
         insertArtifact(product, qbsFileArtifact, m_logger);
     }

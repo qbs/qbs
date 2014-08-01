@@ -333,7 +333,7 @@ static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
         if (QFileInfo(group->prefix).isAbsolute()) {
             fullPattern = group->prefix;
         } else {
-            fullPattern = QFileInfo(group->location.fileName()).absolutePath()
+            fullPattern = QFileInfo(group->location.filePath()).absolutePath()
                     + QLatin1Char('/') + group->prefix;
         }
         fullPattern.append(QLatin1Char('/')).append(pattern);
@@ -364,7 +364,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
         else if (prefix != g->prefix)
             throw ErrorInfo(Tr::tr("Cannot update: Group prefix depends on properties."));
     }
-    QString baseDirPath = QFileInfo(product.location().fileName()).dir().absolutePath()
+    QString baseDirPath = QFileInfo(product.location().filePath()).dir().absolutePath()
             + QLatin1Char('/') + prefix;
     QDir baseDir(baseDirPath);
     foreach (const QString &filePath, filePaths) {
@@ -542,9 +542,9 @@ void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &pr
 static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,
                                       int lineOffset)
 {
-    if (location.fileName() == changeLocation.fileName()
+    if (location.filePath() == changeLocation.filePath()
             && location.line() >= changeLocation.line()) {
-        location = CodeLocation(location.fileName(), location.line() + lineOffset,
+        location = CodeLocation(location.filePath(), location.line() + lineOffset,
                                 location.column());
     }
 }

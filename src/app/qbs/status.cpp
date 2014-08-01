@@ -119,7 +119,7 @@ QStringList allFiles(const ProductData &product)
 
 int printStatus(const ProjectData &project)
 {
-    const QString projectFilePath = project.location().fileName();
+    const QString projectFilePath = project.location().filePath();
     QString projectDirectory = QFileInfo(projectFilePath).dir().path();
     int projectDirectoryPathLength = projectDirectory.length();
 
@@ -127,11 +127,11 @@ int printStatus(const ProjectData &project)
     QStringList missingFiles;
     foreach (const ProductData &product, project.allProducts()) {
         qbsInfo() << "\nProduct: " << product.name()
-                  << " (" << product.location().fileName() << ":"
+                  << " (" << product.location().filePath() << ":"
                   << product.location().line() << ")";
         foreach (const GroupData &group, product.groups()) {
             qbsInfo() << "  Group: " << group.name()
-                      << " (" << group.location().fileName() << ":"
+                      << " (" << group.location().filePath() << ":"
                       << group.location().line() << ")";
             QStringList sourceFiles = group.allFilePaths();
             qSort(sourceFiles);

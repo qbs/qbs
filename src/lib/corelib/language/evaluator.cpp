@@ -194,7 +194,7 @@ void Evaluator::handleEvaluationError(const Item *item, const QString &name,
     CodeLocation location = value ? value->location() : CodeLocation();
     if (m_scriptEngine->hasUncaughtException()) {
         throw ErrorInfo(m_scriptEngine->uncaughtException().toString(),
-                CodeLocation(location.fileName(), m_scriptEngine->uncaughtExceptionLineNumber()));
+                CodeLocation(location.filePath(), m_scriptEngine->uncaughtExceptionLineNumber()));
     }
     throw ErrorInfo(scriptValue.toString(), location);
 }

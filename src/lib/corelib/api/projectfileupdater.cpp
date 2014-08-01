@@ -60,7 +60,7 @@ public:
 private:
     bool visit(UiObjectDefinition *ast)
     {
-        if (toCodeLocation(m_cl.fileName(), ast->firstSourceLocation()) == m_cl) {
+        if (toCodeLocation(m_cl.filePath(), ast->firstSourceLocation()) == m_cl) {
             m_item = ast;
             return false;
         }
@@ -188,7 +188,7 @@ void ProjectFileUpdater::apply()
 
 ProjectFileGroupInserter::ProjectFileGroupInserter(const ProductData &product,
                                                    const QString &groupName)
-    : ProjectFileUpdater(product.location().fileName())
+    : ProjectFileUpdater(product.location().filePath())
     , m_product(product)
     , m_groupName(groupName)
 {
@@ -260,7 +260,7 @@ static int getBindingLine(const ChangeSet &changeSet, const QString &fileContent
 
 ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const GroupData &group,
                                              const QStringList &files)
-    : ProjectFileUpdater(product.location().fileName())
+    : ProjectFileUpdater(product.location().filePath())
     , m_product(product)
     , m_group(group)
     , m_files(files)
@@ -383,7 +383,7 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 
 ProjectFileFilesRemover::ProjectFileFilesRemover(const ProductData &product, const GroupData &group,
                                                  const QStringList &files)
-    : ProjectFileUpdater(product.location().fileName())
+    : ProjectFileUpdater(product.location().filePath())
     , m_product(product)
     , m_group(group)
     , m_files(files)
@@ -488,7 +488,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
 
 
 ProjectFileGroupRemover::ProjectFileGroupRemover(const ProductData &product, const GroupData &group)
-    : ProjectFileUpdater(product.location().fileName())
+    : ProjectFileUpdater(product.location().filePath())
     , m_product(product)
     , m_group(group)
 {

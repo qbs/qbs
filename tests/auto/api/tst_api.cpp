@@ -857,7 +857,7 @@ void TestApi::references()
     const qbs::ProjectData topLevelProject = job->project().projectData();
     QCOMPARE(topLevelProject.subProjects().count(), 1);
     const QString subProjectFileName
-            = QFileInfo(topLevelProject.subProjects().first().location().fileName()).fileName();
+            = QFileInfo(topLevelProject.subProjects().first().location().filePath()).fileName();
     QCOMPARE(subProjectFileName, QString("p.qbs"));
 }
 

@@ -305,13 +305,13 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
                     .join(QLatin1String(", ")) + QLatin1Char(']');
 
             e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
-                .arg(m_rule->prepareScript->location.fileName())
+                .arg(m_rule->prepareScript->location.filePath())
                 .arg(m_rule->prepareScript->location.line())
                 .arg(m_rule->prepareScript->location.column())
                 .arg(str);
 
             e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
-                .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
+                .arg(outputArtifact->transformer->rule->prepareScript->location.filePath())
                 .arg(outputArtifact->transformer->rule->prepareScript->location.line())
                 .arg(outputArtifact->transformer->rule->prepareScript->location.column())
                 .arg(str);

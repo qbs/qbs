@@ -185,9 +185,9 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
         cache->project = product->project.data();
         cache->projectScriptValue = engine->newObject();
         cache->projectScriptValue.setProperty(QLatin1String("filePath"),
-                product->project->location.fileName());
+                product->project->location.filePath());
         cache->projectScriptValue.setProperty(QLatin1String("path"),
-                FileInfo::path(product->project->location.fileName()));
+                FileInfo::path(product->project->location.filePath()));
         const QVariantMap &projectProperties = product->project->projectProperties();
         for (QVariantMap::const_iterator it = projectProperties.begin();
                 it != projectProperties.end(); ++it) {

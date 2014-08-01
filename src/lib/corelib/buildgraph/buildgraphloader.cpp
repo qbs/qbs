@@ -164,11 +164,11 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
 
 void BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project)
 {
-    if (QFileInfo(project->location.fileName()) != QFileInfo(m_parameters.projectFilePath())) {
+    if (QFileInfo(project->location.filePath()) != QFileInfo(m_parameters.projectFilePath())) {
         QString errorMessage = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
                                       "input file is '%3'. ")
                 .arg(QDir::toNativeSeparators(project->buildGraphFilePath()),
-                     QDir::toNativeSeparators(project->location.fileName()),
+                     QDir::toNativeSeparators(project->location.filePath()),
                      QDir::toNativeSeparators(m_parameters.projectFilePath()));
         if (!m_parameters.ignoreDifferentProjectFilePath()) {
             errorMessage += Tr::tr("Aborting.");
@@ -390,9 +390,9 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
 {
     bool hasChanged = false;
     foreach (const ResolvedProductPtr &product, restoredProducts) {
-        const QString fileName = product->location.fileName();
-        const FileInfo pfi(fileName);
-        remainingBuildSystemFiles.remove(fileName);
+        const QString filePath = product->location.filePath();
+        const FileInfo pfi(filePath);
+        remainingBuildSystemFiles.remove(filePath);
         if (!pfi.exists()) {
             m_logger.qbsDebug() << "A product was removed, must re-resolve project";
             hasChanged = true;

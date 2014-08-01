@@ -39,7 +39,7 @@ namespace qbs {
 class CodeLocation::CodeLocationPrivate : public QSharedData
 {
 public:
-    QString fileName;
+    QString filePath;
     int line;
     int column;
 };
@@ -48,10 +48,10 @@ CodeLocation::CodeLocation()
 {
 }
 
-CodeLocation::CodeLocation(const QString &aFileName, int aLine, int aColumn)
+CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn)
     : d(new CodeLocationPrivate)
 {
-    d->fileName = aFileName;
+    d->filePath = aFilePath;
     d->line = aLine;
     d->column = aColumn;
 }
@@ -70,9 +70,9 @@ CodeLocation::~CodeLocation()
 {
 }
 
-QString CodeLocation::fileName() const
+QString CodeLocation::filePath() const
 {
-    return d ? d->fileName : QString();
+    return d ? d->filePath : QString();
 }
 
 int CodeLocation::line() const
@@ -87,14 +87,14 @@ int CodeLocation::column() const
 
 bool CodeLocation::isValid() const
 {
-    return !fileName().isEmpty();
+    return !filePath().isEmpty();
 }
 
 QString CodeLocation::toString() const
 {
     QString str;
     if (isValid()) {
-        str = QDir::toNativeSeparators(fileName());
+        str = QDir::toNativeSeparators(filePath());
         QString lineAndColumn;
         if (line() > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
             lineAndColumn += QLatin1Char(':') + QString::number(line());
@@ -109,7 +109,7 @@ bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
 {
     if (cl1.d == cl2.d)
         return true;
-    return cl1.fileName() == cl2.fileName() && cl1.line() == cl2.line()
+    return cl1.filePath() == cl2.filePath() && cl1.line() == cl2.line()
             && cl1.column() == cl2.column();
 }
 
@@ -120,7 +120,7 @@ bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
 
 QDataStream &operator<<(QDataStream &s, const CodeLocation &o)
 {
-    s << o.fileName();
+    s << o.filePath();
     s << o.line();
     s << o.column();
     return s;
@@ -128,13 +128,13 @@ QDataStream &operator<<(QDataStream &s, const CodeLocation &o)
 
 QDataStream &operator>>(QDataStream &s, CodeLocation &o)
 {
-    QString fileName;
+    QString filePath;
     int line;
     int column;
-    s >> fileName;
+    s >> filePath;
     s >> line;
     s >> column;
-    o = CodeLocation(fileName, line, column);
+    o = CodeLocation(filePath, line, column);
     return s;
 }
 
