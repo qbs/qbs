@@ -88,7 +88,6 @@ public:
 protected:
     int runQbs(const QbsRunParameters &params = QbsRunParameters());
     void rmDirR(const QString &dir);
-    void touch(const QString &fn);
     static QByteArray unifiedLineEndings(const QByteArray &ba);
     static void sanitizeOutput(QByteArray *ba);
 

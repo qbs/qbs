@@ -151,16 +151,6 @@ void TestBlackbox::rmDirR(const QString &dir)
     removeDirectoryWithContents(dir, &errorMessage);
 }
 
-void TestBlackbox::touch(const QString &fn)
-{
-    QFile f(fn);
-    int s = f.size();
-    if (!f.open(QFile::ReadWrite))
-        qFatal("cannot open file %s", qPrintable(fn));
-    f.resize(s+1);
-    f.resize(s);
-}
-
 QByteArray TestBlackbox::unifiedLineEndings(const QByteArray &ba)
 {
     if (HostOsInfo::isWindowsHost()) {
@@ -815,9 +805,7 @@ void TestBlackbox::track_qrc()
 void TestBlackbox::track_qobject_change()
 {
     QDir::setCurrent(testDataDir + "/trackQObjChange");
-    QFile("bla.h").remove();
-    QVERIFY(QFile("bla_qobject.h").copy("bla.h"));
-    touch("bla.h");
+    copyFileAndUpdateTimestamp("bla_qobject.h", "bla.h");
     QCOMPARE(runQbs(), 0);
     const QString productFilePath = executableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
@@ -826,9 +814,7 @@ void TestBlackbox::track_qobject_change()
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     QTest::qSleep(1000);
-    QFile("bla.h").remove();
-    QVERIFY(QFile("bla_noqobject.h").copy("bla.h"));
-    touch("bla.h");
+    copyFileAndUpdateTimestamp("bla_noqobject.h", "bla.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(productFilePath));
     QVERIFY(!QFile(moc_bla_objectFileName).exists());
@@ -1135,9 +1121,7 @@ void TestBlackbox::trackRemoveProduct()
     waitForNewTimestamp();
     QFile::remove("zoo.cpp");
     QFile::remove("product3.qbs");
-    QFile::remove("trackProducts.qbs");
-    QFile::copy("../before/trackProducts.qbs", "trackProducts.qbs");
-    touch("trackProducts.qbs");
+    copyFileAndUpdateTimestamp("../before/trackProducts.qbs", "trackProducts.qbs");
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling foo.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling bar.cpp"));
@@ -1580,9 +1564,7 @@ void TestBlackbox::dynamicRuleOutputs()
 
     QDateTime appFileTimeStamp1 = QFileInfo(appFile).lastModified();
     waitForNewTimestamp();
-    QFile::remove("numbers.l");
-    QFile::copy("../after/numbers.l", "numbers.l");
-    touch("numbers.l");
+    copyFileAndUpdateTimestamp("../after/numbers.l", "numbers.l");
     QCOMPARE(runQbs(), 0);
 
     // Check build #2: no file names are specified in numbers.l
@@ -1594,9 +1576,7 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(regularFileExists(sourceFile2));
 
     waitForNewTimestamp();
-    QFile::remove("numbers.l");
-    QFile::copy("../before/numbers.l", "numbers.l");
-    touch("numbers.l");
+    copyFileAndUpdateTimestamp("../before/numbers.l", "numbers.l");
     QCOMPARE(runQbs(), 0);
 
     // Check build #3: source and header file name are specified in numbers.l

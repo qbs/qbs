@@ -777,15 +777,13 @@ void TestApi::projectInvalidation()
     qbs::Project project = setupJob->project();
     QVERIFY(project.isValid());
     waitForNewTimestamp();
-    QVERIFY(QFile::remove("project.qbs"));
-    QVERIFY(QFile::copy("project.early-error.qbs", "project.qbs"));
+    copyFileAndUpdateTimestamp("project.early-error.qbs", "project.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
     QVERIFY(project.isValid()); // Error in Loader, old project still valid.
     waitForNewTimestamp();
-    QVERIFY(QFile::remove("project.qbs"));
-    QVERIFY(QFile::copy("project.late-error.qbs", "project.qbs"));
+    copyFileAndUpdateTimestamp("project.late-error.qbs", "project.qbs");
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
     QVERIFY(setupJob->error().hasError());
