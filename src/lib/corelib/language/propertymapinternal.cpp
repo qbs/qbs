@@ -93,12 +93,12 @@ QString PropertyMapInternal::toJSLiteral() const
 
 void PropertyMapInternal::load(PersistentPool &pool)
 {
-    pool.stream() >> m_value;
+    m_value = pool.loadVariantMap();
 }
 
 void PropertyMapInternal::store(PersistentPool &pool) const
 {
-    pool.stream() << m_value;
+    pool.store(m_value);
 }
 
 } // namespace Internal
