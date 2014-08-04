@@ -146,7 +146,7 @@ void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStri
     QString compilerTriplet = qsystem(pathToGcc, flags).simplified();
     QStringList compilerTripletl = compilerTriplet.split(QLatin1Char('-'));
     if (compilerTripletl.count() < 2) {
-        qbsError() << QString::fromLocal8Bit("Detected '%1', but I don't understand "
+        qbsError() << QString::fromLocal8Bit("Detected '%1', but I do not understand "
                                              "its architecture '%2'.")
                       .arg(pathToGcc, compilerTriplet);
         return;

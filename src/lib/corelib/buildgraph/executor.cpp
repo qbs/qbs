@@ -463,7 +463,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             Artifact *outputArtifact = dynamic_cast<Artifact *>(node);
             if (!outputArtifact)
                 continue;
-            if (outputArtifact->fileTags.matches(product->fileTags))
+            if (outputArtifact->fileTags().matches(product->fileTags))
                 product->buildData->roots += outputArtifact;
 
             foreach (Artifact *inputArtifact, outputArtifact->transformer->inputs)
@@ -579,7 +579,7 @@ bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &trans
         return true; // No filtering requested.
 
     foreach (Artifact * const output, transformer->outputs) {
-        if (m_activeFileTags.matches(output->fileTags))
+        if (m_activeFileTags.matches(output->fileTags()))
             return true;
     }
 

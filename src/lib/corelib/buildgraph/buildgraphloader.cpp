@@ -642,19 +642,13 @@ void BuildGraphLoader::onProductFileListChanged(const ResolvedProductPtr &restor
             Artifact *artifact
                     = lookupArtifact(restoredProduct, oldBuildData, a->absoluteFilePath, true);
             QBS_CHECK(artifact);
-
             // handle added filetags
-            foreach (const FileTag &addedFileTag, changedArtifact->fileTags - a->fileTags) {
-                artifact->fileTags += addedFileTag;
-                artifact->product->buildData->artifactsByFileTag[addedFileTag].insert(artifact);
-            }
+            foreach (const FileTag &addedFileTag, changedArtifact->fileTags - a->fileTags)
+                artifact->addFileTag(addedFileTag);
 
             // handle removed filetags
-            foreach (const FileTag &removedFileTag, a->fileTags - changedArtifact->fileTags) {
-                artifact->fileTags -= removedFileTag;
-                removeArtifactFromSetByFileTag(artifact, removedFileTag,
-                                               artifact->product->buildData->artifactsByFileTag);
-            }
+            foreach (const FileTag &removedFileTag, a->fileTags - changedArtifact->fileTags)
+                artifact->removeFileTag(removedFileTag);
         }
 
         if (changedArtifact->properties->value() != a->properties->value()) {

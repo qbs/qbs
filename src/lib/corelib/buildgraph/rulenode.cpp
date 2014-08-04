@@ -70,6 +70,17 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
     result->upToDate = changedInputs.isEmpty() && addedInputs.isEmpty() && removedInputs.isEmpty();
 
+    if (logger.traceEnabled()) {
+        logger.qbsTrace()
+                << "[BG] consider " << (m_rule->isDynamic() ? "dynamic " : "")
+                << (m_rule->multiplex ? "multiplex " : "")
+                << "rule node " << m_rule->toString()
+                << "\n\tchanged: " << changedInputs.toString()
+                << "\n\tcompatible: " << allCompatibleInputs.toString()
+                << "\n\tadded: " << addedInputs.toString()
+                << "\n\tremoved: " << removedInputs.toString();
+    }
+
     ArtifactSet inputs = changedInputs;
     if (product->isMarkedForReapplication(m_rule)) {
         QBS_CHECK(m_rule->multiplex);
@@ -77,10 +88,13 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         product->unmarkForReapplication(m_rule);
         if (logger.traceEnabled())
             logger.qbsTrace() << "[BG] rule is marked for reapplication " << m_rule->toString();
-        inputs += allCompatibleInputs;
-    } else {
-        inputs += addedInputs;
     }
+
+    if (m_rule->multiplex)
+        inputs = allCompatibleInputs;
+    else
+        inputs += addedInputs;
+
     if (result->upToDate)
         return;
     if (!removedInputs.isEmpty()) {
@@ -146,7 +160,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         foreach (Artifact *targetArtifact, dep->targetArtifacts())
             artifactsToCheck += targetArtifact->transformer->outputs;
         foreach (Artifact *artifact, artifactsToCheck) {
-            if (artifact->fileTags.matches(m_rule->usings))
+            if (artifact->fileTags().matches(m_rule->usings))
                 s += artifact;
         }
     }

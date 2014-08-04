@@ -178,7 +178,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const ScriptFunc
     QScriptValue artifactConfig = m_engine->newObject();
     ModuleProperties::init(artifactConfig, artifact);
     artifactConfig.setProperty(QLatin1String("fileName"), artifact->filePath(), 0);
-    const QStringList fileTags = artifact->fileTags.toStringList();
+    const QStringList fileTags = artifact->fileTags().toStringList();
     artifactConfig.setProperty(QLatin1String("fileTags"), m_engine->toScriptValue(fileTags));
     if (!m_scanner->module->name.isEmpty())
         artifactConfig.setProperty(QLatin1String("moduleName"), m_scanner->module->name);

@@ -31,6 +31,7 @@
 
 #include <tools/hostosinfo.h>
 
+#include <QFile>
 #include <QtTest>
 
 #if QT_VERSION >= 0x050000
@@ -46,6 +47,24 @@ inline void waitForNewTimestamp()
         QTest::qWait(1);        // NTFS has 100 ns precision. Let's ignore exFAT.
     else
         QTest::qWait(1000);
+}
+
+inline void touch(const QString &fn)
+{
+    QFile f(fn);
+    int s = f.size();
+    if (!f.open(QFile::ReadWrite))
+        qFatal("cannot open file %s", qPrintable(fn));
+    f.resize(s+1);
+    f.resize(s);
+}
+
+inline void copyFileAndUpdateTimestamp(const QString &source, const QString &target)
+{
+    QFile::remove(target);
+    if (!QFile::copy(source, target))
+        qFatal("Failed to copy '%s' to '%s'", qPrintable(source), qPrintable(target));
+    touch(target);
 }
 
 #endif // Include guard.

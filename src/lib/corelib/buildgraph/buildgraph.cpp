@@ -409,7 +409,7 @@ Artifact *createArtifact(const ResolvedProductPtr &product,
     Artifact *artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
-    artifact->fileTags = sourceArtifact->fileTags;
+    artifact->setFileTags(sourceArtifact->fileTags);
     artifact->properties = sourceArtifact->properties;
     insertArtifact(product, artifact, logger);
     return artifact;
@@ -450,7 +450,7 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
 
 static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, const Logger &logger)
 {
-    logger.qbsDebug() << "Sanity checking product '" << product->uniqueName() << "'";
+    logger.qbsTrace() << "Sanity checking product '" << product->uniqueName() << "'";
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
     const ProductBuildData * const buildData = product->buildData.data();
@@ -466,7 +466,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     }
     QSet<QString> filePaths;
     foreach (BuildGraphNode * const node, buildData->nodes) {
-        logger.qbsDebug() << "Sanity checking node '" << node->toString() << "'";
+        logger.qbsTrace() << "Sanity checking node '" << node->toString() << "'";
         QBS_CHECK(node->product == product);
         foreach (const BuildGraphNode * const parent, node->parents)
             QBS_CHECK(parent->children.contains(node));
@@ -492,7 +492,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
 
         QBS_CHECK(transformer);
         QBS_CHECK(transformer->outputs.contains(artifact));
-        logger.qbsDebug() << "The transformer has " << transformer->outputs.count()
+        logger.qbsTrace() << "The transformer has " << transformer->outputs.count()
                           << " outputs.";
         ArtifactSet transformerOutputChildren;
         foreach (const Artifact * const output, transformer->outputs) {

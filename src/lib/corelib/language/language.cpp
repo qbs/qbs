@@ -343,7 +343,7 @@ QString Rule::toString() const
 
 bool Rule::acceptsAsInput(Artifact *artifact) const
 {
-    return artifact->fileTags.matches(inputs);
+    return artifact->fileTags().matches(inputs);
 }
 
 FileTags Rule::staticOutputFileTags() const
@@ -705,7 +705,7 @@ ArtifactSet ResolvedProduct::targetArtifacts() const
     QBS_CHECK(buildData);
     ArtifactSet taSet;
     foreach (Artifact * const a, buildData->rootArtifacts()) {
-        if (a->fileTags.matches(fileTags))
+        if (a->fileTags().matches(fileTags))
             taSet << a;
     }
     return taSet;
@@ -731,7 +731,7 @@ static QStringList findGeneratedFiles(const Artifact *base, const FileTags &tags
 {
     QStringList result;
     foreach (const Artifact *parent, base->parentArtifacts()) {
-        if (tags.isEmpty() || parent->fileTags.matches(tags))
+        if (tags.isEmpty() || parent->fileTags().matches(tags))
             result << parent->filePath();
     }
 

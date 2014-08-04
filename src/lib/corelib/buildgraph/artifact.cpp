@@ -31,6 +31,8 @@
 
 #include "transformer.h"
 #include "buildgraphvisitor.h"
+#include "productbuilddata.h"
+#include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
@@ -77,6 +79,32 @@ QString Artifact::toString() const
     return QLatin1String("ARTIFACT ") + filePath();
 }
 
+void Artifact::addFileTag(const FileTag &t)
+{
+    m_fileTags += t;
+    if (!product.isNull() && product->buildData)
+        product->buildData->artifactsByFileTag[t] += this;
+}
+
+void Artifact::removeFileTag(const FileTag &t)
+{
+    m_fileTags -= t;
+    if (!product.isNull() && product->buildData)
+        removeArtifactFromSetByFileTag(this, t, product->buildData->artifactsByFileTag);
+}
+
+void Artifact::setFileTags(const FileTags &newFileTags)
+{
+    if (product.isNull() || !product->buildData) {
+        m_fileTags = newFileTags;
+        return;
+    }
+    foreach (const FileTag &t, m_fileTags)
+        removeArtifactFromSetByFileTag(this, t, product->buildData->artifactsByFileTag);
+    m_fileTags = newFileTags;
+    addArtifactToSet(this, product->buildData->artifactsByFileTag);
+}
+
 void Artifact::initialize()
 {
     artifactType = Unknown;
@@ -121,7 +149,7 @@ void Artifact::load(PersistentPool &pool)
     transformer = pool.idLoadS<Transformer>();
     unsigned char c;
     pool.stream()
-            >> fileTags
+            >> m_fileTags
             >> artifactType
             >> c;
     alwaysUpdated = c;
@@ -140,7 +168,7 @@ void Artifact::store(PersistentPool &pool) const
     pool.store(properties);
     pool.store(transformer);
     pool.stream()
-            << fileTags
+            << m_fileTags
             << artifactType
             << static_cast<unsigned char>(alwaysUpdated)
             << static_cast<unsigned char>(oldDataPossiblyPresent);

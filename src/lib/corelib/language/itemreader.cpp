@@ -161,7 +161,7 @@ ItemReaderResult ItemReader::internalReadFile(const QString &filePath)
     } else {
         QFile file(filePath);
         if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
-            throw ErrorInfo(Tr::tr("Couldn't open '%1'.").arg(filePath));
+            throw ErrorInfo(Tr::tr("Cannot open '%1'.").arg(filePath));
 
         m_filesRead.insert(filePath);
         const QString code = QTextStream(&file).readAll();

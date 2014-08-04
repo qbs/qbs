@@ -231,7 +231,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     if (!m_qbsVersion.isValid())
         m_qbsVersion = qbsVersionFromString(QLatin1String(QBS_VERSION));
     if (m_qbsVersion < minVersion) {
-        throw ErrorInfo(Tr::tr("The project requires at least qbs version %1 but "
+        throw ErrorInfo(Tr::tr("The project requires at least qbs version %1, but "
                                "this is qbs version %2.").arg(minVersion.toString(),
                                                               m_qbsVersion.toString()));
     }

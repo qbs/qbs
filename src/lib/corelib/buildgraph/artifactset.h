@@ -31,6 +31,7 @@
 #define QBS_ARTIFACTSET_H
 
 #include <QSet>
+#include <QStringList>
 
 namespace qbs {
 namespace Internal {
@@ -46,6 +47,8 @@ public:
     ArtifactSet(const QSet<Artifact *> &other);
 
     ArtifactSet &unite(const ArtifactSet &other);
+    QStringList toStringList() const;
+    QString toString() const;
 
     static ArtifactSet fromNodeSet(const NodeSet &nodes);
     static ArtifactSet fromNodeList(const QList<Artifact *> &lst);

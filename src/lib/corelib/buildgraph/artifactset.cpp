@@ -53,6 +53,19 @@ ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
     return *this;
 }
 
+QStringList ArtifactSet::toStringList() const
+{
+    QStringList sl;
+    foreach (Artifact *a, *this)
+        sl += a->filePath();
+    return sl;
+}
+
+QString ArtifactSet::toString() const
+{
+    return QLatin1Char('[') + toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
+}
+
 ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
 {
     ArtifactSet result;

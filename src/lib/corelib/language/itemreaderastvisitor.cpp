@@ -193,7 +193,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
             }
 
             if (Q_UNLIKELY(importAsNames.contains(as))) {
-                throw ErrorInfo(Tr::tr("Can't import into the same name more than once."),
+                throw ErrorInfo(Tr::tr("Cannot import into the same name more than once."),
                             toCodeLocation(import->importIdToken));
             }
             if (Q_UNLIKELY(JsExtensions::hasExtension(as))) {
@@ -208,7 +208,7 @@ bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
 
             QFileInfo fi(filePath);
             if (Q_UNLIKELY(!fi.exists()))
-                throw ErrorInfo(Tr::tr("Can't find imported file %0.").arg(filePath),
+                throw ErrorInfo(Tr::tr("Cannot find imported file %0.").arg(filePath),
                             CodeLocation(m_file->filePath(), import->fileNameToken.startLine,
                                          import->fileNameToken.startColumn));
             filePath = fi.canonicalFilePath();

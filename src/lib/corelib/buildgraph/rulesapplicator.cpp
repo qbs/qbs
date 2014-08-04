@@ -138,7 +138,7 @@ static QStringList toStringList(const ArtifactSet &artifacts)
     QStringList lst;
     foreach (const Artifact *artifact, artifacts) {
         const QString str = artifact->filePath() + QLatin1String(" [")
-                + artifact->fileTags.toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
+                + artifact->fileTags().toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
         lst << str;
     }
     return lst;
@@ -157,7 +157,10 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     QList<QPair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
-    m_transformer.clear();
+    m_transformer = Transformer::create();
+    m_transformer->rule = m_rule;
+    m_transformer->inputs = inputArtifacts;
+
     // create the output artifacts from the set of input artifacts
     Transformer::setupInputs(prepareScriptContext, inputArtifacts, m_rule->module->name);
     copyProperty(QLatin1String("inputs"), prepareScriptContext, scope());
@@ -172,9 +175,13 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
         handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
+        QSet<QString> outputFilePaths;
         foreach (const RuleArtifactConstPtr &ruleArtifact, m_rule->artifacts) {
             Artifact * const outputArtifact
-                    = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts);
+                    = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts,
+                                                           &outputFilePaths);
+            if (!outputArtifact)
+                continue;
             outputArtifacts << outputArtifact;
             ruleArtifactArtifactMap << qMakePair(ruleArtifact.data(), outputArtifact);
         }
@@ -211,7 +218,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         scope().setProperty(QLatin1String("fileName"),
                             engine()->toScriptValue(outputArtifact->filePath()));
         scope().setProperty(QLatin1String("fileTags"),
-                            toScriptValue(engine(), outputArtifact->fileTags.toStringList()));
+                            toScriptValue(engine(), outputArtifact->fileTags().toStringList()));
 
         QVariantMap artifactModulesCfg = outputArtifact->properties->value()
                 .value(QLatin1String("modules")).toMap();
@@ -236,7 +243,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer->createCommands(m_rule->prepareScript, evalContext(),
             ScriptEngine::argumentList(m_rule->prepareScript->argumentNames, prepareScriptContext));
     if (Q_UNLIKELY(m_transformer->commands.isEmpty()))
-        throw ErrorInfo(Tr::tr("There's a rule without commands: %1.")
+        throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript->location);
 }
 
@@ -254,7 +261,8 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
 }
 
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
-        const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts)
+        const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
+        QSet<QString> *outputFilePaths)
 {
     QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath);
     if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
@@ -262,6 +270,16 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
                         .arg(ruleArtifact->location.toString(), scriptValue.toString()));
     }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
+    if (outputFilePaths->contains(outputPath)) {
+        // The same output artifact was already created. Let the first one win.
+        // The GCC dynamicLibraryLinker linker rule relies on this for products that have no version
+        // set.
+        // ### This situation should result in an error in qbs 1.4!
+        if (m_logger.traceEnabled())
+            m_logger.qbsTrace() << "[BG] WARNING: this rule has already created " << outputPath;
+        return 0;
+    }
+    outputFilePaths->insert(outputPath);
     return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
                                 inputArtifacts);
 }
@@ -276,66 +294,48 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
-        if (outputArtifact->transformer && outputArtifact->transformer != m_transformer) {
-            QBS_CHECK(!m_transformer);
+        if (outputArtifact->transformer && outputArtifact->transformer->rule != m_rule) {
+            QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
+                    .arg(outputArtifact->filePath(),
+                         QLatin1Char('[') +
+                         outputArtifact->fileTags().toStringList().join(QLatin1String(", "))
+                         + QLatin1Char(']'));
+            QString str = QLatin1Char('[') + m_rule->inputs.toStringList().join(QLatin1String(", "))
+               + QLatin1String("] -> [") + outputArtifact->fileTags().toStringList()
+                    .join(QLatin1String(", ")) + QLatin1Char(']');
 
-            // This can happen when applying rules after scanning for additional file tags.
-            // We just regenerate the transformer.
-            if (m_logger.traceEnabled()) {
-                m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] regenerating transformer "
-                        "for '%1'").arg(relativeArtifactFileName(outputArtifact));
-            }
-            m_transformer = outputArtifact->transformer;
-            m_transformer->inputs.unite(inputArtifacts);
+            e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
+                .arg(m_rule->prepareScript->location.fileName())
+                .arg(m_rule->prepareScript->location.line())
+                .arg(m_rule->prepareScript->location.column())
+                .arg(str);
 
-            if (Q_UNLIKELY(m_transformer->inputs.count() > 1 && !m_rule->multiplex)) {
-                QString th = QLatin1Char('[') + outputArtifact->fileTags.toStringList()
-                        .join(QLatin1String(", ")) + QLatin1Char(']');
-                QString e = Tr::tr("Conflicting rules for producing %1 %2 \n")
-                        .arg(outputArtifact->filePath(), th);
-                th = QLatin1Char('[') + m_rule->inputs.toStringList().join(QLatin1String(", "))
-                   + QLatin1String("] -> [") + outputArtifact->fileTags.toStringList()
-                        .join(QLatin1String(", ")) + QLatin1Char(']');
+            e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
+                .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
+                .arg(outputArtifact->transformer->rule->prepareScript->location.line())
+                .arg(outputArtifact->transformer->rule->prepareScript->location.column())
+                .arg(str);
 
-                e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
-                    .arg(m_rule->prepareScript->location.fileName())
-                    .arg(m_rule->prepareScript->location.line())
-                    .arg(m_rule->prepareScript->location.column())
-                    .arg(th);
-
-                e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
-                    .arg(outputArtifact->transformer->rule->prepareScript->location.fileName())
-                    .arg(outputArtifact->transformer->rule->prepareScript->location.line())
-                    .arg(outputArtifact->transformer->rule->prepareScript->location.column())
-                    .arg(th);
-
-                QStringList inputFilePaths;
-                foreach (const Artifact * const a, m_transformer->inputs)
-                    inputFilePaths << a->filePath();
-                e.append(Tr::tr("The input artifacts are: %1")
-                         .arg(inputFilePaths.join(QLatin1String(", "))));
-                throw ErrorInfo(e);
-            }
+            throw ErrorInfo(e);
         }
-        outputArtifact->fileTags += fileTags;
         outputArtifact->clearTimestamp();
     } else {
         outputArtifact = new Artifact;
         outputArtifact->artifactType = Artifact::Generated;
         outputArtifact->setFilePath(outputPath);
-        outputArtifact->fileTags = fileTags;
-        outputArtifact->alwaysUpdated = alwaysUpdated;
-        outputArtifact->properties = m_product->moduleProperties;
         insertArtifact(m_product, outputArtifact, m_logger);
         m_createdArtifacts += outputArtifact;
     }
 
-    if (outputArtifact->fileTags.isEmpty())
-        outputArtifact->fileTags = m_product->fileTagsForFileName(outputArtifact->fileName());
+    outputArtifact->setFileTags(
+                fileTags.isEmpty() ? m_product->fileTagsForFileName(outputArtifact->fileName())
+                                   : fileTags);
+    outputArtifact->alwaysUpdated = alwaysUpdated;
+    outputArtifact->properties = m_product->moduleProperties;
 
     for (int i = 0; i < m_product->artifactProperties.count(); ++i) {
         const ArtifactPropertiesConstPtr &props = m_product->artifactProperties.at(i);
-        if (outputArtifact->fileTags.matches(props->fileTagsFilter())) {
+        if (outputArtifact->fileTags().matches(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
             break;
         }
@@ -346,12 +346,6 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         loggedConnect(outputArtifact, inputArtifact, m_logger);
     }
 
-    // create transformer if not already done so
-    if (!m_transformer) {
-        m_transformer = Transformer::create();
-        m_transformer->rule = m_rule;
-        m_transformer->inputs = inputArtifacts;
-    }
     outputArtifact->transformer = m_transformer;
     m_transformer->outputs.insert(outputArtifact);
     QBS_CHECK(m_rule->multiplex || m_transformer->inputs.count() == 1);
@@ -438,7 +432,7 @@ public:
             const QStringList &nameParts = nvp.first;
             const QVariant &value = nvp.second;
             if (!artifactModulesCfg.contains(nameParts.first())) {
-                throw ErrorInfo(Tr::tr("Can't set module property %1 on artifact %2.")
+                throw ErrorInfo(Tr::tr("Cannot set module property %1 on artifact %2.")
                                 .arg(nameParts.join(QLatin1String(".")),
                                      outputArtifact->filePath()));
             }
