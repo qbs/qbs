@@ -222,14 +222,13 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     const QString minVersionStr
             = m_evaluator->stringValue(item, QLatin1String("minimumQbsVersion"),
                                        QLatin1String("1.3.0"));
-    bool ok;
-    const Version minVersion = qbsVersionFromString(minVersionStr, &ok);
-    if (!ok) {
+    const Version minVersion = Version::fromString(minVersionStr);
+    if (!minVersion.isValid()) {
         throw ErrorInfo(Tr::tr("The value of Project.minimumQbsVersion "
                                "is not a valid version string."));
     }
     if (!m_qbsVersion.isValid())
-        m_qbsVersion = qbsVersionFromString(QLatin1String(QBS_VERSION));
+        m_qbsVersion = Version::fromString(QLatin1String(QBS_VERSION));
     if (m_qbsVersion < minVersion) {
         throw ErrorInfo(Tr::tr("The project requires at least qbs version %1, but "
                                "this is qbs version %2.").arg(minVersion.toString(),
@@ -1120,21 +1119,6 @@ ProjectResolver::ProjectContext ProjectResolver::createProjectContext(ProjectCon
     subProjectContext.project->parentProject = parentProjectContext->project;
     subProjectContext.loadResult = parentProjectContext->loadResult;
     return subProjectContext;
-}
-
-Version ProjectResolver::qbsVersionFromString(const QString &str, bool *ok)
-{
-    if (ok)
-        *ok = true;
-    QRegExp rex(QLatin1String("(\\d+)\\.(\\d+)(?:\\.(\\d+))?"));
-    if (rex.exactMatch(str)) {
-        const QString cap3 = rex.cap(3);
-        return Version(rex.cap(1).toInt(), rex.cap(2).toInt(),
-                  cap3.isEmpty() ? 0 : cap3.toInt());
-    }
-    if (ok)
-        *ok = false;
-    return Version();
 }
 
 } // namespace Internal

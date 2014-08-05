@@ -141,18 +141,6 @@ static QStringList configVariableItems(const QByteArray &configContent, const QS
     return configVariable(configContent, key).split(QLatin1Char(' '), QString::SkipEmptyParts);
 }
 
-static Version extractVersion(const QString &versionString)
-{
-    Version v;
-    const QStringList parts = versionString.split(QLatin1Char('.'), QString::SkipEmptyParts);
-    const QList<int *> vparts
-            = QList<int *>() << &v.majorVersionRef() << &v.minorVersionRef() << &v.patchLevelRef();
-    const int c = qMin(parts.count(), vparts.count());
-    for (int i = 0; i < c; ++i)
-        *vparts[i] = parts.at(i).toInt();
-    return v;
-}
-
 typedef QMap<QByteArray, QByteArray> QueryMap;
 
 static QString pathQueryValue(const QueryMap &queryMap, const QByteArray &key)
@@ -176,7 +164,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     qtEnvironment.qmlImportPath = pathQueryValue(queryOutput, "QT_INSTALL_IMPORTS");
     qtEnvironment.qtVersion = QString::fromLocal8Bit(queryOutput.value("QT_VERSION"));
 
-    const Version qtVersion = extractVersion(qtEnvironment.qtVersion);
+    const Version qtVersion = Version::fromString(qtEnvironment.qtVersion);
 
     QString mkspecsBaseSrcPath;
     if (qtVersion.majorVersion() >= 5) {

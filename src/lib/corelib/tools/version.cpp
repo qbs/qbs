@@ -29,6 +29,9 @@
 
 #include "version.h"
 
+#include <QRegExp>
+#include <QString>
+
 namespace qbs {
 namespace Internal {
 
@@ -76,6 +79,23 @@ void Version::setBuildNumber(int nr)
     m_build = nr;
 }
 
+Version Version::fromString(const QString &versionString, bool buildNumberAllowed)
+{
+    QString pattern = QLatin1String("(\\d+)"); // At least one number.
+    for (int i = 0; i < 2; ++i)
+        pattern += QLatin1String("(?:\\.(\\d+))?"); // Followed by a dot and a number up to two times.
+    if (buildNumberAllowed)
+        pattern += QLatin1String("(?:-(\\d+))?"); // And possibly a dash followed by the build number.
+    QRegExp rex(pattern);
+    if (!rex.exactMatch(versionString))
+        return Version();
+    const int majorNr = rex.cap(1).toInt();
+    const int minorNr = rex.captureCount() >= 2 ? rex.cap(2).toInt() : 0;
+    const int patchNr = rex.captureCount() >= 3 ? rex.cap(3).toInt() : 0;
+    const int buildNr = rex.captureCount() >= 4 ? rex.cap(4).toInt() : 0;
+    return Version(majorNr, minorNr, patchNr, buildNr);
+}
+
 QString Version::toString() const
 {
     QString s;
@@ -88,21 +108,21 @@ QString Version::toString() const
 
 int compare(const Version &lhs, const Version &rhs)
 {
-    if (lhs.m_major < rhs.m_major)
+    if (lhs.majorVersion() < rhs.majorVersion())
         return -1;
-    if (lhs.m_major > rhs.m_major)
+    if (lhs.majorVersion() > rhs.majorVersion())
         return 1;
-    if (lhs.m_minor < rhs.m_minor)
+    if (lhs.minorVersion() < rhs.minorVersion())
         return -1;
-    if (lhs.m_minor > rhs.m_minor)
+    if (lhs.minorVersion() > rhs.minorVersion())
         return 1;
-    if (lhs.m_patch < rhs.m_patch)
+    if (lhs.patchLevel() < rhs.patchLevel())
         return -1;
-    if (lhs.m_patch > rhs.m_patch)
+    if (lhs.patchLevel() > rhs.patchLevel())
         return 1;
-    if (lhs.m_build < rhs.m_build)
+    if (lhs.buildNumber() < rhs.buildNumber())
         return -1;
-    if (lhs.m_build > rhs.m_build)
+    if (lhs.buildNumber() > rhs.buildNumber())
         return 1;
     return 0;
 }

@@ -31,36 +31,35 @@
 #define QBS_VERSION_H
 
 #include "qbs_export.h"
-#include <QString>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
 
 class QBS_EXPORT Version
 {
-    friend int compare(const Version &lhs, const Version &rhs);
 public:
     explicit Version(int majorVersion = 0, int minorVersion = 0, int patchLevel = 0,
             int buildNr = 0);
 
     bool isValid() const { return m_major || m_minor || m_patch || m_build; }
 
-    int &majorVersionRef() { return m_major; }
     int majorVersion() const;
     void setMajorVersion(int majorVersion);
 
-    int &minorVersionRef() { return m_minor; }
     int minorVersion() const;
     void setMinorVersion(int minorVersion);
 
-    int &patchLevelRef() { return m_patch; }
     int patchLevel() const;
     void setPatchLevel(int patchLevel);
 
-    int &buildNumberRef() { return m_build; }
     int buildNumber() const;
     void setBuildNumber(int nr);
 
+    static Version fromString(const QString &versionString, bool buildNumberAllowed = false);
     QString toString() const;
 
 private:
