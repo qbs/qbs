@@ -129,7 +129,7 @@ void BuiltinDeclarations::addArtifactItem()
 {
     ItemDeclaration item(QLatin1String("Artifact"));
     item << conditionProperty();
-    // ### remove Artifact.fileName in qbs 1.4
+    // ### remove Artifact.fileName and Artifact.condition in qbs 1.4
     item << PropertyDeclaration(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
     item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Verbatim);
     item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
