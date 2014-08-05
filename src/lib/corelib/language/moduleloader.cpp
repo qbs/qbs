@@ -1186,7 +1186,7 @@ Item *ModuleLoader::wrapWithProject(Item *item)
     prj->setTypeName(QLatin1String("Project"));
     prj->setFile(item->file());
     prj->setLocation(item->location());
-    m_reader->builtins()->setupItemForBuiltinType(prj);
+    m_reader->builtins()->setupItemForBuiltinType(prj, m_logger);
     return prj;
 }
 

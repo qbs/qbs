@@ -37,7 +37,7 @@
 
 namespace qbs {
 namespace Internal {
-
+class DeprecationInfo;
 class PropertyDeclarationData;
 
 class PropertyDeclaration
@@ -95,6 +95,10 @@ public:
 
     const QStringList &functionArgumentNames() const;
     void setFunctionArgumentNames(const QStringList &lst);
+
+    bool isDeprecated() const;
+    const DeprecationInfo &deprecationInfo() const;
+    void setDeprecationInfo(const DeprecationInfo &deprecationInfo);
 
 private:
     QSharedDataPointer<PropertyDeclarationData> d;

@@ -28,7 +28,11 @@
 ****************************************************************************/
 
 #include "builtindeclarations.h"
+
+#include "deprecationinfo.h"
 #include "item.h"
+
+#include <logging/translator.h>
 
 namespace qbs {
 namespace Internal {
@@ -75,7 +79,7 @@ ItemDeclaration BuiltinDeclarations::declarationsForType(const QString &typeName
     return m_builtins.value(typeName);
 }
 
-void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
+void BuiltinDeclarations::setupItemForBuiltinType(Item *item, Logger logger) const
 {
     foreach (const PropertyDeclaration &pd, declarationsForType(item->typeName()).properties()) {
         item->m_propertyDeclarations.insert(pd.name(), pd);
@@ -88,6 +92,23 @@ void BuiltinDeclarations::setupItemForBuiltinType(Item *item) const
                                        ? QStringRef(&undefinedKeyword)
                                        : QStringRef(&pd.initialValueSource()));
             value = sourceValue;
+        } else if (pd.isDeprecated()) {
+            const DeprecationInfo &di = pd.deprecationInfo();
+            if (di.removalVersion() <= Version::qbsVersion()) {
+                QString message = Tr::tr("The property '%1' is no longer valid for %2 items. "
+                        "It was removed in qbs %3.")
+                        .arg(pd.name(), item->typeName(), di.removalVersion().toString());
+                ErrorInfo error(message, value->location());
+                if (!di.additionalUserInfo().isEmpty())
+                    error.append(di.additionalUserInfo());
+                throw error;
+            }
+            QString warning = Tr::tr("The property '%1' is deprecated and will be removed in "
+                                     "qbs %2.").arg(pd.name(), di.removalVersion().toString());
+            ErrorInfo error(warning, value->location());
+            if (!di.additionalUserInfo().isEmpty())
+                error.append(di.additionalUserInfo());
+            logger.printWarning(error);
         }
     }
 }
@@ -129,8 +150,10 @@ void BuiltinDeclarations::addArtifactItem()
 {
     ItemDeclaration item(QLatin1String("Artifact"));
     item << conditionProperty();
-    // ### remove Artifact.fileName in qbs 1.4
-    item << PropertyDeclaration(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
+    PropertyDeclaration fileNameDecl(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
+    fileNameDecl.setDeprecationInfo(DeprecationInfo(Version(1, 4),
+                                                    Tr::tr("Please use 'filePath' instead.")));
+    item << fileNameDecl;
     item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Verbatim);
     item << PropertyDeclaration(QLatin1String("fileTags"), PropertyDeclaration::Variant);
     PropertyDeclaration decl(QLatin1String("alwaysUpdated"), PropertyDeclaration::Boolean);

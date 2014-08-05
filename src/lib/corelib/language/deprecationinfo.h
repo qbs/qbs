@@ -26,56 +26,36 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_DEPRECATIONINFO_H
+#define QBS_DEPRECATIONINFO_H
 
-#ifndef QBS_BUILTINDECLARATIONS_H
-#define QBS_BUILTINDECLARATIONS_H
+#include <tools/version.h>
 
-#include "itemdeclaration.h"
-
-#include <logging/logger.h>
-
-#include <QByteArray>
-#include <QMap>
+#include <QString>
 
 namespace qbs {
 namespace Internal {
 
-class Item;
-
-class BuiltinDeclarations
+class DeprecationInfo
 {
 public:
-    BuiltinDeclarations();
+    explicit DeprecationInfo(const Version &removalVersion,
+                             const QString &additionalUserInfo = QString())
+        : m_removalVersion(removalVersion)
+        , m_additionalUserInfo(additionalUserInfo)
+    {}
+    DeprecationInfo() {}
 
-    QString languageVersion() const;
-    bool containsType(const QString &typeName) const;
-    QStringList allTypeNames() const;
-    ItemDeclaration declarationsForType(const QString &typeName) const;
-    void setupItemForBuiltinType(qbs::Internal::Item *item, Logger logger) const;
+    bool isValid() const { return m_removalVersion.isValid(); }
+    Version removalVersion() const { return m_removalVersion; }
+    QString additionalUserInfo() const { return m_additionalUserInfo; }
 
 private:
-    void insert(const ItemDeclaration &decl);
-    void addArtifactItem();
-    void addDependsItem();
-    void addExportItem();
-    void addFileTaggerItem();
-    void addGroupItem();
-    void addModuleItem();
-    void addProbeItem();
-    void addProductItem();
-    void addProjectItem();
-    void addPropertiesItem();
-    void addPropertyOptionsItem();
-    void addRuleItem();
-    void addSubprojectItem();
-    void addTransformerItem();
-    void addScannerItem();
-
-    QString m_languageVersion;
-    QMap<QString, ItemDeclaration> m_builtins;
+    Version m_removalVersion;
+    QString m_additionalUserInfo;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_BUILTINDECLARATIONS_H
+#endif // Include guard.

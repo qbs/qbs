@@ -29,6 +29,8 @@
 
 #include "propertydeclaration.h"
 
+#include "deprecationinfo.h"
+
 #include <QSharedData>
 
 namespace qbs {
@@ -50,6 +52,7 @@ public:
     QString description;
     QString initialValueSource;
     QStringList functionArgumentNames;
+    DeprecationInfo deprecationInfo;
 };
 
 
@@ -173,6 +176,21 @@ const QStringList &PropertyDeclaration::functionArgumentNames() const
 void PropertyDeclaration::setFunctionArgumentNames(const QStringList &lst)
 {
     d->functionArgumentNames = lst;
+}
+
+bool PropertyDeclaration::isDeprecated() const
+{
+    return d->deprecationInfo.isValid();
+}
+
+const DeprecationInfo &PropertyDeclaration::deprecationInfo() const
+{
+    return d->deprecationInfo;
+}
+
+void PropertyDeclaration::setDeprecationInfo(const DeprecationInfo &deprecationInfo)
+{
+    d->deprecationInfo = deprecationInfo;
 }
 
 } // namespace Internal

@@ -3,6 +3,7 @@ HEADERS += \
     $$PWD/asttools.h \
     $$PWD/builtindeclarations.h \
     $$PWD/builtinvalue.h \
+    $$PWD/deprecationinfo.h \
     $$PWD/evaluationdata.h \
     $$PWD/evaluator.h \
     $$PWD/evaluatorscriptclass.h \

@@ -187,6 +187,7 @@ QbsLibrary {
             "builtindeclarations.h",
             "builtinvalue.cpp",
             "builtinvalue.h",
+            "deprecationinfo.h",
             "evaluationdata.h",
             "evaluator.cpp",
             "evaluator.h",

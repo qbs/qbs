@@ -357,7 +357,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
         fakeGroup->setProperty(QLatin1String("excludeFiles"),
                                item->property(QLatin1String("excludeFiles")));
         fakeGroup->setProperty(QLatin1String("overrideTags"), VariantValue::create(false));
-        m_builtins->setupItemForBuiltinType(fakeGroup);
+        m_builtins->setupItemForBuiltinType(fakeGroup, m_logger);
         subItems.prepend(fakeGroup);
     }
 
@@ -705,9 +705,6 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
                             item->location());
         }
         artifact->filePath = deprecatedFileName;
-        m_logger.printWarning(ErrorInfo(Tr::tr("The property Artifact.fileName is deprecated. "
-                                               "Please use Artifact.filePath instead."),
-                                        item->location()));
     }
 
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
