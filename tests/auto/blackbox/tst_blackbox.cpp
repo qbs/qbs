@@ -1823,6 +1823,28 @@ void TestBlackbox::mocCppIncluded()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::newOutputArtifactInDependency()
+{
+    QDir::setCurrent(testDataDir + "/new-output-artifact-in-dependency");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("linking app"));
+    const QByteArray linkingLibString = QByteArray("linking ")
+            + HostOsInfo::dynamicLibraryName("lib").toLatin1();
+    QVERIFY(!m_qbsStdout.contains(linkingLibString));
+
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray contents = projectFile.readAll();
+    contents.replace("//Depends", "Depends");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("linking app"));
+    QVERIFY(m_qbsStdout.contains(linkingLibString));
+}
+
 void TestBlackbox::newPatternMatch()
 {
     QDir::setCurrent(testDataDir + "/new-pattern-match");

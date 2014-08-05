@@ -127,6 +127,7 @@ private slots:
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
     void mocCppIncluded();
+    void newOutputArtifactInDependency();
     void newPatternMatch();
     void nonBrokenFilesInBrokenProduct();
     void objC();
