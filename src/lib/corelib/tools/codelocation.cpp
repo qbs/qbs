@@ -138,7 +138,10 @@ QDataStream &operator>>(QDataStream &s, CodeLocation &o)
     s >> filePath;
     s >> line;
     s >> column;
-    o = CodeLocation(filePath, line, column);
+    if (filePath.isEmpty())
+        o = CodeLocation();
+    else
+        o = CodeLocation(filePath, line, column);
     return s;
 }
 
