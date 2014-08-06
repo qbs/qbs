@@ -106,6 +106,12 @@ QString Version::toString() const
     return s;
 }
 
+const Version &Version::qbsVersion()
+{
+    static const Version v = fromString(QLatin1String(QBS_VERSION));
+    return v;
+}
+
 int compare(const Version &lhs, const Version &rhs)
 {
     if (lhs.majorVersion() < rhs.majorVersion())

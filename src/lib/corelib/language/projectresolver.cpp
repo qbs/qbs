@@ -227,12 +227,10 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
         throw ErrorInfo(Tr::tr("The value of Project.minimumQbsVersion "
                                "is not a valid version string."));
     }
-    if (!m_qbsVersion.isValid())
-        m_qbsVersion = Version::fromString(QLatin1String(QBS_VERSION));
-    if (m_qbsVersion < minVersion) {
+    if (Version::qbsVersion() < minVersion) {
         throw ErrorInfo(Tr::tr("The project requires at least qbs version %1, but "
                                "this is qbs version %2.").arg(minVersion.toString(),
-                                                              m_qbsVersion.toString()));
+                                                              Version::qbsVersion().toString()));
     }
 
     projectContext->dummyModule = ResolvedModule::create();

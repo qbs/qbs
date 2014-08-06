@@ -134,7 +134,6 @@ private:
     Logger m_logger;
     ScriptEngine *m_engine;
     ProgressObserver *m_progressObserver;
-    Version m_qbsVersion;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     QMap<QString, ResolvedProductPtr> m_productsByName;
