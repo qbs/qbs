@@ -416,7 +416,6 @@ void TestBlackbox::changedFiles()
     QbsRunParameters params2(QStringList("--changed-files") << changedFile);
     QCOMPARE(runQbs(params2), 0);
     QCOMPARE(m_qbsStdout.count("compiling"), 1);
-    QEXPECT_FAIL("initial build without changed files", "QBS-660", Continue);
     QCOMPARE(m_qbsStdout.count("creating"), 1);
     QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
