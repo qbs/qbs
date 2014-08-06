@@ -431,6 +431,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductCon
 {
     SourceArtifactPtr artifact = SourceArtifact::create();
     artifact->absoluteFilePath = FileInfo::resolvePath(rproduct->sourceDirectory, fileName);
+    artifact->absoluteFilePath = QDir::cleanPath(artifact->absoluteFilePath); // Potentially necessary for groups with prefixes.
     artifact->fileTags = fileTags;
     artifact->overrideFileTags = overrideTags;
     artifact->properties = properties;
