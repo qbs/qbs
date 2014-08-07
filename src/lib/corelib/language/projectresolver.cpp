@@ -693,20 +693,7 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
     rule->artifacts += artifact;
     artifact->location = item->location();
 
-    bool filePathSet;
-    artifact->filePath = verbatimValue(item, QLatin1String("filePath"), &filePathSet);
-
-    // ### remove Artifact.fileName in qbs 1.4
-    bool fileNameSet;
-    const QString deprecatedFileName = verbatimValue(item, QLatin1String("fileName"), &fileNameSet);
-    if (fileNameSet) {
-        if (filePathSet) {
-            throw ErrorInfo(Tr::tr("Artifact.fileName and Artifact.filePath cannot both be set."),
-                            item->location());
-        }
-        artifact->filePath = deprecatedFileName;
-    }
-
+    artifact->filePath = verbatimValue(item, QLatin1String("filePath"));
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
     if (artifact->alwaysUpdated)
@@ -796,28 +783,11 @@ void ProjectResolver::resolveTransformer(Item *item, ProjectContext *projectCont
             throw ErrorInfo(Tr::tr("Transformer: wrong child type '%0'.").arg(child->typeName()));
         SourceArtifactPtr artifact = SourceArtifact::create();
         artifact->properties = m_productContext->product->moduleProperties;
-        // ### remove Artifact.fileName in qbs 1.4
-        bool fileNameSet;
-        QString fileName = m_evaluator->stringValue(child, QLatin1String("fileName"), QString(),
-                                                    &fileNameSet);
-        bool filePathSet;
-        QString filePath = m_evaluator->stringValue(child, QLatin1String("filePath"), QString(),
-                                                    &filePathSet);
-        if (fileNameSet && filePathSet) {
-            throw ErrorInfo(Tr::tr("Artifact.fileName and Artifact.filePath cannot both be set."),
-                            child->location());
-        }
-        if (fileNameSet) {
-            m_logger.printWarning(ErrorInfo(Tr::tr("The property Artifact.fileName is deprecated. "
-                                                   "Please use Artifact.filePath instead."),
-                                            child->location()));
-        } else {
-            fileName = filePath;
-        }
-        if (Q_UNLIKELY(fileName.isEmpty()))
+        QString filePath = m_evaluator->stringValue(child, QLatin1String("filePath"));
+        if (Q_UNLIKELY(filePath.isEmpty()))
             throw ErrorInfo(Tr::tr("Artifact.filePath must not be empty."));
         artifact->absoluteFilePath
-                = FileInfo::resolvePath(m_productContext->buildDirectory, fileName);
+                = FileInfo::resolvePath(m_productContext->buildDirectory, filePath);
         artifact->fileTags = m_evaluator->fileTagsValue(child, QLatin1String("fileTags"));
         if (artifact->fileTags.isEmpty())
             artifact->fileTags.insert(unknownFileTag());
