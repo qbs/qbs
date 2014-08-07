@@ -1,6 +1,7 @@
 import qbs 1.0
 
 Project {
+    minimumQbsVersion: "1.3"
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true

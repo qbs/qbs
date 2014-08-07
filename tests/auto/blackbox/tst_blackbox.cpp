@@ -384,23 +384,39 @@ void TestBlackbox::changeDependentLib()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::changedFiles_data()
+{
+    QTest::addColumn<bool>("useChangedFilesForInitialBuild");
+    QTest::newRow("initial build with changed files") << true;
+    QTest::newRow("initial build without changed files") << false;
+}
+
 void TestBlackbox::changedFiles()
 {
-    QDir::setCurrent(testDataDir + "/changed-files");
-    const QString changedFile = QDir::cleanPath(QDir::currentPath() + "/file1.cpp");
-    QbsRunParameters params(QStringList("--changed-files") << changedFile);
+    QFETCH(bool, useChangedFilesForInitialBuild);
 
-    // Initial run: Build all files, even though only one of them was marked as changed.
-    QCOMPARE(runQbs(params), 0);
+    QDir::setCurrent(testDataDir + "/changed-files");
+    rmDirR(buildDir);
+    const QString changedFile = QDir::cleanPath(QDir::currentPath() + "/file1.cpp");
+    QbsRunParameters params1;
+    if (useChangedFilesForInitialBuild)
+        params1 = QbsRunParameters(QStringList("--changed-files") << changedFile);
+
+    // Initial run: Build all files, even though only one of them was marked as changed
+    //              (if --changed-files was used).
+    QCOMPARE(runQbs(params1), 0);
     QCOMPARE(m_qbsStdout.count("compiling"), 3);
+    QCOMPARE(m_qbsStdout.count("creating"), 3);
 
     waitForNewTimestamp();
     touch(QDir::currentPath() + "/main.cpp");
 
     // Now only the file marked as changed must be compiled, even though it hasn't really
     // changed and another one has.
-    QCOMPARE(runQbs(params), 0);
+    QbsRunParameters params2(QStringList("--changed-files") << changedFile);
+    QCOMPARE(runQbs(params2), 0);
     QCOMPARE(m_qbsStdout.count("compiling"), 1);
+    QCOMPARE(m_qbsStdout.count("creating"), 1);
     QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
 
@@ -1821,6 +1837,28 @@ void TestBlackbox::mocCppIncluded()
     cppFile.write("\n");
     cppFile.close();
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackbox::newOutputArtifactInDependency()
+{
+    QDir::setCurrent(testDataDir + "/new-output-artifact-in-dependency");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("linking app"));
+    const QByteArray linkingLibString = QByteArray("linking ")
+            + HostOsInfo::dynamicLibraryName("lib").toLatin1();
+    QVERIFY(!m_qbsStdout.contains(linkingLibString));
+
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray contents = projectFile.readAll();
+    contents.replace("//Depends", "Depends");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("linking app"));
+    QVERIFY(m_qbsStdout.contains(linkingLibString));
 }
 
 void TestBlackbox::newPatternMatch()

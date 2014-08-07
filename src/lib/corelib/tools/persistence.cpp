@@ -40,7 +40,7 @@
 namespace qbs {
 namespace Internal {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-74";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-75";
 
 PersistentPool::PersistentPool(const Logger &logger) : m_logger(logger)
 {
@@ -146,6 +146,80 @@ void PersistentPool::store(const PersistentObject *object)
     } else {
         m_stream << id;
     }
+}
+
+void PersistentPool::store(const QVariantMap &map)
+{
+    m_stream << map.count();
+    for (QVariantMap::ConstIterator it = map.constBegin(); it != map.constEnd(); ++it) {
+        storeString(it.key());
+        store(it.value());
+    }
+}
+
+QVariantMap PersistentPool::loadVariantMap()
+{
+    int count;
+    m_stream >> count;
+    QVariantMap map;
+    for (int i = 0; i < count; ++i) {
+        const QString key = idLoadString();
+        const QVariant value = loadVariant();
+        map.insert(key, value);
+    }
+    return map;
+}
+
+void PersistentPool::store(const QVariant &variant)
+{
+    const quint32 type = static_cast<quint32>(variant.type());
+    m_stream << type;
+    switch (type) {
+    case QMetaType::QString:
+        storeString(variant.toString());
+        break;
+    case QMetaType::QStringList:
+        storeStringList(variant.toStringList());
+        break;
+    case QMetaType::QVariantList:
+        storeContainer(variant.toList());
+        break;
+    case QMetaType::QVariantMap:
+        store(variant.toMap());
+        break;
+    default:
+        m_stream << variant;
+    }
+}
+
+QVariant PersistentPool::loadVariant()
+{
+    quint32 type;
+    m_stream >> type;
+    QVariant value;
+    switch (type) {
+    case QMetaType::QString:
+        value = idLoadString();
+        break;
+    case QMetaType::QStringList:
+        value = idLoadStringList();
+        break;
+    case QMetaType::QVariantList: {
+        QVariantList l;
+        int count;
+        m_stream >> count;
+        for (int i = 0; i < count; ++i)
+            l << loadVariant();
+        value = l;
+        break;
+    }
+    case QMetaType::QVariantMap:
+        value = loadVariantMap();
+        break;
+    default:
+        m_stream >> value;
+    }
+    return value;
 }
 
 void PersistentPool::clear()

@@ -70,6 +70,12 @@ public:
     void store(const PersistentObject *object);
     template <typename T> void storeContainer(const T &container);
 
+    void store(const QVariantMap &map);
+    QVariantMap loadVariantMap();
+
+    void store(const QVariant &variant);
+    QVariant loadVariant();
+
     void storeString(const QString &t);
     QString loadString(int id);
     QString idLoadString();
