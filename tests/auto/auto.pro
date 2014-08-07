@@ -1,5 +1,4 @@
 TEMPLATE=subdirs
-CONFIG += ordered
 
 all_tests {
     SUBDIRS += \

@@ -27,17 +27,18 @@ defineTest(minQtVersion) {
 }
 
 TEMPLATE = subdirs
-CONFIG += ordered
 corelib.file = src/lib/corelib/corelib.pro
 setupqtprofilelib.subdir = src/lib/qtprofilesetup
 setupqtprofilelib.depends = corelib
 src_app.subdir = src/app
 src_app.depends = setupqtprofilelib
+src_plugins.subdir = src/plugins
+tests.depends = corelib src_plugins
 SUBDIRS += \
     corelib\
     setupqtprofilelib\
     src_app\
-    src/plugins\
+    src_plugins\
     static.pro\
     tests
 
