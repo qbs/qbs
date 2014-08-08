@@ -468,7 +468,7 @@ void ResolvedProduct::load(PersistentPool &pool)
         >> sourceDirectory
         >> destinationDirectory
         >> location;
-    pool.stream() >> productProperties;
+    productProperties = pool.loadVariantMap();
     moduleProperties = pool.idLoadS<PropertyMapInternal>();
     pool.loadContainerS(rules);
     pool.loadContainerS(dependencies);
@@ -493,7 +493,7 @@ void ResolvedProduct::store(PersistentPool &pool) const
         << destinationDirectory
         << location;
 
-    pool.stream() << productProperties;
+    pool.store(productProperties);
     pool.store(moduleProperties);
     pool.storeContainer(rules);
     pool.storeContainer(dependencies);
@@ -837,7 +837,7 @@ void ResolvedProject::load(PersistentPool &pool)
         subProjects.append(p);
     }
 
-    pool.stream() >> m_projectProperties;
+    m_projectProperties = pool.loadVariantMap();
 }
 
 void ResolvedProject::store(PersistentPool &pool) const
@@ -852,7 +852,7 @@ void ResolvedProject::store(PersistentPool &pool) const
     pool.stream() << subProjects.count();
     foreach (const ResolvedProjectConstPtr &project, subProjects)
         pool.store(project);
-    pool.stream() << m_projectProperties;
+    pool.store(m_projectProperties);
 }
 
 

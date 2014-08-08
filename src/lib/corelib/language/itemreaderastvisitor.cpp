@@ -497,7 +497,7 @@ void ItemReaderASTVisitor::checkImportVersion(const AST::SourceLocation &version
     const Version importVersion = readImportVersion(importVersionString,
                                                     toCodeLocation(versionToken));
     if (Q_UNLIKELY(importVersion != m_languageVersion))
-        throw ErrorInfo(Tr::tr("Incompatible qbs version %1. This is qbs %2.").arg(
+        throw ErrorInfo(Tr::tr("Incompatible qbs language version %1. This is version %2.").arg(
                         importVersionString, m_reader->builtins()->languageVersion()),
                     toCodeLocation(versionToken));
 }

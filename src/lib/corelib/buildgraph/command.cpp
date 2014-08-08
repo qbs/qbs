@@ -283,14 +283,14 @@ void JavaScriptCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
     m_sourceCode = pool.idLoadString();
-    pool.stream() >> m_properties;
+    m_properties = pool.loadVariantMap();
 }
 
 void JavaScriptCommand::store(PersistentPool &pool) const
 {
     AbstractCommand::store(pool);
     pool.storeString(m_sourceCode);
-    pool.stream() << m_properties;
+    pool.store(m_properties);
 }
 
 QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)

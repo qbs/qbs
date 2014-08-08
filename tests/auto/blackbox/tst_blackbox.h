@@ -104,6 +104,7 @@ private slots:
     void build_project_dry_run_data();
     void build_project_dry_run();
     void changeDependentLib();
+    void changedFiles_data();
     void changedFiles();
     void dependenciesProperty();
     void disabledProduct();
@@ -127,6 +128,7 @@ private slots:
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
     void mocCppIncluded();
+    void newOutputArtifactInDependency();
     void newPatternMatch();
     void nonBrokenFilesInBrokenProduct();
     void objC();

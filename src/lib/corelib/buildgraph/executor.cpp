@@ -116,12 +116,13 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 {
     QBS_CHECK(artifact->artifactType == Artifact::SourceFile);
 
-    if (m_buildOptions.changedFiles().contains(artifact->filePath()))
-        artifact->setTimestamp(FileTime::currentTime());
-    else if (m_buildOptions.changedFiles().isEmpty())
+    if (m_buildOptions.changedFiles().isEmpty())
         artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
-    else
-        artifact->setTimestamp(FileTime::oldestTime());
+    else if (m_buildOptions.changedFiles().contains(artifact->filePath()))
+        artifact->setTimestamp(FileTime::currentTime());
+    else if (!artifact->timestamp().isValid())
+        artifact->setTimestamp(recursiveFileTime(artifact->filePath()));
+
     artifact->timestampRetrieved = true;
 }
 
