@@ -149,8 +149,10 @@ static PropertyDeclaration prepareScriptProperty()
 void BuiltinDeclarations::addArtifactItem()
 {
     ItemDeclaration item(QLatin1String("Artifact"));
-    // ### remove Artifact.condition in qbs 1.4
-    item << conditionProperty();
+    PropertyDeclaration conditionDecl = conditionProperty();
+    conditionDecl.setDeprecationInfo(DeprecationInfo(Version(1, 4), Tr::tr("If you need "
+            "dynamic artifacts, use the Rule.outputArtifacts script instead of Artifact items.")));
+    item << conditionDecl;
     PropertyDeclaration fileNameDecl(QLatin1String("fileName"), PropertyDeclaration::Verbatim);
     fileNameDecl.setDeprecationInfo(DeprecationInfo(Version(1, 4),
                                                     Tr::tr("Please use 'filePath' instead.")));

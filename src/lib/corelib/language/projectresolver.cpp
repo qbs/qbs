@@ -688,14 +688,6 @@ public:
 void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
                                           bool *hasAlwaysUpdatedArtifact)
 {
-    // TODO: Remove this whole block in 1.4.
-    if (!m_evaluator->boolValue(item, QLatin1String("condition"))) {
-        m_logger.printWarning(ErrorInfo(Tr::tr("Artifact.condition is deprecated. If you need "
-            "dynamic artifacts, use the outputArtifacts script instead of Artifact items."),
-            item->location()));
-        return;
-    }
-
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
     artifact->location = item->location();
