@@ -34,6 +34,8 @@
 #include <QFile>
 #include <QtTest>
 
+#include <ctime>
+
 #if QT_VERSION >= 0x050000
 #define SKIP_TEST(message) QSKIP(message)
 #else
@@ -43,10 +45,17 @@
 inline void waitForNewTimestamp()
 {
     // Waits for the time that corresponds to the host file system's time stamp granularity.
-    if (qbs::Internal::HostOsInfo::isWindowsHost())
+    if (qbs::Internal::HostOsInfo::isWindowsHost()) {
         QTest::qWait(1);        // NTFS has 100 ns precision. Let's ignore exFAT.
-    else
-        QTest::qWait(1000);
+    } else {
+        time_t oldTime;
+        time_t newTime = std::time(0);
+        do {
+            oldTime = newTime;
+            QTest::qWait(50);
+            newTime = std::time(0);
+        } while (oldTime == newTime);
+    }
 }
 
 inline void touch(const QString &fn)
