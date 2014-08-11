@@ -30,9 +30,14 @@
 #ifndef QBS_TST_API_H
 #define QBS_TST_API_H
 
+#include <tools/buildoptions.h>
+
 #include <QObject>
 
-namespace qbs { class SetupProjectParameters; }
+namespace qbs {
+class ErrorInfo;
+class SetupProjectParameters;
+}
 
 class LogSink;
 
@@ -47,29 +52,76 @@ public:
 private slots:
     void initTestCase();
 
+    void addQObjectMacroToCppFile();
+    void addedFilePersistent();
+    void baseProperties();
     void buildGraphLocking();
+    void buildProject();
+    void buildProject_data();
+    void buildProjectDryRun();
+    void buildProjectDryRun_data();
     void buildSingleFile();
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     void changeContent();
 #endif
+    void changeDependentLib();
     void disabledInstallGroup();
+    void disabledProduct();
+    void disabledProject();
+    void disableProduct();
+    void duplicateProductNames();
+    void duplicateProductNames_data();
+    void dynamicLibs();
+    void emptyFileTagList();
+    void emptySubmodulesList();
+    void explicitlyDependsOn();
+    void exportSimple();
+    void exportWithRecursiveDepends();
+    void fileTagger();
     void fileTagsFilterOverride();
     void infiniteLoopBuilding();
     void infiniteLoopBuilding_data();
     void infiniteLoopResolving();
+    void inheritQbsSearchPaths();
     void installableFiles();
     void isRunnable();
     void listBuildSystemFiles();
+    void mocCppIncluded();
     void multiArch();
+    void newOutputArtifactInDependency();
+    void newPatternMatch();
     void nonexistingProjectPropertyFromProduct();
     void nonexistingProjectPropertyFromCommandLine();
+    void objC();
     void projectInvalidation();
     void projectLocking();
+    void projectWithPropertiesItem();
+    void propertiesBlocks();
+    void rc();
     void references();
+    void renameProduct();
+    void renameTargetArtifact();
+    void removeFileDependency();
+    void resolveProject();
+    void resolveProject_data();
+    void resolveProjectDryRun();
+    void resolveProjectDryRun_data();
+    void softDependency();
     void sourceFileInBuildDir();
+    void subProjects();
+    void trackAddQObjectHeader();
+    void trackRemoveQObjectHeader();
+    void transformers();
+    void typeChange();
+    void uic();
 
 private:
     qbs::SetupProjectParameters defaultSetupParameters(const QString &projectFilePath) const;
+    qbs::ErrorInfo doBuildProject(const QString &projectFilePath,
+                                  QObject *buildDescriptionReceiver = 0,
+                                  QObject *procResultReceiver = 0,
+                                  QObject *taskReceiver = 0,
+                                  const qbs::BuildOptions &options = qbs::BuildOptions());
 
     LogSink * const m_logSink;
     const QString m_sourceDataDir;

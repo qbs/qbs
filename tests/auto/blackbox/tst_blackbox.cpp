@@ -54,12 +54,6 @@ using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 using qbs::Settings;
 
-static bool regularFileExists(const QString &filePath)
-{
-    const QFileInfo fi(filePath);
-    return fi.exists() && fi.isFile();
-}
-
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
@@ -71,10 +65,7 @@ TestBlackbox::TestBlackbox()
     : testDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/blackbox/testWorkDir"),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
-      buildProfileName(QLatin1String("qbs_autotests")),
-      buildDir(buildProfileName + QLatin1String("-debug")),
-      defaultInstallRoot(buildDir + QLatin1Char('/') + InstallOptions::defaultInstallRoot()),
-      buildGraphPath(buildDir + QLatin1Char('/') + buildDir + QLatin1String(".bg"))
+      defaultInstallRoot(relativeBuildDir() + QLatin1Char('/') + InstallOptions::defaultInstallRoot())
 {
     QLocale::setDefault(QLocale::c());
 }
@@ -92,7 +83,7 @@ int TestBlackbox::runQbs(const QbsRunParameters &params)
     }
     args << params.arguments;
     if (params.useProfile)
-        args.append(QLatin1String("profile:") + buildProfileName);
+        args.append(QLatin1String("profile:") + profileName());
     QString cmdLine = qbsExecutableFilePath;
     foreach (const QString &str, args)
         cmdLine += QLatin1String(" \"") + str + QLatin1Char('"');
@@ -178,17 +169,17 @@ void TestBlackbox::initTestCase()
     QVERIFY(regularFileExists(qbsExecutableFilePath));
 
     Settings settings((QString()));
-    if (!settings.profiles().contains(buildProfileName))
-        QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
+    if (!settings.profiles().contains(profileName()))
+        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
 
-    Profile buildProfile(buildProfileName, &settings);
+    Profile buildProfile(profileName(), &settings);
     QVariant qtBinPath = buildProfile.value(QLatin1String("Qt.core.binPath"));
     if (!qtBinPath.isValid())
-        QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
+        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' is not a valid Qt profile."));
     if (!QFile::exists(qtBinPath.toString()))
-        QFAIL(QByteArray("The build profile '" + buildProfileName.toLocal8Bit() +
+        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' points to an invalid Qt path."));
 
     // Initialize the test data directory.
@@ -198,190 +189,20 @@ void TestBlackbox::initTestCase()
     ccp(testSourceDir, testDataDir);
 }
 
-void TestBlackbox::addedFilePersistent()
-{
-    QDir::setCurrent(testDataDir + QLatin1String("/added-file-persistent"));
-
-    // On the initial run, linking will fail.
-    QbsRunParameters failedRunParams;
-    failedRunParams.expectFailure = true;
-    QVERIFY(runQbs(failedRunParams) != 0);
-
-    // Add a file. qbs must schedule it for rule application on the next build.
-    waitForNewTimestamp();
-    QFile projectFile("project.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    const QByteArray originalContent = projectFile.readAll();
-    QByteArray addedFileContent = originalContent;
-    addedFileContent.replace("/* 'file.cpp' */", "'file.cpp'");
-    projectFile.resize(0);
-    projectFile.write(addedFileContent);
-    projectFile.flush();
-    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-
-    // Remove the file again. qbs must unschedule the rule application again.
-    // Consequently, the linking step must fail as in the initial run.
-    waitForNewTimestamp();
-    projectFile.resize(0);
-    projectFile.write(originalContent);
-    projectFile.flush();
-    QVERIFY(runQbs(failedRunParams) != 0);
-
-    // Add the file again. qbs must schedule it for rule application on the next build.
-    waitForNewTimestamp();
-    projectFile.resize(0);
-    projectFile.write(addedFileContent);
-    projectFile.close();
-    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-
-    // qbs must remember that a file was scheduled for rule application. The build must then
-    // succeed, as now all necessary symbols are linked in.
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::addQObjectMacroToCppFile()
-{
-    QDir::setCurrent(testDataDir + QLatin1String("/add-qobject-macro-to-cpp-file"));
-    QCOMPARE(runQbs(), 0);
-
-    waitForNewTimestamp();
-    QFile cppFile("object.cpp");
-    QVERIFY2(cppFile.open(QIODevice::ReadWrite), qPrintable(cppFile.errorString()));
-    QByteArray contents = cppFile.readAll();
-    contents.replace("// ", "");
-    cppFile.resize(0);
-    cppFile.write(contents);
-    cppFile.close();
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::baseProperties()
-{
-    QDir::setCurrent(testDataDir + QLatin1String("/baseProperties"));
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::buildDirectories()
 {
     const QString projectDir
             = QDir::cleanPath(testDataDir + QLatin1String("/build-directories"));
-    const QString projectBuildDir = projectDir + '/' + buildDir;
+    const QString projectBuildDir = projectDir + '/' + relativeBuildDir();
     QDir::setCurrent(projectDir);
     QCOMPARE(runQbs(QStringList("-qq")), 0);
     const QStringList outputLines
             = QString::fromLocal8Bit(m_qbsStderr.trimmed()).split('\n', QString::SkipEmptyParts);
     QCOMPARE(outputLines.count(), 4);
-    QCOMPARE(outputLines.at(0).trimmed(), projectDir + '/' + productBuildDir("p1"));
-    QCOMPARE(outputLines.at(1).trimmed(), projectDir + '/' + productBuildDir("p2"));
+    QCOMPARE(outputLines.at(0).trimmed(), projectDir + '/' + relativeProductBuildDir("p1"));
+    QCOMPARE(outputLines.at(1).trimmed(), projectDir + '/' + relativeProductBuildDir("p2"));
     QCOMPARE(outputLines.at(2).trimmed(), projectBuildDir);
     QCOMPARE(outputLines.at(3).trimmed(), projectDir);
-}
-
-void TestBlackbox::build_project_data()
-{
-    QTest::addColumn<QString>("projectSubDir");
-    QTest::addColumn<QString>("productFileName");
-    QTest::newRow("BPs in Sources")
-            << QString("buildproperties_source")
-            << executableFilePath("HelloWorld");
-    QTest::newRow("code generator")
-            << QString("codegen")
-            << executableFilePath("codegen");
-    QTest::newRow("link static libs")
-            << QString("link_staticlib")
-            << executableFilePath("HelloWorld");
-    QTest::newRow("precompiled header")
-            << QString("precompiledHeader")
-            << executableFilePath("MyApp");
-    QTest::newRow("lots of dots")
-            << QString("lotsofdots")
-            << executableFilePath("lots.of.dots");
-    QTest::newRow("Qt5 plugin")
-            << QString("qt5plugin")
-            << productBuildDir("echoplugin") + '/' + HostOsInfo::dynamicLibraryName("echoplugin");
-    QTest::newRow("Q_OBJECT in source")
-            << QString("moc_cpp")
-            << executableFilePath("moc_cpp");
-    QTest::newRow("Q_OBJECT in header")
-            << QString("moc_hpp")
-            << executableFilePath("moc_hpp");
-    QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
-            << QString("moc_hpp_included")
-            << executableFilePath("moc_hpp_included");
-    QTest::newRow("app and lib with same source file")
-            << QString("lib_samesource")
-            << executableFilePath("HelloWorldApp");
-    QTest::newRow("source files with the same base name but different extensions")
-            << QString("sameBaseName")
-            << executableFilePath("basename");
-    QTest::newRow("static library dependencies")
-            << QString("staticLibDeps")
-            << executableFilePath("staticLibDeps");
-    QTest::newRow("simple probes")
-            << QString("simpleProbe")
-            << executableFilePath("MyApp");
-    QTest::newRow("application without sources")
-            << QString("appWithoutSources")
-            << executableFilePath("appWithoutSources");
-}
-
-void TestBlackbox::build_project()
-{
-    QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
-    if (!projectSubDir.startsWith('/'))
-        projectSubDir.prepend('/');
-    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
-    QDir::setCurrent(testDataDir + projectSubDir);
-    rmDirR(buildDir);
-
-    QCOMPARE(runQbs(), 0);
-    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
-    QVERIFY(regularFileExists(buildGraphPath));
-    QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
-    waitForNewTimestamp();
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("--check-timestamps"))), 0);
-    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
-    QVERIFY(regularFileExists(buildGraphPath));
-}
-
-void TestBlackbox::build_project_dry_run_data()
-{
-    build_project_data();
-}
-
-void TestBlackbox::build_project_dry_run()
-{
-    QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
-    if (!projectSubDir.startsWith('/'))
-        projectSubDir.prepend('/');
-    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
-    QDir::setCurrent(testDataDir + projectSubDir);
-    rmDirR(buildDir);
-
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("-n"))), 0);
-    const QStringList &buildDirContents
-            = QDir(buildDir).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
-    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
-}
-
-void TestBlackbox::changeDependentLib()
-{
-    QDir::setCurrent(testDataDir + "/change-dependent-lib");
-    QCOMPARE(runQbs(), 0);
-    waitForNewTimestamp();
-    const QString qbsFileName("change-dependent-lib.qbs");
-    QFile qbsFile(qbsFileName);
-    QVERIFY(qbsFile.open(QIODevice::ReadWrite));
-    const QByteArray content1 = qbsFile.readAll();
-    QByteArray content2 = content1;
-    content2.replace("cpp.defines: [\"XXXX\"]", "cpp.defines: [\"ABCD\"]");
-    QVERIFY(content1 != content2);
-    qbsFile.seek(0);
-    qbsFile.write(content2);
-    qbsFile.close();
-    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::changedFiles_data()
@@ -396,7 +217,7 @@ void TestBlackbox::changedFiles()
     QFETCH(bool, useChangedFilesForInitialBuild);
 
     QDir::setCurrent(testDataDir + "/changed-files");
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     const QString changedFile = QDir::cleanPath(QDir::currentPath() + "/file1.cpp");
     QbsRunParameters params1;
     if (useChangedFilesForInitialBuild)
@@ -424,7 +245,7 @@ void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));
     QCOMPARE(runQbs(), 0);
-    QFile depsFile(productBuildDir("product1") + QLatin1String("/product1.deps"));
+    QFile depsFile(relativeProductBuildDir("product1") + QLatin1String("/product1.deps"));
     QVERIFY(depsFile.open(QFile::ReadOnly));
     QString deps = QString::fromLatin1(depsFile.readAll());
     QVERIFY(!deps.isEmpty());
@@ -465,68 +286,11 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_cpp.property("defines").toString(), QLatin1String("SMURF"));
 }
 
-void TestBlackbox::resolve_project_data()
-{
-    return build_project_data();
-}
-
-void TestBlackbox::resolve_project()
-{
-    QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
-    if (!projectSubDir.startsWith('/'))
-        projectSubDir.prepend('/');
-    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
-    QDir::setCurrent(testDataDir + projectSubDir);
-    rmDirR(buildDir);
-
-    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
-    QVERIFY(regularFileExists(buildGraphPath));
-}
-
-void TestBlackbox::resolve_project_dry_run_data()
-{
-    return resolve_project_data();
-}
-
-void TestBlackbox::resolve_project_dry_run()
-{
-    QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
-    if (!projectSubDir.startsWith('/'))
-        projectSubDir.prepend('/');
-    QVERIFY2(QFile::exists(testDataDir + projectSubDir), qPrintable(testDataDir + projectSubDir));
-    QDir::setCurrent(testDataDir + projectSubDir);
-    rmDirR(buildDir);
-
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("resolve"), QStringList("-n"))), 0);
-    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
-    QVERIFY2(!QFile::exists(buildGraphPath), qPrintable(buildGraphPath));
-}
-
-void TestBlackbox::typeChange()
-{
-    QDir::setCurrent(testDataDir + "/type-change");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY2(!m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
-    waitForNewTimestamp();
-    QFile projectFile("project.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray content = projectFile.readAll();
-    content.replace("//", "");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
-    QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
-}
-
 void TestBlackbox::usingsAsSoleInputsNonMultiplexed()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/usings-as-sole-inputs-non-multiplexed"));
     QCOMPARE(runQbs(), 0);
-    const QString p3BuildDir = productBuildDir("p3");
+    const QString p3BuildDir = relativeProductBuildDir("p3");
     QVERIFY(regularFileExists(p3BuildDir + "/custom1.out.plus"));
     QVERIFY(regularFileExists(p3BuildDir + "/custom2.out.plus"));
 }
@@ -538,10 +302,10 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = productBuildDir("app") + "/.obj/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString appExeFilePath = executableFilePath("app");
-    const QString depObjectFilePath = productBuildDir("dep") + "/.obj/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString depLibBase = productBuildDir("dep") + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
+    const QString appObjectFilePath = relativeProductBuildDir("app") + "/.obj/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString appExeFilePath = relativeExecutableFilePath("app");
+    const QString depObjectFilePath = relativeProductBuildDir("dep") + "/.obj/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString depLibBase = relativeProductBuildDir("dep") + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
     if (qbs::Internal::HostOsInfo::isOsxHost()) {
@@ -634,47 +398,6 @@ void TestBlackbox::clean()
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
 
-void TestBlackbox::exportSimple()
-{
-    QDir::setCurrent(testDataDir + "/exportSimple");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::exportWithRecursiveDepends()
-{
-    QDir::setCurrent(testDataDir + "/exportWithRecursiveDepends");
-    QEXPECT_FAIL("", "currently broken", Abort);
-    QbsRunParameters params;
-    params.expectFailure = true; // Remove when test no longer fails.
-    QCOMPARE(runQbs(params), 0);
-}
-
-void TestBlackbox::fileTagger()
-{
-    QDir::setCurrent(testDataDir + "/fileTagger");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("moc bla.cpp"));
-}
-
-void TestBlackbox::rc()
-{
-    QDir::setCurrent(testDataDir + "/rc");
-    QCOMPARE(runQbs(), 0);
-    const bool rcFileWasCompiled = m_qbsStdout.contains("compiling test.rc");
-    QCOMPARE(rcFileWasCompiled, HostOsInfo::isWindowsHost());
-}
-
-void TestBlackbox::removeFileDependency()
-{
-    QDir::setCurrent(testDataDir + "/removeFileDependency");
-    QCOMPARE(runQbs(), 0);
-    QFile::remove("someheader.h");
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
-}
-
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");
@@ -695,114 +418,11 @@ void TestBlackbox::renameDependency()
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
 }
 
-void TestBlackbox::renameProduct()
-{
-    QDir::setCurrent(testDataDir + "/renameProduct");
-
-    // Initial run.
-    QCOMPARE(runQbs(), 0);
-
-    // Rename lib and adapt Depends item.
-    waitForNewTimestamp();
-    QFile f("rename.qbs");
-    QVERIFY(f.open(QIODevice::ReadWrite));
-    QByteArray contents = f.readAll();
-    contents.replace("TheLib", "thelib");
-    f.resize(0);
-    f.write(contents);
-    f.close();
-    QCOMPARE(runQbs(), 0);
-
-    // Rename lib and don't adapt Depends item.
-    waitForNewTimestamp();
-    QVERIFY(f.open(QIODevice::ReadWrite));
-    contents = f.readAll();
-    const int libNameIndex = contents.lastIndexOf("thelib");
-    QVERIFY(libNameIndex != -1);
-    contents.replace(libNameIndex, 6, "TheLib");
-    f.resize(0);
-    f.write(contents);
-    f.close();
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-}
-
-void TestBlackbox::renameTargetArtifact()
-{
-    QDir::setCurrent(testDataDir + "/renameTargetArtifact");
-
-    // Initial run.
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("compiling"));
-    QCOMPARE(m_qbsStdout.count("linking"), 2);
-
-    // Rename library file name.
-    waitForNewTimestamp();
-    QFile f("rename.qbs");
-    QVERIFY(f.open(QIODevice::ReadWrite));
-    QByteArray contents = f.readAll();
-    contents.replace("the_lib", "TheLib");
-    f.resize(0);
-    f.write(contents);
-    f.close();
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(!m_qbsStdout.contains("compiling"));
-    QCOMPARE(m_qbsStdout.count("linking"), 2);
-}
-
-void TestBlackbox::softDependency()
-{
-    QDir::setCurrent(testDataDir + "/soft-dependency");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::subProjects()
-{
-    QDir::setCurrent(testDataDir + "/subprojects");
-
-    // Check all three types of subproject creation, plus property overrides.
-    QCOMPARE(runQbs(), 0);
-
-    // Disabling both the project with the dependency and the one with the dependent
-    // should not cause an error.
-    waitForNewTimestamp();
-    QFile f(testDataDir + "/subprojects/toplevelproject.qbs");
-    QVERIFY(f.open(QIODevice::ReadWrite));
-    QByteArray contents = f.readAll();
-    contents.replace("condition: true", "condition: false");
-    f.resize(0);
-    f.write(contents);
-    f.close();
-    f.setFileName(testDataDir + "/subprojects/subproject2/subproject2.qbs");
-    QVERIFY(f.open(QIODevice::ReadWrite));
-    contents = f.readAll();
-    contents.replace("condition: true", "condition: false");
-    f.resize(0);
-    f.write(contents);
-    f.close();
-    QCOMPARE(runQbs(), 0);
-
-    // Disabling the project with the dependency only is an error.
-    // This tests also whether changes in sub-projects are detected.
-    waitForNewTimestamp();
-    f.setFileName(testDataDir + "/subprojects/toplevelproject.qbs");
-    QVERIFY(f.open(QIODevice::ReadWrite));
-    contents = f.readAll();
-    contents.replace("condition: false", "condition: true");
-    f.resize(0);
-    f.write(contents);
-    f.close();
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-}
-
 void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(), 0);
-    const QString fileName = executableFilePath("i");
+    const QString fileName = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(fileName), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
     QTest::qSleep(2020);
@@ -823,9 +443,9 @@ void TestBlackbox::track_qobject_change()
     QDir::setCurrent(testDataDir + "/trackQObjChange");
     copyFileAndUpdateTimestamp("bla_qobject.h", "bla.h");
     QCOMPARE(runQbs(), 0);
-    const QString productFilePath = executableFilePath("i");
+    const QString productFilePath = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
-    QString moc_bla_objectFileName = productBuildDir("i")
+    QString moc_bla_objectFileName = relativeProductBuildDir("i")
             + "/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
@@ -848,14 +468,14 @@ void TestBlackbox::trackAddFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
-    QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = relativeBuildDir() + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     waitForNewTimestamp();
@@ -864,7 +484,7 @@ void TestBlackbox::trackAddFile()
     touch("main.cpp");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -895,7 +515,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
@@ -916,7 +536,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     QVERIFY(jsFile.open(QIODevice::ReadWrite));
     jsCode = jsFile.readAll();
     jsCode.replace("['jsFileChange.cpp']", "[]");
@@ -953,7 +573,7 @@ void TestBlackbox::trackRemoveFile()
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -961,7 +581,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
-    QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = relativeBuildDir() + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     waitForNewTimestamp();
@@ -977,7 +597,7 @@ void TestBlackbox::trackRemoveFile()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -990,7 +610,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QCOMPARE(regularFileExists(buildDir + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(regularFileExists(relativeBuildDir() + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -1005,7 +625,7 @@ void TestBlackbox::trackAddFileTag()
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
     QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
     QCOMPARE(process.exitCode(), 0);
@@ -1018,7 +638,7 @@ void TestBlackbox::trackAddFileTag()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -1039,12 +659,12 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(regularFileExists(productBuildDir("someapp")
+    QVERIFY(regularFileExists(relativeProductBuildDir("someapp")
                               + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
-    QVERIFY(regularFileExists(productBuildDir("someapp") + "/main_foo.cpp"));
-    QVERIFY(regularFileExists(productBuildDir("someapp") + "/main.foo"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -1057,7 +677,7 @@ void TestBlackbox::trackRemoveFileTag()
     touch("project.qbs");
     QCOMPARE(runQbs(), 0);
 
-    process.start(executableFilePath("someapp"));
+    process.start(relativeExecutableFilePath("someapp"));
     QVERIFY(process.waitForStarted());
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitCode(), 0);
@@ -1065,9 +685,9 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(regularFileExists(productBuildDir("someapp") + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
-    QCOMPARE(regularFileExists(productBuildDir("someapp") + "/main_foo.cpp"), false);
-    QCOMPARE(regularFileExists(productBuildDir("someapp") + "/main.foo"), false);
+    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"), false);
+    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"), false);
 }
 
 void TestBlackbox::trackAddMocInclude()
@@ -1147,18 +767,6 @@ void TestBlackbox::trackRemoveProduct()
     QVERIFY(!m_qbsStdout.contains("linking product3"));
 }
 
-void TestBlackbox::transformers()
-{
-    QDir::setCurrent(testDataDir + "/transformers");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::uic()
-{
-    QDir::setCurrent(testDataDir + "/uic");
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::wildcardRenaming()
 {
     QDir::setCurrent(testDataDir + "/wildcard_renaming");
@@ -1196,10 +804,10 @@ void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(QFileInfo(executableFilePath("zorted")).exists());
-    QVERIFY(QFileInfo(executableFilePath("unzorted")).exists());
-    QVERIFY(QFileInfo(productBuildDir("zorted") + "/zorted.foo.narf.zort").exists());
-    QVERIFY(!QFileInfo(productBuildDir("unzorted") + "/unzorted.foo.narf.zort").exists());
+    QVERIFY(QFileInfo(relativeExecutableFilePath("zorted")).exists());
+    QVERIFY(QFileInfo(relativeExecutableFilePath("unzorted")).exists());
+    QVERIFY(QFileInfo(relativeProductBuildDir("zorted") + "/zorted.foo.narf.zort").exists());
+    QVERIFY(!QFileInfo(relativeProductBuildDir("unzorted") + "/unzorted.foo.narf.zort").exists());
 }
 
 void TestBlackbox::ruleCycle()
@@ -1209,47 +817,6 @@ void TestBlackbox::ruleCycle()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains("Cycle detected in rule dependencies"));
-}
-
-void TestBlackbox::trackAddQObjectHeader()
-{
-    QDir::setCurrent(testDataDir + "/missingqobjectheader");
-    const QString qbsFileName("missingheader.qbs");
-    QFile qbsFile(qbsFileName);
-    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
-                  "    files: ['main.cpp', 'myobject.cpp']\n}");
-    qbsFile.close();
-    QbsRunParameters params;
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
-    waitForNewTimestamp();
-    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
-                  "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
-    qbsFile.close();
-    params.expectFailure = false;
-    QCOMPARE(runQbs(params), 0);
-}
-
-void TestBlackbox::trackRemoveQObjectHeader()
-{
-    QDir::setCurrent(testDataDir + "/missingqobjectheader");
-    const QString qbsFileName("missingheader.qbs");
-    QFile qbsFile(qbsFileName);
-    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
-                  "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
-    qbsFile.close();
-    QbsRunParameters params;
-    QCOMPARE(runQbs(params), 0);
-    waitForNewTimestamp();
-    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
-                  "    files: ['main.cpp', 'myobject.cpp']\n}");
-    qbsFile.close();
-    params.expectFailure = true;
-    QVERIFY(runQbs(params) != 0);
 }
 
 void TestBlackbox::overrideProjectProperties()
@@ -1263,14 +830,14 @@ void TestBlackbox::overrideProjectProperties()
                                      << QLatin1String("project.someInt:156")
                                      << QLatin1String("project.someStringList:one")
                                      << QLatin1String("MyAppForYou.mainFile:main.cpp"))), 0);
-    QVERIFY(regularFileExists(executableFilePath("MyAppForYou")));
-    QVERIFY(QFile::remove(buildGraphPath));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("MyAppForYou")));
+    QVERIFY(QFile::remove(relativeBuildGraphFilePath()));
     QbsRunParameters params;
     params.arguments << QLatin1String("-f") << QLatin1String("project_using_helper_lib.qbs");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
 
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     params.arguments = QStringList() << QLatin1String("-f")
             << QLatin1String("project_using_helper_lib.qbs")
             << QLatin1String("project.linkSuccessfully:true");
@@ -1283,7 +850,7 @@ void TestBlackbox::productProperties()
     QDir::setCurrent(testDataDir + "/productproperties");
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
                                      << QLatin1String("project.qbs"))), 0);
-    QVERIFY(regularFileExists(executableFilePath("blubb_user")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("blubb_user")));
 }
 
 void TestBlackbox::propertyChanges()
@@ -1301,7 +868,7 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
     QVERIFY(m_qbsStdout.contains("Making output from input"));
-    QFile generatedFile(productBuildDir("generated text file") + "/generated.txt");
+    QFile generatedFile(relativeProductBuildDir("generated text file") + "/generated.txt");
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 1suffix 1"));
     generatedFile.close();
@@ -1504,64 +1071,12 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("Making output from input"));
 }
 
-void TestBlackbox::disabledProduct()
-{
-    QDir::setCurrent(testDataDir + "/disabledProduct");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::disabledProject()
-{
-    QDir::setCurrent(testDataDir + "/disabledProject");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::disableProduct()
-{
-    QDir::setCurrent(testDataDir + "/disable-product");
-    QCOMPARE(runQbs(), 0);
-    waitForNewTimestamp();
-    QFile projectFile("project.qbs");
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    QByteArray content = projectFile.readAll();
-    content.replace("// condition: false", "condition: false");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::duplicateProductNames()
-{
-    QDir::setCurrent(testDataDir + "/duplicateProductNames");
-    QFETCH(QString, projectFileName);
-    QbsRunParameters params;
-    params.expectFailure = true;
-    params.arguments = QStringList() << "-f" << projectFileName;
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY(m_qbsStderr.contains("Duplicate product name"));
-}
-
-void TestBlackbox::duplicateProductNames_data()
-{
-    QTest::addColumn<QString>("projectFileName");
-    QTest::newRow("Names explicitly set") << QString("explicit.qbs");
-    QTest::newRow("Unnamed products in same file") << QString("implicit.qbs");
-    QTest::newRow("Unnamed products in files of the same name") << QString("implicit-indirect.qbs");
-}
-
-void TestBlackbox::dynamicLibs()
-{
-    QDir::setCurrent(testDataDir + "/dynamicLibs");
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::dynamicMultiplexRule()
 {
     const QString testDir = testDataDir + "/dynamicMultiplexRule";
     QDir::setCurrent(testDir);
     QCOMPARE(runQbs(), 0);
-    const QString outputFilePath = productBuildDir("dynamicMultiplexRule") + "/stuff-from-3-inputs";
+    const QString outputFilePath = relativeProductBuildDir("dynamicMultiplexRule") + "/stuff-from-3-inputs";
     QVERIFY(regularFileExists(outputFilePath));
     waitForNewTimestamp();
     touch("two.txt");
@@ -1580,10 +1095,10 @@ void TestBlackbox::dynamicRuleOutputs()
     QDir::setCurrent(testDir + "/work");
     QCOMPARE(runQbs(), 0);
 
-    const QString appFile = executableFilePath("genlexer");
-    const QString headerFile1 = productBuildDir("genlexer") + "/GeneratedFiles/numberscanner.h";
-    const QString sourceFile1 = productBuildDir("genlexer") + "/GeneratedFiles/numberscanner.c";
-    const QString sourceFile2 = productBuildDir("genlexer") + "/GeneratedFiles/lex.yy.c";
+    const QString appFile = relativeExecutableFilePath("genlexer");
+    const QString headerFile1 = relativeProductBuildDir("genlexer") + "/GeneratedFiles/numberscanner.h";
+    const QString sourceFile1 = relativeProductBuildDir("genlexer") + "/GeneratedFiles/numberscanner.c";
+    const QString sourceFile2 = relativeProductBuildDir("genlexer") + "/GeneratedFiles/lex.yy.c";
 
     // Check build #1: source and header file name are specified in numbers.l
     QVERIFY(regularFileExists(appFile));
@@ -1617,18 +1132,6 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(!QFile::exists(sourceFile2));
 }
 
-void TestBlackbox::emptyFileTagList()
-{
-    QDir::setCurrent(testDataDir + "/empty-filetag-list");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::emptySubmodulesList()
-{
-    QDir::setCurrent(testDataDir + "/empty-submodules-list");
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
@@ -1651,27 +1154,14 @@ void TestBlackbox::erroneousFiles()
     }
 }
 
-void TestBlackbox::explicitlyDependsOn()
-{
-    QDir::setCurrent(testDataDir + "/explicitlyDependsOn");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
-    waitForNewTimestamp();
-    touch("dependency.txt");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
-}
-
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling zort.cpp"));
-    const QString productFileName = executableFilePath("myapp");
+    const QString productFileName = relativeExecutableFilePath("myapp");
     QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
 
     // Incremental build without changes.
@@ -1809,77 +1299,6 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(4).trimmed().constData(), "true");
 }
 
-void TestBlackbox::inheritQbsSearchPaths()
-{
-    QDir::setCurrent(testDataDir + "/inheritQbsSearchPaths");
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::mocCppIncluded()
-{
-    QDir::setCurrent(testDataDir + "/moc_hpp_included");
-    QCOMPARE(runQbs(), 0); // Initial build.
-
-    // Touch header and try again.
-    waitForNewTimestamp();
-    QFile headerFile("object.h");
-    QVERIFY2(headerFile.open(QIODevice::WriteOnly | QIODevice::Append),
-             qPrintable(headerFile.errorString()));
-    headerFile.write("\n");
-    headerFile.close();
-    QCOMPARE(runQbs(), 0);
-
-    // Touch cpp file and try again.
-    waitForNewTimestamp();
-    QFile cppFile("object.cpp");
-    QVERIFY2(cppFile.open(QIODevice::WriteOnly | QIODevice::Append),
-             qPrintable(cppFile.errorString()));
-    cppFile.write("\n");
-    cppFile.close();
-    QCOMPARE(runQbs(), 0);
-}
-
-void TestBlackbox::newOutputArtifactInDependency()
-{
-    QDir::setCurrent(testDataDir + "/new-output-artifact-in-dependency");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("linking app"));
-    const QByteArray linkingLibString = QByteArray("linking ")
-            + HostOsInfo::dynamicLibraryName("lib").toLatin1();
-    QVERIFY(!m_qbsStdout.contains(linkingLibString));
-
-    waitForNewTimestamp();
-    QFile projectFile("project.qbs");
-    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
-    QByteArray contents = projectFile.readAll();
-    contents.replace("//Depends", "Depends");
-    projectFile.resize(0);
-    projectFile.write(contents);
-    projectFile.close();
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("linking app"));
-    QVERIFY(m_qbsStdout.contains(linkingLibString));
-}
-
-void TestBlackbox::newPatternMatch()
-{
-    QDir::setCurrent(testDataDir + "/new-pattern-match");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Resolving"));
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(!m_qbsStdout.contains("Resolving"));
-    QFile f("test.txt");
-    QVERIFY2(f.open(QIODevice::WriteOnly), qPrintable(f.errorString()));
-    f.close();
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Resolving"));
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(!m_qbsStdout.contains("Resolving"));
-    f.remove();
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Resolving"));
-}
-
 void TestBlackbox::nonBrokenFilesInBrokenProduct()
 {
     QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");
@@ -1891,30 +1310,18 @@ void TestBlackbox::nonBrokenFilesInBrokenProduct()
     QVERIFY(!m_qbsStdout.contains("fine.cpp")); // The non-broken file must not be recompiled.
 }
 
-void TestBlackbox::objC()
-{
-    QDir::setCurrent(testDataDir + "/objc");
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
     QProcess nm;
-    nm.start("nm", QStringList(executableFilePath("debuggable-app")));
+    nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app")));
     if (nm.waitForStarted()) { // Let's ignore hosts without nm.
         QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
         QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
         const QByteArray output = nm.readAllStandardOutput();
         QVERIFY2(output.toLower().contains("debugginghelper"), output.constData());
     }
-}
-
-void TestBlackbox::projectWithPropertiesItem()
-{
-    QDir::setCurrent(testDataDir + "/project-with-properties-item");
-    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackbox::properQuoting()
@@ -1929,12 +1336,6 @@ void TestBlackbox::properQuoting()
     QCOMPARE(unifiedLineEndings(m_qbsStdout).constData(), expectedOutput);
 }
 
-void TestBlackbox::propertiesBlocks()
-{
-    QDir::setCurrent(testDataDir + "/propertiesBlocks");
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::radAfterIncompleteBuild_data()
 {
     QTest::addColumn<QString>("projectFileName");
@@ -1945,7 +1346,7 @@ void TestBlackbox::radAfterIncompleteBuild_data()
 void TestBlackbox::radAfterIncompleteBuild()
 {
     QDir::setCurrent(testDataDir + "/rad-after-incomplete-build");
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     QFETCH(QString, projectFileName);
 
     // Step 1: Have a directory where a file used to be.
@@ -2054,7 +1455,7 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     QbsRunParameters params;
     params.command = "install";
     params.arguments << "--no-build";
@@ -2125,7 +1526,7 @@ void TestBlackbox::missingProfile()
 void TestBlackbox::testAssembly()
 {
     Settings settings((QString()));
-    Profile profile(buildProfileName, &settings);
+    Profile profile(profileName(), &settings);
     bool haveGcc = profile.value("qbs.toolchain").toStringList().contains("gcc");
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
@@ -2168,7 +1569,7 @@ void TestBlackbox::testNsis()
     }
 
     Settings settings((QString()));
-    Profile profile(buildProfileName, &settings);
+    Profile profile(profileName(), &settings);
     bool targetIsWindows = profile.value("qbs.targetOS").toStringList().contains("windows");
     QDir::setCurrent(testDataDir + "/nsis");
     QVERIFY(runQbs() == 0);
@@ -2239,7 +1640,7 @@ void TestBlackbox::testWiX()
     }
 
     Settings settings((QString()));
-    Profile profile(buildProfileName, &settings);
+    Profile profile(profileName(), &settings);
     const QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
 
     QDir::setCurrent(testDataDir + "/wix");
@@ -2248,8 +1649,8 @@ void TestBlackbox::testWiX()
     QVERIFY(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"));
     QVERIFY(m_qbsStdout.contains("linking qbs-" + arch + ".msi"));
     QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
-    QVERIFY(regularFileExists(productBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
-    QVERIFY(regularFileExists(productBuildDir("QbsBootstrapper") + "/qbs-setup-" + arch + ".exe"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper") + "/qbs-setup-" + arch + ".exe"));
 }
 
 static QString findExecutable(const QStringList &fileNames)
@@ -2289,7 +1690,7 @@ void TestBlackbox::testNodeJs()
     params.command = QLatin1String("run");
     QCOMPARE(runQbs(params), 0);
     QVERIFY((bool)m_qbsStdout.contains("hello world"));
-    QVERIFY(regularFileExists(productBuildDir("hello") + "/hello.js"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("hello") + "/hello.js"));
 }
 
 void TestBlackbox::testTypeScript()
@@ -2306,9 +1707,9 @@ void TestBlackbox::testTypeScript()
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY(regularFileExists(productBuildDir("animals") + "/animals.js"));
-    QVERIFY(regularFileExists(productBuildDir("animals") + "/extra.js"));
-    QVERIFY(regularFileExists(productBuildDir("animals") + "/main.js"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/animals.js"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/extra.js"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/main.js"));
 }
 
 void TestBlackbox::testIconset()
@@ -2323,7 +1724,7 @@ void TestBlackbox::testIconset()
     QCOMPARE(runQbs(params), 0);
 
     QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
-    QVERIFY(regularFileExists(productBuildDir("iconset") + "/white.icns"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("iconset") + "/white.icns"));
 }
 
 void TestBlackbox::testIconsetApp()
@@ -2338,7 +1739,7 @@ void TestBlackbox::testIconsetApp()
     QCOMPARE(runQbs(params), 0);
 
     QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
-    QVERIFY(regularFileExists(productBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
 void TestBlackbox::testAssetCatalog()
@@ -2360,48 +1761,33 @@ void TestBlackbox::testAssetCatalog()
     QVERIFY((bool)m_qbsStdout.contains("actool"));
 
     // should not produce a CAR since minimumOsxVersion will be < 10.9
-    QVERIFY(!regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+    QVERIFY(!regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
 
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     params.arguments.append("cpp.minimumOsxVersion:10.9"); // force CAR generation
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
     QVERIFY((bool)m_qbsStdout.contains("actool"));
-    QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
 
     // this asset catalog happens to have an embedded icon set,
     // but this should NOT be built since it is not in the files list
     QVERIFY(!(bool)m_qbsStdout.contains("iconutil"));
 
     // now we'll add the iconset
-    rmDirR(buildDir);
+    rmDirR(relativeBuildDir());
     params.arguments.append("project.includeIconset:true");
     QCOMPARE(runQbs(params), 0);
     QVERIFY((bool)m_qbsStdout.contains("actool"));
     QVERIFY((bool)m_qbsStdout.contains("iconutil"));
 
     // make sure the nibs/storyboards are in there
-    QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/MainMenu.nib"));
 #ifdef Q_OS_MAC
     if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
 #endif
-        QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
-}
-
-QString TestBlackbox::uniqueProductName(const QString &productName) const
-{
-    return productName + '.' + buildProfileName;
-}
-
-QString TestBlackbox::productBuildDir(const QString &productName) const
-{
-    return buildDir + '/' + uniqueProductName(productName);
-}
-
-QString TestBlackbox::executableFilePath(const QString &productName) const
-{
-    return productBuildDir(productName) + '/' + HostOsInfo::appendExecutableSuffix(productName);
+        QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
 QTEST_MAIN(TestBlackbox)

@@ -77,10 +77,7 @@ class TestBlackbox : public QObject
     const QString testDataDir;
     const QString testSourceDir;
     const QString qbsExecutableFilePath;
-    const QString buildProfileName;
-    const QString buildDir;
     const QString defaultInstallRoot;
-    const QString buildGraphPath;
 
 public:
     TestBlackbox();
@@ -95,66 +92,28 @@ public slots:
     void initTestCase();
 
 private slots:
-    void addedFilePersistent();
-    void addQObjectMacroToCppFile();
-    void baseProperties();
     void buildDirectories();
-    void build_project_data();
-    void build_project();
-    void build_project_dry_run_data();
-    void build_project_dry_run();
-    void changeDependentLib();
     void changedFiles_data();
     void changedFiles();
     void dependenciesProperty();
-    void disabledProduct();
-    void disabledProject();
-    void disableProduct();
-    void duplicateProductNames();
-    void duplicateProductNames_data();
-    void dynamicLibs();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
-    void emptyFileTagList();
-    void emptySubmodulesList();
     void erroneousFiles_data();
     void erroneousFiles();
-    void explicitlyDependsOn();
     void fileDependencies();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
-    void inheritQbsSearchPaths();
-    void mocCppIncluded();
-    void newOutputArtifactInDependency();
-    void newPatternMatch();
     void nonBrokenFilesInBrokenProduct();
-    void objC();
     void qmlDebugging();
-    void projectWithPropertiesItem();
     void properQuoting();
-    void propertiesBlocks();
     void radAfterIncompleteBuild_data();
     void radAfterIncompleteBuild();
-    void resolve_project_data();
-    void resolve_project();
-    void resolve_project_dry_run_data();
-    void resolve_project_dry_run();
-    void typeChange();
     void usingsAsSoleInputsNonMultiplexed();
     void clean();
-    void exportSimple();
-    void exportWithRecursiveDepends();
-    void fileTagger();
-    void rc();
-    void removeFileDependency();
     void renameDependency();
-    void renameProduct();
-    void renameTargetArtifact();
-    void softDependency();
-    void subProjects();
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();
@@ -165,15 +124,11 @@ private slots:
     void trackAddMocInclude();
     void trackAddProduct();
     void trackRemoveProduct();
-    void transformers();
-    void uic();
     void wildcardRenaming();
     void recursiveRenaming();
     void recursiveWildcards();
     void ruleConditions();
     void ruleCycle();
-    void trackAddQObjectHeader();
-    void trackRemoveQObjectHeader();
     void overrideProjectProperties();
     void productProperties();
     void propertyChanges();
@@ -192,10 +147,6 @@ private slots:
     void testAssetCatalog();
 
 private:
-    QString uniqueProductName(const QString &productName) const;
-    QString productBuildDir(const QString &productName) const;
-    QString executableFilePath(const QString &productName) const;
-
     QByteArray m_qbsStderr;
     QByteArray m_qbsStdout;
 };

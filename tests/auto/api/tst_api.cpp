@@ -31,18 +31,9 @@
 
 #include "../shared.h"
 
-#include <api/jobs.h>
-#include <api/project.h>
-#include <api/projectdata.h>
-#include <logging/ilogsink.h>
-#include <tools/buildoptions.h>
+#include <qbs.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
-#include <tools/installoptions.h>
-#include <tools/preferences.h>
-#include <tools/profile.h>
-#include <tools/settings.h>
-#include <tools/setupprojectparameters.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -54,12 +45,20 @@
 #include <QTest>
 #include <QTimer>
 
+#define VERIFY_NO_ERROR(errorInfo) \
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()))
+
 class LogSink: public qbs::ILogSink
 {
+public:
+    QString output;
+
     void doPrintWarning(const qbs::ErrorInfo &error) {
         qDebug("%s", qPrintable(error.toString()));
     }
-    void doPrintMessage(qbs::LoggerLevel, const QString &, const QString &) { }
+    void doPrintMessage(qbs::LoggerLevel, const QString &message, const QString &) {
+        output += message;
+    }
 };
 
 class BuildDescriptionReceiver : public QObject
@@ -74,25 +73,29 @@ private slots:
     }
 };
 
-TestApi::TestApi()
-    : m_logSink(new LogSink)
-    , m_sourceDataDir(QDir::cleanPath(SRCDIR "/testdata"))
-    , m_workingDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/api/testWorkDir")
+class ProcessResultReceiver : public QObject
 {
-}
+    Q_OBJECT
+public:
+    QString output;
 
-TestApi::~TestApi()
-{
-    delete m_logSink;
-}
+private slots:
+    void handleProcessResult(const qbs::ProcessResult &result) {
+        output += result.stdErr().join(QLatin1String("\n"));
+        output += result.stdOut().join(QLatin1String("\n"));
+    }
+};
 
-void TestApi::initTestCase()
+class TaskReceiver : public QObject
 {
-    QString errorMessage;
-    qbs::Internal::removeDirectoryWithContents(m_workingDataDir, &errorMessage);
-    QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
-                                              m_workingDataDir, false, &errorMessage), qPrintable(errorMessage));
-}
+    Q_OBJECT
+public:
+    QString taskDescriptions;
+
+private slots:
+    void handleTaskStart(const QString &task) { taskDescriptions += task; }
+};
+
 
 static void removeBuildDir(const qbs::SetupProjectParameters &params)
 {
@@ -119,8 +122,7 @@ static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
     return true;
 }
 
-
-void printProjectData(const qbs::ProjectData &project)
+static void printProjectData(const qbs::ProjectData &project)
 {
     foreach (const qbs::ProductData &p, project.products()) {
         qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
@@ -129,6 +131,113 @@ void printProjectData(const qbs::ProjectData &project)
             qDebug("            Files: %s", qPrintable(g.filePaths().join(QLatin1String(", "))));
         }
     }
+}
+
+
+TestApi::TestApi()
+    : m_logSink(new LogSink)
+    , m_sourceDataDir(QDir::cleanPath(SRCDIR "/testdata"))
+    , m_workingDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/api/testWorkDir")
+{
+}
+
+TestApi::~TestApi()
+{
+    delete m_logSink;
+}
+
+void TestApi::initTestCase()
+{
+    QString errorMessage;
+    qbs::Internal::removeDirectoryWithContents(m_workingDataDir, &errorMessage);
+    QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
+                                              m_workingDataDir, false, &errorMessage), qPrintable(errorMessage));
+}
+
+void TestApi::addQObjectMacroToCppFile()
+{
+    BuildDescriptionReceiver receiver;
+    qbs::ErrorInfo errorInfo = doBuildProject("add-qobject-macro-to-cpp-file/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(!receiver.descriptions.contains("moc"), qPrintable(receiver.descriptions));
+    receiver.descriptions.clear();
+
+    waitForNewTimestamp();
+    QFile cppFile("object.cpp");
+    QVERIFY2(cppFile.open(QIODevice::ReadWrite), qPrintable(cppFile.errorString()));
+    QByteArray contents = cppFile.readAll();
+    contents.replace("// ", "");
+    cppFile.resize(0);
+    cppFile.write(contents);
+    cppFile.close();
+    errorInfo = doBuildProject("add-qobject-macro-to-cpp-file/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(receiver.descriptions.contains("moc"), qPrintable(receiver.descriptions));
+}
+
+static bool isAboutUndefinedSymbols(const QString &_message)
+{
+    const QString message = _message.toLower();
+    return message.contains("undefined") || message.contains("unresolved");
+}
+
+void TestApi::addedFilePersistent()
+{
+    // On the initial run, linking will fail.
+    const QString relProjectFilePath = "added-file-persistent/project.qbs";
+    ProcessResultReceiver receiver;
+    qbs::ErrorInfo errorInfo = doBuildProject(relProjectFilePath, 0, &receiver);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable((receiver.output)));
+    receiver.output.clear();
+
+    // Add a file. qbs must schedule it for rule application on the next build.
+    waitForNewTimestamp();
+    const qbs::SetupProjectParameters params = defaultSetupParameters(relProjectFilePath);
+    QFile projectFile(params.projectFilePath());
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    const QByteArray originalContent = projectFile.readAll();
+    QByteArray addedFileContent = originalContent;
+    addedFileContent.replace("/* 'file.cpp' */", "'file.cpp'");
+    projectFile.resize(0);
+    projectFile.write(addedFileContent);
+    projectFile.flush();
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params, m_logSink,
+                                                                              0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    setupJob.reset(0);
+
+    // Remove the file again. qbs must unschedule the rule application again.
+    // Consequently, the linking step must fail as in the initial run.
+    waitForNewTimestamp();
+    projectFile.resize(0);
+    projectFile.write(originalContent);
+    projectFile.flush();
+    errorInfo = doBuildProject(relProjectFilePath, 0, &receiver);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable((receiver.output)));
+
+    // Add the file again. qbs must schedule it for rule application on the next build.
+    waitForNewTimestamp();
+    projectFile.resize(0);
+    projectFile.write(addedFileContent);
+    projectFile.close();
+    setupJob.reset(qbs::Project().setupProject(params, m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    setupJob.reset(0);
+
+    // qbs must remember that a file was scheduled for rule application. The build must then
+    // succeed, as now all necessary symbols are linked in.
+    errorInfo = doBuildProject(relProjectFilePath);
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::baseProperties()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("base-properties/prj.qbs");
+    VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::buildGraphLocking()
@@ -149,6 +258,97 @@ void TestApi::buildGraphLocking()
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("lock"),
              qPrintable(setupJob->error().toString()));
+}
+
+void TestApi::buildProject()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir + "/project.qbs");
+    removeBuildDir(params);
+    qbs::ErrorInfo errorInfo = doBuildProject(projectSubDir + "/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
+
+    QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
+    waitForNewTimestamp();
+    qbs::BuildOptions options;
+    options.setForceTimestampCheck(true);
+    errorInfo = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
+}
+
+void TestApi::buildProject_data()
+{
+    QTest::addColumn<QString>("projectSubDir");
+    QTest::addColumn<QString>("productFileName");
+    QTest::newRow("BPs in Sources")
+            << QString("build-properties-source")
+            << relativeExecutableFilePath("HelloWorld");
+    QTest::newRow("code generator")
+            << QString("codegen")
+            << relativeExecutableFilePath("codegen");
+    QTest::newRow("link static libs")
+            << QString("link-static-lib")
+            << relativeExecutableFilePath("HelloWorld");
+    QTest::newRow("precompiled header")
+            << QString("precompiled-header")
+            << relativeExecutableFilePath("MyApp");
+    QTest::newRow("lots of dots")
+            << QString("lots-of-dots")
+            << relativeExecutableFilePath("lots.of.dots");
+    QTest::newRow("Qt5 plugin")
+            << QString("qt5-plugin")
+            << relativeProductBuildDir("echoplugin") + '/'
+               + qbs::Internal::HostOsInfo::dynamicLibraryName("echoplugin");
+    QTest::newRow("Q_OBJECT in source")
+            << QString("moc-cpp")
+            << relativeExecutableFilePath("moc_cpp");
+    QTest::newRow("Q_OBJECT in header")
+            << QString("moc-hpp")
+            << relativeExecutableFilePath("moc_hpp");
+    QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
+            << QString("moc-hpp-included")
+            << relativeExecutableFilePath("moc_hpp_included");
+    QTest::newRow("app and lib with same source file")
+            << QString("lib-same-source")
+            << relativeExecutableFilePath("HelloWorldApp");
+    QTest::newRow("source files with the same base name but different extensions")
+            << QString("same-base-name")
+            << relativeExecutableFilePath("basename");
+    QTest::newRow("static library dependencies")
+            << QString("static-lib-deps")
+            << relativeExecutableFilePath("staticLibDeps");
+    QTest::newRow("simple probes")
+            << QString("simple-probe")
+            << relativeExecutableFilePath("MyApp");
+    QTest::newRow("application without sources")
+            << QString("app-without-sources")
+            << relativeExecutableFilePath("appWithoutSources");
+}
+
+void TestApi::buildProjectDryRun()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir + "/project.qbs");
+    removeBuildDir(params);
+    qbs::BuildOptions options;
+    options.setDryRun(true);
+    const qbs::ErrorInfo errorInfo
+            = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
+    VERIFY_NO_ERROR(errorInfo);
+    const QStringList &buildDirContents
+            = QDir(relativeBuildDir()).entryList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
+    QVERIFY2(buildDirContents.isEmpty(), qPrintable(buildDirContents.join(" ")));
+}
+
+void TestApi::buildProjectDryRun_data()
+{
+    return buildProject_data();
 }
 
 void TestApi::buildSingleFile()
@@ -210,10 +410,10 @@ void TestApi::changeContent()
     QVERIFY(errorInfo.toString().contains("empty"));
 
     errorInfo = project.addGroup(product, "New Group 1");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     errorInfo = project.addGroup(product, "New Group 2");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Error handling: Group already inserted.
     errorInfo = project.addGroup(product, "New Group 1");
@@ -234,7 +434,7 @@ void TestApi::changeContent()
     qbs::GroupData group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Error handling: Add the same file again.
     projectData = project.projectData();
@@ -249,7 +449,7 @@ void TestApi::changeContent()
 
     // Remove one of the newly added files again.
     errorInfo = project.removeFiles(product, group, QStringList("file.h"));
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Error handling: Try to remove the same file again.
     projectData = project.projectData();
@@ -271,7 +471,7 @@ void TestApi::changeContent()
 
     // Remove file from product's 'files' binding.
     errorInfo = project.removeFiles(product, qbs::GroupData(), QStringList("main.cpp"));
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Add file to non-empty array literal.
     projectData = project.projectData();
@@ -280,14 +480,14 @@ void TestApi::changeContent()
     group = findGroup(product, "Existing Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile1.txt");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Add files to list represented as a single string.
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList() << "newfile2.txt");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Add files to list represented as an identifier.
     projectData = project.projectData();
@@ -296,7 +496,7 @@ void TestApi::changeContent()
     group = findGroup(product, "Existing Group 2");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile3.txt");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Add files to list represented as a block of code (not yet implemented).
     projectData = project.projectData();
@@ -315,7 +515,7 @@ void TestApi::changeContent()
     group = findGroup(product, "Existing Group 4");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.txt");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     // Error handling: Add file to group with non-directory prefix.
     projectData = project.projectData();
@@ -334,7 +534,7 @@ void TestApi::changeContent()
     group = findGroup(product, "Existing Group 5");
     QVERIFY(group.isValid());
     errorInfo = project.removeGroup(product, group);
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     QCOMPARE(projectData.products().first().groups().count(), 9);
@@ -354,7 +554,7 @@ void TestApi::changeContent()
     QVERIFY2(newFile.open(QIODevice::WriteOnly), qPrintable(newFile.errorString()));
     newFile.close();
     errorInfo = project.addFiles(product, group, QStringList() << newFile.fileName());
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
     QVERIFY(projectData.products().count() == 1);
     product = projectData.products().first();
@@ -426,9 +626,11 @@ void TestApi::changeContent()
     QVERIFY2(errorInfo.toString().contains("in process"), qPrintable(errorInfo.toString()));
     waitForFinished(buildJob.data());
     errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     project = qbs::Project();
+    job.reset(0);
+    buildJob.reset(0);
     removeBuildDir(setupParams);
     // Add a file to the top level of a product that does not have a "files" binding yet.
     setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
@@ -442,7 +644,7 @@ void TestApi::changeContent()
     QCOMPARE(projectData.allProducts().count(), 1);
     product = projectData.allProducts().first();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList("main.cpp"));
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
     rcvr.descriptions.clear();
     buildJob.reset(project.buildAllProducts(buildOptions, this));
@@ -467,7 +669,28 @@ void TestApi::changeContent()
     }
     QVERIFY(projectDataMatches);
 }
+
 #endif // QBS_ENABLE_PROJECT_FILE_UPDATES
+
+void TestApi::changeDependentLib()
+{
+    qbs::ErrorInfo errorInfo = doBuildProject("change-dependent-lib/change-dependent-lib.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    waitForNewTimestamp();
+    const QString qbsFileName("change-dependent-lib.qbs");
+    QFile qbsFile(qbsFileName);
+    QVERIFY(qbsFile.open(QIODevice::ReadWrite));
+    const QByteArray content1 = qbsFile.readAll();
+    QByteArray content2 = content1;
+    content2.replace("cpp.defines: [\"XXXX\"]", "cpp.defines: [\"ABCD\"]");
+    QVERIFY(content1 != content2);
+    qbsFile.seek(0);
+    qbsFile.write(content2);
+    qbsFile.close();
+    errorInfo = doBuildProject("change-dependent-lib/change-dependent-lib.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
 
 static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 {
@@ -489,7 +712,7 @@ void TestApi::disabledInstallGroup()
     const qbs::Project project = job->project();
 
     const qbs::ErrorInfo errorInfo = forceRuleEvaluation(project);
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
@@ -503,6 +726,111 @@ void TestApi::disabledInstallGroup()
     QCOMPARE(project.targetExecutable(product, qbs::InstallOptions()), targets.first().filePath());
 }
 
+void TestApi::disabledProduct()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("disabled-product/disabledProduct.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::disabledProject()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("disabled-project/disabled_project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::disableProduct()
+{
+    qbs::ErrorInfo errorInfo = doBuildProject("disable-product/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("// condition: false", "condition: false");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    errorInfo = doBuildProject("disable-product/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::duplicateProductNames()
+{
+    QFETCH(QString, projectFileName);
+    const qbs::ErrorInfo errorInfo = doBuildProject("duplicate-product-names/" + projectFileName);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("Duplicate product name"),
+             qPrintable(errorInfo.toString()));
+}
+
+void TestApi::duplicateProductNames_data()
+{
+    QTest::addColumn<QString>("projectFileName");
+    QTest::newRow("Names explicitly set") << QString("explicit.qbs");
+    QTest::newRow("Unnamed products in same file") << QString("implicit.qbs");
+    QTest::newRow("Unnamed products in files of the same name") << QString("implicit-indirect.qbs");
+
+}
+
+void TestApi::dynamicLibs()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("dynamic-libs/link_dynamiclib.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::emptyFileTagList()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("empty-filetag-list/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::emptySubmodulesList()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("empty-submodules-list/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::explicitlyDependsOn()
+{
+    BuildDescriptionReceiver receiver;
+    qbs::ErrorInfo errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(receiver.descriptions.contains("Creating output artifact"));
+    receiver.descriptions.clear();
+
+    errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(!receiver.descriptions.contains("Creating output artifact"));
+
+    waitForNewTimestamp();
+    touch("dependency.txt");
+    errorInfo = doBuildProject("explicitly-depends-on/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(receiver.descriptions.contains("Creating output artifact"));
+}
+
+void TestApi::exportSimple()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("export-simple/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::exportWithRecursiveDepends()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("export-with-recursive-depends/project.qbs");
+    QEXPECT_FAIL("", "currently broken", Abort);
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::fileTagger()
+{
+    BuildDescriptionReceiver receiver;
+    const qbs::ErrorInfo errorInfo = doBuildProject("file-tagger/moc_cpp.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(receiver.descriptions.contains("moc bla.cpp"), qPrintable(receiver.descriptions));
+}
+
 void TestApi::fileTagsFilterOverride()
 {
     qbs::SetupProjectParameters setupParams
@@ -514,7 +842,7 @@ void TestApi::fileTagsFilterOverride()
     qbs::Project project = job->project();
 
     const qbs::ErrorInfo errorInfo = forceRuleEvaluation(project);
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
@@ -559,6 +887,12 @@ void TestApi::infiniteLoopResolving()
              qPrintable(setupJob->error().toString()));
 }
 
+void TestApi::inheritQbsSearchPaths()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("inherit-qbs-search-paths/prj.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams
@@ -570,7 +904,7 @@ void TestApi::installableFiles()
     qbs::Project project = job->project();
 
     const qbs::ErrorInfo errorInfo = forceRuleEvaluation(project);
-    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    VERIFY_NO_ERROR(errorInfo);
 
     qbs::ProjectData projectData = project.projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
@@ -641,6 +975,33 @@ void TestApi::listBuildSystemFiles()
                                       + "/subproject2/subproject3/subproject3.qbs"));
 }
 
+void TestApi::mocCppIncluded()
+{
+    // Initial build.
+    qbs::ErrorInfo errorInfo = doBuildProject("moc-hpp-included/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    // Touch header and try again.
+    waitForNewTimestamp();
+    QFile headerFile("object.h");
+    QVERIFY2(headerFile.open(QIODevice::WriteOnly | QIODevice::Append),
+             qPrintable(headerFile.errorString()));
+    headerFile.write("\n");
+    headerFile.close();
+    errorInfo = doBuildProject("moc-hpp-included/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    // Touch cpp file and try again.
+    waitForNewTimestamp();
+    QFile cppFile("object.cpp");
+    QVERIFY2(cppFile.open(QIODevice::WriteOnly | QIODevice::Append),
+             qPrintable(cppFile.errorString()));
+    cppFile.write("\n");
+    cppFile.close();
+    errorInfo = doBuildProject("moc-hpp-included/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::multiArch()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("multi-arch/project.qbs");
@@ -660,7 +1021,7 @@ void TestApi::multiArch()
     waitForFinished(setupJob.data());
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
-    QCOMPARE(project.profile(), QLatin1String("qbs_autotests"));
+    QCOMPARE(project.profile(), profileName());
     const QList<qbs::ProductData> &products = project.projectData().products();
     QCOMPARE(products.count(), 3);
     QList<qbs::ProductData> hostProducts;
@@ -721,6 +1082,62 @@ void TestApi::multiArch()
              qPrintable(setupJob->error().toString()));
 }
 
+void TestApi::newOutputArtifactInDependency()
+{
+    BuildDescriptionReceiver receiver;
+    qbs::ErrorInfo errorInfo
+            = doBuildProject("new-output-artifact-in-dependency/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(receiver.descriptions.contains("linking app"));
+    const QByteArray linkingLibString = QByteArray("linking ")
+            + qbs::Internal::HostOsInfo::dynamicLibraryName("lib").toLatin1();
+    QVERIFY(!receiver.descriptions.contains(linkingLibString));
+    receiver.descriptions.clear();
+
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray contents = projectFile.readAll();
+    contents.replace("//Depends", "Depends");
+    projectFile.resize(0);
+    projectFile.write(contents);
+    projectFile.close();
+    errorInfo = doBuildProject("new-output-artifact-in-dependency/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(receiver.descriptions.contains("linking app"));
+    QVERIFY(receiver.descriptions.contains(linkingLibString));
+}
+
+void TestApi::newPatternMatch()
+{
+    TaskReceiver receiver;
+    qbs::ErrorInfo errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(receiver.taskDescriptions.contains("Resolving"), qPrintable(m_logSink->output));
+    receiver.taskDescriptions.clear();
+
+    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(!receiver.taskDescriptions.contains("Resolving"));
+
+    QFile f("test.txt");
+    QVERIFY2(f.open(QIODevice::WriteOnly), qPrintable(f.errorString()));
+    f.close();
+    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(receiver.taskDescriptions.contains("Resolving"));
+    receiver.taskDescriptions.clear();
+
+    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(!receiver.taskDescriptions.contains("Resolving"));
+
+    f.remove();
+    errorInfo = doBuildProject("new-pattern-match/project.qbs", 0, 0, &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(receiver.taskDescriptions.contains("Resolving"));
+}
+
 void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams
@@ -748,6 +1165,12 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
     QVERIFY(job->error().hasError());
     QVERIFY2(job->error().toString().contains(QLatin1String("blubb")),
              qPrintable(job->error().toString()));
+}
+
+void TestApi::objC()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("objc/objc.qbs");
+    VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::projectInvalidation()
@@ -795,6 +1218,27 @@ void TestApi::projectLocking()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
 }
 
+void TestApi::projectWithPropertiesItem()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("project-with-properties-item/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::propertiesBlocks()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("properties-blocks/propertiesblocks.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::rc()
+{
+    BuildDescriptionReceiver receiver;
+    const qbs::ErrorInfo errorInfo = doBuildProject("rc/rc.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    const bool rcFileWasCompiled = receiver.descriptions.contains("compiling test.rc");
+    QCOMPARE(rcFileWasCompiled, qbs::Internal::HostOsInfo::isWindowsHost());
+}
+
 qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &projectFilePath) const
 {
     qbs::SetupProjectParameters setupParams;
@@ -807,11 +1251,10 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
                                                 + QLatin1String("/../"));
     qbs::Settings settings((QString()));
-    const QString profileName = QLatin1String("qbs_autotests");
-    const qbs::Preferences prefs(&settings, profileName);
+    const qbs::Preferences prefs(&settings, profileName());
     setupParams.setSearchPaths(prefs.searchPaths(qbsRootPath));
     setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath + QLatin1String("/lib")));
-    setupParams.setTopLevelProfile(profileName);
+    setupParams.setTopLevelProfile(profileName());
     setupParams.setBuildVariant(QLatin1String("debug"));
     return setupParams;
 }
@@ -845,6 +1288,125 @@ void TestApi::references()
     QCOMPARE(subProjectFileName, QString("p.qbs"));
 }
 
+void TestApi::renameProduct()
+{
+    // Initial run.
+    qbs::ErrorInfo errorInfo = doBuildProject("rename-product/rename.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    // Rename lib and adapt Depends item.
+    waitForNewTimestamp();
+    QFile f("rename.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    QByteArray contents = f.readAll();
+    contents.replace("TheLib", "thelib");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    errorInfo = doBuildProject("rename-product/rename.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    // Rename lib and don't adapt Depends item.
+    waitForNewTimestamp();
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    contents = f.readAll();
+    const int libNameIndex = contents.lastIndexOf("thelib");
+    QVERIFY(libNameIndex != -1);
+    contents.replace(libNameIndex, 6, "TheLib");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    errorInfo = doBuildProject("rename-product/rename.qbs");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("Product dependency 'thelib' not found"),
+             qPrintable(errorInfo.toString()));
+}
+
+void TestApi::renameTargetArtifact()
+{
+    // Initial run.
+    BuildDescriptionReceiver receiver;
+    qbs::ErrorInfo errorInfo = doBuildProject("rename-target-artifact/rename.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
+    QCOMPARE(receiver.descriptions.count("linking"), 2);
+    receiver.descriptions.clear();
+
+    // Rename library file name.
+    waitForNewTimestamp();
+    QFile f("rename.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    QByteArray contents = f.readAll();
+    contents.replace("the_lib", "TheLib");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    errorInfo = doBuildProject("rename-target-artifact/rename.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(!receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
+    QCOMPARE(receiver.descriptions.count("linking"), 2);
+}
+
+void TestApi::removeFileDependency()
+{
+    qbs::ErrorInfo errorInfo = doBuildProject("remove-file-dependency/removeFileDependency.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    QFile::remove("someheader.h");
+    ProcessResultReceiver receiver;
+    errorInfo = doBuildProject("remove-file-dependency/removeFileDependency.qbs", 0, &receiver);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(receiver.output.contains("someheader.h"), qPrintable(receiver.output));
+}
+
+void TestApi::resolveProject()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters(projectSubDir + "/project.qbs");
+    removeBuildDir(params);
+    const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                    m_logSink, 0));
+    waitForFinished(setupJob.data());
+    VERIFY_NO_ERROR(setupJob->error());
+    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
+}
+
+void TestApi::resolveProject_data()
+{
+    return buildProject_data();
+}
+
+void TestApi::resolveProjectDryRun()
+{
+    QFETCH(QString, projectSubDir);
+    QFETCH(QString, productFileName);
+
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir + "/project.qbs");
+    params.setDryRun(true);
+    removeBuildDir(params);
+    const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                    m_logSink, 0));
+    waitForFinished(setupJob.data());
+    VERIFY_NO_ERROR(setupJob->error());
+    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
+    QVERIFY(!regularFileExists(relativeBuildGraphFilePath()));
+}
+
+void TestApi::resolveProjectDryRun_data()
+{
+    return resolveProject_data();
+}
+
+void TestApi::softDependency()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("soft-dependency/project.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::sourceFileInBuildDir()
 {
     qbs::SetupProjectParameters setupParams
@@ -856,10 +1418,165 @@ void TestApi::sourceFileInBuildDir()
     const qbs::ProjectData projectData = job->project().projectData();
     QCOMPARE(projectData.allProducts().count(), 1);
     const qbs::ProductData product = projectData.allProducts().first();
-    QCOMPARE(product.profile(), QLatin1String("qbs_autotests"));
+    QCOMPARE(product.profile(), profileName());
     QCOMPARE(product.groups().count(), 1);
     const qbs::GroupData group = product.groups().first();
     QCOMPARE(group.allFilePaths().count(), 1);
+}
+
+void TestApi::subProjects()
+{
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters("subprojects/toplevelproject.qbs");
+    removeBuildDir(params);
+
+    // Check all three types of subproject creation, plus property overrides.
+    qbs::ErrorInfo errorInfo = doBuildProject("subprojects/toplevelproject.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    // Disabling both the project with the dependency and the one with the dependent
+    // should not cause an error.
+    waitForNewTimestamp();
+    QFile f(params.projectFilePath());
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    QByteArray contents = f.readAll();
+    contents.replace("condition: true", "condition: false");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    f.setFileName(params.buildRoot() + "/subproject2/subproject2.qbs");
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    contents = f.readAll();
+    contents.replace("condition: true", "condition: false");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    errorInfo = doBuildProject("subprojects/toplevelproject.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    // Disabling the project with the dependency only is an error.
+    // This tests also whether changes in sub-projects are detected.
+    waitForNewTimestamp();
+    f.setFileName(params.projectFilePath());
+    QVERIFY(f.open(QIODevice::ReadWrite));
+    contents = f.readAll();
+    contents.replace("condition: false", "condition: true");
+    f.resize(0);
+    f.write(contents);
+    f.close();
+    errorInfo = doBuildProject("subprojects/toplevelproject.qbs");
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("Product dependency 'testLib' not found"),
+             qPrintable(errorInfo.toString()));
+}
+
+void TestApi::trackAddQObjectHeader()
+{
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters("missing-qobject-header/missingheader.qbs");
+    QFile qbsFile(params.projectFilePath());
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp']\n}");
+    qbsFile.close();
+    ProcessResultReceiver receiver;
+    qbs::ErrorInfo errorInfo
+            = doBuildProject("missing-qobject-header/missingheader.qbs", 0, &receiver);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable(receiver.output));
+
+    waitForNewTimestamp();
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
+    qbsFile.close();
+    errorInfo = doBuildProject("missing-qobject-header/missingheader.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::trackRemoveQObjectHeader()
+{
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters("missing-qobject-header/missingheader.qbs");
+    removeBuildDir(params);
+    QFile qbsFile(params.projectFilePath());
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
+    qbsFile.close();
+    qbs::ErrorInfo errorInfo = doBuildProject("missing-qobject-header/missingheader.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+
+    waitForNewTimestamp();
+    QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+                  "    files: ['main.cpp', 'myobject.cpp']\n}");
+    qbsFile.close();
+    ProcessResultReceiver receiver;
+    errorInfo = doBuildProject("missing-qobject-header/missingheader.qbs", 0, &receiver);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable(receiver.output));
+}
+
+void TestApi::transformers()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("transformers/transformers.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+void TestApi::typeChange()
+{
+    BuildDescriptionReceiver receiver;
+    qbs::ErrorInfo errorInfo = doBuildProject("type-change/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(!receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
+
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("//", "");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    errorInfo = doBuildProject("type-change/project.qbs", &receiver);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY2(receiver.descriptions.contains("compiling"), qPrintable(receiver.descriptions));
+}
+
+void TestApi::uic()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("uic/uic.qbs");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
+
+qbs::ErrorInfo TestApi::doBuildProject(const QString &projectFilePath,
+        QObject *buildDescriptionReceiver, QObject *procResultReceiver, QObject *taskReceiver,
+        const qbs::BuildOptions &options)
+{
+    qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
+    params.setDryRun(options.dryRun());
+    const QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                    m_logSink, 0));
+    if (taskReceiver) {
+        connect(setupJob.data(), SIGNAL(taskStarted(QString,int,qbs::AbstractJob*)), taskReceiver,
+                SLOT(handleTaskStart(QString)));
+    }
+    waitForFinished(setupJob.data());
+    if (setupJob->error().hasError())
+        return setupJob->error();
+    const QScopedPointer<qbs::BuildJob> buildJob(setupJob->project().buildAllProducts(options));
+    if (buildDescriptionReceiver) {
+        connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)),
+                buildDescriptionReceiver, SLOT(handleDescription(QString,QString)));
+    }
+    if (procResultReceiver) {
+        connect(buildJob.data(), SIGNAL(reportProcessResult(qbs::ProcessResult)),
+                procResultReceiver, SLOT(handleProcessResult(qbs::ProcessResult)));
+    }
+    waitForFinished(buildJob.data());
+    return buildJob->error();
 }
 
 QTEST_MAIN(TestApi)

@@ -32,6 +32,7 @@
 #include <tools/hostosinfo.h>
 
 #include <QFile>
+#include <QFileInfo>
 #include <QtTest>
 
 #include <ctime>
@@ -41,6 +42,35 @@
 #else
 #define SKIP_TEST(message) QSKIP(message, SkipAll)
 #endif
+
+inline QString profileName() { return QLatin1String("qbs_autotests"); }
+inline QString relativeBuildDir() { return profileName() + QLatin1String("-debug"); }
+
+inline QString relativeBuildGraphFilePath() {
+    return relativeBuildDir() + QLatin1Char('/') + relativeBuildDir() + QLatin1String(".bg");
+}
+
+inline bool regularFileExists(const QString &filePath)
+{
+    const QFileInfo fi(filePath);
+    return fi.exists() && fi.isFile();
+}
+
+inline QString uniqueProductName(const QString &productName)
+{
+    return productName + '.' + profileName();
+}
+
+inline QString relativeProductBuildDir(const QString &productName)
+{
+    return relativeBuildDir() + '/' + uniqueProductName(productName);
+}
+
+inline QString relativeExecutableFilePath(const QString &productName)
+{
+    return relativeProductBuildDir(productName) + '/'
+            + qbs::Internal::HostOsInfo::appendExecutableSuffix(productName);
+}
 
 inline void waitForNewTimestamp()
 {
