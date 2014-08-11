@@ -82,7 +82,7 @@ void PropertyFinder::findModuleValues(const QVariantMap &properties, bool search
 
 void PropertyFinder::addToList(const QVariant &value)
 {
-    if (value.isValid() && !m_values.contains(value))
+    if (!value.isNull() && !m_values.contains(value))
         m_values << value;
 }
 

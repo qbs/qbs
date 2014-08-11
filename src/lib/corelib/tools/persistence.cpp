@@ -235,9 +235,17 @@ QDataStream &PersistentPool::stream()
     return m_stream;
 }
 
+const int StringNotFoundId = -1;
+const int NullStringId = -2;
+
 void PersistentPool::storeString(const QString &t)
 {
-    int id = m_inverseStringStorage.value(t, -1);
+    if (t.isNull()) {
+        m_stream << NullStringId;
+        return;
+    }
+
+    int id = m_inverseStringStorage.value(t, StringNotFoundId);
     if (id < 0) {
         id = m_lastStoredStringId++;
         m_inverseStringStorage.insert(t, id);
@@ -249,6 +257,9 @@ void PersistentPool::storeString(const QString &t)
 
 QString PersistentPool::loadString(int id)
 {
+    if (id == NullStringId)
+        return QString();
+
     QBS_CHECK(id >= 0);
 
     if (id >= m_stringStorage.count()) {
