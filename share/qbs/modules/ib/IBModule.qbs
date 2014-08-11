@@ -104,51 +104,43 @@ Module {
     Rule {
         inputs: ["nib", "storyboard"]
 
-        // When the flatten property is true, this artifact will be a FILE, otherwise it will be a DIRECTORY
-        Artifact {
-            filePath: {
-                var path = product.destinationDirectory;
-
-                var inputFilePath = input.baseDir + '/' + input.fileName;
-                var key = DarwinTools.localizationKey(inputFilePath);
-                if (key) {
-                    path += '/' + BundleTools.localizedResourcesFolderPath(product, key);
-                    var subPath = DarwinTools.relativeResourcePath(inputFilePath);
-                    if (subPath && subPath !== '.')
-                        path += '/' + subPath;
-                } else {
-                    path += '/' + BundleTools.unlocalizedResourcesFolderPath(product);
-                    path += '/' + input.baseDir;
-                }
-
-                var suffix = "";
-                if (input.fileTags.contains("nib"))
-                    suffix = ModUtils.moduleProperty(product, "compiledNibSuffix");
-                else if (input.fileTags.contains("storyboard"))
-                    suffix = ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
-
-                return path + '/' + input.completeBaseName + suffix;
+        outputFileTags: [
+            "compiled_ibdoc", "compiled_nib", "compiled_storyboard", "partial_infoplist"
+        ]
+        outputArtifacts: {
+            // When the flatten property is true, this artifact will be a FILE, otherwise it will be a DIRECTORY
+            var path = product.destinationDirectory;
+            var inputFilePath = input.baseDir + '/' + input.fileName;
+            var key = DarwinTools.localizationKey(inputFilePath);
+            if (key) {
+                path += '/' + BundleTools.localizedResourcesFolderPath(product, key);
+                var subPath = DarwinTools.relativeResourcePath(inputFilePath);
+                if (subPath && subPath !== '.')
+                    path += '/' + subPath;
+            } else {
+                path += '/' + BundleTools.unlocalizedResourcesFolderPath(product);
+                path += '/' + input.baseDir;
             }
 
-            fileTags: {
-                var tags = ["compiled_ibdoc"];
-                if (inputs.contains("nib"))
-                    tags.push("compiled_nib");
-                if (inputs.contains("storyboard"))
-                    tags.push("compiled_storyboard");
-                return tags;
-            }
-        }
-
-        Artifact {
-            condition: product.moduleProperty("ib", "ibtoolVersionMajor") >= 6
-
-            filePath: {
+            var suffix = "";
+            if (input.fileTags.contains("nib"))
+                suffix = ModUtils.moduleProperty(product, "compiledNibSuffix");
+            else if (input.fileTags.contains("storyboard"))
+                suffix = ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
+            path += '/' + input.completeBaseName + suffix;
+            var tags = ["compiled_ibdoc"];
+            if (inputs["nib"])
+                tags.push("compiled_nib");
+            if (inputs["storyboard"])
+                tags.push("compiled_storyboard");
+            var artifacts = [{ filePath: path, fileTags: tags }];
+            if (product.moduleProperty("ib", "ibtoolVersionMajor") >= 6) {
                 var prefix = input.fileTags.contains("storyboard") ? "SB" : "";
-                return FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName + "-" + prefix + "PartialInfo.plist");
+                path = FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName +
+                                          "-" + prefix + "PartialInfo.plist");
+                artifacts.push({ filePath: path, fileTags: "partial_infoplist" });
             }
-
-            fileTags: ["partial_infoplist"]
+            return artifacts;
         }
 
         prepare: {
