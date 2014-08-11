@@ -91,7 +91,16 @@ void TestApi::initTestCase()
     QString errorMessage;
     qbs::Internal::removeDirectoryWithContents(m_workingDataDir, &errorMessage);
     QVERIFY2(qbs::Internal::copyFileRecursion(m_sourceDataDir,
-            m_workingDataDir, false, &errorMessage), qPrintable(errorMessage));
+                                              m_workingDataDir, false, &errorMessage), qPrintable(errorMessage));
+}
+
+static void removeBuildDir(const qbs::SetupProjectParameters &params)
+{
+    QString message;
+    const QString dir = params.buildRoot() + '/' + params.topLevelProfile()
+            + '-' + params.buildVariant();
+    if (!qbs::Internal::removeDirectoryWithContents(dir, &message))
+        qFatal("Could not remove build dir: %s", qPrintable(message));
 }
 
 static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
@@ -122,12 +131,10 @@ void printProjectData(const qbs::ProjectData &project)
     }
 }
 
-
 void TestApi::buildGraphLocking()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/buildgraph-locking");
-    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("buildgraph-locking/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -146,9 +153,8 @@ void TestApi::buildGraphLocking()
 
 void TestApi::buildSingleFile()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/build-single-file");
-    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("build-single-file/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -156,7 +162,7 @@ void TestApi::buildSingleFile()
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
     options.setDryRun(true);
-    options.setFilesToConsider(QStringList(projectDirPath + "/compiled.cpp"));
+    options.setFilesToConsider(QStringList(setupParams.buildRoot() + "/compiled.cpp"));
     options.setActiveFileTags(QStringList("obj"));
     m_logSink->setLogLevel(qbs::LoggerMaxLevel);
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
@@ -182,10 +188,7 @@ qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
 void TestApi::changeContent()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString workingDir = m_workingDataDir + "/project-editing";
-    QDir::setCurrent(workingDir);
-    setupParams.setProjectFilePath(QDir::cleanPath(workingDir + "/project.qbs"));
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-editing/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -389,11 +392,11 @@ void TestApi::changeContent()
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     project = job->project();
-    const qbs::ProjectData newProjectData = project.projectData();
+    qbs::ProjectData newProjectData = project.projectData();
 
     // Can't use Project::operator== here, as the target artifacts will differ due to the build
     // not having run yet.
-    const bool projectDataMatches = newProjectData.products().count() == 1
+    bool projectDataMatches = newProjectData.products().count() == 1
             && projectData.products().count() == 1
             && newProjectData.products().first().groups() == projectData.products().first().groups();
     if (!projectDataMatches) {
@@ -425,6 +428,8 @@ void TestApi::changeContent()
     errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
     QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
 
+    project = qbs::Project();
+    removeBuildDir(setupParams);
     // Add a file to the top level of a product that does not have a "files" binding yet.
     setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
         "/project-editing/project-with-no-files.qbs"));
@@ -449,12 +454,18 @@ void TestApi::changeContent()
     job.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    if (job->project().projectData() != projectData) {
+    // Can't use Project::operator== here, as the target artifacts will differ due to the build
+    // not having run yet.
+    newProjectData = job->project().projectData();
+    projectDataMatches = newProjectData.products().count() == 1
+            && projectData.products().count() == 1
+            && newProjectData.products().first().groups() == projectData.products().first().groups();
+    if (!projectDataMatches) {
         printProjectData(projectData);
         qDebug("\n====\n");
-        printProjectData(job->project().projectData());
+        printProjectData(newProjectData);
     }
-    QVERIFY(job->project().projectData() == projectData);
+    QVERIFY(projectDataMatches);
 }
 #endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
@@ -469,9 +480,8 @@ static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 
 void TestApi::disabledInstallGroup()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
-        "/disabled_install_group/project.qbs"));
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("disabled_install_group/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -495,9 +505,8 @@ void TestApi::disabledInstallGroup()
 
 void TestApi::fileTagsFilterOverride()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
-        "/filetagsfilter_override/project.qbs"));
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("filetagsfilter_override/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
     waitForFinished(job.data());
@@ -519,10 +528,8 @@ void TestApi::fileTagsFilterOverride()
 void TestApi::infiniteLoopBuilding()
 {
     QFETCH(QString, projectDirName);
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir = QDir::cleanPath(m_workingDataDir + '/' + projectDirName);
-    setupParams.setProjectFilePath(projectDir + "/infinite-loop.qbs");
-    setupParams.setBuildRoot(projectDir);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters(projectDirName + "/infinite-loop.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -542,10 +549,8 @@ void TestApi::infiniteLoopBuilding_data()
 
 void TestApi::infiniteLoopResolving()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/infinite-loop-resolving");
-    setupParams.setProjectFilePath(projectDir + "/project.qbs");
-    setupParams.setBuildRoot(projectDir);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("infinite-loop-resolving/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                               m_logSink, 0));
     QTimer::singleShot(1000, setupJob.data(), SLOT(cancel()));
@@ -556,9 +561,8 @@ void TestApi::infiniteLoopResolving()
 
 void TestApi::installableFiles()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata"
-        "/installed_artifact/installed_artifact.qbs")));
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("installed-artifact/installed_artifact.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
     waitForFinished(job.data());
@@ -587,8 +591,7 @@ void TestApi::installableFiles()
         }
     }
 
-    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata"
-        "/recursive_wildcards/recursive_wildcards.qbs")));
+    setupParams  = defaultSetupParameters("recursive-wildcards/recursive_wildcards.qbs");
     job.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
@@ -606,9 +609,7 @@ void TestApi::installableFiles()
 
 void TestApi::isRunnable()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setProjectFilePath(QDir::cleanPath(QLatin1String(SRCDIR "/testdata"
-        "/is-runnable/project.qbs")));
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("is-runnable/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -627,31 +628,22 @@ void TestApi::isRunnable()
 
 void TestApi::listBuildSystemFiles()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir
-            = QDir::cleanPath(QLatin1String(SRCDIR "/../blackbox/testdata/subprojects"));
-    const QString topLevelProjectFile = projectDir + QLatin1String("/toplevelproject.qbs");
-    setupParams.setProjectFilePath(topLevelProjectFile);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("subprojects/toplevelproject.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     const QSet<QString> buildSystemFiles = job->project().buildSystemFiles();
-    QVERIFY(buildSystemFiles.contains(topLevelProjectFile));
-    QVERIFY(buildSystemFiles.contains(projectDir + QLatin1String("/subproject2/subproject2.qbs")));
-    QVERIFY(buildSystemFiles.contains(projectDir
-                                      + QLatin1String("/subproject2/subproject3/subproject3.qbs")));
+    QVERIFY(buildSystemFiles.contains(setupParams.projectFilePath()));
+    QVERIFY(buildSystemFiles.contains(setupParams.buildRoot() + "/subproject2/subproject2.qbs"));
+    QVERIFY(buildSystemFiles.contains(setupParams.buildRoot()
+                                      + "/subproject2/subproject3/subproject3.qbs"));
 }
 
 void TestApi::multiArch()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setDryRun(false);
-    const QString projectDir
-            = QDir::cleanPath(m_workingDataDir + "/multi-arch");
-    const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
-    setupParams.setBuildRoot(projectDir);
-    setupParams.setProjectFilePath(topLevelProjectFile);
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("multi-arch/project.qbs");
     qbs::Settings settings((QString()));
     qbs::Internal::TemporaryProfile tph("host", &settings);
     qbs::Profile hostProfile = tph.p;
@@ -731,11 +723,8 @@ void TestApi::multiArch()
 
 void TestApi::nonexistingProjectPropertyFromProduct()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir
-            = QDir::cleanPath(m_workingDataDir + "/nonexistingprojectproperties");
-    const QString topLevelProjectFile = projectDir + QLatin1String("/invalidaccessfromproduct.qbs");
-    setupParams.setProjectFilePath(topLevelProjectFile);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("nonexistingprojectproperties/invalidaccessfromproduct.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -747,10 +736,9 @@ void TestApi::nonexistingProjectPropertyFromProduct()
 
 void TestApi::nonexistingProjectPropertyFromCommandLine()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/nonexistingprojectproperties");
-    const QString topLevelProjectFile = projectDir + QLatin1String("/project.qbs");
-    setupParams.setProjectFilePath(topLevelProjectFile);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("nonexistingprojectproperties/project.qbs");
+    removeBuildDir(setupParams);
     QVariantMap projectProperties;
     projectProperties.insert(QLatin1String("project.blubb"), QLatin1String("true"));
     setupParams.setOverriddenValues(projectProperties);
@@ -764,11 +752,8 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
 
 void TestApi::projectInvalidation()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    setupParams.setRestoreBehavior(qbs::SetupProjectParameters::RestoreAndTrackChanges);
-    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/project-invalidation");
-    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
-    QDir::setCurrent(projectDirPath);
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("project-invalidation/project.qbs");
     QVERIFY(QFile::copy("project.no-error.qbs", "project.qbs"));
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
@@ -792,9 +777,7 @@ void TestApi::projectInvalidation()
 
 void TestApi::projectLocking()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/project-locking");
-    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-locking/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(setupJob.data());
@@ -812,13 +795,15 @@ void TestApi::projectLocking()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
 }
 
-qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
+qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &projectFilePath) const
 {
     qbs::SetupProjectParameters setupParams;
-    setupParams.setDryRun(true); // So no build graph gets created.
-    setupParams.setBuildRoot(m_workingDataDir);
-    setupParams.setRestoreBehavior(qbs::SetupProjectParameters::ResolveOnly); // No restoring.
-
+    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + QLatin1Char('/')
+                                                   + QFileInfo(projectFilePath).path());
+    setupParams.setProjectFilePath(projectDirPath + QLatin1Char('/')
+                                   + QFileInfo(projectFilePath).fileName());
+    QDir::setCurrent(projectDirPath);
+    setupParams.setBuildRoot(projectDirPath);
     const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
                                                 + QLatin1String("/../"));
     qbs::Settings settings((QString()));
@@ -833,9 +818,8 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters() const
 
 void TestApi::references()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("references/invalid1.qbs");
     const QString projectDir = QDir::cleanPath(m_workingDataDir + "/references");
-    setupParams.setProjectFilePath(projectDir + QLatin1String("/invalid1.qbs"));
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());
@@ -863,9 +847,8 @@ void TestApi::references()
 
 void TestApi::sourceFileInBuildDir()
 {
-    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
-    const QString projectDir = QDir::cleanPath(m_workingDataDir + "/source-file-in-build-dir");
-    setupParams.setProjectFilePath(projectDir + QLatin1String("/project.qbs"));
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("source-file-in-build-dir/project.qbs");
     QScopedPointer<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
     waitForFinished(job.data());

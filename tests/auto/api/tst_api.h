@@ -69,7 +69,7 @@ private slots:
     void sourceFileInBuildDir();
 
 private:
-    qbs::SetupProjectParameters defaultSetupParameters() const;
+    qbs::SetupProjectParameters defaultSetupParameters(const QString &projectFilePath) const;
 
     LogSink * const m_logSink;
     const QString m_sourceDataDir;
