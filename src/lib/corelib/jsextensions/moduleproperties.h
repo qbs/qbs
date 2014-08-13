@@ -53,7 +53,6 @@ private:
 
     static QScriptValue moduleProperties(QScriptContext *context, QScriptEngine *engine,
                                          bool oneValue);
-    static QString internalModuleName(const QString &name);
 };
 
 } // namespace Internal

@@ -121,7 +121,7 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
     }
 
     ScriptEngine * const qbsEngine = static_cast<ScriptEngine *>(engine);
-    const QString moduleName = internalModuleName(context->argument(0).toString());
+    const QString moduleName = context->argument(0).toString();
     const QString propertyName = context->argument(1).toString();
 
     QVariant value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, oneValue,
@@ -142,13 +142,6 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
         qbsEngine->addToPropertyCache(moduleName, propertyName, oneValue, properties, value);
     }
     return engine->toScriptValue(value);
-}
-
-QString ModuleProperties::internalModuleName(const QString &name)
-{
-    QString result = name;
-    result.replace(QLatin1Char('.'), QLatin1Char('/'));
-    return result;
 }
 
 } // namespace Internal

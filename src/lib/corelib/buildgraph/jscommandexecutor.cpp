@@ -40,6 +40,7 @@
 #include <logging/logger.h>
 #include <tools/codelocation.h>
 #include <tools/error.h>
+#include <tools/qbsassert.h>
 
 #include <QEventLoop>
 #include <QMetaObject>

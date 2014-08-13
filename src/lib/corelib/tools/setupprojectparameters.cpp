@@ -252,12 +252,11 @@ static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
 
     valueTree->clear();
     for (QVariantMap::const_iterator it = values.constBegin(); it != values.constEnd(); ++it) {
-        QStringList nameElements = it.key().split(QLatin1Char('.'));
-        if (nameElements.count() > 2) { // ### workaround for submodules being represented internally as a single module of name "module/submodule" rather than two nested modules "module" and "submodule"
-            const QString last = nameElements.takeLast();
-            nameElements = QStringList(nameElements.join(QLatin1String("/")));
-            nameElements.append(last);
-        }
+        const QString name = it.key();
+        int idx = name.lastIndexOf(QLatin1Char('.'));
+        const QStringList nameElements = (idx == -1)
+                ? QStringList() << name
+                : QStringList() << name.left(idx) << name.mid(idx + 1);
         Internal::setConfigProperty(*valueTree, nameElements, it.value());
     }
 }

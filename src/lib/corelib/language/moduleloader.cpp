@@ -1218,12 +1218,10 @@ void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)
 
 QString ModuleLoader::fullModuleName(const QStringList &moduleName)
 {
-    // Currently the same as the module sub directory.
-    // ### Might be nicer to be a valid JS identifier.
 #if QT_VERSION >= 0x050000
-    return moduleName.join(QLatin1Char('/'));
+    return moduleName.join(QLatin1Char('.'));
 #else
-    return moduleName.join(QLatin1String("/"));
+    return moduleName.join(QLatin1String("."));
 #endif
 }
 

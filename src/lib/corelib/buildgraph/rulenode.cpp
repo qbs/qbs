@@ -36,9 +36,11 @@
 #include "projectbuilddata.h"
 #include "rulesapplicator.h"
 #include "transformer.h"
+
 #include <language/language.h>
 #include <logging/logger.h>
 #include <tools/persistence.h>
+#include <tools/qbsassert.h>
 
 namespace qbs {
 namespace Internal {

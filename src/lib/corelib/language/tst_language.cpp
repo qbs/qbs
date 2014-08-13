@@ -935,14 +935,14 @@ void TestLanguage::modules_data()
             << (QStringList() << "qbs")
             << QString();
     QTest::newRow("qt_core")
-            << (QStringList() << "qbs" << "dummy" << "dummyqt/core")
+            << (QStringList() << "qbs" << "dummy" << "dummyqt.core")
             << QString("1.2.3");
     QTest::newRow("qt_gui")
-            << (QStringList() << "qbs" << "dummy" << "dummyqt/core" << "dummyqt/gui")
+            << (QStringList() << "qbs" << "dummy" << "dummyqt.core" << "dummyqt.gui")
             << QString("guiProperty");
     QTest::newRow("qt_gui_network")
-            << (QStringList() << "qbs" << "dummy" << "dummyqt/core" << "dummyqt/gui"
-                              << "dummyqt/network")
+            << (QStringList() << "qbs" << "dummy" << "dummyqt.core" << "dummyqt.gui"
+                              << "dummyqt.network")
             << QString("guiProperty,networkProperty");
     QTest::newRow("dummy_twice")
             << (QStringList() << "qbs" << "dummy")

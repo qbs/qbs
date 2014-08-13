@@ -29,8 +29,6 @@
 #ifndef QBS_PROPERTY_H
 #define QBS_PROPERTY_H
 
-#include <tools/qbsassert.h>
-
 #include <QSet>
 #include <QString>
 #include <QVariant>
@@ -56,7 +54,6 @@ public:
     Property(const QString &m, const QString &p, const QVariant &v, Kind k = PropertyInModule)
         : moduleName(m), propertyName(p), value(v), kind(k)
     {
-        QBS_CHECK(!moduleName.contains(QLatin1Char('.')));
     }
 
     QString moduleName;
