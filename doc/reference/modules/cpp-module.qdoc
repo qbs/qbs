@@ -290,6 +290,18 @@
 
     Additional flags for the C++ compiler.
 
+    \section2 cxxLanguageVersion
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    The version of the C++ standard with which the code must comply. Possible values are "c++98"
+    and "c++11". If this property is set, corresponding compiler and/or linker flags will be added,
+    depending on the toolchain.
+    If the value is left undefined, the compiler default will be used.
+
     \section2 objcFlags
 
     \table

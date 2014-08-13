@@ -164,6 +164,13 @@ Module {
         allowedValues: ['default', 'hidden', 'hiddenInlines', 'minimal']
     }
 
+    property string cxxLanguageVersion
+    PropertyOptions {
+        name: "cxxLanguageVersion"
+        allowedValues: ["c++98", "c++11"]
+        description: "The version of the C++ standard with which the code must comply."
+    }
+
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.
     property stringList platformCommonCompilerFlags
