@@ -317,6 +317,9 @@ void TestApi::buildProject_data()
     QTest::newRow("application without sources")
             << QString("app-without-sources")
             << relativeExecutableFilePath("appWithoutSources");
+    QTest::newRow("productNameWithDots")
+            << QString("productNameWithDots")
+            << relativeExecutableFilePath("myapp");
 }
 
 void TestApi::buildProjectDryRun()

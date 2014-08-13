@@ -764,7 +764,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     QStringList searchPaths = extraSearchPaths;
     searchPaths.append(m_moduleSearchPaths);
 
-    bool triedToLoadModule = moduleName.count() > 1;
+    bool triedToLoadModule = false;
     const QString fullName = fullModuleName(moduleName);
     foreach (const QString &path, searchPaths) {
         const QString dirPath = findExistingModulePath(path, moduleName);
