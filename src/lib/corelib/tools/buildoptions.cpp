@@ -37,7 +37,9 @@ namespace Internal {
 class BuildOptionsPrivate : public QSharedData
 {
 public:
-    BuildOptionsPrivate() : maxJobCount(0), dryRun(false), keepGoing(false), logElapsedTime(false)
+    BuildOptionsPrivate()
+        : maxJobCount(0), dryRun(false), keepGoing(false), forceTimestampCheck(false),
+          logElapsedTime(false)
     {
     }
 
