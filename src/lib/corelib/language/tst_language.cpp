@@ -120,12 +120,6 @@ void TestLanguage::handleInitCleanupDataTags(const char *projectFileName, bool *
     }
 }
 
-QString TestLanguage::buildDir(const SetupProjectParameters &params) const
-{
-    return FileInfo::resolvePath(params.buildRoot(), params.topLevelProfile()
-                                 + QLatin1Char('-') + params.buildVariant());
-}
-
 #define HANDLE_INIT_CLEANUP_DATATAGS(fn) {\
     bool handled;\
     handleInitCleanupDataTags(fn, &handled);\
@@ -1133,7 +1127,7 @@ void TestLanguage::productDirectories()
         QVERIFY(product);
         const QVariantMap config = product->productProperties;
         QCOMPARE(config.value(QLatin1String("buildDirectory")).toString(),
-                 buildDir(defaultParameters) + QLatin1Char('/') + product->uniqueName());
+                 product->buildDirectory());
         QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
     }
     catch (const ErrorInfo &e) {

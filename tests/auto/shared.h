@@ -31,6 +31,7 @@
 
 #include <tools/hostosinfo.h>
 
+#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QtTest>
@@ -56,14 +57,27 @@ inline bool regularFileExists(const QString &filePath)
     return fi.exists() && fi.isFile();
 }
 
-inline QString uniqueProductName(const QString &productName)
+inline QString uniqueProductName(const QString &productName, const QString &_profileName)
 {
-    return productName + '.' + profileName();
+    const QString p = _profileName.isEmpty() ? profileName() : _profileName;
+    return productName + '.' + p;
 }
 
-inline QString relativeProductBuildDir(const QString &productName)
+inline QString relativeProductBuildDir(const QString &productName,
+                                       const QString &profileName = QString())
 {
-    return relativeBuildDir() + '/' + uniqueProductName(productName);
+    const QString fullName = uniqueProductName(productName, profileName);
+    QString dirName = fullName;
+    for (int i = 0; i < dirName.count(); ++i) {
+        QCharRef c = dirName[i];
+        const bool okChar = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')
+                || (c >= 'a' && c <= 'z') || c == '_' || c == '.';
+        if (!okChar)
+            c = QChar::fromLatin1('_');
+    }
+    const QByteArray hash = QCryptographicHash::hash(fullName.toUtf8(), QCryptographicHash::Sha1);
+    dirName.append('.').append(hash.toHex().left(8));
+    return relativeBuildDir() + '/' + dirName;
 }
 
 inline QString relativeExecutableFilePath(const QString &productName)

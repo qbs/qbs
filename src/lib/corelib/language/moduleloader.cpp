@@ -413,10 +413,10 @@ void ModuleLoader::initProductProperties(const ProjectContext *project, Item *it
     const QString productName = m_evaluator->stringValue(item, QLatin1String("name"));
     const QString profile = m_evaluator->stringValue(item, QLatin1String("profile"));
     QBS_CHECK(!profile.isEmpty());
-    const QString uniqueName = ResolvedProduct::uniqueName(productName, profile);
+    const QString buildDir = ResolvedProduct::deriveBuildDirectoryName(productName, profile);
     item->setProperty(QLatin1String("buildDirectory"),
                       VariantValue::create(
-                          FileInfo::resolvePath(project->buildDirectory, uniqueName)));
+                          FileInfo::resolvePath(project->buildDirectory, buildDir)));
 
     item->setProperty(QLatin1String("sourceDirectory"),
                       VariantValue::create(

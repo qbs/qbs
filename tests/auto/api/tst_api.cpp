@@ -1051,16 +1051,18 @@ void TestApi::multiArch()
     QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     waitForFinished(buildJob.data());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
-    const QString outputBaseDir(setupParams.buildRoot() + "/qbs_autotests-debug");
-    QFile p1HostArtifact(outputBaseDir + "/p1.host/host+target.output");
+    const QString outputBaseDir = setupParams.buildRoot() + '/';
+    QFile p1HostArtifact(outputBaseDir
+                         + relativeProductBuildDir("p1", "host") + "/host+target.output");
     QVERIFY2(p1HostArtifact.exists(), qPrintable(p1HostArtifact.fileName()));
     QVERIFY2(p1HostArtifact.open(QIODevice::ReadOnly), qPrintable(p1HostArtifact.errorString()));
     QCOMPARE(p1HostArtifact.readAll().constData(), "host-arch");
-    QFile p1TargetArtifact(outputBaseDir + "/p1.target/host+target.output");
+    QFile p1TargetArtifact(outputBaseDir + relativeProductBuildDir("p1", "target")
+                           + "/host+target.output");
     QVERIFY2(p1TargetArtifact.exists(), qPrintable(p1TargetArtifact.fileName()));
     QVERIFY2(p1TargetArtifact.open(QIODevice::ReadOnly), qPrintable(p1TargetArtifact.errorString()));
     QCOMPARE(p1TargetArtifact.readAll().constData(), "target-arch");
-    QFile p2Artifact(outputBaseDir + "/p2.host/host-tool.output");
+    QFile p2Artifact(outputBaseDir + relativeProductBuildDir("p2", "host") + "/host-tool.output");
     QVERIFY2(p2Artifact.exists(), qPrintable(p2Artifact.fileName()));
     QVERIFY2(p2Artifact.open(QIODevice::ReadOnly), qPrintable(p2Artifact.errorString()));
     QCOMPARE(p2Artifact.readAll().constData(), "host-arch");

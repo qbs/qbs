@@ -397,6 +397,8 @@ public:
     QString uniqueName() const;
 
     QStringList generatedFiles(const QString &baseFile, const FileTags &tags) const;
+
+    static QString deriveBuildDirectoryName(const QString &name, const QString &profile);
     QString buildDirectory() const;
 
 private:
