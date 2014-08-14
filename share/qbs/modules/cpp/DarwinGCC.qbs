@@ -48,9 +48,9 @@ UnixGCC {
             "LANG": "en_US.US-ASCII",
             "PRODUCT_NAME": product.name
         }
-        if (minimumIosVersion)
+        if (qbs.targetOS.contains("ios") && minimumIosVersion)
             env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
-        if (minimumOsxVersion)
+        if (qbs.targetOS.contains("osx") && minimumOsxVersion)
             env["MACOSX_DEPLOYMENT_TARGET"] = minimumOsxVersion;
         return env;
     }
