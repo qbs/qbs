@@ -171,6 +171,13 @@ Module {
         description: "The version of the C++ standard with which the code must comply."
     }
 
+    property string cxxStandardLibrary
+    PropertyOptions {
+        name: "cxxStandardLibrary"
+        allowedValues: ["libstdc++", "libc++"]
+        description: "version of the C++ standard library to use"
+    }
+
     // Platform properties. Those are intended to be set by the toolchain setup
     // and are prepended to the corresponding user properties.
     property stringList platformCommonCompilerFlags

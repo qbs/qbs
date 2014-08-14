@@ -90,15 +90,12 @@ function linkerFlags(product, inputs) {
         }
     }
 
-    if (ModUtils.moduleProperty(product, "cxxLanguageVersion") === "c++11") {
-        if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
-            args.push("-stdlib=libc++");
-            var os = product.moduleProperty("qbs", "targetOS");
-            if (os.contains("osx"))
-                args.push("-mmacosx-version-min=10.7");
-            else if (os.contains("linux"))
-                args.push("-lc++abi");
-        }
+    if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
+        var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
+        args.push("-stdlib=" + stdlib);
+
+        if (product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
+            args.push("-lc++abi");
     }
 
     return args;
@@ -343,16 +340,18 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args = wrapperArgs.concat(args);
     }
 
-    if (tag === "cpp") {
+    if (tag === "cpp" || tag === "objcpp") {
         var cxxVersion = ModUtils.moduleProperty(product, "cxxLanguageVersion");
-        if (cxxVersion === "c++98") {
-            args.push("-std=c++98");
-        } else if (cxxVersion === "c++11") {
-            args.push("-std=c++0x"); // Deprecated, but compatible with older gcc versions.
-            if (product.moduleProperty("qbs", "toolchain").contains("clang")
-                    && product.moduleProperty("qbs", "targetOS").contains("osx")) {
-                args.push("-stdlib=libc++", "-mmacosx-version-min=10.7");
-            }
+        if (cxxVersion) {
+            var gccCxxVersionsMap = {
+                "c++98": "c++98",
+                "c++11": "c++0x" // Deprecated, but compatible with older gcc versions.
+            };
+            args.push("-std=" + gccCxxVersionsMap[cxxVersion]);
+        }
+
+        if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
+            args.push("-stdlib=" + product.moduleProperty("cpp", "cxxStandardLibrary"));
         }
     }
 

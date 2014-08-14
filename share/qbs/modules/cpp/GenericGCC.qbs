@@ -11,6 +11,12 @@ import 'gcc.js' as Gcc
 CppModule {
     condition: false
 
+    cxxStandardLibrary: {
+        if (qbs.toolchain.contains("clang")) {
+            return cxxLanguageVersion !== "c++98" ? "libc++" : "libstdc++";
+        }
+    }
+
     property stringList transitiveSOs
     property string toolchainPrefix
     property path toolchainInstallPath

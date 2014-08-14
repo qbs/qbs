@@ -14,6 +14,9 @@ UnixGCC {
     compilerDefines: ["__GNUC__", "__APPLE__"]
     dynamicLibrarySuffix: ".dylib"
 
+    minimumOsxVersion: cxxStandardLibrary === "libc++" ? "10.7" : undefined
+    minimumIosVersion: cxxStandardLibrary === "libc++" ? "5.0" : undefined
+
     validate: {
         if (qbs.sysroot) {
             var validator = new ModUtils.PropertyValidator("cpp");

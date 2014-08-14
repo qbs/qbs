@@ -302,6 +302,18 @@
     corresponding compiler and/or linker flags will be added, depending on the toolchain.
     If the value is left undefined, the compiler default will be used.
 
+    \section2 cxxStandardLibrary
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li undefined
+    \row    \li \b{Possible Values:} \li \c{"libstdc++"}, \c{"libc++"}
+    \endtable
+
+    The C++ standard library to link to. If this property is set, corresponding compiler and/or
+    linker flags will be added, assuming the value is valid for the current toolchain.
+    If the value is left undefined, the compiler default will be used.
+
     \section2 objcFlags
 
     \table
