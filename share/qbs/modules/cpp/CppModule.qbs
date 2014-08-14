@@ -73,8 +73,8 @@ Module {
     property string installNamePrefix
     PropertyOptions {
         name: "installNamePrefix"
-        description: "The prefix for the internal install name (LC_ID_DYLIB) of an OS X dynamic\
-                      library."
+        description: "The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library \
+                      on Darwin (OS X and iOS)."
     }
 
     property pathList includePaths

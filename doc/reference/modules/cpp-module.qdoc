@@ -458,6 +458,17 @@
     List of frameworks to be weakly linked.
     If the framework is part of your project, consider using a Depends item instead.
 
+    \section2 installNamePrefix
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    The prefix for the internal install name (LC_ID_DYLIB) of a dynamic library on Darwin
+    (OS X and iOS). Typically this should be set to \c{"@rpath"} on modern platforms that
+    support it, which includes OS X 10.5 and above, and all versions of iOS.
+
     \section2 infoPlistFile
 
     \table
