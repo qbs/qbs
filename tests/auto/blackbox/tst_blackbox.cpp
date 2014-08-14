@@ -425,7 +425,7 @@ void TestBlackbox::track_qrc()
     const QString fileName = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(fileName), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
-    QTest::qSleep(2020);
+    waitForNewTimestamp();
     {
         QFile f("stuff.txt");
         f.remove();
@@ -449,7 +449,7 @@ void TestBlackbox::track_qobject_change()
             + "/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
-    QTest::qSleep(1000);
+    waitForNewTimestamp();
     copyFileAndUpdateTimestamp("bla_noqobject.h", "bla.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(productFilePath));
