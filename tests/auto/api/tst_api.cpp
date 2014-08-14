@@ -122,17 +122,6 @@ static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
     return true;
 }
 
-static void printProjectData(const qbs::ProjectData &project)
-{
-    foreach (const qbs::ProductData &p, project.products()) {
-        qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
-        foreach (const qbs::GroupData &g, p.groups()) {
-            qDebug("        Group '%s' at %s", qPrintable(g.name()), qPrintable(g.location().toString()));
-            qDebug("            Files: %s", qPrintable(g.filePaths().join(QLatin1String(", "))));
-        }
-    }
-}
-
 
 TestApi::TestApi()
     : m_logSink(new LogSink)
@@ -386,6 +375,18 @@ qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
+
+static void printProjectData(const qbs::ProjectData &project)
+{
+    foreach (const qbs::ProductData &p, project.products()) {
+        qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
+        foreach (const qbs::GroupData &g, p.groups()) {
+            qDebug("        Group '%s' at %s", qPrintable(g.name()), qPrintable(g.location().toString()));
+            qDebug("            Files: %s", qPrintable(g.filePaths().join(QLatin1String(", "))));
+        }
+    }
+}
+
 void TestApi::changeContent()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-editing/project.qbs");
