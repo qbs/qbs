@@ -334,7 +334,7 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
         if (!module.compilerDefines.isEmpty())
             continue;
         module.compilerDefines
-                << QLatin1String("QT_") + module.name.toUpper() + QLatin1String("_LIB");
+                << QLatin1String("QT_") + module.qbsName.toUpper() + QLatin1String("_LIB");
     }
 
     // These are for the convenience of project file authors. It allows them
