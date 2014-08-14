@@ -121,10 +121,7 @@ CppModule {
                     '-Wl,-soname=' + UnixUtils.soname(product, lib.fileName)
                 ]);
             } else if (product.moduleProperty("qbs", "targetOS").contains('darwin')) {
-                var installNamePrefix = product.moduleProperty("cpp", "installNamePrefix");
-                if (installNamePrefix !== undefined)
-                    args.push("-Wl,-install_name,"
-                              + installNamePrefix + lib.fileName);
+                args.push("-Wl,-install_name," + UnixUtils.soname(product, lib.fileName));
                 args.push("-Wl,-headerpad_max_install_names");
             }
             args = args.concat(platformLinkerFlags);

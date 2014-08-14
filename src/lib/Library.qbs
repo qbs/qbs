@@ -9,7 +9,7 @@ Product {
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
     destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : project.libDirName
     cpp.defines: base.concat(type == "staticlibrary" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
-    cpp.installNamePrefix: "@rpath/"
+    cpp.installNamePrefix: "@rpath"
     cpp.visibility: "minimal"
     property string headerInstallPrefix: "/include/qbs"
     Group {
