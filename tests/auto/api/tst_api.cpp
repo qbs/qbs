@@ -96,6 +96,8 @@ void TestApi::initTestCase()
 
 static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
 {
+    if (job->state() == qbs::AbstractJob::StateFinished)
+        return true;
     QEventLoop loop;
     QObject::connect(job, SIGNAL(finished(bool,qbs::AbstractJob*)), &loop, SLOT(quit()));
     if (timeout > 0) {
