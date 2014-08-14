@@ -1,8 +1,9 @@
 TARGET = qbscore
 include(../library.pri)
 
-QT += script gui
+QT += script
 all_tests:QT += testlib
+qbs_enable_project_file_updates: QT += gui
 
 INCLUDEPATH += $$PWD
 
