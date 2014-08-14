@@ -333,8 +333,6 @@ void TestLanguage::erroneousFiles_data()
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("unknown_module")
             << "Product dependency 'neitherModuleNorProduct' not found";
-    QTest::newRow("submodule_syntax")
-            << "Depends.submodules cannot be used if name contains a dot";
     QTest::newRow("multiple_exports")
             << "Multiple Export items in one product are prohibited.";
     QTest::newRow("multiple_properties_in_subproject")
@@ -944,6 +942,15 @@ void TestLanguage::modules_data()
             << (QStringList() << "qbs" << "dummy" << "dummyqt.core" << "dummyqt.gui"
                               << "dummyqt.network")
             << QString("guiProperty,networkProperty");
+    QTest::newRow("deep_module_name")
+            << (QStringList() << "qbs" << "dummy" << "dummy.deep.moat")
+            << QString("abysmal");
+    QTest::newRow("deep_module_name_submodule_syntax1")
+            << (QStringList() << "qbs" << "dummy" << "dummy.deep.moat")
+            << QString("abysmal");
+    QTest::newRow("deep_module_name_submodule_syntax2")
+            << (QStringList() << "qbs" << "dummy" << "dummy.deep.moat")
+            << QString("abysmal");
     QTest::newRow("dummy_twice")
             << (QStringList() << "qbs" << "dummy")
             << QString();

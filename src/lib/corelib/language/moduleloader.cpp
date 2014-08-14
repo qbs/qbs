@@ -622,6 +622,15 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         dependsContext->productDependencies->append(pd.second);
 }
 
+static bool containsEmptyString(const QStringList &lst)
+{
+    foreach (const QString &str, lst) {
+        if (str.isEmpty())
+            return true;
+    }
+    return false;
+}
+
 void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item,
         Item *dependsItem, ItemModuleList *moduleResults,
         ProductDependencyResults *productResults)
@@ -633,13 +642,6 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         return;
     }
     const QString name = m_evaluator->property(dependsItem, QLatin1String("name")).toString();
-    const QStringList nameParts = name.split(QLatin1Char('.'));
-    if (Q_UNLIKELY(nameParts.count() > 2)) {
-        QString msg = Tr::tr("There cannot be more than one dot in a module name.");
-        throw ErrorInfo(msg, dependsItem->location());
-    }
-
-    QString superModuleName;
     bool submodulesPropertySet;
     QStringList submodules = m_evaluator->stringListValue(dependsItem, QLatin1String("submodules"),
                                                           &submodulesPropertySet);
@@ -647,41 +649,36 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
         m_logger.qbsTrace() << "Ignoring Depends item with empty submodules list.";
         return;
     }
-    if (nameParts.count() == 2) {
-        if (Q_UNLIKELY(!submodules.isEmpty()))
-            throw ErrorInfo(Tr::tr("Depends.submodules cannot be used if name contains a dot."),
-                        dependsItem->location());
-        superModuleName = nameParts.first();
-        submodules += nameParts.last();
-    }
     if (Q_UNLIKELY(submodules.count() > 1 && !dependsItem->id().isEmpty())) {
         QString msg = Tr::tr("A Depends item with more than one module cannot have an id.");
         throw ErrorInfo(msg, dependsItem->location());
     }
-    if (superModuleName.isEmpty()) {
-        if (submodules.isEmpty())
-            submodules += name;
-        else
-            superModuleName = name;
+
+    QList<QStringList> moduleNames;
+    const QStringList nameParts = name.split(QLatin1Char('.'));
+    if (submodules.isEmpty()) {
+        moduleNames << nameParts;
+    } else {
+        foreach (const QString &submodule, submodules)
+            moduleNames << nameParts + submodule.split(QLatin1Char('.'));
     }
 
-    QStringList moduleNames;
-    foreach (const QString &submoduleName, submodules)
-        moduleNames += submoduleName;
-
     Item::Module result;
-    foreach (const QString &moduleName, moduleNames) {
-        QStringList qualifiedModuleName(moduleName);
-        if (!superModuleName.isEmpty())
-            qualifiedModuleName.prepend(superModuleName);
+    foreach (const QStringList &moduleName, moduleNames) {
         const bool isRequired
                 = m_evaluator->boolValue(dependsItem, QLatin1String("required"));
-        Item *moduleItem = loadModule(dependsContext->product, item, dependsItem->location(),
-                                        dependsItem->id(), qualifiedModuleName, false, isRequired);
+        Item *moduleItem = 0;
+        if (!containsEmptyString(moduleName)) {
+            // If the list of module name parts contains empty elements then the name
+            // looks like ".foo" or "foo...bar". This cannot be a module name, but it could
+            // be a product name.
+            moduleItem = loadModule(dependsContext->product, item, dependsItem->location(),
+                                    dependsItem->id(), moduleName, false, isRequired);
+        }
         if (moduleItem) {
             if (m_logger.traceEnabled())
-                m_logger.qbsTrace() << "module loaded: " << fullModuleName(qualifiedModuleName);
-            result.name = qualifiedModuleName;
+                m_logger.qbsTrace() << "module loaded: " << fullModuleName(moduleName);
+            result.name = moduleName;
             result.item = moduleItem;
             moduleResults->append(result);
         } else {
@@ -694,7 +691,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             const bool required = m_evaluator->property(item, QLatin1String("required")).toBool();
             foreach (const QString &profile, profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
-                dependency.name = moduleName;
+                dependency.name = fullModuleName(moduleName);
                 dependency.profile = profile;
                 dependency.required = required;
                 productResults->append(ProductDependencyResult(dependsItem, dependency));

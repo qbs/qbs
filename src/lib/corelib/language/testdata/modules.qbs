@@ -27,6 +27,29 @@ Project {
         }
     }
     Product {
+        name: "deep_module_name"
+        property var foo: dummy.deep.moat.depth
+        Depends {
+            name: "dummy.deep.moat"
+        }
+    }
+    Product {
+        name: "deep_module_name_submodule_syntax1"
+        property var foo: dummy.deep.moat.depth
+        Depends {
+            name: "dummy.deep"
+            submodules: ["moat"]
+        }
+    }
+    Product {
+        name: "deep_module_name_submodule_syntax2"
+        property var foo: dummy.deep.moat.depth
+        Depends {
+            name: "dummy"
+            submodules: ["deep.moat"]
+        }
+    }
+    Product {
         name: "dummy_twice"
         Depends { name: "dummy" }
         Depends { name: "dummy" }
