@@ -33,6 +33,7 @@
 #include "item.h"
 
 #include <logging/translator.h>
+#include <tools/error.h>
 
 namespace qbs {
 namespace Internal {
