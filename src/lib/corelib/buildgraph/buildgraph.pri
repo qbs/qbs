@@ -66,7 +66,7 @@ HEADERS += \
     $$PWD/timestampsupdater.h \
     $$PWD/transformer.h
 
-all_tests {
+qbs_enable_unit_tests {
     HEADERS += $$PWD/tst_buildgraph.h
     SOURCES += $$PWD/tst_buildgraph.cpp
 }

@@ -60,7 +60,7 @@ SOURCES += \
     $$PWD/scriptengine.cpp \
     $$PWD/value.cpp
 
-all_tests {
+qbs_enable_unit_tests {
     HEADERS += $$PWD/tst_language.h
     SOURCES += $$PWD/tst_language.cpp
     OTHER_FILES += $$PWD/testdata/*

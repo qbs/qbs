@@ -11,7 +11,7 @@ unix {
     LIBS += -L$${QBSLIBDIR} -l$${LIBNAME}
 }
 
-!disable_rpath {
+!qbs_disable_rpath {
     linux-*:QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN/../$${QBS_LIBRARY_DIRNAME}\'
     macx:QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../$${QBS_LIBRARY_DIRNAME}
 }

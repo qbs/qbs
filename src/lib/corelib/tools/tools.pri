@@ -62,7 +62,7 @@ unix {
     SOURCES += $$PWD/filetime_unix.cpp
 }
 
-all_tests {
+qbs_enable_unit_tests {
     HEADERS += $$PWD/tst_tools.h
     SOURCES += $$PWD/tst_tools.cpp
 }

@@ -1,6 +1,6 @@
 TEMPLATE=subdirs
 
-all_tests {
+qbs_enable_unit_tests {
     SUBDIRS += \
         buildgraph \
         language \

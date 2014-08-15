@@ -147,8 +147,8 @@
 
     \table
     \header \li Option              \li Notes
-    \row    \li all_tests           \li Enable additional autotests.
-    \row    \li disable_rpath       \li Disable the use of rpath. This can be used when packaging
+    \row    \li qbs_enable_unit_tests           \li Enable additional autotests.
+    \row    \li qbs_disable_rpath       \li Disable the use of rpath. This can be used when packaging
                                         \QBS for distributions which do not permit the use of rpath,
                                         such as Fedora.
     \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a

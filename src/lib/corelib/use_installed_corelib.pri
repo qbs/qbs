@@ -7,7 +7,7 @@ unix {
     LIBS += -L$$QBSLIBDIR -lqbscore
 }
 
-!disable_rpath:unix:QMAKE_LFLAGS += -Wl,-rpath,$${QBSLIBDIR}
+!qbs_disable_rpath:unix:QMAKE_LFLAGS += -Wl,-rpath,$${QBSLIBDIR}
 
 !CONFIG(static, static|shared) {
     QBSCORELIBSUFFIX = $$QBS_VERSION_MAJ
