@@ -65,6 +65,7 @@ Item *Item::clone(ItemPool *pool) const
     dup->m_id = m_id;
     dup->m_typeName = m_typeName;
     dup->m_location = m_location;
+    dup->m_moduleInstance = m_moduleInstance;
     dup->m_prototype = m_prototype;
     dup->m_scope = m_scope;
     dup->m_outerItem = m_outerItem;

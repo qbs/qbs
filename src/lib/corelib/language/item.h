@@ -37,7 +37,6 @@
 #include "propertydeclaration.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
-#include <tools/error.h>
 #include <tools/weakpointer.h>
 
 #include <QList>
@@ -95,7 +94,6 @@ public:
     const PropertyDeclaration propertyDeclaration(const QString &name) const;
     const Modules &modules() const;
     Modules &modules();
-    const ErrorInfo &error() const { return m_error; }
 
     bool hasProperty(const QString &name) const;
     bool hasOwnProperty(const QString &name) const;
@@ -116,7 +114,6 @@ public:
     void setChildren(const QList<Item *> &children);
     void setParent(Item *item);
     static void addChild(Item *parent, Item *child);
-    void setError(const ErrorInfo &error) { m_error = error; }
 
 private:
     ItemPool *m_pool;
@@ -135,7 +132,6 @@ private:
     PropertyDeclarationMap m_propertyDeclarations;
     QList<FunctionDeclaration> m_functions;
     Modules m_modules;
-    ErrorInfo m_error; // For SubProject items. May or may not be reported depending on their condition.
 };
 
 inline ItemPool *Item::pool() const
