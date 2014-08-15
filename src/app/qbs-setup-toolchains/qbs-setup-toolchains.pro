@@ -4,6 +4,7 @@ TARGET = qbs-setup-toolchains
 
 HEADERS += \
     commandlineparser.h \
+    compilerversion.h \
     msvcinfo.h \
     msvcprobe.h \
     probe.h \
@@ -12,6 +13,7 @@ HEADERS += \
 
 SOURCES += \
     commandlineparser.cpp \
+    compilerversion.cpp \
     main.cpp \
     msvcprobe.cpp \
     probe.cpp \

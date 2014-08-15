@@ -29,6 +29,7 @@
 
 #include "msvcprobe.h"
 
+#include "compilerversion.h"
 #include "msvcinfo.h"
 #include "probe.h"
 #include "vsenvironmentdetector.h"
@@ -78,7 +79,10 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
         p.setValue(QLatin1String("cpp.platformCFlags"), flags);
         p.setValue(QLatin1String("cpp.platformCxxFlags"), flags);
     }
-    writeEnvironment(p, msvc.environments.value(architecture));
+    const QProcessEnvironment compilerEnvironment = msvc.environments.value(architecture);
+    setCompilerVersion(installPath + QLatin1String("/cl.exe"), QStringList(QLatin1String("msvc")),
+                       p, compilerEnvironment);
+    writeEnvironment(p, compilerEnvironment);
     profiles << p;
 }
 

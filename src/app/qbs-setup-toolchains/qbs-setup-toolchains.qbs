@@ -7,6 +7,8 @@ QbsApp {
     files: [
         "commandlineparser.cpp",
         "commandlineparser.h",
+        "compilerversion.cpp",
+        "compilerversion.h",
         "main.cpp",
         "msvcinfo.h",
         "msvcprobe.cpp",

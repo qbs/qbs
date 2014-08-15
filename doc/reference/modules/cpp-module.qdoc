@@ -263,6 +263,33 @@
 
     Flags that are added to all compilation commands independently of the language.
 
+    \section2 compilerVersionMajor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    The major version of the compiler.
+
+    \section2 compilerVersionMinor
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    The minor version of the compiler.
+
+    \section2 compilerVersionPatch
+
+    \table
+    \row    \li \b{Type:}            \li \c{int}
+    \row    \li \b{Default:}         \li undefined
+    \endtable
+
+    The patch level component of the compiler version.
+
     \section2 cppFlags
 
     \table

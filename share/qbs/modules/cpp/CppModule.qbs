@@ -2,6 +2,9 @@
 
 Module {
     condition: false
+    property int compilerVersionMajor
+    property int compilerVersionMinor
+    property int compilerVersionPatch
     property string warningLevel : 'all' // 'none', 'all'
     property bool treatWarningsAsErrors : false
     property string architecture: qbs.architecture

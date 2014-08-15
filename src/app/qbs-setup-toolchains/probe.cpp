@@ -28,6 +28,7 @@
 ****************************************************************************/
 #include "probe.h"
 
+#include "compilerversion.h"
 #include "msvcprobe.h"
 #include "xcodeprobe.h"
 
@@ -160,6 +161,7 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
                      HostOsInfo::canonicalArchitecture(architecture));
     profile.setValue(QLatin1String("qbs.endianness"),
                      HostOsInfo::defaultEndianness(architecture));
+    setCompilerVersion(compilerFilePath, toolchainTypes, profile);
     setupCompilerPathByLanguage(profile, toolchainTypes, toolchainInstallPath, toolchainPrefix);
 }
 
