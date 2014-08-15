@@ -10,6 +10,7 @@ else:DESTDIR = ../../../bin
 
 CONFIG += console
 CONFIG -= app_bundle
+CONFIG += c++11
 
 include($${PWD}/../lib/corelib/use_corelib.pri)
 include($${PWD}/shared/logging/logging.pri)

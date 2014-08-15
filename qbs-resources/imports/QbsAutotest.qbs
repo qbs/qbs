@@ -7,6 +7,7 @@ QtApplication {
     Depends { name: "Qt.test" }
     Depends { name: "qbscore" }
     cpp.includePaths: "../../../src"
+    cpp.cxxLanguageVersion: "c++11"
     destinationDirectory: "bin"
     Group {
         name: "logging"

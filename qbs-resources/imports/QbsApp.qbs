@@ -9,6 +9,7 @@ QbsProduct {
     cpp.includePaths: [
         "../shared",    // for the logger
     ]
+    cpp.cxxLanguageVersion: "c++11"
     Group {
         fileTagsFilter: product.type
         qbs.install: true

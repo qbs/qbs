@@ -10,6 +10,7 @@ QbsProduct {
     cpp.defines: base.concat(type == "staticlibrary" ? ["QBS_STATIC_LIB"] : ["QBS_LIBRARY"])
     cpp.installNamePrefix: "@rpath"
     cpp.visibility: "minimal"
+    cpp.cxxLanguageVersion: "c++11"
     property string headerInstallPrefix: "/include/qbs"
     Group {
         fileTagsFilter: product.type.concat("dynamiclibrary_symlink")
