@@ -164,6 +164,13 @@ Module {
         allowedValues: ['default', 'hidden', 'hiddenInlines', 'minimal']
     }
 
+    property string cLanguageVersion
+    PropertyOptions {
+        name: "cLanguageVersion"
+        allowedValues: ["c89", "c99", "c11"]
+        description: "The version of the C standard with which the code must comply."
+    }
+
     property string cxxLanguageVersion
     PropertyOptions {
         name: "cxxLanguageVersion"

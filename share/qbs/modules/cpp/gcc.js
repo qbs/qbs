@@ -340,6 +340,18 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args = wrapperArgs.concat(args);
     }
 
+    if (tag === "c" || tag === "objc") {
+        var cVersion = ModUtils.moduleProperty(product, "cLanguageVersion");
+        if (cVersion) {
+            var gccCVersionsMap = {
+                "c89": "c89",
+                "c99": "c99",
+                "c11": "c1x" // Deprecated, but compatible with older gcc versions.
+            };
+            args.push("-std=" + gccCVersionsMap[cVersion]);
+        }
+    }
+
     if (tag === "cpp" || tag === "objcpp") {
         var cxxVersion = ModUtils.moduleProperty(product, "cxxLanguageVersion");
         if (cxxVersion) {
