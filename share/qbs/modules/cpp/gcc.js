@@ -92,7 +92,9 @@ function linkerFlags(product, inputs) {
 
     if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
         var stdlib = product.moduleProperty("cpp", "cxxStandardLibrary");
-        args.push("-stdlib=" + stdlib);
+        if (stdlib) {
+            args.push("-stdlib=" + stdlib);
+        }
 
         if (product.moduleProperty("qbs", "targetOS").contains("linux") && stdlib === "libc++")
             args.push("-lc++abi");
@@ -362,8 +364,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
             args.push("-std=" + gccCxxVersionsMap[cxxVersion]);
         }
 
-        if (product.moduleProperty("qbs", "toolchain").contains("clang")) {
-            args.push("-stdlib=" + product.moduleProperty("cpp", "cxxStandardLibrary"));
+        var cxxStandardLibrary = product.moduleProperty("cpp", "cxxStandardLibrary");
+        if (cxxStandardLibrary && product.moduleProperty("qbs", "toolchain").contains("clang")) {
+            args.push("-stdlib=" + cxxStandardLibrary);
         }
     }
 

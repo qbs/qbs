@@ -12,7 +12,7 @@ CppModule {
     condition: false
 
     cxxStandardLibrary: {
-        if (qbs.toolchain.contains("clang")) {
+        if (cxxLanguageVersion && qbs.toolchain.contains("clang")) {
             return cxxLanguageVersion !== "c++98" ? "libc++" : "libstdc++";
         }
     }

@@ -105,13 +105,7 @@ Module {
         libs = libs.concat(dynamicLibs);
         return libs;
     }
-    cpp.linkerFlags: {
-        var flags = coreLinkerFlags;
-        if (qbs.targetOS.contains('darwin') && qbs.toolchain.contains('clang')
-                && config.contains('c++11'))
-            flags.push('-stdlib=libc++');
-        return flags;
-    }
+    cpp.linkerFlags: coreLinkerFlags
     cpp.frameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
     cpp.frameworks: {
         var frameworks = coreFrameworks
@@ -132,10 +126,13 @@ Module {
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');
         }
+
+        return flags;
+    }
+    cpp.cxxStandardLibrary: {
         if (qbs.targetOS.contains('darwin') && qbs.toolchain.contains('clang')
                 && config.contains('c++11'))
-            flags.push('-stdlib=libc++');
-        return flags;
+            return "libc++";
     }
 
     additionalProductTypes: ["qm"]
