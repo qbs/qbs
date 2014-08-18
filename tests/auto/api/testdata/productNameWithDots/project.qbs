@@ -1,7 +1,8 @@
 import qbs
 Project {
-    Application {
+    Product {
         Depends { name: "cpp" }
+        type: ["application"]
         name: "myapp"
         Depends { name: "foo.bar.bla" }
         files: ["app.cpp"]
