@@ -1790,4 +1790,14 @@ void TestBlackbox::testAssetCatalog()
         QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
+void TestBlackbox::testObjcArc()
+{
+    if (!HostOsInfo::isOsxHost())
+        SKIP_TEST("only applies on platforms supporting Objective-C");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/objc-arc"));
+
+    QCOMPARE(runQbs(), 0);
+}
+
 QTEST_MAIN(TestBlackbox)

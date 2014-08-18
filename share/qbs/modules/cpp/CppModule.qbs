@@ -214,6 +214,12 @@ Module {
     property string xcodeSdkName
     property string xcodeSdkVersion
 
+    property bool useObjcAutomaticReferenceCounting
+    PropertyOptions {
+        name: "useObjcAutomaticReferenceCounting"
+        description: "whether to enable Objective-C Automatic Reference Counting (ARC) mode"
+    }
+
     property bool allowUnresolvedSymbols: false
 
     FileTagger {

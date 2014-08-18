@@ -560,6 +560,16 @@
 
     The file format to write the product's resulting Info.plist in.
 
+    \section2 useObjcAutomaticReferenceCounting
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{undefined}
+    \endtable
+
+    Whether to enable Objective-C Automatic Reference Counting (ARC) mode for Objective-C and
+    Objective-C++ source code. If \c{undefined}, uses the compiler default (probably \c{false}).
+
 
     \section1 Properties Specific to iOS
 
