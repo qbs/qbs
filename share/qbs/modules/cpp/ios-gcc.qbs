@@ -10,6 +10,18 @@ DarwinGCC {
     // Setting a minimum is especially important for Simulator or CC/LD thinks the target is OS X
     minimumIosVersion: xcodeSdkVersion || (cxxStandardLibrary === "libc++" ? "5.0" : undefined)
 
+    platformObjcFlags: base.concat(simulatorObjcFlags)
+    platformObjcxxFlags: base.concat(simulatorObjcFlags)
+
+    // Private properties
+    readonly property stringList simulatorObjcFlags: {
+        // default in Xcode and also required for building 32-bit Simulator binaries with ARC
+        // since the default ABI version is 0 for 32-bit targets
+        return qbs.targetOS.contains("ios-simulator")
+                ? ["-fobjc-abi-version=2", "-fobjc-legacy-dispatch"]
+                : [];
+    }
+
     Rule {
         condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
         multiplex: true
