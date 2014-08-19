@@ -7,17 +7,6 @@ import qbs.ModUtils
 DarwinGCC {
     condition: qbs.hostOS.contains('osx') && qbs.targetOS.contains('ios') && qbs.toolchain.contains('gcc')
 
-    visibility: "hidden"
-    optimization: {
-        if (qbs.buildVariant === "debug")
-            return "none";
-        return qbs.targetOS.contains('ios-simulator') ? "fast" : "small"
-    }
-
-    platformCommonCompilerFlags: base.concat(["-fvisibility-inlines-hidden", "-g", "-gdwarf-2", "-fPIE"])
-    commonCompilerFlags: ["-fpascal-strings", "-fexceptions", "-fasm-blocks", "-fstrict-aliasing"]
-    linkerFlags: base.concat(["-dead_strip", "-headerpad_max_install_names"])
-
     Rule {
         condition: !product.moduleProperty("qbs", "targetOS").contains("ios-simulator")
         multiplex: true
