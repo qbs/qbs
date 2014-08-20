@@ -173,6 +173,10 @@ UnixGCC {
             cmd.sysroot = product.moduleProperty("qbs", "sysroot");
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
             cmd.qmakeEnv = product.moduleProperty("cpp", "qmakeEnv");
+            cmd.defines = product.moduleProperty("cpp", "defines");
+            cmd.platformDefines = product.moduleProperty("cpp", "platformDefines");
+            cmd.compilerDefines = product.moduleProperty("cpp", "compilerDefines");
+            cmd.allDefines = cmd.defines.concat(cmd.platformDefines).concat(cmd.compilerDefines);
 
             cmd.platformInfoPlist = product.moduleProperty("cpp", "platformInfoPlist");
             cmd.sdkSettingsPlist = product.moduleProperty("cpp", "sdkSettingsPlist");
@@ -181,7 +185,7 @@ UnixGCC {
             cmd.osBuildVersion = product.moduleProperty("qbs", "hostOSBuildVersion");
 
             cmd.sourceCode = function() {
-                var plist, process, key;
+                var plist, process, key, i;
 
                 // Contains the combination of default, file, and in-source keys and values
                 // Start out with the contents of this file as the "base", if given
@@ -286,6 +290,11 @@ UnixGCC {
 
                     for (key in qmakeEnv)
                         env[key] = qmakeEnv[key];
+
+                    for (i = 0; i < allDefines.length; ++i) {
+                        var parts = allDefines[i].split('=');
+                        env[parts[0]] = parts[1];
+                    }
 
                     DarwinTools.expandPlistEnvironmentVariables(aggregatePlist, env, true);
 
