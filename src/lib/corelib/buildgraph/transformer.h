@@ -57,9 +57,9 @@ public:
     ArtifactSet outputs;
     RuleConstPtr rule;
     QList<AbstractCommandPtr> commands;
-    PropertyList propertiesRequestedInPrepareScript;
-    PropertyList propertiesRequestedInCommands;
-    QHash<QString, PropertyList> propertiesRequestedFromArtifactInPrepareScript;
+    PropertySet propertiesRequestedInPrepareScript;
+    PropertySet propertiesRequestedInCommands;
+    QHash<QString, PropertySet> propertiesRequestedFromArtifactInPrepareScript;
 
     static QScriptValue translateFileConfig(QScriptEngine *scriptEngine,
                                             Artifact *artifact,

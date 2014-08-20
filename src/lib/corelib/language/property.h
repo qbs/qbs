@@ -72,7 +72,7 @@ inline uint qHash(const Property &p)
     return QT_PREPEND_NAMESPACE(qHash)(p.moduleName + p.propertyName);
 }
 
-typedef QSet<Property> PropertyList;
+typedef QSet<Property> PropertySet;
 
 } // namespace Internal
 } // namespace qbs

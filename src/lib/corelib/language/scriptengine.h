@@ -70,8 +70,8 @@ public:
         m_propertiesRequestedInScript.clear();
         m_propertiesRequestedFromArtifact.clear();
     }
-    PropertyList propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
-    QHash<QString, PropertyList> propertiesRequestedFromArtifact() const {
+    PropertySet propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
+    QHash<QString, PropertySet> propertiesRequestedFromArtifact() const {
         return m_propertiesRequestedFromArtifact;
     }
 
@@ -152,8 +152,8 @@ private:
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
-    PropertyList m_propertiesRequestedInScript;
-    QHash<QString, PropertyList> m_propertiesRequestedFromArtifact;
+    PropertySet m_propertiesRequestedInScript;
+    QHash<QString, PropertySet> m_propertiesRequestedFromArtifact;
     Logger m_logger;
     QScriptValue m_definePropertyFunction;
     QScriptValue m_emptyFunction;

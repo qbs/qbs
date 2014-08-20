@@ -722,7 +722,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const TransformerPtr &restoredTra
     }
 
     QMap<QString, SourceArtifactConstPtr> artifactMap;
-    for (QHash<QString, PropertyList>::ConstIterator it =
+    for (QHash<QString, PropertySet>::ConstIterator it =
          restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != restoredTrafo->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
         const SourceArtifactConstPtr artifact

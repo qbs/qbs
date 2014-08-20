@@ -230,7 +230,7 @@ void Transformer::createCommands(const ScriptFunctionConstPtr &script,
     }
 }
 
-static void restorePropertyList(PersistentPool &pool, PropertyList &list)
+static void restorePropertyList(PersistentPool &pool, PropertySet &list)
 {
     int count;
     pool.stream() >> count;
@@ -260,7 +260,7 @@ void Transformer::load(PersistentPool &pool)
         const QString artifactName = pool.idLoadString();
         int listCount;
         pool.stream() >> listCount;
-        PropertyList list;
+        PropertySet list;
         list.reserve(listCount);
         while (--listCount >= 0) {
             Property p;
@@ -275,7 +275,7 @@ void Transformer::load(PersistentPool &pool)
     commands = loadCommandList(pool);
 }
 
-static void storePropertyList(PersistentPool &pool, const PropertyList &list)
+static void storePropertyList(PersistentPool &pool, const PropertySet &list)
 {
     pool.stream() << list.count();
     foreach (const Property &p, list) {
@@ -293,10 +293,10 @@ void Transformer::store(PersistentPool &pool) const
     storePropertyList(pool, propertiesRequestedInPrepareScript);
     storePropertyList(pool, propertiesRequestedInCommands);
     pool.stream() << propertiesRequestedFromArtifactInPrepareScript.count();
-    for (QHash<QString, PropertyList>::ConstIterator it = propertiesRequestedFromArtifactInPrepareScript.constBegin();
+    for (QHash<QString, PropertySet>::ConstIterator it = propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
         pool.storeString(it.key());
-        const PropertyList &properties = it.value();
+        const PropertySet &properties = it.value();
         pool.stream() << properties.count();
         foreach (const Property &p, properties) {
             pool.storeString(p.moduleName);
