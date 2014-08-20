@@ -372,18 +372,18 @@ UnixGCC {
 
         prepare: {
             var commands = [];
-            var cmd = new Command("ln", ["-sf", BundleTools.frameworkVersion(product), "Current"]);
+            var cmd = new Command("ln", ["-sfn", BundleTools.frameworkVersion(product), "Current"]);
             cmd.workingDirectory = output.filePath + "/Versions";
             cmd.description = "creating framework " + product.targetName;
             cmd.highlight = "codegen";
             commands.push(cmd);
 
-            cmd = new Command("ln", ["-sf", "Versions/Current/Headers", "Headers"]);
+            cmd = new Command("ln", ["-sfn", "Versions/Current/Headers", "Headers"]);
             cmd.workingDirectory = output.filePath;
             cmd.silent = true;
             commands.push(cmd);
 
-            cmd = new Command("ln", ["-sf", "Versions/Current/Resources", "Resources"]);
+            cmd = new Command("ln", ["-sfn", "Versions/Current/Resources", "Resources"]);
             cmd.workingDirectory = output.filePath;
             cmd.silent = true;
             commands.push(cmd);
