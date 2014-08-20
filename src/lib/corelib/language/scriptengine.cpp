@@ -30,6 +30,7 @@
 
 #include "scriptengine.h"
 
+#include "evaluatorscriptclass.h"
 #include "filecontextbase.h"
 #include "item.h"
 #include "propertymapinternal.h"
@@ -89,6 +90,7 @@ ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
     QBS_ASSERT(m_emptyFunction.isFunction(), /* ignore */);
     // Initially push a new context to turn off scope chain insanity mode.
     QScriptEngine::pushContext();
+    installQbsBuiltins();
     extendJavaScriptBuiltins();
 }
 
@@ -492,6 +494,17 @@ private:
     QScriptValue m_descriptor;
 };
 
+void ScriptEngine::installQbsBuiltins()
+{
+    globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = evaluate(QLatin1String("{}")));
+    installQbsFunction(QLatin1String("getNativeSetting"),
+                       EvaluatorScriptClass::js_getNativeSetting);
+    installQbsFunction(QLatin1String("getEnv"),
+                       EvaluatorScriptClass::js_getEnv);
+    installQbsFunction(QLatin1String("canonicalArchitecture"),
+                       EvaluatorScriptClass::js_canonicalArchitecture);
+}
+
 void ScriptEngine::extendJavaScriptBuiltins()
 {
     JSTypeExtender arrayExtender(this, QLatin1String("Array"));
@@ -520,11 +533,17 @@ void ScriptEngine::extendJavaScriptBuiltins()
 }
 
 void ScriptEngine::installFunction(const QString &name, QScriptValue *functionValue,
-        FunctionSignature f)
+        FunctionSignature f, QScriptValue *targetObject = 0)
 {
     if (!functionValue->isValid())
         *functionValue = newFunction(f);
-    globalObject().setProperty(name, *functionValue);
+    (targetObject ? *targetObject : globalObject()).setProperty(name, *functionValue);
+}
+
+void ScriptEngine::installQbsFunction(const QString &name, FunctionSignature f)
+{
+    QScriptValue functionValue;
+    installFunction(name, &functionValue, f, &m_qbsObject);
 }
 
 void ScriptEngine::installImportFunctions()

@@ -59,15 +59,16 @@ public:
 
     QScriptValue scriptValueForBuiltin(BuiltinValue::Builtin builtin) const;
 
+    static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
+
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
                                  const QString &name,
                                  bool ignoreParent = false);
     static QString resultToString(const QScriptValue &scriptValue);
     static Item *findParentOfType(const Item *item, const QString &typeName);
-    static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
 
     struct QueryResult
     {
