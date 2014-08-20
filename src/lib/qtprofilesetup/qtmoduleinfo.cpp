@@ -114,10 +114,10 @@ QString QtModuleInfo::libNameForLinker(const QtEnvironment &qtEnvironment, bool 
     return libName;
 }
 
-void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv)
+void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, QSet<QString> *nonExistingPrlFiles)
 {
-    setupLibraries(qtEnv, true);
-    setupLibraries(qtEnv, false);
+    setupLibraries(qtEnv, true, nonExistingPrlFiles);
+    setupLibraries(qtEnv, false, nonExistingPrlFiles);
 }
 
 static QStringList makeList(const QByteArray &s)
@@ -125,7 +125,8 @@ static QStringList makeList(const QByteArray &s)
     return QString::fromLatin1(s).split(QLatin1Char(' '), QString::SkipEmptyParts);
 }
 
-void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
+void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
+                                  QSet<QString> *nonExistingPrlFiles)
 {
     QStringList &libs = isStaticLibrary
             ? (debugBuild ? staticLibrariesDebug : staticLibrariesRelease)
@@ -156,6 +157,8 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
     if (!qtEnv.mkspecName.contains(QLatin1String("win")) && !qtEnv.frameworkBuild)
         prlFilePath += QLatin1String("lib");
     prlFilePath.append(libraryBaseName(qtEnv, debugBuild)).append(QLatin1String(".prl"));
+    if (nonExistingPrlFiles->contains(prlFilePath))
+        return;
     QFile prlFile(prlFilePath);
     if (!prlFile.open(QIODevice::ReadOnly)) {
         // We can't error out here, as some modules in a self-built Qt don't have the expected
@@ -163,6 +166,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
         // to work around, so let's ignore it.
         qDebug("Skipping prl file '%s', because it cannot be opened (%s).", qPrintable(prlFilePath),
                qPrintable(prlFile.errorString()));
+        nonExistingPrlFiles->insert(prlFilePath);
         return;
     }
     const QList<QByteArray> prlLines = prlFile.readAll().split('\n');
@@ -385,6 +389,7 @@ static void replaceQtLibNamesWithFilePath(const NamePathHash &namePathHash, QStr
 
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
 {
+    QSet<QString> nonExistingPrlFiles;
     QList<QtModuleInfo> modules;
     QDirIterator dit(qtEnvironment.mkspecBasePath + QLatin1String("/modules"));
     while (dit.hasNext()) {
@@ -478,7 +483,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             }
         }
 
-        moduleInfo.setupLibraries(qtEnvironment);
+        moduleInfo.setupLibraries(qtEnvironment, &nonExistingPrlFiles);
 
         modules << moduleInfo;
         if (moduleInfo.qbsName == QLatin1String("testlib"))
