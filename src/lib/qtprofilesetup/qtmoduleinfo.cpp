@@ -41,6 +41,42 @@
 namespace qbs {
 namespace Internal {
 
+typedef QHash<QString, QString> NamePathHash;
+static void replaceQtLibNamesWithFilePath(const NamePathHash &namePathHash, QStringList *libList)
+{
+    for (int i = 0; i < libList->count(); ++i) {
+        QString &lib = (*libList)[i];
+        const NamePathHash::ConstIterator it = namePathHash.find(lib);
+        if (it != namePathHash.constEnd())
+            lib = it.value();
+    }
+}
+
+static void replaceQtLibNamesWithFilePath(QList<QtModuleInfo> *modules, const QtEnvironment &qtEnv)
+{
+    // We don't want to add the libraries for Qt modules via "-l", because of the
+    // danger that a wrong one will be picked up, e.g. from /usr/lib. Instead,
+    // we pull them in using the full file path.
+    typedef QHash<QString, QString> NamePathHash;
+    NamePathHash linkerNamesToFilePathsDebug;
+    NamePathHash linkerNamesToFilePathsRelease;
+    foreach (const QtModuleInfo &m, *modules) {
+        linkerNamesToFilePathsDebug.insert(m.libNameForLinker(qtEnv, true), m.libFilePathDebug);
+        linkerNamesToFilePathsRelease.insert(m.libNameForLinker(qtEnv, false),
+                                             m.libFilePathRelease);
+    }
+    for (int i = 0; i < modules->count(); ++i) {
+        QtModuleInfo &module = (*modules)[i];
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.dynamicLibrariesDebug);
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.staticLibrariesDebug);
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
+                                      &module.dynamicLibrariesRelease);
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
+                                      &module.staticLibrariesRelease);
+    }
+}
+
+
 QtModuleInfo::QtModuleInfo()
     : isPrivate(false), hasLibrary(true), isStaticLibrary(false), isPlugin(false)
 {
@@ -373,18 +409,12 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     addTestModule(modules);
     addDesignerComponentsModule(modules);
 
-    return modules;
-}
+    QSet<QString> nonExistingPrlFiles;
+    for (int i = 0; i < modules.count(); ++i)
+        modules[i].setupLibraries(qtEnvironment, &nonExistingPrlFiles);
+    replaceQtLibNamesWithFilePath(&modules, qtEnvironment);
 
-typedef QHash<QString, QString> NamePathHash;
-static void replaceQtLibNamesWithFilePath(const NamePathHash &namePathHash, QStringList *libList)
-{
-    for (int i = 0; i < libList->count(); ++i) {
-        QString &lib = (*libList)[i];
-        const NamePathHash::ConstIterator it = namePathHash.find(lib);
-        if (it != namePathHash.constEnd())
-            lib = it.value();
-    }
+    return modules;
 }
 
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
@@ -492,28 +522,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             addDesignerComponentsModule(modules);
     }
 
-    // We don't want to add the libraries for Qt modules via "-l", because of the
-    // danger that a wrong one will be picked up, e.g. from /usr/lib. Instead,
-    // we pull them in using the full file path.
-    typedef QHash<QString, QString> NamePathHash;
-    NamePathHash linkerNamesToFilePathsDebug;
-    NamePathHash linkerNamesToFilePathsRelease;
-    foreach (const QtModuleInfo &m, modules) {
-        linkerNamesToFilePathsDebug.insert(m.libNameForLinker(qtEnvironment, true),
-                                           m.libFilePathDebug);
-        linkerNamesToFilePathsRelease.insert(m.libNameForLinker(qtEnvironment, false),
-                                           m.libFilePathRelease);
-    }
-    for (int i = 0; i < modules.count(); ++i) {
-        QtModuleInfo &module = modules[i];
-        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.dynamicLibrariesDebug);
-        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.staticLibrariesDebug);
-        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
-                                      &module.dynamicLibrariesRelease);
-        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
-                                      &module.staticLibrariesRelease);
-    }
-
+    replaceQtLibNamesWithFilePath(&modules, qtEnvironment);
     return modules;
 }
 
