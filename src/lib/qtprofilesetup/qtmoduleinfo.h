@@ -64,6 +64,8 @@ public:
     QStringList dynamicLibrariesRelease;
     QStringList linkerFlagsDebug;
     QStringList linkerFlagsRelease;
+    QString libFilePathDebug;
+    QString libFilePathRelease;
     QStringList frameworksDebug;
     QStringList frameworksRelease;
     QStringList frameworkPathsDebug;

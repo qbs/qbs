@@ -36,6 +36,7 @@
 
 #include <QDirIterator>
 #include <QFile>
+#include <QHash>
 
 namespace qbs {
 namespace Internal {
@@ -132,6 +133,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
     QStringList &frameworks = debugBuild ? frameworksDebug : frameworksRelease;
     QStringList &frameworkPaths = debugBuild ? frameworkPathsDebug : frameworkPathsRelease;
     QStringList &flags = debugBuild ? linkerFlagsDebug : linkerFlagsRelease;
+    QString &libFilePath = debugBuild ? libFilePathDebug : libFilePathRelease;
 
     if (qtEnv.mkspecName.contains(QLatin1String("ios")) && isStaticLibrary) {
         QtModuleInfo platformSupportModule = *this;
@@ -150,6 +152,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
     prlFilePath += QLatin1Char('/');
     if (qtEnv.frameworkBuild)
         prlFilePath.append(libraryBaseName(qtEnv, false)).append(QLatin1String(".framework/"));
+    const QString libDir = prlFilePath;
     if (!qtEnv.mkspecName.contains(QLatin1String("win")) && !qtEnv.frameworkBuild)
         prlFilePath += QLatin1String("lib");
     prlFilePath.append(libraryBaseName(qtEnv, debugBuild)).append(QLatin1String(".prl"));
@@ -165,10 +168,19 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild)
     const QList<QByteArray> prlLines = prlFile.readAll().split('\n');
     foreach (const QByteArray &line, prlLines) {
         const QByteArray simplifiedLine = line.simplified();
-        if (!simplifiedLine.startsWith("QMAKE_PRL_LIBS"))
-            continue;
         const int equalsOffset = simplifiedLine.indexOf('=');
         if (equalsOffset == -1)
+            continue;
+        if (simplifiedLine.startsWith("QMAKE_PRL_TARGET")) {
+            libFilePath = libDir
+                    + QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed());
+            if (qtEnv.mkspecName.contains(QLatin1String("msvc")))
+                libFilePath += QLatin1String(".lib");
+            else if (qtEnv.mkspecName.contains(QLatin1String("mingw")))
+                libFilePath += QLatin1String(".a");
+            continue;
+        }
+        if (!simplifiedLine.startsWith("QMAKE_PRL_LIBS"))
             continue;
 
         // Assuming lib names and directories without spaces here.
@@ -360,6 +372,17 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     return modules;
 }
 
+typedef QHash<QString, QString> NamePathHash;
+static void replaceQtLibNamesWithFilePath(const NamePathHash &namePathHash, QStringList *libList)
+{
+    for (int i = 0; i < libList->count(); ++i) {
+        QString &lib = (*libList)[i];
+        const NamePathHash::ConstIterator it = namePathHash.find(lib);
+        if (it != namePathHash.constEnd())
+            lib = it.value();
+    }
+}
+
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
 {
     QList<QtModuleInfo> modules;
@@ -462,6 +485,28 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             addTestModule(modules);
         if (moduleInfo.qbsName == QLatin1String("designercomponents-private"))
             addDesignerComponentsModule(modules);
+    }
+
+    // We don't want to add the libraries for Qt modules via "-l", because of the
+    // danger that a wrong one will be picked up, e.g. from /usr/lib. Instead,
+    // we pull them in using the full file path.
+    typedef QHash<QString, QString> NamePathHash;
+    NamePathHash linkerNamesToFilePathsDebug;
+    NamePathHash linkerNamesToFilePathsRelease;
+    foreach (const QtModuleInfo &m, modules) {
+        linkerNamesToFilePathsDebug.insert(m.libNameForLinker(qtEnvironment, true),
+                                           m.libFilePathDebug);
+        linkerNamesToFilePathsRelease.insert(m.libNameForLinker(qtEnvironment, false),
+                                           m.libFilePathRelease);
+    }
+    for (int i = 0; i < modules.count(); ++i) {
+        QtModuleInfo &module = modules[i];
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.dynamicLibrariesDebug);
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsDebug, &module.staticLibrariesDebug);
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
+                                      &module.dynamicLibrariesRelease);
+        replaceQtLibNamesWithFilePath(linkerNamesToFilePathsRelease,
+                                      &module.staticLibrariesRelease);
     }
 
     return modules;

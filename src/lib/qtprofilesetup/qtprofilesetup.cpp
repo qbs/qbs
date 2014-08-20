@@ -101,6 +101,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     content->replace("@frameworkPathsRelease@", utf8JSLiteral(module.frameworkPathsRelease));
     content->replace("@frameworksDebug@", utf8JSLiteral(module.frameworksDebug));
     content->replace("@frameworksRelease@", utf8JSLiteral(module.frameworksRelease));
+    content->replace("@libFilePathDebug@", utf8JSLiteral(module.libFilePathDebug));
+    content->replace("@libFilePathRelease@", utf8JSLiteral(module.libFilePathRelease));
     content->replace("@libNameForLinkerDebug@",
                     utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
     content->replace("@libNameForLinkerRelease@",
