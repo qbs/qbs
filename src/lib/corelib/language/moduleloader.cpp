@@ -1093,6 +1093,8 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
     prototype->setProperty(QLatin1String("hostOS"), VariantValue::create(hostOS()));
     prototype->setProperty(QLatin1String("canonicalArchitecture"),
                            BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
+    prototype->setProperty(QLatin1String("rfc1034Identifier"),
+                           BuiltinValue::create(BuiltinValue::Rfc1034IdentifierFunction));
 }
 
 static void collectItemsWithId_impl(Item *item, QList<Item *> *result)

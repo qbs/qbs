@@ -218,6 +218,24 @@ void TestLanguage::canonicalArchitecture()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::rfc1034Identifier()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("rfc1034identifier.qbs"));
+        project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        ResolvedProductPtr product = products.value(QLatin1String("this-has-special-characters-"
+                                                                  "uh-oh-Undersc0r3s-Are.Bad"));
+        QVERIFY(product);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::conditionalDepends()
 {
     bool exceptionCaught = false;

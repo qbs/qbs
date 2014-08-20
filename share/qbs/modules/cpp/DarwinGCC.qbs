@@ -80,7 +80,7 @@ UnixGCC {
 
     readonly property var qmakeEnv: {
         return {
-            "BUNDLEIDENTIFIER": "org.example." + DarwinTools.rfc1034(product.targetName),
+            "BUNDLEIDENTIFIER": "org.example." + qbs.rfc1034Identifier(product.targetName),
             "EXECUTABLE": product.targetName,
             "FULL_VERSION": product.version || "1.0", // CFBundleVersion
             "ICON": product.targetName, // ### QBS-73
@@ -100,7 +100,7 @@ UnixGCC {
             CFBundleDevelopmentRegion: "en", // default localization
             CFBundleDisplayName: product.targetName, // localizable
             CFBundleExecutable: product.targetName,
-            CFBundleIdentifier: "org.example." + DarwinTools.rfc1034(product.targetName),
+            CFBundleIdentifier: "org.example." + qbs.rfc1034Identifier(product.targetName),
             CFBundleInfoDictionaryVersion: "6.0",
             CFBundleName: product.targetName, // short display name of the bundle, localizable
             CFBundlePackageType: BundleTools.packageType(product),

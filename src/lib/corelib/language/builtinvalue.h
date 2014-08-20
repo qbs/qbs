@@ -43,7 +43,8 @@ public:
     {
         GetNativeSettingFunction,
         GetEnvFunction,
-        CanonicalArchitectureFunction
+        CanonicalArchitectureFunction,
+        Rfc1034IdentifierFunction
     };
 
     static BuiltinValuePtr create(Builtin builtin);

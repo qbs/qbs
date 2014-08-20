@@ -503,6 +503,8 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_getEnv);
     installQbsFunction(QLatin1String("canonicalArchitecture"),
                        EvaluatorScriptClass::js_canonicalArchitecture);
+    installQbsFunction(QLatin1String("rfc1034Identifier"),
+                       EvaluatorScriptClass::js_rfc1034identifier);
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()

@@ -258,6 +258,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
+    m_rfc1034identifierBuiltin = scriptEngine->newFunction(js_rfc1034identifier, 1);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -424,6 +425,8 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
         return m_getEnvBuiltin;
     case BuiltinValue::CanonicalArchitectureFunction:
         return m_canonicalArchitectureBuiltin;
+    case BuiltinValue::Rfc1034IdentifierFunction:
+        return m_rfc1034identifierBuiltin;
     }
     QBS_ASSERT(!"unhandled builtin", ;);
     return QScriptValue();
@@ -470,6 +473,17 @@ QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *cont
     }
     const QString architecture = context->argument(0).toString();
     return engine->toScriptValue(canonicalArchitecture(architecture));
+}
+
+QScriptValue EvaluatorScriptClass::js_rfc1034identifier(QScriptContext *context,
+                                                        QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("rfc1034Identifier expects 1 argument"));
+    }
+    const QString identifier = context->argument(0).toString();
+    return engine->toScriptValue(HostOsInfo::rfc1034Identifier(identifier));
 }
 
 } // namespace Internal

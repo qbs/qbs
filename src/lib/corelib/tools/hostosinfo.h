@@ -67,6 +67,7 @@ public:
     static bool isLinuxHost() { return hostOs() == HostOsLinux; }
     static bool isOsxHost() { return hostOs() == HostOsOsx; }
     static inline bool isAnyUnixHost();
+    static inline QString rfc1034Identifier(const QString &str);
 
     static QString appendExecutableSuffix(const QString &executable)
     {
@@ -120,6 +121,21 @@ bool HostOsInfo::isAnyUnixHost()
 #else
     return false;
 #endif
+}
+
+QString HostOsInfo::rfc1034Identifier(const QString &str)
+{
+    QString s = str;
+    for (int i = 0; i < s.size(); ++i) {
+        QCharRef ch = s[i];
+        const char c = ch.toLatin1();
+
+        const bool okChar = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')
+                || (c >= 'a' && c <= 'z') || c == '-' || c == '.';
+        if (!okChar)
+            ch = QChar::fromLatin1('-');
+    }
+    return s;
 }
 
 } // namespace Internal

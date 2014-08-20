@@ -18,7 +18,9 @@ function applePlatformName(targetOSList) {
   * Replace characters unsafe for use in a domain name with a '-' character (RFC 1034).
   */
 function rfc1034(inStr) {
-    return inStr.replace(/[^-A-Za-z0-9.]/g, '-');
+    // ### Remove in Qbs 1.5
+    print("WARNING: DarwinTools.rfc1034 is deprecated; use qbs.rfc1034Identifier instead");
+    return qbs.rfc1034Identifier(inStr);
 }
 
 /**
@@ -120,7 +122,7 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
                     if (varFormatter !== undefined)
                         varFormatter = varFormatter.toLowerCase();
                     if (varFormatter === "rfc1034identifier")
-                        varValue = rfc1034(varValue);
+                        varValue = qbs.rfc1034Identifier(varValue);
                     value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
                     // avoid recursive substitutions to avoid potentially infinite loops
                     i += varValue.length;

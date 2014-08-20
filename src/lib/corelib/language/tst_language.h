@@ -70,6 +70,7 @@ private slots:
     void buildConfigStringListSyntax();
     void builtinFunctionInSearchPathsProperty();
     void canonicalArchitecture();
+    void rfc1034Identifier();
     void conditionalDepends();
     void environmentVariable();
     void erroneousFiles_data();

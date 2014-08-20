@@ -757,18 +757,9 @@ QString ResolvedProduct::deriveBuildDirectoryName(const QString &name, const QSt
 {
     QString dirName = uniqueName(name, profile);
     const QByteArray hash = QCryptographicHash::hash(dirName.toUtf8(), QCryptographicHash::Sha1);
-    for (int i = 0; i < dirName.count(); ++i) {
-        QCharRef ch = dirName[i];
-        const char c = ch.toLatin1();
-
-        // Let's be conservative with what characters we allow for file system entries.
-        const bool okChar = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')
-                || (c >= 'a' && c <= 'z') || c == '_' || c == '.';
-        if (!okChar)
-            ch = QChar::fromLatin1('_');
-    }
-    dirName.append(QLatin1Char('.')).append(QString::fromLatin1(hash.toHex().left(8)));
-    return dirName;
+    return HostOsInfo::rfc1034Identifier(dirName)
+            .append(QLatin1Char('.'))
+            .append(QString::fromLatin1(hash.toHex().left(8)));
 }
 
 QString ResolvedProduct::buildDirectory() const
