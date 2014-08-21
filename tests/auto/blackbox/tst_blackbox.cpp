@@ -1694,6 +1694,14 @@ void TestBlackbox::fileDependencies()
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 }
 
+void TestBlackbox::installedTransformerOutput()
+{
+    QDir::setCurrent(testDataDir + "/installed-transformer-output");
+    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    const QString installedFilePath = defaultInstallRoot + "/textfiles/HelloWorld.txt";
+    QVERIFY2(QFile::exists(installedFilePath), qPrintable(installedFilePath));
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions");

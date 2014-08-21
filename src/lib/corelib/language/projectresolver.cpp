@@ -381,6 +381,17 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     product->fileTags += productContext.additionalFileTags;
 
+    foreach (const ResolvedTransformerPtr &transformer, product->transformers) {
+        for (int i = 0; i < transformer->outputs.count(); ++i) {
+            SourceArtifactPtr &artifact = transformer->outputs[i];
+            foreach (const ArtifactPropertiesConstPtr &artifactProperties,
+                     product->artifactProperties) {
+                if (artifact->fileTags.matches(artifactProperties->fileTagsFilter()))
+                    artifact->properties = artifactProperties->propertyMap();
+            }
+        }
+    }
+
     m_productContext = 0;
     if (m_progressObserver)
         m_progressObserver->incrementProgressValue();

@@ -1121,7 +1121,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
 }
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }
-QString keyFromElem(const ResolvedTransformerConstPtr &t) { return t->transform->sourceCode; }
+QString keyFromElem(const ResolvedTransformerPtr &t) { return t->transform->sourceCode; }
 QString keyFromElem(const RulePtr &r) { return r->toString(); }
 QString keyFromElem(const ArtifactPropertiesPtr &ap)
 {
@@ -1157,8 +1157,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
             && t1.explicitlyDependsOn == t2.explicitlyDependsOn;
 }
 
-bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
-                              const QList<ResolvedTransformerConstPtr> &l2)
+bool transformerListsAreEqual(const QList<ResolvedTransformerPtr> &l1,
+                              const QList<ResolvedTransformerPtr> &l2)
 {
     return listsAreEqual(l1, l2);
 }
