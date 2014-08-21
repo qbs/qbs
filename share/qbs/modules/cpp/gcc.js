@@ -288,7 +288,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     var args = configFlags(input);
     args.push('-pipe');
 
-    var useArc = ModUtils.moduleProperty(input, "useObjcAutomaticReferenceCounting");
+    var useArc = ModUtils.moduleProperty(input, "automaticReferenceCounting");
     if (useArc !== undefined && (tag === "objc" || tag === "objcpp")) {
         args.push(useArc ? "-fobjc-arc" : "-fno-objc-arc");
     }

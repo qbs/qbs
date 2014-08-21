@@ -6,12 +6,12 @@ Product {
     condition: qbs.targetOS.contains("darwin")
 
     Group {
-        cpp.useObjcAutomaticReferenceCounting: true
+        cpp.automaticReferenceCounting: true
         files: ["arc.m", "arc.mm"]
     }
 
     Group {
-        cpp.useObjcAutomaticReferenceCounting: false
+        cpp.automaticReferenceCounting: false
         files: ["mrc.m", "mrc.mm"]
     }
 

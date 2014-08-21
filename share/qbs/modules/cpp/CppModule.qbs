@@ -217,10 +217,10 @@ Module {
     property string xcodeSdkName
     property string xcodeSdkVersion
 
-    property bool useObjcAutomaticReferenceCounting
+    property bool automaticReferenceCounting
     PropertyOptions {
-        name: "useObjcAutomaticReferenceCounting"
-        description: "whether to enable Objective-C Automatic Reference Counting (ARC) mode"
+        name: "automaticReferenceCounting"
+        description: "whether to enable Automatic Reference Counting (ARC) for Objective-C"
     }
 
     property bool allowUnresolvedSymbols: false
