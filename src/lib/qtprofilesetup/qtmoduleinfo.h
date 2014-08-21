@@ -29,6 +29,7 @@
 #ifndef QBS_QTMODULEINFO_H
 #define QBS_QTMODULEINFO_H
 
+#include <QSet>
 #include <QStringList>
 
 namespace qbs {
@@ -49,7 +50,7 @@ public:
     QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const;
     QString libraryBaseName(const QtEnvironment &qtEnvironment, bool debugBuild) const;
     QString libNameForLinker(const QtEnvironment &qtEnvironment, bool debugBuild) const;
-    void setupLibraries(const QtEnvironment &qtEnv);
+    void setupLibraries(const QtEnvironment &qtEnv, QSet<QString> *nonExistingPrlFiles);
 
     QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
@@ -64,6 +65,8 @@ public:
     QStringList dynamicLibrariesRelease;
     QStringList linkerFlagsDebug;
     QStringList linkerFlagsRelease;
+    QString libFilePathDebug;
+    QString libFilePathRelease;
     QStringList frameworksDebug;
     QStringList frameworksRelease;
     QStringList frameworkPathsDebug;
@@ -82,7 +85,8 @@ public:
     } pluginData;
 
 private:
-    void setupLibraries(const QtEnvironment &qtEnv, bool debugBuild);
+    void setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
+                        QSet<QString> *nonExistingPrlFiles);
 };
 
 QString libBaseName(const QString &libName, bool staticLib, bool debugBuild,

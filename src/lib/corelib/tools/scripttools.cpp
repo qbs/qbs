@@ -111,7 +111,7 @@ QString toJSLiteral(const QVariant &val)
     if (val.type() == QVariant::Bool)
         return val.toBool() ? QLatin1String("true") : QLatin1String("false");
     if (val.canConvert(QVariant::String))
-        return QLatin1Char('"') + val.toString() + QLatin1Char('"');
+        return toJSLiteral(val.toString());
     return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
 }
 

@@ -319,8 +319,8 @@ bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2);
 inline bool operator!=(const ResolvedTransformer &t1, const ResolvedTransformer &t2) {
     return !(t1 == t2);
 }
-bool transformerListsAreEqual(const QList<ResolvedTransformerConstPtr> &l1,
-                              const QList<ResolvedTransformerConstPtr> &l2);
+bool transformerListsAreEqual(const QList<ResolvedTransformerPtr> &l1,
+                              const QList<ResolvedTransformerPtr> &l2);
 
 class ResolvedScanner : public PersistentObject
 {
@@ -367,7 +367,7 @@ public:
     QSet<ResolvedProductPtr> dependencies;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModuleConstPtr> modules;
-    QList<ResolvedTransformerConstPtr> transformers;
+    QList<ResolvedTransformerPtr> transformers;
     QList<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;
     QList<ArtifactPropertiesPtr> artifactProperties;

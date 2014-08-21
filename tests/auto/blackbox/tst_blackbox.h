@@ -101,6 +101,7 @@ private slots:
     void erroneousFiles_data();
     void erroneousFiles();
     void fileDependencies();
+    void installedTransformerOutput();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();

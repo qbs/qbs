@@ -55,6 +55,10 @@ Module {
     property string libNameForLinkerRelease: @libNameForLinkerRelease@
     property string libNameForLinker: qbs.buildVariant === "debug"
                                       ? libNameForLinkerDebug : libNameForLinkerRelease
+    property string libFilePathDebug: @libFilePathDebug@
+    property string libFilePathRelease: @libFilePathRelease@
+    property string libFilePath: qbs.buildVariant === "debug"
+                                      ? libFilePathDebug : libFilePathRelease
 
     coreLibPaths: @libraryPaths@
 
@@ -92,7 +96,7 @@ Module {
     cpp.staticLibraries: {
         var libs = [];
         if (staticBuild)
-            libs.push(libNameForLinker);
+            libs.push(libFilePath);
         if (qbs.targetOS.contains('windows') && !product.consoleApplication)
             libs.push("qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : ""));
         libs = libs.concat(staticLibs);
@@ -101,7 +105,7 @@ Module {
     cpp.dynamicLibraries: {
         var libs = [];
         if (!staticBuild && !frameworkBuild)
-            libs.push(libNameForLinker);
+            libs.push(libFilePath);
         libs = libs.concat(dynamicLibs);
         return libs;
     }

@@ -18,6 +18,8 @@ QtPlugin {
     frameworkPathsRelease: @frameworkPathsRelease@
     libNameForLinkerDebug: @libNameForLinkerDebug@
     libNameForLinkerRelease: @libNameForLinkerRelease@
+    libFilePathDebug: @libFilePathDebug@
+    libFilePathRelease: @libFilePathRelease@
     cpp.libraryPaths: @libraryPaths@
     @special_properties@
 }

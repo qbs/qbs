@@ -14,6 +14,10 @@ Module {
     property string libNameForLinkerRelease
     property string libNameForLinker: qbs.buildVariant === "debug"
                                       ? libNameForLinkerDebug : libNameForLinkerRelease
+    property string libFilePathDebug
+    property string libFilePathRelease
+    property string libFilePath: qbs.buildVariant === "debug"
+                                 ? libFilePathDebug : libFilePathRelease
     property string qtVersion: Qt.core.version
     property bool hasLibrary: true
     property bool isStaticLibrary: false
@@ -42,9 +46,9 @@ Module {
 
     Properties {
         condition: qtModuleName != undefined && hasLibrary
-        cpp.staticLibraries: (isStaticLibrary ? [libNameForLinker] : []).concat(staticLibs)
+        cpp.staticLibraries: (isStaticLibrary ? [libFilePath] : []).concat(staticLibs)
         cpp.dynamicLibraries: (!isStaticLibrary && !Qt.core.frameworkBuild
-                               ? [libNameForLinker] : []).concat(dynamicLibs)
+                               ? [libFilePath] : []).concat(dynamicLibs)
         cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
                         ? [libNameForLinker] : [])
         cpp.frameworkPaths: mFrameworkPaths
