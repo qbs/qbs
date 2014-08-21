@@ -38,18 +38,11 @@
     The \c File service offers limited access to the file system for operations such as copying
     or removing files.
 
-    \section1 Making the Service Available
-    To gain access to file system operations, import the service using the
-    following statement at the top of your project file:
-    \code
-    import qbs.File
-    \endcode
-
     \section1 Available Operations
 
     \section2 copy
     \code
-    File.copy(sourceFilePath, targetFilePath)
+    File.copy(sourceFilePath: string, targetFilePath: string): boolean
     \endcode
     Copies \c sourceFilePath to \c targetFilePath. Any directory components in \c targetFilePath
     that do not yet exist will be created. If \c sourceFilePath is a directory, a recursive
@@ -60,13 +53,13 @@
 
     \section2 exists
     \code
-    File.exists(filePath)
+    File.exists(filePath: string): boolean
     \endcode
     Returns true if and only if there is a file at \c filePath.
 
     \section2 lastModified
     \code
-    File.lastModified(filePath)
+    File.lastModified(filePath: string): number
     \endcode
     Returns the time of last modification for the file at \c filePath. The concrete semantics of the
     returned value are platform-specific. You should only rely on the property that a smaller value
@@ -74,7 +67,7 @@
 
     \section2 remove
     \code
-    File.remove(filePath)
+    File.remove(filePath: string): boolean
     \endcode
     Removes the file at \c filePath. In case of a directory, it will be removed recursively.
 */

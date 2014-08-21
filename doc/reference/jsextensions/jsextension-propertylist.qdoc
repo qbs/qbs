@@ -41,14 +41,6 @@
 
     This service is only available on Darwin platforms such as OS X and iOS.
 
-    \section1 Making the Service Available
-    In order to gain access to property list operations, you need to import the
-    service using the
-    following statement at the top of your project file:
-    \code
-    import qbs.PropertyList
-    \endcode
-
     \section1 Available operations
 
     \section2 Constructor
@@ -59,19 +51,19 @@
 
     \section2 clear
     \code
-    clear()
+    clear(): void
     \endcode
     Voids the property list by deleting its internal object reference.
 
     \section2 isEmpty
     \code
-    isEmpty()
+    isEmpty(): boolean
     \endcode
     Returns true if the property list has no internal object reference set, otherwise false.
 
     \section2 format
     \code
-    format()
+    format(): string
     \endcode
     Returns the data format that the property list data was deserialized from. This property is set
     after calling \c readFromString or \c readFromFile.
@@ -81,14 +73,14 @@
 
     \section2 readFromFile
     \code
-    readFromFile(filePath)
+    readFromFile(filePath: string): void
     \endcode
     Parses the file and stores the result in the property list.
     Throws an exception if an I/O error occurs or the input is in an invalid format.
 
     \section2 readFromString
     \code
-    readFromString(input)
+    readFromString(input: string): void
     \endcode
     Parses \c input and stores the result in the property list.
     This is most useful for initializing a property list object from the result of a
@@ -97,14 +89,14 @@
 
     \section2 toJSONString
     \code
-    toJSONString(style)
+    toJSONString(style: string = "compact"): string
     \endcode
     Returns a string representation of the property list in JSON format.
     Possible values for \c style include \c "pretty" and \c "compact". The default is compact.
 
     \section2 toString
     \code
-    toString(format)
+    toString(format: string): string
     \endcode
     Returns a string representation of the property list in the specified format.
     Possible values for \c format include: \c "json" (compact), \c "json-compact", \c "json-pretty",
@@ -113,14 +105,14 @@
 
     \section2 toXMLString
     \code
-    toXMLString()
+    toXMLString(): string
     \endcode
     Returns a string representation of the property list in XML format.
     This function is a synonym for \c toString("xml1").
 
     \section2 writeToFile
     \code
-    writeToFile(filePath, format)
+    writeToFile(filePath: string, format: string): void
     \endcode
     Writes the property list to the file in the given format.
     Possible values for \c format include: \c "binary1", \c "json" (compact), \c "json-compact",

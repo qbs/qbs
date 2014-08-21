@@ -38,14 +38,6 @@
     The \c Process service allows you to start processes, track their output,
     and so on.
 
-    \section1 Making the Service Available
-    In order to gain access to process management operations, you need to import
-    the service using the
-    following statement at the top of your project file:
-    \code
-    import qbs.Process
-    \endcode
-
     \section1 Available Operations
 
     \section2 Constructor
@@ -56,14 +48,14 @@
 
     \section2 close
     \code
-    close()
+    close(): void
     \endcode
     Frees the resources associated with the process. We recommended to always call this function as
     soon as you are finished with the process.
 
     \section2 exec
     \code
-    exec(filePath, arguments, throwOnError)
+    exec(filePath: string, arguments: string[], throwOnError: boolean): number
     \endcode
     Executes the program at \c filePath with the given argument list and blocks until the
     process is finished. If an error occurs (for example, there is no executable
@@ -74,75 +66,75 @@
 
     \section2 exitCode
     \code
-    exitCode()
+    exitCode(): number
     \endcode
     Returns the exit code of the process. This is needed for retrieving the exit code from
     processes started via \c start(), rather than \c exec().
 
     \section2 getEnv
     \code
-    getEnv(varName)
+    getEnv(varName: string): string
     \endcode
     Returns the value of the variable \c varName in the process' environment.
 
     \section2 kill
     \code
-    kill()
+    kill(): void
     \endcode
     Kills the process, causing it to exit immediately.
 
     \section2 readLine
     \code
-    readLine()
+    readLine(): string
     \endcode
     Reads and returns one line of text from the process output, without the newline character(s).
 
     \section2 readStdErr
     \code
-    readStdErr()
+    readStdErr(): string
     \endcode
     Reads and returns all data from the process' standard error channel.
 
     \section2 readStdOut
     \code
-    readStdOut()
+    readStdOut(): string
     \endcode
     Reads and returns all data from the process' standard output channel.
 
     \section2 setEnv
     \code
-    setEnv(varName, varValue)
+    setEnv(varName: string, varValue: string): string
     \endcode
     Sets the value of variable \c varName to \c varValue in the process environment.
     This only has an effect if called before the process is started.
 
     \section2 setWorkingDirectory
     \code
-    setWorkingDirectory(dir)
+    setWorkingDirectory(path: string): void
     \endcode
     Sets the directory the process will be started in.
     This only has an effect if called before the process is started.
 
     \section2 start
     \code
-    start(filePath, arguments)
+    start(filePath: string, arguments: string[]): boolean
     \endcode
-    Starts the program at \c filePath with the given list of arguments. Returns true if the
-    process could be started and false otherwise.
+    Starts the program at \c filePath with the given list of arguments. Returns \c{true} if the
+    process could be started and \c{false} otherwise.
     \note This call returns right after starting the process and should be used only if you need
     to interact with the process while it is running. Most of the time, you want to use \c exec()
     instead.
 
     \section2 terminate
     \code
-    terminate()
+    terminate(): void
     \endcode
     Tries to terminate the process. This is not guaranteed to make the process exit immediately;
     if you need that, use \c kill().
 
     \section2 waitForFinished
     \code
-    waitForFinished(timeout)
+    waitForFinished(timeout: number): boolean
     \endcode
     Blocks until the process has finished or \c timeout milliseconds have passed (default is 30000).
     Returns true if the process has finished and false if the operation has timed out.
@@ -151,19 +143,19 @@
 
     \section2 workingDirectory
     \code
-    \workingDirectory()
+    workingDirectory(): string
     \endcode
     Returns the directory the process will be started in.
 
     \section2 write
     \code
-    write(data)
+    write(data: string): void
     \endcode
     Writes \c data into the process' input channel.
 
     \section2 writeLine
     \code
-    writeLine(data)
+    writeLine(data: string): void
     \endcode
     Writes \c data, followed by the newline character(s), into the process' input channel.
 */

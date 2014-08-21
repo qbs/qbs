@@ -47,6 +47,18 @@
     \title List of Built-in Services
     \QBS provides the following built-in JavaScript extensions to simplify operations that
     are expected to be needed often in project files.
+
+    To gain access to the operations provided by a particular Service - for example,
+    the File service - use the following statement at the top of your \QBS project file:
+    \code
+    import qbs.File
+    \endcode
+
+    If you instead need to access the service from a JavaScript file, import it using the following
+    statement at the top of your JavaScript file:
+    \code
+    var File = loadExtension("qbs.File");
+    \endcode
 */
 
 /*!

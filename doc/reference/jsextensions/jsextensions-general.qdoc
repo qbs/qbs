@@ -36,20 +36,20 @@
     \brief Provides various operations.
 
     These are operations that do not fit into any of the other categories.
-    They are automatically available in any \QBS project file.
+    They are automatically available in any \QBS project file or JavaScript file.
 
     \section1 Available Operations
 
-    \section2 getEnv
+    \section2 qbs.getEnv
     \code
-    qbs.getEnv(name)
+    qbs.getEnv(key: string): string
     \endcode
     Tries to find a variable with the given name in the build environment and returns its value. If
     no such variable could be found, \c undefined is returned.
 
-    \section2 getHostOS
+    \section2 qbs.getHostOS
     \code
-    qbs.getHostOS(name)
+    qbs.getHostOS(): string
     \endcode
     Returns the name of the operating system on which \QBS is running.
     \note Do not confuse this with the \c{qbs.targetOS} property, which represents the operating
@@ -57,37 +57,60 @@
 
     \section2 loadFile
     \code
-    var MyFunctions = loadFile("myfunctions.js");
-    MyFunctions.doSomething();
+    loadFile(filePath: string): any
     \endcode
     Loads a JavaScript file and returns an object that contains the evaluated context of this file.
     This function is only available in JavaScript files.
+    For example:
+    \code
+    var MyFunctions = loadFile("myfunctions.js");
+    MyFunctions.doSomething();
+    \endcode
 
     \section2 loadExtension
+    \code
+    loadExtension(extensionName: string): any
+    \endcode
+    Loads a \QBS extension and returns an object that contains all functions of that extension.
+    This function is only available in JavaScript files.
+    For example:
     \code
     var FileInfo = loadExtension("qbs.FileInfo");
     var fileName = FileInfo.fileName(filePath);
     \endcode
-    Loads a \QBS extension and returns an object that contains all functions of that extension.
-    This function is only available in JavaScript files.
 
 
     \section1 Extensions to JavaScript Built-in Objects
 
-    \section2 \c{Array.contains(e)}
+    \section2 Array.contains
+    \code
+    Array.contains(e: any): boolean
+    \endcode
     Returns \c{true} if the array contains the element \c{e}. Returns \c{false} otherwise.
 
-    \section2 \c{Array.uniqueConcat(other)}
+    \section2 Array.uniqueConcat
+    \code
+    Array.uniqueConcat(other: any[]): any[]
+    \endcode
     Returns a copy of this array joined with the array \c{other}.
     Duplicates that would originate from the concatenation are removed.
     The order of elements is preserved.
 
-    \section2 \c{String.contains(s)}
+    \section2 String.contains
+    \code
+    String.contains(s: string): boolean
+    \endcode
     Returns \c{true} if the string contains the substring \c{s}. Returns \c{false} otherwise.
 
-    \section2 \c{String.startsWith(s)}
+    \section2 startsWith
+    \code
+    String.startsWith(s: string): boolean
+    \endcode
     Returns \c{true} if the string starts with the substring \c{s}. Returns \c{false} otherwise.
 
-    \section2 \c{String.endsWith(s)}
+    \section2 endsWith
+    \code
+    String.endsWith(s: string): boolean
+    \endcode
     Returns \c{true} if the string ends with the substring \c{s}. Returns \c{false} otherwise.
 */

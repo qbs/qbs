@@ -37,73 +37,71 @@
 
     The \c TextFile service allows you to read from and write into text files.
 
-    \section1 Making the Service Available
-    In order to gain access to text file operations, you need to import the
-    service using the
-    following statement at the top of your project file:
+    \section1 Related Declarations
+
+    \section2 TextFile.OpenMode
     \code
-    import qbs.TextFile
+    enum TextFile.OpenMode { ReadOnly, WriteOnly, ReadWrite }
     \endcode
+    List of modes that a file may be opened in.
 
     \section1 Available operations
 
     \section2 Constructor
     \code
-    TextFile(filePath, openMode)
+    TextFile(filePath: string, openMode: OpenMode = TextFile.ReadOnly)
     \endcode
     Opens the file at \c filePath in the given mode and returns the object representing the file.
-    Possible values for \c openMode are \c TextFile.ReadOnly (which is the default),
-    \c TextFile.WriteOnly and \c TextFile.ReadWrite. Note that the mode influences which
-    of the operations listed below can actually be used on the file.
+    \note The mode influences which of the operations listed below can actually be used on the file.
 
     \section2 atEof
     \code
-    atEof()
+    atEof(): boolean
     \endcode
-    Returns true if no more data can be read from the file, false otherwise.
+    Returns \c{true} if no more data can be read from the file, \c{false} otherwise.
 
     \section2 close
     \code
-    close()
+    close(): void
     \endcode
     Closes the file. We recommended to always call this function as soon as you are finished
     with the file, in order to keep the number of in-flight file descriptors as low as possible.
 
     \section2 readAll
     \code
-    readAll()
+    readAll(): string
     \endcode
     Reads all data from the file and returns it.
 
     \section2 readLine
     \code
-    readLine()
+    readLine(): string
     \endcode
     Reads one line of text from the file and returns it. The returned string does not contain
     the newline characters.
 
     \section2 setCodec
     \code
-    setCodec(codec)
+    setCodec(codec: string): void
     \endcode
     Sets the text codec to \c codec. The supported codecs are the same as for \c QTextCodec,
     for example: "UTF-8", "UTF-16", and "ISO 8859-1".
 
     \section2 truncate
     \code
-    truncate()
+    truncate(): void
     \endcode
     Truncates the file, that is, gives it the size of zero, removing all content.
 
     \section2 write
     \code
-    write(data)
+    write(data: string): void
     \endcode
     Writes \c data into the file at the current position.
 
     \section2 writeLine
     \code
-    writeLine(data)
+    writeLine(data: string): void
     \endcode
     Writes \c data into the file at the current position and appends the newline character(s).
 */

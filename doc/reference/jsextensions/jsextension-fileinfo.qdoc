@@ -38,56 +38,48 @@
     The \c FileInfo service offers various operations on file paths, such as turning absolute
     paths into relative ones, splitting a path into its components, and so on.
 
-    \section1 Making the Service Available
-
-    In order to gain access to file path operations, you need to import the service using the
-    following statement at the top of your project file:
-    \code
-    import qbs.FileInfo
-    \endcode
-
     \section1 Available Operations
 
     \section2 baseName
     \code
-    FileInfo.baseName(filePath)
+    FileInfo.baseName(filePath: string): string
     \endcode
     Returns the file name of \c filePath up to (but not including) the first '.' character.
 
     \section2 completeBaseName
     \code
-    FileInfo.completeBaseName(filePath)
+    FileInfo.completeBaseName(filePath: string): string
     \endcode
     Returns the file name of \c filePath up to (but not including) the last '.' character.
 
     \section2 fileName
     \code
-    FileInfo.fileName(filePath)
+    FileInfo.fileName(filePath: string): string
     \endcode
     Returns the last component of \c filePath, that is, everything after the
     last '/' character.
 
     \section2 fromWindowsSeparators
     \code
-    FileInfo.fromWindowsSeparators(filePath)
+    FileInfo.fromWindowsSeparators(filePath: string): string
     \endcode
     Returns \c filePath with all '\\' characters replaced by '/'.
 
     \section2 isAbsolutePath
     \code
-    FileInfo.isAbsolutPath(filePath)
+    FileInfo.isAbsolutePath(filePath: string): boolean
     \endcode
     Returns true if \c filePath is an absolute path and false if it is a relative one.
 
     \section2 joinPaths
     \code
-    FileInfo.joinPaths(path1, path2, ...)
+    FileInfo.joinPaths(...paths: string[]): string
     \endcode
     Concatenates the given paths using the '/' character.
 
     \section2 path
     \code
-    FileInfo.path(filePath)
+    FileInfo.path(filePath: string): string
     \endcode
     Returns the part of \c filePath that is not the file name, that is,
     everything up to
@@ -97,7 +89,7 @@
 
     \section2 relativePath
     \code
-    FileInfo.relativePath(dirPath, filePath)
+    FileInfo.relativePath(dirPath: string, filePath: string): string
     \endcode
     Returns a relative path so that joining \c dirPath and the returned path results in \c filePath.
     If necessary, '..' components are inserted.
@@ -106,7 +98,7 @@
 
     \section2 toWindowsSeparators
     \code
-    FileInfo.toWindowsSeparators(filePath)
+    FileInfo.toWindowsSeparators(filePath: string): string
     \endcode
     Returns \c filePath with all '/' characters replaced by '\\'.
 */
