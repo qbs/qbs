@@ -133,3 +133,18 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
     expandRecursive(obj, env, []);
     return obj;
 }
+
+/**
+  * Recursively removes any undefined, null, or empty string values from the property list.
+  */
+function cleanPropertyList(plist) {
+    if (typeof(plist) !== "object")
+        return;
+
+    for (var key in plist) {
+        if (plist[key] === undefined || plist[key] === null || plist[key] === "")
+            delete plist[key];
+        else
+            cleanPropertyList(plist[key]);
+    }
+}

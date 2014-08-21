@@ -308,6 +308,11 @@ UnixGCC {
                     }
                 }
 
+                // Anything with an undefined or otherwise empty value should be removed
+                // Only JSON-formatted plists can have null values, other formats error out
+                // This also follows Xcode behavior
+                DarwinTools.cleanPropertyList(aggregatePlist);
+
                 if (infoPlistFormat === "same-as-input" && infoPlistFile)
                     infoPlistFormat = BundleTools.infoPlistFormat(infoPlistFile);
 
