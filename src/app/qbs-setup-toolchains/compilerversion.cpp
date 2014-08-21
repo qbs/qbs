@@ -212,7 +212,7 @@ void setCompilerVersion(const QString &compilerFilePath, const QStringList &qbsT
         if (version.isValid()) {
             profile.setValue(QLatin1String("cpp.compilerVersionMajor"), version.majorVersion());
             profile.setValue(QLatin1String("cpp.compilerVersionMinor"), version.minorVersion());
-            profile.setValue(QLatin1String("cpp.compilerVersionPatchLevel"), version.patchLevel());
+            profile.setValue(QLatin1String("cpp.compilerVersionPatch"), version.patchLevel());
         }
     } catch (const ErrorInfo &e) {
         qDebug("Warning: Failed to retrieve compiler version: %s", qPrintable(e.toString()));
