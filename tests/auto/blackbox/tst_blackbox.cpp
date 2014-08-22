@@ -1332,6 +1332,25 @@ void TestBlackbox::qmlDebugging()
     }
 }
 
+void TestBlackbox::productDependenciesByType()
+{
+    QDir::setCurrent(testDataDir + "/product-dependencies-by-type");
+    QCOMPARE(runQbs(), 0);
+    QFile appListFile(relativeProductBuildDir("app list") + "/app-list.txt");
+    QVERIFY2(appListFile.open(QIODevice::ReadOnly), qPrintable(appListFile.fileName()));
+    const QList<QByteArray> appList = appListFile.readAll().trimmed().split('\n');
+    QCOMPARE(appList.count(), 3);
+    QStringList apps = QStringList()
+            << QDir::currentPath() + '/' + relativeExecutableFilePath("app1")
+            << QDir::currentPath() + '/' + relativeExecutableFilePath("app2")
+            << QDir::currentPath() + '/' + relativeExecutableFilePath("app3");
+    foreach (const QByteArray &line, appList) {
+        const QString cleanLine = QString::fromLocal8Bit(line.trimmed());
+        QVERIFY2(apps.removeOne(cleanLine), qPrintable(cleanLine));
+    }
+    QVERIFY(apps.isEmpty());
+}
+
 void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");

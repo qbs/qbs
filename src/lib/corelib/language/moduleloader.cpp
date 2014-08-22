@@ -657,10 +657,38 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             m_logger.qbsTrace() << "Depends item disabled, ignoring.";
         return;
     }
-    const QString name = m_evaluator->property(dependsItem, QLatin1String("name")).toString();
+    bool productTypesIsSet;
+    const QStringList productTypes = m_evaluator->stringListValue(dependsItem,
+            QLatin1String("productTypes"), &productTypesIsSet);
+    bool nameIsSet;
+    const QString name
+            = m_evaluator->stringValue(dependsItem, QLatin1String("name"), QString(), &nameIsSet);
     bool submodulesPropertySet;
     QStringList submodules = m_evaluator->stringListValue(dependsItem, QLatin1String("submodules"),
                                                           &submodulesPropertySet);
+    if (productTypesIsSet) {
+        if (nameIsSet) {
+            throw ErrorInfo(Tr::tr("The 'productTypes' and 'name' properties are mutually "
+                                   "exclusive."), dependsItem->location());
+        }
+        if (submodulesPropertySet) {
+            throw ErrorInfo(Tr::tr("The 'productTypes' and 'subModules' properties are mutually "
+                                   "exclusive."), dependsItem->location());
+        }
+        if (productTypes.isEmpty()) {
+            m_logger.qbsTrace() << "Ignoring Depends item with empty productTypes list.";
+            return;
+        }
+
+        // TODO: We could also filter by the "profiles" property. This would required a refactoring
+        //       (Dependency needs a list of profiles and the multiplexing must happen later).
+        ModuleLoaderResult::ProductInfo::Dependency dependency;
+        dependency.productTypes = productTypes;
+        dependency.limitToSubProject
+                = m_evaluator->boolValue(dependsItem, QLatin1String("limitToSubProject"));
+        productResults->append(ProductDependencyResult(dependsItem, dependency));
+        return;
+    }
     if (submodules.isEmpty() && submodulesPropertySet) {
         m_logger.qbsTrace() << "Ignoring Depends item with empty submodules list.";
         return;

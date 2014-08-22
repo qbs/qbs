@@ -33,6 +33,8 @@
 #include "evaluator.h"
 #include "filetags.h"
 #include "language.h"
+#include "moduleloader.h"
+
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 
@@ -49,7 +51,6 @@ class ModuleLoader;
 class ProgressObserver;
 class ScriptEngine;
 class StringListSet;
-struct ModuleLoaderResult;
 
 class ProjectResolver
 {
@@ -126,6 +127,8 @@ private:
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
+    QList<ResolvedProductPtr> getProductDependencies(const ResolvedProductConstPtr &product,
+            const Item *productItem, ModuleLoaderResult::ProductInfo *productInfo);
 
     Evaluator *m_evaluator;
     const BuiltinDeclarations *m_builtins;
@@ -135,6 +138,7 @@ private:
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
     QMap<QString, ResolvedProductPtr> m_productsByName;
+    QHash<QString, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     QMap<QString, QVariantMap> m_exports;

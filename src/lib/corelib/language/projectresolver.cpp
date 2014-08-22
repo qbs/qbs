@@ -305,7 +305,6 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
                     item->location());
     }
 
-    m_productsByName.insert(product->uniqueName(), product);
     product->enabled = m_evaluator->boolValue(item, QLatin1String("condition"));
     product->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("type"));
     product->targetName = m_evaluator->stringValue(item, QLatin1String("targetName"));
@@ -374,6 +373,10 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
             }
         }
     }
+
+    m_productsByName.insert(product->uniqueName(), product);
+    foreach (const FileTag &t, product->fileTags)
+        m_productsByType[t.toString()] << product;
 
     m_productContext = 0;
     if (m_progressObserver)
@@ -821,6 +824,44 @@ static void insertExportedConfig(const QString &usedProductName,
     propertyMap->setValue(properties);
 }
 
+QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const ResolvedProductConstPtr &product,
+        const Item *productItem, ModuleLoaderResult::ProductInfo *productInfo)
+{
+    QList<ResolvedProductPtr> usedProducts;
+    for (int i = productInfo->usedProducts.count() - 1; i >= 0; --i) {
+        const ModuleLoaderResult::ProductInfo::Dependency &dependency
+                = productInfo->usedProducts.at(i);
+        QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.isEmpty());
+        if (!dependency.productTypes.isEmpty()) {
+            foreach (const QString &tag, dependency.productTypes) {
+                const QList<ResolvedProductPtr> productsForTag = m_productsByType.value(tag);
+                foreach (const ResolvedProductPtr &p, productsForTag) {
+                    if (p == product || !p->enabled
+                            || (dependency.limitToSubProject && !product->isInParentProject(p))) {
+                        continue;
+                    }
+                    usedProducts << p;
+                    ModuleLoaderResult::ProductInfo::Dependency newDependency;
+                    newDependency.name = p->name;
+                    newDependency.profile = p->profile;
+                    newDependency.required = true;
+                    productInfo->usedProducts << newDependency;
+                }
+            }
+            productInfo->usedProducts.removeAt(i);
+        } else {
+            const ResolvedProductPtr &usedProduct
+                    = m_productsByName.value(dependency.uniqueName());
+            if (Q_UNLIKELY(!usedProduct)) {
+                throw ErrorInfo(Tr::tr("Product dependency '%1' not found for profile '%2'.")
+                        .arg(dependency.name, dependency.profile), productItem->location());
+            }
+            usedProducts << usedProduct;
+        }
+    }
+    return usedProducts;
+}
+
 static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
                             const ModuleLoaderResult::ProductInfo &usedProductInfo,
                             bool *productsAdded)
@@ -851,13 +892,8 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             Item *productItem = m_productItemMap.value(rproduct);
             ModuleLoaderResult::ProductInfo &productInfo
                     = projectContext->loadResult->productInfos[productItem];
-            foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
-                        productInfo.usedProducts) {
-                ResolvedProductPtr usedProduct = m_productsByName.value(dependency.uniqueName());
-                if (Q_UNLIKELY(!usedProduct)) {
-                    throw ErrorInfo(Tr::tr("Product dependency '%1' not found for profile '%2'.")
-                            .arg(dependency.name, dependency.profile), productItem->location());
-                }
+            foreach (const ResolvedProductPtr &usedProduct,
+                     getProductDependencies(rproduct, productItem, &productInfo)) {
                 Item *usedProductItem = m_productItemMap.value(usedProduct);
                 const ModuleLoaderResult::ProductInfo usedProductInfo
                         = projectContext->loadResult->productInfos.value(usedProductItem);
@@ -874,14 +910,12 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
         if (!rproduct->enabled)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
-        foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
-                 projectContext->loadResult->productInfos.value(productItem).usedProducts) {
-            const QString &usedProductName = dependency.uniqueName();
-            ResolvedProductPtr usedProduct = m_productsByName.value(usedProductName);
-            if (Q_UNLIKELY(!usedProduct))
-                throw ErrorInfo(Tr::tr("Product dependency '%1' not found.").arg(usedProductName),
-                            productItem->location());
+        ModuleLoaderResult::ProductInfo &productInfo
+                = projectContext->loadResult->productInfos[productItem];
+        foreach (const ResolvedProductPtr &usedProduct,
+                 getProductDependencies(rproduct, productItem, &productInfo)) {
             rproduct->dependencies.insert(usedProduct);
+            const QString &usedProductName = usedProduct->uniqueName();
 
             // insert the configuration of the Export item into the product's configuration
             const QVariantMap exportedConfig = m_exports.value(usedProductName);

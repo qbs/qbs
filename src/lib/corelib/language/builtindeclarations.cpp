@@ -178,6 +178,10 @@ void BuiltinDeclarations::addDependsItem()
     PropertyDeclaration profileDecl(QLatin1String("profiles"), PropertyDeclaration::StringList);
     profileDecl.setInitialValueSource(QLatin1String("[product.profile]"));
     item << profileDecl;
+    item << PropertyDeclaration(QLatin1String("productTypes"), PropertyDeclaration::StringList);
+    PropertyDeclaration limitDecl(QLatin1String("limitToSubProject"), PropertyDeclaration::Boolean);
+    limitDecl.setInitialValueSource(QLatin1String("false"));
+    item << limitDecl;
     insert(item);
 }
 

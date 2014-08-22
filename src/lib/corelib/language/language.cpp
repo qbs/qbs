@@ -778,6 +778,16 @@ QString ResolvedProduct::buildDirectory() const
     return result;
 }
 
+bool ResolvedProduct::isInParentProject(const ResolvedProductConstPtr &other) const
+{
+    for (const ResolvedProject *otherParent = other->project.data(); otherParent;
+         otherParent = otherParent->parentProject.data()) {
+        if (otherParent == project.data())
+            return true;
+    }
+    return false;
+}
+
 
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {

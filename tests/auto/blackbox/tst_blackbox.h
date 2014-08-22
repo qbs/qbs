@@ -109,6 +109,7 @@ private slots:
     void jsExtensionsTextFile();
     void nonBrokenFilesInBrokenProduct();
     void qmlDebugging();
+    void productDependenciesByType();
     void properQuoting();
     void radAfterIncompleteBuild_data();
     void radAfterIncompleteBuild();

@@ -69,9 +69,11 @@ struct ModuleLoaderResult
     {
         struct Dependency
         {
+            QStringList productTypes;
             QString name;
             QString profile;
             bool required;
+            bool limitToSubProject;
 
             QString uniqueName() const;
         };

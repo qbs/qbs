@@ -53,6 +53,14 @@
         \li true
         \li Determines whether the dependency will actually be applied.
     \row
+        \li productTypes
+        \li stringList
+        \li undefined
+        \li A list of product types. Any enabled product in the project that has a matching type
+            will become a dependency of the product containing the \c Depends item.
+            This property is mutually exclusive with the \c name and \c submodules properties.
+            The \c required and \c profiles properties are ignored if \c productTypes is set.
+    \row
         \li required
         \li bool
         \li \c true
@@ -72,6 +80,13 @@
         \li If the dependency is on a product and that product is going to be built for more than
             one profile, then you can specify here which instance of the product the dependency is on.
             See the \c profiles property of the \c Product item for more information.
+    \row
+        \li limitToSubProject
+        \li bool
+        \li \c false
+        \li If \c productTypes is set and this property is \c true, then only products that
+            are in the same sub-project as the product containing the \c Depends item are
+            considered.
     \row
         \li submodules
         \li stringList

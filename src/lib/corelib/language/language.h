@@ -401,6 +401,8 @@ public:
     static QString deriveBuildDirectoryName(const QString &name, const QString &profile);
     QString buildDirectory() const;
 
+    bool isInParentProject(const ResolvedProductConstPtr &other) const;
+
 private:
     ResolvedProduct();
 
