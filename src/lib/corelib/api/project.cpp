@@ -829,11 +829,12 @@ QString Project::targetExecutable(const ProductData &product,
 }
 
 RunEnvironment Project::getRunEnvironment(const ProductData &product,
+        const InstallOptions &installOptions,
         const QProcessEnvironment &environment, Settings *settings) const
 {
     QBS_CHECK(product.isEnabled());
     const ResolvedProductPtr resolvedProduct = d->internalProduct(product);
-    return RunEnvironment(resolvedProduct, environment, settings, d->logger);
+    return RunEnvironment(resolvedProduct, installOptions, environment, settings, d->logger);
 }
 
 /*!

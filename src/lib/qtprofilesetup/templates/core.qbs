@@ -171,12 +171,19 @@ Module {
     }
 
     setupRunEnvironment: {
+        var env;
         if (qbs.targetOS.contains('windows')) {
-            var v = getEnv('PATH') || '';
-            if (v.length > 0 && v.charAt(0) != ';')
-                v = ';' + v;
-            v = FileInfo.toWindowsSeparators(binPath) + v;
-            putEnv('PATH', v);
+            env = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, true);
+            env.append(binPath);
+            env.set();
+        } else if (qbs.targetOS.contains("darwin")) {
+            env = new ModUtils.EnvironmentVariable("DYLD_FRAMEWORK_PATH", qbs.pathListSeparator);
+            env.append(libPath);
+            env.set();
+
+            env = new ModUtils.EnvironmentVariable("DYLD_LIBRARY_PATH", qbs.pathListSeparator);
+            env.append(libPath);
+            env.set();
         }
     }
 

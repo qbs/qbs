@@ -86,6 +86,7 @@ public:
     QString targetExecutable(const ProductData &product,
                              const InstallOptions &installoptions) const;
     RunEnvironment getRunEnvironment(const ProductData &product,
+            const InstallOptions &installOptions,
             const QProcessEnvironment &environment, Settings *settings) const;
 
     BuildJob *buildAllProducts(const BuildOptions &options, QObject *jobOwner = 0) const;

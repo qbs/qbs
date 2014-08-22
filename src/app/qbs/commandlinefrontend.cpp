@@ -385,6 +385,7 @@ int CommandLineFrontend::runShell()
     const QList<ProductData> &products = productMap.begin().value();
     Q_ASSERT(products.count() == 1);
     RunEnvironment runEnvironment = project.getRunEnvironment(products.first(),
+            m_parser.installOptions(),
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.runShell();
 }
@@ -462,6 +463,7 @@ int CommandLineFrontend::runTarget()
                         .arg(productToRun.name()));
         }
         RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
+                m_parser.installOptions(),
                 QProcessEnvironment::systemEnvironment(), m_settings);
         return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
     } catch (const ErrorInfo &error) {
