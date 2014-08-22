@@ -260,7 +260,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
                                 Settings *settings)
 {
     const QString cleanQtVersionName = Profile::cleanName(qtVersionName);
-    QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%0'.")
+    QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%1'.")
             .arg(cleanQtVersionName);
     printf("%s\n", qPrintable(msg));
 
