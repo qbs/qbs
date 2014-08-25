@@ -91,6 +91,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::ForceTimestampCheckOptionType:
             option = new ForceTimeStampCheckOption;
             break;
+        case CommandLineOption::BuildNonDefaultOptionType:
+            option = new BuildNonDefaultOption;
+            break;
         case CommandLineOption::LogTimeOptionType:
             option = new LogTimeOption;
             break;
@@ -188,6 +191,12 @@ ForceTimeStampCheckOption *CommandLineOptionPool::forceTimestampCheckOption() co
 {
     return static_cast<ForceTimeStampCheckOption *>(
                 getOption(CommandLineOption::ForceTimestampCheckOptionType));
+}
+
+BuildNonDefaultOption *CommandLineOptionPool::buildNonDefaultOption() const
+{
+    return static_cast<BuildNonDefaultOption *>(
+                getOption(CommandLineOption::BuildNonDefaultOptionType));
 }
 
 LogTimeOption *CommandLineOptionPool::logTimeOption() const

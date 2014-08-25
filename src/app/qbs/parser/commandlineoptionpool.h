@@ -58,6 +58,7 @@ public:
     NoBuildOption *noBuildOption() const;
     ForceOption *forceOption() const;
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
+    BuildNonDefaultOption *buildNonDefaultOption() const;
     LogTimeOption *logTimeOption() const;
     SettingsDirOption *settingsDirOption() const;
 

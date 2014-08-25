@@ -194,6 +194,11 @@ bool CommandLineParser::logTime() const
     return d->logTime;
 }
 
+bool CommandLineParser::withNonDefaultProducts() const
+{
+    return d->optionPool.buildNonDefaultOption()->enabled();
+}
+
 bool CommandLineParser::buildBeforeInstalling() const
 {
     return !d->optionPool.noBuildOption()->enabled();

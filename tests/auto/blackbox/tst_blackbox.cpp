@@ -1318,6 +1318,20 @@ void TestBlackbox::nonBrokenFilesInBrokenProduct()
     QVERIFY(!m_qbsStdout.contains("fine.cpp")); // The non-broken file must not be recompiled.
 }
 
+void TestBlackbox::nonDefaultProduct()
+{
+    QDir::setCurrent(testDataDir + "/non-default-product");
+    const QString defaultAppExe = relativeExecutableFilePath("default app");
+    const QString nonDefaultAppExe = relativeExecutableFilePath("non-default app");
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(QFile::exists(defaultAppExe), qPrintable(defaultAppExe));
+    QVERIFY2(!QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
+
+    QCOMPARE(runQbs(QbsRunParameters("--all-products")), 0);
+    QVERIFY2(QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
+}
+
 void TestBlackbox::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");

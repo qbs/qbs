@@ -89,7 +89,10 @@ public:
             const InstallOptions &installOptions,
             const QProcessEnvironment &environment, Settings *settings) const;
 
-    BuildJob *buildAllProducts(const BuildOptions &options, QObject *jobOwner = 0) const;
+    enum ProductSelection { ProductSelectionDefaultOnly, ProductSelectionWithNonDefault };
+    BuildJob *buildAllProducts(const BuildOptions &options,
+                               ProductSelection productSelection = ProductSelectionDefaultOnly,
+                               QObject *jobOwner = 0) const;
     BuildJob *buildSomeProducts(const QList<ProductData> &products, const BuildOptions &options,
                                 QObject *jobOwner = 0) const;
     BuildJob *buildOneProduct(const ProductData &product, const BuildOptions &options,
@@ -101,7 +104,9 @@ public:
     CleanJob *cleanOneProduct(const ProductData &product, const CleanOptions &options,
                               QObject *jobOwner = 0) const;
 
-    InstallJob *installAllProducts(const InstallOptions &options, QObject *jobOwner = 0) const;
+    InstallJob *installAllProducts(const InstallOptions &options,
+                                   ProductSelection productSelection = ProductSelectionDefaultOnly,
+                                   QObject *jobOwner = 0) const;
     InstallJob *installSomeProducts(const QList<ProductData> &products,
                                     const InstallOptions &options, QObject *jobOwner = 0) const;
     InstallJob *installOneProduct(const ProductData &product, const InstallOptions &options,

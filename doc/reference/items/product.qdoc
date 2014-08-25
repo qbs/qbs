@@ -75,6 +75,13 @@
             \li Default
             \li Description
         \row
+            \li builtByDefault
+            \li bool
+            \li true
+            \li If false, the product will only be built if this is explicitly requested,
+                either by listing the product name as an argument to \c --products or by giving
+                the \c build command the \c --all-products option.
+        \row
             \li condition
             \li bool
             \li true

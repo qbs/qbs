@@ -281,6 +281,9 @@ void BuiltinDeclarations::addProductItem()
     decl.setInitialValueSource(QLatin1String("[]"));
     item << decl;
     item << nameProperty();
+    decl = PropertyDeclaration(QLatin1String("builtByDefault"), PropertyDeclaration::Boolean);
+    decl.setInitialValueSource(QLatin1String("true"));
+    item << decl;
     decl = PropertyDeclaration(QLatin1String("profiles"), PropertyDeclaration::StringList);
     decl.setInitialValueSource(QLatin1String("[project.profile]"));
     item << decl;

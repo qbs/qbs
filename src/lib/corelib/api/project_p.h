@@ -65,7 +65,7 @@ public:
                                 const InstallOptions &options, bool needsDepencencyResolving,
                                 QObject *jobOwner);
     QList<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
-    QList<ResolvedProductPtr> allEnabledInternalProducts() const;
+    QList<ResolvedProductPtr> allEnabledInternalProducts(bool includingNonDefault) const;
     ResolvedProductPtr internalProduct(const ProductData &product) const;
     ProductData findProductData(const ProductData &product) const;
     QList<ProductData> findProductsByName(const QString &name) const;

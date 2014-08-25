@@ -402,6 +402,7 @@ public:
     QString buildDirectory() const;
 
     bool isInParentProject(const ResolvedProductConstPtr &other) const;
+    bool builtByDefault() const;
 
 private:
     ResolvedProduct();

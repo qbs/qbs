@@ -124,6 +124,10 @@ static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
     return true;
 }
 
+static qbs::Project::ProductSelection defaultProducts() {
+    return qbs::Project::ProductSelectionDefaultOnly;
+}
+
 
 TestApi::TestApi()
     : m_logSink(new LogSink)
@@ -584,7 +588,8 @@ void TestApi::changeContent()
     qbs::BuildOptions buildOptions;
     buildOptions.setDryRun(true);
     BuildDescriptionReceiver rcvr;
-    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, this));
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(buildOptions, defaultProducts(),
+                                                                    this));
     connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
@@ -614,7 +619,7 @@ void TestApi::changeContent()
     QVERIFY(projectDataMatches); // Will fail if e.g. code locations don't match.
 
     // Now try building again and check if the newly resolved product behaves the same way.
-    buildJob.reset(project.buildAllProducts(buildOptions, this));
+    buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
     connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());
@@ -626,7 +631,7 @@ void TestApi::changeContent()
     QVERIFY(projectData == project.projectData());
 
     // Error handling: Try to change the project during a build.
-    buildJob.reset(project.buildAllProducts(buildOptions, this));
+    buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
     errorInfo = project.addGroup(newProjectData.products().first(), "blubb");
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("in process"), qPrintable(errorInfo.toString()));
@@ -653,7 +658,7 @@ void TestApi::changeContent()
     VERIFY_NO_ERROR(errorInfo);
     projectData = project.projectData();
     rcvr.descriptions.clear();
-    buildJob.reset(project.buildAllProducts(buildOptions, this));
+    buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
     connect(buildJob.data(), SIGNAL(reportCommandDescription(QString,QString)), &rcvr,
             SLOT(handleDescription(QString,QString)));
     waitForFinished(buildJob.data());

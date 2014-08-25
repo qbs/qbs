@@ -164,21 +164,22 @@ QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductDa
     return internalProducts;
 }
 
-static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectConstPtr &project)
+static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectConstPtr &project,
+                                                         bool includingNonDefault)
 {
     QList<ResolvedProductPtr> products;
     foreach (const ResolvedProductPtr &p, project->products) {
-        if (p->enabled)
+        if (p->enabled && (includingNonDefault || p->builtByDefault()))
             products << p;
     }
     foreach (const ResolvedProjectConstPtr &subProject, project->subProjects)
-        products << enabledInternalProducts(subProject);
+        products << enabledInternalProducts(subProject, includingNonDefault);
     return products;
 }
 
-QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts() const
+QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts(bool includingNonDefault) const
 {
-    return enabledInternalProducts(internalProject);
+    return enabledInternalProducts(internalProject, includingNonDefault);
 }
 
 static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPtr &project,
@@ -841,13 +842,29 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
 }
 
 /*!
+ * \enum Project::ProductSelection
+ * This enum type specifies which products to include if "all" products are to be built.
+ * \value Project::ProdProductSelectionDefaultOnly Indicates that only those products should be
+ *                                                 built whose \c builtByDefault property
+ *                                                 is \c true.
+ * \value Project::ProdProductSelectionWithNonDefault Indicates that products whose
+ *                                                    \c builtByDefault property is \c false should
+ *                                                    also be built.
+ */
+
+/*!
  * \brief Causes all products of this project to be built, if necessary.
+ * If and only if \c producSelection is \c Project::ProductSelectionWithNonDefault, products with
+ * the \c builtByDefault property set to \c false will be built too.
  * The function will finish immediately, returning a \c BuildJob identifiying the operation.
  */
-BuildJob *Project::buildAllProducts(const BuildOptions &options, QObject *jobOwner) const
+BuildJob *Project::buildAllProducts(const BuildOptions &options, ProductSelection productSelection,
+                                    QObject *jobOwner) const
 {
     QBS_ASSERT(isValid(), return 0);
-    return d->buildProducts(d->allEnabledInternalProducts(), options, false, jobOwner);
+    const bool includingNonDefault = productSelection == ProductSelectionWithNonDefault;
+    return d->buildProducts(d->allEnabledInternalProducts(includingNonDefault), options,
+                            !includingNonDefault, jobOwner);
 }
 
 /*!
@@ -881,7 +898,7 @@ BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOption
 CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwner) const
 {
     QBS_ASSERT(isValid(), return 0);
-    return d->cleanProducts(d->allEnabledInternalProducts(), options, jobOwner);
+    return d->cleanProducts(d->allEnabledInternalProducts(true), options, jobOwner);
 }
 
 /*!
@@ -907,12 +924,17 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const CleanOption
 
 /*!
  * \brief Installs the installable files of all products in the project.
+ * If and only if \c producSelection is \c Project::ProductSelectionWithNonDefault, products with
+ * the \c builtByDefault property set to \c false will be installed too.
  * The function will finish immediately, returning an \c InstallJob identifiying this operation.
  */
-InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *jobOwner) const
+InstallJob *Project::installAllProducts(const InstallOptions &options,
+                                        ProductSelection productSelection, QObject *jobOwner) const
 {
     QBS_ASSERT(isValid(), return 0);
-    return d->installProducts(d->allEnabledInternalProducts(), options, false, jobOwner);
+    const bool includingNonDefault = productSelection == ProductSelectionWithNonDefault;
+    return d->installProducts(d->allEnabledInternalProducts(includingNonDefault), options,
+                              !includingNonDefault, jobOwner);
 }
 
 /*!

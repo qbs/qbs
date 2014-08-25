@@ -425,8 +425,10 @@ QString CommandLineFrontend::buildDirectory(const QString &profileName) const
 void CommandLineFrontend::build()
 {
     if (m_parser.products().isEmpty()) {
+        const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
+                ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
         foreach (const Project &project, m_projects)
-            m_buildJobs << project.buildAllProducts(buildOptions(project), this);
+            m_buildJobs << project.buildAllProducts(buildOptions(project), productSelection, this);
     } else {
         const ProductMap &products = productsToUse();
         for (ProductMap::ConstIterator it = products.begin(); it != products.end(); ++it)
@@ -554,9 +556,17 @@ void CommandLineFrontend::install()
 {
     Q_ASSERT(m_projects.count() == 1);
     const Project project = m_projects.first();
-    const ProductMap products = productsToUse();
-    InstallJob * const installJob = project.installSomeProducts(
-                products.value(m_projects.first()), m_parser.installOptions());
+    InstallJob *installJob;
+    if (m_parser.products().isEmpty()) {
+        const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
+                ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
+        installJob = project.installAllProducts(m_parser.installOptions(), productSelection);
+    } else {
+        const Project project = m_projects.first();
+        const ProductMap products = productsToUse();
+        installJob = project.installSomeProducts(products.value(project),
+                                                 m_parser.installOptions());
+    }
     connectJob(installJob);
 }
 

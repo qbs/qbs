@@ -213,7 +213,8 @@ static QList<CommandLineOption::Type> buildOptions()
     return options << CommandLineOption::KeepGoingOptionType
             << CommandLineOption::ProductsOptionType
             << CommandLineOption::ChangedFilesOptionType
-            << CommandLineOption::ForceTimestampCheckOptionType;
+            << CommandLineOption::ForceTimestampCheckOptionType
+            << CommandLineOption::BuildNonDefaultOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const
@@ -244,6 +245,7 @@ QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
     QList<CommandLineOption::Type> options = buildOptions();
     options.removeOne(CommandLineOption::ChangedFilesOptionType);
     options.removeOne(CommandLineOption::JobsOptionType);
+    options.removeOne(CommandLineOption::BuildNonDefaultOptionType);
     return options << CommandLineOption::AllArtifactsOptionType;
 }
 

@@ -788,6 +788,11 @@ bool ResolvedProduct::isInParentProject(const ResolvedProductConstPtr &other) co
     return false;
 }
 
+bool ResolvedProduct::builtByDefault() const
+{
+    return productProperties.value(QLatin1String("builtByDefault"), true).toBool();
+}
+
 
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {

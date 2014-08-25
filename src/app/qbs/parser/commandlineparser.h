@@ -62,6 +62,7 @@ public:
     bool forceTimestampCheck() const;
     bool dryRun() const;
     bool logTime() const;
+    bool withNonDefaultProducts() const;
     bool buildBeforeInstalling() const;
     QStringList runArgs() const;
     QStringList products() const;
