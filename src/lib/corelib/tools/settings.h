@@ -54,6 +54,7 @@ public:
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
     void clear();
+    void sync();
 
     QString defaultProfile() const;
     QStringList profiles() const;
@@ -65,7 +66,6 @@ private:
     QString internalRepresentation(const QString &externalKey) const;
     QString externalRepresentation(const QString &internalKey) const;
     void fixupKeys(QStringList &keys) const;
-    void checkStatus();
 
     QSettings * const m_settings;
     const QString m_baseDir;

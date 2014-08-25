@@ -2124,6 +2124,7 @@ void TestBlackbox::missingProfile()
 {
     Settings settings((QString()));
     TemporaryDefaultProfileRemover dpr(&settings);
+    settings.sync();
     QVERIFY(settings.defaultProfile().isEmpty());
     QDir::setCurrent(testDataDir + "/project_filepath_check");
     QbsRunParameters params;
