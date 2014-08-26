@@ -379,7 +379,7 @@ void TestLanguage::erroneousFiles_data()
             << "The project requires at least qbs version \\d+\\.\\d+.\\d+, "
                "but this is qbs version " QBS_VERSION ".";
     QTest::newRow("wrongQbsVersionFormat")
-            << "The value of Project.minimumQbsVersion is not a valid version string.";
+            << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
 }
 
 void TestLanguage::erroneousFiles()

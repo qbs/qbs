@@ -34,6 +34,7 @@
 #include "itempool.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/version.h>
 
 #include <QMap>
 #include <QSet>
@@ -202,6 +203,8 @@ private:
     static void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                        const QVariantMap &buildConfig);
 
+    static Version qbsVersionFromString(const QString &str, bool *ok = 0);
+
     ScriptEngine *m_engine;
     ItemPool *m_pool;
     Logger m_logger;
@@ -214,6 +217,7 @@ private:
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
     SetupProjectParameters m_parameters;
+    Version m_qbsVersion;
 };
 
 } // namespace Internal

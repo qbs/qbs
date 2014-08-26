@@ -233,6 +233,23 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     projectContext.scope->setFile(item->file());
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
 
+    const QString minVersionStr
+            = m_evaluator->stringValue(item, QLatin1String("minimumQbsVersion"),
+                                       QLatin1String("1.3.0"));
+    bool ok;
+    const Version minVersion = qbsVersionFromString(minVersionStr, &ok);
+    if (!ok) {
+        throw ErrorInfo(Tr::tr("The value '%1' of Project.minimumQbsVersion "
+                "is not a valid version string.").arg(minVersionStr), item->location());
+    }
+    if (!m_qbsVersion.isValid())
+        m_qbsVersion = qbsVersionFromString(QLatin1String(QBS_VERSION));
+    if (m_qbsVersion < minVersion) {
+        throw ErrorInfo(Tr::tr("The project requires at least qbs version %1, but "
+                               "this is qbs version %2.").arg(minVersion.toString(),
+                                                              m_qbsVersion.toString()));
+    }
+
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
         if (child->typeName() == QLatin1String("Product")) {
@@ -1225,6 +1242,21 @@ QString ModuleLoader::fullModuleName(const QStringList &moduleName)
 #else
     return moduleName.join(QLatin1String("/"));
 #endif
+}
+
+Version ModuleLoader::qbsVersionFromString(const QString &str, bool *ok)
+{
+    if (ok)
+        *ok = true;
+    QRegExp rex(QLatin1String("(\\d+)\\.(\\d+)(?:\\.(\\d+))?"));
+    if (rex.exactMatch(str)) {
+        const QString cap3 = rex.cap(3);
+        return Version(rex.cap(1).toInt(), rex.cap(2).toInt(),
+                  cap3.isEmpty() ? 0 : cap3.toInt());
+    }
+    if (ok)
+        *ok = false;
+    return Version();
 }
 
 void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfigKey,
