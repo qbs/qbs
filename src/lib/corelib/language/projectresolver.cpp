@@ -627,20 +627,14 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 
     // read artifacts
     bool hasArtifactChildren = false;
-    bool hasAlwaysUpdatedArtifact = false;
     foreach (Item *child, item->children()) {
         if (Q_UNLIKELY(child->typeName() != QLatin1String("Artifact")))
             throw ErrorInfo(Tr::tr("'Rule' can only have children of type 'Artifact'."),
                                child->location());
 
         hasArtifactChildren = true;
-        resolveRuleArtifact(rule, child, &hasAlwaysUpdatedArtifact);
+        resolveRuleArtifact(rule, child);
     }
-
-    if (Q_UNLIKELY(hasArtifactChildren && !hasAlwaysUpdatedArtifact))
-        throw ErrorInfo(Tr::tr("At least one output artifact of a rule "
-                           "must have alwaysUpdated set to true."),
-                    item->location());
 
     rule->name = m_evaluator->stringValue(item, QLatin1String("name"));
     rule->prepareScript = scriptFunctionValue(item, QLatin1String("prepare"));
@@ -696,8 +690,7 @@ public:
     typedef std::pair<iterator, bool> InsertResult;
 };
 
-void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
-                                          bool *hasAlwaysUpdatedArtifact)
+void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
 {
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts += artifact;
@@ -706,8 +699,6 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item,
     artifact->filePath = verbatimValue(item, QLatin1String("filePath"));
     artifact->fileTags = m_evaluator->fileTagsValue(item, QLatin1String("fileTags"));
     artifact->alwaysUpdated = m_evaluator->boolValue(item, QLatin1String("alwaysUpdated"));
-    if (artifact->alwaysUpdated)
-        *hasAlwaysUpdatedArtifact = true;
 
     StringListSet seenBindings;
     for (Item *obj = item; obj; obj = obj->prototype()) {

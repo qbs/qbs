@@ -50,6 +50,14 @@
         \li Default
         \li Description
     \row
+        \li alwaysUpdated
+        \li bool
+        \li true
+        \li Setting this to \c false means the file is not necessarily always written to by any
+            command run by the rule. The timestamps of such artifacts are therefore not checked to
+            find out whether they are up to date. Consequently, if all artifacts of a rule have this
+            property set to \c false, the commands of the rule are always executed.
+    \row
         \li condition
         \li bool
         \li true

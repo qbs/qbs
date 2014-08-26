@@ -385,10 +385,9 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
             return !upToDate;
     }
 
-    // We need at least one output that is always updated.
-    QBS_CHECK(hasAlwaysUpdatedArtifacts);
-
-    return false;
+    // If all artifacts in a transformer have "alwaysUpdated" set to false, that transformer
+    // is always run.
+    return !hasAlwaysUpdatedArtifacts;
 }
 
 void Executor::buildArtifact(Artifact *artifact)

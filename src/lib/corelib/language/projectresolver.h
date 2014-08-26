@@ -107,7 +107,7 @@ private:
     void resolveModule(const QStringList &moduleName, Item *item, ProjectContext *projectContext);
     void resolveGroup(Item *item, ProjectContext *projectContext);
     void resolveRule(Item *item, ProjectContext *projectContext);
-    void resolveRuleArtifact(const RulePtr &rule, Item *item, bool *hasAlwaysUpdatedArtifact);
+    void resolveRuleArtifact(const RulePtr &rule, Item *item);
     static void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
                                            const QStringList &namePrefix,
                                            StringListSet *seenBindings);
