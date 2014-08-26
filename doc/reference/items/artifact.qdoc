@@ -55,7 +55,7 @@
         \li true
         \li Determines whether the target file will actually be produced.
     \row
-        \li fileName
+        \li filePath
         \li string
         \li undefined
         \li The file path of the target artifact.
