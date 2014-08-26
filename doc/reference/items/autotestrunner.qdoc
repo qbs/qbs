@@ -1,0 +1,87 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-items.html
+    \page autotestrunner-item.html
+    \previouspage artifact-item.html
+    \nextpage cppapplication-item.html
+    \ingroup list-of-items
+
+    \title AutotestRunner Item
+    \brief A product that runs all autotests in the project.
+
+    An \c AutotestRunner has a dependency to all products with the type "autotest". "Building"
+    the \c AutotestRunner product will then run the respective executables. The \c builtByDefault
+    property of an \c AutotestRunner is set to \c false by default, so running the autotests
+    has to be explicitly requested. The default name of the product is "autotest-runner".
+    To use this feature, do the following:
+    \list A
+        \li
+            Attach the "autotest" type to your autotests:
+            \code
+            CppApplication {
+                name: "tst_mytest"
+                type: ["application", "autotest"]
+                // ...
+            }
+            \endcode
+        \li
+            Instantiate exactly one \c AutotestRunner in your project, typically at the top level:
+            \code
+            Project {
+                // ...
+                AutotestRunner { }
+                // ...
+            }
+            \endcode
+        \li
+            Trigger the autotest execution by "building" the product:
+            \code
+            qbs build -p autotest-runner
+            \endcode
+    \endlist
+
+    \section1 AutotestRunner Properties
+
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li limitToSubProject
+        \li bool
+        \li \c true
+        \li By default, only those autotests are considered that are in the same sub-project that
+            the \c AutotestRunner was instantiated in. If you want to run all autotests regardless
+            of their location in the project hierarchy, set this property to \c false.
+    \endtable
+
+*/

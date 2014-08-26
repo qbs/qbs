@@ -31,7 +31,7 @@
     \contentspage list-of-items.html
     \page artifact-item.html
     \previouspage application-item.html
-    \nextpage cppapplication-item.html
+    \nextpage autotestrunner-item.html
     \ingroup list-of-items
 
     \title Artifact Item
