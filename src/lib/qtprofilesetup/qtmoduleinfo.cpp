@@ -417,6 +417,16 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     return modules;
 }
 
+static QList<QByteArray> getPriFileContents(const Profile &profile, const QString &priFilePath)
+{
+    QFile priFile(priFilePath);
+    if (!priFile.open(QIODevice::ReadOnly)) {
+        throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
+                "file '%2' (%3).").arg(profile.name(), priFile.fileName(), priFile.errorString()));
+    }
+    return priFile.readAll().split('\n');
+}
+
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
 {
     QSet<QString> nonExistingPrlFiles;
@@ -444,13 +454,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             moduleInfo.isStaticLibrary = true;
         }
         moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
-        QFile priFile(dit.filePath());
-        if (!priFile.open(QIODevice::ReadOnly)) {
-            throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
-                    "file '%2' (%3).").arg(profile.name(), priFile.fileName(), priFile.errorString()));
-        }
-        const QByteArray priFileContents = priFile.readAll();
-        foreach (const QByteArray &line, priFileContents.split('\n')) {
+        foreach (const QByteArray &line, getPriFileContents(profile, dit.filePath())) {
             const QByteArray simplifiedLine = line.simplified();
             const int firstEqualsOffset = simplifiedLine.indexOf('=');
             if (firstEqualsOffset == -1)
