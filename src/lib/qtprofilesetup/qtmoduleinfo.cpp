@@ -417,14 +417,36 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
     return modules;
 }
 
-static QList<QByteArray> getPriFileContents(const Profile &profile, const QString &priFilePath)
+static QList<QByteArray> getPriFileContentsRecursively(const Profile &profile,
+                                                       const QString &priFilePath)
 {
     QFile priFile(priFilePath);
     if (!priFile.open(QIODevice::ReadOnly)) {
         throw ErrorInfo(Tr::tr("Setting up Qt profile '%1' failed: Cannot open "
                 "file '%2' (%3).").arg(profile.name(), priFile.fileName(), priFile.errorString()));
     }
-    return priFile.readAll().split('\n');
+    QList<QByteArray> lines = priFile.readAll().split('\n');
+    for (int i = 0; i < lines.count(); ++i) {
+        const QByteArray includeString = "include(";
+        const QByteArray &line = lines.at(i).trimmed();
+        if (!line.startsWith(includeString))
+            continue;
+        const int offset = includeString.count();
+        const int closingParenPos = line.indexOf(')', offset);
+        if (closingParenPos == -1) {
+            qDebug("Warning: Invalid include statement in '%s'", qPrintable(priFilePath));
+            continue;
+        }
+        const QString includedFilePath
+                = QString::fromLocal8Bit(line.mid(offset, closingParenPos - offset));
+        const QList<QByteArray> &includedContents
+                = getPriFileContentsRecursively(profile, includedFilePath);
+        int j = i;
+        foreach (const QByteArray &includedLine, includedContents)
+            lines.insert(++j, includedLine);
+        lines.removeAt(i--);
+    }
+    return lines;
 }
 
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
@@ -453,15 +475,16 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             moduleInfo.name = moduleInfo.qbsName;
             moduleInfo.isStaticLibrary = true;
         }
+        const QByteArray moduleKeyPrefix = "QT." + moduleInfo.qbsName.toLatin1() + '.';
         moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
-        foreach (const QByteArray &line, getPriFileContents(profile, dit.filePath())) {
+        foreach (const QByteArray &line, getPriFileContentsRecursively(profile, dit.filePath())) {
             const QByteArray simplifiedLine = line.simplified();
             const int firstEqualsOffset = simplifiedLine.indexOf('=');
             if (firstEqualsOffset == -1)
                 continue;
             const QByteArray key = simplifiedLine.left(firstEqualsOffset).trimmed();
             const QByteArray value = simplifiedLine.mid(firstEqualsOffset + 1).trimmed();
-            if (key.isEmpty() || value.isEmpty())
+            if (!key.startsWith(moduleKeyPrefix) || value.isEmpty())
                 continue;
             if (key.endsWith(".name")) {
                 moduleInfo.name = QString::fromLocal8Bit(value);
