@@ -84,7 +84,7 @@ private:
     void connectBuildJobs();
     void connectBuildJob(AbstractJob *job);
     void connectJob(AbstractJob *job);
-    void checkForExactlyOneProduct();
+    ProductData getTheOneRunnableProduct();
     void install();
     BuildOptions buildOptions(const Project &project) const;
     QString buildDirectory(const QString &profileName) const;

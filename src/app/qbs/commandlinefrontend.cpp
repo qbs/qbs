@@ -333,7 +333,6 @@ void CommandLineFrontend::handleProjectsResolved()
             makeClean();
             break;
         case ShellCommandType:
-            checkForExactlyOneProduct();
             qApp->exit(runShell());
             break;
         case StatusCommandType:
@@ -379,12 +378,8 @@ void CommandLineFrontend::makeClean()
 
 int CommandLineFrontend::runShell()
 {
-    const ProductMap &productMap = productsToUse();
-    Q_ASSERT(productMap.count() == 1);
-    const Project &project = productMap.begin().key();
-    const QList<ProductData> &products = productMap.begin().value();
-    Q_ASSERT(products.count() == 1);
-    RunEnvironment runEnvironment = project.getRunEnvironment(products.first(),
+    const ProductData productToRun = getTheOneRunnableProduct();
+    RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.runShell();
 }
@@ -448,20 +443,14 @@ void CommandLineFrontend::build()
 int CommandLineFrontend::runTarget()
 {
     try {
-        checkForExactlyOneProduct();
-        const ProductMap &productMap = productsToUse();
-        Q_ASSERT(productMap.count() == 1);
-        const Project &project = productMap.begin().key();
-        const QList<ProductData> &products = productMap.begin().value();
-        Q_ASSERT(products.count() == 1);
-        const ProductData productToRun = products.first();
-        const QString executableFilePath = project.targetExecutable(productToRun,
+        const ProductData productToRun = getTheOneRunnableProduct();
+        const QString executableFilePath = m_projects.first().targetExecutable(productToRun,
                 m_parser.installOptions());
         if (executableFilePath.isEmpty()) {
             throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
                         .arg(productToRun.name()));
         }
-        RunEnvironment runEnvironment = project.getRunEnvironment(productToRun,
+        RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
                 QProcessEnvironment::systemEnvironment(), m_settings);
         return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
     } catch (const ErrorInfo &error) {
@@ -513,14 +502,45 @@ void CommandLineFrontend::connectJob(AbstractJob *job)
     }
 }
 
-void CommandLineFrontend::checkForExactlyOneProduct()
+ProductData CommandLineFrontend::getTheOneRunnableProduct()
 {
-    if (m_parser.products().count() == 0
-            && m_projects.first().projectData().products().count() > 1) {
-        throw ErrorInfo(Tr::tr("Ambiguous use of command '%1': No product given for project "
-                           "with more than one product.\nUsage: %2")
-                    .arg(m_parser.commandName(), m_parser.commandDescription()));
+    QBS_CHECK(m_projects.count() == 1); // Has been checked earlier.
+
+    if (m_parser.products().count() == 1) {
+        foreach (const ProductData &p, m_projects.first().projectData().allProducts()) {
+            if (p.name() == m_parser.products().first())
+                return p;
+        }
+        QBS_CHECK(false);
     }
+    QBS_CHECK(m_parser.products().count() == 0);
+
+    QList<ProductData> runnableProducts;
+    foreach (const ProductData &p, m_projects.first().projectData().allProducts()) {
+        if (p.isRunnable())
+            runnableProducts << p;
+    }
+
+    if (runnableProducts.count() == 1)
+        return runnableProducts.first();
+
+    if (runnableProducts.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Cannot execute command '%1': Project has no runnable product.")
+                        .arg(m_parser.commandName()));
+    }
+
+    ErrorInfo error(Tr::tr("Ambiguous use of command '%1': No product given, but project "
+                           "has more than one runnable product.").arg(m_parser.commandName()));
+    error.append(Tr::tr("Use the '--products' option with one of the following products:"));
+    foreach (const ProductData &p, runnableProducts) {
+        QString productRepr = QLatin1String("\t") + p.name();
+        if (p.profile() != m_projects.first().profile()) {
+            productRepr.append(QLatin1String(" [")).append(p.profile())
+                    .append(QLatin1Char(']'));
+        }
+        error.append(productRepr);
+    }
+    throw error;
 }
 
 void CommandLineFrontend::install()
