@@ -268,6 +268,12 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     return qtEnvironment;
 }
 
+static bool isToolchainProfileKey(const QString &key)
+{
+    // The Qt profile setup itself sets cpp.minimum*Version for some systems.
+    return key.startsWith(QLatin1String("cpp.")) && !key.startsWith("cpp.minimum");
+}
+
 void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
                                 Settings *settings)
 {
@@ -288,7 +294,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         return;
     QStringList toolchainProfiles;
     foreach (const QString &key, profile.allKeys(Profile::KeySelectionNonRecursive)) {
-        if (key.startsWith(QLatin1String("cpp.")))
+        if (isToolchainProfileKey(key))
             return;
     }
 
@@ -299,7 +305,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
         bool hasCppKey = false;
         bool hasQtKey = false;
         foreach (const QString &key, otherProfile.allKeys(Profile::KeySelectionNonRecursive)) {
-            if (key.startsWith(QLatin1String("cpp."))) {
+            if (isToolchainProfileKey(key)) {
                 hasCppKey = true;
             } else if (key.startsWith(QLatin1String("Qt."))) {
                 hasQtKey = true;
