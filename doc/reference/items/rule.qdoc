@@ -123,7 +123,7 @@
             This property has no effect on the content of the \a{inputs} variable in the \a{prepare}
             script.
     \row
-        \li usings
+        \li inputsFromDependencies
         \li string list
         \li undefined
         \li File tags the artifacts of product dependencies must match.

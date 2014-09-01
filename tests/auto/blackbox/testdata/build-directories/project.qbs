@@ -24,7 +24,7 @@ Project {
         type: "blubb2"
         Depends { name: "p1" }
         Rule {
-            usings: "blubb1"
+            inputsFromDependencies: "blubb1"
             Artifact {
                 filePath: "dummy2.txt"
                 fileTags: product.type

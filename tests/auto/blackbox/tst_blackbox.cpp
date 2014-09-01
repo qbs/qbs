@@ -1206,6 +1206,15 @@ void TestBlackbox::installedTransformerOutput()
     QVERIFY2(QFile::exists(installedFilePath), qPrintable(installedFilePath));
 }
 
+void TestBlackbox::inputsFromDependencies()
+{
+    QDir::setCurrent(testDataDir + "/inputs-from-dependencies");
+    QbsRunParameters params(QStringList("-qq"));
+    QCOMPARE(runQbs(params), 0);
+    const QList<QByteArray> output = m_qbsStderr.trimmed().split('\n');
+    QVERIFY2(output.count() == 3, m_qbsStderr.constData());
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions");

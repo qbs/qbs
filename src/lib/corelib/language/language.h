@@ -272,7 +272,7 @@ public:
     FileTags inputs;
     FileTags auxiliaryInputs;
     FileTags excludedAuxiliaryInputs;
-    FileTags usings;
+    FileTags inputsFromDependencies;
     FileTags explicitlyDependsOn;
     bool multiplex;
     QList<RuleArtifactPtr> artifacts;           // unused, if outputFileTags/outputArtifactsScript is non-empty

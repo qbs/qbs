@@ -103,6 +103,7 @@ private slots:
     void exportRule();
     void fileDependencies();
     void installedTransformerOutput();
+    void inputsFromDependencies();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
     void jsExtensionsProcess();

@@ -158,12 +158,11 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     foreach (const ResolvedProductConstPtr &dep, product->dependencies) {
         if (!dep->buildData)
             continue;
-        ArtifactSet artifactsToCheck;
-        foreach (Artifact *targetArtifact, dep->targetArtifacts())
-            artifactsToCheck += targetArtifact->transformer->outputs;
-        foreach (Artifact *artifact, artifactsToCheck) {
-            if (artifact->fileTags().matches(m_rule->usings))
-                s += artifact;
+        if (m_rule->inputsFromDependencies.isEmpty())
+            continue;
+        foreach (Artifact * const a, ArtifactSet::fromNodeSet(dep->buildData->nodes)) {
+            if (a->fileTags().matches(m_rule->inputsFromDependencies))
+                s += a;
         }
     }
 

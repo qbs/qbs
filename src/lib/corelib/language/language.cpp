@@ -373,7 +373,7 @@ void Rule::load(PersistentPool &pool)
         >> outputFileTags
         >> auxiliaryInputs
         >> excludedAuxiliaryInputs
-        >> usings
+        >> inputsFromDependencies
         >> explicitlyDependsOn
         >> multiplex;
 
@@ -391,7 +391,7 @@ void Rule::store(PersistentPool &pool) const
         << outputFileTags
         << auxiliaryInputs
         << excludedAuxiliaryInputs
-        << usings
+        << inputsFromDependencies
         << explicitlyDependsOn
         << multiplex;
 
@@ -1217,7 +1217,7 @@ bool operator==(const Rule &r1, const Rule &r2)
             && r1.outputFileTags == r2.outputFileTags
             && r1.auxiliaryInputs == r2.auxiliaryInputs
             && r1.excludedAuxiliaryInputs == r2.excludedAuxiliaryInputs
-            && r1.usings == r2.usings
+            && r1.inputsFromDependencies == r2.inputsFromDependencies
             && r1.explicitlyDependsOn == r2.explicitlyDependsOn
             && r1.multiplex == r2.multiplex;
 }

@@ -43,7 +43,7 @@ Project {
         Depends { name: "p1" }
         Depends { name: "p2" }
         Rule {
-            usings: "custom"
+            inputsFromDependencies: "custom"
             Artifact {
                 filePath: FileInfo.fileName(input.filePath) + ".plus"
                 fileTags: "custom-plus"

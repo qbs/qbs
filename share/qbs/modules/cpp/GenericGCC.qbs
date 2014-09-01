@@ -72,7 +72,7 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy"]
         outputArtifacts: {
@@ -114,7 +114,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        usings: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
+        inputsFromDependencies: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
@@ -160,7 +160,7 @@ CppModule {
                 tags.push("infoplist");
             return tags;
         }
-        usings: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)

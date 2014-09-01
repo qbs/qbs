@@ -118,7 +118,7 @@ Module {
         id: typescriptCompiler
         multiplex: true
         inputs: ["typescript"]
-        usings: ["typescript_declaration"]
+        inputsFromDependencies: ["typescript_declaration"]
 
         outputArtifacts: {
             var artifacts = [];

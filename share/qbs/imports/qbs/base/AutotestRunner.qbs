@@ -10,7 +10,7 @@ Product {
         limitToSubProject: product.limitToSubProject
     }
     Rule {
-        usings: "application"
+        inputsFromDependencies: "application"
         Artifact {
             filePath: input.filePath.replace('/', '-') + ".result.dummy" // Will never exist.
             fileTags: "autotest-result"

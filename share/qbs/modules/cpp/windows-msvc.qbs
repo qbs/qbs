@@ -90,7 +90,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ['obj']
-        usings: ['staticlibrary', 'dynamiclibrary_import']
+        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import']
         Artifact {
             fileTags: ["application"]
             filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
@@ -105,7 +105,7 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ['obj']
-        usings: ['staticlibrary', 'dynamiclibrary_import']
+        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import']
 
         Artifact {
             fileTags: ["dynamiclibrary"]
@@ -127,7 +127,7 @@ CppModule {
         id: libtool
         multiplex: true
         inputs: ["obj"]
-        usings: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary"]
 
         Artifact {
             fileTags: ["staticlibrary"]

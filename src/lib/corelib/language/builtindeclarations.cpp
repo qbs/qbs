@@ -362,7 +362,11 @@ void BuiltinDeclarations::addRuleItem()
                 << QLatin1String("project") << QLatin1String("product")
                 << QLatin1String("inputs") << QLatin1String("input"));
     item << decl;
-    item << PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
+    decl = PropertyDeclaration(QLatin1String("usings"), PropertyDeclaration::StringList);
+    decl.setDeprecationInfo(DeprecationInfo(Version(1, 5),
+                                            Tr::tr("Use 'inputsFromDependencies' instead")));
+    item << decl;
+    item << PropertyDeclaration(QLatin1String("inputsFromDependencies"), PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("auxiliaryInputs"),
                                       PropertyDeclaration::StringList);
     item << PropertyDeclaration(QLatin1String("excludedAuxiliaryInputs"),

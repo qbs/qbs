@@ -42,7 +42,7 @@ Project {
 
             Rule {
                 multiplex: true
-                usings: "application"
+                inputsFromDependencies: "application"
                 Artifact {
                     filePath: "app-list.txt"
                     fileTags: "app-list"

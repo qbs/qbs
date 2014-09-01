@@ -12,7 +12,7 @@ Project {
         name: "caller"
         Depends { name: "infinite-loop" }
         Rule {
-            usings: "application"
+            inputsFromDependencies: "application"
             Artifact {
                 filePath: "dummy"
                 fileTags: "mytype"

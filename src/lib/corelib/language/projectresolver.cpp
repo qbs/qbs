@@ -648,7 +648,13 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
 
     rule->multiplex = m_evaluator->boolValue(item, QLatin1String("multiplex"));
     rule->inputs = m_evaluator->fileTagsValue(item, QLatin1String("inputs"));
-    rule->usings = m_evaluator->fileTagsValue(item, QLatin1String("usings"));
+    rule->inputsFromDependencies
+            = m_evaluator->fileTagsValue(item, QLatin1String("inputsFromDependencies"));
+
+    // TODO: Remove in 1.5.
+    foreach (const FileTag &ft, m_evaluator->fileTagsValue(item, QLatin1String("usings")))
+             rule->inputsFromDependencies << ft;
+
     rule->auxiliaryInputs
             = m_evaluator->fileTagsValue(item, QLatin1String("auxiliaryInputs"));
     rule->excludedAuxiliaryInputs
