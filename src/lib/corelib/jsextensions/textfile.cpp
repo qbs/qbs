@@ -29,6 +29,7 @@
 
 #include "textfile.h"
 
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QFile>
@@ -42,7 +43,8 @@ namespace Internal {
 void initializeJsExtensionTextFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject, engine->newFunction(&TextFile::ctor));
+    QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
+                                              engine->newFunction(&TextFile::ctor));
     extensionObject.setProperty(QLatin1String("TextFile"), obj);
 }
 
@@ -50,137 +52,136 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     TextFile *t;
     switch (context->argumentCount()) {
-        case 1:
-            t = new TextFile(context,
-                    context->argument(0).toString());
-            break;
-        case 2:
-            t = new TextFile(context,
-                    context->argument(0).toString(),
-                    static_cast<OpenMode>(context->argument(1).toInt32())
-                    );
-            break;
-        case 3:
-            t = new TextFile(context,
-                    context->argument(0).toString(),
-                    static_cast<OpenMode>(context->argument(1).toInt32()),
-                    context->argument(2).toString()
-                    );
-            break;
-        default:
-            return context->throwError(QLatin1String("TextFile(QString file, "
-                                                     "OpenMode mode = ReadOnly, "
-                                                     "QString codec = QLatin1String(\"UTF8\"))"));
+    case 0:
+        return context->throwError(Tr::tr("TextFile constructor needs path of file to be opened."));
+    case 1:
+        t = new TextFile(context, context->argument(0).toString());
+        break;
+    case 2:
+        t = new TextFile(context,
+                         context->argument(0).toString(),
+                         static_cast<OpenMode>(context->argument(1).toInt32())
+                         );
+        break;
+    case 3:
+        t = new TextFile(context,
+                         context->argument(0).toString(),
+                         static_cast<OpenMode>(context->argument(1).toInt32()),
+                         context->argument(2).toString()
+                         );
+        break;
+    default:
+        return context->throwError(Tr::tr("TextFile constructor takes at most three parameters."));
     }
 
-    QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
-//    obj.setProperty("d", engine->newQObject(new FileImplementation(t),
-//                QScriptEngine::QScriptEngine::QtOwnership));
-    return obj;
+    return engine->newQObject(t, QScriptEngine::ScriptOwnership);
 }
 
 TextFile::~TextFile()
 {
-    delete qstream;
-    delete qfile;
+    delete m_stream;
+    delete m_file;
 }
 
-TextFile::TextFile(QScriptContext *context, const QString &file, OpenMode mode, const QString &codec)
+TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mode,
+                   const QString &codec)
 {
     Q_UNUSED(codec)
     Q_ASSERT(thisObject().engine() == engine());
-    TextFile *t = this;
 
-    t->qfile = new QFile(file);
-    QIODevice::OpenMode m = QIODevice::ReadOnly;
-    if (mode == ReadWrite)
+    m_file = new QFile(filePath);
+    m_stream = new QTextStream(m_file);
+    QIODevice::OpenMode m;
+    switch (mode) {
+    case ReadWrite:
         m = QIODevice::ReadWrite;
-    else if (mode == ReadOnly)
+        break;
+    case ReadOnly:
         m = QIODevice::ReadOnly;
-    else if (mode == WriteOnly)
-       m = QIODevice::WriteOnly;
-    if (Q_UNLIKELY(!t->qfile->open(m))) {
-        delete t->qfile;
-        t->qfile = 0;
-        context->throwError(QString::fromLatin1("unable to open '%1'")
-                .arg(file)
-                );
+        break;
+    case WriteOnly:
+        m = QIODevice::WriteOnly;
+        break;
     }
 
-   t->qstream = new QTextStream(t->qfile);
+    if (Q_UNLIKELY(!m_file->open(m))) {
+        context->throwError(Tr::tr("Unable to open file '%1': %2")
+                            .arg(filePath, m_file->errorString()));
+        delete m_file;
+        m_file = 0;
+    }
 }
 
 void TextFile::close()
 {
-    Q_ASSERT(thisObject().engine() == engine());
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (t->qfile)
-        t->qfile->close();
-    delete t->qfile;
-    t->qfile = 0;
-    delete t->qstream;
-    t->qstream = 0;
+    if (checkForClosed())
+        return;
+    m_file->close();
+    delete m_file;
+    m_file = 0;
+    delete m_stream;
+    m_stream = 0;
 }
 
 void TextFile::setCodec(const QString &codec)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qstream)
+    if (checkForClosed())
         return;
-    t->qstream->setCodec(qPrintable(codec));
+    m_stream->setCodec(qPrintable(codec));
 }
 
 QString TextFile::readLine()
 {
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qfile)
+    if (checkForClosed())
         return QString();
-    return t->qstream->readLine();
+    return m_stream->readLine();
 }
 
 QString TextFile::readAll()
 {
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qfile)
+    if (checkForClosed())
         return QString();
-    return t->qstream->readAll();
+    return m_stream->readAll();
 }
 
 bool TextFile::atEof() const
 {
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qstream)
+    if (checkForClosed())
         return true;
-    return t->qstream->atEnd();
+    return m_stream->atEnd();
 }
 
 void TextFile::truncate()
 {
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qstream)
+    if (checkForClosed())
         return;
-    t->qfile->resize(0);
-    t->qstream->reset();
+    m_file->resize(0);
+    m_stream->reset();
 }
 
 void TextFile::write(const QString &str)
 {
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qstream)
+    if (checkForClosed())
         return;
-    (*t->qstream) << str;
+    (*m_stream) << str;
 }
 
 void TextFile::writeLine(const QString &str)
 {
-    TextFile *t = qscriptvalue_cast<TextFile*>(thisObject());
-    if (!t->qstream)
+    if (checkForClosed())
         return;
-    (*t->qstream) << str;
+    (*m_stream) << str;
     if (HostOsInfo::isWindowsHost())
-        (*t->qstream) << '\r';
-    (*t->qstream) << '\n';
+        (*m_stream) << '\r';
+    (*m_stream) << '\n';
+}
+
+bool TextFile::checkForClosed() const
+{
+    if (m_file)
+        return false;
+    context()->throwError(Tr::tr("Access to TextFile object that was already closed."));
+    return true;
 }
 
 } // namespace Internal

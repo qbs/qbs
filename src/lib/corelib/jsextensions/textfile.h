@@ -50,9 +50,10 @@ class TextFile : public QObject, public QScriptable
     Q_ENUMS(OpenMode)
 public:
     enum OpenMode { ReadOnly, WriteOnly, ReadWrite };
+
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    TextFile(QScriptContext *context, const QString &file, OpenMode mode = ReadOnly, const QString &codec = QLatin1String("UTF8"));
     ~TextFile();
+
     Q_INVOKABLE void close();
     Q_INVOKABLE void setCodec(const QString &codec);
     Q_INVOKABLE QString readLine();
@@ -61,9 +62,15 @@ public:
     Q_INVOKABLE void truncate();
     Q_INVOKABLE void write(const QString &str);
     Q_INVOKABLE void writeLine(const QString &str);
+
 private:
-    QFile *qfile;
-    QTextStream *qstream;
+    TextFile(QScriptContext *context, const QString &filePath, OpenMode mode = ReadOnly,
+             const QString &codec = QLatin1String("UTF8"));
+
+    bool checkForClosed() const;
+
+    QFile *m_file;
+    QTextStream *m_stream;
 };
 
 } // namespace Internal
