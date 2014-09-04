@@ -50,27 +50,31 @@ namespace Internal {
 
 class SVConverter : ValueHandler
 {
-    EvaluatorScriptClass *const scriptClass;
-    ScriptEngine *const engine;
-    QScriptContext *const scriptContext;
-    const QScriptValue *object;
+    EvaluatorScriptClass * const scriptClass;
+    ScriptEngine * const engine;
+    QScriptContext * const scriptContext;
+    const QScriptValue * const object;
     const ValuePtr &valuePtr;
     const bool inPrototype;
+    const QScriptString * const propertyName;
+    const EvaluationData * const data;
+    QScriptValue * const result;
     char pushedScopesCount;
 
 public:
-    const QScriptString *propertyName;
-    const EvaluationData *data;
-    QScriptValue *result;
 
     SVConverter(EvaluatorScriptClass *esc, const QScriptValue *obj, const ValuePtr &v,
-                bool _inPrototype)
+                bool _inPrototype, const QScriptString *propertyName, const EvaluationData *data,
+                QScriptValue *result)
         : scriptClass(esc)
         , engine(static_cast<ScriptEngine *>(esc->engine()))
         , scriptContext(esc->engine()->currentContext())
         , object(obj)
         , valuePtr(v)
         , inPrototype(_inPrototype)
+        , propertyName(propertyName)
+        , data(data)
+        , result(result)
         , pushedScopesCount(0)
     {
     }
@@ -194,10 +198,8 @@ private:
         if (value->sourceUsesBase()) {
             QScriptValue baseValue;
             if (value->baseValue()) {
-                SVConverter converter(scriptClass, object, value->baseValue(), inPrototype);
-                converter.propertyName = propertyName;
-                converter.data = data;
-                converter.result = &baseValue;
+                SVConverter converter(scriptClass, object, value->baseValue(), inPrototype,
+                                      propertyName, data, &baseValue);
                 converter.start();
             }
             setupConvenienceProperty(QLatin1String("base"), &extraScope, baseValue);
@@ -401,10 +403,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
         return result;
     }
 
-    SVConverter converter(this, &object, value, inPrototype);
-    converter.propertyName = &name;
-    converter.data = data;
-    converter.result = &result;
+    SVConverter converter(this, &object, value, inPrototype, &name, data, &result);
     converter.start();
 
     const PropertyDeclaration decl = data->item->propertyDeclarations().value(name.toString());
