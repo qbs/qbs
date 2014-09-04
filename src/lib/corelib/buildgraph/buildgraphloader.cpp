@@ -562,10 +562,21 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
 
     product->project->products.removeOne(product);
     if (product->buildData) {
-        foreach (Artifact *artifact, ArtifactSet::fromNodeSet(product->buildData->nodes)) {
-            projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk, false);
-            if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)
-                m_artifactsRemovedFromDisk << artifact->filePath();
+        foreach (BuildGraphNode * const node, product->buildData->nodes) {
+            if (node->type() == BuildGraphNode::ArtifactNodeType) {
+                Artifact * const artifact = static_cast<Artifact *>(node);
+                projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk,
+                                                 false);
+                if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)
+                    m_artifactsRemovedFromDisk << artifact->filePath();
+            } else {
+                foreach (BuildGraphNode * const parent, node->parents)
+                    parent->children.remove(node);
+                node->parents.clear();
+                foreach (BuildGraphNode * const child, node->children)
+                    child->parents.remove(node);
+                node->children.clear();
+            }
         }
     }
 }
