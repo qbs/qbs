@@ -358,7 +358,15 @@ QList<Item *> ModuleLoader::multiplexProductItem(Item *productItem)
     QList<Item *> additionalProductItems;
     const QString profileKey = QLatin1String("profile");
     productItem->setProperty(profileKey, VariantValue::create(profileNames.first()));
-    for (int i = 1; i < profileNames.count(); ++i) {
+    Settings settings(m_parameters.settingsDirectory());
+    for (int i = 0; i < profileNames.count(); ++i) {
+        Profile profile(profileNames.at(i), &settings);
+        if (!profile.exists()) {
+            throw ErrorInfo(Tr::tr("The profile '%1' does not exist.").arg(profile.name()),
+                            productItem->location()); // TODO: profilesValue->location() is invalid, why?
+        }
+        if (i == 0)
+            continue; // We use the original item for the first profile.
         Item * const cloned = productItem->clone(productItem->pool());
         cloned->setProperty(profileKey, VariantValue::create(profileNames.at(i)));
         additionalProductItems << cloned;
