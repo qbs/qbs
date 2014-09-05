@@ -101,6 +101,10 @@ void ProcessCommandExecutor::doStart()
     } else {
         program = findProcessCommandInPath();
     }
+    program = QDir::fromNativeSeparators(program);
+
+    // Use native separators for debug output, so people can copy-paste it to a command line.
+    const QString programNative = QDir::toNativeSeparators(program);
 
     QProcessEnvironment env = m_buildEnvironment;
     const QProcessEnvironment &additionalVariables = cmd->environment();
@@ -116,11 +120,12 @@ void ProcessCommandExecutor::doStart()
         return;
     }
 
-    if (!cmd->workingDir().isEmpty()) {
-        FileInfo fi(cmd->workingDir());
+    const QString workingDir = QDir::fromNativeSeparators(cmd->workingDir());
+    if (!workingDir.isEmpty()) {
+        FileInfo fi(workingDir);
         if (!fi.exists() || !fi.isDir()) {
             emit finished(ErrorInfo(Tr::tr("The working directory '%1' for process '%2' "
-                                           "is invalid.").arg(cmd->workingDir(), program),
+                    "is invalid.").arg(QDir::toNativeSeparators(workingDir), programNative),
                                     cmd->codeLocation()));
             return;
         }
@@ -159,10 +164,10 @@ void ProcessCommandExecutor::doStart()
         }
     }
 
-    logger().qbsDebug() << "[EXEC] Running external process; full command line is: " << program
-                        << commandArgsToString(arguments);
+    logger().qbsDebug() << "[EXEC] Running external process; full command line is: "
+                        << programNative << commandArgsToString(arguments);
     logger().qbsTrace() << "[EXEC] Additional environment:" << additionalVariables.toStringList();
-    m_process.setWorkingDirectory(cmd->workingDir());
+    m_process.setWorkingDirectory(workingDir);
     m_process.start(program, arguments);
 
     m_program = program;
@@ -334,7 +339,8 @@ bool ProcessCommandExecutor::findProcessCandidateCheck(const QString &directory,
         QString candidate = directory + program + m_executableSuffixes.at(i);
         if (logger().traceEnabled())
             logger().qbsTrace() << "[EXEC] candidate: " << candidate;
-        if (FileInfo::exists(candidate)) {
+        QFileInfo fi(candidate);
+        if (fi.isFile() && fi.isExecutable()) {
             fullProgramPath = candidate;
             return true;
         }

@@ -279,7 +279,8 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
         return;
 
     (result.success() ? qbsInfo() : qbsError())
-            << result.executableFilePath() << " " << result.arguments().join(QLatin1String(" "))
+            << QDir::toNativeSeparators(result.executableFilePath()) << " "
+            << result.arguments().join(QLatin1String(" "))
             << (hasOutput ? QString::fromLatin1("\n") : QString())
             << (result.stdOut().isEmpty() ? QString() : result.stdOut().join(QLatin1String("\n")))
             << (result.stdErr().isEmpty() ? QString() : result.stdErr().join(QLatin1String("\n")));
