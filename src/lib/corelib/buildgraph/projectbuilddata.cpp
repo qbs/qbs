@@ -299,7 +299,6 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
         artifact->product->buildData->nodes.remove(artifact);
         artifact->product->buildData->roots.remove(artifact);
         removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
-        artifact->product.clear();
     }
     isDirty = true;
 }

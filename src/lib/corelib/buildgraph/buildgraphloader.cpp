@@ -336,6 +336,11 @@ void BuildGraphLoader::trackProjectChanges()
     EmptyDirectoriesRemover(m_result.newlyResolvedProject.data(), m_logger)
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
+    foreach (FileResourceBase * const f, m_objectsToDelete) {
+        Artifact * const a = dynamic_cast<Artifact *>(f);
+        if (a)
+            a->product.clear(); // To help with the sanity checks.
+    }
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }
 
