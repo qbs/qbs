@@ -32,6 +32,7 @@
 #include "settingsmodel.h"
 
 #include <QAction>
+#include <QKeyEvent>
 #include <QKeySequence>
 #include <QMenu>
 #include <QMenuBar>
@@ -79,6 +80,8 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
 
     viewMenu->addAction(expandAllAction);
     viewMenu->addAction(collapseAllAction);
+
+    ui->treeView->installEventFilter(this);
 }
 
 MainWindow::~MainWindow()
@@ -158,4 +161,23 @@ void MainWindow::provideContextMenu(const QPoint &pos)
         m_model->addNewKey(index);
     else if (action == &removeKeyAction)
         m_model->removeKey(index);
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (ui->treeView->hasFocus() && event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        if (keyEvent->matches(QKeySequence::Delete)) {
+            const QModelIndexList indexes = ui->treeView->selectionModel()->selectedRows();
+            if (indexes.count() == 1) {
+                const QModelIndex index = indexes.first();
+                if (index.isValid()) {
+                    m_model->removeKey(index);
+                    return true;
+                }
+            }
+        }
+    }
+
+    return QMainWindow::eventFilter(watched, event);
 }

@@ -46,6 +46,8 @@ public:
     explicit MainWindow(const QString &settingsDir, QWidget *parent = 0);
     ~MainWindow();
 
+    bool eventFilter(QObject *watched, QEvent *event);
+
 private slots:
     void adjustColumns();
     void expandAll();
