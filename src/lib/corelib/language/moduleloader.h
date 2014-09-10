@@ -34,6 +34,7 @@
 #include "itempool.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/version.h>
 
 #include <QMap>
 #include <QSet>
@@ -214,6 +215,7 @@ private:
     QHash<Item *, QSet<QString> > m_validItemPropertyNamesPerItem;
     QSet<Item *> m_disabledItems;
     SetupProjectParameters m_parameters;
+    Version m_qbsVersion;
 };
 
 } // namespace Internal

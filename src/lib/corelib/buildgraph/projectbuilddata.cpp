@@ -289,16 +289,16 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
     if (removeFromDisk)
         removeGeneratedArtifactFromDisk(artifact, logger);
     removeFromLookupTable(artifact);
-    if (removeFromProduct) {
-        artifact->product->buildData->nodes.remove(artifact);
-        artifact->product->buildData->roots.remove(artifact);
-        removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
-    }
     removeFromRuleNodes(artifact, logger);
     disconnectArtifact(artifact, logger);
     if (artifact->transformer) {
         artifact->product->unregisterArtifactWithChangedInputs(artifact);
         artifact->transformer->outputs.remove(artifact);
+    }
+    if (removeFromProduct) {
+        artifact->product->buildData->nodes.remove(artifact);
+        artifact->product->buildData->roots.remove(artifact);
+        removeArtifactFromSet(artifact, artifact->product->buildData->artifactsByFileTag);
     }
     isDirty = true;
 }

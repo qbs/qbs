@@ -35,7 +35,12 @@
 #include <QString>
 
 namespace qbs {
-namespace Internal { class InstallOptionsPrivate; }
+class InstallOptions;
+namespace Internal {
+class InstallOptionsPrivate;
+class TopLevelProject;
+QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProject *project);
+}
 
 class QBS_EXPORT InstallOptions
 {

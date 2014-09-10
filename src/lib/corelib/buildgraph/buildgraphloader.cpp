@@ -336,6 +336,11 @@ void BuildGraphLoader::trackProjectChanges()
     EmptyDirectoriesRemover(m_result.newlyResolvedProject.data(), m_logger)
             .removeEmptyParentDirectories(m_artifactsRemovedFromDisk);
 
+    foreach (FileResourceBase * const f, m_objectsToDelete) {
+        Artifact * const a = dynamic_cast<Artifact *>(f);
+        if (a)
+            a->product.clear(); // To help with the sanity checks.
+    }
     doSanityChecks(m_result.newlyResolvedProject, m_logger);
 }
 
@@ -562,10 +567,21 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
 
     product->project->products.removeOne(product);
     if (product->buildData) {
-        foreach (Artifact *artifact, ArtifactSet::fromNodeSet(product->buildData->nodes)) {
-            projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk, false);
-            if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)
-                m_artifactsRemovedFromDisk << artifact->filePath();
+        foreach (BuildGraphNode * const node, product->buildData->nodes) {
+            if (node->type() == BuildGraphNode::ArtifactNodeType) {
+                Artifact * const artifact = static_cast<Artifact *>(node);
+                projectBuildData->removeArtifact(artifact, m_logger, removeArtifactsFromDisk,
+                                                 false);
+                if (removeArtifactsFromDisk && artifact->artifactType == Artifact::Generated)
+                    m_artifactsRemovedFromDisk << artifact->filePath();
+            } else {
+                foreach (BuildGraphNode * const parent, node->parents)
+                    parent->children.remove(node);
+                node->parents.clear();
+                foreach (BuildGraphNode * const child, node->children)
+                    child->parents.remove(node);
+                node->children.clear();
+            }
         }
     }
 }

@@ -40,6 +40,7 @@ class QProcessEnvironment;
 QT_END_NAMESPACE
 
 namespace qbs {
+class InstallOptions;
 class Settings;
 
 namespace Internal {
@@ -62,6 +63,7 @@ public:
 
 private:
     RunEnvironment(const Internal::ResolvedProductPtr &product,
+                   const InstallOptions &installOptions,
                    const QProcessEnvironment &environment, Settings *settings,
                    const Internal::Logger &logger);
 

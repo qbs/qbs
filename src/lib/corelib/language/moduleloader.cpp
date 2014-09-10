@@ -233,6 +233,22 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     projectContext.scope->setFile(item->file());
     projectContext.scope->setProperty(QLatin1String("project"), itemValue);
 
+    const QString minVersionStr
+            = m_evaluator->stringValue(item, QLatin1String("minimumQbsVersion"),
+                                       QLatin1String("1.3.0"));
+    const Version minVersion = Version::fromString(minVersionStr);
+    if (!minVersion.isValid()) {
+        throw ErrorInfo(Tr::tr("The value '%1' of Project.minimumQbsVersion "
+                "is not a valid version string.").arg(minVersionStr), item->location());
+    }
+    if (!m_qbsVersion.isValid())
+        m_qbsVersion = Version::fromString(QLatin1String(QBS_VERSION));
+    if (m_qbsVersion < minVersion) {
+        throw ErrorInfo(Tr::tr("The project requires at least qbs version %1, but "
+                               "this is qbs version %2.").arg(minVersion.toString(),
+                                                              m_qbsVersion.toString()));
+    }
+
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
         if (child->typeName() == QLatin1String("Product")) {

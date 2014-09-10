@@ -56,6 +56,16 @@
 namespace qbs {
 namespace Internal {
 
+template<typename T> bool equals(const T *v1, const T *v2)
+{
+    if (v1 == v2)
+        return true;
+    if (!v1 != !v2)
+        return false;
+    return *v1 == *v2;
+}
+
+
 FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags)
     : m_fileTags(fileTags)
 {
@@ -289,13 +299,9 @@ void ScriptFunction::store(PersistentPool &pool) const
 
 bool operator==(const ScriptFunction &a, const ScriptFunction &b)
 {
-    if (&a == &b)
-        return true;
-    if (!!&a != !!&b)
-        return false;
     return a.sourceCode == b.sourceCode
             && a.location == b.location
-            && *a.fileContext == *b.fileContext;
+            && equals(a.fileContext.data(), b.fileContext.data());
 }
 
 void ResolvedModule::load(PersistentPool &pool)
@@ -316,19 +322,10 @@ void ResolvedModule::store(PersistentPool &pool) const
 
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 {
-    if (&m1 == &m2)
-        return true;
-    if (!!&m1 != !!&m2)
-        return false;
     return m1.name == m2.name
             && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
-            && *m1.setupBuildEnvironmentScript == *m2.setupBuildEnvironmentScript
-            && *m1.setupRunEnvironmentScript == *m2.setupRunEnvironmentScript;
-}
-
-static bool modulesAreEqual(const ResolvedModuleConstPtr &m1, const ResolvedModuleConstPtr &m2)
-{
-    return *m1 == *m2;
+            && equals(m1.setupBuildEnvironmentScript.data(), m2.setupBuildEnvironmentScript.data())
+            && equals(m1.setupRunEnvironmentScript.data(), m2.setupRunEnvironmentScript.data());
 }
 
 QString Rule::toString() const
@@ -1133,7 +1130,7 @@ template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
         const T value2 = map2.value(key);
         if (!value2)
             return false;
-        if (*map1.value(key) != *value2)
+        if (!equals(map1.value(key).data(), value2.data()))
             return false;
     }
     return true;
@@ -1151,10 +1148,6 @@ QString keyFromElem(const ArtifactPropertiesPtr &ap)
 
 bool operator==(const SourceArtifact &sa1, const SourceArtifact &sa2)
 {
-    if (&sa1 == &sa2)
-        return true;
-    if (!!&sa1 != !!&sa2)
-        return false;
     return sa1.absoluteFilePath == sa2.absoluteFilePath
             && sa1.fileTags == sa2.fileTags
             && sa1.overrideFileTags == sa2.overrideFileTags
@@ -1169,10 +1162,10 @@ bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
 
 bool operator==(const ResolvedTransformer &t1, const ResolvedTransformer &t2)
 {
-    return modulesAreEqual(t1.module, t2.module)
+    return equals(t1.module.data(), t2.module.data())
             && t1.inputs.toSet() == t2.inputs.toSet()
             && sourceArtifactSetsAreEqual(t1.outputs, t2.outputs)
-            && *t1.transform == *t2.transform
+            && equals(t1.transform.data(), t2.transform.data())
             && t1.explicitlyDependsOn == t2.explicitlyDependsOn;
 }
 
@@ -1184,14 +1177,10 @@ bool transformerListsAreEqual(const QList<ResolvedTransformerPtr> &l1,
 
 bool operator==(const Rule &r1, const Rule &r2)
 {
-    if (&r1 == &r2)
-        return true;
-    if (!&r1 != !&r2)
-        return false;
     if (r1.artifacts.count() != r2.artifacts.count())
         return false;
     for (int i = 0; i < r1.artifacts.count(); ++i) {
-        if (*r1.artifacts.at(i) != *r2.artifacts.at(i))
+        if (!equals(r1.artifacts.at(i).data(), r2.artifacts.at(i).data()))
             return false;
     }
 
@@ -1214,10 +1203,6 @@ bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2)
 
 bool operator==(const RuleArtifact &a1, const RuleArtifact &a2)
 {
-    if (&a1 == &a2)
-        return true;
-    if (!&a1 != !&a2)
-        return false;
     return a1.filePath == a2.filePath
             && a1.fileTags == a2.fileTags
             && a1.alwaysUpdated == a2.alwaysUpdated

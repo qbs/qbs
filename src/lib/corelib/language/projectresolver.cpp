@@ -219,20 +219,6 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
         return;
     }
 
-    const QString minVersionStr
-            = m_evaluator->stringValue(item, QLatin1String("minimumQbsVersion"),
-                                       QLatin1String("1.3.0"));
-    const Version minVersion = Version::fromString(minVersionStr);
-    if (!minVersion.isValid()) {
-        throw ErrorInfo(Tr::tr("The value of Project.minimumQbsVersion "
-                               "is not a valid version string."));
-    }
-    if (Version::qbsVersion() < minVersion) {
-        throw ErrorInfo(Tr::tr("The project requires at least qbs version %1, but "
-                               "this is qbs version %2.").arg(minVersion.toString(),
-                                                              Version::qbsVersion().toString()));
-    }
-
     projectContext->dummyModule = ResolvedModule::create();
 
     for (Item::PropertyDeclarationMap::const_iterator it

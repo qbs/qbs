@@ -448,7 +448,8 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact, const
     }
 }
 
-static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, const Logger &logger)
+static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
+        const QSet<ResolvedProductPtr> &allProducts, const Logger &logger)
 {
     logger.qbsTrace() << "Sanity checking product '" << product->uniqueName() << "'";
     CycleDetector cycleDetector(logger);
@@ -475,6 +476,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
             QBS_CHECK(!child->product.isNull());
             QBS_CHECK(!child->product->buildData.isNull());
             QBS_CHECK(child->product->buildData->nodes.contains(child));
+            QBS_CHECK(allProducts.contains(child->product));
         }
 
         Artifact * const artifact = dynamic_cast<Artifact *>(node);
@@ -522,17 +524,18 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product, con
     }
 }
 
-static void doSanityChecks(const ResolvedProjectPtr &project, QSet<QString> &productNames,
+static void doSanityChecks(const ResolvedProjectPtr &project,
+                           const QSet<ResolvedProductPtr> &allProducts, QSet<QString> &productNames,
                            const Logger &logger)
 {
     logger.qbsDebug() << "Sanity checking project '" << project->name << "'";
     foreach (const ResolvedProjectPtr &subProject, project->subProjects)
-        doSanityChecks(subProject, productNames, logger);
+        doSanityChecks(subProject, allProducts, productNames, logger);
 
     foreach (const ResolvedProductConstPtr &product, project->products) {
         QBS_CHECK(product->project == project);
         QBS_CHECK(product->topLevelProject() == project->topLevelProject());
-        doSanityChecksForProduct(product, logger);
+        doSanityChecksForProduct(product, allProducts, logger);
         QBS_CHECK(!productNames.contains(product->uniqueName()));
         productNames << product->uniqueName();
     }
@@ -541,7 +544,8 @@ static void doSanityChecks(const ResolvedProjectPtr &project, QSet<QString> &pro
 void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
 {
     QSet<QString> productNames;
-    doSanityChecks(project, productNames, logger);
+    const QSet<ResolvedProductPtr> allProducts = project->allProducts().toSet();
+    doSanityChecks(project, allProducts, productNames, logger);
 }
 
 } // namespace Internal
