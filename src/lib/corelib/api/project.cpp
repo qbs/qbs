@@ -349,7 +349,7 @@ static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
 }
 
 ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const ProductData &product,
-        const GroupData &group, const QStringList &filePaths)
+        const GroupData &group, const QStringList &filePaths, bool forAdding)
 {
     FileListUpdateContext filesContext;
     GroupUpdateContext &groupContext = filesContext.groupContext;
@@ -375,7 +375,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
         const QString absPath = QDir::cleanPath(FileInfo::resolvePath(baseDirPath, filePath));
         if (filesContext.absoluteFilePaths.contains(absPath))
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
-        if (!FileInfo(absPath).exists())
+        if (forAdding && !FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
         if (matchesWildcard(absPath, groupContext.resolvedGroups.first())) {
             filesContext.absoluteFilePathsFromWildcards << absPath;
@@ -401,7 +401,7 @@ static SourceArtifactPtr createSourceArtifact(const QString &filePath,
 void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
                               const QStringList &filePaths)
 {
-    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
+    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths, true);
     GroupUpdateContext &groupContext = filesContext.groupContext;
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
@@ -455,7 +455,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
 void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &group,
                                  const QStringList &filePaths)
 {
-    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
+    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths, false);
     GroupUpdateContext &groupContext = filesContext.groupContext;
 
     if (!filesContext.absoluteFilePathsFromWildcards.isEmpty()) {
