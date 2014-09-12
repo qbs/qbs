@@ -1,4 +1,4 @@
-import qbs 1.0
+import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
@@ -122,7 +122,7 @@ Module {
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
+        var v = new ModUtils.EnvironmentVariable("PATH", qbs.pathListSeparator, true);
         v.prepend(toolchainInstallPath);
         v.prepend(toolchainInstallRoot);
         v.set();
@@ -152,26 +152,27 @@ Module {
 
         Artifact {
             fileTags: ["wixobj"]
-            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + FileInfo.baseName(input.fileName) + ".wixobj"
+            filePath: FileInfo.joinPaths(".obj", input.baseDir.replace(':', ''),
+                                         FileInfo.baseName(input.fileName) + ".wixobj")
         }
 
         prepare: {
             var i;
             var args = ["-nologo"];
 
-            if (ModUtils.moduleProperty(product, "warningLevel") === "none") {
+            if (ModUtils.moduleProperty(input, "warningLevel") === "none") {
                 args.push("-sw");
             } else {
-                if (ModUtils.moduleProperty(product, "warningLevel") === "pedantic") {
+                if (ModUtils.moduleProperty(input, "warningLevel") === "pedantic") {
                     args.push("-pedantic");
                 }
 
-                if (ModUtils.moduleProperty(product, "treatWarningsAsErrors")) {
+                if (ModUtils.moduleProperty(input, "treatWarningsAsErrors")) {
                     args.push("-wx");
                 }
             }
 
-            if (ModUtils.moduleProperty(product, "verboseOutput")) {
+            if (ModUtils.moduleProperty(input, "verboseOutput")) {
                 args.push("-v");
             }
 
@@ -190,15 +191,16 @@ Module {
             // we'll pass most of them to ease compatibility between QBS and WiX projects originally created
             // using Visual Studio. The only definitions we don't pass are the ones which make no sense at all
             // in QBS, like the solution and project directories since they do not exist.
-            if (ModUtils.moduleProperty(product, "visualStudioCompatibility")) {
-                var toolchain = product.moduleProperty("cpp", "toolchain");
-                if (toolchain && toolchain.contains("msvc")) {
-                    var vcDir = product.moduleProperty("cpp", "toolchainInstallPath").replace(/[\\/]bin$/i, "");
+            if (ModUtils.moduleProperty(input, "visualStudioCompatibility")) {
+                var toolchain = product.moduleProperties("qbs", "toolchain");
+                var toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
+                if (toolchain && toolchain.contains("msvc") && toolchainInstallPath) {
+                    var vcDir = toolchainInstallPath.replace(/[\\/]bin$/i, "");
                     var vcRootDir = vcDir.replace(/[\\/]VC$/i, "");
-                    args.push("-dDevEnvDir=" + FileInfo.toWindowsSeparators(FileInfo.joinPaths(vcRootDir, 'Common7/IDE')));
+                    args.push("-dDevEnvDir=" + FileInfo.toWindowsSeparators(FileInfo.joinPaths(vcRootDir, 'Common7', 'IDE')));
                 }
 
-                var buildVariant = ModUtils.moduleProperty(product, "buildVariant");
+                var buildVariant = product.moduleProperty("qbs", "buildVariant");
                 if (buildVariant === "debug") {
                     args.push("-dDebug");
                     args.push("-dConfiguration=Debug");
@@ -207,7 +209,7 @@ Module {
                     args.push("-dConfiguration=Release");
                 }
 
-                var productTargetExt = ModUtils.moduleProperty(product, "targetSuffix");
+                var productTargetExt = ModUtils.moduleProperty(input, "targetSuffix");
                 if (!productTargetExt) {
                     throw("WiX: Unsupported product type '" + product.type + "'");
                 }
@@ -226,12 +228,12 @@ Module {
                 args.push("-dTargetPath=" + FileInfo.toWindowsSeparators(builtBinaryFilePath));
             }
 
-            var includePaths = ModUtils.moduleProperty(product, "includePaths");
+            var includePaths = ModUtils.moduleProperties(input, "includePaths");
             for (i in includePaths) {
                 args.push("-I" + includePaths[i]);
             }
 
-            var enableQbsDefines = ModUtils.moduleProperty(product, "enableQbsDefines")
+            var enableQbsDefines = ModUtils.moduleProperty(input, "enableQbsDefines")
             if (enableQbsDefines) {
                 var map = {
                     "project.": project,
@@ -255,13 +257,13 @@ Module {
             }
 
             // User-supplied defines
-            var defines = ModUtils.moduleProperty(product, "defines");
+            var defines = ModUtils.moduleProperties(input, "defines");
             for (i in defines) {
                 args.push("-d" + defines[i]);
             }
 
             // User-supplied flags
-            var flags = ModUtils.moduleProperty(product, "compilerFlags");
+            var flags = ModUtils.moduleProperties(input, "compilerFlags");
             for (i in flags) {
                 args.push(flags[i]);
             }
@@ -271,16 +273,16 @@ Module {
             args.push("-arch");
             args.push(arch);
 
-            var extensions = ModUtils.moduleProperty(product, "extensions");
+            var extensions = ModUtils.moduleProperties(input, "extensions");
             for (i in extensions) {
                 args.push("-ext");
                 args.push(extensions[i]);
             }
 
-            args.push(FileInfo.toWindowsSeparators(inputs.wxs[0].filePath));
+            args.push(FileInfo.toWindowsSeparators(input.filePath));
 
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
-            cmd.description = "compiling " + inputs.wxs[0].fileName;
+            cmd.description = "compiling " + input.fileName;
             cmd.highlight = "compiler";
             cmd.workingDirectory = FileInfo.path(output.filePath);
             return cmd;
@@ -292,23 +294,41 @@ Module {
         multiplex: true
         inputs: ["wixobj", "wxl"]
 
-        Artifact {
-            condition: product.type.contains("wixsetup")
-            fileTags: ["wixsetup", "application"]
-            filePath: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "executableSuffix")
+        outputArtifacts: {
+            var artifacts = [];
+
+            if (product.type.contains("wixsetup")) {
+                artifacts.push({
+                    fileTags: ["wixsetup", "application"],
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 product.targetName
+                                                    + ModUtils.moduleProperty(product,
+                                                                          "executableSuffix"))
+                });
+            }
+
+            if (product.type.contains("msi")) {
+                artifacts.push({
+                    fileTags: ["msi"],
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 product.targetName
+                                                    + ModUtils.moduleProperty(product,
+                                                                          "windowsInstallerSuffix"))
+                });
+            }
+
+            if (ModUtils.moduleProperty(product, "debugInformation")) {
+                artifacts.push({
+                    fileTags: ["wixpdb"],
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 product.targetName + ".wixpdb")
+                });
+            }
+
+            return artifacts;
         }
 
-        Artifact {
-            condition: product.type.contains("msi")
-            fileTags: ["msi"]
-            filePath: product.destinationDirectory + "/" + product.targetName + ModUtils.moduleProperty(product, "windowsInstallerSuffix")
-        }
-
-        Artifact {
-            condition: product.moduleProperty("qbs", "debugInformation") // ### QBS-412
-            fileTags: ["wixpdb"]
-            filePath: product.destinationDirectory + "/" + product.targetName + ".wixpdb"
-        }
+        outputFileTags: ["application", "msi", "wixpdb", "wixsetup"]
 
         prepare: {
             var i;
@@ -349,7 +369,7 @@ Module {
                 args.push("-spdb");
             }
 
-            var extensions = ModUtils.moduleProperty(product, "extensions");
+            var extensions = ModUtils.moduleProperties(product, "extensions");
             for (i in extensions) {
                 args.push("-ext");
                 args.push(extensions[i]);
@@ -361,13 +381,13 @@ Module {
             }
 
             if (product.type.contains("msi")) {
-                var cultures = ModUtils.moduleProperty(product, "cultures");
+                var cultures = ModUtils.moduleProperties(product, "cultures");
                 args.push("-cultures:"
                     + (cultures && cultures.length > 0 ? cultures.join(";") : "null"));
             }
 
             // User-supplied flags
-            var flags = ModUtils.moduleProperty(product, "linkerFlags");
+            var flags = ModUtils.moduleProperties(product, "linkerFlags");
             for (i in flags) {
                 args.push(flags[i]);
             }
