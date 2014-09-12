@@ -16,9 +16,7 @@ Module {
 
     setupRunEnvironment: {
         var v = new ModUtils.EnvironmentVariable("NODE_PATH", qbs.pathListSeparator, qbs.hostOS.contains("windows"));
-        // can't use product.buildDirectory here, but RunEnvironment always sets the working
-        // directory to the directory containing the target file so we can exploit this for now
-        v.prepend(".");
+        v.prepend(FileInfo.path(getEnv("QBS_RUN_FILE_PATH")));
         v.set();
     }
 

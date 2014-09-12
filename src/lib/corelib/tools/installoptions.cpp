@@ -27,6 +27,8 @@
 **
 ****************************************************************************/
 #include "installoptions.h"
+#include "propertyfinder.h"
+#include "language/language.h"
 
 #include <QDir>
 #include <QSharedData>
@@ -49,6 +51,20 @@ public:
     bool keepGoing;
     bool logElapsedTime;
 };
+
+QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProject *project)
+{
+    const QString installRoot = options.installRoot();
+    if (!installRoot.isEmpty())
+        return installRoot;
+
+    if (options.installIntoSysroot()) {
+        return PropertyFinder().propertyValue(project->buildConfiguration(),
+            QLatin1String("qbs"), QLatin1String("sysroot")).toString();
+    }
+
+    return project->buildDirectory + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
+}
 
 } // namespace Internal
 

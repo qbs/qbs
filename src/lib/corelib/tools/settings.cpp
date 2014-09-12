@@ -100,18 +100,21 @@ QStringList Settings::allKeysWithPrefix(const QString &group) const
 void Settings::setValue(const QString &key, const QVariant &value)
 {
     m_settings->setValue(internalRepresentation(key), value);
-    checkStatus();
 }
 
 void Settings::remove(const QString &key)
 {
     m_settings->remove(internalRepresentation(key));
-    checkStatus();
 }
 
 void Settings::clear()
 {
     m_settings->clear();
+}
+
+void Settings::sync()
+{
+    m_settings->sync();
 }
 
 QString Settings::defaultProfile() const
@@ -150,19 +153,6 @@ void Settings::fixupKeys(QStringList &keys) const
     keys.removeDuplicates();
     for (QStringList::Iterator it = keys.begin(); it != keys.end(); ++it)
         *it = externalRepresentation(*it);
-}
-
-void Settings::checkStatus()
-{
-    m_settings->sync();
-    switch (m_settings->status()) {
-    case QSettings::NoError:
-        break;
-    case QSettings::AccessError:
-        throw ErrorInfo(Tr::tr("%1 is not accessible.").arg(m_settings->fileName()));
-    case QSettings::FormatError:
-        throw ErrorInfo(Tr::tr("Format error in %1.").arg(m_settings->fileName()));
-    }
 }
 
 } // namespace qbs

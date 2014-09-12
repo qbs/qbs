@@ -134,8 +134,12 @@ void CommandLineFrontend::start()
             QString profileName = userConfig.take(profileKey).toString();
             if (profileName.isEmpty())
                 profileName = m_settings->defaultProfile();
-            if (profileName.isEmpty())
-                throw ErrorInfo(Tr::tr("No profile specified and no default profile exists."));
+            if (profileName.isEmpty()) {
+                ErrorInfo error(Tr::tr("No profile specified and no default profile exists."));
+                error.append(Tr::tr("To set a default profile, run "
+                                    "'qbs config defaultProfile <profile name>'."));
+                throw error;
+            }
             const Preferences prefs(m_settings, profileName);
             params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
                     + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
@@ -380,6 +384,7 @@ int CommandLineFrontend::runShell()
 {
     const ProductData productToRun = getTheOneRunnableProduct();
     RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
+            m_parser.installOptions(),
             QProcessEnvironment::systemEnvironment(), m_settings);
     return runEnvironment.runShell();
 }
@@ -451,6 +456,7 @@ int CommandLineFrontend::runTarget()
                         .arg(productToRun.name()));
         }
         RunEnvironment runEnvironment = m_projects.first().getRunEnvironment(productToRun,
+                m_parser.installOptions(),
                 QProcessEnvironment::systemEnvironment(), m_settings);
         return runEnvironment.runTarget(executableFilePath, m_parser.runArgs());
     } catch (const ErrorInfo &error) {

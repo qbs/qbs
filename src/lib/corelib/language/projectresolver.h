@@ -35,7 +35,6 @@
 #include "language.h"
 #include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
-#include <tools/version.h>
 
 #include <QMap>
 #include <QSet>
@@ -127,7 +126,6 @@ private:
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
-    static Version qbsVersionFromString(const QString &str, bool *ok = 0);
 
     Evaluator *m_evaluator;
     const BuiltinDeclarations *m_builtins;

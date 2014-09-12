@@ -83,8 +83,8 @@ QString Preferences::defaultBuildDirectory() const
 }
 
 /*!
- * \brief Returns the list of paths where qbs looks for module definitions and such.
- * If there is no such setting, they will be looked up at \c{baseDir}/share/qbs.
+ * \brief Returns the list of paths where qbs looks for modules and imports.
+ * In addition to user-supplied locations, they will also be looked up at \c{baseDir}/share/qbs.
  */
 QStringList Preferences::searchPaths(const QString &baseDir) const
 {
@@ -93,7 +93,7 @@ QStringList Preferences::searchPaths(const QString &baseDir) const
 
 /*!
  * \brief Returns the list of paths where qbs looks for plugins.
- * If there is no such setting, they will be looked up at \c{baseDir}/qbs/plugins.
+ * In addition to user-supplied locations, they will be looked up at \c{baseDir}/qbs/plugins.
  */
 QStringList Preferences::pluginPaths(const QString &baseDir) const
 {

@@ -73,10 +73,6 @@ void ResolvedFileContext::store(PersistentPool &pool) const
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 {
-    if (&a == &b)
-        return true;
-    if (!!&a != !!&b)
-        return false;
     return a.filePath() == b.filePath()
             && a.jsExtensions() == b.jsExtensions()
             && a.jsImports() == b.jsImports();

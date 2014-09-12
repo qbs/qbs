@@ -30,12 +30,14 @@
 #include "runenvironment.h"
 
 #include <api/projectdata.h>
+#include <buildgraph/productinstaller.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
+#include <tools/installoptions.h>
 #include <tools/preferences.h>
 #include <tools/propertyfinder.h>
 
@@ -54,10 +56,11 @@ using namespace Internal;
 class RunEnvironment::RunEnvironmentPrivate
 {
 public:
-    RunEnvironmentPrivate(const ResolvedProductPtr &product,
+    RunEnvironmentPrivate(const ResolvedProductPtr &product, const InstallOptions &installOptions,
             const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
         : engine(logger)
         , resolvedProduct(product)
+        , installOptions(installOptions)
         , environment(environment)
         , settings(settings)
         , logger(logger)
@@ -66,14 +69,16 @@ public:
 
     ScriptEngine engine;
     const ResolvedProductPtr resolvedProduct;
+    InstallOptions installOptions;
     const QProcessEnvironment environment;
     Settings * const settings;
     Logger logger;
 };
 
 RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
+        const InstallOptions &installOptions,
         const QProcessEnvironment &environment, Settings *settings, const Logger &logger)
-    : d(new RunEnvironmentPrivate(product, environment, settings, logger))
+    : d(new RunEnvironmentPrivate(product, installOptions, environment, settings, logger))
 {
 }
 
@@ -186,11 +191,15 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         return EXIT_FAILURE;
     }
 
-    d->resolvedProduct->setupRunEnvironment(&d->engine, d->environment);
+    const QString installRoot = effectiveInstallRoot(d->installOptions,
+                                                     d->resolvedProduct->topLevelProject());
+    QProcessEnvironment env = d->environment;
+    env.insert(QLatin1String("QBS_INSTALL_ROOT"), installRoot);
+    env.insert(QLatin1String("QBS_RUN_FILE_PATH"), targetBin);
+    d->resolvedProduct->setupRunEnvironment(&d->engine, env);
 
     d->logger.qbsInfo() << Tr::tr("Starting target '%1'.").arg(QDir::toNativeSeparators(targetBin));
     QProcess process;
-    process.setWorkingDirectory(QFileInfo(targetBin).absolutePath());
     process.setProcessEnvironment(d->resolvedProduct->runEnvironment);
     process.setProcessChannelMode(QProcess::ForwardedChannels);
     process.start(targetExecutable, targetArguments);

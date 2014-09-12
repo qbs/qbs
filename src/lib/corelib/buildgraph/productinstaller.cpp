@@ -123,13 +123,7 @@ void ProductInstaller::initInstallRoot(const TopLevelProject *project,
     if (!options.installRoot().isEmpty())
         return;
 
-    if (options.installIntoSysroot()) {
-        options.setInstallRoot(PropertyFinder().propertyValue(project->buildConfiguration(),
-                QLatin1String("qbs"), QLatin1String("sysroot")).toString());
-    } else {
-        options.setInstallRoot(project->buildDirectory + QLatin1Char('/') +
-                               InstallOptions::defaultInstallRoot());
-    }
+    options.setInstallRoot(effectiveInstallRoot(options, project));
 }
 
 void ProductInstaller::removeInstallRoot()
