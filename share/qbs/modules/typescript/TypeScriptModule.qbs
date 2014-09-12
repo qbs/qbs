@@ -163,16 +163,7 @@ Module {
             return artifacts;
         }
 
-        outputFileTags: {
-            var fileTags = ["js", "compiled_typescript"];
-            if (product.moduleProperty("nodejs", "applicationFile"))
-                fileTags.push("application_js");
-            if (product.moduleProperty("typescript", "generateDeclarations"))
-                fileTags.push("typescript_declaration");
-            if (product.moduleProperty("typescript", "generateSourceMaps"))
-                fileTags.push("source_map");
-            return fileTags;
-        }
+        outputFileTags: ["application_js", "compiled_typescript", "js", "source_map", "typescript_declaration"]
 
         prepare: {
             var i;
