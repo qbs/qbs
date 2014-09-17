@@ -1,1 +1,1 @@
-function qbsVersion() { return "1.3.1"; }
+function qbsVersion() { return "1.3.2"; }
