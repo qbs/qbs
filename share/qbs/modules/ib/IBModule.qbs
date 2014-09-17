@@ -52,11 +52,11 @@ Module {
         validator.setRequiredProperty("ibtoolVersion", ibtoolVersion);
         validator.setRequiredProperty("ibtoolVersionMajor", ibtoolVersionMajor);
         validator.setRequiredProperty("ibtoolVersionMinor", ibtoolVersionMinor);
-        validator.setRequiredProperty("ibtoolVersionPatch", ibtoolVersionPatch);
-        validator.addVersionValidator("ibtoolVersion", ibtoolVersion, 3, 3);
+        validator.addVersionValidator("ibtoolVersion", ibtoolVersion, 2, 3);
         validator.addRangeValidator("ibtoolVersionMajor", ibtoolVersionMajor, 1);
         validator.addRangeValidator("ibtoolVersionMinor", ibtoolVersionMinor, 0);
-        validator.addRangeValidator("ibtoolVersionPatch", ibtoolVersionPatch, 0);
+        if (ibtoolVersionPatch !== undefined)
+            validator.addRangeValidator("ibtoolVersionPatch", ibtoolVersionPatch, 0);
         validator.validate();
     }
 
