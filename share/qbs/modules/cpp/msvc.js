@@ -1,4 +1,4 @@
-function prepareCompiler(product, input, outputs) {
+function prepareCompiler(project, product, inputs, outputs, input, output) {
     var i;
     var optimization = ModUtils.moduleProperty(input, "optimization")
     var debugInformation = ModUtils.moduleProperty(input, "debugInformation")
@@ -125,7 +125,7 @@ function prepareCompiler(product, input, outputs) {
     return cmd;
 }
 
-function prepareLinker(product, inputs, outputs) {
+function prepareLinker(project, product, inputs, outputs, input, output) {
     var i;
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])

@@ -45,7 +45,7 @@ CppModule {
             filePath: ".obj/" + product.name + '_c.pch'
         }
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs);
+            return MSVC.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -66,7 +66,7 @@ CppModule {
             filePath: ".obj/" + product.name + '_cpp.pch'
         }
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs);
+            return MSVC.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -82,7 +82,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareCompiler(product, input, outputs);
+            return MSVC.prepareCompiler.apply(this, arguments);
         }
     }
 
@@ -97,7 +97,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareLinker(product, inputs, outputs);
+            return MSVC.prepareLinker.apply(this, arguments);
         }
     }
 
@@ -119,7 +119,7 @@ CppModule {
         }
 
         prepare: {
-            return MSVC.prepareLinker(product, inputs, outputs);
+            return MSVC.prepareLinker.apply(this, arguments);
         }
     }
 
