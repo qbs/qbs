@@ -45,7 +45,7 @@ CppModule {
     property path nmPath: { return toolchainPathPrefix + nmName }
 
     readonly property bool shouldCreateSymlinks: {
-        return createSymlinks && product.version &&
+        return createSymlinks && internalVersion &&
                 !product.type.contains("frameworkbundle") && qbs.targetOS.contains("unix");
     }
 
