@@ -5,8 +5,6 @@ function linkerFlags(product, inputs) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
     var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary, 'cpp', 'staticLibraries');
-    var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
-    var systemFrameworkPaths = ModUtils.moduleProperties(product, 'systemFrameworkPaths');
     var linkerScripts = ModUtils.moduleProperties(product, 'linkerScripts');
     var frameworks = ModUtils.moduleProperties(product, 'frameworks');
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
@@ -28,10 +26,6 @@ function linkerFlags(product, inputs) {
     // Flags for library search paths
     if (libraryPaths)
         args = args.concat(libraryPaths.map(function(path) { return '-L' + path }));
-    if (frameworkPaths)
-        args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
-    if (systemFrameworkPaths)
-        args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
 
     if (linkerScripts)
         args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
@@ -136,6 +130,15 @@ function configFlags(config) {
     }
     if (ModUtils.moduleProperty(config, "treatWarningsAsErrors"))
         args.push('-Werror');
+
+    var frameworkPaths = ModUtils.moduleProperties(config, 'frameworkPaths');
+    if (frameworkPaths)
+        args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
+
+    var systemFrameworkPaths = ModUtils.moduleProperties(config, 'systemFrameworkPaths');
+    if (systemFrameworkPaths)
+        args = args.concat(systemFrameworkPaths.map(function(path) { return '-iframework' + path }));
+
     return args;
 }
 
@@ -143,9 +146,10 @@ function configFlags(config) {
 //     that contains all fileTags that have been used when applying the rules.
 function additionalCompilerFlags(product, input, output) {
     var includePaths = ModUtils.moduleProperties(input, 'includePaths');
-    var frameworkPaths = ModUtils.moduleProperties(product, 'frameworkPaths');
     var systemIncludePaths = ModUtils.moduleProperties(input, 'systemIncludePaths');
-    var systemFrameworkPaths = ModUtils.moduleProperties(input, 'systemFrameworkPaths');
+
+    var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
+    var defines = ModUtils.moduleProperties(input, 'defines');
 
     var EffectiveTypeEnum = { UNKNOWN: 0, LIB: 1, APP: 2 };
     var effectiveType = EffectiveTypeEnum.UNKNOWN;
@@ -175,30 +179,18 @@ function additionalCompilerFlags(product, input, output) {
                    Object.getOwnPropertyNames(libTypes).concat(Object.getOwnPropertyNames(appTypes)))
                 + ". But it is " + JSON.stringify(product.type) + '.');
     }
-    var sysroot = ModUtils.moduleProperty(product, "sysroot")
-    if (sysroot) {
-        if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
-            args.push('-isysroot', sysroot);
-        else
-            args.push('--sysroot=' + sysroot);
-    }
     var cppFlags = ModUtils.moduleProperties(input, 'cppFlags');
     for (i in cppFlags)
         args.push('-Wp,' + cppFlags[i])
-    var platformDefines = ModUtils.moduleProperty(input, 'platformDefines');
-    for (i in platformDefines)
-        args.push('-D' + platformDefines[i]);
-    var defines = ModUtils.moduleProperties(input, 'defines');
-    for (i in defines)
-        args.push('-D' + defines[i]);
-    for (i in includePaths)
-        args.push('-I' + includePaths[i]);
-    for (i in frameworkPaths)
-        args.push('-F' + frameworkPaths[i]);
-    for (i in systemIncludePaths)
-        args.push('-isystem' + systemIncludePaths[i]);
-    for (i in systemFrameworkPaths)
-        args.push('-iframework' + systemFrameworkPaths[i]);
+
+    if (platformDefines)
+        args = args.concat(platformDefines.map(function(define) { return '-D' + define }));
+    if (defines)
+        args = args.concat(defines.map(function(define) { return '-D' + define }));
+    if (includePaths)
+        args = args.concat(includePaths.map(function(path) { return '-I' + path }));
+    if (systemIncludePaths)
+        args = args.concat(systemIncludePaths.map(function(path) { return '-isystem' + path }));
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     if (minimumWindowsVersion && product.moduleProperty("qbs", "targetOS").contains("windows")) {
@@ -221,6 +213,14 @@ function additionalCompilerFlags(product, input, output) {
 
 function additionalCompilerAndLinkerFlags(product) {
     var args = []
+
+    var sysroot = ModUtils.moduleProperty(product, "sysroot");
+    if (sysroot) {
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin"))
+            args.push("-isysroot", sysroot);
+        else
+            args.push("--sysroot=" + sysroot);
+    }
 
     var minimumOsxVersion = ModUtils.moduleProperty(product, "minimumOsxVersion");
     if (minimumOsxVersion && product.moduleProperty("qbs", "targetOS").contains("osx"))
@@ -413,108 +413,80 @@ function collectTransitiveSos(inputs)
         var libsToAdd = [lib.filePath].concat(impliedLibs);
         result = result.concat(libsToAdd);
     }
-    result = Gcc.concatLibs([], result);
+    result = concatLibs([], result);
     return result;
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
+    var i, primaryOutput, cmd, commands = [], args = [];
+
     if (outputs.application) {
-        var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
-        var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
-        var args = Gcc.configFlags(product);
-        for (var i in inputs.obj)
-            args.push(inputs.obj[i].filePath)
-        var sysroot = ModUtils.moduleProperty(product, "sysroot")
-        if (sysroot) {
-            if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
-                args.push('-isysroot', sysroot)
-            else
-                args.push('--sysroot=' + sysroot)
-        }
-        args = args.concat(platformLinkerFlags);
-        for (i in linkerFlags)
-            args.push(linkerFlags[i])
-        if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
-            if (product.consoleApplication !== undefined)
-                if (product.consoleApplication)
-                    args.push("-Wl,-subsystem,console");
-                else
-                    args.push("-Wl,-subsystem,windows");
-
-            var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
-            if (minimumWindowsVersion) {
-                var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
-                if (subsystemVersion) {
-                    var major = subsystemVersion.split('.')[0];
-                    var minor = subsystemVersion.split('.')[1];
-
-                    // http://sourceware.org/binutils/docs/ld/Options.html
-                    args.push("-Wl,--major-subsystem-version," + major);
-                    args.push("-Wl,--minor-subsystem-version," + minor);
-                    args.push("-Wl,--major-os-version," + major);
-                    args.push("-Wl,--minor-os-version," + minor);
-                } else {
-                    print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
-                }
-            }
-        }
-        args.push('-o');
-        args.push(output.filePath);
-
-        if (inputs.infoplist) {
-            args = args.concat(["-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath]);
-        }
-
-        args = args.concat(Gcc.linkerFlags(product, inputs));
-        args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-        var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-        cmd.description = 'linking ' + output.fileName;
-        cmd.highlight = 'linker'
-        cmd.responseFileUsagePrefix = '@';
-        return cmd;
+        primaryOutput = outputs.application[0];
     } else if (outputs.dynamiclibrary) {
-        var lib = outputs["dynamiclibrary"][0];
-        var platformLinkerFlags = ModUtils.moduleProperties(product, 'platformLinkerFlags');
-        var linkerFlags = ModUtils.moduleProperties(product, 'linkerFlags');
-        var commands = [];
-        var i;
-        var args = Gcc.configFlags(product);
-        args.push('-shared');
-        if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
-            args = args.concat([
-                '-Wl,--hash-style=gnu',
-                '-Wl,--as-needed',
-                '-Wl,-soname=' + UnixUtils.soname(product, lib.fileName)
-            ]);
-        } else if (product.moduleProperty("qbs", "targetOS").contains('darwin')) {
-            args.push("-Wl,-install_name," + UnixUtils.soname(product, lib.fileName));
+        primaryOutput = outputs.dynamiclibrary[0];
+
+        args.push("-shared");
+
+        if (product.moduleProperty("qbs", "targetOS").contains("linux")) {
+            args.push("-Wl,--hash-style=gnu", "-Wl,--as-needed");
+            args.push("-Wl,-soname=" + UnixUtils.soname(product, primaryOutput.fileName));
+        } else if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+            args.push("-Wl,-install_name," + UnixUtils.soname(product, primaryOutput.fileName));
             args.push("-Wl,-headerpad_max_install_names");
         }
-        args = args.concat(platformLinkerFlags);
-        for (i in linkerFlags)
-            args.push(linkerFlags[i])
-        for (i in inputs.obj)
-            args.push(inputs.obj[i].filePath);
-        var sysroot = ModUtils.moduleProperty(product, "sysroot")
-        if (sysroot) {
-            if (product.moduleProperty("qbs", "targetOS").contains('darwin'))
-                args.push('-isysroot', sysroot);
+    }
+
+    if (product.moduleProperty("cpp", "entryPoint"))
+        args.push("-Wl,-e," + product.moduleProperty("cpp", "entryPoint"));
+
+    if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+        if (product.consoleApplication !== undefined)
+            if (product.consoleApplication)
+                args.push("-Wl,-subsystem,console");
             else
-                args.push('--sysroot=' + sysroot);
+                args.push("-Wl,-subsystem,windows");
+
+        var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
+        if (minimumWindowsVersion) {
+            var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
+            if (subsystemVersion) {
+                var major = subsystemVersion.split('.')[0];
+                var minor = subsystemVersion.split('.')[1];
+
+                // http://sourceware.org/binutils/docs/ld/Options.html
+                args.push("-Wl,--major-subsystem-version," + major);
+                args.push("-Wl,--minor-subsystem-version," + minor);
+                args.push("-Wl,--major-os-version," + major);
+                args.push("-Wl,--minor-os-version," + minor);
+            } else {
+                print('WARNING: Unknown Windows version "' + minimumWindowsVersion + '"');
+            }
         }
-        if (product.moduleProperty("cpp", "entryPoint"))
-            args.push("-Wl,-e", product.moduleProperty("cpp", "entryPoint"));
+    }
 
-        args.push('-o');
-        args.push(lib.filePath);
-        args = args.concat(Gcc.linkerFlags(product, inputs));
-        args = args.concat(Gcc.additionalCompilerAndLinkerFlags(product));
-        var cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
-        cmd.description = 'linking ' + lib.fileName;
-        cmd.highlight = 'linker';
-        cmd.responseFileUsagePrefix = '@';
-        commands.push(cmd);
+    if (inputs.infoplist)
+        args.push("-sectcreate", "__TEXT", "__info_plist", inputs.infoplist[0].filePath);
 
+    if (inputs.obj)
+        args = args.concat(inputs.obj.map(function (obj) { return obj.filePath }));
+
+    args = args.concat(configFlags(product));
+    args = args.concat(linkerFlags(product, inputs));
+    args = args.concat(additionalCompilerAndLinkerFlags(product));
+
+    args = args.concat(ModUtils.moduleProperties(product, 'platformLinkerFlags'));
+    args = args.concat(ModUtils.moduleProperties(product, 'linkerFlags'));
+
+    args.push("-o");
+    args.push(primaryOutput.filePath);
+
+    cmd = new Command(ModUtils.moduleProperty(product, "linkerPath"), args);
+    cmd.description = 'linking ' + primaryOutput.fileName;
+    cmd.highlight = 'linker';
+    cmd.responseFileUsagePrefix = '@';
+    commands.push(cmd);
+
+    if (outputs.dynamiclibrary) {
         // Update the copy, if any global symbols have changed.
         cmd = new JavaScriptCommand();
         cmd.silent = true;
@@ -528,14 +500,14 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             var process = new Process();
             var command = ModUtils.moduleProperty(product, "nmPath");
             var args = ["-g", "-D", "-P"];
-            if (process.exec(command, args.concat(sourceFilePath), false) != 0) {
+            if (process.exec(command, args.concat(sourceFilePath), false) !== 0) {
                 // Failure to run the nm tool is not fatal. We just fall back to the
                 // "always relink" behavior.
                 File.copy(sourceFilePath, targetFilePath);
                 return;
             }
             var globalSymbolsSource = process.readStdOut();
-            if (process.exec(command, args.concat(targetFilePath), false) != 0) {
+            if (process.exec(command, args.concat(targetFilePath), false) !== 0) {
                 File.copy(sourceFilePath, targetFilePath);
                 return;
             }
@@ -565,15 +537,16 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
         var links = outputs["dynamiclibrary_symlink"];
         var symlinkCount = links ? links.length : 0;
-        for (var i = 0; i < symlinkCount; ++i) {
-            cmd = new Command("ln", ["-sf", lib.fileName,
+        for (i = 0; i < symlinkCount; ++i) {
+            cmd = new Command("ln", ["-sf", primaryOutput.fileName,
                                      links[i].filePath]);
             cmd.highlight = "filegen";
             cmd.description = "creating symbolic link '"
                     + links[i].fileName + "'";
-            cmd.workingDirectory = FileInfo.path(lib.filePath);
+            cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
             commands.push(cmd);
         }
-        return commands;
     }
+
+    return commands;
 }
