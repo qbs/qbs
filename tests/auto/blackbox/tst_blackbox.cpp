@@ -538,9 +538,11 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = productBuildDir("app") + "/.obj/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString appObjectFilePath = productBuildDir("app")
+            + objectFileName("/.obj/main.cpp", buildProfileName);
     const QString appExeFilePath = executableFilePath("app");
-    const QString depObjectFilePath = productBuildDir("dep") + "/.obj/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString depObjectFilePath = productBuildDir("dep")
+            + objectFileName("/.obj/dep.cpp", buildProfileName);
     const QString depLibBase = productBuildDir("dep") + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
@@ -826,7 +828,7 @@ void TestBlackbox::track_qobject_change()
     const QString productFilePath = executableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
     QString moc_bla_objectFileName = productBuildDir("i")
-            + "/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
+            + objectFileName("/.obj/GeneratedFiles/moc_bla.cpp", buildProfileName);
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     QTest::qSleep(1000);
@@ -855,7 +857,7 @@ void TestBlackbox::trackAddFile()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
-    QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = buildDir + objectFileName("/someapp/narf.cpp", buildProfileName);
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     waitForNewTimestamp();
@@ -961,7 +963,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
-    QString unchangedObjectFile = buildDir + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = buildDir + objectFileName("/someapp/narf.cpp", buildProfileName);
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     waitForNewTimestamp();
@@ -990,7 +992,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QCOMPARE(regularFileExists(buildDir + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QVERIFY(!regularFileExists(buildDir + objectFileName("/someapp/zort.cpp", buildProfileName)));
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -1040,7 +1042,7 @@ void TestBlackbox::trackRemoveFileTag()
 
     // check if the artifacts are here that will become stale in the 2nd step
     QVERIFY(regularFileExists(productBuildDir("someapp")
-                              + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
+                              + objectFileName("/.obj/main_foo.cpp", buildProfileName)));
     QVERIFY(regularFileExists(productBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(productBuildDir("someapp") + "/main.foo"));
 
@@ -1065,7 +1067,8 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(regularFileExists(productBuildDir("someapp") + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(regularFileExists(productBuildDir("someapp")
+                               + objectFileName("/.obj/main_foo.cpp", buildProfileName)), false);
     QCOMPARE(regularFileExists(productBuildDir("someapp") + "/main_foo.cpp"), false);
     QCOMPARE(regularFileExists(productBuildDir("someapp") + "/main.foo"), false);
 }

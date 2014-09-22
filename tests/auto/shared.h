@@ -30,6 +30,8 @@
 #define QBS_TEST_SHARED_H
 
 #include <tools/hostosinfo.h>
+#include <tools/profile.h>
+#include <tools/settings.h>
 
 #include <QFile>
 #include <QtTest>
@@ -65,6 +67,15 @@ inline void copyFileAndUpdateTimestamp(const QString &source, const QString &tar
     if (!QFile::copy(source, target))
         qFatal("Failed to copy '%s' to '%s'", qPrintable(source), qPrintable(target));
     touch(target);
+}
+
+inline QString objectFileName(const QString &baseName, const QString &profileName)
+{
+    qbs::Settings settings((QString()));
+    qbs::Profile profile(profileName, &settings);
+    const QString suffix = profile.value("qbs.toolchain").toStringList().contains("msvc")
+            ? "obj" : "o";
+    return baseName + '.' + suffix;
 }
 
 #endif // Include guard.
