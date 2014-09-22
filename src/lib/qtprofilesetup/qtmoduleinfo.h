@@ -49,8 +49,11 @@ public:
     QString frameworkHeadersPath(const QtEnvironment &qtEnvironment) const;
     QStringList qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const;
     QString libraryBaseName(const QtEnvironment &qtEnvironment, bool debugBuild) const;
+    QString libBaseName(const QString &libName, bool debugBuild,
+                        const QtEnvironment &qtEnvironment) const;
     QString libNameForLinker(const QtEnvironment &qtEnvironment, bool debugBuild) const;
     void setupLibraries(const QtEnvironment &qtEnv, QSet<QString> *nonExistingPrlFiles);
+    bool isFramework(const QtEnvironment &qtEnv) const;
 
     QString modulePrefix; // default is empty and means "Qt".
     QString name; // As in the path to the headers and ".name" in the pri files.
@@ -88,9 +91,6 @@ private:
     void setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
                         QSet<QString> *nonExistingPrlFiles);
 };
-
-QString libBaseName(const QString &libName, bool staticLib, bool debugBuild,
-                             const QtEnvironment &qtEnvironment);
 
 QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment);
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment);
