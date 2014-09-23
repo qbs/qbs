@@ -6,7 +6,7 @@ import qbs.ModUtils
 Module {
     // JavaScript files which have been "processed" - currently this simply means "copied to output
     // directory" but might later include minification and obfuscation processing
-    additionalProductTypes: ["nodejs_processed_js"]
+    additionalProductTypes: ["nodejs_processed_js"].concat(applicationFile ? ["application"] : [])
 
     property path applicationFile
     PropertyOptions {
