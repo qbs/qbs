@@ -82,6 +82,7 @@ UnixGCC {
         return {
             "BUNDLEIDENTIFIER": "org.example." + DarwinTools.rfc1034(product.targetName),
             "EXECUTABLE": product.targetName,
+            "FULL_VERSION": product.version || "1.0", // CFBundleVersion
             "ICON": product.targetName, // ### QBS-73
             "LIBRARY": product.targetName,
             "SHORT_VERSION": product.version || "1.0", // CFBundleShortVersionString
