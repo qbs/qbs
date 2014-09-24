@@ -1060,6 +1060,8 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addGroup(product, groupName);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding group '%1' to product '%2'.")
@@ -1085,6 +1087,8 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addFiles(product, group, filePaths);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding files to product."));
@@ -1109,6 +1113,8 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeFiles(product, group, filePaths);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure removing files from product '%1'.").arg(product.name()));
@@ -1128,6 +1134,8 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeGroup(product, group);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure removing group '%1' from product '%2'.")

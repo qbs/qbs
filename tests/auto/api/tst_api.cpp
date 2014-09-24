@@ -771,6 +771,7 @@ void TestApi::projectInvalidation()
     const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/project-invalidation");
     setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
     QDir::setCurrent(projectDirPath);
+    setupParams.setBuildRoot(projectDirPath);
     QVERIFY(QFile::copy("project.no-error.qbs", "project.qbs"));
     QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));
