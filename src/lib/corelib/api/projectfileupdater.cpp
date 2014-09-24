@@ -267,10 +267,38 @@ ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const G
 {
 }
 
+static QString fileRepr(const QString &relFilePath)
+{
+    return QLatin1Char('"') + relFilePath + QLatin1Char('"');
+}
+
+static QString &addToFilesRepr(QString &filesRepr, const QString &fileRepr, int indentation)
+{
+    filesRepr += QString(indentation, QLatin1Char(' '));
+    filesRepr += fileRepr;
+    filesRepr += QLatin1String(",\n");
+    return filesRepr;
+}
+
+static QString &addToFilesRepr(QString &filesRepr, const QStringList &filePaths, int indentation)
+{
+    foreach (const QString &f, filePaths)
+        addToFilesRepr(filesRepr, fileRepr(f), indentation);
+    return filesRepr;
+}
+
+static QString &completeFilesRepr(QString &filesRepr, int indentation)
+{
+    return filesRepr.prepend(QLatin1String("[\n")).append(QString(indentation, QLatin1Char(' ')))
+            .append(QLatin1Char(']'));
+}
+
 void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 {
     if (m_files.isEmpty())
         return;
+    QStringList sortedFiles = m_files;
+    sortedFiles.sort();
 
     // Find the item containing the "files" binding.
     ItemFinder itemFinder(m_group.isValid() ? m_group.location() : m_product.location());
@@ -284,15 +312,6 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
             = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
-    QString newFilesString;
-    foreach (const QString &relFilePath, m_files) {
-        newFilesString += QString(arrayElemIndentation, QLatin1Char(' '));
-        newFilesString += QLatin1Char('"');
-        newFilesString += relFilePath;
-        newFilesString += QLatin1Char('"');
-        newFilesString += QLatin1String(",\n");
-    }
-    newFilesString.chop(2); // Trailing comma and newline.
 
     // Now get the binding itself.
     FilesBindingFinder bindingFinder(itemFinder.item());
@@ -303,42 +322,41 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 
     UiScriptBinding * const filesBinding = bindingFinder.binding();
     if (filesBinding) {
+        QString filesRepresentation;
         if (filesBinding->statement->kind != Node::Kind_ExpressionStatement)
             throw ErrorInfo(Tr::tr("JavaScript construct in source file is too complex.")); // TODO: rename, add new and concat.
         const ExpressionStatement * const exprStatement
                 = static_cast<ExpressionStatement *>(filesBinding->statement);
         switch (exprStatement->expression->kind) {
         case Node::Kind_ArrayLiteral: {
-            QString filesString = QLatin1String("[\n");
             const ElementList *elem
                     = static_cast<ArrayLiteral *>(exprStatement->expression)->elements;
+            QStringList oldFileReprs;
             while (elem) {
-                filesString += QString(arrayElemIndentation, QLatin1Char(' '));
-                filesString += getNodeRepresentation(fileContent, elem->expression);
-                filesString += QLatin1String(",\n");
+                oldFileReprs << getNodeRepresentation(fileContent, elem->expression);
                 elem = elem->next;
             }
-            filesString += newFilesString;
-            filesString += QLatin1Char('\n');
-            filesString += QString(bindingIndentation, QLatin1Char(' '));
-            filesString += QLatin1Char(']');
-            rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
-                                   filesString, Rewriter::ScriptBinding);
+
+            // Insert new files "sorted", but do not change the order of existing files.
+            const QString firstNewFileRepr = fileRepr(sortedFiles.first());
+            while (!oldFileReprs.isEmpty()) {
+                if (oldFileReprs.first() > firstNewFileRepr)
+                    break;
+                addToFilesRepr(filesRepresentation, oldFileReprs.takeFirst(), arrayElemIndentation);
+            }
+            addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
+            while (!oldFileReprs.isEmpty())
+                addToFilesRepr(filesRepresentation, oldFileReprs.takeFirst(), arrayElemIndentation);
+            completeFilesRepr(filesRepresentation, bindingIndentation);
             break;
         }
         case Node::Kind_StringLiteral: {
             const QString existingElement
                     = static_cast<StringLiteral *>(exprStatement->expression)->value.toString();
-            QString filesString = QLatin1String("[\n");
-            filesString += QString(arrayElemIndentation, QLatin1Char(' '));
-            filesString += QLatin1Char('"') + existingElement + QLatin1Char('"');
-            filesString += QLatin1String(",\n");
-            filesString += newFilesString;
-            filesString += QLatin1Char('\n');
-            filesString += QString(bindingIndentation, QLatin1Char(' '));
-            filesString += QLatin1Char(']');
-            rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
-                                   filesString, Rewriter::ScriptBinding);
+            sortedFiles << existingElement;
+            sortedFiles.sort();
+            addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
+            completeFilesRepr(filesRepresentation, bindingIndentation);
             break;
         }
         default: {
@@ -348,27 +366,24 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
             // the new files, preventing cascading concat() calls.
             // But this is not essential and can be implemented when we have some downtime.
             const QString rhsRepr = getNodeRepresentation(fileContent, exprStatement->expression);
-            QString filesString = QLatin1String("[\n");
-            filesString += newFilesString;
-            filesString += QLatin1Char('\n');
-            filesString += QString(bindingIndentation, QLatin1Char(' '));
+            addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
+            completeFilesRepr(filesRepresentation, bindingIndentation);
 
             // It cannot be the other way around, since the existing right-hand side could
             // have string type.
-            filesString += QString::fromLatin1("].concat(%1)").arg(rhsRepr);
+            filesRepresentation += QString::fromLatin1(".concat(%1)").arg(rhsRepr);
 
-            rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
-                                   filesString, Rewriter::ScriptBinding);
         }
         }
+        rewriter.changeBinding(itemFinder.item()->initializer, QLatin1String("files"),
+                               filesRepresentation, Rewriter::ScriptBinding);
     } else { // Can happen for the product itself, for which the "files" binding is not mandatory.
-        newFilesString.prepend(QLatin1String("[\n"));
-        newFilesString += QLatin1Char('\n');
-        newFilesString += QString(bindingIndentation, QLatin1Char(' '));
-        newFilesString += QLatin1Char(']');
+        QString filesRepresentation;
+        addToFilesRepr(filesRepresentation, sortedFiles, arrayElemIndentation);
+        completeFilesRepr(filesRepresentation, bindingIndentation);
         const QString bindingString = QString(bindingIndentation, QLatin1Char(' '))
                 + QLatin1String("files");
-        rewriter.addBinding(itemFinder.item()->initializer, bindingString, newFilesString,
+        rewriter.addBinding(itemFinder.item()->initializer, bindingString, filesRepresentation,
                             Rewriter::ScriptBinding);
     }
 
