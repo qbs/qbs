@@ -164,6 +164,9 @@ static QStringList makeList(const QByteArray &s)
 void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
                                   QSet<QString> *nonExistingPrlFiles)
 {
+    if (!hasLibrary)
+        return; // Can happen for Qt4 convenience modules, like "widgets".
+
     QStringList &libs = isStaticLibrary
             ? (debugBuild ? staticLibrariesDebug : staticLibrariesRelease)
             : (debugBuild ? dynamicLibrariesDebug : dynamicLibrariesRelease);
@@ -190,9 +193,14 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     if (qtEnv.frameworkBuild)
         prlFilePath.append(libraryBaseName(qtEnv, false)).append(QLatin1String(".framework/"));
     const QString libDir = prlFilePath;
-    if (!qtEnv.mkspecName.contains(QLatin1String("win")) && !qtEnv.frameworkBuild)
+    if (!qtEnv.mkspecName.startsWith(QLatin1String("win")) && !qtEnv.frameworkBuild)
         prlFilePath += QLatin1String("lib");
-    prlFilePath.append(libraryBaseName(qtEnv, debugBuild)).append(QLatin1String(".prl"));
+    prlFilePath.append(libraryBaseName(qtEnv, debugBuild));
+    const bool isNonStaticQt4OnWindows = qtEnv.mkspecName.startsWith(QLatin1String("win"))
+            && !isStaticLibrary && qtEnv.qtMajorVersion < 5;
+    if (isNonStaticQt4OnWindows)
+        prlFilePath.chop(1); // The prl file base name does *not* contain the version number...
+    prlFilePath.append(QLatin1String(".prl"));
     if (nonExistingPrlFiles->contains(prlFilePath))
         return;
     QFile prlFile(prlFilePath);
@@ -214,6 +222,8 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
         if (simplifiedLine.startsWith("QMAKE_PRL_TARGET")) {
             libFilePath = libDir
                     + QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed());
+            if (isNonStaticQt4OnWindows)
+                libFilePath += QString::number(4); // This is *not* part of QMAKE_PRL_TARGET...
             if (qtEnv.mkspecName.contains(QLatin1String("msvc")))
                 libFilePath += QLatin1String(".lib");
             else if (qtEnv.mkspecName.contains(QLatin1String("mingw")))
@@ -557,7 +567,7 @@ QString libBaseName(const QString &libName, bool staticLib, bool debugBuild,
                              const QtEnvironment &qtEnvironment)
 {
     QString name = libName;
-    if (qtEnvironment.mkspecName.contains(QLatin1String("win"))) {
+    if (qtEnvironment.mkspecName.startsWith(QLatin1String("win"))) {
         if (debugBuild)
             name += QLatin1Char('d');
         if (!staticLib && qtEnvironment.qtMajorVersion < 5)

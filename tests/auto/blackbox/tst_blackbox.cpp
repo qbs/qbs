@@ -1136,7 +1136,7 @@ void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
     QTest::newRow("nonexistentWorkingDir")
-            << "The working directory '/does/not/exist' for process '.*ls' is invalid.";
+            << "The working directory '.does.not.exist' for process '.*ls' is invalid.";
 }
 
 void TestBlackbox::erroneousFiles()

@@ -349,7 +349,7 @@ static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
 }
 
 ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const ProductData &product,
-        const GroupData &group, const QStringList &filePaths)
+        const GroupData &group, const QStringList &filePaths, bool forAdding)
 {
     FileListUpdateContext filesContext;
     GroupUpdateContext &groupContext = filesContext.groupContext;
@@ -375,7 +375,7 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
         const QString absPath = QDir::cleanPath(FileInfo::resolvePath(baseDirPath, filePath));
         if (filesContext.absoluteFilePaths.contains(absPath))
             throw ErrorInfo(Tr::tr("File '%1' appears more than once.").arg(absPath));
-        if (!FileInfo(absPath).exists())
+        if (forAdding && !FileInfo(absPath).exists())
             throw ErrorInfo(Tr::tr("File '%1' does not exist.").arg(absPath));
         if (matchesWildcard(absPath, groupContext.resolvedGroups.first())) {
             filesContext.absoluteFilePathsFromWildcards << absPath;
@@ -401,7 +401,7 @@ static SourceArtifactPtr createSourceArtifact(const QString &filePath,
 void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
                               const QStringList &filePaths)
 {
-    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
+    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths, true);
     GroupUpdateContext &groupContext = filesContext.groupContext;
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
@@ -455,7 +455,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
 void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &group,
                                  const QStringList &filePaths)
 {
-    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths);
+    FileListUpdateContext filesContext = getFileListContext(product, group, filePaths, false);
     GroupUpdateContext &groupContext = filesContext.groupContext;
 
     if (!filesContext.absoluteFilePathsFromWildcards.isEmpty()) {
@@ -660,6 +660,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         projectData.d->products << product;
     }
     foreach (const ResolvedProjectConstPtr &internalSubProject, internalProject->subProjects) {
+        if (!internalSubProject->enabled)
+            continue;
         ProjectData subProject;
         retrieveProjectData(subProject, internalSubProject);
         projectData.d->subProjects << subProject;
@@ -759,6 +761,7 @@ Project::Project()
  */
 ProjectData Project::projectData() const
 {
+    QBS_ASSERT(isValid(), return ProjectData());
     return d->projectData();
 }
 
@@ -812,6 +815,7 @@ static QString completeExecutableFilePath(const TargetArtifact &executableArtifa
 QString Project::targetExecutable(const ProductData &product,
                                   const InstallOptions &installOptions) const
 {
+    QBS_ASSERT(isValid(), return QString());
     if (!product.isEnabled())
         return QString();
     foreach (const TargetArtifact &ta, product.targetArtifacts()) {
@@ -832,7 +836,6 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
         const InstallOptions &installOptions,
         const QProcessEnvironment &environment, Settings *settings) const
 {
-    QBS_CHECK(product.isEnabled());
     const ResolvedProductPtr resolvedProduct = d->internalProduct(product);
     return RunEnvironment(resolvedProduct, installOptions, environment, settings, d->logger);
 }
@@ -843,6 +846,7 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
  */
 BuildJob *Project::buildAllProducts(const BuildOptions &options, QObject *jobOwner) const
 {
+    QBS_ASSERT(isValid(), return 0);
     return d->buildProducts(d->allEnabledInternalProducts(), options, false, jobOwner);
 }
 
@@ -855,6 +859,7 @@ BuildJob *Project::buildAllProducts(const BuildOptions &options, QObject *jobOwn
 BuildJob *Project::buildSomeProducts(const QList<ProductData> &products,
                                      const BuildOptions &options, QObject *jobOwner) const
 {
+    QBS_ASSERT(isValid(), return 0);
     return d->buildProducts(d->internalProducts(products), options, true, jobOwner);
 }
 
@@ -875,6 +880,7 @@ BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOption
  */
 CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwner) const
 {
+    QBS_ASSERT(isValid(), return 0);
     return d->cleanProducts(d->allEnabledInternalProducts(), options, jobOwner);
 }
 
@@ -885,6 +891,7 @@ CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwn
 CleanJob *Project::cleanSomeProducts(const QList<ProductData> &products,
         const CleanOptions &options, QObject *jobOwner) const
 {
+    QBS_ASSERT(isValid(), return 0);
     return d->cleanProducts(d->internalProducts(products), options, jobOwner);
 }
 
@@ -904,6 +911,7 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const CleanOption
  */
 InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *jobOwner) const
 {
+    QBS_ASSERT(isValid(), return 0);
     return d->installProducts(d->allEnabledInternalProducts(), options, false, jobOwner);
 }
 
@@ -914,6 +922,7 @@ InstallJob *Project::installAllProducts(const InstallOptions &options, QObject *
 InstallJob *Project::installSomeProducts(const QList<ProductData> &products,
                                          const InstallOptions &options, QObject *jobOwner) const
 {
+    QBS_ASSERT(isValid(), return 0);
     return d->installProducts(d->internalProducts(products), options, true, jobOwner);
 }
 
@@ -935,6 +944,7 @@ QList<InstallableFile> Project::installableFilesForProduct(const ProductData &pr
                                                            const InstallOptions &options) const
 {
     QList<InstallableFile> installableFiles;
+    QBS_ASSERT(isValid(), return installableFiles);
     const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
     if (!internalProduct)
         return installableFiles;
@@ -984,6 +994,7 @@ QList<InstallableFile> Project::installableFilesForProject(const ProjectData &pr
                                                            const InstallOptions &options) const
 {
     QList<InstallableFile> installableFiles;
+    QBS_ASSERT(isValid(), return installableFiles);
     foreach (const ProductData &p, project.allProducts())
         installableFiles << installableFilesForProduct(p, options);
     qSort(installableFiles);
@@ -996,6 +1007,7 @@ QList<InstallableFile> Project::installableFilesForProject(const ProjectData &pr
  */
 void Project::updateTimestamps(const QList<ProductData> &products)
 {
+    QBS_ASSERT(isValid(), return);
     TimestampsUpdater().updateTimestamps(d->internalProject, d->internalProducts(products),
                                          d->logger);
 }
@@ -1011,22 +1023,27 @@ void Project::updateTimestamps(const QList<ProductData> &products)
 QStringList Project::generatedFiles(const ProductData &product, const QString &file,
                                     const QStringList &tags) const
 {
+    QBS_ASSERT(isValid(), return QStringList());
     const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
     return internalProduct->generatedFiles(file, FileTags::fromStringList(tags));
 }
 
 QVariantMap Project::projectConfiguration() const
 {
+    QBS_ASSERT(isValid(), return QVariantMap());
     return d->internalProject->buildConfiguration();
 }
 
 QHash<QString, QString> Project::usedEnvironment() const
 {
+    typedef QHash<QString, QString> EnvType;
+    QBS_ASSERT(isValid(), return EnvType());
     return d->internalProject->usedEnvironment;
 }
 
 QSet<QString> Project::buildSystemFiles() const
 {
+    QBS_ASSERT(isValid(), return QSet<QString>());
     return d->internalProject->buildSystemFiles;
 }
 
@@ -1042,8 +1059,11 @@ QSet<QString> Project::buildSystemFiles() const
 ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName)
 {
     try {
+        QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addGroup(product, groupName);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding group '%1' to product '%2'.")
@@ -1066,8 +1086,11 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
                             const QStringList &filePaths)
 {
     try {
+        QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addFiles(product, group, filePaths);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding files to product."));
@@ -1089,8 +1112,11 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
                                const QStringList &filePaths)
 {
     try {
+        QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeFiles(product, group, filePaths);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure removing files from product '%1'.").arg(product.name()));
@@ -1107,8 +1133,11 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
 ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &group)
 {
     try {
+        QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeGroup(product, group);
+        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure removing group '%1' from product '%2'.")

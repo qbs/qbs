@@ -89,7 +89,7 @@ public:
 
     GroupUpdateContext getGroupContext(const ProductData &product, const GroupData &group);
     FileListUpdateContext getFileListContext(const ProductData &product, const GroupData &group,
-                                             const QStringList &filePaths);
+                                             const QStringList &filePaths, bool forAdding);
 
     void addGroup(const ProductData &product, const QString &groupName);
     void addFiles(const ProductData &product, const GroupData &group, const QStringList &filePaths);

@@ -1,4 +1,5 @@
 import qbs
+import qbs.FileInfo
 
 Project {
     WindowsInstallerPackage {
@@ -6,6 +7,13 @@ Project {
         targetName: "qbs-" + qbs.architecture
         files: ["QbsSetup.wxs", "ExampleScript.bat"]
         wix.defines: ["scriptName=ExampleScript.bat"]
+
+        Export {
+            Depends { name: "wix" }
+            wix.defines: base.concat(["msiName=" +
+                FileInfo.joinPaths(product.buildDirectory,
+                    targetName + wix.windowsInstallerSuffix)])
+        }
     }
 
     WindowsSetupPackage {
@@ -13,7 +21,6 @@ Project {
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]
-        wix.defines: ["msiName=" + project.buildDirectory + "/QbsSetup/qbs-" + qbs.architecture + ".msi"]
     }
 
     WindowsInstallerPackage {
