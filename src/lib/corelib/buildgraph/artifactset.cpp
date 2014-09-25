@@ -49,7 +49,7 @@ ArtifactSet::ArtifactSet(const QSet<Artifact *> &other)
 
 ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
 {
-    QSet::unite(other);
+    QSet<Artifact *>::unite(other);
     return *this;
 }
 
