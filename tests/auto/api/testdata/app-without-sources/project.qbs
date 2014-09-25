@@ -25,7 +25,12 @@ Project {
     CppApplication {
         name: "appWithoutSources"
         type: ["application"]
-        cpp.entryPoint: "main"
+
+        // HACK: cpp.entryPoint currently not working 100% with gcc
+        Properties {
+            condition: qbs.toolchain.contains("msvc")
+            cpp.entryPoint: "main"
+        }
 
         Depends { name: "a" }
         Depends { name: "b" }
