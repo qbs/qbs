@@ -660,6 +660,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         projectData.d->products << product;
     }
     foreach (const ResolvedProjectConstPtr &internalSubProject, internalProject->subProjects) {
+        if (!internalSubProject->enabled)
+            continue;
         ProjectData subProject;
         retrieveProjectData(subProject, internalSubProject);
         projectData.d->subProjects << subProject;
