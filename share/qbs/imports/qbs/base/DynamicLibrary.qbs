@@ -1,4 +1,4 @@
 Product {
     property string bundleExtension
-    type: "dynamiclibrary"
+    type: ["dynamiclibrary"]
 }
