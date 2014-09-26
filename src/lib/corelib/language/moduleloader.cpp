@@ -404,8 +404,7 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     dependsContext.productDependencies = &productContext.info.usedProducts;
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
-    if (!checkItemCondition(item))
-        return;
+    checkItemCondition(item);
     createAdditionalModuleInstancesInProduct(&productContext);
 
     foreach (Item *child, item->children()) {
