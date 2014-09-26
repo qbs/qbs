@@ -147,7 +147,11 @@ bool operator!=(const GroupData &lhs, const GroupData &rhs)
 
 bool operator==(const GroupData &lhs, const GroupData &rhs)
 {
-    return lhs.name() == rhs.name()
+    if (!lhs.isValid() && !rhs.isValid())
+        return true;
+
+    return lhs.isValid() == rhs.isValid()
+            && lhs.name() == rhs.name()
             && lhs.location() == rhs.location()
             && lhs.expandedWildcards() == rhs.expandedWildcards()
             && lhs.filePaths() == rhs.filePaths()
@@ -462,7 +466,11 @@ bool ProductData::isRunnable() const
 
 bool operator==(const ProductData &lhs, const ProductData &rhs)
 {
-    return lhs.name() == rhs.name()
+    if (!lhs.isValid() && !rhs.isValid())
+        return true;
+
+    return lhs.isValid() == rhs.isValid()
+            && lhs.name() == rhs.name()
             && lhs.targetName() == rhs.targetName()
             && lhs.type() == rhs.type()
             && lhs.version() == rhs.version()
@@ -590,7 +598,14 @@ QList<ProductData> ProjectData::allProducts() const
 
 bool operator==(const ProjectData &lhs, const ProjectData &rhs)
 {
-    return lhs.location() == rhs.location()
+    if (!lhs.isValid() && !rhs.isValid())
+        return true;
+
+    return lhs.isValid() == rhs.isValid()
+            && lhs.isEnabled() == rhs.isEnabled()
+            && lhs.name() == rhs.name()
+            && lhs.buildDirectory() == rhs.buildDirectory()
+            && lhs.location() == rhs.location()
             && lhs.subProjects() == rhs.subProjects()
             && lhs.products() == rhs.products();
 }
