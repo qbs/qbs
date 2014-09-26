@@ -411,8 +411,6 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     foreach (Item *child, item->children()) {
         if (child->typeName() == QLatin1String("Group"))
             handleGroup(&productContext, child);
-        else if (child->typeName() == QLatin1String("Artifact"))
-            handleArtifact(&productContext, child);
         else if (child->typeName() == QLatin1String("Export"))
             deferExportItem(&productContext, child);
         else if (child->typeName() == QLatin1String("Probe"))
@@ -519,12 +517,6 @@ void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
     checkCancelation();
     propagateModulesFromProduct(productContext, item);
     checkItemCondition(item);
-}
-
-void ModuleLoader::handleArtifact(ProductContext *productContext, Item *item)
-{
-    checkCancelation();
-    propagateModulesFromProduct(productContext, item);
 }
 
 void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext, Item *item)
