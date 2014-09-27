@@ -118,10 +118,10 @@ function prepareCompiler(product, input, outputs) {
     cmd.workingDirectory = product.buildDirectory + "/.obj";
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
-    cmd.stdoutFilterFunction = "function(output) {";
-    cmd.stdoutFilterFunction += "return output.replace(/"
-            + input.fileName + "\\r\\n/g, '');";
-    cmd.stdoutFilterFunction += "}";
+    cmd.inputFileName = input.fileName;
+    cmd.stdoutFilterFunction = function(output) {
+        return output.split(inputFileName + "\r\n").join("");
+    };
     return cmd;
 }
 

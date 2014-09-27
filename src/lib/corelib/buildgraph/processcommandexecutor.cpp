@@ -45,6 +45,7 @@
 #include <tools/processresult.h>
 #include <tools/processresult_p.h>
 #include <tools/qbsassert.h>
+#include <tools/scripttools.h>
 
 #include <QDir>
 #include <QScriptEngine>
@@ -174,6 +175,15 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     const QString output = QString::fromLocal8Bit(_output);
     if (filterFunctionSource.isEmpty())
         return output;
+
+    QScriptValue scope = scriptEngine()->newObject();
+    for (QVariantMap::const_iterator it = command()->properties().constBegin();
+            it != command()->properties().constEnd(); ++it) {
+        scope.setProperty(it.key(), scriptEngine()->toScriptValue(it.value()));
+    }
+
+    ScriptContextScopePusher scopePusher(scriptEngine()->currentContext(), scope);
+    Q_UNUSED(scopePusher);
 
     QScriptValue filterFunction = scriptEngine()->evaluate(QLatin1String("var f = ")
                                                            + filterFunctionSource

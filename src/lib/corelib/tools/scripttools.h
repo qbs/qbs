@@ -89,6 +89,27 @@ private:
     QScriptEngine *m_scriptEngine;
 };
 
+/**
+ * @brief push/pop a scope on a QScriptContext the RAII way.
+ */
+class ScriptContextScopePusher
+{
+public:
+    ScriptContextScopePusher(QScriptContext *scriptContext, const QScriptValue &value)
+        : m_scriptContext(scriptContext)
+    {
+        m_scriptContext->pushScope(value);
+    }
+
+    ~ScriptContextScopePusher()
+    {
+        m_scriptContext->popScope();
+    }
+
+private:
+    QScriptContext *m_scriptContext;
+};
+
 template <class T>
 void attachPointerTo(QScriptValue &scriptValue, T *ptr)
 {
