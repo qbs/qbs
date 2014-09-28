@@ -25,11 +25,11 @@ function prepareIbtoold(product, input, outputs) {
     if (input.fileTags.contains("assetcatalog")) {
         args.push("--platform", DarwinTools.applePlatformName(product.moduleProperty("qbs", "targetOS")));
 
-        var appIconName = ModUtils.moduleProperty(input, "appIcon");
+        var appIconName = ModUtils.moduleProperty(input, "appIconName");
         if (appIconName)
             args.push("--app-icon", appIconName);
 
-        var launchImageName = ModUtils.moduleProperty(input, "launchImage");
+        var launchImageName = ModUtils.moduleProperty(input, "launchImageName");
         if (launchImageName)
             args.push("--launch-image", launchImageName);
 
