@@ -1913,6 +1913,10 @@ void TestBlackbox::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
+    Settings settings((QString()));
+    Profile profile(buildProfileName, &settings);
+    if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
+        return;
     QProcess nm;
     nm.start("nm", QStringList(executableFilePath("debuggable-app")));
     if (nm.waitForStarted()) { // Let's ignore hosts without nm.
