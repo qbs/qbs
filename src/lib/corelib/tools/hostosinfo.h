@@ -38,17 +38,17 @@
 #include <QStringList>
 
 #if defined(Q_OS_WIN)
-#define QTC_HOST_EXE_SUFFIX ".exe"
-#define QTC_HOST_DYNAMICLIB_PREFIX ""
-#define QTC_HOST_DYNAMICLIB_SUFFIX ".dll"
+#define QBS_HOST_EXE_SUFFIX ".exe"
+#define QBS_HOST_DYNAMICLIB_PREFIX ""
+#define QBS_HOST_DYNAMICLIB_SUFFIX ".dll"
 #elif defined(Q_OS_DARWIN)
-#define QTC_HOST_EXE_SUFFIX ""
-#define QTC_HOST_DYNAMICLIB_PREFIX "lib"
-#define QTC_HOST_DYNAMICLIB_SUFFIX ".dylib"
+#define QBS_HOST_EXE_SUFFIX ""
+#define QBS_HOST_DYNAMICLIB_PREFIX "lib"
+#define QBS_HOST_DYNAMICLIB_SUFFIX ".dylib"
 #else
-#define QTC_HOST_EXE_SUFFIX ""
-#define QTC_HOST_DYNAMICLIB_PREFIX "lib"
-#define QTC_HOST_DYNAMICLIB_SUFFIX ".so"
+#define QBS_HOST_EXE_SUFFIX ""
+#define QBS_HOST_DYNAMICLIB_PREFIX "lib"
+#define QBS_HOST_DYNAMICLIB_SUFFIX ".so"
 #endif // Q_OS_WIN
 
 namespace qbs {
@@ -73,14 +73,14 @@ public:
     {
         QString finalName = executable;
         if (isWindowsHost())
-            finalName += QLatin1String(QTC_HOST_EXE_SUFFIX);
+            finalName += QLatin1String(QBS_HOST_EXE_SUFFIX);
         return finalName;
     }
 
     static QString dynamicLibraryName(const QString &libraryBaseName)
     {
-        return QLatin1String(QTC_HOST_DYNAMICLIB_PREFIX) + libraryBaseName
-                + QLatin1String(QTC_HOST_DYNAMICLIB_SUFFIX);
+        return QLatin1String(QBS_HOST_DYNAMICLIB_PREFIX) + libraryBaseName
+                + QLatin1String(QBS_HOST_DYNAMICLIB_SUFFIX);
     }
 
     static Qt::CaseSensitivity fileNameCaseSensitivity()

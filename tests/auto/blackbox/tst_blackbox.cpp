@@ -543,21 +543,21 @@ void TestBlackbox::clean()
     const QString appExeFilePath = executableFilePath("app");
     const QString depObjectFilePath = productBuildDir("dep")
             + objectFileName("/.obj/dep.cpp", buildProfileName);
-    const QString depLibBase = productBuildDir("dep") + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
+    const QString depLibBase = productBuildDir("dep") + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
     if (qbs::Internal::HostOsInfo::isOsxHost()) {
-        depLibFilePath = depLibBase + ".1.1.0" + QTC_HOST_DYNAMICLIB_SUFFIX;
-        symlinks << depLibBase + ".1.1" + QTC_HOST_DYNAMICLIB_SUFFIX
-                 << depLibBase + ".1"  + QTC_HOST_DYNAMICLIB_SUFFIX
-                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+        depLibFilePath = depLibBase + ".1.1.0" + QBS_HOST_DYNAMICLIB_SUFFIX;
+        symlinks << depLibBase + ".1.1" + QBS_HOST_DYNAMICLIB_SUFFIX
+                 << depLibBase + ".1"  + QBS_HOST_DYNAMICLIB_SUFFIX
+                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     } else if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
-        depLibFilePath = depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
-        symlinks << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1.1"
-                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1"
-                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+        depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
+        symlinks << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1"
+                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1"
+                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     } else {
-        depLibFilePath = depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+        depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     }
 
     QDir::setCurrent(testDataDir + "/clean");
