@@ -196,10 +196,7 @@ void ScriptEngine::setObservedProperty(QScriptValue &object, const QString &name
     data.setProperty(2, value);
     QScriptValue getterFunc = newFunction(js_observedGet, observer);
     getterFunc.setProperty(QLatin1String("qbsdata"), data);
-    QScriptValue descriptor = newObject();
-    descriptor.setProperty(QLatin1String("get"), getterFunc);
-    descriptor.setProperty(QLatin1String("set"), m_emptyFunction);
-    defineProperty(object, name, descriptor);
+    object.setProperty(name, getterFunc, QScriptValue::PropertyGetter);
 }
 
 static QScriptValue js_deprecatedGet(QScriptContext *context, QScriptEngine *qtengine)
@@ -221,10 +218,8 @@ void ScriptEngine::setDeprecatedProperty(QScriptValue &object, const QString &ol
     data.setProperty(2, value);
     QScriptValue getterFunc = newFunction(js_deprecatedGet);
     getterFunc.setProperty(QLatin1String("qbsdata"), data);
-    QScriptValue descriptor = newObject();
-    descriptor.setProperty(QLatin1String("get"), getterFunc);
-    descriptor.setProperty(QLatin1String("set"), m_emptyFunction);
-    defineProperty(object, oldName, descriptor);
+    object.setProperty(oldName, getterFunc, QScriptValue::PropertyGetter
+                       | QScriptValue::SkipInEnumeration);
 }
 
 QProcessEnvironment ScriptEngine::environment() const

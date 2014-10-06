@@ -83,12 +83,9 @@ public:
     {
         QScriptValue depfunc = m_engine->newFunction(&js_productDependencies);
         setProduct(depfunc, product.data());
-        QScriptValue descriptor = m_engine->newObject();
-        descriptor.setProperty(QLatin1String("get"), depfunc);
-        descriptor.setProperty(QLatin1String("set"),
-                               m_engine->evaluate(QLatin1String("(function(){})")));
-        descriptor.setProperty(QLatin1String("enumerable"), true);
-        m_engine->defineProperty(productScriptValue, QLatin1String("dependencies"), descriptor);
+        productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
+                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                       | QScriptValue::PropertyGetter);
     }
 
 private:
@@ -141,12 +138,9 @@ private:
         }
         QScriptValue depfunc = engine->newFunction(&js_moduleDependencies);
         depfunc.setData(engine->toScriptValue(propMap.value(QLatin1String("modules"))));
-        QScriptValue descriptor = engine->newObject();
-        descriptor.setProperty(QLatin1String("get"), depfunc);
-        descriptor.setProperty(QLatin1String("set"),
-                               engine->evaluate(QLatin1String("(function(){})")));
-        descriptor.setProperty(QLatin1String("enumerable"), true);
-        engine->defineProperty(moduleScriptValue, QLatin1String("dependencies"), descriptor);
+        moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
+                                      QScriptValue::ReadOnly | QScriptValue::Undeletable
+                                      | QScriptValue::PropertyGetter);
         moduleScriptValue.setProperty(QLatin1String("type"), QLatin1String("module"));
     }
 
