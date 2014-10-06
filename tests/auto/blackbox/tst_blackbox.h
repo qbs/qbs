@@ -128,6 +128,7 @@ private slots:
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
     void inheritQbsSearchPaths();
+    void mixedBuildVariants();
     void mocCppIncluded();
     void newOutputArtifactInDependency();
     void newPatternMatch();

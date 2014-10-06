@@ -186,6 +186,15 @@
     interesting to users. Some of them only need to be defined if the respective installation
     of Qt was built in some unusual way, for instance by setting non-default \c configure flags.
 
+    \section3 availableBuildVariants
+
+    \table
+    \row    \li \b{Type:}            \li \c{stringList}
+    \row    \li \b{Default:}         \li set by \c{qbs-setup-qt}
+    \endtable
+
+    The build variants that this Qt installation offers.
+
     \section3 binPath
 
     \table
@@ -194,15 +203,6 @@
     \endtable
 
     The path in which Qt tools such as \c qmake, \c moc and so on are located.
-
-    \section3 buildVariant
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    Specifies the build variants for which Qt was built.
 
     \section3 config
 
@@ -333,6 +333,19 @@
     \endtable
 
     Controls which name the \c qhp file gets when generating documentation with \c qdoc.
+
+    \section3 qtBuildVariant
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li See below.
+    \endtable
+
+    Specifies the type of Qt libraries to build against: "debug" or "release".
+    The default value is the build variant of the code linking against Qt. If Qt does not offer
+    that build variant, the build variant offered by Qt is chosen instead.
+    \note On some systems, it is not possible to link code built in debug mode against libraries
+          built in release mode and vice versa.
 
     \section3 qtConfig
 

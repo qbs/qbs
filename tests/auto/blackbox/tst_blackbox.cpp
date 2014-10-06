@@ -1826,6 +1826,26 @@ void TestBlackbox::inheritQbsSearchPaths()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::mixedBuildVariants()
+{
+    QDir::setCurrent(testDataDir + "/mixed-build-variants");
+    Settings settings((QString()));
+    Profile profile(buildProfileName, &settings);
+    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+        QbsRunParameters params;
+        params.expectFailure = true;
+        QVERIFY(runQbs(params) != 0);
+        QVERIFY2(m_qbsStderr.contains("not allowed"), m_qbsStderr.constData());
+    } else if (!profile.value("Qt.core.availableBuildVariants").toStringList().contains("release")) {
+        QbsRunParameters params;
+        params.expectFailure = true;
+        QVERIFY(runQbs(params) != 0);
+        QVERIFY2(m_qbsStderr.contains("not supported"), m_qbsStderr.constData());
+    } else {
+        QCOMPARE(runQbs(), 0);
+    }
+}
+
 void TestBlackbox::mocCppIncluded()
 {
     QDir::setCurrent(testDataDir + "/moc_hpp_included");
