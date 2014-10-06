@@ -124,10 +124,6 @@ static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
     return true;
 }
 
-static qbs::Project::ProductSelection defaultProducts() {
-    return qbs::Project::ProductSelectionDefaultOnly;
-}
-
 
 TestApi::TestApi()
     : m_logSink(new LogSink)
@@ -384,6 +380,11 @@ qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
+
+static qbs::Project::ProductSelection defaultProducts()
+{
+    return qbs::Project::ProductSelectionDefaultOnly;
+}
 
 static void printProjectData(const qbs::ProjectData &project)
 {
