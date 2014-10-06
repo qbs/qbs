@@ -38,6 +38,7 @@ Project {
                 productTypes: ["application"]
                 limitToSubProject: true
             }
+            files: ["main.cpp"]
 
             Rule {
                 multiplex: true
