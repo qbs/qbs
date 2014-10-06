@@ -53,6 +53,20 @@
 namespace qbs {
 namespace Internal {
 
+static QScriptValue setupProjectScriptValue(ScriptEngine *engine,
+        const ResolvedProjectConstPtr &project, PrepareScriptObserver *observer)
+{
+    QScriptValue obj = engine->newObject();
+    obj.setProperty(QLatin1String("filePath"), project->location.filePath());
+    obj.setProperty(QLatin1String("path"), FileInfo::path(project->location.filePath()));
+    const QVariantMap &projectProperties = project->projectProperties();
+    for (QVariantMap::const_iterator it = projectProperties.begin();
+            it != projectProperties.end(); ++it) {
+        engine->setObservedProperty(obj, it.key(), engine->toScriptValue(it.value()), observer);
+    }
+    return obj;
+}
+
 static void setupProductScriptValue(ScriptEngine *engine, QScriptValue &productScriptValue,
                                     const ResolvedProductConstPtr &product,
                                     PrepareScriptObserver *observer);
@@ -183,17 +197,7 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
 
     if (cache->project != product->project) {
         cache->project = product->project.data();
-        cache->projectScriptValue = engine->newObject();
-        cache->projectScriptValue.setProperty(QLatin1String("filePath"),
-                product->project->location.filePath());
-        cache->projectScriptValue.setProperty(QLatin1String("path"),
-                FileInfo::path(product->project->location.filePath()));
-        const QVariantMap &projectProperties = product->project->projectProperties();
-        for (QVariantMap::const_iterator it = projectProperties.begin();
-                it != projectProperties.end(); ++it) {
-            engine->setObservedProperty(cache->projectScriptValue, it.key(),
-                                        engine->toScriptValue(it.value()), observer);
-        }
+        cache->projectScriptValue = setupProjectScriptValue(engine, product->project, observer);
     }
     targetObject.setProperty(QLatin1String("project"), cache->projectScriptValue);
     if (observer)
