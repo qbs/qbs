@@ -183,34 +183,22 @@ void setupScriptEngineForProduct(ScriptEngine *engine, const ResolvedProductCons
                                  const ResolvedModuleConstPtr &module, QScriptValue targetObject,
                                  PrepareScriptObserver *observer)
 {
-    ScriptEngine::ScriptValueCache * const cache = engine->scriptValueCache();
-    if (cache->observer != observer) {
-        cache->project = 0;
-        cache->product = 0;
-    }
-
-    if (cache->project != product->project) {
-        cache->project = product->project.data();
-        cache->projectScriptValue = setupProjectScriptValue(engine, product->project, observer);
-    }
-    targetObject.setProperty(QLatin1String("project"), cache->projectScriptValue);
+    QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project, observer);
+    targetObject.setProperty(QLatin1String("project"), projectScriptValue);
     if (observer)
-        observer->setProjectObjectId(cache->projectScriptValue.objectId());
+        observer->setProjectObjectId(projectScriptValue.objectId());
 
-    if (cache->product != product) {
-        cache->product = product.data();
-        {
-            QVariant v;
-            v.setValue<void*>(&product->buildEnvironment);
-            engine->setProperty("_qbs_procenv", v);
-        }
-        cache->productScriptValue = engine->newObject();
-        setupProductScriptValue(engine, cache->productScriptValue, product, observer);
+    {
+        QVariant v;
+        v.setValue<void*>(&product->buildEnvironment);
+        engine->setProperty("_qbs_procenv", v);
     }
-    targetObject.setProperty(QLatin1String("product"), cache->productScriptValue);
+    QScriptValue productScriptValue = engine->newObject();
+    setupProductScriptValue(engine, productScriptValue, product, observer);
+    targetObject.setProperty(QLatin1String("product"), productScriptValue);
 
     // If the Rule is in a Module, set up the 'moduleName' property
-    cache->productScriptValue.setProperty(QLatin1String("moduleName"),
+    productScriptValue.setProperty(QLatin1String("moduleName"),
             module->name.isEmpty() ? QScriptValue() : module->name);
 }
 

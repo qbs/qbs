@@ -98,19 +98,6 @@ public:
     static QScriptValueList argumentList(const QStringList &argumentNames,
             const QScriptValue &context);
 
-    class ScriptValueCache
-    {
-    public:
-        ScriptValueCache() : observer(0), project(0), product(0) {}
-        const void *observer;
-        const void *project;
-        const void *product;
-        QScriptValue observerScriptValue;
-        QScriptValue projectScriptValue;
-        QScriptValue productScriptValue;
-    };
-
-    ScriptValueCache *scriptValueCache() { return &m_scriptValueCache; }
 
     bool hasErrorOrException(const QScriptValue &v) const {
         return v.isError() || hasUncaughtException();
@@ -149,7 +136,6 @@ private:
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
     friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
 
-    ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;
