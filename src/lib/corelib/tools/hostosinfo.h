@@ -66,8 +66,6 @@ public:
     static bool isLinuxHost() { return hostOs() == HostOsLinux; }
     static bool isOsxHost() { return hostOs() == HostOsOsx; }
     static inline bool isAnyUnixHost();
-    static inline QString canonicalArchitecture(const QString &architecture);
-    static inline QString defaultEndianness(const QString &architecture);
 
     static QString appendExecutableSuffix(const QString &executable)
     {
@@ -121,73 +119,6 @@ bool HostOsInfo::isAnyUnixHost()
 #else
     return false;
 #endif
-}
-
-QString HostOsInfo::canonicalArchitecture(const QString &architecture)
-{
-    QMap<QString, QStringList> archMap;
-    archMap.insert(QLatin1String("x86"), QStringList()
-        << QLatin1String("i386")
-        << QLatin1String("i486")
-        << QLatin1String("i586")
-        << QLatin1String("i686")
-        << QLatin1String("ia32")
-        << QLatin1String("ia-32")
-        << QLatin1String("x86_32")
-        << QLatin1String("x86-32")
-        << QLatin1String("intel32")
-        << QLatin1String("mingw32"));
-
-    archMap.insert(QLatin1String("x86_64"), QStringList()
-        << QLatin1String("x86-64")
-        << QLatin1String("x64")
-        << QLatin1String("amd64")
-        << QLatin1String("ia32e")
-        << QLatin1String("em64t")
-        << QLatin1String("intel64")
-        << QLatin1String("mingw64"));
-
-    archMap.insert(QLatin1String("ia64"), QStringList()
-        << QLatin1String("ia-64")
-        << QLatin1String("itanium"));
-
-    archMap.insert(QLatin1String("ppc"), QStringList()
-        << QLatin1String("powerpc"));
-
-    archMap.insert(QLatin1String("ppc64"), QStringList()
-        << QLatin1String("powerpc64"));
-
-    QMapIterator<QString, QStringList> i(archMap);
-    while (i.hasNext()) {
-        i.next();
-        if (i.value().contains(architecture.toLower()))
-            return i.key();
-    }
-
-    return architecture;
-}
-
-QString HostOsInfo::defaultEndianness(const QString &architecture)
-{
-    const QString canonicalArch = canonicalArchitecture(architecture);
-
-    QStringList little = QStringList()
-            << QLatin1String("x86")
-            << QLatin1String("x86_64")
-            << QLatin1String("arm")
-            << QLatin1String("arm64");
-
-    if (little.contains(canonicalArch))
-        return QLatin1String("little");
-
-    QStringList big = QStringList()
-            << QLatin1String("ppc")
-            << QLatin1String("ppc64");
-
-    if (big.contains(canonicalArch))
-        return QLatin1String("big");
-
-    return QString();
 }
 
 } // namespace Internal

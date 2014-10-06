@@ -1,6 +1,7 @@
 INCLUDEPATH += $$PWD/../.. # for plugins
 
 HEADERS += \
+    $$PWD/architectures.h \
     $$PWD/buildgraphlocker.h \
     $$PWD/codelocation.h \
     $$PWD/error.h \
@@ -31,6 +32,7 @@ HEADERS += \
     $$PWD/version.h
 
 SOURCES += \
+    $$PWD/architectures.cpp \
     $$PWD/buildgraphlocker.cpp \
     $$PWD/codelocation.cpp \
     $$PWD/error.cpp \
@@ -69,6 +71,7 @@ all_tests {
 
 !qbs_no_dev_install {
     tools_headers.files = \
+        $$PWD/architectures.h \
         $$PWD/cleanoptions.h \
         $$PWD/codelocation.h \
         $$PWD/error.h \

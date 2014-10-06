@@ -33,9 +33,9 @@
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
+#include <tools/architectures.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
-#include <tools/hostosinfo.h>
 
 #include <QStringList>
 #include <QProcess>
@@ -47,7 +47,6 @@
 
 using namespace qbs;
 using Internal::Tr;
-using Internal::HostOsInfo;
 
 namespace {
 static QString qsystem(const QString &exe, const QStringList &args = QStringList())
@@ -160,10 +159,8 @@ void XcodeProbe::setArch(Profile *profile, const QString &pathToGcc, const QStri
                         "        arch: %4").arg(profile->name(), pathToGcc, compilerTriplet,
                                             architecture);
 
-    profile->setValue(QLatin1String("qbs.endianness"),
-                      HostOsInfo::defaultEndianness(architecture));
-    profile->setValue(QLatin1String("qbs.architecture"),
-                      HostOsInfo::canonicalArchitecture(architecture));
+    profile->setValue(QLatin1String("qbs.endianness"), defaultEndianness(architecture));
+    profile->setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
 }
 
 void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &xCodeName)

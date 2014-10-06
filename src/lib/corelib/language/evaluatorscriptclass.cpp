@@ -36,6 +36,7 @@
 #include "item.h"
 #include "scriptengine.h"
 #include "propertydeclaration.h"
+#include <tools/architectures.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -597,7 +598,7 @@ QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *cont
                                    QLatin1String("canonicalArchitecture expects 1 argument"));
     }
     const QString architecture = context->argument(0).toString();
-    return engine->toScriptValue(HostOsInfo::canonicalArchitecture(architecture));
+    return engine->toScriptValue(canonicalArchitecture(architecture));
 }
 
 } // namespace Internal

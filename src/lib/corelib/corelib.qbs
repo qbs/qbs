@@ -287,6 +287,7 @@ QbsLibrary {
         name: "tools"
         prefix: name + '/'
         files: [
+            "architectures.cpp",
             "buildgraphlocker.cpp",
             "buildgraphlocker.h",
             "buildoptions.cpp",
@@ -332,6 +333,7 @@ QbsLibrary {
         name: "public tools headers"
         prefix: "tools/"
         files: [
+            "architectures.h",
             "buildoptions.h",
             "cleanoptions.h",
             "codelocation.h",
