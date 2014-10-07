@@ -175,18 +175,20 @@ Module {
         validator.addRangeValidator("versionMinor", versionMinor, 0);
         validator.addRangeValidator("versionPatch", versionPatch, 0);
 
-        validator.validate();
+        validator.addCustomValidator("availableBuildVariants", availableBuildVariants, function (v) {
+            return v.length > 0;
+        }, "the Qt installation supports no build variants");
 
-        if (availableBuildVariants.length === 0)
-            throw "The Qt installation supports no build variants.";
-        if (!availableBuildVariants.contains(qtBuildVariant)) {
-            throw "Qt.core.qtBuildVariant '" + qtBuildVariant +
-                "' is not supported by this Qt installation.";
-        }
-        if (qbs.toolchain.contains("msvc") && qtBuildVariant !== qbs.buildVariant) {
-            throw "Qt.core.qtBuildVariant is '" + qtBuildVariant + "', but qbs.buildVariant is '"
-                + qbs.buildVariant + "', which is not allowed when using MSVC.";
-        }
+        validator.addCustomValidator("qtBuildVariant", qtBuildVariant, function (variant) {
+            return availableBuildVariants.contains(variant);
+        }, "'" + qtBuildVariant + "' is not supported by this Qt installation");
+
+        validator.addCustomValidator("qtBuildVariant", qtBuildVariant, function (variant) {
+            return variant === qbs.buildVariant || !qbs.toolchain.contains("msvc");
+        }, " is '" + qtBuildVariant + "', but qbs.buildVariant is '" + qbs.buildVariant
+            + "', which is not allowed when using MSVC");
+
+        validator.validate();
     }
 
     setupRunEnvironment: {
