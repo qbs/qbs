@@ -37,31 +37,70 @@
     \brief Represents a collection of properties and items that can be loaded into a product.
 
     A \c Module item is a collection of properties and language items that are used for building a
-    product if the product depends on (or loads) the module.
+    product if the product has a \l{Depends Item}{dependency} on the module.
+    The following (somewhat artificial) module pre-processes text files by removing certain
+    characters from them:
 
-    A Module can be loaded by adding a dependency to it in a product.
-    For example, the following product will load the \c cpp module. In addition, it will try
-    to load modules that may or may not exist, and in the latter case use a fallback.
     \code
-    Product {
-        Depends { name: "cpp" }
-        Depends {
-            name: "awesome_module"
-            required: false
-        }
-        Depends {
-            name: "adequate_module"
-            condition: !awesome_module.present
-            required: false
-        }
-        Depends {
-            name: "crappy_module"
-            condition: !awesome_module.present && !adequate_module.present
-        }
+    import qbs
+    import qbs.FileInfo
+    import qbs.TextFile
 
-        // ...
+    Module {
+        property stringList unwantedCharacters: []
+        FileTagger {
+            patterns: ["*.raw"]
+            fileTags: ["raw-txt"]
+        }
+        Rule {
+            inputs: ["raw-txt"]
+            Artifact {
+                filePath: FileInfo.relativePath(input.filePath, product.sourceDirectory) +
+                           "/" + input.fileName + ".processed"
+                fileTags: ["processed-txt"]
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "Processing " + input.fileName;
+                cmd.sourceCode = function() {
+                    var inFile = new TextFile(input.filePath, TextFile.ReadOnly);
+                    var content = inFile.readAll();
+                    inFile.close();
+                    var unwantedChars = product.moduleProperty("txt_processor",
+                                                               "unwantedCharacters");
+                    for (var c in unwantedChars)
+                        content = content.replace(unwantedChars[c], "");
+                    var outFile = new TextFile(output.filePath, TextFile.WriteOnly);
+                    outFile.write(content);
+                    outFile.close();
+                };
+                return cmd;
+            }
+        }
     }
     \endcode
+
+    And this is how a product would use the module:
+
+    \code
+    Product {
+        type: "processed-txt"
+        Depends { name: "txt_processor" }
+        txt_processor.unwantedCharacters: ["\r"]
+        files: [
+            "file1.raw",
+            "file2.raw"
+        ]
+    }
+    \endcode
+
+    Of course, normally the pre-processed files would not be the target artifacts of the product,
+    but rather serve as inputs to a different rule that will often come from a different module.
+
+    How you make your own modules available to \QBS is explained
+    \l{Custom Modules and Items}{here}.
+
+    \section1 Module Properties
 
     \table
         \header

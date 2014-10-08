@@ -39,6 +39,30 @@
 
     A \c Depends item can appear inside a \l{Product Item} or \l{Module Item}.
 
+    For example, the following product will load the \c cpp module. In addition, it will try
+    to load modules that may or may not exist, and in the latter case use a fallback.
+    \code
+    Product {
+        Depends { name: "cpp" }
+        Depends {
+            name: "awesome_module"
+            required: false
+        }
+        Depends {
+            name: "adequate_module"
+            condition: !awesome_module.present
+            required: false
+        }
+        Depends {
+            name: "crappy_module"
+            condition: !awesome_module.present && !adequate_module.present
+        }
+
+        // ...
+    }
+    \endcode
+
+
     \section1 Depends Properties
 
     \table
