@@ -33,7 +33,6 @@
 #include "hostosinfo.h"
 
 #include <QDir>
-#include <QProcessEnvironment>
 
 namespace qbs {
 namespace Internal {
@@ -51,8 +50,11 @@ static QStringList populateExecutableSuffixes()
 
 QStringList ExecutableFinder::m_executableSuffixes = populateExecutableSuffixes();
 
-ExecutableFinder::ExecutableFinder(const ResolvedProductPtr &m_product, const Logger &logger)
-    : m_product(m_product), m_logger(logger)
+ExecutableFinder::ExecutableFinder(const ResolvedProductPtr &m_product,
+        const QProcessEnvironment &env, const Logger &logger)
+    : m_product(m_product)
+    , m_environment(env)
+    , m_logger(logger)
 {
 }
 
@@ -69,7 +71,7 @@ QString ExecutableFinder::findExecutable(const QString &path, const QString &wor
 
 QString ExecutableFinder::findBySuffix(const QString &filePath) const
 {
-    QString fullProgramPath = m_product->cachedExecutablePath(filePath);
+    QString fullProgramPath = cachedFilePath(filePath);
     if (!fullProgramPath.isEmpty())
         return fullProgramPath;
 
@@ -78,7 +80,7 @@ QString ExecutableFinder::findBySuffix(const QString &filePath) const
         m_logger.qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
     const QString emptyDirectory;
     candidateCheck(emptyDirectory, fullProgramPath, fullProgramPath);
-    m_product->cacheExecutablePath(filePath, fullProgramPath);
+    cacheFilePath(filePath, fullProgramPath);
     return fullProgramPath;
 
 }
@@ -101,15 +103,14 @@ bool ExecutableFinder::candidateCheck(const QString &directory, const QString &p
 
 QString ExecutableFinder::findInPath(const QString &filePath, const QString &workingDirPath) const
 {
-    QString fullProgramPath = m_product->cachedExecutablePath(filePath);
+    QString fullProgramPath = cachedFilePath(filePath);
     if (!fullProgramPath.isEmpty())
         return fullProgramPath;
 
     fullProgramPath = filePath;
     if (m_logger.traceEnabled())
         m_logger.qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
-    const QProcessEnvironment &buildEnvironment = m_product->buildEnvironment;
-    QStringList pathEnv = buildEnvironment.value(QLatin1String("PATH"))
+    QStringList pathEnv = m_environment.value(QLatin1String("PATH"))
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
     if (HostOsInfo::isWindowsHost())
         pathEnv.prepend(QLatin1String("."));
@@ -125,10 +126,19 @@ QString ExecutableFinder::findInPath(const QString &filePath, const QString &wor
         if (candidateCheck(directory, fullProgramPath, fullProgramPath))
             break;
     }
-    m_product->cacheExecutablePath(filePath, fullProgramPath);
+    cacheFilePath(filePath, fullProgramPath);
     return fullProgramPath;
+}
 
-    return filePath;
+QString ExecutableFinder::cachedFilePath(const QString &filePath) const
+{
+    return m_product ? m_product->cachedExecutablePath(filePath) : QString();
+}
+
+void ExecutableFinder::cacheFilePath(const QString &filePath, const QString &fullFilePath) const
+{
+    if (m_product)
+        m_product->cacheExecutablePath(filePath, fullFilePath);
 }
 
 } // namespace Internal

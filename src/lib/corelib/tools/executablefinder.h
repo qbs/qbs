@@ -33,6 +33,8 @@
 #include <language/language.h>
 #include <logging/logger.h>
 
+#include <QProcessEnvironment>
+
 namespace qbs {
 namespace Internal {
 
@@ -42,7 +44,8 @@ namespace Internal {
 class ExecutableFinder
 {
 public:
-    ExecutableFinder(const ResolvedProductPtr &product, const Logger &logger);
+    ExecutableFinder(const ResolvedProductPtr &product, const QProcessEnvironment &env,
+                     const Logger &logger);
 
     QString findExecutable(const QString &path, const QString &workingDirPath);
 
@@ -53,7 +56,11 @@ private:
             QString &fullProgramPath) const;
     QString findInPath(const QString &filePath, const QString &workingDirPath) const;
 
+    QString cachedFilePath(const QString &filePath) const;
+    void cacheFilePath(const QString &filePaht, const QString &filePath) const;
+
     ResolvedProductPtr m_product;
+    const QProcessEnvironment &m_environment;
     Logger m_logger;
 };
 

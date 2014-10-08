@@ -31,6 +31,7 @@
 
 #include <language/scriptengine.h>
 #include <logging/translator.h>
+#include <tools/executablefinder.h>
 #include <tools/hostosinfo.h>
 
 #include <QProcess>
@@ -123,7 +124,7 @@ bool Process::start(const QString &program, const QStringList &arguments)
         m_qProcess->setWorkingDirectory(m_workingDirectory);
 
     m_qProcess->setProcessEnvironment(m_environment);
-    m_qProcess->start(program, arguments);
+    m_qProcess->start(findExecutable(program), arguments);
     return m_qProcess->waitForStarted();
 }
 
@@ -131,7 +132,7 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
 {
     Q_ASSERT(thisObject().engine() == engine());
 
-    if (!start(program, arguments)) {
+    if (!start(findExecutable(program), arguments)) {
         if (throwOnError) {
             context()->throwError(Tr::tr("Error running '%1': %2")
                                   .arg(program, m_qProcess->errorString()));
@@ -210,6 +211,18 @@ QString Process::readStdErr()
 int Process::exitCode() const
 {
     return m_qProcess->exitCode();
+}
+
+Logger Process::logger() const
+{
+    ScriptEngine *scriptEngine = static_cast<ScriptEngine *>(engine());
+    return scriptEngine->logger();
+}
+
+QString Process::findExecutable(const QString &filePath) const
+{
+    ExecutableFinder exeFinder(ResolvedProductPtr(), m_environment, logger());
+    return exeFinder.findExecutable(filePath, m_workingDirectory);
 }
 
 void Process::write(const QString &str)

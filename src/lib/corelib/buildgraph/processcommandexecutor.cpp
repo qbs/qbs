@@ -82,7 +82,8 @@ void ProcessCommandExecutor::doStart()
     QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
 
     const ProcessCommand * const cmd = processCommand();
-    const QString program = ExecutableFinder(transformer()->product(), logger())
+    const QString program = ExecutableFinder(transformer()->product(),
+                                             transformer()->product()->buildEnvironment, logger())
             .findExecutable(cmd->program(), cmd->workingDir());
 
     // Use native separators for debug output, so people can copy-paste it to a command line.

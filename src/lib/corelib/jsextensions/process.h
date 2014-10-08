@@ -30,6 +30,8 @@
 #ifndef QBS_PROCESS_H
 #define QBS_PROCESS_H
 
+#include <logging/logger.h>
+
 #include <QObject>
 #include <QProcessEnvironment>
 #include <QScriptable>
@@ -77,6 +79,9 @@ public:
     Q_INVOKABLE int exitCode() const;
 
 private:
+    Logger logger() const;
+    QString findExecutable(const QString &filePath) const;
+
     QProcess *m_qProcess;
     QProcessEnvironment m_environment;
     QString m_workingDirectory;
