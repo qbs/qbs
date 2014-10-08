@@ -3,6 +3,7 @@ import qbs.BundleTools
 import qbs.DarwinTools
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Process
 import 'ib.js' as Ib
 
 Module {
@@ -85,9 +86,11 @@ Module {
 
         Artifact {
             filePath: {
-                var outputDirectory = BundleTools.isBundleProduct(product)
-                        ? BundleTools.unlocalizedResourcesFolderPath(product)
-                        : product.destinationDirectory;
+                var outputDirectory = product.destinationDirectory;
+                if (BundleTools.isBundleProduct(product)) {
+                    outputDirectory = FileInfo.joinPaths(outputDirectory,
+                                            BundleTools.unlocalizedResourcesFolderPath(product));
+                }
                 return FileInfo.joinPaths(outputDirectory, input.completeBaseName + ModUtils.moduleProperty(product, "appleIconSuffix"))
             }
             fileTags: ["icns"]
@@ -152,16 +155,8 @@ Module {
         }
 
         prepare: {
-            var args = Ib.prepareIbtoold(product, input, outputs);
-
-            var flags = ModUtils.moduleProperty(input, "flags");
-            if (flags)
-                args = args.concat(flags);
-
-            args.push("--compile", outputs.compiled_ibdoc[0].filePath);
-            args.push(input.filePath);
-
-            var cmd = new Command(ModUtils.moduleProperty(input, "ibtoolPath"), args);
+            var cmd = new Command(ModUtils.moduleProperty(input, "ibtoolPath"),
+                                  Ib.ibtooldArguments(product, input, outputs));
             cmd.description = ModUtils.moduleProperty(input, "ibtoolName") + ' ' + input.fileName;
 
             // Also display the language name of the nib/storyboard being compiled if it has one
@@ -187,26 +182,42 @@ Module {
     Rule {
         inputs: ["assetcatalog"]
 
-        // We only return one artifact, as this is a little complicated...
         // actool takes an output *directory*, and in this directory it will
         // potentially output "Assets.car" and/or one or more additional files.
         // We can discover which files were written in an easily parseable manner
-        // through use of --output-format xml1, but we have a chicken and egg problem
-        // in that we only gain that information *after* running the compilation, so
-        // if we want to know in advance which artifacts are generated we have to run
-        // the compilation twice which probably isn't worth it.
+        // through use of --output-format xml1
         outputArtifacts: {
-            var outputDirectory = BundleTools.isBundleProduct(product)
-                    ? BundleTools.unlocalizedResourcesFolderPath(product)
-                    : product.destinationDirectory;
-            return [{
-                filePath: FileInfo.joinPaths(outputDirectory, "Assets" + ModUtils.moduleProperty(product, "compiledAssetCatalogSuffix")),
-                fileTags: ["compiled_assetcatalog"]
-            },
-            {
-                filePath: FileInfo.joinPaths(product.destinationDirectory, "assetcatalog_generated_info.plist"),
-                fileTags: ["partial_infoplist"]
-            }];
+            var outputDirectory = product.destinationDirectory;
+            if (BundleTools.isBundleProduct(product)) {
+                outputDirectory = FileInfo.joinPaths(outputDirectory,
+                                            BundleTools.unlocalizedResourcesFolderPath(product));
+            }
+
+            // Chicken and egg... create a fake outputs dictionary for building actool args list
+            var outputs = {
+                partial_infoplist: [{filePath: FileInfo.joinPaths(product.destinationDirectory, "assetcatalog_generated_info.plist")}],
+                compiled_assetcatalog: [{filePath: FileInfo.joinPaths(outputDirectory, "Assets" + ModUtils.moduleProperty(product, "compiledAssetCatalogSuffix"))}]
+            };
+
+            var process = new Process();
+            try {
+                process.exec("mkdir", ["-p", outputDirectory], true);
+            } finally {
+                process.close();
+            }
+
+            var filePaths = Ib.runActool(ModUtils.moduleProperty(input, "actoolPath"),
+                                         Ib.ibtooldArguments(product, input, outputs));
+
+            var artifacts = [];
+            for (var i in filePaths) {
+                artifacts.push({
+                    filePath: filePaths[i],
+                    fileTags: filePaths[i] === outputs.partial_infoplist[0].filePath ? ["partial_infoplist"] : ["compiled_assetcatalog"]
+                });
+            }
+
+            return artifacts;
         }
 
         outputFileTags: ["compiled_assetcatalog", "partial_infoplist"]
@@ -217,28 +228,9 @@ Module {
         // There's also the undocumented --export-dependency-info <output.txt> which is used by Xcode and generated a \0x00\0x02-delimited
         // file (yes, really) that contains the output file names, identical to the output of actool itself (what's the point?).
         prepare: {
-            var args = Ib.prepareIbtoold(product, input, outputs);
-
-            var flags = ModUtils.moduleProperty(input, "flags");
-            if (flags)
-                args = args.concat(flags);
-
-            var outputPath = FileInfo.path(outputs.compiled_assetcatalog[0].filePath);
-
-            args.push("--compile");
-            args.push(outputPath);
-            args.push(input.filePath);
-
-            var cmd = new Command(ModUtils.moduleProperty(input, "actoolPath"), args);
+            var cmd = new JavaScriptCommand();
             cmd.description = ModUtils.moduleProperty(input, "actoolName") + ' ' + input.fileName;
             cmd.highlight = "compiler";
-            cmd.stdoutFilterFunction = function(stdout) {
-                stdout = stdout.replace("/* com.apple.actool.compilation-results */\n", "");
-                return stdout.split("\n").filter(function(line) {
-                    return line.length > 0 /*&& line.indexOf(outputPath) !== 0*/;
-                }).join("\n");
-            }
-
             return cmd;
         }
     }

@@ -2418,7 +2418,7 @@ void TestBlackbox::testAssetCatalog()
     rmDirR(buildDir);
     params.arguments.append("project.includeIconset:true");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY((bool)m_qbsStdout.contains("actool"));
+    QVERIFY(!(bool)m_qbsStdout.contains("actool"));
     QVERIFY((bool)m_qbsStdout.contains("iconutil"));
 
     // make sure the nibs/storyboards are in there

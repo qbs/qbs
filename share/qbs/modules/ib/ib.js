@@ -1,17 +1,20 @@
 var DarwinTools = loadExtension("qbs.DarwinTools");
+var FileInfo = loadExtension("qbs.FileInfo");
 var ModUtils = loadExtension("qbs.ModUtils");
 var Process = loadExtension("qbs.Process");
 var PropertyList = loadExtension("qbs.PropertyList");
 
-function prepareIbtoold(product, input, outputs) {
+function ibtooldArguments(product, input, outputs) {
     var args = [];
 
     var outputFormat = ModUtils.moduleProperty(input, "outputFormat");
-    if (!["binary1", "xml1", "human-readable-text"].contains(outputFormat))
-        throw("Invalid ibtoold output format: " + outputFormat + ". " +
-              "Must be in [binary1, xml1, human-readable-text].");
+    if (outputFormat) {
+        if (!["binary1", "xml1", "human-readable-text"].contains(outputFormat))
+            throw("Invalid ibtoold output format: " + outputFormat + ". " +
+                  "Must be in [binary1, xml1, human-readable-text].");
 
-    args.push("--output-format", outputFormat);
+        args.push("--output-format", outputFormat);
+    }
 
     if (ModUtils.moduleProperty(input, "warnings"))
         args.push("--warnings");
@@ -82,7 +85,47 @@ function prepareIbtoold(product, input, outputs) {
         }
     }
 
+    var flags = ModUtils.moduleProperty(input, "flags");
+    if (flags)
+        args = args.concat(flags);
+
+    if (outputs.compiled_ibdoc)
+        args.push("--compile", outputs.compiled_ibdoc[0].filePath);
+
+    if (outputs.compiled_assetcatalog)
+        args.push("--compile", FileInfo.path(outputs.compiled_assetcatalog[0].filePath));
+
+    args.push(input.filePath);
+
     return args;
+}
+
+function runActool(actool, args) {
+    var process;
+    var outputFilePaths;
+    try {
+        process = new Process();
+
+        // Last --output-format argument overrides any previous ones
+        if (process.exec(actool, args.concat(["--output-format", "xml1"]), true) !== 0)
+            print(process.readStdErr());
+
+        var propertyList = new PropertyList();
+        try {
+            propertyList.readFromString(process.readStdOut());
+
+            var plist = JSON.parse(propertyList.toJSONString());
+            if (plist)
+                plist = plist["com.apple.actool.compilation-results"];
+            if (plist)
+                outputFilePaths = plist["output-files"];
+        } finally {
+            propertyList.clear();
+        }
+    } finally {
+        process.close();
+    }
+    return outputFilePaths;
 }
 
 function ibtoolVersion(ibtool) {
