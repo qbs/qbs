@@ -27,58 +27,37 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_PROCESSCOMMANDEXECUTOR_H
-#define QBS_PROCESSCOMMANDEXECUTOR_H
+#ifndef QBS_EXECUTABLEFINDER_H
+#define QBS_EXECUTABLEFINDER_H
 
-#include "abstractcommandexecutor.h"
-
-#include <QProcess>
-#include <QProcessEnvironment>
-#include <QString>
+#include <language/language.h>
+#include <logging/logger.h>
 
 namespace qbs {
-class ProcessResult;
-
 namespace Internal {
-class ProcessCommand;
 
-class ProcessCommandExecutor : public AbstractCommandExecutor
+/*!
+ * \brief Helper class for finding an executable in the PATH of the build environment.
+ */
+class ExecutableFinder
 {
-    Q_OBJECT
 public:
-    explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
+    ExecutableFinder(const ResolvedProductPtr &product, const Logger &logger);
 
-    void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
-        m_buildEnvironment = processEnvironment;
-    }
-
-signals:
-    void reportProcessResult(const qbs::ProcessResult &result);
-
-private slots:
-    void onProcessError();
-    void onProcessFinished(int exitCode);
+    QString findExecutable(const QString &path, const QString &workingDirPath);
 
 private:
-    void doStart();
-    void cancel();
+    static QStringList m_executableSuffixes;
+    QString findBySuffix(const QString &filePath) const;
+    bool candidateCheck(const QString &directory, const QString &program,
+            QString &fullProgramPath) const;
+    QString findInPath(const QString &filePath, const QString &workingDirPath) const;
 
-    void startProcessCommand();
-    QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
-    void sendProcessOutput(bool success);
-    void removeResponseFile();
-    const ProcessCommand *processCommand() const;
-
-private:
-    QString m_program;
-    QStringList m_arguments;
-
-    QProcess m_process;
-    QProcessEnvironment m_buildEnvironment;
-    QString m_responseFileName;
+    ResolvedProductPtr m_product;
+    Logger m_logger;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_PROCESSCOMMANDEXECUTOR_H
+#endif // QBS_EXECUTABLEFINDER_H

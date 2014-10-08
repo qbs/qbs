@@ -5,6 +5,7 @@ HEADERS += \
     $$PWD/buildgraphlocker.h \
     $$PWD/codelocation.h \
     $$PWD/error.h \
+    $$PWD/executablefinder.h \
     $$PWD/fileinfo.h \
     $$PWD/filetime.h \
     $$PWD/id.h \
@@ -36,6 +37,7 @@ SOURCES += \
     $$PWD/buildgraphlocker.cpp \
     $$PWD/codelocation.cpp \
     $$PWD/error.cpp \
+    $$PWD/executablefinder.cpp \
     $$PWD/fileinfo.cpp \
     $$PWD/id.cpp \
     $$PWD/persistence.cpp \

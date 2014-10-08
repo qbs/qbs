@@ -38,6 +38,7 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/executablefinder.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/processresult.h>
@@ -52,19 +53,6 @@
 
 namespace qbs {
 namespace Internal {
-
-static QStringList populateExecutableSuffixes()
-{
-    QStringList result;
-    result << QString();
-    if (HostOsInfo::isWindowsHost()) {
-        result << QLatin1String(".com") << QLatin1String(".exe")
-               << QLatin1String(".bat") << QLatin1String(".cmd");
-    }
-    return result;
-}
-
-const QStringList ProcessCommandExecutor::m_executableSuffixes = populateExecutableSuffixes();
 
 ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *parent)
     : AbstractCommandExecutor(logger, parent)
@@ -94,14 +82,8 @@ void ProcessCommandExecutor::doStart()
     QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
 
     const ProcessCommand * const cmd = processCommand();
-    QString program = cmd->program();
-    if (FileInfo::isAbsolute(cmd->program())) {
-        if (HostOsInfo::isWindowsHost())
-            program = findProcessCommandBySuffix();
-    } else {
-        program = findProcessCommandInPath();
-    }
-    program = QDir::fromNativeSeparators(program);
+    const QString program = ExecutableFinder(transformer()->product(), logger())
+            .findExecutable(cmd->program(), cmd->workingDir());
 
     // Use native separators for debug output, so people can copy-paste it to a command line.
     const QString programNative = QDir::toNativeSeparators(program);
@@ -281,71 +263,6 @@ void ProcessCommandExecutor::removeResponseFile()
         return;
     QFile::remove(m_responseFileName);
     m_responseFileName.clear();
-}
-
-QString ProcessCommandExecutor::findProcessCommandInPath()
-{
-    const ResolvedProductPtr product = transformer()->product();
-    const ProcessCommand * const cmd = processCommand();
-    QString fullProgramPath = product->executablePathCache.value(cmd->program());
-    if (!fullProgramPath.isEmpty())
-        return fullProgramPath;
-
-    fullProgramPath = cmd->program();
-    if (logger().traceEnabled())
-        logger().qbsTrace() << "[EXEC] looking for executable in PATH " << fullProgramPath;
-    const QProcessEnvironment &buildEnvironment = product->buildEnvironment;
-    QStringList pathEnv = buildEnvironment.value(QLatin1String("PATH"))
-            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
-    if (HostOsInfo::isWindowsHost())
-        pathEnv.prepend(QLatin1String("."));
-    for (int i = 0; i < pathEnv.count(); ++i) {
-        QString directory = pathEnv.at(i);
-        if (directory == QLatin1String("."))
-            directory = cmd->workingDir();
-        if (!directory.isEmpty()) {
-            const QChar lastChar = directory.at(directory.count() - 1);
-            if (lastChar != QLatin1Char('/') && lastChar != QLatin1Char('\\'))
-                directory.append(QLatin1Char('/'));
-        }
-        if (findProcessCandidateCheck(directory, fullProgramPath, fullProgramPath))
-            break;
-    }
-    product->executablePathCache.insert(cmd->program(), fullProgramPath);
-    return fullProgramPath;
-}
-
-QString ProcessCommandExecutor::findProcessCommandBySuffix()
-{
-    const ResolvedProductPtr product = transformer()->product();
-    const ProcessCommand * const cmd = processCommand();
-    QString fullProgramPath = product->executablePathCache.value(cmd->program());
-    if (!fullProgramPath.isEmpty())
-        return fullProgramPath;
-
-    fullProgramPath = cmd->program();
-    if (logger().traceEnabled())
-        logger().qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
-    const QString emptyDirectory;
-    findProcessCandidateCheck(emptyDirectory, fullProgramPath, fullProgramPath);
-    product->executablePathCache.insert(cmd->program(), fullProgramPath);
-    return fullProgramPath;
-}
-
-bool ProcessCommandExecutor::findProcessCandidateCheck(const QString &directory,
-        const QString &program, QString &fullProgramPath)
-{
-    for (int i = 0; i < m_executableSuffixes.count(); ++i) {
-        QString candidate = directory + program + m_executableSuffixes.at(i);
-        if (logger().traceEnabled())
-            logger().qbsTrace() << "[EXEC] candidate: " << candidate;
-        QFileInfo fi(candidate);
-        if (fi.isFile() && fi.isExecutable()) {
-            fullProgramPath = candidate;
-            return true;
-        }
-    }
-    return false;
 }
 
 const ProcessCommand *ProcessCommandExecutor::processCommand() const

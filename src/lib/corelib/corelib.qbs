@@ -294,6 +294,8 @@ QbsLibrary {
             "cleanoptions.cpp",
             "codelocation.cpp",
             "error.cpp",
+            "executablefinder.cpp",
+            "executablefinder.h",
             "fileinfo.cpp",
             "fileinfo.h",
             "filetime.h",
