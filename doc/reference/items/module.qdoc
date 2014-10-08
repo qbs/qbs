@@ -70,6 +70,18 @@
             \li Default
             \li Description
         \row
+            \li additionalProductFileTags
+            \li string list
+            \li empty list
+            \li The elements of this list will be added to the \c type property of a product
+                that has a dependency on the module.
+        \row
+            \li condition
+            \li bool
+            \li \c true
+            \li Controls whether the module is enabled. If this property is \c false, the
+                surrounding \c Module item will not be considered in the module look-up.
+        \row
             \li present
             \li bool
             \li \c true
