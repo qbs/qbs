@@ -121,7 +121,6 @@ CppModule {
             args.push('-shared');
             if (product.moduleProperty("qbs", "targetOS").contains('linux')) {
                 args = args.concat([
-                    '-Wl,--hash-style=gnu',
                     '-Wl,--as-needed',
                     '-Wl,-soname=' + UnixUtils.soname(product, lib.fileName)
                 ]);
