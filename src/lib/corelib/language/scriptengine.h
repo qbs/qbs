@@ -37,6 +37,7 @@
 #include <tools/filetime.h>
 
 #include <QHash>
+#include <QList>
 #include <QProcessEnvironment>
 #include <QScriptEngine>
 #include <QStack>
@@ -97,6 +98,7 @@ public:
     QSet<QString> imports() const;
     static QScriptValueList argumentList(const QStringList &argumentNames,
             const QScriptValue &context);
+    void registerOwnedVariantMap(QVariantMap *vm) { m_ownedVariantMaps.append(vm); }
 
 
     bool hasErrorOrException(const QScriptValue &v) const {
@@ -152,6 +154,7 @@ private:
     QScriptValue m_loadFileFunction;
     QScriptValue m_loadExtensionFunction;
     QScriptValue m_cancelationError;
+    QList<QVariantMap *> m_ownedVariantMaps;
 };
 
 } // namespace Internal

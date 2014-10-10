@@ -302,24 +302,27 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = relativeProductBuildDir("app") + "/.obj/main.cpp" + QTC_HOST_OBJECT_SUFFIX;
+    const QString appObjectFilePath = relativeProductBuildDir("app")
+            + objectFileName("/.obj/main.cpp", profileName());
     const QString appExeFilePath = relativeExecutableFilePath("app");
-    const QString depObjectFilePath = relativeProductBuildDir("dep") + "/.obj/dep.cpp" + QTC_HOST_OBJECT_SUFFIX;
-    const QString depLibBase = relativeProductBuildDir("dep") + '/' + QTC_HOST_DYNAMICLIB_PREFIX + "dep";
+    const QString depObjectFilePath = relativeProductBuildDir("dep")
+            + objectFileName("/.obj/dep.cpp", profileName());
+    const QString depLibBase = relativeProductBuildDir("dep")
+            + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
     QStringList symlinks;
     if (qbs::Internal::HostOsInfo::isOsxHost()) {
-        depLibFilePath = depLibBase + ".1.1.0" + QTC_HOST_DYNAMICLIB_SUFFIX;
-        symlinks << depLibBase + ".1.1" + QTC_HOST_DYNAMICLIB_SUFFIX
-                 << depLibBase + ".1"  + QTC_HOST_DYNAMICLIB_SUFFIX
-                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+        depLibFilePath = depLibBase + ".1.1.0" + QBS_HOST_DYNAMICLIB_SUFFIX;
+        symlinks << depLibBase + ".1.1" + QBS_HOST_DYNAMICLIB_SUFFIX
+                 << depLibBase + ".1"  + QBS_HOST_DYNAMICLIB_SUFFIX
+                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     } else if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
-        depLibFilePath = depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
-        symlinks << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1.1"
-                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX + ".1"
-                 << depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+        depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
+        symlinks << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1"
+                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1"
+                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     } else {
-        depLibFilePath = depLibBase + QTC_HOST_DYNAMICLIB_SUFFIX;
+        depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     }
 
     QDir::setCurrent(testDataDir + "/clean");
@@ -446,7 +449,7 @@ void TestBlackbox::track_qobject_change()
     const QString productFilePath = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
     QString moc_bla_objectFileName = relativeProductBuildDir("i")
-            + "/.obj/GeneratedFiles/moc_bla.cpp" QTC_HOST_OBJECT_SUFFIX;
+            + objectFileName("/.obj/GeneratedFiles/moc_bla.cpp", profileName());
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     waitForNewTimestamp();
@@ -475,7 +478,8 @@ void TestBlackbox::trackAddFile()
     output = process.readAllStandardOutput().split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
-    QString unchangedObjectFile = relativeBuildDir() + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = relativeBuildDir()
+            + objectFileName("/someapp/narf.cpp", profileName());
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     waitForNewTimestamp();
@@ -581,7 +585,8 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
-    QString unchangedObjectFile = relativeBuildDir() + "/someapp/narf.cpp" QTC_HOST_OBJECT_SUFFIX;
+    QString unchangedObjectFile = relativeBuildDir()
+            + objectFileName("/someapp/narf.cpp", profileName());
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     waitForNewTimestamp();
@@ -610,7 +615,8 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QCOMPARE(regularFileExists(relativeBuildDir() + "/someapp/zort.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QVERIFY(!regularFileExists(relativeBuildDir()
+                               + objectFileName("/someapp/zort.cpp", profileName())));
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -660,7 +666,7 @@ void TestBlackbox::trackRemoveFileTag()
 
     // check if the artifacts are here that will become stale in the 2nd step
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp")
-                              + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX));
+                              + objectFileName("/.obj/main_foo.cpp", profileName())));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
 
@@ -685,7 +691,8 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/.obj/main_foo.cpp" QTC_HOST_OBJECT_SUFFIX), false);
+    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp")
+                               + objectFileName("/.obj/main_foo.cpp", profileName())), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"), false);
 }
@@ -1307,6 +1314,26 @@ void TestBlackbox::jsExtensionsTextFile()
     QCOMPARE(lines.at(4).trimmed().constData(), "true");
 }
 
+void TestBlackbox::mixedBuildVariants()
+{
+    QDir::setCurrent(testDataDir + "/mixed-build-variants");
+    Settings settings((QString()));
+    Profile profile(profileName(), &settings);
+    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+        QbsRunParameters params;
+        params.expectFailure = true;
+        QVERIFY(runQbs(params) != 0);
+        QVERIFY2(m_qbsStderr.contains("not allowed"), m_qbsStderr.constData());
+    } else if (!profile.value("Qt.core.availableBuildVariants").toStringList().contains("release")) {
+        QbsRunParameters params;
+        params.expectFailure = true;
+        QVERIFY(runQbs(params) != 0);
+        QVERIFY2(m_qbsStderr.contains("not supported"), m_qbsStderr.constData());
+    } else {
+        QCOMPARE(runQbs(), 0);
+    }
+}
+
 void TestBlackbox::nonBrokenFilesInBrokenProduct()
 {
     QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");
@@ -1336,6 +1363,10 @@ void TestBlackbox::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
+    Settings settings((QString()));
+    Profile profile(profileName(), &settings);
+    if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
+        return;
     QProcess nm;
     nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app")));
     if (nm.waitForStarted()) { // Let's ignore hosts without nm.
@@ -1821,7 +1852,7 @@ void TestBlackbox::testAssetCatalog()
     rmDirR(relativeBuildDir());
     params.arguments.append("project.includeIconset:true");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY((bool)m_qbsStdout.contains("actool"));
+    QVERIFY(!(bool)m_qbsStdout.contains("actool"));
     QVERIFY((bool)m_qbsStdout.contains("iconutil"));
 
     // make sure the nibs/storyboards are in there

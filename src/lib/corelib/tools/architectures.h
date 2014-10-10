@@ -26,66 +26,16 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_ARCHITECTURES_H
+#define QBS_ARCHITECTURES_H
 
-#include "artifactset.h"
-#include "artifact.h"
+#include "qbs_export.h"
 
 namespace qbs {
-namespace Internal {
 
-ArtifactSet::ArtifactSet()
-{
-}
+QBS_EXPORT QString canonicalArchitecture(const QString &architecture);
+QBS_EXPORT QString defaultEndianness(const QString &architecture);
 
-ArtifactSet::ArtifactSet(const ArtifactSet &other)
-    : QSet<Artifact *>(other)
-{
-}
-
-ArtifactSet::ArtifactSet(const QSet<Artifact *> &other)
-    : QSet<Artifact *>(other)
-{
-}
-
-ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
-{
-    QSet<Artifact *>::unite(other);
-    return *this;
-}
-
-QStringList ArtifactSet::toStringList() const
-{
-    QStringList sl;
-    foreach (Artifact *a, *this)
-        sl += a->filePath();
-    return sl;
-}
-
-QString ArtifactSet::toString() const
-{
-    return QLatin1Char('[') + toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
-}
-
-ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
-{
-    ArtifactSet result;
-    result.reserve(nodes.count());
-    foreach (BuildGraphNode *node, nodes) {
-        Artifact *artifact = dynamic_cast<Artifact *>(node);
-        if (artifact)
-            result += artifact;
-    }
-    return result;
-}
-
-ArtifactSet ArtifactSet::fromNodeList(const QList<Artifact *> &lst)
-{
-    ArtifactSet result;
-    result.reserve(lst.count());
-    for (QList<Artifact *>::const_iterator it = lst.constBegin(); it != lst.end(); ++it)
-        result.insert(*it);
-    return result;
-}
-
-} // namespace Internal
 } // namespace qbs
+
+#endif // Include guard.

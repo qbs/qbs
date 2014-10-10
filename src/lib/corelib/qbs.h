@@ -34,6 +34,7 @@
 #include "api/project.h"
 #include "api/projectdata.h"
 #include "logging/ilogsink.h"
+#include "tools/architectures.h"
 #include "tools/buildoptions.h"
 #include "tools/cleanoptions.h"
 #include "tools/error.h"

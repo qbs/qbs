@@ -1,4 +1,4 @@
-var PathTools = loadExtension("qbs.PathTools");
+var File = loadExtension("qbs.File");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
 function linkerFlags(product, inputs) {
@@ -33,8 +33,7 @@ function linkerFlags(product, inputs) {
     prefix = ModUtils.moduleProperty(product, "staticLibraryPrefix");
     suffixes = ModUtils.moduleProperty(product, "supportedStaticLibrarySuffixes");
     for (i in staticLibraries) {
-        if (PathTools.isLibraryFileName(product, FileInfo.fileName(staticLibraries[i]), prefix,
-                                        suffixes, false)) {
+        if (File.exists(staticLibraries[i])) {
             args.push(staticLibraries[i]);
         } else {
             args.push('-l' + staticLibraries[i]);
@@ -44,8 +43,7 @@ function linkerFlags(product, inputs) {
     prefix = ModUtils.moduleProperty(product, "dynamicLibraryPrefix");
     suffix = ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
     for (i in dynamicLibraries) {
-        if (PathTools.isLibraryFileName(product, FileInfo.fileName(dynamicLibraries[i]), prefix,
-                                        [suffix], true)) {
+        if (File.exists(dynamicLibraries[i])) {
             args.push(dynamicLibraries[i]);
         } else {
             args.push('-l' + dynamicLibraries[i]);
@@ -428,7 +426,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push("-shared");
 
         if (product.moduleProperty("qbs", "targetOS").contains("linux")) {
-            args.push("-Wl,--hash-style=gnu", "-Wl,--as-needed");
+            args.push("-Wl,--as-needed");
             args.push("-Wl,-soname=" + UnixUtils.soname(product, primaryOutput.fileName));
         } else if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
             args.push("-Wl,-install_name," + UnixUtils.soname(product, primaryOutput.fileName));

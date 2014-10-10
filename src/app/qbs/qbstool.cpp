@@ -81,7 +81,7 @@ bool QbsTool::tryToRunTool(const QString &toolName, const QStringList &arguments
 
 QStringList QbsTool::allToolNames()
 {
-    const QString suffix = QLatin1String(QTC_HOST_EXE_SUFFIX);
+    const QString suffix = QLatin1String(QBS_HOST_EXE_SUFFIX);
     QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
             + QString::fromLocal8Bit("*%1").arg(suffix)), QDir::Files, QDir::Name);
     QStringList toolNames;

@@ -296,7 +296,8 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     profile.setValue(settingsTemplate.arg("docPath"), qtEnvironment.documentationPath);
     profile.setValue(settingsTemplate.arg("version"), qtEnvironment.qtVersion);
     profile.setValue(settingsTemplate.arg("libInfix"), qtEnvironment.qtLibInfix);
-    profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant);
+    profile.setValue(settingsTemplate.arg("buildVariant"), qtEnvironment.buildVariant); // TODO: Remove in 1.5
+    profile.setValue(settingsTemplate.arg("availableBuildVariants"), qtEnvironment.buildVariant);
     profile.setValue(settingsTemplate.arg(QLatin1String("staticBuild")), staticBuild);
 
     // Set the minimum operating system versions appropriate for this Qt version

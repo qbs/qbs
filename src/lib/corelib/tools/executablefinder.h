@@ -27,65 +27,44 @@
 **
 ****************************************************************************/
 
-#include "artifactset.h"
-#include "artifact.h"
+#ifndef QBS_EXECUTABLEFINDER_H
+#define QBS_EXECUTABLEFINDER_H
+
+#include <language/language.h>
+#include <logging/logger.h>
+
+#include <QProcessEnvironment>
 
 namespace qbs {
 namespace Internal {
 
-ArtifactSet::ArtifactSet()
+/*!
+ * \brief Helper class for finding an executable in the PATH of the build environment.
+ */
+class ExecutableFinder
 {
-}
+public:
+    ExecutableFinder(const ResolvedProductPtr &product, const QProcessEnvironment &env,
+                     const Logger &logger);
 
-ArtifactSet::ArtifactSet(const ArtifactSet &other)
-    : QSet<Artifact *>(other)
-{
-}
+    QString findExecutable(const QString &path, const QString &workingDirPath);
 
-ArtifactSet::ArtifactSet(const QSet<Artifact *> &other)
-    : QSet<Artifact *>(other)
-{
-}
+private:
+    static QStringList m_executableSuffixes;
+    QString findBySuffix(const QString &filePath) const;
+    bool candidateCheck(const QString &directory, const QString &program,
+            QString &fullProgramPath) const;
+    QString findInPath(const QString &filePath, const QString &workingDirPath) const;
 
-ArtifactSet &ArtifactSet::unite(const ArtifactSet &other)
-{
-    QSet<Artifact *>::unite(other);
-    return *this;
-}
+    QString cachedFilePath(const QString &filePath) const;
+    void cacheFilePath(const QString &filePaht, const QString &filePath) const;
 
-QStringList ArtifactSet::toStringList() const
-{
-    QStringList sl;
-    foreach (Artifact *a, *this)
-        sl += a->filePath();
-    return sl;
-}
-
-QString ArtifactSet::toString() const
-{
-    return QLatin1Char('[') + toStringList().join(QLatin1String(", ")) + QLatin1Char(']');
-}
-
-ArtifactSet ArtifactSet::fromNodeSet(const NodeSet &nodes)
-{
-    ArtifactSet result;
-    result.reserve(nodes.count());
-    foreach (BuildGraphNode *node, nodes) {
-        Artifact *artifact = dynamic_cast<Artifact *>(node);
-        if (artifact)
-            result += artifact;
-    }
-    return result;
-}
-
-ArtifactSet ArtifactSet::fromNodeList(const QList<Artifact *> &lst)
-{
-    ArtifactSet result;
-    result.reserve(lst.count());
-    for (QList<Artifact *>::const_iterator it = lst.constBegin(); it != lst.end(); ++it)
-        result.insert(*it);
-    return result;
-}
+    ResolvedProductPtr m_product;
+    const QProcessEnvironment &m_environment;
+    Logger m_logger;
+};
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // QBS_EXECUTABLEFINDER_H

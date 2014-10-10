@@ -112,7 +112,7 @@ QString QtModuleInfo::frameworkHeadersPath(const QtEnvironment &qtEnvironment) c
 QStringList QtModuleInfo::qt4ModuleIncludePaths(const QtEnvironment &qtEnvironment) const
 {
     QStringList paths;
-    if (qtEnvironment.frameworkBuild && !isStaticLibrary) {
+    if (isFramework(qtEnvironment)) {
         paths << frameworkHeadersPath(qtEnvironment);
     } else {
         paths << qtEnvironment.includePath
@@ -125,19 +125,17 @@ QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
                                            bool debugBuild) const
 {
     if (isPlugin)
-        return libBaseName(name, isStaticLibrary, debugBuild, qtEnvironment);
+        return libBaseName(name, debugBuild, qtEnvironment);
 
     // Enginio has a different naming scheme, so it doesn't get boring.
     const bool isEnginio = name == QLatin1String("Enginio");
 
     QString libName = modulePrefix.isEmpty() && !isEnginio ? QLatin1String("Qt") : modulePrefix;
-    if (qtEnvironment.qtMajorVersion >= 5 && (!qtEnvironment.frameworkBuild || isStaticLibrary)
-            && !isEnginio) {
+    if (qtEnvironment.qtMajorVersion >= 5 && !isFramework(qtEnvironment) && !isEnginio)
         libName += QString::number(qtEnvironment.qtMajorVersion);
-    }
     libName += moduleNameWithoutPrefix();
     libName += qtEnvironment.qtLibInfix;
-    return libBaseName(libName, isStaticLibrary, debugBuild, qtEnvironment);
+    return libBaseName(libName, debugBuild, qtEnvironment);
 }
 
 QString QtModuleInfo::libNameForLinker(const QtEnvironment &qtEnvironment, bool debugBuild) const
@@ -167,6 +165,18 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     if (!hasLibrary)
         return; // Can happen for Qt4 convenience modules, like "widgets".
 
+    if (debugBuild) {
+        if (!qtEnv.buildVariant.contains(QLatin1String("debug")))
+            return;
+        const QStringList modulesNeverBuiltAsDebug = QStringList() << "bootstrap" << "qmldevtools";
+        foreach (const QString &m, modulesNeverBuiltAsDebug) {
+            if (qbsName == m || qbsName == m + "-private")
+                return;
+        }
+    } else if (!qtEnv.buildVariant.contains(QLatin1String("release"))) {
+        return;
+    }
+
     QStringList &libs = isStaticLibrary
             ? (debugBuild ? staticLibrariesDebug : staticLibrariesRelease)
             : (debugBuild ? dynamicLibrariesDebug : dynamicLibrariesRelease);
@@ -182,7 +192,7 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
              << platformSupportModule.libNameForLinker(qtEnv, debugBuild);
         flags << QLatin1String("-force_load")
               << qtEnv.pluginPath + QLatin1String("/platforms/")
-                 + libBaseName(QLatin1String("libqios"), true, debugBuild, qtEnv)
+                 + libBaseName(QLatin1String("libqios"), debugBuild, qtEnv)
                  + QLatin1String(".a");
     }
 
@@ -190,10 +200,10 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
             ? qtEnv.pluginPath + QLatin1Char('/') + pluginData.type
             : qtEnv.libraryPath;
     prlFilePath += QLatin1Char('/');
-    if (qtEnv.frameworkBuild)
+    if (isFramework(qtEnv))
         prlFilePath.append(libraryBaseName(qtEnv, false)).append(QLatin1String(".framework/"));
     const QString libDir = prlFilePath;
-    if (!qtEnv.mkspecName.startsWith(QLatin1String("win")) && !qtEnv.frameworkBuild)
+    if (!qtEnv.mkspecName.startsWith(QLatin1String("win")) && !isFramework(qtEnv))
         prlFilePath += QLatin1String("lib");
     prlFilePath.append(libraryBaseName(qtEnv, debugBuild));
     const bool isNonStaticQt4OnWindows = qtEnv.mkspecName.startsWith(QLatin1String("win"))
@@ -220,13 +230,17 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
         if (equalsOffset == -1)
             continue;
         if (simplifiedLine.startsWith("QMAKE_PRL_TARGET")) {
-            libFilePath = libDir
-                    + QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed());
+            const bool isMingw = qtEnv.mkspecName.startsWith(QLatin1String("win"))
+                    && qtEnv.mkspecName.contains(QLatin1String("g++"));
+            libFilePath = libDir;
+            if (isMingw)
+                libFilePath += QLatin1String("lib");
+            libFilePath += QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed());
             if (isNonStaticQt4OnWindows)
                 libFilePath += QString::number(4); // This is *not* part of QMAKE_PRL_TARGET...
             if (qtEnv.mkspecName.contains(QLatin1String("msvc")))
                 libFilePath += QLatin1String(".lib");
-            else if (qtEnv.mkspecName.contains(QLatin1String("mingw")))
+            else if (isMingw)
                 libFilePath += QLatin1String(".a");
             continue;
         }
@@ -258,6 +272,16 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
 
         return;
     }
+}
+
+bool QtModuleInfo::isFramework(const QtEnvironment &qtEnv) const
+{
+    if (!qtEnv.frameworkBuild || isStaticLibrary)
+        return false;
+    const QStringList modulesNeverBuiltAsFrameworks = QStringList()
+            << "bootstrap" << "openglextensions" << "platformsupport" << "qmldevtools" << "uitools"
+            << "harfbuzzng";
+    return !modulesNeverBuiltAsFrameworks.contains(qbsName);
 }
 
 // We erroneously called the "testlib" module "test" for quite a while. Let's not punish users
@@ -485,7 +509,8 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             moduleInfo.name = moduleInfo.qbsName;
             moduleInfo.isStaticLibrary = true;
         }
-        const QByteArray moduleKeyPrefix = "QT." + moduleInfo.qbsName.toLatin1() + '.';
+        const QByteArray moduleKeyPrefix = QByteArray(moduleInfo.isPlugin ? "QT_PLUGIN" : "QT")
+                + '.' + moduleInfo.qbsName.toLatin1() + '.';
         moduleInfo.qbsName.replace(QLatin1String("_private"), QLatin1String("-private"));
         foreach (const QByteArray &line, getPriFileContentsRecursively(profile, dit.filePath())) {
             const QByteArray simplifiedLine = line.simplified();
@@ -536,8 +561,9 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             }
         }
 
-        // Fix include paths for OS X frameworks. The qt_lib_XXX.pri files contain wrong values.
-        if (qtEnvironment.frameworkBuild && !moduleInfo.isStaticLibrary) {
+        // Fix include paths for OS X and iOS frameworks.
+        // The qt_lib_XXX.pri files contain wrong values.
+        if (moduleInfo.isFramework(qtEnvironment)) {
             moduleInfo.includePaths.clear();
             QString baseIncDir = moduleInfo.frameworkHeadersPath(qtEnvironment);
             if (moduleInfo.isPrivate) {
@@ -563,19 +589,20 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
     return modules;
 }
 
-QString libBaseName(const QString &libName, bool staticLib, bool debugBuild,
-                             const QtEnvironment &qtEnvironment)
+QString QtModuleInfo::libBaseName(const QString &libName, bool debugBuild,
+                                  const QtEnvironment &qtEnvironment) const
 {
     QString name = libName;
     if (qtEnvironment.mkspecName.startsWith(QLatin1String("win"))) {
         if (debugBuild)
             name += QLatin1Char('d');
-        if (!staticLib && qtEnvironment.qtMajorVersion < 5)
+        if (!isStaticLibrary && qtEnvironment.qtMajorVersion < 5)
             name += QString::number(qtEnvironment.qtMajorVersion);
     }
     if (qtEnvironment.mkspecName.contains(QLatin1String("macx"))
+            || qtEnvironment.mkspecName.contains(QLatin1String("ios"))
             || qtEnvironment.mkspecName.contains(QLatin1String("darwin"))) {
-        if (!qtEnvironment.frameworkBuild
+        if (!isFramework(qtEnvironment)
                 && qtEnvironment.buildVariant.contains(QLatin1String("debug"))
                 && (!qtEnvironment.buildVariant.contains(QLatin1String("release")) || debugBuild)) {
             name += QLatin1String("_debug");

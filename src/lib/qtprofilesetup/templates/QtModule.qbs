@@ -12,11 +12,11 @@ Module {
     property string qtLibInfix: Qt.core.libInfix
     property string libNameForLinkerDebug
     property string libNameForLinkerRelease
-    property string libNameForLinker: qbs.buildVariant === "debug"
+    property string libNameForLinker: Qt.core.qtBuildVariant === "debug"
                                       ? libNameForLinkerDebug : libNameForLinkerRelease
     property string libFilePathDebug
     property string libFilePathRelease
-    property string libFilePath: qbs.buildVariant === "debug"
+    property string libFilePath: Qt.core.qtBuildVariant === "debug"
                                  ? libFilePathDebug : libFilePathRelease
     property string qtVersion: Qt.core.version
     property bool hasLibrary: true
@@ -29,19 +29,19 @@ Module {
     property stringList dynamicLibsRelease
     property stringList linkerFlagsDebug
     property stringList linkerFlagsRelease
-    property stringList staticLibs: qbs.buildVariant === "debug"
+    property stringList staticLibs: Qt.core.qtBuildVariant === "debug"
                                     ? staticLibsDebug : staticLibsRelease
-    property stringList dynamicLibs: qbs.buildVariant === "debug"
+    property stringList dynamicLibs: Qt.core.qtBuildVariant === "debug"
                                     ? dynamicLibsDebug : dynamicLibsRelease
     property stringList frameworksDebug
     property stringList frameworksRelease
     property stringList frameworkPathsDebug
     property stringList frameworkPathsRelease
-    property stringList mFrameworks: qbs.buildVariant === "debug"
+    property stringList mFrameworks: Qt.core.qtBuildVariant === "debug"
             ? frameworksDebug : frameworksRelease
-    property stringList mFrameworkPaths: qbs.buildVariant === "debug"
+    property stringList mFrameworkPaths: Qt.core.qtBuildVariant === "debug"
             ? frameworkPathsDebug: frameworkPathsRelease
-    cpp.linkerFlags: qbs.buildVariant === "debug"
+    cpp.linkerFlags: Qt.core.qtBuildVariant === "debug"
             ? linkerFlagsDebug : linkerFlagsRelease
 
     Properties {

@@ -1262,12 +1262,12 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
                                    + QFileInfo(projectFilePath).fileName());
     QDir::setCurrent(projectDirPath);
     setupParams.setBuildRoot(projectDirPath);
-    const QString qbsRootPath = QDir::cleanPath(QCoreApplication::applicationDirPath()
-                                                + QLatin1String("/../"));
     qbs::Settings settings((QString()));
     const qbs::Preferences prefs(&settings, profileName());
-    setupParams.setSearchPaths(prefs.searchPaths(qbsRootPath));
-    setupParams.setPluginPaths(prefs.pluginPaths(qbsRootPath + QLatin1String("/lib")));
+    setupParams.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
+            + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
+    setupParams.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
+            + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
     setupParams.setTopLevelProfile(profileName());
     setupParams.setBuildVariant(QLatin1String("debug"));
     return setupParams;

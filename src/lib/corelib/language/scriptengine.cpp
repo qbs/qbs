@@ -93,6 +93,7 @@ ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
 
 ScriptEngine::~ScriptEngine()
 {
+    qDeleteAll(m_ownedVariantMaps);
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue scope,

@@ -793,6 +793,18 @@ bool ResolvedProduct::builtByDefault() const
     return productProperties.value(QLatin1String("builtByDefault"), true).toBool();
 }
 
+void ResolvedProduct::cacheExecutablePath(const QString &origFilePath, const QString &fullFilePath)
+{
+    QMutexLocker locker(&m_executablePathCacheLock);
+    m_executablePathCache.insert(origFilePath, fullFilePath);
+}
+
+QString ResolvedProduct::cachedExecutablePath(const QString &origFilePath) const
+{
+    QMutexLocker locker(&m_executablePathCacheLock);
+    return m_executablePathCache.value(origFilePath);
+}
+
 
 ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(0)
 {

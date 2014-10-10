@@ -241,7 +241,9 @@ var PropertyValidator = (function () {
         for (var j = 0; j < this.propertyValidators.length; ++j) {
             var v = this.propertyValidators[j];
             if (!v.validator(v.propertyValue)) {
-                invalidProperties[v.propertyName] = v.message;
+                var messages = invalidProperties[v.propertyName] || [];
+                messages.push(v.message);
+                invalidProperties[v.propertyName] = messages;
             }
         }
 
@@ -262,7 +264,9 @@ var PropertyValidator = (function () {
             errorMessage += "The following properties have invalid values:\n";
             lines = [];
             for (i in invalidProperties) {
-                lines.push(this.moduleName + "." + i + ": " + invalidProperties[i]);
+                for (j in invalidProperties[i]) {
+                    lines.push(this.moduleName + "." + i + ": " + invalidProperties[i][j]);
+                }
             }
             errorMessage += lines.join("\n");
         }

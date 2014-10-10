@@ -81,7 +81,8 @@ public:
 
     void init(QScriptValue &productScriptValue, const ResolvedProductConstPtr &product)
     {
-        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies);
+        QScriptValue depfunc = m_engine->newFunction(&js_productDependencies,
+                                                     (void *)product.data());
         setProduct(depfunc, product.data());
         productScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                        QScriptValue::ReadOnly | QScriptValue::Undeletable
@@ -89,10 +90,9 @@ public:
     }
 
 private:
-    static QScriptValue js_productDependencies(QScriptContext *context, QScriptEngine *engine)
+    static QScriptValue js_productDependencies(QScriptContext *, QScriptEngine *engine, void *arg)
     {
-        QScriptValue callee = context->callee();
-        const ResolvedProduct * const product = getProduct(callee);
+        const ResolvedProduct * const product = static_cast<const ResolvedProduct *>(arg);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         foreach (const ResolvedProductPtr &dependency, product->dependencies) {
@@ -109,13 +109,12 @@ private:
         return result;
     }
 
-    static QScriptValue js_moduleDependencies(QScriptContext *context, QScriptEngine *engine)
+    static QScriptValue js_moduleDependencies(QScriptContext *, QScriptEngine *engine, void *arg)
     {
-        QScriptValue callee = context->callee();
-        const QVariantMap modulesMap = callee.data().toVariant().toMap();
+        const QVariantMap *modulesMap = static_cast<const QVariantMap *>(arg);
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
-        for (QVariantMap::const_iterator it = modulesMap.begin(); it != modulesMap.end(); ++it) {
+        for (QVariantMap::const_iterator it = modulesMap->begin(); it != modulesMap->end(); ++it) {
             QScriptValue obj = engine->newObject();
             obj.setProperty(QLatin1String("name"), it.key());
             setupModuleScriptValue(static_cast<ScriptEngine *>(engine), obj, it.value().toMap(),
@@ -136,12 +135,12 @@ private:
             if (value.isValid() && it.key() != QLatin1String("modules"))
                 moduleScriptValue.setProperty(it.key(), engine->toScriptValue(value));
         }
-        QScriptValue depfunc = engine->newFunction(&js_moduleDependencies);
-        depfunc.setData(engine->toScriptValue(propMap.value(QLatin1String("modules"))));
+        QVariantMap *modulesMap = new QVariantMap(propMap.value(QLatin1String("modules")).toMap());
+        engine->registerOwnedVariantMap(modulesMap);
+        QScriptValue depfunc = engine->newFunction(&js_moduleDependencies, modulesMap);
         moduleScriptValue.setProperty(QLatin1String("dependencies"), depfunc,
                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
                                       | QScriptValue::PropertyGetter);
-        moduleScriptValue.setProperty(QLatin1String("type"), QLatin1String("module"));
     }
 
     static void setProduct(QScriptValue scriptValue, const ResolvedProduct *product)

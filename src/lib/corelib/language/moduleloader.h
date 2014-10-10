@@ -168,7 +168,6 @@ private:
             const QSet<QString> &referencedFilePaths);
     void createAdditionalModuleInstancesInProduct(ProductContext *productContext);
     void handleGroup(ProductContext *productContext, Item *group);
-    void handleArtifact(ProductContext *productContext, Item *item);
     void deferExportItem(ProductContext *productContext, Item *item);
     void mergeExportItems(ProductContext *productContext);
     void propagateModulesFromProduct(ProductContext *productContext, Item *item);

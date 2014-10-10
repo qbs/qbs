@@ -357,7 +357,15 @@ QList<Item *> ModuleLoader::multiplexProductItem(Item *productItem)
     QList<Item *> additionalProductItems;
     const QString profileKey = QLatin1String("profile");
     productItem->setProperty(profileKey, VariantValue::create(profileNames.first()));
-    for (int i = 1; i < profileNames.count(); ++i) {
+    Settings settings(m_parameters.settingsDirectory());
+    for (int i = 0; i < profileNames.count(); ++i) {
+        Profile profile(profileNames.at(i), &settings);
+        if (!profile.exists()) {
+            throw ErrorInfo(Tr::tr("The profile '%1' does not exist.").arg(profile.name()),
+                            productItem->location()); // TODO: profilesValue->location() is invalid, why?
+        }
+        if (i == 0)
+            continue; // We use the original item for the first profile.
         Item * const cloned = productItem->clone(productItem->pool());
         cloned->setProperty(profileKey, VariantValue::create(profileNames.at(i)));
         additionalProductItems << cloned;
@@ -403,15 +411,12 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     dependsContext.productDependencies = &productContext.info.usedProducts;
     setScopeForDescendants(item, productContext.scope);
     resolveDependencies(&dependsContext, item);
-    if (!checkItemCondition(item))
-        return;
+    checkItemCondition(item);
     createAdditionalModuleInstancesInProduct(&productContext);
 
     foreach (Item *child, item->children()) {
         if (child->typeName() == QLatin1String("Group"))
             handleGroup(&productContext, child);
-        else if (child->typeName() == QLatin1String("Artifact"))
-            handleArtifact(&productContext, child);
         else if (child->typeName() == QLatin1String("Export"))
             deferExportItem(&productContext, child);
         else if (child->typeName() == QLatin1String("Probe"))
@@ -518,12 +523,6 @@ void ModuleLoader::handleGroup(ProductContext *productContext, Item *item)
     checkCancelation();
     propagateModulesFromProduct(productContext, item);
     checkItemCondition(item);
-}
-
-void ModuleLoader::handleArtifact(ProductContext *productContext, Item *item)
-{
-    checkCancelation();
-    propagateModulesFromProduct(productContext, item);
 }
 
 void ModuleLoader::deferExportItem(ModuleLoader::ProductContext *productContext, Item *item)
@@ -1199,7 +1198,8 @@ void ModuleLoader::copyProperties(const Item *sourceProject, Item *targetProject
         // We must not inherit built-in properties such as "name",
         // but there are exceptions.
         if (it.key() == QLatin1String("qbsSearchPaths") || it.key() == QLatin1String("profile")
-                || it.key() == QLatin1String("buildDirectory")) {
+                || it.key() == QLatin1String("buildDirectory")
+                || it.key() == QLatin1String("sourceDirectory")) {
             const JSSourceValueConstPtr &v
                     = targetProject->property(it.key()).dynamicCast<const JSSourceValue>();
             QBS_ASSERT(v, continue);

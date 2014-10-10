@@ -1,3 +1,3 @@
 Product {
-    type: "staticlibrary"
+    type: ["staticlibrary"]
 }

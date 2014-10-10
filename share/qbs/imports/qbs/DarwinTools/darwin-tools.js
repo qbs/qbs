@@ -117,6 +117,8 @@ function expandPlistEnvironmentVariables(obj, env, warn) {
                 } else {
                     changes = true;
                     varValue = String(varValue);
+                    if (varFormatter !== undefined)
+                        varFormatter = varFormatter.toLowerCase();
                     if (varFormatter === "rfc1034identifier")
                         varValue = rfc1034(varValue);
                     value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);

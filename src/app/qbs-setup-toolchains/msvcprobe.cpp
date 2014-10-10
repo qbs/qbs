@@ -36,7 +36,7 @@
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
-#include <tools/hostosinfo.h>
+#include <tools/architectures.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
 
@@ -70,10 +70,8 @@ static void addMSVCPlatform(const MSVC &msvc, Settings *settings, QList<Profile>
     p.setValue(QLatin1String("qbs.targetOS"), QStringList(QLatin1String("windows")));
     p.setValue(QLatin1String("cpp.toolchainInstallPath"), installPath);
     p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
-    p.setValue(QLatin1String("qbs.architecture"),
-               Internal::HostOsInfo::canonicalArchitecture(architecture));
-    p.setValue(QLatin1String("qbs.endianness"),
-               Internal::HostOsInfo::defaultEndianness(architecture));
+    p.setValue(QLatin1String("qbs.architecture"), canonicalArchitecture(architecture));
+    p.setValue(QLatin1String("qbs.endianness"), defaultEndianness(architecture));
     if (msvc.version.toInt() >= 2013) {
         const QStringList flags(QLatin1String("/FS"));
         p.setValue(QLatin1String("cpp.platformCFlags"), flags);

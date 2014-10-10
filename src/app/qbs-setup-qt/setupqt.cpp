@@ -51,7 +51,7 @@ using Internal::HostOsInfo;
 using Internal::Tr;
 using Internal::Version;
 
-const QString qmakeExecutableName = QLatin1String("qmake" QTC_HOST_EXE_SUFFIX);
+const QString qmakeExecutableName = QLatin1String("qmake" QBS_HOST_EXE_SUFFIX);
 
 static QStringList collectQmakePaths()
 {

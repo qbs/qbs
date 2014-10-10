@@ -67,14 +67,9 @@ private:
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
     void sendProcessOutput(bool success);
     void removeResponseFile();
-    QString findProcessCommandInPath();
-    QString findProcessCommandBySuffix();
-    bool findProcessCandidateCheck(const QString &directory, const QString &program,
-            QString &fullProgramPath);
     const ProcessCommand *processCommand() const;
 
 private:
-    static const QStringList m_executableSuffixes;
     QString m_program;
     QStringList m_arguments;
 

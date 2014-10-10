@@ -30,34 +30,42 @@ Module {
     property int versionPatch: versionParts[2]
     property bool frameworkBuild
     property bool staticBuild
-    property stringList buildVariant
+
+    property stringList availableBuildVariants
+    property stringList buildVariant // TODO: Remove in 1.5
+    property string qtBuildVariant: {
+        if (availableBuildVariants.contains(qbs.buildVariant))
+            return qbs.buildVariant;
+        return availableBuildVariants.length > 0 ? availableBuildVariants[0] : "";
+    }
+
     property stringList staticLibsDebug: @staticLibsDebug@
     property stringList staticLibsRelease: @staticLibsRelease@
     property stringList dynamicLibsDebug: @dynamicLibsDebug@
     property stringList dynamicLibsRelease: @dynamicLibsRelease@
-    property stringList staticLibs: qbs.buildVariant === "debug"
+    property stringList staticLibs: qtBuildVariant === "debug"
                                     ? staticLibsDebug : staticLibsRelease
-    property stringList dynamicLibs: qbs.buildVariant === "debug"
+    property stringList dynamicLibs: qtBuildVariant === "debug"
                                     ? dynamicLibsDebug : dynamicLibsRelease
     property stringList linkerFlagsDebug: @linkerFlagsDebug@
     property stringList linkerFlagsRelease: @linkerFlagsRelease@
-    property stringList coreLinkerFlags: qbs.buildVariant === "debug"
+    property stringList coreLinkerFlags: qtBuildVariant === "debug"
                                     ? linkerFlagsDebug : linkerFlagsRelease
     property stringList frameworksDebug: @frameworksDebug@
     property stringList frameworksRelease: @frameworksRelease@
-    property stringList coreFrameworks: qbs.buildVariant === "debug"
+    property stringList coreFrameworks: qtBuildVariant === "debug"
             ? frameworksDebug : frameworksRelease
     property stringList frameworkPathsDebug: @frameworkPathsDebug@
     property stringList frameworkPathsRelease: @frameworkPathsRelease@
-    property stringList coreFrameworkPaths: qbs.buildVariant === "debug"
+    property stringList coreFrameworkPaths: qtBuildVariant === "debug"
             ? frameworkPathsDebug : frameworkPathsRelease
     property string libNameForLinkerDebug: @libNameForLinkerDebug@
     property string libNameForLinkerRelease: @libNameForLinkerRelease@
-    property string libNameForLinker: qbs.buildVariant === "debug"
+    property string libNameForLinker: qtBuildVariant === "debug"
                                       ? libNameForLinkerDebug : libNameForLinkerRelease
     property string libFilePathDebug: @libFilePathDebug@
     property string libFilePathRelease: @libFilePathRelease@
-    property string libFilePath: qbs.buildVariant === "debug"
+    property string libFilePath: qtBuildVariant === "debug"
                                       ? libFilePathDebug : libFilePathRelease
 
     coreLibPaths: @libraryPaths@
@@ -163,6 +171,19 @@ Module {
         validator.addRangeValidator("versionMajor", versionMajor, 1);
         validator.addRangeValidator("versionMinor", versionMinor, 0);
         validator.addRangeValidator("versionPatch", versionPatch, 0);
+
+        validator.addCustomValidator("availableBuildVariants", availableBuildVariants, function (v) {
+            return v.length > 0;
+        }, "the Qt installation supports no build variants");
+
+        validator.addCustomValidator("qtBuildVariant", qtBuildVariant, function (variant) {
+            return availableBuildVariants.contains(variant);
+        }, "'" + qtBuildVariant + "' is not supported by this Qt installation");
+
+        validator.addCustomValidator("qtBuildVariant", qtBuildVariant, function (variant) {
+            return variant === qbs.buildVariant || !qbs.toolchain.contains("msvc");
+        }, " is '" + qtBuildVariant + "', but qbs.buildVariant is '" + qbs.buildVariant
+            + "', which is not allowed when using MSVC");
 
         validator.validate();
     }

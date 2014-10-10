@@ -107,6 +107,7 @@ private slots:
     void jsExtensionsProcess();
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
+    void mixedBuildVariants();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
     void qmlDebugging();
