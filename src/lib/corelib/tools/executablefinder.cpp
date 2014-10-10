@@ -69,7 +69,7 @@ QString ExecutableFinder::findExecutable(const QString &path, const QString &wor
 
 QString ExecutableFinder::findBySuffix(const QString &filePath) const
 {
-    QString fullProgramPath = m_product->executablePathCache.value(filePath);
+    QString fullProgramPath = m_product->cachedExecutablePath(filePath);
     if (!fullProgramPath.isEmpty())
         return fullProgramPath;
 
@@ -78,7 +78,7 @@ QString ExecutableFinder::findBySuffix(const QString &filePath) const
         m_logger.qbsTrace() << "[EXEC] looking for executable by suffix " << fullProgramPath;
     const QString emptyDirectory;
     candidateCheck(emptyDirectory, fullProgramPath, fullProgramPath);
-    m_product->executablePathCache.insert(filePath, fullProgramPath);
+    m_product->cacheExecutablePath(filePath, fullProgramPath);
     return fullProgramPath;
 
 }
@@ -101,7 +101,7 @@ bool ExecutableFinder::candidateCheck(const QString &directory, const QString &p
 
 QString ExecutableFinder::findInPath(const QString &filePath, const QString &workingDirPath) const
 {
-    QString fullProgramPath = m_product->executablePathCache.value(filePath);
+    QString fullProgramPath = m_product->cachedExecutablePath(filePath);
     if (!fullProgramPath.isEmpty())
         return fullProgramPath;
 
@@ -125,7 +125,7 @@ QString ExecutableFinder::findInPath(const QString &filePath, const QString &wor
         if (candidateCheck(directory, fullProgramPath, fullProgramPath))
             break;
     }
-    m_product->executablePathCache.insert(filePath, fullProgramPath);
+    m_product->cacheExecutablePath(filePath, fullProgramPath);
     return fullProgramPath;
 
     return filePath;

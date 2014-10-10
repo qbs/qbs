@@ -45,6 +45,7 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QHash>
+#include <QMutex>
 #include <QProcessEnvironment>
 #include <QRegExp>
 #include <QScriptProgram>
@@ -375,7 +376,6 @@ public:
 
     mutable QProcessEnvironment buildEnvironment; // must not be saved
     mutable QProcessEnvironment runEnvironment; // must not be saved
-    QHash<QString, QString> executablePathCache;
 
     void accept(BuildGraphVisitor *visitor) const;
     QList<SourceArtifactPtr> allFiles() const;
@@ -399,11 +399,17 @@ public:
     QStringList generatedFiles(const QString &baseFile, const FileTags &tags) const;
     QString buildDirectory() const;
 
+    void cacheExecutablePath(const QString &origFilePath, const QString &fullFilePath);
+    QString cachedExecutablePath(const QString &origFilePath) const;
+
 private:
     ResolvedProduct();
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+
+    QHash<QString, QString> m_executablePathCache;
+    mutable QMutex m_executablePathCacheLock;
 };
 
 class ResolvedProject : public PersistentObject
