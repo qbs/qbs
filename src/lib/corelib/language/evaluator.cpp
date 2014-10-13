@@ -132,6 +132,11 @@ static QStringList toStringList(const QScriptValue &scriptValue,
             QScriptValue elem = scriptValue.property(i++);
             if (!elem.isValid())
                 break;
+            if (elem.isUndefined()) {
+                throw ErrorInfo(Tr::tr("Array element at index %1 is undefined. String expected.")
+                                .arg(i - 1),
+                                item->property(propertyName)->location());
+            }
             if (elem.isArray() || elem.isObject()) {
                 // Let's assume all other JS types are convertible to string.
                 throw ErrorInfo(Tr::tr("Expected array element of type String at index %1.")
