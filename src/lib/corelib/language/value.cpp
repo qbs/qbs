@@ -57,6 +57,11 @@ JSSourceValue::~JSSourceValue()
 {
 }
 
+ValuePtr JSSourceValue::clone() const
+{
+    return JSSourceValuePtr(new JSSourceValue(*this));
+}
+
 QString JSSourceValue::sourceCodeForEvaluation() const
 {
     if (!hasFunctionForm())
@@ -103,6 +108,12 @@ ItemValue::~ItemValue()
 {
 }
 
+ValuePtr ItemValue::clone() const
+{
+    Item *clonedItem = m_item ? m_item->clone(m_item->pool()) : 0;
+    return ItemValuePtr(new ItemValue(clonedItem));
+}
+
 VariantValue::VariantValue(const QVariant &v)
     : Value(VariantValueType)
     , m_value(v)
@@ -112,6 +123,11 @@ VariantValue::VariantValue(const QVariant &v)
 VariantValuePtr VariantValue::create(const QVariant &v)
 {
     return VariantValuePtr(new VariantValue(v));
+}
+
+ValuePtr VariantValue::clone() const
+{
+    return VariantValuePtr(new VariantValue(*this));
 }
 
 } // namespace Internal

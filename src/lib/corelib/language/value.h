@@ -56,6 +56,7 @@ public:
 
     Type type() const { return m_type; }
     virtual void apply(ValueHandler *) = 0;
+    virtual ValuePtr clone() const = 0;
     virtual CodeLocation location() const { return CodeLocation(); }
 
 private:
@@ -90,6 +91,7 @@ public:
     ~JSSourceValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }
+    ValuePtr clone() const;
 
     void setSourceCode(const QStringRef &sourceCode) { m_sourceCode = sourceCode; }
     const QStringRef &sourceCode() const { return m_sourceCode; }
@@ -141,6 +143,7 @@ public:
     ~ItemValue();
 
     void apply(ValueHandler *handler) { handler->handle(this); }
+    ValuePtr clone() const;
     Item *item() const;
     void setItem(Item *ptr);
 
@@ -166,6 +169,7 @@ public:
     static VariantValuePtr create(const QVariant &v = QVariant());
 
     void apply(ValueHandler *handler) { handler->handle(this); }
+    ValuePtr clone() const;
 
     void setValue(const QVariant &v) { m_value = v; }
     const QVariant &value() const { return m_value; }

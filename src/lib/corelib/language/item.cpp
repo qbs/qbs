@@ -70,12 +70,23 @@ Item *Item::clone(ItemPool *pool) const
     dup->m_scope = m_scope;
     dup->m_outerItem = m_outerItem;
     dup->m_parent = m_parent;
-    dup->m_children = m_children;
     dup->m_file = m_file;
-    dup->m_properties = m_properties;
     dup->m_propertyDeclarations = m_propertyDeclarations;
     dup->m_functions = m_functions;
     dup->m_modules = m_modules;
+
+    dup->m_children.reserve(m_children.count());
+    foreach (const Item *child, m_children) {
+        Item *clonedChild = child->clone(pool);
+        clonedChild->m_parent = dup;
+        dup->m_children.append(clonedChild);
+    }
+
+    for (PropertyMap::const_iterator it = m_properties.constBegin(); it != m_properties.constEnd();
+         ++it) {
+        dup->m_properties.insert(it.key(), it.value()->clone());
+    }
+
     return dup;
 }
 

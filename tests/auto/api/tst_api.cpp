@@ -708,6 +708,17 @@ void TestApi::multiArch()
     QVERIFY2(p2Artifact.open(QIODevice::ReadOnly), qPrintable(p2Artifact.errorString()));
     QCOMPARE(p2Artifact.readAll().constData(), "host-arch");
 
+    const QString installRoot = outputBaseDir + '/' + qbs::InstallOptions::defaultInstallRoot();
+    QScopedPointer<qbs::InstallJob> installJob(project.installAllProducts(qbs::InstallOptions()));
+    waitForFinished(installJob.data());
+    QVERIFY2(!installJob->error().hasError(), qPrintable(installJob->error().toString()));
+    QFile p1HostArtifactInstalled(installRoot + "/host/host+target.output");
+    QVERIFY2(p1HostArtifactInstalled.exists(), qPrintable(p1HostArtifactInstalled.fileName()));
+    QFile p1TargetArtifactInstalled(installRoot + "/target/host+target.output");
+    QVERIFY2(p1TargetArtifactInstalled.exists(), qPrintable(p1TargetArtifactInstalled.fileName()));
+    QFile p2ArtifactInstalled(installRoot + "/host/host-tool.output");
+    QVERIFY2(p2ArtifactInstalled.exists(), qPrintable(p2ArtifactInstalled.fileName()));
+
     // Error check: Try to build for the same profile twice.
     overriddenValues.insert("project.targetProfile", hostProfile.name());
     setupParams.setOverriddenValues(overriddenValues);

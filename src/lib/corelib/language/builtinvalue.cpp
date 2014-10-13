@@ -43,5 +43,10 @@ BuiltinValuePtr BuiltinValue::create(Builtin builtin)
     return BuiltinValuePtr(new BuiltinValue(builtin));
 }
 
+ValuePtr BuiltinValue::clone() const
+{
+    return BuiltinValuePtr(new BuiltinValue(*this));
+}
+
 } // namespace Internal
 } // namespace qbs

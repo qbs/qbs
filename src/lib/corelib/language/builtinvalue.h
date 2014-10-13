@@ -49,6 +49,7 @@ public:
     static BuiltinValuePtr create(Builtin builtin);
 
     void apply(ValueHandler *handler) { handler->handle(this); }
+    ValuePtr clone() const;
 
     Builtin builtin() const { return m_builtin; }
     void setBuiltin(const Builtin &builtin) { m_builtin = builtin; }
