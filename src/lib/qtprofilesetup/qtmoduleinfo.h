@@ -80,6 +80,7 @@ public:
     bool hasLibrary;
     bool isStaticLibrary;
     bool isPlugin;
+    bool mustExist;
     QStringList supportedPluginTypes;
 
     struct PluginData {

@@ -79,7 +79,7 @@ static void replaceQtLibNamesWithFilePath(QList<QtModuleInfo> *modules, const Qt
 
 
 QtModuleInfo::QtModuleInfo()
-    : isPrivate(false), hasLibrary(true), isStaticLibrary(false), isPlugin(false)
+    : isPrivate(false), hasLibrary(true), isStaticLibrary(false), isPlugin(false), mustExist(true)
 {
 }
 
@@ -88,7 +88,8 @@ QtModuleInfo::QtModuleInfo(const QString &name, const QString &qbsName, const QS
       isPrivate(qbsName.endsWith(QLatin1String("-private"))),
       hasLibrary(!isPrivate),
       isStaticLibrary(false),
-      isPlugin(false)
+      isPlugin(false),
+      mustExist(true)
 {
     const QString coreModule = QLatin1String("core");
     if (qbsName != coreModule && !dependencies.contains(coreModule))
@@ -219,8 +220,11 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
         // We can't error out here, as some modules in a self-built Qt don't have the expected
         // file names. Real-life example: "libQt0Feedback.prl". This is just too stupid
         // to work around, so let's ignore it.
-        qDebug("Skipping prl file '%s', because it cannot be opened (%s).", qPrintable(prlFilePath),
-               qPrintable(prlFile.errorString()));
+        if (mustExist) {
+            qDebug("Skipping prl file '%s', because it cannot be opened (%s).",
+                   qPrintable(prlFilePath),
+                   qPrintable(prlFile.errorString()));
+        }
         nonExistingPrlFiles->insert(prlFilePath);
         return;
     }
@@ -380,22 +384,25 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
                             QStringList() << QLatin1String("help"))
             << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib"))
             << QtModuleInfo(QLatin1String("QtTest"), QLatin1String("testlib-private"),
-                            QStringList() << QLatin1String("testlib"))
-            << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"))
-            << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
-                            QStringList() << QLatin1String("dbus"));
+                            QStringList() << QLatin1String("testlib"));
 
-    QtModuleInfo axcontainer(QLatin1String("QAxContainer"), QLatin1String("axcontainer"));
-    axcontainer.modulePrefix = QLatin1String("Q");
-    axcontainer.isStaticLibrary = true;
-    axcontainer.includePaths << qtEnvironment.includePath + QLatin1String("/ActiveQt");
-    modules << axcontainer;
+    if (qtEnvironment.mkspecName.startsWith(QLatin1String("win"))) {
+        QtModuleInfo axcontainer(QLatin1String("QAxContainer"), QLatin1String("axcontainer"));
+        axcontainer.modulePrefix = QLatin1String("Q");
+        axcontainer.isStaticLibrary = true;
+        axcontainer.includePaths << qtEnvironment.includePath + QLatin1String("/ActiveQt");
+        modules << axcontainer;
 
-    QtModuleInfo axserver = axcontainer;
-    axserver.name = QLatin1String("QAxServer");
-    axserver.qbsName = QLatin1String("axserver");
-    axserver.compilerDefines = QStringList() << QLatin1String("QAXSERVER");
-    modules << axserver;
+        QtModuleInfo axserver = axcontainer;
+        axserver.name = QLatin1String("QAxServer");
+        axserver.qbsName = QLatin1String("axserver");
+        axserver.compilerDefines = QStringList() << QLatin1String("QAXSERVER");
+        modules << axserver;
+    } else {
+        modules << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus"))
+                << QtModuleInfo(QLatin1String("QtDBus"), QLatin1String("dbus-private"),
+                                QStringList() << QLatin1String("dbus"));
+    }
 
     QtModuleInfo designerComponentsPrivate(QLatin1String("QtDesignerComponents"),
             QLatin1String("designercomponents-private"),
@@ -443,6 +450,18 @@ QList<QtModuleInfo> allQt4Modules(const QtEnvironment &qtEnvironment)
 
     addTestModule(modules);
     addDesignerComponentsModule(modules);
+
+    const QStringList modulesThatCanBeDisabled = QStringList() << QLatin1String("xmlpatterns")
+            << QLatin1String("multimedia") << QLatin1String("phonon") << QLatin1String("svg")
+            << QLatin1String("webkit") << QLatin1String("script") << QLatin1String("scripttools")
+            << QLatin1String("declarative") << QLatin1String("gui") << QLatin1String("dbus")
+            << QLatin1String("opengl") << QLatin1String("openvg");
+    for (int i = 0; i < modules.count(); ++i) {
+        QString name = modules[i].qbsName;
+        name.remove(QLatin1String("-private"));
+        if (modulesThatCanBeDisabled.contains(name))
+            modules[i].mustExist = false;
+    }
 
     QSet<QString> nonExistingPrlFiles;
     for (int i = 0; i < modules.count(); ++i)
