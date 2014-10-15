@@ -35,21 +35,6 @@
 namespace qbs {
 namespace Internal {
 
-static inline QDataStream& operator>>(QDataStream &stream, JsImport &jsImport)
-{
-    stream >> jsImport.scopeName
-           >> jsImport.filePaths
-           >> jsImport.location;
-    return stream;
-}
-
-static inline QDataStream& operator<<(QDataStream &stream, const JsImport &jsImport)
-{
-    return stream << jsImport.scopeName
-                  << jsImport.filePaths
-                  << jsImport.location;
-}
-
 ResolvedFileContext::ResolvedFileContext(const FileContextBase &ctx)
     : FileContextBase(ctx)
 {
@@ -60,7 +45,15 @@ void ResolvedFileContext::load(PersistentPool &pool)
     m_filePath = pool.idLoadString();
     m_jsExtensions = pool.idLoadStringList();
     m_searchPaths = pool.idLoadStringList();
-    pool.stream() >> m_jsImports;
+    int count;
+    pool.stream() >> count;
+    for (int i = 0; i < count; ++i) {
+        JsImport jsi;
+        jsi.scopeName = pool.idLoadString();
+        jsi.filePaths = pool.idLoadStringList();
+        jsi.location.load(pool);
+        m_jsImports << jsi;
+    }
 }
 
 void ResolvedFileContext::store(PersistentPool &pool) const
@@ -68,7 +61,12 @@ void ResolvedFileContext::store(PersistentPool &pool) const
     pool.storeString(m_filePath);
     pool.storeStringList(m_jsExtensions);
     pool.storeStringList(m_searchPaths);
-    pool.stream() << m_jsImports;
+    pool.stream() << m_jsImports.count();
+    foreach (const JsImport &jsi, m_jsImports) {
+        pool.storeString(jsi.scopeName);
+        pool.storeStringList(jsi.filePaths);
+        jsi.location.store(pool);
+    }
 }
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)

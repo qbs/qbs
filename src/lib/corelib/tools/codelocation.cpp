@@ -29,6 +29,7 @@
 #include "codelocation.h"
 
 #include <tools/fileinfo.h>
+#include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
 #include <QDataStream>
@@ -109,6 +110,30 @@ QString CodeLocation::toString() const
     return str;
 }
 
+void CodeLocation::load(Internal::PersistentPool &pool)
+{
+    int isValid;
+    pool.stream() >> isValid;
+    if (!isValid)
+        return;
+    d = new CodeLocationPrivate;
+    d->filePath = pool.idLoadString();
+    pool.stream() >> d->line;
+    pool.stream() >> d->column;
+}
+
+void CodeLocation::store(Internal::PersistentPool &pool) const
+{
+    if (d) {
+        pool.stream() << 1;
+        pool.storeString(d->filePath);
+        pool.stream() << d->line;
+        pool.stream() << d->column;
+    } else {
+        pool.stream() << 0;
+    }
+}
+
 bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
 {
     if (cl1.d == cl2.d)
@@ -120,29 +145,6 @@ bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
 bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
 {
     return !(cl1 == cl2);
-}
-
-QDataStream &operator<<(QDataStream &s, const CodeLocation &o)
-{
-    s << o.filePath();
-    s << o.line();
-    s << o.column();
-    return s;
-}
-
-QDataStream &operator>>(QDataStream &s, CodeLocation &o)
-{
-    QString filePath;
-    int line;
-    int column;
-    s >> filePath;
-    s >> line;
-    s >> column;
-    if (filePath.isEmpty())
-        o = CodeLocation();
-    else
-        o = CodeLocation(filePath, line, column);
-    return s;
 }
 
 } // namespace qbs

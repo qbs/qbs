@@ -40,6 +40,7 @@ class QString;
 QT_END_NAMESPACE
 
 namespace qbs {
+namespace Internal { class PersistentPool; }
 
 class QBS_EXPORT CodeLocation
 {
@@ -57,6 +58,10 @@ public:
 
     bool isValid() const;
     QString toString() const;
+
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool) const;
+
 private:
     class CodeLocationPrivate;
     QExplicitlySharedDataPointer<CodeLocationPrivate> d;
@@ -64,9 +69,6 @@ private:
 
 QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
 QBS_EXPORT bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
-
-QDataStream &operator<<(QDataStream &s, const CodeLocation &o);
-QDataStream &operator>>(QDataStream &s, CodeLocation &o);
 
 } // namespace qbs
 

@@ -70,7 +70,7 @@ void AbstractCommand::load(PersistentPool &pool)
     m_description = pool.idLoadString();
     m_highlight = pool.idLoadString();
     pool.stream() >> m_silent;
-    pool.stream() >> m_codeLocation;
+    m_codeLocation.load(pool);
 }
 
 void AbstractCommand::store(PersistentPool &pool) const
@@ -78,7 +78,7 @@ void AbstractCommand::store(PersistentPool &pool) const
     pool.storeString(m_description);
     pool.storeString(m_highlight);
     pool.stream() << m_silent;
-    pool.stream() << m_codeLocation;
+    m_codeLocation.store(pool);
 }
 
 static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)

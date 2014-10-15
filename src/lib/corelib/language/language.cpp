@@ -111,7 +111,7 @@ void FileTagger::store(PersistentPool &pool) const
  */
 void SourceArtifact::load(PersistentPool &pool)
 {
-    pool.stream() >> absoluteFilePath;
+    absoluteFilePath = pool.idLoadString();
     pool.stream() >> fileTags;
     pool.stream() >> overrideFileTags;
     properties = pool.idLoadS<PropertyMapInternal>();
@@ -119,7 +119,7 @@ void SourceArtifact::load(PersistentPool &pool)
 
 void SourceArtifact::store(PersistentPool &pool) const
 {
-    pool.stream() << absoluteFilePath;
+    pool.storeString(absoluteFilePath);
     pool.stream() << fileTags;
     pool.stream() << overrideFileTags;
     pool.store(properties);
@@ -174,9 +174,8 @@ QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
 void ResolvedGroup::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
-    pool.stream()
-            >> enabled
-            >> location;
+    pool.stream() >> enabled;
+    location.load(pool);
     prefix = pool.idLoadString();
     pool.loadContainerS(files);
     wildcards = pool.idLoadS<SourceWildCards>();
@@ -189,9 +188,8 @@ void ResolvedGroup::load(PersistentPool &pool)
 void ResolvedGroup::store(PersistentPool &pool) const
 {
     pool.storeString(name);
-    pool.stream()
-            << enabled
-            << location;
+    pool.stream() << enabled;
+    location.store(pool);
     pool.storeString(prefix);
     pool.storeContainer(files);
     pool.store(wildcards);
@@ -215,8 +213,8 @@ void RuleArtifact::load(PersistentPool &pool)
     pool.stream()
             >> filePath
             >> fileTags
-            >> alwaysUpdated
-            >> location;
+            >> alwaysUpdated;
+    location.load(pool);
 
     int i;
     pool.stream() >> i;
@@ -224,7 +222,9 @@ void RuleArtifact::load(PersistentPool &pool)
     bindings.reserve(i);
     Binding binding;
     for (; --i >= 0;) {
-        pool.stream() >> binding.name >> binding.code >> binding.location;
+        binding.name = pool.idLoadStringList();
+        binding.code = pool.idLoadString();
+        binding.location.load(pool);
         bindings += binding;
     }
 }
@@ -234,13 +234,15 @@ void RuleArtifact::store(PersistentPool &pool) const
     pool.stream()
             << filePath
             << fileTags
-            << alwaysUpdated
-            << location;
+            << alwaysUpdated;
+    location.store(pool);
 
     pool.stream() << bindings.count();
     for (int i = bindings.count(); --i >= 0;) {
         const Binding &binding = bindings.at(i);
-        pool.stream() << binding.name << binding.code << binding.location;
+        pool.storeStringList(binding.name);
+        pool.storeString(binding.code);
+        binding.location.store(pool);
     }
 }
 
@@ -281,19 +283,17 @@ bool ScriptFunction::isValid() const
 
 void ScriptFunction::load(PersistentPool &pool)
 {
-    pool.stream()
-            >> sourceCode
-            >> argumentNames
-            >> location;
+    sourceCode = pool.idLoadString();
+    argumentNames = pool.idLoadStringList();
+    location.load(pool);
     fileContext = pool.idLoadS<ResolvedFileContext>();
 }
 
 void ScriptFunction::store(PersistentPool &pool) const
 {
-    pool.stream()
-            << sourceCode
-            << argumentNames
-            << location;
+    pool.storeString(sourceCode);
+    pool.storeStringList(argumentNames);
+    location.store(pool);
     pool.store(fileContext);
 }
 
@@ -459,13 +459,13 @@ void ResolvedProduct::load(PersistentPool &pool)
 {
     pool.stream()
         >> enabled
-        >> fileTags
-        >> name
-        >> profile
-        >> targetName
-        >> sourceDirectory
-        >> destinationDirectory
-        >> location;
+        >> fileTags;
+    name = pool.idLoadString();
+    profile = pool.idLoadString();
+    targetName = pool.idLoadString();
+    sourceDirectory = pool.idLoadString();
+    destinationDirectory = pool.idLoadString();
+    location.load(pool);
     productProperties = pool.loadVariantMap();
     moduleProperties = pool.idLoadS<PropertyMapInternal>();
     pool.loadContainerS(rules);
@@ -483,14 +483,13 @@ void ResolvedProduct::store(PersistentPool &pool) const
 {
     pool.stream()
         << enabled
-        << fileTags
-        << name
-        << profile
-        << targetName
-        << sourceDirectory
-        << destinationDirectory
-        << location;
-
+        << fileTags;
+    pool.storeString(name);
+    pool.storeString(profile);
+    pool.storeString(targetName);
+    pool.storeString(sourceDirectory);
+    pool.storeString(destinationDirectory);
+    location.store(pool);
     pool.store(productProperties);
     pool.store(moduleProperties);
     pool.storeContainer(rules);
@@ -851,9 +850,9 @@ QList<ResolvedProductPtr> ResolvedProject::allProducts() const
 void ResolvedProject::load(PersistentPool &pool)
 {
     name = pool.idLoadString();
+    location.load(pool);
     int count;
     pool.stream()
-            >> location
             >> enabled
             >> count;
     products.clear();
@@ -886,8 +885,8 @@ void ResolvedProject::load(PersistentPool &pool)
 void ResolvedProject::store(PersistentPool &pool) const
 {
     pool.storeString(name);
+    location.store(pool);
     pool.stream()
-            << location
             << enabled
             << products.count();
     foreach (const ResolvedProductConstPtr &product, products)
@@ -965,7 +964,7 @@ void TopLevelProject::store(const Logger &logger) const
 void TopLevelProject::load(PersistentPool &pool)
 {
     ResolvedProject::load(pool);
-    pool.stream() >> m_id;
+    m_id = pool.idLoadString();
     pool.stream() >> usedEnvironment;
     pool.stream() >> fileExistsResults;
     pool.stream() >> fileLastModifiedResults;
@@ -983,7 +982,7 @@ void TopLevelProject::load(PersistentPool &pool)
 void TopLevelProject::store(PersistentPool &pool) const
 {
     ResolvedProject::store(pool);
-    pool.stream() << m_id;
+    pool.storeString(m_id);
     pool.stream() << usedEnvironment << fileExistsResults
                   << fileLastModifiedResults;
     QHash<QString, QString> envHash;
