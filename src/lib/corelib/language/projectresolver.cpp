@@ -200,6 +200,11 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     project->buildSystemFiles = m_engine->imports();
     makeSubProjectNamesUniqe(project);
     resolveProductDependencies(projectContext);
+
+    foreach (const ResolvedProductPtr &product, project->allProducts()) {
+        if (product->enabled)
+            applyFileTaggers(product);
+    }
 }
 
 void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
@@ -737,8 +742,11 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
 void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    QList<FileTaggerConstPtr> &fileTaggers = m_productContext
-            ? m_productContext->product->fileTaggers : projectContext->fileTaggers;
+    QList<FileTaggerConstPtr> &fileTaggers = m_exportsContext
+            ? m_exportsContext->fileTaggers
+            : (m_productContext
+               ? m_productContext->product->fileTaggers
+               : projectContext->fileTaggers);
     const QStringList patterns = m_evaluator->stringListValue(item, QLatin1String("patterns"));
     if (patterns.isEmpty())
         throw ErrorInfo(Tr::tr("FileTagger.patterns must be a non-empty list."), item->location());
@@ -817,6 +825,7 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
 
     ItemFuncMap mapping;
     mapping["Depends"] = &ProjectResolver::ignoreItem;
+    mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Rule"] = &ProjectResolver::resolveRule;
 
     foreach (Item *child, item->children())
@@ -931,6 +940,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             const QString &usedProductName = usedProduct->uniqueName();
             const ExportsContext ctx = m_exports.value(usedProductName);
 
+            rproduct->fileTaggers << ctx.fileTaggers;
             foreach (const RulePtr &rule, ctx.rules)
                 rproduct->rules << rule;
 
@@ -956,7 +966,6 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
     product->fileTaggers += projectContext->fileTaggers;
     foreach (const RulePtr &rule, projectContext->rules)
         product->rules += rule;
-    applyFileTaggers(product);
 }
 
 void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const

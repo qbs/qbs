@@ -97,6 +97,7 @@ private:
     struct ExportsContext
     {
         QVariantMap moduleValues;
+        QList<FileTaggerConstPtr> fileTaggers;
         QSet<RulePtr> rules;
     };
 

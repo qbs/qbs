@@ -4,10 +4,7 @@ import qbs.File
 Project {
     Application {
         name: "MyApp"
-        Group {
-            files: ["myapp.blubb"]
-            fileTags: ["blubb"]
-        }
+        files: ["myapp.blubb"]
         Depends { name: "blubber" }
         Depends { name: "cpp" }
     }
@@ -16,6 +13,10 @@ Project {
         files: ["blubber.cpp"]
         Depends { name: "cpp" }
         Export {
+            FileTagger {
+                patterns: ["*.blubb"]
+                fileTags: ["blubb"]
+            }
             Rule {
                 inputs: ["blubb"]
                 Artifact {

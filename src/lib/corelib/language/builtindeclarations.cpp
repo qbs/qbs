@@ -190,6 +190,7 @@ void BuiltinDeclarations::addExportItem()
     ItemDeclaration item(QLatin1String("Export"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << QLatin1String("Depends")
+            << QLatin1String("FileTagger")
             << QLatin1String("Rule"));
     insert(item);
 }
