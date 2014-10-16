@@ -13,6 +13,11 @@ Project {
             files: "host+target.input"
             fileTags: "input"
         }
+        Group {
+            fileTagsFilter: "output"
+            qbs.install: true
+            qbs.installDir: profile
+        }
     }
     Product {
         name: "p2"
@@ -21,6 +26,11 @@ Project {
         Group {
             files: "host-tool.input"
             fileTags: "input"
+        }
+        Group {
+            fileTagsFilter: "output"
+            qbs.install: true
+            qbs.installDir: profile
         }
     }
 

@@ -10,16 +10,17 @@
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
 ** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** conditions see http://www.qt.io/licensing.  For further information
+** use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file.  Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 ** In addition, as a special exception, Digia gives you certain additional
 ** rights.  These rights are described in the Digia Qt LGPL Exception
@@ -70,12 +71,23 @@ Item *Item::clone(ItemPool *pool) const
     dup->m_scope = m_scope;
     dup->m_outerItem = m_outerItem;
     dup->m_parent = m_parent;
-    dup->m_children = m_children;
     dup->m_file = m_file;
-    dup->m_properties = m_properties;
     dup->m_propertyDeclarations = m_propertyDeclarations;
     dup->m_functions = m_functions;
     dup->m_modules = m_modules;
+
+    dup->m_children.reserve(m_children.count());
+    foreach (const Item *child, m_children) {
+        Item *clonedChild = child->clone(pool);
+        clonedChild->m_parent = dup;
+        dup->m_children.append(clonedChild);
+    }
+
+    for (PropertyMap::const_iterator it = m_properties.constBegin(); it != m_properties.constEnd();
+         ++it) {
+        dup->m_properties.insert(it.key(), it.value()->clone());
+    }
+
     return dup;
 }
 
