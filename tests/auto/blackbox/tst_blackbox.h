@@ -100,6 +100,7 @@ private slots:
     void dynamicRuleOutputs();
     void erroneousFiles_data();
     void erroneousFiles();
+    void exportRule();
     void fileDependencies();
     void installedTransformerOutput();
     void jsExtensionsFile();

@@ -1,0 +1,8 @@
+extern void justSomeFunction();
+
+int main()
+{
+    justSomeFunction();
+    return 0;
+}
+

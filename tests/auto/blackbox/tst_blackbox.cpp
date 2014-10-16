@@ -1161,6 +1161,13 @@ void TestBlackbox::erroneousFiles()
     }
 }
 
+void TestBlackbox::exportRule()
+{
+    QDir::setCurrent(testDataDir + "/export-rule");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::fileDependencies()
 {
     QDir::setCurrent(testDataDir + "/fileDependencies");

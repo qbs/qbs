@@ -113,6 +113,7 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     m_setupParams = setupParameters;
     m_productContext = 0;
     m_moduleContext = 0;
+    m_exportsContext = 0;
     resolveTopLevelProject(loadResult.root, &projectContext);
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
     checkForDuplicateProductNames(top);
@@ -650,7 +651,9 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, QLatin1String("explicitlyDependsOn"));
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    if (m_productContext)
+    if (m_exportsContext)
+        m_exportsContext->rules += rule;
+    else if (m_productContext)
         m_productContext->product->rules += rule;
     else
         projectContext->rules += rule;
@@ -809,7 +812,17 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
     Q_UNUSED(projectContext);
     checkCancelation();
     const QString &productName = m_productContext->product->uniqueName();
-    m_exports[productName] = evaluateModuleValues(item);
+    m_exportsContext = &m_exports[productName];
+    m_exportsContext->moduleValues = evaluateModuleValues(item);
+
+    ItemFuncMap mapping;
+    mapping["Depends"] = &ProjectResolver::ignoreItem;
+    mapping["Rule"] = &ProjectResolver::resolveRule;
+
+    foreach (Item *child, item->children())
+        callItemFunction(mapping, child, projectContext);
+
+    m_exportsContext = 0;
 }
 
 static void insertExportedConfig(const QString &usedProductName,
@@ -916,18 +929,21 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
                  getProductDependencies(rproduct, productItem, &productInfo)) {
             rproduct->dependencies.insert(usedProduct);
             const QString &usedProductName = usedProduct->uniqueName();
+            const ExportsContext ctx = m_exports.value(usedProductName);
+
+            foreach (const RulePtr &rule, ctx.rules)
+                rproduct->rules << rule;
 
             // insert the configuration of the Export item into the product's configuration
-            const QVariantMap exportedConfig = m_exports.value(usedProductName);
-            if (exportedConfig.isEmpty())
+            if (ctx.moduleValues.isEmpty())
                 continue;
 
-            insertExportedConfig(usedProductName, exportedConfig, rproduct->moduleProperties);
+            insertExportedConfig(usedProductName, ctx.moduleValues, rproduct->moduleProperties);
 
             // insert the configuration of the Export item into the artifact configurations
             foreach (SourceArtifactPtr artifact, rproduct->allEnabledFiles()) {
                 if (artifact->properties != rproduct->moduleProperties)
-                    insertExportedConfig(usedProductName, exportedConfig,
+                    insertExportedConfig(usedProductName, ctx.moduleValues,
                                               artifact->properties);
             }
         }

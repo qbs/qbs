@@ -94,6 +94,12 @@ private:
         ResolvedModulePtr module;
     };
 
+    struct ExportsContext
+    {
+        QVariantMap moduleValues;
+        QSet<RulePtr> rules;
+    };
+
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = 0) const;
     QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = 0) const;
@@ -137,11 +143,12 @@ private:
     ProgressObserver *m_progressObserver;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
+    ExportsContext *m_exportsContext;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<QString, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
-    QMap<QString, QVariantMap> m_exports;
+    QMap<QString, ExportsContext> m_exports;
     SetupProjectParameters m_setupParams;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
