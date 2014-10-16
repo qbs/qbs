@@ -196,6 +196,79 @@ void TestBlackbox::initTestCase()
     ccp(testSourceDir, testDataDir);
 }
 
+static QString findExecutable(const QStringList &fileNames)
+{
+    const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
+            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+
+    foreach (const QString &fileName, fileNames) {
+        QFileInfo fi(fileName);
+        if (fi.isAbsolute())
+            return fi.exists() ? fileName : QString();
+        foreach (const QString &ppath, path) {
+            const QString fullPath
+                    = HostOsInfo::appendExecutableSuffix(ppath + QLatin1Char('/') + fileName);
+            if (QFileInfo(fullPath).exists())
+                return QDir::cleanPath(fullPath);
+        }
+    }
+    return QString();
+}
+
+static QString findArchiver(const QString &fileName)
+{
+    QString binary = findExecutable(QStringList(fileName));
+    if (binary.isEmpty()) {
+        Settings s((QString()));
+        Profile p(profileName(), &s);
+        binary = findExecutable(p.value("archiver.command").toStringList());
+    }
+    return binary;
+}
+
+void TestBlackbox::sevenZip()
+{
+    QDir::setCurrent(testDataDir + "/archiver");
+    QString binary = findArchiver("7z");
+    if (binary.isEmpty())
+        QSKIP("7zip not found");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "archiver.type:7zip")), 0);
+    const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.7z";
+    QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
+    QProcess listContents;
+    listContents.start(binary, QStringList() << "t" << outputFile);
+    QVERIFY2(listContents.waitForStarted(), qPrintable(listContents.errorString()));
+    QVERIFY2(listContents.waitForFinished(), qPrintable(listContents.errorString()));
+    QVERIFY2(listContents.exitCode() == 0, listContents.readAllStandardError().constData());
+    const QByteArray output = listContents.readAllStandardOutput();
+    if (output.count("Testing") != 2)
+        qDebug("%s", output.constData());
+    QCOMPARE(output.count("Testing"), 2);
+    QVERIFY2(output.contains("test.txt"), output.constData());
+    QVERIFY2(output.contains("archivable.qbs"), output.constData());
+}
+
+void TestBlackbox::tar()
+{
+    if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)
+        QSKIP("Beware of the msys tar");
+    QDir::setCurrent(testDataDir + "/archiver");
+    QString binary = findArchiver("tar");
+    if (binary.isEmpty())
+        QSKIP("tar not found");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << "archiver.type:tar")), 0);
+    const QString outputFile = relativeProductBuildDir("archivable") + "/archivable.tar.gz";
+    QVERIFY2(regularFileExists(outputFile), qPrintable(outputFile));
+    QProcess listContents;
+    listContents.start(binary, QStringList() << "tf" << outputFile);
+    QVERIFY2(listContents.waitForStarted(), qPrintable(listContents.errorString()));
+    QVERIFY2(listContents.waitForFinished(), qPrintable(listContents.errorString()));
+    QVERIFY2(listContents.exitCode() == 0, listContents.readAllStandardError().constData());
+    QFile listFile("list.txt");
+    QVERIFY2(listFile.open(QIODevice::ReadOnly), qPrintable(listFile.errorString()));
+    QCOMPARE(listContents.readAllStandardOutput(), listFile.readAll());
+}
+
 void TestBlackbox::android()
 {
     QDir::setCurrent(testDataDir + "/android");
@@ -1902,21 +1975,6 @@ void TestBlackbox::testWiX()
     QVERIFY(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"));
     QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs-" + arch + ".msi"));
     QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper") + "/qbs-setup-" + arch + ".exe"));
-}
-
-static QString findExecutable(const QStringList &fileNames)
-{
-    const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
-            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
-
-    foreach (const QString &fileName, fileNames) {
-        foreach (const QString &ppath, path) {
-            const QString fullPath = ppath + QLatin1Char('/') + fileName;
-            if (QFileInfo(fullPath).exists())
-                return QDir::cleanPath(fullPath);
-        }
-    }
-    return QString();
 }
 
 static bool haveNodeJs()

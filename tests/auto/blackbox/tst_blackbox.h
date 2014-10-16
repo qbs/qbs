@@ -127,6 +127,8 @@ private slots:
     void clean();
     void renameDependency();
     void separateDebugInfo();
+    void sevenZip();
+    void tar();
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();
