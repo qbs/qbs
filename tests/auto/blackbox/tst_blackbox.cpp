@@ -1364,6 +1364,15 @@ void TestBlackbox::inputsFromDependencies()
     QVERIFY2(output.count() == 3, m_qbsStderr.constData());
 }
 
+void TestBlackbox::installable()
+{
+    QDir::setCurrent(testDataDir + "/installable");
+    QCOMPARE(runQbs(), 0);
+    QFile installList(relativeProductBuildDir("install-list") + "/installed-files.txt");
+    QVERIFY2(installList.open(QIODevice::ReadOnly), qPrintable(installList.errorString()));
+    QCOMPARE(installList.readAll().count('\n'), 2);
+}
+
 void TestBlackbox::java()
 {
     Settings settings((QString()));

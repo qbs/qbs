@@ -338,6 +338,10 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         }
     }
 
+    // Let a positive value of qbs.install imply the file tag "installable".
+    if (outputArtifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
+        outputArtifact->addFileTag("installable");
+
     foreach (Artifact *inputArtifact, inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);
         loggedConnect(outputArtifact, inputArtifact, m_logger);

@@ -211,6 +211,12 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
 
         applyFileTaggers(product);
         matchArtifactProperties(product, product->allEnabledFiles());
+
+        // Let a positive value of qbs.install imply the file tag "installable".
+        foreach (const SourceArtifactPtr &artifact, product->allFiles()) {
+            if (artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool())
+                artifact->fileTags += "installable";
+        }
     }
 }
 

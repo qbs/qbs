@@ -259,6 +259,8 @@
 
     Specifies whether to install a certain set of files.
     This is typically set in a \c{Group} item to mark a number of files as installable.
+    \note Artifacts for which this property is enabled automatically receive the file tag
+          "installable". This is useful for writing packaging-related rules.
 
 
     \section1 installDir
