@@ -43,7 +43,7 @@ RuleGraph::RuleGraph()
 void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTags)
 {
     QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
-    m_artifacts.reserve(rules.count());
+    m_rules.reserve(rules.count());
     foreach (const RulePtr &rule, rules) {
         foreach (const FileTag &fileTag, rule->collectedOutputFileTags())
             m_outputFileTagToRule[fileTag].append(rule.data());
@@ -53,7 +53,7 @@ void RuleGraph::build(const QSet<RulePtr> &rules, const FileTags &productFileTag
     m_parents.resize(rules.count());
     m_children.resize(rules.count());
 
-    foreach (const RuleConstPtr &rule, m_artifacts) {
+    foreach (const RuleConstPtr &rule, m_rules) {
         FileTags inFileTags = rule->inputs;
         inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
@@ -82,7 +82,7 @@ void RuleGraph::accept(RuleGraphVisitor *visitor) const
 {
     const RuleConstPtr nullParent;
     foreach (int rootIndex, m_rootRules)
-        traverse(visitor, nullParent, m_artifacts.at(rootIndex));
+        traverse(visitor, nullParent, m_rules.at(rootIndex));
 }
 
 void RuleGraph::dump() const
@@ -90,7 +90,7 @@ void RuleGraph::dump() const
     QByteArray indent;
     printf("---rule graph dump:\n");
     QSet<int> rootRules;
-    foreach (const RuleConstPtr &rule, m_artifacts)
+    foreach (const RuleConstPtr &rule, m_rules)
         if (m_parents[rule->ruleGraphId].isEmpty())
             rootRules += rule->ruleGraphId;
     foreach (int idx, rootRules) {
@@ -100,7 +100,7 @@ void RuleGraph::dump() const
 
 void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 {
-    const RuleConstPtr r = m_artifacts[rootIndex];
+    const RuleConstPtr r = m_rules[rootIndex];
     printf("%s", indent.constData());
     printf("%s", qPrintable(r->toString()));
     printf("\n");
@@ -113,8 +113,8 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 
 int RuleGraph::insert(const RulePtr &rule)
 {
-    rule->ruleGraphId = m_artifacts.count();
-    m_artifacts.append(rule);
+    rule->ruleGraphId = m_rules.count();
+    m_rules.append(rule);
     return rule->ruleGraphId;
 }
 
@@ -135,7 +135,7 @@ void RuleGraph::traverse(RuleGraphVisitor *visitor, const RuleConstPtr &parentRu
 {
     visitor->visit(parentRule, rule);
     foreach (int childIndex, m_children.at(rule->ruleGraphId))
-        traverse(visitor, rule, m_artifacts.at(childIndex));
+        traverse(visitor, rule, m_rules.at(childIndex));
     visitor->endVisit(rule);
 }
 

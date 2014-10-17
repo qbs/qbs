@@ -69,7 +69,7 @@ private:
 
 private:
     QMap<FileTag, QList<const Rule*> > m_outputFileTagToRule;
-    QVector<RulePtr> m_artifacts;
+    QVector<RulePtr> m_rules;
     QVector< QVector<int> > m_parents;
     QVector< QVector<int> > m_children;
     QSet<int> m_rootRules;
