@@ -107,6 +107,7 @@ private slots:
     void fileDependencies();
     void installedTransformerOutput();
     void inputsFromDependencies();
+    void installPackage();
     void installable();
     void java();
     void jsExtensionsFile();

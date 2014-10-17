@@ -1,0 +1,89 @@
+/****************************************************************************
+**
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing
+**
+** This file is part of the Qt Build Suite.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms and
+** conditions see http://www.qt.io/licensing. For further information
+** use the contact form at http://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file.  Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-items.html
+    \page installpackage-item.html
+    \previouspage group-item.html
+    \nextpage javaclasscollection-item.html
+    \ingroup list-of-items
+
+    \title InstallPackage Item
+    \brief Represents an archive of an installed project.
+
+    An \c InstallPackage item is a product of type \c{archiver.archive}. It is used to produce an
+    archive from a set of installable files via the \l{Module archiver}{archiver Module}.
+    Consider the following example project:
+
+    \code
+    Project {
+        CppApplication {
+            name: "myapp"
+            Depends { name: "mylib" }
+            files: ["main.cpp"]
+            Group {
+                fileTagsFilter: product.type
+                qbs.install: true
+                qbs.installDir: "bin"
+            }
+        }
+        DynamicLibrary {
+            name: "mylib"
+            files: ["mylib.cpp"]
+            Group {
+                name: "public headers"
+                files: ["mylib.h"]
+                qbs.install: true
+                qbs.installDir: "include"
+            }
+            Group {
+                fileTagsFilter: product.type
+                qbs.install: true
+                qbs.installDir: "lib"
+            }
+        }
+
+        BinaryPackage {
+            archiver.type: "tar"
+            name: "tar-package"
+            Depends { name: "myapp" }
+            Depends { name: "mylib" }
+        }
+    }
+    \endcode
+
+    Building the product "tar-package" on a Unix system will result in a tar file with these
+    contents:
+    \code
+    include/mylib.h
+    lib/libmylib.so
+    bin/myapp
+    \endcode
+
+*/

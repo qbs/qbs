@@ -1358,6 +1358,35 @@ void TestBlackbox::inputsFromDependencies()
     QVERIFY2(output.count() == 3, m_qbsStderr.constData());
 }
 
+void TestBlackbox::installPackage()
+{
+    if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)
+        QSKIP("Beware of the msys tar");
+    QString binary = findArchiver("tar");
+    if (binary.isEmpty())
+        QSKIP("tar not found");
+    QDir::setCurrent(testDataDir + "/installpackage");
+    QCOMPARE(runQbs(), 0);
+    const QString tarFilePath = relativeProductBuildDir("tar-package") + "/tar-package.tar.gz";
+    QVERIFY2(regularFileExists(tarFilePath), qPrintable(tarFilePath));
+    QProcess tarList;
+    tarList.start(binary, QStringList() << "tf" << tarFilePath);
+    QVERIFY2(tarList.waitForStarted(), qPrintable(tarList.errorString()));
+    QVERIFY2(tarList.waitForFinished(), qPrintable(tarList.errorString()));
+    const QList<QByteArray> outputLines = tarList.readAllStandardOutput().split('\n');
+    QList<QByteArray> cleanOutputLines;
+    foreach (const QByteArray &line, outputLines) {
+        const QByteArray trimmedLine = line.trimmed();
+        if (!trimmedLine.isEmpty())
+            cleanOutputLines << trimmedLine;
+    }
+    QCOMPARE(cleanOutputLines.count(), 3);
+    foreach (const QByteArray &line, cleanOutputLines) {
+        QVERIFY2(line.contains("public_tool") || line.contains("mylib") || line.contains("lib.h"),
+                 line.constData());
+    }
+}
+
 void TestBlackbox::installable()
 {
     QDir::setCurrent(testDataDir + "/installable");
