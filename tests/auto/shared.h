@@ -119,4 +119,9 @@ inline QString objectFileName(const QString &baseName, const QString &profileNam
     return baseName + '.' + suffix;
 }
 
+inline QString inputDirHash(const QString &dir)
+{
+    return QCryptographicHash::hash(dir.toLatin1(), QCryptographicHash::Sha1).toHex().left(16);
+}
+
 #endif // Include guard.

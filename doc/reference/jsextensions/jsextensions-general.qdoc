@@ -49,6 +49,16 @@
     Tries to find a variable with the given name in the build environment and returns its value. If
     no such variable could be found, \c undefined is returned.
 
+    \section2 qbs.getHash
+    \code
+    qbs.getHash(key: string): string
+    \endcode
+    Calculates a 16-byte hash of the input and returns it.
+    Rules in modules should use this function to find unique locations for output
+    artifacts in the build directory without duplicating the whole directory structure of
+    the respective input file (to deal with the case of two files with the same name in different
+    subdirectories of the same product).
+
     \section2 qbs.rfc1034Identifier
     \code
     qbs.rfc1034Identifier(str: string): string

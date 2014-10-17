@@ -63,6 +63,7 @@ public:
     static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
 
 private:
     QueryFlags queryItemProperty(const EvaluationData *data,
@@ -92,6 +93,7 @@ private:
     QScriptValue m_getEnvBuiltin;
     QScriptValue m_canonicalArchitectureBuiltin;
     QScriptValue m_rfc1034identifierBuiltin;
+    QScriptValue m_getHashBuiltin;
 };
 
 } // namespace Internal

@@ -38,7 +38,7 @@ CppModule {
             filePath: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cPrecompiledHeader"));
-                return ".obj/" + completeBaseName + '_c.obj'
+                return ".obj/" + qbs.getHash(completeBaseName) + '_c.obj'
             }
         }
         Artifact {
@@ -59,7 +59,7 @@ CppModule {
             filePath: {
                 var completeBaseName = FileInfo.completeBaseName(product.moduleProperty("cpp",
                         "cxxPrecompiledHeader"));
-                return ".obj/" + completeBaseName + '_cpp.obj'
+                return ".obj/" + qbs.getHash(completeBaseName) + '_cpp.obj'
             }
         }
         Artifact {
@@ -79,7 +79,7 @@ CppModule {
 
         Artifact {
             fileTags: ['obj']
-            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + input.fileName + ".obj"
+            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.fileName + ".obj"
         }
 
         prepare: {
@@ -171,7 +171,7 @@ CppModule {
         inputs: ["rc"]
 
         Artifact {
-            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + ".res"
+            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
             fileTags: ["obj"]
         }
 

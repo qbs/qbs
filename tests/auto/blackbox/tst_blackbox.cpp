@@ -318,11 +318,11 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
-    const QString appObjectFilePath = relativeProductBuildDir("app")
-            + objectFileName("/.obj/main.cpp", profileName());
+    const QString appObjectFilePath = relativeProductBuildDir("app") + "/.obj/" + inputDirHash(".")
+            + objectFileName("/main.cpp", profileName());
     const QString appExeFilePath = relativeExecutableFilePath("app");
-    const QString depObjectFilePath = relativeProductBuildDir("dep")
-            + objectFileName("/.obj/dep.cpp", profileName());
+    const QString depObjectFilePath = relativeProductBuildDir("dep") + "/.obj/" + inputDirHash(".")
+            + objectFileName("/dep.cpp", profileName());
     const QString depLibBase = relativeProductBuildDir("dep")
             + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
@@ -464,8 +464,8 @@ void TestBlackbox::track_qobject_change()
     QCOMPARE(runQbs(), 0);
     const QString productFilePath = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
-    QString moc_bla_objectFileName = relativeProductBuildDir("i")
-            + objectFileName("/.obj/GeneratedFiles/moc_bla.cpp", profileName());
+    QString moc_bla_objectFileName = relativeProductBuildDir("i") + "/.obj/"
+            + inputDirHash("GeneratedFiles") + objectFileName("/moc_bla.cpp", profileName());
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     waitForNewTimestamp();
@@ -681,8 +681,8 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs(), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(regularFileExists(relativeProductBuildDir("someapp")
-                              + objectFileName("/.obj/main_foo.cpp", profileName())));
+    QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/.obj/" + inputDirHash(".")
+                              + objectFileName("/main_foo.cpp", profileName())));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
 
@@ -707,8 +707,8 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp")
-                               + objectFileName("/.obj/main_foo.cpp", profileName())), false);
+    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/.obj/" + inputDirHash(".")
+                               + objectFileName("/main_foo.cpp", profileName())), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"), false);
 }

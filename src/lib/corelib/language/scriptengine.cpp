@@ -505,6 +505,8 @@ void ScriptEngine::installQbsBuiltins()
                        EvaluatorScriptClass::js_canonicalArchitecture);
     installQbsFunction(QLatin1String("rfc1034Identifier"),
                        EvaluatorScriptClass::js_rfc1034identifier);
+    installQbsFunction(QLatin1String("getHash"),
+                       EvaluatorScriptClass::js_getHash);
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()

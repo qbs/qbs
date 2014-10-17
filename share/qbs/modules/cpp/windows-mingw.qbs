@@ -39,7 +39,7 @@ GenericGCC {
         inputs: ["rc"]
 
         Artifact {
-            filePath: ".obj/" + input.baseDir.replace(':', '') + "/" + input.completeBaseName + "_res.o"
+            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.completeBaseName + "_res.o"
             fileTags: ["obj"]
         }
 

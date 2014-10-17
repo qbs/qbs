@@ -152,7 +152,7 @@ Module {
 
         Artifact {
             fileTags: ["wixobj"]
-            filePath: FileInfo.joinPaths(".obj", input.baseDir.replace(':', ''),
+            filePath: FileInfo.joinPaths(".obj", qbs.getHash(input.baseDir),
                                          FileInfo.baseName(input.fileName) + ".wixobj")
         }
 

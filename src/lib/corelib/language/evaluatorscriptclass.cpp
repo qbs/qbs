@@ -42,6 +42,8 @@
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 
+#include <QByteArray>
+#include <QCryptographicHash>
 #include <QScriptString>
 #include <QScriptValue>
 #include <QDebug>
@@ -259,6 +261,7 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
     m_rfc1034identifierBuiltin = scriptEngine->newFunction(js_rfc1034identifier, 1);
+    m_getHashBuiltin = scriptEngine->newFunction(js_getHash, 1);
 }
 
 QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue &object,
@@ -484,6 +487,18 @@ QScriptValue EvaluatorScriptClass::js_rfc1034identifier(QScriptContext *context,
     }
     const QString identifier = context->argument(0).toString();
     return engine->toScriptValue(HostOsInfo::rfc1034Identifier(identifier));
+}
+
+QScriptValue EvaluatorScriptClass::js_getHash(QScriptContext *context, QScriptEngine *engine)
+{
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QLatin1String("getHash expects 1 argument"));
+    }
+    const QByteArray input = context->argument(0).toString().toLatin1();
+    const QByteArray hash
+            = QCryptographicHash::hash(input, QCryptographicHash::Sha1).toHex().left(16);
+    return engine->toScriptValue(QString::fromLatin1(hash));
 }
 
 } // namespace Internal

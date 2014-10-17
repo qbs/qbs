@@ -180,7 +180,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: ".obj/" + input.baseDir + "/" + input.fileName + ".o"
+            filePath: ".obj/" + qbs.getHash(input.baseDir) + "/" + input.fileName + ".o"
         }
 
         prepare: {
