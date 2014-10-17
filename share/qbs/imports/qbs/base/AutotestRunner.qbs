@@ -2,7 +2,7 @@ import qbs
 
 Product {
     name: "autotest-runner"
-    type: "autotest-result"
+    type: ["autotest-result"]
     builtByDefault: false
     property bool limitToSubProject: true
     Depends {
