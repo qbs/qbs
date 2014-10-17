@@ -86,6 +86,8 @@ static QStringList validMinGWMachines()
     return QStringList()
             << QLatin1String("mingw32") << QLatin1String("mingw64")
             << QLatin1String("i686-w64-mingw32") << QLatin1String("x86_64-w64-mingw32")
+            << QLatin1String("i686-w64-mingw32.shared") << QLatin1String("x86_64-w64-mingw32.shared")
+            << QLatin1String("i686-w64-mingw32.static") << QLatin1String("x86_64-w64-mingw32.static")
             << QLatin1String("i586-mingw32msvc") << QLatin1String("amd64-mingw32msvc");
 }
 
