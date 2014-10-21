@@ -55,7 +55,8 @@ AbstractCommand::~AbstractCommand()
 bool AbstractCommand::equals(const AbstractCommand *other) const
 {
     return m_description == other->m_description && m_highlight == other->m_highlight
-            && m_silent == other->m_silent && type() == other->type();
+            && m_silent == other->m_silent && type() == other->type()
+            && m_properties == other->m_properties;
 }
 
 void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
@@ -64,6 +65,11 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
     m_highlight = scriptValue->property(QLatin1String("highlight")).toString();
     m_silent = scriptValue->property(QLatin1String("silent")).toBool();
     m_codeLocation = codeLocation;
+
+    m_predefinedProperties
+            << QLatin1String("description")
+            << QLatin1String("highlight")
+            << QLatin1String("silent");
 }
 
 void AbstractCommand::load(PersistentPool &pool)
@@ -72,6 +78,7 @@ void AbstractCommand::load(PersistentPool &pool)
     m_highlight = pool.idLoadString();
     pool.stream() >> m_silent;
     m_codeLocation.load(pool);
+    m_properties = pool.loadVariantMap();
 }
 
 void AbstractCommand::store(PersistentPool &pool) const
@@ -80,6 +87,18 @@ void AbstractCommand::store(PersistentPool &pool) const
     pool.storeString(m_highlight);
     pool.stream() << m_silent;
     m_codeLocation.store(pool);
+    pool.store(m_properties);
+}
+
+void AbstractCommand::applyCommandProperties(const QScriptValue *scriptValue)
+{
+    QScriptValueIterator it(*scriptValue);
+    while (it.hasNext()) {
+        it.next();
+        if (m_predefinedProperties.contains(it.name()))
+            continue;
+        m_properties.insert(it.name(), it.value().toVariant());
+    }
 }
 
 static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)
@@ -180,10 +199,20 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     m_arguments = scriptValue->property(QLatin1String("arguments")).toVariant().toStringList();
     m_workingDir = scriptValue->property(QLatin1String("workingDirectory")).toString();
     m_maxExitCode = scriptValue->property(QLatin1String("maxExitCode")).toInt32();
-    m_stdoutFilterFunction =
+    QScriptValue stdoutFilterFunction =
             scriptValue->property(QLatin1String("stdoutFilterFunction")).toString();
-    m_stderrFilterFunction =
+    if (stdoutFilterFunction.isFunction())
+        m_stdoutFilterFunction = QLatin1String("(") + stdoutFilterFunction.toString()
+                + QLatin1String(")()");
+    else
+        m_stdoutFilterFunction = stdoutFilterFunction.toString();
+    QScriptValue stderrFilterFunction =
             scriptValue->property(QLatin1String("stderrFilterFunction")).toString();
+    if (stderrFilterFunction.isFunction())
+        m_stderrFilterFunction = QLatin1String("(") + stderrFilterFunction.toString()
+                + QLatin1String(")()");
+    else
+        m_stderrFilterFunction = stderrFilterFunction.toString();
     m_responseFileThreshold = scriptValue->property(QLatin1String("responseFileThreshold"))
             .toInt32();
     m_responseFileUsagePrefix = scriptValue->property(QLatin1String("responseFileUsagePrefix"))
@@ -191,6 +220,18 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     QStringList envList = scriptValue->property(QLatin1String("environment")).toVariant()
             .toStringList();
     getEnvironmentFromList(envList);
+
+    m_predefinedProperties
+            << QLatin1String("program")
+            << QLatin1String("arguments")
+            << QLatin1String("workingDirectory")
+            << QLatin1String("maxExitCode")
+            << QLatin1String("stdoutFilterFunction")
+            << QLatin1String("stderrFilterFunction")
+            << QLatin1String("responseFileThreshold")
+            << QLatin1String("responseFileUsagePrefix")
+            << QLatin1String("environment");
+    applyCommandProperties(scriptValue);
 }
 
 void ProcessCommand::load(PersistentPool &pool)
@@ -255,8 +296,7 @@ bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) cons
         return false;
     const JavaScriptCommand * const other
             = static_cast<const JavaScriptCommand *>(otherAbstractCommand);
-    return m_sourceCode == other->m_sourceCode
-            && m_properties == other->m_properties;
+    return m_sourceCode == other->m_sourceCode;
 }
 
 void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
@@ -267,31 +307,21 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
         m_sourceCode = QLatin1String("(") + sourceCode.toString() + QLatin1String(")()");
     else
         m_sourceCode = sourceCode.toString();
-    static QSet<QString> predefinedProperties = QSet<QString>()
-            << QLatin1String("description") << QLatin1String("highlight") << QLatin1String("silent")
-            << QLatin1String("className") << QLatin1String("sourceCode");
 
-    QScriptValueIterator it(*scriptValue);
-    while (it.hasNext()) {
-        it.next();
-        if (predefinedProperties.contains(it.name()))
-            continue;
-        m_properties.insert(it.name(), it.value().toVariant());
-    }
+    m_predefinedProperties << QLatin1String("className") << QLatin1String("sourceCode");
+    applyCommandProperties(scriptValue);
 }
 
 void JavaScriptCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
     m_sourceCode = pool.idLoadString();
-    m_properties = pool.loadVariantMap();
 }
 
 void JavaScriptCommand::store(PersistentPool &pool) const
 {
     AbstractCommand::store(pool);
     pool.storeString(m_sourceCode);
-    pool.store(m_properties);
 }
 
 QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)

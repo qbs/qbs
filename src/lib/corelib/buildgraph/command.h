@@ -37,6 +37,7 @@
 #include <tools/persistentobject.h>
 
 #include <QProcessEnvironment>
+#include <QSet>
 #include <QStringList>
 #include <QVariantMap>
 #include <QScriptValue>
@@ -67,16 +68,24 @@ public:
     bool isSilent() const { return m_silent; }
     CodeLocation codeLocation() const { return m_codeLocation; }
 
+    const QVariantMap &properties() const { return m_properties; }
+
 protected:
     AbstractCommand();
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
+    void applyCommandProperties(const QScriptValue *scriptValue);
+
+    QSet<QString> m_predefinedProperties;
+
+
 private:
     QString m_description;
     QString m_highlight;
     bool m_silent;
     CodeLocation m_codeLocation;
+    QVariantMap m_properties;
 };
 
 class ProcessCommand : public AbstractCommand
@@ -130,8 +139,6 @@ public:
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
 
-    const QVariantMap &properties() const { return m_properties; }
-
 private:
     JavaScriptCommand();
 
@@ -139,7 +146,6 @@ private:
     void store(PersistentPool &pool) const;
 
     QString m_sourceCode;
-    QVariantMap m_properties;
 };
 
 QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool);

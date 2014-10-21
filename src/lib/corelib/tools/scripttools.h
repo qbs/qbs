@@ -69,24 +69,24 @@ void setConfigProperty(QVariantMap &cfg, const QStringList &name, const QVariant
 QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name);
 
 /**
- * @brief push/pop a QScriptEngine's context the RAII way.
+ * @brief push/pop a scope on a QScriptContext the RAII way.
  */
-class ScriptEngineContextPusher
+class ScriptContextScopePusher
 {
 public:
-    ScriptEngineContextPusher(QScriptEngine *scriptEngine)
-        : m_scriptEngine(scriptEngine)
+    ScriptContextScopePusher(QScriptContext *scriptContext, const QScriptValue &value)
+        : m_scriptContext(scriptContext)
     {
-        m_scriptEngine->pushContext();
+        m_scriptContext->pushScope(value);
     }
 
-    ~ScriptEngineContextPusher()
+    ~ScriptContextScopePusher()
     {
-        m_scriptEngine->popContext();
+        m_scriptContext->popScope();
     }
 
 private:
-    QScriptEngine *m_scriptEngine;
+    QScriptContext *m_scriptContext;
 };
 
 template <class T>
