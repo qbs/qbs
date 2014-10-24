@@ -273,23 +273,8 @@ void BuildGraphLoader::trackProjectChanges()
         for (int j = allRestoredProducts.count() - 1; j >= 0; --j) {
             const ResolvedProductPtr &restoredProduct = allRestoredProducts.at(j);
             if (newlyResolvedProduct->uniqueName() == restoredProduct->uniqueName()) {
-                if (newlyResolvedProduct->enabled) {
+                if (newlyResolvedProduct->enabled)
                     newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
-                } else {
-                    if (restoredProduct->enabled) {
-                        QBS_CHECK(restoredProduct->buildData);
-                        foreach (Artifact * const a,
-                                ArtifactSet::fromNodeSet(restoredProduct->buildData->nodes)) {
-                            const bool removeFromDisk = a->artifactType == Artifact::Generated;
-                            newlyResolvedProduct->topLevelProject()->buildData->removeArtifact(a,
-                                    m_logger, removeFromDisk, true);
-                            if (removeFromDisk)
-                                m_artifactsRemovedFromDisk << a->filePath();
-                            m_objectsToDelete << a;
-                        }
-                    }
-                    productsWithChangedFiles.removeOne(restoredProduct);
-                }
                 if (newlyResolvedProduct->buildData) {
                     foreach (BuildGraphNode *node, newlyResolvedProduct->buildData->nodes)
                         node->product = newlyResolvedProduct;
@@ -451,6 +436,13 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
                 = newlyResolvedProductsByName.value(restoredProduct->uniqueName());
         if (!newlyResolvedProduct)
             continue;
+        if (newlyResolvedProduct->enabled != restoredProduct->enabled) {
+            m_logger.qbsDebug() << "Condition of product '" << restoredProduct->uniqueName()
+                                << "' was changed, must set up build data from scratch";
+            changedProducts << restoredProduct;
+            continue;
+        }
+
         if (!productsWithChangedFiles.contains(restoredProduct)
                 && !sourceArtifactSetsAreEqual(restoredProduct->allFiles(),
                                                 newlyResolvedProduct->allFiles())) {

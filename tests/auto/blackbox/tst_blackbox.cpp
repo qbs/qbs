@@ -1508,31 +1508,37 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("Making output from input"));
 }
 
-void TestBlackbox::disabledProduct()
-{
-    QDir::setCurrent(testDataDir + "/disabledProduct");
-    QCOMPARE(runQbs(), 0);
-}
-
 void TestBlackbox::disabledProject()
 {
     QDir::setCurrent(testDataDir + "/disabledProject");
     QCOMPARE(runQbs(), 0);
 }
 
-void TestBlackbox::disableProduct()
+void TestBlackbox::enableAndDisableProduct()
 {
-    QDir::setCurrent(testDataDir + "/disable-product");
+    QDir::setCurrent(testDataDir + "/enable-and-disable-product");
     QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling"));
     waitForNewTimestamp();
     QFile projectFile("project.qbs");
     QVERIFY(projectFile.open(QIODevice::ReadWrite));
     QByteArray content = projectFile.readAll();
-    content.replace("// condition: false", "condition: false");
+    content.replace("undefined", "'hidden'");
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.close();
     QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("linking"));
+    waitForNewTimestamp();
+    touch("main.cpp");
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    content = projectFile.readAll();
+    content.replace("'hidden'", "undefined");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("compiling"));
 }
 
 void TestBlackbox::duplicateProductNames()
