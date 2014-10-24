@@ -114,10 +114,8 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    foreach (const QString &key, m_settings->allKeys()) {
-        stream << key << ": " << m_settings->value(key).toStringList().join(QLatin1String(","))
-                                                                            << endl;
-    }
+    foreach (const QString &key, m_settings->allKeys())
+        stream << key << ": " << settingsValueToRepresentation(m_settings->value(key)) << endl;
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)
@@ -139,7 +137,7 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
         if (colon >= 0 && !line.startsWith(QLatin1Char('#'))) {
             const QString key = line.left(colon).trimmed();
             const QString value = line.mid(colon + 1).trimmed();
-            m_settings->setValue(key, value);
+            m_settings->setValue(key, representationToSettingsValue(value));
         }
     }
 }
