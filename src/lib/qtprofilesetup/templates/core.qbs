@@ -105,8 +105,10 @@ Module {
         var libs = [];
         if (staticBuild)
             libs.push(libFilePath);
-        if (qbs.targetOS.contains('windows') && !product.consoleApplication)
-            libs.push("qtmain" + libInfix + (cpp.debugInformation ? "d" : "") + (!qbs.toolchain.contains("mingw") ? ".lib" : ""));
+        if (qbs.targetOS.contains('windows') && !product.consoleApplication) {
+            libs = libs.concat(qtBuildVariant === "debug"
+                               ? @entryPointLibsDebug@ : @entryPointLibsRelease@);
+        }
         libs = libs.concat(staticLibs);
         return libs;
     }
