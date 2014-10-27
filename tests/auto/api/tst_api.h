@@ -66,10 +66,10 @@ private slots:
     void changeContent();
 #endif
     void changeDependentLib();
+    void enableAndDisableProduct();
     void disabledInstallGroup();
     void disabledProduct();
     void disabledProject();
-    void disableProduct();
     void duplicateProductNames();
     void duplicateProductNames_data();
     void dynamicLibs();

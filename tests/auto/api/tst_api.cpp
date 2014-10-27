@@ -705,6 +705,40 @@ void TestApi::changeDependentLib()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::enableAndDisableProduct()
+{
+    BuildDescriptionReceiver bdr;
+    qbs::ErrorInfo errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(!bdr.descriptions.contains("compiling"));
+
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    QByteArray content = projectFile.readAll();
+    content.replace("undefined", "'hidden'");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    bdr.descriptions.clear();
+    errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(bdr.descriptions.contains("linking"));
+
+    waitForNewTimestamp();
+    touch("main.cpp");
+    QVERIFY(projectFile.open(QIODevice::ReadWrite));
+    content = projectFile.readAll();
+    content.replace("'hidden'", "undefined");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    bdr.descriptions.clear();
+    errorInfo = doBuildProject("enable-and-disable-product/project.qbs", &bdr);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(!bdr.descriptions.contains("compiling"));
+}
+
 static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 {
     qbs::BuildOptions buildOptions;
@@ -748,23 +782,6 @@ void TestApi::disabledProduct()
 void TestApi::disabledProject()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("disabled-project/disabled_project.qbs");
-    VERIFY_NO_ERROR(errorInfo);
-}
-
-void TestApi::disableProduct()
-{
-    qbs::ErrorInfo errorInfo = doBuildProject("disable-product/project.qbs");
-    VERIFY_NO_ERROR(errorInfo);
-
-    waitForNewTimestamp();
-    QFile projectFile("project.qbs");
-    QVERIFY(projectFile.open(QIODevice::ReadWrite));
-    QByteArray content = projectFile.readAll();
-    content.replace("// condition: false", "condition: false");
-    projectFile.resize(0);
-    projectFile.write(content);
-    projectFile.close();
-    errorInfo = doBuildProject("disable-product/project.qbs");
     VERIFY_NO_ERROR(errorInfo);
 }
 

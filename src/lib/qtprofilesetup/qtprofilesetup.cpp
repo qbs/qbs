@@ -38,6 +38,7 @@
 #include <tools/profile.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
+#include <tools/version.h>
 
 #include <QDir>
 #include <QDirIterator>
@@ -108,6 +109,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
                     utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
     content->replace("@libNameForLinkerRelease@",
                     utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
+    content->replace("@entryPointLibsDebug@", utf8JSLiteral(qtEnvironment.entryPointLibsDebug));
+    content->replace("@entryPointLibsRelease@", utf8JSLiteral(qtEnvironment.entryPointLibsRelease));
     QByteArray propertiesString;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
     if (module.qbsName == QLatin1String("declarative")
@@ -274,6 +277,28 @@ static bool checkForStaticBuild(const QtEnvironment &qt)
     return true;
 }
 
+static QStringList fillEntryPointLibs(const QtEnvironment &qtEnvironment, const Version &qtVersion,
+        bool debug)
+{
+    QStringList result;
+    QString qtmain = qtEnvironment.libraryPath + QLatin1Char('/');
+    const bool isMinGW = qtEnvironment.mkspecName.startsWith(QLatin1String("win32-g++"));
+    if (isMinGW)
+        qtmain += QLatin1String("lib");
+    qtmain += QLatin1String("qtmain") + qtEnvironment.qtLibInfix;
+    if (debug)
+        qtmain += QLatin1Char('d');
+    if (isMinGW) {
+        qtmain += QLatin1String(".a");
+    } else {
+        qtmain += QLatin1String(".lib");
+        if (qtVersion >= Version(5, 4, 0))
+            result << QLatin1String("Shell32.lib");
+    }
+    result << qtmain;
+    return result;
+}
+
 void doSetupQtProfile(const QString &profileName, Settings *settings,
                       const QtEnvironment &_qtEnvironment)
 {
@@ -305,7 +330,13 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     const QString windowsVersion = guessMinimumWindowsVersion(qtEnvironment);
     QString osxVersion, iosVersion, androidVersion;
 
-    if (qtEnvironment.mkspecPath.contains("macx")) {
+    if (!windowsVersion.isEmpty()) {    // Is target OS Windows?
+        const Version qtVersion = Version(qtEnvironment.qtMajorVersion,
+                                          qtEnvironment.qtMinorVersion,
+                                          qtEnvironment.qtPatchVersion);
+        qtEnvironment.entryPointLibsDebug = fillEntryPointLibs(qtEnvironment, qtVersion, true);
+        qtEnvironment.entryPointLibsRelease = fillEntryPointLibs(qtEnvironment, qtVersion, false);
+    } else if (qtEnvironment.mkspecPath.contains("macx")) {
         profile.setValue(settingsTemplate.arg("frameworkBuild"), qtEnvironment.frameworkBuild);
         if (qtEnvironment.qtMajorVersion >= 5) {
             osxVersion = QLatin1String("10.6");
