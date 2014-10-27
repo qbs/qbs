@@ -39,7 +39,7 @@ namespace Internal {
 
 class QBS_EXPORT Version
 {
-    friend int compare(const Version &lhs, const Version &rhs);
+    friend QBS_EXPORT int compare(const Version &lhs, const Version &rhs);
 public:
     explicit Version(int majorVersion = 0, int minorVersion = 0, int patchLevel = 0,
             int buildNr = 0);
@@ -71,7 +71,7 @@ private:
     int m_build;
 };
 
-int compare(const Version &lhs, const Version &rhs);
+QBS_EXPORT int compare(const Version &lhs, const Version &rhs);
 inline bool operator==(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) == 0; }
 inline bool operator!=(const Version &lhs, const Version &rhs) { return !operator==(lhs, rhs); }
 inline bool operator<(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) < 0; }
