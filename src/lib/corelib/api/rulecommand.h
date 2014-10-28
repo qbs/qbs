@@ -27,24 +27,52 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_H
-#define QBS_H
 
-#include "api/jobs.h"
-#include "api/languageinfo.h"
-#include "api/project.h"
-#include "api/projectdata.h"
-#include "api/rulecommand.h"
-#include "logging/ilogsink.h"
-#include "tools/architectures.h"
-#include "tools/buildoptions.h"
-#include "tools/cleanoptions.h"
-#include "tools/error.h"
-#include "tools/installoptions.h"
-#include "tools/preferences.h"
-#include "tools/profile.h"
-#include "tools/processresult.h"
-#include "tools/settings.h"
-#include "tools/setupprojectparameters.h"
+#ifndef QBS_RULECOMMAND_H
+#define QBS_RULECOMMAND_H
 
-#endif // QBS_H
+#include <tools/qbs_export.h>
+
+#include <QExplicitlySharedDataPointer>
+#include <QStringList>
+
+QT_BEGIN_NAMESPACE
+class QProcessEnvironment;
+QT_END_NAMESPACE
+
+namespace qbs {
+namespace Internal {
+class ProjectPrivate;
+class RuleCommandPrivate;
+}
+
+class QBS_EXPORT RuleCommand
+{
+    friend class Internal::ProjectPrivate;
+public:
+    RuleCommand();
+    RuleCommand(const RuleCommand &other);
+    ~RuleCommand();
+    RuleCommand &operator=(const RuleCommand &other);
+
+    enum Type { ProcessCommandType, JavaScriptCommandType, InvalidType };
+
+
+    Type type() const;
+    QString description() const;
+    QString sourceCode() const;
+    QString executable() const;
+    QStringList arguments() const;
+    QString workingDirectory() const;
+    QProcessEnvironment environment() const;
+
+private:
+    QExplicitlySharedDataPointer<Internal::RuleCommandPrivate> d;
+};
+
+
+typedef QList<RuleCommand> RuleCommandList;
+
+} // namespace qbs
+
+#endif // Include guard.

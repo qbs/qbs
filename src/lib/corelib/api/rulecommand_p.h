@@ -27,24 +27,33 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
-#ifndef QBS_H
-#define QBS_H
 
-#include "api/jobs.h"
-#include "api/languageinfo.h"
-#include "api/project.h"
-#include "api/projectdata.h"
-#include "api/rulecommand.h"
-#include "logging/ilogsink.h"
-#include "tools/architectures.h"
-#include "tools/buildoptions.h"
-#include "tools/cleanoptions.h"
-#include "tools/error.h"
-#include "tools/installoptions.h"
-#include "tools/preferences.h"
-#include "tools/profile.h"
-#include "tools/processresult.h"
-#include "tools/settings.h"
-#include "tools/setupprojectparameters.h"
+#ifndef QBS_RULECOMMAND_P_H
+#define QBS_RULECOMMAND_P_H
 
-#endif // QBS_H
+#include "rulecommand.h"
+
+#include <QProcessEnvironment>
+#include <QSharedData>
+
+namespace qbs {
+namespace Internal {
+
+class RuleCommandPrivate : public QSharedData
+{
+public:
+    RuleCommandPrivate(): type(RuleCommand::InvalidType) {}
+
+    RuleCommand::Type type;
+    QString description;
+    QString sourceCode;
+    QString executable;
+    QStringList arguments;
+    QString workingDir;
+    QProcessEnvironment environment;
+};
+
+} // namespace Internal
+} // namespace qbs
+
+#endif // Include guard.

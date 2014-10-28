@@ -57,6 +57,8 @@ QbsLibrary {
             "projectdata.cpp",
             "projectdata_p.h",
             "propertymap_p.h",
+            "rulecommand.cpp",
+            "rulecommand_p.h",
             "runenvironment.cpp",
         ]
     }
@@ -70,6 +72,7 @@ QbsLibrary {
             "languageinfo.h",
             "project.h",
             "projectdata.h",
+            "rulecommand.h",
             "runenvironment.h"
         ]
     }

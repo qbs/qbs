@@ -173,6 +173,49 @@ void TestApi::buildSingleFile()
              qPrintable(receiver.descriptions));
 }
 
+void TestApi::commandExtraction()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters();
+    const QString projectDirPath = QDir::cleanPath(m_workingDataDir + "/command-extraction");
+    setupParams.setProjectFilePath(projectDirPath + "/project.qbs");
+    QScopedPointer<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                              m_logSink, 0));
+    waitForFinished(setupJob.data());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    qbs::ProductData productData = projectData.allProducts().first();
+    qbs::ErrorInfo errorInfo;
+    const QString sourceFilePath = projectDirPath + "/main.cpp";
+
+    // Before the first build, no rules exist.
+    qbs::RuleCommandList commands
+            = project.ruleCommands(productData, sourceFilePath, "obj", &errorInfo);
+    QCOMPARE(commands.count(), 0);
+    QVERIFY(errorInfo.hasError());
+    QVERIFY2(errorInfo.toString().contains("No rule"), qPrintable(errorInfo.toString()));
+
+    qbs::BuildOptions options;
+    options.setDryRun(true);
+    QScopedPointer<qbs::BuildJob> buildJob(project.buildAllProducts(options));
+    waitForFinished(buildJob.data());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    projectData = project.projectData();
+    QCOMPARE(projectData.allProducts().count(), 1);
+    productData = projectData.allProducts().first();
+    errorInfo = qbs::ErrorInfo();
+
+    // After the build, the compile command must be found.
+    commands = project.ruleCommands(productData, sourceFilePath, "obj", &errorInfo);
+    QCOMPARE(commands.count(), 1);
+    QVERIFY2(!errorInfo.hasError(), qPrintable(errorInfo.toString()));
+    const qbs::RuleCommand command = commands.first();
+    QCOMPARE(command.type(), qbs::RuleCommand::ProcessCommandType);
+    QVERIFY(!command.executable().isEmpty());
+    QVERIFY(!command.arguments().isEmpty());
+}
+
 qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
 {
     foreach (const qbs::GroupData &g, product.groups()) {

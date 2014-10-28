@@ -31,6 +31,7 @@
 #define QBS_PROJECT_P_H
 
 #include "projectdata.h"
+#include "rulecommand.h"
 
 #include <language/language.h>
 #include <logging/logger.h>
@@ -104,6 +105,9 @@ public:
     void updateExternalCodeLocations(const ProjectData &project,
                                      const CodeLocation &changeLocation, int lineOffset);
     void prepareChangeToProject();
+
+    RuleCommandList ruleCommands(const ProductData &product,
+            const QString &inputFilePath, const QString &outputFileTag) const;
 
     TopLevelProjectPtr internalProject;
     Logger logger;

@@ -53,6 +53,7 @@ private slots:
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     void changeContent();
 #endif
+    void commandExtraction();
     void disabledInstallGroup();
     void fileTagsFilterOverride();
     void infiniteLoopBuilding();

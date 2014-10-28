@@ -38,9 +38,11 @@
 #include "jobs.h"
 #include "projectdata_p.h"
 #include "propertymap_p.h"
+#include "rulecommand_p.h"
 #include "runenvironment.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
+#include <buildgraph/command.h>
 #include <buildgraph/emptydirectoriesremover.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/productinstaller.h>
@@ -613,6 +615,59 @@ void ProjectPrivate::prepareChangeToProject()
         retrieveProjectData(m_projectData, internalProject);
 }
 
+RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
+        const QString &inputFilePath, const QString &outputFileTag) const
+{
+    if (internalProject->locked)
+        throw ErrorInfo(Tr::tr("A job is currently in process."));
+    const ResolvedProductConstPtr resolvedProduct = internalProduct(product);
+    if (!resolvedProduct)
+        throw ErrorInfo(Tr::tr("No such product '%1'.").arg(product.name()));
+    if (!resolvedProduct->enabled)
+        throw ErrorInfo(Tr::tr("Product '%1' is disabled.").arg(product.name()));
+    QBS_CHECK(resolvedProduct->buildData);
+    const ArtifactSet &outputArtifacts = resolvedProduct->buildData->artifactsByFileTag
+            .value(FileTag(outputFileTag.toLocal8Bit()));
+    foreach (const Artifact * const outputArtifact, outputArtifacts) {
+        const TransformerConstPtr transformer = outputArtifact->transformer;
+        if (!transformer)
+            continue;
+        foreach (const Artifact * const inputArtifact, transformer->inputs) {
+            if (inputArtifact->filePath() == inputFilePath) {
+                RuleCommandList list;
+                foreach (const AbstractCommandPtr &internalCommand, transformer->commands) {
+                    RuleCommand externalCommand;
+                    externalCommand.d->description = internalCommand->description();
+                    switch (internalCommand->type()) {
+                    case AbstractCommand::JavaScriptCommandType: {
+                        externalCommand.d->type = RuleCommand::JavaScriptCommandType;
+                        const JavaScriptCommandPtr &jsCmd
+                                = internalCommand.staticCast<JavaScriptCommand>();
+                        externalCommand.d->sourceCode = jsCmd->sourceCode();
+                        break;
+                    }
+                    case AbstractCommand::ProcessCommandType: {
+                        externalCommand.d->type = RuleCommand::ProcessCommandType;
+                        const ProcessCommandPtr &procCmd
+                                = internalCommand.staticCast<ProcessCommand>();
+                        externalCommand.d->executable = procCmd->program();
+                        externalCommand.d->arguments = procCmd->arguments();
+                        externalCommand.d->workingDir = procCmd->workingDir();
+                        externalCommand.d->environment = procCmd->environment();
+                        break;
+                    }
+                    }
+                    list << externalCommand;
+                }
+                return list;
+            }
+        }
+    }
+
+    throw ErrorInfo(Tr::tr("No rule was found that produces an artifact tagged '%1' "
+                           "from input file '%2'.").arg(outputFileTag, inputFilePath));
+}
+
 static bool productIsRunnable(const ResolvedProductConstPtr &product)
 {
     return product->fileTags.contains("application")
@@ -1046,6 +1101,21 @@ QSet<QString> Project::buildSystemFiles() const
 {
     QBS_ASSERT(isValid(), return QSet<QString>());
     return d->internalProject->buildSystemFiles;
+}
+
+RuleCommandList Project::ruleCommands(const ProductData &product,
+        const QString &inputFilePath, const QString &outputFileTag, ErrorInfo *error) const
+{
+    QBS_ASSERT(isValid(), return RuleCommandList());
+    QBS_ASSERT(product.isValid(), return RuleCommandList());
+
+    try {
+        return d->ruleCommands(product, inputFilePath, outputFileTag);
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return RuleCommandList();
+    }
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
