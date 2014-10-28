@@ -107,6 +107,7 @@ private slots:
     void changeDependentLib();
     void changedFiles_data();
     void changedFiles();
+    void changeInDisabledProduct();
     void dependenciesProperty();
     void disabledProject();
     void enableAndDisableProduct();
