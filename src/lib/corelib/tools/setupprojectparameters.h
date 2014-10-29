@@ -87,7 +87,8 @@ public:
     QVariantMap buildConfigurationTree() const;
 
     static QVariantMap finalBuildConfigurationTree(const QVariantMap &buildConfig,
-                                                   const QVariantMap &overriddenValues);
+            const QVariantMap &overriddenValues, const QString &buildRoot,
+            const QString &topLevelProfile);
     QVariantMap finalBuildConfigurationTree() const;
 
     bool ignoreDifferentProjectFilePath() const;

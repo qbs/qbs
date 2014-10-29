@@ -711,14 +711,13 @@
     The actual installation is then done like this (using the default profile):
 
     \code
-    qbs install --install-root /tmp/myProjectRoot --remove-first
+    qbs --clean-install-root qbs.installRoot:/tmp/myProjectRoot
     \endcode
 
     Here, we want the installDir properties from the project file to be interpreted relative
     to the directory \c{/tmp/myProjectRoot}, and we want that directory to be removed first.
-    If the \c{--install-root} option is not given, a default is used, namely \c{<build root>/install-root}.
-    \QBS understands the special install root value \c{@sysroot}, which stands for the value of
-    the property \c{qbs.sysroot}.
+    If the \c{qbs.installRoot} property is not given, a default is used, namely
+    \c{<build root>/install-root}.
 */
 
 /*!

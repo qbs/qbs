@@ -54,9 +54,10 @@ public:
             InstallOptions &options, QString *targetDirectory = 0);
     static void initInstallRoot(const TopLevelProject *project, InstallOptions &options);
 
-private:
     void removeInstallRoot();
     void copyFile(const Artifact *artifact);
+
+private:
     void handleError(const QString &message);
 
     const TopLevelProjectConstPtr m_project;

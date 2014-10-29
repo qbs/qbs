@@ -74,6 +74,12 @@ public:
     bool showCommandLines() const;
     void setShowCommandLines(bool b);
 
+    bool install() const;
+    void setInstall(bool install);
+
+    bool removeExistingInstallation() const;
+    void setRemoveExistingInstallation(bool removeExisting);
+
 private:
     QSharedDataPointer<Internal::BuildOptionsPrivate> d;
 };

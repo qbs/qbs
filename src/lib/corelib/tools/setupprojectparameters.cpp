@@ -30,6 +30,7 @@
 #include "setupprojectparameters.h"
 
 #include <logging/translator.h>
+#include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -287,7 +288,6 @@ QVariantMap SetupProjectParameters::buildConfigurationTree() const
     return d->buildConfigurationTree;
 }
 
-
 static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBaseDir,
         const QString &profileName, const QString &buildVariant)
 {
@@ -318,9 +318,9 @@ static QVariantMap expandedBuildConfigurationInternal(const QString &settingsBas
                                          "'release'.").arg(buildVariant));
     }
     buildConfig.insert(QLatin1String("qbs.buildVariant"), buildVariant);
-
     return buildConfig;
 }
+
 
 QVariantMap SetupProjectParameters::expandedBuildConfiguration(const QString &settingsBaseDir,
         const QString &profileName, const QString &buildVariant, ErrorInfo *errorInfo)
@@ -360,13 +360,24 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration()
 }
 
 QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMap &buildConfig,
-                                                                const QVariantMap &overriddenValues)
+        const QVariantMap &overriddenValues, const QString &buildRoot,
+        const QString &topLevelProfile)
 {
     QVariantMap flatBuildConfig = buildConfig;
     for (QVariantMap::ConstIterator it = overriddenValues.constBegin();
          it != overriddenValues.constEnd(); ++it) {
         flatBuildConfig.insert(it.key(), it.value());
     }
+
+    const QString installRootKey = QLatin1String("qbs.installRoot");
+    QString installRoot = flatBuildConfig.value(installRootKey).toString();
+    if (installRoot.isEmpty()) {
+        installRoot = buildRoot + QLatin1Char('/') + topLevelProfile + QLatin1Char('-')
+                + flatBuildConfig.value(QLatin1String("qbs.buildVariant")).toString()
+                + QLatin1Char('/') + InstallOptions::defaultInstallRoot();
+        flatBuildConfig.insert(installRootKey, installRoot);
+    }
+
     QVariantMap buildConfigTree;
     provideValuesTree(flatBuildConfig, &buildConfigTree);
     return buildConfigTree;
@@ -378,8 +389,8 @@ QVariantMap SetupProjectParameters::finalBuildConfigurationTree(const QVariantMa
 QVariantMap SetupProjectParameters::finalBuildConfigurationTree() const
 {
     if (d->finalBuildConfigTree.isEmpty()) {
-        d->finalBuildConfigTree
-                = finalBuildConfigurationTree(buildConfiguration(), overriddenValues());
+        d->finalBuildConfigTree = finalBuildConfigurationTree(buildConfiguration(),
+                overriddenValues(), buildRoot(), topLevelProfile());
     }
     return d->finalBuildConfigTree;
 }

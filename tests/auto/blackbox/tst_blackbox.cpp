@@ -827,7 +827,8 @@ void TestBlackbox::wildcardRenaming()
     QCOMPARE(runQbs(QbsRunParameters("install")), 0);
     QVERIFY(QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     QFile::rename(QDir::currentPath() + "/pioniere.txt", QDir::currentPath() + "/fdj.txt");
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"),
+                                     QStringList("--clean-install-root"))), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/fdj.txt").exists());
 }
@@ -840,7 +841,8 @@ void TestBlackbox::recursiveRenaming()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
     waitForNewTimestamp();
     QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"),
+                                     QStringList("--clean-install-root"))), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wein.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
@@ -1257,7 +1259,7 @@ void TestBlackbox::fileDependencies()
 void TestBlackbox::installedTransformerOutput()
 {
     QDir::setCurrent(testDataDir + "/installed-transformer-output");
-    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    QCOMPARE(runQbs(), 0);
     const QString installedFilePath = defaultInstallRoot + "/textfiles/HelloWorld.txt";
     QVERIFY2(QFile::exists(installedFilePath), qPrintable(installedFilePath));
 }
@@ -1606,12 +1608,12 @@ void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");
 
-    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
 
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--install-root")
-                                     << (testDataDir + "/installed-app"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.installRoot:" + testDataDir
+                                                 + "/installed-app"))), 0);
     QVERIFY(regularFileExists(testDataDir
             + HostOsInfo::appendExecutableSuffix("/installed-app/usr/bin/installedApp")));
 
@@ -1619,7 +1621,7 @@ void TestBlackbox::installedApp()
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
     addedFile.close();
     QVERIFY(addedFile.exists());
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"), QStringList("--remove-first"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
@@ -1634,7 +1636,7 @@ void TestBlackbox::installedApp()
     projectFile.resize(0);
     projectFile.write(content);
     QVERIFY(projectFile.flush());
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
@@ -1645,7 +1647,7 @@ void TestBlackbox::installedApp()
     projectFile.resize(0);
     projectFile.write(content);
     QVERIFY(projectFile.flush());
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
             + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
 
@@ -1655,13 +1657,23 @@ void TestBlackbox::installedApp()
     projectFile.resize(0);
     projectFile.write(content);
     projectFile.close();
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"))), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/source/main.cpp")));
 
+    // Check whether changing install parameters on the command line causes re-installation.
+    QbsRunParameters(QStringList("qbs.installRoot:" + relativeBuildDir() + "/blubb"));
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.installRoot:" + relativeBuildDir()
+                                                 + "/blubb"))), 0);
+    QVERIFY(regularFileExists(relativeBuildDir() + "/blubb/usr/local/source/main.cpp"));
+
+    // Check --no-install
     rmDirR(relativeBuildDir());
-    QbsRunParameters params;
-    params.command = "install";
-    params.arguments << "--no-build";
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("--no-install"))), 0);
+    QCOMPARE(QDir(defaultInstallRoot).entryList(QDir::NoDotAndDotDot).count(), 0);
+
+    // Check --no-build
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("install", QStringList("--no-build"));
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains("No build graph"));
@@ -1671,7 +1683,7 @@ void TestBlackbox::installedSourceFiles()
 {
     QDir::setCurrent(testDataDir + "/installed-source-files");
 
-    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/readme.txt")));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/main.cpp")));
 }

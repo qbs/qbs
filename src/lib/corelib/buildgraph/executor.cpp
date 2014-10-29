@@ -37,6 +37,7 @@
 #include "cycledetector.h"
 #include "executorjob.h"
 #include "inputartifactscanner.h"
+#include "productinstaller.h"
 #include "rescuableartifactdata.h"
 #include "rulenode.h"
 #include "rulesevaluationcontext.h"
@@ -69,6 +70,7 @@ bool Executor::ComparePriority::operator() (const BuildGraphNode *x, const Build
 
 Executor::Executor(const Logger &logger, QObject *parent)
     : QObject(parent)
+    , m_productInstaller(0)
     , m_logger(logger)
     , m_progressObserver(0)
     , m_state(ExecutorIdle)
@@ -90,6 +92,7 @@ Executor::~Executor()
     foreach (ExecutorJob *job, m_processingJobs.keys())
         delete job;
     delete m_inputArtifactScanContext;
+    delete m_productInstaller;
 }
 
 FileTime Executor::recursiveFileTime(const QString &filePath) const
@@ -214,8 +217,18 @@ void Executor::doBuild()
         m_project->buildData->evaluationContext = m_evalContext;
     }
 
-    addExecutorJobs();
 
+    InstallOptions installOptions;
+    installOptions.setDryRun(m_buildOptions.dryRun());
+    installOptions.setInstallRoot(m_productsToBuild.first()->moduleProperties
+                                  ->qbsPropertyValue(QLatin1String("installRoot")).toString());
+    installOptions.setKeepGoing(m_buildOptions.keepGoing());
+    m_productInstaller = new ProductInstaller(m_project, m_productsToBuild, installOptions,
+                                              m_progressObserver, m_logger);
+    if (m_buildOptions.removeExistingInstallation())
+        m_productInstaller->removeInstallRoot();
+
+    addExecutorJobs();
     prepareAllNodes();
     prepareProducts();
     setupRootNodes();
@@ -849,8 +862,18 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
 void Executor::finishTransformer(const TransformerPtr &transformer)
 {
-    foreach (Artifact * const artifact, transformer->outputs)
+    foreach (Artifact * const artifact, transformer->outputs) {
+        possiblyInstallArtifact(artifact);
         finishArtifact(artifact);
+    }
+}
+
+void Executor::possiblyInstallArtifact(const Artifact *artifact)
+{
+    if (m_buildOptions.install()
+            && artifact->properties->qbsPropertyValue(QLatin1String("install")).toBool()) {
+            m_productInstaller->copyFile(artifact);
+    }
 }
 
 void Executor::onJobFinished(const qbs::ErrorInfo &err)
@@ -977,6 +1000,7 @@ void Executor::prepareArtifact(Artifact *artifact)
         retrieveSourceFileTimestamp(artifact);
         if (oldTimestamp != artifact->timestamp())
             m_changedSourceArtifacts.append(artifact);
+        possiblyInstallArtifact(artifact);
     }
 
     // Timestamps of file dependencies must be invalid for every build.

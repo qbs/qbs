@@ -137,6 +137,7 @@ void TestTools::testBuildConfigMerging()
     profile.setValue(QLatin1String("cpp.treatWarningsAsErrors"), true);
     QVariantMap overrideMap;
     overrideMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("clang"));
+    overrideMap.insert(QLatin1String("qbs.installRoot"), QLatin1String("/blubb"));
     SetupProjectParameters params;
     params.setTopLevelProfile(profile.name());
     params.setBuildVariant(QLatin1String("debug"));
@@ -148,13 +149,14 @@ void TestTools::testBuildConfigMerging()
     QCOMPARE(finalMap.value(QLatin1String("topLevelKey")).toString(),
              QString::fromLatin1("topLevelValue"));
     const QVariantMap finalQbsMap = finalMap.value(QLatin1String("qbs")).toMap();
-    QCOMPARE(finalQbsMap.count(), 3);
+    QCOMPARE(finalQbsMap.count(), 4);
     QCOMPARE(finalQbsMap.value(QLatin1String("toolchain")).toString(),
              QString::fromLatin1("clang"));
     QCOMPARE(finalQbsMap.value(QLatin1String("buildVariant")).toString(),
              QString::fromLatin1("debug"));
     QCOMPARE(finalQbsMap.value(QLatin1String("architecture")).toString(),
              QString::fromLatin1("Jean-Claude Pillemann"));
+    QCOMPARE(finalQbsMap.value(QLatin1String("installRoot")).toString(), QLatin1String("/blubb"));
     const QVariantMap finalCppMap = finalMap.value(QLatin1String("cpp")).toMap();
     QCOMPARE(finalCppMap.count(), 1);
     QCOMPARE(finalCppMap.value(QLatin1String("treatWarningsAsErrors")).toBool(), true);

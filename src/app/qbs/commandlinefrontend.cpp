@@ -135,6 +135,12 @@ void CommandLineFrontend::start()
             QVariantMap userConfig = buildConfig;
             const QString buildVariantKey = QLatin1String("qbs.buildVariant");
             const QString profileKey = QLatin1String("qbs.profile");
+            const QString installRootKey = QLatin1String("qbs.installRoot");
+            QString installRoot = userConfig.value(installRootKey).toString();
+            if (!installRoot.isEmpty() && QFileInfo(installRoot).isRelative()) {
+                installRoot.prepend(QLatin1Char('/')).prepend(QDir::currentPath());
+                userConfig.insert(installRootKey, installRoot);
+            }
             const QString buildVariant = userConfig.take(buildVariantKey).toString();
             QString profileName = userConfig.take(profileKey).toString();
             if (profileName.isEmpty())

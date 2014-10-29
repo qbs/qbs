@@ -477,7 +477,8 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
     // These are not requested from rules at build time, but we still need to take
     // them into account.
     const QStringList specialProperties = QStringList() << QLatin1String("install")
-            << QLatin1String("installDir") << QLatin1String("installPrefix");
+            << QLatin1String("installDir") << QLatin1String("installPrefix")
+            << QLatin1String("installRoot");
     foreach (const QString &key, specialProperties) {
         if (restoredProduct->moduleProperties->qbsPropertyValue(key)
                 != newlyResolvedProduct->moduleProperties->qbsPropertyValue(key)) {
@@ -792,7 +793,8 @@ bool BuildGraphLoader::isConfigCompatible()
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     m_parameters.settingsDirectory(), it.key(), m_parameters.buildVariant());
         const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
-                    buildConfig, m_parameters.overriddenValues());
+                    buildConfig, m_parameters.overriddenValues(), m_parameters.buildRoot(),
+                    m_parameters.topLevelProfile());
         if (newConfig != it.value())
             return false;
     }

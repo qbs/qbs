@@ -216,7 +216,9 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ChangedFilesOptionType
             << CommandLineOption::ForceTimestampCheckOptionType
             << CommandLineOption::BuildNonDefaultOptionType
-            << CommandLineOption::ShowCommandLinesOptionType;
+            << CommandLineOption::ShowCommandLinesOptionType
+            << CommandLineOption::NoInstallOptionType
+            << CommandLineOption::RemoveFirstOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const
@@ -274,10 +276,11 @@ QString InstallCommand::representation() const
 
 QList<CommandLineOption::Type> installOptions()
 {
-    return buildOptions()
+    QList<CommandLineOption::Type> options = buildOptions()
             << CommandLineOption::InstallRootOptionType
-            << CommandLineOption::RemoveFirstOptionType
             << CommandLineOption::NoBuildOptionType;
+    options.removeOne(CommandLineOption::NoInstallOptionType);
+    return options;
 }
 
 QList<CommandLineOption::Type> InstallCommand::supportedOptions() const

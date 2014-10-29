@@ -55,6 +55,7 @@ namespace Internal {
 class ExecutorJob;
 class FileTime;
 class InputArtifactScannerContext;
+class ProductInstaller;
 class ProgressObserver;
 class RuleNode;
 
@@ -128,6 +129,7 @@ private:
     void potentiallyRunTransformer(const TransformerPtr &transformer);
     void runTransformer(const TransformerPtr &transformer);
     void finishTransformer(const TransformerPtr &transformer);
+    void possiblyInstallArtifact(const Artifact *artifact);
 
     bool mustExecuteTransformer(const TransformerPtr &transformer) const;
     bool isUpToDate(Artifact *artifact) const;
@@ -140,6 +142,7 @@ private:
     typedef QHash<ExecutorJob *, TransformerPtr> JobMap;
     JobMap m_processingJobs;
 
+    ProductInstaller *m_productInstaller;
     RulesEvaluationContextPtr m_evalContext;
     BuildOptions m_buildOptions;
     Logger m_logger;

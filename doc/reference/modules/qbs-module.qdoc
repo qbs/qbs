@@ -279,8 +279,22 @@
     \endtable
 
     Specifies the global installation prefix. It is implicitly prepended to all values
-    of \c installDir. The \c installPrefix itself is relative to the install root, which is not
-    a property of \QBS, but an external installation parameter.
+    of \c installDir. The \c installPrefix itself is relative to the \c installRoot in the context
+    of installation.
+
+    \section1 installRoot
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{<build dir>/install-root}
+    \endtable
+
+    Specifies the global installation root. It is implicitly prepended to all values
+    of \c installPrefix in the context of installation.
+    \note This property is fundamentally different from \c installDir and \c installPrefix in that
+    it must not be visible to the code being built. In fact, the install root is often just a
+    temporary location used to package the binaries, which should therefore not assume they will
+    be in that location at run-time.
 
     \section1 pathListSeparator
 

@@ -50,6 +50,7 @@ public:
         ChangedFilesOptionType,
         ProductsOptionType,
         AllArtifactsOptionType,
+        NoInstallOptionType,
         InstallRootOptionType, RemoveFirstOptionType, NoBuildOptionType,
         ForceOptionType,
         ForceTimestampCheckOptionType,
@@ -177,6 +178,13 @@ class DryRunOption : public OnOffOption
 {
     QString description(CommandType command) const;
     QString shortRepresentation() const;
+    QString longRepresentation() const;
+};
+
+class NoInstallOption : public OnOffOption
+{
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;
 };
 

@@ -40,7 +40,8 @@ class BuildOptionsPrivate : public QSharedData
 public:
     BuildOptionsPrivate()
         : maxJobCount(0), dryRun(false), keepGoing(false), forceTimestampCheck(false),
-          logElapsedTime(false), showCommandLines(false)
+          logElapsedTime(false), showCommandLines(false), install(true),
+          removeExistingInstallation(false)
     {
     }
 
@@ -53,6 +54,8 @@ public:
     bool forceTimestampCheck;
     bool logElapsedTime;
     bool showCommandLines;
+    bool install;
+    bool removeExistingInstallation;
 };
 
 } // namespace Internal
@@ -269,6 +272,43 @@ void BuildOptions::setShowCommandLines(bool b)
     d->showCommandLines = b;
 }
 
+/*!
+ * \brief Returns true iff installation should happen as part of the build.
+ * The default is \c true.
+ */
+bool BuildOptions::install() const
+{
+    return d->install;
+}
+
+/*!
+ * \brief Controls whether to install artifacts as part of the build process.
+ */
+void BuildOptions::setInstall(bool install)
+{
+    d->install = install;
+}
+
+/*!
+ * \brief Returns true iff an existing installation will be removed prior to building.
+ * The default is false.
+ */
+bool BuildOptions::removeExistingInstallation() const
+{
+    return d->removeExistingInstallation;
+}
+
+/*!
+ * Controls whether to remove an existing installation before installing.
+ * \note qbs may do some safety checks and refuse to remove certain directories such as
+ *       a user's home directory. You should still be careful with this option, since it
+ *       deletes recursively.
+ */
+void BuildOptions::setRemoveExistingInstallation(bool removeExisting)
+{
+    d->removeExistingInstallation = removeExisting;
+}
+
 
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
 {
@@ -277,7 +317,9 @@ bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
             && bo1.keepGoing() == bo2.keepGoing()
             && bo1.logElapsedTime() == bo2.logElapsedTime()
             && bo1.showCommandLines() == bo2.showCommandLines()
-            && bo1.maxJobCount() == bo2.maxJobCount();
+            && bo1.maxJobCount() == bo2.maxJobCount()
+            && bo1.install() == bo2.install()
+            && bo1.removeExistingInstallation() == bo2.removeExistingInstallation();
 }
 
 } // namespace qbs

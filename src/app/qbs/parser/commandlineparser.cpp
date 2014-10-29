@@ -480,6 +480,8 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setMaxJobCount(jobsOption->jobCount());
     buildOptions.setLogElapsedTime(logTime);
     buildOptions.setShowCommandLines(optionPool.showCommandLinesOption()->enabled());
+    buildOptions.setInstall(!optionPool.noInstallOption()->enabled());
+    buildOptions.setRemoveExistingInstallation(optionPool.removeFirstoption()->enabled());
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupProgress()

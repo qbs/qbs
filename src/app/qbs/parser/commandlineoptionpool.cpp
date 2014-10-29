@@ -77,6 +77,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::AllArtifactsOptionType:
             option = new AllArtifactsOption;
             break;
+        case CommandLineOption::NoInstallOptionType:
+            option = new NoInstallOption;
+            break;
         case CommandLineOption::InstallRootOptionType:
             option = new InstallRootOption;
             break;
@@ -169,6 +172,11 @@ ProductsOption *CommandLineOptionPool::productsOption() const
 AllArtifactsOption *CommandLineOptionPool::allArtifactsOption() const
 {
     return static_cast<AllArtifactsOption *>(getOption(CommandLineOption::AllArtifactsOptionType));
+}
+
+NoInstallOption *CommandLineOptionPool::noInstallOption() const
+{
+    return static_cast<NoInstallOption *>(getOption(CommandLineOption::NoInstallOptionType));
 }
 
 InstallRootOption *CommandLineOptionPool::installRootOption() const

@@ -227,6 +227,20 @@ QString DryRunOption::longRepresentation() const
     return QLatin1String("--dry-run");
 }
 
+QString NoInstallOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n"
+            "\tDo not install any artifacts as part of the build process.\n")
+            .arg(longRepresentation());
+}
+
+QString NoInstallOption::longRepresentation() const
+{
+    return QLatin1String("--no-install");
+}
+
+
 static QString logTimeRepresentation()
 {
     return QLatin1String("--log-time");
@@ -439,7 +453,6 @@ void InstallRootOption::doParse(const QString &representation, QStringList &inpu
 
 QString RemoveFirstOption::description(CommandType command) const
 {
-    Q_ASSERT(command == InstallCommandType || command == RunCommandType);
     Q_UNUSED(command);
     return Tr::tr("%1\n\tRemove the installation base directory before installing.\n")
             .arg(longRepresentation());
@@ -447,7 +460,7 @@ QString RemoveFirstOption::description(CommandType command) const
 
 QString RemoveFirstOption::longRepresentation() const
 {
-    return QLatin1String("--remove-first");
+    return QLatin1String("--clean-install-root");
 }
 
 
