@@ -1,10 +1,13 @@
-import "../autotest.qbs" as AutoTest
-import "../../../version.js" as Version
+import qbs
+import QbsFunctions
 
-AutoTest {
+QbsAutotest {
     testName: "cmdlineparser"
     files: ["tst_cmdlineparser.cpp", "../../../src/app/qbs/qbstool.cpp"]
-    cpp.defines: base.concat(['SRCDIR="' + path + '"', "QBS_VERSION=\"" + Version.qbsVersion() + "\""])
+    cpp.defines: base.concat([
+        'SRCDIR="' + path + '"',
+        "QBS_VERSION=\"" + QbsFunctions.qbsVersion() + "\""
+    ])
 
     // TODO: Make parser a static library?
     Group {

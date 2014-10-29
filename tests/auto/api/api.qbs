@@ -1,6 +1,6 @@
-import "../autotest.qbs" as AutoTest
+import qbs
 
-AutoTest {
+QbsAutotest {
     testName: "api"
     files: ["../shared.h", "tst_api.h", "tst_api.cpp"]
     cpp.defines: base.concat([

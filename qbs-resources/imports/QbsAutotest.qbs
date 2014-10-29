@@ -6,11 +6,11 @@ QtApplication {
     name: "tst_" + testName
     Depends { name: "Qt.test" }
     Depends { name: "qbscore" }
-    cpp.includePaths: path + "/../../src"
+    cpp.includePaths: "../../../src"
     destinationDirectory: "bin"
     Group {
         name: "logging"
-        prefix: path + "/../../src/app/shared/logging/"
+        prefix: "../../../src/app/shared/logging/"
         files: [
             "coloredoutput.cpp",
             "coloredoutput.h",

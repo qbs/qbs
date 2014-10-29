@@ -1,6 +1,6 @@
-import "../autotest.qbs" as AutoTest
+import qbs
 
-AutoTest {
+QbsAutotest {
     testName: "tools"
     files: ["tst_tools.cpp"]
 }

@@ -1,10 +1,9 @@
 import qbs
-import "../../version.js" as Version
+import QbsFunctions
 
-Product {
+QbsProduct {
     Depends { name: "cpp" }
-    Depends { name: "Qt"; submodules: ["core"] }
-    version: Version.qbsVersion()
+    version: QbsFunctions.qbsVersion()
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
     destinationDirectory: qbs.targetOS.contains("windows") ? "bin" : project.libDirName

@@ -1,6 +1,6 @@
-import "../autotest.qbs" as AutoTest
+import qbs
 
-AutoTest {
+QbsAutotest {
     testName: "buildgraph"
     files: "tst_buildgraph.cpp"
 }

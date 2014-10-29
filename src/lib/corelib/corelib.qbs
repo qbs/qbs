@@ -1,5 +1,5 @@
 import qbs 1.0
-import "../Library.qbs" as QbsLibrary
+import QbsFunctions
 
 QbsLibrary {
     Depends { name: "cpp" }

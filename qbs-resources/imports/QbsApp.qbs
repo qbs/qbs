@@ -1,9 +1,8 @@
-import qbs 1.0
+import qbs
 
-Product {
+QbsProduct {
     Depends { name: "qbscore" }
     Depends { name: "cpp" }
-    Depends { name: "Qt.core" }
     type: "application"
     consoleApplication: true
     destinationDirectory: "bin"
@@ -26,4 +25,3 @@ Product {
         ]
     }
 }
-

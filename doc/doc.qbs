@@ -1,5 +1,5 @@
 import qbs 1.0
-import "../version.js" as Version
+import QbsFunctions
 
 Product {
     name: "documentation"
@@ -17,10 +17,10 @@ Product {
         fileTags: "qdocconf-main"
     }
 
-    property string versionTag: Version.qbsVersion().replace(/\.|-/g, "")
+    property string versionTag: QbsFunctions.qbsVersion().replace(/\.|-/g, "")
     Qt.core.qdocQhpFileName: "qbs.qhp"
     Qt.core.qdocEnvironment: [
-        "QBS_VERSION=" + Version.qbsVersion(),
+        "QBS_VERSION=" + QbsFunctions.qbsVersion(),
         "SRCDIR=" + path,
         "QT_INSTALL_DOCS=" + Qt.core.docPath,
         "QBS_VERSION_TAG=" + versionTag

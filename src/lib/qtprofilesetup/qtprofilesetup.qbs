@@ -1,5 +1,4 @@
 import qbs
-import "../Library.qbs" as QbsLibrary
 
 QbsLibrary {
     name: "qbsqtprofilesetup"

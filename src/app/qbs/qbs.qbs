@@ -1,12 +1,11 @@
 import qbs 1.0
-import "../apptemplate.qbs" as QbsApp
-import "../../../version.js" as Version
+import QbsFunctions
 
 QbsApp {
     name: "qbs_app"
     targetName: "qbs"
     cpp.defines: base.concat([
-        'QBS_VERSION="' + Version.qbsVersion() + '"',
+        'QBS_VERSION="' + QbsFunctions.qbsVersion() + '"',
         'QBS_RELATIVE_SEARCH_PATH="' + project.relativeSearchPath + '"',
         'QBS_RELATIVE_PLUGINS_PATH="' + project.relativePluginsPath + '"'
     ])
