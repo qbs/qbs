@@ -1384,11 +1384,7 @@ void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)
 
 QString ModuleLoader::fullModuleName(const QStringList &moduleName)
 {
-#if QT_VERSION >= 0x050000
     return moduleName.join(QLatin1Char('.'));
-#else
-    return moduleName.join(QLatin1String("."));
-#endif
 }
 
 void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfigKey,

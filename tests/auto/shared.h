@@ -41,12 +41,6 @@
 
 #include <ctime>
 
-#if QT_VERSION >= 0x050000
-#define SKIP_TEST(message) QSKIP(message)
-#else
-#define SKIP_TEST(message) QSKIP(message, SkipAll)
-#endif
-
 inline QString profileName() { return QLatin1String("qbs_autotests"); }
 inline QString relativeBuildDir() { return profileName() + QLatin1String("-debug"); }
 

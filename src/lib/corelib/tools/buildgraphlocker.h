@@ -31,13 +31,7 @@
 #ifndef QBS_BUILDGRAPHLOCKER_H
 #define QBS_BUILDGRAPHLOCKER_H
 
-#include <QtGlobal>
-
-#define HAS_QLOCKFILE (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-
-#if HAS_QLOCKFILE
 #include <QLockFile>
-#endif
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -53,9 +47,7 @@ public:
     ~BuildGraphLocker();
 
 private:
-#if HAS_QLOCKFILE
     QLockFile m_lockFile;
-#endif
 };
 
 } // namespace Internal

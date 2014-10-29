@@ -13,7 +13,7 @@ Product {
     ]
     Group {
         name: "main qdocconf file"
-        files: Qt.core.versionMajor >= 5 ? "qbs.qdocconf" : "qbs-qt4.qdocconf"
+        files: "qbs.qdocconf"
         fileTags: "qdocconf-main"
     }
 

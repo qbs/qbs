@@ -2,19 +2,8 @@ defineReplace(targetPath) {
     return($$replace(1, /, $$QMAKE_DIR_SEP))
 }
 
-qt:greaterThan(QT_MAJOR_VERSION, 4) {
-    QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
-    QDOC_MAINFILE = $$PWD/qbs.qdocconf
-} else {
-    QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc3)
-    QDOC_MAINFILE = $$PWD/qbs-qt4.qdocconf
-
-    # cheap replacement of the Qt5 shell_quote function
-    defineReplace(shell_quote) {
-        return("\"$$1\"")
-    }
-}
-
+QDOC_BIN = $$targetPath($$[QT_INSTALL_BINS]/qdoc)
+QDOC_MAINFILE = $$PWD/qbs.qdocconf
 HELPGENERATOR = $$targetPath($$[QT_INSTALL_BINS]/qhelpgenerator)
 
 VERSION_TAG = $$replace(QBS_VERSION, "[-.]", )
@@ -38,7 +27,6 @@ QHP_FILE = $$HTML_DOC_PATH/qbs.qhp
 QCH_FILE = $$OUT_PWD/doc/qbs.qch
 
 HELP_DEP_FILES = $$PWD/qbs.qdoc \
-                 $$PWD/config/compat-qt4.qdocconf \
                  $$PWD/config/macros.qdocconf \
                  $$PWD/config/qt-cpp-ignore.qdocconf \
                  $$PWD/config/qt-html-templates.qdocconf \

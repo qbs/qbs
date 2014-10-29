@@ -21,9 +21,9 @@ defineTest(minQtVersion) {
     return(false)
 }
 
-!minQtVersion(4, 8, 0) {
+!minQtVersion(5, 1, 0) {
     message("Cannot build qbs with Qt version $${QT_VERSION}.")
-    error("Use at least Qt 4.8.0.")
+    error("Use at least Qt 5.1.0.")
 }
 
 TEMPLATE = subdirs

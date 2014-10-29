@@ -244,9 +244,6 @@ void TestApi::buildGraphLocking()
     Q_UNUSED(project);
     setupJob.reset(qbs::Project().setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.data());
-#if QT_VERSION < QT_VERSION_CHECK(5, 1, 0)
-    QEXPECT_FAIL("", "Build graph locking requires Qt >= 5.1", Abort);
-#endif
     QVERIFY(setupJob->error().hasError());
     QVERIFY2(setupJob->error().toString().contains("lock"),
              qPrintable(setupJob->error().toString()));

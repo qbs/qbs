@@ -1285,7 +1285,7 @@ void TestBlackbox::jsExtensionsProcess()
 void TestBlackbox::jsExtensionsPropertyList()
 {
     if (!HostOsInfo::isOsxHost())
-        SKIP_TEST("temporarily only applies on OS X");
+        QSKIP("temporarily only applies on OS X");
 
     QDir::setCurrent(testDataDir + "/jsextensions");
     QbsRunParameters params(QStringList() << "-nf" << "propertylist.qbs");
@@ -1654,7 +1654,7 @@ void TestBlackbox::testNsis()
     }
 
     if (!haveMakeNsis) {
-        SKIP_TEST("makensis is not installed");
+        QSKIP("makensis is not installed");
         return;
     }
 
@@ -1671,7 +1671,7 @@ void TestBlackbox::testNsis()
 void TestBlackbox::testEmbedInfoPlist()
 {
     if (!HostOsInfo::isOsxHost())
-        SKIP_TEST("only applies on OS X");
+        QSKIP("only applies on OS X");
 
     QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));
 
@@ -1720,12 +1720,12 @@ static bool haveWiX()
 void TestBlackbox::testWiX()
 {
     if (!HostOsInfo::isWindowsHost()) {
-        SKIP_TEST("only applies on Windows");
+        QSKIP("only applies on Windows");
         return;
     }
 
     if (!haveWiX()) {
-        SKIP_TEST("WiX is not installed");
+        QSKIP("WiX is not installed");
         return;
     }
 
@@ -1770,7 +1770,7 @@ static bool haveNodeJs()
 void TestBlackbox::testNodeJs()
 {
     if (!haveNodeJs()) {
-        SKIP_TEST("Node.js is not installed");
+        QSKIP("Node.js is not installed");
         return;
     }
 
@@ -1786,7 +1786,7 @@ void TestBlackbox::testNodeJs()
 void TestBlackbox::testTypeScript()
 {
     if (!haveNodeJs()) {
-        SKIP_TEST("node.js is not installed");
+        QSKIP("node.js is not installed");
         return;
     }
 
@@ -1805,7 +1805,7 @@ void TestBlackbox::testTypeScript()
 void TestBlackbox::testIconset()
 {
     if (!HostOsInfo::isOsxHost())
-        SKIP_TEST("only applies on OS X");
+        QSKIP("only applies on OS X");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/iconset"));
 
@@ -1820,7 +1820,7 @@ void TestBlackbox::testIconset()
 void TestBlackbox::testIconsetApp()
 {
     if (!HostOsInfo::isOsxHost())
-        SKIP_TEST("only applies on OS X");
+        QSKIP("only applies on OS X");
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/iconsetapp"));
 
@@ -1835,10 +1835,10 @@ void TestBlackbox::testIconsetApp()
 void TestBlackbox::testAssetCatalog()
 {
     if (!HostOsInfo::isOsxHost())
-        SKIP_TEST("only applies on OS X");
+        QSKIP("only applies on OS X");
 #ifdef Q_OS_MAC
     if (QSysInfo::macVersion() < Q_MV_OSX(10, 9))
-        SKIP_TEST("This test needs at least OS X 10.9.");
+        QSKIP("This test needs at least OS X 10.9.");
 #endif
 
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
@@ -1883,7 +1883,7 @@ void TestBlackbox::testAssetCatalog()
 void TestBlackbox::testObjcArc()
 {
     if (!HostOsInfo::isOsxHost())
-        SKIP_TEST("only applies on platforms supporting Objective-C");
+        QSKIP("only applies on platforms supporting Objective-C");
 
     QDir::setCurrent(testDataDir + QLatin1String("/objc-arc"));
 

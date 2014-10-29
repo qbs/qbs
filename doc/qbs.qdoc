@@ -122,7 +122,7 @@
 
     \list
 
-        \li  Qt >= 4.8
+        \li  Qt >= 5.1.0
 
     \endlist
 

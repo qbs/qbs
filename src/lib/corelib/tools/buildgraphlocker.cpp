@@ -42,11 +42,8 @@ namespace qbs {
 namespace Internal {
 
 BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath)
-#if HAS_QLOCKFILE
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
-#endif
 {
-#if HAS_QLOCKFILE
     const QString buildDir = QFileInfo(buildGraphFilePath).absolutePath();
     if (!QDir::root().mkpath(buildDir))
         throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Failed to create directory."));
@@ -81,16 +78,11 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath)
     // with the subsequent getLockInfo() failing as well.
     throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1' (reason unknown).")
                     .arg(buildGraphFilePath));
-#else
-    Q_UNUSED(buildGraphFilePath);
-#endif
 }
 
 BuildGraphLocker::~BuildGraphLocker()
 {
-#if HAS_QLOCKFILE
     m_lockFile.unlock();
-#endif
 }
 
 } // namespace Internal
