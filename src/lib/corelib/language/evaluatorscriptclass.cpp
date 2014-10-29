@@ -257,7 +257,6 @@ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Log
 {
     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);
-    m_getHostOSBuiltin = scriptEngine->newFunction(js_getHostOS, 1);
     m_canonicalArchitectureBuiltin = scriptEngine->newFunction(js_canonicalArchitecture, 1);
 }
 
@@ -423,8 +422,6 @@ QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin b
         return m_getNativeSettingBuiltin;
     case BuiltinValue::GetEnvFunction:
         return m_getEnvBuiltin;
-    case BuiltinValue::GetHostOSFunction:
-        return m_getHostOSBuiltin;
     case BuiltinValue::CanonicalArchitectureFunction:
         return m_canonicalArchitectureBuiltin;
     }
@@ -463,132 +460,6 @@ QScriptValue EvaluatorScriptClass::js_getEnv(QScriptContext *context, QScriptEng
     const QString value = e->environment().value(name);
     e->addEnvironmentVariable(name, value);
     return value.isNull() ? engine->undefinedValue() : value;
-}
-
-QScriptValue EvaluatorScriptClass::js_getHostOS(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(context);
-    QStringList hostSystem;
-
-#if defined(Q_OS_AIX)
-    hostSystem << QLatin1String("aix");
-#endif
-#if defined(Q_OS_ANDROID)
-    hostSystem << QLatin1String("android");
-#endif
-#if defined(Q_OS_BLACKBERRY)
-    hostSystem << QLatin1String("blackberry");
-#endif
-#if defined(Q_OS_BSD4)
-    hostSystem << QLatin1String("bsd") << QLatin1String("bsd4");
-#endif
-#if defined(Q_OS_BSDI)
-    hostSystem << QLatin1String("bsdi");
-#endif
-#if defined(Q_OS_CYGWIN)
-    hostSystem << QLatin1String("cygwin");
-#endif
-#if defined(Q_OS_DARWIN)
-    hostSystem << QLatin1String("darwin");
-#endif
-#if defined(Q_OS_DGUX)
-    hostSystem << QLatin1String("dgux");
-#endif
-#if defined(Q_OS_DYNIX)
-    hostSystem << QLatin1String("dynix");
-#endif
-#if defined(Q_OS_FREEBSD)
-    hostSystem << QLatin1String("freebsd");
-#endif
-#if defined(Q_OS_HPUX)
-    hostSystem << QLatin1String("hpux");
-#endif
-#if defined(Q_OS_HURD)
-    hostSystem << QLatin1String("hurd");
-#endif
-#if defined(Q_OS_INTEGRITY)
-    hostSystem << QLatin1String("integrity");
-#endif
-#if defined(Q_OS_IOS)
-    hostSystem << QLatin1String("ios");
-#endif
-#if defined(Q_OS_IRIX)
-    hostSystem << QLatin1String("irix");
-#endif
-#if defined(Q_OS_LINUX)
-    hostSystem << QLatin1String("linux");
-#endif
-#if defined(Q_OS_LYNX)
-    hostSystem << QLatin1String("lynx");
-#endif
-#if defined(Q_OS_MACX)
-    hostSystem << QLatin1String("osx");
-#endif
-#if defined(Q_OS_MSDOS)
-    hostSystem << QLatin1String("msdos");
-#endif
-#if defined(Q_OS_NACL)
-    hostSystem << QLatin1String("nacl");
-#endif
-#if defined(Q_OS_NETBSD)
-    hostSystem << QLatin1String("netbsd");
-#endif
-#if defined(Q_OS_OPENBSD)
-    hostSystem << QLatin1String("openbsd");
-#endif
-#if defined(Q_OS_OS2)
-    hostSystem << QLatin1String("os2");
-#endif
-#if defined(Q_OS_OS2EMX)
-    hostSystem << QLatin1String("os2emx");
-#endif
-#if defined(Q_OS_OSF)
-    hostSystem << QLatin1String("osf");
-#endif
-#if defined(Q_OS_QNX)
-    hostSystem << QLatin1String("qnx");
-#endif
-#if defined(Q_OS_ONX6)
-    hostSystem << QLatin1String("qnx6");
-#endif
-#if defined(Q_OS_RELIANT)
-    hostSystem << QLatin1String("reliant");
-#endif
-#if defined(Q_OS_SCO)
-    hostSystem << QLatin1String("sco");
-#endif
-#if defined(Q_OS_SOLARIS)
-    hostSystem << QLatin1String("solaris");
-#endif
-#if defined(Q_OS_SYMBIAN)
-    hostSystem << QLatin1String("symbian");
-#endif
-#if defined(Q_OS_ULTRIX)
-    hostSystem << QLatin1String("ultrix");
-#endif
-#if defined(Q_OS_UNIX)
-    hostSystem << QLatin1String("unix");
-#endif
-#if defined(Q_OS_UNIXWARE)
-    hostSystem << QLatin1String("unixware");
-#endif
-#if defined(Q_OS_VXWORKS)
-    hostSystem << QLatin1String("vxworks");
-#endif
-#if defined(Q_OS_WIN32)
-    hostSystem << QLatin1String("windows");
-#endif
-#if defined(Q_OS_WINCE)
-    hostSystem << QLatin1String("windowsce");
-#endif
-#if defined(Q_OS_WINPHONE)
-    hostSystem << QLatin1String("windowsphone");
-#endif
-#if defined(Q_OS_WINRT)
-    hostSystem << QLatin1String("winrt");
-#endif
-
-    return engine->toScriptValue(hostSystem);
 }
 
 QScriptValue EvaluatorScriptClass::js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine)

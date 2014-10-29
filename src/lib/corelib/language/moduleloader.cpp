@@ -959,14 +959,138 @@ void ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
     item->modules() += baseModuleDesc;
 }
 
+static QStringList hostOS()
+{
+    QStringList hostSystem;
+
+#if defined(Q_OS_AIX)
+    hostSystem << QLatin1String("aix");
+#endif
+#if defined(Q_OS_ANDROID)
+    hostSystem << QLatin1String("android");
+#endif
+#if defined(Q_OS_BLACKBERRY)
+    hostSystem << QLatin1String("blackberry");
+#endif
+#if defined(Q_OS_BSD4)
+    hostSystem << QLatin1String("bsd") << QLatin1String("bsd4");
+#endif
+#if defined(Q_OS_BSDI)
+    hostSystem << QLatin1String("bsdi");
+#endif
+#if defined(Q_OS_CYGWIN)
+    hostSystem << QLatin1String("cygwin");
+#endif
+#if defined(Q_OS_DARWIN)
+    hostSystem << QLatin1String("darwin");
+#endif
+#if defined(Q_OS_DGUX)
+    hostSystem << QLatin1String("dgux");
+#endif
+#if defined(Q_OS_DYNIX)
+    hostSystem << QLatin1String("dynix");
+#endif
+#if defined(Q_OS_FREEBSD)
+    hostSystem << QLatin1String("freebsd");
+#endif
+#if defined(Q_OS_HPUX)
+    hostSystem << QLatin1String("hpux");
+#endif
+#if defined(Q_OS_HURD)
+    hostSystem << QLatin1String("hurd");
+#endif
+#if defined(Q_OS_INTEGRITY)
+    hostSystem << QLatin1String("integrity");
+#endif
+#if defined(Q_OS_IOS)
+    hostSystem << QLatin1String("ios");
+#endif
+#if defined(Q_OS_IRIX)
+    hostSystem << QLatin1String("irix");
+#endif
+#if defined(Q_OS_LINUX)
+    hostSystem << QLatin1String("linux");
+#endif
+#if defined(Q_OS_LYNX)
+    hostSystem << QLatin1String("lynx");
+#endif
+#if defined(Q_OS_OSX)
+    hostSystem << QLatin1String("osx");
+#endif
+#if defined(Q_OS_MSDOS)
+    hostSystem << QLatin1String("msdos");
+#endif
+#if defined(Q_OS_NACL)
+    hostSystem << QLatin1String("nacl");
+#endif
+#if defined(Q_OS_NETBSD)
+    hostSystem << QLatin1String("netbsd");
+#endif
+#if defined(Q_OS_OPENBSD)
+    hostSystem << QLatin1String("openbsd");
+#endif
+#if defined(Q_OS_OS2)
+    hostSystem << QLatin1String("os2");
+#endif
+#if defined(Q_OS_OS2EMX)
+    hostSystem << QLatin1String("os2emx");
+#endif
+#if defined(Q_OS_OSF)
+    hostSystem << QLatin1String("osf");
+#endif
+#if defined(Q_OS_QNX)
+    hostSystem << QLatin1String("qnx");
+#endif
+#if defined(Q_OS_ONX6)
+    hostSystem << QLatin1String("qnx6");
+#endif
+#if defined(Q_OS_RELIANT)
+    hostSystem << QLatin1String("reliant");
+#endif
+#if defined(Q_OS_SCO)
+    hostSystem << QLatin1String("sco");
+#endif
+#if defined(Q_OS_SOLARIS)
+    hostSystem << QLatin1String("solaris");
+#endif
+#if defined(Q_OS_SYMBIAN)
+    hostSystem << QLatin1String("symbian");
+#endif
+#if defined(Q_OS_ULTRIX)
+    hostSystem << QLatin1String("ultrix");
+#endif
+#if defined(Q_OS_UNIX)
+    hostSystem << QLatin1String("unix");
+#endif
+#if defined(Q_OS_UNIXWARE)
+    hostSystem << QLatin1String("unixware");
+#endif
+#if defined(Q_OS_VXWORKS)
+    hostSystem << QLatin1String("vxworks");
+#endif
+#if defined(Q_OS_WIN32)
+    hostSystem << QLatin1String("windows");
+#endif
+#if defined(Q_OS_WINCE)
+    hostSystem << QLatin1String("windowsce");
+#endif
+#if defined(Q_OS_WINPHONE)
+    hostSystem << QLatin1String("windowsphone");
+#endif
+#if defined(Q_OS_WINRT)
+    hostSystem << QLatin1String("winrt");
+#endif
+
+    return hostSystem;
+}
+
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
     prototype->setProperty(QLatin1String("getNativeSetting"),
                            BuiltinValue::create(BuiltinValue::GetNativeSettingFunction));
     const BuiltinValuePtr getEnvValue = BuiltinValue::create(BuiltinValue::GetEnvFunction);
     prototype->setProperty(QLatin1String("getEnv"), getEnvValue);
-    prototype->setProperty(QLatin1String("getHostOS"),
-                           BuiltinValue::create(BuiltinValue::GetHostOSFunction));
+    prototype->setProperty(QLatin1String("hostOS"), VariantValue::create(hostOS()));
     prototype->setProperty(QLatin1String("canonicalArchitecture"),
                            BuiltinValue::create(BuiltinValue::CanonicalArchitectureFunction));
 }

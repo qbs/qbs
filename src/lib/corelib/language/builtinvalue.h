@@ -43,7 +43,6 @@ public:
     {
         GetNativeSettingFunction,
         GetEnvFunction,
-        GetHostOSFunction,
         CanonicalArchitectureFunction
     };
 

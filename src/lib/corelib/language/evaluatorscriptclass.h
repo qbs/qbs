@@ -67,7 +67,6 @@ private:
     static Item *findParentOfType(const Item *item, const QString &typeName);
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getHostOS(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
 
     struct QueryResult
@@ -89,7 +88,6 @@ private:
     Logger m_logger;
     QScriptValue m_getNativeSettingBuiltin;
     QScriptValue m_getEnvBuiltin;
-    QScriptValue m_getHostOSBuiltin;
     QScriptValue m_canonicalArchitectureBuiltin;
 };
 

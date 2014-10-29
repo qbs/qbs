@@ -7,7 +7,7 @@ Module {
     property bool enableDebugCode: buildVariant == "debug"
     property bool debugInformation: (buildVariant == "debug")
     property string optimization: (buildVariant == "debug" ? "none" : "fast")
-    property stringList hostOS: getHostOS()
+    readonly property stringList hostOS: undefined // set internally
     property string hostOSVersion: {
         if (hostOS && hostOS.contains("osx")) {
             return getNativeSetting("/System/Library/CoreServices/ServerVersion.plist", "ProductVersion") ||

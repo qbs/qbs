@@ -48,14 +48,6 @@
     Tries to find a variable with the given name in the build environment and returns its value. If
     no such variable could be found, \c undefined is returned.
 
-    \section2 qbs.getHostOS
-    \code
-    qbs.getHostOS(): string
-    \endcode
-    Returns the name of the operating system on which \QBS is running.
-    \note Do not confuse this with the \c{qbs.targetOS} property, which represents the operating
-    system on which the binaries produced by \QBS will run.
-
     \section2 loadFile
     \code
     loadFile(filePath: string): any
