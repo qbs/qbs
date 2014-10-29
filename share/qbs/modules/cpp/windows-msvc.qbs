@@ -17,6 +17,7 @@ CppModule {
     warningLevel: "default"
     compilerName: "cl.exe"
     linkerName: "link.exe"
+    runtimeLibrary: "dynamic"
 
     property bool generateManifestFiles: true
     property path toolchainInstallPath
