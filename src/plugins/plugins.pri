@@ -1,10 +1,7 @@
 !isEmpty(QBS_PLUGINS_BUILD_DIR) {
     destdirPrefix = $${QBS_PLUGINS_BUILD_DIR}
 } else {
-    greaterThan(QT_MAJOR_VERSION, 4): \
-        destdirPrefix = $$shadowed($$PWD)/../../lib
-    else: \
-        destdirPrefix = ../../../../lib # Note: Will break if pri file is included from some other place
+    destdirPrefix = $$shadowed($$PWD)/../../lib
 }
 DESTDIR = $${destdirPrefix}/qbs/plugins
 TEMPLATE = lib
