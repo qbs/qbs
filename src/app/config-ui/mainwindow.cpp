@@ -30,7 +30,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "settingsmodel.h"
+#include <tools/settingsmodel.h>
 
 #include <QAction>
 #include <QKeyEvent>
@@ -46,7 +46,7 @@ MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_model = new SettingsModel(settingsDir, this);
+    m_model = new qbs::SettingsModel(settingsDir, this);
     ui->treeView->setModel(m_model);
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, SIGNAL(expanded(QModelIndex)), SLOT(adjustColumns()));

@@ -327,6 +327,7 @@ QbsLibrary {
             "scripttools.cpp",
             "scripttools.h",
             "settings.cpp",
+            "settingsmodel.cpp",
             "setupprojectparameters.cpp",
             "shellutils.cpp",
             "shellutils.h",
@@ -350,6 +351,7 @@ QbsLibrary {
             "profile.h",
             "qbs_export.h",
             "settings.h",
+            "settingsmodel.h",
             "setupprojectparameters.h",
         ]
         qbs.install: project.installApiHeaders

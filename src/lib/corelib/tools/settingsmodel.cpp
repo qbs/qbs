@@ -29,13 +29,15 @@
 ****************************************************************************/
 #include "settingsmodel.h"
 
-#include "../shared/qbssettings.h"
+#include <tools/scripttools.h>
+#include <tools/settings.h>
 
 #include <QList>
 #include <QScopedPointer>
 #include <QString>
 
-using qbs::Settings;
+namespace qbs {
+namespace Internal {
 
 struct Node
 {
@@ -51,23 +53,56 @@ struct Node
     QList<Node *> children;
 };
 
+QString Node::uniqueChildName() const
+{
+    QString newName = QLatin1String("newkey");
+    bool unique;
+    do {
+        unique = true;
+        foreach (const Node *childNode, children) {
+            if (childNode->name == newName) {
+                unique = false;
+                newName += QLatin1Char('_');
+                break;
+            }
+        }
+    } while (!unique);
+    return newName;
+}
+
+bool Node::hasDirectChildWithName(const QString &name) const
+{
+    foreach (const Node * const child, children) {
+        if (child->name == name)
+            return true;
+    }
+    return false;
+}
+
+} // namespace Internal
+
+using Internal::Node;
+
 class SettingsModel::SettingsModelPrivate
 {
 public:
+    SettingsModelPrivate() : dirty(false), editable(true) {}
+
     void readSettings();
     void addNode(Node *parentNode, const QString &fullyQualifiedName);
     void doSave(const Node *node, const QString &prefix);
     Node *indexToNode(const QModelIndex &index);
 
     Node rootNode;
-    QScopedPointer<Settings> settings;
+    QScopedPointer<qbs::Settings> settings;
     bool dirty;
+    bool editable;
 };
 
 SettingsModel::SettingsModel(const QString &settingsDir, QObject *parent)
     : QAbstractItemModel(parent), d(new SettingsModelPrivate)
 {
-    d->settings.reset(new Settings(settingsDir));
+    d->settings.reset(new qbs::Settings(settingsDir));
     d->readSettings();
 }
 
@@ -124,20 +159,28 @@ bool SettingsModel::hasUnsavedChanges() const
     return d->dirty;
 }
 
+void SettingsModel::setEditable(bool isEditable)
+{
+    d->editable = isEditable;
+}
+
 Qt::ItemFlags SettingsModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemFlags();
     const Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-    if (index.column() == keyColumn())
-        return flags | Qt::ItemIsEditable;
+    if (index.column() == keyColumn()) {
+        if (d->editable)
+            return flags | Qt::ItemIsEditable;
+        return flags;
+    }
     if (index.column() == valueColumn()) {
         const Node * const node = d->indexToNode(index);
         if (!node)
             return Qt::ItemFlags();
 
         // Only leaf nodes have values.
-        return node->children.isEmpty() ? flags | Qt::ItemIsEditable : flags;
+        return d->editable && node->children.isEmpty() ? flags | Qt::ItemIsEditable : flags;
     }
     return Qt::ItemFlags();
 }
@@ -270,28 +313,30 @@ Node *SettingsModel::SettingsModelPrivate::indexToNode(const QModelIndex &index)
 }
 
 
-QString Node::uniqueChildName() const
+QString settingsValueToRepresentation(const QVariant &value)
 {
-    QString newName = QLatin1String("newkey");
-    bool unique;
-    do {
-        unique = true;
-        foreach (const Node *childNode, children) {
-            if (childNode->name == newName) {
-                unique = false;
-                newName += QLatin1Char('_');
-                break;
-            }
-        }
-    } while (!unique);
-    return newName;
+    return toJSLiteral(value);
 }
 
-bool Node::hasDirectChildWithName(const QString &name) const
+static QVariant variantFromString(const QString &str)
 {
-    foreach (const Node * const child, children) {
-        if (child->name == name)
-            return true;
-    }
-    return false;
+    // ### use Qt5's JSON reader at some point.
+    QScriptEngine engine;
+    QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
+                                      + str + QLatin1String(";})()"));
+    if (sv.isError())
+        return QVariant();
+    return sv.toVariant();
 }
+
+QVariant representationToSettingsValue(const QString &representation)
+{
+    const QVariant variant = variantFromString(representation);
+    if (variant.isValid())
+        return variant;
+
+    // If it's not valid JavaScript, interpret the value as a string.
+    return representation;
+}
+
+} // namespace qbs

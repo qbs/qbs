@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
     $$PWD/settings.h \
+    $$PWD/settingsmodel.h \
     $$PWD/preferences.h \
     $$PWD/profile.h \
     $$PWD/processresult.h \
@@ -44,6 +45,7 @@ SOURCES += \
     $$PWD/scannerpluginmanager.cpp \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
+    $$PWD/settingsmodel.cpp \
     $$PWD/preferences.cpp \
     $$PWD/processresult.cpp \
     $$PWD/profile.cpp \
@@ -78,6 +80,7 @@ qbs_enable_unit_tests {
         $$PWD/codelocation.h \
         $$PWD/error.h \
         $$PWD/settings.h \
+        $$PWD/settingsmodel.h \
         $$PWD/preferences.h \
         $$PWD/profile.h \
         $$PWD/processresult.h \

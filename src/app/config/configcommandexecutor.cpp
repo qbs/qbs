@@ -31,8 +31,8 @@
 
 #include "configcommand.h"
 #include "../shared/logging/consolelogger.h"
-#include "../shared/qbssettings.h"
 
+#include <tools/settingsmodel.h>
 #include <tools/error.h>
 
 #include <QDir>
@@ -102,7 +102,7 @@ void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 void ConfigCommandExecutor::printOneSetting(const QString &key)
 {
     printf("%s: %s\n", qPrintable(key),
-           qPrintable(settingsValueToRepresentation(m_settings->value(key))));
+           qPrintable(qbs::settingsValueToRepresentation(m_settings->value(key))));
  }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
@@ -115,7 +115,7 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
     foreach (const QString &key, m_settings->allKeys())
-        stream << key << ": " << settingsValueToRepresentation(m_settings->value(key)) << endl;
+        stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key)) << endl;
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)

@@ -28,37 +28,45 @@
 **
 ****************************************************************************/
 
-#include "qbssettings.h"
+#include <tools/qbs_export.h>
 
-#include <tools/scripttools.h>
+#include <QAbstractItemModel>
 
-#include <QScriptEngine>
-#include <QScriptValue>
+namespace qbs {
 
-using qbs::toJSLiteral;
-
-QString settingsValueToRepresentation(const QVariant &value)
+class QBS_EXPORT SettingsModel : public QAbstractItemModel
 {
-    return toJSLiteral(value);
-}
+    Q_OBJECT
+public:
+    SettingsModel(const QString &settingsDir, QObject *parent = 0);
+    ~SettingsModel();
 
-static QVariant variantFromString(const QString &str)
-{
-    // ### use Qt5's JSON reader at some point.
-    QScriptEngine engine;
-    QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
-                                      + str + QLatin1String(";})()"));
-    if (sv.isError())
-        return QVariant();
-    return sv.toVariant();
-}
+    int keyColumn() const { return 0; }
+    int valueColumn() const { return 1; }
+    bool hasUnsavedChanges() const;
 
-QVariant representationToSettingsValue(const QString &representation)
-{
-    const QVariant variant = variantFromString(representation);
-    if (variant.isValid())
-        return variant;
+    void setEditable(bool isEditable);
+    void reload();
+    void save();
 
-    // If it's not valid JavaScript, interpret the value as a string.
-    return representation;
-}
+    void addNewKey(const QModelIndex &parent);
+    void removeKey(const QModelIndex &index);
+
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex &child) const;
+
+private:
+    class SettingsModelPrivate;
+    SettingsModelPrivate * const d;
+};
+
+QBS_EXPORT QString settingsValueToRepresentation(const QVariant &value);
+QBS_EXPORT QVariant representationToSettingsValue(const QString &representation);
+
+} // namespace qbs

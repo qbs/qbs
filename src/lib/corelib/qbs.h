@@ -45,6 +45,7 @@
 #include "tools/profile.h"
 #include "tools/processresult.h"
 #include "tools/settings.h"
+#include "tools/settingsmodel.h"
 #include "tools/setupprojectparameters.h"
 
 #endif // QBS_H

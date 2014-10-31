@@ -32,12 +32,12 @@
 
 #include <QMainWindow>
 
+namespace qbs { class SettingsModel; }
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 class QPoint;
 QT_END_NAMESPACE
-
-class SettingsModel;
 
 class MainWindow : public QMainWindow
 {
@@ -60,7 +60,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    SettingsModel *m_model;
+    qbs::SettingsModel *m_model;
 };
 
 #endif // MAINWINDOW_H

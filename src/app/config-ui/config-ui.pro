@@ -6,17 +6,13 @@ QT += gui widgets
 TARGET = qbs-config-ui
 
 HEADERS += \
-    ../shared/qbssettings.h \
     commandlineparser.h \
-    mainwindow.h \
-    settingsmodel.h
+    mainwindow.h
 
 SOURCES += \
-    ../shared/qbssettings.cpp \
     commandlineparser.cpp \
     main.cpp \
-    mainwindow.cpp \
-    settingsmodel.cpp
+    mainwindow.cpp
 
 OTHER_FILES += \
     Info.plist
