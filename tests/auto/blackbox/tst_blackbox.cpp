@@ -2390,7 +2390,6 @@ void TestBlackbox::testIconset()
     params.arguments = QStringList() << "-f" << "iconset.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
     QVERIFY(regularFileExists(productBuildDir("iconset") + "/white.icns"));
 }
 
@@ -2405,7 +2404,6 @@ void TestBlackbox::testIconsetApp()
     params.arguments = QStringList() << "-f" << "iconsetapp.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
     QVERIFY(regularFileExists(productBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
