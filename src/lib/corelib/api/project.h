@@ -30,6 +30,7 @@
 #ifndef QBS_PROJECT_H
 #define QBS_PROJECT_H
 
+#include "rulecommand.h"
 #include "../language/forward_decls.h"
 #include "../tools/qbs_export.h"
 
@@ -129,6 +130,9 @@ public:
     QHash<QString, QString> usedEnvironment() const;
 
     QSet<QString> buildSystemFiles() const;
+
+    RuleCommandList ruleCommands(const ProductData &product, const QString &inputFilePath,
+                                 const QString &outputFileTag, ErrorInfo *error = 0) const;
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);

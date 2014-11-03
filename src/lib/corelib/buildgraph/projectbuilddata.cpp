@@ -448,8 +448,12 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
 
     foreach (ResolvedProductPtr dependency, product->dependencies) {
         if (Q_UNLIKELY(!dependency->enabled)) {
-            QString msg = Tr::tr("Product '%1' depends on '%2' but '%2' is disabled.");
-            throw ErrorInfo(msg.arg(product->name, dependency->name));
+            ErrorInfo e;
+            e.append(Tr::tr("Product '%1' depends on '%2',")
+                     .arg(product->name, dependency->name), product->location);
+            e.append(Tr::tr("but product '%1' is disabled.").arg(dependency->name),
+                     dependency->location);
+            throw e;
         }
         resolveProductBuildData(dependency);
     }

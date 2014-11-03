@@ -65,6 +65,7 @@ private slots:
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     void changeContent();
 #endif
+    void commandExtraction();
     void changeDependentLib();
     void enableAndDisableProduct();
     void disabledInstallGroup();

@@ -75,9 +75,6 @@ Module {
     property string generatedFilesDir: product.buildDirectory + "/GeneratedFiles"
     property string qmFilesDir: product.destinationDirectory
 
-    // private properties
-    property string libraryInfix: cpp.debugInformation ? 'd' : ''
-
     cpp.defines: {
         var defines = @defines@;
         // ### QT_NO_DEBUG must be added if the current build variant is derived

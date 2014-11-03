@@ -19,12 +19,18 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
         args.push('/Os')
     else if (optimization === 'fast')
         args.push('/O2')
-    if (debugInformation) {
+
+    if (debugInformation)
         args.push('/Zi')
-        args.push('/MDd')
-    } else {
-        args.push('/MD')
+
+    var rtl = ModUtils.moduleProperty(product, "runtimeLibrary");
+    if (rtl) {
+        rtl = (rtl === "static" ? "/MT" : "/MD");
+        if (debugInformation)
+            rtl += "d";
+        args.push(rtl);
     }
+
     // warnings:
     var warningLevel = ModUtils.moduleProperty(input, "warningLevel")
     if (warningLevel === 'none')

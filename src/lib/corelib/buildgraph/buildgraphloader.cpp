@@ -275,6 +275,8 @@ void BuildGraphLoader::trackProjectChanges()
             if (newlyResolvedProduct->uniqueName() == restoredProduct->uniqueName()) {
                 if (newlyResolvedProduct->enabled)
                     newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
+                else
+                    productsWithChangedFiles.removeOne(restoredProduct);
                 if (newlyResolvedProduct->buildData) {
                     foreach (BuildGraphNode *node, newlyResolvedProduct->buildData->nodes)
                         node->product = newlyResolvedProduct;

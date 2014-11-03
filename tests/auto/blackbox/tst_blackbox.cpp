@@ -242,6 +242,21 @@ void TestBlackbox::changedFiles()
     QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::changeInDisabledProduct()
+{
+    QDir::setCurrent(testDataDir + "/change-in-disabled-product");
+    QCOMPARE(runQbs(), 0);
+    waitForNewTimestamp();
+    QFile projectFile("project.qbs");
+    QVERIFY2(projectFile.open(QIODevice::ReadWrite), qPrintable(projectFile.errorString()));
+    QByteArray content = projectFile.readAll();
+    content.replace("// 'test2.txt'", "'test2.txt'");
+    projectFile.resize(0);
+    projectFile.write(content);
+    projectFile.close();
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::dependenciesProperty()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/dependenciesProperty"));

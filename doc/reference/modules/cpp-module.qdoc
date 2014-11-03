@@ -467,6 +467,19 @@
     Name of the entry point of an executable or dynamic library. If this property is undefined, the
     toolchain's default is used.
 
+    \section2 runtimeLibrary
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"dynamic"} for MSVC, \c{undefined} for others
+    \endtable
+
+    Type of the used runtime library. Accepted values are \c{"static"} and \c{"dynamic"}.
+    If this property is set to \c{undefined}, then the default runtime library of the toolchain
+    is used.
+    \note For MSVC the default value is \c{"dynamic"}.
+    \note At the moment this property is only functional for MSVC.
+
 
     \section1 Properties Specific to iOS and OS X
 

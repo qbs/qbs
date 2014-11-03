@@ -160,6 +160,13 @@ Module {
         description: "entry point symbol for an executable or dynamic library"
     }
 
+    property string runtimeLibrary
+    PropertyOptions {
+        name: "runtimeLibrary"
+        description: "determine which runtime library to use"
+        allowedValues: ['static', 'dynamic']
+    }
+
     property string visibility: 'default'
     PropertyOptions {
         name: "visibility"

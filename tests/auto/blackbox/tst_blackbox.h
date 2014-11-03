@@ -96,6 +96,7 @@ private slots:
     void buildDirectories();
     void changedFiles_data();
     void changedFiles();
+    void changeInDisabledProduct();
     void dependenciesProperty();
     void dynamicMultiplexRule();
     void dynamicRuleOutputs();
