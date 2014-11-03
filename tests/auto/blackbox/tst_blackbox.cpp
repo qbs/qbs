@@ -61,6 +61,12 @@ static bool regularFileExists(const QString &filePath)
     return fi.exists() && fi.isFile();
 }
 
+static bool directoryExists(const QString &dirPath)
+{
+    const QFileInfo fi(dirPath);
+    return fi.exists() && fi.isDir();
+}
+
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
@@ -2448,7 +2454,7 @@ void TestBlackbox::testAssetCatalog()
 #ifdef Q_OS_MAC
     if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
 #endif
-        QVERIFY(regularFileExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
+        QVERIFY(directoryExists(productBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
 QString TestBlackbox::uniqueProductName(const QString &productName) const
