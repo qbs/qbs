@@ -496,7 +496,7 @@ private:
 
 void ScriptEngine::installQbsBuiltins()
 {
-    globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = evaluate(QLatin1String("{}")));
+    globalObject().setProperty(QLatin1String("qbs"), m_qbsObject = newObject());
     installQbsFunction(QLatin1String("getNativeSetting"),
                        EvaluatorScriptClass::js_getNativeSetting);
     installQbsFunction(QLatin1String("getEnv"),
