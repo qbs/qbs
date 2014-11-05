@@ -31,6 +31,7 @@
 #include <tools/qbs_export.h>
 
 #include <QAbstractItemModel>
+#include <QVariantMap>
 
 namespace qbs {
 
@@ -46,6 +47,7 @@ public:
     bool hasUnsavedChanges() const;
 
     void setEditable(bool isEditable);
+    void setAdditionalProperties(const QVariantMap &properties); // Flat map.
     void reload();
     void save();
 
