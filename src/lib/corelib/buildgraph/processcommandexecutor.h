@@ -49,6 +49,7 @@ class ProcessCommandExecutor : public AbstractCommandExecutor
 public:
     explicit ProcessCommandExecutor(const Internal::Logger &logger, QObject *parent = 0);
 
+    void setShowCommandLines(bool enabled) { m_showCommandLines = enabled;}
     void setProcessEnvironment(const QProcessEnvironment &processEnvironment) {
         m_buildEnvironment = processEnvironment;
     }
@@ -61,6 +62,7 @@ private slots:
     void onProcessFinished(int exitCode);
 
 private:
+    void doReportCommandDescription();
     void doStart();
     void cancel();
 
@@ -75,6 +77,7 @@ private:
     QStringList m_arguments;
 
     QProcess m_process;
+    bool m_showCommandLines;
     QProcessEnvironment m_buildEnvironment;
     QString m_responseFileName;
 };

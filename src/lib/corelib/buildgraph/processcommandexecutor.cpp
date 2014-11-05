@@ -58,6 +58,7 @@ namespace Internal {
 
 ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *parent)
     : AbstractCommandExecutor(logger, parent)
+    , m_showCommandLines(false)
 {
     connect(&m_process, SIGNAL(error(QProcess::ProcessError)),  SLOT(onProcessError()));
     connect(&m_process, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
@@ -267,6 +268,19 @@ void ProcessCommandExecutor::onProcessFinished(int exitCode)
         emit finished(ErrorInfo(Tr::tr("Process failed with exit code %1.").arg(exitCode)));
     else
         emit finished();
+}
+
+void ProcessCommandExecutor::doReportCommandDescription()
+{
+    if (m_showCommandLines) {
+        const ProcessCommand * const cmd = processCommand();
+        emit reportCommandDescription(QString(),
+                                      cmd->program() + QLatin1Char(' ')
+                                      + cmd->arguments().join(QLatin1Char(' ')));
+        return;
+    }
+
+    AbstractCommandExecutor::doReportCommandDescription();
 }
 
 void ProcessCommandExecutor::removeResponseFile()

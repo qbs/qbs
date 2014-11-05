@@ -215,7 +215,8 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ProductsOptionType
             << CommandLineOption::ChangedFilesOptionType
             << CommandLineOption::ForceTimestampCheckOptionType
-            << CommandLineOption::BuildNonDefaultOptionType;
+            << CommandLineOption::BuildNonDefaultOptionType
+            << CommandLineOption::ShowCommandLinesOptionType;
 }
 
 QList<CommandLineOption::Type> BuildCommand::supportedOptions() const

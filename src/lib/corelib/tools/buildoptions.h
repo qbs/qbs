@@ -71,6 +71,9 @@ public:
     bool logElapsedTime() const;
     void setLogElapsedTime(bool log);
 
+    bool showCommandLines() const;
+    void setShowCommandLines(bool b);
+
 private:
     QSharedDataPointer<Internal::BuildOptionsPrivate> d;
 };

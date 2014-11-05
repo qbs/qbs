@@ -52,15 +52,22 @@ void AbstractCommandExecutor::start(Transformer *transformer, const AbstractComm
 {
     m_transformer = transformer;
     m_command = cmd;
-    if (!m_command->isSilent()) {
-        if (m_command->description().isEmpty()) {
-            m_logger.printWarning(ErrorInfo(Tr::tr("Command is not marked silent, but has no "
-                                                   "description."), m_command->codeLocation()));
-        } else {
-            emit reportCommandDescription(m_command->highlight(), m_command->description());
-        }
-    }
+    doReportCommandDescription();
     doStart();
+}
+
+void AbstractCommandExecutor::doReportCommandDescription()
+{
+    if (m_command->isSilent())
+        return;
+
+    if (m_command->description().isEmpty()) {
+        m_logger.printWarning(
+                    ErrorInfo(Tr::tr("Command is not marked silent, but has no description."),
+                              m_command->codeLocation()));
+    } else {
+        emit reportCommandDescription(m_command->highlight(), m_command->description());
+    }
 }
 
 } // namespace Internal

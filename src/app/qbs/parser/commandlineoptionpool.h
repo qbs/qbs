@@ -61,6 +61,7 @@ public:
     ForceTimeStampCheckOption *forceTimestampCheckOption() const;
     BuildNonDefaultOption *buildNonDefaultOption() const;
     LogTimeOption *logTimeOption() const;
+    ShowCommandLinesOption *showCommandLinesOption() const;
     SettingsDirOption *settingsDirOption() const;
 
 private:

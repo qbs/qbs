@@ -58,6 +58,7 @@ public:
 
     void setMainThreadScriptEngine(ScriptEngine *engine);
     void setDryRun(bool enabled);
+    void setShowCommandLines(bool enabled);
     void run(Transformer *t);
     void cancel();
 

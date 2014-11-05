@@ -478,6 +478,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     const JobsOption * jobsOption = optionPool.jobsOption();
     buildOptions.setMaxJobCount(jobsOption->jobCount());
     buildOptions.setLogElapsedTime(logTime);
+    buildOptions.setShowCommandLines(optionPool.showCommandLinesOption()->enabled());
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupProgress()

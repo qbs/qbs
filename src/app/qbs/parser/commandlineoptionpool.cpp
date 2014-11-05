@@ -98,6 +98,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::LogTimeOptionType:
             option = new LogTimeOption;
             break;
+        case CommandLineOption::ShowCommandLinesOptionType:
+            option = new ShowCommandLinesOption;
+            break;
         case CommandLineOption::SettingsDirOptionType:
             option = new SettingsDirOption;
             break;
@@ -203,6 +206,12 @@ BuildNonDefaultOption *CommandLineOptionPool::buildNonDefaultOption() const
 LogTimeOption *CommandLineOptionPool::logTimeOption() const
 {
     return static_cast<LogTimeOption *>(getOption(CommandLineOption::LogTimeOptionType));
+}
+
+ShowCommandLinesOption *CommandLineOptionPool::showCommandLinesOption() const
+{
+    return static_cast<ShowCommandLinesOption *>(
+                getOption(CommandLineOption::ShowCommandLinesOptionType));
 }
 
 SettingsDirOption *CommandLineOptionPool::settingsDirOption() const

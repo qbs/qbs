@@ -78,6 +78,11 @@ void ExecutorJob::setDryRun(bool enabled)
     m_jsCommandExecutor->setDryRunEnabled(enabled);
 }
 
+void ExecutorJob::setShowCommandLines(bool enabled)
+{
+    m_processCommandExecutor->setShowCommandLines(enabled);
+}
+
 void ExecutorJob::run(Transformer *t)
 {
     QBS_ASSERT(m_currentCommandIdx == -1, return);

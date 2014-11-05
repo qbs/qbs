@@ -55,6 +55,7 @@ public:
         ForceTimestampCheckOptionType,
         BuildNonDefaultOptionType,
         LogTimeOptionType,
+        ShowCommandLinesOptionType,
         SettingsDirOptionType
     };
 
@@ -297,6 +298,14 @@ class LogTimeOption : public OnOffOption
 public:
     QString description(CommandType command) const;
     QString shortRepresentation() const;
+    QString longRepresentation() const;
+};
+
+class ShowCommandLinesOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const;
+    QString shortRepresentation() const { return QString(); }
     QString longRepresentation() const;
 };
 

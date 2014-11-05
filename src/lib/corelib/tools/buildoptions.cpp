@@ -40,7 +40,7 @@ class BuildOptionsPrivate : public QSharedData
 public:
     BuildOptionsPrivate()
         : maxJobCount(0), dryRun(false), keepGoing(false), forceTimestampCheck(false),
-          logElapsedTime(false)
+          logElapsedTime(false), showCommandLines(false)
     {
     }
 
@@ -52,6 +52,7 @@ public:
     bool keepGoing;
     bool forceTimestampCheck;
     bool logElapsedTime;
+    bool showCommandLines;
 };
 
 } // namespace Internal
@@ -251,6 +252,23 @@ void BuildOptions::setLogElapsedTime(bool log)
     d->logElapsedTime = log;
 }
 
+/*!
+ * \brief Returns true iff command lines should be shown during the build.
+ * The default is \c false.
+ */
+bool BuildOptions::showCommandLines() const
+{
+    return d->showCommandLines;
+}
+
+/*!
+ * \brief Controls whether to show command lines during the build.
+ */
+void BuildOptions::setShowCommandLines(bool b)
+{
+    d->showCommandLines = b;
+}
+
 
 bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
 {
@@ -258,6 +276,7 @@ bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
             && bo1.dryRun() == bo2.dryRun()
             && bo1.keepGoing() == bo2.keepGoing()
             && bo1.logElapsedTime() == bo2.logElapsedTime()
+            && bo1.showCommandLines() == bo2.showCommandLines()
             && bo1.maxJobCount() == bo2.maxJobCount();
 }
 

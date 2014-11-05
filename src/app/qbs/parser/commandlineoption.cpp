@@ -515,4 +515,16 @@ void SettingsDirOption::doParse(const QString &representation, QStringList &inpu
     m_settingsDir = input.takeFirst();
 }
 
+QString ShowCommandLinesOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tShow command lines instead of command descriptions.\n")
+            .arg(longRepresentation());
+}
+
+QString ShowCommandLinesOption::longRepresentation() const
+{
+    return QLatin1String("--show-command-lines");
+}
+
 } // namespace qbs
