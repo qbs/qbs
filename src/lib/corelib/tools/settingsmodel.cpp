@@ -32,7 +32,10 @@
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 
+#ifdef QT_GUI_LIB
 #include <QBrush>
+#endif
+
 #include <QList>
 #include <QScopedPointer>
 #include <QString>
@@ -232,8 +235,10 @@ QVariant SettingsModel::data(const QModelIndex &index, int role) const
     if (!node)
         return QVariant();
     if (role == Qt::ForegroundRole) {
+#ifdef QT_GUI_LIB
         if (index.column() == valueColumn() && !node->isFromSettings)
             return QBrush(Qt::red);
+#endif
         return QVariant();
     }
     if (index.column() == keyColumn())
