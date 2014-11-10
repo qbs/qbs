@@ -278,6 +278,7 @@ void BuiltinDeclarations::addProductItem()
             << QLatin1String("FileTagger")
             << QLatin1String("Export")
             << QLatin1String("Probe")
+            << QLatin1String("PropertyOptions")
             << QLatin1String("Rule"));
     item << conditionProperty();
     PropertyDeclaration decl(QLatin1String("type"), PropertyDeclaration::StringList);
@@ -315,6 +316,7 @@ void BuiltinDeclarations::addProjectItem()
     ItemDeclaration item(QLatin1String("Project"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << QLatin1String("Project")
+            << QLatin1String("PropertyOptions")
             << QLatin1String("SubProject")
             << QLatin1String("Product")
             << QLatin1String("FileTagger")
@@ -384,7 +386,8 @@ void BuiltinDeclarations::addSubprojectItem()
     ItemDeclaration item(QLatin1String("SubProject"));
     item.setAllowedChildTypes(ItemDeclaration::TypeNames()
             << QLatin1String("Project") // needed, because we're adding this internally
-            << QLatin1String("Properties"));
+            << QLatin1String("Properties")
+            << QLatin1String("PropertyOptions"));
     item << PropertyDeclaration(QLatin1String("filePath"), PropertyDeclaration::Path);
     PropertyDeclaration inheritProperty;
     inheritProperty.setName(QLatin1String("inheritProperties"));

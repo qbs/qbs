@@ -245,6 +245,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
     mapping["Product"] = &ProjectResolver::resolveProduct;
     mapping["FileTagger"] = &ProjectResolver::resolveFileTagger;
     mapping["Rule"] = &ProjectResolver::resolveRule;
+    mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
 
     foreach (Item *child, item->children())
         callItemFunction(mapping, child, projectContext);
@@ -361,6 +362,7 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     mapping["Group"] = &ProjectResolver::resolveGroup;
     mapping["Export"] = &ProjectResolver::resolveExport;
     mapping["Probe"] = &ProjectResolver::ignoreItem;
+    mapping["PropertyOptions"] = &ProjectResolver::ignoreItem;
 
     foreach (Item *child, subItems)
         callItemFunction(mapping, child, projectContext);
