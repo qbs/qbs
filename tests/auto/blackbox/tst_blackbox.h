@@ -140,6 +140,7 @@ private slots:
     void overrideProjectProperties();
     void productProperties();
     void propertyChanges();
+    void qobjectInObjectiveCpp();
     void installedApp();
     void toolLookup();
     void checkProjectFilePath();

@@ -1094,6 +1094,15 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("Making output from input"));
 }
 
+void TestBlackbox::qobjectInObjectiveCpp()
+{
+    if (!HostOsInfo::isOsxHost())
+        QSKIP("only applies on OS X");
+    const QString testDir = testDataDir + "/qobject-in-mm";
+    QDir::setCurrent(testDir);
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::dynamicMultiplexRule()
 {
     const QString testDir = testDataDir + "/dynamicMultiplexRule";
