@@ -293,7 +293,7 @@ void BuiltinDeclarations::addProductItem()
     item << decl;
     item << PropertyDeclaration(QLatin1String("profile"), PropertyDeclaration::String); // Internal
     decl = PropertyDeclaration(QLatin1String("targetName"), PropertyDeclaration::String);
-    decl.setInitialValueSource(QLatin1String("name"));
+    decl.setInitialValueSource(QLatin1String("qbs.rfc1034Identifier(name)"));
     item << buildDirProperty();
     item << decl;
     decl = PropertyDeclaration(QLatin1String("destinationDirectory"), PropertyDeclaration::String);
