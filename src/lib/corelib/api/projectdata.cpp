@@ -448,6 +448,14 @@ QList<GroupData> ProductData::groups() const
 }
 
 /*!
+ * \brief The product properties.
+ */
+QVariantMap ProductData::properties() const
+{
+    return d->properties;
+}
+
+/*!
  * \brief Returns true if this Product is enabled in Qbs.
  * This method returns the \c condition property of the \c Product definition. If a product is
  * enabled, then it will be built in the current configuration.
@@ -480,6 +488,7 @@ bool operator==(const ProductData &lhs, const ProductData &rhs)
             && lhs.location() == rhs.location()
             && lhs.groups() == rhs.groups()
             && lhs.targetArtifacts() == rhs.targetArtifacts()
+            && lhs.properties() == rhs.properties()
             && lhs.isEnabled() == rhs.isEnabled();
 }
 

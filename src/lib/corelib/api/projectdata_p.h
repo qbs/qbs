@@ -88,6 +88,7 @@ public:
     QString profile;
     CodeLocation location;
     QList<GroupData> groups;
+    QVariantMap properties;
     QList<TargetArtifact> targetArtifacts;
     bool isEnabled;
     bool isRunnable;
