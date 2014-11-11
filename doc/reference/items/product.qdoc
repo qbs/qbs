@@ -121,7 +121,7 @@
         \row
             \li targetName
             \li string
-            \li \c qbs.rfc1034Identifier(name)
+            \li \c{name} with illegal file name characters replaced by underscores
             \li The base file name of the product's target artifacts.
         \row
             \li destinationDirectory
