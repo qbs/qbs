@@ -181,6 +181,7 @@ public:
     CodeLocation location() const;
     QList<TargetArtifact> targetArtifacts() const;
     QList<GroupData> groups() const;
+    QVariantMap properties() const;
     bool isEnabled() const;
     bool isRunnable() const;
 

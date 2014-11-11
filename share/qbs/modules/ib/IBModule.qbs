@@ -122,7 +122,7 @@ Module {
                     path += '/' + subPath;
             } else {
                 path += '/' + BundleTools.unlocalizedResourcesFolderPath(product);
-                path += '/' + qbs.getHash(input.baseDir);
+                path += '/' + input.baseDir;
             }
 
             var suffix = "";

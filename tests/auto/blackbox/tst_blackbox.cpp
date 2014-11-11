@@ -55,6 +55,12 @@ using qbs::Internal::removeDirectoryWithContents;
 using qbs::Profile;
 using qbs::Settings;
 
+static bool directoryExists(const QString &dirPath)
+{
+    const QFileInfo fi(dirPath);
+    return fi.exists() && fi.isDir();
+}
+
 static QString initQbsExecutableFilePath()
 {
     QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
@@ -1843,7 +1849,6 @@ void TestBlackbox::testIconset()
     params.arguments = QStringList() << "-f" << "iconset.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
     QVERIFY(regularFileExists(relativeProductBuildDir("iconset") + "/white.icns"));
 }
 
@@ -1858,7 +1863,6 @@ void TestBlackbox::testIconsetApp()
     params.arguments = QStringList() << "-f" << "iconsetapp.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY((bool)m_qbsStdout.contains("warning")); // because some images are missing
     QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
 }
 
@@ -1907,7 +1911,7 @@ void TestBlackbox::testAssetCatalog()
 #ifdef Q_OS_MAC
     if (QSysInfo::macVersion() >= Q_MV_OSX(10, 10))
 #endif
-        QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
+        QVERIFY(directoryExists(relativeProductBuildDir("assetcatalogempty") + "/assetcatalogempty.app/Contents/Resources/Storyboard.storyboardc"));
 }
 
 void TestBlackbox::testObjcArc()
