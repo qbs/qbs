@@ -228,7 +228,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
             if (!QFile::exists(qtEnvironment.mkspecPath)) {
                 // Work around QTBUG-28792.
                 // The value of QMAKESPEC_ORIGINAL is wrong for MinGW packages. Y u h8 me?
-                const QRegExp rex(QLatin1String("\\binclude\\(([^)]+qmake\\.conf)\\)"));
+                const QRegExp rex(QLatin1String("\\binclude\\(([^)]+)/qmake\\.conf\\)"));
                 if (rex.indexIn(fileContent) != -1)
                     qtEnvironment.mkspecPath = QDir::cleanPath(baseDirPath + rex.cap(1));
             }
