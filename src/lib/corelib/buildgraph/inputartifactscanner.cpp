@@ -279,30 +279,27 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
 {
     foreach (const ScanResultCache::Dependency &dependency, scanResult.deps) {
         const QString &dependencyFilePath = dependency.filePath();
-        ResolvedDependency pristineResolvedDependency;
-        ResolvedDependency *resolvedDependency = &pristineResolvedDependency;
-        InputArtifactScannerContext::ResolvedDependencyCacheItem *cachedResolvedDependencyItem = 0;
-
-        cachedResolvedDependencyItem = &cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
-        resolvedDependency = &cachedResolvedDependencyItem->resolvedDependency;
-        if (cachedResolvedDependencyItem->valid) {
-            if (resolvedDependency->filePath.isEmpty())
+        InputArtifactScannerContext::ResolvedDependencyCacheItem &cachedResolvedDependencyItem
+                = cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
+        ResolvedDependency &resolvedDependency = cachedResolvedDependencyItem.resolvedDependency;
+        if (cachedResolvedDependencyItem.valid) {
+            if (resolvedDependency.filePath.isEmpty())
                 goto unresolved;
             goto resolved;
         }
-        cachedResolvedDependencyItem->valid = true;
+        cachedResolvedDependencyItem.valid = true;
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
             resolveAbsolutePath(dependency, inputArtifact->product.data(),
-                                resolvedDependency);
+                                &resolvedDependency);
             goto resolved;
         }
 
         // try include paths
         foreach (const QString &includePath, cache.searchPaths) {
             resolveWithIncludePath(includePath, dependency, inputArtifact->product.data(),
-                                   resolvedDependency);
-            if (resolvedDependency->isValid())
+                                   &resolvedDependency);
+            if (resolvedDependency.isValid())
                 goto resolved;
         }
 
@@ -312,16 +309,16 @@ unresolved:
         continue;
 
 resolved:
-        handleDependency(*resolvedDependency);
-        if (artifactsToScan && resolvedDependency->file) {
-            if (Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency->file)) {
+        handleDependency(resolvedDependency);
+        if (artifactsToScan && resolvedDependency.file) {
+            if (Artifact *artifactDependency = dynamic_cast<Artifact *>(resolvedDependency.file)) {
                 // Do not scan artifacts that are being built. Otherwise we might read an incomplete
                 // file or conflict with the writing process.
                 if (artifactDependency->buildState != BuildGraphNode::Building)
                     artifactsToScan->append(artifactDependency);
             } else {
                 // Add file dependency to the next round of scanning.
-                artifactsToScan->append(resolvedDependency->file);
+                artifactsToScan->append(resolvedDependency.file);
             }
         }
     }
