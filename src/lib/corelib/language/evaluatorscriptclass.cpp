@@ -309,7 +309,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
         }
     }
 
-    if (!ignoreParent && data->item->parent()) {
+    if (!ignoreParent && data->item && data->item->parent()) {
         if (debugProperties)
             m_logger.qbsTrace() << "[SC] queryProperty: query parent";
         EvaluationData parentdata = *data;
