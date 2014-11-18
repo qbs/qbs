@@ -334,6 +334,7 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     Artifact *artifactDependency = dynamic_cast<Artifact *>(dependency.file);
     FileDependency *fileDependency
             = artifactDependency ? 0 : dynamic_cast<FileDependency *>(dependency.file);
+    QBS_CHECK(!dependency.file || artifactDependency || fileDependency);
 
     if (!dependency.file) {
         // The dependency is an existing file but does not exist in the build graph.
