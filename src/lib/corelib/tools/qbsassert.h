@@ -33,6 +33,11 @@
 
 #include "qbs_export.h"
 
+// TODO: Remove once we require 5.3.
+#ifndef Q_NORETURN
+#define Q_NORETURN
+#endif
+
 namespace qbs {
 namespace Internal {
 
