@@ -448,7 +448,10 @@ public:
 Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValue &obj,
         const ArtifactSet &inputArtifacts)
 {
-    QBS_CHECK(obj.isObject());
+    if (!obj.isObject()) {
+        throw ErrorInfo(Tr::tr("Elements of the Rule.outputArtifacts array must be "
+                               "of Object type."), m_rule->outputArtifactsScript->location);
+    }
     const QString filePath = FileInfo::resolvePath(m_product->buildDirectory(),
             obj.property(QLatin1String("filePath")).toVariant().toString());
     const FileTags fileTags = FileTags::fromStringList(
