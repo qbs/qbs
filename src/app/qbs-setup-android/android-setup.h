@@ -28,43 +28,19 @@
 **
 ****************************************************************************/
 
-/*!
-    \contentspage reference.html
-    \page list-of-tools.html
+#ifndef QBS_SETUP_ANDROID_SDKSETUP_H
+#define QBS_SETUP_ANDROID_SDKSETUP_H
 
-    \title List of Command-line Tools
-    \brief Auxiliary tools
+#include <QtGlobal>
 
-    In addition to the \c qbs command itself, a number of auxiliary tools are provided. Their file
-    names follow the pattern \c{qbs-<tool name>}, and they can be invoked either using that file
-    name or as \c{qbs <tool name>}.
+namespace qbs { class Settings; }
 
-    This page is intended to give a short overview of these tools. For the supported parameters,
-    see the respective help screen, which you get by calling \c{qbs help <tool name>}.
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
-    \section1 config
+void setupAndroid(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath,
+                  const QString &ndkDirPath);
 
-    Manages \QBS settings like preferences and profiles.
+#endif // Include guard.
 
-    \section1 config-ui
-
-    Like \c config, but with a graphical user interface.
-
-    \section1 qmltypes
-
-    Dumps information about the QML types supplied by \QBS. This is not intended as documentation
-    for users, but as tooling support.
-
-    \section1 setup-android
-
-    Creates \QBS profiles for Android SDK and NDK installations.
-
-    \section1 setup-qt
-
-    Creates \QBS profiles for Qt installations.
-
-    \section1 setup-toolchains
-
-    Creates \QBS profiles for toolchains like GCC or MSVC.
-
-*/

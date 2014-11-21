@@ -28,43 +28,32 @@
 **
 ****************************************************************************/
 
-/*!
-    \contentspage reference.html
-    \page list-of-tools.html
+#include "commandlineparser.h"
+#include "android-setup.h"
 
-    \title List of Command-line Tools
-    \brief Auxiliary tools
+#include <logging/translator.h>
+#include <tools/error.h>
+#include <tools/settings.h>
 
-    In addition to the \c qbs command itself, a number of auxiliary tools are provided. Their file
-    names follow the pattern \c{qbs-<tool name>}, and they can be invoked either using that file
-    name or as \c{qbs <tool name>}.
+#include <QCoreApplication>
 
-    This page is intended to give a short overview of these tools. For the supported parameters,
-    see the respective help screen, which you get by calling \c{qbs help <tool name>}.
+#include <cstdlib>
+#include <iostream>
 
-    \section1 config
-
-    Manages \QBS settings like preferences and profiles.
-
-    \section1 config-ui
-
-    Like \c config, but with a graphical user interface.
-
-    \section1 qmltypes
-
-    Dumps information about the QML types supplied by \QBS. This is not intended as documentation
-    for users, but as tooling support.
-
-    \section1 setup-android
-
-    Creates \QBS profiles for Android SDK and NDK installations.
-
-    \section1 setup-qt
-
-    Creates \QBS profiles for Qt installations.
-
-    \section1 setup-toolchains
-
-    Creates \QBS profiles for toolchains like GCC or MSVC.
-
-*/
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
+    CommandLineParser clParser;
+    try {
+        clParser.parse(app.arguments());
+        if (clParser.helpRequested()) {
+            std::cout << qPrintable(clParser.usageString()) << std::endl;
+            return EXIT_SUCCESS;
+        }
+        qbs::Settings settings(clParser.settingsDir());
+        setupAndroid(&settings, clParser.profileName(), clParser.sdkDir(), clParser.ndkDir());
+    } catch (const qbs::ErrorInfo &e) {
+        std::cerr << qPrintable(qbs::Internal::Tr::tr("Error: %1").arg(e.toString())) << std::endl;
+        return EXIT_FAILURE;
+    }
+}

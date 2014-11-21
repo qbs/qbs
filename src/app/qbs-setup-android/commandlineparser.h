@@ -27,44 +27,39 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_SETUP_ANDROID_COMMANDLINEPARSER_H
+#define QBS_SETUP_ANDROID_COMMANDLINEPARSER_H
 
-/*!
-    \contentspage reference.html
-    \page list-of-tools.html
+#include <QStringList>
 
-    \title List of Command-line Tools
-    \brief Auxiliary tools
+class CommandLineParser
+{
+public:
+    CommandLineParser();
 
-    In addition to the \c qbs command itself, a number of auxiliary tools are provided. Their file
-    names follow the pattern \c{qbs-<tool name>}, and they can be invoked either using that file
-    name or as \c{qbs <tool name>}.
+    void parse(const QStringList &commandLine);
 
-    This page is intended to give a short overview of these tools. For the supported parameters,
-    see the respective help screen, which you get by calling \c{qbs help <tool name>}.
+    bool helpRequested() const { return m_helpRequested; }
 
-    \section1 config
+    QString sdkDir() const { return m_sdkDir; }
+    QString ndkDir() const { return m_ndkDir; }
+    QString profileName() const { return m_profileName; }
+    QString settingsDir() const { return m_settingsDir; }
 
-    Manages \QBS settings like preferences and profiles.
+    QString usageString() const;
 
-    \section1 config-ui
+private:
+    Q_NORETURN void throwError(const QString &message);
+    void assignOptionArgument(const QString &option, QString &argument);
+    Q_NORETURN void complainAboutExtraArguments();
 
-    Like \c config, but with a graphical user interface.
+    bool m_helpRequested;
+    QString m_sdkDir;
+    QString m_ndkDir;
+    QString m_profileName;
+    QString m_settingsDir;
+    QStringList m_commandLine;
+    QString m_command;
+};
 
-    \section1 qmltypes
-
-    Dumps information about the QML types supplied by \QBS. This is not intended as documentation
-    for users, but as tooling support.
-
-    \section1 setup-android
-
-    Creates \QBS profiles for Android SDK and NDK installations.
-
-    \section1 setup-qt
-
-    Creates \QBS profiles for Qt installations.
-
-    \section1 setup-toolchains
-
-    Creates \QBS profiles for toolchains like GCC or MSVC.
-
-*/
+#endif // Include guard.

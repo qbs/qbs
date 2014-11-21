@@ -37,11 +37,21 @@
     \title StaticLibrary Item
     \brief Represents a product that is a static library.
 
-    A \c StaticLibrary item is a convenience item that is entirely equivalent to
+    A \c StaticLibrary item is a convenience item that is normally entirely equivalent to
     the following:
     \code
     Product {
         type: "staticlibrary"
     }
     \endcode
+
+    For Android targets, the following applies:
+    \list
+        \li There is a dependency on the \l{Module cpp}{cpp} and \l{Module Android.ndk}{Android.ndk}
+            modules.
+        \li There is an additional list property "architectures" that specifies for which
+            architectures to build, with the default value \c{["armeabi"]}.
+            This information influences the \c profiles property.
+    \endlist
+
 */

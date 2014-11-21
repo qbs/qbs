@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 SUBDIRS =\
     qbs\
+    qbs-setup-android \
     qbs-setup-toolchains \
     qbs-setup-qt \
     config \

@@ -1,5 +1,5 @@
 import qbs
 
 Library {
-    type: ["dynamiclibrary"]
+    type: ["dynamiclibrary"].concat(isForAndroid ? ["android.nativelibrary"] : [])
 }

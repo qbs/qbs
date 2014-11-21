@@ -29,42 +29,47 @@
 ****************************************************************************/
 
 /*!
-    \contentspage reference.html
-    \page list-of-tools.html
+    \contentspage index.html
+    \page android-sdk-module.html
+    \ingroup list-of-modules
 
-    \title List of Command-line Tools
-    \brief Auxiliary tools
+    \title Module Android.sdk
+    \brief Provides support for building Android packages.
 
-    In addition to the \c qbs command itself, a number of auxiliary tools are provided. Their file
-    names follow the pattern \c{qbs-<tool name>}, and they can be invoked either using that file
-    name or as \c{qbs <tool name>}.
+    The \c Android.sdk module contains the properties and rules to create Android application
+    packages from Java sources, resources and so on.
 
-    This page is intended to give a short overview of these tools. For the supported parameters,
-    see the respective help screen, which you get by calling \c{qbs help <tool name>}.
+    Normally, you will not use this module directly, but instead work
+    with the \l{AndroidApk Item}{AndroidApk item} that \QBS provides.
 
-    \section1 config
+    \section1 Android.sdk Properties
 
-    Manages \QBS settings like preferences and profiles.
+    These properties are set automatically when creating an Android profile via the
+    \c setup-android tool.
 
-    \section1 config-ui
-
-    Like \c config, but with a graphical user interface.
-
-    \section1 qmltypes
-
-    Dumps information about the QML types supplied by \QBS. This is not intended as documentation
-    for users, but as tooling support.
-
-    \section1 setup-android
-
-    Creates \QBS profiles for Android SDK and NDK installations.
-
-    \section1 setup-qt
-
-    Creates \QBS profiles for Qt installations.
-
-    \section1 setup-toolchains
-
-    Creates \QBS profiles for toolchains like GCC or MSVC.
+    \table
+    \header
+        \li Property
+        \li Type
+        \li Default
+        \li Description
+    \row
+        \li buildToolsVersion
+        \li string
+        \li undefined
+        \li The version of the build tools such as aapt and dx. The \c setup-android
+            tool sets this to the highest version available in the SDK.
+    \row
+        \li platform
+        \li string
+        \li undefined
+        \li The versioned platform name (e.g. "android-21"). The \c setup-android
+            tool sets this to the highest version available in the SDK.
+    \row
+        \li sdkDir
+        \li path
+        \li undefined
+        \li The SDK base directory.
+    \endtable
 
 */
