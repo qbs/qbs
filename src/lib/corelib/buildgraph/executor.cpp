@@ -866,10 +866,9 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
         }
     }
 
-    ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
-    QBS_CHECK(job);
-
     try {
+        ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
+        QBS_CHECK(job);
         finishJob(job, !err.hasError());
     } catch (const ErrorInfo &error) {
         handleError(error);
