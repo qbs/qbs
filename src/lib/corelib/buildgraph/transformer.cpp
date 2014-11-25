@@ -43,6 +43,8 @@
 
 #include <QDir>
 
+#include <algorithm>
+
 namespace qbs {
 namespace Internal {
 
@@ -110,6 +112,11 @@ QScriptValue Transformer::translateFileConfig(QScriptEngine *scriptEngine, Artif
     return obj;
 }
 
+static bool compareByFilePath(const Artifact *a1, const Artifact *a2)
+{
+    return a1->filePath() < a2->filePath();
+}
+
 QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const ArtifactSet &artifacts, const QString &defaultModuleName)
 {
     typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
@@ -117,6 +124,8 @@ QScriptValue Transformer::translateInOutputs(QScriptEngine *scriptEngine, const 
     foreach (Artifact *artifact, artifacts)
         foreach (const FileTag &fileTag, artifact->fileTags())
             tagArtifactsMap[fileTag.toString()].append(artifact);
+    for (TagArtifactsMap::Iterator it = tagArtifactsMap.begin(); it != tagArtifactsMap.end(); ++it)
+        std::sort(it.value().begin(), it.value().end(), compareByFilePath);
 
     QScriptValue jsTagFiles = scriptEngine->newObject();
     for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
