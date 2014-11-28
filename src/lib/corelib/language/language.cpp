@@ -302,6 +302,7 @@ bool operator==(const ScriptFunction &a, const ScriptFunction &b)
 {
     return a.sourceCode == b.sourceCode
             && a.location == b.location
+            && a.argumentNames == b.argumentNames
             && equals(a.fileContext.data(), b.fileContext.data());
 }
 
@@ -1203,8 +1204,8 @@ bool operator==(const Rule &r1, const Rule &r2)
     }
 
     return r1.module->name == r2.module->name
-            && r1.prepareScript->sourceCode == r2.prepareScript->sourceCode
-            && r1.outputArtifactsScript->sourceCode == r2.outputArtifactsScript->sourceCode
+            && equals(r1.prepareScript.data(), r2.prepareScript.data())
+            && equals(r1.outputArtifactsScript.data(), r2.outputArtifactsScript.data())
             && r1.inputs == r2.inputs
             && r1.outputFileTags == r2.outputFileTags
             && r1.auxiliaryInputs == r2.auxiliaryInputs

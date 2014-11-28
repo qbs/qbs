@@ -51,6 +51,7 @@
 #include <tools/qbsassert.h>
 
 #include <QDir>
+#include <QPair>
 #include <QSet>
 #include <QTimer>
 
@@ -687,21 +688,45 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         m_logger.qbsTrace() << QString::fromLocal8Bit("[BG] Attempting to rescue data of "
                                                       "artifact '%1'").arg(artifact->fileName());
     }
-    if (commandListsAreEqual(artifact->transformer->commands, rad.commands)) {
-        artifact->setTimestamp(rad.timeStamp);
+
+    typedef QPair<Artifact *, bool> ChildArtifactData;
+    QList<ChildArtifactData> childrenToConnect;
+    bool canRescue = commandListsAreEqual(artifact->transformer->commands, rad.commands);
+    if (canRescue) {
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
         foreach (const RescuableArtifactData::ChildData &cd, rad.children) {
             pseudoProduct->name = cd.productName;
             pseudoProduct->profile = cd.productProfile;
             Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.data(),
                                                     cd.childFilePath, true);
-            if (!child || artifact->children.contains(child))
+            if (artifact->children.contains(child))
                 continue;
-            if (childrenAdded)
-                *childrenAdded = true;
-            safeConnect(artifact, child, m_logger);
-            if (cd.addedByScanner)
-                artifact->childrenAddedByScanner << child;
+            if (!child)  {
+                // If a child has disappeared, we must re-build even if the commands
+                // are the same. Example: Header file included in cpp file does not exist anymore.
+                canRescue = false;
+                if (m_logger.traceEnabled())
+                    m_logger.qbsTrace() << "Former child artifact '" << cd.childFilePath
+                                        << "' does not exist anymore";
+                break;
+            }
+            // TODO: Shouldn't addedByScanner always be true here? Otherwise the child would be
+            //       in the list already, no?
+            childrenToConnect << qMakePair(child, cd.addedByScanner);
+        }
+    } else {
+        if (m_logger.traceEnabled())
+            m_logger.qbsTrace() << "Transformer commands changed.";
+    }
+
+    if (canRescue) {
+        artifact->setTimestamp(rad.timeStamp);
+        if (childrenAdded && !childrenToConnect.isEmpty())
+            *childrenAdded = true;
+        foreach (const ChildArtifactData &cad, childrenToConnect) {
+            safeConnect(artifact, cad.first, m_logger);
+            if (cad.second)
+                artifact->childrenAddedByScanner << cad.first;
         }
         if (m_logger.traceEnabled())
             m_logger.qbsTrace() << "Data was rescued.";
@@ -709,7 +734,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         removeGeneratedArtifactFromDisk(artifact, m_logger);
         m_artifactsRemovedFromDisk << artifact->filePath();
         if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "Transformer commands changed, data not rescued.";
+            m_logger.qbsTrace() << "Data not rescued.";
     }
     product->buildData->rescuableArtifactData.erase(it);
 }

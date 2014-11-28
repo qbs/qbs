@@ -129,11 +129,12 @@ QString QtModuleInfo::libraryBaseName(const QtEnvironment &qtEnvironment,
     if (isPlugin)
         return libBaseName(name, debugBuild, qtEnvironment);
 
-    // Enginio has a different naming scheme, so it doesn't get boring.
-    const bool isEnginio = name == QLatin1String("Enginio");
+    // Some modules use a different naming scheme, so it doesn't get boring.
+    const bool libNameBroken = name == QLatin1String("Enginio")
+            || name == QLatin1String("DataVisualization");
 
-    QString libName = modulePrefix.isEmpty() && !isEnginio ? QLatin1String("Qt") : modulePrefix;
-    if (qtEnvironment.qtMajorVersion >= 5 && !isFramework(qtEnvironment) && !isEnginio)
+    QString libName = modulePrefix.isEmpty() && !libNameBroken ? QLatin1String("Qt") : modulePrefix;
+    if (qtEnvironment.qtMajorVersion >= 5 && !isFramework(qtEnvironment) && !libNameBroken)
         libName += QString::number(qtEnvironment.qtMajorVersion);
     libName += moduleNameWithoutPrefix();
     libName += qtEnvironment.qtLibInfix;

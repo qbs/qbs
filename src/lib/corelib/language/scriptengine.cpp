@@ -396,7 +396,7 @@ QScriptValue ScriptEngine::js_loadExtension(QScriptContext *context, QScriptEngi
             }
             values << engine->importFile(filePath, QScriptValue());
         }
-    } catch (ErrorInfo &e) {
+    } catch (const ErrorInfo &e) {
         return context->throwError(e.toString());
     }
 
@@ -422,7 +422,7 @@ QScriptValue ScriptEngine::js_loadFile(QScriptContext *context, QScriptEngine *q
         const QString filePath = FileInfo::resolvePath(engine->m_currentDirPathStack.top(),
                                                        relativeFilePath);
         result = engine->importFile(filePath, QScriptValue());
-    } catch (ErrorInfo &e) {
+    } catch (const ErrorInfo &e) {
         result = context->throwError(e.toString());
     }
 
