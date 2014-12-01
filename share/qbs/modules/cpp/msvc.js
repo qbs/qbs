@@ -26,7 +26,7 @@ function prepareCompiler(product, input, outputs) {
     var rtl = ModUtils.moduleProperty(product, "runtimeLibrary");
     if (rtl) {
         rtl = (rtl === "static" ? "/MT" : "/MD");
-        if (debugInformation)
+        if (product.moduleProperty("qbs", "enableDebugCode"))
             rtl += "d";
         args.push(rtl);
     }
