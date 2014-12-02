@@ -34,17 +34,37 @@
 ** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 **
 ****************************************************************************/
-
 import qbs
 
 Project {
-    references: [
-        "app-and-lib/app_and_lib.qbs",
-        "cocoa-application/CocoaApplication.qbs",
-        "code-generator/code-generator.qbs",
-        "collidingmice/collidingmice.qbs",
-        "helloworld-complex/hello.qbs",
-        "helloworld-minimal/hello.qbs",
-        "helloworld-qt/hello.qbs",
-    ]
+    // A code generator that outputs a "Hello World" C++ program.
+    CppApplication {
+        name: "hwgen"
+        files: ["hwgen.cpp"]
+    }
+
+    // Generate and build a hello-world application.
+    CppApplication {
+        name: "hello-world"
+        Depends { name: "hwgen" }
+        Rule {
+            inputs: ["qbs"]     // needed to trigger this rule
+            Artifact {
+                filePath: "main.cpp"
+                fileTags: ["cpp"]
+            }
+            prepare: {
+                var hwgen;
+                for (var i in product.dependencies) {
+                    var dep = product.dependencies[i];
+                    if (dep.name != "hwgen")
+                        continue;
+                    hwgen = dep.buildDirectory + "/" + dep.targetName;
+                }
+                var cmd = new Command(hwgen, [output.filePath]);
+                cmd.description = "generating C++ source";
+                return cmd;
+            }
+        }
+    }
 }
