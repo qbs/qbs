@@ -72,6 +72,7 @@ private slots:
     void canonicalArchitecture();
     void rfc1034Identifier();
     void conditionalDepends();
+    void dependencyOnAllProfiles();
     void environmentVariable();
     void erroneousFiles_data();
     void erroneousFiles();

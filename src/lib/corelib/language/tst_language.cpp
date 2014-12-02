@@ -312,6 +312,38 @@ void TestLanguage::conditionalDepends()
     QCOMPARE(exceptionCaught, false);
 }
 
+void qbs::Internal::TestLanguage::dependencyOnAllProfiles()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("dependencyOnAllProfiles.qbs"));
+        Settings settings((QString()));
+        TemporaryProfile p1("p1", &settings);
+        p1.p.setValue("qbs.architecture", "arch1");
+        TemporaryProfile p2("p2", &settings);
+        p2.p.setValue("qbs.architecture", "arch2");
+        QVariantMap overriddenValues;
+        overriddenValues.insert("project.profile1", "p1");
+        overriddenValues.insert("project.profile2", "p2");
+        params.setOverriddenValues(overriddenValues);
+        project = loader->loadProject(params);
+        QVERIFY(project);
+        QCOMPARE(project->products.count(), 3);
+        const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
+        QVERIFY(mainProduct);
+        QCOMPARE(mainProduct->dependencies.count(), 2);
+        foreach (const ResolvedProductConstPtr &p, mainProduct->dependencies) {
+            QCOMPARE(p->name, QLatin1String("dep"));
+            QVERIFY(p->profile == "p1" || p->profile == "p2");
+        }
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::environmentVariable()
 {
     bool exceptionCaught = false;

@@ -880,6 +880,20 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
                 }
             }
             productInfo->usedProducts.removeAt(i);
+        } else if (dependency.profile == QLatin1String("*")) {
+            foreach (const ResolvedProductPtr &p, m_productsByName) {
+                if (p->name != dependency.name || p == product || !p->enabled
+                        || (dependency.limitToSubProject && !product->isInParentProject(p))) {
+                    continue;
+                }
+                usedProducts << p;
+                ModuleLoaderResult::ProductInfo::Dependency newDependency;
+                newDependency.name = p->name;
+                newDependency.profile = p->profile;
+                newDependency.required = true;
+                productInfo->usedProducts << newDependency;
+            }
+            productInfo->usedProducts.removeAt(i);
         } else {
             const ResolvedProductPtr &usedProduct
                     = m_productsByName.value(dependency.uniqueName());

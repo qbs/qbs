@@ -104,6 +104,8 @@
         \li If the dependency is on a product and that product is going to be built for more than
             one profile, then you can specify here which instance of the product the dependency is on.
             See the \c profiles property of the \c Product item for more information.
+            An empty list means a dependency on all instances of the product with the given name,
+            regardless of their profile.
     \row
         \li limitToSubProject
         \li bool

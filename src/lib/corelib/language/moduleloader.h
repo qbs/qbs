@@ -72,7 +72,7 @@ struct ModuleLoaderResult
         {
             QStringList productTypes;
             QString name;
-            QString profile;
+            QString profile; // "*" <=> Match all profiles.
             bool required;
             bool limitToSubProject;
 

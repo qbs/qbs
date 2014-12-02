@@ -729,8 +729,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
             const QString profilesKey = QLatin1String("profiles");
             const QStringList profiles = m_evaluator->stringListValue(dependsItem, profilesKey);
             if (profiles.isEmpty()) {
-                throw ErrorInfo(Tr::tr("Empty 'profiles' list not allowed in 'Depends' item."),
-                                dependsItem->property(profilesKey)->location());
+                ModuleLoaderResult::ProductInfo::Dependency dependency;
+                dependency.name = fullModuleName(moduleName);
+                dependency.profile = QLatin1String("*");
+                dependency.required = true;
+                productResults->append(ProductDependencyResult(dependsItem, dependency));
+                continue;
             }
             const bool required = m_evaluator->property(item, QLatin1String("required")).toBool();
             foreach (const QString &profile, profiles) {
