@@ -1589,6 +1589,15 @@ void TestBlackbox::installedApp()
     QVERIFY(m_qbsStderr.contains("No build graph"));
 }
 
+void TestBlackbox::installedSourceFiles()
+{
+    QDir::setCurrent(testDataDir + "/installed-source-files");
+
+    QCOMPARE(runQbs(QbsRunParameters("install")), 0);
+    QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/readme.txt")));
+    QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/main.cpp")));
+}
+
 void TestBlackbox::toolLookup()
 {
     QbsRunParameters params(QLatin1String("setup-toolchains"), QStringList("--help"));

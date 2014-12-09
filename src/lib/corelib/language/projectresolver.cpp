@@ -203,8 +203,11 @@ void ProjectResolver::resolveTopLevelProject(Item *item, ProjectContext *project
     resolveProductDependencies(projectContext);
 
     foreach (const ResolvedProductPtr &product, project->allProducts()) {
-        if (product->enabled)
-            applyFileTaggers(product);
+        if (!product->enabled)
+            continue;
+
+        applyFileTaggers(product);
+        matchArtifactProperties(product, product->allEnabledFiles());
     }
 }
 
@@ -372,16 +375,8 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
 
     product->fileTags += productContext.additionalFileTags;
 
-    foreach (const ResolvedTransformerPtr &transformer, product->transformers) {
-        for (int i = 0; i < transformer->outputs.count(); ++i) {
-            SourceArtifactPtr &artifact = transformer->outputs[i];
-            foreach (const ArtifactPropertiesConstPtr &artifactProperties,
-                     product->artifactProperties) {
-                if (artifact->fileTags.matches(artifactProperties->fileTagsFilter()))
-                    artifact->properties = artifactProperties->propertyMap();
-            }
-        }
-    }
+    foreach (const ResolvedTransformerPtr &transformer, product->transformers)
+        matchArtifactProperties(product, transformer->outputs);
 
     m_productsByName.insert(product->uniqueName(), product);
     foreach (const FileTag &t, product->fileTags)
@@ -905,6 +900,18 @@ QList<ResolvedProductPtr> ProjectResolver::getProductDependencies(const Resolved
         }
     }
     return usedProducts;
+}
+
+void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
+        const QList<SourceArtifactPtr> &artifacts)
+{
+    foreach (const SourceArtifactPtr &artifact, artifacts) {
+        foreach (const ArtifactPropertiesConstPtr &artifactProperties,
+                 product->artifactProperties) {
+            if (artifact->fileTags.matches(artifactProperties->fileTagsFilter()))
+                artifact->properties = artifactProperties->propertyMap();
+        }
+    }
 }
 
 static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,

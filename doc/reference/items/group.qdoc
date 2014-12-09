@@ -113,7 +113,7 @@
         \li list
         \li empty list
         \li Artifact file tags to match. Any properties set in this group will be applied
-            to the product's generated artifacts whose file tags intersect with the ones
+            to the product's artifacts whose file tags intersect with the ones
             listed here. Mutually exclusive with files.
     \row
         \li condition

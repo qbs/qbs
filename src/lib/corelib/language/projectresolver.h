@@ -137,6 +137,8 @@ private:
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
     QList<ResolvedProductPtr> getProductDependencies(const ResolvedProductConstPtr &product,
             const Item *productItem, ModuleLoaderResult::ProductInfo *productInfo);
+    static void matchArtifactProperties(const ResolvedProductPtr &product,
+            const QList<SourceArtifactPtr> &artifacts);
 
     Evaluator *m_evaluator;
     const BuiltinDeclarations *m_builtins;

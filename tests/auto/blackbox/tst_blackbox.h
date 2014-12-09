@@ -142,6 +142,7 @@ private slots:
     void propertyChanges();
     void qobjectInObjectiveCpp();
     void installedApp();
+    void installedSourceFiles();
     void toolLookup();
     void checkProjectFilePath();
     void missingProfile();
