@@ -65,20 +65,7 @@ BuildGraphLoader::~BuildGraphLoader()
 
 static bool isConfigCompatible(const QVariantMap &cfg1, const QVariantMap &cfg2)
 {
-    if (cfg1.count() != cfg2.count())
-        return false;
-    QVariantMap::const_iterator it = cfg1.begin();
-    for (; it != cfg1.end(); ++it) {
-        if (it.value().type() == QVariant::Map) {
-            if (!isConfigCompatible(it.value().toMap(), cfg2.value(it.key()).toMap()))
-                return false;
-        } else {
-            QVariant value = cfg2.value(it.key());
-            if (value != it.value())
-                return false;
-        }
-    }
-    return true;
+    return cfg1 == cfg2;
 }
 
 static void restoreBackPointers(const ResolvedProjectPtr &project)
