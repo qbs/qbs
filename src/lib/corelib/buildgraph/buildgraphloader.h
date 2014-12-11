@@ -104,6 +104,7 @@ private:
                                 const QVariantMap &newProperties);
     void replaceFileDependencyWithArtifact(const ResolvedProductPtr &fileDepProduct,
             FileDependency *filedep, Artifact *artifact);
+    bool isConfigCompatible();
 
     struct ChildrenInfo {
         ChildrenInfo() {}

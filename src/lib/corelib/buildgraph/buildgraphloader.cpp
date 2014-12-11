@@ -63,11 +63,6 @@ BuildGraphLoader::~BuildGraphLoader()
     qDeleteAll(m_objectsToDelete);
 }
 
-static bool isConfigCompatible(const QVariantMap &cfg1, const QVariantMap &cfg2)
-{
-    return cfg1 == cfg2;
-}
-
 static void restoreBackPointers(const ResolvedProjectPtr &project)
 {
     foreach (const ResolvedProductPtr &product, project->products) {
@@ -177,10 +172,8 @@ void BuildGraphLoader::trackProjectChanges()
     QList<ResolvedProductPtr> changedProducts;
     QList<ResolvedProductPtr> productsWithChangedFiles;
     bool reResolvingNecessary = false;
-    if (!isConfigCompatible(m_parameters.finalBuildConfigurationTree(),
-                            restoredProject->buildConfiguration())) {
+    if (!isConfigCompatible())
         reResolvingNecessary = true;
-    }
     if (hasProductFileChanged(allRestoredProducts, restoredProject->lastResolveTime,
                               buildSystemFiles, productsWithChangedFiles)) {
         reResolvingNecessary = true;
@@ -787,6 +780,12 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
     fileDepProduct->topLevelProject()->buildData->fileDependencies.remove(filedep);
     fileDepProduct->topLevelProject()->buildData->removeFromLookupTable(filedep);
     m_objectsToDelete << filedep;
+}
+
+bool BuildGraphLoader::isConfigCompatible()
+{
+    const TopLevelProjectConstPtr restoredProject = m_result.loadedProject;
+    return m_parameters.finalBuildConfigurationTree() == restoredProject->buildConfiguration();
 }
 
 void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
