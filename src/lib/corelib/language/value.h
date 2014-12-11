@@ -106,6 +106,7 @@ public:
     void setFile(const FileContextPtr &file) { m_file = file; }
     const FileContextPtr &file() const { return m_file; }
 
+    void setSourceUsesBaseFlag() { m_flags |= SourceUsesBase; }
     bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
     bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }

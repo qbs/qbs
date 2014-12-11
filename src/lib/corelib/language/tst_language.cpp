@@ -1252,6 +1252,10 @@ void TestLanguage::propertiesBlocks_data()
             << QString("dummy.defines")
             << (QStringList() << QString("BASE") << QString("SUB"))
             << QString();
+    QTest::newRow("inheritance_retain_base4")
+            << QString("dummy.defines")
+            << (QStringList() << QString("BASE"))
+            << QString();
     QTest::newRow("inheritance_condition_in_subitem1")
             << QString("dummy.defines")
             << (QStringList() << QString("SOMETHING") << QString("SUB"))

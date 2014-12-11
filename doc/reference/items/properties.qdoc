@@ -86,7 +86,7 @@
                 return ["myWindowsIncludes"];
             if (qbs.targetOS.contains("linux"))
                 return ["myLinuxIncludes"];
-            return undefined;
+            return base;
         }
     }
     \endcode

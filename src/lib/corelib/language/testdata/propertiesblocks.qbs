@@ -130,6 +130,14 @@ Project {
         // no dummy.defines binding
     }
     ProductBase {
+        name: "inheritance_retain_base4"
+        Properties {
+            condition: false
+            dummy.defines: ["NEVERMORE"]
+        }
+        // no "else case" for dummy.defines. The value is derived from ProductBase.
+    }
+    ProductBase {
         name: "inheritance_condition_in_subitem1"
         defineBase: false
         dummy.defines: base.concat("SUB")

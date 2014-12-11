@@ -626,8 +626,10 @@ private:
             value = JSSourceValue::create();
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
-            static const QString undefinedKeyword = QLatin1String("undefined");
-            value->setSourceCode(QStringRef(&undefinedKeyword));
+            static const QString baseKeyword = QLatin1String("base");
+            value->setSourceCode(QStringRef(&baseKeyword));
+            value->setSourceUsesBaseFlag();
+
         }
         m_alternative.value = conditionalValue;
         value->addAlternative(m_alternative);
