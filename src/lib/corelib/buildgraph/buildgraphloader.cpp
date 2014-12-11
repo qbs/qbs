@@ -785,7 +785,18 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
 bool BuildGraphLoader::isConfigCompatible()
 {
     const TopLevelProjectConstPtr restoredProject = m_result.loadedProject;
-    return m_parameters.finalBuildConfigurationTree() == restoredProject->buildConfiguration();
+    if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration())
+        return false;
+    for (QVariantMap::ConstIterator it = restoredProject->profileConfigs.constBegin();
+         it != restoredProject->profileConfigs.constEnd(); ++it) {
+        const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
+                    m_parameters.settingsDirectory(), it.key(), m_parameters.buildVariant());
+        const QVariantMap newConfig = SetupProjectParameters::finalBuildConfigurationTree(
+                    buildConfig, m_parameters.overriddenValues());
+        if (newConfig != it.value())
+            return false;
+    }
+    return true;
 }
 
 void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,

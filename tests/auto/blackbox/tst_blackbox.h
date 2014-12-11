@@ -119,6 +119,7 @@ private slots:
     void properQuoting();
     void radAfterIncompleteBuild_data();
     void radAfterIncompleteBuild();
+    void subProfileChangeTracking();
     void usingsAsSoleInputsNonMultiplexed();
     void clean();
     void renameDependency();

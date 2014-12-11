@@ -119,6 +119,7 @@ TopLevelProjectPtr ProjectResolver::resolve(ModuleLoaderResult &loadResult,
     TopLevelProjectPtr top = projectContext.project.staticCast<TopLevelProject>();
     checkForDuplicateProductNames(top);
     top->buildSystemFiles.unite(loadResult.qbsFiles);
+    top->profileConfigs = loadResult.profileConfigs;
     return top;
 }
 

@@ -1524,6 +1524,23 @@ void TestBlackbox::radAfterIncompleteBuild()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::subProfileChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/subprofile-change-tracking");
+    qbs::Settings settings((QString()));
+    qbs::Internal::TemporaryProfile subProfile("qbs-autotests-subprofile", &settings);
+    subProfile.p.setValue("baseProfile", profileName());
+    subProfile.p.setValue("cpp.includePaths", QStringList("/tmp/include1"));
+    settings.sync();
+    QCOMPARE(runQbs(), 0);
+
+    subProfile.p.setValue("cpp.includePaths", QStringList("/tmp/include2"));
+    settings.sync();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("main1.cpp"));
+    QVERIFY(m_qbsStdout.contains("main2.cpp"));
+}
+
 void TestBlackbox::installedApp()
 {
     QDir::setCurrent(testDataDir + "/installed_artifact");

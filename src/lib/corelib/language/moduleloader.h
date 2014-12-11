@@ -87,6 +87,7 @@ struct ModuleLoaderResult
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
     QSet<QString> qbsFiles;
+    QVariantMap profileConfigs;
 };
 
 /*

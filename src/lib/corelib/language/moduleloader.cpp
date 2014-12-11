@@ -386,11 +386,19 @@ void ModuleLoader::handleProduct(ProjectContext *projectContext, Item *item)
     productContext.profileName = m_evaluator->stringValue(item, QLatin1String("profile"),
                                                          QString(), &profilePropertySet);
     QBS_CHECK(profilePropertySet);
-    const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
-                m_parameters.settingsDirectory(), productContext.profileName,
-                m_parameters.buildVariant());
-    productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
-                buildConfig, m_parameters.overriddenValues());
+    const QVariantMap::ConstIterator it
+            = projectContext->result->profileConfigs.find(productContext.profileName);
+    if (it == projectContext->result->profileConfigs.constEnd()) {
+        const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
+                    m_parameters.settingsDirectory(), productContext.profileName,
+                    m_parameters.buildVariant());
+        productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
+                    buildConfig, m_parameters.overriddenValues());
+        projectContext->result->profileConfigs.insert(productContext.profileName,
+                                                      productContext.moduleProperties);
+    } else {
+        productContext.moduleProperties = it.value().toMap();
+    }
     productContext.project = projectContext;
     bool extraSearchPathsSet = false;
     const QStringList extraSearchPaths = readExtraSearchPaths(item, &extraSearchPathsSet);
