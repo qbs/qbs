@@ -31,6 +31,7 @@ Project {
             condition: qbs.toolchain.contains("msvc")
             cpp.entryPoint: "main"
         }
+        cpp.entryPoint: undefined
 
         Depends { name: "a" }
         Depends { name: "b" }
