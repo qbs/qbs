@@ -1,4 +1,5 @@
-Product {
-    property string bundleExtension
+import qbs
+
+Library {
     type: ["dynamiclibrary"]
 }

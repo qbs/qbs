@@ -1,3 +1,5 @@
-Product {
+import qbs
+
+Library {
     type: ["staticlibrary"]
 }
