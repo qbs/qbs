@@ -75,8 +75,8 @@ void ResolvedFileContext::store(PersistentPool &pool) const
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 {
     return a.filePath() == b.filePath()
-            && a.jsExtensions() == b.jsExtensions()
-            && a.jsImports() == b.jsImports();
+            && a.jsExtensions().toSet() == b.jsExtensions().toSet()
+            && a.jsImports().toSet() == b.jsImports().toSet();
 }
 
 } // namespace Internal
