@@ -162,9 +162,15 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
-            fileTags: ["application"]
+        outputFileTags: ["application"]
+        outputArtifacts: {
+            return [
+                {
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 PathTools.applicationFilePath(product)),
+                    fileTags: ["application"]
+                }
+            ];
         }
 
         prepare: {

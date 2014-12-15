@@ -92,9 +92,15 @@ CppModule {
         multiplex: true
         inputs: ['obj']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import']
-        Artifact {
-            fileTags: ["application"]
-            filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
+
+        outputFileTags: ["application"]
+        outputArtifacts: {
+            return [
+                {
+                    fileTags: ["application"],
+                    filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
+                }
+            ];
         }
 
         prepare: {
@@ -108,15 +114,19 @@ CppModule {
         inputs: ['obj']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import']
 
-        Artifact {
-            fileTags: ["dynamiclibrary"]
-            filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
-        }
-
-        Artifact {
-            fileTags: ["dynamiclibrary_import"]
-            filePath: product.destinationDirectory + "/" + PathTools.importLibraryFilePath(product)
-            alwaysUpdated: false
+        outputFileTags: ["dynamiclibrary", "dynamiclibrary_import"]
+        outputArtifacts: {
+            return [
+                {
+                    fileTags: ["dynamiclibrary"],
+                    filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
+                },
+                {
+                    fileTags: ["dynamiclibrary_import"],
+                    filePath: product.destinationDirectory + "/" + PathTools.importLibraryFilePath(product),
+                    alwaysUpdated: false
+                }
+            ];
         }
 
         prepare: {
