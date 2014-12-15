@@ -124,6 +124,7 @@ private slots:
     void usingsAsSoleInputsNonMultiplexed();
     void clean();
     void renameDependency();
+    void separateDebugInfo();
     void track_qrc();
     void track_qobject_change();
     void trackAddFile();

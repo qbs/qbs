@@ -20,8 +20,12 @@ function prepareCompiler(project, product, inputs, outputs, input, output) {
     else if (optimization === 'fast')
         args.push('/O2')
 
-    if (debugInformation)
-        args.push('/Zi')
+    if (debugInformation) {
+        if (ModUtils.moduleProperty(product, "separateDebugInformation"))
+            args.push('/Zi');
+        else
+            args.push('/Z7');
+    }
 
     var rtl = ModUtils.moduleProperty(product, "runtimeLibrary");
     if (rtl) {
@@ -144,10 +148,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push('/IMPLIB:' + FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].filePath));
     }
 
-    if (debugInformation)
-        args.push('/DEBUG')
-    else
+    if (debugInformation) {
+        if (outputs.debuginfo)
+            args.push("/DEBUG", "/PDB:" + outputs.debuginfo[0].fileName);
+    } else {
         args.push('/INCREMENTAL:NO')
+    }
 
     var minimumWindowsVersion = ModUtils.moduleProperty(product, "minimumWindowsVersion");
     var subsystemSwitch = undefined;

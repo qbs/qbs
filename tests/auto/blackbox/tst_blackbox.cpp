@@ -443,6 +443,31 @@ void TestBlackbox::renameDependency()
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
 }
 
+void TestBlackbox::separateDebugInfo()
+{
+    QDir::setCurrent(testDataDir + "/separate-debug-info");
+    QCOMPARE(runQbs(), 0);
+    if (HostOsInfo::isOsxHost())
+        QSKIP("Separate debug information is not yet support on OS X.");
+
+    Settings settings((QString()));
+    Profile buildProfile(profileName(), &settings);
+    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    if (toolchain.contains("gcc")) {
+        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/libfoo1.so.debug"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/libfoo2.so.debug"));
+    } else if (toolchain.contains("msvc")) {
+        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.pdb"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.pdb"));
+    } else {
+        QSKIP("Unsupported toolchain. Skipping.");
+    }
+}
+
 void TestBlackbox::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");

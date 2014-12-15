@@ -481,6 +481,28 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.responseFileUsagePrefix = '@';
     commands.push(cmd);
 
+    if (outputs.debuginfo) {
+        cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
+                              "--only-keep-debug", primaryOutput.filePath,
+                              outputs.debuginfo[0].filePath
+                          ]);
+        cmd.silent = true;
+        commands.push(cmd);
+
+        cmd = new Command(ModUtils.moduleProperty(product, "stripPath"), [
+                              "--strip-debug", primaryOutput.filePath
+                          ]);
+        cmd.silent = true;
+        commands.push(cmd);
+
+        cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
+                              "--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
+                              primaryOutput.filePath
+                          ]);
+        cmd.silent = true;
+        commands.push(cmd);
+    }
+
     if (outputs.dynamiclibrary) {
         // Update the copy, if any global symbols have changed.
         cmd = new JavaScriptCommand();

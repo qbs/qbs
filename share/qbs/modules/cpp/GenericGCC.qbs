@@ -78,7 +78,8 @@ CppModule {
         inputs: ["obj"]
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
-        outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy"]
+        outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy",
+                         "debuginfo"]
         outputArtifacts: {
             var lib = {
                 filePath: product.destinationDirectory + "/"
@@ -105,6 +106,13 @@ CppModule {
                         break; // Version number has less than three components.
                     artifacts.push(symlink);
                 }
+            }
+            if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
+                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+                artifacts.push({
+                    filePath: lib.filePath + ".debug",
+                    fileTags: ["debuginfo"]
+                });
             }
             return artifacts;
         }
@@ -166,15 +174,22 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
 
-        outputFileTags: ["application"]
+        outputFileTags: ["application", "debuginfo"]
         outputArtifacts: {
-            return [
-                {
-                    filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 PathTools.applicationFilePath(product)),
-                    fileTags: ["application"]
-                }
-            ];
+            var app = {
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.applicationFilePath(product)),
+                fileTags: ["application"]
+            }
+            var artifacts = [app];
+            if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
+                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+                artifacts.push({
+                    filePath: app.filePath + ".debug",
+                    fileTags: ["debuginfo"]
+                });
+            }
+            return artifacts;
         }
 
         prepare: {

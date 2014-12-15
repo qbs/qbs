@@ -10,6 +10,7 @@ Module {
     property string architecture: qbs.architecture
     property string optimization: qbs.optimization
     property bool debugInformation: qbs.debugInformation
+    property bool separateDebugInformation: false
     property pathList prefixHeaders
     property path precompiledHeader
     property path cPrecompiledHeader: precompiledHeader

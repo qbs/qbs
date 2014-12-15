@@ -71,6 +71,16 @@
 
     Generate debug information. See \c{qbs.debugInformation}.
 
+    \section2 separateDebugInformation
+
+    \table
+    \row    \li \b{Type:}            \li \c{bool}
+    \row    \li \b{Default:}         \li \c{false} for gcc/clang, \c{true} for MSVC
+    \endtable
+
+    The file name that is used for external debug information.
+    \note This property is ignored for OS X toolchains.
+
     \section2 defines
 
     \table

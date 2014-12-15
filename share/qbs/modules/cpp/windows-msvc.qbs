@@ -18,6 +18,7 @@ CppModule {
     compilerName: "cl.exe"
     linkerName: "link.exe"
     runtimeLibrary: "dynamic"
+    separateDebugInformation: false
 
     property bool generateManifestFiles: true
     property path toolchainInstallPath
@@ -91,16 +92,25 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ['obj']
-        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import']
+        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo"]
 
-        outputFileTags: ["application"]
+        outputFileTags: ["application", "debuginfo"]
         outputArtifacts: {
-            return [
-                {
-                    fileTags: ["application"],
-                    filePath: product.destinationDirectory + "/" + PathTools.applicationFilePath(product)
-                }
-            ];
+            var app = {
+                fileTags: ["application"],
+                filePath: FileInfo.joinPaths(
+                              product.destinationDirectory,
+                              PathTools.applicationFilePath(product))
+            };
+            var artifacts = [app];
+            if (ModUtils.moduleProperty(product, "debugInformation")
+                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+                artifacts.push({
+                    fileTags: ["debuginfo"],
+                    filePath: app.filePath.substr(0, app.filePath.length - 3) + "pdb"
+                });
+            }
+            return artifacts;
         }
 
         prepare: {
@@ -112,11 +122,11 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ['obj']
-        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import']
+        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo"]
 
-        outputFileTags: ["dynamiclibrary", "dynamiclibrary_import"]
+        outputFileTags: ["dynamiclibrary", "dynamiclibrary_import", "debuginfo"]
         outputArtifacts: {
-            return [
+            var artifacts = [
                 {
                     fileTags: ["dynamiclibrary"],
                     filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
@@ -127,6 +137,15 @@ CppModule {
                     alwaysUpdated: false
                 }
             ];
+            if (ModUtils.moduleProperty(product, "debugInformation")
+                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+                var lib = artifacts[0];
+                artifacts.push({
+                    fileTags: ["debuginfo"],
+                    filePath: lib.filePath.substr(0, lib.filePath.length - 3) + "pdb"
+                });
+            }
+            return artifacts;
         }
 
         prepare: {
