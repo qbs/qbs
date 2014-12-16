@@ -24,6 +24,8 @@ CppModule {
     linkerName: 'g++'
     property string archiverName: 'ar'
     property string nmName: 'nm'
+    property string objcopyName: "objcopy"
+    property string stripName: "strip"
     property path sysroot: qbs.sysroot
     property path platformPath
 
@@ -43,6 +45,8 @@ CppModule {
     linkerPath: toolchainPathPrefix + linkerName
     property path archiverPath: { return toolchainPathPrefix + archiverName }
     property path nmPath: { return toolchainPathPrefix + nmName }
+    property string objcopyPath: toolchainPathPrefix + objcopyName
+    property string stripPath: toolchainPathPrefix + stripName
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion &&

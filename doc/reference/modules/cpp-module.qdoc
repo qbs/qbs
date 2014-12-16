@@ -678,6 +678,42 @@
 
     Full path of the nm binary. This is set in the build profile.
 
+    \section2 objcopyName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"objcopy"}
+    \endtable
+
+    Name of the objcopy binary. This is set in the build profile.
+
+    \section2 objcopyPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-setup-toolchains
+    \endtable
+
+    Full path of the objcopy binary. This is set in the build profile.
+
+    \section2 stripName
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li \c{"strip"}
+    \endtable
+
+    Name of the strip binary. This is set in the build profile.
+
+    \section2 stripPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-setup-toolchains
+    \endtable
+
+    Full path of the strip binary. This is set in the build profile.
+
     \section2 positionIndependentCode
 
     \table

@@ -237,6 +237,9 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     const ToolPathSetup toolPathSetup(&profile, compilerDirPath, toolchainPrefix);
     toolPathSetup.apply(QLatin1String("ar"), QLatin1String("cpp.archiverPath"));
     toolPathSetup.apply(QLatin1String("nm"), QLatin1String("cpp.nmPath"));
+    if (!HostOsInfo::isOsxHost())
+        toolPathSetup.apply(QLatin1String("objcopy"), QLatin1String("cpp.objcopyPath"));
+    toolPathSetup.apply(QLatin1String("strip"), QLatin1String("cpp.stripPath"));
 
     qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(profile.name(), compilerFilePath)
             << endl;
