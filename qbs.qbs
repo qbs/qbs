@@ -1,7 +1,7 @@
 import qbs 1.0
 
 Project {
-    minimumQbsVersion: "1.3"
+    minimumQbsVersion: "1.4"
     qbsSearchPaths: ["qbs-resources"]
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
@@ -38,4 +38,6 @@ Project {
             condition: parent.withExamples
         }
     }
+
+    AutotestRunner { }
 }

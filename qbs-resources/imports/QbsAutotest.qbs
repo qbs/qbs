@@ -1,7 +1,7 @@
 import qbs
 
 QtApplication {
-    type: "application"
+    type: ["application", "autotest"]
     property string testName
     name: "tst_" + testName
     Depends { name: "Qt.test" }
