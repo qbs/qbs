@@ -82,6 +82,7 @@ private:
     void build();
     int runTarget();
     void updateTimestamps();
+    void dumpNodesTree();
     void connectBuildJobs();
     void connectBuildJob(AbstractJob *job);
     void connectJob(AbstractJob *job);

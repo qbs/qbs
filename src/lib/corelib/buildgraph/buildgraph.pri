@@ -17,6 +17,7 @@ SOURCES += \
     $$PWD/inputartifactscanner.cpp \
     $$PWD/jscommandexecutor.cpp \
     $$PWD/nodeset.cpp \
+    $$PWD/nodetreedumper.cpp \
     $$PWD/processcommandexecutor.cpp \
     $$PWD/productbuilddata.cpp \
     $$PWD/productinstaller.cpp \
@@ -52,6 +53,7 @@ HEADERS += \
     $$PWD/inputartifactscanner.h \
     $$PWD/jscommandexecutor.h \
     $$PWD/nodeset.h \
+    $$PWD/nodetreedumper.h \
     $$PWD/processcommandexecutor.h \
     $$PWD/productbuilddata.h \
     $$PWD/productinstaller.h \

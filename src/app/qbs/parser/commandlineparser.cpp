@@ -373,6 +373,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             << commandPool.getCommand(StatusCommandType)
             << commandPool.getCommand(UpdateTimestampsCommandType)
             << commandPool.getCommand(InstallCommandType)
+            << commandPool.getCommand(DumpNodesTreeCommandType)
             << commandPool.getCommand(HelpCommandType);
 }
 

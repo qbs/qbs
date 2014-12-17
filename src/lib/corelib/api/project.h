@@ -42,6 +42,7 @@
 #include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
+class QIODevice;
 class QObject;
 class QProcessEnvironment;
 QT_END_NAMESPACE
@@ -133,6 +134,8 @@ public:
 
     RuleCommandList ruleCommands(const ProductData &product, const QString &inputFilePath,
                                  const QString &outputFileTag, ErrorInfo *error = 0) const;
+
+    ErrorInfo dumpNodesTree(QIODevice &outDevice, const QList<ProductData> &products);
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);

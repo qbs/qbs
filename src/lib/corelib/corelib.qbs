@@ -117,6 +117,8 @@ QbsLibrary {
             "jscommandexecutor.h",
             "nodeset.cpp",
             "nodeset.h",
+            "nodetreedumper.cpp",
+            "nodetreedumper.h",
             "processcommandexecutor.cpp",
             "processcommandexecutor.h",
             "productbuilddata.cpp",

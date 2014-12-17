@@ -41,10 +41,13 @@
 #include <tools/qbsassert.h>
 
 #include <QDir>
+#include <QFile>
 #include <QMetaObject>
 #include <QProcessEnvironment>
 #include <QTimer>
+
 #include <cstdlib>
+#include <cstdio>
 
 namespace qbs {
 using namespace Internal;
@@ -106,6 +109,7 @@ void CommandLineFrontend::start()
             // Fall-through intended.
         case StatusCommandType:
         case InstallCommandType:
+        case DumpNodesTreeCommandType:
             if (m_parser.buildConfigurations().count() > 1) {
                 QString error = Tr::tr("Invalid use of command '%1': There can be only one "
                                "build configuration.\n").arg(m_parser.commandName());
@@ -125,7 +129,7 @@ void CommandLineFrontend::start()
         params.setDryRun(m_parser.dryRun());
         params.setLogElapsedTime(m_parser.logTime());
         params.setSettingsDirectory(m_settings->baseDirectoy());
-        if (!m_parser.buildBeforeInstalling())
+        if (!m_parser.buildBeforeInstalling() || m_parser.command() == DumpNodesTreeCommandType)
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         foreach (const QVariantMap &buildConfig, m_parser.buildConfigurations()) {
             QVariantMap userConfig = buildConfig;
@@ -358,6 +362,10 @@ void CommandLineFrontend::handleProjectsResolved()
             updateTimestamps();
             qApp->quit();
             break;
+        case DumpNodesTreeCommandType:
+            dumpNodesTree();
+            qApp->quit();
+            break;
         case HelpCommandType:
             Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
         }
@@ -476,6 +484,16 @@ void CommandLineFrontend::updateTimestamps()
         Project p = it.key();
         p.updateTimestamps(it.value());
     }
+}
+
+void CommandLineFrontend::dumpNodesTree()
+{
+    QFile stdOut;
+    stdOut.open(stdout, QIODevice::WriteOnly);
+    const ErrorInfo error = m_projects.first().dumpNodesTree(stdOut, productsToUse()
+                                                             .value(m_projects.first()));
+    if (error.hasError())
+        throw error;
 }
 
 void CommandLineFrontend::connectBuildJobs()

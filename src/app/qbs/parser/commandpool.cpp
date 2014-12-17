@@ -71,6 +71,9 @@ qbs::Command *CommandPool::getCommand(CommandType type) const
         case InstallCommandType:
             command = new InstallCommand(m_optionPool);
             break;
+        case DumpNodesTreeCommandType:
+            command = new DumpNodesTreeCommand(m_optionPool);
+            break;
         case HelpCommandType:
             command = new HelpCommand(m_optionPool);
             break;

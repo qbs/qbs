@@ -44,6 +44,7 @@
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/command.h>
 #include <buildgraph/emptydirectoriesremover.h>
+#include <buildgraph/nodetreedumper.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/productinstaller.h>
 #include <buildgraph/projectbuilddata.h>
@@ -1139,6 +1140,16 @@ RuleCommandList Project::ruleCommands(const ProductData &product,
             *error = e;
         return RuleCommandList();
     }
+}
+
+ErrorInfo Project::dumpNodesTree(QIODevice &outDevice, const QList<ProductData> &products)
+{
+    try {
+        NodeTreeDumper(outDevice).start(d->internalProducts(products));
+    } catch (const ErrorInfo &e) {
+        return e;
+    }
+    return ErrorInfo();
 }
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES

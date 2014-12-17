@@ -27,32 +27,47 @@
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ****************************************************************************/
+#ifndef QBS_NODETREEDUMPER_H
+#define QBS_NODETREEDUMPER_H
 
-#ifndef QBS_BUILDGRAPHVISITOR_H
-#define QBS_BUILDGRAPHVISITOR_H
+#include "artifactset.h"
+#include "buildgraphvisitor.h"
+#include <language/forward_decls.h>
+
+#include <QList>
+
+QT_BEGIN_NAMESPACE
+class QIODevice;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
 
-class Artifact;
-class RuleNode;
-
-/*!
- * \brief The BuildGraphVisitor class
- *
- * The return value of a visit method indicates whether the children of the current node
- * are to be visited next.
- */
-class BuildGraphVisitor
+class NodeTreeDumper : public BuildGraphVisitor
 {
 public:
-    virtual bool visit(Artifact *) { return true; }
-    virtual void endVisit(Artifact *) { }
-    virtual bool visit(RuleNode *) { return true; }
-    virtual void endVisit(RuleNode *) { }
+    NodeTreeDumper(QIODevice &outDevice);
+
+    void start(const QList<ResolvedProductPtr> &products);
+
+private:
+    bool visit(Artifact *artifact) Q_DECL_OVERRIDE;
+    void endVisit(Artifact *artifact) Q_DECL_OVERRIDE;
+    bool visit(RuleNode *rule) Q_DECL_OVERRIDE;
+    void endVisit(RuleNode *rule) Q_DECL_OVERRIDE;
+
+    void doEndVisit();
+    void indent();
+    void unindent();
+    QByteArray indentation() const;
+
+    QIODevice &m_outDevice;
+    ResolvedProductPtr m_currentProduct;
+    ArtifactSet m_visited;
+    unsigned int m_indentation;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_BUILDGRAPHVISITOR_H
+#endif // Include guard.

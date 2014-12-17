@@ -424,6 +424,29 @@ QList<CommandLineOption::Type> UpdateTimestampsCommand::supportedOptions() const
             << CommandLineOption::ProductsOptionType;
 }
 
+QString DumpNodesTreeCommand::shortDescription() const
+{
+    return Tr::tr("Dumps the nodes in the build graph to stdout.");
+}
+
+QString DumpNodesTreeCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1 [options] [[variant] [property:value] ...] ...\n")
+            .arg(representation());
+    description += Tr::tr("Internal command; for debugging purposes only.\n");
+    return description += supportedOptionsDescription();
+}
+
+QString DumpNodesTreeCommand::representation() const
+{
+    return QLatin1String("dump-nodes-tree");
+}
+
+QList<CommandLineOption::Type> DumpNodesTreeCommand::supportedOptions() const
+{
+    return QList<CommandLineOption::Type>() << CommandLineOption::ProductsOptionType;
+}
+
 QString HelpCommand::shortDescription() const
 {
     return Tr::tr("Show general or command-specific help.");

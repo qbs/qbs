@@ -177,6 +177,19 @@ private:
     QList<CommandLineOption::Type> supportedOptions() const;
 };
 
+class DumpNodesTreeCommand : public Command
+{
+public:
+    DumpNodesTreeCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const Q_DECL_OVERRIDE { return DumpNodesTreeCommandType; }
+    QString shortDescription() const Q_DECL_OVERRIDE;
+    QString longDescription() const Q_DECL_OVERRIDE;
+    QString representation() const Q_DECL_OVERRIDE;
+    QList<CommandLineOption::Type> supportedOptions() const Q_DECL_OVERRIDE;
+};
+
 class HelpCommand : public Command
 {
 public:

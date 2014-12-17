@@ -73,6 +73,7 @@ void Artifact::accept(BuildGraphVisitor *visitor)
 {
     if (visitor->visit(this))
         acceptChildren(visitor);
+    visitor->endVisit(this);
 }
 
 QString Artifact::toString() const

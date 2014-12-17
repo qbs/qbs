@@ -58,6 +58,7 @@ void RuleNode::accept(BuildGraphVisitor *visitor)
 {
     if (visitor->visit(this))
         acceptChildren(visitor);
+    visitor->endVisit(this);
 }
 
 QString RuleNode::toString() const
