@@ -373,7 +373,7 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
             }
         }
 
-        if (qtEnvironment.configItems.contains("c++11"))
+        if (qtEnvironment.qtConfigItems.contains("c++11"))
             osxVersion = QLatin1String("10.7");
     }
 
