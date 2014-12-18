@@ -69,7 +69,7 @@ static QString initQbsExecutableFilePath()
 }
 
 TestBlackbox::TestBlackbox()
-    : testDataDir(QCoreApplication::applicationDirPath() + "/../tests/auto/blackbox/testWorkDir"),
+    : testDataDir(testWorkDir(QStringLiteral("blackbox"))),
       testSourceDir(QDir::cleanPath(SRCDIR "/testdata")),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       defaultInstallRoot(relativeBuildDir() + QLatin1Char('/') + InstallOptions::defaultInstallRoot())

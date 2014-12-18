@@ -35,6 +35,7 @@
 #include <tools/settings.h>
 
 #include <QCryptographicHash>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QtTest>
@@ -122,6 +123,18 @@ inline QString objectFileName(const QString &baseName, const QString &profileNam
 inline QString inputDirHash(const QString &dir)
 {
     return QCryptographicHash::hash(dir.toLatin1(), QCryptographicHash::Sha1).toHex().left(16);
+}
+
+inline QString testWorkDir(const QString &testName)
+{
+    QString dir = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv("QBS_TEST_WORK_ROOT")));
+    if (dir.isEmpty()) {
+        dir = QCoreApplication::applicationDirPath() + QStringLiteral("/../tests/auto/");
+    } else {
+        if (!dir.endsWith(QLatin1Char('/')))
+            dir += QLatin1Char('/');
+    }
+    return dir + testName + "/testWorkDir";
 }
 
 #endif // Include guard.
