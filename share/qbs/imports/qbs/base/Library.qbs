@@ -2,7 +2,7 @@ Product {
     type: {
         if (qbs.targetOS.contains("ios") && parseInt(cpp.minimumIosVersion, 10) < 8)
             return ["staticlibrary"];
-        return ["dynamiclibrary"];
+        return ["dynamiclibrary"].concat(isForAndroid ? ["android.nativelibrary"] : []);
     }
 
     property bool isForAndroid: qbs.targetOS.contains("android")
