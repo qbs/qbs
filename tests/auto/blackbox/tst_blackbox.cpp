@@ -447,13 +447,17 @@ void TestBlackbox::separateDebugInfo()
 {
     QDir::setCurrent(testDataDir + "/separate-debug-info");
     QCOMPARE(runQbs(), 0);
-    if (HostOsInfo::isOsxHost())
-        QSKIP("Separate debug information is not yet support on OS X.");
 
     Settings settings((QString()));
     Profile buildProfile(profileName(), &settings);
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    if (toolchain.contains("gcc")) {
+    QStringList targetOS = buildProfile.value("qbs.targetOS").toStringList();
+    if (targetOS.contains("darwin")) {
+        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.app.dSYM"));
+        QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.framework.dSYM"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.framework.dSYM"));
+    } else if (toolchain.contains("gcc")) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.debug"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/libfoo1.so.debug"));

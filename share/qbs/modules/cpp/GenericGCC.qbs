@@ -26,6 +26,7 @@ CppModule {
     property string nmName: 'nm'
     property string objcopyName: "objcopy"
     property string stripName: "strip"
+    property string dsymutilName: "dsymutil"
     property path sysroot: qbs.sysroot
     property path platformPath
 
@@ -47,6 +48,7 @@ CppModule {
     property path nmPath: { return toolchainPathPrefix + nmName }
     property string objcopyPath: toolchainPathPrefix + objcopyName
     property string stripPath: toolchainPathPrefix + stripName
+    property string dsymutilPath: toolchainPathPrefix + dsymutilName
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion && qbs.targetOS.contains("unix");
@@ -114,10 +116,9 @@ CppModule {
                     artifacts.push(symlink);
                 }
             }
-            if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
-                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    filePath: lib.filePath + ".debug",
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFileName(product)),
                     fileTags: ["debuginfo"]
                 });
             }
@@ -189,10 +190,9 @@ CppModule {
                 fileTags: ["application"]
             }
             var artifacts = [app];
-            if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
-                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+            if (ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
-                    filePath: app.filePath + ".debug",
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.debugInfoFileName(product)),
                     fileTags: ["debuginfo"]
                 });
             }

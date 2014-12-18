@@ -99,6 +99,7 @@ Module {
     property string staticLibrarySuffix
     property string dynamicLibrarySuffix
     property string executableSuffix
+    property string debugInfoSuffix
     property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname
     property stringList staticLibraries // list of static library files
@@ -205,7 +206,6 @@ Module {
     property stringList platformLinkerFlags
 
     // OS X and iOS properties
-    property bool buildDsym: qbs.buildVariant === "release"
     property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
 
     property string signingIdentity

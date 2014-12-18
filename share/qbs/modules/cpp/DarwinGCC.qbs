@@ -6,6 +6,7 @@ UnixGCC {
 
     compilerDefines: ["__GNUC__", "__APPLE__"]
     dynamicLibrarySuffix: ".dylib"
+    debugInfoSuffix: ".dSYM"
 
     validate: {
         if (qbs.sysroot) {
@@ -86,26 +87,6 @@ UnixGCC {
         }
 
         return dict;
-    }
-
-    Rule {
-        condition: product.moduleProperty("cpp", "buildDsym")
-        inputs: ["application"]
-
-        Artifact {
-            filePath: product.destinationDirectory + "/" + PathTools.dwarfDsymFileName(product)
-            fileTags: ["application_dsym"]
-        }
-
-        prepare: {
-            var cmd = new Command("dsymutil", [
-                                      "--out=" + outputs.application_dsym[0].filePath,
-                                      input.filePath
-                                  ]);
-            cmd.description = "generating dsym for " + product.name;
-            cmd.highlight = "codegen";
-            return cmd;
-        }
     }
 
     // private properties

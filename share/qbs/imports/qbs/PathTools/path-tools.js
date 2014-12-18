@@ -73,19 +73,17 @@ function importLibraryFilePath(product) {
          + product.moduleProperty("cpp", "dynamicLibraryImportSuffix");
 }
 
-// DWARF_DSYM_FILE_NAME
-// Filename of the target's corresponding dSYM file
-function dwarfDsymFileName(product) {
+function debugInfoFileName(product) {
     if (product.moduleProperty("bundle", "isBundle"))
-        return product.moduleProperty("bundle", "bundleName") + ".dSYM";
+        return product.moduleProperty("bundle", "bundleName") + product.moduleProperty("cpp", "debugInfoSuffix");
     else if (product.type.contains("application"))
-        return applicationFileName(product) + ".dSYM";
+        return applicationFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
     else if (product.type.contains("dynamiclibrary"))
-        return dynamicLibraryFileName(product) + ".dSYM";
+        return dynamicLibraryFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
     else if (product.type.contains("staticlibrary"))
-        return staticLibraryFileName(product) + ".dSYM";
+        return staticLibraryFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
     else
-        return product.targetName + ".dSYM";
+        return product.targetName + product.moduleProperty("cpp", "debugInfoSuffix");
 }
 
 // Returns whether the string looks like a library filename

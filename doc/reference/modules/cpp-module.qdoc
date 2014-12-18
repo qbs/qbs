@@ -647,6 +647,15 @@
 
     Full path of the strip binary. This is set in the build profile.
 
+    \section2 dsymutilPath
+
+    \table
+    \row    \li \b{Type:}            \li \c{string}
+    \row    \li \b{Default:}         \li determined by qbs-setup-toolchains
+    \endtable
+
+    Full path of the dsymutil binary. This is set in the build profile.
+
     \section2 positionIndependentCode
 
     \table

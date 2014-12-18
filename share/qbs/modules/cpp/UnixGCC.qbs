@@ -8,5 +8,6 @@ GenericGCC {
     staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".so"
     executableSuffix: ""
+    debugInfoSuffix: ".debug"
 }
 

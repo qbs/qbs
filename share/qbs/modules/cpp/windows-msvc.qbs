@@ -29,6 +29,7 @@ CppModule {
     staticLibrarySuffix: ".lib"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
+    debugInfoSuffix: ".pdb"
     property string dynamicLibraryImportSuffix: ".lib"
 
     Transformer {
@@ -107,7 +108,8 @@ CppModule {
                     && ModUtils.moduleProperty(product, "separateDebugInformation")) {
                 artifacts.push({
                     fileTags: ["debuginfo"],
-                    filePath: app.filePath.substr(0, app.filePath.length - 3) + "pdb"
+                    filePath: app.filePath.substr(0, app.filePath.length - 4)
+                              + ModUtils.moduleProperty(product, "debugInfoSuffix")
                 });
             }
             return artifacts;
@@ -142,7 +144,8 @@ CppModule {
                 var lib = artifacts[0];
                 artifacts.push({
                     fileTags: ["debuginfo"],
-                    filePath: lib.filePath.substr(0, lib.filePath.length - 3) + "pdb"
+                    filePath: lib.filePath.substr(0, lib.filePath.length - 4)
+                              + ModUtils.moduleProperty(product, "debugInfoSuffix")
                 });
             }
             return artifacts;

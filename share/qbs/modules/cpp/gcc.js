@@ -507,25 +507,34 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     commands.push(cmd);
 
     if (outputs.debuginfo) {
-        cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
-                              "--only-keep-debug", primaryOutput.filePath,
-                              outputs.debuginfo[0].filePath
-                          ]);
-        cmd.silent = true;
-        commands.push(cmd);
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+            cmd = new Command(ModUtils.moduleProperty(product, "dsymutilPath"), [
+                primaryOutput.filePath,
+                "-o", outputs.debuginfo[0].filePath
+            ]);
+            cmd.description = "generating dSYM for " + product.name;
+            commands.push(cmd);
+        } else {
+            cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
+                                  "--only-keep-debug", primaryOutput.filePath,
+                                  outputs.debuginfo[0].filePath
+                              ]);
+            cmd.silent = true;
+            commands.push(cmd);
 
-        cmd = new Command(ModUtils.moduleProperty(product, "stripPath"), [
-                              "--strip-debug", primaryOutput.filePath
-                          ]);
-        cmd.silent = true;
-        commands.push(cmd);
+            cmd = new Command(ModUtils.moduleProperty(product, "stripPath"), [
+                                  "--strip-debug", primaryOutput.filePath
+                              ]);
+            cmd.silent = true;
+            commands.push(cmd);
 
-        cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
-                              "--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
-                              primaryOutput.filePath
-                          ]);
-        cmd.silent = true;
-        commands.push(cmd);
+            cmd = new Command(ModUtils.moduleProperty(product, "objcopyPath"), [
+                                  "--add-gnu-debuglink=" + outputs.debuginfo[0].filePath,
+                                  primaryOutput.filePath
+                              ]);
+            cmd.silent = true;
+            commands.push(cmd);
+        }
     }
 
     if (outputs.dynamiclibrary) {
