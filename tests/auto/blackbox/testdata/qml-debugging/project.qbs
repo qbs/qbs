@@ -2,7 +2,7 @@ import qbs
 
 QtApplication {
     name: "debuggable-app"
-    type: "application"
+    consoleApplication: true
     Depends { name: "Qt.quick" }
     Qt.quick.qmlDebugging: true
     files: "main.cpp"

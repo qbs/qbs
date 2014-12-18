@@ -13,5 +13,6 @@ Project {
         Depends { name: "Qt.core" }
         cpp.defines: "MY_EXPORT=Q_DECL_EXPORT"
         files: "lib.cpp"
+        bundle.isBundle: false
     }
 }

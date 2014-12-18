@@ -1,5 +1,3 @@
-var BundleTools = loadExtension("qbs.BundleTools");
-
 function applicationFileName(product) {
     return product.moduleProperty("cpp", "executablePrefix")
          + product.targetName
@@ -7,8 +5,8 @@ function applicationFileName(product) {
 }
 
 function applicationFilePath(product) {
-    if (BundleTools.isBundleProduct(product))
-        return BundleTools.executablePath(product);
+    if (product.moduleProperty("bundle", "isBundle"))
+        return product.moduleProperty("bundle", "executablePath");
     else
         return applicationFileName(product);
 }
@@ -20,8 +18,8 @@ function staticLibraryFileName(product) {
 }
 
 function staticLibraryFilePath(product) {
-    if (BundleTools.isBundleProduct(product))
-        return BundleTools.executablePath(product);
+    if (product.moduleProperty("bundle", "isBundle"))
+        return product.moduleProperty("bundle", "executablePath");
     else
         return staticLibraryFileName(product);
 }
@@ -63,8 +61,8 @@ function dynamicLibraryFileName(product, version, maxParts) {
 }
 
 function dynamicLibraryFilePath(product, version, maxParts) {
-    if (BundleTools.isBundleProduct(product))
-        return BundleTools.executablePath(product, version);
+    if (product.moduleProperty("bundle", "isBundle"))
+        return product.moduleProperty("bundle", "executablePath");
     else
         return dynamicLibraryFileName(product, version, maxParts);
 }
@@ -78,8 +76,8 @@ function importLibraryFilePath(product) {
 // DWARF_DSYM_FILE_NAME
 // Filename of the target's corresponding dSYM file
 function dwarfDsymFileName(product) {
-    if (BundleTools.isBundleProduct(product))
-        return BundleTools.wrapperName(product) + ".dSYM";
+    if (product.moduleProperty("bundle", "isBundle"))
+        return product.moduleProperty("bundle", "bundleName") + ".dSYM";
     else if (product.type.contains("application"))
         return applicationFileName(product) + ".dSYM";
     else if (product.type.contains("dynamiclibrary"))

@@ -3,9 +3,9 @@ import qbs 1.0
 Project {
     // no minimum versions are specified so the profile defaults will be used
     QtApplication {
-        type: "application"
         name: "unspecified"
         files: "main.cpp"
+        consoleApplication: true
 
         Properties {
             condition: qbs.targetOS.contains("darwin")
@@ -16,9 +16,9 @@ Project {
     // no minimum versions are specified, and explicitly set to undefined in
     // case the profile has set it
     QtApplication {
-        type: "application"
         name: "unspecified-forced"
         files: "main.cpp"
+        consoleApplication: true
         cpp.minimumWindowsVersion: undefined
         cpp.minimumOsxVersion: undefined
         cpp.minimumIosVersion: undefined
@@ -34,10 +34,10 @@ Project {
     // when the application is run its output should confirm
     // that the given values took effect
     QtApplication {
-        type: "application"
         condition: qbs.targetOS.contains("windows") || qbs.targetOS.contains("osx")
         name: "specific"
         files: "main.cpp"
+        consoleApplication: true
 
         Properties {
             condition: qbs.targetOS.contains("windows")
@@ -55,10 +55,10 @@ Project {
     // (but will still compile and link since we avoid passing a
     // bad value to the linker)
     QtApplication {
-        type: "application"
         condition: qbs.targetOS.contains("windows")
         name: "fakewindows"
         files: "main.cpp"
+        consoleApplication: true
         cpp.minimumWindowsVersion: "5.3"
     }
 
@@ -66,10 +66,10 @@ Project {
     // this only affects the value of __MAC_OS_X_VERSION_MIN_REQUIRED,
     // not the actual LC_VERSION_MIN_MACOSX command which is limited to two
     QtApplication {
-        type: "application"
         condition: qbs.targetOS.contains("osx")
         name: "macappstore"
         files: "main.cpp"
+        consoleApplication: true
         cpp.frameworks: "Foundation"
         cpp.minimumOsxVersion: "10.6.8"
     }

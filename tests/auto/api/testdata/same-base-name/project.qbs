@@ -3,6 +3,7 @@ import qbs 1.0
 Project {
     CppApplication {
         type: "application"
+        consoleApplication: true
         Depends { name: "basenamelib" }
         name: "basename"
         files: "main.c"

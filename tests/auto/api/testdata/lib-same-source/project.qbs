@@ -3,6 +3,7 @@ import qbs 1.0
 Project {
     Product {
         type: "application"
+        consoleApplication: true
         name : "HelloWorldApp"
         Depends { name: 'cpp' }
         Group {

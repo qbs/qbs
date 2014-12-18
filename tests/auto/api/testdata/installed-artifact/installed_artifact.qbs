@@ -3,6 +3,7 @@ import qbs 1.0
 Application {
     name: "installedApp"
     type: "application"
+    consoleApplication: true
     Depends { name: "cpp" }
     Group {
         files: "main.cpp"

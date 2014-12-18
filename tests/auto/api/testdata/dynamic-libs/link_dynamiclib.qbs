@@ -20,6 +20,7 @@ Project {
         }
         Depends { name: "cpp" }
         Depends { name: "lib2" }
+        bundle.isBundle: false
     }
 
     DynamicLibrary {
@@ -31,6 +32,7 @@ Project {
         }
         Depends { name: "cpp" }
         Depends { name: "lib3" }
+        bundle.isBundle: false
     }
 
     DynamicLibrary {
@@ -41,6 +43,7 @@ Project {
             files : [ "lib3.cpp" ]
         }
         Depends { name: "cpp" }
+        bundle.isBundle: false
     }
 
     DynamicLibrary {
@@ -52,6 +55,7 @@ Project {
             files : [ "lib4.h", "lib4.cpp" ]
         }
         Depends { name: "cpp" }
+        bundle.isBundle: false
 
         Export {
             Depends { name: "cpp" }

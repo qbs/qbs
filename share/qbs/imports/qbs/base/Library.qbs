@@ -9,6 +9,7 @@ Product {
     property stringList architectures: isForAndroid ? ["armeabi"] : undefined
 
     Depends { name: "Android.ndk"; condition: isForAndroid }
+    Depends { name: "bundle" }
     Depends { name: "cpp"; condition: isForAndroid }
 
     profiles: isForAndroid

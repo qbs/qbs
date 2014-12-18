@@ -45,6 +45,7 @@ Project {
     Product {
         name: "genlexer"
         type: "application"
+        consoleApplication: true
         Depends { name: "cpp" }
         Group {
             files: ["numbers.l"]

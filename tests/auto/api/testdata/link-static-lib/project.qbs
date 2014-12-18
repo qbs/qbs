@@ -3,6 +3,7 @@ import qbs 1.0
 Project {
     Product {
         type: "application"
+        consoleApplication: true
         name: "HelloWorld"
         files : [ "main.cpp" ]
         Depends { name: "cpp" }

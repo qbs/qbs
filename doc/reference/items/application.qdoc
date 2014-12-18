@@ -38,22 +38,5 @@
     \brief Represents a product of application type.
 
     An \c Application item is a \c Product that has its type set to "application"
-    (or "applicationbundle" on Darwin platforms such as OS X and iOS). It exists for the convenience
-    of project file authors.
-
-    \section1 Application Properties
-    The following properties are available in addition to the ones inherited from \c Product.
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li bundleExtension
-        \li string
-        \li empty
-        \li The extension to use for the product's bundle. Only relevant on Darwin systems.
-    \endtable
+    It exists for the convenience of project file authors.
 */

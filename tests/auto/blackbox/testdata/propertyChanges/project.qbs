@@ -24,6 +24,7 @@ Project {
         name: "library"
         Depends { name: "Qt.core" }
         files: "lib.cpp"
+        bundle.isBundle: false
     }
 
     Product {

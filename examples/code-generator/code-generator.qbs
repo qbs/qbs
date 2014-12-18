@@ -40,7 +40,6 @@ Project {
     // A code generator that outputs a "Hello World" C++ program.
     Product {
         name: "hwgen"
-        type: ["application"]
         Depends { name: "cpp" }
         files: ["hwgen.cpp"]
     }
@@ -48,7 +47,6 @@ Project {
     // Generate and build a hello-world application.
     Product {
         name: "hello-world"
-        type: ["application"]
         Depends { name: "cpp" }
         Depends { name: "hwgen" }
         Rule {

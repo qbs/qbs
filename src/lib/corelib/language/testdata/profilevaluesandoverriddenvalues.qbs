@@ -12,6 +12,7 @@ Project {
                 throw new Error("dummy.defines: Array type expected.");
             return "application";
         }
+        consoleApplication: true
         Depends { name: "dummy" }
         // dummy.cxxFlags is set via profile and is not overridden
         dummy.defines: ["IN_FILE"]  // set in profile, overridden in file

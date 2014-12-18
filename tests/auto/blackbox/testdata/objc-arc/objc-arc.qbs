@@ -2,6 +2,7 @@ import qbs
 
 Product {
     Depends { name: "cpp" }
+    consoleApplication: true
     type: ["application"]
     condition: qbs.targetOS.contains("darwin")
 

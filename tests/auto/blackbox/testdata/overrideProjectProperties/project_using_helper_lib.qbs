@@ -4,7 +4,7 @@ Project {
     property bool linkSuccessfully: false
     references: linkSuccessfully ? ["helper_lib.qbs"] : []
     CppApplication {
-        type: "application"
+        consoleApplication: true
         Depends {
             condition: project.linkSuccessfully
             name: "helperLib"

@@ -7,6 +7,7 @@ Project {
 
     Product {
         type: 'application'
+        consoleApplication: true
         name: project.name
         property var replacements: ({
                 NUMBERTYPE: "int",

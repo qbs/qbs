@@ -8,6 +8,7 @@ Project {
     Product {
         name: "HelloWorld"
         type: "application"
+        consoleApplication: true
         files: ["main.cpp"]
 
         Depends { name: "cpp" }

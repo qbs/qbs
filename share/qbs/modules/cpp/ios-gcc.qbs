@@ -1,5 +1,4 @@
 import qbs 1.0
-import qbs.BundleTools
 import qbs.DarwinTools
 import qbs.File
 import qbs.ModUtils
@@ -29,7 +28,7 @@ DarwinGCC {
 
         Artifact {
             filePath: product.destinationDirectory + "/"
-                    + BundleTools.contentsFolderPath(product)
+                    + product.moduleProperty("bundle", "contentsFolderPath")
                     + "/ResourceRules.plist"
             fileTags: ["resourcerules"]
         }
@@ -68,7 +67,7 @@ DarwinGCC {
                         "cpp.provisioningProfile in order to build an IPA package.";
 
             var args = ["-sdk", product.moduleProperty("cpp", "xcodeSdkName"), "PackageApplication",
-                        "-v", product.buildDirectory + "/" + BundleTools.wrapperName(product),
+                        "-v", product.buildDirectory + "/" + product.moduleProperty("bundle", "bundleName"),
                         "-o", outputs.ipa[0].filePath, "--sign", signingIdentity,
                         "--embed", provisioningProfile];
 

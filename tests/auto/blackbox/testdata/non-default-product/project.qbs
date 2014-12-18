@@ -3,13 +3,13 @@ import qbs
 Project {
     CppApplication {
         name: "default app"
-        type: ["application"]
+        consoleApplication: true
         files: "main.cpp"
     }
 
     CppApplication {
         name: "non-default app"
-        type: ["application"]
+        consoleApplication: true
         builtByDefault: false
         files: "main.cpp"
     }

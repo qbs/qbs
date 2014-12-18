@@ -1,5 +1,34 @@
+var BundleTools = loadExtension("qbs.BundleTools");
 var File = loadExtension("qbs.File");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
+
+// duplicated from bundle-tools.js
+// otherwise, "Can't find variable: JavaScriptCommand"
+function frameworkSymlinkCreateCommands(bundlePath, targetName, frameworkVersion) {
+    var cmd, commands = [];
+
+    cmd = new Command("ln", ["-sfn", frameworkVersion, "Current"]);
+    cmd.workingDirectory = FileInfo.joinPaths(bundlePath, "Versions");
+    cmd.silent = true;
+    commands.push(cmd);
+
+    cmd = new Command("ln", ["-sfn", "Versions/Current/Headers", "Headers"]);
+    cmd.workingDirectory = bundlePath;
+    cmd.silent = true;
+    commands.push(cmd);
+
+    cmd = new Command("ln", ["-sfn", "Versions/Current/Resources", "Resources"]);
+    cmd.workingDirectory = bundlePath;
+    cmd.silent = true;
+    commands.push(cmd);
+
+    cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", targetName), targetName]);
+    cmd.workingDirectory = bundlePath;
+    cmd.silent = true;
+    commands.push(cmd);
+
+    return commands;
+}
 
 function linkerFlags(product, inputs) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
@@ -144,8 +173,8 @@ function additionalCompilerFlags(product, input, output) {
 
     var EffectiveTypeEnum = { UNKNOWN: 0, LIB: 1, APP: 2 };
     var effectiveType = EffectiveTypeEnum.UNKNOWN;
-    var libTypes = {staticlibrary : 1, dynamiclibrary : 1, frameworkbundle : 1};
-    var appTypes = {application : 1, applicationbundle : 1};
+    var libTypes = {staticlibrary : 1, dynamiclibrary : 1};
+    var appTypes = {application : 1};
     var i;
     for (i = product.type.length; --i >= 0;) {
         if (libTypes.hasOwnProperty(product.type[i]) !== -1) {
@@ -551,6 +580,17 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             }
         }
         commands.push(cmd);
+
+        // Create framework structure for the copied library
+        // Is this a framework? Create structure
+        var libCopy = outputs.dynamiclibrary_copy[0];
+        var fmwkCopy = (outputs.framework_copy || {})[0];
+        if (fmwkCopy && product.moduleProperty("bundle", "isBundle")) {
+            var ver = product.moduleProperty("bundle", "frameworkVersion");
+            commands = commands.concat(frameworkSymlinkCreateCommands(fmwkCopy.filePath,
+                                                                      libCopy.fileName,
+                                                                      ver));
+        }
 
         // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
         var links = outputs["dynamiclibrary_symlink"];

@@ -7,4 +7,5 @@ CppApplication {
         qbs.install: true
         fileTagsFilter: product.type
     }
+    bundle.isBundle: false
 }

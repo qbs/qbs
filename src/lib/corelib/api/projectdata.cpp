@@ -222,7 +222,6 @@ QStringList TargetArtifact::fileTags() const
 bool TargetArtifact::isExecutable() const
 {
     return d->fileTags.contains(QLatin1String("application"))
-            || d->fileTags.contains(QLatin1String("applicationbundle"))
             || d->fileTags.contains(QLatin1String("msi"));
 }
 
@@ -323,8 +322,7 @@ QStringList InstallableFile::fileTags() const
  */
 bool InstallableFile::isExecutable() const
 {
-    return d->fileTags.contains(QLatin1String("application"))
-            || d->fileTags.contains(QLatin1String("applicationbundle"));
+    return d->fileTags.contains(QLatin1String("application"));
 }
 
 bool operator==(const InstallableFile &file1, const InstallableFile &file2)

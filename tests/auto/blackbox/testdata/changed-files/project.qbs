@@ -3,6 +3,7 @@ import qbs.TextFile
 
 CppApplication {
     type: ["application", "stuff"]
+    consoleApplication: true
     files: ["file1.cpp", "file2.cpp", "main.cpp"]
 
     Rule {

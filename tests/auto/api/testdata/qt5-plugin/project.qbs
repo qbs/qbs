@@ -7,6 +7,7 @@ DynamicLibrary {
 
     Depends { name: "Qt.core" }
     Depends { name: "cpp" }
+    bundle.isBundle: false
 
     Group {
         condition: Qt.core.versionMajor >= 5

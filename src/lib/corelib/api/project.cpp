@@ -73,10 +73,6 @@
 #include <QRegExp>
 #include <QSharedData>
 
-#ifdef Q_OS_MAC
-#include <CoreFoundation/CoreFoundation.h>
-#endif
-
 namespace qbs {
 namespace Internal {
 
@@ -672,10 +668,7 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
 
 static bool productIsRunnable(const ResolvedProductConstPtr &product)
 {
-    return product->fileTags.contains("application")
-        || (product->fileTags.contains("applicationbundle")
-            && product->moduleProperties->qbsPropertyValue(QLatin1String("targetOS"))
-             .toStringList().contains(QLatin1String("darwin")));
+    return product->fileTags.contains("application");
 }
 
 void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
@@ -824,47 +817,6 @@ ProjectData Project::projectData() const
     return d->projectData();
 }
 
-QString bundleExecutablePath(const QString &qbundlePath, const QString &defaultValue)
-{
-#ifdef Q_OS_MAC
-    QString qexecutablePath = defaultValue;
-    CFStringRef bundlePath = qbundlePath.toCFString();
-    CFURLRef bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, bundlePath,
-                                                       kCFURLPOSIXPathStyle, true);
-    CFRelease(bundlePath);
-    CFBundleRef bundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
-    if (bundle) {
-        CFURLRef executableURL = CFBundleCopyExecutableURL(bundle);
-        if (executableURL) {
-            CFURLRef absoluteExecutableURL = CFURLCopyAbsoluteURL(executableURL);
-            if (absoluteExecutableURL) {
-                CFStringRef executablePath = CFURLCopyFileSystemPath(absoluteExecutableURL,
-                                                                     kCFURLPOSIXPathStyle);
-                if (executablePath) {
-                    qexecutablePath = QString::fromCFString(executablePath);
-                    CFRelease(executablePath);
-                }
-                CFRelease(absoluteExecutableURL);
-            }
-            CFRelease(executableURL);
-        }
-        CFRelease(bundle);
-    }
-    CFRelease(bundleURL);
-    return qexecutablePath;
-#else
-    Q_UNUSED(qbundlePath);
-    return defaultValue;
-#endif
-}
-
-static QString completeExecutableFilePath(const TargetArtifact &executableArtifact,
-        const QString &targetFilePath)
-{
-    return executableArtifact.fileTags().contains("applicationbundle")
-            ? bundleExecutablePath(targetFilePath, targetFilePath) : targetFilePath;
-}
-
 /*!
  * \brief Returns the file path of the executable associated with the given product.
  * If the product is not an application, an empty string is returned.
@@ -883,9 +835,9 @@ QString Project::targetExecutable(const ProductData &product,
                     = installableFilesForProduct(product, installOptions);
             foreach (const InstallableFile &file, installables) {
                 if (file.sourceFilePath() == ta.filePath())
-                    return completeExecutableFilePath(ta, file.targetFilePath());
+                    return file.targetFilePath();
             }
-            return completeExecutableFilePath(ta, ta.filePath());
+            return ta.filePath();
         }
     }
     return QString();

@@ -3,6 +3,7 @@ import QbsFunctions
 
 QbsProduct {
     Depends { name: "cpp" }
+    Depends { name: "bundle" }
     version: QbsFunctions.qbsVersion()
     type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
     targetName: (qbs.enableDebugCode && qbs.targetOS.contains("windows")) ? (name + 'd') : name
@@ -11,6 +12,7 @@ QbsProduct {
     cpp.installNamePrefix: "@rpath"
     cpp.visibility: "minimal"
     cpp.cxxLanguageVersion: "c++11"
+    bundle.isBundle: false
     property string headerInstallPrefix: "/include/qbs"
     Group {
         fileTagsFilter: product.type.concat("dynamiclibrary_symlink")

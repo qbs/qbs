@@ -87,9 +87,9 @@ Module {
         Artifact {
             filePath: {
                 var outputDirectory = product.destinationDirectory;
-                if (BundleTools.isBundleProduct(product)) {
+                if (product.moduleProperty("bundle", "isBundle")) {
                     outputDirectory = FileInfo.joinPaths(outputDirectory,
-                                            BundleTools.unlocalizedResourcesFolderPath(product));
+                                            product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"));
                 }
                 return FileInfo.joinPaths(outputDirectory, input.completeBaseName + ModUtils.moduleProperty(product, "appleIconSuffix"))
             }
@@ -112,19 +112,7 @@ Module {
         ]
         outputArtifacts: {
             // When the flatten property is true, this artifact will be a FILE, otherwise it will be a DIRECTORY
-            var path = product.destinationDirectory;
-            var inputFilePath = input.baseDir + '/' + input.fileName;
-            var key = DarwinTools.localizationKey(inputFilePath);
-            if (key) {
-                path += '/' + BundleTools.localizedResourcesFolderPath(product, key);
-                var subPath = DarwinTools.relativeResourcePath(inputFilePath);
-                if (subPath && subPath !== '.')
-                    path += '/' + subPath;
-            } else {
-                path += '/' + BundleTools.unlocalizedResourcesFolderPath(product);
-                path += '/' + input.baseDir;
-            }
-
+            var path = BundleTools.destinationDirectoryForResource(product, input);
             var suffix = "";
             if (input.fileTags.contains("nib"))
                 suffix = ModUtils.moduleProperty(product, "compiledNibSuffix");
@@ -180,9 +168,9 @@ Module {
         // through use of --output-format xml1
         outputArtifacts: {
             var outputDirectory = product.destinationDirectory;
-            if (BundleTools.isBundleProduct(product)) {
+            if (product.moduleProperty("bundle", "isBundle")) {
                 outputDirectory = FileInfo.joinPaths(outputDirectory,
-                                            BundleTools.unlocalizedResourcesFolderPath(product));
+                                            product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"));
             }
 
             // Chicken and egg... create a fake outputs dictionary for building actool args list

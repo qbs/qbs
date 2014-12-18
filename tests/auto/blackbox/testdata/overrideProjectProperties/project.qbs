@@ -6,6 +6,7 @@ Project {
     property int someInt
     property stringList someStringList
     Product {
+        consoleApplication: true
         type: "application"
         property string mainFile: ""
         name: "MyApp" + nameSuffix

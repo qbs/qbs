@@ -1,7 +1,7 @@
 import qbs
 
 CppApplication {
-    type: ["application"]
+    consoleApplication: true
     files: ["main.cpp"]
     Group {
         fileTagsFilter: ["cpp"]

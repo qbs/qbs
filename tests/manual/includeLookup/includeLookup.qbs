@@ -6,6 +6,7 @@ Project {
     qbsSearchPaths: '.'
     Product {
         type: 'application'
+        consoleApplication: true
         name: project.name
         files: 'main.cpp'
         Depends { name: 'cpp' }

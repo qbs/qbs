@@ -147,6 +147,9 @@
             \li linker-dependent
             \li If true, a console application is generated. If false, a GUI application is generated.
                 Only takes effect on Windows.
+                This property also influences the default application type on OS X and iOS.
+                If true, an application bundle is generated. If false, a normal executable is
+                generated.
         \row
             \li qbsSearchPaths
             \li stringList

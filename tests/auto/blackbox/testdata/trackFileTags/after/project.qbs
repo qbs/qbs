@@ -5,6 +5,7 @@ Project {
     Product {
         name: 'someapp'
         type: 'application'
+        consoleApplication: true
         Depends { name: 'cpp' }
         Group {
             files: [ "main.cpp" ]

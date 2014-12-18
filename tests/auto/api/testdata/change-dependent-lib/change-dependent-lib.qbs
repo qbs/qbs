@@ -18,6 +18,7 @@ Project {
         }
         Depends { name: "cpp" }
         cpp.defines: ["XXXX"]
+        bundle.isBundle: false
     }
 }
 

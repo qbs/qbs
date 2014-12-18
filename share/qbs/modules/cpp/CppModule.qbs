@@ -205,16 +205,6 @@ Module {
     property stringList platformLinkerFlags
 
     // OS X and iOS properties
-    property path infoPlistFile
-    property var infoPlist
-    property bool processInfoPlist: true
-    property bool embedInfoPlist: product.type.contains("application")
-    property string infoPlistFormat: {
-        if (qbs.targetOS.contains("osx"))
-            return infoPlistFile ? "same-as-input" : "xml1"
-        else if (qbs.targetOS.contains("ios"))
-            return "binary1"
-    }
     property bool buildDsym: qbs.buildVariant === "release"
     property bool buildIpa: !qbs.targetOS.contains('ios-simulator')
 

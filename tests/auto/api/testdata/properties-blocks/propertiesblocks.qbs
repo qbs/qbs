@@ -6,6 +6,7 @@ Product {
     Properties {
         condition: true
         type: 'application'
+        consoleApplication: true
         name: 'HelloWorld'
     }
 

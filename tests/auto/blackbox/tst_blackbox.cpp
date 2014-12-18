@@ -1814,7 +1814,7 @@ void TestBlackbox::testEmbedInfoPlist()
     params.command = QLatin1String("run");
     QCOMPARE(runQbs(params), 0);
 
-    params.arguments = QStringList(QLatin1String("cpp.embedInfoPlist:false"));
+    params.arguments = QStringList(QLatin1String("bundle.embedInfoPlist:false"));
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
 }

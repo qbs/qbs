@@ -1,4 +1,4 @@
 Product {
-    property string bundleExtension
-    type: qbs.targetOS.contains("darwin") ? ["applicationbundle"] : ["application"]
+    type: ["application"]
+    Depends { name: "bundle" }
 }

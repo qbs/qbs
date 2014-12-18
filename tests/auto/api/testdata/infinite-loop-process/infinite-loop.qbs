@@ -2,7 +2,8 @@ import qbs
 
 Project {
     QtApplication {
-        type: "application" // suppress bundle generation
+        type: "application"
+        consoleApplication: true // suppress bundle generation
         files: "main.cpp"
         name: "infinite-loop"
     }

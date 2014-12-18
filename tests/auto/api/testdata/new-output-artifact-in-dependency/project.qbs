@@ -6,6 +6,7 @@ Project {
         //Depends { name: "Qt.core" }
         name: "lib"
         files: "lib.cpp"
+        bundle.isBundle: false
     }
 
     CppApplication {

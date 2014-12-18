@@ -41,12 +41,11 @@ import qbs 1.0
 CppApplication {
     Depends { condition: product.condition; name: "ib" }
     condition: qbs.targetOS.contains("ios")
-    type: "applicationbundle"
     name: "Cocoa Touch Application"
 
     cpp.precompiledHeader: "CocoaTouchApplication/CocoaTouchApplication-Prefix.pch"
 
-    cpp.infoPlistFile: "CocoaTouchApplication/CocoaTouchApplication-Info.plist"
+    bundle.infoPlistFile: "CocoaTouchApplication/CocoaTouchApplication-Info.plist"
 
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
 

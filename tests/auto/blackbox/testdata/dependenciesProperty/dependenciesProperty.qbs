@@ -29,6 +29,7 @@ Project {
     }
     Product {
         type: "application"
+        consoleApplication: true
         name: "product2"
         property string narf: "zort"
         Depends { name: "cpp" }

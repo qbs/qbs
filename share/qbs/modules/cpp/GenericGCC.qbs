@@ -49,8 +49,7 @@ CppModule {
     property string stripPath: toolchainPathPrefix + stripName
 
     readonly property bool shouldCreateSymlinks: {
-        return createSymlinks && internalVersion &&
-                !product.type.contains("frameworkbundle") && qbs.targetOS.contains("unix");
+        return createSymlinks && internalVersion && qbs.targetOS.contains("unix");
     }
 
     readonly property string internalVersion: {
@@ -76,10 +75,10 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
 
         outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy",
-                         "debuginfo"]
+                         "framework_copy", "debuginfo"]
         outputArtifacts: {
             var lib = {
                 filePath: product.destinationDirectory + "/"
@@ -95,7 +94,15 @@ CppModule {
                 cpp: { transitiveSOs: Gcc.collectTransitiveSos(inputs) }
             };
             var artifacts = [lib, libCopy];
-            if (ModUtils.moduleProperty(product, "shouldCreateSymlinks")) {
+
+            if (product.moduleProperty("bundle", "isBundle")) {
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, ".socopy", product.moduleProperty("bundle", "bundleName")),
+                    fileTags: ["framework_copy"]
+                });
+            }
+
+            if (ModUtils.moduleProperty(product, "shouldCreateSymlinks") && !product.moduleProperty("bundle", "isBundle")) {
                 for (var i = 0; i < 3; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"
@@ -126,7 +133,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["dynamiclibrary", "staticlibrary", "frameworkbundle"]
+        inputsFromDependencies: ["dynamiclibrary", "staticlibrary"]
 
         Artifact {
             filePath: product.destinationDirectory + "/" + PathTools.staticLibraryFilePath(product)
@@ -168,11 +175,11 @@ CppModule {
             var tags = ["obj"];
             if (product.type.contains("application") &&
                 product.moduleProperty("qbs", "targetOS").contains("darwin") &&
-                product.moduleProperty("cpp", "embedInfoPlist"))
+                product.moduleProperty("bundle", "embedInfoPlist"))
                 tags.push("infoplist");
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary", "frameworkbundle"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
 
         outputFileTags: ["application", "debuginfo"]
         outputArtifacts: {

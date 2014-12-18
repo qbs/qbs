@@ -26,6 +26,7 @@ CppApplication {
             throw "probe1.someString expected to be \"one\"."
         return "application"
     }
+    consoleApplication: true
     files: ["main.cpp"]
 }
 

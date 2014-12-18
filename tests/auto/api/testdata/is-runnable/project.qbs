@@ -6,5 +6,6 @@ Project {
     }
     DynamicLibrary {
         name: "lib"
+        bundle.isBundle: false
     }
 }

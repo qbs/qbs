@@ -9,4 +9,5 @@ DynamicLibrary {
         qbs.install: true
         qbs.installDir: project.pluginsInstallDir + "/qbs/plugins"
     }
+    bundle.isBundle: false
 }

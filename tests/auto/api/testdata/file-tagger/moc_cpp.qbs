@@ -5,6 +5,7 @@ import qbs.FileInfo
 Project {
     Product {
         type: "application"
+        consoleApplication: true
         name: "moc_cpp"
 
         Depends {

@@ -1,10 +1,9 @@
-var BundleTools = loadExtension("qbs.BundleTools");
 var FileInfo = loadExtension("qbs.FileInfo");
 
 function soname(product, outputFileName) {
     if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
-        if (BundleTools.isBundleProduct(product))
-            outputFileName = BundleTools.executablePath(product);
+        if (product.moduleProperty("bundle", "isBundle"))
+            outputFileName = product.moduleProperty("bundle", "executablePath");
         var prefix = product.moduleProperty("cpp", "installNamePrefix");
         if (prefix)
             outputFileName = FileInfo.joinPaths(prefix, outputFileName);

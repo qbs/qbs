@@ -39,6 +39,7 @@ import qbs 1.0
 
 Product {
     type: "application"
+    consoleApplication: true
     name : "app-and-lib-app"
     files : [ "main.cpp" ]
     Depends { name: "cpp" }
