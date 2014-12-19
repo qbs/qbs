@@ -10,7 +10,7 @@ function linkerFlags(product, inputs) {
     var weakFrameworks = ModUtils.moduleProperties(product, 'weakFrameworks');
     var rpaths = (product.moduleProperty("cpp", "useRPaths") !== false)
             ? ModUtils.moduleProperties(product, 'rpaths') : undefined;
-    var args = [], i, prefix, suffix, suffixes;
+    var args = [], i, suffix;
 
     if (rpaths && rpaths.length)
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
@@ -27,8 +27,6 @@ function linkerFlags(product, inputs) {
     if (linkerScripts)
         args = args.concat(linkerScripts.map(function(path) { return '-T' + path }));
 
-    prefix = ModUtils.moduleProperty(product, "staticLibraryPrefix");
-    suffixes = ModUtils.moduleProperty(product, "supportedStaticLibrarySuffixes");
     for (i in staticLibraries) {
         if (File.exists(staticLibraries[i])) {
             args.push(staticLibraries[i]);
@@ -37,8 +35,6 @@ function linkerFlags(product, inputs) {
         }
     }
 
-    prefix = ModUtils.moduleProperty(product, "dynamicLibraryPrefix");
-    suffix = ModUtils.moduleProperty(product, "dynamicLibrarySuffix");
     for (i in dynamicLibraries) {
         if (File.exists(dynamicLibraries[i])) {
             args.push(dynamicLibraries[i]);
