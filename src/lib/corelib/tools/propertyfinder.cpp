@@ -71,7 +71,7 @@ void PropertyFinder::findModuleValues(const QVariantMap &properties, bool search
         moduleProperties.erase(modIt);
     }
 
-    if (!searchRecursively)
+    if (!m_values.isEmpty() && !searchRecursively)
         return;
 
     // These are the non-matching modules.
