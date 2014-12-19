@@ -16,12 +16,9 @@ function linkerFlags(product, inputs) {
         args.push('-Wl,-rpath,' + rpaths.join(",-rpath,"));
 
     // Add filenames of internal library dependencies to the lists
-    for (i in inputs.staticlibrary)
-        staticLibraries.unshift(inputs.staticlibrary[i].filePath);
-    for (i in inputs.dynamiclibrary_copy)
-        dynamicLibraries.unshift(inputs.dynamiclibrary_copy[i].filePath);
-    for (i in inputs.frameworkbundle)
-        frameworks.unshift(inputs.frameworkbundle[i].filePath);
+    staticLibraries = concatLibsFromArtifacts(staticLibraries, inputs.staticlibrary);
+    dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy);
+    frameworks = concatLibsFromArtifacts(frameworks, inputs.frameworkbundle);
 
     // Flags for library search paths
     if (libraryPaths)
@@ -547,4 +544,13 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     return commands;
+}
+
+function concatLibsFromArtifacts(libs, artifacts)
+{
+    if (!artifacts)
+        return libs;
+    var deps = artifacts.map(function (a) { return a.filePath; });
+    deps.reverse();
+    return concatLibs(deps, libs);
 }
