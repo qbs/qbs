@@ -98,7 +98,6 @@ Module {
     property string executablePrefix
     property string staticLibrarySuffix
     property string dynamicLibrarySuffix
-    property stringList supportedStaticLibrarySuffixes: [staticLibrarySuffix]
     property string executableSuffix
     property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname

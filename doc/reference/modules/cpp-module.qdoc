@@ -457,16 +457,6 @@
 
     Full path of the linker binary. This is set in the build profile.
 
-    \section2 supportedStaticLibrarySuffixes
-
-    \table
-    \row    \li \b{Type:}            \li \c{stringList}
-    \row    \li \b{Default:}         \li \c{undefined}
-    \endtable
-
-    List of file suffixes this toolchain's linker accepts as input. For example, for MinGW this list
-    should be \c{[".a", ".lib"]}.
-
     \section2 entryPoint
 
     \table
