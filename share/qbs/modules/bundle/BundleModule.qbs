@@ -10,6 +10,14 @@ import qbs.TextFile
 Module {
     additionalProductTypes: ["bundle"]
 
+    setupBuildEnvironment: {
+        if (qbs.hostOS.contains("darwin")) {
+            var v = new ModUtils.EnvironmentVariable("PATH", ":", false);
+            v.prepend("/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support");
+            v.set();
+        }
+    }
+
     property bool isBundle: qbs.targetOS.contains("darwin")
                             && (product.type.contains("application")
                                 || product.type.contains("dynamiclibrary")
@@ -456,6 +464,12 @@ Module {
             };
             if (cmd.sources && cmd.sources.length)
                 commands.push(cmd);
+
+            if (outputs.bundle && product.type.contains("application") && product.moduleProperty("qbs", "hostOS").contains("darwin")) {
+                cmd = new Command("lsregister", ["-f", outputs.bundle[0].filePath]);
+                cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
+                commands.push(cmd);
+            }
 
             return commands;
         }
