@@ -5,6 +5,8 @@ UnixGCC {
     condition: false
 
     compilerDefines: ["__GNUC__", "__APPLE__"]
+    loadableModulePrefix: ""
+    loadableModuleSuffix: ".bundle"
     dynamicLibrarySuffix: ".dylib"
     debugInfoSuffix: ".dSYM"
 

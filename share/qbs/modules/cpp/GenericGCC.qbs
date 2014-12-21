@@ -162,6 +162,48 @@ CppModule {
     }
 
     Rule {
+        id: loadableModuleLinker
+        multiplex: true
+        inputs: {
+            var tags = ["obj"];
+            if (product.type.contains("application") &&
+                product.moduleProperty("qbs", "targetOS").contains("darwin") &&
+                product.moduleProperty("bundle", "embedInfoPlist"))
+                tags.push("infoplist");
+            return tags;
+        }
+        inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
+
+        outputFileTags: ["loadablemodule", "debuginfo", "dsym"]
+        outputArtifacts: {
+            var app = {
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.loadableModuleFilePath(product)),
+                fileTags: ["loadablemodule"]
+            }
+            var artifacts = [app];
+            if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
+                    && ModUtils.moduleProperty(product, "separateDebugInformation")) {
+                artifacts.push({
+                    filePath: app.filePath + ".debug",
+                    fileTags: ["debuginfo"]
+                });
+            }
+            if (ModUtils.moduleProperty(product, "buildDsym")) {
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(product.destinationDirectory, PathTools.dwarfDsymFileName(product)),
+                    fileTags: ["dsym"]
+                });
+            }
+            return artifacts;
+        }
+
+        prepare: {
+            return Gcc.prepareLinker.apply(this, arguments);
+        }
+    }
+
+    Rule {
         id: applicationLinker
         multiplex: true
         inputs: {

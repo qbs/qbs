@@ -2255,4 +2255,11 @@ void TestBlackbox::wildCardsAndRules()
     QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
 }
 
+void TestBlackbox::testLoadableModule()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/loadablemodule"));
+
+    QCOMPARE(runQbs(), 0);
+}
+
 QTEST_MAIN(TestBlackbox)

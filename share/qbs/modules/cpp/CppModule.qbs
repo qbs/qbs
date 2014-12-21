@@ -95,9 +95,11 @@ Module {
     property string linkerPath: linkerName
     property string staticLibraryPrefix
     property string dynamicLibraryPrefix
+    property string loadableModulePrefix
     property string executablePrefix
     property string staticLibrarySuffix
     property string dynamicLibrarySuffix
+    property string loadableModuleSuffix
     property string executableSuffix
     property string debugInfoSuffix
     property bool createSymlinks: true

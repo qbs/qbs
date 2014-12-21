@@ -169,6 +169,7 @@ private slots:
     void testAssetCatalog();
     void testObjcArc();
     void wildCardsAndRules();
+    void testLoadableModule();
 
 private:
     QByteArray m_qbsStderr;

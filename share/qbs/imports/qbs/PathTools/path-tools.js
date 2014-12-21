@@ -13,6 +13,19 @@ function applicationFilePath(product) {
         return applicationFileName(product);
 }
 
+function loadableModuleFileName(product) {
+    return product.moduleProperty("cpp", "loadableModulePrefix")
+         + product.targetName
+         + product.moduleProperty("cpp", "loadableModuleSuffix");
+}
+
+function loadableModuleFilePath(product) {
+    if (product.moduleProperty("bundle", "isBundle"))
+        return product.moduleProperty("bundle", "executablePath");
+    else
+        return loadableModuleFileName(product);
+}
+
 function staticLibraryFileName(product) {
     return product.moduleProperty("cpp", "staticLibraryPrefix")
          + product.targetName
@@ -82,6 +95,8 @@ function debugInfoFileName(product) {
         return applicationFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
     else if (product.type.contains("dynamiclibrary"))
         return dynamicLibraryFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
+    else if (product.type.contains("loadablemodule"))
+        return loadableModuleFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
     else if (product.type.contains("staticlibrary"))
         return staticLibraryFileName(product) + product.moduleProperty("cpp", "debugInfoSuffix");
     else

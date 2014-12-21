@@ -438,6 +438,14 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             if (internalVersion)
                 args.push("-current_version", internalVersion);
         }
+    } else if (outputs.loadablemodule) {
+        primaryOutput = outputs.loadablemodule[0];
+
+        args.push("-bundle");
+
+        if (product.moduleProperty("qbs", "targetOS").contains("darwin")) {
+            args.push("-Wl,-headerpad_max_install_names");
+        }
     }
 
     if (product.moduleProperty("cpp", "entryPoint"))

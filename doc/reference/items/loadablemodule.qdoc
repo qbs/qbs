@@ -1,6 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Jake Petroules.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Build Suite.
@@ -29,28 +30,14 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \page javajarfile-item.html
-    \previouspage javaclasscollection-item.html
-    \nextpage loadablemodule-item.html
+    \page loadablemodule-item.html
+    \previouspage javafarfile-item.html
+    \nextpage module-item.html
     \ingroup list-of-items
 
-    \title JavaJarFile Item
-    \brief Represents a collection of Java class files bundled in a jar file.
+    \title LoadableModule Item
+    \brief Represents a product that is a loadable module.
 
-    A \c JavaJarCollection item is product of type \c{java.jar}. It is used to produce a jar
-    archive from a set of Java sources.
-
-    \table
-    \header
-        \li Property
-        \li Type
-        \li Default
-        \li Description
-    \row
-        \li entryPoint
-        \li string
-        \li undefined
-        \li The entry point for an executable jar file.
-    \endtable
-
+    A \c LoadableModule item is a \c Product that has its type set to "loadablemodule". It exists
+    for the convenience of project file authors.
 */
