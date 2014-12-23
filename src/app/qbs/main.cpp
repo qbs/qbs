@@ -37,6 +37,7 @@
 #include <qbs.h>
 
 #include <QTimer>
+#include <cstdlib>
 
 using namespace qbs;
 
