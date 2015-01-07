@@ -45,8 +45,10 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath)
     : m_lockFile(buildGraphFilePath + QLatin1String(".lock"))
 {
     const QString buildDir = QFileInfo(buildGraphFilePath).absolutePath();
-    if (!QDir::root().mkpath(buildDir))
-        throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Failed to create directory."));
+    if (!QDir::root().mkpath(buildDir)) {
+        throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': Failed to create directory.")
+                        .arg(buildGraphFilePath));
+    }
     m_lockFile.setStaleLockTime(0);
     int attemptsToGetInfo = 0;
     do {
