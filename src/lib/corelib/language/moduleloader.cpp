@@ -467,8 +467,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         return;
 
     const QString projectFileDirPath = FileInfo::path(item->file()->filePath());
-    const QString relativeFilePath = m_evaluator->property(item,
-                                                           QLatin1String("filePath")).toString();
+    const QString relativeFilePath = m_evaluator->stringValue(item, QLatin1String("filePath"));
     QString subProjectFilePath = FileInfo::resolvePath(projectFileDirPath, relativeFilePath);
     if (referencedFilePaths.contains(subProjectFilePath))
         throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
@@ -744,7 +743,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *item
                 productResults->append(ProductDependencyResult(dependsItem, dependency));
                 continue;
             }
-            const bool required = m_evaluator->property(item, QLatin1String("required")).toBool();
+            const bool required = m_evaluator->boolValue(item, QLatin1String("required"));
             foreach (const QString &profile, profiles) {
                 ModuleLoaderResult::ProductInfo::Dependency dependency;
                 dependency.name = fullModuleName(moduleName);
