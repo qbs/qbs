@@ -192,10 +192,7 @@ int RunEnvironment::runTarget(const QString &targetBin, const QStringList &argum
         return EXIT_FAILURE;
     }
 
-    const QString installRoot = effectiveInstallRoot(d->installOptions,
-                                                     d->resolvedProduct->topLevelProject());
     QProcessEnvironment env = d->environment;
-    env.insert(QLatin1String("QBS_INSTALL_ROOT"), installRoot);
     env.insert(QLatin1String("QBS_RUN_FILE_PATH"), targetBin);
     d->resolvedProduct->setupRunEnvironment(&d->engine, env);
 

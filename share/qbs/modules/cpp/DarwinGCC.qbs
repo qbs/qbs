@@ -43,18 +43,17 @@ UnixGCC {
 
     setupRunEnvironment: {
         var env;
-        var installRoot = getEnv("QBS_INSTALL_ROOT");
 
         env = new ModUtils.EnvironmentVariable("DYLD_FRAMEWORK_PATH", qbs.pathListSeparator);
-        env.append(FileInfo.joinPaths(installRoot, qbs.installPrefix, "Library", "Frameworks"));
-        env.append(FileInfo.joinPaths(installRoot, qbs.installPrefix, "lib"));
-        env.append(FileInfo.joinPaths(installRoot, qbs.installPrefix));
+        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "Library", "Frameworks"));
+        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "lib"));
+        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix));
         env.set();
 
         env = new ModUtils.EnvironmentVariable("DYLD_LIBRARY_PATH", qbs.pathListSeparator);
-        env.append(FileInfo.joinPaths(installRoot, qbs.installPrefix, "lib"));
-        env.append(FileInfo.joinPaths(installRoot, qbs.installPrefix, "Library", "Frameworks"));
-        env.append(FileInfo.joinPaths(installRoot, qbs.installPrefix));
+        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "lib"));
+        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "Library", "Frameworks"));
+        env.append(FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix));
         env.set();
 
         if (qbs.sysroot) {
