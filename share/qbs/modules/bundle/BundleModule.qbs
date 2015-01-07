@@ -33,6 +33,8 @@ Module {
             return "";
         } else if (packageType === "APPL") {
             return "app";
+        } else if (packageType === "XPC!") {
+            return "xpc";
         } else if (packageType === "FMWK") {
             return "framework";
         } else{
@@ -45,6 +47,8 @@ Module {
     property string packageType: {
         if (product.type.contains("inapppurchase"))
             return undefined;
+        if (product.type.contains("xpcservice"))
+            return "XPC!";
         if (product.type.contains("application"))
             return "APPL";
         if (product.type.contains("dynamiclibrary") || product.type.contains("staticlibrary"))

@@ -29,8 +29,9 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-items.html
-    \previouspage subproject-item.html
     \page transformer-item.html
+    \previouspage subproject-item.html
+    \nextpage xpcservice-item.html
     \ingroup list-of-items
 
     \title Transformer Item
