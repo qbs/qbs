@@ -34,6 +34,8 @@ Module {
         } else if (packageType === "APPL") {
             return "app";
         } else if (packageType === "XPC!") {
+            if (product.type.contains("applicationextension"))
+                return "appex";
             return "xpc";
         } else if (packageType === "FMWK") {
             return "framework";
