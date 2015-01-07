@@ -71,18 +71,19 @@ QScriptValue Evaluator::property(const Item *item, const QString &name)
     return scriptValue(item).property(name);
 }
 
+QScriptValue Evaluator::value(const Item *item, const QString &name, bool *propertyWasSet)
+{
+    QScriptValue v;
+    evaluateProperty(&v, item, name, propertyWasSet);
+    return v;
+}
+
 bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultValue,
                           bool *propertyWasSet)
 {
-    QScriptValue v = property(item, name);
-    handleEvaluationError(item, name, v);
-    if (!v.isValid() || v.isUndefined()) {
-        if (propertyWasSet)
-            *propertyWasSet = false;
+    QScriptValue v;
+    if (!evaluateProperty(&v, item, name, propertyWasSet))
         return defaultValue;
-    }
-    if (propertyWasSet)
-        *propertyWasSet = true;
     return v.toBool();
 }
 
@@ -94,15 +95,9 @@ FileTags Evaluator::fileTagsValue(const Item *item, const QString &name, bool *p
 QString Evaluator::stringValue(const Item *item, const QString &name,
                                const QString &defaultValue, bool *propertyWasSet)
 {
-    QScriptValue v = property(item, name);
-    handleEvaluationError(item, name, v);
-    if (!v.isValid() || v.isUndefined()) {
-        if (propertyWasSet)
-            *propertyWasSet = false;
+    QScriptValue v;
+    if (!evaluateProperty(&v, item, name, propertyWasSet))
         return defaultValue;
-    }
-    if (propertyWasSet)
-        *propertyWasSet = true;
     return v.toString();
 }
 
@@ -188,6 +183,21 @@ void Evaluator::handleEvaluationError(const Item *item, const QString &name,
                 CodeLocation(location.filePath(), m_scriptEngine->uncaughtExceptionLineNumber()));
     }
     throw ErrorInfo(scriptValue.toString(), location);
+}
+
+bool Evaluator::evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
+        bool *propertyWasSet)
+{
+    *result = property(item, name);
+    handleEvaluationError(item, name, *result);
+    if (!result->isValid() || result->isUndefined()) {
+        if (propertyWasSet)
+            *propertyWasSet = false;
+        return false;
+    }
+    if (propertyWasSet)
+        *propertyWasSet = true;
+    return true;
 }
 
 QScriptValue Evaluator::fileScope(const FileContextConstPtr &file)

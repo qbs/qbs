@@ -1238,12 +1238,7 @@ void ModuleLoader::resolveProbe(Item *parent, Item *probe)
         foreach (const QString &name, obj->properties().keys()) {
             if (name == QLatin1String("configure"))
                 continue;
-            QScriptValue sv = m_evaluator->property(probe, name);
-            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(sv))) {
-                ValuePtr value = obj->property(name);
-                throw ErrorInfo(sv.toString(), value ? value->location() : CodeLocation());
-            }
-            probeBindings += ProbeProperty(name, sv);
+            probeBindings += ProbeProperty(name, m_evaluator->value(probe, name));
         }
     }
     QScriptValue scope = m_engine->newObject();

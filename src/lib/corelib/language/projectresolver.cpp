@@ -241,7 +241,7 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
             continue;
         const ValueConstPtr v = item->property(it.key());
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
-        projectProperties.insert(it.key(), m_evaluator->property(item, it.key()).toVariant());
+        projectProperties.insert(it.key(), m_evaluator->value(item, it.key()).toVariant());
     }
     projectContext->project->setProjectProperties(projectProperties);
 
@@ -1083,9 +1083,7 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             {
                 break;
             }
-            const QScriptValue scriptValue = m_evaluator->property(item, it.key());
-            if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue)))
-                throw ErrorInfo(scriptValue.toString(), it.value()->location());
+            const QScriptValue scriptValue = m_evaluator->value(item, it.key());
 
             // NOTE: Loses type information if scriptValue.isUndefined == true,
             //       as such QScriptValues become invalid QVariants.
