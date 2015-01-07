@@ -54,7 +54,6 @@ public:
 
     ScriptEngine *engine() const;
     QScriptValue property(const Item *item, const QString &name);
-    QScriptValue property(const Item *item, const QStringList &nameParts);
 
     bool boolValue(const Item *item, const QString &name, bool defaultValue = false,
                    bool *propertyWasSet = 0);

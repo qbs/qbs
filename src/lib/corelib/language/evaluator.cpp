@@ -71,21 +71,6 @@ QScriptValue Evaluator::property(const Item *item, const QString &name)
     return scriptValue(item).property(name);
 }
 
-QScriptValue Evaluator::property(const Item *item, const QStringList &nameParts)
-{
-    const Item *targetItem = item;
-    const int c = nameParts.count() - 1;
-    for (int i = 0; i < c; ++i) {
-        ValuePtr v = targetItem->properties().value(nameParts.at(i));
-        if (!v)
-            return QScriptValue();
-        QBS_ASSERT(v->type() == Value::ItemValueType, return QScriptValue());
-        targetItem =  v.staticCast<ItemValue>()->item();
-        QBS_ASSERT(targetItem, return QScriptValue());
-    }
-    return property(targetItem, nameParts.last());
-}
-
 bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultValue,
                           bool *propertyWasSet)
 {
