@@ -40,8 +40,16 @@ import qbs 1.0
 Product {
     type: "staticlibrary"
     name: "app-and-lib-lib"
-    files: [ "lib.cpp" ]
+    files: [
+        "lib.cpp",
+        "lib.h",
+    ]
     cpp.defines: ['CRUCIAL_DEFINE']
     Depends { name: 'cpp' }
+
+    Export {
+        Depends { name: "cpp" }
+        cpp.includePaths: [path]
+    }
 }
 
