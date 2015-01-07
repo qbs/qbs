@@ -249,7 +249,7 @@ var PropertyValidator = (function () {
 
         var errorMessage = "";
         if (Object.keys(missingProperties).length > 0) {
-            errorMessage += "The following properties are not set. Set them in your profile:\n";
+            errorMessage += "The following properties are not set. Set them in your profile or product:\n";
             lines = [];
             for (i in missingProperties) {
                 var obj = missingProperties[i];
