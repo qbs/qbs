@@ -39,4 +39,7 @@
 
     An \c Application item is a \c Product that has its type set to "application"
     It exists for the convenience of project file authors.
+
+    \note On Android, an \c Application item instead builds a shared library for
+    products whose \c consoleApplication property is set to \c false.
 */
