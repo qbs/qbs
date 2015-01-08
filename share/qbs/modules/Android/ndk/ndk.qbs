@@ -31,10 +31,11 @@ Module {
     property stringList compilerFlagsRelease: []
     property stringList defines: ["ANDROID"]
     property bool hardFp
-    property string gabiBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl/gabi++")
-    property string stlPortBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl/stlport")
-    property string gnuStlBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl/gnu-libstdc++/4.9")
-    property string llvmStlBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl/llvm-libc++")
+    property string cxxStlBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl")
+    property string gabiBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gabi++")
+    property string stlPortBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "stlport")
+    property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++/4.9")
+    property string llvmStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
     property string sharedStlFilePath: {
         var infix = buildProfile;
         if (armMode === "thumb")
@@ -83,14 +84,9 @@ Module {
     }
 
     cpp.libraryPaths: {
-        var prefix = FileInfo.joinPaths(ndkDir, "platforms", platform, "arch-");
-        if (buildProfile.startsWith("armeabi"))
-            prefix += "arm";
-        else
-            prefix += buildProfile;
-        prefix = FileInfo.joinPaths(prefix, "usr");
+        var prefix = FileInfo.joinPaths(cpp.sysroot, "usr");
         var paths = [];
-        if (buildProfile === "mips64" || buildProfile === "x86_64")
+        if (buildProfile === "mips64" || buildProfile === "x86_64") // no lib64 for arm64-v8a
             paths.push(FileInfo.joinPaths(prefix, "lib64"));
         paths.push(FileInfo.joinPaths(prefix, "lib"));
         return paths;
@@ -122,16 +118,22 @@ Module {
             libs.push(FileInfo.joinPaths(llvmStlBaseDir, infix, "libc++_static.a"));
         return libs;
     }
-    cpp.includePaths: {
+    cpp.systemIncludePaths: {
         var includes = [];
-        if (appStl.startsWith("gabi++"))
+        if (appStl === "system") {
+            includes.push(FileInfo.joinPaths(cxxStlBaseDir, "system", "include"));
+        } else if (appStl.startsWith("gabi++")) {
             includes.push(FileInfo.joinPaths(gabiBaseDir, "include"));
-        else if (appStl.startsWith("stlport"))
+        } else if (appStl.startsWith("stlport")) {
             includes.push(FileInfo.joinPaths(stlPortBaseDir, "stlport"));
-        else if (appStl.startsWith("gnustl"))
+        } else if (appStl.startsWith("gnustl")) {
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "include"));
-        else if (appStl.startsWith("c++_"))
-            includes.push(FileInfo.joinPaths(llvmStlBaseDir, "include"));
+            includes.push(FileInfo.joinPaths(gnuStlBaseDir, "libs", buildProfile, "include"));
+            includes.push(FileInfo.joinPaths(gnuStlBaseDir, "include", "backward"));
+        } else if (appStl.startsWith("c++_")) {
+            includes.push(FileInfo.joinPaths(llvmStlBaseDir, "libcxx", "include"));
+            includes.push(FileInfo.joinPaths(llvmStlBaseDir + "abi", "libcxxabi", "include"));
+        }
         return includes;
     }
     cpp.defines: {
