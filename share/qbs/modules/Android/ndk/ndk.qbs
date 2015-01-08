@@ -36,21 +36,34 @@ Module {
     property string stlPortBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "stlport")
     property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++/4.9")
     property string llvmStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
-    property string sharedStlFilePath: {
-        var infix = buildProfile;
-        if (armMode === "thumb")
-            infix = FileInfo.joinPaths(infix, "thumb");
-        infix = FileInfo.joinPaths("libs", infix);
-        if (appStl === "gabi++_shared")
-            return FileInfo.joinPaths(gabiBaseDir, infix, "libgabi++_shared.so");
-        if (appStl === "stlport_shared")
-            return FileInfo.joinPaths(stlPortBaseDir, infix, "libstlport_shared.so");
-        if (appStl === "gnustl_shared")
-            return FileInfo.joinPaths(gnuStlBaseDir, infix, "libgnustl_shared.so");
-        if (appStl === "c++_shared")
-            return FileInfo.joinPaths(llvmStlBaseDir, infix, "libc++_shared.so");
+    property string stlBaseDir: {
+        if (appStl.startsWith("gabi++_"))
+            return gabiBaseDir;
+        else if (appStl.startsWith("stlport_"))
+            return stlPortBaseDir;
+        else if (appStl.startsWith("gnustl_"))
+            return gnuStlBaseDir;
+        else if (appStl.startsWith("c++_"))
+            return llvmStlBaseDir;
         return undefined;
     }
+    property string stlLibsDir: {
+        if (stlBaseDir) {
+            var infix = buildProfile;
+            if (armMode === "thumb")
+                infix = FileInfo.joinPaths(infix, "thumb");
+            return FileInfo.joinPaths(stlBaseDir, "libs", infix);
+        }
+        return undefined;
+    }
+
+    property string sharedStlFilePath: (stlLibsDir && appStl.endsWith("_shared"))
+        ? FileInfo.joinPaths(stlLibsDir, cpp.dynamicLibraryPrefix + appStl + cpp.dynamicLibrarySuffix)
+        : undefined
+    property string staticStlFilePath: (stlLibsDir && appStl.endsWith("_static"))
+        ? FileInfo.joinPaths(stlLibsDir, cpp.staticLibraryPrefix + appStl + cpp.staticLibrarySuffix)
+        : undefined
+
     property string gdbserverFileName: "gdbserver"
 
     property string armMode: abi.startsWith("armeabi")
@@ -104,18 +117,8 @@ Module {
         var libs = ["gcc"];
         if (hardFp)
             libs.push("m_hard");
-        var infix = buildProfile;
-        if (armMode === "thumb")
-            infix = FileInfo.joinPaths(infix, "thumb");
-        infix = FileInfo.joinPaths("libs", infix);
-        if (appStl === "gabi++_static")
-            libs.push(FileInfo.joinPaths(gabiBaseDir, infix, "libgabi++_static.a"));
-        else if (appStl === "stlport_static")
-            libs.push(FileInfo.joinPaths(stlPortBaseDir, infix, "libstlport_static.a"));
-        else if (appStl === "gnustl_static")
-            libs.push(FileInfo.joinPaths(gnuStlBaseDir, infix, "libgnustl_static.a"));
-        else if (appStl === "c++_static")
-            libs.push(FileInfo.joinPaths(llvmStlBaseDir, infix, "libc++_static.a"));
+        if (staticStlFilePath)
+            libs.push(staticStlFilePath);
         return libs;
     }
     cpp.systemIncludePaths: {
