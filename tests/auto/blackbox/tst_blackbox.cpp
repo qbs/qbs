@@ -2470,4 +2470,35 @@ QString TestBlackbox::executableFilePath(const QString &productName) const
     return productBuildDir(productName) + '/' + HostOsInfo::appendExecutableSuffix(productName);
 }
 
+void TestBlackbox::wildCardsAndRules()
+{
+    QDir::setCurrent(testDataDir + "/wildcards-and-rules");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QFile output(productBuildDir("wildcards-and-rules") + "/test.mytype");
+    QVERIFY2(output.open(QIODevice::ReadOnly), qPrintable(output.errorString()));
+    QCOMPARE(output.readAll().count('\n'), 1);
+    output.close();
+
+    // Add input.
+    touch("input2.inp");
+    QEXPECT_FAIL(0, "QBS-723", Abort);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QVERIFY2(output.open(QIODevice::ReadOnly), qPrintable(output.errorString()));
+    QCOMPARE(output.readAll().count('\n'), 2);
+    output.close();
+
+    // Add "explicitlyDependsOn".
+    touch("dep.dep");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+
+    // Add nothing.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
+}
+
 QTEST_MAIN(TestBlackbox)

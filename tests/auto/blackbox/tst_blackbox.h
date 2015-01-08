@@ -193,6 +193,7 @@ private slots:
     void testIconset();
     void testIconsetApp();
     void testAssetCatalog();
+    void wildCardsAndRules();
 
 private:
     QString uniqueProductName(const QString &productName) const;
