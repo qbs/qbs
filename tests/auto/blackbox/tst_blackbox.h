@@ -159,6 +159,7 @@ private slots:
     void testIconsetApp();
     void testAssetCatalog();
     void testObjcArc();
+    void wildCardsAndRules();
 
 private:
     QByteArray m_qbsStderr;
