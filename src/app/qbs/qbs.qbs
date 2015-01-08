@@ -3,6 +3,7 @@ import QbsFunctions
 
 QbsApp {
     name: "qbs_app"
+    Depends { name: "qbs resources" }
     targetName: "qbs"
     cpp.defines: base.concat([
         'QBS_VERSION="' + QbsFunctions.qbsVersion() + '"',
