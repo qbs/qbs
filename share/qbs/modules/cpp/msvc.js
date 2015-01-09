@@ -198,21 +198,26 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push(fileName)
     }
 
-    var staticLibraries = ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary,
-                                                                 "cpp", "staticLibraries");
-    for (i in staticLibraries) {
-        var staticLibrary = staticLibraries[i];
-        if (!staticLibrary.match(/\.lib$/i))
-            staticLibrary += ".lib";
-        args.push(staticLibrary)
+    function pushLibs(libs)
+    {
+        if (!libs)
+            return;
+        var s = {};
+        var c = libs.length;
+        for (var i = 0; i < c; ++i) {
+            var lib = libs[i];
+            if (!lib.match(/\.lib$/i))
+                lib += ".lib";
+            if (s[lib])
+                continue;
+            s[lib] = true;
+            args.push(lib);
+        }
     }
-    var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
-    for (i in dynamicLibraries) {
-        var dynamicLibrary = dynamicLibraries[i];
-        if (!dynamicLibrary.match(/\.lib$/i))
-            dynamicLibrary += ".lib";
-        args.push(dynamicLibrary)
-    }
+
+    pushLibs(ModUtils.modulePropertiesFromArtifacts(product, inputs.staticlibrary,
+                                                    "cpp", "staticLibraries"));
+    pushLibs(ModUtils.moduleProperties(product, "dynamicLibraries"));
 
     if (product.moduleProperty("cpp", "entryPoint"))
         args.push("/ENTRY:" + product.moduleProperty("cpp", "entryPoint"));

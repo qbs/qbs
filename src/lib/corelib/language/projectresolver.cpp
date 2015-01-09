@@ -51,6 +51,8 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QSet>
+
+#include <algorithm>
 #include <set>
 
 namespace qbs {

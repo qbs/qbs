@@ -89,6 +89,12 @@ QList<QtEnvironment> SetupQt::fetchEnvironments()
     return qtEnvironments;
 }
 
+void SetupQt::addQtBuildVariant(QtEnvironment *env, const QString &buildVariantName)
+{
+    if (env->qtConfigItems.contains(buildVariantName))
+        env->buildVariant << buildVariantName;
+}
+
 static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
 {
     QProcess qmakeProcess;
@@ -240,16 +246,8 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     }
 
     // determine whether Qt is built with debug, release or both
-    if (qtEnvironment.qtConfigItems.contains(QLatin1String("debug_and_release"))) {
-        qtEnvironment.buildVariant << QLatin1String("debug") << QLatin1String("release");
-    } else {
-        int idxDebug = qtEnvironment.qtConfigItems.indexOf(QLatin1String("debug"));
-        int idxRelease = qtEnvironment.qtConfigItems.indexOf(QLatin1String("release"));
-        if (idxDebug < idxRelease)
-            qtEnvironment.buildVariant << QLatin1String("release");
-        else
-            qtEnvironment.buildVariant << QLatin1String("debug");
-    }
+    addQtBuildVariant(&qtEnvironment, QLatin1String("debug"));
+    addQtBuildVariant(&qtEnvironment, QLatin1String("release"));
 
     if (!QFileInfo(qtEnvironment.mkspecPath).exists())
         throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));

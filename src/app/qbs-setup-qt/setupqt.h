@@ -45,6 +45,7 @@ class SetupQt
 public:
     static bool isQMakePathValid(const QString &qmakePath);
     static QList<QtEnvironment> fetchEnvironments();
+    static void addQtBuildVariant(QtEnvironment *env, const QString &buildVariantName);
     static QtEnvironment fetchEnvironment(const QString &qmakePath);
     static void saveToQbsSettings(const QString &qtVersionName, const QtEnvironment & qtEnvironment,
                                   Settings *settings);

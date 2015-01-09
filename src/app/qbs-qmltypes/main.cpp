@@ -35,6 +35,7 @@
 #include <QCoreApplication>
 #include <QByteArray>
 
+#include <cstdlib>
 #include <iostream>
 
 using qbs::Internal::Tr;

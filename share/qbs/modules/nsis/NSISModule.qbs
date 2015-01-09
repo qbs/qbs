@@ -12,7 +12,7 @@ Module {
     property var versionParts: [ versionMajor, versionMinor, versionPatch, versionBuild ]
     property int versionMajor: qbs.getNativeSetting(registryKey, "VersionMajor")
     property int versionMinor: qbs.getNativeSetting(registryKey, "VersionMinor")
-    property int versionPatch: qbs.getNativeSetting(registryKey, "VersionPatch")
+    property int versionPatch: qbs.getNativeSetting(registryKey, "VersionBuild")
     property int versionBuild: qbs.getNativeSetting(registryKey, "VersionRevision")
 
     property string compilerName: "makensis"

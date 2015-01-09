@@ -510,6 +510,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                 File.copy(sourceFilePath, targetFilePath);
                 return;
             }
+            if (product.moduleProperty("qbs", "toolchain").contains("mingw")) {
+                // mingw's nm tool does not work correctly.
+                File.copy(sourceFilePath, targetFilePath);
+                return;
+            }
             var process = new Process();
             var command = ModUtils.moduleProperty(product, "nmPath");
             var args = ["-g", "-D", "-P"];

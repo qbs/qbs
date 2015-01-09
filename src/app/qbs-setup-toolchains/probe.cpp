@@ -204,9 +204,11 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     const bool isMingw = toolchainTypes.contains(QLatin1String("mingw"));
     const bool isClang = toolchainTypes.contains(QLatin1String("clang"));
 
-    if (isMingw && !validMinGWMachines().contains(machineName)) {
-        throw qbs::ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
-                .arg(machineName));
+    if (isMingw) {
+        if (!validMinGWMachines().contains(machineName)) {
+            throw ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
+                    .arg(machineName));
+        }
     } else if (compilerTriplet.count() < 2) {
         throw qbs::ErrorInfo(Tr::tr("Architecture of compiler for platform '%1' at '%2' not understood.")
                              .arg(machineName, compilerFilePath));

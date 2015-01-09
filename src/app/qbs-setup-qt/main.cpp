@@ -39,6 +39,7 @@
 #include <QFileInfo>
 #include <QStringList>
 
+#include <cstdlib>
 #include <iostream>
 
 using namespace qbs;
