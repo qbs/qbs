@@ -65,7 +65,7 @@ Module {
             if (additionalClassPaths)
                 classPaths = classPaths.concat(additionalClassPaths);
             var debugArg = product.moduleProperty("qbs", "buildVariant") === "debug"
-                    ? "-g" : "g:none";
+                    ? "-g" : "-g:none";
             var args = [
                     "-classpath", classPaths.join(';'),
                     "-s", product.buildDirectory,
