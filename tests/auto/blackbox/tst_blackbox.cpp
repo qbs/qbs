@@ -2482,7 +2482,6 @@ void TestBlackbox::wildCardsAndRules()
 
     // Add input.
     touch("input2.inp");
-    QEXPECT_FAIL(0, "QBS-723", Abort);
     QbsRunParameters params;
     params.expectFailure = true;
     QCOMPARE(runQbs(params), 0);
@@ -2494,6 +2493,7 @@ void TestBlackbox::wildCardsAndRules()
     // Add "explicitlyDependsOn".
     touch("dep.dep");
     QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(0, "QBS-724", Abort);
     QVERIFY(m_qbsStdout.contains("Creating output artifact"));
 
     // Add nothing.

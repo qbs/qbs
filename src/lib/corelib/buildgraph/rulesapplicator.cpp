@@ -66,13 +66,13 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-NodeSet RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule,
+void RulesApplicator::applyRuleInEvaluationContext(const RuleConstPtr &rule,
         const ArtifactSet &inputArtifacts)
 {
     m_createdArtifacts.clear();
+    m_invalidatedArtifacts.clear();
     RulesEvaluationContext::Scope s(m_product->topLevelProject()->buildData->evaluationContext.data());
     applyRule(rule, inputArtifacts);
-    return m_createdArtifacts;
 }
 
 void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
@@ -320,6 +320,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
             throw ErrorInfo(e);
         }
         outputArtifact->clearTimestamp();
+        m_invalidatedArtifacts += outputArtifact;
     } else {
         outputArtifact = new Artifact;
         outputArtifact->artifactType = Artifact::Generated;
