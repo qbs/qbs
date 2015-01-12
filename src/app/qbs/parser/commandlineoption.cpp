@@ -404,6 +404,7 @@ QString ForceTimeStampCheckOption::longRepresentation() const
 QString BuildNonDefaultOption::description(CommandType command) const
 {
     Q_ASSERT(command == BuildCommandType || command == InstallCommandType);
+    Q_UNUSED(command);
     return Tr::tr("%1\n\tBuild all products, even if their builtByDefault property is false.\n")
             .arg(longRepresentation());
 }
