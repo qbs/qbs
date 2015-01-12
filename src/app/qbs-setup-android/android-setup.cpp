@@ -32,6 +32,7 @@
 
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/version.h>
 
@@ -237,8 +238,7 @@ public:
     QString profileSuffix;
     QString abi;
     QString qbsArchName;
-    QString toolchainDirName;
-    QString toolchainInstallPath;
+    QString toolchainDirPrefix;
     QString toolchainPrefix;
     QStringList compilerFlagsDebug;
     QStringList compilerFlagsRelease;
@@ -261,7 +261,7 @@ static BuildProfileMap createArchMap()
     aarch64.abi = qls("arm64-v8a");
     aarch64.profileSuffix = aarch64.abi;
     aarch64.qbsArchName = qls("arm64");
-    aarch64.toolchainDirName = qls("aarch64-linux-android-4.9");
+    aarch64.toolchainDirPrefix = qls("aarch64-linux-android-");
     aarch64.toolchainPrefix = qls("aarch64-linux-android-");
     aarch64.compilerFlagsDebug = arm64FlagsDebug();
     aarch64.compilerFlagsRelease = arm64FlagsRelease();
@@ -271,7 +271,7 @@ static BuildProfileMap createArchMap()
     armeabi.abi = qls("armeabi");
     armeabi.profileSuffix = armeabi.abi;
     armeabi.qbsArchName = qls("arm");
-    armeabi.toolchainDirName = qls("arm-linux-androideabi-4.9");
+    armeabi.toolchainDirPrefix = qls("arm-linux-androideabi-");
     armeabi.toolchainPrefix = qls("arm-linux-androideabi-");
     armeabi.compilerFlagsDebug = armeabiFlagsDebug();
     armeabi.compilerFlagsRelease = armeabiFlagsRelease();
@@ -297,7 +297,7 @@ static BuildProfileMap createArchMap()
     mips.abi = qls("mips");
     mips.profileSuffix = mips.abi;
     mips.qbsArchName = qls("mipsel");
-    mips.toolchainDirName = qls("mipsel-linux-android-4.9");
+    mips.toolchainDirPrefix = qls("mipsel-linux-android-");
     mips.toolchainPrefix = qls("mipsel-linux-android-");
     mips.compilerFlagsDebug = mipsFlagsDebug();
     mips.compilerFlagsRelease = mipsFlagsRelease();
@@ -307,7 +307,7 @@ static BuildProfileMap createArchMap()
     mips64.abi = qls("mips64");
     mips64.profileSuffix = mips64.abi;
     mips64.qbsArchName = qls("mips64el");
-    mips64.toolchainDirName = qls("mips64el-linux-android-4.9");
+    mips64.toolchainDirPrefix = qls("mips64el-linux-android-");
     mips64.toolchainPrefix = qls("mips64el-linux-android-");
     mips64.compilerFlagsDebug = mipsFlagsDebug();
     mips64.compilerFlagsRelease = mipsFlagsRelease();
@@ -317,7 +317,7 @@ static BuildProfileMap createArchMap()
     x86.abi = qls("x86");
     x86.profileSuffix = x86.abi;
     x86.qbsArchName = x86.abi;
-    x86.toolchainDirName = qls("x86-4.9");
+    x86.toolchainDirPrefix = qls("x86-");
     x86.toolchainPrefix = qls("i686-linux-android-");
     x86.compilerFlagsDebug = x86FlagsDebug();
     x86.compilerFlagsRelease = x86FlagsRelease();
@@ -327,7 +327,7 @@ static BuildProfileMap createArchMap()
     x86_64.abi = qls("x86_64");
     x86_64.profileSuffix = x86_64.abi;
     x86_64.qbsArchName = x86_64.abi;
-    x86_64.toolchainDirName = qls("x86_64-4.9");
+    x86_64.toolchainDirPrefix = qls("x86_64-");
     x86_64.toolchainPrefix = qls("x86_64-linux-android-");
     x86_64.compilerFlagsDebug = x86FlagsDebug();
     x86_64.compilerFlagsRelease = x86FlagsRelease();
@@ -342,20 +342,57 @@ static QString subProfileName(const QString &mainProfileName, const BuildProfile
     return mainProfileName + QLatin1Char('_') + arch.profileSuffix;
 }
 
-static QString detectToolchainHostArch(const QString &ndkDirPath, const QString &toolchainName)
+static QString detectToolchainHostArch(const QString &ndkDirPath)
 {
-    const QDir tcDir(ndkDirPath + qls("/toolchains/") + toolchainName
-                     + qls("/prebuilt"));
-    if (!QDir(tcDir).exists()) {
-        throw ErrorInfo(Tr::tr("Expected directory '%1' to be present, but it is not.")
-                        .arg(QDir::toNativeSeparators(tcDir.path())));
+    QStringList candidates;
+    if (Internal::HostOsInfo::isWindowsHost()) {
+#ifdef Q_PROCESSOR_X86_64
+        candidates << qls("windows-x86_64");
+#endif
+#ifdef Q_PROCESSOR_X86
+        candidates << qls("windows"); // no -x86 suffix for Windows 32-bit
+#endif
     }
-    const QStringList hostArchList = tcDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    if (hostArchList.isEmpty()) {
-        throw ErrorInfo(Tr::tr("Directory '%1' is unexpectedly empty.")
-                        .arg(QDir::toNativeSeparators(tcDir.path())));
+    if (Internal::HostOsInfo::isOsxHost()) {
+#ifdef Q_PROCESSOR_X86_64
+        candidates << qls("darwin-x86_64");
+#endif
+#ifdef Q_PROCESSOR_X86
+        candidates << qls("darwin-x86");
+#endif
     }
-    return hostArchList.first();
+    if (Internal::HostOsInfo::isLinuxHost()) {
+#ifdef Q_PROCESSOR_X86_64
+        candidates << qls("linux-x86_64");
+#endif
+#ifdef Q_PROCESSOR_X86
+        candidates << qls("linux-x86");
+#endif
+    }
+
+    if (candidates.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Unsupported host platform for Android NDK."));
+    }
+
+    QStringList checkedPaths;
+    QString hostArch;
+    Q_FOREACH (const QString &candidate, candidates) {
+        const QDir tcDir(ndkDirPath + qls("/prebuilt/") + candidate);
+        if (QDir(tcDir).exists() && hostArch.isEmpty()) {
+            hostArch = candidate;
+        }
+
+        checkedPaths << qls("'")
+                        + QDir::toNativeSeparators(QDir::cleanPath(tcDir.absolutePath()))
+                        + qls("'");
+    }
+
+    if (hostArch.isEmpty()) {
+        throw ErrorInfo(Tr::tr("None of the following paths are present:\n%1")
+                        .arg(checkedPaths.join(qls("\n"))));
+    }
+
+    return hostArch;
 }
 
 void setupSdk(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath)
@@ -395,8 +432,6 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     }
 
     const BuildProfileMap archMap = createArchMap();
-    const QString tcHostArchName = detectToolchainHostArch(ndkDirPath,
-            archMap.value(archList.first()).toolchainDirName);
     QList<BuildProfile> architectures;
     foreach (const QString &archName, archList) {
         const BuildProfileMap::ConstIterator it = archMap.find(archName);
@@ -404,11 +439,7 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
             qDebug("Ignoring unknown architecture '%s'.", qPrintable(archName));
             continue;
         }
-        BuildProfile arch = it.value();
-        arch.toolchainInstallPath = ndkDirPath + qls("/toolchains/")
-                + arch.toolchainDirName + qls("/prebuilt/") + tcHostArchName
-                + qls("/bin");
-        architectures << arch;
+        architectures << it.value();
     }
 
     for (BuildProfileMap::ConstIterator it = archMap.constBegin();
@@ -417,7 +448,7 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     }
 
     Profile mainProfile(profileName, settings);
-    mainProfile.setValue(qls("Android.sdk.ndkDir"), ndkDirPath);
+    mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
     foreach (const BuildProfile &arch, architectures) {
         Profile p(subProfileName(profileName, arch), settings);
         p.setValue(qls("Android.ndk.abi"), arch.abi);
@@ -425,12 +456,13 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
         p.setValue(qls("Android.ndk.compilerFlagsDebug"), arch.compilerFlagsDebug);
         p.setValue(qls("Android.ndk.compilerFlagsRelease"), arch.compilerFlagsRelease);
         p.setValue(qls("Android.ndk.hardFp"), arch.hardFp);
+        p.setValue(qls("Android.ndk.hostArch"), detectToolchainHostArch(ndkDirPath));
         p.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
+        p.setValue(qls("Android.ndk.toolchainDirPrefix"), arch.toolchainDirPrefix);
         p.setValue(qls("cpp.compilerName"), qls("gcc"));
         p.setValue(qls("cpp.debugInformation"), true);
         p.setValue(qls("cpp.linkerFlags"), arch.linkerFlags);
         p.setValue(qls("cpp.linkerName"), qls("g++"));
-        p.setValue(qls("cpp.toolchainInstallPath"), arch.toolchainInstallPath);
         p.setValue(qls("cpp.toolchainPrefix"), arch.toolchainPrefix);
         p.setValue(qls("qbs.architecture"), arch.qbsArchName);
         p.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux")

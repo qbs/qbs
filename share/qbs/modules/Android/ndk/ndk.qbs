@@ -51,6 +51,14 @@ Module {
         ]
     }
 
+    property string toolchainVersion: "4.9"
+    PropertyOptions {
+        name: "toolchainVersion"
+        description: "Corresponds to the 'NDK_TOOLCHAIN_VERSION' variable in an Android.mk file."
+    }
+
+    property string hostArch // E.g. darwin-x86_64
+    property string toolchainDirPrefix // E.g. arm-linux-androideabi-
     property string buildProfile // E.g. "armeabi-v7a-hard"
     property bool enableExceptions: appStl !== "system"
     property bool enableRtti: appStl !== "system"
@@ -65,7 +73,8 @@ Module {
     property string cxxStlBaseDir: FileInfo.joinPaths(ndkDir, "sources/cxx-stl")
     property string gabiBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gabi++")
     property string stlPortBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "stlport")
-    property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++/4.9")
+    property string gnuStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "gnu-libstdc++",
+                                                      toolchainVersion)
     property string llvmStlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
     property string stlBaseDir: {
         if (appStl.startsWith("gabi++_"))
@@ -105,6 +114,10 @@ Module {
         description: "Determines the instruction set for armeabi configurations."
         allowedValues: ["arm", "thumb"]
     }
+
+    cpp.toolchainInstallPath: FileInfo.joinPaths(ndkDir, "toolchains",
+                                                 toolchainDirPrefix + toolchainVersion,
+                                                 "prebuilt", hostArch, "bin")
 
     cpp.commonCompilerFlags: {
         var flags = qbs.buildVariant === "debug"
