@@ -235,9 +235,8 @@ public:
     BuildProfile() : linkerFlags(commonLinkerFlags()), hardFp(false) {}
 
     QString profileSuffix;
-    QString androidName;
-    QString qbsArchName;
     QString abi;
+    QString qbsArchName;
     QString toolchainDirName;
     QString toolchainInstallPath;
     QString toolchainPrefix;
@@ -259,10 +258,9 @@ static BuildProfileMap createArchMap()
     BuildProfileMap map;
 
     BuildProfile aarch64;
-    aarch64.androidName = qls("arm64-v8a");
-    aarch64.profileSuffix = aarch64.androidName;
+    aarch64.abi = qls("arm64-v8a");
+    aarch64.profileSuffix = aarch64.abi;
     aarch64.qbsArchName = qls("arm64");
-    aarch64.abi = qls("arm64");
     aarch64.toolchainDirName = qls("aarch64-linux-android-4.9");
     aarch64.toolchainPrefix = qls("aarch64-linux-android-");
     aarch64.compilerFlagsDebug = arm64FlagsDebug();
@@ -270,10 +268,9 @@ static BuildProfileMap createArchMap()
     map.insert(aarch64.profileSuffix, aarch64);
 
     BuildProfile armeabi;
-    armeabi.androidName = qls("armeabi");
-    armeabi.profileSuffix = armeabi.androidName;
-    armeabi.qbsArchName = qls("arm");
     armeabi.abi = qls("armeabi");
+    armeabi.profileSuffix = armeabi.abi;
+    armeabi.qbsArchName = qls("arm");
     armeabi.toolchainDirName = qls("arm-linux-androideabi-4.9");
     armeabi.toolchainPrefix = qls("arm-linux-androideabi-");
     armeabi.compilerFlagsDebug = armeabiFlagsDebug();
@@ -281,16 +278,15 @@ static BuildProfileMap createArchMap()
     map.insert(armeabi.profileSuffix, armeabi);
 
     BuildProfile armeabiV7a = armeabi;
-    armeabiV7a.androidName = qls("armeabi-v7a");
-    armeabiV7a.profileSuffix = armeabiV7a.androidName;
-    armeabi.abi = armeabiV7a.androidName;
+    armeabiV7a.abi = qls("armeabi-v7a");
+    armeabiV7a.profileSuffix = armeabiV7a.abi;
     armeabiV7a.compilerFlagsDebug = armeabiV7aFlagsDebug();
     armeabiV7a.compilerFlagsRelease = armeabiV7aFlagsRelease();
     armeabiV7a.linkerFlags = armeabiV7aLinkerFlags();
     map.insert(armeabiV7a.profileSuffix, armeabiV7a);
 
     BuildProfile armeabiV7aHard = armeabiV7a;
-    armeabiV7aHard.profileSuffix = qls("armeabi-v7a-hard"); // Same androidName as above.
+    armeabiV7aHard.profileSuffix = qls("armeabi-v7a-hard"); // Same abi as above.
     armeabiV7aHard.compilerFlagsDebug = armeabiV7aHardFlagsDebug();
     armeabiV7aHard.compilerFlagsRelease = armeabiV7aHardFlagsRelease();
     armeabiV7aHard.linkerFlags = armeabiV7aHardLinkerFlags();
@@ -298,10 +294,9 @@ static BuildProfileMap createArchMap()
     map.insert(armeabiV7aHard.profileSuffix, armeabiV7aHard);
 
     BuildProfile mips;
-    mips.androidName = qls("mips");
-    mips.profileSuffix = mips.androidName;
+    mips.abi = qls("mips");
+    mips.profileSuffix = mips.abi;
     mips.qbsArchName = qls("mipsel");
-    mips.abi = mips.androidName;
     mips.toolchainDirName = qls("mipsel-linux-android-4.9");
     mips.toolchainPrefix = qls("mipsel-linux-android-");
     mips.compilerFlagsDebug = mipsFlagsDebug();
@@ -309,10 +304,9 @@ static BuildProfileMap createArchMap()
     map.insert(mips.profileSuffix, mips);
 
     BuildProfile mips64;
-    mips64.androidName = qls("mips64");
-    mips64.profileSuffix = mips64.androidName;
+    mips64.abi = qls("mips64");
+    mips64.profileSuffix = mips64.abi;
     mips64.qbsArchName = qls("mips64el");
-    mips64.abi = mips64.androidName;
     mips64.toolchainDirName = qls("mips64el-linux-android-4.9");
     mips64.toolchainPrefix = qls("mips64el-linux-android-");
     mips64.compilerFlagsDebug = mipsFlagsDebug();
@@ -320,10 +314,9 @@ static BuildProfileMap createArchMap()
     map.insert(mips64.profileSuffix, mips64);
 
     BuildProfile x86;
-    x86.androidName = qls("x86");
-    x86.profileSuffix = x86.androidName;
-    x86.qbsArchName = x86.androidName;
-    x86.abi = x86.androidName;
+    x86.abi = qls("x86");
+    x86.profileSuffix = x86.abi;
+    x86.qbsArchName = x86.abi;
     x86.toolchainDirName = qls("x86-4.9");
     x86.toolchainPrefix = qls("i686-linux-android-");
     x86.compilerFlagsDebug = x86FlagsDebug();
@@ -331,10 +324,9 @@ static BuildProfileMap createArchMap()
     map.insert(x86.profileSuffix, x86);
 
     BuildProfile x86_64;
-    x86_64.androidName = qls("x86_64");
-    x86_64.profileSuffix = x86_64.androidName;
-    x86_64.qbsArchName = x86_64.androidName;
-    x86_64.abi = x86_64.androidName;
+    x86_64.abi = qls("x86_64");
+    x86_64.profileSuffix = x86_64.abi;
+    x86_64.qbsArchName = x86_64.abi;
     x86_64.toolchainDirName = qls("x86_64-4.9");
     x86_64.toolchainPrefix = qls("x86_64-linux-android-");
     x86_64.compilerFlagsDebug = x86FlagsDebug();
@@ -374,7 +366,7 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
     }
 
     Profile profile(profileName, settings);
-    profile.setValue(qls("Android.sdk.sdkDir"), sdkDirPath);
+    profile.setValue(qls("Android.sdk.sdkDir"), QDir::cleanPath(sdkDirPath));
     profile.setValue(qls("Android.sdk.buildToolsVersion"),
                      detectBuildToolsVersion(sdkDirPath));
     profile.setValue(qls("Android.sdk.platform"), detectPlatform(sdkDirPath));
@@ -427,12 +419,12 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     mainProfile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux"));
     foreach (const BuildProfile &arch, architectures) {
         Profile p(subProfileName(profileName, arch), settings);
-        p.setValue(qls("Android.ndk.abi"), arch.androidName);
+        p.setValue(qls("Android.ndk.abi"), arch.abi);
         p.setValue(qls("Android.ndk.buildProfile"), arch.profileSuffix);
         p.setValue(qls("Android.ndk.compilerFlagsDebug"), arch.compilerFlagsDebug);
         p.setValue(qls("Android.ndk.compilerFlagsRelease"), arch.compilerFlagsRelease);
         p.setValue(qls("Android.ndk.hardFp"), arch.hardFp);
-        p.setValue(qls("Android.ndk.ndkDir"), ndkDirPath);
+        p.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
         p.setValue(qls("cpp.compilerName"), qls("gcc"));
         p.setValue(qls("cpp.debugInformation"), true);
         p.setValue(qls("cpp.linkerFlags"), arch.linkerFlags);
