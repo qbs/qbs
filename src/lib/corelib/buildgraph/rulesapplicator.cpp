@@ -271,14 +271,9 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
                         .arg(ruleArtifact->location.toString(), scriptValue.toString()));
     }
     QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
-    if (outputFilePaths->contains(outputPath)) {
-        // The same output artifact was already created. Let the first one win.
-        // The GCC dynamicLibraryLinker linker rule relies on this for products that have no version
-        // set.
-        // ### This situation should result in an error in qbs 1.4!
-        if (m_logger.traceEnabled())
-            m_logger.qbsTrace() << "[BG] WARNING: this rule has already created " << outputPath;
-        return 0;
+    if (Q_UNLIKELY(outputFilePaths->contains(outputPath))) {
+        throw ErrorInfo(Tr::tr("Rule %1 already created '%2'.")
+                        .arg(m_rule->toString(), outputPath));
     }
     outputFilePaths->insert(outputPath);
     return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
