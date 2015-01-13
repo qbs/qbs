@@ -371,6 +371,7 @@ void setupSdk(qbs::Settings *settings, const QString &profileName, const QString
                      detectBuildToolsVersion(sdkDirPath));
     profile.setValue(qls("Android.sdk.platform"), detectPlatform(sdkDirPath));
     profile.setValue(qls("qbs.architecture"), qls("blubb"));
+    profile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux"));
 }
 
 void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath)
@@ -416,7 +417,6 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     }
 
     Profile mainProfile(profileName, settings);
-    mainProfile.setValue(qls("qbs.targetOS"), QStringList() << qls("android") << qls("linux"));
     foreach (const BuildProfile &arch, architectures) {
         Profile p(subProfileName(profileName, arch), settings);
         p.setValue(qls("Android.ndk.abi"), arch.abi);
