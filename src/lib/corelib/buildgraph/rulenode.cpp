@@ -105,18 +105,18 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         ArtifactSet outputArtifactsToRemove;
         foreach (Artifact *artifact, removedInputs) {
             foreach (Artifact *parent, ArtifactSet::fromNodeSet(artifact->parents)) {
-                if (!parent->transformer || parent->transformer->rule != m_rule
-                        || !parent->transformer->inputs.contains(artifact)) {
-                    // TODO: turn two of the three conditions above into QBS_CHECKs
-                    // parent must always have a transformer, because it's generated.
-                    //     QBS_CHECK(parent->transformer)
-                    // artifact is a former input of m_rule and parent was created by m_rule
-                    // the inputs of the transformer must contain artifact
-                    //     QBS_CHECK(parent->transformer->inputs.contains(artifact))
-
+                if (parent->transformer->rule != m_rule) {
                     // parent was not created by our rule.
                     continue;
                 }
+
+                // parent must always have a transformer, because it's generated.
+                QBS_CHECK(parent->transformer);
+
+                // artifact is a former input of m_rule and parent was created by m_rule
+                // the inputs of the transformer must contain artifact
+                QBS_CHECK(parent->transformer->inputs.contains(artifact));
+
                 outputArtifactsToRemove += parent;
             }
         }
