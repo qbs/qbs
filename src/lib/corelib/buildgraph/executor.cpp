@@ -488,6 +488,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
                 loggedConnect(parentRule, outputArtifact, m_logger);
         }
         updateLeaves(result.createdNodes);
+        updateLeaves(result.invalidatedNodes);
     }
     finishNode(ruleNode);
     if (m_progressObserver)

@@ -58,6 +58,7 @@ public:
     {
         bool upToDate;
         NodeSet createdNodes;
+        NodeSet invalidatedNodes;
     };
 
     void apply(const Logger &logger, const ArtifactSet &changedInputs, ApplicationResult *result);

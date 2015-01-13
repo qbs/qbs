@@ -52,8 +52,12 @@ class RulesApplicator
 public:
     RulesApplicator(const ResolvedProductPtr &product, const Logger &logger);
     ~RulesApplicator();
-    NodeSet applyRuleInEvaluationContext(const RuleConstPtr &rule,
+
+    void applyRuleInEvaluationContext(const RuleConstPtr &rule,
             const ArtifactSet &inputArtifacts);
+    const NodeSet &createdArtifacts() const { return m_createdArtifacts; }
+    const NodeSet &invalidatedArtifacts() const { return m_invalidatedArtifacts; }
+
     void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
             ArtifactSet artifactsToRemove, const Logger &logger);
@@ -76,6 +80,7 @@ private:
 
     const ResolvedProductPtr m_product;
     NodeSet m_createdArtifacts;
+    NodeSet m_invalidatedArtifacts;
     RuleConstPtr m_rule;
     ArtifactSet m_completeInputSet;
     TransformerPtr m_transformer;

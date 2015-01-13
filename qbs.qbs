@@ -14,7 +14,7 @@ Project {
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
     property stringList libRPaths: {
-        if (!project.enableRPath)
+        if (!enableRPath)
             return undefined;
         if (qbs.targetOS.contains("linux"))
             return ["$ORIGIN/../" + libDirName];
