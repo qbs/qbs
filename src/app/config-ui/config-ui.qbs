@@ -13,5 +13,6 @@ QbsApp {
         "mainwindow.ui",
     ]
 
-    cpp.infoPlistFile: "Info.plist"
+    Depends { name: "bundle" }
+    bundle.infoPlistFile: "Info.plist"
 }
