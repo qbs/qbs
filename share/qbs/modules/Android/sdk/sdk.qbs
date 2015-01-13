@@ -6,6 +6,7 @@ import qbs.TextFile
 
 Module {
     property path sdkDir
+    property path ndkDir
     property string buildToolsVersion
     property string platform
 

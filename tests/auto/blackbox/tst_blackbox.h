@@ -93,6 +93,7 @@ public slots:
     void initTestCase();
 
 private slots:
+    void android();
     void buildDirectories();
     void changedFiles_data();
     void changedFiles();

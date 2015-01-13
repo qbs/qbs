@@ -60,6 +60,11 @@
         \li The version of the build tools such as aapt and dx. The \c setup-android
             tool sets this to the highest version available in the SDK.
     \row
+        \li ndkDir
+        \li string
+        \li undefined
+        \li The NDK base directory, if an NDK is present.
+    \row
         \li platform
         \li string
         \li undefined
@@ -67,7 +72,7 @@
             tool sets this to the highest version available in the SDK.
     \row
         \li sdkDir
-        \li path
+        \li string
         \li undefined
         \li The SDK base directory.
     \endtable

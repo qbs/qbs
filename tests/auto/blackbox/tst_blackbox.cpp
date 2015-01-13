@@ -196,6 +196,20 @@ void TestBlackbox::initTestCase()
     ccp(testSourceDir, testDataDir);
 }
 
+void TestBlackbox::android()
+{
+    QDir::setCurrent(testDataDir + "/android");
+    Settings s((QString()));
+    Profile p("qbs_autotests-android", &s);
+    if (!p.exists() || !p.value("Android.sdk.ndkDir").isValid())
+        QSKIP("No suitable Android test profile");
+    QbsRunParameters params(QStringList("profile:" + p.name())
+                            << "Android.ndk.platform:android-21");
+    params.useProfile = false;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("Creating com.sample.teapot.apk"));
+}
+
 void TestBlackbox::buildDirectories()
 {
     const QString projectDir

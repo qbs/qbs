@@ -417,6 +417,7 @@ void setupNdk(qbs::Settings *settings, const QString &profileName, const QString
     }
 
     Profile mainProfile(profileName, settings);
+    mainProfile.setValue(qls("Android.sdk.ndkDir"), ndkDirPath);
     foreach (const BuildProfile &arch, architectures) {
         Profile p(subProfileName(profileName, arch), settings);
         p.setValue(qls("Android.ndk.abi"), arch.abi);
