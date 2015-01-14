@@ -72,6 +72,7 @@ public:
     bool dryRun;
     bool logElapsedTime;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
+    SetupProjectParameters::PropertyCheckingMode propertyCheckingMode;
     QProcessEnvironment environment;
 };
 
@@ -509,6 +510,30 @@ SetupProjectParameters::RestoreBehavior SetupProjectParameters::restoreBehavior(
 void SetupProjectParameters::setRestoreBehavior(SetupProjectParameters::RestoreBehavior behavior)
 {
     d->restoreBehavior = behavior;
+}
+
+/*!
+ * \enum SetupProjectParamaters::PropertyCheckingMode
+ * This enum type specifies how \QBS should behave if it encounters unknown properties.
+ * \value PropertyCheckingStrict Project resolving will stop with an error message.
+ * \value PropertyCheckingRelaxed Project resolving will continue, and a warning will be printed.
+ */
+
+/*!
+ * Indicates how to handle unknown properties.
+ */
+SetupProjectParameters::PropertyCheckingMode SetupProjectParameters::propertyCheckingMode() const
+{
+    return d->propertyCheckingMode;
+}
+
+/*!
+ * Controls how to handle unknown properties.
+ * The default is \c PropertyCheckingRelaxed.
+ */
+void SetupProjectParameters::setPropertyCheckingMode(SetupProjectParameters::PropertyCheckingMode mode)
+{
+    d->propertyCheckingMode = mode;
 }
 
 } // namespace qbs

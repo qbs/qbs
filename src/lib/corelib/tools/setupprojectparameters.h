@@ -108,6 +108,10 @@ public:
     RestoreBehavior restoreBehavior() const;
     void setRestoreBehavior(RestoreBehavior behavior);
 
+    enum PropertyCheckingMode { PropertyCheckingStrict, PropertyCheckingRelaxed };
+    PropertyCheckingMode propertyCheckingMode() const;
+    void setPropertyCheckingMode(PropertyCheckingMode mode);
+
 private:
     QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;
 };

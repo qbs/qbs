@@ -203,8 +203,8 @@ private:
             const QStringList &moduleName);
     static void copyProperty(const QString &propertyName, const Item *source, Item *destination);
     static void setScopeForDescendants(Item *item, Item *scope);
-    static void overrideItemProperties(Item *item, const QString &buildConfigKey,
-                                       const QVariantMap &buildConfig);
+    void overrideItemProperties(Item *item, const QString &buildConfigKey,
+                                const QVariantMap &buildConfig);
 
     ScriptEngine *m_engine;
     ItemPool *m_pool;

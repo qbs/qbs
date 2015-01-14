@@ -142,18 +142,31 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     return result;
 }
 
+static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
+                                Logger logger)
+{
+    if (params.propertyCheckingMode() == SetupProjectParameters::PropertyCheckingStrict)
+        throw error;
+    logger.printWarning(error);
+}
+
 class PropertyDeclarationCheck : public ValueHandler
 {
     const QHash<Item *, QSet<QString> > &m_validItemPropertyNamesPerItem;
     const QSet<Item *> &m_disabledItems;
     Item *m_parentItem;
     QString m_currentName;
+    SetupProjectParameters m_params;
+    Logger m_logger;
 public:
     PropertyDeclarationCheck(const QHash<Item *, QSet<QString> > &validItemPropertyNamesPerItem,
-          const QSet<Item *> &disabledItems)
+          const QSet<Item *> &disabledItems, const SetupProjectParameters &params,
+          const Logger &logger)
         : m_validItemPropertyNamesPerItem(validItemPropertyNamesPerItem)
         , m_disabledItems(disabledItems)
         , m_parentItem(0)
+        , m_params(params)
+        , m_logger(logger)
     {
     }
 
@@ -166,8 +179,9 @@ private:
     void handle(JSSourceValue *value)
     {
         if (!m_parentItem->propertyDeclaration(m_currentName).isValid()) {
-            throw ErrorInfo(Tr::tr("Property '%1' is not declared.").arg(m_currentName),
-                            value->location());
+            const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
+                            .arg(m_currentName), value->location());
+            handlePropertyError(error, m_params, m_logger);
         }
     }
 
@@ -177,13 +191,14 @@ private:
                 && !m_validItemPropertyNamesPerItem.value(m_parentItem).contains(m_currentName)
                 && m_parentItem->file()
                 && !m_parentItem->file()->idScope()->hasProperty(m_currentName)) {
-            throw ErrorInfo(Tr::tr("Item '%1' is not declared. "
-                                   "Did you forget to add a Depends item?").arg(m_currentName),
-                            value->location().isValid() ? value->location()
-                                                        : m_parentItem->location());
+            const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
+                                         "Did you forget to add a Depends item?").arg(m_currentName),
+                                  value->location().isValid() ? value->location()
+                                                              : m_parentItem->location());
+            handlePropertyError(error, m_params, m_logger);
+        } else {
+            handleItem(value->item());
         }
-
-        handleItem(value->item());
     }
 
     void handleItem(Item *item)
@@ -323,7 +338,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
 
     checkItemTypes(item);
 
-    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems);
+    PropertyDeclarationCheck check(m_validItemPropertyNamesPerItem, m_disabledItems, m_parameters,
+                                   m_logger);
     check(item);
 
     m_reader->popExtraSearchPaths();
@@ -947,8 +963,12 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
             vmit != profileModuleProperties.end(); ++vmit)
     {
-        if (Q_UNLIKELY(!module->hasProperty(vmit.key())))
-            throw ErrorInfo(Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
+        if (Q_UNLIKELY(!module->hasProperty(vmit.key()))) {
+            const ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(fullModuleName,
+                                                                        vmit.key()));
+            handlePropertyError(error, m_parameters, m_logger);
+            continue;
+        }
         const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
         VariantValuePtr v = VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
                 QStringList(fullModuleName), vmit.key()));
@@ -1193,8 +1213,10 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *insta
     for (QVariantMap::const_iterator vmit = userModuleProperties.begin();
          vmit != userModuleProperties.end(); ++vmit) {
         if (Q_UNLIKELY(!moduleInstance->hasProperty(vmit.key()))) {
-            throw ErrorInfo(Tr::tr("Unknown property: %1.%2")
-                            .arg(fullModuleName(moduleName), vmit.key()));
+            const ErrorInfo error(Tr::tr("Unknown property: %1.%2")
+                                  .arg(fullModuleName(moduleName), vmit.key()));
+            handlePropertyError(error, m_parameters, m_logger);
+            continue;
         }
         const PropertyDeclaration decl = moduleInstance->propertyDeclaration(vmit.key());
         moduleInstance->setProperty(vmit.key(),
@@ -1407,8 +1429,9 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
             ++it) {
         const PropertyDeclaration decl = item->propertyDeclarations().value(it.key());
         if (!decl.isValid()) {
-            throw ErrorInfo(
-                    Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
+            ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
+            handlePropertyError(error, m_parameters, m_logger);
+            continue;
         }
         item->setProperty(it.key(),
                 VariantValue::create(convertToPropertyType(it.value(), decl.type(),
