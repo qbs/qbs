@@ -131,6 +131,7 @@ private slots:
     void inheritQbsSearchPaths();
     void mixedBuildVariants();
     void mocCppIncluded();
+    void nestedProperties();
     void newOutputArtifactInDependency();
     void newPatternMatch();
     void nonBrokenFilesInBrokenProduct();
