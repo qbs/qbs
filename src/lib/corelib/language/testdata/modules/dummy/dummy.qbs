@@ -6,5 +6,6 @@ DummyBase {
     property stringList cFlags
     property stringList cxxFlags
     property string someString
+    property string productName: product.name
     property string zort: "zort in dummy"
 }
