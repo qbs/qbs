@@ -52,6 +52,7 @@ public:
         , dryRun(false)
         , logElapsedTime(false)
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
+        , propertyCheckingMode(SetupProjectParameters::PropertyCheckingRelaxed)
         , environment(QProcessEnvironment::systemEnvironment())
     {
     }
