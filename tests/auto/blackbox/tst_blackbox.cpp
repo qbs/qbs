@@ -673,7 +673,7 @@ void TestBlackbox::exportSimple()
 void TestBlackbox::exportWithRecursiveDepends()
 {
     QDir::setCurrent(testDataDir + "/exportWithRecursiveDepends");
-    QEXPECT_FAIL("", "currently broken", Abort);
+    QEXPECT_FAIL("", "QBS-706", Abort);
     QbsRunParameters params;
     params.expectFailure = true; // Remove when test no longer fails.
     QCOMPARE(runQbs(params), 0);
