@@ -155,6 +155,59 @@ void Item::setPropertyObserver(ItemObserver *observer) const
     m_propertyObserver = observer;
 }
 
+void Item::dump() const
+{
+    dump(0);
+}
+
+static const char *valueType(const Value *v)
+{
+    switch (v->type()) {
+    case Value::JSSourceValueType: return "JS source";
+    case Value::ItemValueType: return "Item";
+    case Value::VariantValueType: return "Variant";
+    case Value::BuiltinValueType: return "Built-in";
+    }
+    return ""; // For dumb compilers.
+}
+
+void Item::dump(int indentation) const
+{
+    const QByteArray indent(indentation, ' ');
+    qDebug("%stype: %s, pointer value: %p", indent.constData(), qPrintable(m_typeName), this);
+    if (!m_properties.isEmpty())
+        qDebug("%sproperties:", indent.constData());
+    for (auto it = m_properties.constBegin(); it != m_properties.constEnd(); ++it) {
+        const QByteArray nextIndent(indentation + 4, ' ');
+        qDebug("%skey: %s, value type: %s", nextIndent.constData(), qPrintable(it.key()),
+               valueType(it.value().data()));
+        switch (it.value()->type()) {
+        case Value::JSSourceValueType:
+            qDebug("%svalue: %s", nextIndent.constData(),
+                   qPrintable(it.value().staticCast<JSSourceValue>()->sourceCodeForEvaluation()));
+            break;
+        case Value::ItemValueType:
+            qDebug("%svalue:", nextIndent.constData());
+            it.value().staticCast<ItemValue>()->item()->dump(indentation + 8);
+            break;
+        case Value::VariantValueType:
+            qDebug("%svalue: %s", nextIndent.constData(),
+                   qPrintable(it.value().staticCast<VariantValue>()->value().toString()));
+            break;
+        case Value::BuiltinValueType:
+            break;
+        }
+    }
+    if (!m_children.isEmpty())
+        qDebug("%schildren:", indent.constData());
+    foreach (const Item * const child, m_children)
+        child->dump(indentation + 4);
+    if (prototype()) {
+        qDebug("%sprototype:", indent.constData());
+        prototype()->dump(indentation + 4);
+    }
+}
+
 Item *Item::child(const QString &type, bool checkForMultiple) const
 {
     Item *child = 0;

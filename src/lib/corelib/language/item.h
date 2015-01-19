@@ -115,8 +115,11 @@ public:
     void setChildren(const QList<Item *> &children);
     void setParent(Item *item);
     static void addChild(Item *parent, Item *child);
+    void dump() const;
 
 private:
+    void dump(int indentation) const;
+
     ItemPool *m_pool;
     mutable ItemObserver *m_propertyObserver;
     QString m_id;
