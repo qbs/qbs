@@ -859,7 +859,8 @@ void ProjectResolver::resolveExport(Item *item, ProjectContext *projectContext)
     Q_UNUSED(projectContext);
     checkCancelation();
     const QString &productName = m_productContext->product->uniqueName();
-    m_exports[productName] = evaluateModuleValues(item);
+    m_exports[productName] = item;
+    m_exportItemModules[item] = evaluateModuleValues(item, false);
 }
 
 static void insertExportedConfig(const QString &usedProductName,
@@ -889,6 +890,56 @@ static void addUsedProducts(ModuleLoaderResult::ProductInfo *productInfo,
             productInfo->usedProducts  += usedProduct;
     }
     *productsAdded = (oldCount != productInfo->usedProducts.count());
+}
+
+typedef QHash<Item *, ValuePtr> ValuePerItem;
+
+static void replaceProductRecursive(Item *item, const ItemValuePtr &productItemValue,
+        ValuePerItem *seen)
+{
+    if (seen->contains(item))
+        return;
+    ValuePtr oldProductValue = item->property(QLatin1String("product"));
+    seen->insert(item, oldProductValue);
+    if (oldProductValue)
+        item->setProperty(QLatin1String("product"), productItemValue);
+    if (item->scope())
+        replaceProductRecursive(item->scope(), productItemValue, seen);
+    foreach (const Item::Module &module, item->modules())
+        replaceProductRecursive(module.item, productItemValue, seen);
+    foreach (Item *child, item->children())
+        replaceProductRecursive(child, productItemValue, seen);
+}
+
+static ValuePerItem replaceProduct(Item *item, const ItemValuePtr &productItemValue)
+{
+    ValuePerItem seen;
+    replaceProductRecursive(item, productItemValue, &seen);
+    return seen;
+}
+
+static void restoreOldProducts(const ValuePerItem &vip)
+{
+    for (ValuePerItem::const_iterator it = vip.constBegin(); it != vip.constEnd(); ++it) {
+        const ValuePtr &oldProductValue = it.value();
+        if (oldProductValue)
+            it.key()->setProperty(QLatin1String("product"), oldProductValue);
+    }
+}
+
+static void copyProperties(const QVariantMap &src, QVariantMap &dst)
+{
+    for (QVariantMap::const_iterator it = src.constBegin(); it != src.constEnd(); ++it) {
+        const QVariant &v = it.value();
+        if (v.type() == QVariant::Map) {
+            QVariant &dstValue = dst[it.key()];
+            QVariantMap dstMap = dstValue.toMap();
+            copyProperties(v.toMap(), dstMap);
+            dstValue = dstMap;
+        } else {
+            dst[it.key()] = v;
+        }
+    }
 }
 
 void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
@@ -927,6 +978,7 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
         if (!rproduct->enabled)
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
+        ItemValuePtr productItemValue = ItemValue::create(productItem);
         foreach (const ModuleLoaderResult::ProductInfo::Dependency &dependency,
                  projectContext->loadResult->productInfos.value(productItem).usedProducts) {
             const QString &usedProductName = dependency.uniqueName();
@@ -936,8 +988,22 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
                             productItem->location());
             rproduct->dependencies.insert(usedProduct);
 
+            // Evaluate properties of the Export item using the importing product.
+            Item *exportItem = m_exports.value(usedProductName);
+            ProductContext productContext;
+            productContext.product = usedProduct;
+            m_productContext = &productContext;
+            const ValuePerItem oldProducts = replaceProduct(exportItem, productItemValue);
+            m_evaluator->setCachingEnabled(false);
+            QVariantMap exportedConfig = evaluateModuleValues(exportItem);
+            m_evaluator->setCachingEnabled(true);
+            restoreOldProducts(oldProducts);
+
+            // Re-evaluate direct properties of the Export item using the exporting product.
+            copyProperties(m_exportItemModules.value(exportItem), exportedConfig);
+            m_productContext = 0;
+
             // insert the configuration of the Export item into the product's configuration
-            const QVariantMap exportedConfig = m_exports.value(usedProductName);
             if (exportedConfig.isEmpty())
                 continue;
 
@@ -983,16 +1049,17 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
     }
 }
 
-QVariantMap ProjectResolver::evaluateModuleValues(Item *item) const
+QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype) const
 {
     QVariantMap modules;
-    evaluateModuleValues(item, &modules);
+    evaluateModuleValues(item, &modules, lookupPrototype);
     QVariantMap result;
     result[QLatin1String("modules")] = modules;
     return result;
 }
 
-void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap) const
+void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap,
+        bool lookupPrototype) const
 {
     checkCancelation();
     for (Item::Modules::const_iterator it = item->modules().constBegin();
@@ -1000,22 +1067,23 @@ void ProjectResolver::evaluateModuleValues(Item *item, QVariantMap *modulesMap) 
     {
         QVariantMap depmods;
         const Item::Module &module = *it;
-        evaluateModuleValues(module.item, &depmods);
-        QVariantMap dep = evaluateProperties(module.item);
+        evaluateModuleValues(module.item, &depmods, lookupPrototype);
+        QVariantMap dep = evaluateProperties(module.item, lookupPrototype);
         dep.insert(QLatin1String("modules"), depmods);
         modulesMap->insert(ModuleLoader::fullModuleName(module.name), dep);
     }
 }
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item) const
+QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype) const
 {
     const QVariantMap tmplt;
-    return evaluateProperties(item, item, tmplt);
+    return evaluateProperties(item, item, tmplt, lookupPrototype);
 }
 
 QVariantMap ProjectResolver::evaluateProperties(Item *item,
                                                 Item *propertiesContainer,
-                                                const QVariantMap &tmplt) const
+                                                const QVariantMap &tmplt,
+                                                bool lookupPrototype) const
 {
     QVariantMap result = tmplt;
     for (QMap<QString, ValuePtr>::const_iterator it = propertiesContainer->properties().begin();
@@ -1076,8 +1144,8 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             break;
         }
     }
-    return propertiesContainer->prototype()
-            ? evaluateProperties(item, propertiesContainer->prototype(), result)
+    return lookupPrototype && propertiesContainer->prototype()
+            ? evaluateProperties(item, propertiesContainer->prototype(), result, true)
             : result;
 }
 

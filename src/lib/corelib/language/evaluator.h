@@ -66,6 +66,8 @@ public:
     QScriptValue scriptValue(const Item *item);
     QScriptValue fileScope(const FileContextConstPtr &file);
 
+    void setCachingEnabled(bool enabled);
+
 private:
     void onItemPropertyChanged(Item *item);
     void onItemDestroyed(Item *item);

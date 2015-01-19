@@ -395,11 +395,14 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] property " << name;
 
-    QScriptValue result = data->valueCache.value(name);
-    if (result.isValid()) {
-        if (debugProperties)
-            m_logger.qbsTrace() << "[SC] cache hit " << name << ": " << resultToString(result);
-        return result;
+    QScriptValue result;
+    if (m_valueCacheEnabled) {
+        result = data->valueCache.value(name);
+        if (result.isValid()) {
+            if (debugProperties)
+                m_logger.qbsTrace() << "[SC] cache hit " << name << ": " << resultToString(result);
+            return result;
+        }
     }
 
     SVConverter converter(this, &object, value, itemOfProperty);
@@ -413,8 +416,14 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
 
     if (debugProperties)
         m_logger.qbsTrace() << "[SC] cache miss " << name << ": " << resultToString(result);
-    data->valueCache.insert(name, result);
+    if (m_valueCacheEnabled)
+        data->valueCache.insert(name, result);
     return result;
+}
+
+void EvaluatorScriptClass::setValueCacheEnabled(bool enabled)
+{
+    m_valueCacheEnabled = enabled;
 }
 
 QScriptValue EvaluatorScriptClass::scriptValueForBuiltin(BuiltinValue::Builtin builtin) const

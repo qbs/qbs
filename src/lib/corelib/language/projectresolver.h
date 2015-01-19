@@ -118,11 +118,12 @@ private:
     void resolveProductDependencies(ProjectContext *projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
-    QVariantMap evaluateModuleValues(Item *item) const;
-    void evaluateModuleValues(Item *item, QVariantMap *modulesMap) const;
-    QVariantMap evaluateProperties(Item *item) const;
+    QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true) const;
+    void evaluateModuleValues(Item *item, QVariantMap *modulesMap,
+            bool lookupPrototype = true) const;
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true) const;
     QVariantMap evaluateProperties(Item *item, Item *propertiesContainer,
-            const QVariantMap &tmplt) const;
+            const QVariantMap &tmplt, bool lookupPrototype = true) const;
     QVariantMap createProductConfig() const;
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
@@ -138,7 +139,8 @@ private:
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
-    QMap<QString, QVariantMap> m_exports;
+    QMap<QString, Item *> m_exports;
+    QHash<Item *, QVariantMap> m_exportItemModules; // ### merge with ExportContext in 1.4.
     SetupProjectParameters m_setupParams;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
