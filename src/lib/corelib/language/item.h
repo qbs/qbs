@@ -104,6 +104,7 @@ public:
     VariantValuePtr variantProperty(const QString &name) const;
     void setPropertyObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
+    void removeProperty(const QString &name);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
     void setTypeName(const QString &name);
     void setLocation(const CodeLocation &location);

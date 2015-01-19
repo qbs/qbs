@@ -114,6 +114,7 @@ private slots:
     void jsExtensionsPropertyList();
     void jsExtensionsTextFile();
     void mixedBuildVariants();
+    void nestedProperties();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
     void qmlDebugging();

@@ -462,8 +462,12 @@ void TestLanguage::exports()
                                                  << "modules" << "dummy" << "defines";
         QVariant propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "USE_MYLIB");
-        product = products.value("mylib");
 
+        QEXPECT_FAIL(0, "QBS-729", Continue);
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                                                "productName").toString(), QString("myapp"));
+
+        product = products.value("mylib");
         QVERIFY(product);
         propertyName = QStringList() << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);

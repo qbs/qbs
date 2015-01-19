@@ -257,16 +257,19 @@ void TestApi::buildProject()
     removeBuildDir(params);
     qbs::ErrorInfo errorInfo = doBuildProject(projectSubDir + "/project.qbs");
     VERIFY_NO_ERROR(errorInfo);
-    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
+    if (!productFileName.isEmpty()) {
+        QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+        QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
+    }
 
-    QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
     waitForNewTimestamp();
     qbs::BuildOptions options;
     options.setForceTimestampCheck(true);
     errorInfo = doBuildProject(projectSubDir + "/project.qbs", 0, 0, 0, options);
     VERIFY_NO_ERROR(errorInfo);
-    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    if (!productFileName.isEmpty())
+        QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
 }
 
@@ -320,6 +323,9 @@ void TestApi::buildProject_data()
     QTest::newRow("productNameWithDots")
             << QString("productNameWithDots")
             << relativeExecutableFilePath("myapp");
+    QTest::newRow("QBS-728")
+            << QString("QBS-728")
+            << QString();
 }
 
 void TestApi::buildProjectDryRun()

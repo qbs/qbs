@@ -208,6 +208,11 @@ void Item::dump(int indentation) const
     }
 }
 
+void Item::removeProperty(const QString &name)
+{
+    m_properties.remove(name);
+}
+
 Item *Item::child(const QString &type, bool checkForMultiple) const
 {
     Item *child = 0;
