@@ -160,7 +160,7 @@ private:
 
     void handleProject(ModuleLoaderResult *loadResult, Item *item, const QString &buildDirectory,
             const QSet<QString> &referencedFilePaths);
-    QList<Item *> multiplexProductItem(Item *productItem);
+    QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
     void handleProduct(ProjectContext *projectContext, Item *item);
     void initProductProperties(const ProjectContext *project, Item *item);
     void handleSubProject(ProjectContext *projectContext, Item *item,

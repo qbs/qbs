@@ -330,6 +330,9 @@ void TestBlackbox::build_project_data()
     QTest::newRow("application without sources")
             << QString("appWithoutSources")
             << executableFilePath("appWithoutSources");
+    QTest::newRow("QBS-728")
+            << QString("QBS-728")
+            << QString();
 }
 
 void TestBlackbox::build_project()
@@ -343,12 +346,15 @@ void TestBlackbox::build_project()
     rmDirR(buildDir);
 
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
     QVERIFY(regularFileExists(buildGraphPath));
-    QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
+    if (!productFileName.isEmpty()) {
+        QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+        QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
+    }
     waitForNewTimestamp();
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--check-timestamps"))), 0);
-    QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    if (!productFileName.isEmpty())
+        QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
     QVERIFY(regularFileExists(buildGraphPath));
 }
 

@@ -254,8 +254,10 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     foreach (Item *child, item->children()) {
         child->setScope(projectContext.scope);
         if (child->typeName() == QLatin1String("Product")) {
-            foreach (Item * const additionalProductItem, multiplexProductItem(child))
+            foreach (Item * const additionalProductItem,
+                     multiplexProductItem(&dummyProductContext, child)) {
                 Item::addChild(item, additionalProductItem);
+            }
         }
     }
 
@@ -302,8 +304,10 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
         subItem->setParent(projectContext.item);
         additionalProjectChildren << qMakePair(subItem, absReferencePath);
         if (subItem->typeName() == QLatin1String("Product")) {
-            foreach (Item * const additionalProductItem, multiplexProductItem(subItem))
+            foreach (Item * const additionalProductItem,
+                     multiplexProductItem(&dummyProductContext, subItem)) {
                 additionalProjectChildren << qMakePair(additionalProductItem, absReferencePath);
+            }
         }
     }
     foreach (const ItemAndRefPath &irp, additionalProjectChildren) {
@@ -330,8 +334,16 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult, Item *item,
     m_reader->popExtraSearchPaths();
 }
 
-QList<Item *> ModuleLoader::multiplexProductItem(Item *productItem)
+QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, Item *productItem)
 {
+    // Temporarily attach the qbs module here, in case we need to access one of its properties
+    // to evaluate the profiles property.
+    const QString qbsKey = QLatin1String("qbs");
+    ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
+    if (qbsValue)
+        qbsValue = qbsValue->clone();
+    loadBaseModule(dummyContext, productItem);
+
     // Overriding the product item properties must be done here already, because otherwise
     // the "profiles" property would not be overridable.
     QString productName = m_evaluator->stringValue(productItem, QLatin1String("name"));
@@ -355,6 +367,14 @@ QList<Item *> ModuleLoader::multiplexProductItem(Item *productItem)
                     "which is not allowed.").arg(profileName), profilesValue->location());
         }
     }
+
+    // "Unload" the qbs module again.
+    if (qbsValue)
+        productItem->setProperty(qbsKey, qbsValue);
+    else
+        productItem->removeProperty(qbsKey);
+    productItem->modules().clear();
+    m_validItemPropertyNamesPerItem[productItem].clear();
 
     QList<Item *> additionalProductItems;
     const QString profileKey = QLatin1String("profile");
