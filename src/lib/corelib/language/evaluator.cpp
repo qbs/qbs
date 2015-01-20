@@ -219,5 +219,10 @@ QScriptValue Evaluator::fileScope(const FileContextConstPtr &file)
     return result;
 }
 
+void Evaluator::setCachingEnabled(bool enabled)
+{
+    m_scriptClass->setValueCacheEnabled(enabled);
+}
+
 } // namespace Internal
 } // namespace qbs

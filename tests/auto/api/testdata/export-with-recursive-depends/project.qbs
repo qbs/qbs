@@ -12,5 +12,4 @@ Project {
         Depends { name: "app1" }
         files: "main2.cpp"
     }
-    qbsSearchPaths: "qbs"
 }

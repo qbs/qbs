@@ -57,6 +57,7 @@ public:
     QScriptValue property(const QScriptValue &object,
                           const QScriptString &name, uint id);
 
+    void setValueCacheEnabled(bool enabled);
     QScriptValue scriptValueForBuiltin(BuiltinValue::Builtin builtin) const;
 
     static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
@@ -89,6 +90,7 @@ private:
     };
     QueryResult m_queryResult;
     Logger m_logger;
+    bool m_valueCacheEnabled;
     QScriptValue m_getNativeSettingBuiltin;
     QScriptValue m_getEnvBuiltin;
     QScriptValue m_canonicalArchitectureBuiltin;

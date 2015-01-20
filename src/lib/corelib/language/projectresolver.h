@@ -97,6 +97,10 @@ private:
 
     struct ExportsContext
     {
+        ExportsContext()
+            : item(0) {}
+
+        Item *item;
         QVariantMap moduleValues;
         QList<FileTaggerConstPtr> fileTaggers;
         QSet<RulePtr> rules;
@@ -126,11 +130,12 @@ private:
     void resolveProductDependencies(ProjectContext *projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
-    QVariantMap evaluateModuleValues(Item *item) const;
-    void evaluateModuleValues(Item *item, QVariantMap *modulesMap) const;
-    QVariantMap evaluateProperties(Item *item) const;
+    QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true) const;
+    void evaluateModuleValues(Item *item, QVariantMap *modulesMap,
+            bool lookupPrototype = true) const;
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype = true) const;
     QVariantMap evaluateProperties(Item *item, Item *propertiesContainer,
-            const QVariantMap &tmplt) const;
+            const QVariantMap &tmplt, bool lookupPrototype = true) const;
     QVariantMap createProductConfig() const;
     QString convertPathProperty(const QString &path, const QString &dirPath) const;
     QStringList convertPathListProperty(const QStringList &paths, const QString &dirPath) const;
