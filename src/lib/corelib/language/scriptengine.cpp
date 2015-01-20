@@ -78,7 +78,7 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 }
 
 ScriptEngine::ScriptEngine(const Logger &logger, QObject *parent)
-    : QScriptEngine(parent), m_logger(logger)
+    : QScriptEngine(parent), m_propertyCacheEnabled(true), m_logger(logger)
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
     m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));

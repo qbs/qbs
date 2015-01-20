@@ -411,7 +411,7 @@ void TestLanguage::exports()
         TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        QCOMPARE(products.count(), 8);
+        QCOMPARE(products.count(), 9);
         ResolvedProductPtr product;
         product = products.value("myapp");
         QVERIFY(product);
@@ -454,6 +454,14 @@ void TestLanguage::exports()
                                      << "modules" << "dummy" << "defines";
         propertyValue = getConfigProperty(product->moduleProperties->value(), propertyName);
         QCOMPARE(propertyValue.toStringList(), QStringList() << "ABC");
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                                                "productName").toString(), QString("myapp2"));
+
+        // Check whether we're returning incorrect cached values.
+        product = products.value("myapp3");
+        QVERIFY(product);
+        QCOMPARE(PropertyFinder().propertyValue(product->moduleProperties->value(), "dummy",
+                                                "productName").toString(), QString("myapp3"));
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;

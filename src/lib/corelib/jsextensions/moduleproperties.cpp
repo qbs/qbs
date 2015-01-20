@@ -125,8 +125,10 @@ QScriptValue ModuleProperties::moduleProperties(QScriptContext *context, QScript
     const QString moduleName = internalModuleName(context->argument(0).toString());
     const QString propertyName = context->argument(1).toString();
 
-    QVariant value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, oneValue,
-                                                          properties);
+    QVariant value;
+    if (qbsEngine->isPropertyCacheEnabled())
+        value = qbsEngine->retrieveFromPropertyCache(moduleName, propertyName, oneValue,
+                                                     properties);
     if (!value.isValid()) {
         if (oneValue)
             value = PropertyFinder().propertyValue(properties->value(), moduleName, propertyName);

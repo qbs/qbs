@@ -73,6 +73,7 @@ ProjectResolver::ProjectResolver(ModuleLoader *ldr, const BuiltinDeclarations *b
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(0)
+    , m_disableCachedEvaluation(false)
 {
 }
 
@@ -994,9 +995,9 @@ void ProjectResolver::resolveProductDependencies(ProjectContext *projectContext)
             productContext.product = usedProduct;
             m_productContext = &productContext;
             const ValuePerItem oldProducts = replaceProduct(exportItem, productItemValue);
-            m_evaluator->setCachingEnabled(false);
+            m_disableCachedEvaluation = true;
             QVariantMap exportedConfig = evaluateModuleValues(exportItem);
-            m_evaluator->setCachingEnabled(true);
+            m_disableCachedEvaluation = false;
             restoreOldProducts(oldProducts);
 
             // Re-evaluate direct properties of the Export item using the exporting product.
@@ -1112,7 +1113,21 @@ QVariantMap ProjectResolver::evaluateProperties(Item *item,
             {
                 break;
             }
+
+            bool cacheDisabled = false;
+            const JSSourceValuePtr srcValue = it.value().staticCast<JSSourceValue>();
+            if (m_disableCachedEvaluation && (pd.type() == PropertyDeclaration::Path
+                                || srcValue->sourceUsesProduct())) {
+                cacheDisabled = true;
+                m_evaluator->setCachingEnabled(false);
+                m_evaluator->engine()->setPropertyCacheEnabled(false);
+            }
+
             const QScriptValue scriptValue = m_evaluator->property(item, it.key());
+            if (cacheDisabled) {
+                m_evaluator->setCachingEnabled(true);
+                m_evaluator->engine()->setPropertyCacheEnabled(true);
+            }
             if (Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue)))
                 throw ErrorInfo(scriptValue.toString(), it.value()->location());
 

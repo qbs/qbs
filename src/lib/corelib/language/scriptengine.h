@@ -77,6 +77,8 @@ public:
         return m_propertiesRequestedFromArtifact;
     }
 
+    void setPropertyCacheEnabled(bool enable) { m_propertyCacheEnabled = enable; }
+    bool isPropertyCacheEnabled() const { return m_propertyCacheEnabled; }
     void addToPropertyCache(const QString &moduleName, const QString &propertyName,
             bool oneValue, const PropertyMapConstPtr &propertyMap, const QVariant &value);
     QVariant retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
@@ -154,6 +156,7 @@ private:
 
     ScriptValueCache m_scriptValueCache;
     QHash<QString, QScriptValue> m_jsImportCache;
+    bool m_propertyCacheEnabled;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertyList m_propertiesRequestedInScript;
     QHash<QString, PropertyList> m_propertiesRequestedFromArtifact;

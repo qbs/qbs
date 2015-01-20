@@ -136,6 +136,7 @@ private:
     ProgressObserver *m_progressObserver;
     ProductContext *m_productContext;
     ModuleContext *m_moduleContext;
+    bool m_disableCachedEvaluation;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;

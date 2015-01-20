@@ -83,7 +83,8 @@ class JSSourceValue : public Value
         NoFlags = 0x00,
         SourceUsesBase = 0x01,
         SourceUsesOuter = 0x02,
-        HasFunctionForm = 0x04
+        SourceUsesProduct = 0x04,
+        HasFunctionForm = 0x08
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -108,6 +109,7 @@ public:
 
     bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
     bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
+    bool sourceUsesProduct() const { return m_flags.testFlag(SourceUsesProduct); }
     bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
     void setHasFunctionForm(bool b);
 
