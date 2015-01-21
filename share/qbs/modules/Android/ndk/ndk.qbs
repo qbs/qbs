@@ -183,7 +183,7 @@ Module {
         prepare: {
             var stlFilePath = ModUtils.moduleProperty(product, "sharedStlFilePath");
             var copyCmd = new JavaScriptCommand();
-            copyCmd.description = "Copying native library and depencencies";
+            copyCmd.description = "Copying native library and dependencies";
             copyCmd.stlFilePath = stlFilePath;
             copyCmd.sourceCode = function() {
                 File.copy(inputs["dynamiclibrary"][0].filePath,
