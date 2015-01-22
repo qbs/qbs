@@ -77,10 +77,9 @@ CppModule {
         id: dynamicLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
-        outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy",
-                         "framework_copy", "debuginfo"]
+        outputFileTags: ["dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_copy", "debuginfo"]
         outputArtifacts: {
             var lib = {
                 filePath: product.destinationDirectory + "/"
@@ -96,13 +95,6 @@ CppModule {
                 cpp: { transitiveSOs: Gcc.collectTransitiveSos(inputs) }
             };
             var artifacts = [lib, libCopy];
-
-            if (product.moduleProperty("bundle", "isBundle")) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory, ".socopy", product.moduleProperty("bundle", "bundleName")),
-                    fileTags: ["framework_copy"]
-                });
-            }
 
             if (ModUtils.moduleProperty(product, "shouldCreateSymlinks") && !product.moduleProperty("bundle", "isBundle")) {
                 for (var i = 0; i < 3; ++i) {
@@ -180,7 +172,7 @@ CppModule {
                 tags.push("infoplist");
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_copy", "framework_copy", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_copy", "staticlibrary"]
 
         outputFileTags: ["application", "debuginfo"]
         outputArtifacts: {

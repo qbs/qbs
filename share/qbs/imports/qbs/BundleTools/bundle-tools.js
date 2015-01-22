@@ -20,7 +20,6 @@ function localizedResourcesFolderPath(product, key) {
     return FileInfo.joinPaths(product.moduleProperty("bundle", "unlocalizedResourcesFolderPath"), key + product.moduleProperty("bundle", "localizedResourcesFolderSuffix"));
 }
 
-// duplicated in gcc.js
 function frameworkSymlinkCreateCommands(bundlePath, targetName, frameworkVersion) {
     var cmd, commands = [];
 

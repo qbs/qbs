@@ -2,39 +2,6 @@ var BundleTools = loadExtension("qbs.BundleTools");
 var File = loadExtension("qbs.File");
 var WindowsUtils = loadExtension("qbs.WindowsUtils");
 
-// duplicated from bundle-tools.js
-// otherwise, "Can't find variable: JavaScriptCommand"
-function frameworkSymlinkCreateCommands(bundlePath, targetName, frameworkVersion) {
-    var cmd, commands = [];
-
-    cmd = new Command("ln", ["-sfn", frameworkVersion, "Current"]);
-    cmd.workingDirectory = FileInfo.joinPaths(bundlePath, "Versions");
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", "Versions/Current/Headers", "Headers"]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", "Versions/Current/PrivateHeaders", "PrivateHeaders"]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sfn", "Versions/Current/Resources", "Resources"]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    cmd = new Command("ln", ["-sf", FileInfo.joinPaths("Versions", "Current", targetName), targetName]);
-    cmd.workingDirectory = bundlePath;
-    cmd.silent = true;
-    commands.push(cmd);
-
-    return commands;
-}
-
 function linkerFlags(product, inputs) {
     var libraryPaths = ModUtils.moduleProperties(product, 'libraryPaths');
     var dynamicLibraries = ModUtils.moduleProperties(product, "dynamicLibraries");
@@ -52,7 +19,6 @@ function linkerFlags(product, inputs) {
     // Add filenames of internal library dependencies to the lists
     staticLibraries = concatLibsFromArtifacts(staticLibraries, inputs.staticlibrary);
     dynamicLibraries = concatLibsFromArtifacts(dynamicLibraries, inputs.dynamiclibrary_copy);
-    frameworks = concatLibsFromArtifacts(frameworks, inputs.frameworkbundle);
 
     // Flags for library search paths
     if (libraryPaths)
@@ -594,17 +560,6 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             }
         }
         commands.push(cmd);
-
-        // Create framework structure for the copied library
-        // Is this a framework? Create structure
-        var libCopy = outputs.dynamiclibrary_copy[0];
-        var fmwkCopy = (outputs.framework_copy || {})[0];
-        if (fmwkCopy && product.moduleProperty("bundle", "isBundle")) {
-            var ver = product.moduleProperty("bundle", "frameworkVersion");
-            commands = commands.concat(frameworkSymlinkCreateCommands(fmwkCopy.filePath,
-                                                                      libCopy.fileName,
-                                                                      ver));
-        }
 
         // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
         var links = outputs["dynamiclibrary_symlink"];
